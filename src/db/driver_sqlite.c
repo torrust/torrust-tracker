@@ -14,7 +14,7 @@ struct dbConnection
 
 static const char hexadecimal[] = "0123456789abcdef";
 
-static void _to_hex_str (uint8_t hash[20], char *data)
+static void _to_hex_str (const uint8_t *hash, char *data)
 {
 	int i;
 	for (i = 0;i < 20;i++)
@@ -30,7 +30,7 @@ static int _db_make_torrent_table (sqlite3 *db, char *hash)
 	char sql [2000];
 	sql[0] = '\0';
 
-	strcat(sql, "CREATE TABLE IF NOT EXISTS '");
+	strcat(sql, "CREATE TABLE IF NOT EXISTS 't");
 	strcat(sql, hash);
 	strcat (sql, "' (");
 
@@ -40,14 +40,14 @@ static int _db_make_torrent_table (sqlite3 *db, char *hash)
 			"uploaded blob(8)," // uint64
 			"downloaded blob(8),"
 			"left blob(8),"
-			"last_seen INTEGER(8)");
+			"last_seen INT DEFAULT 0");
 
 	strcat(sql, ")");
 
 	// create table.
 	char *err_msg;
 	int r = sqlite3_exec(db, sql, NULL, NULL, &err_msg);
-	printf("E:%s\n", err_msg);
+//	printf("E:%s\n", err_msg);
 
 	return r;
 }
@@ -55,10 +55,11 @@ static int _db_make_torrent_table (sqlite3 *db, char *hash)
 static void _db_setup (sqlite3 *db)
 {
 	sqlite3_exec(db, "CREATE TABLE stats ("
-			"info_hash blob(20),"
+			"info_hash blob(20) UNIQUE,"
 			"completed INTEGER DEFAULT 0,"
 			"leechers INTEGER DEFAULT 0,"
-			"seeders INTEGER DEFAULT 0"
+			"seeders INTEGER DEFAULT 0,"
+			"last_mod INTEGER DEFAULT 0"
 			")", NULL, NULL, NULL);
 }
 
@@ -101,22 +102,31 @@ int db_add_peer (dbConnection *db, uint8_t info_hash[20], db_peerEntry *pE)
 
 	char sql [1000];
 	sql[0] = '\0';
-	strcat(sql, "REPLACE INTO '");
+	strcat(sql, "REPLACE INTO 't");
 	strcat(sql, hash);
 	strcat(sql, "' (peer_id,ip,port,uploaded,downloaded,left,last_seen) VALUES (?,?,?,?,?,?,?)");
 
+//	printf("IP->%x::%u\n", pE->ip, pE->port);
+
 	sqlite3_prepare(db->db, sql, -1, &stmt, NULL);
 
-	sqlite3_bind_blob(stmt, 1, pE->peer_id, 20, NULL);
-	sqlite3_bind_blob(stmt, 2, &pE->ip, 4, NULL);
-	sqlite3_bind_blob(stmt, 3, &pE->port, 2, NULL);
-	sqlite3_bind_blob(stmt, 4, &pE->uploaded, 8, NULL);
-	sqlite3_bind_blob(stmt, 5, &pE->downloaded, 8, NULL);
-	sqlite3_bind_blob(stmt, 6, &pE->left, 8, NULL);
-	sqlite3_bind_int64(stmt, 7, time(NULL));
+	sqlite3_bind_blob(stmt, 1, (void*)pE->peer_id, 20, NULL);
+	sqlite3_bind_blob(stmt, 2, (void*)&pE->ip, 4, NULL);
+	sqlite3_bind_blob(stmt, 3, (void*)&pE->port, 2, NULL);
+	sqlite3_bind_blob(stmt, 4, (void*)&pE->uploaded, 8, NULL);
+	sqlite3_bind_blob(stmt, 5, (void*)&pE->downloaded, 8, NULL);
+	sqlite3_bind_blob(stmt, 6, (void*)&pE->left, 8, NULL);
+	sqlite3_bind_int(stmt, 7, time(NULL));
 
 	int r = sqlite3_step(stmt);
 	sqlite3_finalize(stmt);
+
+	strcpy(sql, "REPLACE INTO stats (info_hash,last_mod) VALUES (?,?)");
+	sqlite3_prepare (db->db, sql, -1, &stmt, NULL);
+	sqlite3_bind_blob (stmt, 1, hash, 20, NULL);
+	sqlite3_bind_int (stmt, 2, time(NULL));
+	sqlite3_step (stmt);
+	sqlite3_finalize (stmt);
 
 	return r;
 }
@@ -129,7 +139,7 @@ int db_load_peers (dbConnection *db, uint8_t info_hash[20], db_peerEntry **lst, 
 	char hash [50];
 	_to_hex_str(info_hash, hash);
 
-	strcat(sql, "SELECT ip,port FROM '");
+	strcat(sql, "SELECT ip,port FROM 't");
 	strcat(sql, hash);
 	strcat(sql, "' LIMIT ?");
 
@@ -145,8 +155,12 @@ int db_load_peers (dbConnection *db, uint8_t info_hash[20], db_peerEntry **lst, 
 		r = sqlite3_step(stmt);
 		if (r == SQLITE_ROW)
 		{
-			lst[i]->ip = sqlite3_column_int(stmt, 0);
-			lst[i]->port = sqlite3_column_int(stmt, 1);
+			const void *ip = sqlite3_column_blob (stmt, 0);
+			const void *port = sqlite3_column_blob (stmt, 1);
+
+			memcpy(&lst[i]->ip, ip, 4);
+			memcpy(&lst[i]->port, port, 2);
+
 			i++;
 		}
 		else
@@ -162,16 +176,113 @@ int db_load_peers (dbConnection *db, uint8_t info_hash[20], db_peerEntry **lst, 
 
 int db_get_stats (dbConnection *db, uint8_t hash[20], uint32_t *seeders, uint32_t *leechers, uint32_t *completed)
 {
+	*seeders = 0;
+	*leechers = 0;
+	*completed = 0;
 
+	const char sql[] = "SELECT seeders,leechers,completed FROM 'stats' WHERE info_hash=?";
+
+	sqlite3_stmt *stmt;
+	sqlite3_prepare (db->db, sql, -1, &stmt, NULL);
+	sqlite3_bind_blob (stmt, 1, (void*)hash, 20, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		*seeders = sqlite3_column_int (stmt, 0);
+		*leechers = sqlite3_column_int (stmt, 1);
+		*completed = sqlite3_column_int (stmt, 2);
+	}
+
+	sqlite3_finalize (stmt);
 
 	return 0;
 }
 
 int db_cleanup (dbConnection *db)
 {
+	return 0;	// TODO: Fix problems and than allow use of this function.
 	printf("Cleanup...\n");
 
 	sqlite3_stmt *stmt;
+
+	int timeframe = time(NULL);
+
+	// remove "dead" torrents (non-active for two hours).
+	const char sql[] = "SELECT info_hash FROM stats WHERE last_mod<?";
+	sqlite3_prepare (db->db, sql, -1, &stmt, NULL);
+	sqlite3_bind_int (stmt, 1, timeframe - 7200);
+	char hash [50], temp [1000];
+
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		_to_hex_str(sqlite3_column_blob(stmt, 0), hash);
+
+		// drop table:
+		strcpy(temp, "DROP TABLE IF EXISTS 't");
+		strcat(temp, hash);
+		strcat(temp, "'");
+		sqlite3_exec(db->db, temp, NULL, NULL, NULL);
+	}
+	sqlite3_finalize (stmt);
+
+	// update 'dead' torrents
+	sqlite3_prepare(db->db, "UPDATE stats SET seeders=0,leechers=0 WHERE last_mod<?", -1, &stmt, NULL);
+	sqlite3_bind_int (stmt, 1, timeframe - 7200);
+	sqlite3_step (stmt);
+	sqlite3_finalize (stmt);
+
+	// update regular torrents.
+	sqlite3_prepare(db->db, "SELECT info_hash FROM stats WHERE last_mod>=?", -1, &stmt, NULL);
+	sqlite3_bind_int (stmt, 1, timeframe - 7200);
+
+	uint32_t leechers, seeders;
+	sqlite3_stmt *sTmp, *uStat;
+
+	sqlite3_prepare (db->db, "UPDATE stats SET seeders=?,leechers=?,last_mod=? WHERE info_hash=?", -1, &uStat, NULL);
+
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		uint8_t *binHash = sqlite3_column_blob(stmt, 0);
+		_to_hex_str (binHash, hash);
+
+		// total users...
+		strcpy (temp, "SELECT COUNT(*) FROM 't");
+		strcat (temp, hash);
+		strcat (temp, "'");
+
+		sqlite3_prepare (db->db, temp, -1, &sTmp, NULL);
+		if (sqlite3_step(sTmp) == SQLITE_ROW)
+		{
+			leechers = sqlite3_column_int (sTmp, 0);
+		}
+		sqlite3_finalize (sTmp);
+
+		// seeders...
+		strcpy (temp, "SELECT COUNT(*) FROM 't");
+		strcat (temp, hash);
+		strcat (temp, "' WHERE left=0");
+
+		sqlite3_prepare (db->db, temp, -1, &sTmp, NULL);
+		if (sqlite3_step(sTmp) == SQLITE_ROW)
+		{
+			seeders = sqlite3_column_int (sTmp, 0);
+		}
+		sqlite3_finalize (sTmp);
+
+		leechers -= seeders;
+
+		sqlite3_bind_int (uStat, 1, seeders);
+		sqlite3_bind_int (uStat, 2, leechers);
+		sqlite3_bind_int (uStat, 3, timeframe);
+		sqlite3_bind_blob (uStat, 4, binHash, 20, NULL);
+		sqlite3_step (uStat);
+		sqlite3_reset (uStat);
+
+		printf("%s: %d seeds/%d leechers;\n", hash, seeders, leechers);
+	}
+	sqlite3_finalize (stmt);
+
+	sqlite3_finalize (stmt);
 
 	return 0;
 }

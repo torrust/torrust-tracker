@@ -1,6 +1,4 @@
 
-//#include <winsock2.h>
-//#include <windows.h>
 #include "multiplatform.h"
 #include "udpTracker.h"
 #include "tools.h"
@@ -10,18 +8,21 @@
 #include <stdio.h>
 
 #define FLAG_RUNNING		0x01
-#define UDP_BUFFER_SIZE		256
+#define UDP_BUFFER_SIZE		2048
+#define CLEANUP_INTERVAL	20
 
 #ifdef WIN32
 static DWORD _thread_start (LPVOID arg);
+static DWORD _maintainance_start (LPVOID arg);
 #elif defined (linux)
 static void* _thread_start (void *arg);
+static void* _maintainance_start (void *arg);
 #endif
 
 void UDPTracker_init (udpServerInstance *usi, uint16_t port, uint8_t threads)
 {
 	usi->port = port;
-	usi->thread_count = threads;
+	usi->thread_count = threads + 1;
 	usi->threads = malloc (sizeof(HANDLE) * threads);
 	usi->flags = 0;
 }
@@ -47,7 +48,7 @@ int UDPTracker_start (udpServerInstance *usi)
 	recvAddr.sin_addr.s_addr = 0L;
 #endif
 	recvAddr.sin_family = AF_INET;
-	recvAddr.sin_port = htons (usi->port);
+	recvAddr.sin_port = m_hton16 (usi->port);
 
 	int yup = 1;
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yup, 1);
@@ -71,6 +72,14 @@ int UDPTracker_start (udpServerInstance *usi)
 
 	usi->flags |= FLAG_RUNNING;
 	int i;
+
+	// create maintainer thread.
+#ifdef WIN32
+		usi->threads[0] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_maintainance_start, (LPVOID)usi, 0, NULL);
+#elif defined (linux)
+		pthread_create (&usi->threads[0], NULL, _maintainance_start, usi);
+#endif
+
 	for (i = 0;i < usi->thread_count; i++)
 	{
 		printf("Starting Thread %d of %u\n", (i + 1), usi->thread_count);
@@ -101,7 +110,7 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 static int _send_error (udpServerInstance *usi, SOCKADDR_IN *remote, uint32_t transactionID, char *msg)
 {
 	struct udp_error_response error;
-	error.action = htonl(3);
+	error.action = m_hton32 (3);
 	error.transaction_id = transactionID;
 	error.message = msg;
 
@@ -127,13 +136,11 @@ static int _handle_connection (udpServerInstance *usi, SOCKADDR_IN *remote, char
 	ConnectionRequest *req = (ConnectionRequest*)data;
 
 	ConnectionResponse resp;
-	resp.action = htonl(0);
+	resp.action = m_hton32(0);
 	resp.transaction_id = req->transaction_id;
 	resp.connection_id = _get_connID(remote);
 
-	int r = sendto(usi->sock, (char*)&resp, sizeof(ConnectionResponse), 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
-
-	printf("_h_c=%d\n", r);
+	sendto(usi->sock, (char*)&resp, sizeof(ConnectionResponse), 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
 	return 0;
 }
@@ -144,84 +151,116 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 
 	if (req->connection_id != _get_connID(remote))
 	{
-		printf("ConnID mismatch.\n");
 		return 1;
 	}
 
-	db_peerEntry pE;
-	pE.downloaded = req->downloaded;
-	pE.uploaded = req->uploaded;
-	pE.left = req->left;
-	pE.peer_id = req->peer_id;
-	pE.ip = req->ip_address;
-	pE.port = req->port;
+	// change byte order:
+	req->port = m_hton16 (req->port);
+	req->ip_address = m_hton32 (req->ip_address);
+	req->downloaded = m_hton64 (req->downloaded);
+	req->event = m_hton32 (req->event);	// doesn't really matter for this tracker
+	req->uploaded = m_hton64 (req->uploaded);
+	req->num_want = m_hton32 (req->num_want);
+	req->left = m_hton64 (req->left);
 
-	db_add_peer(usi->conn, req->info_hash,  &pE);
 
-
-//	_send_error(usi, remote, req->transaction_id, "Not Implemented :-(.");
-
+	// load peers
 	int q = 30;
 	if (req->num_want >= 1)
 		q = min (q, req->num_want);
 
 	db_peerEntry *peers = malloc (sizeof(db_peerEntry) * q);
+
 	db_load_peers(usi->conn, req->info_hash, &peers, &q);
-	printf("%d peers found.\n", q);
+//	printf("%d peers found.\n", q);
 
 	int bSize = 20; // header is 20 bytes
 	bSize += (6 * q); // + 6 bytes per peer.
 
-	uint8_t buff [bSize];
+	uint32_t seeders, leechers, completed;
+	db_get_stats (usi->conn, req->info_hash, &seeders, &leechers, &completed);
 
+	uint8_t buff [bSize];
 	AnnounceResponse *resp = (AnnounceResponse*)buff;
-	resp->action = htonl(1);
-	resp->interval = htonl ( 1800 );
-	resp->leechers = htonl( 1);
-	resp->seeders = 0;
+	resp->action = m_hton32(1);
+	resp->interval = m_hton32 ( 1800 );
+	resp->leechers = m_hton32(leechers);
+	resp->seeders = m_hton32 (seeders);
 	resp->transaction_id = req->transaction_id;
 
 	int i;
-
 	for (i = 0;i < q;i++)
 	{
 		int x = i * 6;
 		// network byte order!!!
+
+		// IP
 		buff[20 + x] = ((peers[i].ip & (0xff << 24)) >> 24);
 		buff[21 + x] = ((peers[i].ip & (0xff << 16)) >> 16);
 		buff[22 + x] = ((peers[i].ip & (0xff << 8)) >> 8);
 		buff[23 + x] = (peers[i].ip & 0xff);
 
+		// port
 		buff[24 + x] = ((peers[i].port & (0xff << 8)) >> 8);
 		buff[25 + x] = (peers[i].port & 0xff);
 
-		printf("%u.%u.%u.%u:%u\n", buff[20 + x], buff[21 + x], buff[22 + x], buff[23 + x], peers[i].port);
+//		printf("%u.%u.%u.%u:%u\n", buff[20 + x], buff[21 + x], buff[22 + x], buff[23 + x], peers[i].port);
 	}
-
 	free (peers);
+	sendto(usi->sock, (char*)buff, bSize, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
-	return sendto(usi->sock, (char*)buff, bSize, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
+	// Add peer to list:
+	db_peerEntry pE;
+	pE.downloaded = req->downloaded;
+	pE.uploaded = req->uploaded;
+	pE.left = req->left;
+	pE.peer_id = req->peer_id;
+	if (req->ip_address == 0) // default
+	{
+		pE.ip = m_hton32 (remote->sin_addr.s_addr);
+	}
+	else
+	{
+		pE.ip = req->ip_address;
+	}
+	pE.port = req->port;
+	db_add_peer(usi->conn, req->info_hash,  &pE);
+
+	return 0;
 }
 
-// returns 1 if connection request. returns 2 if announce. returns 3 if scrape.
-static int _resolve_request (udpServerInstance *usi, SOCKADDR_IN *remote, char *data)
+static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *data, int len)
+{
+	ScrapeRequest *sR = (ScrapeRequest*)data;
+
+	_send_error (usi, remote, sR->transaction_id, "Scrape wasn't implemented yet!");
+
+	return 0;
+}
+
+static int _resolve_request (udpServerInstance *usi, SOCKADDR_IN *remote, char *data, int r)
 {
 	ConnectionRequest *cR;
 	cR = (ConnectionRequest*)data;
 
-	uint32_t action = htonl(cR->action);
+	uint32_t action = m_hton32(cR->action);
 
-	printf("ACTION=%d\n", action);
+//	printf(":: %x:%u ACTION=%d\n", remote->sin_addr.s_addr , remote->sin_port, action);
 
-	if (action == 0)
+	if (action == 0 && r >= 16)
 		return _handle_connection(usi, remote, data);
-	else if (action == 1)
+	else if (action == 1 && r >= 98)
 		return _handle_announce(usi, remote, data);
+	else if (action == 2)
+		return _handle_scrape (usi, remote, data, r);
 	else
 	{
-		_send_error(usi, remote, cR->transaction_id, "Method not implemented.");
+		printf("E: action=%d; r=%d\n", action, r);
+		_send_error(usi, remote, cR->transaction_id, "Tracker couldn't understand Client's request.");
 		return -1;
 	}
+
+	return 0;
 }
 
 #ifdef WIN32
@@ -243,12 +282,36 @@ static void* _thread_start (void *arg)
 		fflush(stdout);
 		// peek into the first 12 bytes of data; determine if connection request or announce request.
 		r = recvfrom(usi->sock, tmpBuff, UDP_BUFFER_SIZE, 0, (SOCKADDR*)&remoteAddr, (unsigned*)&addrSz);
-		printf("RECV:%d\n", r);
-		r = _resolve_request(usi, &remoteAddr, tmpBuff);
-		printf("R=%d\n", r);
+//		printf("RECV:%d\n", r);
+		r = _resolve_request(usi, &remoteAddr, tmpBuff, r);
+//		printf("R=%d\n", r);
 	}
 
 	free (tmpBuff);
+
+	return 0;
+}
+
+#ifdef WIN32
+static DWORD _maintainance_start (LPVOID arg);
+#elif defined (linux)
+static void* _maintainance_start (void *arg)
+#endif
+{
+	udpServerInstance *usi = (udpServerInstance *)arg;
+
+	while ((usi->flags & FLAG_RUNNING) > 0)
+	{
+		db_cleanup (usi->conn);
+
+#ifdef WIN32
+		Sleep (CLEANUP_INTERVAL * 1000);	// wait 2 minutes between every cleanup.
+#elif defined (linux)
+		sleep (CLEANUP_INTERVAL);
+#else
+#error Unsupported OS.
+#endif
+	}
 
 	return 0;
 }

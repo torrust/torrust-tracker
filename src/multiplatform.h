@@ -4,6 +4,7 @@
 #ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
+#define VERSION "1.0.0 (Windows)"
 #elif defined (linux)
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -28,6 +29,6 @@ typedef pthread_t HANDLE;
 //#define IPPROTO_UDP 0 // no protocol set.. SOCK_DGRAM is enough.
 
 #define min(a,b) (a > b ? b : a)
-
+#define VERSION "1.0.0 (Linux)"
 #endif
 

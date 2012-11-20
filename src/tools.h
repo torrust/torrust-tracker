@@ -10,7 +10,16 @@
 
 #include <stdint.h>
 
-#define m_hton16(n) htons(n)
+/**
+ * Swaps Bytes:
+ * example (htons):
+ * 	short a = 1234;
+ * 	short b;
+ * 	m_byteswap (&b, &a, sizeof(a));
+ */
+void m_byteswap (void *dest, void *src, int sz);
+
+uint16_t m_hton16(uint16_t n);
 
 uint32_t m_hton32 (uint32_t n);
 

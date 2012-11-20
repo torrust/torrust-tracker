@@ -11,8 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include <winsock2.h>
-//#include <windows.h>
 #include "multiplatform.h"
 
 #include "udpTracker.h"
@@ -22,8 +20,7 @@
 
 int main(void)
 {
-
-	printf("UDP BitTorrentTracker\t\tCopyright: (C) 2012 Naim Abda.\n\n");
+	printf("UDP BitTorrentTracker %s\t\tCopyright: (C) 2012 Naim Abda.\n\n", VERSION);
 
 #ifdef WIN32
 	WSADATA wsadata;
@@ -39,14 +36,12 @@ int main(void)
 		return 1;
 	}
 
-//	system("pause");
-	printf("Press Any key to exit...\n");
-	int i;
-	for (i = 0;i < usi.thread_count;i++)
-		pthread_join (usi.threads[i], NULL);
-	printf("\n");
+	printf("Press Any key to exit.\n");
 
-//	UDPTracker_destroy(&usi);
+	getchar ();
+
+	printf("\nGoodbye.\n");
+	UDPTracker_destroy(&usi);
 
 #ifdef WIN32
 	WSACleanup();
