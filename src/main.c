@@ -39,10 +39,14 @@ int main(void)
 		return 1;
 	}
 
-	system("pause");
+//	system("pause");
+	printf("Press Any key to exit...\n");
+	int i;
+	for (i = 0;i < usi.thread_count;i++)
+		pthread_join (usi.threads[i], NULL);
 	printf("\n");
 
-	UDPTracker_destroy(&usi);
+//	UDPTracker_destroy(&usi);
 
 #ifdef WIN32
 	WSACleanup();

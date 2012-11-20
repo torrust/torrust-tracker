@@ -1,17 +1,22 @@
 
-#include <winsock2.h>
-#include <windows.h>
+//#include <winsock2.h>
+//#include <windows.h>
+#include "multiplatform.h"
 #include "udpTracker.h"
 #include "tools.h"
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include <stdio.h>
-#include <winerror.h>
 
-#define FLAG_RUNNING	0x01
-#define UDP_BUFFER_SIZE	256
+#define FLAG_RUNNING		0x01
+#define UDP_BUFFER_SIZE		256
 
-static DWORD _thread_start (LPVOID);
+#ifdef WIN32
+static DWORD _thread_start (LPVOID arg);
+#elif defined (linux)
+static void* _thread_start (void *arg);
+#endif
 
 void UDPTracker_init (udpServerInstance *usi, uint16_t port, uint8_t threads)
 {
@@ -36,19 +41,26 @@ int UDPTracker_start (udpServerInstance *usi)
 	int r;
 
 	SOCKADDR_IN recvAddr;
-
+#ifdef WIN32
 	recvAddr.sin_addr.S_un.S_addr = 0L;
+#elif defined (linux)
+	recvAddr.sin_addr.s_addr = 0L;
+#endif
 	recvAddr.sin_family = AF_INET;
 	recvAddr.sin_port = htons (usi->port);
 
-	BOOL yup = TRUE;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yup, sizeof(BOOL));
+	int yup = 1;
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yup, 1);
 
 	r = bind (sock, (SOCKADDR*)&recvAddr, sizeof(SOCKADDR_IN));
 
 	if (r == SOCKET_ERROR)
 	{
+#ifdef WIN32
 		closesocket (sock);
+#elif defined (linux)
+		close (sock);
+#endif
 		return 2;
 	}
 
@@ -62,7 +74,11 @@ int UDPTracker_start (udpServerInstance *usi)
 	for (i = 0;i < usi->thread_count; i++)
 	{
 		printf("Starting Thread %d of %u\n", (i + 1), usi->thread_count);
+#ifdef WIN32
 		usi->threads[i] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_thread_start, (LPVOID)usi, 0, NULL);
+#elif defined (linux)
+		pthread_create (&usi->threads[i], NULL, _thread_start, usi);
+#endif
 	}
 
 	return 0;
@@ -74,7 +90,11 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 	base /= 3600;		// changes every day.
 
 	uint64_t x = base;
+#ifdef WIN32
 	x += remote->sin_addr.S_un.S_addr;
+#elif defined (linux)
+	x += remote->sin_addr.s_addr;
+#endif
 	return x;
 }
 
@@ -204,7 +224,11 @@ static int _resolve_request (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 	}
 }
 
+#ifdef WIN32
 static DWORD _thread_start (LPVOID arg)
+#elif defined (linux)
+static void* _thread_start (void *arg)
+#endif
 {
 	udpServerInstance *usi = arg;
 
@@ -218,7 +242,7 @@ static DWORD _thread_start (LPVOID arg)
 	{
 		fflush(stdout);
 		// peek into the first 12 bytes of data; determine if connection request or announce request.
-		r = recvfrom(usi->sock, tmpBuff, UDP_BUFFER_SIZE, 0, (SOCKADDR*)&remoteAddr, &addrSz);
+		r = recvfrom(usi->sock, tmpBuff, UDP_BUFFER_SIZE, 0, (SOCKADDR*)&remoteAddr, (unsigned*)&addrSz);
 		printf("RECV:%d\n", r);
 		r = _resolve_request(usi, &remoteAddr, tmpBuff);
 		printf("R=%d\n", r);

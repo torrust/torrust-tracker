@@ -1,5 +1,5 @@
 #include "database.h"
-
+#include "../multiplatform.h"
 #include <sqlite3.h>
 #include <stdlib.h>
 #include <string.h>
