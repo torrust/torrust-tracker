@@ -281,7 +281,7 @@ static void* _thread_start (void *arg)
 	{
 		fflush(stdout);
 		// peek into the first 12 bytes of data; determine if connection request or announce request.
-		r = recvfrom(usi->sock, tmpBuff, UDP_BUFFER_SIZE, 0, (SOCKADDR*)&remoteAddr, (unsigned*)&addrSz);
+		r = recvfrom(usi->sock, tmpBuff, UDP_BUFFER_SIZE, 0, (SOCKADDR*)&remoteAddr, &addrSz);
 //		printf("RECV:%d\n", r);
 		r = _resolve_request(usi, &remoteAddr, tmpBuff, r);
 //		printf("R=%d\n", r);
@@ -293,7 +293,7 @@ static void* _thread_start (void *arg)
 }
 
 #ifdef WIN32
-static DWORD _maintainance_start (LPVOID arg);
+static DWORD _maintainance_start (LPVOID arg)
 #elif defined (linux)
 static void* _maintainance_start (void *arg)
 #endif
