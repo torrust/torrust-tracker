@@ -145,6 +145,30 @@ static int _handle_connection (udpServerInstance *usi, SOCKADDR_IN *remote, char
 	return 0;
 }
 
+static int _is_good_peer (uint32_t ip, uint16_t port)
+{
+	SOCKADDR_IN addr;
+	addr.sin_family = AF_INET;
+#ifdef WIN32
+	addr.sin_addr.S_un.S_addr = htonl( ip );
+#elif defined (linux)
+	addr.sin_addr.s_addr = htonl( ip );
+#endif
+	addr.sin_port = htons (port);
+
+	SOCKET cli = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (cli == INVALID_SOCKET)
+		return 1;
+	if (connect(cli, (SOCKADDR*)&addr, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
+	{
+		closesocket (cli);
+		return 1;
+	}
+	printf ("Client Verified.\n");
+	closesocket (cli);
+	return 0;
+}
+
 static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *data)
 {
 	AnnounceRequest *req = (AnnounceRequest*)data;
@@ -162,20 +186,36 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 	req->uploaded = m_hton64 (req->uploaded);
 	req->num_want = m_hton32 (req->num_want);
 	req->left = m_hton64 (req->left);
+	if (req->ip_address == 0) // default
+	{
+		req->ip_address = m_hton32 (remote->sin_addr.s_addr);
+	}
 
+//	if (_is_good_peer(req->ip_address, req->port) != 0)
+//	{
+//		_send_error (usi, remote, req->transaction_id, "Couldn't verify your client.");
+//		return 0;
+//	}
 
 	// load peers
 	int q = 30;
 	if (req->num_want >= 1)
 		q = min (q, req->num_want);
 
-	db_peerEntry *peers = malloc (sizeof(db_peerEntry) * q);
-
-	db_load_peers(usi->conn, req->info_hash, &peers, &q);
-//	printf("%d peers found.\n", q);
-
+	db_peerEntry *peers = NULL;
 	int bSize = 20; // header is 20 bytes
-	bSize += (6 * q); // + 6 bytes per peer.
+
+	if (req->event == 3) // stopped; they don't need anymore peers!
+	{
+		q = 0; // don't need any peers!
+	}
+	else
+	{
+		peers = malloc (sizeof(db_peerEntry) * q);
+		db_load_peers(usi->conn, req->info_hash, peers, &q);
+	}
+
+	bSize += (6 * q); // + 6 bytes per peer (ip->4, port->2).
 
 	uint32_t seeders, leechers, completed;
 	db_get_stats (usi->conn, req->info_hash, &seeders, &leechers, &completed);
@@ -206,8 +246,12 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 
 //		printf("%u.%u.%u.%u:%u\n", buff[20 + x], buff[21 + x], buff[22 + x], buff[23 + x], peers[i].port);
 	}
-	free (peers);
+
+	if (peers != NULL)
+		free (peers);
+
 	sendto(usi->sock, (char*)buff, bSize, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
+
 
 	// Add peer to list:
 	db_peerEntry pE;
@@ -215,15 +259,16 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 	pE.uploaded = req->uploaded;
 	pE.left = req->left;
 	pE.peer_id = req->peer_id;
-	if (req->ip_address == 0) // default
-	{
-		pE.ip = m_hton32 (remote->sin_addr.s_addr);
-	}
-	else
-	{
-		pE.ip = req->ip_address;
-	}
+	pE.ip = req->ip_address;
 	pE.port = req->port;
+
+	if (req->event == 3) // stopped
+	{
+		// just remove client from swarm, and return empty peer list...
+		db_remove_peer(usi->conn, req->info_hash, &pE);
+		return 0;
+	}
+
 	db_add_peer(usi->conn, req->info_hash,  &pE);
 
 	return 0;
@@ -233,7 +278,14 @@ static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *da
 {
 	ScrapeRequest *sR = (ScrapeRequest*)data;
 
-	_send_error (usi, remote, sR->transaction_id, "Scrape wasn't implemented yet!");
+//	_send_error (usi, remote, sR->transaction_id, "Scrape wasn't implemented yet!");
+
+	ScrapeResponse resp;
+	resp.resp_part = NULL;
+	resp.action = 2;
+	resp.transaction_id = sR->transaction_id;
+
+	sendto (usi->sock, (const char*)&resp, 8, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
 	return 0;
 }

@@ -14,7 +14,7 @@ struct dbConnection
 
 static const char hexadecimal[] = "0123456789abcdef";
 
-static void _to_hex_str (const uint8_t *hash, char *data)
+void _to_hex_str (const uint8_t *hash, char *data)
 {
 	int i;
 	for (i = 0;i < 20;i++)
@@ -34,7 +34,7 @@ static int _db_make_torrent_table (sqlite3 *db, char *hash)
 	strcat(sql, hash);
 	strcat (sql, "' (");
 
-	strcat (sql, "peer_id blob(20) UNIQUE,"
+	strcat (sql, "peer_id blob(20),"
 			"ip blob(4),"
 			"port blob(2),"
 			"uploaded blob(8)," // uint64
@@ -42,12 +42,12 @@ static int _db_make_torrent_table (sqlite3 *db, char *hash)
 			"left blob(8),"
 			"last_seen INT DEFAULT 0");
 
-	strcat(sql, ")");
+	strcat(sql, ", CONSTRAINT c1 UNIQUE (ip,port) ON CONFLICT REPLACE)");
 
 	// create table.
 	char *err_msg;
 	int r = sqlite3_exec(db, sql, NULL, NULL, &err_msg);
-//	printf("E:%s\n", err_msg);
+	printf("E:%s\n", err_msg);
 
 	return r;
 }
@@ -131,7 +131,7 @@ int db_add_peer (dbConnection *db, uint8_t info_hash[20], db_peerEntry *pE)
 	return r;
 }
 
-int db_load_peers (dbConnection *db, uint8_t info_hash[20], db_peerEntry **lst, int *sZ)
+int db_load_peers (dbConnection *db, uint8_t info_hash[20], db_peerEntry *lst, int *sZ)
 {
 	char sql [1000];
 	sql[0] = '\0';
@@ -150,22 +150,24 @@ int db_load_peers (dbConnection *db, uint8_t info_hash[20], db_peerEntry **lst, 
 	int i = 0;
 	int r;
 
-	while (1)
+	while (*sZ > i)
 	{
 		r = sqlite3_step(stmt);
 		if (r == SQLITE_ROW)
 		{
-			const void *ip = sqlite3_column_blob (stmt, 0);
-			const void *port = sqlite3_column_blob (stmt, 1);
+			const char *ip = (const char*)sqlite3_column_blob (stmt, 0);
+			const char *port = (const char*)sqlite3_column_blob (stmt, 1);
 
-			memcpy(&lst[i]->ip, ip, 4);
-			memcpy(&lst[i]->port, port, 2);
+			memcpy(&lst[i].ip, ip, 4);
+			memcpy(&lst[i].port, port, 2);
 
 			i++;
 		}
 		else
 			break;
 	}
+
+	printf("%d Clients Dumped.\n", i);
 
 	sqlite3_finalize(stmt);
 
@@ -283,6 +285,32 @@ int db_cleanup (dbConnection *db)
 	sqlite3_finalize (stmt);
 
 	sqlite3_finalize (stmt);
+
+	return 0;
+}
+
+int db_remove_peer (dbConnection *db, uint8_t hash[20], db_peerEntry *pE)
+{
+	char sql [1000];
+	char xHash [50];
+
+	_to_hex_str (hash, xHash);
+
+	strcpy (sql, "DELETE FROM 't");
+	strcat (sql, xHash);
+	strcat (sql, "' WHERE ip=? AND port=? AND peer_id=?");
+
+	sqlite3_stmt *stmt;
+
+	sqlite3_prepare (db->db, sql, -1, &stmt, NULL);
+
+	sqlite3_bind_blob(stmt, 0, (const void*)&pE->ip, 4, NULL);
+	sqlite3_bind_blob(stmt, 1, (const void*)&pE->port, 2, NULL);
+	sqlite3_bind_blob(stmt, 2, (const void*)pE->peer_id, 20, NULL);
+
+	sqlite3_step(stmt);
+
+	sqlite3_finalize(stmt);
 
 	return 0;
 }

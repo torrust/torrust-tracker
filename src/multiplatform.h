@@ -18,6 +18,7 @@
 #define INVALID_SOCKET 0
 #define SOCKET_ERROR -1
 #define DWORD uint64_t
+#define closesocket(s) close(s)
 typedef struct hostent HOSTENT;
 typedef struct sockaddr SOCKADDR;
 typedef struct sockaddr_in SOCKADDR_IN;

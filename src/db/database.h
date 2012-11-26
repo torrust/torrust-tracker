@@ -36,7 +36,7 @@ int db_add_peer (dbConnection *, uint8_t [20], db_peerEntry*);
  * lst: pointer to an array whose maximum size is passed to sZ.
  * sZ returns the amount of peers returned.
  */
-int db_load_peers (dbConnection *, uint8_t [20], db_peerEntry **lst, int *sZ);
+int db_load_peers (dbConnection *, uint8_t [20], db_peerEntry *lst, int *sZ);
 
 int db_get_stats (dbConnection *, uint8_t [20], uint32_t *seeders, uint32_t *leechers, uint32_t *completed);
 
@@ -44,5 +44,7 @@ int db_get_stats (dbConnection *, uint8_t [20], uint32_t *seeders, uint32_t *lee
  * Calculates Stats, Removes expired data.
  */
 int db_cleanup (dbConnection *);
+
+int db_remove_peer (dbConnection *, uint8_t hash [20], db_peerEntry *);
 
 #endif /* DATABASE_H_ */

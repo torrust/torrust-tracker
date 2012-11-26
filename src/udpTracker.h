@@ -59,8 +59,20 @@ struct udp_scrape_request
 	uint64_t connection_id;
 	uint32_t action;
 	uint32_t transaction_id;
+	struct reqD {
+		uint8_t info_hash [20];
+	} *req_part;
+};
 
-	uint8_t *torrent_list_data;
+struct udp_scrape_response
+{
+	uint32_t action;
+	uint32_t transaction_id;
+	struct respD {
+		uint32_t seeders;
+		uint32_t completed;
+		uint32_t leechers;
+	} *resp_part;
 };
 
 struct udp_error_response
@@ -89,6 +101,7 @@ typedef struct udp_connection_response ConnectionResponse;
 typedef struct udp_announce_request AnnounceRequest;
 typedef struct udp_announce_response AnnounceResponse;
 typedef struct udp_scrape_request ScrapeRequest;
+typedef struct udp_scrape_response ScrapeResponse;
 typedef struct udp_error_response ErrorResponse;
 
 void UDPTracker_init (udpServerInstance *, uint16_t port, uint8_t threads);
