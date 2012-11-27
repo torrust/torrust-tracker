@@ -10,6 +10,7 @@
 #define FLAG_RUNNING		0x01
 #define UDP_BUFFER_SIZE		2048
 #define CLEANUP_INTERVAL	20
+#define TRACKER_INTERVAL	60 // normally 1800
 
 #ifdef WIN32
 static DWORD _thread_start (LPVOID arg);
@@ -114,7 +115,6 @@ static int _send_error (udpServerInstance *usi, SOCKADDR_IN *remote, uint32_t tr
 	error.transaction_id = transactionID;
 	error.message = msg;
 
-
 	int msg_sz = 4 + 4 + 1 + strlen(msg);
 
 	char buff [msg_sz];
@@ -125,7 +125,6 @@ static int _send_error (udpServerInstance *usi, SOCKADDR_IN *remote, uint32_t tr
 		buff[i] = msg[i - 8];
 	}
 
-	printf("ERROR SENT\n");
 	sendto(usi->sock, buff, msg_sz, 0, (SOCKADDR*)remote, sizeof(*remote));
 
 	return 0;
@@ -142,30 +141,6 @@ static int _handle_connection (udpServerInstance *usi, SOCKADDR_IN *remote, char
 
 	sendto(usi->sock, (char*)&resp, sizeof(ConnectionResponse), 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
-	return 0;
-}
-
-static int _is_good_peer (uint32_t ip, uint16_t port)
-{
-	SOCKADDR_IN addr;
-	addr.sin_family = AF_INET;
-#ifdef WIN32
-	addr.sin_addr.S_un.S_addr = htonl( ip );
-#elif defined (linux)
-	addr.sin_addr.s_addr = htonl( ip );
-#endif
-	addr.sin_port = htons (port);
-
-	SOCKET cli = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (cli == INVALID_SOCKET)
-		return 1;
-	if (connect(cli, (SOCKADDR*)&addr, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
-	{
-		closesocket (cli);
-		return 1;
-	}
-	printf ("Client Verified.\n");
-	closesocket (cli);
 	return 0;
 }
 
@@ -186,44 +161,28 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 	req->uploaded = m_hton64 (req->uploaded);
 	req->num_want = m_hton32 (req->num_want);
 	req->left = m_hton64 (req->left);
-	if (req->ip_address == 0) // default
-	{
-		req->ip_address = m_hton32 (remote->sin_addr.s_addr);
-	}
 
-//	if (_is_good_peer(req->ip_address, req->port) != 0)
-//	{
-//		_send_error (usi, remote, req->transaction_id, "Couldn't verify your client.");
-//		return 0;
-//	}
 
 	// load peers
 	int q = 30;
 	if (req->num_want >= 1)
 		q = min (q, req->num_want);
 
-	db_peerEntry *peers = NULL;
+	db_peerEntry *peers = malloc (sizeof(db_peerEntry) * q);
+
+	db_load_peers(usi->conn, req->info_hash, peers, &q);
+//	printf("%d peers found.\n", q);
+
 	int bSize = 20; // header is 20 bytes
+	bSize += (6 * q); // + 6 bytes per peer.
 
-	if (req->event == 3) // stopped; they don't need anymore peers!
-	{
-		q = 0; // don't need any peers!
-	}
-	else
-	{
-		peers = malloc (sizeof(db_peerEntry) * q);
-		db_load_peers(usi->conn, req->info_hash, peers, &q);
-	}
-
-	bSize += (6 * q); // + 6 bytes per peer (ip->4, port->2).
-
-	uint32_t seeders, leechers, completed;
+	int32_t seeders, leechers, completed;
 	db_get_stats (usi->conn, req->info_hash, &seeders, &leechers, &completed);
 
 	uint8_t buff [bSize];
 	AnnounceResponse *resp = (AnnounceResponse*)buff;
 	resp->action = m_hton32(1);
-	resp->interval = m_hton32 ( 1800 );
+	resp->interval = m_hton32 ( TRACKER_INTERVAL );
 	resp->leechers = m_hton32(leechers);
 	resp->seeders = m_hton32 (seeders);
 	resp->transaction_id = req->transaction_id;
@@ -246,12 +205,8 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 
 //		printf("%u.%u.%u.%u:%u\n", buff[20 + x], buff[21 + x], buff[22 + x], buff[23 + x], peers[i].port);
 	}
-
-	if (peers != NULL)
-		free (peers);
-
+	free (peers);
 	sendto(usi->sock, (char*)buff, bSize, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
-
 
 	// Add peer to list:
 	db_peerEntry pE;
@@ -259,16 +214,15 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 	pE.uploaded = req->uploaded;
 	pE.left = req->left;
 	pE.peer_id = req->peer_id;
-	pE.ip = req->ip_address;
-	pE.port = req->port;
-
-	if (req->event == 3) // stopped
+	if (req->ip_address == 0) // default
 	{
-		// just remove client from swarm, and return empty peer list...
-		db_remove_peer(usi->conn, req->info_hash, &pE);
-		return 0;
+		pE.ip = m_hton32 (remote->sin_addr.s_addr);
 	}
-
+	else
+	{
+		pE.ip = req->ip_address;
+	}
+	pE.port = req->port;
 	db_add_peer(usi->conn, req->info_hash,  &pE);
 
 	return 0;
@@ -280,12 +234,52 @@ static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *da
 
 //	_send_error (usi, remote, sR->transaction_id, "Scrape wasn't implemented yet!");
 
-	ScrapeResponse resp;
-	resp.resp_part = NULL;
-	resp.action = 2;
-	resp.transaction_id = sR->transaction_id;
+	// validate request length:
+	int v = len - 16;
+	if (v < 0 || v % 20 != 0)
+	{
+		printf("BAD SCRAPE: len=%d\n", len);
+		_send_error (usi, remote, sR->transaction_id, "Bad scrape request.");
+		return 0;
+	}
 
-	sendto (usi->sock, (const char*)&resp, 8, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
+	// get torrent count.
+	int c = v / 20;
+
+	uint8_t hash [20];
+	char xHash [50];
+
+	uint8_t buffer [8 + (12 * c)];
+	ScrapeResponse *resp = (ScrapeResponse*)buffer;
+	resp->action = m_hton32 (2);
+	resp->transaction_id = sR->transaction_id;
+
+	int i, j;
+	printf("Scrape: (%d) \n", c);
+	for (i = 0;i < c;i++)
+	{
+		for (j = 0; j < 20;j++)
+			hash[j] = data[j + (i*20)+16];
+
+		to_hex_str (hash, xHash);
+
+		printf("\t%s\n", xHash);
+
+		int32_t *seeders = (int32_t*)&buffer[i*12+8];
+		int32_t *completed = (int32_t*)&buffer[i*12+12];
+		int32_t *leechers = (int32_t*)&buffer[i*12+16];
+
+		int32_t s, c, l;
+
+		db_get_stats (usi->conn, hash, &s, &l, &c);
+
+		*seeders = m_hton32 (s);
+		*completed = m_hton32 (c);
+		*leechers = m_hton32 (l);
+	}
+	fflush (stdout);
+
+	sendto (usi->sock, buffer, sizeof(buffer), 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
 	return 0;
 }
@@ -297,7 +291,7 @@ static int _resolve_request (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 
 	uint32_t action = m_hton32(cR->action);
 
-//	printf(":: %x:%u ACTION=%d\n", remote->sin_addr.s_addr , remote->sin_port, action);
+	printf(":: %x:%u ACTION=%d\n", remote->sin_addr.s_addr , remote->sin_port, action);
 
 	if (action == 0 && r >= 16)
 		return _handle_connection(usi, remote, data);
@@ -333,7 +327,9 @@ static void* _thread_start (void *arg)
 	{
 		fflush(stdout);
 		// peek into the first 12 bytes of data; determine if connection request or announce request.
-		r = recvfrom(usi->sock, tmpBuff, UDP_BUFFER_SIZE, 0, (SOCKADDR*)&remoteAddr, &addrSz);
+		r = recvfrom(usi->sock, tmpBuff, UDP_BUFFER_SIZE, 0, (SOCKADDR*)&remoteAddr, (unsigned*)&addrSz);
+		if (r <= 0)
+			continue;	// bad request...
 //		printf("RECV:%d\n", r);
 		r = _resolve_request(usi, &remoteAddr, tmpBuff, r);
 //		printf("R=%d\n", r);
@@ -345,7 +341,7 @@ static void* _thread_start (void *arg)
 }
 
 #ifdef WIN32
-static DWORD _maintainance_start (LPVOID arg)
+static DWORD _maintainance_start (LPVOID arg);
 #elif defined (linux)
 static void* _maintainance_start (void *arg)
 #endif

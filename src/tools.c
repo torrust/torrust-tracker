@@ -30,3 +30,17 @@ uint32_t m_hton32 (uint32_t n)
 	m_byteswap (&r, &n, 4);
 	return r;
 }
+
+
+static const char hexadecimal[] = "0123456789abcdef";
+
+void to_hex_str (const uint8_t *hash, char *data)
+{
+	int i;
+	for (i = 0;i < 20;i++)
+	{
+		data[i * 2] = hexadecimal[hash[i] / 16];
+		data[i * 2 + 1] = hexadecimal[hash[i] % 16];
+	}
+	data[40] = '\0';
+}

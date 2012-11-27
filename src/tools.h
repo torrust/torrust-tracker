@@ -25,4 +25,6 @@ uint32_t m_hton32 (uint32_t n);
 
 uint64_t m_hton64 (uint64_t n);
 
+void to_hex_str (const uint8_t *hash, char *data);
+
 #endif /* TOOLS_H_ */

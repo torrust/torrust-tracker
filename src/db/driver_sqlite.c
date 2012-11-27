@@ -1,5 +1,6 @@
 #include "database.h"
 #include "../multiplatform.h"
+#include "../tools.h"
 #include <sqlite3.h>
 #include <stdlib.h>
 #include <string.h>
@@ -94,7 +95,7 @@ int db_add_peer (dbConnection *db, uint8_t info_hash[20], db_peerEntry *pE)
 	char xHash [50]; // we just need 40 + \0 = 41.
 
 	char *hash = xHash;
-	_to_hex_str(info_hash, hash);
+	to_hex_str(info_hash, hash);
 
 	_db_make_torrent_table(db->db, hash);
 
@@ -137,7 +138,7 @@ int db_load_peers (dbConnection *db, uint8_t info_hash[20], db_peerEntry *lst, i
 	sql[0] = '\0';
 
 	char hash [50];
-	_to_hex_str(info_hash, hash);
+	to_hex_str(info_hash, hash);
 
 	strcat(sql, "SELECT ip,port FROM 't");
 	strcat(sql, hash);
@@ -176,7 +177,7 @@ int db_load_peers (dbConnection *db, uint8_t info_hash[20], db_peerEntry *lst, i
 	return 0;
 }
 
-int db_get_stats (dbConnection *db, uint8_t hash[20], uint32_t *seeders, uint32_t *leechers, uint32_t *completed)
+int db_get_stats (dbConnection *db, uint8_t hash[20], int32_t *seeders, int32_t *leechers, int32_t *completed)
 {
 	*seeders = 0;
 	*leechers = 0;
@@ -217,7 +218,7 @@ int db_cleanup (dbConnection *db)
 
 	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		_to_hex_str(sqlite3_column_blob(stmt, 0), hash);
+		to_hex_str(sqlite3_column_blob(stmt, 0), hash);
 
 		// drop table:
 		strcpy(temp, "DROP TABLE IF EXISTS 't");
@@ -245,7 +246,7 @@ int db_cleanup (dbConnection *db)
 	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
 		uint8_t *binHash = sqlite3_column_blob(stmt, 0);
-		_to_hex_str (binHash, hash);
+		to_hex_str (binHash, hash);
 
 		// total users...
 		strcpy (temp, "SELECT COUNT(*) FROM 't");

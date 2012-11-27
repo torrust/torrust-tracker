@@ -59,20 +59,16 @@ struct udp_scrape_request
 	uint64_t connection_id;
 	uint32_t action;
 	uint32_t transaction_id;
-	struct reqD {
-		uint8_t info_hash [20];
-	} *req_part;
+
+	uint8_t *torrent_list_data;
 };
 
 struct udp_scrape_response
 {
 	uint32_t action;
 	uint32_t transaction_id;
-	struct respD {
-		uint32_t seeders;
-		uint32_t completed;
-		uint32_t leechers;
-	} *resp_part;
+
+	uint8_t *data;
 };
 
 struct udp_error_response

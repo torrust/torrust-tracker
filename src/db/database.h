@@ -38,7 +38,7 @@ int db_add_peer (dbConnection *, uint8_t [20], db_peerEntry*);
  */
 int db_load_peers (dbConnection *, uint8_t [20], db_peerEntry *lst, int *sZ);
 
-int db_get_stats (dbConnection *, uint8_t [20], uint32_t *seeders, uint32_t *leechers, uint32_t *completed);
+int db_get_stats (dbConnection *, uint8_t [20], int32_t *seeders, int32_t *leechers, int32_t *completed);
 
 /**
  * Calculates Stats, Removes expired data.
