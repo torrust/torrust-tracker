@@ -1,3 +1,22 @@
+/*
+ *	Copyright © 2012 Naim A.
+ *
+ *	This file is part of UDPT.
+ *
+ *		UDPT is free software: you can redistribute it and/or modify
+ *		it under the terms of the GNU General Public License as published by
+ *		the Free Software Foundation, either version 3 of the License, or
+ *		(at your option) any later version.
+ *
+ *		UDPT is distributed in the hope that it will be useful,
+ *		but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *		GNU General Public License for more details.
+ *
+ *		You should have received a copy of the GNU General Public License
+ *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "database.h"
 #include "../multiplatform.h"
 #include "../tools.h"
@@ -245,7 +264,7 @@ int db_cleanup (dbConnection *db)
 
 	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		uint8_t *binHash = sqlite3_column_blob(stmt, 0);
+		uint8_t *binHash = (uint8_t*)sqlite3_column_blob(stmt, 0);
 		to_hex_str (binHash, hash);
 
 		// total users...

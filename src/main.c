@@ -1,11 +1,20 @@
 /*
- ============================================================================
- Name        : udpBitTorrentTracker.c
- Author      : 
- Version     :
- Copyright   : 
- Description : Hello World in C, Ansi-style
- ============================================================================
+ *	Copyright © 2012 Naim A.
+ *
+ *	This file is part of UDPT.
+ *
+ *		UDPT is free software: you can redistribute it and/or modify
+ *		it under the terms of the GNU General Public License as published by
+ *		the Free Software Foundation, either version 3 of the License, or
+ *		(at your option) any later version.
+ *
+ *		UDPT is distributed in the hope that it will be useful,
+ *		but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *		GNU General Public License for more details.
+ *
+ *		You should have received a copy of the GNU General Public License
+ *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <stdio.h>
@@ -17,35 +26,11 @@
 #include "tools.h"
 #include <math.h>
 #include <time.h>
+#include <string.h>
 
 int main(int argc, char *argv[])
 {
-	printf("UDP BitTorrentTracker %s\t\tCopyright: (C) 2012 Naim Abda.\n\n", VERSION);
-
-#ifdef linux
-	if (argc > 1)
-	{
-		if (strcmp(argv[1], "d") == 0)
-		{
-			pid_t pid;
-			pid = fork ();
-
-			if (pid < 0)
-			{
-				printf ("Failed to start daemon.\n");
-				exit (EXIT_FAILURE);
-			}
-			if (pid > 0)
-			{
-				printf("Daemon Started; pid=%d.\n", pid);
-				fclose (stdin);
-				fclose (stdout);
-				fclose (stderr);
-				exit (EXIT_SUCCESS);
-			}
-		}
-	}
-#endif
+	printf("UDP Tracker (UDPT) %s\tCopyright: (C) 2012 Naim Abda <naim94a@gmail.com>\n\n", VERSION);
 
 #ifdef WIN32
 	WSADATA wsadata;
@@ -55,9 +40,22 @@ int main(int argc, char *argv[])
 	udpServerInstance usi;
 	UDPTracker_init(&usi, 6969, 5);
 
-	if (UDPTracker_start(&usi) != 0)
+	int r = UDPTracker_start(&usi);
+	if (r != 0)
 	{
-		printf("Error While trying to start server.");
+		printf("Error While trying to start server.\n");
+		switch (r)
+		{
+		case 1:
+			printf("Failed to create socket.\n");
+			break;
+		case 2:
+			printf("Failed to bind socket.\n");
+			break;
+		default:
+			printf ("Unknown Error\n");
+			break;
+		}
 		return 1;
 	}
 

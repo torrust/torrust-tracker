@@ -1,3 +1,21 @@
+/*
+ *	Copyright © 2012 Naim A.
+ *
+ *	This file is part of UDPT.
+ *
+ *		UDPT is free software: you can redistribute it and/or modify
+ *		it under the terms of the GNU General Public License as published by
+ *		the Free Software Foundation, either version 3 of the License, or
+ *		(at your option) any later version.
+ *
+ *		UDPT is distributed in the hope that it will be useful,
+ *		but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *		GNU General Public License for more details.
+ *
+ *		You should have received a copy of the GNU General Public License
+ *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "multiplatform.h"
 #include "udpTracker.h"
@@ -24,15 +42,41 @@ void UDPTracker_init (udpServerInstance *usi, uint16_t port, uint8_t threads)
 {
 	usi->port = port;
 	usi->thread_count = threads + 1;
-	usi->threads = malloc (sizeof(HANDLE) * threads);
+	usi->threads = malloc (sizeof(HANDLE) * usi->thread_count);
 	usi->flags = 0;
+	usi->conn = NULL;
 }
 
 void UDPTracker_destroy (udpServerInstance *usi)
 {
-	db_close(usi->conn);
+	usi->flags = (!(FLAG_RUNNING)) & usi->flags;
+
+
+	// drop listener connection to continue thread loops.
+	// wait for request to finish (1 second max; allot of time for a computer!).
+
+#ifdef linux
+	close (usi->sock);
+
+	sleep (1);
+#elif defined (WIN32)
+	closesocket (usi->sock);
+
+	Sleep (1000);
+#endif
+
+	int i;
+	for (i = 0;i < usi->thread_count;i++)
+	{
+		pthread_detach (usi->threads[i]);
+		pthread_cancel (usi->threads[i]);
+		printf ("Thread (%d/%u) terminated.\n", i + 1, usi->thread_count);
+	}
+	if (usi->conn != NULL)
+		db_close(usi->conn);
 	free (usi->threads);
 }
+
 
 int UDPTracker_start (udpServerInstance *usi)
 {
@@ -78,16 +122,17 @@ int UDPTracker_start (udpServerInstance *usi)
 #ifdef WIN32
 		usi->threads[0] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_maintainance_start, (LPVOID)usi, 0, NULL);
 #elif defined (linux)
+		printf("Starting maintenance thread (1/6)...\n");
 		pthread_create (&usi->threads[0], NULL, _maintainance_start, usi);
 #endif
 
-	for (i = 0;i < usi->thread_count; i++)
+	for (i = 1;i < usi->thread_count; i++)
 	{
-		printf("Starting Thread %d of %u\n", (i + 1), usi->thread_count);
+		printf("Starting Thread (%d/%u)\n", (i + 1), usi->thread_count);
 #ifdef WIN32
 		usi->threads[i] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_thread_start, (LPVOID)usi, 0, NULL);
 #elif defined (linux)
-		pthread_create (&usi->threads[i], NULL, _thread_start, usi);
+		pthread_create (&(usi->threads[i]), NULL, _thread_start, usi);
 #endif
 	}
 
@@ -238,7 +283,7 @@ static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *da
 	int v = len - 16;
 	if (v < 0 || v % 20 != 0)
 	{
-		printf("BAD SCRAPE: len=%d\n", len);
+//		printf("BAD SCRAPE: len=%d\n", len);
 		_send_error (usi, remote, sR->transaction_id, "Bad scrape request.");
 		return 0;
 	}
@@ -255,7 +300,7 @@ static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *da
 	resp->transaction_id = sR->transaction_id;
 
 	int i, j;
-	printf("Scrape: (%d) \n", c);
+//	printf("Scrape: (%d) \n", c);
 	for (i = 0;i < c;i++)
 	{
 		for (j = 0; j < 20;j++)
@@ -321,7 +366,9 @@ static void* _thread_start (void *arg)
 	int addrSz = sizeof (SOCKADDR_IN);
 	int r;
 
-	char *tmpBuff = malloc (UDP_BUFFER_SIZE); // 98 is the maximum request size.
+//	char *tmpBuff = malloc (UDP_BUFFER_SIZE); // 98 is the maximum request size.
+
+	char tmpBuff [UDP_BUFFER_SIZE];
 
 	while ((usi->flags & FLAG_RUNNING) > 0)
 	{
@@ -335,8 +382,9 @@ static void* _thread_start (void *arg)
 //		printf("R=%d\n", r);
 	}
 
-	free (tmpBuff);
+//	free (tmpBuff);
 
+	pthread_exit (NULL);
 	return 0;
 }
 
