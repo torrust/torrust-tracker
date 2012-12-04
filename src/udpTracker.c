@@ -68,8 +68,12 @@ void UDPTracker_destroy (udpServerInstance *usi)
 	int i;
 	for (i = 0;i < usi->thread_count;i++)
 	{
+#ifdef WIN32
+		TerminateThread (usi->threads[0], 0x00);
+#elif defined (linux)
 		pthread_detach (usi->threads[i]);
 		pthread_cancel (usi->threads[i]);
+#endif
 		printf ("Thread (%d/%u) terminated.\n", i + 1, usi->thread_count);
 	}
 	if (usi->conn != NULL)
@@ -383,13 +387,14 @@ static void* _thread_start (void *arg)
 	}
 
 //	free (tmpBuff);
-
+#ifdef linux
 	pthread_exit (NULL);
+#endif
 	return 0;
 }
 
 #ifdef WIN32
-static DWORD _maintainance_start (LPVOID arg);
+static DWORD _maintainance_start (LPVOID arg)
 #elif defined (linux)
 static void* _maintainance_start (void *arg)
 #endif
