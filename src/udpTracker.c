@@ -114,7 +114,6 @@ int UDPTracker_start (udpServerInstance *usi)
 		return 2;
 	}
 
-	printf("SOCK=%d\n", sock);
 	usi->sock = sock;
 
 	db_open(&usi->conn, "tracker.db");

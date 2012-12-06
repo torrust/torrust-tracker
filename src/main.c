@@ -28,17 +28,34 @@
 #include <time.h>
 #include <string.h>
 
+static void _print_usage ()
+{
+	printf ("Usage: udpt <udp-port>\n"
+			"\tDefault port is 6969.\n");
+}
+
 int main(int argc, char *argv[])
 {
-	printf("UDP Tracker (UDPT) %s\tCopyright: (C) 2012 Naim Abda <naim94a@gmail.com>\n\n", VERSION);
+	printf("UDP Tracker (UDPT) %s\nCopyright: (C) 2012 Naim Abda <naim94a@gmail.com>\n\n", VERSION);
 
 #ifdef WIN32
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2, 2), &wsadata);
 #endif
 
+	uint16_t port = 6969;
+	if (argc <= 1)
+	{
+		_print_usage ();
+	}
+	else if (argc == 2)
+	{
+		port = atoi(argv[1]);
+		printf("selected port=%u\n", port);
+	}
+
 	udpServerInstance usi;
-	UDPTracker_init(&usi, 6969, 5);
+	UDPTracker_init(&usi, port, 5);
 
 	int r = UDPTracker_start(&usi);
 	if (r != 0)
