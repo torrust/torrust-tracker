@@ -4,6 +4,20 @@ README for the UDPT project.
 Licensed under GNU GPLv3.
 The license file is attached under the name gpl.txt.
 
+Compiling under linux or linux environment (MinGW):
+
+For Windows (with Linux environment):
+$ make win32
+
+For Linux:
+$ make linux
+
+Running:
+$ ./udpt
+
+Cleaning:
+$ make clean
+
 This software currently uses the Sqlite3 Library (public domain).
 
 Developed by Naim A. <naim94a@gmail.com>.
