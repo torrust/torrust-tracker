@@ -21,7 +21,6 @@
 #include <stdlib.h>
 
 #include "multiplatform.h"
-
 #include "udpTracker.h"
 #include "tools.h"
 #include <math.h>
@@ -73,14 +72,16 @@ int main(int argc, char *argv[])
 			printf ("Unknown Error\n");
 			break;
 		}
-		return 1;
+		goto cleanup;
 	}
 
 	printf("Press Any key to exit.\n");
 
 	getchar ();
 
+cleanup:
 	printf("\nGoodbye.\n");
+
 	UDPTracker_destroy(&usi);
 
 #ifdef WIN32

@@ -24,8 +24,20 @@
 
 typedef struct dbConnection dbConnection;
 
-int db_open (dbConnection **, char *cStr);
-int db_close (dbConnection *);
+/**
+ * Opens a database connection.
+ * @param pdb Pointer to database instance.
+ * @param cStr Connection string for the active driver.
+ * @return 0 on success; otherwise non-zero.
+ */
+int db_open (dbConnection **pdb, char *cStr);
+
+/**
+ * Closes the database connection.
+ * @param db Database instance.
+ * @return 0 on success; otherwise non-zero.
+ */
+int db_close (dbConnection *db);
 
 typedef struct {
 	uint8_t *peer_id;
@@ -37,22 +49,50 @@ typedef struct {
 	uint16_t port;
 } db_peerEntry;
 
-// adds a peer to the torrent's list.
-int db_add_peer (dbConnection *, uint8_t [20], db_peerEntry*);
-
-/*
- * lst: pointer to an array whose maximum size is passed to sZ.
- * sZ returns the amount of peers returned.
+/**
+ * Adds/Updates the list of peers.
+ * @param db The database's instance.
+ * @param hash The info_hash of the torrent.
+ * @param pE Peer's information.
+ * @return 0 on success; otherwise non-zero.
  */
-int db_load_peers (dbConnection *, uint8_t [20], db_peerEntry *lst, int *sZ);
-
-int db_get_stats (dbConnection *, uint8_t [20], int32_t *seeders, int32_t *leechers, int32_t *completed);
+int db_add_peer (dbConnection *db, uint8_t hash[20], db_peerEntry *pE);
 
 /**
- * Calculates Stats, Removes expired data.
+ * Loads peers for the requested torrent.
+ * @param db Database instance.
+ * @param hash The info_hash of the requested torrent.
+ * @param lst A allocated array to store results in.
+ * @param sZ in: The maximum amount of entries to load. out: Amount of loaded entries.
+ * @return 0 on success; otherwise non-zero.
  */
-int db_cleanup (dbConnection *);
+int db_load_peers (dbConnection *db, uint8_t hash[20], db_peerEntry *lst, int *sZ);
 
-int db_remove_peer (dbConnection *, uint8_t hash [20], db_peerEntry *);
+/**
+ * Gets stats for the requested torrent.
+ * @param db The Database connection
+ * @param hash info_hash of the torrent.
+ * @param seeders Returns the Seeders for the requested torrent.
+ * @param leechers Returns the Leechers for the requested torrent.
+ * @param completed Returns the count of completed downloaded reported.
+ * @return 0 on success, otherwise non-zero.
+ */
+int db_get_stats (dbConnection *db, uint8_t hash[20], int32_t *seeders, int32_t *leechers, int32_t *completed);
+
+/**
+ * Maintenance routine, Calculates stats & releases space from old entries.
+ * @param db The database connection.
+ * @return 0 on success; otherwise non-zero.
+ */
+int db_cleanup (dbConnection *db);
+
+/**
+ * Deletes a peer from the database.
+ * @param db Database connection
+ * @param hash info_hash of the torrent.
+ * @param pE The peer's information.
+ * @return 0 on success; otherwise non-zero.
+ */
+int db_remove_peer (dbConnection *db, uint8_t hash [20], db_peerEntry *pE);
 
 #endif /* DATABASE_H_ */

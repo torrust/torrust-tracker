@@ -112,9 +112,25 @@ typedef struct udp_scrape_request ScrapeRequest;
 typedef struct udp_scrape_response ScrapeResponse;
 typedef struct udp_error_response ErrorResponse;
 
-void UDPTracker_init (udpServerInstance *, uint16_t port, uint8_t threads);
-void UDPTracker_destroy (udpServerInstance *);
+/**
+ * Initializes the UDP Tracker.
+ * @param usi The Instancfe to initialize.
+ * @param port The port to bind the server to
+ * @param threads Amount of threads to start the server with.
+ */
+void UDPTracker_init (udpServerInstance *usi, uint16_t port, uint8_t threads);
 
-int UDPTracker_start (udpServerInstance *);
+/**
+ * Destroys resources that were created by UDPTracker_init.
+ * @param usi Instance to destroy.
+ */
+void UDPTracker_destroy (udpServerInstance *usi);
+
+/**
+ * Starts the Initialized instance.
+ * @param usi Instance to start
+ * @return 0 on success, otherwise non-zero.
+ */
+int UDPTracker_start (udpServerInstance *usi);
 
 #endif /* UDPTRACKER_H_ */

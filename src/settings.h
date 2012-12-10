@@ -40,14 +40,48 @@ typedef struct {
 	char *buffer;
 } Settings;
 
-void settings_init (Settings *, char *filename);
+/**
+ * Initializes the settings type.
+ * @param s Pointer to settings to initialize.
+ * @param filename the settings filename.
+ */
+void settings_init (Settings *s, char *filename);
 
-int settings_load (Settings *);
+/**
+ * Loads settings from file
+ * @param s pointer to settings type
+ * @return 0 on success, otherwise non-zero.
+ */
+int settings_load (Settings *s);
 
-int settings_save (Settings *);
+/**
+ * Saves settings to file.
+ * @param s Pointer to settings.
+ * @return 0 on success; otherwise non-zero.
+ */
+int settings_save (Settings *s);
 
-void settings_destroy (Settings *);
+/**
+ * Destroys the settings "object"
+ * @param s Pointer to settings.
+ */
+void settings_destroy (Settings *s);
 
-char* settings_get (Settings *, char *class, char *name);
+/**
+ * Gets a setting from a Settings type.
+ * @param s Pointer to a setting type.
+ * @param class The class of the requested setting.
+ * @param name The name of the requested setting.
+ * @return The value for the requested setting, NULL if not available.
+ */
+char* settings_get (Settings *s, char *class, char *name);
 
-int settings_set (Settings *, char *class, char *name, char *value);
+/**
+ * Sets a setting in a settings type.
+ * @param s Pointer to settings type.
+ * @param class The class of the setting.
+ * @param name The name of the setting.
+ * @param value The value to set for the setting.
+ * @return 0 on success, otherwise non-zero.
+ */
+int settings_set (Settings *s, char *class, char *name, char *value);
