@@ -26,35 +26,51 @@
 #include <math.h>
 #include <time.h>
 #include <string.h>
+#include "settings.h"
 
 static void _print_usage ()
 {
-	printf ("Usage: udpt <udp-port>\n"
-			"\tDefault port is 6969.\n");
+	printf ("Usage: udpt [<configuration file>]\n");
 }
 
 int main(int argc, char *argv[])
 {
-	printf("UDP Tracker (UDPT) %s\nCopyright: (C) 2012 Naim Abda <naim94a@gmail.com>\n\n", VERSION);
+	printf("UDP Tracker (UDPT) %s\nCopyright: (C) 2012 Naim Abda <naim94a@gmail.com>\n", VERSION);
+	printf("Build Date: %s\n\n", __DATE__);
 
 #ifdef WIN32
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2, 2), &wsadata);
 #endif
 
-	uint16_t port = 6969;
+	char *config_file = "udpt.conf";
+
 	if (argc <= 1)
 	{
 		_print_usage ();
 	}
-	else if (argc == 2)
+
+	Settings settings;
+	udpServerInstance usi;
+
+	settings_init (&settings, config_file);
+	if (settings_load (&settings) != 0)
 	{
-		port = atoi(argv[1]);
-		printf("selected port=%u\n", port);
+		// set default settings:
+
+		settings_set (&settings, "database", "driver", "sqlite3");
+		settings_set (&settings, "database", "file", "tracker.db");
+
+		settings_set (&settings, "tracker", "port", "6969");
+		settings_set (&settings, "tracker", "threads", "5");
+		settings_set (&settings, "tracker", "allow_remotes", "yes");
+		settings_set (&settings, "tracker", "allow_iana_ips", "yes");
+
+		settings_save (&settings);
+		printf("Failed to read from '%s'. Using default settings.\n", config_file);
 	}
 
-	udpServerInstance usi;
-	UDPTracker_init(&usi, port, 5);
+	UDPTracker_init(&usi, &settings);
 
 	int r = UDPTracker_start(&usi);
 	if (r != 0)
@@ -81,7 +97,7 @@ int main(int argc, char *argv[])
 
 cleanup:
 	printf("\nGoodbye.\n");
-
+	settings_destroy (&settings);
 	UDPTracker_destroy(&usi);
 
 #ifdef WIN32

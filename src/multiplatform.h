@@ -45,9 +45,8 @@ typedef struct hostent HOSTENT;
 typedef void* LPVOID;
 typedef void (LPTHREAD_START_ROUTINE)(LPVOID);
 typedef pthread_t HANDLE;
-//#define IPPROTO_UDP 0 // no protocol set.. SOCK_DGRAM is enough.
 
 #define min(a,b) (a > b ? b : a)
-#define VERSION "1.0.0 (Linux)"
+#define VERSION "1.0.0-alpha (Linux)"
 #endif
 

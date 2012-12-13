@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include "multiplatform.h"
 #include "db/database.h"
+#include "settings.h"
 
 struct udp_connection_request
 {
@@ -90,6 +91,12 @@ struct udp_error_response
 	char *message;
 };
 
+#define UDPT_DYNAMIC			0x01	// Track Any info_hash?
+#define UDPT_ALLOW_REMOTE_IP	0x02	// Allow client's to send other IPs?
+#define UDPT_ALLOW_IANA_IP		0x04	// allow IP's like 127.0.0.1 or other IANA reserved IPs?
+#define UDPT_VALIDATE_CLIENT	0x08	// validate client before adding to Database? (check if connection is open?)
+
+
 typedef struct
 {
 	SOCKET sock;
@@ -98,9 +105,11 @@ typedef struct
 	uint8_t thread_count;
 
 	uint8_t flags;
+	uint8_t settings;
 
 	HANDLE *threads;
 
+	Settings *o_settings;
 	dbConnection *conn;
 } udpServerInstance;
 
@@ -118,7 +127,7 @@ typedef struct udp_error_response ErrorResponse;
  * @param port The port to bind the server to
  * @param threads Amount of threads to start the server with.
  */
-void UDPTracker_init (udpServerInstance *usi, uint16_t port, uint8_t threads);
+void UDPTracker_init (udpServerInstance *usi, Settings *);
 
 /**
  * Destroys resources that were created by UDPTracker_init.

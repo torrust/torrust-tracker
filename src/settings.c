@@ -63,14 +63,14 @@ void _settings_clean_string (char **str)
 		offset++;
 	}
 
-	*str += offset;
+	(*str) += offset;
 	len -= offset;
 
 	for (i = len - 1;i >= 0;i--)
 	{
 		if (isspace( (*str)[i] ) != 0)
 		{
-			*str[i] = '\0';
+			(*str)[i] = '\0';
 		}
 		else
 			break;

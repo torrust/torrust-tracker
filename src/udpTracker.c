@@ -38,13 +38,65 @@ static void* _thread_start (void *arg);
 static void* _maintainance_start (void *arg);
 #endif
 
-void UDPTracker_init (udpServerInstance *usi, uint16_t port, uint8_t threads)
+static int _isTrue (char *str)
 {
+	if (str == NULL)
+		return -1;
+	int i;
+	int len = strlen (str);
+	for (i = 0;i < len;i++)
+	{
+		if (str[i] >= 'A' && str[i] <= 'Z')
+		{
+			str[i] = (str[i] - 'A' + 'a');
+		}
+	}
+	if (strcmp(str, "yes") == 0)
+		return 1;
+	if (strcmp(str, "no") == 0)
+		return 0;
+	if (strcmp(str, "true") == 0)
+		return 1;
+	if (strcmp(str, "false") == 0)
+		return 0;
+	if (strcmp(str, "1") == 0)
+		return 1;
+	if (strcmp(str, "0") == 0)
+		return 0;
+	return -1;
+}
+
+void UDPTracker_init (udpServerInstance *usi, Settings *settings)
+{
+	int r;
+	int port = 6969;
+	int threads = 5;
+	uint8_t n_settings = 0;
+
+	char *s_port = settings_get(settings, "tracker", "port");
+	char *s_threads = settings_get(settings, "tracker", "threads");
+	char *s_allow_remotes = settings_get (settings, "tracker", "allow_remotes");
+	char *s_allow_iana_ip = settings_get (settings, "tracker", "allow_iana_ips");
+
+	r = _isTrue(s_allow_remotes);
+	if (r == 1)
+		n_settings |= UDPT_ALLOW_REMOTE_IP;
+	r = _isTrue(s_allow_iana_ip);
+	if (r != 0)
+		n_settings |= UDPT_ALLOW_IANA_IP;
+
+	if (s_port != NULL)
+		port = atoi (s_port);
+	if (s_threads != NULL)
+		threads = atoi (s_threads);
+
 	usi->port = port;
 	usi->thread_count = threads + 1;
 	usi->threads = malloc (sizeof(HANDLE) * usi->thread_count);
 	usi->flags = 0;
 	usi->conn = NULL;
+	usi->settings = n_settings;
+	usi->o_settings = settings;
 }
 
 void UDPTracker_destroy (udpServerInstance *usi)
@@ -81,7 +133,6 @@ void UDPTracker_destroy (udpServerInstance *usi)
 	free (usi->threads);
 }
 
-
 int UDPTracker_start (udpServerInstance *usi)
 {
 	SOCKET sock = socket (AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -116,7 +167,11 @@ int UDPTracker_start (udpServerInstance *usi)
 
 	usi->sock = sock;
 
-	db_open(&usi->conn, "tracker.db");
+	char *dbname = settings_get (usi->o_settings, "database", "file");
+	if (dbname == NULL)
+		dbname = "tracker.db";
+
+	db_open(&usi->conn, dbname);
 
 	usi->flags |= FLAG_RUNNING;
 	int i;
@@ -125,7 +180,7 @@ int UDPTracker_start (udpServerInstance *usi)
 #ifdef WIN32
 		usi->threads[0] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_maintainance_start, (LPVOID)usi, 0, NULL);
 #elif defined (linux)
-		printf("Starting maintenance thread (1/6)...\n");
+		printf("Starting maintenance thread (1/%u)...\n", usi->thread_count);
 		pthread_create (&usi->threads[0], NULL, _maintainance_start, usi);
 #endif
 
@@ -210,6 +265,11 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 	req->num_want = m_hton32 (req->num_want);
 	req->left = m_hton64 (req->left);
 
+	if ((usi->settings & UDPT_ALLOW_REMOTE_IP) == 0 && req->ip_address != 0)
+	{
+		_send_error (usi, remote, req->transaction_id, "Tracker doesn't allow remote IP's; Request ignored.");
+		return 0;
+	}
 
 	// load peers
 	int q = 30;
@@ -332,12 +392,28 @@ static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *da
 	return 0;
 }
 
+static int _isIANA_IP (uint32_t ip)
+{
+	uint8_t x = (ip % 256);
+	if (x == 0 || x == 10 || x == 127 || x >= 224)
+		return 1;
+	return 0;
+}
+
 static int _resolve_request (udpServerInstance *usi, SOCKADDR_IN *remote, char *data, int r)
 {
 	ConnectionRequest *cR;
 	cR = (ConnectionRequest*)data;
 
 	uint32_t action = m_hton32(cR->action);
+
+	if ((usi->settings & UDPT_ALLOW_IANA_IP) > 0)
+	{
+		if (_isIANA_IP (remote->sin_addr.s_addr))
+		{
+			return 0;	// Access Denied: IANA reserved IP.
+		}
+	}
 
 	printf(":: %x:%u ACTION=%d\n", remote->sin_addr.s_addr , remote->sin_port, action);
 
