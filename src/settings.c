@@ -24,7 +24,6 @@
 #include <string.h>
 #include <ctype.h>
 
-static
 SettingClass* settings_get_class (Settings *s, char *classname)
 {
 	if (s == NULL || classname == NULL)
@@ -264,18 +263,7 @@ char* settings_get (Settings *s, char *class, char *name)
 		return NULL;
 
 	SettingClass *c = settings_get_class (s, class);
-	if (c == NULL)
-		return NULL;
-
-	KeyValue *kv;
-	int i;
-	for (i = 0;i < c->entry_count;i++)
-	{
-		kv = &c->entries[i];
-		if (strcmp(kv->key, name) == 0)
-			return kv->values;
-	}
-	return NULL;
+	return settingclass_get (c, name);
 }
 
 int settings_set (Settings *s, char *class, char *name, char *value)
@@ -284,6 +272,7 @@ int settings_set (Settings *s, char *class, char *name, char *value)
 		return 1;
 
 	SettingClass *c = settings_get_class (s, class);
+
 	if (c == NULL)
 	{
 		if (s->class_count + 1 >= s->class_size)
@@ -304,6 +293,28 @@ int settings_set (Settings *s, char *class, char *name, char *value)
 		c->entry_size = c->entry_count = 0;
 
 	}
+
+	return settingclass_set (c, name, value);
+}
+
+char* settingclass_get (SettingClass *c, char *name)
+{
+	if (c == NULL)
+		return NULL;
+
+	KeyValue *kv;
+	int i;
+	for (i = 0;i < c->entry_count;i++)
+	{
+		kv = &c->entries[i];
+		if (strcmp(kv->key, name) == 0)
+			return kv->values;
+	}
+	return NULL;
+}
+
+int settingclass_set (SettingClass *c, char *name, char *value)
+{
 
 	int i;
 	for (i = 0;i < c->entry_count;i++)

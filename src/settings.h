@@ -70,6 +70,18 @@ int settings_save (Settings *s);
 void settings_destroy (Settings *s);
 
 /**
+ * Gets the requested SettingClass.
+ * @param s Settings Object.
+ * @param classname The name of the class to find (case sensitive).
+ * @return a pointer to the found class, or NULL if not found.
+ */
+SettingClass* settings_get_class (Settings *s, char *classname);
+
+char* settingclass_get (SettingClass *s, char *name);
+
+int settingclass_set (SettingClass *s, char *name, char *value);
+
+/**
  * Gets a setting from a Settings type.
  * @param s Pointer to a setting type.
  * @param class The class of the requested setting.
