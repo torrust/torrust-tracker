@@ -20,6 +20,7 @@
 #include "multiplatform.h"
 #include "udpTracker.h"
 #include "tools.h"
+#include "settings.h"
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
@@ -27,8 +28,6 @@
 
 #define FLAG_RUNNING		0x01
 #define UDP_BUFFER_SIZE		2048
-#define CLEANUP_INTERVAL	20
-#define TRACKER_INTERVAL	60 // normally 1800
 
 #ifdef WIN32
 static DWORD _thread_start (LPVOID arg);
@@ -68,31 +67,30 @@ static int _isTrue (char *str)
 
 void UDPTracker_init (udpServerInstance *usi, Settings *settings)
 {
-	int r;
-	int port = 6969;
-	int threads = 5;
+	SettingClass *sc_tracker;
+	sc_tracker = settings_get_class (settings, "tracker");
 	uint8_t n_settings = 0;
 
-	char *s_port = settings_get(settings, "tracker", "port");
-	char *s_threads = settings_get(settings, "tracker", "threads");
-	char *s_allow_remotes = settings_get (settings, "tracker", "allow_remotes");
-	char *s_allow_iana_ip = settings_get (settings, "tracker", "allow_iana_ips");
+	char *s_port = settingclass_get(sc_tracker, "port");
+	char *s_threads = settingclass_get(sc_tracker, "threads");
+	char *s_allow_remotes = settingclass_get (sc_tracker, "allow_remotes");
+	char *s_allow_iana_ip = settingclass_get (sc_tracker, "allow_iana_ips");
+	char *s_int_announce = settingclass_get (sc_tracker, "announce_interval");
+	char *s_int_cleanup = settingclass_get (sc_tracker, "cleanup_interval");
 
-	r = _isTrue(s_allow_remotes);
-	if (r == 1)
+	if (_isTrue(s_allow_remotes) == 1)
 		n_settings |= UDPT_ALLOW_REMOTE_IP;
-	r = _isTrue(s_allow_iana_ip);
-	if (r != 0)
+
+	if (_isTrue(s_allow_iana_ip) != 0)
 		n_settings |= UDPT_ALLOW_IANA_IP;
 
-	if (s_port != NULL)
-		port = atoi (s_port);
-	if (s_threads != NULL)
-		threads = atoi (s_threads);
+	usi->announce_interval = (s_int_announce == NULL ? 1800 : atoi (s_int_announce));
+	usi->cleanup_interval = (s_int_cleanup == NULL ? 120 : atoi (s_int_cleanup));
+	usi->port = (s_port == NULL ? 6969 : atoi (s_port));
+	usi->thread_count = (s_threads == NULL ? 5 : atoi (s_threads)) + 1;
 
-	usi->port = port;
-	usi->thread_count = threads + 1;
 	usi->threads = malloc (sizeof(HANDLE) * usi->thread_count);
+
 	usi->flags = 0;
 	usi->conn = NULL;
 	usi->settings = n_settings;
@@ -290,7 +288,7 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 	uint8_t buff [bSize];
 	AnnounceResponse *resp = (AnnounceResponse*)buff;
 	resp->action = m_hton32(1);
-	resp->interval = m_hton32 ( TRACKER_INTERVAL );
+	resp->interval = m_hton32 ( usi->announce_interval );
 	resp->leechers = m_hton32(leechers);
 	resp->seeders = m_hton32 (seeders);
 	resp->transaction_id = req->transaction_id;
@@ -311,7 +309,6 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 		buff[24 + x] = ((peers[i].port & (0xff << 8)) >> 8);
 		buff[25 + x] = (peers[i].port & 0xff);
 
-//		printf("%u.%u.%u.%u:%u\n", buff[20 + x], buff[21 + x], buff[22 + x], buff[23 + x], peers[i].port);
 	}
 	free (peers);
 	sendto(usi->sock, (char*)buff, bSize, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
@@ -340,13 +337,10 @@ static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *da
 {
 	ScrapeRequest *sR = (ScrapeRequest*)data;
 
-//	_send_error (usi, remote, sR->transaction_id, "Scrape wasn't implemented yet!");
-
 	// validate request length:
 	int v = len - 16;
 	if (v < 0 || v % 20 != 0)
 	{
-//		printf("BAD SCRAPE: len=%d\n", len);
 		_send_error (usi, remote, sR->transaction_id, "Bad scrape request.");
 		return 0;
 	}
@@ -363,7 +357,7 @@ static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *da
 	resp->transaction_id = sR->transaction_id;
 
 	int i, j;
-//	printf("Scrape: (%d) \n", c);
+
 	for (i = 0;i < c;i++)
 	{
 		for (j = 0; j < 20;j++)
@@ -445,8 +439,6 @@ static void* _thread_start (void *arg)
 	int addrSz = sizeof (SOCKADDR_IN);
 	int r;
 
-//	char *tmpBuff = malloc (UDP_BUFFER_SIZE); // 98 is the maximum request size.
-
 	char tmpBuff [UDP_BUFFER_SIZE];
 
 	while ((usi->flags & FLAG_RUNNING) > 0)
@@ -456,12 +448,9 @@ static void* _thread_start (void *arg)
 		r = recvfrom(usi->sock, tmpBuff, UDP_BUFFER_SIZE, 0, (SOCKADDR*)&remoteAddr, (unsigned*)&addrSz);
 		if (r <= 0)
 			continue;	// bad request...
-//		printf("RECV:%d\n", r);
 		r = _resolve_request(usi, &remoteAddr, tmpBuff, r);
-//		printf("R=%d\n", r);
 	}
 
-//	free (tmpBuff);
 #ifdef linux
 	pthread_exit (NULL);
 #endif
@@ -481,9 +470,9 @@ static void* _maintainance_start (void *arg)
 		db_cleanup (usi->conn);
 
 #ifdef WIN32
-		Sleep (CLEANUP_INTERVAL * 1000);	// wait 2 minutes between every cleanup.
+		Sleep (usi->cleanup_interval * 1000);	// wait 2 minutes between every cleanup.
 #elif defined (linux)
-		sleep (CLEANUP_INTERVAL);
+		sleep (usi->cleanup_interval);
 #else
 #error Unsupported OS.
 #endif

@@ -56,15 +56,19 @@ int main(int argc, char *argv[])
 	settings_init (&settings, config_file);
 	if (settings_load (&settings) != 0)
 	{
+		const char strDATABASE[] = "database";
+		const char strTRACKER[] = "tracker";
 		// set default settings:
 
-		settings_set (&settings, "database", "driver", "sqlite3");
-		settings_set (&settings, "database", "file", "tracker.db");
+		settings_set (&settings, strDATABASE, "driver", "sqlite3");
+		settings_set (&settings, strDATABASE, "file", "tracker.db");
 
-		settings_set (&settings, "tracker", "port", "6969");
-		settings_set (&settings, "tracker", "threads", "5");
-		settings_set (&settings, "tracker", "allow_remotes", "yes");
-		settings_set (&settings, "tracker", "allow_iana_ips", "yes");
+		settings_set (&settings, strTRACKER, "port", "6969");
+		settings_set (&settings, strTRACKER, "threads", "5");
+		settings_set (&settings, strTRACKER, "allow_remotes", "yes");
+		settings_set (&settings, strTRACKER, "allow_iana_ips", "yes");
+		settings_set (&settings, strTRACKER, "announce_interval", "1800");
+		settings_set (&settings, strTRACKER, "cleanup_interval", "120");
 
 		settings_save (&settings);
 		printf("Failed to read from '%s'. Using default settings.\n", config_file);

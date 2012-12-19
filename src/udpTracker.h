@@ -109,6 +109,9 @@ typedef struct
 
 	HANDLE *threads;
 
+	uint32_t announce_interval;
+	uint32_t cleanup_interval;
+
 	Settings *o_settings;
 	dbConnection *conn;
 } udpServerInstance;

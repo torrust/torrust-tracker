@@ -24,7 +24,7 @@
 #include <string.h>
 #include <ctype.h>
 
-SettingClass* settings_get_class (Settings *s, char *classname)
+SettingClass* settings_get_class (Settings *s, const char *classname)
 {
 	if (s == NULL || classname == NULL)
 		return NULL;
@@ -40,10 +40,10 @@ SettingClass* settings_get_class (Settings *s, char *classname)
 	return NULL;
 }
 
-void settings_init (Settings *s, char *filename)
+void settings_init (Settings *s, const char *filename)
 {
 	s->buffer = NULL;
-	s->filename = filename;
+	s->filename = (char*)filename;
 	s->classes = NULL;
 	s->class_count = s->class_size = 0;
 }
@@ -257,7 +257,7 @@ void settings_destroy (Settings *s)
 	}
 }
 
-char* settings_get (Settings *s, char *class, char *name)
+char* settings_get (Settings *s, const char *class, const char *name)
 {
 	if (s == NULL || class == NULL || name == NULL)
 		return NULL;
@@ -266,7 +266,7 @@ char* settings_get (Settings *s, char *class, char *name)
 	return settingclass_get (c, name);
 }
 
-int settings_set (Settings *s, char *class, char *name, char *value)
+int settings_set (Settings *s, const char *class, const char *name, const char *value)
 {
 	if (s == NULL || class == NULL || name == NULL)
 		return 1;
@@ -288,7 +288,7 @@ int settings_set (Settings *s, char *class, char *name, char *value)
 		c = &s->classes[s->class_count];
 		s->class_count++;
 
-		c->classname = class;
+		c->classname = (char*)class;
 		c->entries = NULL;
 		c->entry_size = c->entry_count = 0;
 
@@ -297,7 +297,7 @@ int settings_set (Settings *s, char *class, char *name, char *value)
 	return settingclass_set (c, name, value);
 }
 
-char* settingclass_get (SettingClass *c, char *name)
+char* settingclass_get (SettingClass *c, const char *name)
 {
 	if (c == NULL)
 		return NULL;
@@ -313,7 +313,7 @@ char* settingclass_get (SettingClass *c, char *name)
 	return NULL;
 }
 
-int settingclass_set (SettingClass *c, char *name, char *value)
+int settingclass_set (SettingClass *c, const char *name, const char *value)
 {
 
 	int i;
@@ -321,7 +321,7 @@ int settingclass_set (SettingClass *c, char *name, char *value)
 	{
 		if (strcmp(name, c->entries[i].key) == 0)
 		{
-			c->entries[i].values = value;
+			c->entries[i].values = (char*)value;
 			return 0;
 		}
 	}
@@ -339,8 +339,8 @@ int settingclass_set (SettingClass *c, char *name, char *value)
 	int ni = c->entry_count;
 	c->entry_count++;
 
-	c->entries[ni].key = name;
-	c->entries[ni].values = value;
+	c->entries[ni].key = (char*)name;
+	c->entries[ni].values = (char*)value;
 
 	return 0;
 }

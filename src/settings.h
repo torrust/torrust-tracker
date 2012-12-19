@@ -47,7 +47,7 @@ typedef struct {
  * @param s Pointer to settings to initialize.
  * @param filename the settings filename.
  */
-void settings_init (Settings *s, char *filename);
+void settings_init (Settings *s, const char *filename);
 
 /**
  * Loads settings from file
@@ -75,11 +75,11 @@ void settings_destroy (Settings *s);
  * @param classname The name of the class to find (case sensitive).
  * @return a pointer to the found class, or NULL if not found.
  */
-SettingClass* settings_get_class (Settings *s, char *classname);
+SettingClass* settings_get_class (Settings *s, const char *classname);
 
-char* settingclass_get (SettingClass *s, char *name);
+char* settingclass_get (SettingClass *s, const char *name);
 
-int settingclass_set (SettingClass *s, char *name, char *value);
+int settingclass_set (SettingClass *s, const char *name, const char *value);
 
 /**
  * Gets a setting from a Settings type.
@@ -88,7 +88,7 @@ int settingclass_set (SettingClass *s, char *name, char *value);
  * @param name The name of the requested setting.
  * @return The value for the requested setting, NULL if not available.
  */
-char* settings_get (Settings *s, char *class, char *name);
+char* settings_get (Settings *s, const char *class, const char *name);
 
 /**
  * Sets a setting in a settings type.
@@ -98,4 +98,4 @@ char* settings_get (Settings *s, char *class, char *name);
  * @param value The value to set for the setting.
  * @return 0 on success, otherwise non-zero.
  */
-int settings_set (Settings *s, char *class, char *name, char *value);
+int settings_set (Settings *s, const char *class, const char *name, const char *value);
