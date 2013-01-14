@@ -41,7 +41,6 @@ typedef struct hostent HOSTENT;
 typedef struct sockaddr SOCKADDR;
 typedef struct sockaddr_in SOCKADDR_IN;
 typedef struct in_addr IN_ADDR;
-typedef struct hostent HOSTENT;
 typedef void* LPVOID;
 typedef void (LPTHREAD_START_ROUTINE)(LPVOID);
 typedef pthread_t HANDLE;
