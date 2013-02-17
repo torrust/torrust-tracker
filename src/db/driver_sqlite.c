@@ -48,6 +48,9 @@ void _to_hex_str (const uint8_t *hash, char *data)
 static int _db_make_torrent_table (sqlite3 *db, char *hash)
 {
 	char sql [2000];
+	char *err_msg;
+	int r;
+
 	sql[0] = '\0';
 
 	strcat(sql, "CREATE TABLE IF NOT EXISTS 't");
@@ -65,8 +68,7 @@ static int _db_make_torrent_table (sqlite3 *db, char *hash)
 	strcat(sql, ", CONSTRAINT c1 UNIQUE (ip,port) ON CONFLICT REPLACE)");
 
 	// create table.
-	char *err_msg;
-	int r = sqlite3_exec(db, sql, NULL, NULL, &err_msg);
+	r = sqlite3_exec(db, sql, NULL, NULL, &err_msg);
 	printf("E:%s\n", err_msg);
 
 	return r;
@@ -85,19 +87,21 @@ static void _db_setup (sqlite3 *db)
 
 int db_open (dbConnection **db, char *cStr)
 {
-	FILE *f = fopen (cStr, "rb");
-	int doSetup = 0;
+	FILE *f;
+	int doSetup,	// check if to build DB, or it already exists?
+		r;
+
+	f = fopen (cStr, "rb");
+	doSetup = 0;
 	if (f == NULL)
 		doSetup = 1;
 	else
 		fclose (f);
 
 	*db = malloc (sizeof(struct dbConnection));
-	int r = sqlite3_open (cStr, &((*db)->db));
+	r = sqlite3_open (cStr, &((*db)->db));
 	if (doSetup)
 		_db_setup((*db)->db);
-
-
 
 	return r;
 }
@@ -112,15 +116,16 @@ int db_close (dbConnection *db)
 int db_add_peer (dbConnection *db, uint8_t info_hash[20], db_peerEntry *pE)
 {
 	char xHash [50]; // we just need 40 + \0 = 41.
+	sqlite3_stmt *stmt;
+	char sql [1000];
+	int r;
 
 	char *hash = xHash;
 	to_hex_str(info_hash, hash);
 
 	_db_make_torrent_table(db->db, hash);
 
-	sqlite3_stmt *stmt;
 
-	char sql [1000];
 	sql[0] = '\0';
 	strcat(sql, "REPLACE INTO 't");
 	strcat(sql, hash);
@@ -138,7 +143,7 @@ int db_add_peer (dbConnection *db, uint8_t info_hash[20], db_peerEntry *pE)
 	sqlite3_bind_blob(stmt, 6, (void*)&pE->left, 8, NULL);
 	sqlite3_bind_int(stmt, 7, time(NULL));
 
-	int r = sqlite3_step(stmt);
+	r = sqlite3_step(stmt);
 	sqlite3_finalize(stmt);
 
 	strcpy(sql, "REPLACE INTO stats (info_hash,last_mod) VALUES (?,?)");
@@ -154,22 +159,23 @@ int db_add_peer (dbConnection *db, uint8_t info_hash[20], db_peerEntry *pE)
 int db_load_peers (dbConnection *db, uint8_t info_hash[20], db_peerEntry *lst, int *sZ)
 {
 	char sql [1000];
+	char hash [50];
+	sqlite3_stmt *stmt;
+	int r,
+		i;
+
 	sql[0] = '\0';
 
-	char hash [50];
 	to_hex_str(info_hash, hash);
 
 	strcat(sql, "SELECT ip,port FROM 't");
 	strcat(sql, hash);
 	strcat(sql, "' LIMIT ?");
 
-	sqlite3_stmt *stmt;
 	sqlite3_prepare(db->db, sql, -1, &stmt, NULL);
 	sqlite3_bind_int(stmt, 1, *sZ);
 
-	int i = 0;
-	int r;
-
+	i = 0;
 	while (*sZ > i)
 	{
 		r = sqlite3_step(stmt);
@@ -198,13 +204,14 @@ int db_load_peers (dbConnection *db, uint8_t info_hash[20], db_peerEntry *lst, i
 
 int db_get_stats (dbConnection *db, uint8_t hash[20], int32_t *seeders, int32_t *leechers, int32_t *completed)
 {
+	const char sql[] = "SELECT seeders,leechers,completed FROM 'stats' WHERE info_hash=?";
+	sqlite3_stmt *stmt;
+
 	*seeders = 0;
 	*leechers = 0;
 	*completed = 0;
 
-	const char sql[] = "SELECT seeders,leechers,completed FROM 'stats' WHERE info_hash=?";
 
-	sqlite3_stmt *stmt;
 	sqlite3_prepare (db->db, sql, -1, &stmt, NULL);
 	sqlite3_bind_blob (stmt, 1, (void*)hash, 20, NULL);
 
@@ -222,18 +229,21 @@ int db_get_stats (dbConnection *db, uint8_t hash[20], int32_t *seeders, int32_t 
 
 int db_cleanup (dbConnection *db)
 {
+	const char sql[] = "SELECT info_hash FROM stats WHERE last_mod<?";
+	char hash [50],
+		temp [1000];
+	sqlite3_stmt *stmt;
+	int timeframe;
+
 	return 0;	// TODO: Fix problems and than allow use of this function.
 	printf("Cleanup...\n");
 
-	sqlite3_stmt *stmt;
 
-	int timeframe = time(NULL);
+	timeframe = time(NULL);
 
 	// remove "dead" torrents (non-active for two hours).
-	const char sql[] = "SELECT info_hash FROM stats WHERE last_mod<?";
 	sqlite3_prepare (db->db, sql, -1, &stmt, NULL);
 	sqlite3_bind_int (stmt, 1, timeframe - 7200);
-	char hash [50], temp [1000];
 
 	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
@@ -313,14 +323,13 @@ int db_remove_peer (dbConnection *db, uint8_t hash[20], db_peerEntry *pE)
 {
 	char sql [1000];
 	char xHash [50];
+	sqlite3_stmt *stmt;
 
 	_to_hex_str (hash, xHash);
 
 	strcpy (sql, "DELETE FROM 't");
 	strcat (sql, xHash);
 	strcat (sql, "' WHERE ip=? AND port=? AND peer_id=?");
-
-	sqlite3_stmt *stmt;
 
 	sqlite3_prepare (db->db, sql, -1, &stmt, NULL);
 

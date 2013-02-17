@@ -88,7 +88,7 @@ int settingclass_set (SettingClass *s, const char *name, const char *value);
  * @param name The name of the requested setting.
  * @return The value for the requested setting, NULL if not available.
  */
-char* settings_get (Settings *s, const char *class, const char *name);
+char* settings_get (Settings *s, const char *classn, const char *name);
 
 /**
  * Sets a setting in a settings type.
@@ -98,4 +98,4 @@ char* settings_get (Settings *s, const char *class, const char *name);
  * @param value The value to set for the setting.
  * @return 0 on success, otherwise non-zero.
  */
-int settings_set (Settings *s, const char *class, const char *name, const char *value);
+int settings_set (Settings *s, const char *classn, const char *name, const char *value);

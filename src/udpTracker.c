@@ -39,10 +39,12 @@ static void* _maintainance_start (void *arg);
 
 static int _isTrue (char *str)
 {
+	int i,		// loop index
+		len;	// string's length
+
 	if (str == NULL)
 		return -1;
-	int i;
-	int len = strlen (str);
+	len = strlen (str);
 	for (i = 0;i < len;i++)
 	{
 		if (str[i] >= 'A' && str[i] <= 'Z')
@@ -68,15 +70,22 @@ static int _isTrue (char *str)
 void UDPTracker_init (udpServerInstance *usi, Settings *settings)
 {
 	SettingClass *sc_tracker;
-	sc_tracker = settings_get_class (settings, "tracker");
 	uint8_t n_settings = 0;
+	char *s_port, 			// port
+		*s_threads,			// threads
+		*s_allow_remotes,	// remotes allowed?
+		*s_allow_iana_ip,	// IANA IPs allowed?
+		*s_int_announce,	// announce interval
+		*s_int_cleanup;		// cleanup interval
 
-	char *s_port = settingclass_get(sc_tracker, "port");
-	char *s_threads = settingclass_get(sc_tracker, "threads");
-	char *s_allow_remotes = settingclass_get (sc_tracker, "allow_remotes");
-	char *s_allow_iana_ip = settingclass_get (sc_tracker, "allow_iana_ips");
-	char *s_int_announce = settingclass_get (sc_tracker, "announce_interval");
-	char *s_int_cleanup = settingclass_get (sc_tracker, "cleanup_interval");
+	sc_tracker = settings_get_class (settings, "tracker");
+
+	s_port = settingclass_get(sc_tracker, "port");
+	s_threads = settingclass_get(sc_tracker, "threads");
+	s_allow_remotes = settingclass_get (sc_tracker, "allow_remotes");
+	s_allow_iana_ip = settingclass_get (sc_tracker, "allow_iana_ips");
+	s_int_announce = settingclass_get (sc_tracker, "announce_interval");
+	s_int_cleanup = settingclass_get (sc_tracker, "cleanup_interval");
 
 	if (_isTrue(s_allow_remotes) == 1)
 		n_settings |= UDPT_ALLOW_REMOTE_IP;
@@ -89,7 +98,7 @@ void UDPTracker_init (udpServerInstance *usi, Settings *settings)
 	usi->port = (s_port == NULL ? 6969 : atoi (s_port));
 	usi->thread_count = (s_threads == NULL ? 5 : atoi (s_threads)) + 1;
 
-	usi->threads = malloc (sizeof(HANDLE) * usi->thread_count);
+	usi->threads = (HANDLE*)malloc (sizeof(HANDLE) * usi->thread_count);
 
 	usi->flags = 0;
 	usi->conn = NULL;
@@ -99,6 +108,8 @@ void UDPTracker_init (udpServerInstance *usi, Settings *settings)
 
 void UDPTracker_destroy (udpServerInstance *usi)
 {
+	int i; // loop index
+
 	usi->flags = (!(FLAG_RUNNING)) & usi->flags;
 
 
@@ -115,7 +126,6 @@ void UDPTracker_destroy (udpServerInstance *usi)
 	Sleep (1000);
 #endif
 
-	int i;
 	for (i = 0;i < usi->thread_count;i++)
 	{
 #ifdef WIN32
@@ -133,13 +143,17 @@ void UDPTracker_destroy (udpServerInstance *usi)
 
 int UDPTracker_start (udpServerInstance *usi)
 {
-	SOCKET sock = socket (AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	SOCKET sock;
+	SOCKADDR_IN recvAddr;
+	int r,		// saves results
+		i,		// loop index
+		yup;	// just to set TRUE
+	char *dbname;// saves the Database name.
+
+	sock = socket (AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (sock == INVALID_SOCKET)
 		return 1;
 
-	int r;
-
-	SOCKADDR_IN recvAddr;
 #ifdef WIN32
 	recvAddr.sin_addr.S_un.S_addr = 0L;
 #elif defined (linux)
@@ -148,7 +162,7 @@ int UDPTracker_start (udpServerInstance *usi)
 	recvAddr.sin_family = AF_INET;
 	recvAddr.sin_port = m_hton16 (usi->port);
 
-	int yup = 1;
+	yup = 1;
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yup, 1);
 
 	r = bind (sock, (SOCKADDR*)&recvAddr, sizeof(SOCKADDR_IN));
@@ -165,14 +179,13 @@ int UDPTracker_start (udpServerInstance *usi)
 
 	usi->sock = sock;
 
-	char *dbname = settings_get (usi->o_settings, "database", "file");
+	dbname = settings_get (usi->o_settings, "database", "file");
 	if (dbname == NULL)
 		dbname = "tracker.db";
 
 	db_open(&usi->conn, dbname);
 
 	usi->flags |= FLAG_RUNNING;
-	int i;
 
 	// create maintainer thread.
 #ifdef WIN32
@@ -197,10 +210,13 @@ int UDPTracker_start (udpServerInstance *usi)
 
 static uint64_t _get_connID (SOCKADDR_IN *remote)
 {
-	int base = time(NULL);
+	int base;
+	uint64_t x;
+
+	base = time(NULL);
 	base /= 3600;		// changes every day.
 
-	uint64_t x = base;
+	x = base;
 #ifdef WIN32
 	x += remote->sin_addr.S_un.S_addr;
 #elif defined (linux)
@@ -212,15 +228,17 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 static int _send_error (udpServerInstance *usi, SOCKADDR_IN *remote, uint32_t transactionID, char *msg)
 {
 	struct udp_error_response error;
+	int msg_sz,	// message size to send.
+		i;		// copy loop
+	char buff [1024];	// more than reasonable message size...
+
 	error.action = m_hton32 (3);
 	error.transaction_id = transactionID;
 	error.message = msg;
 
-	int msg_sz = 4 + 4 + 1 + strlen(msg);
+	msg_sz = 4 + 4 + 1 + strlen(msg);
 
-	char buff [msg_sz];
 	memcpy(buff, &error, 8);
-	int i;
 	for (i = 8;i <= msg_sz;i++)
 	{
 		buff[i] = msg[i - 8];
@@ -233,9 +251,11 @@ static int _send_error (udpServerInstance *usi, SOCKADDR_IN *remote, uint32_t tr
 
 static int _handle_connection (udpServerInstance *usi, SOCKADDR_IN *remote, char *data)
 {
-	ConnectionRequest *req = (ConnectionRequest*)data;
-
+	ConnectionRequest *req;
 	ConnectionResponse resp;
+
+	req = (ConnectionRequest*)data;
+
 	resp.action = m_hton32(0);
 	resp.transaction_id = req->transaction_id;
 	resp.connection_id = _get_connID(remote);
@@ -247,7 +267,19 @@ static int _handle_connection (udpServerInstance *usi, SOCKADDR_IN *remote, char
 
 static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *data)
 {
-	AnnounceRequest *req = (AnnounceRequest*)data;
+	AnnounceRequest *req;
+	AnnounceResponse *resp;
+	int q,		// peer counts
+		bSize,	// message size
+		i;		// loop index
+	db_peerEntry *peers;
+	int32_t seeders,
+		leechers,
+		completed;
+	db_peerEntry pE;	// info for DB
+	uint8_t buff [1028];	// Reasonable buffer size. (header+168 peers)
+
+	req = (AnnounceRequest*)data;
 
 	if (req->connection_id != _get_connID(remote))
 	{
@@ -270,30 +302,27 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 	}
 
 	// load peers
-	int q = 30;
+	q = 30;
 	if (req->num_want >= 1)
 		q = min (q, req->num_want);
 
-	db_peerEntry *peers = malloc (sizeof(db_peerEntry) * q);
+	peers = (db_peerEntry*)malloc (sizeof(db_peerEntry) * q);
 
 	db_load_peers(usi->conn, req->info_hash, peers, &q);
 //	printf("%d peers found.\n", q);
 
-	int bSize = 20; // header is 20 bytes
+	bSize = 20; // header is 20 bytes
 	bSize += (6 * q); // + 6 bytes per peer.
 
-	int32_t seeders, leechers, completed;
 	db_get_stats (usi->conn, req->info_hash, &seeders, &leechers, &completed);
 
-	uint8_t buff [bSize];
-	AnnounceResponse *resp = (AnnounceResponse*)buff;
+	resp = (AnnounceResponse*)buff;
 	resp->action = m_hton32(1);
 	resp->interval = m_hton32 ( usi->announce_interval );
 	resp->leechers = m_hton32(leechers);
 	resp->seeders = m_hton32 (seeders);
 	resp->transaction_id = req->transaction_id;
 
-	int i;
 	for (i = 0;i < q;i++)
 	{
 		int x = i * 6;
@@ -314,7 +343,6 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 	sendto(usi->sock, (char*)buff, bSize, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
 	// Add peer to list:
-	db_peerEntry pE;
 	pE.downloaded = req->downloaded;
 	pE.uploaded = req->uploaded;
 	pE.left = req->left;
@@ -335,10 +363,21 @@ static int _handle_announce (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 
 static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *data, int len)
 {
-	ScrapeRequest *sR = (ScrapeRequest*)data;
+	ScrapeRequest *sR;
+	int v,	// validation helper
+		c,	// torrent counter
+		i,	// loop counter
+		j;	// loop counter
+	uint8_t hash [20];
+	char xHash [50];
+	ScrapeResponse *resp;
+	uint8_t buffer [1024];	// up to 74 torrents can be scraped at once (17*74+8) < 1024
+
+
+	sR = (ScrapeRequest*)data;
 
 	// validate request length:
-	int v = len - 16;
+	v = len - 16;
 	if (v < 0 || v % 20 != 0)
 	{
 		_send_error (usi, remote, sR->transaction_id, "Bad scrape request.");
@@ -346,20 +385,19 @@ static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *da
 	}
 
 	// get torrent count.
-	int c = v / 20;
+	c = v / 20;
 
-	uint8_t hash [20];
-	char xHash [50];
-
-	uint8_t buffer [8 + (12 * c)];
-	ScrapeResponse *resp = (ScrapeResponse*)buffer;
+	resp = (ScrapeResponse*)buffer;
 	resp->action = m_hton32 (2);
 	resp->transaction_id = sR->transaction_id;
 
-	int i, j;
-
 	for (i = 0;i < c;i++)
 	{
+		int32_t s, c, l;
+		int32_t *seeders,
+			*completed,
+			*leechers;
+
 		for (j = 0; j < 20;j++)
 			hash[j] = data[j + (i*20)+16];
 
@@ -367,11 +405,9 @@ static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *da
 
 		printf("\t%s\n", xHash);
 
-		int32_t *seeders = (int32_t*)&buffer[i*12+8];
-		int32_t *completed = (int32_t*)&buffer[i*12+12];
-		int32_t *leechers = (int32_t*)&buffer[i*12+16];
-
-		int32_t s, c, l;
+		seeders = (int32_t*)&buffer[i*12+8];
+		completed = (int32_t*)&buffer[i*12+12];
+		leechers = (int32_t*)&buffer[i*12+16];
 
 		db_get_stats (usi->conn, hash, &s, &l, &c);
 
@@ -381,7 +417,7 @@ static int _handle_scrape (udpServerInstance *usi, SOCKADDR_IN *remote, char *da
 	}
 	fflush (stdout);
 
-	sendto (usi->sock, buffer, sizeof(buffer), 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
+	sendto (usi->sock, (const char*)buffer, sizeof(buffer), 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
 	return 0;
 }
@@ -397,9 +433,11 @@ static int _isIANA_IP (uint32_t ip)
 static int _resolve_request (udpServerInstance *usi, SOCKADDR_IN *remote, char *data, int r)
 {
 	ConnectionRequest *cR;
+	uint32_t action;
+
 	cR = (ConnectionRequest*)data;
 
-	uint32_t action = m_hton32(cR->action);
+	action = m_hton32(cR->action);
 
 	if ((usi->settings & UDPT_ALLOW_IANA_IP) > 0)
 	{
@@ -409,7 +447,7 @@ static int _resolve_request (udpServerInstance *usi, SOCKADDR_IN *remote, char *
 		}
 	}
 
-	printf(":: %x:%u ACTION=%d\n", remote->sin_addr.s_addr , remote->sin_port, action);
+	printf(":: %x:%u ACTION=%d\n", (unsigned int)remote->sin_addr.s_addr , remote->sin_port, action);
 
 	if (action == 0 && r >= 16)
 		return _handle_connection(usi, remote, data);
@@ -433,13 +471,16 @@ static DWORD _thread_start (LPVOID arg)
 static void* _thread_start (void *arg)
 #endif
 {
-	udpServerInstance *usi = arg;
-
+	udpServerInstance *usi;
 	SOCKADDR_IN remoteAddr;
-	int addrSz = sizeof (SOCKADDR_IN);
-	int r;
-
+	int addrSz,
+		r;
 	char tmpBuff [UDP_BUFFER_SIZE];
+
+	usi = arg;
+
+	addrSz = sizeof (SOCKADDR_IN);
+
 
 	while ((usi->flags & FLAG_RUNNING) > 0)
 	{
@@ -463,7 +504,9 @@ static DWORD _maintainance_start (LPVOID arg)
 static void* _maintainance_start (void *arg)
 #endif
 {
-	udpServerInstance *usi = (udpServerInstance *)arg;
+	udpServerInstance *usi;
+
+	usi = (udpServerInstance *)arg;
 
 	while ((usi->flags & FLAG_RUNNING) > 0)
 	{

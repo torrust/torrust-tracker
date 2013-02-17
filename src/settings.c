@@ -26,9 +26,11 @@
 
 SettingClass* settings_get_class (Settings *s, const char *classname)
 {
+	int i;
+
 	if (s == NULL || classname == NULL)
 		return NULL;
-	int i;
+
 	for (i = 0;i < s->class_count;i++)
 	{
 		if (strcmp(classname, s->classes[i].classname) == 0)
@@ -51,10 +53,14 @@ void settings_init (Settings *s, const char *filename)
 static
 void _settings_clean_string (char **str)
 {
-	int len = strlen(*str);
+	int len,
+		i,
+		offset;
+
+	len = strlen(*str);
 
 	//strip leading whitespaces.
-	int i, offset = 0;
+	offset = 0;
 	for (i = 0;i < len;i++)
 	{
 		if (isspace(*str[i]) == 0)
@@ -79,11 +85,14 @@ void _settings_clean_string (char **str)
 static
 void _settings_parser (Settings *s, char *data, int len)
 {
-	char *className = NULL;
-	char *key = NULL;
-	char *value = NULL;
-	int i, cil = 0; // cil = Chars in line.
+	char *className, *key, *value;
+	int i,
+		cil; // cil = Chars in line.
 	char c;
+
+	className = key = value = NULL;
+	cil = 0;
+
 	for (i = 0;i < len;i++)
 	{
 		c = data[i];
@@ -171,6 +180,13 @@ void _settings_parser (Settings *s, char *data, int len)
 
 int settings_load (Settings *s)
 {
+	FILE *f;
+	int len,
+		r,
+		offset;	// file length
+	char *buffer;
+	char tmp [512];
+
 	if (s->buffer != NULL)
 	{
 		free (s->buffer);
@@ -178,22 +194,21 @@ int settings_load (Settings *s)
 	}
 
 	// ini file format.
-	FILE *f = fopen(s->filename, "rb");
+	f = fopen(s->filename, "rb");
 	if (f == NULL)
 		return 1;
 	fseek (f, 0, SEEK_END);
-	int len = ftell(f);
+	len = ftell(f);
 	fseek(f, 0, SEEK_SET);
 
-	s->buffer = malloc (len);
-	char *buffer = s->buffer;
+	s->buffer = (char*)malloc (len);
+	buffer = s->buffer;
 
-	char tmp [512];
-	int r = 0, offset = 0;
+	r = offset = 0;
 	while (!feof(f) && !ferror(f))
 	{
-		r = fread (tmp, 1, 512, f);
 		int i;
+		r = fread (tmp, 1, 512, f);
 		for (i = 0;i < r;i++)
 		{
 			buffer[offset + i] = tmp[i];
@@ -211,21 +226,22 @@ int settings_load (Settings *s)
 int settings_save (Settings *s)
 {
 	char buffer [2048];
+	SettingClass *sclass;
+	FILE *f;
+	int c, e;
 
-	FILE *f = fopen(s->filename, "wb");
+	f = fopen(s->filename, "wb");
 	fprintf(f, "; udpt Settings File - Created Automatically.\n");
 	setbuf(f, buffer);
 
-	int c, e;
-	SettingClass *class;
 	for (c = 0;c < s->class_count;c++)
 	{
-		class = &s->classes[c];
-		fprintf(f, "[%s]\n", class->classname);
+		sclass = &s->classes[c];
+		fprintf(f, "[%s]\n", sclass->classname);
 
-		for (e = 0;e < class->entry_count;e++)
+		for (e = 0;e < sclass->entry_count;e++)
 		{
-			fprintf(f, "%s=%s\n", class->entries[e].key, class->entries[e].values);
+			fprintf(f, "%s=%s\n", sclass->entries[e].key, sclass->entries[e].values);
 		}
 
 		fprintf(f, "\n");
@@ -240,7 +256,6 @@ void settings_destroy (Settings *s)
 {
 	if (s->classes != NULL)
 	{
-
 		int i;
 		for (i = 0;i < s->class_count;i++)
 		{
@@ -259,19 +274,23 @@ void settings_destroy (Settings *s)
 
 char* settings_get (Settings *s, const char *class, const char *name)
 {
+	SettingClass *c;
+
 	if (s == NULL || class == NULL || name == NULL)
 		return NULL;
 
-	SettingClass *c = settings_get_class (s, class);
+	c = settings_get_class (s, class);
 	return settingclass_get (c, name);
 }
 
 int settings_set (Settings *s, const char *class, const char *name, const char *value)
 {
+	SettingClass *c;
+
 	if (s == NULL || class == NULL || name == NULL)
 		return 1;
 
-	SettingClass *c = settings_get_class (s, class);
+	c = settings_get_class (s, class);
 
 	if (c == NULL)
 	{
@@ -299,11 +318,12 @@ int settings_set (Settings *s, const char *class, const char *name, const char *
 
 char* settingclass_get (SettingClass *c, const char *name)
 {
+	KeyValue *kv;
+	int i;
+
 	if (c == NULL)
 		return NULL;
 
-	KeyValue *kv;
-	int i;
 	for (i = 0;i < c->entry_count;i++)
 	{
 		kv = &c->entries[i];
@@ -316,7 +336,9 @@ char* settingclass_get (SettingClass *c, const char *name)
 int settingclass_set (SettingClass *c, const char *name, const char *value)
 {
 
-	int i;
+	int i,
+		ni;
+
 	for (i = 0;i < c->entry_count;i++)
 	{
 		if (strcmp(name, c->entries[i].key) == 0)
@@ -328,15 +350,20 @@ int settingclass_set (SettingClass *c, const char *name, const char *value)
 
 	if (c->entry_count + 1 >= c->entry_size)
 	{
-		int ns = c->entry_size + 5;
-		KeyValue *n = realloc (c->entries, sizeof(KeyValue) * ns);
+		int ns;
+		KeyValue *n;
+
+		ns = c->entry_size + 5;
+		n = realloc (c->entries, sizeof(KeyValue) * ns);
+
 		if (n == NULL)
 			return 1;
+
 		c->entries = n;
 		c->entry_size = ns;
 	}
 
-	int ni = c->entry_count;
+	ni = c->entry_count;
 	c->entry_count++;
 
 	c->entries[ni].key = (char*)name;

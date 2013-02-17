@@ -19,6 +19,10 @@
 
 #include <stdint.h>
 
+#if defined (_WIN32) && !defined (WIN32)
+#define WIN32
+#endif
+
 #ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
