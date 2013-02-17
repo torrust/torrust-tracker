@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012 Naim A.
+ *	Copyright © 2012,2013 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -35,23 +35,25 @@ static void _print_usage ()
 
 int main(int argc, char *argv[])
 {
-	printf("UDP Tracker (UDPT) %s\nCopyright: (C) 2012 Naim Abda <naim94a@gmail.com>\n", VERSION);
-	printf("Build Date: %s\n\n", __DATE__);
+	Settings settings;
+	udpServerInstance usi;
+	char *config_file;
+	int r;
 
 #ifdef WIN32
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2, 2), &wsadata);
 #endif
 
-	char *config_file = "udpt.conf";
+	printf("UDP Tracker (UDPT) %s\nCopyright: (C) 2012 Naim Abda <naim94a@gmail.com>\n", VERSION);
+	printf("Build Date: %s\n\n", __DATE__);
+
+	config_file = "udpt.conf";
 
 	if (argc <= 1)
 	{
 		_print_usage ();
 	}
-
-	Settings settings;
-	udpServerInstance usi;
 
 	settings_init (&settings, config_file);
 	if (settings_load (&settings) != 0)
@@ -76,7 +78,7 @@ int main(int argc, char *argv[])
 
 	UDPTracker_init(&usi, &settings);
 
-	int r = UDPTracker_start(&usi);
+	r = UDPTracker_start(&usi);
 	if (r != 0)
 	{
 		printf("Error While trying to start server.\n");

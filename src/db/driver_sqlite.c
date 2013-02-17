@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012 Naim A.
+ *	Copyright © 2012,2013 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -234,10 +234,11 @@ int db_cleanup (dbConnection *db)
 		temp [1000];
 	sqlite3_stmt *stmt;
 	int timeframe;
+	uint32_t leechers, seeders;
+	sqlite3_stmt *sTmp, *uStat;
 
 	return 0;	// TODO: Fix problems and than allow use of this function.
 	printf("Cleanup...\n");
-
 
 	timeframe = time(NULL);
 
@@ -266,9 +267,6 @@ int db_cleanup (dbConnection *db)
 	// update regular torrents.
 	sqlite3_prepare(db->db, "SELECT info_hash FROM stats WHERE last_mod>=?", -1, &stmt, NULL);
 	sqlite3_bind_int (stmt, 1, timeframe - 7200);
-
-	uint32_t leechers, seeders;
-	sqlite3_stmt *sTmp, *uStat;
 
 	sqlite3_prepare (db->db, "UPDATE stats SET seeders=?,leechers=?,last_mod=? WHERE info_hash=?", -1, &uStat, NULL);
 
