@@ -22,6 +22,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Swaps Bytes:
  * example (htons):
@@ -38,5 +42,9 @@ uint32_t m_hton32 (uint32_t n);
 uint64_t m_hton64 (uint64_t n);
 
 void to_hex_str (const uint8_t *hash, char *data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TOOLS_H_ */

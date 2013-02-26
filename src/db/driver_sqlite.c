@@ -85,7 +85,7 @@ static void _db_setup (sqlite3 *db)
 			")", NULL, NULL, NULL);
 }
 
-int db_open (dbConnection **db, char *cStr)
+int db_open (dbConnection **db, const char *cStr)
 {
 	FILE *f;
 	int doSetup,	// check if to build DB, or it already exists?

@@ -22,6 +22,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct dbConnection dbConnection;
 
 /**
@@ -30,7 +34,7 @@ typedef struct dbConnection dbConnection;
  * @param cStr Connection string for the active driver.
  * @return 0 on success; otherwise non-zero.
  */
-int db_open (dbConnection **pdb, char *cStr);
+int db_open (dbConnection **pdb, const char *cStr);
 
 /**
  * Closes the database connection.
@@ -95,4 +99,7 @@ int db_cleanup (dbConnection *db);
  */
 int db_remove_peer (dbConnection *db, uint8_t hash [20], db_peerEntry *pE);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* DATABASE_H_ */
