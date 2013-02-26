@@ -110,8 +110,7 @@ void UDPTracker_destroy (udpServerInstance *usi)
 {
 	int i; // loop index
 
-	usi->flags = (!(FLAG_RUNNING)) & usi->flags;
-
+	usi->flags &= ~FLAG_RUNNING;
 
 	// drop listener connection to continue thread loops.
 	// wait for request to finish (1 second max; allot of time for a computer!).
@@ -217,11 +216,7 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 	base /= 3600;		// changes every day.
 
 	x = base;
-#ifdef WIN32
-	x += remote->sin_addr.S_un.S_addr;
-#elif defined (linux)
 	x += remote->sin_addr.s_addr;
-#endif
 	return x;
 }
 
