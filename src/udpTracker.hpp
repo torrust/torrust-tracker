@@ -23,7 +23,7 @@
 
 #include <stdint.h>
 #include "multiplatform.h"
-#include "db/database.h"
+#include "db/driver_sqlite.hpp"
 #include "settings.hpp"
 
 #include <string>
@@ -142,7 +142,7 @@ namespace UDPT
 
 		uint8_t settings;
 		Settings *o_settings;
-		dbConnection *conn;
+		Data::DatabaseDriver *conn;
 
 #ifdef WIN32
 		static DWORD _thread_start (LPVOID arg);

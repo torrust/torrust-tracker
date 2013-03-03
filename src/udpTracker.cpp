@@ -25,6 +25,7 @@
 
 #include <iostream>
 using namespace std;
+using namespace UDPT::Data;
 
 #define UDP_BUFFER_SIZE		2048
 
@@ -91,8 +92,6 @@ namespace UDPT
 		this->port = (s_port == "" ? 6969 : atoi (s_port.c_str()));
 		this->thread_count = (s_threads == "" ? 5 : atoi (s_threads.c_str())) + 1;
 
-		cout << "port=" << this->port << endl;
-
 		this->threads = new HANDLE[this->thread_count];
 
 		this->isRunning = false;
@@ -131,7 +130,7 @@ namespace UDPT
 			cout << "Thread (" << ( i + 1) << "/" << ((int)this->thread_count) << ") terminated." << endl;
 		}
 		if (this->conn != NULL)
-			db_close(this->conn);
+			delete this->conn;
 		delete[] this->threads;
 	}
 
@@ -148,11 +147,7 @@ namespace UDPT
 		if (sock == INVALID_SOCKET)
 			return START_ESOCKET_FAILED;
 
-	#ifdef WIN32
-		recvAddr.sin_addr.S_un.S_addr = 0L;
-	#elif defined (linux)
 		recvAddr.sin_addr.s_addr = 0L;
-	#endif
 		recvAddr.sin_family = AF_INET;
 		recvAddr.sin_port = m_hton16 (this->port);
 
@@ -173,11 +168,7 @@ namespace UDPT
 
 		this->sock = sock;
 
-		dbname = this->o_settings->get ("database", "file");
-		if (dbname == "")
-			dbname = "tracker.db";
-
-		db_open(&this->conn, dbname.c_str());
+		this->conn = new Data::SQLite3Driver (this->o_settings->getClass("database"), true);
 
 		this->isRunning = true;
 		cout << "Starting maintenance thread (1/" << ((int)this->thread_count) << ")" << endl;
@@ -186,7 +177,7 @@ namespace UDPT
 	#ifdef WIN32
 		this->threads[0] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_maintainance_start, (LPVOID)this, 0, NULL);
 	#elif defined (linux)
-		pthread_create (&usi->threads[0], NULL, _maintainance_start, usi);
+		pthread_create (&usi->threads[0], NULL, _maintainance_start, (void*)this);
 	#endif
 
 		for (i = 1;i < this->thread_count; i++)
@@ -195,25 +186,12 @@ namespace UDPT
 	#ifdef WIN32
 			this->threads[i] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_thread_start, (LPVOID)this, 0, NULL);
 	#elif defined (linux)
-			pthread_create (&(this->threads[i]), NULL, _thread_start, this);
+			pthread_create (&(this->threads[i]), NULL, _thread_start, (void*)this);
 	#endif
 		}
 
 		return START_OK;
 	}
-
-static uint64_t _get_connID (SOCKADDR_IN *remote)
-{
-	int base;
-	uint64_t x;
-
-	base = time(NULL);
-	base /= 3600;		// changes every hour.
-
-	x = base;
-	x += remote->sin_addr.s_addr;
-	return x;
-}
 
 	int UDPTracker::sendError (UDPTracker *usi, SOCKADDR_IN *remote, uint32_t transactionID, const string &msg)
 	{
@@ -248,7 +226,13 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 
 		resp.action = m_hton32(0);
 		resp.transaction_id = req->transaction_id;
-		resp.connection_id = _get_connID(remote);
+
+		if (!usi->conn->genConnectionId(&resp.connection_id,
+				m_hton32(remote->sin_addr.s_addr),
+				m_hton16(remote->sin_port)))
+		{
+			return 1;
+		}
 
 		sendto(usi->sock, (char*)&resp, sizeof(ConnectionResponse), 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
@@ -262,16 +246,16 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 		int q,		// peer counts
 			bSize,	// message size
 			i;		// loop index
-		db_peerEntry *peers;
-		int32_t seeders,
-			leechers,
-			completed;
-		db_peerEntry pE;	// info for DB
+		DatabaseDriver::PeerEntry *peers;
+		DatabaseDriver::TorrentEntry tE;
+
 		uint8_t buff [1028];	// Reasonable buffer size. (header+168 peers)
 
 		req = (AnnounceRequest*)data;
 
-		if (req->connection_id != _get_connID(remote))
+		if (!usi->conn->verifyConnectionId(req->connection_id,
+				m_hton32(remote->sin_addr.s_addr),
+				m_hton16(remote->sin_port)))
 		{
 			return 1;
 		}
@@ -291,25 +275,54 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 			return 0;
 		}
 
+		if (!usi->conn->isTorrentAllowed(req->info_hash))
+		{
+			UDPTracker::sendError(usi, remote, req->transaction_id, "info_hash not registered.");
+			return 0;
+		}
+
 		// load peers
 		q = 30;
 		if (req->num_want >= 1)
 			q = min (q, req->num_want);
 
-		peers = (db_peerEntry*)malloc (sizeof(db_peerEntry) * q);
+		peers = new DatabaseDriver::PeerEntry [q];
 
-		db_load_peers(usi->conn, req->info_hash, peers, &q);
+
+		DatabaseDriver::TrackerEvents event;
+		switch (req->event)
+		{
+		case 1:
+			event = DatabaseDriver::EVENT_COMPLETE;
+			break;
+		case 2:
+			event = DatabaseDriver::EVENT_START;
+			break;
+		case 3:
+			event = DatabaseDriver::EVENT_STOP;
+			break;
+		default:
+			event = DatabaseDriver::EVENT_UNSPEC;
+			break;
+		}
+
+		if (event == DatabaseDriver::EVENT_STOP)
+			q = 0;	// no need for peers when stopping.
+
+		if (q > 0)
+			usi->conn->getPeers(req->info_hash, &q, peers);
 
 		bSize = 20; // header is 20 bytes
 		bSize += (6 * q); // + 6 bytes per peer.
 
-		db_get_stats (usi->conn, req->info_hash, &seeders, &leechers, &completed);
+		tE.info_hash = req->info_hash;
+		usi->conn->getTorrentInfo(&tE);
 
 		resp = (AnnounceResponse*)buff;
 		resp->action = m_hton32(1);
 		resp->interval = m_hton32 ( usi->announce_interval );
-		resp->leechers = m_hton32(leechers);
-		resp->seeders = m_hton32 (seeders);
+		resp->leechers = m_hton32(tE.leechers);
+		resp->seeders = m_hton32 (tE.seeders);
 		resp->transaction_id = req->transaction_id;
 
 		for (i = 0;i < q;i++)
@@ -328,24 +341,17 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 			buff[25 + x] = (peers[i].port & 0xff);
 
 		}
-		free (peers);
+		delete[] peers;
 		sendto(usi->sock, (char*)buff, bSize, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
-		// Add peer to list:
-		pE.downloaded = req->downloaded;
-		pE.uploaded = req->uploaded;
-		pE.left = req->left;
-		pE.peer_id = req->peer_id;
+		// update DB.
+		uint32_t ip;
 		if (req->ip_address == 0) // default
-		{
-			pE.ip = m_hton32 (remote->sin_addr.s_addr);
-		}
+			ip = m_hton32 (remote->sin_addr.s_addr);
 		else
-		{
-			pE.ip = req->ip_address;
-		}
-		pE.port = req->port;
-		db_add_peer(usi->conn, req->info_hash,  &pE);
+			ip = req->ip_address;
+		usi->conn->updatePeer(req->peer_id, req->info_hash, ip, req->port,
+				req->downloaded, req->left, req->uploaded, event);
 
 		return 0;
 	}
@@ -373,6 +379,13 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 			return 0;
 		}
 
+		if (!usi->conn->verifyConnectionId(sR->connection_id,
+				m_hton32(remote->sin_addr.s_addr),
+				m_hton16(remote->sin_port)))
+		{
+			return 1;
+		}
+
 		// get torrent count.
 		c = v / 20;
 
@@ -382,7 +395,6 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 
 		for (i = 0;i < c;i++)
 		{
-			int32_t s, c, l;
 			int32_t *seeders,
 				*completed,
 				*leechers;
@@ -398,11 +410,17 @@ static uint64_t _get_connID (SOCKADDR_IN *remote)
 			completed = (int32_t*)&buffer[i*12+12];
 			leechers = (int32_t*)&buffer[i*12+16];
 
-			db_get_stats (usi->conn, hash, &s, &l, &c);
+			DatabaseDriver::TorrentEntry tE;
+			tE.info_hash = hash;
+			if (!usi->conn->getTorrentInfo(&tE))
+			{
+				sendError(usi, remote, sR->transaction_id, "Scrape Failed: couldn't retrieve torrent data");
+				return 0;
+			}
 
-			*seeders = m_hton32 (s);
-			*completed = m_hton32 (c);
-			*leechers = m_hton32 (l);
+			*seeders = m_hton32 (tE.seeders);
+			*completed = m_hton32 (tE.completed);
+			*leechers = m_hton32 (tE.leechers);
 		}
 		cout.flush();
 
@@ -436,7 +454,7 @@ static int _isIANA_IP (uint32_t ip)
 			}
 		}
 
-		cout << ":: " << (void*)remote->sin_addr.s_addr << ": " << remote->sin_port << " ACTION=" << action << endl;
+		cout << ":: " << (void*)m_hton32(remote->sin_addr.s_addr) << ": " << m_hton16(remote->sin_port) << " ACTION=" << action << endl;
 
 		if (action == 0 && r >= 16)
 			return UDPTracker::handleConnection (usi, remote, data);
@@ -499,10 +517,10 @@ static int _isIANA_IP (uint32_t ip)
 
 		while (usi->isRunning)
 		{
-			db_cleanup (usi->conn);
+			usi->conn->cleanup();
 
 #ifdef WIN32
-			Sleep (usi->cleanup_interval * 1000);	// wait 2 minutes between every cleanup.
+			Sleep (usi->cleanup_interval * 1000);
 #elif defined (linux)
 			sleep (usi->cleanup_interval);
 #else
