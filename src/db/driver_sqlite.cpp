@@ -18,14 +18,14 @@
  */
 
 #include "driver_sqlite.hpp"
-#include "../multiplatform.h"
 #include "../tools.h"
-#include <sqlite3.h>
-#include <time.h>
+#include <ctime>
+#include <sstream>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <cassert>
+#include <cstring> // memcpy
+#include "../multiplatform.h"
 
 using namespace std;
 
@@ -146,21 +146,18 @@ namespace UDPT
 
 		bool SQLite3Driver::getPeers (uint8_t info_hash [20], int *max_count, PeerEntry *pe)
 		{
-			char sql [1000];
+			string sql;
 			char hash [50];
 			sqlite3_stmt *stmt;
-			int r,
-			i;
-
-			sql[0] = '\0';
+			int r, i;
 
 			to_hex_str(info_hash, hash);
 
-			strcat(sql, "SELECT ip,port FROM 't");
-			strcat(sql, hash);
-			strcat(sql, "' LIMIT ?");
+			sql = "SELECT ip,port FROM 't";
+			sql += hash;
+			sql += "' LIMIT ?";
 
-			sqlite3_prepare(this->db, sql, -1, &stmt, NULL);
+			sqlite3_prepare(this->db, sql.c_str(), sql.length(), &stmt, NULL);
 			sqlite3_bind_int(stmt, 1, *max_count);
 
 			i = 0;
@@ -196,7 +193,7 @@ namespace UDPT
 		{
 			char xHash [50]; // we just need 40 + \0 = 41.
 			sqlite3_stmt *stmt;
-			char sql [1000];
+			string sql;
 			int r;
 
 			char *hash = xHash;
@@ -205,14 +202,13 @@ namespace UDPT
 			addTorrent (info_hash);
 
 
-			sql[0] = '\0';
-			strcat(sql, "REPLACE INTO 't");
-			strcat(sql, hash);
-			strcat(sql, "' (peer_id,ip,port,uploaded,downloaded,left,last_seen) VALUES (?,?,?,?,?,?,?)");
+			sql = "REPLACE INTO 't";
+			sql += hash;
+			sql += "' (peer_id,ip,port,uploaded,downloaded,left,last_seen) VALUES (?,?,?,?,?,?,?)";
 
 		//	printf("IP->%x::%u\n", pE->ip, pE->port);
 
-			sqlite3_prepare(this->db, sql, -1, &stmt, NULL);
+			sqlite3_prepare(this->db, sql.c_str(), sql.length(), &stmt, NULL);
 
 			sqlite3_bind_blob(stmt, 1, (void*)peer_id, 20, NULL);
 			sqlite3_bind_blob(stmt, 2, (void*)&ip, 4, NULL);
@@ -225,8 +221,8 @@ namespace UDPT
 			r = sqlite3_step(stmt);
 			sqlite3_finalize(stmt);
 
-			strcpy(sql, "REPLACE INTO stats (info_hash,last_mod) VALUES (?,?)");
-			sqlite3_prepare (this->db, sql, -1, &stmt, NULL);
+			sql = "REPLACE INTO stats (info_hash,last_mod) VALUES (?,?)";
+			sqlite3_prepare (this->db, sql.c_str(), sql.length(), &stmt, NULL);
 			sqlite3_bind_blob (stmt, 1, hash, 20, NULL);
 			sqlite3_bind_int (stmt, 2, time(NULL));
 			sqlite3_step (stmt);
@@ -375,17 +371,17 @@ namespace UDPT
 
 		bool SQLite3Driver::removePeer(uint8_t peer_id [20], uint8_t info_hash [20], uint32_t ip, uint16_t port)
 		{
-			char sql [1000];
+			string sql;
 			char xHash [50];
 			sqlite3_stmt *stmt;
 
 			_to_hex_str (info_hash, xHash);
 
-			strcpy (sql, "DELETE FROM 't");
-			strcat (sql, xHash);
-			strcat (sql, "' WHERE ip=? AND port=? AND peer_id=?");
+			sql += "DELETE FROM 't";
+			sql += xHash;
+			sql += "' WHERE ip=? AND port=? AND peer_id=?";
 
-			sqlite3_prepare (this->db, sql, -1, &stmt, NULL);
+			sqlite3_prepare (this->db, sql.c_str(), sql.length(), &stmt, NULL);
 
 			sqlite3_bind_blob(stmt, 0, (const void*)&ip, 4, NULL);
 			sqlite3_bind_blob(stmt, 1, (const void*)&port, 2, NULL);

@@ -16,6 +16,9 @@
  *		You should have received a copy of the GNU General Public License
  *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
  */
+/*
+ * NOTE: keep this header after standard C/C++ headers
+ */
 
 #include <stdint.h>
 
@@ -49,7 +52,9 @@ typedef void* LPVOID;
 typedef void (LPTHREAD_START_ROUTINE)(LPVOID);
 typedef pthread_t HANDLE;
 
+#ifndef min
 #define min(a,b) (a > b ? b : a)
+#endif
 #define VERSION "1.0.0-alpha (Linux)"
 #endif
 

@@ -17,13 +17,14 @@
  *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "multiplatform.h"
 #include "udpTracker.hpp"
 #include "tools.h"
-#include <stdlib.h>
-#include <time.h>
-
+#include <cstdlib> // atoi
+#include <cstring>
+#include <ctime>
 #include <iostream>
+#include "multiplatform.h"
+
 using namespace std;
 using namespace UDPT::Data;
 
@@ -124,8 +125,8 @@ namespace UDPT
 	#ifdef WIN32
 			TerminateThread (this->threads[i], 0x00);
 	#elif defined (linux)
-			pthread_detach (usi->threads[i]);
-			pthread_cancel (usi->threads[i]);
+			pthread_detach (this->threads[i]);
+			pthread_cancel (this->threads[i]);
 	#endif
 			cout << "Thread (" << ( i + 1) << "/" << ((int)this->thread_count) << ") terminated." << endl;
 		}
@@ -177,7 +178,7 @@ namespace UDPT
 	#ifdef WIN32
 		this->threads[0] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_maintainance_start, (LPVOID)this, 0, NULL);
 	#elif defined (linux)
-		pthread_create (&usi->threads[0], NULL, _maintainance_start, (void*)this);
+		pthread_create (&this->threads[0], NULL, _maintainance_start, (void*)this);
 	#endif
 
 		for (i = 1;i < this->thread_count; i++)
@@ -480,8 +481,14 @@ static int _isIANA_IP (uint32_t ip)
 	{
 		UDPTracker *usi;
 		SOCKADDR_IN remoteAddr;
-		int addrSz,
-			r;
+
+#ifdef linux
+		socklen_t addrSz;
+#else
+		int addrSz;
+#endif
+
+		int r;
 		char tmpBuff [UDP_BUFFER_SIZE];
 
 		usi = (UDPTracker*)arg;
