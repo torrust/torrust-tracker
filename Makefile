@@ -1,5 +1,5 @@
 #
-#	Copyright © 2012 Naim A.
+#	Copyright © 2012,2013 Naim A.
 #
 #	This file is part of UDPT.
 #
@@ -17,24 +17,26 @@
 #		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-win32: main.o tools.o udpTracker.o driver_sqlite.o
-	gcc -static -O3 -o udpt.exe main.o tools.o udpTracker.o driver_sqlite.o -lsqlite3 -lws2_32
+objects = main.o udpTracker.o database.o driver_sqlite.o \
+	settings.o tools.o
+target = udpt
 
-linux: main.o tools.o udpTracker.o driver_sqlite.o
-	gcc -static -O3 -o udpt main.o tools.o udpTracker.o driver_sqlite.o -lsqlite3 -lpthreads
-
-main.o:
-	gcc -c -O3 -o main.o src/main.c
+%.o: src/%.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+%.o: src/%.cpp
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
+%.o: src/db/%.cpp
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
+all: $(target)
 	
-tools.o:
-	gcc -c -O3 -o tools.o src/tools.c
-	
-udpTracker.o:
-	gcc -c -O3 -o udpTracker.o src/udpTracker.c
-	
-driver_sqlite.o:
-	gcc -O3 -c -o driver_sqlite.o src/db/driver_sqlite.c
-	
-.PHONY: clean
+$(target): $(objects)
+	@echo Linking...
+	$(CXX) $(LDFLAGS) -O3 -o $(target) $(objects) -lsqlite3
+	@echo Done.
 clean:
-	rm -f udpt.exe main.o tools.o udpTracker.o driver_sqlite.o udpt
+	@echo Cleaning Up...
+	$(RM) $(objects) $(target)
+	@echo Done.
+
+install: $(target)
+	@echo Installing $(target) to '$(exec_prefix)/bin'...
