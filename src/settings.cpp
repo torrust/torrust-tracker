@@ -249,6 +249,8 @@ void _settings_clean_string (char **str)
 		SettingClass *c;
 
 		c = this->getClass(classN);
+		if (c == NULL)
+			return "";
 		return c->get(name);
 	}
 
@@ -277,6 +279,8 @@ void _settings_clean_string (char **str)
 
 	string Settings::SettingClass::get (const string name)
 	{
+		if (this->entries.find(name) == this->entries.end())
+			return "";
 		return this->entries[name];
 	}
 

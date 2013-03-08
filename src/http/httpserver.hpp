@@ -42,6 +42,12 @@ namespace UDPT
 				this->msg = msg;
 			}
 
+			inline
+			const string& getMessage ()
+			{
+				return this->msg;
+			}
+
 		private:
 			string msg;
 		};
@@ -52,10 +58,21 @@ namespace UDPT
 			class Request
 			{
 			public:
+				enum RequestMethod {
+					RM_UNKNOWN = 0,
+					RM_GET = 1
+				};
+
 				Request (SOCKET sock, const SOCKADDR *sock_addr);
 			private:
 				friend class HTTPServer;
 
+				enum RequestMethod requestMethod;
+				string str_requestMethod;
+				struct {
+					unsigned int major;
+					unsigned int minor;
+				} httpVersion;
 				SOCKET sock;
 				multimap<string, string> headers;
 				list<string> path;			// /some/path
@@ -64,13 +81,21 @@ namespace UDPT
 
 				void loadAndParse ();
 			};
+
 			class Response
 			{
 			public:
 				Response (SOCKET sock);
 
+				void sendRaw (void*, int);
+				void setStatus (int code, string msg);
+
 			private:
 				friend class HTTPServer;
+				SOCKET sock;
+				bool isHeaderSent;
+				string statusMsg;
+				int statusCode;
 			};
 
 			typedef int (srvCallback) (Request *, Response *);
@@ -82,7 +107,7 @@ namespace UDPT
 			virtual ~HTTPServer ();
 
 
-			static list<string> split (const string str, const string del);
+			static list<string> split (const string str, const string del, int limit = -1);
 		private:
 			typedef struct _serve_node {
 				string name;	// part of path name

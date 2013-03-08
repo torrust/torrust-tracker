@@ -22,6 +22,7 @@
 #include "multiplatform.h"
 #include "udpTracker.hpp"
 #include "settings.hpp"
+#include "http/httpserver.hpp"
 
 using namespace std;
 using namespace UDPT;
@@ -78,6 +79,8 @@ int main(int argc, char *argv[])
 
 	usi = new UDPTracker (settings);
 
+	API::HTTPServer *apiSrv = NULL;
+
 	r = usi->start();
 	if (r != UDPTracker::START_OK)
 	{
@@ -97,6 +100,14 @@ int main(int argc, char *argv[])
 		goto cleanup;
 	}
 
+	try{
+		apiSrv = new API::HTTPServer(6969, 2);
+	} catch (API::APIException &ex)
+	{
+		cerr << "APIException: " << ex.getMessage() << endl;
+		goto cleanup;
+	}
+
 	cout << "Press Any key to exit." << endl;
 
 	cin.get();
@@ -106,6 +117,7 @@ cleanup:
 
 	delete usi;
 	delete settings;
+	delete apiSrv;
 
 #ifdef WIN32
 	WSACleanup();

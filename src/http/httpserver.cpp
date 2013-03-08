@@ -18,7 +18,11 @@
  */
 
 #include "httpserver.hpp"
+#include <cstring>
+#include <cstdlib>
 #include "../tools.h"
+
+#define REQBUFFSZ	2048	// enough for all headers.
 
 namespace UDPT
 {
@@ -69,7 +73,14 @@ namespace UDPT
 			HTTPServer *srv = (HTTPServer*)arg;
 			int r;
 			SOCKADDR addr;
-			int addrSz = sizeof (addr);
+
+#ifdef linux
+			socklen_t addrSz;
+#else
+			int addrSz;
+#endif
+
+			addrSz = sizeof (addr);
 			SOCKET conn;
 
 			while (srv->isRunning)
@@ -85,12 +96,15 @@ namespace UDPT
 				{
 					continue;
 				}
-				cout << "A" << endl;
 
-				Request req = Request (conn, &addr);
-				Response resp = Response (conn);
+				try {
+					Request req = Request (conn, &addr);
+					Response resp = Response (conn);
 
-				HTTPServer::handleConnection(srv, &req, &resp);
+					HTTPServer::handleConnection(srv, &req, &resp);
+				} catch (...) {
+					cout << "ERR OCC" << endl;
+				}
 				closesocket(conn);
 			}
 
@@ -131,7 +145,7 @@ namespace UDPT
 			}
 		}
 
-		list<string> HTTPServer::split (const string str, const string del)
+		list<string> HTTPServer::split (const string str, const string del, int limit)
 		{
 			list<string> lst;
 
@@ -142,12 +156,15 @@ namespace UDPT
 			{
 				e = str.find(del, s);
 
-				if (e == string::npos)
+				if (e == string::npos || limit - 1 == 0)
 					e = str.length();
 
-				if (e == str.length())
+				lst.push_back(str.substr(s, e - s));
+
+				if (e >= str.length() || limit - 1 == 0)
 					break;
 				s = e + del.length();
+				limit--;
 			}
 
 			return lst;
@@ -185,6 +202,7 @@ namespace UDPT
 #endif
 			}
 			delete[] this->threads;
+			cout << "ST" << endl;
 		}
 
 
@@ -192,12 +210,122 @@ namespace UDPT
 		{
 			this->sock = sock;
 			this->sock_addr = sa;
+
+			this->loadAndParse();
+		}
+
+		void HTTPServer::Request::loadAndParse ()
+		{
+			char buffer [REQBUFFSZ];
+			int r;
+
+			this->httpVersion.major = 0;
+			this->httpVersion.minor = 0;
+			this->requestMethod = RM_UNKNOWN;
+			this->path.clear();
+			this->headers.clear();
+			this->query.clear ();
+			this->str_requestMethod = "";
+
+			r = recv (this->sock, buffer, REQBUFFSZ, 0);
+			if (r <= 0)
+				throw APIException("No data received from client.");
+
+			string request = string (buffer);
+			list<string> lines = HTTPServer::split(request, "\r\n");
+			list<string>::iterator it, begin, end;
+			begin = lines.begin();
+			end = lines.end();
+			for (it = begin;it != end;it++)
+			{
+				if (it == begin)
+				{
+					list<string> hLine = HTTPServer::split(*it, " ");
+					if (hLine.size() < 3)
+						throw APIException("Bad Request");
+					this->str_requestMethod = hLine.front();
+					string httpVersion = hLine.back();
+					if (strncmp(httpVersion.c_str(), "HTTP/", 5) != 0)
+						throw APIException("Unsupported HTTP Version");
+					string vn = httpVersion.substr(5);
+					this->httpVersion.major = atoi (vn.substr(0, vn.find('.')).c_str());
+					this->httpVersion.minor = atoi (vn.substr(vn.find('.') + 1).c_str());
+
+					hLine.pop_front();
+					hLine.pop_back();
+					string path;
+					bool isF = true;
+					while (!hLine.empty())
+					{
+						if (isF)
+							isF = false;
+						else
+							path.append(" ");
+						path.append(hLine.front());
+						hLine.pop_front();
+					}
+
+					list<string> parts = HTTPServer::split(path, "?", 2);
+					if (!parts.empty())
+					{
+						this->path = HTTPServer::split(parts.front(), "/");
+						parts.pop_front();
+					}
+					if (!parts.empty())
+					{
+						string qData = parts.front();
+						parts.pop_front();
+
+						string::size_type sK, sV, eK, eV;
+						sK = sV = eK = eV = 0;
+
+						while (sK < qData.length())
+						{
+							eK = qData.find('=', sK);
+							if (eK == string::npos) // not valid key
+								break;
+							sV = eK + 1;
+							eV = qData.find('&', sV);
+							if (eV == string::npos)
+								eV = qData.length();
+
+							this->query [qData.substr(sK, eK - sK)] = qData.substr(sV, eV - sV);
+
+							if (eV >= qData.length())
+								break;
+							sK = eV + 1;
+						}
+					}
+				}
+				else
+				{
+					string::size_type p = (*it).find(": ");
+					if (p == string::npos)
+						continue;
+					this->headers.insert(pair<string,string>(
+							(*it).substr(0, p),
+							(*it).substr(p+2)
+					));
+				}
+			}
 		}
 
 		HTTPServer::Response::Response(SOCKET sock)
 		{
-
+			this->sock = sock;
+			this->isHeaderSent = false;
+			setStatus(200, "OK");
 		}
 
+		void HTTPServer::Response::setStatus (int code, string msg)
+		{
+			this->statusCode = code;
+			this->statusMsg = msg;
+		}
+
+		void HTTPServer::Response::sendRaw (void *data, int sz)
+		{
+			send (this->sock, (const char*)data, sz, 0);
+		}
 	};
 };
