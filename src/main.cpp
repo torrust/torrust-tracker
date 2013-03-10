@@ -26,6 +26,7 @@
 
 using namespace std;
 using namespace UDPT;
+using namespace UDPT::Server;
 
 static void _print_usage ()
 {
@@ -79,7 +80,7 @@ int main(int argc, char *argv[])
 
 	usi = new UDPTracker (settings);
 
-	API::HTTPServer *apiSrv = NULL;
+	HTTPServer *apiSrv = NULL;
 
 	r = usi->start();
 	if (r != UDPTracker::START_OK)
@@ -101,10 +102,10 @@ int main(int argc, char *argv[])
 	}
 
 	try{
-		apiSrv = new API::HTTPServer(6969, 2);
-	} catch (API::APIException &ex)
+		apiSrv = new HTTPServer(6969, 8);
+	} catch (ServerException &ex)
 	{
-		cerr << "APIException: " << ex.getMessage() << endl;
+		cerr << "ServerException #" << ex.getErrorCode() << ": " << ex.getErrorMsg() << endl;
 		goto cleanup;
 	}
 
