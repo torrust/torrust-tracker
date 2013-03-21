@@ -23,6 +23,7 @@
 #include "udpTracker.hpp"
 #include "settings.hpp"
 #include "http/httpserver.hpp"
+#include "http/webapp.hpp"
 
 using namespace std;
 using namespace UDPT;
@@ -81,6 +82,7 @@ int main(int argc, char *argv[])
 	usi = new UDPTracker (settings);
 
 	HTTPServer *apiSrv = NULL;
+	WebApp *wa = NULL;
 
 	r = usi->start();
 	if (r != UDPTracker::START_OK)
@@ -101,8 +103,11 @@ int main(int argc, char *argv[])
 		goto cleanup;
 	}
 
+
 	try{
 		apiSrv = new HTTPServer(6969, 8);
+		wa = new WebApp (apiSrv, usi->conn, settings);
+		wa->deploy();
 	} catch (ServerException &ex)
 	{
 		cerr << "ServerException #" << ex.getErrorCode() << ": " << ex.getErrorMsg() << endl;
@@ -119,6 +124,7 @@ cleanup:
 	delete usi;
 	delete settings;
 	delete apiSrv;
+	delete wa;
 
 #ifdef WIN32
 	WSACleanup();

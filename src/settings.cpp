@@ -284,6 +284,11 @@ void _settings_clean_string (char **str)
 		return this->entries[name];
 	}
 
+	map<string, string>* Settings::SettingClass::getMap()
+	{
+		return &this->entries;
+	}
+
 	bool Settings::SettingClass::set (const string name, const string value)
 	{
 		pair<map<string, string>::iterator, bool> r;

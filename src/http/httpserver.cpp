@@ -128,7 +128,7 @@ doSrv:
 						stringstream stream;
 						stream << "<html>";
 						stream << "<head><title>Not Found</title></head>";
-						stream << "<body><h1>Not Found</h1><div>The server couldn't find the request resource.</div><br /><hr /><div style=\"font-size:small;text-align:center;\">&copy; 2013 Naim A. | ContactMe server</div></body>";
+						stream << "<body><h1>Not Found</h1><div>The server couldn't find the request resource.</div><br /><hr /><div style=\"font-size:small;text-align:center;\">&copy; 2013 Naim A. | <a href=\"http://udpt.googlecode.com/\">The UDPT Project</a></div></body>";
 						stream << "</html>";
 						string str = stream.str();
 						resp.write (str.c_str(), str.length());
@@ -139,9 +139,18 @@ doSrv:
 							cb (server, &req, &resp);
 						} catch (...)
 						{
-							// error 500
+							resp.setStatus(500, "Internal Server Error");
+							resp.addHeader ("Content-Type", "text/html; charset=US-ASCII");
+							stringstream stream;
+							stream << "<html>";
+							stream << "<head><title>Internal Server Error</title></head>";
+							stream << "<body><h1>Internal Server Error</h1><div>An Error Occurred while trying to process your request.</div><br /><hr /><div style=\"font-size:small;text-align:center;\">&copy; 2013 Naim A. | <a href=\"http://udpt.googlecode.com/\">The UDPT Project</a></div></body>";
+							stream << "</html>";
+							string str = stream.str();
+							resp.write (str.c_str(), str.length());
 						}
 					}
+					resp.finalize();
 				} catch (ServerException &e)
 				{
 					// Error 400 Bad Request!
@@ -190,6 +199,19 @@ doSrv:
 				it++;
 			}
 			return NULL;
+		}
+
+		void HTTPServer::setData(string k, void *d)
+		{
+			this->customData[k] = d;
+		}
+
+		void* HTTPServer::getData(string k)
+		{
+			map<string, void*>::iterator it = this->customData.find(k);
+			if (it == this->customData.end())
+				return NULL;
+			return it->second;
 		}
 
 		HTTPServer::~HTTPServer ()
@@ -435,68 +457,47 @@ doSrv:
 		HTTPServer::Response::Response (SOCKET cli)
 		{
 			this->conn = cli;
-			this->headerSent = false;
 			
 			setStatus (200, "OK");
 		}
 		
 		void HTTPServer::Response::setStatus (int c, const string m)
 		{
-			if (headerSent)
-				throw ServerException (2, "Can't set status.");
-
 			this->status_code = c;
 			this->status_msg = m;
 		}
 		
 		void HTTPServer::Response::addHeader (string key, string value)
 		{
-			if (headerSent)
-				throw ServerException (1, "Headers already sent.");
 			this->headers.insert (pair<string, string>(key, value));
 		}
 		
 		void HTTPServer::Response::write (const char *data, int len)
 		{
-			if (!this->headerSent)
-				sendHeaders ();
 			if (len < 0)
 				len = strlen (data);
-			writeRaw (data, len);
+			msg.write(data, len);
 		}
-		
-		void HTTPServer::Response::sendHeaders ()
-		{
-			if (this->headerSent)
-				return;
-			
-			this->headerSent = true;
-			
-			addHeader ("Server", "ContactMe");
 
-			stringstream stream;
-			stream << "HTTP/1.1 " << this->status_code << " " << this->status_msg << "\r\n";
-			stream << "Connection: Close\r\n";
-			
-			multimap<string, string>::iterator it;
-			for (it = this->headers.begin(); it != this->headers.end(); it++)
+		void HTTPServer::Response::finalize ()
+		{
+			stringstream x;
+			x << "HTTP/1.1 " << this->status_code << " " << this->status_msg << "\r\n";
+			multimap<string, string>::iterator it, end;
+			end = this->headers.end();
+			for (it = this->headers.begin(); it != end;it++)
 			{
-				stream << it->first << ": " << it->second << "\r\n";
+				x << it->first << ": " << it->second << "\r\n";
 			}
-			this->headers.clear();
-			stream << "\r\n";
-			string str = stream.str();
-			writeRaw (str.c_str(), str.length());
-		}
-		
-		bool HTTPServer::Response::isHeadersSent () const
-		{
-			return this->headerSent;
+			x << "Connection: Close\r\n";
+			x << "Content-Length: " << this->msg.tellp() << "\r\n";
+			x << "Server: udpt\r\n";
+			x << "\r\n";
+			x << this->msg.str();
+
+			// write to socket
+			send (this->conn, x.str().c_str(), x.str().length(), 0);
 		}
 
-		int HTTPServer::Response::writeRaw (const char *data, int len)
-		{
-			return send (this->conn, data, len, 0);
-		}
 	};
 };

@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <map>
 #include <string>
+#include <sstream>
 #include <list>
 #include "../multiplatform.h"
 using namespace std;
@@ -110,16 +111,20 @@ namespace UDPT
 
 				void setStatus (int, const string);
 				void addHeader (string key, string value);
-				void sendHeaders ();
+
 				int writeRaw (const char *data, int len);
 				void write (const char *data, int len = -1);
-				bool isHeadersSent () const;
+
 			private:
+				friend class HTTPServer;
+
 				SOCKET conn;
 				int status_code;
 				string status_msg;
 				multimap<string, string> headers;
-				bool headerSent;
+				stringstream msg;
+
+				void finalize ();
 			};
 
 			typedef void (reqCallback)(HTTPServer*,Request*,Response*);
@@ -127,6 +132,9 @@ namespace UDPT
 			HTTPServer (uint16_t port, int threads);
 
 			void addApp (list<string> *path, reqCallback *);
+
+			void setData (string, void *);
+			void* getData (string);
 
 			virtual ~HTTPServer ();
 
@@ -142,6 +150,7 @@ namespace UDPT
 			HANDLE *threads;
 			bool isRunning;
 			appNode rootNode;
+			map<string, void*> customData;
 
 			static void handleConnections (HTTPServer *);
 
