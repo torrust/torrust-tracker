@@ -48,8 +48,12 @@ namespace UDPT
 			Settings::SettingClass *sc_api;
 			std::map<std::string, list<uint32_t> > ip_whitelist;
 
+			static void handleRoot (HTTPServer*,HTTPServer::Request*, HTTPServer::Response*);
 			static void handleAPI (HTTPServer*,HTTPServer::Request*, HTTPServer::Response*);
 			static bool isAllowedIP (WebApp *, string, uint32_t);
+
+			void doAddTorrent (HTTPServer::Request*, HTTPServer::Response*);
+			void doRemoveTorrent (HTTPServer::Request*, HTTPServer::Response*);
 		};
 	};
 };
