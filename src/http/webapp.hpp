@@ -49,6 +49,7 @@ namespace UDPT
 			std::map<std::string, list<uint32_t> > ip_whitelist;
 
 			static void handleRoot (HTTPServer*,HTTPServer::Request*, HTTPServer::Response*);
+			static void handleAnnounce (HTTPServer*,HTTPServer::Request*, HTTPServer::Response*);
 			static void handleAPI (HTTPServer*,HTTPServer::Request*, HTTPServer::Response*);
 			static bool isAllowedIP (WebApp *, string, uint32_t);
 

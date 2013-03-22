@@ -24,6 +24,7 @@
 #include "settings.hpp"
 #include "http/httpserver.hpp"
 #include "http/webapp.hpp"
+#include <cstdlib>	// atoi
 
 using namespace std;
 using namespace UDPT;

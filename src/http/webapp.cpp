@@ -137,8 +137,13 @@ namespace UDPT
 		{
 			list<string> path;
 			this->instance->addApp(&path, &WebApp::handleRoot);
+
 			path.push_back("api");
 			this->instance->addApp(&path, &WebApp::handleAPI);	// "/api"
+
+			path.pop_back();
+			path.push_back("announce");
+			this->instance->addApp(&path, &WebApp::handleAnnounce);
 		}
 
 		void WebApp::handleRoot (HTTPServer *srv, HTTPServer::Request *req, HTTPServer::Response *resp)
@@ -218,6 +223,11 @@ namespace UDPT
 				resp->write("{\"success\":true}");
 			else
 				resp->write("{\"error\":\"failed to add torrent to DB\"}");
+		}
+
+		void WebApp::handleAnnounce (HTTPServer *srv, HTTPServer::Request *req, HTTPServer::Response *resp)
+		{
+			resp->write("d14:failure reason42:this is a UDP tracker, not a HTTP tracker.e");
 		}
 
 		void WebApp::handleAPI(HTTPServer *srv, HTTPServer::Request *req, HTTPServer::Response *resp)
