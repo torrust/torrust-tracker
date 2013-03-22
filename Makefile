@@ -18,7 +18,7 @@
 #
 
 objects = main.o udpTracker.o database.o driver_sqlite.o \
-	settings.o tools.o
+	settings.o tools.o httpserver.o webapp.o
 target = udpt
 
 %.o: src/%.c
@@ -26,6 +26,8 @@ target = udpt
 %.o: src/%.cpp
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 %.o: src/db/%.cpp
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
+%.o: src/http/%.cpp
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 all: $(target)
 	
