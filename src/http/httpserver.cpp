@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2013 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -17,186 +17,486 @@
  *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cstring>
+#include <map>
 #include "httpserver.hpp"
-#include "../tools.h"
+
+using namespace std;
 
 namespace UDPT
 {
-	namespace API
+	namespace Server
 	{
+		/* HTTPServer */
 		HTTPServer::HTTPServer (uint16_t port, int threads)
 		{
 			int r;
+			SOCKADDR_IN sa;
 
 			this->thread_count = threads;
-			this->threads = new HANDLE [threads];
+			this->threads = new HANDLE[threads];
+			this->isRunning = false;
 
-			SOCKADDR_IN endpoint;
-			endpoint.sin_family = AF_INET;
-			endpoint.sin_port = m_hton16(port);
-			endpoint.sin_addr.s_addr = 0L;
-
-			this->sock = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-			if (this->sock == INVALID_SOCKET)
-				throw APIException("Invalid Socket");
-
-			r = bind(this->sock, (SOCKADDR*)&endpoint, sizeof(SOCKADDR_IN));
-			if (r == SOCKET_ERROR)
-				throw APIException("Failed to bind port.");
-
-			this->isRunning = true;
-
-			this->rootNode.name = "";
-			this->rootNode.children.clear();
 			this->rootNode.callback = NULL;
 
+			this->srv = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+			if (this->srv == INVALID_SOCKET)
+			{
+				throw ServerException (1, "Failed to create Socket");
+			}
+
+			sa.sin_addr.s_addr = 0L;
+			sa.sin_family = AF_INET;
+			sa.sin_port = htons (port);
+			
+			r = bind (this->srv, (SOCKADDR*)&sa, sizeof(sa));
+			if (r == SOCKET_ERROR)
+			{
+				throw ServerException (2, "Failed to bind socket");
+			}
+
+			this->isRunning = true;
 			for (int i = 0;i < threads;i++)
 			{
 #ifdef WIN32
-				this->threads[i] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&HTTPServer::doServe, (LPVOID)this, 0, NULL);
+				this->threads[i] = CreateThread (NULL, 0, (LPTHREAD_START_ROUTINE)_thread_start, this, 0, NULL);
 #else
-				pthread_create (&this->threads[0], NULL, HTTPServer::doServe, (void*)this);
+				pthread_create (&this->threads[i], NULL, &HTTPServer::_thread_start, this);
 #endif
 			}
 		}
 
 #ifdef WIN32
-		DWORD HTTPServer::doServe (LPVOID arg)
+		DWORD HTTPServer::_thread_start (LPVOID arg)
 #else
-		void* HTTPServer::doServe (void* arg)
+		void* HTTPServer::_thread_start (void *arg)
 #endif
 		{
-			HTTPServer *srv = (HTTPServer*)arg;
-			int r;
-			SOCKADDR addr;
-			int addrSz = sizeof (addr);
-			SOCKET conn;
-
-			while (srv->isRunning)
+			HTTPServer *s = (HTTPServer*)arg;
+doSrv:
+			try {
+				HTTPServer::handleConnections (s);
+			} catch (ServerException &se)
 			{
-				r = listen (srv->sock, SOMAXCONN);
+				cerr << "SRV ERR #" << se.getErrorCode() << ": " << se.getErrorMsg () << endl;
+				goto doSrv;
+			}
+			return 0;
+		}
+
+		void HTTPServer::handleConnections (HTTPServer *server)
+		{
+			int r;
+#ifdef WIN32
+			int addrSz;
+#else
+			socklen_t addrSz;
+#endif
+			SOCKADDR_IN addr;
+			SOCKET cli;
+
+			while (server->isRunning)
+			{
+				r = listen (server->srv, 50);
 				if (r == SOCKET_ERROR)
-					throw APIException("Failed to listen");
-
-				addrSz = sizeof (addr);
-
-				conn = accept(srv->sock, &addr, &addrSz);
-				if (conn == INVALID_SOCKET)
 				{
+#ifdef WIN32
+					Sleep (500);
+#else
+					sleep (1);
+#endif
 					continue;
 				}
-				cout << "A" << endl;
+				addrSz = sizeof addr;
+				cli = accept (server->srv, (SOCKADDR*)&addr, &addrSz);
+				if (cli == INVALID_SOCKET)
+					continue;
+				
+				Response resp (cli); // doesn't throw exceptions.
 
-				Request req = Request (conn, &addr);
-				Response resp = Response (conn);
-
-				HTTPServer::handleConnection(srv, &req, &resp);
-				closesocket(conn);
-			}
-
-#ifdef WIN32
-			return 0;
-#else
-			return NULL;
-#endif
-		}
-
-		void HTTPServer::handleConnection (HTTPServer *srv, Request *req, Response *resp)
-		{
-			// follow path...
-			serveNode *cNode = &srv->rootNode;
-			list<string>::iterator it;
-			for (it = req->path.begin();(it != req->path.end() && cNode != NULL);it++)
-			{
-				if ((*it).length() == 0)
-					continue;	// same node.
-
-				map<string, serveNode>::iterator np;
-				np = cNode->children.find((*it));
-				if (np == srv->rootNode.children.end())
+				try {
+					Request req (cli, &addr);	// may throw exceptions.
+					reqCallback *cb = getRequestHandler (&server->rootNode, req.getPath());
+					if (cb == NULL)
+					{
+						// error 404
+						resp.setStatus (404, "Not Found");
+						resp.addHeader ("Content-Type", "text/html; charset=US-ASCII");
+						stringstream stream;
+						stream << "<html>";
+						stream << "<head><title>Not Found</title></head>";
+						stream << "<body><h1>Not Found</h1><div>The server couldn't find the request resource.</div><br /><hr /><div style=\"font-size:small;text-align:center;\">&copy; 2013 Naim A. | <a href=\"http://udpt.googlecode.com/\">The UDPT Project</a></div></body>";
+						stream << "</html>";
+						string str = stream.str();
+						resp.write (str.c_str(), str.length());
+					}
+					else
+					{
+						try {
+							cb (server, &req, &resp);
+						} catch (...)
+						{
+							resp.setStatus(500, "Internal Server Error");
+							resp.addHeader ("Content-Type", "text/html; charset=US-ASCII");
+							stringstream stream;
+							stream << "<html>";
+							stream << "<head><title>Internal Server Error</title></head>";
+							stream << "<body><h1>Internal Server Error</h1><div>An Error Occurred while trying to process your request.</div><br /><hr /><div style=\"font-size:small;text-align:center;\">&copy; 2013 Naim A. | <a href=\"http://udpt.googlecode.com/\">The UDPT Project</a></div></body>";
+							stream << "</html>";
+							string str = stream.str();
+							resp.write (str.c_str(), str.length());
+						}
+					}
+					resp.finalize();
+				} catch (ServerException &e)
 				{
-					cNode = NULL;
-					break;
+					// Error 400 Bad Request!
 				}
-				else
-					cNode = &np->second;
-			}
 
-			if (cNode->callback != NULL)
-				cNode->callback (req, resp);
-			else
-			{
-				// TODO: add HTTP error handler (404 NOT FOUND...)
-				cout << "Page Not Found" << endl;
+				closesocket (cli);
 			}
 		}
-
-		list<string> HTTPServer::split (const string str, const string del)
+		
+		void HTTPServer::addApp (list<string> *path, reqCallback *cb)
 		{
-			list<string> lst;
+			list<string>::iterator it = path->begin();
+			appNode *node = &this->rootNode;
+			while (it != path->end())
+			{
+				map<string, appNode>::iterator se;
+				se = node->nodes.find (*it);
+				if (se == node->nodes.end())
+				{
+					node->nodes[*it].callback = NULL;
+				}
+				node = &node->nodes[*it];
+				it++;
+			}
+			node->callback = cb;
+		}
 
-			unsigned s, e;
-			s = e = 0;
-
+		HTTPServer::reqCallback* HTTPServer::getRequestHandler (appNode *node, list<string> *path)
+		{
+			appNode *cn = node;
+			list<string>::iterator it = path->begin(),
+				end = path->end();
+			map<string, appNode>::iterator n;
 			while (true)
 			{
-				e = str.find(del, s);
+				if (it == end)
+				{
+					return cn->callback;
+				}
 
-				if (e == string::npos)
-					e = str.length();
+				n = cn->nodes.find (*it);
+				if (n == cn->nodes.end())
+					return NULL;	// node not found!
+				cn = &n->second;
 
-				if (e == str.length())
-					break;
-				s = e + del.length();
+				it++;
 			}
-
-			return lst;
+			return NULL;
 		}
 
-		void HTTPServer::addApplication (const string path, srvCallback *callback)
+		void HTTPServer::setData(string k, void *d)
 		{
-			list<string> p = split (path, "/");
-			list<string>::iterator it;
-
-			serveNode *node = &this->rootNode;
-
-			for (it = p.begin();it != p.end();it++)
-			{
-				if ((*it).length() == 0)
-					continue;	// same node...
-
-				node = &node->children[*it];
-				node->name = *it;
-			}
-			node->callback = callback;
+			this->customData[k] = d;
 		}
 
-		HTTPServer::~HTTPServer()
+		void* HTTPServer::getData(string k)
 		{
-			this->isRunning = false;
-			closesocket(this->sock);
-			for (int i = 0;i < this->thread_count;i++)
+			map<string, void*>::iterator it = this->customData.find(k);
+			if (it == this->customData.end())
+				return NULL;
+			return it->second;
+		}
+
+		HTTPServer::~HTTPServer ()
+		{
+			if (this->srv != INVALID_SOCKET)
+				closesocket (this->srv);
+
+			if (this->isRunning)
 			{
+				for (int i = 0;i < this->thread_count;i++)
+				{
 #ifdef WIN32
-				TerminateThread(this->threads[i], 0);
+					TerminateThread (this->threads[i], 0x00);
 #else
-				pthread_detach (this->threads[i]);
-				pthread_cancel (this->threads[i]);
+					pthread_detach (this->threads[i]);
+					pthread_cancel (this->threads[i]);
 #endif
+				}
 			}
+
 			delete[] this->threads;
 		}
 
-
-		HTTPServer::Request::Request(SOCKET sock, const SOCKADDR *sa)
+		/* HTTPServer::Request */
+		HTTPServer::Request::Request (SOCKET cli, const SOCKADDR_IN *addr)
 		{
-			this->sock = sock;
-			this->sock_addr = sa;
+			this->conn = cli;
+			this->addr = addr;
+
+			this->parseRequest ();
 		}
 
-		HTTPServer::Response::Response(SOCKET sock)
+		inline static char* nextReqLine (int &cPos, char *buff, int len)
 		{
+			for (int i = cPos;i < len - 1;i++)
+			{
+				if (buff[i] == '\r' && buff[i + 1] == '\n')
+				{
+					buff[i] = '\0';
 
+					int r = cPos;
+					cPos = i + 2;
+					return (buff + r);
+				}
+			}
+
+			return (buff + len);	// end
+		}
+
+		inline void parseURL (string request, list<string> *path, map<string, string> *params)
+		{
+			string::size_type p;
+			string query, url;
+			p = request.find ('?');
+			if (p == string::npos)
+			{
+				p = request.length();
+			}
+			else
+			{
+				query = request.substr (p + 1);
+			}
+			url = request.substr (0, p);
+
+			path->clear ();
+			string::size_type s, e;
+			s = 0;
+			while (true)
+			{
+				e = url.find ('/', s);
+				if (e == string::npos)
+					e = url.length();
+
+				string x = url.substr (s, e - s);
+				if (!(x.length() == 0 || x == "."))
+				{
+					if (x == "..")
+					{
+						if (path->empty())
+							throw ServerException (1, "Hack attempt");
+						else
+							path->pop_back ();
+					}
+					path->push_back (x);
+				}
+
+				if (e == url.length())
+					break;
+				s = e + 1;
+			}
+
+			string::size_type vS, vE, kS, kE;
+			vS = vE = kS = kE = 0;
+			while (kS < query.length())
+			{
+				kE = query.find ('=', kS);
+				if (kE == string::npos) break;
+				vS = kE + 1;
+				vE = query.find ('&', vS);
+				if (vE == string::npos) vE = query.length();
+
+				params->insert (pair<string, string>( query.substr (kS, kE - kS), query.substr (vS, vE - vS) ));
+
+				kS = vE + 1;
+			}
+		}
+
+		inline void setCookies (string &data, map<string, string> *cookies)
+		{
+			string::size_type kS, kE, vS, vE;
+			kS = 0;
+			while (kS < data.length ())
+			{
+				kE = data.find ('=', kS);
+				if (kE == string::npos) 
+					break;
+				vS = kE + 1;
+				vE = data.find ("; ", vS);
+				if (vE == string::npos)
+					vE = data.length();
+
+				(*cookies) [data.substr (kS, kE-kS)] = data.substr (vS, vE-vS);
+
+				kS = vE + 2;
+			}
+		}
+
+		void HTTPServer::Request::parseRequest ()
+		{
+			char buffer [REQUEST_BUFFER_SIZE];
+			int r;
+			r = recv (this->conn, buffer, REQUEST_BUFFER_SIZE, 0);
+			if (r == REQUEST_BUFFER_SIZE)
+				throw ServerException (1, "Request Size too big.");
+			if (r <= 0)
+				throw ServerException (2, "Socket Error");
+
+			char *cLine;
+			int n = 0;
+			int pos = 0;
+			string::size_type p;
+			while ( (cLine = nextReqLine (pos, buffer, r)) < (buffer + r))
+			{
+				string line = string (cLine);
+				if (line.length() == 0) break;	// CRLF CRLF = end of headers.
+				n++;
+
+				if (n == 1)
+				{
+					string::size_type uS, uE;
+					p = line.find (' ');
+					if (p == string::npos)
+						throw ServerException (5, "Malformed request method");
+					uS = p + 1;
+					this->requestMethod.str = line.substr (0, p);
+
+					if (this->requestMethod.str == "GET")
+						this->requestMethod.rm = RM_GET;
+					else if (this->requestMethod.str == "POST")
+						this->requestMethod.rm = RM_POST;
+					else
+						this->requestMethod.rm = RM_UNKNOWN;
+
+					uE = uS;
+					while (p < line.length())
+					{
+						if (p == string::npos)
+							break;
+						p = line.find (' ', p + 1);
+						if (p == string::npos)
+							break;
+						uE = p;
+					}
+					if (uE + 1 >= line.length())
+						throw ServerException (6, "Malformed request");
+					string httpVersion = line.substr (uE + 1);
+
+
+					parseURL (line.substr (uS, uE - uS), &this->path, &this->params);
+				}
+				else
+				{
+					p = line.find (": ");
+					if (p == string::npos)
+						throw ServerException (4, "Malformed headers");
+					string key = line.substr (0, p);
+					string value = line.substr (p + 2);
+					if (key != "Cookie")
+						this->headers.insert(pair<string, string>( key, value));
+					else
+						setCookies (value, &this->cookies);
+				}
+			}
+			if (n == 0)
+				throw ServerException (3, "No Request header.");
+		}
+
+		list<string>* HTTPServer::Request::getPath ()
+		{
+			return &this->path;
+		}
+
+		string HTTPServer::Request::getParam (const string key)
+		{
+			map<string, string>::iterator it = this->params.find (key);
+			if (it == this->params.end())
+				return "";
+			else
+				return it->second;
+		}
+
+		multimap<string, string>::iterator HTTPServer::Request::getHeader (const string name)
+		{
+			multimap<string, string>::iterator it = this->headers.find (name);
+			return it;
+		}
+
+		HTTPServer::Request::RequestMethod HTTPServer::Request::getRequestMethod ()
+		{
+			return this->requestMethod.rm;
+		}
+
+		string HTTPServer::Request::getRequestMethodStr ()
+		{
+			return this->requestMethod.str;
+		}
+
+		string HTTPServer::Request::getCookie (const string name)
+		{
+			map<string, string>::iterator it = this->cookies.find (name);
+			if (it == this->cookies.end())
+				return "";
+			else
+				return it->second;
+		}
+
+		const SOCKADDR_IN* HTTPServer::Request::getAddress ()
+		{
+			return this->addr;
+		}
+
+		/* HTTPServer::Response */
+		HTTPServer::Response::Response (SOCKET cli)
+		{
+			this->conn = cli;
+			
+			setStatus (200, "OK");
+		}
+		
+		void HTTPServer::Response::setStatus (int c, const string m)
+		{
+			this->status_code = c;
+			this->status_msg = m;
+		}
+		
+		void HTTPServer::Response::addHeader (string key, string value)
+		{
+			this->headers.insert (pair<string, string>(key, value));
+		}
+		
+		void HTTPServer::Response::write (const char *data, int len)
+		{
+			if (len < 0)
+				len = strlen (data);
+			msg.write(data, len);
+		}
+
+		void HTTPServer::Response::finalize ()
+		{
+			stringstream x;
+			x << "HTTP/1.1 " << this->status_code << " " << this->status_msg << "\r\n";
+			multimap<string, string>::iterator it, end;
+			end = this->headers.end();
+			for (it = this->headers.begin(); it != end;it++)
+			{
+				x << it->first << ": " << it->second << "\r\n";
+			}
+			x << "Connection: Close\r\n";
+			x << "Content-Length: " << this->msg.tellp() << "\r\n";
+			x << "Server: udpt\r\n";
+			x << "\r\n";
+			x << this->msg.str();
+
+			// write to socket
+			send (this->conn, x.str().c_str(), x.str().length(), 0);
 		}
 
 	};

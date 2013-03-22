@@ -29,7 +29,7 @@
 #ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
-#define VERSION "1.0.0 (Windows)"
+#define VERSION "1.0.0-beta (Windows)"
 #elif defined (linux)
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -52,9 +52,6 @@ typedef void* LPVOID;
 typedef void (LPTHREAD_START_ROUTINE)(LPVOID);
 typedef pthread_t HANDLE;
 
-#ifndef min
-#define min(a,b) (a > b ? b : a)
-#endif
-#define VERSION "1.0.0-alpha (Linux)"
+#define VERSION "1.0.0-beta (Linux)"
 #endif
 

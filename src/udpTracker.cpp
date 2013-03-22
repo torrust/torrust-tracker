@@ -455,7 +455,7 @@ static int _isIANA_IP (uint32_t ip)
 			}
 		}
 
-		cout << ":: " << (void*)m_hton32(remote->sin_addr.s_addr) << ": " << m_hton16(remote->sin_port) << " ACTION=" << action << endl;
+//		cout << ":: " << (void*)m_hton32(remote->sin_addr.s_addr) << ": " << m_hton16(remote->sin_port) << " ACTION=" << action << endl;
 
 		if (action == 0 && r >= 16)
 			return UDPTracker::handleConnection (usi, remote, data);
@@ -465,7 +465,7 @@ static int _isIANA_IP (uint32_t ip)
 			return UDPTracker::handleScrape (usi, remote, data, r);
 		else
 		{
-			cout << "E: action=" << action << ", r=" << r << endl;
+//			cout << "E: action=" << action << ", r=" << r << endl;
 			UDPTracker::sendError (usi, remote, cR->transaction_id, "Tracker couldn't understand Client's request.");
 			return -1;
 		}

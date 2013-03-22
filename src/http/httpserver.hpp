@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2013 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -17,33 +17,49 @@
  *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HTTPSERVER_HPP_
-#define HTTPSERVER_HPP_
+#pragma once
 
 #include <stdint.h>
-#include <string>
-#include <iostream>
-#include <list>
 #include <map>
+#include <string>
+#include <sstream>
+#include <list>
 #include "../multiplatform.h"
-
 using namespace std;
+
+#define REQUEST_BUFFER_SIZE 2048
 
 namespace UDPT
 {
-	namespace API
+	namespace Server
 	{
-		class APIException
+		class ServerException
 		{
 		public:
-			inline
-			APIException (const string msg)
+			inline ServerException (int ec)
 			{
-				this->msg = msg;
+				this->ec = ec;
+				this->em = NULL;
 			}
 
+			inline ServerException (int ec, const char *em)
+			{
+				this->ec = ec;
+				this->em = em;
+			}
+
+			inline const char *getErrorMsg () const
+			{
+				return this->em;
+			}
+
+			inline int getErrorCode () const
+			{
+				return this->ec;
+			}
 		private:
-			string msg;
+			int ec;
+			const char *em;
 		};
 
 		class HTTPServer
@@ -52,59 +68,99 @@ namespace UDPT
 			class Request
 			{
 			public:
-				Request (SOCKET sock, const SOCKADDR *sock_addr);
+				enum RequestMethod
+				{
+					RM_UNKNOWN = 0,
+					RM_GET = 1,
+					RM_POST = 2
+				};
+
+				Request (SOCKET, const SOCKADDR_IN *);
+				list<string>* getPath ();
+
+				string getParam (const string key);
+				multimap<string, string>::iterator getHeader (const string name);
+				RequestMethod getRequestMethod ();
+				string getRequestMethodStr ();
+				string getCookie (const string name);
+				const SOCKADDR_IN* getAddress ();
+
 			private:
-				friend class HTTPServer;
-
-				SOCKET sock;
+				const SOCKADDR_IN *addr;
+				SOCKET conn;
+				struct {
+					int major;
+					int minor;
+				} httpVer;
+				struct {
+					string str;
+					RequestMethod rm;
+				} requestMethod;
+				list<string> path;
+				map<string, string> params;
+				map<string, string> cookies;
 				multimap<string, string> headers;
-				list<string> path;			// /some/path
-				map<string, string> query;	// a=b&c=d
-				const SOCKADDR *sock_addr;		// IP address+family
 
-				void loadAndParse ();
+				void parseRequest ();
 			};
+			
 			class Response
 			{
 			public:
-				Response (SOCKET sock);
+				Response (SOCKET conn);
+
+				void setStatus (int, const string);
+				void addHeader (string key, string value);
+
+				int writeRaw (const char *data, int len);
+				void write (const char *data, int len = -1);
 
 			private:
 				friend class HTTPServer;
+
+				SOCKET conn;
+				int status_code;
+				string status_msg;
+				multimap<string, string> headers;
+				stringstream msg;
+
+				void finalize ();
 			};
 
-			typedef int (srvCallback) (Request *, Response *);
+			typedef void (reqCallback)(HTTPServer*,Request*,Response*);
 
 			HTTPServer (uint16_t port, int threads);
 
-			void addApplication (const string path, srvCallback *callback);
+			void addApp (list<string> *path, reqCallback *);
+
+			void setData (string, void *);
+			void* getData (string);
 
 			virtual ~HTTPServer ();
 
-
-			static list<string> split (const string str, const string del);
 		private:
-			typedef struct _serve_node {
-				string name;	// part of path name
-				map<string, struct _serve_node> children;
-				srvCallback *callback;
-			} serveNode;
+			typedef struct appNode
+			{
+				reqCallback *callback;
+				map<string, appNode> nodes;
+			} appNode;
 
-			bool isRunning;
-			serveNode rootNode;
-			SOCKET sock;
+			SOCKET srv;
 			int thread_count;
 			HANDLE *threads;
+			bool isRunning;
+			appNode rootNode;
+			map<string, void*> customData;
+
+			static void handleConnections (HTTPServer *);
 
 #ifdef WIN32
-			static DWORD doServe (LPVOID arg);
+			static DWORD _thread_start (LPVOID);
 #else
-			static void* doServe (void* arg);
+			static void* _thread_start (void*);
 #endif
 
-			static void handleConnection (HTTPServer *, Request *, Response *);
+			static reqCallback* getRequestHandler (appNode *, list<string> *);
 		};
 	};
 };
-
-#endif /* HTTPSERVER_HPP_ */

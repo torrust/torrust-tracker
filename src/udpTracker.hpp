@@ -131,6 +131,7 @@ namespace UDPT
 		 */
 		virtual ~UDPTracker ();
 
+		Data::DatabaseDriver *conn;
 	private:
 		SOCKET sock;
 		uint16_t port;
@@ -142,7 +143,6 @@ namespace UDPT
 
 		uint8_t settings;
 		Settings *o_settings;
-		Data::DatabaseDriver *conn;
 
 #ifdef WIN32
 		static DWORD _thread_start (LPVOID arg);

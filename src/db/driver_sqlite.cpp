@@ -239,16 +239,12 @@ namespace UDPT
 
 			_to_hex_str(info_hash, xHash);
 
-			// if non-dynamic, called only when adding to DB.
-			if (!this->isDynamic())
-			{
-				sqlite3_stmt *stmt;
-				sqlite3_prepare(this->db, "INSERT INTO torrents (info_hash,created) VALUES (?,?)", -1, &stmt, NULL);
-				sqlite3_bind_blob(stmt, 1, info_hash, 20, NULL);
-				sqlite3_bind_int(stmt, 1, time(NULL));
-				sqlite3_step(stmt);
-				sqlite3_finalize(stmt);
-			}
+			sqlite3_stmt *stmt;
+			sqlite3_prepare(this->db, "INSERT INTO torrents (info_hash,created) VALUES (?,?)", -1, &stmt, NULL);
+			sqlite3_bind_blob(stmt, 1, info_hash, 20, NULL);
+			sqlite3_bind_int(stmt, 1, time(NULL));
+			sqlite3_step(stmt);
+			sqlite3_finalize(stmt);
 
 			string sql = "CREATE TABLE IF NOT EXISTS 't";
 			sql += xHash;
@@ -338,14 +334,11 @@ namespace UDPT
 		bool SQLite3Driver::removeTorrent(uint8_t info_hash[20])
 		{
 			// if non-dynamic, remove from table
-			if (!this->isDynamic())
-			{
-				sqlite3_stmt *stmt;
-				sqlite3_prepare(this->db, "DELETE FROM torrents WHERE info_hash=?", -1, &stmt, NULL);
-				sqlite3_bind_blob(stmt, 1, info_hash, 20, NULL);
-				sqlite3_step(stmt);
-				sqlite3_finalize(stmt);
-			}
+			sqlite3_stmt *stmt;
+			sqlite3_prepare(this->db, "DELETE FROM torrents WHERE info_hash=?", -1, &stmt, NULL);
+			sqlite3_bind_blob(stmt, 1, info_hash, 20, NULL);
+			sqlite3_step(stmt);
+			sqlite3_finalize(stmt);
 
 			// remove from stats
 			sqlite3_stmt *rmS;
