@@ -137,6 +137,7 @@ namespace UDPT
 		uint16_t port;
 		uint8_t thread_count;
 		bool isRunning;
+		bool isDynamic;
 		HANDLE *threads;
 		uint32_t announce_interval;
 		uint32_t cleanup_interval;

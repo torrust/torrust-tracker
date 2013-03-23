@@ -242,7 +242,7 @@ namespace UDPT
 			sqlite3_stmt *stmt;
 			sqlite3_prepare(this->db, "INSERT INTO torrents (info_hash,created) VALUES (?,?)", -1, &stmt, NULL);
 			sqlite3_bind_blob(stmt, 1, info_hash, 20, NULL);
-			sqlite3_bind_int(stmt, 1, time(NULL));
+			sqlite3_bind_int(stmt, 2, time(NULL));
 			sqlite3_step(stmt);
 			sqlite3_finalize(stmt);
 
@@ -266,7 +266,7 @@ namespace UDPT
 			return (r == SQLITE_OK);
 		}
 
-		bool SQLite3Driver::isTorrentAllowed(uint8_t info_hash[20])
+		bool SQLite3Driver::isTorrentAllowed(uint8_t *info_hash)
 		{
 			if (this->isDynamic())
 				return true;
@@ -275,8 +275,9 @@ namespace UDPT
 			sqlite3_bind_blob(stmt, 1, info_hash, 20, NULL);
 			sqlite3_step(stmt);
 
-			int n = sqlite3_column_int(stmt, 1);
+			int n = sqlite3_column_int(stmt, 0);
 			sqlite3_finalize(stmt);
+
 			return (n == 1);
 		}
 

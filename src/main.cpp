@@ -103,10 +103,11 @@ int main(int argc, char *argv[])
 		settings->set (strDATABASE, "driver", "sqlite3");
 		settings->set (strDATABASE, "file", "tracker.db");
 
+		settings->set (strTRACKER, "is_dynamic", "0");
 		settings->set (strTRACKER, "port", "6969");		// UDP PORT
 		settings->set (strTRACKER, "threads", "5");
-		settings->set (strTRACKER, "allow_remotes", "yes");
-		settings->set (strTRACKER, "allow_iana_ips", "yes");
+		settings->set (strTRACKER, "allow_remotes", "1");
+		settings->set (strTRACKER, "allow_iana_ips", "1");
 		settings->set (strTRACKER, "announce_interval", "1800");
 		settings->set (strTRACKER, "cleanup_interval", "120");
 

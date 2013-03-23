@@ -71,7 +71,8 @@ namespace UDPT
 			s_allow_remotes,	// remotes allowed?
 			s_allow_iana_ip,	// IANA IPs allowed?
 			s_int_announce,	// announce interval
-			s_int_cleanup;		// cleanup interval
+			s_int_cleanup,		// cleanup interval
+			s_is_dynamic;
 
 		sc_tracker = settings->getClass("tracker");
 
@@ -81,12 +82,18 @@ namespace UDPT
 		s_allow_iana_ip = sc_tracker->get ("allow_iana_ips");
 		s_int_announce = sc_tracker->get ("announce_interval");
 		s_int_cleanup = sc_tracker-> get ("cleanup_interval");
+		s_is_dynamic = sc_tracker->get("is_dynamic");
 
 		if (_isTrue(s_allow_remotes) == 1)
 			n_settings |= UDPT_ALLOW_REMOTE_IP;
 
 		if (_isTrue(s_allow_iana_ip) != 0)
 			n_settings |= UDPT_ALLOW_IANA_IP;
+
+		if (_isTrue(s_is_dynamic) == 1)
+			this->isDynamic = true;
+		else
+			this->isDynamic = false;
 
 		this->announce_interval = (s_int_announce == "" ? 1800 : atoi (s_int_announce.c_str()));
 		this->cleanup_interval = (s_int_cleanup == "" ? 120 : atoi (s_int_cleanup.c_str()));
@@ -169,7 +176,8 @@ namespace UDPT
 
 		this->sock = sock;
 
-		this->conn = new Data::SQLite3Driver (this->o_settings->getClass("database"), true);
+		this->conn = new Data::SQLite3Driver (this->o_settings->getClass("database"),
+				this->isDynamic);
 
 		this->isRunning = true;
 		cout << "Starting maintenance thread (1/" << ((int)this->thread_count) << ")" << endl;
