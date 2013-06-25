@@ -35,7 +35,9 @@ namespace UDPT
 		public:
 			SettingClass (const string className);
 			bool set (const string key, const string value);
-			string get (const string key);
+			string get (const string& key);
+			bool getBool (const string& key);
+			int getInt (const string& key, int def = -1);
 			map<string, string>* getMap ();
 		private:
 			friend class Settings;

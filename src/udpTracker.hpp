@@ -138,11 +138,12 @@ namespace UDPT
 		uint8_t thread_count;
 		bool isRunning;
 		bool isDynamic;
+		bool allowRemotes;
+		bool allowIANA_IPs;
 		HANDLE *threads;
 		uint32_t announce_interval;
 		uint32_t cleanup_interval;
 
-		uint8_t settings;
 		Settings *o_settings;
 
 #ifdef WIN32

@@ -32,79 +32,25 @@ using namespace UDPT::Data;
 
 namespace UDPT
 {
-	inline static int _isTrue (string str)
-	{
-		int i,		// loop index
-			len;	// string's length
-
-		if (str == "")
-			return -1;
-		len = str.length();
-		for (i = 0;i < len;i++)
-		{
-			if (str[i] >= 'A' && str[i] <= 'Z')
-			{
-				str[i] = (str[i] - 'A' + 'a');
-			}
-		}
-		if (str.compare ("yes") == 0)
-			return 1;
-		if (str.compare ("no") == 0)
-			return 0;
-		if (str.compare("true") == 0)
-			return 1;
-		if (str.compare ("false") == 0)
-			return 0;
-		if (str.compare("1") == 0)
-			return 1;
-		if (str.compare ("0") == 0)
-			return 0;
-		return -1;
-	}
-
 	UDPTracker::UDPTracker (Settings *settings)
 	{
 		Settings::SettingClass *sc_tracker;
-		uint8_t n_settings = 0;
-		string s_port, 			// port
-			s_threads,			// threads
-			s_allow_remotes,	// remotes allowed?
-			s_allow_iana_ip,	// IANA IPs allowed?
-			s_int_announce,	// announce interval
-			s_int_cleanup,		// cleanup interval
-			s_is_dynamic;
 
 		sc_tracker = settings->getClass("tracker");
 
-		s_port = sc_tracker->get ("port");
-		s_threads = sc_tracker->get ("threads");
-		s_allow_remotes = sc_tracker->get ("allow_remotes");
-		s_allow_iana_ip = sc_tracker->get ("allow_iana_ips");
-		s_int_announce = sc_tracker->get ("announce_interval");
-		s_int_cleanup = sc_tracker-> get ("cleanup_interval");
-		s_is_dynamic = sc_tracker->get("is_dynamic");
+		this->allowRemotes = sc_tracker->getBool("allow_remotes");
+		this->allowIANA_IPs = sc_tracker->getBool("allow_iana_ips");
+		this->isDynamic = sc_tracker->getBool("is_dynamic");
 
-		if (_isTrue(s_allow_remotes) == 1)
-			n_settings |= UDPT_ALLOW_REMOTE_IP;
-
-		if (_isTrue(s_allow_iana_ip) != 0)
-			n_settings |= UDPT_ALLOW_IANA_IP;
-
-		if (_isTrue(s_is_dynamic) == 1)
-			this->isDynamic = true;
-		else
-			this->isDynamic = false;
-
-		this->announce_interval = (s_int_announce == "" ? 1800 : atoi (s_int_announce.c_str()));
-		this->cleanup_interval = (s_int_cleanup == "" ? 120 : atoi (s_int_cleanup.c_str()));
-		this->port = (s_port == "" ? 6969 : atoi (s_port.c_str()));
-		this->thread_count = (s_threads == "" ? 5 : atoi (s_threads.c_str())) + 1;
+		this->announce_interval = sc_tracker->getInt("announce_interval", 1800);
+		this->cleanup_interval = sc_tracker->getInt("cleanup_interval", 120);
+		this->port = sc_tracker->getInt("port", 6969);
+		this->thread_count = abs (sc_tracker->getInt("threads", 5)) + 1;
 
 		this->threads = new HANDLE[this->thread_count];
 
 		this->isRunning = false;
 		this->conn = NULL;
-		this->settings = n_settings;
 		this->o_settings = settings;
 	}
 
@@ -278,7 +224,7 @@ namespace UDPT
 		req->num_want = m_hton32 (req->num_want);
 		req->left = m_hton64 (req->left);
 
-		if ((usi->settings & UDPT_ALLOW_REMOTE_IP) == 0 && req->ip_address != 0)
+		if (!usi->allowRemotes && req->ip_address != 0)
 		{
 			UDPTracker::sendError (usi, remote, req->transaction_id, "Tracker doesn't allow remote IP's; Request ignored.");
 			return 0;
@@ -455,7 +401,7 @@ static int _isIANA_IP (uint32_t ip)
 
 		action = m_hton32(cR->action);
 
-		if ((usi->settings & UDPT_ALLOW_IANA_IP) == 0)
+		if (!usi->allowIANA_IPs)
 		{
 			if (_isIANA_IP (remote->sin_addr.s_addr))
 			{

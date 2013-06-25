@@ -24,6 +24,8 @@
 
 #if defined (_WIN32) && !defined (WIN32)
 #define WIN32
+#elif defined (__APPLE__)
+#define linux
 #endif
 
 #ifdef WIN32
@@ -55,3 +57,7 @@ typedef pthread_t HANDLE;
 #define VERSION "1.0.0-beta (Linux)"
 #endif
 
+#ifdef __APPLE__
+#undef VERSION
+#define VERSION "1.0.0-beta (Apple)"
+#endif

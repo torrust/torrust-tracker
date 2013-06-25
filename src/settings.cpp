@@ -21,7 +21,8 @@
 #include "settings.hpp"
 #include <string.h> // still primitive - need for strlen()
 #include <ctype.h> // need for isspace()
-
+#include <exception>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 
@@ -277,11 +278,58 @@ void _settings_clean_string (char **str)
 		this->className = cn;
 	}
 
-	string Settings::SettingClass::get (const string name)
+	string Settings::SettingClass::get (const string& name)
 	{
 		if (this->entries.find(name) == this->entries.end())
 			return "";
 		return this->entries[name];
+	}
+
+	inline static int _isTrue (string str)
+	{
+		int i,		// loop index
+			len;	// string's length
+
+		if (str == "")
+			return -1;
+		len = str.length();
+		for (i = 0;i < len;i++)
+		{
+			if (str[i] >= 'A' && str[i] <= 'Z')
+			{
+				str[i] = (str[i] - 'A' + 'a');
+			}
+		}
+		if (str.compare ("yes") == 0)
+			return 1;
+		if (str.compare ("no") == 0)
+			return 0;
+		if (str.compare("true") == 0)
+			return 1;
+		if (str.compare ("false") == 0)
+			return 0;
+		if (str.compare("1") == 0)
+			return 1;
+		if (str.compare ("0") == 0)
+			return 0;
+		return -1;
+	}
+
+	bool Settings::SettingClass::getBool(const string& name)
+	{
+		string v = this->get(name);
+		int r = _isTrue(v);
+		if (r == 0 || r == 1)
+			return (bool)r;
+		throw exception();
+	}
+
+	int Settings::SettingClass::getInt (const string& key, int def)
+	{
+		string v = this->get (key);
+		if (v.length() == 0)
+			return def;
+		return std::atoi(v.c_str());
 	}
 
 	map<string, string>* Settings::SettingClass::getMap()
