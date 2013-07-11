@@ -161,6 +161,10 @@ namespace UDPT
 
 		msg_sz = 4 + 4 + 1 + msg.length();
 
+		// test against overflow message. resolves issue 4.
+		if (msg_sz > 1024)
+			return -1;
+
 		memcpy(buff, &error, 8);
 		for (i = 8;i <= msg_sz;i++)
 		{
