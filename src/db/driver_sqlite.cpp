@@ -26,6 +26,9 @@
 #include <cassert>
 #include <cstring> // memcpy
 #include "../multiplatform.h"
+#include "../logging.h"
+
+extern UDPT::Logger *logger;
 
 using namespace std;
 
@@ -309,7 +312,16 @@ namespace UDPT
 				sqlite3_stmt *collectStats;
 
 				sqlite3_prepare(this->db, sStr.str().c_str(), sStr.str().length(), &collectStats, NULL);
-				cout << "[" << sqlite3_errmsg(this->db) << "]" << endl;
+
+				if (sqlite3_errcode(this->db) != SQLITE_OK)
+				{
+					string str;
+					str = "[";
+					str += sqlite3_errmsg(this->db);
+					str += "]";
+					logger->log(Logger::LL_ERROR, str);
+				}
+
 				int seeders = 0, leechers = 0;
 				while (sqlite3_step(collectStats) == SQLITE_ROW) // expecting two results.
 				{

@@ -23,7 +23,11 @@
 #include <cstring>
 #include <ctime>
 #include <iostream>
+#include <sstream>
 #include "multiplatform.h"
+#include "logging.h"
+
+extern UDPT::Logger *logger;
 
 using namespace std;
 using namespace UDPT::Data;
@@ -126,7 +130,10 @@ namespace UDPT
 				this->isDynamic);
 
 		this->isRunning = true;
-		cout << "Starting maintenance thread (1/" << ((int)this->thread_count) << ")" << endl;
+
+		stringstream ss;
+		ss << "Starting maintenance thread (1/" << ((int)this->thread_count) << ")";
+		logger->log(Logger::LL_INFO, ss.str());
 
 		// create maintainer thread.
 	#ifdef WIN32
@@ -137,8 +144,12 @@ namespace UDPT
 
 		for (i = 1;i < this->thread_count; i++)
 		{
-			cout << "Starting thread (" << (i + 1) << "/" << ((int)this->thread_count) << ")" << endl;
-	#ifdef WIN32
+			stringstream ss;
+			ss << "Starting thread (" << (i + 1) << "/" << ((int)this->thread_count) << ")";
+			logger->log(Logger::LL_INFO, ss.str());
+			ss.clear();
+
+			#ifdef WIN32
 			this->threads[i] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_thread_start, (LPVOID)this, 0, NULL);
 	#elif defined (linux)
 			pthread_create (&(this->threads[i]), NULL, _thread_start, (void*)this);

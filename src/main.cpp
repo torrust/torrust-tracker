@@ -19,6 +19,7 @@
 
 #include <iostream>
 
+#include "logging.h"
 #include "multiplatform.h"
 #include "udpTracker.hpp"
 #include "settings.hpp"
@@ -29,6 +30,8 @@
 using namespace std;
 using namespace UDPT;
 using namespace UDPT::Server;
+
+Logger *logger;
 
 static void _print_usage ()
 {
@@ -90,6 +93,10 @@ int main(int argc, char *argv[])
 	{
 		_print_usage ();
 	}
+	else if (argc >= 2)
+	{
+		config_file = argv[1];	// reported in issue #5.
+	}
 
 	settings = new Settings (config_file);
 
@@ -119,6 +126,7 @@ int main(int argc, char *argv[])
 		cerr << "Failed to read from '" << config_file.c_str() << "'. Using default settings." << endl;
 	}
 
+	logger = new Logger (settings, cout);
 	usi = new UDPTracker (settings);
 
 	HTTPServer *apiSrv = NULL;
