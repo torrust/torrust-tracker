@@ -18,7 +18,8 @@
 #
 
 objects = main.o udpTracker.o database.o driver_sqlite.o \
-	settings.o tools.o httpserver.o webapp.o
+	settings.o tools.o httpserver.o webapp.o \
+	logging.o
 target = udpt
 
 %.o: src/%.c
@@ -33,7 +34,7 @@ all: $(target)
 	
 $(target): $(objects)
 	@echo Linking...
-	$(CXX) $(LDFLAGS) -O3 -o $(target) $(objects) -lsqlite3
+	$(CXX) -O3 -o $(target) $(objects) $(LDFLAGS) -lsqlite3
 	@echo Done.
 clean:
 	@echo Cleaning Up...
