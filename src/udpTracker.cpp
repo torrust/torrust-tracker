@@ -85,7 +85,9 @@ namespace UDPT
 			pthread_detach (this->threads[i]);
 			pthread_cancel (this->threads[i]);
 	#endif
-			cout << "Thread (" << ( i + 1) << "/" << ((int)this->thread_count) << ") terminated." << endl;
+			stringstream str;
+			str << "Thread (" << (i + 1) << "/" << ((int)this->thread_count) << ") terminated.";
+			logger->log(Logger::LL_INFO, str.str());
 		}
 		if (this->conn != NULL)
 			delete this->conn;
@@ -334,7 +336,6 @@ namespace UDPT
 			i,	// loop counter
 			j;	// loop counter
 		uint8_t hash [20];
-		char xHash [50];
 		ScrapeResponse *resp;
 		uint8_t buffer [1024];	// up to 74 torrents can be scraped at once (17*74+8) < 1024
 
@@ -372,10 +373,6 @@ namespace UDPT
 			for (j = 0; j < 20;j++)
 				hash[j] = data[j + (i*20)+16];
 
-			to_hex_str (hash, xHash);
-
-			cout << "\t" << xHash << endl;
-
 			seeders = (int32_t*)&buffer[i*12+8];
 			completed = (int32_t*)&buffer[i*12+12];
 			leechers = (int32_t*)&buffer[i*12+16];
@@ -392,7 +389,6 @@ namespace UDPT
 			*completed = m_hton32 (tE.completed);
 			*leechers = m_hton32 (tE.leechers);
 		}
-		cout.flush();
 
 		sendto (usi->sock, (const char*)buffer, sizeof(buffer), 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 

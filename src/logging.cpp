@@ -22,8 +22,6 @@
 namespace UDPT {
 	Logger::Logger(Settings *s, ostream &os) : logfile (os)
 	{
-		this->max_time = 120;
-		this->queue_limit = 50;
 	}
 
 	void Logger::log(enum LogLevel lvl, string msg)

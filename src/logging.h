@@ -43,8 +43,6 @@ namespace UDPT {
 		void log (enum LogLevel, string msg);
 	private:
 		ostream &logfile;
-		unsigned int queue_limit;
-		int max_time;
 	};
 };
 
