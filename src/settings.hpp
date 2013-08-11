@@ -30,6 +30,23 @@ namespace UDPT
 	class Settings
 	{
 	public:
+		class SettingsException : public std::exception
+		{
+		public:
+			SettingsException (const char *str)
+			{
+				this->str = str;
+			}
+
+			const char * what ()
+			{
+				return str;
+			}
+
+		private:
+			const char *str;
+		};
+
 		class SettingClass
 		{
 		public:
@@ -37,6 +54,7 @@ namespace UDPT
 			bool set (const string key, const string value);
 			string get (const string& key);
 			bool getBool (const string& key);
+			bool getBool (const string& key, bool defaultValue);
 			int getInt (const string& key, int def = -1);
 			map<string, string>* getMap ();
 		private:

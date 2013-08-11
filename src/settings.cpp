@@ -102,7 +102,7 @@ void _settings_clean_string (char **str)
 				cil = 0;
 				continue;
 			}
-			if (cil == 0 && c == ';')
+			if (cil == 0 && (c == ';' || c == '#'))
 			{
 				while (i < len)
 				{
@@ -259,7 +259,7 @@ void _settings_clean_string (char **str)
 	{
 		SettingClass *c;
 
-		if (classN == "" || name == "")
+		if (classN == "" || name == "" || value == "")
 			return false;
 
 		c = this->getClass (classN);
@@ -321,8 +321,19 @@ void _settings_clean_string (char **str)
 		int r = _isTrue(v);
 		if (r == 0 || r == 1)
 			return (bool)r;
-		throw exception();
+		throw SettingsException("Invalid boolean value.");
 	}
+
+	bool Settings::SettingClass::getBool (const string& key, bool defaultValue)
+	{
+		try {
+			return this->getBool(key);
+		} catch (SettingsException &e)
+		{
+			return defaultValue;
+		}
+	}
+
 
 	int Settings::SettingClass::getInt (const string& key, int def)
 	{

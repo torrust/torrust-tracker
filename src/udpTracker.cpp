@@ -42,9 +42,9 @@ namespace UDPT
 
 		sc_tracker = settings->getClass("tracker");
 
-		this->allowRemotes = sc_tracker->getBool("allow_remotes");
-		this->allowIANA_IPs = sc_tracker->getBool("allow_iana_ips");
-		this->isDynamic = sc_tracker->getBool("is_dynamic");
+		this->allowRemotes = sc_tracker->getBool("allow_remotes", true);
+		this->allowIANA_IPs = sc_tracker->getBool("allow_iana_ips", false);
+		this->isDynamic = sc_tracker->getBool("is_dynamic", true);
 
 		this->announce_interval = sc_tracker->getInt("announce_interval", 1800);
 		this->cleanup_interval = sc_tracker->getInt("cleanup_interval", 120);
