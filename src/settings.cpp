@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include "tools.h"
 
 using namespace std;
 
@@ -329,11 +330,98 @@ void _settings_clean_string (char **str)
 		try {
 			return this->getBool(key);
 		} catch (SettingsException &e)
-		{
-			return defaultValue;
-		}
+		{ }
+
+		return defaultValue;
 	}
 
+	void Settings::SettingClass::getIPs (const string& key, list<SOCKADDR_IN> &ip)
+	{
+		string v = this->get(key) + " ";	// add padding for last entry.
+		// expect a.b.c.d[:port], IPv4 only supported with BEP-15.
+
+		string::size_type s, e;
+		s = e = 0;
+		char c;
+		for (string::size_type i = 0;i < v.length();i++)
+		{
+			c = v[i];
+			if (isspace(c) != 0 || c == ';' || c == ',')
+			{
+				if (s == e)
+					s = e = i;
+				else
+				{
+					string addr = v.substr(s, (e - s) + 1);
+					SOCKADDR_IN saddr;
+					saddr.sin_family = AF_INET;
+					saddr.sin_addr.s_addr = 0L;
+					saddr.sin_port = (6969);
+
+					{
+						uint8_t b;	// temporary container for IP byte
+						uint16_t port;
+						uint32_t ip;
+						unsigned i,		// loop index
+							stage;	// 0,1,2,3=IP[a.b.c.d], 4=port
+
+						ip = 0;
+						b = 0;
+						stage = 0;
+						for (i = 0;i < addr.length();i++)
+						{
+							if (addr[i] >= '0' && addr[i] <= '9')
+							{
+								if (stage <= 3)
+								{
+									b *= 10;
+									b += (addr[i] - '0');
+								}
+								else if (stage == 4)
+								{
+									port *= 10;
+									port += (addr[i] - '0');
+								}
+							}
+							else if (addr[i] == '.' && stage < 3)
+							{
+								stage ++;
+								ip *= 256;
+								ip += b;
+								b = 0;
+							}
+							else if (addr[i] == ':')
+							{
+								stage++;
+								port = 0;
+
+								ip *= 256;
+								ip += b;
+							}
+						}
+
+						if (stage == 3) // port not provided.
+						{
+							port = 6969;
+							// add last byte.
+							ip *= 256;
+							ip += b;
+						}
+						saddr.sin_addr.s_addr = m_hton32(ip);
+						saddr.sin_port = m_hton16(port);
+					}
+
+					ip.push_back(saddr);
+
+					s = e = i + 1;
+				}
+			}
+			else
+			{
+				e = i;
+			}
+		}
+	}
 
 	int Settings::SettingClass::getInt (const string& key, int def)
 	{

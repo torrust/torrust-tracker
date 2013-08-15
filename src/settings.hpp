@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <map>
 #include <string>
+#include <list>
+#include "multiplatform.h"
 using namespace std;
 
 namespace UDPT
@@ -57,6 +59,7 @@ namespace UDPT
 			bool getBool (const string& key, bool defaultValue);
 			int getInt (const string& key, int def = -1);
 			map<string, string>* getMap ();
+			void getIPs (const string& key, list<SOCKADDR_IN> &ip);
 		private:
 			friend class Settings;
 			string className;
