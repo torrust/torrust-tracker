@@ -71,6 +71,48 @@ static void _doAPIStart (Settings *settings, WebApp **wa, HTTPServer **srv, Data
 	}
 }
 
+/**
+ * Sets current working directory to executables directory.
+ */
+static void _setCWD (char *argv0)
+{
+#ifdef WIN32
+		wchar_t strFileName [MAX_PATH];
+		DWORD r, i;
+		r = GetModuleFileNameW(NULL, strFileName, MAX_PATH);
+		for (i = r;i >= 0;i--)
+		{
+			if (strFileName[i] == '\\')
+			{
+				strFileName[i] = '\0';
+				break;
+			}
+		}
+		SetCurrentDirectoryW(strFileName);
+
+#elif defined(linux)
+		int len, i;
+		char *strFN;
+		if (argv0 != NULL)
+		{
+			len = strlen (argv0);
+			strFN = new char [len + 1];
+
+			for (i = len;i >= 0;i--)
+			{
+				if (strFN[i] == '/')
+				{
+					strFN = '\0';
+					break;
+				}
+			}
+			chdir (strFN);
+			delete [] strFN;
+		}
+#endif
+
+}
+
 int main(int argc, char *argv[])
 {
 	Settings *settings = NULL;
@@ -91,6 +133,9 @@ int main(int argc, char *argv[])
 
 	if (argc <= 1)
 	{
+		// set current directory when no filename is present.
+		_setCWD(argv[0]);
+
 		_print_usage ();
 	}
 	else if (argc >= 2)
