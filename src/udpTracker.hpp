@@ -134,6 +134,7 @@ namespace UDPT
 		Data::DatabaseDriver *conn;
 	private:
 		SOCKET sock;
+		SOCKADDR_IN localEndpoint;
 		uint16_t port;
 		uint8_t thread_count;
 		bool isRunning;

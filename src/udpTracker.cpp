@@ -51,6 +51,20 @@ namespace UDPT
 		this->port = sc_tracker->getInt("port", 6969);
 		this->thread_count = abs (sc_tracker->getInt("threads", 5)) + 1;
 
+		list<SOCKADDR_IN> addrs;
+		sc_tracker->getIPs("bind", addrs);
+
+		if (addrs.empty())
+		{
+			SOCKADDR_IN sa;
+			sa.sin_port = m_hton16(port);
+			sa.sin_addr.s_addr = 0L;
+			addrs.push_back(sa);
+		}
+
+		this->localEndpoint = addrs.front();
+
+
 		this->threads = new HANDLE[this->thread_count];
 
 		this->isRunning = false;
@@ -97,7 +111,6 @@ namespace UDPT
 	enum UDPTracker::StartStatus UDPTracker::start ()
 	{
 		SOCKET sock;
-		SOCKADDR_IN recvAddr;
 		int r,		// saves results
 			i,		// loop index
 			yup;	// just to set TRUE
@@ -107,14 +120,10 @@ namespace UDPT
 		if (sock == INVALID_SOCKET)
 			return START_ESOCKET_FAILED;
 
-		recvAddr.sin_addr.s_addr = 0L;
-		recvAddr.sin_family = AF_INET;
-		recvAddr.sin_port = m_hton16 (this->port);
-
 		yup = 1;
 		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yup, 1);
 
-		r = bind (sock, (SOCKADDR*)&recvAddr, sizeof(SOCKADDR_IN));
+		r = bind (sock, (SOCKADDR*)&this->localEndpoint, sizeof(SOCKADDR_IN));
 
 		if (r == SOCKET_ERROR)
 		{
