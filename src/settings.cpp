@@ -354,6 +354,7 @@ void _settings_clean_string (char **str)
 				{
 					string addr = v.substr(s, (e - s) + 1);
 					SOCKADDR_IN saddr;
+					memset(&saddr, 0, sizeof (SOCKADDR_IN));
 					saddr.sin_family = AF_INET;
 					saddr.sin_addr.s_addr = 0L;
 					saddr.sin_port = (6969);

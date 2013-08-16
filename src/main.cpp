@@ -26,6 +26,7 @@
 #include "http/httpserver.hpp"
 #include "http/webapp.hpp"
 #include <cstdlib>	// atoi
+#include <csignal>	// signal
 
 using namespace std;
 using namespace UDPT;
@@ -171,7 +172,7 @@ int main(int argc, char *argv[])
 		cerr << "Failed to read from '" << config_file.c_str() << "'. Using default settings." << endl;
 	}
 
-	logger = new Logger (settings, cout);
+	logger = new Logger (settings);
 	usi = new UDPTracker (settings);
 
 	HTTPServer *apiSrv = NULL;

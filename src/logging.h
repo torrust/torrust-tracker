@@ -32,17 +32,25 @@ namespace UDPT {
 
 	public:
 		enum LogLevel {
-			LL_ERROR 	= 'E',
-			LL_WARNING 	= 'W',
-			LL_INFO		= 'I',
-			LL_DEBUG	= 'D'
+			LL_ERROR 	= 0,
+			LL_WARNING 	= 1,
+			LL_INFO		= 2,
+			LL_DEBUG	= 3
 		};
+
+		Logger (Settings *s);
 
 		Logger (Settings *s, ostream &os);
 
+		virtual ~Logger ();
+
 		void log (enum LogLevel, string msg);
 	private:
-		ostream &logfile;
+		ostream *logfile;
+		enum LogLevel loglevel;
+		bool closeStreamOnDestroy;
+
+		static void setStream (Logger *logger, ostream &s);
 	};
 };
 

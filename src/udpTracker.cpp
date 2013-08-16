@@ -110,6 +110,7 @@ namespace UDPT
 
 	enum UDPTracker::StartStatus UDPTracker::start ()
 	{
+		stringstream ss;
 		SOCKET sock;
 		int r,		// saves results
 			i,		// loop index
@@ -123,6 +124,7 @@ namespace UDPT
 		yup = 1;
 		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yup, 1);
 
+		this->localEndpoint.sin_family = AF_INET;
 		r = bind (sock, (SOCKADDR*)&this->localEndpoint, sizeof(SOCKADDR_IN));
 
 		if (r == SOCKET_ERROR)
@@ -142,7 +144,7 @@ namespace UDPT
 
 		this->isRunning = true;
 
-		stringstream ss;
+		ss.clear();
 		ss << "Starting maintenance thread (1/" << ((int)this->thread_count) << ")";
 		logger->log(Logger::LL_INFO, ss.str());
 
@@ -155,10 +157,9 @@ namespace UDPT
 
 		for (i = 1;i < this->thread_count; i++)
 		{
-			stringstream ss;
+			ss.clear();
 			ss << "Starting thread (" << (i + 1) << "/" << ((int)this->thread_count) << ")";
 			logger->log(Logger::LL_INFO, ss.str());
-			ss.clear();
 
 			#ifdef WIN32
 			this->threads[i] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_thread_start, (LPVOID)this, 0, NULL);
