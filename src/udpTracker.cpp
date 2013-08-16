@@ -108,6 +108,19 @@ namespace UDPT
 		delete[] this->threads;
 	}
 
+	void UDPTracker::wait()
+	{
+#ifdef WIN32
+		WaitForMultipleObjects(this->thread_count, this->threads, TRUE, INFINITE);
+#else
+		int i;
+		for (i = 0;i < this->thread_count; i++)
+		{
+			pthread_join (this->threads[i], NULL);
+		}
+#endif
+	}
+
 	enum UDPTracker::StartStatus UDPTracker::start ()
 	{
 		stringstream ss;
@@ -144,7 +157,7 @@ namespace UDPT
 
 		this->isRunning = true;
 
-		ss.clear();
+		ss.str("");
 		ss << "Starting maintenance thread (1/" << ((int)this->thread_count) << ")";
 		logger->log(Logger::LL_INFO, ss.str());
 
@@ -157,7 +170,7 @@ namespace UDPT
 
 		for (i = 1;i < this->thread_count; i++)
 		{
-			ss.clear();
+			ss.str("");
 			ss << "Starting thread (" << (i + 1) << "/" << ((int)this->thread_count) << ")";
 			logger->log(Logger::LL_INFO, ss.str());
 

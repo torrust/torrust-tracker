@@ -24,7 +24,7 @@
 
 #if defined (_WIN32) && !defined (WIN32)
 #define WIN32
-#elif defined (__APPLE__)
+#elif defined (__APPLE__) || defined (__CYGWIN__)
 #define linux
 #endif
 

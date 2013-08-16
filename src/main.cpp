@@ -33,6 +33,12 @@ using namespace UDPT;
 using namespace UDPT::Server;
 
 Logger *logger;
+static struct {
+	Settings *settings;
+	UDPTracker *usi;
+	WebApp *wa;
+	HTTPServer *httpserver;
+} Instance;
 
 static void _print_usage ()
 {
@@ -63,8 +69,8 @@ static void _doAPIStart (Settings *settings, WebApp **wa, HTTPServer **srv, Data
 		threads = 1;
 
 	try {
-		*srv = new HTTPServer (port, threads);
-		*wa = new WebApp (*srv, drvr, settings);
+		*srv = Instance.httpserver = new HTTPServer (port, threads);
+		*wa = Instance.wa = new WebApp (*srv, drvr, settings);
 		(*wa)->deploy();
 	} catch (ServerException &e)
 	{
@@ -114,10 +120,33 @@ static void _setCWD (char *argv0)
 
 }
 
+/**
+ * Releases resources before exit.
+ */
+static void _doCleanup ()
+{
+	delete Instance.wa;
+	delete Instance.httpserver;
+	delete Instance.usi;
+	delete Instance.settings;
+	delete logger;
+
+	memset (&Instance, 0, sizeof(Instance));
+	logger = NULL;
+}
+
+static void _signal_handler (int sig)
+{
+	stringstream ss;
+	ss << "Signal " << sig << " raised. Terminating...";
+	logger->log(Logger::LL_INFO, ss.str());
+	_doCleanup();
+}
+
 int main(int argc, char *argv[])
 {
-	Settings *settings = NULL;
-	UDPTracker *usi = NULL;
+	Settings *settings;
+	UDPTracker *usi;
 	string config_file;
 	int r;
 
@@ -131,6 +160,20 @@ int main(int argc, char *argv[])
 	cout << "Build Date: " << __DATE__ << endl << endl;
 
 	config_file = "udpt.conf";
+	memset(&Instance, 0, sizeof(Instance));
+
+#ifdef SIGBREAK
+	signal(SIGBREAK, &_signal_handler);
+#endif
+#ifdef SIGTERM
+	signal(SIGTERM, &_signal_handler);
+#endif
+#ifdef SIGABRT
+	signal(SIGABRT, &_signal_handler);
+#endif
+#ifdef SIGINT
+	signal(SIGINT, &_signal_handler);
+#endif
 
 	if (argc <= 1)
 	{
@@ -144,7 +187,7 @@ int main(int argc, char *argv[])
 		config_file = argv[1];	// reported in issue #5.
 	}
 
-	settings = new Settings (config_file);
+	settings = Instance.settings = new Settings (config_file);
 
 	if (!settings->load())
 	{
@@ -173,7 +216,7 @@ int main(int argc, char *argv[])
 	}
 
 	logger = new Logger (settings);
-	usi = new UDPTracker (settings);
+	usi = Instance.usi = new UDPTracker (settings);
 
 	HTTPServer *apiSrv = NULL;
 	WebApp *wa = NULL;
@@ -199,17 +242,12 @@ int main(int argc, char *argv[])
 
 	_doAPIStart(settings, &wa, &apiSrv, usi->conn);
 
-	cout << "Press Any key to exit." << endl;
+	cout << "Hit Control-C to exit." << endl;
 
-	cin.get();
+	usi->wait();
 
 cleanup:
 	cout << endl << "Goodbye." << endl;
-
-	delete usi;
-	delete settings;
-	delete apiSrv;
-	delete wa;
 
 #ifdef WIN32
 	WSACleanup();

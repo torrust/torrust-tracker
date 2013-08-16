@@ -126,6 +126,11 @@ namespace UDPT
 		enum StartStatus start ();
 
 		/**
+		 * Joins all threads, and waits for all of them to terminate.
+		 */
+		void wait ();
+
+		/**
 		 * Destroys resources that were created by constructor
 		 * @param usi Instance to destroy.
 		 */
