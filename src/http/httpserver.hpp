@@ -25,6 +25,7 @@
 #include <sstream>
 #include <list>
 #include "../multiplatform.h"
+#include "../settings.hpp"
 using namespace std;
 
 #define REQUEST_BUFFER_SIZE 2048
@@ -130,6 +131,7 @@ namespace UDPT
 			typedef void (reqCallback)(HTTPServer*,Request*,Response*);
 
 			HTTPServer (uint16_t port, int threads);
+			HTTPServer (Settings *s);
 
 			void addApp (list<string> *path, reqCallback *);
 
@@ -151,6 +153,8 @@ namespace UDPT
 			bool isRunning;
 			appNode rootNode;
 			map<string, void*> customData;
+
+			void init (SOCKADDR_IN &localEndpoint, int threads);
 
 			static void handleConnections (HTTPServer *);
 

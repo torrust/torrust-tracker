@@ -54,23 +54,14 @@ static void _doAPIStart (Settings *settings, WebApp **wa, HTTPServer **srv, Data
 	if (sc == NULL)
 		return;		// no settings set!
 
-	if (sc->get("enable") != "1")
+	if (!sc->getBool("enable", false))
 	{
 		cerr << "API Server not enabled." << endl;
 		return;
 	}
 
-	string s_port = sc->get("port");
-	string s_threads = sc->get("threads");
-
-	uint16_t port = (s_port == "" ? 6969 : atoi (s_port.c_str()));
-	uint16_t threads = (s_threads == "" ? 1 : atoi (s_threads.c_str()));
-
-	if (threads <= 0)
-		threads = 1;
-
 	try {
-		*srv = Instance.httpserver = new HTTPServer (port, threads);
+		*srv = Instance.httpserver = new HTTPServer (settings);
 		*wa = Instance.wa = new WebApp (*srv, drvr, settings);
 		(*wa)->deploy();
 	} catch (ServerException &e)

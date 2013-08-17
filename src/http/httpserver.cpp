@@ -33,9 +33,52 @@ namespace UDPT
 		/* HTTPServer */
 		HTTPServer::HTTPServer (uint16_t port, int threads)
 		{
-			int r;
 			SOCKADDR_IN sa;
 
+			memset((void*)&sa, 0, sizeof(sa));
+			sa.sin_addr.s_addr = 0L;
+			sa.sin_family = AF_INET;
+			sa.sin_port = htons (port);
+			
+			this->init(sa, threads);
+		}
+
+		HTTPServer::HTTPServer(Settings *s)
+		{
+			Settings::SettingClass *sc = s->getClass("apiserver");
+			list<SOCKADDR_IN> localEndpoints;
+			uint16_t port;
+			int threads;
+
+			port = 6969;
+			threads = 1;
+
+			if (sc != NULL)
+			{
+				port = sc->getInt("port", 6969);
+				threads = sc->getInt("threads", 1);
+				sc->getIPs("bind", localEndpoints);
+			}
+
+			if (threads <= 0)
+				threads = 1;
+
+			if (localEndpoints.empty())
+			{
+				SOCKADDR_IN sa;
+				memset((void*)&sa, 0, sizeof(sa));
+				sa.sin_family = AF_INET;
+				sa.sin_port = htons (port);
+				sa.sin_addr.s_addr = 0L;
+				localEndpoints.push_front(sa);
+			}
+
+			this->init(localEndpoints.front(), threads);
+		}
+
+		void HTTPServer::init (SOCKADDR_IN &localEndpoint, int threads)
+		{
+			int r;
 			this->thread_count = threads;
 			this->threads = new HANDLE[threads];
 			this->isRunning = false;
@@ -48,11 +91,7 @@ namespace UDPT
 				throw ServerException (1, "Failed to create Socket");
 			}
 
-			sa.sin_addr.s_addr = 0L;
-			sa.sin_family = AF_INET;
-			sa.sin_port = htons (port);
-			
-			r = bind (this->srv, (SOCKADDR*)&sa, sizeof(sa));
+			r = bind (this->srv, (SOCKADDR*)&localEndpoint, sizeof(localEndpoint));
 			if (r == SOCKET_ERROR)
 			{
 				throw ServerException (2, "Failed to bind socket");
