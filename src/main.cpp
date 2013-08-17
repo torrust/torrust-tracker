@@ -27,6 +27,7 @@
 #include "http/webapp.hpp"
 #include <cstdlib>	// atoi
 #include <csignal>	// signal
+#include <cstring>	// strlen
 
 using namespace std;
 using namespace UDPT;
