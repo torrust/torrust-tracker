@@ -1,23 +1,28 @@
 
-README for the UDPT project.
+What is UDPT?
+The UDPT project is a BitTorrent Tracking software.
+It uses the UDP protocol (instead of the HTTP protocol) to track
+peers downloading the same software. UDPT was written according
+to BEP 15 of the BitTorrent standard.
 
-Licensed under GNU GPLv3.
-The license file is attached under the name gpl.txt.
+Who Wrote UDPT, and when?
+UDPT is an ongoing project (at the meantime), it's development
+started on Nevember 20th, 2012.
+It was written by Naim A. <naim94a@gmail.com>. Naim wrote this
+program for fun in his free time.
 
-Compiling under linux or linux environment (MinGW):
+Required Software: 
+UDPT depends on SQLite3 (public-domain, compatible with GPL).
+UDPT's source is designed to be platform portable. It is 
+supported with Windows and with Linux based systems, It should
+work with Apple's systems but it might not (no officially supported).
 
-For Windows (with Linux environment):
-$ make win32
+I need help using this software, what should I do?
+You may want to visit the documentation at the projects's site.
+Address: http://code.google.com/p/udpt
 
-For Linux:
-$ make linux
+Can I suggest a feature or report a bug?
+Yes, you can. Please submit a feature request at:
+http://code.google.com/p/udpt/issues
 
-Running:
-$ ./udpt
-
-Cleaning:
-$ make clean
-
-This software currently uses the Sqlite3 Library (public domain).
-
-Developed by Naim A. <naim94a@gmail.com>.
+Please visit http://code.google.com/p/udpt for updates.

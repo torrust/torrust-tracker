@@ -28,10 +28,11 @@
 #define linux
 #endif
 
+#define VERSION "1.0.0-beta"
+
 #ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
-#define VERSION "1.0.0-beta (Windows)"
 #elif defined (linux)
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -54,10 +55,14 @@ typedef void* LPVOID;
 typedef void (LPTHREAD_START_ROUTINE)(LPVOID);
 typedef pthread_t HANDLE;
 
-#define VERSION "1.0.0-beta (Linux)"
 #endif
 
-#ifdef __APPLE__
-#undef VERSION
-#define VERSION "1.0.0-beta (Apple)"
+#ifdef WIN32
+#define PLATFORM "Windows"
+#elif defined  (__APPLE__)
+#define PLATFORM "Apple"
+#elif defined (__CYGWIN__)
+#define PLATFORM "Cygwin"
+#else
+#define PLATFORM "Linux"
 #endif

@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 	WSAStartup(MAKEWORD(2, 2), &wsadata);
 #endif
 
-	cout << "UDP Tracker (UDPT) " << VERSION << endl;
+	cout << "UDP Tracker (UDPT) " << VERSION << " (" << PLATFORM << ")" << endl;
 	cout << "Copyright 2012,2013 Naim Abda <naim94a@gmail.com>\n\tReleased under the GPLv3 License." << endl;
 	cout << "Build Date: " << __DATE__ << endl << endl;
 
