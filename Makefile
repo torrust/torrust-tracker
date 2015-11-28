@@ -34,12 +34,10 @@ all: $(target)
 	
 $(target): $(objects)
 	@echo Linking...
-	$(CXX) -O3 -o $(target) $(objects) $(LDFLAGS) -lsqlite3
+	$(CXX) -O3 -o $(target) $(objects) $(LDFLAGS) -lsqlite3 -lpthread
 	@echo Done.
 clean:
 	@echo Cleaning Up...
 	$(RM) $(objects) $(target)
 	@echo Done.
 
-install: $(target)
-	@echo Installing $(target) to '$(exec_prefix)/bin'...
