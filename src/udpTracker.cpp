@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2012-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -443,8 +443,6 @@ static int _isIANA_IP (uint32_t ip)
 			}
 		}
 
-//		cout << ":: " << (void*)m_hton32(remote->sin_addr.s_addr) << ": " << m_hton16(remote->sin_port) << " ACTION=" << action << endl;
-
 		if (action == 0 && r >= 16)
 			return UDPTracker::handleConnection (usi, remote, data);
 		else if (action == 1 && r >= 98)
@@ -453,7 +451,6 @@ static int _isIANA_IP (uint32_t ip)
 			return UDPTracker::handleScrape (usi, remote, data, r);
 		else
 		{
-//			cout << "E: action=" << action << ", r=" << r << endl;
 			UDPTracker::sendError (usi, remote, cR->transaction_id, "Tracker couldn't understand Client's request.");
 			return -1;
 		}

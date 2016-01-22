@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2013 Naim A.
+ *	Copyright © 2013-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -167,7 +167,7 @@ doSrv:
 						stringstream stream;
 						stream << "<html>";
 						stream << "<head><title>Not Found</title></head>";
-						stream << "<body><h1>Not Found</h1><div>The server couldn't find the request resource.</div><br /><hr /><div style=\"font-size:small;text-align:center;\">&copy; 2013 Naim A. | <a href=\"http://udpt.googlecode.com/\">The UDPT Project</a></div></body>";
+						stream << "<body><h1>Not Found</h1><div>The server couldn't find the request resource.</div><br /><hr /><div style=\"font-size:small;text-align:center;\"><a href=\"http://github.com/naim94a/udpt\">UDPT</a></div></body>";
 						stream << "</html>";
 						string str = stream.str();
 						resp.write (str.c_str(), str.length());
@@ -183,7 +183,7 @@ doSrv:
 							stringstream stream;
 							stream << "<html>";
 							stream << "<head><title>Internal Server Error</title></head>";
-							stream << "<body><h1>Internal Server Error</h1><div>An Error Occurred while trying to process your request.</div><br /><hr /><div style=\"font-size:small;text-align:center;\">&copy; 2013 Naim A. | <a href=\"http://udpt.googlecode.com/\">The UDPT Project</a></div></body>";
+							stream << "<body><h1>Internal Server Error</h1><div>An Error Occurred while trying to process your request.</div><br /><hr /><div style=\"font-size:small;text-align:center;\"><a href=\"http://github.com/naim94a/udpt\">UDPT</a></div></body>";
 							stream << "</html>";
 							string str = stream.str();
 							resp.write (str.c_str(), str.length());

@@ -1,6 +1,6 @@
 /*
  *
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2012-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -155,8 +155,6 @@ void _settings_clean_string (char **str)
 
 								_settings_clean_string(&key);
 								_settings_clean_string(&value);
-
-	//							printf("KEY: '%s'\tVALUE: '%s'\n", key, value);
 
 								// add to settings...
 								this->set (className, key, value);

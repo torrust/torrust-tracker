@@ -1,6 +1,6 @@
 /*
  *
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2012-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -119,51 +119,3 @@ namespace UDPT
 		void parseSettings (char *data, int len);
 	};
 };
-
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
-//
-//typedef struct {
-//	char *key;
-//	char *values;
-//} KeyValue;
-//
-//typedef struct {
-//	char *classname;
-//	KeyValue *entries;
-//	uint32_t entry_count, entry_size;
-//} SettingClass;
-//
-//typedef struct {
-//	char *filename;
-//
-//	SettingClass *classes;
-//	uint32_t class_count, class_size;
-//
-//	char *buffer;
-//} Settings;
-//
-//
-//void settings_init (Settings *s, const char *filename);
-//
-//int settings_load (Settings *s);
-//
-//int settings_save (Settings *s);
-//
-//void settings_destroy (Settings *s);
-//
-//SettingClass* settings_get_class (Settings *s, const char *classname);
-//
-//char* settingclass_get (SettingClass *s, const char *name);
-//
-//int settingclass_set (SettingClass *s, const char *name, const char *value);
-//
-//char* settings_get (Settings *s, const char *classn, const char *name);
-//
-//
-//int settings_set (Settings *s, const char *classn, const char *name, const char *value);
-//
-//#ifdef __cplusplus
-//}
-//#endif

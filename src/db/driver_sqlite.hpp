@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2012-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -43,7 +43,7 @@ namespace UDPT
 			bool getPeers (uint8_t info_hash [20], int *max_count, PeerEntry *pe);
 			void cleanup ();
 
-			~SQLite3Driver ();
+			virtual ~SQLite3Driver ();
 		private:
 			sqlite3 *db;
 
