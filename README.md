@@ -9,7 +9,7 @@ UDPT is designed to run on both Windows and Linux-based platform (It may run on 
 
 ### License
 UDPT is released under the [GPL](http://www.gnu.org/licenses/gpl-3.0.en.html) license, a copy is included in this repository. 
-We use [SQLite3](http://www.sqlite.org/) which is public-domain.
+We use [SQLite3](http://www.sqlite.org/) which is public-domain, and [Boost](http://www.boost.org/) which is released under the [boost license](http://www.boost.org/LICENSE_1_0.txt).
 
 ### Building
 We didn't really work on creating any installer, at the moment you can just run udpt from anywhere on your filesystem.

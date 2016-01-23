@@ -106,12 +106,12 @@ namespace UDPT
 	void UDPTracker::wait()
 	{
 #ifdef WIN32
-		WaitForMultipleObjects(this->m_threadCount, this->m_threads, TRUE, INFINITE);
+		::WaitForMultipleObjects(this->m_threadCount, this->m_threads, TRUE, INFINITE);
 #else
 		int i;
 		for (i = 0;i < this->m_threadCount; i++)
 		{
-			pthread_join (this->m_threads[i], NULL);
+			::pthread_join(this->m_threads[i], NULL);
 		}
 #endif
 	}
@@ -161,7 +161,7 @@ namespace UDPT
 	#ifdef WIN32
 		this->m_threads[0] = ::CreateThread(NULL, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(_maintainance_start), (LPVOID)this, 0, NULL);
 	#elif defined (linux)
-		::pthread_create (&this->m_threads[0], NULL, _maintainance_start, (void*)this);
+		::pthread_create(&this->m_threads[0], NULL, _maintainance_start, (void*)this);
 	#endif
 
 		for (i = 1;i < this->m_threadCount; i++)
@@ -173,7 +173,7 @@ namespace UDPT
 			#ifdef WIN32
 			this->m_threads[i] = ::CreateThread(NULL, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(_thread_start), (LPVOID)this, 0, NULL);
 	#elif defined (linux)
-			::pthread_create (&(this->m_threads[i]), NULL, _thread_start, (void*)this);
+			::pthread_create(&(this->m_threads[i]), NULL, _thread_start, (void*)this);
 	#endif
 		}
 	}
@@ -258,7 +258,7 @@ namespace UDPT
 
 		if (!usi->m_allowRemotes && req->ip_address != 0)
 		{
-			UDPTracker::sendError (usi, remote, req->transaction_id, "Tracker doesn't allow remote IP's; Request ignored.");
+			UDPTracker::sendError(usi, remote, req->transaction_id, "Tracker doesn't allow remote IP's; Request ignored.");
 			return 0;
 		}
 
@@ -424,7 +424,7 @@ static int _isIANA_IP (uint32_t ip)
 
 		if (!usi->m_allowIANA_IPs)
 		{
-			if (_isIANA_IP (remote->sin_addr.s_addr))
+			if (_isIANA_IP(remote->sin_addr.s_addr))
 			{
 				return 0;	// Access Denied: IANA reserved IP.
 			}
