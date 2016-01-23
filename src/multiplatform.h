@@ -28,7 +28,7 @@
 #define linux
 #endif
 
-#define VERSION "1.0.0-beta"
+#define VERSION "1.0.2-dev"
 
 #ifdef WIN32
 #include <winsock2.h>

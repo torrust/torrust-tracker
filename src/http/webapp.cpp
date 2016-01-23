@@ -97,36 +97,12 @@ namespace UDPT
 			return true;
 		}
 
-		WebApp::WebApp(HTTPServer *srv, DatabaseDriver *db, const boost::program_options::variables_map& conf) : m_conf(conf)
+		WebApp::WebApp(std::shared_ptr<HTTPServer> srv, DatabaseDriver *db, const boost::program_options::variables_map& conf) : m_conf(conf), m_server(srv)
 		{
-			this->instance = srv;
 			this->db = db;
-			/* this->sc_api = settings->getClass("api");
+			// TODO: Implement authentication by keys
 
-			Settings::SettingClass *apiKeys = settings->getClass("api.keys");
-			if (apiKeys != NULL)
-			{
-				map<string, string>* aK = apiKeys->getMap();
-				map<string, string>::iterator it, end;
-				end = aK->end();
-				for (it = aK->begin();it != end;it++)
-				{
-					string key = it->first;
-					list<uint32_t> ips;
-
-					string::size_type strp = 0;
-					uint32_t ip;
-					while ((ip = _getNextIPv4(strp, it->second)) != 0)
-					{
-						ips.push_back( m_hton32(ip) );
-					}
-
-					this->ip_whitelist.insert(pair<string, list<uint32_t> >(key, ips));
-				}
-
-			} */
-
-			srv->setData("webapp", this);
+			m_server->setData("webapp", this);
 		}
 
 		WebApp::~WebApp()
@@ -136,17 +112,17 @@ namespace UDPT
 		void WebApp::deploy()
 		{
 			list<string> path;
-			this->instance->addApp(&path, &WebApp::handleRoot);
+			m_server->addApp(&path, &WebApp::handleRoot);
 
 			path.push_back("api");
-			this->instance->addApp(&path, &WebApp::handleAPI);	// "/api"
+			m_server->addApp(&path, &WebApp::handleAPI);	// "/api"
 
 			path.pop_back();
 			path.push_back("announce");
-			this->instance->addApp(&path, &WebApp::handleAnnounce);
+			m_server->addApp(&path, &WebApp::handleAnnounce);
 		}
 
-		void WebApp::handleRoot (HTTPServer *srv, HTTPServer::Request *req, HTTPServer::Response *resp)
+		void WebApp::handleRoot(HTTPServer *srv, HTTPServer::Request *req, HTTPServer::Response *resp)
 		{
 			// It would be very appreciated to keep this in the code.
 			resp->write("<html>"
@@ -201,7 +177,7 @@ namespace UDPT
 
 		void WebApp::doAddTorrent (HTTPServer::Request *req, HTTPServer::Response *resp)
 		{
-			string strHash = req->getParam("hash");
+			std::string strHash = req->getParam("hash");
 			if (strHash.length() != 40)
 			{
 				resp->write("{\"error\":\"Hash length must be 40 characters.\"}");
@@ -232,7 +208,7 @@ namespace UDPT
 				throw ServerException (0, "IPv4 supported Only.");
 			}
 
-			string key = req->getParam("auth");
+			std::string key = req->getParam("auth");
 			if (key.length() <= 0)
 				throw ServerException (0, "Bad Authentication Key");
 
@@ -247,7 +223,7 @@ namespace UDPT
 				return;
 			}
 
-			string action = req->getParam("action");
+			std::string action = req->getParam("action");
 			if (action == "add")
 				app->doAddTorrent(req, resp);
 			else if (action == "remove")

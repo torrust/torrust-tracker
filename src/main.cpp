@@ -19,128 +19,35 @@
 
 #include <iostream>
 
-#include "logging.h"
-#include "multiplatform.h"
-#include "udpTracker.hpp"
-#include "settings.hpp"
-#include "http/httpserver.hpp"
-#include "http/webapp.hpp"
 #include <cstdlib>	// atoi
 #include <csignal>	// signal
 #include <cstring>	// strlen
-#include <memory.h>
+#include <memory>
 #include <boost/program_options.hpp>
 
-using namespace std;
-using namespace UDPT;
-using namespace UDPT::Server;
+#include "logging.h"
+#include "multiplatform.h"
+#include "udpTracker.hpp"
+#include "http/httpserver.hpp"
+#include "http/webapp.hpp"
 
-Logger *logger;
-static struct {
-	Settings *settings;
-	UDPTracker *usi;
-	WebApp *wa;
-	HTTPServer *httpserver;
-} Instance;
+UDPT::Logger *logger;
 
-
-static void _print_usage ()
-{
-	cout << "Usage: udpt [<configuration file>]" << endl;
-}
-
-static void _doAPIStart (const boost::program_options::variables_map& settings, WebApp **wa, HTTPServer **srv, DatabaseDriver *drvr)
-{
-	if (!settings["apiserver.enable"].as<bool>())
-	{
-		return;
-	}
-
-	try 
-	{
-		*srv = Instance.httpserver = new HTTPServer(settings);
-		*wa = Instance.wa = new WebApp(*srv, drvr, settings);
-		(*wa)->deploy();
-	} 
-	catch (const ServerException &e)
-	{
-		std::cerr << "ServerException #" << e.getErrorCode() << ": " << e.getErrorMsg() << endl;
-	}
-}
-
-/**
- * Sets current working directory to executables directory.
- */
-static void _setCWD (char *argv0)
-{
-#ifdef WIN32
-		wchar_t strFileName [MAX_PATH];
-		DWORD r, i;
-		r = GetModuleFileNameW(NULL, strFileName, MAX_PATH);
-		for (i = r;i >= 0;i--)
-		{
-			if (strFileName[i] == '\\')
-			{
-				strFileName[i] = '\0';
-				break;
-			}
-		}
-		SetCurrentDirectoryW(strFileName);
-
-#elif defined(linux)
-		int len, i;
-		char *strFN;
-		if (argv0 != NULL)
-		{
-			len = strlen (argv0);
-			strFN = new char [len + 1];
-
-			for (i = len;i >= 0;i--)
-			{
-				if (strFN[i] == '/')
-				{
-					strFN = '\0';
-					break;
-				}
-			}
-			chdir (strFN);
-			delete [] strFN;
-		}
-#endif
-
-}
-
-/**
- * Releases resources before exit.
- */
-static void _doCleanup ()
-{
-	delete Instance.wa;
-	delete Instance.httpserver;
-	delete Instance.usi;
-	delete Instance.settings;
-	delete logger;
-
-	memset (&Instance, 0, sizeof(Instance));
-	logger = NULL;
-}
 
 static void _signal_handler (int sig)
 {
-	stringstream ss;
-	ss << "Signal " << sig << " raised. Terminating...";
+	std::stringstream ss;
+	ss << "Signal " << sig << " raised. ";
 	logger->log(Logger::LL_INFO, ss.str());
-	_doCleanup();
 }
 
 int main(int argc, char *argv[])
 {
-	UDPTracker *usi;
 	int r;
 
 #ifdef WIN32
 	WSADATA wsadata;
-	WSAStartup(MAKEWORD(2, 2), &wsadata);
+	::WSAStartup(MAKEWORD(2, 2), &wsadata);
 #endif
 
 	boost::program_options::options_description commandLine("Command line options");
@@ -194,7 +101,7 @@ int main(int argc, char *argv[])
 	}
 
 	std::string config_filename(var_map["config"].as<std::string>());
-	bool isTest = var_map.count("test");
+	bool isTest = (0 != var_map.count("test"));
 
 	if (var_map.count("config"))
 	{
@@ -218,8 +125,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	memset(&Instance, 0, sizeof(Instance));
-
 #ifdef SIGBREAK
 	signal(SIGBREAK, &_signal_handler);
 #endif
@@ -235,7 +140,7 @@ int main(int argc, char *argv[])
 	
 	try
 	{
-		logger = new Logger(var_map);
+		logger = new UDPT::Logger(var_map);
 	}
 	catch (const std::exception& ex)
 	{
@@ -243,41 +148,42 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	usi = Instance.usi = new UDPTracker(var_map);
+	std::shared_ptr<UDPTracker> tracker;
+	std::shared_ptr<UDPT::Server::HTTPServer> apiSrv;
+	std::shared_ptr<UDPT::Server::WebApp> webApp;
 
-	HTTPServer *apiSrv = NULL;
-	WebApp *wa = NULL;
-
-	r = usi->start();
-	if (r != UDPTracker::START_OK)
+	try
 	{
-		cerr << "Error While trying to start server." << endl;
-		switch (r)
+		tracker = std::shared_ptr<UDPTracker>(new UDPTracker(var_map));
+		tracker->start();
+
+		if (var_map["apiserver.enable"].as<bool>())
 		{
-		case UDPTracker::START_ESOCKET_FAILED:
-			cerr << "Failed to create socket." << endl;
-			break;
-		case UDPTracker::START_EBIND_FAILED:
-			cerr << "Failed to bind socket." << endl;
-			break;
-		default:
-			cerr << "Unknown Error" << endl;
-			break;
+			try
+			{
+				apiSrv = std::shared_ptr<UDPT::Server::HTTPServer>(new UDPT::Server::HTTPServer(var_map));
+				webApp = std::shared_ptr<UDPT::Server::WebApp>(new UDPT::Server::WebApp(apiSrv, tracker->conn, var_map));
+				webApp->deploy();
+			}
+			catch (const UDPT::Server::ServerException &e)
+			{
+				std::cerr << "ServerException #" << e.getErrorCode() << ": " << e.getErrorMsg() << endl;
+			}
 		}
-		goto cleanup;
+	}
+	catch (const UDPT::UDPTException& ex)
+	{
+		std::cerr << "UDPTException: " << ex.what() << std::endl;
 	}
 
-	_doAPIStart(var_map, &wa, &apiSrv, usi->conn);
+	std::cout << "Hit Control-C to exit." << endl;
 
-	cout << "Hit Control-C to exit." << endl;
+	tracker->wait();
 
-	usi->wait();
-
-cleanup:
-	cout << endl << "Goodbye." << endl;
+	std::cout << endl << "Goodbye." << endl;
 
 #ifdef WIN32
-	WSACleanup();
+	::WSACleanup();
 #endif
 
 	return 0;

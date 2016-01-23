@@ -22,18 +22,16 @@
 
 
 #include <stdint.h>
+#include <boost/program_options.hpp>
+#include <string>
+#include "exceptions.h"
 #include "multiplatform.h"
 #include "db/driver_sqlite.hpp"
-#include "settings.hpp"
-#include <boost/program_options.hpp>
 
-#include <string>
-using namespace std;
-
-#define UDPT_DYNAMIC			0x01	// Track Any info_hash?
-#define UDPT_ALLOW_REMOTE_IP	0x02	// Allow client's to send other IPs?
-#define UDPT_ALLOW_IANA_IP		0x04	// allow IP's like 127.0.0.1 or other IANA reserved IPs?
-#define UDPT_VALIDATE_CLIENT	0x08	// validate client before adding to Database? (check if connection is open?)
+#define UDPT_DYNAMIC			(0x01)	// Track Any info_hash?
+#define UDPT_ALLOW_REMOTE_IP	(0x02)	// Allow client's to send other IPs?
+#define UDPT_ALLOW_IANA_IP		(0x04)	// allow IP's like 127.0.0.1 or other IANA reserved IPs?
+#define UDPT_VALIDATE_CLIENT	(0x08)	// validate client before adding to Database? (check if connection is open?)
 
 
 namespace UDPT
@@ -122,52 +120,51 @@ namespace UDPT
 
 		/**
 		 * Starts the Initialized instance.
-		 * @return 0 on success, otherwise non-zero.
 		 */
-		enum StartStatus start ();
+		void start();
 
 		/**
 		 * Joins all threads, and waits for all of them to terminate.
 		 */
-		void wait ();
+		void wait();
 
 		/**
 		 * Destroys resources that were created by constructor
 		 * @param usi Instance to destroy.
 		 */
-		virtual ~UDPTracker ();
+		virtual ~UDPTracker();
 
 		Data::DatabaseDriver *conn;
 	private:
-		SOCKET sock;
-		SOCKADDR_IN localEndpoint;
-		uint16_t port;
-		uint8_t thread_count;
-		bool isRunning;
-		bool isDynamic;
-		bool allowRemotes;
-		bool allowIANA_IPs;
-		HANDLE *threads;
-		uint32_t announce_interval;
-		uint32_t cleanup_interval;
+		SOCKET m_sock;
+		SOCKADDR_IN m_localEndpoint;
+		uint16_t m_port;
+		uint8_t m_threadCount;
+		bool m_isRunning;
+		bool m_isDynamic;
+		bool m_allowRemotes;
+		bool m_allowIANA_IPs;
+		HANDLE *m_threads;
+		uint32_t m_announceInterval;
+		uint32_t m_cleanupInterval;
 
 		const boost::program_options::variables_map& m_conf;
 
 #ifdef WIN32
-		static DWORD _thread_start (LPVOID arg);
-		static DWORD _maintainance_start (LPVOID arg);
+		static DWORD _thread_start(LPVOID arg);
+		static DWORD _maintainance_start(LPVOID arg);
 #elif defined (linux)
-		static void* _thread_start (void *arg);
-		static void* _maintainance_start (void *arg);
+		static void* _thread_start(void *arg);
+		static void* _maintainance_start(void *arg);
 #endif
 
-		static int resolveRequest (UDPTracker *usi, SOCKADDR_IN *remote, char *data, int r);
+		static int resolveRequest(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int r);
 
-		static int handleConnection (UDPTracker *usi, SOCKADDR_IN *remote, char *data);
-		static int handleAnnounce (UDPTracker *usi, SOCKADDR_IN *remote, char *data);
-		static int handleScrape (UDPTracker *usi, SOCKADDR_IN *remote, char *data, int len);
+		static int handleConnection(UDPTracker *usi, SOCKADDR_IN *remote, char *data);
+		static int handleAnnounce(UDPTracker *usi, SOCKADDR_IN *remote, char *data);
+		static int handleScrape(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int len);
 
-		static int sendError (UDPTracker *, SOCKADDR_IN *remote, uint32_t transId, const string &);
+		static int sendError(UDPTracker *, SOCKADDR_IN *remote, uint32_t transId, const std::string &);
 
 	};
 };

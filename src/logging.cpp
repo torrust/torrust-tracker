@@ -27,10 +27,10 @@ using namespace std;
 namespace UDPT {
 
 	Logger::Logger(const boost::program_options::variables_map& s)
-		: logfile (&std::cout)
+		: m_logfile (std::cout)
 	{
-		const string& filename = s["logging.filename"].as<std::string>();
-		const string& level = s["logging.level"].as<std::string>();
+		const std::string& filename = s["logging.filename"].as<std::string>();
+		const std::string& level = s["logging.level"].as<std::string>();
 
 		closeStreamOnDestroy = false;
 
@@ -42,35 +42,10 @@ namespace UDPT {
 			this->loglevel = LL_INFO;
 		else
 			this->loglevel = LL_ERROR;
-
-		if (filename.compare("stdout") != 0 && filename.length() > 0)
-		{
-			fstream fs;
-			fs.open(filename.c_str(), ios::binary | ios::out | ios::app);
-			if (!fs.is_open())
-			{
-				this->log(LL_ERROR, "Failed to open log file.");
-				return;
-			}
-			this->logfile = &fs;
-			closeStreamOnDestroy = true;
-		}
-	}
-
-	Logger::Logger(const boost::program_options::variables_map& s, ostream &os)
-		: logfile (&os), loglevel (LL_ERROR)
-	{
-		closeStreamOnDestroy = false;
 	}
 
 	Logger::~Logger()
 	{
-		fstream *f = (fstream*)this->logfile;
-		f->flush();
-		if (closeStreamOnDestroy)
-		{
-			f->close();
-		}
 	}
 
 	void Logger::log(enum LogLevel lvl, string msg)
@@ -78,7 +53,7 @@ namespace UDPT {
 		const char letters[] = "EWID";
 		if (lvl <= this->loglevel)
 		{
-			(*logfile) << time (NULL) << ": ("
+			m_logfile << time (NULL) << ": ("
 					<< ((char)letters[lvl]) << "): "
 					<< msg << "\n";
 		}

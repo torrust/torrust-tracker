@@ -21,10 +21,10 @@
 
 #include "httpserver.hpp"
 #include "../db/database.hpp"
-#include "../settings.hpp"
 #include <stdint.h>
 #include <map>
 #include <string>
+#include <memory>
 #include <boost/program_options.hpp>
 using namespace std;
 
@@ -38,13 +38,13 @@ namespace UDPT
 		class WebApp
 		{
 		public:
-			WebApp(HTTPServer *, DatabaseDriver *, const boost::program_options::variables_map& conf);
-			~WebApp();
+			WebApp(std::shared_ptr<HTTPServer> , DatabaseDriver *, const boost::program_options::variables_map& conf);
+			virtual ~WebApp();
 			void deploy ();
 			
 
 		private:
-			HTTPServer *instance;
+			std::shared_ptr<HTTPServer> m_server;
 			UDPT::Data::DatabaseDriver *db;
 			const boost::program_options::variables_map& m_conf;
 			std::map<std::string, list<uint32_t> > ip_whitelist;

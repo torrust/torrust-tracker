@@ -20,7 +20,6 @@
 #ifndef DATABASE_HPP_
 #define DATABASE_HPP_
 
-#include "../settings.hpp"
 #include <boost/program_options.hpp>
 
 namespace UDPT

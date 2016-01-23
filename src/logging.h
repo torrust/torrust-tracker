@@ -20,7 +20,6 @@
 #ifndef LOGGING_H_
 #define LOGGING_H_
 
-#include "settings.hpp"
 #include <string>
 #include <iostream>
 #include <queue>
@@ -28,7 +27,6 @@
 #include <boost/program_options.hpp>
 
 namespace UDPT {
-	using namespace std;
 	class Logger 
 	{
 
@@ -42,17 +40,15 @@ namespace UDPT {
 
 		Logger(const boost::program_options::variables_map& s);
 
-		Logger(const boost::program_options::variables_map& s, ostream &os);
-
 		virtual ~Logger();
 
-		void log(enum LogLevel, string msg);
+		void log(enum LogLevel, std::string msg);
 	private:
-		ostream *logfile;
+		std::ostream& m_logfile;
 		enum LogLevel loglevel;
 		bool closeStreamOnDestroy;
 
-		static void setStream(Logger *logger, ostream &s);
+		static void setStream(Logger *logger, std::ostream &s);
 	};
 };
 
