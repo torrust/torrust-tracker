@@ -69,13 +69,13 @@ namespace UDPT
 			return data;
 		}
 
-		SQLite3Driver::SQLite3Driver (Settings::SettingClass *sc, bool isDyn) : DatabaseDriver(sc, isDyn)
+		SQLite3Driver::SQLite3Driver(const boost::program_options::variables_map& conf, bool isDyn) : DatabaseDriver(conf, isDyn)
 		{
 			int r;
 			bool doSetup;
 
 			fstream fCheck;
-			string filename = sc->get("file");
+			string filename = m_conf["db.param"].as<std::string>();
 
 			fCheck.open(filename.c_str(), ios::binary | ios::in);
 			if (fCheck.is_open())

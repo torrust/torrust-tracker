@@ -25,10 +25,12 @@
 #include <iostream>
 #include <queue>
 #include <time.h>
+#include <boost/program_options.hpp>
 
 namespace UDPT {
 	using namespace std;
-	class Logger {
+	class Logger 
+	{
 
 	public:
 		enum LogLevel {
@@ -38,19 +40,19 @@ namespace UDPT {
 			LL_DEBUG	= 3
 		};
 
-		Logger (Settings *s);
+		Logger(const boost::program_options::variables_map& s);
 
-		Logger (Settings *s, ostream &os);
+		Logger(const boost::program_options::variables_map& s, ostream &os);
 
-		virtual ~Logger ();
+		virtual ~Logger();
 
-		void log (enum LogLevel, string msg);
+		void log(enum LogLevel, string msg);
 	private:
 		ostream *logfile;
 		enum LogLevel loglevel;
 		bool closeStreamOnDestroy;
 
-		static void setStream (Logger *logger, ostream &s);
+		static void setStream(Logger *logger, ostream &s);
 	};
 };
 

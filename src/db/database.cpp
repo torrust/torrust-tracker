@@ -23,9 +23,8 @@ namespace UDPT
 {
 	namespace Data
 	{
-		DatabaseDriver::DatabaseDriver(Settings::SettingClass *sc, bool isDynamic)
+		DatabaseDriver::DatabaseDriver(const boost::program_options::variables_map& conf, bool isDynamic) : m_conf(conf)
 		{
-			this->dClass = sc;
 			this->is_dynamic = isDynamic;
 		}
 

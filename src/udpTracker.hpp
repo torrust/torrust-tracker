@@ -25,6 +25,7 @@
 #include "multiplatform.h"
 #include "db/driver_sqlite.hpp"
 #include "settings.hpp"
+#include <boost/program_options.hpp>
 
 #include <string>
 using namespace std;
@@ -117,7 +118,7 @@ namespace UDPT
 		 * Initializes the UDP Tracker.
 		 * @param settings Settings to start server with
 		 */
-		UDPTracker (Settings *);
+		UDPTracker(const boost::program_options::variables_map& conf);
 
 		/**
 		 * Starts the Initialized instance.
@@ -150,7 +151,7 @@ namespace UDPT
 		uint32_t announce_interval;
 		uint32_t cleanup_interval;
 
-		Settings *o_settings;
+		const boost::program_options::variables_map& m_conf;
 
 #ifdef WIN32
 		static DWORD _thread_start (LPVOID arg);

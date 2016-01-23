@@ -26,29 +26,13 @@ using namespace std;
 
 namespace UDPT {
 
-	Logger::Logger(Settings *s)
+	Logger::Logger(const boost::program_options::variables_map& s)
 		: logfile (&std::cout)
 	{
-		Settings::SettingClass *sc;
-		string filename = "stdout";
-		string level = "error";
+		const string& filename = s["logging.filename"].as<std::string>();
+		const string& level = s["logging.level"].as<std::string>();
 
 		closeStreamOnDestroy = false;
-
-		sc = s->getClass("logging");
-		if (sc != NULL)
-		{
-			string::size_type i;
-
-			filename = sc->get("filename");
-			level = sc->get("level");
-
-			for (i = 0;i < level.length(); i++)
-			{
-				if (level[i] >= 'A' && level[i] <= 'Z')
-					level[i] = 'a' + (level[i] - 'A');
-			}
-		}
 
 		if (level == "debug" || level == "d")
 			this->loglevel = LL_DEBUG;
@@ -73,7 +57,7 @@ namespace UDPT {
 		}
 	}
 
-	Logger::Logger(Settings *s, ostream &os)
+	Logger::Logger(const boost::program_options::variables_map& s, ostream &os)
 		: logfile (&os), loglevel (LL_ERROR)
 	{
 		closeStreamOnDestroy = false;

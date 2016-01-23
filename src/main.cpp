@@ -28,6 +28,8 @@
 #include <cstdlib>	// atoi
 #include <csignal>	// signal
 #include <cstring>	// strlen
+#include <memory.h>
+#include <boost/program_options.hpp>
 
 using namespace std;
 using namespace UDPT;
@@ -41,32 +43,28 @@ static struct {
 	HTTPServer *httpserver;
 } Instance;
 
+
 static void _print_usage ()
 {
 	cout << "Usage: udpt [<configuration file>]" << endl;
 }
 
-static void _doAPIStart (Settings *settings, WebApp **wa, HTTPServer **srv, DatabaseDriver *drvr)
+static void _doAPIStart (const boost::program_options::variables_map& settings, WebApp **wa, HTTPServer **srv, DatabaseDriver *drvr)
 {
-	if (settings == NULL)
-		return;
-	Settings::SettingClass *sc = settings->getClass("apiserver");
-	if (sc == NULL)
-		return;		// no settings set!
-
-	if (!sc->getBool("enable", false))
+	if (!settings["apiserver.enable"].as<bool>())
 	{
-		cerr << "API Server not enabled." << endl;
 		return;
 	}
 
-	try {
-		*srv = Instance.httpserver = new HTTPServer (settings);
-		*wa = Instance.wa = new WebApp (*srv, drvr, settings);
-		(*wa)->deploy();
-	} catch (ServerException &e)
+	try 
 	{
-		cerr << "ServerException #" << e.getErrorCode() << ": " << e.getErrorMsg() << endl;
+		*srv = Instance.httpserver = new HTTPServer(settings);
+		*wa = Instance.wa = new WebApp(*srv, drvr, settings);
+		(*wa)->deploy();
+	} 
+	catch (const ServerException &e)
+	{
+		std::cerr << "ServerException #" << e.getErrorCode() << ": " << e.getErrorMsg() << endl;
 	}
 }
 
@@ -137,9 +135,7 @@ static void _signal_handler (int sig)
 
 int main(int argc, char *argv[])
 {
-	Settings *settings;
 	UDPTracker *usi;
-	string config_file;
 	int r;
 
 #ifdef WIN32
@@ -147,11 +143,81 @@ int main(int argc, char *argv[])
 	WSAStartup(MAKEWORD(2, 2), &wsadata);
 #endif
 
-	cout << "UDP Tracker (UDPT) " << VERSION << " (" << PLATFORM << ")" << endl;
-	cout << "Copyright 2012,2013 Naim Abda <naim94a@gmail.com>\n\tReleased under the GPLv3 License." << endl;
-	cout << "Build Date: " << __DATE__ << endl << endl;
+	boost::program_options::options_description commandLine("Command line options");
+	commandLine.add_options()
+		("help,h", "produce help message")
+		("all-help", "displays all help")
+		("test,t", "test configuration file")
+		("config,c", boost::program_options::value<std::string>()->default_value("/etc/udpt.conf"), "configuration file to use")
+		;
 
-	config_file = "udpt.conf";
+	boost::program_options::options_description configOptions("Configuration options");
+	configOptions.add_options()
+		("db.driver", boost::program_options::value<std::string>()->default_value("sqlite3"), "database driver to use")
+		("db.param", boost::program_options::value<std::string>()->default_value("/var/lib/udpt.db"), "database connection parameters")
+		
+		("tracker.is_dynamic", boost::program_options::value<bool>()->default_value(true), "Sets if the tracker is dynamic")
+		("tracker.port", boost::program_options::value<unsigned short>()->default_value(6969), "UDP port to listen on")
+		("tracker.threads", boost::program_options::value<unsigned>()->default_value(5), "threads to run (UDP only)")
+		("tracker.allow_remotes", boost::program_options::value<bool>()->default_value(true), "allows clients to report remote IPs")
+		("tracker.allow_iana_ips", boost::program_options::value<bool>()->default_value(false), "allows IANA reserved IPs to connect (useful for debugging)")
+		("tracker.announce_interval", boost::program_options::value<unsigned>()->default_value(1800), "announce interval")
+		("tracker.cleanup_interval", boost::program_options::value<unsigned>()->default_value(120), "sets database cleanup interval")
+		
+		("apiserver.enable", boost::program_options::value<bool>()->default_value(0), "Enable API server?")
+		("apiserver.threads", boost::program_options::value<unsigned>()->default_value(1), "threads for API server")
+		("apiserver.port", boost::program_options::value<unsigned short>()->default_value(6969), "TCP port to listen on")
+
+		("logging.filename", boost::program_options::value<std::string>()->default_value("stdout"), "file to write logs to")
+		("logging.level", boost::program_options::value<std::string>()->default_value("warning"), "log level (error/warning/info/debug)")
+		;
+
+	boost::program_options::variables_map var_map;
+	boost::program_options::store(boost::program_options::parse_command_line(argc, argv, commandLine), var_map);
+	boost::program_options::notify(var_map);
+
+	if (var_map.count("help"))
+	{
+		std::cout << "UDP Tracker (UDPT) " << VERSION << " (" << PLATFORM << ")" << std::endl
+			<< "Copyright 2012-2016 Naim A. <naim94a@gmail.com>" << std::endl
+			<< "Build Date: " << __DATE__ << std::endl << std::endl;
+		
+		std::cout << commandLine << std::endl;
+		return 0;
+	}
+
+	if (var_map.count("all-help"))
+	{
+		std::cout << commandLine << std::endl;
+		std::cout << configOptions << std::endl;
+		return 0;
+	}
+
+	std::string config_filename(var_map["config"].as<std::string>());
+	bool isTest = var_map.count("test");
+
+	if (var_map.count("config"))
+	{
+		try
+		{
+			boost::program_options::basic_parsed_options<wchar_t> parsed_options = boost::program_options::parse_config_file<wchar_t>(config_filename.c_str(), configOptions);
+			boost::program_options::store(
+				parsed_options,
+				var_map);
+		}
+		catch (const boost::program_options::error& ex)
+		{
+			std::cerr << "ERROR: " << ex.what() << std::endl;
+			return -1;
+		}
+
+		if (isTest)
+		{
+			std::cout << "Config OK" << std::endl;
+			return 0;
+		}
+	}
+
 	memset(&Instance, 0, sizeof(Instance));
 
 #ifdef SIGBREAK
@@ -166,49 +232,18 @@ int main(int argc, char *argv[])
 #ifdef SIGINT
 	signal(SIGINT, &_signal_handler);
 #endif
-
-	if (argc <= 1)
+	
+	try
 	{
-		// set current directory when no filename is present.
-		_setCWD(argv[0]);
-
-		_print_usage ();
+		logger = new Logger(var_map);
 	}
-	else if (argc >= 2)
+	catch (const std::exception& ex)
 	{
-		config_file = argv[1];	// reported in issue #5.
+		std::cerr << "Failed to initialize logger: " << ex.what() << std::endl;
+		return -1;
 	}
 
-	settings = Instance.settings = new Settings (config_file);
-
-	if (!settings->load())
-	{
-		const char strDATABASE[] = "database";
-		const char strTRACKER[] = "tracker";
-		const char strAPISRV [] = "apiserver";
-		// set default settings:
-
-		settings->set (strDATABASE, "driver", "sqlite3");
-		settings->set (strDATABASE, "file", "tracker.db");
-
-		settings->set (strTRACKER, "is_dynamic", "0");
-		settings->set (strTRACKER, "port", "6969");		// UDP PORT
-		settings->set (strTRACKER, "threads", "5");
-		settings->set (strTRACKER, "allow_remotes", "1");
-		settings->set (strTRACKER, "allow_iana_ips", "1");
-		settings->set (strTRACKER, "announce_interval", "1800");
-		settings->set (strTRACKER, "cleanup_interval", "120");
-
-		settings->set (strAPISRV, "enable", "1");
-		settings->set (strAPISRV, "threads", "1");
-		settings->set (strAPISRV, "port", "6969");	// TCP PORT
-
-		settings->save();
-		cerr << "Failed to read from '" << config_file.c_str() << "'. Using default settings." << endl;
-	}
-
-	logger = new Logger (settings);
-	usi = Instance.usi = new UDPTracker (settings);
+	usi = Instance.usi = new UDPTracker(var_map);
 
 	HTTPServer *apiSrv = NULL;
 	WebApp *wa = NULL;
@@ -232,7 +267,7 @@ int main(int argc, char *argv[])
 		goto cleanup;
 	}
 
-	_doAPIStart(settings, &wa, &apiSrv, usi->conn);
+	_doAPIStart(var_map, &wa, &apiSrv, usi->conn);
 
 	cout << "Hit Control-C to exit." << endl;
 

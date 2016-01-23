@@ -36,23 +36,19 @@ using namespace UDPT::Data;
 
 namespace UDPT
 {
-	UDPTracker::UDPTracker (Settings *settings)
+	UDPTracker::UDPTracker(const boost::program_options::variables_map& conf) : m_conf(conf)
 	{
-		Settings::SettingClass *sc_tracker;
 
-		sc_tracker = settings->getClass("tracker");
+		this->allowRemotes = conf["tracker.allow_remotes"].as<bool>();
+		this->allowIANA_IPs = conf["tracker.allow_iana_ips"].as<bool>();
+		this->isDynamic = conf["tracker.is_dynamic"].as<bool>();
 
-		this->allowRemotes = sc_tracker->getBool("allow_remotes", true);
-		this->allowIANA_IPs = sc_tracker->getBool("allow_iana_ips", false);
-		this->isDynamic = sc_tracker->getBool("is_dynamic", true);
-
-		this->announce_interval = sc_tracker->getInt("announce_interval", 1800);
-		this->cleanup_interval = sc_tracker->getInt("cleanup_interval", 120);
-		this->port = sc_tracker->getInt("port", 6969);
-		this->thread_count = abs (sc_tracker->getInt("threads", 5)) + 1;
+		this->announce_interval = conf["tracker.announce_interval"].as<unsigned>();
+		this->cleanup_interval = conf["tracker.cleanup_interval"].as<unsigned>();
+		this->port = conf["tracker.port"].as<unsigned short>();
+		this->thread_count = conf["tracker.threads"].as<unsigned>() + 1;
 
 		list<SOCKADDR_IN> addrs;
-		sc_tracker->getIPs("bind", addrs);
 
 		if (addrs.empty())
 		{
@@ -69,7 +65,6 @@ namespace UDPT
 
 		this->isRunning = false;
 		this->conn = NULL;
-		this->o_settings = settings;
 	}
 
 	UDPTracker::~UDPTracker ()
@@ -130,15 +125,15 @@ namespace UDPT
 			yup;	// just to set TRUE
 		string dbname;// saves the Database name.
 
-		sock = socket (AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		sock = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		if (sock == INVALID_SOCKET)
 			return START_ESOCKET_FAILED;
 
 		yup = 1;
-		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yup, 1);
+		::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yup, 1);
 
 		this->localEndpoint.sin_family = AF_INET;
-		r = bind (sock, (SOCKADDR*)&this->localEndpoint, sizeof(SOCKADDR_IN));
+		r = ::bind(sock, (SOCKADDR*)&this->localEndpoint, sizeof(SOCKADDR_IN));
 
 		if (r == SOCKET_ERROR)
 		{
@@ -152,8 +147,7 @@ namespace UDPT
 
 		this->sock = sock;
 
-		this->conn = new Data::SQLite3Driver (this->o_settings->getClass("database"),
-				this->isDynamic);
+		this->conn = new Data::SQLite3Driver(m_conf, this->isDynamic);
 
 		this->isRunning = true;
 

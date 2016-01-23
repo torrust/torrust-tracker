@@ -97,11 +97,11 @@ namespace UDPT
 			return true;
 		}
 
-		WebApp::WebApp(HTTPServer *srv, DatabaseDriver *db, Settings *settings)
+		WebApp::WebApp(HTTPServer *srv, DatabaseDriver *db, const boost::program_options::variables_map& conf) : m_conf(conf)
 		{
 			this->instance = srv;
 			this->db = db;
-			this->sc_api = settings->getClass("api");
+			/* this->sc_api = settings->getClass("api");
 
 			Settings::SettingClass *apiKeys = settings->getClass("api.keys");
 			if (apiKeys != NULL)
@@ -124,7 +124,7 @@ namespace UDPT
 					this->ip_whitelist.insert(pair<string, list<uint32_t> >(key, ips));
 				}
 
-			}
+			} */
 
 			srv->setData("webapp", this);
 		}

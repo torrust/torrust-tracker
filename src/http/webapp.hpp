@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <map>
 #include <string>
+#include <boost/program_options.hpp>
 using namespace std;
 
 using namespace UDPT;
@@ -37,15 +38,15 @@ namespace UDPT
 		class WebApp
 		{
 		public:
-			WebApp (HTTPServer *, DatabaseDriver *, Settings *);
-			~WebApp ();
+			WebApp(HTTPServer *, DatabaseDriver *, const boost::program_options::variables_map& conf);
+			~WebApp();
 			void deploy ();
 			
 
 		private:
 			HTTPServer *instance;
 			UDPT::Data::DatabaseDriver *db;
-			Settings::SettingClass *sc_api;
+			const boost::program_options::variables_map& m_conf;
 			std::map<std::string, list<uint32_t> > ip_whitelist;
 
 			static void handleRoot (HTTPServer*,HTTPServer::Request*, HTTPServer::Response*);
