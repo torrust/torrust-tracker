@@ -271,7 +271,7 @@ namespace UDPT
 		// load peers
 		q = 30;
 		if (req->num_want >= 1)
-			q = min (q, req->num_want);
+			q = std::min(q, req->num_want);
 
 		peers = new DatabaseDriver::PeerEntry [q];
 
