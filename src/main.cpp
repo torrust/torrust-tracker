@@ -30,20 +30,50 @@
 #include "udpTracker.hpp"
 #include "http/httpserver.hpp"
 #include "http/webapp.hpp"
+#include "tracker.hpp"
 
-UDPT::Logger *logger;
+UDPT::Logger *logger = NULL;
+UDPT::Tracker *instance = NULL;
 
 
 static void _signal_handler (int sig)
 {
-	std::stringstream ss;
-	ss << "Signal " << sig << " raised. ";
-	logger->log(Logger::LL_INFO, ss.str());
+	switch (sig)
+	{
+		case SIGTERM:
+			instance->stop();
+			break;
+		case SIGHUP:
+			break;
+	}
 }
+
+#ifdef linux
+static void daemonize(const boost::program_options::variables_map& conf)
+{
+	if (1 == ::getppid()) return; // already a daemon
+	int r = ::fork();
+	if (0 > r) ::exit(-1); // failed to daemonize.
+	if (0 < r) ::exit(0); // parent exists.
+
+	::umask(0);
+	::setsid();
+
+	// close all fds.
+	for (int i = ::getdtablesize(); i >=0; --i)
+	{
+		::close(i);
+	}
+
+	::chdir(conf["daemon.chdir"].as<std::string>().c_str());
+
+}
+#endif
 
 int main(int argc, char *argv[])
 {
-	int r;
+	Tracker& tracker = UDPT::Tracker::getInstance();
+	instance = &tracker;
 
 #ifdef WIN32
 	WSADATA wsadata;
@@ -56,6 +86,9 @@ int main(int argc, char *argv[])
 		("all-help", "displays all help")
 		("test,t", "test configuration file")
 		("config,c", boost::program_options::value<std::string>()->default_value("/etc/udpt.conf"), "configuration file to use")
+#ifdef linux
+		("interactive,i", "doesn't start as daemon")
+#endif
 		;
 
 	boost::program_options::options_description configOptions("Configuration options");
@@ -77,6 +110,10 @@ int main(int argc, char *argv[])
 
 		("logging.filename", boost::program_options::value<std::string>()->default_value("stdout"), "file to write logs to")
 		("logging.level", boost::program_options::value<std::string>()->default_value("warning"), "log level (error/warning/info/debug)")
+
+#ifdef linux
+		("daemon.chdir", boost::program_options::value<std::string>()->default_value("/"), "home directory for daemon")
+#endif
 		;
 
 	boost::program_options::variables_map var_map;
@@ -125,22 +162,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
-#ifdef SIGBREAK
-	signal(SIGBREAK, &_signal_handler);
-#endif
-#ifdef SIGTERM
-	signal(SIGTERM, &_signal_handler);
-#endif
-#ifdef SIGABRT
-	signal(SIGABRT, &_signal_handler);
-#endif
-#ifdef SIGINT
-	signal(SIGINT, &_signal_handler);
-#endif
-	
+	std::shared_ptr<UDPT::Logger> spLogger;
 	try
 	{
-		logger = new UDPT::Logger(var_map);
+		spLogger = std::shared_ptr<UDPT::Logger>(new UDPT::Logger(var_map));
+		logger = spLogger.get();
 	}
 	catch (const std::exception& ex)
 	{
@@ -148,39 +174,19 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	std::shared_ptr<UDPTracker> tracker;
-	std::shared_ptr<UDPT::Server::HTTPServer> apiSrv;
-	std::shared_ptr<UDPT::Server::WebApp> webApp;
-
-	try
+#ifdef linux
+	if (!var_map.count("interactive"))
 	{
-		tracker = std::shared_ptr<UDPTracker>(new UDPTracker(var_map));
-		tracker->start();
-
-		if (var_map["apiserver.enable"].as<bool>())
-		{
-			try
-			{
-				apiSrv = std::shared_ptr<UDPT::Server::HTTPServer>(new UDPT::Server::HTTPServer(var_map));
-				webApp = std::shared_ptr<UDPT::Server::WebApp>(new UDPT::Server::WebApp(apiSrv, tracker->conn, var_map));
-				webApp->deploy();
-			}
-			catch (const UDPT::Server::ServerException &e)
-			{
-				std::cerr << "ServerException #" << e.getErrorCode() << ": " << e.getErrorMsg() << endl;
-			}
-		}
+		daemonize(var_map);
 	}
-	catch (const UDPT::UDPTException& ex)
-	{
-		std::cerr << "UDPTException: " << ex.what() << std::endl;
-	}
+	::signal(SIGHUP, _signal_handler);
+	::signal(SIGTERM, _signal_handler);
+#endif
 
-	std::cout << "Hit Control-C to exit." << endl;
+	tracker.start(var_map);
+	tracker.wait();
 
-	tracker->wait();
-
-	std::cout << endl << "Goodbye." << endl;
+	std::cerr << "Bye." << std::endl;
 
 #ifdef WIN32
 	::WSACleanup();
