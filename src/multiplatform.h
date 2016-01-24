@@ -36,11 +36,13 @@
 #elif defined (linux)
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/ip.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <fcntl.h>
 
 #define SOCKET int
 #define INVALID_SOCKET 0
