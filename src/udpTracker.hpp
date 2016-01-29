@@ -22,6 +22,9 @@
 
 
 #include <stdint.h>
+#include <boost/thread.hpp>
+#include <chrono>
+#include <algorithm>
 #include <boost/program_options.hpp>
 #include <string>
 #include "exceptions.h"
@@ -123,10 +126,10 @@ namespace UDPT
 		 */
 		void start();
 
-		/**
-		 * Joins all threads, and waits for all of them to terminate.
+		/** 
+		 * Terminates tracker.
 		 */
-		void wait();
+		void stop();
 
 		/**
 		 * Destroys resources that were created by constructor
@@ -134,29 +137,24 @@ namespace UDPT
 		 */
 		virtual ~UDPTracker();
 
-		Data::DatabaseDriver *conn;
+		std::shared_ptr<UDPT::Data::DatabaseDriver> m_conn;
+
 	private:
 		SOCKET m_sock;
 		SOCKADDR_IN m_localEndpoint;
 		uint16_t m_port;
 		uint8_t m_threadCount;
-		bool m_isRunning;
 		bool m_isDynamic;
 		bool m_allowRemotes;
 		bool m_allowIANA_IPs;
-		HANDLE *m_threads;
+		std::vector<boost::thread> m_threads;
 		uint32_t m_announceInterval;
 		uint32_t m_cleanupInterval;
 
 		const boost::program_options::variables_map& m_conf;
 
-#ifdef WIN32
-		static DWORD _thread_start(LPVOID arg);
-		static DWORD _maintainance_start(LPVOID arg);
-#elif defined (linux)
-		static void* _thread_start(void *arg);
-		static void* _maintainance_start(void *arg);
-#endif
+		static void _thread_start(UDPTracker *usi);
+		static void _maintainance_start(UDPTracker* usi);
 
 		static int resolveRequest(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int r);
 
@@ -166,6 +164,7 @@ namespace UDPT
 
 		static int sendError(UDPTracker *, SOCKADDR_IN *remote, uint32_t transId, const std::string &);
 
+		static int isIANAIP(uint32_t ip);
 	};
 };
 

@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 			try
 			{
 				apiSrv = std::shared_ptr<UDPT::Server::HTTPServer>(new UDPT::Server::HTTPServer(var_map));
-				webApp = std::shared_ptr<UDPT::Server::WebApp>(new UDPT::Server::WebApp(apiSrv, tracker->conn, var_map));
+				webApp = std::shared_ptr<UDPT::Server::WebApp>(new UDPT::Server::WebApp(apiSrv, tracker->m_conn.get(), var_map));
 				webApp->deploy();
 			}
 			catch (const UDPT::Server::ServerException &e)
@@ -177,11 +177,11 @@ int main(int argc, char *argv[])
 	}
 
 	std::cout << "Hit Control-C to exit." << endl;
+	std::cin.get();
 
-	tracker->wait();
+	tracker->stop();
 
 	std::cout << endl << "Goodbye." << endl;
-
 #ifdef WIN32
 	::WSACleanup();
 #endif
