@@ -18,7 +18,7 @@
 #
 
 objects = main.o udpTracker.o database.o driver_sqlite.o \
-	tools.o httpserver.o webapp.o logging.o
+	tools.o httpserver.o webapp.o logging.o tracker.o
 target = udpt
 
 %.o: src/%.c
@@ -33,7 +33,7 @@ all: $(target)
 	
 $(target): $(objects)
 	@echo Linking...
-	$(CXX) -O3 -o $(target) $(objects) $(LDFLAGS) -lboost_program_options -lsqlite3 -lpthread
+	$(CXX) -O3 -o $(target) $(objects) $(LDFLAGS) -lboost_program_options -lsqlite3 -lpthread -lboost_thread -lboost_system
 	@echo Done.
 clean:
 	@echo Cleaning Up...

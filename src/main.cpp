@@ -33,17 +33,16 @@
 #include "tracker.hpp"
 
 UDPT::Logger *logger = NULL;
-UDPT::Tracker *instance = NULL;
 
-
-static void _signal_handler (int sig)
+static void _signal_handler(int sig)
 {
 	switch (sig)
 	{
 		case SIGTERM:
-			instance->stop();
+			UDPT::Tracker::getInstance().stop();
 			break;
 		case SIGHUP:
+			// TODO: Reload config.
 			break;
 	}
 }
@@ -73,7 +72,6 @@ static void daemonize(const boost::program_options::variables_map& conf)
 int main(int argc, char *argv[])
 {
 	Tracker& tracker = UDPT::Tracker::getInstance();
-	instance = &tracker;
 
 #ifdef WIN32
 	WSADATA wsadata;
@@ -185,8 +183,6 @@ int main(int argc, char *argv[])
 
 	tracker.start(var_map);
 	tracker.wait();
-
-	std::cerr << "Bye." << std::endl;
 
 #ifdef WIN32
 	::WSACleanup();

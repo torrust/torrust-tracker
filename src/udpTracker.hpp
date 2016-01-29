@@ -131,6 +131,11 @@ namespace UDPT
 		 */
 		void stop();
 
+		/** 
+		 * Joins worker threads
+		 */
+		void wait();
+
 		/**
 		 * Destroys resources that were created by constructor
 		 * @param usi Instance to destroy.

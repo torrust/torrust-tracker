@@ -62,7 +62,7 @@ namespace UDPT
 
 	UDPTracker::~UDPTracker()
 	{
-		// left empty.
+		stop();
 	}
 
 	void UDPTracker::start()
@@ -141,17 +141,18 @@ namespace UDPT
 
 		for (std::vector<boost::thread>::iterator it = m_threads.begin(); it != m_threads.end(); ++it)
 		{
-			std::cout << "Interrupted thread " << it->get_id() << std::endl;
 			it->interrupt();
 		}
 
+		wait();
+	}
+
+	void UDPTracker::wait()
+	{
 		for (std::vector<boost::thread>::iterator it = m_threads.begin(); it != m_threads.end(); ++it)
 		{
-			std::cout << "waiting for " << it->get_id() << std::endl;
 			it->join();
 		}
-
-		std::cout << "All threads terminated." << std::endl;
 	}
 
 	int UDPTracker::sendError(UDPTracker* usi, SOCKADDR_IN* remote, uint32_t transactionID, const std::string &msg)

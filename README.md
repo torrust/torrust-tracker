@@ -15,7 +15,7 @@ We use [SQLite3](http://www.sqlite.org/) which is public-domain, and [Boost](htt
 We didn't really work on creating any installer, at the moment you can just run udpt from anywhere on your filesystem.
 Building udpt is pretty straightforward, just download the project or clone the repo:
 
-UDPT requires the SQLite3 develpment package to be installed.
+UDPT requires the SQLite3, boost_program_options and boost_thread develpment packages to be installed.
 
 <pre>
     $ git clone https://github.com/naim94a/udpt.git
