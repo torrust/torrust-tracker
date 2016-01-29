@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2012-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -23,9 +23,8 @@ namespace UDPT
 {
 	namespace Data
 	{
-		DatabaseDriver::DatabaseDriver(Settings::SettingClass *sc, bool isDynamic)
+		DatabaseDriver::DatabaseDriver(const boost::program_options::variables_map& conf, bool isDynamic) : m_conf(conf)
 		{
-			this->dClass = sc;
 			this->is_dynamic = isDynamic;
 		}
 

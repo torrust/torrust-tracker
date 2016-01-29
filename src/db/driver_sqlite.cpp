@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2012-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -69,13 +69,13 @@ namespace UDPT
 			return data;
 		}
 
-		SQLite3Driver::SQLite3Driver (Settings::SettingClass *sc, bool isDyn) : DatabaseDriver(sc, isDyn)
+		SQLite3Driver::SQLite3Driver(const boost::program_options::variables_map& conf, bool isDyn) : DatabaseDriver(conf, isDyn)
 		{
 			int r;
 			bool doSetup;
 
 			fstream fCheck;
-			string filename = sc->get("file");
+			string filename = m_conf["db.param"].as<std::string>();
 
 			fCheck.open(filename.c_str(), ios::binary | ios::in);
 			if (fCheck.is_open())
@@ -99,7 +99,6 @@ namespace UDPT
 
 		void SQLite3Driver::doSetup()
 		{
-//			cout << "Creating DB..." << endl;
 			char *eMsg = NULL;
 			// for quicker stats.
 			sqlite3_exec(this->db, "CREATE TABLE stats ("
@@ -109,13 +108,11 @@ namespace UDPT
 					"seeders INTEGER DEFAULT 0,"
 					"last_mod INTEGER DEFAULT 0"
 					")", NULL, NULL, &eMsg);
-//			cout << "stats: " << (eMsg == NULL ? "OK" : eMsg) << endl;
-			// for non-Dynamic trackers
+
 			sqlite3_exec(this->db, "CREATE TABLE torrents ("
 					"info_hash blob(20) UNIQUE,"
 					"created INTEGER"
 					")", NULL, NULL, &eMsg);
-//			cout << "torrents: " << (eMsg == NULL ? "OK" : eMsg) << endl;
 		}
 
 		bool SQLite3Driver::getTorrentInfo(TorrentEntry *e)
@@ -208,8 +205,6 @@ namespace UDPT
 			sql = "REPLACE INTO 't";
 			sql += hash;
 			sql += "' (peer_id,ip,port,uploaded,downloaded,left,last_seen) VALUES (?,?,?,?,?,?,?)";
-
-		//	printf("IP->%x::%u\n", pE->ip, pE->port);
 
 			sqlite3_prepare(this->db, sql.c_str(), sql.length(), &stmt, NULL);
 

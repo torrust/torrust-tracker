@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2013 Naim A.
+ *	Copyright © 2013-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -23,6 +23,7 @@
 #include <cstring>
 #include <map>
 #include "httpserver.hpp"
+#include <boost/program_options.hpp>
 
 using namespace std;
 
@@ -43,26 +44,18 @@ namespace UDPT
 			this->init(sa, threads);
 		}
 
-		HTTPServer::HTTPServer(Settings *s)
+		HTTPServer::HTTPServer(const boost::program_options::variables_map& conf)
 		{
-			Settings::SettingClass *sc = s->getClass("apiserver");
 			list<SOCKADDR_IN> localEndpoints;
 			uint16_t port;
 			int threads;
 
-			port = 6969;
-			threads = 1;
-
-			if (sc != NULL)
-			{
-				port = sc->getInt("port", 6969);
-				threads = sc->getInt("threads", 1);
-				sc->getIPs("bind", localEndpoints);
-			}
+			port = conf["apiserver.port"].as<unsigned short>();
+			threads = conf["apiserver.threads"].as<unsigned short>();
 
 			if (threads <= 0)
 				threads = 1;
-
+			
 			if (localEndpoints.empty())
 			{
 				SOCKADDR_IN sa;
@@ -85,16 +78,16 @@ namespace UDPT
 
 			this->rootNode.callback = NULL;
 
-			this->srv = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+			this->srv = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 			if (this->srv == INVALID_SOCKET)
 			{
 				throw ServerException (1, "Failed to create Socket");
 			}
 
-			r = bind (this->srv, (SOCKADDR*)&localEndpoint, sizeof(localEndpoint));
+			r = ::bind(this->srv, (SOCKADDR*)&localEndpoint, sizeof(localEndpoint));
 			if (r == SOCKET_ERROR)
 			{
-				throw ServerException (2, "Failed to bind socket");
+				throw ServerException(2, "Failed to bind socket");
 			}
 
 			this->isRunning = true;
@@ -118,7 +111,7 @@ namespace UDPT
 doSrv:
 			try {
 				HTTPServer::handleConnections (s);
-			} catch (ServerException &se)
+			} catch (const ServerException &se)
 			{
 				cerr << "SRV ERR #" << se.getErrorCode() << ": " << se.getErrorMsg () << endl;
 				goto doSrv;
@@ -139,13 +132,13 @@ doSrv:
 
 			while (server->isRunning)
 			{
-				r = listen (server->srv, 50);
+				r = ::listen(server->srv, 50);
 				if (r == SOCKET_ERROR)
 				{
 #ifdef WIN32
-					Sleep (500);
+					::Sleep(500);
 #else
-					sleep (1);
+					::sleep(1);
 #endif
 					continue;
 				}
@@ -167,7 +160,7 @@ doSrv:
 						stringstream stream;
 						stream << "<html>";
 						stream << "<head><title>Not Found</title></head>";
-						stream << "<body><h1>Not Found</h1><div>The server couldn't find the request resource.</div><br /><hr /><div style=\"font-size:small;text-align:center;\">&copy; 2013 Naim A. | <a href=\"http://udpt.googlecode.com/\">The UDPT Project</a></div></body>";
+						stream << "<body><h1>Not Found</h1><div>The server couldn't find the request resource.</div><br /><hr /><div style=\"font-size:small;text-align:center;\"><a href=\"http://github.com/naim94a/udpt\">UDPT</a></div></body>";
 						stream << "</html>";
 						string str = stream.str();
 						resp.write (str.c_str(), str.length());
@@ -183,7 +176,7 @@ doSrv:
 							stringstream stream;
 							stream << "<html>";
 							stream << "<head><title>Internal Server Error</title></head>";
-							stream << "<body><h1>Internal Server Error</h1><div>An Error Occurred while trying to process your request.</div><br /><hr /><div style=\"font-size:small;text-align:center;\">&copy; 2013 Naim A. | <a href=\"http://udpt.googlecode.com/\">The UDPT Project</a></div></body>";
+							stream << "<body><h1>Internal Server Error</h1><div>An Error Occurred while trying to process your request.</div><br /><hr /><div style=\"font-size:small;text-align:center;\"><a href=\"http://github.com/naim94a/udpt\">UDPT</a></div></body>";
 							stream << "</html>";
 							string str = stream.str();
 							resp.write (str.c_str(), str.length());

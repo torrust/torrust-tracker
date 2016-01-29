@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2012-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -20,7 +20,7 @@
 #ifndef DATABASE_HPP_
 #define DATABASE_HPP_
 
-#include "../settings.hpp"
+#include <boost/program_options.hpp>
 
 namespace UDPT
 {
@@ -35,10 +35,10 @@ namespace UDPT
 				E_CONNECTION_FAILURE = 2
 			};
 
-			DatabaseException ();
-			DatabaseException (EType);
-			EType getErrorType ();
-			const char* getErrorMessage ();
+			DatabaseException();
+			DatabaseException(EType);
+			EType getErrorType();
+			const char* getErrorMessage();
 		private:
 			EType errorNum;
 		};
@@ -68,34 +68,34 @@ namespace UDPT
 			 * Opens the DB's connection
 			 * @param dClass Settings class ('database' class).
 			 */
-			DatabaseDriver (Settings::SettingClass *dClass, bool isDynamic = false);
+			DatabaseDriver(const boost::program_options::variables_map& conf, bool isDynamic = false);
 
 			/**
 			 * Adds a torrent to the Database. automatically done if in dynamic mode.
 			 * @param hash The info_hash of the torrent.
 			 * @return true on success. false on failure.
 			 */
-			virtual bool addTorrent (uint8_t hash[20]);
+			virtual bool addTorrent(uint8_t hash[20]);
 
 			/**
 			 * Removes a torrent from the database. should be used only for non-dynamic trackers or by cleanup.
 			 * @param hash The info_hash to drop.
 			 * @return true if torrent's database was dropped or no longer exists. otherwise false (shouldn't happen - critical)
 			 */
-			virtual bool removeTorrent (uint8_t hash[20]);
+			virtual bool removeTorrent(uint8_t hash[20]);
 
 			/**
 			 * Checks if the Database is acting as a dynamic tracker DB.
 			 * @return true if dynamic. otherwise false.
 			 */
-			bool isDynamic ();
+			bool isDynamic();
 
 			/**
 			 * Checks if the torrent can be used in the tracker.
 			 * @param info_hash The torrent's info_hash.
 			 * @return true if allowed. otherwise false.
 			 */
-			virtual bool isTorrentAllowed (uint8_t info_hash [20]);
+			virtual bool isTorrentAllowed(uint8_t info_hash [20]);
 
 			/**
 			 * Generate a Connection ID for the peer.
@@ -104,9 +104,9 @@ namespace UDPT
 			 * @param port The peer's IP (remote port if tracker accepts)
 			 * @return
 			 */
-			virtual bool genConnectionId (uint64_t *connectionId, uint32_t ip, uint16_t port);
+			virtual bool genConnectionId(uint64_t *connectionId, uint32_t ip, uint16_t port);
 
-			virtual bool verifyConnectionId (uint64_t connectionId, uint32_t ip, uint16_t port);
+			virtual bool verifyConnectionId(uint64_t connectionId, uint32_t ip, uint16_t port);
 
 			/**
 			 * Updates/Adds a peer to/in the database.
@@ -119,7 +119,7 @@ namespace UDPT
 			 * @param uploaded total bytes uploaded
 			 * @return true on success, false on failure.
 			 */
-			virtual bool updatePeer (uint8_t peer_id [20], uint8_t info_hash [20],
+			virtual bool updatePeer(uint8_t peer_id [20], uint8_t info_hash [20],
 					uint32_t ip, uint16_t port,
 					int64_t downloaded, int64_t left, int64_t uploaded,
 					enum TrackerEvents event);
@@ -132,14 +132,14 @@ namespace UDPT
 			 * @param port The TCP port (remote port if tracker accepts)
 			 * @return true on success. false on failure (shouldn't happen - critical)
 			 */
-			virtual bool removePeer (uint8_t peer_id [20], uint8_t info_hash [20], uint32_t ip, uint16_t port);
+			virtual bool removePeer(uint8_t peer_id [20], uint8_t info_hash [20], uint32_t ip, uint16_t port);
 
 			/**
 			 * Gets stats on a torrent
 			 * @param e TorrentEntry, only this info_hash has to be set
 			 * @return true on success, false on failure.
 			 */
-			virtual bool getTorrentInfo (TorrentEntry *e);
+			virtual bool getTorrentInfo(TorrentEntry *e);
 
 			/**
 			 * Gets a list of peers from the database.
@@ -148,21 +148,21 @@ namespace UDPT
 			 * @param pe The list of peers. Must be pre-allocated to the size of max_count.
 			 * @return true on success, otherwise false (shouldn't happen).
 			 */
-			virtual bool getPeers (uint8_t info_hash [20], int *max_count, PeerEntry *pe);
+			virtual bool getPeers(uint8_t info_hash [20], int *max_count, PeerEntry *pe);
 
 			/**
 			 * Cleanup the database.
 			 * Other actions may be locked when using this depending on the driver.
 			 */
-			virtual void cleanup ();
+			virtual void cleanup();
 
 			/**
 			 * Closes the connections, and releases all other resources.
 			 */
-			virtual ~DatabaseDriver ();
+			virtual ~DatabaseDriver();
 
 		protected:
-			Settings::SettingClass *dClass;
+			const boost::program_options::variables_map& m_conf;
 		private:
 			bool is_dynamic;
 		};

@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2012-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -28,7 +28,7 @@
 #define linux
 #endif
 
-#define VERSION "1.0.0-beta"
+#define VERSION "1.0.2-dev"
 
 #ifdef WIN32
 #include <winsock2.h>
@@ -36,11 +36,13 @@
 #elif defined (linux)
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/ip.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <fcntl.h>
 
 #define SOCKET int
 #define INVALID_SOCKET 0

@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012,2013 Naim A.
+ *	Copyright © 2012-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -20,15 +20,15 @@
 #ifndef LOGGING_H_
 #define LOGGING_H_
 
-#include "settings.hpp"
 #include <string>
 #include <iostream>
 #include <queue>
 #include <time.h>
+#include <boost/program_options.hpp>
 
 namespace UDPT {
-	using namespace std;
-	class Logger {
+	class Logger 
+	{
 
 	public:
 		enum LogLevel {
@@ -38,19 +38,17 @@ namespace UDPT {
 			LL_DEBUG	= 3
 		};
 
-		Logger (Settings *s);
+		Logger(const boost::program_options::variables_map& s);
 
-		Logger (Settings *s, ostream &os);
+		virtual ~Logger();
 
-		virtual ~Logger ();
-
-		void log (enum LogLevel, string msg);
+		void log(enum LogLevel, std::string msg);
 	private:
-		ostream *logfile;
+		std::ostream& m_logfile;
 		enum LogLevel loglevel;
 		bool closeStreamOnDestroy;
 
-		static void setStream (Logger *logger, ostream &s);
+		static void setStream(Logger *logger, std::ostream &s);
 	};
 };
 

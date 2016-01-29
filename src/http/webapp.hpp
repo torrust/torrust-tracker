@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2013 Naim A.
+ *	Copyright © 2013-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -21,10 +21,11 @@
 
 #include "httpserver.hpp"
 #include "../db/database.hpp"
-#include "../settings.hpp"
 #include <stdint.h>
 #include <map>
 #include <string>
+#include <memory>
+#include <boost/program_options.hpp>
 using namespace std;
 
 using namespace UDPT;
@@ -37,15 +38,15 @@ namespace UDPT
 		class WebApp
 		{
 		public:
-			WebApp (HTTPServer *, DatabaseDriver *, Settings *);
-			~WebApp ();
+			WebApp(std::shared_ptr<HTTPServer> , DatabaseDriver *, const boost::program_options::variables_map& conf);
+			virtual ~WebApp();
 			void deploy ();
 			
 
 		private:
-			HTTPServer *instance;
+			std::shared_ptr<HTTPServer> m_server;
 			UDPT::Data::DatabaseDriver *db;
-			Settings::SettingClass *sc_api;
+			const boost::program_options::variables_map& m_conf;
 			std::map<std::string, list<uint32_t> > ip_whitelist;
 
 			static void handleRoot (HTTPServer*,HTTPServer::Request*, HTTPServer::Response*);

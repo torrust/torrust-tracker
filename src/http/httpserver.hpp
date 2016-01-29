@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2013 Naim A.
+ *	Copyright © 2013-2016 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -24,8 +24,8 @@
 #include <string>
 #include <sstream>
 #include <list>
+#include <boost/program_options.hpp>
 #include "../multiplatform.h"
-#include "../settings.hpp"
 using namespace std;
 
 #define REQUEST_BUFFER_SIZE 2048
@@ -131,7 +131,7 @@ namespace UDPT
 			typedef void (reqCallback)(HTTPServer*,Request*,Response*);
 
 			HTTPServer (uint16_t port, int threads);
-			HTTPServer (Settings *s);
+			HTTPServer(const boost::program_options::variables_map& conf);
 
 			void addApp (list<string> *path, reqCallback *);
 
