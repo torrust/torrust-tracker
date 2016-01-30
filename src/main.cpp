@@ -41,9 +41,6 @@ static void _signal_handler(int sig)
 		case SIGTERM:
 			UDPT::Tracker::getInstance().stop();
 			break;
-		case SIGHUP:
-			// TODO: Reload config.
-			break;
 	}
 }
 
@@ -177,7 +174,6 @@ int main(int argc, char *argv[])
 	{
 		daemonize(var_map);
 	}
-	::signal(SIGHUP, _signal_handler);
 	::signal(SIGTERM, _signal_handler);
 #endif
 
