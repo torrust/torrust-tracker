@@ -58,6 +58,8 @@ namespace UDPT
 		}
 
 		this->m_localEndpoint = addrs.front();
+
+		this->m_conn = std::shared_ptr<DatabaseDriver>(new Data::SQLite3Driver(m_conf, this->m_isDynamic));
 	}
 
 	UDPTracker::~UDPTracker()
@@ -110,8 +112,6 @@ namespace UDPT
 		}
 
 		this->m_sock = sock;
-
-		this->m_conn = std::shared_ptr<DatabaseDriver>(new Data::SQLite3Driver(m_conf, this->m_isDynamic));
 
 		ss.str("");
 		ss << "Starting maintenance thread (1/" << ((int)this->m_threadCount) << ")";

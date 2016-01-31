@@ -134,25 +134,6 @@ namespace UDPT
 					"</html>");
 		}
 
-		bool WebApp::isAllowedIP (WebApp *app, string key, uint32_t ip)
-		{
-			std::map<std::string, list<uint32_t> >::iterator it, end;
-			end = app->ip_whitelist.end ();
-			it = app->ip_whitelist.find (key);
-			if (it == app->ip_whitelist.end())
-				return false;	// no such key
-
-			list<uint32_t> *lst = &it->second;
-			list<uint32_t>::iterator ipit;
-			for (ipit = lst->begin();ipit != lst->end();ipit++)
-			{
-				if (*ipit == ip)
-					return true;
-			}
-
-			return false;
-		}
-
 		void WebApp::doRemoveTorrent (HTTPServer::Request *req, HTTPServer::Response *resp)
 		{
 			string strHash = req->getParam("hash");
@@ -208,18 +189,14 @@ namespace UDPT
 				throw ServerException (0, "IPv4 supported Only.");
 			}
 
-			std::string key = req->getParam("auth");
-			if (key.length() <= 0)
-				throw ServerException (0, "Bad Authentication Key");
-
 			WebApp *app = (WebApp*)srv->getData("webapp");
 			if (app == NULL)
 				throw ServerException(0, "WebApp object wasn't found");
 
-			if (!isAllowedIP(app, key, req->getAddress()->sin_addr.s_addr))
+			if (req->getAddress()->sin_addr.s_addr != 0x0100007f)
 			{
 				resp->setStatus(403, "Forbidden");
-				resp->write("IP not whitelisted. Access Denied.");
+				resp->write("Access Denied. Only 127.0.0.1 can access this method.");
 				return;
 			}
 

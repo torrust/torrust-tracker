@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
 #endif
 		;
 
+
 	boost::program_options::options_description configOptions("Configuration options");
 	configOptions.add_options()
 		("db.driver", boost::program_options::value<std::string>()->default_value("sqlite3"), "database driver to use")
@@ -100,7 +101,7 @@ int main(int argc, char *argv[])
 		("tracker.cleanup_interval", boost::program_options::value<unsigned>()->default_value(120), "sets database cleanup interval")
 		
 		("apiserver.enable", boost::program_options::value<bool>()->default_value(0), "Enable API server?")
-		("apiserver.threads", boost::program_options::value<unsigned>()->default_value(1), "threads for API server")
+		("apiserver.threads", boost::program_options::value<unsigned short>()->default_value(1), "threads for API server")
 		("apiserver.port", boost::program_options::value<unsigned short>()->default_value(6969), "TCP port to listen on")
 
 		("logging.filename", boost::program_options::value<std::string>()->default_value("stdout"), "file to write logs to")

@@ -47,12 +47,10 @@ namespace UDPT
 			std::shared_ptr<HTTPServer> m_server;
 			UDPT::Data::DatabaseDriver *db;
 			const boost::program_options::variables_map& m_conf;
-			std::map<std::string, list<uint32_t> > ip_whitelist;
 
 			static void handleRoot (HTTPServer*,HTTPServer::Request*, HTTPServer::Response*);
 			static void handleAnnounce (HTTPServer*,HTTPServer::Request*, HTTPServer::Response*);
 			static void handleAPI (HTTPServer*,HTTPServer::Request*, HTTPServer::Response*);
-			static bool isAllowedIP (WebApp *, string, uint32_t);
 
 			void doAddTorrent (HTTPServer::Request*, HTTPServer::Response*);
 			void doRemoveTorrent (HTTPServer::Request*, HTTPServer::Response*);
