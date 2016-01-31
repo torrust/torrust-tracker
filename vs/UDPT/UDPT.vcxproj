@@ -59,7 +59,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;sqlite3.lib;</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;sqlite3.lib;advapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -73,10 +73,11 @@
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ws2_32.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EnableCOMDATFolding>
+      </EnableCOMDATFolding>
+      <OptimizeReferences>
+      </OptimizeReferences>
+      <AdditionalDependencies>ws2_32.lib;sqlite3.lib;advapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -86,6 +87,7 @@
     <ClCompile Include="..\..\src\http\webapp.cpp" />
     <ClCompile Include="..\..\src\logging.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\service.cpp" />
     <ClCompile Include="..\..\src\tools.c" />
     <ClCompile Include="..\..\src\tracker.cpp" />
     <ClCompile Include="..\..\src\udpTracker.cpp" />
@@ -98,6 +100,7 @@
     <ClInclude Include="..\..\src\http\webapp.hpp" />
     <ClInclude Include="..\..\src\logging.h" />
     <ClInclude Include="..\..\src\multiplatform.h" />
+    <ClInclude Include="..\..\src\service.hpp" />
     <ClInclude Include="..\..\src\tools.h" />
     <ClInclude Include="..\..\src\tracker.hpp" />
     <ClInclude Include="..\..\src\udpTracker.hpp" />

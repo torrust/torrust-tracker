@@ -31,6 +31,7 @@
 #include "http/httpserver.hpp"
 #include "http/webapp.hpp"
 #include "tracker.hpp"
+#include "service.hpp"
 
 UDPT::Logger *logger = NULL;
 
@@ -84,6 +85,9 @@ int main(int argc, char *argv[])
 #ifdef linux
 		("interactive,i", "doesn't start as daemon")
 #endif
+#ifdef WIN32
+		("service,s", boost::program_options::value<std::string>(), "start/stop/install/uninstall service")
+#endif
 		;
 
 
@@ -109,6 +113,9 @@ int main(int argc, char *argv[])
 
 #ifdef linux
 		("daemon.chdir", boost::program_options::value<std::string>()->default_value("/"), "home directory for daemon")
+#endif
+#ifdef WIN32 
+		("service.name", boost::program_options::value<std::string>()->default_value("udpt"), "service name to use")
 #endif
 		;
 
@@ -176,6 +183,55 @@ int main(int argc, char *argv[])
 		daemonize(var_map);
 	}
 	::signal(SIGTERM, _signal_handler);
+#endif
+#ifdef WIN32 
+	UDPT::Service svc(var_map);
+	if (var_map.count("service"))
+	{
+		const std::string& action = var_map["service"].as<std::string>();
+		try
+		{
+			if ("install" == action)
+			{
+				std::cout << "Installing service..." << std::endl;
+				svc.install();
+				std::cout << "Installed." << std::endl;
+			}
+			else if ("uninstall" == action)
+			{
+				std::cout << "Removing service..." << std::endl;
+				svc.uninstall();
+				std::cout << "Removed." << std::endl;
+			}
+			else if ("start" == action)
+			{
+				svc.start();
+			}
+			else if ("stop" == action)
+			{
+				svc.stop();
+			}
+		}
+		catch (const UDPT::OSError& ex)
+		{
+			std::cout << "An operating system error occurred: " << ex.getErrorCode() << std::endl;
+			return -1;
+		}
+
+		return 0;
+	}
+
+	try 
+	{
+		svc.setup();
+	}
+	catch (const OSError& err)
+	{
+		if (ERROR_FAILED_SERVICE_CONTROLLER_CONNECT != err.getErrorCode())
+		{
+			logger->log(UDPT::Logger::LL_ERROR, "failed to start as service");
+		}
+	}
 #endif
 
 	tracker.start(var_map);
