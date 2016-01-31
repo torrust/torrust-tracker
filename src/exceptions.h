@@ -1,5 +1,6 @@
 #pragma once
 
+#include "multiplatform.h"
 
 namespace UDPT
 {
@@ -29,5 +30,18 @@ namespace UDPT
 	protected:
 		const char* m_error;
 		const int m_errorCode;
+	};
+
+	class OSError : public UDPTException
+	{
+	public:
+		OSError(int errorCode
+#ifdef WIN32 
+			= ::GetLastError()
+#endif
+			) : UDPTException("OSError", errorCode)
+		{
+		}
+
 	};
 }
