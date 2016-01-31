@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
 #endif
 		;
 
+
 	boost::program_options::options_description configOptions("Configuration options");
 	configOptions.add_options()
 		("db.driver", boost::program_options::value<std::string>()->default_value("sqlite3"), "database driver to use")
