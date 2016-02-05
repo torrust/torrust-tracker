@@ -21,7 +21,6 @@
 #include <memory>
 #include <boost/program_options.hpp>
 
-#include "logging.h"
 #include "multiplatform.h"
 #include "udpTracker.hpp"
 #include "http/httpserver.hpp"

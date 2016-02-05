@@ -26,9 +26,7 @@
 #include "udpTracker.hpp"
 #include "tools.h"
 #include "multiplatform.h"
-#include "logging.h"
 
-extern UDPT::Logger *logger;
 
 using namespace UDPT::Data;
 
@@ -115,7 +113,6 @@ namespace UDPT
 
 		ss.str("");
 		ss << "Starting maintenance thread (1/" << ((int)this->m_threadCount) << ")";
-		logger->log(Logger::LL_INFO, ss.str());
 
 		// create maintainer thread.
 
@@ -123,10 +120,6 @@ namespace UDPT
 
 		for (i = 1;i < this->m_threadCount; i++)
 		{
-			ss.str("");
-			ss << "Starting thread (" << (i + 1) << "/" << ((int)this->m_threadCount) << ")";
-			logger->log(Logger::LL_INFO, ss.str());
-
 			m_threads.push_back(boost::thread(UDPTracker::_thread_start, this));
 		}
 	}

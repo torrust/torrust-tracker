@@ -25,15 +25,12 @@
 #include <memory>
 #include <boost/program_options.hpp>
 
-#include "logging.h"
 #include "multiplatform.h"
 #include "udpTracker.hpp"
 #include "http/httpserver.hpp"
 #include "http/webapp.hpp"
 #include "tracker.hpp"
 #include "service.hpp"
-
-UDPT::Logger *logger = NULL;
 
 static void _signal_handler(int sig)
 {
@@ -165,18 +162,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	std::shared_ptr<UDPT::Logger> spLogger;
-	try
-	{
-		spLogger = std::shared_ptr<UDPT::Logger>(new UDPT::Logger(var_map));
-		logger = spLogger.get();
-	}
-	catch (const std::exception& ex)
-	{
-		std::cerr << "Failed to initialize logger: " << ex.what() << std::endl;
-		return -1;
-	}
-
 #ifdef linux
 	if (!var_map.count("interactive"))
 	{
@@ -229,7 +214,7 @@ int main(int argc, char *argv[])
 	{
 		if (ERROR_FAILED_SERVICE_CONTROLLER_CONNECT != err.getErrorCode())
 		{
-			logger->log(UDPT::Logger::LL_ERROR, "failed to start as service");
+			// TODO: log this error and exit
 		}
 	}
 #endif

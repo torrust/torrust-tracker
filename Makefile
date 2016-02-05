@@ -18,7 +18,7 @@
 #
 
 objects = main.o udpTracker.o database.o driver_sqlite.o \
-	tools.o httpserver.o webapp.o logging.o tracker.o
+	tools.o httpserver.o webapp.o tracker.o
 target = udpt
 
 %.o: src/%.c

@@ -26,9 +26,6 @@
 #include <cassert>
 #include <cstring> // memcpy
 #include "../multiplatform.h"
-#include "../logging.h"
-
-extern UDPT::Logger *logger;
 
 using namespace std;
 
@@ -180,8 +177,6 @@ namespace UDPT
 				}
 			}
 
-			printf("%d Clients Dumped.\n", i);
-
 			sqlite3_finalize(stmt);
 
 			*max_count = i;
@@ -259,7 +254,6 @@ namespace UDPT
 
 			// create table.
 			r = sqlite3_exec(this->db, sql.c_str(), NULL, NULL, &err_msg);
-			printf("E:%s\n", err_msg);
 
 			return (r == SQLITE_OK);
 		}
@@ -310,11 +304,7 @@ namespace UDPT
 
 				if (sqlite3_errcode(this->db) != SQLITE_OK)
 				{
-					string str;
-					str = "[";
-					str += sqlite3_errmsg(this->db);
-					str += "]";
-					logger->log(Logger::LL_ERROR, str);
+					// TODO: Log this error
 				}
 
 				int seeders = 0, leechers = 0;

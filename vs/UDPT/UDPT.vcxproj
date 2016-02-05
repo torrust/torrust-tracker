@@ -85,7 +85,6 @@
     <ClCompile Include="..\..\src\db\driver_sqlite.cpp" />
     <ClCompile Include="..\..\src\http\httpserver.cpp" />
     <ClCompile Include="..\..\src\http\webapp.cpp" />
-    <ClCompile Include="..\..\src\logging.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\service.cpp" />
     <ClCompile Include="..\..\src\tools.c" />
@@ -98,7 +97,6 @@
     <ClInclude Include="..\..\src\exceptions.h" />
     <ClInclude Include="..\..\src\http\httpserver.hpp" />
     <ClInclude Include="..\..\src\http\webapp.hpp" />
-    <ClInclude Include="..\..\src\logging.h" />
     <ClInclude Include="..\..\src\multiplatform.h" />
     <ClInclude Include="..\..\src\service.hpp" />
     <ClInclude Include="..\..\src\tools.h" />
