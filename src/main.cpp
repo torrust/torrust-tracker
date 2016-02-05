@@ -64,13 +64,19 @@ static void daemonize(const boost::program_options::variables_map& conf)
 }
 #endif
 
+#ifdef WIN32 
+void _close_wsa()
+{
+	::WSACleanup();
+}
+#endif
+
 int main(int argc, char *argv[])
 {
-	Tracker& tracker = UDPT::Tracker::getInstance();
-
 #ifdef WIN32
 	WSADATA wsadata;
 	::WSAStartup(MAKEWORD(2, 2), &wsadata);
+	::atexit(_close_wsa);
 #endif
 
 	boost::program_options::options_description commandLine("Command line options");
@@ -162,6 +168,10 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	// setup logging...
+
+	boost::log::sources::severity_channel_logger_mt<> logger(boost::log::keywords::channel = "main");
+
 #ifdef linux
 	if (!var_map.count("interactive"))
 	{
@@ -178,15 +188,15 @@ int main(int argc, char *argv[])
 		{
 			if ("install" == action)
 			{
-				std::cout << "Installing service..." << std::endl;
+				std::cerr << "Installing service..." << std::endl;
 				svc.install();
-				std::cout << "Installed." << std::endl;
+				std::cerr << "Installed." << std::endl;
 			}
 			else if ("uninstall" == action)
 			{
-				std::cout << "Removing service..." << std::endl;
+				std::cerr << "Removing service..." << std::endl;
 				svc.uninstall();
-				std::cout << "Removed." << std::endl;
+				std::cerr << "Removed." << std::endl;
 			}
 			else if ("start" == action)
 			{
@@ -199,7 +209,7 @@ int main(int argc, char *argv[])
 		}
 		catch (const UDPT::OSError& ex)
 		{
-			std::cout << "An operating system error occurred: " << ex.getErrorCode() << std::endl;
+			std::cerr << "An operating system error occurred: " << ex.getErrorCode() << std::endl;
 			return -1;
 		}
 
@@ -214,17 +224,23 @@ int main(int argc, char *argv[])
 	{
 		if (ERROR_FAILED_SERVICE_CONTROLLER_CONNECT != err.getErrorCode())
 		{
-			// TODO: log this error and exit
+			BOOST_LOG_SEV(logger, boost::log::trivial::fatal) << "Failed to start as a Windows service: (" << err.getErrorCode() << "): " << err.what();
+			return -1;
 		}
 	}
 #endif
 
-	tracker.start(var_map);
-	tracker.wait();
-
-#ifdef WIN32
-	::WSACleanup();
-#endif
+	try
+	{
+		Tracker& tracker = UDPT::Tracker::getInstance();
+		tracker.start(var_map);
+		tracker.wait();
+	}
+	catch (const UDPT::UDPTException& ex)
+	{
+		BOOST_LOG_SEV(logger, boost::log::trivial::fatal) << "UDPT exception: (" << ex.getErrorCode() << "): " << ex.what();
+		return -1;
+	}
 
 	return 0;
 }

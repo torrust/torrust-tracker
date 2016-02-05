@@ -83,10 +83,11 @@ namespace UDPT
 
 	void Service::setup()
 	{
-		SERVICE_TABLE_ENTRY service = { 0 };
-		service.lpServiceName = const_cast<char*>(m_conf["service.name"].as<std::string>().c_str());
-		service.lpServiceProc = reinterpret_cast<LPSERVICE_MAIN_FUNCTION>(&Service::serviceMain);
-		if (FALSE == ::StartServiceCtrlDispatcher(&service))
+		SERVICE_TABLE_ENTRY service[] = { 
+			{ const_cast<char*>(m_conf["service.name"].as<std::string>().c_str()), reinterpret_cast<LPSERVICE_MAIN_FUNCTION>(&Service::serviceMain) },
+			{0, 0}
+		};
+		if (FALSE == ::StartServiceCtrlDispatcher(service))
 		{
 			throw OSError();
 		}

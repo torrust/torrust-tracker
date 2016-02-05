@@ -66,7 +66,7 @@ namespace UDPT
 			return data;
 		}
 
-		SQLite3Driver::SQLite3Driver(const boost::program_options::variables_map& conf, bool isDyn) : DatabaseDriver(conf, isDyn)
+		SQLite3Driver::SQLite3Driver(const boost::program_options::variables_map& conf, bool isDyn) : DatabaseDriver(conf, isDyn), m_logger(boost::log::keywords::channel="SQLite3")
 		{
 			int r;
 			bool doSetup;
@@ -177,6 +177,8 @@ namespace UDPT
 				}
 			}
 
+			BOOST_LOG_SEV(m_logger, boost::log::trivial::debug) << "Retrieved " << i << " peers";
+
 			sqlite3_finalize(stmt);
 
 			*max_count = i;
@@ -255,7 +257,16 @@ namespace UDPT
 			// create table.
 			r = sqlite3_exec(this->db, sql.c_str(), NULL, NULL, &err_msg);
 
-			return (r == SQLITE_OK);
+			if (SQLITE_OK == r)
+			{
+				BOOST_LOG_SEV(m_logger, boost::log::trivial::info) << "Added torrent";
+				return true;
+			}
+			else
+			{
+				BOOST_LOG_SEV(m_logger, boost::log::trivial::error) << "Failed to add torrent: SQLite3 error code = " << r;
+				return false;
+			}
 		}
 
 		bool SQLite3Driver::isTorrentAllowed(uint8_t *info_hash)
@@ -357,6 +368,8 @@ namespace UDPT
 
 			sqlite3_exec(this->db, str.c_str(), NULL, NULL, NULL);
 
+			BOOST_LOG_SEV(m_logger, boost::log::trivial::info) << "Torrent removed.";
+
 			return true;
 		}
 
@@ -411,6 +424,7 @@ namespace UDPT
 
 		SQLite3Driver::~SQLite3Driver()
 		{
+			BOOST_LOG_SEV(m_logger, boost::log::trivial::info) << "Closing SQLite";
 			sqlite3_close(this->db);
 		}
 	};

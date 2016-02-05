@@ -46,6 +46,7 @@ namespace UDPT
 			virtual ~SQLite3Driver();
 		private:
 			sqlite3 *db;
+			boost::log::sources::severity_channel_logger_mt<> m_logger;
 
 			void doSetup();
 		};

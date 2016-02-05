@@ -21,6 +21,8 @@
 #define DATABASE_HPP_
 
 #include <boost/program_options.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/sources/severity_channel_logger.hpp>
 
 namespace UDPT
 {
