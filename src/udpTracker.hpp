@@ -22,11 +22,19 @@
 
 
 #include <stdint.h>
-#include <boost/thread.hpp>
 #include <chrono>
 #include <algorithm>
-#include <boost/program_options.hpp>
 #include <string>
+#include <sstream>
+#include <list>
+#include <ctime>
+
+#include <boost/thread.hpp>
+#include <boost/program_options.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/sources/severity_channel_logger.hpp>
+
+#include "tools.h"
 #include "exceptions.h"
 #include "multiplatform.h"
 #include "db/driver_sqlite.hpp"
@@ -155,6 +163,7 @@ namespace UDPT
 		std::vector<boost::thread> m_threads;
 		uint32_t m_announceInterval;
 		uint32_t m_cleanupInterval;
+		boost::log::sources::severity_channel_logger_mt<> m_logger;
 
 		const boost::program_options::variables_map& m_conf;
 

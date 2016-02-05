@@ -21,6 +21,9 @@
 #include <memory>
 #include <boost/program_options.hpp>
 
+#include <boost/log/trivial.hpp>
+#include <boost/log/sources/severity_channel_logger.hpp>
+
 #include "multiplatform.h"
 #include "udpTracker.hpp"
 #include "http/httpserver.hpp"
@@ -46,7 +49,8 @@ namespace UDPT
         std::shared_ptr<UDPT::UDPTracker> m_udpTracker;
         std::shared_ptr<UDPT::Server::HTTPServer> m_apiSrv;
         std::shared_ptr<UDPT::Server::WebApp> m_webApp;
-        
+		boost::log::sources::severity_channel_logger_mt<> m_logger;
+
         Tracker();
     };
 }

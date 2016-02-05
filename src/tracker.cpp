@@ -20,18 +20,19 @@
 
 namespace UDPT
 {
-    Tracker::Tracker()
+	Tracker::Tracker() : m_logger(boost::log::keywords::channel = "TRACKER")
     {
-
+		BOOST_LOG_SEV(m_logger, boost::log::trivial::debug) << "Initialized Tracker";
     }
 
     Tracker::~Tracker()
     {
-
+		BOOST_LOG_SEV(m_logger, boost::log::trivial::debug) << "Destroying Tracker...";
     }
 
     void Tracker::stop()
-    {
+	{
+		BOOST_LOG_SEV(m_logger, boost::log::trivial::info) << "Requesting Tracker to terminate.";
         m_udpTracker->stop();
         wait();
 
@@ -41,22 +42,26 @@ namespace UDPT
     }
 
     void Tracker::wait()
-    {
-        m_udpTracker->wait();
+	{
+		m_udpTracker->wait();
+		BOOST_LOG_SEV(m_logger, boost::log::trivial::info) << "Tracker terminated.";
     }
 
     void Tracker::start(const boost::program_options::variables_map& conf)
-    {
-        m_udpTracker = std::shared_ptr<UDPTracker>(new UDPTracker(conf));
+	{
+		BOOST_LOG_SEV(m_logger, boost::log::trivial::debug) << "Starting Tracker...";
+		m_udpTracker = std::shared_ptr<UDPTracker>(new UDPTracker(conf));
 
         if (conf["apiserver.enable"].as<bool>())
-        {
+		{
+			BOOST_LOG_SEV(m_logger, boost::log::trivial::info) << "Initializing and deploying WebAPI...";
             m_apiSrv = std::shared_ptr<UDPT::Server::HTTPServer>(new UDPT::Server::HTTPServer(conf));
             m_webApp = std::shared_ptr<UDPT::Server::WebApp>(new UDPT::Server::WebApp(m_apiSrv, m_udpTracker->m_conn.get(), conf));
             m_webApp->deploy();
         }
 
-        m_udpTracker->start();
+		m_udpTracker->start();
+		BOOST_LOG_SEV(m_logger, boost::log::trivial::info) << "Tracker started.";
     }
     
     Tracker& Tracker::getInstance()
