@@ -24,6 +24,15 @@
 #include <cstring>	// strlen
 #include <memory>
 #include <boost/program_options.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/sources/severity_channel_logger.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/sinks/async_frontend.hpp>
+#include <boost/log/keywords/format.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/support/date_time.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
 
 #include "multiplatform.h"
 #include "udpTracker.hpp"
@@ -111,7 +120,7 @@ int main(int argc, char *argv[])
 		("apiserver.threads", boost::program_options::value<unsigned short>()->default_value(1), "threads for API server")
 		("apiserver.port", boost::program_options::value<unsigned short>()->default_value(6969), "TCP port to listen on")
 
-		("logging.filename", boost::program_options::value<std::string>()->default_value("stdout"), "file to write logs to")
+		("logging.filename", boost::program_options::value<std::string>()->default_value("/var/log/udpt.log"), "file to write logs to")
 		("logging.level", boost::program_options::value<std::string>()->default_value("warning"), "log level (error/warning/info/debug)")
 
 #ifdef linux
@@ -169,6 +178,22 @@ int main(int argc, char *argv[])
 	}
 
 	// setup logging...
+	boost::log::add_common_attributes();
+	boost::shared_ptr<boost::log::sinks::text_file_backend> logBackend = boost::make_shared<boost::log::sinks::text_file_backend>(
+		boost::log::keywords::file_name = var_map["logging.filename"].as<std::string>(),
+		boost::log::keywords::auto_flush = true,
+		boost::log::keywords::open_mode = std::ios::out | std::ios::app
+	);
+	typedef boost::log::sinks::asynchronous_sink<boost::log::sinks::text_file_backend> udptSink_t;
+	boost::shared_ptr<udptSink_t> async_sink (new udptSink_t(logBackend));
+	async_sink->set_formatter(
+		boost::log::expressions::stream
+		<< boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S") << " "
+		<< boost::log::expressions::attr<int>("Severity")
+		<< " [" << boost::log::expressions::attr<std::string>("Channel") << "] \t"
+		<< boost::log::expressions::smessage
+	);
+	boost::log::core::get()->add_sink(async_sink);
 
 	boost::log::sources::severity_channel_logger_mt<> logger(boost::log::keywords::channel = "main");
 
