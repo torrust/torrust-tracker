@@ -23,6 +23,7 @@
 #include <csignal>	// signal
 #include <cstring>	// strlen
 #include <memory>
+#include <algorithm>
 #include <boost/program_options.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/log/trivial.hpp>
@@ -121,7 +122,7 @@ int main(int argc, char *argv[])
 		("apiserver.port", boost::program_options::value<unsigned short>()->default_value(6969), "TCP port to listen on")
 
 		("logging.filename", boost::program_options::value<std::string>()->default_value("/var/log/udpt.log"), "file to write logs to")
-		("logging.level", boost::program_options::value<std::string>()->default_value("warning"), "log level (error/warning/info/debug)")
+		("logging.level", boost::program_options::value<std::string>()->default_value("warning"), "log level (fatal/error/warning/info/debug/trace)")
 
 #ifdef linux
 		("daemon.chdir", boost::program_options::value<std::string>()->default_value("/"), "home directory for daemon")
@@ -193,9 +194,28 @@ int main(int argc, char *argv[])
 		<< " [" << boost::log::expressions::attr<std::string>("Channel") << "] \t"
 		<< boost::log::expressions::smessage
 	);
-	boost::log::core::get()->add_sink(async_sink);
+	auto loggingCore = boost::log::core::get();	
+	loggingCore->add_sink(async_sink);
 
 	boost::log::sources::severity_channel_logger_mt<> logger(boost::log::keywords::channel = "main");
+
+	std::string severity = var_map["logging.level"].as<std::string>();
+	std::transform(severity.begin(), severity.end(), severity.begin(), std::tolower);
+	int severityVal = boost::log::trivial::warning;
+	if ("fatal" == severity) severityVal = boost::log::trivial::fatal;
+	else if ("error" == severity) severityVal = boost::log::trivial::error;
+	else if ("warning" == severity) severityVal = boost::log::trivial::warning;
+	else if ("info" == severity) severityVal = boost::log::trivial::info;
+	else if ("debug" == severity) severityVal = boost::log::trivial::debug;
+	else if ("trace" == severity) severityVal = boost::log::trivial::trace;
+	else
+	{
+		BOOST_LOG_SEV(logger, boost::log::trivial::warning) << "Unknown debug level \"" << severity << "\" defaulting to warning";
+	}
+
+	loggingCore->set_filter(
+		boost::log::trivial::severity >= severityVal
+	);
 
 #ifdef linux
 	if (!var_map.count("interactive"))
