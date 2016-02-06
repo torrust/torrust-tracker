@@ -18,39 +18,43 @@
 */
 #pragma once
 
-#include <memory>
 #include <boost/program_options.hpp>
-
-#include <boost/log/trivial.hpp>
-#include <boost/log/sources/severity_channel_logger.hpp>
-
 #include "multiplatform.h"
-#include "udpTracker.hpp"
-#include "http/httpserver.hpp"
-#include "http/webapp.hpp"
+#include "exceptions.h"
 
+#ifdef WIN32 
 namespace UDPT
 {
-    class Tracker
-    {
-    public:
+	class Service
+	{
+	public:
+		Service(const boost::program_options::variables_map& conf);
 
-        virtual ~Tracker();
+		virtual ~Service();
 
-        void stop();
 
-        void start(const boost::program_options::variables_map& conf);
+		void install();
 
-        void wait();
+		void uninstall();
 
-        static Tracker& getInstance();
+		void start();
 
-    private:
-        std::shared_ptr<UDPT::UDPTracker> m_udpTracker;
-        std::shared_ptr<UDPT::Server::HTTPServer> m_apiSrv;
-        std::shared_ptr<UDPT::Server::WebApp> m_webApp;
-		boost::log::sources::severity_channel_logger_mt<> m_logger;
+		void stop();
 
-        Tracker();
-    };
+		void setup();
+	private:
+		const boost::program_options::variables_map& m_conf;
+
+		std::shared_ptr<void> getService(DWORD access);
+
+		static VOID WINAPI handler(DWORD controlCode);
+
+		static VOID WINAPI serviceMain(DWORD argc, LPCSTR argv[]);
+
+		static std::shared_ptr<void> getServiceManager(DWORD access);
+
+		static std::string getFilename();
+	};
 }
+
+#endif

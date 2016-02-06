@@ -23,16 +23,24 @@
 #include <csignal>	// signal
 #include <cstring>	// strlen
 #include <memory>
+#include <algorithm>
 #include <boost/program_options.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/sources/severity_channel_logger.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/sinks/async_frontend.hpp>
+#include <boost/log/keywords/format.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/support/date_time.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
 
-#include "logging.h"
 #include "multiplatform.h"
 #include "udpTracker.hpp"
 #include "http/httpserver.hpp"
 #include "http/webapp.hpp"
 #include "tracker.hpp"
-
-UDPT::Logger *logger = NULL;
+#include "service.hpp"
 
 static void _signal_handler(int sig)
 {
@@ -66,13 +74,19 @@ static void daemonize(const boost::program_options::variables_map& conf)
 }
 #endif
 
+#ifdef WIN32 
+void _close_wsa()
+{
+	::WSACleanup();
+}
+#endif
+
 int main(int argc, char *argv[])
 {
-	Tracker& tracker = UDPT::Tracker::getInstance();
-
 #ifdef WIN32
 	WSADATA wsadata;
 	::WSAStartup(MAKEWORD(2, 2), &wsadata);
+	::atexit(_close_wsa);
 #endif
 
 	boost::program_options::options_description commandLine("Command line options");
@@ -83,6 +97,9 @@ int main(int argc, char *argv[])
 		("config,c", boost::program_options::value<std::string>()->default_value("/etc/udpt.conf"), "configuration file to use")
 #ifdef linux
 		("interactive,i", "doesn't start as daemon")
+#endif
+#ifdef WIN32
+		("service,s", boost::program_options::value<std::string>(), "start/stop/install/uninstall service")
 #endif
 		;
 
@@ -104,11 +121,14 @@ int main(int argc, char *argv[])
 		("apiserver.threads", boost::program_options::value<unsigned short>()->default_value(1), "threads for API server")
 		("apiserver.port", boost::program_options::value<unsigned short>()->default_value(6969), "TCP port to listen on")
 
-		("logging.filename", boost::program_options::value<std::string>()->default_value("stdout"), "file to write logs to")
-		("logging.level", boost::program_options::value<std::string>()->default_value("warning"), "log level (error/warning/info/debug)")
+		("logging.filename", boost::program_options::value<std::string>()->default_value("/var/log/udpt.log"), "file to write logs to")
+		("logging.level", boost::program_options::value<std::string>()->default_value("warning"), "log level (fatal/error/warning/info/debug/trace)")
 
 #ifdef linux
 		("daemon.chdir", boost::program_options::value<std::string>()->default_value("/"), "home directory for daemon")
+#endif
+#ifdef WIN32 
+		("service.name", boost::program_options::value<std::string>()->default_value("udpt"), "service name to use")
 #endif
 		;
 
@@ -158,17 +178,44 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	std::shared_ptr<UDPT::Logger> spLogger;
-	try
+	// setup logging...
+	boost::log::add_common_attributes();
+	boost::shared_ptr<boost::log::sinks::text_file_backend> logBackend = boost::make_shared<boost::log::sinks::text_file_backend>(
+		boost::log::keywords::file_name = var_map["logging.filename"].as<std::string>(),
+		boost::log::keywords::auto_flush = true,
+		boost::log::keywords::open_mode = std::ios::out | std::ios::app
+	);
+	typedef boost::log::sinks::asynchronous_sink<boost::log::sinks::text_file_backend> udptSink_t;
+	boost::shared_ptr<udptSink_t> async_sink (new udptSink_t(logBackend));
+	async_sink->set_formatter(
+		boost::log::expressions::stream
+		<< boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S") << " "
+		<< boost::log::expressions::attr<int>("Severity")
+		<< " [" << boost::log::expressions::attr<std::string>("Channel") << "] \t"
+		<< boost::log::expressions::smessage
+	);
+	auto loggingCore = boost::log::core::get();	
+	loggingCore->add_sink(async_sink);
+
+	boost::log::sources::severity_channel_logger_mt<> logger(boost::log::keywords::channel = "main");
+
+	std::string severity = var_map["logging.level"].as<std::string>();
+	std::transform(severity.begin(), severity.end(), severity.begin(), std::tolower);
+	int severityVal = boost::log::trivial::warning;
+	if ("fatal" == severity) severityVal = boost::log::trivial::fatal;
+	else if ("error" == severity) severityVal = boost::log::trivial::error;
+	else if ("warning" == severity) severityVal = boost::log::trivial::warning;
+	else if ("info" == severity) severityVal = boost::log::trivial::info;
+	else if ("debug" == severity) severityVal = boost::log::trivial::debug;
+	else if ("trace" == severity) severityVal = boost::log::trivial::trace;
+	else
 	{
-		spLogger = std::shared_ptr<UDPT::Logger>(new UDPT::Logger(var_map));
-		logger = spLogger.get();
+		BOOST_LOG_SEV(logger, boost::log::trivial::warning) << "Unknown debug level \"" << severity << "\" defaulting to warning";
 	}
-	catch (const std::exception& ex)
-	{
-		std::cerr << "Failed to initialize logger: " << ex.what() << std::endl;
-		return -1;
-	}
+
+	loggingCore->set_filter(
+		boost::log::trivial::severity >= severityVal
+	);
 
 #ifdef linux
 	if (!var_map.count("interactive"))
@@ -177,13 +224,68 @@ int main(int argc, char *argv[])
 	}
 	::signal(SIGTERM, _signal_handler);
 #endif
+#ifdef WIN32 
+	UDPT::Service svc(var_map);
+	if (var_map.count("service"))
+	{
+		const std::string& action = var_map["service"].as<std::string>();
+		try
+		{
+			if ("install" == action)
+			{
+				std::cerr << "Installing service..." << std::endl;
+				svc.install();
+				std::cerr << "Installed." << std::endl;
+			}
+			else if ("uninstall" == action)
+			{
+				std::cerr << "Removing service..." << std::endl;
+				svc.uninstall();
+				std::cerr << "Removed." << std::endl;
+			}
+			else if ("start" == action)
+			{
+				svc.start();
+			}
+			else if ("stop" == action)
+			{
+				svc.stop();
+			}
+		}
+		catch (const UDPT::OSError& ex)
+		{
+			std::cerr << "An operating system error occurred: " << ex.getErrorCode() << std::endl;
+			return -1;
+		}
 
-	tracker.start(var_map);
-	tracker.wait();
+		return 0;
+	}
 
-#ifdef WIN32
-	::WSACleanup();
+	try 
+	{
+		svc.setup();
+	}
+	catch (const OSError& err)
+	{
+		if (ERROR_FAILED_SERVICE_CONTROLLER_CONNECT != err.getErrorCode())
+		{
+			BOOST_LOG_SEV(logger, boost::log::trivial::fatal) << "Failed to start as a Windows service: (" << err.getErrorCode() << "): " << err.what();
+			return -1;
+		}
+	}
 #endif
+
+	try
+	{
+		Tracker& tracker = UDPT::Tracker::getInstance();
+		tracker.start(var_map);
+		tracker.wait();
+	}
+	catch (const UDPT::UDPTException& ex)
+	{
+		BOOST_LOG_SEV(logger, boost::log::trivial::fatal) << "UDPT exception: (" << ex.getErrorCode() << "): " << ex.what();
+		return -1;
+	}
 
 	return 0;
 }

@@ -17,18 +17,8 @@
  *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib> // atoi
-#include <cstring>
-#include <ctime>
-#include <iostream>
-#include <sstream>
-#include <list>
 #include "udpTracker.hpp"
-#include "tools.h"
-#include "multiplatform.h"
-#include "logging.h"
 
-extern UDPT::Logger *logger;
 
 using namespace UDPT::Data;
 
@@ -36,7 +26,7 @@ using namespace UDPT::Data;
 
 namespace UDPT
 {
-	UDPTracker::UDPTracker(const boost::program_options::variables_map& conf) : m_conf(conf)
+	UDPTracker::UDPTracker(const boost::program_options::variables_map& conf) : m_conf(conf), m_logger(boost::log::keywords::channel = "UDPTracker")
 	{
 		this->m_allowRemotes = conf["tracker.allow_remotes"].as<bool>();
 		this->m_allowIANA_IPs = conf["tracker.allow_iana_ips"].as<bool>();
@@ -69,7 +59,6 @@ namespace UDPT
 
 	void UDPTracker::start()
 	{
-		std::stringstream ss;
 		SOCKET sock;
 		int r,		// saves results
 			i,		// loop index
@@ -107,15 +96,16 @@ namespace UDPT
 			::closesocket(sock);
 	#elif defined (linux)
 			::close(sock);
-	#endif
+#endif
 			throw UDPT::UDPTException("Failed to bind socket.");
 		}
 
-		this->m_sock = sock;
+		{
+			char buff[INET_ADDRSTRLEN];
+			BOOST_LOG_SEV(m_logger, boost::log::trivial::info) << "UDP tracker bound on " << ::inet_ntop(AF_INET, reinterpret_cast<LPVOID>(&m_localEndpoint.sin_addr), buff, sizeof(buff)) << ":" << ::htons(m_localEndpoint.sin_port);
+		}
 
-		ss.str("");
-		ss << "Starting maintenance thread (1/" << ((int)this->m_threadCount) << ")";
-		logger->log(Logger::LL_INFO, ss.str());
+		this->m_sock = sock;
 
 		// create maintainer thread.
 
@@ -123,10 +113,6 @@ namespace UDPT
 
 		for (i = 1;i < this->m_threadCount; i++)
 		{
-			ss.str("");
-			ss << "Starting thread (" << (i + 1) << "/" << ((int)this->m_threadCount) << ")";
-			logger->log(Logger::LL_INFO, ss.str());
-
 			m_threads.push_back(boost::thread(UDPTracker::_thread_start, this));
 		}
 	}
@@ -139,6 +125,7 @@ namespace UDPT
 		::closesocket(m_sock);
 #endif
 
+		BOOST_LOG_SEV(m_logger, boost::log::trivial::warning) << "Interrupting workers...";
 		for (std::vector<boost::thread>::iterator it = m_threads.begin(); it != m_threads.end(); ++it)
 		{
 			it->interrupt();
@@ -149,6 +136,8 @@ namespace UDPT
 
 	void UDPTracker::wait()
 	{
+		BOOST_LOG_SEV(m_logger, boost::log::trivial::warning) << "Waiting for threads to terminate...";
+
 		for (std::vector<boost::thread>::iterator it = m_threads.begin(); it != m_threads.end(); ++it)
 		{
 			it->join();
@@ -200,38 +189,43 @@ namespace UDPT
 
 		::sendto(usi->m_sock, (char*)&resp, sizeof(ConnectionResponse), 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
+		{
+			char buffer[INET_ADDRSTRLEN];
+			BOOST_LOG_SEV(usi->m_logger, boost::log::trivial::debug) << "Connection Request from " << ::inet_ntop(AF_INET, &remote->sin_addr, buffer, sizeof(buffer)) << "; cId=" << resp.connection_id << "; tId=" << resp.transaction_id;
+		}
+		
+
 		return 0;
 	}
 
-	int UDPTracker::handleAnnounce (UDPTracker *usi, SOCKADDR_IN *remote, char *data)
+	int UDPTracker::handleAnnounce(UDPTracker *usi, SOCKADDR_IN *remote, char *data)
 	{
 		AnnounceRequest *req;
 		AnnounceResponse *resp;
 		int q,		// peer counts
 			bSize,	// message size
 			i;		// loop index
-		DatabaseDriver::PeerEntry *peers;
 		DatabaseDriver::TorrentEntry tE;
 
-		uint8_t buff [1028];	// Reasonable buffer size. (header+168 peers)
+		uint8_t buff[1028];	// Reasonable buffer size. (header+168 peers)
 
 		req = (AnnounceRequest*)data;
 
 		if (!usi->m_conn->verifyConnectionId(req->connection_id,
-				m_hton32(remote->sin_addr.s_addr),
-				m_hton16(remote->sin_port)))
+			m_hton32(remote->sin_addr.s_addr),
+			m_hton16(remote->sin_port)))
 		{
 			return 1;
 		}
 
 		// change byte order:
-		req->port = m_hton16 (req->port);
-		req->ip_address = m_hton32 (req->ip_address);
-		req->downloaded = m_hton64 (req->downloaded);
-		req->event = m_hton32 (req->event);	// doesn't really matter for this tracker
-		req->uploaded = m_hton64 (req->uploaded);
-		req->num_want = m_hton32 (req->num_want);
-		req->left = m_hton64 (req->left);
+		req->port = m_hton16(req->port);
+		req->ip_address = m_hton32(req->ip_address);
+		req->downloaded = m_hton64(req->downloaded);
+		req->event = m_hton32(req->event);	// doesn't really matter for this tracker
+		req->uploaded = m_hton64(req->uploaded);
+		req->num_want = m_hton32(req->num_want);
+		req->left = m_hton64(req->left);
 
 		if (!usi->m_allowRemotes && req->ip_address != 0)
 		{
@@ -250,62 +244,64 @@ namespace UDPT
 		if (req->num_want >= 1)
 			q = std::min<int>(q, req->num_want);
 
-		peers = new DatabaseDriver::PeerEntry [q];
-
-
 		DatabaseDriver::TrackerEvents event;
-		switch (req->event)
+
 		{
-		case 1:
-			event = DatabaseDriver::EVENT_COMPLETE;
-			break;
-		case 2:
-			event = DatabaseDriver::EVENT_START;
-			break;
-		case 3:
-			event = DatabaseDriver::EVENT_STOP;
-			break;
-		default:
-			event = DatabaseDriver::EVENT_UNSPEC;
-			break;
+			std::shared_ptr<DatabaseDriver::PeerEntry> peersSptr = std::shared_ptr<DatabaseDriver::PeerEntry>(new DatabaseDriver::PeerEntry[q]);
+			DatabaseDriver::PeerEntry *peers = peersSptr.get();
+
+			switch (req->event)
+			{
+			case 1:
+				event = DatabaseDriver::EVENT_COMPLETE;
+				break;
+			case 2:
+				event = DatabaseDriver::EVENT_START;
+				break;
+			case 3:
+				event = DatabaseDriver::EVENT_STOP;
+				break;
+			default:
+				event = DatabaseDriver::EVENT_UNSPEC;
+				break;
+			}
+
+			if (event == DatabaseDriver::EVENT_STOP)
+				q = 0;	// no need for peers when stopping.
+
+			if (q > 0)
+				usi->m_conn->getPeers(req->info_hash, &q, peers);
+
+			bSize = 20; // header is 20 bytes
+			bSize += (6 * q); // + 6 bytes per peer.
+
+			tE.info_hash = req->info_hash;
+			usi->m_conn->getTorrentInfo(&tE);
+
+			resp = (AnnounceResponse*)buff;
+			resp->action = m_hton32(1);
+			resp->interval = m_hton32(usi->m_announceInterval);
+			resp->leechers = m_hton32(tE.leechers);
+			resp->seeders = m_hton32(tE.seeders);
+			resp->transaction_id = req->transaction_id;
+
+			for (i = 0; i < q; i++)
+			{
+				int x = i * 6;
+				// network byte order!!!
+
+				// IP
+				buff[20 + x] = ((peers[i].ip & (0xff << 24)) >> 24);
+				buff[21 + x] = ((peers[i].ip & (0xff << 16)) >> 16);
+				buff[22 + x] = ((peers[i].ip & (0xff << 8)) >> 8);
+				buff[23 + x] = (peers[i].ip & 0xff);
+
+				// port
+				buff[24 + x] = ((peers[i].port & (0xff << 8)) >> 8);
+				buff[25 + x] = (peers[i].port & 0xff);
+
+			}
 		}
-
-		if (event == DatabaseDriver::EVENT_STOP)
-			q = 0;	// no need for peers when stopping.
-
-		if (q > 0)
-			usi->m_conn->getPeers(req->info_hash, &q, peers);
-
-		bSize = 20; // header is 20 bytes
-		bSize += (6 * q); // + 6 bytes per peer.
-
-		tE.info_hash = req->info_hash;
-		usi->m_conn->getTorrentInfo(&tE);
-
-		resp = (AnnounceResponse*)buff;
-		resp->action = m_hton32(1);
-		resp->interval = m_hton32 ( usi->m_announceInterval );
-		resp->leechers = m_hton32(tE.leechers);
-		resp->seeders = m_hton32 (tE.seeders);
-		resp->transaction_id = req->transaction_id;
-
-		for (i = 0;i < q;i++)
-		{
-			int x = i * 6;
-			// network byte order!!!
-
-			// IP
-			buff[20 + x] = ((peers[i].ip & (0xff << 24)) >> 24);
-			buff[21 + x] = ((peers[i].ip & (0xff << 16)) >> 16);
-			buff[22 + x] = ((peers[i].ip & (0xff << 8)) >> 8);
-			buff[23 + x] = (peers[i].ip & 0xff);
-
-			// port
-			buff[24 + x] = ((peers[i].port & (0xff << 8)) >> 8);
-			buff[25 + x] = (peers[i].port & 0xff);
-
-		}
-		delete[] peers;
 		::sendto(usi->m_sock, (char*)buff, bSize, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
 
 		// update DB.
@@ -403,8 +399,16 @@ namespace UDPT
 		{
 			if (isIANAIP(remote->sin_addr.s_addr))
 			{
+				char buffer[INET_ADDRSTRLEN];
+				BOOST_LOG_SEV(usi->m_logger, boost::log::trivial::warning) << "Client ignored (IANA IP): " << ::inet_ntop(AF_INET, &remote->sin_addr, buffer, sizeof(buffer));
 				return 0;	// Access Denied: IANA reserved IP.
 			}
+		}
+
+		{
+
+			char buffer[INET_ADDRSTRLEN];
+			BOOST_LOG_SEV(usi->m_logger, boost::log::trivial::debug) << "Client request from " << ::inet_ntop(AF_INET, &remote->sin_addr, buffer, sizeof(buffer));
 		}
 
 		if (action == 0 && r >= 16)
@@ -424,6 +428,7 @@ namespace UDPT
 
 	void UDPTracker::_thread_start(UDPTracker *usi)
 	{
+		BOOST_LOG_SEV(usi->m_logger, boost::log::trivial::info) << "Worker thread started with PID=" << boost::this_thread::get_id() << ".";
 		SOCKADDR_IN remoteAddr;
 		char tmpBuff[UDP_BUFFER_SIZE];
 
@@ -448,17 +453,20 @@ namespace UDPT
 
 			{
 				boost::this_thread::disable_interruption di;
-				r = UDPTracker::resolveRequest(usi, &remoteAddr, tmpBuff, r);
+
+				UDPTracker::resolveRequest(usi, &remoteAddr, tmpBuff, r);
 			}
 		}
 	}
 
 	void UDPTracker::_maintainance_start(UDPTracker* usi)
 	{
+		BOOST_LOG_SEV(usi->m_logger, boost::log::trivial::info) << "Maintenance thread started with PID=" << boost::this_thread::get_id() << ".";
 		while (true)
 		{
 			{
 				boost::this_thread::disable_interruption di;
+				BOOST_LOG_SEV(usi->m_logger, boost::log::trivial::info) << "Running cleanup...";
 				usi->m_conn->cleanup();
 			}
 
