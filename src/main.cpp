@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 	boost::log::sources::severity_channel_logger_mt<> logger(boost::log::keywords::channel = "main");
 
 	std::string severity = var_map["logging.level"].as<std::string>();
-	std::transform(severity.begin(), severity.end(), severity.begin(), std::tolower);
+	std::transform(severity.begin(), severity.end(), severity.begin(), ::tolower);
 	int severityVal = boost::log::trivial::warning;
 	if ("fatal" == severity) severityVal = boost::log::trivial::fatal;
 	else if ("error" == severity) severityVal = boost::log::trivial::error;
