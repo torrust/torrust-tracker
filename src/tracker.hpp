@@ -23,6 +23,14 @@
 
 #include <boost/log/trivial.hpp>
 #include <boost/log/sources/severity_channel_logger.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/sinks/async_frontend.hpp>
+#include <boost/log/keywords/format.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/support/date_time.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
 
 #include "multiplatform.h"
 #include "udpTracker.hpp"
@@ -43,7 +51,11 @@ namespace UDPT
 
         void wait();
 
-        static Tracker& getInstance();
+		static Tracker& getInstance();
+
+		static boost::program_options::options_description getConfigOptions();
+
+		static void setupLogging(const boost::program_options::variables_map& config, boost::log::sources::severity_channel_logger_mt<>& logger);
 
     private:
         std::shared_ptr<UDPT::UDPTracker> m_udpTracker;
