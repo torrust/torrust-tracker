@@ -17,11 +17,15 @@
 *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "service.hpp"
+#include <filesystem>
 
 #ifdef WIN32 
 
 namespace UDPT
 {
+	SERVICE_STATUS_HANDLE Service::s_hServiceStatus = nullptr;
+	SERVICE_STATUS Service::s_serviceStatus = { 0 };
+
 	Service::Service(const boost::program_options::variables_map& conf) : m_conf(conf)
 	{
 
@@ -32,10 +36,10 @@ namespace UDPT
 
 	}
 
-	void Service::install()
+	void Service::install(const std::string& config_path)
 	{
 		std::string& binaryPath = getFilename();
-		binaryPath = "\"" + binaryPath + "\"";
+		binaryPath = "\"" + binaryPath + "\" -c \"" + config_path + "\"";
 		std::shared_ptr<void> svcMgr = getServiceManager(SC_MANAGER_CREATE_SERVICE);
 		{
 			SC_HANDLE installedService = ::CreateService(reinterpret_cast<SC_HANDLE>(svcMgr.get()),
@@ -87,15 +91,119 @@ namespace UDPT
 			{ const_cast<char*>(m_conf["service.name"].as<std::string>().c_str()), reinterpret_cast<LPSERVICE_MAIN_FUNCTION>(&Service::serviceMain) },
 			{0, 0}
 		};
+
 		if (FALSE == ::StartServiceCtrlDispatcher(service))
 		{
 			throw OSError();
 		}
 	}
 
+	DWORD Service::handler(DWORD controlCode, DWORD dwEventType, LPVOID eventData, LPVOID context)
+	{
+		switch (controlCode)
+		{
+		case SERVICE_CONTROL_INTERROGATE:
+			return NO_ERROR;
+
+		case SERVICE_CONTROL_STOP:
+		{
+			reportServiceStatus(SERVICE_STOP_PENDING, 0, 3000);
+			Tracker::getInstance().stop();
+
+			return NO_ERROR;
+		}
+
+		default:
+			return ERROR_CALL_NOT_IMPLEMENTED;
+		}
+	}
+
+	void Service::reportServiceStatus(DWORD currentState, DWORD dwExitCode, DWORD dwWaitHint)
+	{
+		static DWORD checkpoint = 1;
+
+		if (currentState == SERVICE_STOPPED || currentState == SERVICE_RUNNING)
+		{
+			checkpoint = 0;
+		}
+		else
+		{
+			++checkpoint;
+		}
+
+		switch (currentState)
+		{
+		case SERVICE_RUNNING:
+			s_serviceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+			break;
+
+		default:
+			s_serviceStatus.dwControlsAccepted = 0;
+		}
+
+		s_serviceStatus.dwCheckPoint = checkpoint;
+		s_serviceStatus.dwCurrentState = currentState;
+		s_serviceStatus.dwWin32ExitCode = dwExitCode;
+		s_serviceStatus.dwWaitHint = dwWaitHint;
+
+		::SetServiceStatus(s_hServiceStatus, &s_serviceStatus);
+	}
+
 	VOID Service::serviceMain(DWORD argc, LPCSTR argv[])
 	{
+		boost::log::sources::severity_channel_logger_mt<> logger(boost::log::keywords::channel = "service");
+		
+		wchar_t *commandLine = ::GetCommandLineW();
+		int argCount = 0;
+		std::shared_ptr<LPWSTR> args(::CommandLineToArgvW(commandLine, &argCount), ::LocalFree);
+		if (nullptr == args)
+		{
+			BOOST_LOG_SEV(logger, boost::log::trivial::fatal) << "Failed parse command-line.";
+			::exit(-1);
+		}
 
+		if (3 != argCount)
+		{
+			BOOST_LOG_SEV(logger, boost::log::trivial::fatal) << "Bad command-line length (must have exactly 2 arguments).";
+			::exit(-1);
+		}
+
+		if (std::wstring(args.get()[1]) != L"-c")
+		{
+			BOOST_LOG_SEV(logger, boost::log::trivial::fatal) << "Argument 1 must be \"-c\".";
+			::exit(-1);
+		}
+
+		std::wstring wFilename(args.get()[2]);
+		std::string cFilename(wFilename.begin(), wFilename.end());
+
+		boost::program_options::options_description& configOptions = UDPT::Tracker::getConfigOptions();
+		boost::program_options::variables_map config;
+		boost::program_options::basic_parsed_options<wchar_t> parsed_options = boost::program_options::parse_config_file<wchar_t>(cFilename.c_str(), configOptions);
+		boost::program_options::store(parsed_options, config);
+
+		s_hServiceStatus = ::RegisterServiceCtrlHandlerEx(config["service.name"].as<std::string>().c_str(), Service::handler, NULL);
+		if (nullptr == s_hServiceStatus)
+		{
+			BOOST_LOG_SEV(logger, boost::log::trivial::fatal) << "Failed to register service control handler.";
+			::exit(-1);
+		}
+
+		s_serviceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+		s_serviceStatus.dwServiceSpecificExitCode = 0;
+
+		reportServiceStatus(SERVICE_START_PENDING, 0, 0);
+
+		{
+			UDPT::Tracker& tracker = UDPT::Tracker::getInstance();
+			tracker.start(config);
+
+			reportServiceStatus(SERVICE_RUNNING, 0, 0);
+
+			tracker.wait();
+
+			reportServiceStatus(SERVICE_STOPPED, 0, 0);
+		}
 	}
 
 	std::shared_ptr<void> Service::getService(DWORD access)

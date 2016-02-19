@@ -18,9 +18,12 @@
 */
 #pragma once
 
+#include <memory>
+#include <string>
 #include <boost/program_options.hpp>
 #include "multiplatform.h"
 #include "exceptions.h"
+#include "tracker.hpp"
 
 #ifdef WIN32 
 namespace UDPT
@@ -33,7 +36,7 @@ namespace UDPT
 		virtual ~Service();
 
 
-		void install();
+		void install(const std::string& config_path);
 
 		void uninstall();
 
@@ -45,9 +48,15 @@ namespace UDPT
 	private:
 		const boost::program_options::variables_map& m_conf;
 
+		static SERVICE_STATUS_HANDLE s_hServiceStatus;
+
+		static SERVICE_STATUS s_serviceStatus;
+
 		std::shared_ptr<void> getService(DWORD access);
 
-		static VOID WINAPI handler(DWORD controlCode);
+		static DWORD WINAPI handler(DWORD controlCode, DWORD dwEventType, LPVOID eventData, LPVOID context);
+
+		static void reportServiceStatus(DWORD currentState, DWORD dwExitCode, DWORD dwWaitHint);
 
 		static VOID WINAPI serviceMain(DWORD argc, LPCSTR argv[]);
 

@@ -25,15 +25,8 @@
 #include <memory>
 #include <algorithm>
 #include <boost/program_options.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/sources/severity_channel_logger.hpp>
-#include <boost/log/sinks/text_file_backend.hpp>
-#include <boost/log/sinks/async_frontend.hpp>
-#include <boost/log/keywords/format.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/support/date_time.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
 
 #include "multiplatform.h"
 #include "udpTracker.hpp"
@@ -104,33 +97,7 @@ int main(int argc, char *argv[])
 		;
 
 
-	boost::program_options::options_description configOptions("Configuration options");
-	configOptions.add_options()
-		("db.driver", boost::program_options::value<std::string>()->default_value("sqlite3"), "database driver to use")
-		("db.param", boost::program_options::value<std::string>()->default_value("/var/lib/udpt.db"), "database connection parameters")
-		
-		("tracker.is_dynamic", boost::program_options::value<bool>()->default_value(true), "Sets if the tracker is dynamic")
-		("tracker.port", boost::program_options::value<unsigned short>()->default_value(6969), "UDP port to listen on")
-		("tracker.threads", boost::program_options::value<unsigned>()->default_value(5), "threads to run (UDP only)")
-		("tracker.allow_remotes", boost::program_options::value<bool>()->default_value(true), "allows clients to report remote IPs")
-		("tracker.allow_iana_ips", boost::program_options::value<bool>()->default_value(false), "allows IANA reserved IPs to connect (useful for debugging)")
-		("tracker.announce_interval", boost::program_options::value<unsigned>()->default_value(1800), "announce interval")
-		("tracker.cleanup_interval", boost::program_options::value<unsigned>()->default_value(120), "sets database cleanup interval")
-		
-		("apiserver.enable", boost::program_options::value<bool>()->default_value(0), "Enable API server?")
-		("apiserver.threads", boost::program_options::value<unsigned short>()->default_value(1), "threads for API server")
-		("apiserver.port", boost::program_options::value<unsigned short>()->default_value(6969), "TCP port to listen on")
-
-		("logging.filename", boost::program_options::value<std::string>()->default_value("/var/log/udpt.log"), "file to write logs to")
-		("logging.level", boost::program_options::value<std::string>()->default_value("warning"), "log level (fatal/error/warning/info/debug/trace)")
-
-#ifdef linux
-		("daemon.chdir", boost::program_options::value<std::string>()->default_value("/"), "home directory for daemon")
-#endif
-#ifdef WIN32 
-		("service.name", boost::program_options::value<std::string>()->default_value("udpt"), "service name to use")
-#endif
-		;
+	const boost::program_options::options_description& configOptions = Tracker::getConfigOptions();
 
 	boost::program_options::variables_map var_map;
 	boost::program_options::store(boost::program_options::parse_command_line(argc, argv, commandLine), var_map);
@@ -178,44 +145,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// setup logging...
-	boost::log::add_common_attributes();
-	boost::shared_ptr<boost::log::sinks::text_file_backend> logBackend = boost::make_shared<boost::log::sinks::text_file_backend>(
-		boost::log::keywords::file_name = var_map["logging.filename"].as<std::string>(),
-		boost::log::keywords::auto_flush = true,
-		boost::log::keywords::open_mode = std::ios::out | std::ios::app
-	);
-	typedef boost::log::sinks::asynchronous_sink<boost::log::sinks::text_file_backend> udptSink_t;
-	boost::shared_ptr<udptSink_t> async_sink (new udptSink_t(logBackend));
-	async_sink->set_formatter(
-		boost::log::expressions::stream
-		<< boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S") << " "
-		<< boost::log::expressions::attr<int>("Severity")
-		<< " [" << boost::log::expressions::attr<std::string>("Channel") << "] \t"
-		<< boost::log::expressions::smessage
-	);
-	auto loggingCore = boost::log::core::get();	
-	loggingCore->add_sink(async_sink);
-
 	boost::log::sources::severity_channel_logger_mt<> logger(boost::log::keywords::channel = "main");
-
-	std::string severity = var_map["logging.level"].as<std::string>();
-	std::transform(severity.begin(), severity.end(), severity.begin(), ::tolower);
-	int severityVal = boost::log::trivial::warning;
-	if ("fatal" == severity) severityVal = boost::log::trivial::fatal;
-	else if ("error" == severity) severityVal = boost::log::trivial::error;
-	else if ("warning" == severity) severityVal = boost::log::trivial::warning;
-	else if ("info" == severity) severityVal = boost::log::trivial::info;
-	else if ("debug" == severity) severityVal = boost::log::trivial::debug;
-	else if ("trace" == severity) severityVal = boost::log::trivial::trace;
-	else
-	{
-		BOOST_LOG_SEV(logger, boost::log::trivial::warning) << "Unknown debug level \"" << severity << "\" defaulting to warning";
-	}
-
-	loggingCore->set_filter(
-		boost::log::trivial::severity >= severityVal
-	);
+	Tracker::setupLogging(var_map, logger);
 
 #ifdef linux
 	if (!var_map.count("interactive"))
@@ -234,7 +165,7 @@ int main(int argc, char *argv[])
 			if ("install" == action)
 			{
 				std::cerr << "Installing service..." << std::endl;
-				svc.install();
+				svc.install(var_map["config"].as<std::string>());
 				std::cerr << "Installed." << std::endl;
 			}
 			else if ("uninstall" == action)
@@ -254,7 +185,7 @@ int main(int argc, char *argv[])
 		}
 		catch (const UDPT::OSError& ex)
 		{
-			std::cerr << "An operating system error occurred: " << ex.getErrorCode() << std::endl;
+			std::cerr << "An operating system error occurred: " << ex.what() << std::endl;
 			return -1;
 		}
 
@@ -264,6 +195,7 @@ int main(int argc, char *argv[])
 	try 
 	{
 		svc.setup();
+		return 0;
 	}
 	catch (const OSError& err)
 	{
