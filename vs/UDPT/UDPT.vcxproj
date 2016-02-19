@@ -59,7 +59,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;sqlite3.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;sqlite3.lib;advapi32.lib;shell32.lib</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -78,7 +78,7 @@
       </EnableCOMDATFolding>
       <OptimizeReferences>
       </OptimizeReferences>
-      <AdditionalDependencies>ws2_32.lib;sqlite3.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;sqlite3.lib;advapi32.lib;shell32.lib</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
