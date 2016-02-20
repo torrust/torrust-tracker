@@ -77,12 +77,24 @@ namespace UDPT
 
 	void Service::start()
 	{
-
+		std::shared_ptr<void> hSvc = getService(SERVICE_START);
+		BOOL bRes = ::StartService(reinterpret_cast<SC_HANDLE>(hSvc.get()), 0, NULL);
+		if (FALSE == bRes)
+		{
+			throw OSError();
+		}
 	}
 
 	void Service::stop()
 	{
+		SERVICE_STATUS status = { 0 };
 
+		std::shared_ptr<void> hSvc = getService(SERVICE_STOP);
+		BOOL bRes = ::ControlService(reinterpret_cast<SC_HANDLE>(hSvc.get()), SERVICE_CONTROL_STOP, &status);
+		if (FALSE == bRes)
+		{
+			throw OSError();
+		}
 	}
 
 	void Service::setup()

@@ -182,6 +182,11 @@ int main(int argc, char *argv[])
 			{
 				svc.stop();
 			}
+			else
+			{
+				std::cerr << "No such service command." << std::endl;
+				return -1;
+			}
 		}
 		catch (const UDPT::OSError& ex)
 		{
