@@ -102,7 +102,7 @@ namespace UDPT
 
 		{
 			char buff[INET_ADDRSTRLEN];
-			BOOST_LOG_SEV(m_logger, boost::log::trivial::info) << "UDP tracker bound on " << ::inet_ntop(AF_INET, reinterpret_cast<LPVOID>(&m_localEndpoint.sin_addr), buff, sizeof(buff)) << ":" << ::htons(m_localEndpoint.sin_port);
+			BOOST_LOG_SEV(m_logger, boost::log::trivial::info) << "UDP tracker bound on " << ::inet_ntop(AF_INET, reinterpret_cast<LPVOID>(&m_localEndpoint.sin_addr), buff, sizeof(buff)) << ":" << htons(m_localEndpoint.sin_port);
 		}
 
 		this->m_sock = sock;
