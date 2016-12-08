@@ -7,3 +7,5 @@
 *.opensdf
 **/Debug/*
 *.opendb
+cmake-build-debug/
+
