@@ -28,6 +28,7 @@
 #include <sstream>
 #include <list>
 #include <ctime>
+#include <atomic>
 
 #include <thread>
 #include <boost/program_options.hpp>
