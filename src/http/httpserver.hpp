@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2013-2016 Naim A.
+ *	Copyright © 2013-2017 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -32,139 +32,139 @@ using namespace std;
 
 namespace UDPT
 {
-	namespace Server
-	{
-		class ServerException
-		{
-		public:
-			inline ServerException (int ec)
-			{
-				this->ec = ec;
-				this->em = NULL;
-			}
+    namespace Server
+    {
+        class ServerException
+        {
+        public:
+            inline ServerException (int ec)
+            {
+                this->ec = ec;
+                this->em = NULL;
+            }
 
-			inline ServerException (int ec, const char *em)
-			{
-				this->ec = ec;
-				this->em = em;
-			}
+            inline ServerException (int ec, const char *em)
+            {
+                this->ec = ec;
+                this->em = em;
+            }
 
-			inline const char *getErrorMsg () const
-			{
-				return this->em;
-			}
+            inline const char *getErrorMsg () const
+            {
+                return this->em;
+            }
 
-			inline int getErrorCode () const
-			{
-				return this->ec;
-			}
-		private:
-			int ec;
-			const char *em;
-		};
+            inline int getErrorCode () const
+            {
+                return this->ec;
+            }
+        private:
+            int ec;
+            const char *em;
+        };
 
-		class HTTPServer
-		{
-		public:
-			class Request
-			{
-			public:
-				enum RequestMethod
-				{
-					RM_UNKNOWN = 0,
-					RM_GET = 1,
-					RM_POST = 2
-				};
+        class HTTPServer
+        {
+        public:
+            class Request
+            {
+            public:
+                enum RequestMethod
+                {
+                    RM_UNKNOWN = 0,
+                    RM_GET = 1,
+                    RM_POST = 2
+                };
 
-				Request (SOCKET, const SOCKADDR_IN *);
-				list<string>* getPath ();
+                Request (SOCKET, const SOCKADDR_IN *);
+                list<string>* getPath ();
 
-				string getParam (const string key);
-				multimap<string, string>::iterator getHeader (const string name);
-				RequestMethod getRequestMethod ();
-				string getRequestMethodStr ();
-				string getCookie (const string name);
-				const SOCKADDR_IN* getAddress ();
+                string getParam (const string key);
+                multimap<string, string>::iterator getHeader (const string name);
+                RequestMethod getRequestMethod ();
+                string getRequestMethodStr ();
+                string getCookie (const string name);
+                const SOCKADDR_IN* getAddress ();
 
-			private:
-				const SOCKADDR_IN *addr;
-				SOCKET conn;
-				struct {
-					int major;
-					int minor;
-				} httpVer;
-				struct {
-					string str;
-					RequestMethod rm;
-				} requestMethod;
-				list<string> path;
-				map<string, string> params;
-				map<string, string> cookies;
-				multimap<string, string> headers;
+            private:
+                const SOCKADDR_IN *addr;
+                SOCKET conn;
+                struct {
+                    int major;
+                    int minor;
+                } httpVer;
+                struct {
+                    string str;
+                    RequestMethod rm;
+                } requestMethod;
+                list<string> path;
+                map<string, string> params;
+                map<string, string> cookies;
+                multimap<string, string> headers;
 
-				void parseRequest ();
-			};
-			
-			class Response
-			{
-			public:
-				Response (SOCKET conn);
+                void parseRequest ();
+            };
 
-				void setStatus (int, const string);
-				void addHeader (string key, string value);
+            class Response
+            {
+            public:
+                Response (SOCKET conn);
 
-				int writeRaw (const char *data, int len);
-				void write (const char *data, int len = -1);
+                void setStatus (int, const string);
+                void addHeader (string key, string value);
 
-			private:
-				friend class HTTPServer;
+                int writeRaw (const char *data, int len);
+                void write (const char *data, int len = -1);
 
-				SOCKET conn;
-				int status_code;
-				string status_msg;
-				multimap<string, string> headers;
-				stringstream msg;
+            private:
+                friend class HTTPServer;
 
-				void finalize ();
-			};
+                SOCKET conn;
+                int status_code;
+                string status_msg;
+                multimap<string, string> headers;
+                stringstream msg;
 
-			typedef void (reqCallback)(HTTPServer*,Request*,Response*);
+                void finalize ();
+            };
 
-			HTTPServer (uint16_t port, int threads);
-			HTTPServer(const boost::program_options::variables_map& conf);
+            typedef void (reqCallback)(HTTPServer*,Request*,Response*);
 
-			void addApp (list<string> *path, reqCallback *);
+            HTTPServer (uint16_t port, int threads);
+            HTTPServer(const boost::program_options::variables_map& conf);
 
-			void setData (string, void *);
-			void* getData (string);
+            void addApp (list<string> *path, reqCallback *);
 
-			virtual ~HTTPServer ();
+            void setData (string, void *);
+            void* getData (string);
 
-		private:
-			typedef struct appNode
-			{
-				reqCallback *callback;
-				map<string, appNode> nodes;
-			} appNode;
+            virtual ~HTTPServer ();
 
-			SOCKET srv;
-			int thread_count;
-			HANDLE *threads;
-			bool isRunning;
-			appNode rootNode;
-			map<string, void*> customData;
+        private:
+            typedef struct appNode
+            {
+                reqCallback *callback;
+                map<string, appNode> nodes;
+            } appNode;
 
-			void init (SOCKADDR_IN &localEndpoint, int threads);
+            SOCKET srv;
+            int thread_count;
+            HANDLE *threads;
+            bool isRunning;
+            appNode rootNode;
+            map<string, void*> customData;
 
-			static void handleConnections (HTTPServer *);
+            void init (SOCKADDR_IN &localEndpoint, int threads);
+
+            static void handleConnections (HTTPServer *);
 
 #ifdef WIN32
-			static DWORD _thread_start (LPVOID);
+            static DWORD _thread_start (LPVOID);
 #else
-			static void* _thread_start (void*);
+            static void* _thread_start (void*);
 #endif
 
-			static reqCallback* getRequestHandler (appNode *, list<string> *);
-		};
-	};
+            static reqCallback* getRequestHandler (appNode *, list<string> *);
+        };
+    };
 };

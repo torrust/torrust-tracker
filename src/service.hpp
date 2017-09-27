@@ -1,5 +1,5 @@
 /*
-*	Copyright © 2012-2016 Naim A.
+*	Copyright © 2012-2017 Naim A.
 *
 *	This file is part of UDPT.
 *
@@ -28,42 +28,42 @@
 #ifdef WIN32 
 namespace UDPT
 {
-	class Service
-	{
-	public:
-		Service(const boost::program_options::variables_map& conf);
+    class Service
+    {
+    public:
+        Service(const boost::program_options::variables_map& conf);
 
-		virtual ~Service();
+        virtual ~Service();
 
 
-		void install(const std::string& config_path);
+        void install(const std::string& config_path);
 
-		void uninstall();
+        void uninstall();
 
-		void start();
+        void start();
 
-		void stop();
+        void stop();
 
-		void setup();
-	private:
-		const boost::program_options::variables_map& m_conf;
+        void setup();
+    private:
+        const boost::program_options::variables_map& m_conf;
 
-		static SERVICE_STATUS_HANDLE s_hServiceStatus;
+        static SERVICE_STATUS_HANDLE s_hServiceStatus;
 
-		static SERVICE_STATUS s_serviceStatus;
+        static SERVICE_STATUS s_serviceStatus;
 
-		std::shared_ptr<void> getService(DWORD access);
+        std::shared_ptr<void> getService(DWORD access);
 
-		static DWORD WINAPI handler(DWORD controlCode, DWORD dwEventType, LPVOID eventData, LPVOID context);
+        static DWORD WINAPI handler(DWORD controlCode, DWORD dwEventType, LPVOID eventData, LPVOID context);
 
-		static void reportServiceStatus(DWORD currentState, DWORD dwExitCode, DWORD dwWaitHint);
+        static void reportServiceStatus(DWORD currentState, DWORD dwExitCode, DWORD dwWaitHint);
 
-		static VOID WINAPI serviceMain(DWORD argc, LPCSTR argv[]);
+        static VOID WINAPI serviceMain(DWORD argc, LPCSTR argv[]);
 
-		static std::shared_ptr<void> getServiceManager(DWORD access);
+        static std::shared_ptr<void> getServiceManager(DWORD access);
 
-		static std::string getFilename();
-	};
+        static std::string getFilename();
+    };
 }
 
 #endif

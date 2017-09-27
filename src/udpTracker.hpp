@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012-2016 Naim A.
+ *	Copyright © 2012-2017 Naim A.
  *
  *	This file is part of UDPT.
  *
@@ -29,10 +29,10 @@
 #include <list>
 #include <ctime>
 
-#include <boost/thread.hpp>
+#include <thread>
 #include <boost/program_options.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/sources/severity_channel_logger.hpp>
+#include <mutex>
+#include <condition_variable>
 
 #include "tools.h"
 #include "exceptions.h"
@@ -47,139 +47,142 @@
 
 namespace UDPT
 {
-	class UDPTracker
-	{
-	public:
-		typedef struct udp_connection_request
-		{
-			uint64_t connection_id;
-			uint32_t action;
-			uint32_t transaction_id;
-		} ConnectionRequest;
+    class UDPTracker
+    {
+    public:
+        typedef struct udp_connection_request
+        {
+            uint64_t connection_id;
+            uint32_t action;
+            uint32_t transaction_id;
+        } ConnectionRequest;
 
-		typedef struct udp_connection_response
-		{
-			uint32_t action;
-			uint32_t transaction_id;
-			uint64_t connection_id;
-		} ConnectionResponse;
+        typedef struct udp_connection_response
+        {
+            uint32_t action;
+            uint32_t transaction_id;
+            uint64_t connection_id;
+        } ConnectionResponse;
 
-		typedef struct udp_announce_request
-		{
-			uint64_t connection_id;
-			uint32_t action;
-			uint32_t transaction_id;
-			uint8_t info_hash [20];
-			uint8_t peer_id [20];
-			uint64_t downloaded;
-			uint64_t left;
-			uint64_t uploaded;
-			uint32_t event;
-			uint32_t ip_address;
-			uint32_t key;
-			int32_t num_want;
-			uint16_t port;
-		} AnnounceRequest;
+        typedef struct udp_announce_request
+        {
+            uint64_t connection_id;
+            uint32_t action;
+            uint32_t transaction_id;
+            uint8_t info_hash [20];
+            uint8_t peer_id [20];
+            uint64_t downloaded;
+            uint64_t left;
+            uint64_t uploaded;
+            uint32_t event;
+            uint32_t ip_address;
+            uint32_t key;
+            int32_t num_want;
+            uint16_t port;
+        } AnnounceRequest;
 
-		typedef struct udp_announce_response
-		{
-			uint32_t action;
-			uint32_t transaction_id;
-			uint32_t interval;
-			uint32_t leechers;
-			uint32_t seeders;
+        typedef struct udp_announce_response
+        {
+            uint32_t action;
+            uint32_t transaction_id;
+            uint32_t interval;
+            uint32_t leechers;
+            uint32_t seeders;
 
-			uint8_t *peer_list_data;
-		} AnnounceResponse;
+            uint8_t *peer_list_data;
+        } AnnounceResponse;
 
-		typedef struct udp_scrape_request
-		{
-			uint64_t connection_id;
-			uint32_t action;
-			uint32_t transaction_id;
+        typedef struct udp_scrape_request
+        {
+            uint64_t connection_id;
+            uint32_t action;
+            uint32_t transaction_id;
 
-			uint8_t *torrent_list_data;
-		} ScrapeRequest;
+            uint8_t *torrent_list_data;
+        } ScrapeRequest;
 
-		typedef struct udp_scrape_response
-		{
-			uint32_t action;
-			uint32_t transaction_id;
+        typedef struct udp_scrape_response
+        {
+            uint32_t action;
+            uint32_t transaction_id;
 
-			uint8_t *data;
-		} ScrapeResponse;
+            uint8_t *data;
+        } ScrapeResponse;
 
-		typedef struct udp_error_response
-		{
-			uint32_t action;
-			uint32_t transaction_id;
-			char *message;
-		} ErrorResponse;
+        typedef struct udp_error_response
+        {
+            uint32_t action;
+            uint32_t transaction_id;
+            char *message;
+        } ErrorResponse;
 
-		enum StartStatus
-		{
-			START_OK = 0,
-			START_ESOCKET_FAILED = 1,
-			START_EBIND_FAILED = 2
-		};
+        enum StartStatus
+        {
+            START_OK = 0,
+            START_ESOCKET_FAILED = 1,
+            START_EBIND_FAILED = 2
+        };
 
-		/**
-		 * Initializes the UDP Tracker.
-		 * @param settings Settings to start server with
-		 */
-		UDPTracker(const boost::program_options::variables_map& conf);
+        /**
+         * Initializes the UDP Tracker.
+         * @param settings Settings to start server with
+         */
+        UDPTracker(const boost::program_options::variables_map& conf);
 
-		/**
-		 * Starts the Initialized instance.
-		 */
-		void start();
+        /**
+         * Starts the Initialized instance.
+         */
+        void start();
 
-		/** 
-		 * Terminates tracker.
-		 */
-		void stop();
+        /**
+         * Terminates tracker.
+         */
+        void stop();
 
-		/** 
-		 * Joins worker threads
-		 */
-		void wait();
+        /**
+         * Joins worker threads
+         */
+        void wait();
 
-		/**
-		 * Destroys resources that were created by constructor
-		 * @param usi Instance to destroy.
-		 */
-		virtual ~UDPTracker();
+        /**
+         * Destroys resources that were created by constructor
+         * @param usi Instance to destroy.
+         */
+        virtual ~UDPTracker();
 
-		std::shared_ptr<UDPT::Data::DatabaseDriver> m_conn;
+        std::shared_ptr<UDPT::Data::DatabaseDriver> m_conn;
 
-	private:
-		SOCKET m_sock;
-		SOCKADDR_IN m_localEndpoint;
-		uint16_t m_port;
-		uint8_t m_threadCount;
-		bool m_isDynamic;
-		bool m_allowRemotes;
-		bool m_allowIANA_IPs;
-		std::vector<boost::thread> m_threads;
-		uint32_t m_announceInterval;
-		uint32_t m_cleanupInterval;
-		boost::log::sources::severity_channel_logger_mt<> m_logger;
+    private:
+        SOCKET m_sock;
+        SOCKADDR_IN m_localEndpoint;
+        uint16_t m_port;
+        uint8_t m_threadCount;
+        bool m_isDynamic;
+        bool m_allowRemotes;
+        bool m_allowIANA_IPs;
+        std::vector<std::thread> m_threads;
+        uint32_t m_announceInterval;
+        uint32_t m_cleanupInterval;
+        std::atomic_bool m_shouldRun;
 
-		const boost::program_options::variables_map& m_conf;
+        std::mutex m_maintenanceMutex;
+        std::condition_variable m_maintenanceCondition;
 
-		static void _thread_start(UDPTracker *usi);
-		static void _maintainance_start(UDPTracker* usi);
+        const boost::program_options::variables_map& m_conf;
 
-		static int resolveRequest(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int r);
+        static void _thread_start(UDPTracker *usi);
+        static void _maintainance_start(UDPTracker* usi);
 
-		static int handleConnection(UDPTracker *usi, SOCKADDR_IN *remote, char *data);
-		static int handleAnnounce(UDPTracker *usi, SOCKADDR_IN *remote, char *data);
-		static int handleScrape(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int len);
+        static int resolveRequest(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int r);
 
-		static int sendError(UDPTracker *, SOCKADDR_IN *remote, uint32_t transId, const std::string &);
+        static int handleConnection(UDPTracker *usi, SOCKADDR_IN *remote, char *data);
+        static int handleAnnounce(UDPTracker *usi, SOCKADDR_IN *remote, char *data);
+        static int handleScrape(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int len);
 
-		static int isIANAIP(uint32_t ip);
-	};
+        static int sendError(UDPTracker *, SOCKADDR_IN *remote, uint32_t transId, const std::string &);
+
+        static int isIANAIP(uint32_t ip);
+    };
 };
 
 #endif /* UDPTRACKER_H_ */

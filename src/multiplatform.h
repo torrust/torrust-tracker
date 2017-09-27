@@ -1,5 +1,5 @@
 /*
- *	Copyright © 2012-2016 Naim A.
+ *	Copyright © 2012-2017 Naim A.
  *
  *	This file is part of UDPT.
  *
