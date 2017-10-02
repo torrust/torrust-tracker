@@ -14,7 +14,7 @@ UDPT
     udpt.conf
     restapi.rst
 
-UDPT is a lightweight UDP torrent tracker written in C++, it implements BEP15_ of the BitTorrent protocol.
+UDPT_ is a lightweight UDP torrent tracker written in C++, it implements BEP15_ of the BitTorrent protocol.
 This project was developed with simplicity and security in mind.
 Unlike most tracker, UDPT will save you bandwidth from all that TCP overhead.
 
@@ -44,14 +44,15 @@ Feel free to submit `issues <https://github.com/naim94a/udpt/issues>`_, `PRs <ht
 .. seealso:: `CONTRIBUTING <https://github.com/naim94a/udpt/blob/master/.github/CONTRIBUTING.md>`_
 
 .. image:: _static/bitcoin-qr.png
-    :alt: bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3
+    :alt: bitcoin://1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3
 
-`bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3 <bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3>`_
+`bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3 <bitcoin://1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3>`_
 
 Author
 ------
 UDPT's development started November 20th, 2012 by Naim A. (`@naim94a`_).
 
+.. _UDPT: https://github.com/naim94a/udpt
 .. _BEP15: http://www.bittorrent.org/beps/bep_0015.html
 .. _GPLv3: https://www.gnu.org/licenses/gpl-3.0.en.html
 .. _BOOST LICENSE: http://www.boost.org/LICENSE_1_0.txt

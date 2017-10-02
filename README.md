@@ -38,4 +38,4 @@ And finally:
 UDPT was developed by [Naim A.](http://www.github.com/naim94a) at for fun at his free time. 
 The development started on November 20th, 2012.
 
-If you find the project useful, please consider a donation to the following bitcoin address: <a href="bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3">1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3</a>.
+If you find the project useful, please consider a donation to the following bitcoin address: <a href="bitcoin://1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3">1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3</a>.

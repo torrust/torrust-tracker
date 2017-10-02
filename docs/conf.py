@@ -80,7 +80,7 @@ html_show_sourcelink = False
 # documentation.
 #
 html_theme_options = {
-    'canonical_url': 'https://naim94a.github.io/udpt',
+    'canonical_url': 'https://naim94a.github.io/udpt/',
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
