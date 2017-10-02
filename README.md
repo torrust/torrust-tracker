@@ -30,7 +30,7 @@ And finally:
 </pre>
 
 ### Links
-* Documentation can be found at our wiki: https://github.com/naim94a/udpt/wiki
+* UDPT's documentation can be found in the docs directory, or the rendered version at [naim94a.github.io/udpt](https://naim94a.github.io/udpt). 
 * If you have any suggestions or find any bugs, please report them here: https://github.com/naim94a/udpt/issues
 * Project Page: http://www.github.com/naim94a/udpt
 
