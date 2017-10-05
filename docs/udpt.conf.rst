@@ -71,7 +71,7 @@ Sections
     +---------------+---------------+-------------------+-------------------------------------------------------+
     | **Key**       | **Type**      | **Example**       | **Description**                                       |
     +---------------+---------------+-------------------+-------------------------------------------------------+
-    | chdir         | string        | /opt/udpt         | The directory to chroot to when running as a daemon.  |
+    | chdir         | string        | /opt/udpt         | The directory to chdir to when running as a daemon.   |
     +---------------+---------------+-------------------+-------------------------------------------------------+
 
 Example
@@ -100,7 +100,7 @@ Example
     port = 8081
     threads = 2
 
-    # Daemon chroot settings
+    # Daemon chdir settings
     [daemon]
     chdir = /home/udpt/
 
