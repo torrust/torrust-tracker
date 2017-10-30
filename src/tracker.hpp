@@ -23,10 +23,8 @@
 
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 
-#include "multiplatform.h"
 #include "udpTracker.hpp"
-#include "http/httpserver.hpp"
-#include "http/webapp.hpp"
+#include "WebApp.hpp"
 
 namespace UDPT
 {
@@ -48,8 +46,7 @@ namespace UDPT
 
     private:
         std::shared_ptr<UDPT::UDPTracker> m_udpTracker;
-        std::shared_ptr<UDPT::Server::HTTPServer> m_apiSrv;
-        std::shared_ptr<UDPT::Server::WebApp> m_webApp;
+        std::shared_ptr<UDPT::WebApp> m_webApp;
 
         Tracker();
 

@@ -19,7 +19,14 @@
 
 #include "udpTracker.hpp"
 #include "logging.hpp"
+#include "tools.h"
+#include "db/driver_sqlite.hpp"
 
+#ifdef WIN32
+
+#elif defined(__linux__) || defined(__FreeBSD__)
+#include <arpa/inet.h>
+#endif
 
 using namespace UDPT::Data;
 
@@ -38,7 +45,7 @@ namespace UDPT
         this->m_threadCount = conf["tracker.threads"].as<unsigned>() + 1;
 
         this->m_localEndpoint.sin_family = AF_INET;
-        this->m_localEndpoint.sin_port = m_hton16(m_port);
+        this->m_localEndpoint.sin_port = ::m_hton16(m_port);
         this->m_localEndpoint.sin_addr.s_addr = 0L;
 
         this->m_conn = std::shared_ptr<DatabaseDriver>(new Data::SQLite3Driver(m_conf, this->m_isDynamic));
@@ -48,14 +55,14 @@ namespace UDPT
     }
 
     void UDPTracker::start() {
-        SOCKET sock;
+        int sock;
         int r,		// saves results
             i,		// loop index
             yup;	// just to set TRUE
         std::string dbname;// saves the Database name.
 
         sock = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-        if (sock == INVALID_SOCKET)
+        if (sock == -1)
         {
             LOG_FATAL("udp-tracker", "Failed to create socket. error=" << errno);
             throw UDPT::UDPTException("Failed to create socket");
@@ -66,35 +73,33 @@ namespace UDPT
 
         {
             // don't block recvfrom for too long.
-#if defined(linux)
+#if defined(__linux__) || defined(__FreeBSD__)
             timeval timeout = { 0 };
             timeout.tv_sec = 5;
 #elif defined(WIN32)
             DWORD timeout = 5000;
-#else
-#error Unsupported OS.
 #endif
             ::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
         }
 
         this->m_localEndpoint.sin_family = AF_INET;
-        r = ::bind(sock, reinterpret_cast<SOCKADDR*>(&this->m_localEndpoint), sizeof(SOCKADDR_IN));
+        r = ::bind(sock, reinterpret_cast<struct sockaddr*>(&this->m_localEndpoint), sizeof(struct sockaddr_in));
 
-        if (r == SOCKET_ERROR)
+        if (r == -1)
         {
             LOG_FATAL("udp-tracker", "Failed to bind socket. error=" << errno);
 
-    #ifdef WIN32
+#ifdef WIN32
             ::closesocket(sock);
-    #elif defined (linux)
+#elif defined(__linux__) || defined(__FreeBSD__)
             ::close(sock);
-    #endif
+#endif
             throw UDPT::UDPTException("Failed to bind socket.");
         }
 
         this->m_sock = sock;
 
-        LOG_INFO("udp-tracker", "Tracker bound to " << inet_ntoa(this->m_localEndpoint.sin_addr));
+        LOG_INFO("udp-tracker", "Tracker bound to " << ::inet_ntoa(this->m_localEndpoint.sin_addr));
 
         // create maintainer thread.
         m_threads.push_back(std::thread(UDPTracker::_maintainance_start, this));
@@ -121,8 +126,6 @@ namespace UDPT
      * @note This method should be called only once, preferably by the main thread.
      * **/
     void UDPTracker::wait() {
-        LOG_INFO("udp-tracker", "Waiting for threads to terminate...");
-
         for (std::vector<std::thread>::iterator it = m_threads.begin(); it != m_threads.end(); ++it)
         {
             it->join();
@@ -130,14 +133,14 @@ namespace UDPT
 
         LOG_INFO("udp-tracker", "UDP Tracker terminated");
 
-#ifdef linux
+#if defined(__linux__) || defined(__FreeBSD__)
         ::close(m_sock);
-#elif defined (WIN32)
+#elif defined(WIN32)
         ::closesocket(m_sock);
 #endif
     }
 
-    int UDPTracker::sendError(UDPTracker* usi, SOCKADDR_IN* remote, uint32_t transactionID, const std::string &msg) {
+    int UDPTracker::sendError(UDPTracker* usi, struct sockaddr_in* remote, uint32_t transactionID, const std::string &msg) {
         struct udp_error_response error;
         int msg_sz,	// message size to send.
             i;		// copy loop
@@ -159,14 +162,14 @@ namespace UDPT
             buff[i] = msg[i - 8];
         }
 
-        ::sendto(usi->m_sock, buff, msg_sz, 0, reinterpret_cast<SOCKADDR*>(remote), sizeof(*remote));
+        ::sendto(usi->m_sock, buff, msg_sz, 0, reinterpret_cast<struct sockaddr*>(remote), sizeof(*remote));
 
-        LOG_DEBUG("udp-tracker", "Error sent to " << inet_ntoa(remote->sin_addr) << ", '" << msg << "' (len=" << msg_sz << ")");
+        LOG_DEBUG("udp-tracker", "Error sent to " << ::inet_ntoa(remote->sin_addr) << ", '" << msg << "' (len=" << msg_sz << ")");
 
         return 0;
     }
 
-    int UDPTracker::handleConnection(UDPTracker *usi, SOCKADDR_IN *remote, char *data) {
+    int UDPTracker::handleConnection(UDPTracker *usi, struct sockaddr_in *remote, char *data) {
         ConnectionRequest *req = reinterpret_cast<ConnectionRequest*>(data);
         ConnectionResponse resp;
 
@@ -180,12 +183,12 @@ namespace UDPT
             return 1;
         }
 
-        ::sendto(usi->m_sock, (char*)&resp, sizeof(ConnectionResponse), 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
+        ::sendto(usi->m_sock, (char*)&resp, sizeof(ConnectionResponse), 0, reinterpret_cast<struct sockaddr*>(remote), sizeof(struct sockaddr_in));
 
         return 0;
     }
 
-    int UDPTracker::handleAnnounce(UDPTracker *usi, SOCKADDR_IN *remote, char *data) {
+    int UDPTracker::handleAnnounce(UDPTracker *usi, struct sockaddr_in *remote, char *data) {
         AnnounceRequest *req;
         AnnounceResponse *resp;
         int q,		// peer counts
@@ -288,8 +291,8 @@ namespace UDPT
 
             }
         }
-        ::sendto(usi->m_sock, (char*)buff, bSize, 0, (SOCKADDR*)remote, sizeof(SOCKADDR_IN));
-        LOG_DEBUG("udp-tracker", "Announce request from " << inet_ntoa(remote->sin_addr) << " (event=" << event << "), Sent " << q << " peers");
+        ::sendto(usi->m_sock, (char*)buff, bSize, 0, reinterpret_cast<struct sockaddr*>(remote), sizeof(struct sockaddr_in));
+        LOG_DEBUG("udp-tracker", "Announce request from " << ::inet_ntoa(remote->sin_addr) << " (event=" << event << "), Sent " << q << " peers");
 
         // update DB.
         uint32_t ip;
@@ -303,7 +306,7 @@ namespace UDPT
         return 0;
     }
 
-    int UDPTracker::handleScrape(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int len) {
+    int UDPTracker::handleScrape(UDPTracker *usi, struct sockaddr_in *remote, char *data, int len) {
         ScrapeRequest *sR = reinterpret_cast<ScrapeRequest*>(data);
         int v,	// validation helper
             c,	// torrent counter
@@ -325,7 +328,7 @@ namespace UDPT
                 m_hton32(remote->sin_addr.s_addr),
                 m_hton16(remote->sin_port)))
         {
-            LOG_DEBUG("udp-tracker", "Bad connection id from " << inet_ntoa(remote->sin_addr));
+            LOG_DEBUG("udp-tracker", "Bad connection id from " << ::inet_ntoa(remote->sin_addr));
             return 1;
         }
 
@@ -362,8 +365,8 @@ namespace UDPT
             *leechers = m_hton32(tE.leechers);
         }
 
-        ::sendto(usi->m_sock, reinterpret_cast<const char*>(buffer), sizeof(buffer), 0, reinterpret_cast<SOCKADDR*>(remote), sizeof(SOCKADDR_IN));
-        LOG_DEBUG("udp-tracker", "Scrape request from " << inet_ntoa(remote->sin_addr) << ", Sent " << c << " torrents");
+        ::sendto(usi->m_sock, reinterpret_cast<const char*>(buffer), sizeof(buffer), 0, reinterpret_cast<struct sockaddr*>(remote), sizeof(struct sockaddr_in));
+        LOG_DEBUG("udp-tracker", "Scrape request from " << ::inet_ntoa(remote->sin_addr) << ", Sent " << c << " torrents");
 
         return 0;
     }
@@ -375,7 +378,7 @@ namespace UDPT
         return 0;
     }
 
-    int UDPTracker::resolveRequest(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int r) {
+    int UDPTracker::resolveRequest(UDPTracker *usi, struct sockaddr_in *remote, char *data, int r) {
         ConnectionRequest* cR = reinterpret_cast<ConnectionRequest*>(data);
         uint32_t action;
 
@@ -385,7 +388,7 @@ namespace UDPT
         {
             if (isIANAIP(remote->sin_addr.s_addr))
             {
-                LOG_DEBUG("udp-tracker", "Request from IANA reserved IP rejected (" << inet_ntoa(remote->sin_addr) << ")");
+                LOG_DEBUG("udp-tracker", "Request from IANA reserved IP rejected (" << ::inet_ntoa(remote->sin_addr) << ")");
                 return 0;	// Access Denied: IANA reserved IP.
             }
         }
@@ -404,21 +407,17 @@ namespace UDPT
     }
 
     void UDPTracker::_thread_start(UDPTracker *usi) {
-        SOCKADDR_IN remoteAddr;
+        struct sockaddr_in remoteAddr;
         char tmpBuff[UDP_BUFFER_SIZE];
 
-#ifdef linux
-        socklen_t addrSz;
-#else
-        int addrSz;
-#endif
+        unsigned int addrSz;
 
-        addrSz = sizeof(SOCKADDR_IN);
+        addrSz = sizeof(struct sockaddr_in);
 
         while (usi->m_shouldRun)
         {
             // peek into the first 12 bytes of data; determine if connection request or announce request.
-            int r = ::recvfrom(usi->m_sock, (char*)tmpBuff, UDP_BUFFER_SIZE, 0, (SOCKADDR*)&remoteAddr, &addrSz);
+            int r = ::recvfrom(usi->m_sock, (char*)tmpBuff, UDP_BUFFER_SIZE, 0, reinterpret_cast<struct sockaddr*>(&remoteAddr), &addrSz);
             if (r <= 0)
             {
                 std::this_thread::yield();
@@ -445,6 +444,6 @@ namespace UDPT
         }
 
         lk.unlock();
-        LOG_INFO("udp-tracker", "Maintenance thread " << std::this_thread::get_id() << " existed.");
+        LOG_INFO("udp-tracker", "Maintenance thread " << std::this_thread::get_id() << " exited.");
     }
 };

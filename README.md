@@ -1,41 +1,67 @@
-
 # UDPT
-The UDPT project is a BitTorrent Tracking software.
-It uses the UDP protocol (instead of the HTTP protocol) to track
-peers downloading the same software. UDPT was written according
-to [BEP 15](http://www.bittorrent.org/beps/bep_0015.html) of the BitTorrent standard.
+**UDP**-**T**racker is a torrent tracker that implements [BEP15](http://www.bittorrent.org/beps/bep_0015.html),
+the UDP torrent tracker protocol. 
 
-UDPT is designed to run on both Windows and Linux-based platform (It may run on Apple systems too).
+The UDP tracker protocol is light compared to HTTP(s) based torrent 
+trackers since  it doesnt have TCP's overhead.
 
-### License
-UDPT is released under the [GPL](http://www.gnu.org/licenses/gpl-3.0.en.html) license, a copy is included in this repository. 
-We use [SQLite3](http://www.sqlite.org/) which is public-domain, and [Boost](http://www.boost.org/) which is released under the [boost license](http://www.boost.org/LICENSE_1_0.txt).
+This project was developed with simplicity and security in mind.
+Development started November 20th, 2012 by [@naim94a](https://github.com/naim94a).
 
-### Building
-We didn't really work on creating any installer, at the moment you can just run udpt from anywhere on your filesystem.
-Building udpt is pretty straightforward, just download the project or clone the repo:
+## Features
+* UDP torrent tracking server
+* SQLite3 database, with in-memory support (volatile)
+* Choice of static or dynamic tracker modes
+* HTTP REST API
+* Logging
+* Windows Service / Linux Daemon
+* INI like configuration syntax
 
-UDPT requires the SQLite3, boost_program_options and boost_thread develpment packages to be installed.
+## Getting Started
+The easiest way is to download binaries from the [Releases Section](https://github.com/naim94a/udpt/releases),
+but releases don't get updated as often as the master branch...
 
-<pre>
-    $ git clone https://github.com/naim94a/udpt.git
-    $ cd udpt
-    $ make
-</pre>
+### Getting the code
+1. Make sure you have the following binaries, they are required to build UDPT: *All packages should be in most linux disto's official repositories*
+    * cmake
+    * make
+    * g++, gcc, ld
+    * boost_program-options, boost_system
+    * libsqlite3
+    * libevent
+    * gtest - optional
+    
+2. Obtain the code: `git clone https://github.com/naim94a/udpt.git`
 
-And finally:
+3. And start building!
+    ```sh
+    cd udpt
+    mkdir build && cd build
+    cmake ..
+    make udpt
+    ```
 
-<pre>
-    $ ./udpt
-</pre>
+4. Finally, start the server:
+    ```sh
+    ./udpt -ic ../udpt.conf
+    ```
+    Now you can get people to use your tracker at: udp://*<YOUR_IP>*:6969/
+
+You should note that the default configuration does not use a persistent database.
 
 ### Links
 * UDPT's documentation can be found in the docs directory, or the rendered version at [naim94a.github.io/udpt](https://naim94a.github.io/udpt). 
 * If you have any suggestions or find any bugs, please report them here: https://github.com/naim94a/udpt/issues
 * Project Page: http://www.github.com/naim94a/udpt
 
-### Author(s)
-UDPT was developed by [Naim A.](http://www.github.com/naim94a) at for fun at his free time. 
-The development started on November 20th, 2012.
+## How to Contribute
+**Donations** are the best way to contribute, we accept BitCoin:
 
-If you find the project useful, please consider a donation to the following bitcoin address: <a href="bitcoin://1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3">1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3</a>.
+<a href="bitcoin://1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3">bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3</a>
+
+![bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3](.github/bitcoin-qr.png)
+
+[**Issues**](https://github.com/naim94a/udpt/issues), 
+[**Pull-Requests**](https://github.com/naim94a/udpt/pulls) 
+and suggestions are welcome as well.
+See our [CONTRIBUTING](.github/CONTRIBUTING.md) page for more information.

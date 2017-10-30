@@ -45,15 +45,16 @@ Sections
 
 * **Section [apiserver]** - Settings for the backend HTTP REST service.
 
-    +-----------+-----------+---------------+-------------------------------------------+
-    | **Key**   | **Type**  | **Example**   | **Description**                           |
-    +-----------+-----------+---------------+-------------------------------------------+
-    | enable    | boolean   | *yes*         | Sets if the HTTP API should be enabled.   |
-    +-----------+-----------+---------------+-------------------------------------------+
-    | port      | int       | *8081*        | The port the HTTP API should listen on.   |
-    +-----------+-----------+---------------+-------------------------------------------+
-    | threads   | int       | *2*           | Thread allocation for the HTTP API.       |
-    +-----------+-----------+---------------+-------------------------------------------+
+    +-----------+-----------+---------------+-----------------------------------------------+
+    | **Key**   | **Type**  | **Example**   | **Description**                               |
+    +-----------+-----------+---------------+-----------------------------------------------+
+    | enable    | boolean   | *yes*         | Sets if the HTTP API should be enabled.       |
+    +-----------+-----------+---------------+-----------------------------------------------+
+    | port      | int       | *8081*        | The port the HTTP API should listen on.       |
+    +-----------+-----------+---------------+-----------------------------------------------+
+    | iface     | string    | *127.0.0.1*   | IP of interface to listen on.                 |
+    |           |           |               | Should only be accessible by a trusted client.|
+    +-----------+-----------+---------------+-----------------------------------------------+
 
 * **Section [logging]** - Logging preferences.
 
@@ -97,8 +98,8 @@ Example
     # API Server
     [apiserver]
     enable = yes
-    port = 8081
-    threads = 2
+    iface = 127.0.0.1
+    port = 1122
 
     # Daemon chdir settings
     [daemon]

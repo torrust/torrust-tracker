@@ -35,7 +35,7 @@ addressed.
 Pull requests that add new features should be first mentioned in issues in order to verify that the project owner will
 allow such changes to the project.
 
-Code in pull requests should meet the following requirements:
+Code in pull requests should meet the following standards:
 
 * Class names should be CamelCase, and the first letter should be capital.
 * Functions should be camelCase, and the first letter should be lower-case.

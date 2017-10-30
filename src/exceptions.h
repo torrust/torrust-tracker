@@ -1,34 +1,29 @@
 #pragma once
 
-#include "multiplatform.h"
+#ifdef WIN32
+#include <Windows.h>
+#endif
 
 namespace UDPT
 {
     class UDPTException
     {
     public:
-        UDPTException(const char* errorMsg, int errorCode = 0) : m_error(errorMsg), m_errorCode(errorCode)
-        {
-
+        UDPTException(const char* errorMsg, int errorCode = 0): m_error(errorMsg), m_errorCode(errorCode) {
         }
 
-        UDPTException(int errorCode = 0) : m_errorCode(errorCode), m_error("")
-        {
+        UDPTException(int errorCode = 0): m_error(""), m_errorCode(errorCode) {
         }
 
-        virtual const char* what() const
-        {
+        virtual const char* what() const {
             return m_error;
         }
 
-        virtual int getErrorCode() const
-        {
+        virtual int getErrorCode() const {
             return m_errorCode;
         }
 
-        virtual ~UDPTException()
-        {
-
+        virtual ~UDPTException() {
         }
 
     protected:

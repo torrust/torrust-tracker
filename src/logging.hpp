@@ -72,8 +72,8 @@ namespace UDPT {
 
             std::vector<std::pair<std::ostream*, UDPT::Logging::Severity>> m_outputStreams;
             UDPT::Utils::MessageQueue<struct LogEntry> m_queue;
-            std::thread m_workerThread;
             std::atomic_bool m_cleaningUp;
+            std::thread m_workerThread;
             std::mutex m_runningMutex;
             std::condition_variable m_runningCondition;
             Severity m_minLogLevel;

@@ -1,0 +1,4 @@
+#pragma once
+
+#define VERSION "2.1.0"
+#define UDPT_GIT_COMMIT @GIT_COMMIT@

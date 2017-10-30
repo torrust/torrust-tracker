@@ -17,15 +17,15 @@
  *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "driver_sqlite.hpp"
-#include "../tools.h"
 #include <ctime>
 #include <sstream>
 #include <fstream>
 #include <iostream>
 #include <cassert>
-#include <cstring> // memcpy
-#include "../multiplatform.h"
+#include <cstring>
+
+#include "driver_sqlite.hpp"
+#include "../tools.h"
 #include "../logging.hpp"
 
 using namespace std;
@@ -71,6 +71,8 @@ namespace UDPT
         {
             int r;
             bool doSetup;
+
+            LOG_INFO("db-sqlite", "compiled with sqlite " << SQLITE_VERSION << ", running with " << sqlite3_libversion());
 
             fstream fCheck;
             string filename = m_conf["db.param"].as<std::string>();
@@ -151,7 +153,7 @@ namespace UDPT
             sqlite3_stmt *stmt;
             int r, i;
 
-            to_hex_str(info_hash, hash);
+            hash_to_str(info_hash, hash);
 
             sql = "SELECT ip,port FROM 't";
             sql += hash;
@@ -195,7 +197,7 @@ namespace UDPT
             int r;
 
             char *hash = xHash;
-            to_hex_str(info_hash, hash);
+            hash_to_str(info_hash, hash);
 
             addTorrent (info_hash);
 

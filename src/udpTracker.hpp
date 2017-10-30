@@ -16,10 +16,7 @@
  *		You should have received a copy of the GNU General Public License
  *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef UDPTRACKER_H_
-#define UDPTRACKER_H_
-
+#pragma once
 
 #include <stdint.h>
 #include <chrono>
@@ -29,16 +26,20 @@
 #include <list>
 #include <ctime>
 #include <atomic>
-
 #include <thread>
-#include <boost/program_options.hpp>
 #include <mutex>
 #include <condition_variable>
 
-#include "tools.h"
+#include <boost/program_options.hpp>
+
+#ifdef WIN32
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#endif
+
 #include "exceptions.h"
-#include "multiplatform.h"
-#include "db/driver_sqlite.hpp"
+#include "db/database.hpp"
 
 #define UDPT_DYNAMIC			(0x01)	// Track Any info_hash?
 #define UDPT_ALLOW_REMOTE_IP	(0x02)	// Allow client's to send other IPs?
@@ -154,8 +155,8 @@ namespace UDPT
         std::shared_ptr<UDPT::Data::DatabaseDriver> m_conn;
 
     private:
-        SOCKET m_sock;
-        SOCKADDR_IN m_localEndpoint;
+        int m_sock;
+        struct sockaddr_in m_localEndpoint;
         uint16_t m_port;
         uint8_t m_threadCount;
         bool m_isDynamic;
@@ -174,16 +175,14 @@ namespace UDPT
         static void _thread_start(UDPTracker *usi);
         static void _maintainance_start(UDPTracker* usi);
 
-        static int resolveRequest(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int r);
+        static int resolveRequest(UDPTracker *usi, struct sockaddr_in *remote, char *data, int r);
 
-        static int handleConnection(UDPTracker *usi, SOCKADDR_IN *remote, char *data);
-        static int handleAnnounce(UDPTracker *usi, SOCKADDR_IN *remote, char *data);
-        static int handleScrape(UDPTracker *usi, SOCKADDR_IN *remote, char *data, int len);
+        static int handleConnection(UDPTracker *usi, struct sockaddr_in *remote, char *data);
+        static int handleAnnounce(UDPTracker *usi, struct sockaddr_in *remote, char *data);
+        static int handleScrape(UDPTracker *usi, struct sockaddr_in *remote, char *data, int len);
 
-        static int sendError(UDPTracker *, SOCKADDR_IN *remote, uint32_t transId, const std::string &);
+        static int sendError(UDPTracker *, struct sockaddr_in *remote, uint32_t transId, const std::string &);
 
         static int isIANAIP(uint32_t ip);
     };
 };
-
-#endif /* UDPTRACKER_H_ */

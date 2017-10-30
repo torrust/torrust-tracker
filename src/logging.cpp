@@ -101,6 +101,8 @@ namespace UDPT {
                     case Severity::FATAL:
                         sstream << "FATAL";
                         break;
+                    default:
+                        break;
                 }
 
                 sstream << " [" << entry.channel << "]\t" << entry.message;

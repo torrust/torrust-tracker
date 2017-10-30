@@ -16,9 +16,7 @@
  *		You should have received a copy of the GNU General Public License
  *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include "tools.h"
-#include "multiplatform.h"
 
 void m_byteswap (void *dest, void *src, int sz)
 {
@@ -53,7 +51,7 @@ uint32_t m_hton32 (uint32_t n)
 
 static const char hexadecimal[] = "0123456789abcdef";
 
-void to_hex_str (const uint8_t *hash, char *data)
+void hash_to_str(const uint8_t *hash, char *data)
 {
     int i;
     for (i = 0;i < 20;i++)
@@ -62,4 +60,34 @@ void to_hex_str (const uint8_t *hash, char *data)
         data[i * 2 + 1] = hexadecimal[hash[i] % 16];
     }
     data[40] = '\0';
+}
+
+static int hex_from_char(char c) {
+    if ('A' <= c && c <= 'F') {
+        return 0x0a + (c - 'A');
+    }
+    else if ('a' <= c && c <= 'f') {
+        return 0x0a + (c - 'a');
+    }
+    else if ('0' <= c && c <= '9') {
+        return c - '0';
+    }
+    else {
+        return -1;
+    }
+}
+
+int str_to_hash(const char *data, uint8_t *hash) {
+    int a, b;
+    for (int i = 0;i < 20; ++i) {
+        a = hex_from_char(data[i * 2 + 0]);
+        b = hex_from_char(data[i * 2 + 1]);
+
+        if (a == -1 || b == -1) {
+            return -1;
+        }
+
+        hash[i] = ((a & 0xff) << 8) | (b & 0xff);
+    }
+    return 0;
 }

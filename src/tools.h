@@ -16,9 +16,7 @@
  *		You should have received a copy of the GNU General Public License
  *		along with UDPT.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef TOOLS_H_
-#define TOOLS_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -41,10 +39,10 @@ uint32_t m_hton32 (uint32_t n);
 
 uint64_t m_hton64 (uint64_t n);
 
-void to_hex_str (const uint8_t *hash, char *data);
+/* NOTE: The two following methods assume that the hash is 20 bytes long */
+void hash_to_str(const uint8_t *hash, char *data);
+int str_to_hash(const char *data, uint8_t *hash);
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* TOOLS_H_ */

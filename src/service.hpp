@@ -21,7 +21,6 @@
 #include <memory>
 #include <string>
 #include <boost/program_options.hpp>
-#include "multiplatform.h"
 #include "exceptions.h"
 #include "tracker.hpp"
 

@@ -18,6 +18,7 @@
 */
 #include <iostream>
 #include <fstream>
+#include <version.h>
 #include "tracker.hpp"
 #include "logging.hpp"
 
@@ -43,11 +44,10 @@ namespace UDPT
     void Tracker::stop()
     {
         LOG_INFO("tracker", "Requesting components to terminate...");
+        if (m_webApp != nullptr) {
+            m_webApp->stop();
+        }
         m_udpTracker->stop();
-
-        // cause other components to destruct.
-        m_apiSrv = nullptr;
-        m_webApp = nullptr;
     }
 
     void Tracker::wait()
@@ -58,18 +58,23 @@ namespace UDPT
     void Tracker::start(const boost::program_options::variables_map& conf)
     {
         setupLogging(conf);
-        LOG_INFO("core", "Initializing...");
+        LOG_INFO("core", "Initializing UDPT " << VERSION << "-" << UDPT_GIT_COMMIT);
+        LOG_INFO("core", "compiled with boost " << BOOST_LIB_VERSION);
 
         m_udpTracker = std::shared_ptr<UDPTracker>(new UDPTracker(conf));
 
         if (conf["apiserver.enable"].as<bool>())
         {
-            m_apiSrv = std::shared_ptr<UDPT::Server::HTTPServer>(new UDPT::Server::HTTPServer(conf));
-            m_webApp = std::shared_ptr<UDPT::Server::WebApp>(new UDPT::Server::WebApp(m_apiSrv, m_udpTracker->m_conn.get(), conf));
-            m_webApp->deploy();
+            const std::string& listenIp = conf["apiserver.iface"].as<std::string>();
+            const uint16_t listenPort = conf["apiserver.port"].as<uint16_t>();
+            m_webApp = std::shared_ptr<UDPT::WebApp>(new WebApp(*m_udpTracker->m_conn, listenIp, listenPort));
         }
 
         m_udpTracker->start();
+
+        if (m_webApp != nullptr) {
+            m_webApp->start();
+        }
     }
     
     Tracker& Tracker::getInstance()
@@ -95,13 +100,13 @@ namespace UDPT
             ("tracker.cleanup_interval", boost::program_options::value<unsigned>()->default_value(120), "sets database cleanup interval")
 
             ("apiserver.enable", boost::program_options::value<bool>()->default_value(0), "Enable API server?")
-            ("apiserver.threads", boost::program_options::value<unsigned short>()->default_value(1), "threads for API server")
-            ("apiserver.port", boost::program_options::value<unsigned short>()->default_value(6969), "TCP port to listen on")
+            ("apiserver.iface", boost::program_options::value<std::string>()->default_value("127.0.0.1"), "IP to listen on")
+            ("apiserver.port", boost::program_options::value<uint16_t>()->default_value(6969), "TCP port to listen on")
 
             ("logging.filename", boost::program_options::value<std::string>()->default_value("/var/log/udpt.log"), "file to write logs to")
             ("logging.level", boost::program_options::value<std::string>()->default_value("warning"), "log level (fatal/error/warning/info/debug)")
 
-#ifdef linux
+#if defined(__linux__) || defined(__FreeBSD__)
             ("daemon.chdir", boost::program_options::value<std::string>()->default_value("/"), "home directory for daemon")
 #endif
 #ifdef WIN32 
@@ -140,7 +145,7 @@ namespace UDPT
         if (logFileName.length() == 0 || logFileName == "--") {
             logger.addStream(&std::cerr, real_severity);
         } else {
-            m_logStream = new ofstream(logFileName, std::ios::app | std::ios::out);
+            m_logStream = new std::ofstream(logFileName, std::ios::app | std::ios::out);
             logger.addStream(m_logStream, real_severity);
         }
 

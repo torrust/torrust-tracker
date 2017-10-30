@@ -19,7 +19,8 @@
 #include "service.hpp"
 #include <experimental/filesystem>
 
-#ifdef WIN32 
+#ifdef WIN32
+#include <windows.h>
 
 namespace UDPT
 {
