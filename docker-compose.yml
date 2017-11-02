@@ -1,0 +1,7 @@
+udpt:
+  build: .
+  ports:
+    - 6969:6969/udp
+    - 127.0.0.1:8081:8081
+  volumes:
+    - ./udpt.conf:/etc/udpt.conf:ro

@@ -68,6 +68,35 @@ This should leave you with a udpt executable file, and optionally a udpt_tests e
 
 If everything succeeded, head over to :doc:`udpt.conf` and get your tracker running!
 
+Building with Docker
+====================
+Complete working Docker workflow is possible allowing you to start hacking and building without any other requirements or dependencies. All the required libs and build tools are handled by Docker build process.
+
+Using the provided Dockerfile you can build a complete working image with all the required dependencies.
+
+If you're not familiar with Docker, better use Docker Compose to both build and run your source easy and effortlessly.
+
+From the ``docker-compose.yml`` directory, run::
+
+    docker-compose up --build
+
+Skip the ``--build`` switch to launch the last built container image without rebuilding again.
+
+The provided ``docker-compose.yml`` file is configured to:
+
+* Expose daemon's ports to host (using port's defaults). API server is only exposed on 127.0.0.1 to the Docker host.
+* Mount your host's ``udpt.conf`` from your source tree inside the container at ``/etc/udpt.conf`` (read-only).
+* Start with the ``--interactive`` switch to avoid forking to background, as required with Docker.
+
+To run udpt inside a Docker container, you need to:
+
+* Configure logging to ``/dev/stdout`` to send the program's messages to Docker's standard logging.
+* Configure API server to listen to 0.0.0.0 inside the container to be able to contact it from your development host, that is from outside the container.
+
+See the ``docker-compose.yml`` to view and tweak the launch parameters.
+
+Stop the container by ``CTRL+C``'ing it.
+
 Building for Windows
 ====================
 .. note:: This documentation is a work-in-progress. Stay tuned!

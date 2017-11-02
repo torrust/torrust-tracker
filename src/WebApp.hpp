@@ -21,6 +21,7 @@
 #include <event2/http.h>
 #include <thread>
 #include <condition_variable>
+#include <atomic>
 
 #include "db/database.hpp"
 
