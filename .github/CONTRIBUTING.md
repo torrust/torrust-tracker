@@ -20,11 +20,6 @@ New features are welcome, it doesn't mean they will enter immediately.
 
 Suggestions should be filed as issues along with bug reports, just add the "enhancement" label to the created issue.
 
-## Donations
-Please show us your appreciation by donating BitCoin at bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3. 
-
-![bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3](bitcoin-qr.png)
-
 ## Pull requests
 Before submitting a pull request, please check that the changes don't effect other platforms or have any unwanted
 side-effects.
