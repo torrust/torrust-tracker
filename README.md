@@ -55,12 +55,6 @@ You should note that the default configuration does not use a persistent databas
 * Project Page: http://www.github.com/naim94a/udpt
 
 ## How to Contribute
-**Donations** are the best way to contribute, we accept BitCoin:
-
-<a href="bitcoin://1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3">bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3</a>
-
-![bitcoin:1KMeZvcgnmWdHitu51yEFWBNcSTXL1eBk3](.github/bitcoin-qr.png)
-
 [**Issues**](https://github.com/naim94a/udpt/issues), 
 [**Pull-Requests**](https://github.com/naim94a/udpt/pulls) 
 and suggestions are welcome as well.
