@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Naim A. <227396+naim94a@users.noreply.github.com>"]
 description = "High performance torrent tracker"
 
+[profile.release]
+lto = true
+
 [dependencies]
 serde = "1.0.66"
 bincode = "1.0.0"
