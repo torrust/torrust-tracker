@@ -2,7 +2,7 @@ use std;
 use std::net::{SocketAddr, UdpSocket};
 
 use bincode;
-use serde::{Serialize, Deserialize, Serializer, Deserializer};
+use serde::{Serialize, Deserialize};
 
 use tracker;
 
@@ -22,7 +22,7 @@ enum Actions {
 }
 
 #[repr(u32)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Copy)]
 pub enum Events {
     None = 0,
     Complete = 1,
@@ -159,62 +159,119 @@ impl<'a> UDPTracker<'a> {
             return;
         }
 
-        let announce_packet: Option<UDPAnnounceRequest> = unpack(payload);
-        match announce_packet {
-            Some(packet) => {
-                let plen = bincode::serialized_size(&packet).unwrap() as usize;
-
-                println!("payload len={}, announce len={}", payload.len(), plen);
-
-                if payload.len() > plen {
-                    let bep41_payload = &payload[std::mem::size_of::<UDPAnnounceRequest>()..];
-                    println!("bep41: {:?}", bep41_payload);
-                }
-
-                if packet.ip_address != 0 {
-                    // TODO: allow configurability of ip address
-                    // for now, ignore request.
-                    return;
-                }
-
-                let client_addr = SocketAddr::new(remote_addr.ip(), packet.port);
-
-                self.tracker.update_torrent_peer(&packet.info_hash, &packet.peer_id, &client_addr, packet.uploaded, packet.downloaded, packet.left, packet.event);
-
-                let stats = self.tracker.get_stats(&packet.info_hash).unwrap_or((0, 0, 0));
-                let results = self.tracker.get_peers(&packet.info_hash, &client_addr);
-
-                if let Some(mut payload) = pack(&UDPAnnounceResponse{
-                    header: UDPResponseHeader{
-                        action: Actions::Announce,
-                        transaction_id: packet.header.transaction_id,
-                    },
-                    seeders: stats.0 as u32,
-                    interval: 20,
-                    leechers: stats.2 as u32,
-                }) {
-                    for peer in results {
-                        match client_addr {
-                            SocketAddr::V4(ipv4) => {
-                                payload.extend(&ipv4.ip().octets());
-                            },
-                            SocketAddr::V6(ipv6) => {
-                                payload.extend(&ipv6.ip().octets());
-                            }
-                        };
-
-                        let port_hton = client_addr.port().to_be();
-                        payload.extend(&[ (port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8 ]);
-                    }
-
-                } else {
-                    self.send_error(&remote_addr, &packet.header, "internal error");
-                }
-            },
+        let packet: UDPAnnounceRequest = match unpack(payload) {
+            Some(v) => v,
             None => {
                 return;
             }
+        };
+
+        let plen = bincode::serialized_size(&packet).unwrap() as usize;
+
+        println!("payload len={}, announce len={}", payload.len(), plen);
+
+        if payload.len() > plen {
+            let bep41_payload = &payload[std::mem::size_of::<UDPAnnounceRequest>()..];
+            println!("bep41: {:?}", bep41_payload);
         }
+
+        if packet.ip_address != 0 {
+            // TODO: allow configurability of ip address
+            // for now, ignore request.
+            return;
+        }
+
+        let client_addr = SocketAddr::new(remote_addr.ip(), packet.port);
+        match self.tracker.get_torrent(&packet.info_hash, |torrent: &mut tracker::TorrentEntry | -> Result<Vec<u8>, &str> {
+            if torrent.is_flagged() {
+                return Err("Torrent has been flagged.");
+            }
+            torrent.update_peer(&packet.peer_id, &client_addr, packet.uploaded, packet.downloaded, packet.left, packet.event);
+
+            let stats = torrent.get_stats();
+            let peers = torrent.get_peers(&client_addr);
+            if let Some(mut payload) = pack(&UDPAnnounceResponse {
+                header: UDPResponseHeader {
+                    action: Actions::Announce,
+                    transaction_id: packet.header.transaction_id,
+                },
+                seeders: stats.0 as u32,
+                interval: 20,
+                leechers: stats.2 as u32,
+            }) {
+                for peer in peers {
+                    match peer {
+                        SocketAddr::V4(ipv4) => {
+                            payload.extend(&ipv4.ip().octets());
+                        },
+                        SocketAddr::V6(ipv6) => {
+                            payload.extend(&ipv6.ip().octets());
+                        }
+                    };
+
+                    let port_hton = client_addr.port().to_be();
+                    payload.extend(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
+
+                    return Ok(payload);
+                }
+            }
+            return Err("");
+        }) {
+            Some(error_message) => {
+                match error_message {
+                    Err(err) => {
+                        if err.len() > 0 {
+                            self.send_error(remote_addr, header, err);
+                        }
+                    },
+                    Ok(payload) => {
+                        // send packet...
+                        let _ = self.send_packet(remote_addr, payload.as_slice());
+                    }
+                }
+            },
+            None => {
+                self.send_error(remote_addr, header, "Unregistered torrent");
+                return;
+            }
+        };
+        /*
+        if torrent.is_flagged() {
+            error = Some("Torrent was flagged");
+        } else {
+            torrent.update_peer(&packet.peer_id, &client_addr, packet.uploaded, packet.downloaded, packet.left, packet.event);
+
+            let stats = torrent.get_stats();
+            let peers = torrent.get_peers(&client_addr);
+
+            if let Some(mut payload) = pack(&UDPAnnounceResponse {
+                header: UDPResponseHeader {
+                    action: Actions::Announce,
+                    transaction_id: packet.header.transaction_id,
+                },
+                seeders: stats.0 as u32,
+                interval: 20,
+                leechers: stats.2 as u32,
+            }) {
+                for peer in peers {
+                    match peer {
+                        SocketAddr::V4(ipv4) => {
+                            payload.extend(&ipv4.ip().octets());
+                        },
+                        SocketAddr::V6(ipv6) => {
+                            payload.extend(&ipv6.ip().octets());
+                        }
+                    };
+
+                    let port_hton = client_addr.port().to_be();
+                    payload.extend(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
+                }
+            }
+        }
+
+        if let Some(error_message) = error {
+            self.send_error(remote_addr, &packet.header, error_message);
+        }*/
     }
 
     fn handle_scrape(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
