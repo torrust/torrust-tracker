@@ -49,6 +49,9 @@ but releases don't get updated as often as the master branch...
 
 You should note that the default configuration does not use a persistent database.
 
+### Docker image
+There is an official [UDPT Docker image](https://hub.docker.com/r/naim94a/udpt/) on Docker Hub, built from source automatically on each commit using an [Automated Build](https://docs.docker.com/docker-hub/builds/).
+
 ### Links
 * UDPT's documentation can be found in the docs directory, or the rendered version at [naim94a.github.io/udpt](https://naim94a.github.io/udpt). 
 * If you have any suggestions or find any bugs, please report them here: https://github.com/naim94a/udpt/issues
