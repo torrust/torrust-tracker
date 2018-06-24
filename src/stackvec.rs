@@ -12,11 +12,22 @@ impl<'a, T> StackVec<'a, T> {
             length: 0,
         }
     }
-}
 
-impl<'a, T> StackVec<'a, T> {
     pub fn len(&self) -> usize {
         self.length
+    }
+
+    pub fn as_slice(&self) -> &[T] {
+        &self.data[0..self.length]
+    }
+}
+
+impl<'a, T> Extend<T> for StackVec<'a, T> {
+    fn extend<I: IntoIterator<Item=T>>(&mut self, iter: I) {
+        for item in iter {
+            self.data[self.length] = item;
+            self.length += 1;
+        }
     }
 }
 
@@ -26,7 +37,7 @@ impl<'a> io::Write for StackVec<'a, u8> {
             // not enough space on buffer.
             return Err(io::Error::from(io::ErrorKind::WriteZero));
         }
-        let mut writable = &mut self.data[self.length..][0..buf.len()];
+        let writable = &mut self.data[self.length..][0..buf.len()];
         writable.copy_from_slice(buf);
         self.length += buf.len();
         Ok(buf.len())
@@ -51,41 +62,5 @@ mod tests {
             assert!(vec.write("Hello World!".as_bytes()).is_ok());
         }
         assert_eq!(buf[1] as char, 'e');
-    }
-
-    fn add_values<T: io::Write>(vec: &mut T) {
-        for i in 0..BUF_LEN {
-            assert!(vec.write(&[((i % 256) & 0xff) as u8]).is_ok());
-        }
-    }
-
-    use test::Bencher;
-
-    const BUF_LEN : usize = 1024 * 1024 * 1; // 10MB
-
-    #[bench]
-    fn vec_stack(bencher: &mut Bencher) {
-        bencher.iter(|| {
-            let mut buff = [0u8; BUF_LEN];
-            let mut v = StackVec::from(&mut buff);
-            add_values(&mut v);
-        });
-    }
-
-    #[bench]
-    fn vec_heap(bencher: &mut Bencher) {
-        bencher.iter(|| {
-            let mut v = Vec::new();
-
-            add_values(&mut v);
-        });
-    }
-
-    #[bench]
-    fn vec_heap_cap(bencher: &mut Bencher) {
-        bencher.iter(|| {
-            let mut v = Vec::with_capacity(BUF_LEN);
-            add_values(&mut v);
-        });
     }
 }

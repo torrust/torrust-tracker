@@ -23,3 +23,9 @@ cd udpt
 git checkout udpt-rs
 cargo build
 ```
+
+## Why was this project rewritten in rust?
+For a few reasons,
+1. Rust makes it harder to make mistakes than C/C++.
+2. Rust allows easier cross-platform development with it's powerful standard library.
+3. Integrated tests and benchmarks.

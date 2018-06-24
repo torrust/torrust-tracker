@@ -11,3 +11,6 @@ lto = true
 serde = "1.0.66"
 bincode = "1.0.0"
 serde_derive = "1.0.66"
+hyper = "0.12"
+futures = "0.1.21"
+tokio = "0.1.7"

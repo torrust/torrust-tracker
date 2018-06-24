@@ -35,7 +35,7 @@ fn pack<T: Serialize>(data: &T) -> Option<Vec<u8>> {
     bo.big_endian();
 
     match bo.serialize(data) {
-        Ok(bytes) => Some(bytes),
+        Ok(v) => Some(v),
         Err(_) => None,
     }
 }
@@ -94,13 +94,13 @@ struct UDPAnnounceResponse {
     seeders: u32,
 }
 
-pub struct UDPTracker<'a> {
+pub struct UDPTracker {
     server: std::net::UdpSocket,
-    tracker: &'a mut tracker::TorrentTracker,
+    tracker: std::sync::Arc<tracker::TorrentTracker>,
 }
 
-impl<'a> UDPTracker<'a> {
-    pub fn new<T: std::net::ToSocketAddrs>(bind_address: T, tracker: &mut tracker::TorrentTracker) -> Result<UDPTracker, std::io::Error> {
+impl UDPTracker {
+    pub fn new<T: std::net::ToSocketAddrs>(bind_address: T, tracker: std::sync::Arc<tracker::TorrentTracker>) -> Result<UDPTracker, std::io::Error> {
         let server = match UdpSocket::bind(bind_address) {
             Ok(s) => s,
             Err(e) => {
@@ -114,7 +114,7 @@ impl<'a> UDPTracker<'a> {
         })
     }
 
-    fn handle_packet(&mut self, remote_address: &SocketAddr, payload: &[u8]) {
+    fn handle_packet(&self, remote_address: &SocketAddr, payload: &[u8]) {
         let header : UDPRequestHeader = match unpack(payload) {
             Some(val) => val,
             None => {
@@ -154,7 +154,7 @@ impl<'a> UDPTracker<'a> {
         }
     }
 
-    fn handle_announce(&mut self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
+    fn handle_announce(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
         if header.connection_id != self.get_connection_id(remote_addr) {
             return;
         }
@@ -182,23 +182,31 @@ impl<'a> UDPTracker<'a> {
         }
 
         let client_addr = SocketAddr::new(remote_addr.ip(), packet.port);
-        match self.tracker.get_torrent(&packet.info_hash, |torrent: &mut tracker::TorrentEntry | -> Result<Vec<u8>, &str> {
-            if torrent.is_flagged() {
-                return Err("Torrent has been flagged.");
-            }
-            torrent.update_peer(&packet.peer_id, &client_addr, packet.uploaded, packet.downloaded, packet.left, packet.event);
 
-            let stats = torrent.get_stats();
-            let peers = torrent.get_peers(&client_addr);
-            if let Some(mut payload) = pack(&UDPAnnounceResponse {
-                header: UDPResponseHeader {
-                    action: Actions::Announce,
-                    transaction_id: packet.header.transaction_id,
-                },
-                seeders: stats.0 as u32,
-                interval: 20,
-                leechers: stats.2 as u32,
-            }) {
+        match self.tracker.update_torrent_and_get_stats(&packet.info_hash, &packet.peer_id, &client_addr, packet.uploaded, packet.downloaded, packet.left, packet.event) {
+            tracker::TorrentStats::Stats {leechers, complete, seeders} => {
+                let peers = match self.tracker.get_torrent_peers(&packet.info_hash, &client_addr) {
+                    Some(v) => v,
+                    None => {
+                        return;
+                    }
+                };
+
+                let mut payload = match pack(&UDPAnnounceResponse {
+                    header: UDPResponseHeader {
+                        action: Actions::Announce,
+                        transaction_id: packet.header.transaction_id,
+                    },
+                    seeders,
+                    interval: 20,
+                    leechers,
+                }) {
+                    Some(v) => v,
+                    None => {
+                        return;
+                    }
+                };
+
                 for peer in peers {
                     match peer {
                         SocketAddr::V4(ipv4) => {
@@ -211,70 +219,22 @@ impl<'a> UDPTracker<'a> {
 
                     let port_hton = client_addr.port().to_be();
                     payload.extend(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
+                }
 
-                    return Ok(payload);
-                }
-            }
-            return Err("");
-        }) {
-            Some(error_message) => {
-                match error_message {
-                    Err(err) => {
-                        if err.len() > 0 {
-                            self.send_error(remote_addr, header, err);
-                        }
-                    },
-                    Ok(payload) => {
-                        // send packet...
-                        let _ = self.send_packet(remote_addr, payload.as_slice());
-                    }
-                }
+                let _ = self.send_packet(&client_addr, payload.as_slice());
             },
-            None => {
-                self.send_error(remote_addr, header, "Unregistered torrent");
+            tracker::TorrentStats::TorrentFlagged => {
+                self.send_error(&client_addr, &packet.header, "torrent flagged.");
+                return;
+            },
+            tracker::TorrentStats::TorrentNotRegistered => {
+                self.send_error(&client_addr, &packet.header, "torrent not registered.");
                 return;
             }
-        };
-        /*
-        if torrent.is_flagged() {
-            error = Some("Torrent was flagged");
-        } else {
-            torrent.update_peer(&packet.peer_id, &client_addr, packet.uploaded, packet.downloaded, packet.left, packet.event);
-
-            let stats = torrent.get_stats();
-            let peers = torrent.get_peers(&client_addr);
-
-            if let Some(mut payload) = pack(&UDPAnnounceResponse {
-                header: UDPResponseHeader {
-                    action: Actions::Announce,
-                    transaction_id: packet.header.transaction_id,
-                },
-                seeders: stats.0 as u32,
-                interval: 20,
-                leechers: stats.2 as u32,
-            }) {
-                for peer in peers {
-                    match peer {
-                        SocketAddr::V4(ipv4) => {
-                            payload.extend(&ipv4.ip().octets());
-                        },
-                        SocketAddr::V6(ipv6) => {
-                            payload.extend(&ipv6.ip().octets());
-                        }
-                    };
-
-                    let port_hton = client_addr.port().to_be();
-                    payload.extend(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
-                }
-            }
         }
-
-        if let Some(error_message) = error {
-            self.send_error(remote_addr, &packet.header, error_message);
-        }*/
     }
 
-    fn handle_scrape(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
+    fn handle_scrape(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, _payload: &[u8]) {
         if header.connection_id != self.get_connection_id(remote_addr) {
             return;
         }
@@ -309,7 +269,7 @@ impl<'a> UDPTracker<'a> {
         }
     }
 
-    pub fn accept_packet(&mut self) -> Result<(), std::io::Error> {
+    pub fn accept_packet(&self) -> Result<(), std::io::Error> {
         let mut packet = [0u8; MAX_PACKET_SIZE];
         match self.server.recv_from(&mut packet) {
             Ok((size, remote_address)) => {
