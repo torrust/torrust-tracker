@@ -8,6 +8,8 @@ use std::net::SocketAddr;
 use tracker;
 use tracker::TorrentTracker;
 
+use server::Events;
+
 enum APIError {
     NoSuchMethod,
     BadAPICall,
@@ -48,7 +50,118 @@ impl WebApplication {
     }
 
     fn handle_announce(&self, request: &hyper::Request<hyper::Body>) -> Result<hyper::Response<hyper::Body>, APIError> {
-        Err(APIError::NoSuchMethod)
+        let parsed_query = match request.uri().query() {
+            Some(q) => {
+                Self::parse_query(q)
+            },
+            None => {
+                return Err(APIError::BadAPICall);
+            }
+        };
+        let info_hash = match Self::hash_from_map(&parsed_query, "info_hash") {
+            Some(v) => v,
+            None => {
+                return Err(APIError::BadAPICall);
+            }
+        };
+        let peer_id = match Self::hash_from_map(&parsed_query, "peer_id") {
+            Some(v) => v,
+            None => {
+                return Err(APIError::BadAPICall);
+            }
+        };
+        let peer_port: u16 = match Self::num_from_map(&parsed_query, "port") {
+            Some(v) => v,
+            None => {
+                return Err(APIError::BadAPICall);
+            }
+        };
+        let uploaded = match Self::num_from_map(&parsed_query, "uploaded") {
+            Some(v) => v,
+            None => {
+                return Err(APIError::BadAPICall);
+            }
+        };
+        let downloaded = match Self::num_from_map(&parsed_query, "downloaded") {
+            Some(v) => v,
+            None => {
+                return Err(APIError::BadAPICall);
+            }
+        };
+        let left = match Self::num_from_map(&parsed_query, "left") {
+            Some(v) => v,
+            None => {
+                return Err(APIError::BadAPICall);
+            }
+        };
+
+        let event = match parsed_query.get("event") {
+            Some(event_name) => {
+                if event_name.eq_ignore_ascii_case("started") {
+                    Events::Started
+                } else if event_name.eq_ignore_ascii_case("stopped") {
+                    Events::Stopped
+                } else if event_name.eq_ignore_ascii_case("completed") {
+                    Events::Complete
+                } else {
+                    return Err(APIError::BadAPICall);
+                }
+            },
+            None => Events::Started,
+        };
+        let is_compact = match parsed_query.get("compact") {
+            Some(&compact) => {
+                if compact == "1" {
+                    true
+                } else if compact == "0" {
+                    false
+                } else {
+                    return Err(APIError::BadAPICall);
+                }
+            },
+
+            // TODO: return configured default instead of false.
+            None => false
+        };
+
+        // TODO: Get IP of requester.
+        let remote_addr = std::net::SocketAddr::from(std::net::SocketAddrV4::new(std::net::Ipv4Addr::new(1, 2, 3, 4), 1212));
+        self.tracker.update_torrent_and_get_stats(&info_hash, &peer_id, &remote_addr, uploaded, downloaded, left, event);
+
+        use tracker::HexConv;
+        return Ok(hyper::Response::new(hyper::Body::from(info_hash.to_hex())))
+    }
+
+    fn hash_from_str(txt: &str) -> Option<[u8; 20]> {
+        use url::percent_encoding::percent_decode;
+
+        let bytes : Vec<u8> = percent_decode(txt.as_bytes()).collect();
+
+        match tracker::ih_from_arr(bytes.as_slice()) {
+            Some(v) => Some(*v),
+            None => None,
+        }
+    }
+
+    fn hash_from_map(map: &std::collections::HashMap<&str, &str>, key: &str) -> Option<[u8; 20]> {
+        match map.get(key) {
+            Some(v) => {
+                Self::hash_from_str(v)
+            },
+            None => None
+        }
+    }
+
+    fn num_from_map<T: std::str::FromStr>(map: &std::collections::HashMap<&str, &str>, key: &str) -> Option<T> {
+        match map.get(key) {
+            Some(v) => {
+                match v.parse::<T>() {
+                    Ok(r) => Some(r),
+                    Err(_) => None,
+                }
+            },
+            None => None,
+        }
     }
 
     fn handle_scrape(&self, request: &hyper::Request<hyper::Body>) -> Result<hyper::Response<hyper::Body>, APIError> {
@@ -268,10 +381,38 @@ impl hyper::service::NewService for WebApplication {
 }
 
 pub fn start_server(addr: SocketAddr, tracker: std::sync::Arc<TorrentTracker>, token: &str) {
-    let svc = WebApplication::new(tracker, String::from(token));
-    let server = hyper::Server::bind(&addr).serve( svc);
+    // TODO: workaround hyper not providing IP
+    // TODO: support for X-Forwarded-For HTTP Header (must be configured)
 
-    hyper::rt::run(server.map_err(|_e|{
-        println!("error: {}", _e);
-    }));
+    use tokio;
+    use futures;
+    use futures::Stream;
+    use hyper::service::NewService;
+
+    let http = hyper::server::conn::Http::new();
+    let stoken = String::from(token);
+
+    let server = tokio::net::TcpListener::bind(&addr).unwrap().incoming().for_each(move |io| {
+        let session = WebApplication::new(tracker.clone(), stoken.clone());
+
+        let svc = session.new_service().map(|v| {
+            v
+        }).wait();
+
+        match svc {
+            Ok(svc) => {
+                let conn = http.serve_connection(io, svc).map_err(|e| {
+                    println!("error: {}", e);
+                });
+                tokio::spawn(conn);
+            },
+            _ => {},
+        }
+
+        Ok(())
+    }).map_err(|e| {
+        println!("error: {}", e);
+    });
+
+    tokio::run(server);
 }

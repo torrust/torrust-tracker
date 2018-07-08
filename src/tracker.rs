@@ -31,6 +31,16 @@ pub trait HexConv {
     fn from_hex(hex: &str) -> Option<InfoHash>;
 }
 
+pub fn ih_from_arr<'a>(arr: &'a [u8]) -> Option<&'a InfoHash> {
+    if arr.len() != 20 {
+        return None;
+    }
+
+    unsafe {
+        Some(std::mem::transmute(arr.as_ptr()))
+    }
+}
+
 impl HexConv for InfoHash {
     fn to_hex(&self) -> String {
         const HEX: &[char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];

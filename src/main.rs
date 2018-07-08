@@ -3,6 +3,8 @@ extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate hyper;
 extern crate futures;
+extern crate url;
+extern crate tokio;
 
 mod server;
 mod tracker;
