@@ -1,13 +1,15 @@
 use std;
 use std::net::{SocketAddr, UdpSocket};
+use std::io::Write;
 
 use bincode;
 use serde::{Serialize, Deserialize};
 
 use tracker;
+use stackvec::StackVec;
 
-// 2000 should be enough, MTU is usually 1500
-const MAX_PACKET_SIZE: usize = 2000;
+// maximum MTU is usually 1500, but our stack allows us to allocate the maximum - so why not?
+const MAX_PACKET_SIZE: usize = 0xffff;
 
 // protocol contants
 const PROTOCOL_ID: u64 = 0x0000041727101980;
@@ -37,6 +39,16 @@ fn pack<T: Serialize>(data: &T) -> Option<Vec<u8>> {
     match bo.serialize(data) {
         Ok(v) => Some(v),
         Err(_) => None,
+    }
+}
+
+fn pack_into<T: Serialize, W: std::io::Write>(w: &mut W, data: &T) -> Result<(), ()> {
+    let mut config = bincode::config();
+    config.big_endian();
+
+    match config.serialize_into(w, data) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(()),
     }
 }
 
@@ -149,7 +161,10 @@ impl UDPTracker {
             connection_id: conn_id,
         };
 
-        if let Some(payload) = pack(&response) {
+        let mut payload_buffer = [0u8; MAX_PACKET_SIZE];
+        let mut payload = StackVec::from(&mut payload_buffer);
+
+        if let Ok(_) = pack_into(&mut payload, &response) {
             let _ = self.send_packet(remote_addr, payload.as_slice());
         }
     }
@@ -192,7 +207,10 @@ impl UDPTracker {
                     }
                 };
 
-                let mut payload = match pack(&UDPAnnounceResponse {
+                let mut payload_buffer = [0u8; MAX_PACKET_SIZE];
+                let mut payload = StackVec::from(&mut payload_buffer);
+
+                match pack_into(&mut payload,&UDPAnnounceResponse {
                     header: UDPResponseHeader {
                         action: Actions::Announce,
                         transaction_id: packet.header.transaction_id,
@@ -201,8 +219,8 @@ impl UDPTracker {
                     interval: 20,
                     leechers,
                 }) {
-                    Some(v) => v,
-                    None => {
+                    Ok(_) => {},
+                    Err(_) => {
                         return;
                     }
                 };
@@ -210,15 +228,15 @@ impl UDPTracker {
                 for peer in peers {
                     match peer {
                         SocketAddr::V4(ipv4) => {
-                            payload.extend(&ipv4.ip().octets());
+                            let _ = payload.write(&ipv4.ip().octets());
                         },
                         SocketAddr::V6(ipv6) => {
-                            payload.extend(&ipv6.ip().octets());
+                            let _ = payload.write(&ipv6.ip().octets());
                         }
                     };
 
                     let port_hton = client_addr.port().to_be();
-                    payload.extend(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
+                    let _ = payload.write(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
                 }
 
                 let _ = self.send_packet(&client_addr, payload.as_slice());
@@ -258,7 +276,10 @@ impl UDPTracker {
     }
 
     fn send_error(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, error_msg: &str) {
-        if let Some(mut payload) = pack(&UDPResponseHeader{
+        let mut payload_buffer = [0u8; MAX_PACKET_SIZE];
+        let mut payload = StackVec::from(&mut payload_buffer);
+
+        if let Ok(_) = pack_into(&mut payload, &UDPResponseHeader{
             transaction_id: header.transaction_id,
             action: Actions::Error,
         }) {
@@ -284,6 +305,7 @@ impl UDPTracker {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     #[test]
     fn pack() {
         let mystruct = super::UDPRequestHeader {
@@ -291,14 +313,12 @@ mod tests {
             action: super::Actions::Connect,
             transaction_id: 77771,
         };
-        match super::pack(&mystruct) {
-            Some(data) => {
-                println!("serialized data = [{}, {:?}]", data.len(), data);
-            },
-            None => {
-                assert!(false);
-            }
-        };
+        let mut buffer = [0u8; MAX_PACKET_SIZE];
+        let mut payload = StackVec::from(&mut buffer);
+
+        assert!(pack_into(&mut payload, &mystruct).is_ok());
+        assert_eq!(payload.len(), 16);
+        assert_eq!(payload.as_slice(), &[0, 0, 0, 0, 0, 0, 0, 200u8, 0, 0, 0, 0, 0, 1, 47, 203]);
     }
 
     #[test]
