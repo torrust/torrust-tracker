@@ -1,17 +1,13 @@
 [package]
 name = "udpt-rs"
 version = "0.1.0"
-authors = ["Naim A. <227396+naim94a@users.noreply.github.com>"]
+authors = ["Naim A. <naim94a@github.com>"]
 description = "High performance torrent tracker"
 
 [profile.release]
 lto = true
 
 [dependencies]
-serde = "1.0.66"
-bincode = "1.0.0"
-serde_derive = "1.0.66"
-hyper = "0.12"
-futures = "0.1.21"
-tokio = "0.1.7"
-url = "1.7.0"
+serde = "1.0.80"
+bincode = "1.0.1"
+serde_derive = "1.0.80"
