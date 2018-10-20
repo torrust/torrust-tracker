@@ -65,9 +65,7 @@ struct UdptState {
 }
 
 impl UdptState {
-    fn new(tracker: Arc<tracker::TorrentTracker>) -> UdptState {
-        let mut tokens = HashMap::new();
-        tokens.insert(String::from("h311o"), String::from("naim"));
+    fn new(tracker: Arc<tracker::TorrentTracker>, tokens: HashMap<String, String>) -> UdptState {
         UdptState{
             tracker,
             access_tokens: tokens,
@@ -130,7 +128,7 @@ impl actix_web::middleware::Middleware<UdptState> for UdptMiddleware {
 impl WebServer {
     pub fn new(tracker: Arc<tracker::TorrentTracker>) -> WebServer {
         let server = actix_web::server::HttpServer::new(move || {
-            actix_web::App::<UdptState>::with_state(UdptState::new(tracker.clone()))
+            actix_web::App::<UdptState>::with_state(UdptState::new(tracker.clone(), HashMap::new()))
                 .middleware(UdptMiddleware)
                 .resource("/t", |r| r.f(Self::view_torrent_list))
                 .scope(r"/t/{info_hash:[\dA-Fa-f]{40,40}}", |scope| {

@@ -13,6 +13,9 @@ fn main() {
     let tracker = std::sync::Arc::new(tracker::TorrentTracker::new());
 
     // start http server:
+    let mut access_tokens = std::collections::HashMap::new();
+    access_tokens.insert(String::from("MySpecialToken"), String::from("username"));
+
     let http_tracker_ref = tracker.clone();
     std::thread::spawn(move || {
         webserver::WebServer::new(http_tracker_ref);
