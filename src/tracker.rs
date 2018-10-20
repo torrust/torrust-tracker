@@ -2,15 +2,19 @@ use std;
 
 use server::Events;
 
+#[derive(Deserialize)]
 pub enum TrackerMode {
 
     /// In static mode torrents are tracked only if they were added ahead of time.
+    #[serde(rename="static")]
     StaticMode,
 
     /// In dynamic mode, torrents are tracked being added ahead of time.
+    #[serde(rename="dynamic")]
     DynamicMode,
 
     /// Tracker will only serve authenticated peers.
+    #[serde(rename="private")]
     PrivateMode,
 }
 
