@@ -31,16 +31,6 @@ pub trait HexConv {
     fn from_hex(hex: &str) -> Option<InfoHash>;
 }
 
-pub fn ih_from_arr<'a>(arr: &'a [u8]) -> Option<&'a InfoHash> {
-    if arr.len() != 20 {
-        return None;
-    }
-
-    unsafe {
-        Some(std::mem::transmute(arr.as_ptr()))
-    }
-}
-
 impl HexConv for InfoHash {
     fn to_hex(&self) -> String {
         const HEX: &[char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
@@ -149,17 +139,12 @@ impl TorrentEntry {
 
     pub fn get_peers(&self, remote_addr: &std::net::SocketAddr) -> Vec<std::net::SocketAddr> {
         let mut list = Vec::new();
-        for (_, peer) in self.peers.iter().filter(|e| e.1.ip.is_ipv4() == remote_addr.is_ipv4()) {
+        for (_, peer) in self.peers.iter().filter(|e| e.1.ip.is_ipv4() == remote_addr.is_ipv4()).take(74) {
             if peer.ip == *remote_addr {
                 continue;
             }
 
             list.push(peer.ip);
-
-            if list.len() >= 74 {
-                // 74 is maximum peers supported by the protocol.
-                break;
-            }
         }
         list
     }
@@ -217,7 +202,7 @@ impl TorrentTracker {
     pub fn remove_torrent(&self, info_hash: &InfoHash, force: bool) -> Result<(), ()> {
         use std::collections::btree_map::Entry;
         let mut entry_lock = self.database.torrent_peers.write().unwrap();
-        let mut torrent_entry = entry_lock.entry(*info_hash);
+        let torrent_entry = entry_lock.entry(*info_hash);
         match torrent_entry {
             Entry::Vacant(_) => {
                 // no entry, nothing to do...
@@ -245,7 +230,7 @@ impl TorrentTracker {
     }
 
     pub fn get_torrent_peers(&self, info_hash: &InfoHash, remote_addr: &std::net::SocketAddr) -> Option<Vec<std::net::SocketAddr>> {
-        let mut read_lock = self.database.torrent_peers.read().unwrap();
+        let read_lock = self.database.torrent_peers.read().unwrap();
         match read_lock.get(info_hash) {
             None => {
                 return None;
@@ -259,7 +244,7 @@ impl TorrentTracker {
     pub fn update_torrent_and_get_stats(&self, info_hash: &InfoHash, peer_id: &PeerId, remote_address: &std::net::SocketAddr, uploaded: u64, downloaded: u64, left: u64, event: Events) -> TorrentStats {
         use std::collections::btree_map::Entry;
         let mut torrent_peers = self.database.torrent_peers.write().unwrap();
-        let mut torrent_entry = match torrent_peers.entry(*info_hash) {
+        let torrent_entry = match torrent_peers.entry(*info_hash) {
             Entry::Vacant(vacant) => {
                 match self.mode {
                     TrackerMode::DynamicMode => {

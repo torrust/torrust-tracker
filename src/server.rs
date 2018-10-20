@@ -181,13 +181,13 @@ impl UDPTracker {
             }
         };
 
-        let plen = bincode::serialized_size(&packet).unwrap() as usize;
+        if let Ok(_plen) = bincode::serialized_size(&packet) {
+            let plen = _plen as usize;
+            if payload.len() > plen {
+                let bep41_payload = &payload[plen..];
 
-        println!("payload len={}, announce len={}", payload.len(), plen);
-
-        if payload.len() > plen {
-            let bep41_payload = &payload[std::mem::size_of::<UDPAnnounceRequest>()..];
-            println!("bep41: {:?}", bep41_payload);
+                // TODO: process BEP0041 payload.
+            }
         }
 
         if packet.ip_address != 0 {
