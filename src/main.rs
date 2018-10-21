@@ -1,3 +1,6 @@
+#![forbid(unsafe_code)]
+
+extern crate clap;
 extern crate bincode;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
@@ -13,7 +16,15 @@ mod config;
 use config::Configuration;
 
 fn main() {
-    let cfg = match Configuration::load_file("udpt.toml") {
+    let parser = clap::App::new("udpt")
+        .about("High performance, lightweight, udp based torrent tracker.")
+        .author("Naim A. <naim94a@gmail.com>")
+        .arg(clap::Arg::with_name("config").takes_value(true).short("-c").help("Configuration file to load.").required(true));
+
+    let matches = parser.get_matches();
+    let cfg_path = matches.value_of("config").unwrap();
+
+    let cfg = match Configuration::load_file(cfg_path) {
         Ok(v) => std::sync::Arc::new(v),
         Err(e) => {
             eprintln!("failed to open configuration: {}", e);
