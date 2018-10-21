@@ -34,16 +34,6 @@ pub enum Events {
     Stopped = 3,
 }
 
-fn pack<T: Serialize>(data: &T) -> Option<Vec<u8>> {
-    let mut bo = bincode::config();
-    bo.big_endian();
-
-    match bo.serialize(data) {
-        Ok(v) => Some(v),
-        Err(_) => None,
-    }
-}
-
 fn pack_into<T: Serialize, W: std::io::Write>(w: &mut W, data: &T) -> Result<(), ()> {
     let mut config = bincode::config();
     config.big_endian();
@@ -190,7 +180,7 @@ impl UDPTracker {
         if let Ok(_plen) = bincode::serialized_size(&packet) {
             let plen = _plen as usize;
             if payload.len() > plen {
-                let bep41_payload = &payload[plen..];
+                let _bep41_payload = &payload[plen..];
 
                 // TODO: process BEP0041 payload.
             }
@@ -205,7 +195,7 @@ impl UDPTracker {
         let client_addr = SocketAddr::new(remote_addr.ip(), packet.port);
 
         match self.tracker.update_torrent_and_get_stats(&packet.info_hash, &packet.peer_id, &client_addr, packet.uploaded, packet.downloaded, packet.left, packet.event) {
-            tracker::TorrentStats::Stats {leechers, complete, seeders} => {
+            tracker::TorrentStats::Stats {leechers, complete: _, seeders} => {
                 let peers = match self.tracker.get_torrent_peers(&packet.info_hash, &client_addr) {
                     Some(v) => v,
                     None => {

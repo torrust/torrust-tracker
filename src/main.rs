@@ -24,7 +24,7 @@ fn main() {
     let tracker = std::sync::Arc::new(tracker::TorrentTracker::new(cfg.get_mode().clone()));
 
     // start http server:
-    if let Some(http_cfg) = cfg.get_http_config() {
+    if cfg.get_http_config().is_some() {
         let http_tracker_ref = tracker.clone();
         let cfg_ref = cfg.clone();
         std::thread::spawn(move || {

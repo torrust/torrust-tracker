@@ -1,7 +1,6 @@
 use std;
 use std::collections::HashMap;
 use toml;
-use serde;
 pub use tracker::TrackerMode;
 
 #[derive(Deserialize)]
@@ -51,7 +50,6 @@ pub enum ConfigError {
 
 impl std::fmt::Display for ConfigError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        use std::fmt::Display;
         match self {
             ConfigError::IOError(e) => e.fmt(formatter),
             ConfigError::ParseError(e) => e.fmt(formatter),

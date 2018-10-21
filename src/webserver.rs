@@ -118,7 +118,7 @@ impl actix_web::middleware::Middleware<UdptState> for UdptMiddleware {
         Ok(actix_web::middleware::Started::Done)
     }
 
-    fn response(&self, req: &actix_web::HttpRequest<UdptState>, mut resp: actix_web::HttpResponse) -> actix_web::Result<actix_web::middleware::Response> {
+    fn response(&self, _req: &actix_web::HttpRequest<UdptState>, mut resp: actix_web::HttpResponse) -> actix_web::Result<actix_web::middleware::Response> {
         resp.headers_mut()
             .insert(actix_web::http::header::SERVER, actix_web::http::header::HeaderValue::from_static(SERVER));
 
@@ -176,7 +176,7 @@ impl WebServer {
         WebServer{}
     }
 
-    fn view_root(req: &actix_web::HttpRequest<UdptState>) -> actix_web::HttpResponse {
+    fn view_root(_req: &actix_web::HttpRequest<UdptState>) -> actix_web::HttpResponse {
         actix_web::HttpResponse::build(actix_web::http::StatusCode::OK)
             .content_type("text/html")
             .body(r#"Powered by <a href="https://github.com/naim94a/udpt">https://github.com/naim94a/udpt</a>"#)

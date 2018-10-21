@@ -196,7 +196,7 @@ impl TorrentTracker {
                 ve.insert(TorrentEntry::new());
                 return Ok(());
             },
-            std::collections::btree_map::Entry::Occupied(entry) => {
+            std::collections::btree_map::Entry::Occupied(_entry) => {
                 return Err(());
             }
         }
