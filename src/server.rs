@@ -1,4 +1,5 @@
 use std;
+use std::sync::Arc;
 use std::net::{SocketAddr, UdpSocket};
 use std::io::Write;
 
@@ -7,6 +8,7 @@ use serde::{Serialize, Deserialize};
 
 use tracker;
 use stackvec::StackVec;
+use config::Configuration;
 
 // maximum MTU is usually 1500, but our stack allows us to allocate the maximum - so why not?
 const MAX_PACKET_SIZE: usize = 0xffff;
@@ -109,11 +111,14 @@ struct UDPAnnounceResponse {
 pub struct UDPTracker {
     server: std::net::UdpSocket,
     tracker: std::sync::Arc<tracker::TorrentTracker>,
+    config: Arc<Configuration>,
 }
 
 impl UDPTracker {
-    pub fn new<T: std::net::ToSocketAddrs>(bind_address: T, tracker: std::sync::Arc<tracker::TorrentTracker>) -> Result<UDPTracker, std::io::Error> {
-        let server = match UdpSocket::bind(bind_address) {
+    pub fn new(config: Arc<Configuration>, tracker: std::sync::Arc<tracker::TorrentTracker>) -> Result<UDPTracker, std::io::Error> {
+        let cfg = config.clone();
+
+        let server = match UdpSocket::bind(cfg.get_udp_config().get_address()) {
             Ok(s) => s,
             Err(e) => {
                 return Err(e);
@@ -123,6 +128,7 @@ impl UDPTracker {
         Ok(UDPTracker{
             server,
             tracker,
+            config: cfg,
         })
     }
 
@@ -216,7 +222,7 @@ impl UDPTracker {
                         transaction_id: packet.header.transaction_id,
                     },
                     seeders,
-                    interval: 20,
+                    interval: self.config.get_udp_config().get_announce_interval(),
                     leechers,
                 }) {
                     Ok(_) => {},

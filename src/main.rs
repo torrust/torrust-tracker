@@ -14,27 +14,25 @@ use config::Configuration;
 
 fn main() {
     let cfg = match Configuration::load_file("udpt.toml") {
-        Ok(v) => v,
+        Ok(v) => std::sync::Arc::new(v),
         Err(e) => {
             eprintln!("failed to open configuration: {}", e);
             return;
         }
     };
 
-
-    let tracker = std::sync::Arc::new(tracker::TorrentTracker::new());
+    let tracker = std::sync::Arc::new(tracker::TorrentTracker::new(cfg.get_mode().clone()));
 
     // start http server:
-    let mut access_tokens = std::collections::HashMap::new();
-    access_tokens.insert(String::from("MySpecialToken"), String::from("username"));
+    if let Some(http_cfg) = cfg.get_http_config() {
+        let http_tracker_ref = tracker.clone();
+        let cfg_ref = cfg.clone();
+        std::thread::spawn(move || {
+            webserver::WebServer::new(http_tracker_ref, cfg_ref);
+        });
+    }
 
-    let http_tracker_ref = tracker.clone();
-    std::thread::spawn(move || {
-        webserver::WebServer::new(http_tracker_ref);
-    });
-
-    let addr = "0.0.0.0:1212";
-    let s = std::sync::Arc::new(server::UDPTracker::new(addr, tracker.clone()).unwrap());
+    let s = std::sync::Arc::new(server::UDPTracker::new(cfg, tracker.clone()).unwrap());
 
     loop {
         match s.accept_packet() {

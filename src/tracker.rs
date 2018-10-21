@@ -2,7 +2,7 @@ use std;
 
 use server::Events;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub enum TrackerMode {
 
     /// In static mode torrents are tracked only if they were added ahead of time.
@@ -179,9 +179,9 @@ pub enum TorrentStats {
 }
 
 impl TorrentTracker {
-    pub fn new() -> TorrentTracker {
+    pub fn new(mode: TrackerMode) -> TorrentTracker {
         TorrentTracker{
-            mode: TrackerMode::DynamicMode,
+            mode,
             database: TorrentDatabase{
                 torrent_peers: std::sync::RwLock::new(std::collections::BTreeMap::new()),
             }

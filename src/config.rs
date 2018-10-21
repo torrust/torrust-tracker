@@ -7,7 +7,17 @@ pub use tracker::TrackerMode;
 #[derive(Deserialize)]
 pub struct UDPConfig {
     bind_address: String,
-    mode: TrackerMode,
+    announce_interval: u32,
+}
+
+impl UDPConfig {
+    pub fn get_address(&self) -> &str {
+        self.bind_address.as_str()
+    }
+
+    pub fn get_announce_interval(&self) -> u32 {
+        self.announce_interval
+    }
 }
 
 #[derive(Deserialize)]
@@ -16,8 +26,19 @@ pub struct HTTPConfig {
     access_tokens: HashMap<String, String>,
 }
 
+impl HTTPConfig {
+    pub fn get_address(&self) -> &str {
+        self.bind_address.as_str()
+    }
+
+    pub fn get_access_tokens(&self) -> &HashMap<String, String> {
+        &self.access_tokens
+    }
+}
+
 #[derive(Deserialize)]
 pub struct Configuration {
+    mode: TrackerMode,
     udp: UDPConfig,
     http: Option<HTTPConfig>,
 }
@@ -39,7 +60,6 @@ impl std::fmt::Display for ConfigError {
 }
 impl std::error::Error for ConfigError {}
 
-
 impl Configuration {
     pub fn load(data: &[u8]) -> Result<Configuration, toml::de::Error> {
         toml::from_slice(data)
@@ -56,14 +76,27 @@ impl Configuration {
             }
         }
     }
+
+    pub fn get_mode(&self) -> &TrackerMode {
+        &self.mode
+    }
+
+    pub fn get_udp_config(&self) -> &UDPConfig {
+        &self.udp
+    }
+
+    pub fn get_http_config(&self) -> &Option<HTTPConfig> {
+        &self.http
+    }
 }
 
 impl Default for Configuration {
     fn default() -> Configuration {
         Configuration{
+            mode: TrackerMode::DynamicMode,
             udp: UDPConfig{
+                announce_interval: 120,
                 bind_address: String::from("0.0.0.0:6969"),
-                mode: TrackerMode::DynamicMode,
             },
             http: None,
         }

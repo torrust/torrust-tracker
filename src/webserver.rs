@@ -4,6 +4,7 @@ use std::sync::Arc;
 use actix_web;
 use binascii;
 
+use config;
 use tracker;
 
 const SERVER: &str = concat!("udpt/", env!("CARGO_PKG_VERSION"));
@@ -126,9 +127,25 @@ impl actix_web::middleware::Middleware<UdptState> for UdptMiddleware {
 }
 
 impl WebServer {
-    pub fn new(tracker: Arc<tracker::TorrentTracker>) -> WebServer {
+    fn get_access_tokens(cfg: &config::HTTPConfig, tokens: &mut HashMap<String, String>) {
+        for (user, token) in cfg.get_access_tokens().iter() {
+            tokens.insert(token.clone(), user.clone());
+        }
+    }
+
+    pub fn new(tracker: Arc<tracker::TorrentTracker>, cfg: Arc<config::Configuration>) -> WebServer {
+        let cfg_cp = cfg.clone();
+
         let server = actix_web::server::HttpServer::new(move || {
-            actix_web::App::<UdptState>::with_state(UdptState::new(tracker.clone(), HashMap::new()))
+            let mut access_tokens = HashMap::new();
+
+            if let Some(http_cfg) = cfg_cp.get_http_config() {
+                Self::get_access_tokens(http_cfg, &mut access_tokens);
+            }
+
+            let state = UdptState::new(tracker.clone(), access_tokens);
+
+            actix_web::App::<UdptState>::with_state(state)
                 .middleware(UdptMiddleware)
                 .resource("/t", |r| r.f(Self::view_torrent_list))
                 .scope(r"/t/{info_hash:[\dA-Fa-f]{40,40}}", |scope| {
@@ -141,13 +158,19 @@ impl WebServer {
                 .resource("/", |r| r.method(actix_web::http::Method::GET).f(Self::view_root))
         });
 
-        match server.bind("0.0.0.0:1212") {
-            Ok(v) => {
-                v.run();
-            },
-            Err(_) => {
-                eprintln!("failed to bind server");
+        if let Some(http_cfg) = cfg.get_http_config() {
+            let bind_addr = http_cfg.get_address();
+            match server.bind(bind_addr) {
+                Ok(v) => {
+                    v.run();
+                },
+                Err(_) => {
+                    eprintln!("failed to bind server");
+                }
             }
+        }
+        else {
+            unreachable!();
         }
 
         WebServer{}
