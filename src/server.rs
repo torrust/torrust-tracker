@@ -126,6 +126,7 @@ impl UDPTracker {
         let header : UDPRequestHeader = match unpack(payload) {
             Some(val) => val,
             None => {
+                trace!("failed to parse packet from {}", remote_address);
                 return;
             }
         };
@@ -135,6 +136,7 @@ impl UDPTracker {
             Actions::Announce => self.handle_announce(remote_address, &header, payload),
             Actions::Scrape => self.handle_scrape(remote_address, &header, payload),
             _ => {
+                trace!("invalid action from {}", remote_address);
                 // someone is playing around... ignore request.
                 return;
             }
@@ -143,6 +145,7 @@ impl UDPTracker {
 
     fn handle_connect(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, _payload: &[u8]) {
         if header.connection_id != PROTOCOL_ID {
+            trace!("Bad protocol magic from {}", remote_addr);
             return;
         }
 
@@ -173,6 +176,7 @@ impl UDPTracker {
         let packet: UDPAnnounceRequest = match unpack(payload) {
             Some(v) => v,
             None => {
+                trace!("failed to unpack announce request from {}", remote_addr);
                 return;
             }
         };
@@ -180,15 +184,17 @@ impl UDPTracker {
         if let Ok(_plen) = bincode::serialized_size(&packet) {
             let plen = _plen as usize;
             if payload.len() > plen {
-                let _bep41_payload = &payload[plen..];
+                let bep41_payload = &payload[plen..];
 
                 // TODO: process BEP0041 payload.
+                trace!("BEP0041 payload of {} bytes from {}", bep41_payload.len(), remote_addr);
             }
         }
 
         if packet.ip_address != 0 {
             // TODO: allow configurability of ip address
             // for now, ignore request.
+            trace!("announce request for other IP ignored. (from {})", remote_addr);
             return;
         }
 
@@ -290,6 +296,7 @@ impl UDPTracker {
         let mut packet = [0u8; MAX_PACKET_SIZE];
         match self.server.recv_from(&mut packet) {
             Ok((size, remote_address)) => {
+                debug!("Received {} bytes from {}", size, remote_address);
                 self.handle_packet(&remote_address, &packet[..size]);
 
                 Ok(())

@@ -7,6 +7,9 @@ extern crate serde;
 extern crate actix_web;
 extern crate binascii;
 extern crate toml;
+#[macro_use] extern crate log;
+extern crate fern;
+extern crate num_cpus;
 
 mod server;
 mod tracker;
@@ -14,6 +17,28 @@ mod stackvec;
 mod webserver;
 mod config;
 use config::Configuration;
+
+fn setup_logging(cfg: &Configuration) {
+    if let Err(err) = fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(
+                format_args!(
+                    "{}[{}][{}]\t{}",
+                    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs(),
+                    record.target(),
+                    record.level(),
+                    message
+                )
+            )
+        })
+        .level(log::LevelFilter::Trace)
+        .chain(std::io::stdout())
+        .apply() {
+        eprintln!("udpt: failed to initialize logging. {}", err);
+        std::process::exit(-1);
+    }
+    info!("logging initialized.");
+}
 
 fn main() {
     let parser = clap::App::new("udpt")
@@ -27,10 +52,12 @@ fn main() {
     let cfg = match Configuration::load_file(cfg_path) {
         Ok(v) => std::sync::Arc::new(v),
         Err(e) => {
-            eprintln!("failed to open configuration: {}", e);
+            eprintln!("udpt: failed to open configuration: {}", e);
             return;
         }
     };
+
+    setup_logging(&cfg);
 
     let tracker = std::sync::Arc::new(tracker::TorrentTracker::new(cfg.get_mode().clone()));
 
@@ -43,14 +70,28 @@ fn main() {
         });
     }
 
-    let s = std::sync::Arc::new(server::UDPTracker::new(cfg, tracker.clone()).unwrap());
+    let udp_server = std::sync::Arc::new(server::UDPTracker::new(cfg, tracker.clone()).unwrap());
 
-    loop {
-        match s.accept_packet() {
-            Err(e) => {
-                println!("error: {}", e);
-            },
-            Ok(_) => {},
+    trace!("Waiting for UDP packets");
+    let logical_cpus = num_cpus::get();
+    let mut threads = Vec::with_capacity(logical_cpus);
+    for _ in 0..logical_cpus {
+        let server_handle = udp_server.clone();
+        threads.push(std::thread::spawn(move || {
+            loop {
+                match server_handle.accept_packet() {
+                    Err(e) => {
+                        error!("Failed to process packet. {}", e);
+                    },
+                    Ok(_) => {},
+                }
+            }
+        }));
+    }
+
+    while !threads.is_empty() {
+        if let Some(thread) = threads.pop() {
+            let _ = thread.join();
         }
     }
 }

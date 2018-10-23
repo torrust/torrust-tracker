@@ -96,7 +96,10 @@ impl UdptRequestState {
             Option::Some(state) => {
                 match state.current_user {
                     Option::Some(ref v) => Option::Some(v.clone()),
-                    None => None,
+                    None => {
+                        error!("Invalid API token from {} @ {}", req.peer_addr().unwrap(), req.path());
+                        return None;
+                    },
                 }
             }
         }
@@ -131,6 +134,9 @@ impl WebServer {
         for (user, token) in cfg.get_access_tokens().iter() {
             tokens.insert(token.clone(), user.clone());
         }
+        if tokens.len() == 0 {
+            warn!("No access tokens provided. HTTP API will not be useful.");
+        }
     }
 
     pub fn new(tracker: Arc<tracker::TorrentTracker>, cfg: Arc<config::Configuration>) -> WebServer {
@@ -164,8 +170,8 @@ impl WebServer {
                 Ok(v) => {
                     v.run();
                 },
-                Err(_) => {
-                    eprintln!("failed to bind server");
+                Err(err) => {
+                    error!("Failed to bind http server. {}", err);
                 }
             }
         }
@@ -303,14 +309,15 @@ impl WebServer {
 
         let path: actix_web::Path<String> = match actix_web::Path::extract(req) {
             Ok(v) => v,
-            Err(_) => {
+            Err(err) => {
                 return actix_web::HttpResponse::build(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR)
                     .json(http_responses::APIResponse::Error(String::from("internal_error")));
             }
         };
 
+        let info_hash_str = &(*path);
         let mut info_hash = [0u8; 20];
-        if let Err(_) = binascii::hex2bin((*path).as_bytes(), &mut info_hash) {
+        if let Err(_) = binascii::hex2bin(info_hash_str.as_bytes(), &mut info_hash) {
             return actix_web::HttpResponse::build(actix_web::http::StatusCode::BAD_REQUEST)
                 .json(http_responses::APIResponse::Error(String::from("invalid_info_hash")));
         }
@@ -318,16 +325,19 @@ impl WebServer {
         match action.as_str() {
             "flag" => {
                 app_state.tracker.set_torrent_flag(&info_hash, true);
+                info!("Flagged {}", info_hash_str.as_str());
                 return actix_web::HttpResponse::build(actix_web::http::StatusCode::OK)
                     .body("")
             },
             "unflag" => {
                 app_state.tracker.set_torrent_flag(&info_hash, false);
+                info!("Unflagged {}", info_hash_str.as_str());
                 return actix_web::HttpResponse::build(actix_web::http::StatusCode::OK)
                     .body("")
             },
             "add" => {
                 let success = app_state.tracker.add_torrent(&info_hash).is_ok();
+                info!("Added {}, success={}", info_hash_str.as_str(), success);
                 let code = if success { actix_web::http::StatusCode::OK } else { actix_web::http::StatusCode::INTERNAL_SERVER_ERROR };
 
                 return actix_web::HttpResponse::build(code)
@@ -335,12 +345,14 @@ impl WebServer {
             },
             "remove" => {
                 let success = app_state.tracker.remove_torrent(&info_hash, true).is_ok();
+                info!("Removed {}, success={}", info_hash_str.as_str(), success);
                 let code = if success { actix_web::http::StatusCode::OK } else { actix_web::http::StatusCode::INTERNAL_SERVER_ERROR };
 
                 return actix_web::HttpResponse::build(code)
                     .body("")
             },
             _ => {
+                debug!("Invalid action {}", action.as_str());
                 return actix_web::HttpResponse::build(actix_web::http::StatusCode::BAD_REQUEST)
                     .json(http_responses::APIResponse::Error(String::from("invalid_action")));
             }
