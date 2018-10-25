@@ -40,6 +40,7 @@ pub struct Configuration {
     mode: TrackerMode,
     udp: UDPConfig,
     http: Option<HTTPConfig>,
+    log_level: Option<String>,
 }
 
 #[derive(Debug)]
@@ -83,6 +84,10 @@ impl Configuration {
         &self.udp
     }
 
+    pub fn get_log_level(&self) -> &Option<String> {
+        &self.log_level
+    }
+
     pub fn get_http_config(&self) -> &Option<HTTPConfig> {
         &self.http
     }
@@ -91,6 +96,7 @@ impl Configuration {
 impl Default for Configuration {
     fn default() -> Configuration {
         Configuration{
+            log_level: None,
             mode: TrackerMode::DynamicMode,
             udp: UDPConfig{
                 announce_interval: 120,

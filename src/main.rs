@@ -15,10 +15,31 @@ mod server;
 mod tracker;
 mod stackvec;
 mod webserver;
+mod service;
 mod config;
+
+use std::process::exit;
 use config::Configuration;
 
 fn setup_logging(cfg: &Configuration) {
+    let log_level = match cfg.get_log_level() {
+        None => log::LevelFilter::Info,
+        Some(level) => {
+            match level.as_str() {
+                "off" => log::LevelFilter::Off,
+                "trace" => log::LevelFilter::Trace,
+                "debug" => log::LevelFilter::Debug,
+                "info" => log::LevelFilter::Info,
+                "warn" => log::LevelFilter::Warn,
+                "error" => log::LevelFilter::Error,
+                _ => {
+                    eprintln!("udpt: unknown log level encountered '{}'", level.as_str());
+                    exit(-1);
+                }
+            }
+        }
+    };
+
     if let Err(err) = fern::Dispatch::new()
         .format(|out, message, record| {
             out.finish(
@@ -31,7 +52,7 @@ fn setup_logging(cfg: &Configuration) {
                 )
             )
         })
-        .level(log::LevelFilter::Trace)
+        .level(log_level)
         .chain(std::io::stdout())
         .apply() {
         eprintln!("udpt: failed to initialize logging. {}", err);
@@ -75,7 +96,8 @@ fn main() {
     trace!("Waiting for UDP packets");
     let logical_cpus = num_cpus::get();
     let mut threads = Vec::with_capacity(logical_cpus);
-    for _ in 0..logical_cpus {
+    for i in 0..logical_cpus {
+        debug!("starting thread {}/{}", i+1, logical_cpus);
         let server_handle = udp_server.clone();
         threads.push(std::thread::spawn(move || {
             loop {
