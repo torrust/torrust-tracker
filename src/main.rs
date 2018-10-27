@@ -10,12 +10,12 @@ extern crate toml;
 #[macro_use] extern crate log;
 extern crate fern;
 extern crate num_cpus;
+extern crate serde_json;
 
 mod server;
 mod tracker;
 mod stackvec;
 mod webserver;
-mod service;
 mod config;
 
 use std::process::exit;

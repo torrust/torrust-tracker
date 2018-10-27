@@ -1,4 +1,6 @@
 use std;
+use binascii;
+use serde::{self, Serialize, Deserialize};
 
 use server::Events;
 
@@ -30,69 +32,16 @@ struct TorrentPeer {
 pub type PeerId = [u8; 20];
 pub type InfoHash = [u8; 20];
 
-pub trait HexConv {
-    fn to_hex(&self) -> String;
-    fn from_hex(hex: &str) -> Option<InfoHash>;
-}
-
-impl HexConv for InfoHash {
-    fn to_hex(&self) -> String {
-        const HEX: &[char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
-        let data = self;
-        let mut res = String::with_capacity(data.len() * 2);
-        for b in data {
-            res.push(HEX[((b >> 4) & 0x0fu8) as usize]);
-            res.push(HEX[(b & 0x0fu8) as usize]);
-        }
-        return res;
-    }
-
-    fn from_hex(hex: &str) -> Option<InfoHash> {
-        let mut res : InfoHash = [0u8; 20];
-        if hex.len() != 2 * res.len() {
-            return None;
-        }
-
-        let mut tmp = 0;
-        let mut idx = 0;
-
-        for ch in hex.chars() {
-            if idx % 2 == 1 {
-                tmp <<= 4;
-            }
-
-            let mut num = ch as u32;
-            if ch >= '0' && ch <= '9' {
-                num -= '0' as u32;
-            } else if ch >= 'a' && ch <= 'f' {
-                num -= 'a' as u32;
-                num += 10;
-            } else if ch >= 'A' && ch <= 'F' {
-                num -= 'A' as u32;
-                num += 10;
-            } else {
-                return None;
-            }
-
-            tmp |= num & 0x0f;
-
-            if idx % 2 == 1 {
-                res[(idx - 1) / 2] = tmp as u8;
-                tmp = 0;
-            }
-
-            idx += 1;
-        }
-
-        return Some(res);
-    }
-}
-
+#[derive(Serialize, Deserialize)]
 pub struct TorrentEntry {
     is_flagged: bool,
+
+    #[serde(skip)]
     peers: std::collections::BTreeMap<PeerId, TorrentPeer>,
 
     completed: u32,
+
+    #[serde(skip)]
     seeders: u32,
 }
 
@@ -161,6 +110,45 @@ impl TorrentEntry {
 
 struct TorrentDatabase {
     torrent_peers: std::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
+}
+
+impl Default for TorrentDatabase {
+    fn default() -> Self {
+        TorrentDatabase{
+            torrent_peers: std::sync::RwLock::new(std::collections::BTreeMap::new()),
+        }
+    }
+}
+
+impl Serialize for TorrentDatabase {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        use binascii::bin2hex;
+
+        let db = match self.torrent_peers.read() {
+            Ok(v) => v,
+            Err(err) => {
+                error!("Failed to lock database for reading. {}", err);
+                panic!("fatal error. check logs.");
+            }
+        };
+        let mut info_hash_buffer = [0u8; 40];
+
+        let mut map = serializer.serialize_map(None)?;
+
+        for entry in db.iter() {
+            let info_hash = match bin2hex(entry.0, &mut info_hash_buffer) {
+                Ok(v) => std::str::from_utf8(v).unwrap(),
+                Err(err) => {
+                    error!("Failed to serialize database key.");
+                    panic!("fatal error. check logs.")
+                }
+            };
+            map.serialize_entry(info_hash, entry.1)?;
+        }
+
+        map.end()
+    }
 }
 
 pub struct TorrentTracker {
@@ -298,19 +286,5 @@ mod tests {
     #[test]
     fn tracker_sync() {
         is_sync::<TorrentTracker>();
-    }
-
-    #[test]
-    fn test_ih2hex() {
-        let ih: InfoHash = [1u8, 2, 3, 4, 5, 6, 7, 8, 9, 0xa,
-            0xb, 0xc, 0xd, 0xe, 0xf, 0x10, 0x11, 0x12, 0x13, 0xff];
-        assert!(ih.to_hex() == "0102030405060708090a0b0c0d0e0f10111213ff");
-    }
-
-    #[test]
-    fn test_hex2ih() {
-        let ih = InfoHash::from_hex("0102030405060708090a0b0c0d0e0f10111213ff").unwrap();
-        assert_eq!(ih, [1u8, 2, 3, 4, 5, 6, 7, 8, 9, 0xa,
-            0xb, 0xc, 0xd, 0xe, 0xf, 0x10, 0x11, 0x12, 0x13, 0xff]);
     }
 }
