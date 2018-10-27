@@ -199,10 +199,11 @@ impl UDPTracker {
         }
 
         let client_addr = SocketAddr::new(remote_addr.ip(), packet.port);
+        let info_hash = packet.info_hash.into();
 
-        match self.tracker.update_torrent_and_get_stats(&packet.info_hash, &packet.peer_id, &client_addr, packet.uploaded, packet.downloaded, packet.left, packet.event) {
+        match self.tracker.update_torrent_and_get_stats(&info_hash, &packet.peer_id, &client_addr, packet.uploaded, packet.downloaded, packet.left, packet.event) {
             tracker::TorrentStats::Stats {leechers, complete: _, seeders} => {
-                let peers = match self.tracker.get_torrent_peers(&packet.info_hash, &client_addr) {
+                let peers = match self.tracker.get_torrent_peers(&info_hash, &client_addr) {
                     Some(v) => v,
                     None => {
                         return;

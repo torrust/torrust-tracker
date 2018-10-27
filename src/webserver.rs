@@ -12,9 +12,7 @@ const SERVER: &str = concat!("udpt/", env!("CARGO_PKG_VERSION"));
 pub struct WebServer;
 
 mod http_responses {
-    use std;
-    use binascii;
-    use serde;
+    use tracker::InfoHash;
 
     #[derive(Serialize)]
     pub struct TorrentInfo {
@@ -29,8 +27,7 @@ mod http_responses {
         pub offset: u32,
         pub length: u32,
         pub total: u32,
-        #[serde(serialize_with = "infohash_as_str")]
-        pub torrents: Vec<[u8; 20]>,
+        pub torrents: Vec<InfoHash>,
     }
 
     #[derive(Serialize)]
@@ -39,23 +36,6 @@ mod http_responses {
         Error(String),
         TorrentList(TorrentList),
         TorrentInfo(TorrentInfo),
-    }
-
-    fn infohash_as_str<S: serde::Serializer>(field: &Vec<[u8; 20]>, serializer: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeSeq;
-
-        let mut output_str = [0u8; 40];
-
-        let mut seq = serializer.serialize_seq(Some(field.len()))?;
-
-        for infohash in field.iter() {
-            let _ = binascii::bin2hex(infohash, &mut output_str);
-
-            let mystr = std::str::from_utf8(&output_str).unwrap();
-            seq.serialize_element(mystr)?;
-        }
-
-        seq.end()
     }
 }
 
@@ -265,7 +245,7 @@ impl WebServer {
         let app_state: &UdptState = req.state();
 
         let db = app_state.tracker.get_database();
-        let entry = match db.get(&info_hash) {
+        let entry = match db.get(&info_hash.into()) {
             Some(v) => v,
             None => {
                 return actix_web::HttpResponse::build(actix_web::http::StatusCode::NOT_FOUND)
@@ -309,7 +289,7 @@ impl WebServer {
 
         let path: actix_web::Path<String> = match actix_web::Path::extract(req) {
             Ok(v) => v,
-            Err(err) => {
+            Err(_err) => {
                 return actix_web::HttpResponse::build(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR)
                     .json(http_responses::APIResponse::Error(String::from("internal_error")));
             }
@@ -324,19 +304,19 @@ impl WebServer {
 
         match action.as_str() {
             "flag" => {
-                app_state.tracker.set_torrent_flag(&info_hash, true);
+                app_state.tracker.set_torrent_flag(&info_hash.into(), true);
                 info!("Flagged {}", info_hash_str.as_str());
                 return actix_web::HttpResponse::build(actix_web::http::StatusCode::OK)
                     .body("")
             },
             "unflag" => {
-                app_state.tracker.set_torrent_flag(&info_hash, false);
+                app_state.tracker.set_torrent_flag(&info_hash.into(), false);
                 info!("Unflagged {}", info_hash_str.as_str());
                 return actix_web::HttpResponse::build(actix_web::http::StatusCode::OK)
                     .body("")
             },
             "add" => {
-                let success = app_state.tracker.add_torrent(&info_hash).is_ok();
+                let success = app_state.tracker.add_torrent(&info_hash.into()).is_ok();
                 info!("Added {}, success={}", info_hash_str.as_str(), success);
                 let code = if success { actix_web::http::StatusCode::OK } else { actix_web::http::StatusCode::INTERNAL_SERVER_ERROR };
 
@@ -344,7 +324,7 @@ impl WebServer {
                     .body("")
             },
             "remove" => {
-                let success = app_state.tracker.remove_torrent(&info_hash, true).is_ok();
+                let success = app_state.tracker.remove_torrent(&info_hash.into(), true).is_ok();
                 info!("Removed {}, success={}", info_hash_str.as_str(), success);
                 let code = if success { actix_web::http::StatusCode::OK } else { actix_web::http::StatusCode::INTERNAL_SERVER_ERROR };
 

@@ -1,6 +1,5 @@
 use std;
 use binascii;
-use serde::{self, Serialize, Deserialize};
 
 use server::Events;
 
@@ -29,8 +28,36 @@ struct TorrentPeer {
     updated: std::time::SystemTime,
 }
 
+#[derive(Ord, PartialEq, Eq, Clone)]
+pub struct InfoHash {
+    info_hash: [u8; 20],
+}
+
+impl std::cmp::PartialOrd<InfoHash> for InfoHash {
+    fn partial_cmp(&self, other: &InfoHash) -> Option<std::cmp::Ordering> {
+        self.info_hash.partial_cmp(&other.info_hash)
+    }
+}
+
+impl std::convert::Into<InfoHash> for [u8; 20] {
+    fn into(self) -> InfoHash {
+        InfoHash{
+            info_hash: self,
+        }
+    }
+}
+
+impl serde::ser::Serialize for InfoHash {
+    fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut buffer = [0u8; 40];
+        let bytes_out = binascii::bin2hex(&self.info_hash, &mut buffer).ok().unwrap();
+        let str_out = std::str::from_utf8(bytes_out).unwrap();
+
+        serializer.serialize_str(str_out)
+    }
+}
+
 pub type PeerId = [u8; 20];
-pub type InfoHash = [u8; 20];
 
 #[derive(Serialize, Deserialize)]
 pub struct TorrentEntry {
@@ -120,37 +147,6 @@ impl Default for TorrentDatabase {
     }
 }
 
-impl Serialize for TorrentDatabase {
-    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeMap;
-        use binascii::bin2hex;
-
-        let db = match self.torrent_peers.read() {
-            Ok(v) => v,
-            Err(err) => {
-                error!("Failed to lock database for reading. {}", err);
-                panic!("fatal error. check logs.");
-            }
-        };
-        let mut info_hash_buffer = [0u8; 40];
-
-        let mut map = serializer.serialize_map(None)?;
-
-        for entry in db.iter() {
-            let info_hash = match bin2hex(entry.0, &mut info_hash_buffer) {
-                Ok(v) => std::str::from_utf8(v).unwrap(),
-                Err(err) => {
-                    error!("Failed to serialize database key.");
-                    panic!("fatal error. check logs.")
-                }
-            };
-            map.serialize_entry(info_hash, entry.1)?;
-        }
-
-        map.end()
-    }
-}
-
 pub struct TorrentTracker {
     mode: TrackerMode,
     database: TorrentDatabase,
@@ -179,7 +175,7 @@ impl TorrentTracker {
     /// Adding torrents is not relevant to dynamic trackers.
     pub fn add_torrent(&self, info_hash: &InfoHash) -> Result<(), ()> {
         let mut write_lock = self.database.torrent_peers.write().unwrap();
-        match write_lock.entry(*info_hash) {
+        match write_lock.entry(info_hash.clone()) {
             std::collections::btree_map::Entry::Vacant(ve) => {
                 ve.insert(TorrentEntry::new());
                 return Ok(());
@@ -194,7 +190,7 @@ impl TorrentTracker {
     pub fn remove_torrent(&self, info_hash: &InfoHash, force: bool) -> Result<(), ()> {
         use std::collections::btree_map::Entry;
         let mut entry_lock = self.database.torrent_peers.write().unwrap();
-        let torrent_entry = entry_lock.entry(*info_hash);
+        let torrent_entry = entry_lock.entry(info_hash.clone());
         match torrent_entry {
             Entry::Vacant(_) => {
                 // no entry, nothing to do...
@@ -236,7 +232,7 @@ impl TorrentTracker {
     pub fn update_torrent_and_get_stats(&self, info_hash: &InfoHash, peer_id: &PeerId, remote_address: &std::net::SocketAddr, uploaded: u64, downloaded: u64, left: u64, event: Events) -> TorrentStats {
         use std::collections::btree_map::Entry;
         let mut torrent_peers = self.database.torrent_peers.write().unwrap();
-        let torrent_entry = match torrent_peers.entry(*info_hash) {
+        let torrent_entry = match torrent_peers.entry(info_hash.clone()) {
             Entry::Vacant(vacant) => {
                 match self.mode {
                     TrackerMode::DynamicMode => {
