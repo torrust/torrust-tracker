@@ -1,6 +1,7 @@
 use std;
 use serde;
 use binascii;
+use serde_json;
 
 use server::Events;
 
@@ -298,6 +299,18 @@ impl TorrentTracker {
     pub (crate) fn get_database(&self) -> std::sync::RwLockReadGuard<std::collections::BTreeMap<InfoHash, TorrentEntry>>{
         self.database.torrent_peers.read().unwrap()
     }
+
+    pub fn save_database<W: std::io::Write>(&self, writer: &mut W) -> serde_json::Result<()> {
+        use bzip2;
+
+        let compressor = bzip2::write::BzEncoder::new(writer, bzip2::Compression::Best);
+
+        let db_lock = self.database.torrent_peers.read().unwrap();
+
+        let db = &*db_lock;
+
+        serde_json::to_writer(compressor, &db)
+    }
 }
 
 #[cfg(test)]
@@ -315,6 +328,17 @@ mod tests {
     #[test]
     fn tracker_sync() {
         is_sync::<TorrentTracker>();
+    }
+
+    #[test]
+    fn test_save_db() {
+        let tracker = TorrentTracker::new(TrackerMode::DynamicMode);
+        tracker.add_torrent(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].into());
+
+        let mut out = Vec::new();
+
+        tracker.save_database(&mut out).unwrap();
+        assert!(out.len() > 0);
     }
 
     #[test]

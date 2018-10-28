@@ -11,6 +11,7 @@ extern crate toml;
 extern crate fern;
 extern crate num_cpus;
 extern crate serde_json;
+extern crate bzip2;
 
 mod server;
 mod tracker;
