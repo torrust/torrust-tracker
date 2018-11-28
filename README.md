@@ -29,3 +29,10 @@ For a few reasons,
 1. Rust makes it harder to make mistakes than C/C++.
 2. Rust allows easier cross-platform development with it's powerful standard library.
 3. Integrated tests and benchmarks.
+
+## Contributing
+Pull Requests are always welcome, please just check with us before developing - creating a issue would be great!
+
+---
+The UDPT project would like to thank JetBrains for providing us with a Open Source license for the best IDEs there are out there!
+[![JetBrains](.github/jetbrains-variant-4.svg)]((https://www.jetbrains.com/?from=udpt))
