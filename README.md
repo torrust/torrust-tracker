@@ -35,4 +35,5 @@ Pull Requests are always welcome, please just check with us before developing - 
 
 ---
 The UDPT project would like to thank JetBrains for providing us with a Open Source license for the best IDEs there are out there!
-[![JetBrains](.github/jetbrains-variant-4.svg)]((https://www.jetbrains.com/?from=udpt))
+
+<a href="https://www.jetbrains.com/?from=udpt"><img src=".github/jetbrains-variant-4.svg" alt="JetBrains"></img></a>
