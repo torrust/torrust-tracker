@@ -41,6 +41,7 @@ pub struct Configuration {
     udp: UDPConfig,
     http: Option<HTTPConfig>,
     log_level: Option<String>,
+    db_path: Option<String>,
 }
 
 #[derive(Debug)]
@@ -67,12 +68,10 @@ impl Configuration {
     pub fn load_file(path: &str) -> Result<Configuration, ConfigError> {
         match std::fs::read(path) {
             Err(e) => Err(ConfigError::IOError(e)),
-            Ok(data) => {
-                match Self::load(data.as_slice()) {
-                    Ok(cfg) => Ok(cfg),
-                    Err(e) => Err(ConfigError::ParseError(e)),
-                }
-            }
+            Ok(data) => match Self::load(data.as_slice()) {
+                Ok(cfg) => Ok(cfg),
+                Err(e) => Err(ConfigError::ParseError(e)),
+            },
         }
     }
 
@@ -91,18 +90,23 @@ impl Configuration {
     pub fn get_http_config(&self) -> &Option<HTTPConfig> {
         &self.http
     }
+
+    pub fn get_db_path(&self) -> &Option<String> {
+        &self.db_path
+    }
 }
 
 impl Default for Configuration {
     fn default() -> Configuration {
-        Configuration{
+        Configuration {
             log_level: None,
             mode: TrackerMode::DynamicMode,
-            udp: UDPConfig{
+            udp: UDPConfig {
                 announce_interval: 120,
                 bind_address: String::from("0.0.0.0:6969"),
             },
             http: None,
+            db_path: None,
         }
     }
 }

@@ -1,23 +1,22 @@
-use std;
-use serde;
 use binascii;
+use serde;
 use serde_json;
+use std;
 
 use server::Events;
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, PartialEq)]
 pub enum TrackerMode {
-
     /// In static mode torrents are tracked only if they were added ahead of time.
-    #[serde(rename="static")]
+    #[serde(rename = "static")]
     StaticMode,
 
     /// In dynamic mode, torrents are tracked being added ahead of time.
-    #[serde(rename="dynamic")]
+    #[serde(rename = "dynamic")]
     DynamicMode,
 
     /// Tracker will only serve authenticated peers.
-    #[serde(rename="private")]
+    #[serde(rename = "private")]
     PrivateMode,
 }
 
@@ -43,16 +42,16 @@ impl std::cmp::PartialOrd<InfoHash> for InfoHash {
 
 impl std::convert::Into<InfoHash> for [u8; 20] {
     fn into(self) -> InfoHash {
-        InfoHash{
-            info_hash: self,
-        }
+        InfoHash { info_hash: self }
     }
 }
 
 impl serde::ser::Serialize for InfoHash {
     fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut buffer = [0u8; 40];
-        let bytes_out = binascii::bin2hex(&self.info_hash, &mut buffer).ok().unwrap();
+        let bytes_out = binascii::bin2hex(&self.info_hash, &mut buffer)
+            .ok()
+            .unwrap();
         let str_out = std::str::from_utf8(bytes_out).unwrap();
 
         serializer.serialize_str(str_out)
@@ -70,15 +69,21 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
 
     fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<Self::Value, E> {
         if v.len() != 40 {
-            return Err(serde::de::Error::invalid_value(serde::de::Unexpected::Str(v), &"expected a 40 character long string"));
+            return Err(serde::de::Error::invalid_value(
+                serde::de::Unexpected::Str(v),
+                &"expected a 40 character long string",
+            ));
         }
 
-        let mut res = InfoHash{
+        let mut res = InfoHash {
             info_hash: [0u8; 20],
         };
 
         if let Err(_) = binascii::hex2bin(v.as_bytes(), &mut res.info_hash) {
-            return Err(serde::de::Error::invalid_value(serde::de::Unexpected::Str(v), &"expected a hexadecimal string"));
+            return Err(serde::de::Error::invalid_value(
+                serde::de::Unexpected::Str(v),
+                &"expected a hexadecimal string",
+            ));
         } else {
             return Ok(res);
         }
@@ -107,8 +112,8 @@ pub struct TorrentEntry {
 }
 
 impl TorrentEntry {
-    pub fn new() -> TorrentEntry{
-        TorrentEntry{
+    pub fn new() -> TorrentEntry {
+        TorrentEntry {
             is_flagged: false,
             peers: std::collections::BTreeMap::new(),
             completed: 0,
@@ -120,18 +125,29 @@ impl TorrentEntry {
         self.is_flagged
     }
 
-    pub fn update_peer(&mut self, peer_id: &PeerId, remote_address: &std::net::SocketAddr, uploaded: u64, downloaded: u64, left: u64, event: Events) {
+    pub fn update_peer(
+        &mut self,
+        peer_id: &PeerId,
+        remote_address: &std::net::SocketAddr,
+        uploaded: u64,
+        downloaded: u64,
+        left: u64,
+        event: Events,
+    ) {
         let is_seeder = left == 0 && uploaded > 0;
         let mut was_seeder = false;
         let mut is_completed = left == 0 && (event as u32) == (Events::Complete as u32);
-        if let Some(prev) = self.peers.insert(*peer_id, TorrentPeer{
-            updated: std::time::SystemTime::now(),
-            left,
-            downloaded,
-            uploaded,
-            ip: *remote_address,
-            event,
-        }) {
+        if let Some(prev) = self.peers.insert(
+            *peer_id,
+            TorrentPeer {
+                updated: std::time::SystemTime::now(),
+                left,
+                downloaded,
+                uploaded,
+                ip: *remote_address,
+                event,
+            },
+        ) {
             was_seeder = prev.left == 0 && prev.uploaded > 0;
 
             if is_completed && (prev.event as u32) == (Events::Complete as u32) {
@@ -153,7 +169,12 @@ impl TorrentEntry {
 
     pub fn get_peers(&self, remote_addr: &std::net::SocketAddr) -> Vec<std::net::SocketAddr> {
         let mut list = Vec::new();
-        for (_, peer) in self.peers.iter().filter(|e| e.1.ip.is_ipv4() == remote_addr.is_ipv4()).take(74) {
+        for (_, peer) in self
+            .peers
+            .iter()
+            .filter(|e| e.1.ip.is_ipv4() == remote_addr.is_ipv4())
+            .take(74)
+        {
             if peer.ip == *remote_addr {
                 continue;
             }
@@ -175,7 +196,7 @@ struct TorrentDatabase {
 
 impl Default for TorrentDatabase {
     fn default() -> Self {
-        TorrentDatabase{
+        TorrentDatabase {
             torrent_peers: std::sync::RwLock::new(std::collections::BTreeMap::new()),
         }
     }
@@ -189,20 +210,39 @@ pub struct TorrentTracker {
 pub enum TorrentStats {
     TorrentFlagged,
     TorrentNotRegistered,
-    Stats{
+    Stats {
         seeders: u32,
         leechers: u32,
         complete: u32,
-    }
+    },
 }
 
 impl TorrentTracker {
     pub fn new(mode: TrackerMode) -> TorrentTracker {
-        TorrentTracker{
+        TorrentTracker {
             mode,
-            database: TorrentDatabase{
+            database: TorrentDatabase {
                 torrent_peers: std::sync::RwLock::new(std::collections::BTreeMap::new()),
-            }
+            },
+        }
+    }
+
+    pub fn load_database<R: std::io::Read>(
+        mode: TrackerMode,
+        reader: &mut R,
+    ) -> serde_json::Result<TorrentTracker> {
+        use bzip2;
+        let decomp_reader = bzip2::read::BzDecoder::new(reader);
+        let result: serde_json::Result<std::collections::BTreeMap<InfoHash, TorrentEntry>> =
+            serde_json::from_reader(decomp_reader);
+        match result {
+            Ok(v) => Ok(TorrentTracker {
+                mode,
+                database: TorrentDatabase {
+                    torrent_peers: std::sync::RwLock::new(v),
+                },
+            }),
+            Err(e) => Err(e),
         }
     }
 
@@ -213,7 +253,7 @@ impl TorrentTracker {
             std::collections::btree_map::Entry::Vacant(ve) => {
                 ve.insert(TorrentEntry::new());
                 return Ok(());
-            },
+            }
             std::collections::btree_map::Entry::Occupied(_entry) => {
                 return Err(());
             }
@@ -229,20 +269,26 @@ impl TorrentTracker {
             Entry::Vacant(_) => {
                 // no entry, nothing to do...
                 return Err(());
-            },
+            }
             Entry::Occupied(entry) => {
                 if force || !entry.get().is_flagged() {
                     entry.remove();
                     return Ok(());
                 }
                 return Err(());
-            },
+            }
         }
     }
 
     /// flagged torrents will result in a tracking error. This is to allow enforcement against piracy.
     pub fn set_torrent_flag(&self, info_hash: &InfoHash, is_flagged: bool) {
-        if let Some(entry) = self.database.torrent_peers.write().unwrap().get_mut(info_hash) {
+        if let Some(mut entry) = self
+            .database
+            .torrent_peers
+            .write()
+            .unwrap()
+            .get_mut(info_hash)
+        {
             if is_flagged && !entry.is_flagged {
                 // empty peer list.
                 entry.peers.clear();
@@ -251,7 +297,11 @@ impl TorrentTracker {
         }
     }
 
-    pub fn get_torrent_peers(&self, info_hash: &InfoHash, remote_addr: &std::net::SocketAddr) -> Option<Vec<std::net::SocketAddr>> {
+    pub fn get_torrent_peers(
+        &self,
+        info_hash: &InfoHash,
+        remote_addr: &std::net::SocketAddr,
+    ) -> Option<Vec<std::net::SocketAddr>> {
         let read_lock = self.database.torrent_peers.read().unwrap();
         match read_lock.get(info_hash) {
             None => {
@@ -263,18 +313,23 @@ impl TorrentTracker {
         };
     }
 
-    pub fn update_torrent_and_get_stats(&self, info_hash: &InfoHash, peer_id: &PeerId, remote_address: &std::net::SocketAddr, uploaded: u64, downloaded: u64, left: u64, event: Events) -> TorrentStats {
+    pub fn update_torrent_and_get_stats(
+        &self,
+        info_hash: &InfoHash,
+        peer_id: &PeerId,
+        remote_address: &std::net::SocketAddr,
+        uploaded: u64,
+        downloaded: u64,
+        left: u64,
+        event: Events,
+    ) -> TorrentStats {
         use std::collections::btree_map::Entry;
         let mut torrent_peers = self.database.torrent_peers.write().unwrap();
         let torrent_entry = match torrent_peers.entry(info_hash.clone()) {
-            Entry::Vacant(vacant) => {
-                match self.mode {
-                    TrackerMode::DynamicMode => {
-                        vacant.insert(TorrentEntry::new())
-                    },
-                    _ => {
-                        return TorrentStats::TorrentNotRegistered;
-                    }
+            Entry::Vacant(vacant) => match self.mode {
+                TrackerMode::DynamicMode => vacant.insert(TorrentEntry::new()),
+                _ => {
+                    return TorrentStats::TorrentNotRegistered;
                 }
             },
             Entry::Occupied(entry) => {
@@ -282,7 +337,7 @@ impl TorrentTracker {
                     return TorrentStats::TorrentFlagged;
                 }
                 entry.into_mut()
-            },
+            }
         };
 
         torrent_entry.update_peer(peer_id, remote_address, uploaded, downloaded, left, event);
@@ -296,7 +351,9 @@ impl TorrentTracker {
         };
     }
 
-    pub (crate) fn get_database(&self) -> std::sync::RwLockReadGuard<std::collections::BTreeMap<InfoHash, TorrentEntry>>{
+    pub(crate) fn get_database(
+        &self,
+    ) -> std::sync::RwLockReadGuard<std::collections::BTreeMap<InfoHash, TorrentEntry>> {
         self.database.torrent_peers.read().unwrap()
     }
 
@@ -310,6 +367,67 @@ impl TorrentTracker {
         let db = &*db_lock;
 
         serde_json::to_writer(compressor, &db)
+    }
+
+    fn cleanup(&mut self) {
+        use std::ops::Add;
+
+        let now = std::time::SystemTime::now();
+        match self.database.torrent_peers.write() {
+            Err(err) => {
+                error!("failed to obtain write lock on database. err: {}", err);
+                return;
+            }
+            Ok(mut db) => {
+                let mut torrents_to_remove = Vec::new();
+
+                for (k, v) in db.iter_mut() {
+                    // timed-out peers..
+                    {
+                        let mut peers_to_remove = Vec::new();
+                        let torrent_peers = &mut v.peers;
+
+                        for (peer_id, state) in torrent_peers.iter() {
+                            if state.updated.add(std::time::Duration::new(3600 * 2, 0)) < now {
+                                // over 2 hours past since last update...
+                                peers_to_remove.push(*peer_id);
+                            }
+                        }
+
+                        for peer_id in peers_to_remove.iter() {
+                            torrent_peers.remove(peer_id);
+                        }
+                    }
+
+                    if self.mode == TrackerMode::DynamicMode {
+                        // peer-less torrents..
+                        if v.peers.len() == 0 {
+                            torrents_to_remove.push(k.clone());
+                        }
+                    }
+                }
+
+                for info_hash in torrents_to_remove {
+                    db.remove(&info_hash);
+                }
+            }
+        }
+    }
+
+    pub fn periodic_task(&mut self, db_path: &str) {
+        // cleanup db
+        self.cleanup();
+
+        // save db.
+        match std::fs::File::open(db_path) {
+            Err(err) => {
+                error!("failed to open file '{}': {}", db_path, err);
+                return;
+            }
+            Ok(mut file) => {
+                self.save_database(&mut file);
+            }
+        }
     }
 }
 

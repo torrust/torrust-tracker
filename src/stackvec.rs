@@ -7,10 +7,7 @@ pub struct StackVec<'a, T: 'a> {
 
 impl<'a, T> StackVec<'a, T> {
     pub fn from(data: &mut [T]) -> StackVec<T> {
-        StackVec{
-            data,
-            length: 0,
-        }
+        StackVec { data, length: 0 }
     }
 
     pub fn len(&self) -> usize {
@@ -23,7 +20,7 @@ impl<'a, T> StackVec<'a, T> {
 }
 
 impl<'a, T> Extend<T> for StackVec<'a, T> {
-    fn extend<I: IntoIterator<Item=T>>(&mut self, iter: I) {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         for item in iter {
             self.data[self.length] = item;
             self.length += 1;

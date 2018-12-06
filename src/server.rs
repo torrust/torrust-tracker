@@ -1,14 +1,14 @@
 use std;
-use std::sync::Arc;
-use std::net::{SocketAddr, UdpSocket};
 use std::io::Write;
+use std::net::{SocketAddr, UdpSocket};
+use std::sync::Arc;
 
 use bincode;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use tracker;
-use stackvec::StackVec;
 use config::Configuration;
+use stackvec::StackVec;
+use tracker;
 
 // maximum MTU is usually 1500, but our stack allows us to allocate the maximum - so why not?
 const MAX_PACKET_SIZE: usize = 0xffff;
@@ -105,7 +105,10 @@ pub struct UDPTracker {
 }
 
 impl UDPTracker {
-    pub fn new(config: Arc<Configuration>, tracker: std::sync::Arc<tracker::TorrentTracker>) -> Result<UDPTracker, std::io::Error> {
+    pub fn new(
+        config: Arc<Configuration>,
+        tracker: std::sync::Arc<tracker::TorrentTracker>,
+    ) -> Result<UDPTracker, std::io::Error> {
         let cfg = config.clone();
 
         let server = match UdpSocket::bind(cfg.get_udp_config().get_address()) {
@@ -115,7 +118,7 @@ impl UDPTracker {
             }
         };
 
-        Ok(UDPTracker{
+        Ok(UDPTracker {
             server,
             tracker,
             config: cfg,
@@ -123,7 +126,7 @@ impl UDPTracker {
     }
 
     fn handle_packet(&self, remote_address: &SocketAddr, payload: &[u8]) {
-        let header : UDPRequestHeader = match unpack(payload) {
+        let header: UDPRequestHeader = match unpack(payload) {
             Some(val) => val,
             None => {
                 trace!("failed to parse packet from {}", remote_address);
@@ -152,8 +155,8 @@ impl UDPTracker {
         // send response...
         let conn_id = self.get_connection_id(remote_addr);
 
-        let response = UDPConnectionResponse{
-            header: UDPResponseHeader{
+        let response = UDPConnectionResponse {
+            header: UDPResponseHeader {
                 transaction_id: header.transaction_id,
                 action: Actions::Connect,
             },
@@ -187,22 +190,41 @@ impl UDPTracker {
                 let bep41_payload = &payload[plen..];
 
                 // TODO: process BEP0041 payload.
-                trace!("BEP0041 payload of {} bytes from {}", bep41_payload.len(), remote_addr);
+                trace!(
+                    "BEP0041 payload of {} bytes from {}",
+                    bep41_payload.len(),
+                    remote_addr
+                );
             }
         }
 
         if packet.ip_address != 0 {
             // TODO: allow configurability of ip address
             // for now, ignore request.
-            trace!("announce request for other IP ignored. (from {})", remote_addr);
+            trace!(
+                "announce request for other IP ignored. (from {})",
+                remote_addr
+            );
             return;
         }
 
         let client_addr = SocketAddr::new(remote_addr.ip(), packet.port);
         let info_hash = packet.info_hash.into();
 
-        match self.tracker.update_torrent_and_get_stats(&info_hash, &packet.peer_id, &client_addr, packet.uploaded, packet.downloaded, packet.left, packet.event) {
-            tracker::TorrentStats::Stats {leechers, complete: _, seeders} => {
+        match self.tracker.update_torrent_and_get_stats(
+            &info_hash,
+            &packet.peer_id,
+            &client_addr,
+            packet.uploaded,
+            packet.downloaded,
+            packet.left,
+            packet.event,
+        ) {
+            tracker::TorrentStats::Stats {
+                leechers,
+                complete: _,
+                seeders,
+            } => {
                 let peers = match self.tracker.get_torrent_peers(&info_hash, &client_addr) {
                     Some(v) => v,
                     None => {
@@ -213,16 +235,19 @@ impl UDPTracker {
                 let mut payload_buffer = [0u8; MAX_PACKET_SIZE];
                 let mut payload = StackVec::from(&mut payload_buffer);
 
-                match pack_into(&mut payload,&UDPAnnounceResponse {
-                    header: UDPResponseHeader {
-                        action: Actions::Announce,
-                        transaction_id: packet.header.transaction_id,
+                match pack_into(
+                    &mut payload,
+                    &UDPAnnounceResponse {
+                        header: UDPResponseHeader {
+                            action: Actions::Announce,
+                            transaction_id: packet.header.transaction_id,
+                        },
+                        seeders,
+                        interval: self.config.get_udp_config().get_announce_interval(),
+                        leechers,
                     },
-                    seeders,
-                    interval: self.config.get_udp_config().get_announce_interval(),
-                    leechers,
-                }) {
-                    Ok(_) => {},
+                ) {
+                    Ok(_) => {}
                     Err(_) => {
                         return;
                     }
@@ -232,22 +257,23 @@ impl UDPTracker {
                     match peer {
                         SocketAddr::V4(ipv4) => {
                             let _ = payload.write(&ipv4.ip().octets());
-                        },
+                        }
                         SocketAddr::V6(ipv6) => {
                             let _ = payload.write(&ipv6.ip().octets());
                         }
                     };
 
                     let port_hton = client_addr.port().to_be();
-                    let _ = payload.write(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
+                    let _ =
+                        payload.write(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
                 }
 
                 let _ = self.send_packet(&client_addr, payload.as_slice());
-            },
+            }
             tracker::TorrentStats::TorrentFlagged => {
                 self.send_error(&client_addr, &packet.header, "torrent flagged.");
                 return;
-            },
+            }
             tracker::TorrentStats::TorrentNotRegistered => {
                 self.send_error(&client_addr, &packet.header, "torrent not registered.");
                 return;
@@ -265,16 +291,16 @@ impl UDPTracker {
 
     fn get_connection_id(&self, remote_address: &SocketAddr) -> u64 {
         match std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) {
-            Ok(duration) => {
-                (duration.as_secs() / 3600) | ((remote_address.port() as u64) << 36)
-            },
-            Err(_) => {
-                0x8000000000000000
-            }
+            Ok(duration) => (duration.as_secs() / 3600) | ((remote_address.port() as u64) << 36),
+            Err(_) => 0x8000000000000000,
         }
     }
 
-    fn send_packet(&self, remote_addr: &SocketAddr, payload: &[u8]) -> Result<usize, std::io::Error> {
+    fn send_packet(
+        &self,
+        remote_addr: &SocketAddr,
+        payload: &[u8],
+    ) -> Result<usize, std::io::Error> {
         self.server.send_to(payload, remote_addr)
     }
 
@@ -282,10 +308,13 @@ impl UDPTracker {
         let mut payload_buffer = [0u8; MAX_PACKET_SIZE];
         let mut payload = StackVec::from(&mut payload_buffer);
 
-        if let Ok(_) = pack_into(&mut payload, &UDPResponseHeader{
-            transaction_id: header.transaction_id,
-            action: Actions::Error,
-        }) {
+        if let Ok(_) = pack_into(
+            &mut payload,
+            &UDPResponseHeader {
+                transaction_id: header.transaction_id,
+                action: Actions::Error,
+            },
+        ) {
             let msg_bytes = Vec::from(error_msg.as_bytes());
             payload.extend(msg_bytes);
 
@@ -301,7 +330,7 @@ impl UDPTracker {
                 self.handle_packet(&remote_address, &packet[..size]);
 
                 Ok(())
-            },
+            }
             Err(e) => Err(e),
         }
     }
@@ -322,7 +351,10 @@ mod tests {
 
         assert!(pack_into(&mut payload, &mystruct).is_ok());
         assert_eq!(payload.len(), 16);
-        assert_eq!(payload.as_slice(), &[0, 0, 0, 0, 0, 0, 0, 200u8, 0, 0, 0, 0, 0, 1, 47, 203]);
+        assert_eq!(
+            payload.as_slice(),
+            &[0, 0, 0, 0, 0, 0, 0, 200u8, 0, 0, 0, 0, 0, 1, 47, 203]
+        );
     }
 
     #[test]
@@ -330,9 +362,9 @@ mod tests {
         let buf = [0u8, 0, 0, 0, 0, 0, 0, 200, 0, 0, 0, 1, 0, 1, 47, 203];
         match super::unpack(&buf) {
             Some(obj) => {
-                let x : super::UDPResponseHeader = obj;
+                let x: super::UDPResponseHeader = obj;
                 println!("conn_id={}", x.action as u32);
-            },
+            }
             None => {
                 assert!(false);
             }
