@@ -94,19 +94,22 @@ fn main() {
             let file_path = std::path::Path::new(path);
             if !file_path.exists() {
                 warn!("database file \"{}\" doesn't exist.", path);
+                tracker::TorrentTracker::new(cfg.get_mode().clone())
             }
-            let mut input_file = match std::fs::File::open(file_path) {
-                Ok(v) => v,
-                Err(err) => {
-                    error!("failed to open \"{}\". error: {}", path.as_str(), err);
-                    panic!("error opening file. check logs.");
-                }
-            };
-            match tracker::TorrentTracker::load_database(cfg.get_mode().clone(), &mut input_file) {
-                Ok(v) => v,
-                Err(err) => {
-                    error!("failed to load database. error: {}", err);
-                    panic!("failed to load database. check logs.");
+            else {
+                let mut input_file = match std::fs::File::open(file_path) {
+                    Ok(v) => v,
+                    Err(err) => {
+                        error!("failed to open \"{}\". error: {}", path.as_str(), err);
+                        panic!("error opening file. check logs.");
+                    }
+                };
+                match tracker::TorrentTracker::load_database(cfg.get_mode().clone(), &mut input_file) {
+                    Ok(v) => v,
+                    Err(err) => {
+                        error!("failed to load database. error: {}", err);
+                        panic!("failed to load database. check logs.");
+                    }
                 }
             }
         }
@@ -124,7 +127,7 @@ fn main() {
         });
     }
 
-    let udp_server = std::sync::Arc::new(server::UDPTracker::new(cfg, tracker.clone()).unwrap());
+    let udp_server = std::sync::Arc::new(server::UDPTracker::new(cfg.clone(), tracker.clone()).unwrap());
 
     trace!("Waiting for UDP packets");
     let logical_cpus = num_cpus::get();
@@ -140,6 +143,23 @@ fn main() {
                 Ok(_) => {}
             }
         }));
+    }
+
+    match cfg.get_db_path() {
+        Some(db_path) => {
+            let db_p = db_path.clone();
+            let tracker_clone = tracker.clone();
+
+            std::thread::spawn(move || {
+                loop {
+                    std::thread::sleep_ms(1000 * 120);
+                    debug!("periodically saving database.");
+                    tracker_clone.periodic_task(db_p.as_str());
+                    debug!("database saved.");
+                }
+            });
+        },
+        None => {}
     }
 
     while !threads.is_empty() {

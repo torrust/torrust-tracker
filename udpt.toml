@@ -1,4 +1,5 @@
 mode = "dynamic"
+db_path = "database.json.bz2"
 
 [udp]
 announce_interval = 120         # Two minutes

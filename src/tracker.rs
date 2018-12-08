@@ -282,7 +282,7 @@ impl TorrentTracker {
 
     /// flagged torrents will result in a tracking error. This is to allow enforcement against piracy.
     pub fn set_torrent_flag(&self, info_hash: &InfoHash, is_flagged: bool) {
-        if let Some(mut entry) = self
+        if let Some(entry) = self
             .database
             .torrent_peers
             .write()
@@ -369,7 +369,7 @@ impl TorrentTracker {
         serde_json::to_writer(compressor, &db)
     }
 
-    fn cleanup(&mut self) {
+    fn cleanup(&self) {
         use std::ops::Add;
 
         let now = std::time::SystemTime::now();
@@ -414,12 +414,12 @@ impl TorrentTracker {
         }
     }
 
-    pub fn periodic_task(&mut self, db_path: &str) {
+    pub fn periodic_task(&self, db_path: &str) {
         // cleanup db
         self.cleanup();
 
         // save db.
-        match std::fs::File::open(db_path) {
+        match std::fs::File::create(db_path) {
             Err(err) => {
                 error!("failed to open file '{}': {}", db_path, err);
                 return;
