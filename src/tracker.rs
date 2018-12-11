@@ -429,17 +429,35 @@ impl TorrentTracker {
         // cleanup db
         self.cleanup();
 
-        // save db.
-        match std::fs::File::create(db_path) {
-            Err(err) => {
-                error!("failed to open file '{}': {}", db_path, err);
+        // save journal db.
+        let mut journal_path = std::path::PathBuf::from(db_path);
+
+        let mut filename = String::from(journal_path.file_name().unwrap().to_str().unwrap());
+        filename.push_str("-journal");
+
+        journal_path.set_file_name(filename.as_str());
+        let jp_str = journal_path.as_path().to_str().unwrap();
+
+        // scope to make sure backup file is dropped/closed.
+        {
+            let mut file = match std::fs::File::create(jp_str) {
+                Err(err) => {
+                    error!("failed to open file '{}': {}", db_path, err);
+                    return;
+                }
+                Ok(v) => v,
+            };
+            trace!("writing database to {}", jp_str);
+            if let Err(err) = self.save_database(&mut file) {
+                error!("failed saving database. {}", err);
                 return;
             }
-            Ok(mut file) => {
-                if let Err(err) = self.save_database(&mut file) {
-                    error!("failed saving database. {}", err);
-                }
-            }
+        }
+
+        // overwrite previous db
+        trace!("renaming '{}' to '{}'", jp_str, db_path);
+        if let Err(err) = std::fs::rename(jp_str, db_path) {
+            error!("failed to move db backup. {}", err);
         }
     }
 }
