@@ -40,6 +40,17 @@ impl std::cmp::PartialOrd<InfoHash> for InfoHash {
     }
 }
 
+impl std::convert::From<&[u8]> for InfoHash {
+    fn from(data: &[u8]) -> InfoHash {
+        assert_eq!(data.len(), 20);
+        let mut ret = InfoHash{
+            info_hash: [0u8; 20],
+        };
+        ret.info_hash.clone_from_slice(data);
+        return ret;
+    }
+}
+
 impl std::convert::Into<InfoHash> for [u8; 20] {
     fn into(self) -> InfoHash {
         InfoHash { info_hash: self }
@@ -425,7 +436,9 @@ impl TorrentTracker {
                 return;
             }
             Ok(mut file) => {
-                self.save_database(&mut file);
+                if let Err(err) = self.save_database(&mut file) {
+                    error!("failed saving database. {}", err);
+                }
             }
         }
     }

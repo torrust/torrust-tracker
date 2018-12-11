@@ -152,7 +152,7 @@ fn main() {
 
             std::thread::spawn(move || {
                 loop {
-                    std::thread::sleep_ms(1000 * 120);
+                    std::thread::sleep(std::time::Duration::new(120, 0));
                     debug!("periodically saving database.");
                     tracker_clone.periodic_task(db_p.as_str());
                     debug!("database saved.");

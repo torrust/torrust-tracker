@@ -5,7 +5,7 @@ authors = ["Naim A. <naim94a@github.com>"]
 description = "High performance torrent tracker"
 
 [profile.release]
-lto = true
+lto = "thin"
 
 [dependencies]
 serde = "1.0.80"

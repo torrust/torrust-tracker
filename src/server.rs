@@ -98,6 +98,13 @@ struct UDPAnnounceResponse {
     seeders: u32,
 }
 
+#[derive(Serialize)]
+struct UDPScrapeResponseEntry {
+    seeders: u32,
+    completed: u32,
+    leechers: u32,
+}
+
 pub struct UDPTracker {
     server: std::net::UdpSocket,
     tracker: std::sync::Arc<tracker::TorrentTracker>,
@@ -281,12 +288,72 @@ impl UDPTracker {
         }
     }
 
-    fn handle_scrape(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, _payload: &[u8]) {
+    fn handle_scrape(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
         if header.connection_id != self.get_connection_id(remote_addr) {
             return;
         }
 
-        self.send_error(remote_addr, header, "scrape not yet implemented");
+        const MAX_SCRAPE: usize = 74;
+
+        let mut response_buffer = [0u8; 8 + MAX_SCRAPE * 12];
+        let mut response = StackVec::from(&mut response_buffer);
+
+        if pack_into(&mut response, &UDPResponseHeader{
+            action: Actions::Scrape,
+            transaction_id: header.transaction_id,
+        }).is_err() {
+            // not much we can do...
+            error!("failed to encode udp scrape response header.");
+            return;
+        }
+
+
+        // skip first 16 bytes for header...
+        let info_hash_array = &payload[16..];
+
+        if info_hash_array.len() % 20 != 0 {
+            trace!("received weird length for scrape info_hash array (!mod20).");
+        }
+
+        let db = self.tracker.get_database();
+
+        for torrent_index in 0..MAX_SCRAPE {
+            let info_hash_start = torrent_index * 20;
+            let info_hash_end = (torrent_index + 1) * 20;
+
+            if info_hash_end > info_hash_array.len() {
+                break;
+            }
+
+            let info_hash = &info_hash_array[info_hash_start..info_hash_end];
+            let ih = tracker::InfoHash::from(info_hash);
+            let result = match db.get(&ih) {
+                Some(torrent_info) => {
+                    let (seeders, completed, leechers) = torrent_info.get_stats();
+
+                    UDPScrapeResponseEntry{
+                        seeders,
+                        completed,
+                        leechers,
+                    }
+                },
+                None => {
+                    UDPScrapeResponseEntry{
+                        seeders: 0,
+                        completed: 0,
+                        leechers: 0,
+                    }
+                }
+            };
+
+            if pack_into(&mut response, &result).is_err() {
+                debug!("failed to encode scrape entry.");
+                return;
+            }
+        }
+
+        // if sending fails, not much we can do...
+        let _ = self.send_packet(&remote_addr, &response.as_slice());
     }
 
     fn get_connection_id(&self, remote_address: &SocketAddr) -> u64 {
