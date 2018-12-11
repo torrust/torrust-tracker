@@ -149,10 +149,14 @@ fn main() {
         Some(db_path) => {
             let db_p = db_path.clone();
             let tracker_clone = tracker.clone();
+            let cleanup_interval = match *cfg.get_cleanup_interval() {
+                Some(v) => v,
+                None => 10 * 60,
+            };
 
             std::thread::spawn(move || {
                 loop {
-                    std::thread::sleep(std::time::Duration::new(120, 0));
+                    std::thread::sleep(std::time::Duration::new(cleanup_interval, 0));
                     debug!("periodically saving database.");
                     tracker_clone.periodic_task(db_p.as_str());
                     debug!("database saved.");

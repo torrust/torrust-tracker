@@ -42,6 +42,7 @@ pub struct Configuration {
     http: Option<HTTPConfig>,
     log_level: Option<String>,
     db_path: Option<String>,
+    cleanup_interval: Option<u64>,
 }
 
 #[derive(Debug)]
@@ -94,6 +95,10 @@ impl Configuration {
     pub fn get_db_path(&self) -> &Option<String> {
         &self.db_path
     }
+
+    pub fn get_cleanup_interval(&self) -> &Option<u64> {
+        &self.cleanup_interval
+    }
 }
 
 impl Default for Configuration {
@@ -107,6 +112,7 @@ impl Default for Configuration {
             },
             http: None,
             db_path: None,
+            cleanup_interval: None,
         }
     }
 }
