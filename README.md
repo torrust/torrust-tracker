@@ -1,37 +1,40 @@
 # UDPT
-_UDPT_ is a UDP based torrent tracker which fully implements [BEP-15](http://www.bittorrent.org/beps/bep_0015.html) & [BEP-41](http://www.bittorrent.org/beps/bep_0041.html).
+_UDPT_ is a UDP based torrent tracker which fully implements [BEP-15](http://www.bittorrent.org/beps/bep_0015.html).
 
-This project was written in Rust, it is a complete rewrite of a previous C/C++ UDPT project (which is still currently available in the `master` branch of the repository).
+This project was written in Rust, it is a complete rewrite of a previous C/C++ UDPT project (which is still currently available in the `v2.1` tag of the repository).
 
 ## Features
-* UDP torrent tracking server
-* In memory database
-* Choice of Dynamic/Static/Private tracker modes
-* Ability to block a torrent from being tracked
-* HTTP REST API for management
-* Logging
-* Windows Service or Linux/Unix daemon
+* [X] UDP torrent tracking server
+* [X] In memory database
+* [X] Choice of Dynamic/Static/Private tracker modes
+* [X] Ability to block a torrent from being tracked
+* [X] HTTP REST API for management
+* [X] Logging
+* [ ] Windows Service or Linux/Unix daemon
 
 ## Getting started
-This rewrite is currently still under development and shouldn't be used at the moment. 
-If you'd like to contribute in making everything in the "Features" list come true, please feel free to submit a pull-request.
+The easiest way is to get built binaries from [Releases](https://github.com/naim94a/udpt/releases), 
+but building from sources should be fairly easy as well:
 
-Since we are using Rust, getting started is fairly easy:
 ```commandline
 git clone https://github.com/naim94a/udpt.git
 cd udpt
-git checkout udpt-rs
-cargo build
+cargo build --release
 ```
 
-## Why was this project rewritten in rust?
+## Contributing
+Please report any bugs you find to our issue tracker. Ideas and feature requests are welcome as well!
+
+Any pull request targeting existing issues would be very much appreciated. 
+
+### Why was UDPT rewritten in rust?
 For a few reasons,
-1. Rust makes it harder to make mistakes than C/C++.
+1. Rust makes it harder to make mistakes than C/C++, It provides memory safety without runtime cost.
 2. Rust allows easier cross-platform development with it's powerful standard library.
 3. Integrated tests and benchmarks.
 
-## Contributing
-Pull Requests are always welcome, please just check with us before developing - creating a issue would be great!
+
+UDPT was originally developed for fun in 2012 by [@naim94a](https://github.com/naim94a).
 
 ---
 The UDPT project would like to thank JetBrains for providing us with a Open Source license for the best IDEs there are out there!
