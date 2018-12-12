@@ -1,11 +1,3 @@
-*.o
-*.sublime-*
-*.sqlite3
-*.vcxproj.user
-*.sdf
-*.suo
-*.opensdf
-**/Debug/*
-*.opendb
-cmake-build-debug/
 
+/target
+**/*.rs.bk

@@ -1,0 +1,12 @@
+language: rust
+rust:
+  - stable
+  - nightly
+  - beta
+
+matrix:
+  allow_failures:
+    - rust: nightly
+  fast_finish: true
+
+cache: cargo
