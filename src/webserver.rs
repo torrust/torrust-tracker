@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use actix_web;
+use actix_net;
 use binascii;
 
 use config;
@@ -9,7 +10,10 @@ use tracker;
 
 const SERVER: &str = concat!("udpt/", env!("CARGO_PKG_VERSION"));
 
-pub struct WebServer;
+pub struct WebServer {
+    thread: std::thread::JoinHandle<()>,
+    addr: Option<actix_web::actix::Addr<actix_net::server::Server>>,
+}
 
 mod http_responses {
     use tracker::InfoHash;
@@ -130,52 +134,81 @@ impl WebServer {
         }
     }
 
+    pub fn shutdown(self) {
+        match self.addr {
+            Some(v) => {
+                use futures::future::Future;
+
+                v.send(actix_web::actix::signal::Signal(actix_web::actix::signal::SignalType::Term)).wait().unwrap();
+            },
+            None => {},
+        };
+
+        self.thread.thread().unpark();
+        let _ = self.thread.join();
+    }
+
     pub fn new(
         tracker: Arc<tracker::TorrentTracker>,
         cfg: Arc<config::Configuration>,
     ) -> WebServer {
         let cfg_cp = cfg.clone();
 
-        let server = actix_web::server::HttpServer::new(move || {
-            let mut access_tokens = HashMap::new();
+        let (tx_addr, rx_addr) = std::sync::mpsc::channel();
 
-            if let Some(http_cfg) = cfg_cp.get_http_config() {
-                Self::get_access_tokens(http_cfg, &mut access_tokens);
-            }
+        let thread = std::thread::spawn(move || {
+            let server = actix_web::server::HttpServer::new(move || {
+                let mut access_tokens = HashMap::new();
 
-            let state = UdptState::new(tracker.clone(), access_tokens);
+                if let Some(http_cfg) = cfg_cp.get_http_config() {
+                    Self::get_access_tokens(http_cfg, &mut access_tokens);
+                }
 
-            actix_web::App::<UdptState>::with_state(state)
-                .middleware(UdptMiddleware)
-                .resource("/t", |r| r.f(Self::view_torrent_list))
-                .scope(r"/t/{info_hash:[\dA-Fa-f]{40,40}}", |scope| {
-                    scope.resource("", |r| {
-                        r.method(actix_web::http::Method::GET)
-                            .f(Self::view_torrent_stats);
-                        r.method(actix_web::http::Method::POST)
-                            .f(Self::torrent_action);
+                let state = UdptState::new(tracker.clone(), access_tokens);
+
+                actix_web::App::<UdptState>::with_state(state)
+                    .middleware(UdptMiddleware)
+                    .resource("/t", |r| r.f(Self::view_torrent_list))
+                    .scope(r"/t/{info_hash:[\dA-Fa-f]{40,40}}", |scope| {
+                        scope.resource("", |r| {
+                            r.method(actix_web::http::Method::GET)
+                                .f(Self::view_torrent_stats);
+                            r.method(actix_web::http::Method::POST)
+                                .f(Self::torrent_action);
+                        })
                     })
-                })
-                .resource("/", |r| {
-                    r.method(actix_web::http::Method::GET).f(Self::view_root)
-                })
+                    .resource("/", |r| {
+                        r.method(actix_web::http::Method::GET).f(Self::view_root)
+                    })
+            });
+
+            if let Some(http_cfg) = cfg.get_http_config() {
+                let bind_addr = http_cfg.get_address();
+                match server.bind(bind_addr) {
+                    Ok(v) => {
+                        let sys = actix_web::actix::System::new("http-server");
+                        let addr = v.start();
+                        let _ = tx_addr.send(addr);
+                        sys.run();
+                    }
+                    Err(err) => {
+                        error!("Failed to bind http server. {}", err);
+                    }
+                }
+            } else {
+                unreachable!();
+            }
         });
 
-        if let Some(http_cfg) = cfg.get_http_config() {
-            let bind_addr = http_cfg.get_address();
-            match server.bind(bind_addr) {
-                Ok(v) => {
-                    v.run();
-                }
-                Err(err) => {
-                    error!("Failed to bind http server. {}", err);
-                }
-            }
-        } else {
-            unreachable!();
-        }
+        let addr = match rx_addr.recv() {
+            Ok(v) => Some(v),
+            Err(_) => None
+        };
 
-        WebServer {}
+        WebServer {
+            thread,
+            addr,
+        }
     }
 
     fn view_root(_req: &actix_web::HttpRequest<UdptState>) -> actix_web::HttpResponse {

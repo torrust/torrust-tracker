@@ -6,6 +6,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate actix_web;
+extern crate actix_net;
 extern crate binascii;
 extern crate toml;
 #[macro_use]
@@ -14,6 +15,9 @@ extern crate bzip2;
 extern crate fern;
 extern crate num_cpus;
 extern crate serde_json;
+extern crate futures;
+#[macro_use]
+extern crate lazy_static;
 
 mod config;
 mod server;
@@ -23,6 +27,10 @@ mod webserver;
 
 use config::Configuration;
 use std::process::exit;
+
+lazy_static!{
+    static ref term_mutex: std::sync::Arc<std::sync::atomic::AtomicBool> = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+}
 
 fn setup_logging(cfg: &Configuration) {
     let log_level = match cfg.get_log_level() {
@@ -62,6 +70,10 @@ fn setup_logging(cfg: &Configuration) {
         std::process::exit(-1);
     }
     info!("logging initialized.");
+}
+
+fn signal_termination() {
+    term_mutex.store(true, std::sync::atomic::Ordering::Relaxed);
 }
 
 fn main() {
@@ -116,29 +128,41 @@ fn main() {
         None => tracker::TorrentTracker::new(cfg.get_mode().clone()),
     };
 
+    let mut threads = Vec::new();
+
     let tracker = std::sync::Arc::new(tracker_obj);
 
-    // start http server:
-    if cfg.get_http_config().is_some() {
+    let http_server = if cfg.get_http_config().is_some() {
         let http_tracker_ref = tracker.clone();
         let cfg_ref = cfg.clone();
-        std::thread::spawn(move || {
-            webserver::WebServer::new(http_tracker_ref, cfg_ref);
-        });
-    }
+
+        Some(webserver::WebServer::new(http_tracker_ref, cfg_ref))
+    } else {
+        None
+    };
 
     let udp_server = std::sync::Arc::new(server::UDPTracker::new(cfg.clone(), tracker.clone()).unwrap());
 
     trace!("Waiting for UDP packets");
     let logical_cpus = num_cpus::get();
-    let mut threads = Vec::with_capacity(logical_cpus);
     for i in 0..logical_cpus {
         debug!("starting thread {}/{}", i + 1, logical_cpus);
         let server_handle = udp_server.clone();
+        let thread_term_ref = term_mutex.clone();
         threads.push(std::thread::spawn(move || loop {
             match server_handle.accept_packet() {
                 Err(e) => {
-                    error!("Failed to process packet. {}", e);
+                    if thread_term_ref.load(std::sync::atomic::Ordering::Relaxed) == true {
+                        debug!("Thread terminating...");
+                        break;
+                    }
+                    match e.kind() {
+                        std::io::ErrorKind::TimedOut => {},
+                        std::io::ErrorKind::WouldBlock => {},
+                        _ => {
+                            error!("Failed to process packet. {}", e);
+                        }
+                    }
                 }
                 Ok(_) => {}
             }
@@ -154,20 +178,54 @@ fn main() {
                 None => 10 * 60,
             };
 
-            std::thread::spawn(move || {
+            let thread_term_mutex = term_mutex.clone();
+            threads.push(std::thread::spawn(move || {
+                let timeout = std::time::Duration::new(cleanup_interval, 0);
+
+                let timeout_start = std::time::Instant::now();
+                let mut timeout_remaining = timeout;
                 loop {
-                    std::thread::sleep(std::time::Duration::new(cleanup_interval, 0));
+                    std::thread::park_timeout(std::time::Duration::new(cleanup_interval, 0));
+
+                    if thread_term_mutex.load(std::sync::atomic::Ordering::Relaxed) {
+                        debug!("Maintenance thread terminating.");
+                        break;
+                    }
+
+                    let elapsed = std::time::Instant::now() - timeout_start;
+                    if elapsed < timeout_remaining {
+                        timeout_remaining = timeout - elapsed;
+                        continue;
+                    }
+                    else {
+                        timeout_remaining = timeout;
+                    }
+
                     debug!("periodically saving database.");
                     tracker_clone.periodic_task(db_p.as_str());
                     debug!("database saved.");
                 }
-            });
+            }));
         },
         None => {}
     }
 
+    loop {
+        if term_mutex.load(std::sync::atomic::Ordering::Relaxed) {
+            // termination signaled. start cleanup.
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_secs(1));
+    }
+
+    match http_server {
+        Some(v) => v.shutdown(),
+        None => {},
+    };
+
     while !threads.is_empty() {
         if let Some(thread) = threads.pop() {
+            thread.thread().unpark();
             let _ = thread.join();
         }
     }

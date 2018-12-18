@@ -114,7 +114,7 @@ pub struct UDPTracker {
 impl UDPTracker {
     pub fn new(
         config: Arc<Configuration>,
-        tracker: std::sync::Arc<tracker::TorrentTracker>,
+        tracker: std::sync::Arc<tracker::TorrentTracker>
     ) -> Result<UDPTracker, std::io::Error> {
         let cfg = config.clone();
 
@@ -124,6 +124,13 @@ impl UDPTracker {
                 return Err(e);
             }
         };
+
+        match server.set_read_timeout(Some(std::time::Duration::from_secs(1))) {
+            Ok(_) => {},
+            Err(err) => {
+                error!("Failed to set read timeout on socket; will try to continue anyway. err: {}", err);
+            }
+        }
 
         Ok(UDPTracker {
             server,
