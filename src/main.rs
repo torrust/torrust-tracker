@@ -77,9 +77,10 @@ fn signal_termination() {
 }
 
 fn main() {
-    let parser = clap::App::new("udpt")
-        .about("High performance, lightweight, udp based torrent tracker.")
-        .author("Naim A. <naim94a@gmail.com>")
+    let parser = clap::App::new(env!("CARGO_PKG_NAME"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .version(env!("CARGO_PKG_VERSION"))
         .arg(
             clap::Arg::with_name("config")
                 .takes_value(true)
@@ -229,4 +230,10 @@ fn main() {
             let _ = thread.join();
         }
     }
+
+    if let Some(db_path) = cfg.get_db_path() {
+        info!("running final cleanup & saving database...");
+        tracker.periodic_task(db_path.as_str());
+    }
+    info!("goodbye.");
 }
