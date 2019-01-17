@@ -1,0 +1,10 @@
+[book]
+authors = ["Naim A."]
+title = "UDPT v3"
+description = "UDPT v3 User Guide"
+
+[build]
+create-missing = false
+
+[output.html]
+google-analytics = "UA-11289087-19"
