@@ -30,9 +30,9 @@ All Endpoints require a authorization token which must be set in the configurati
     - seeders & leechers
     - times the torrent's download was completed
     
-- Preforming actions on torrents
+- Performing actions on torrents
     
-    `POST /t/<info_hash>&action=<action>&token=... HTTP/1.0`
+    `POST /t/<info_hash>?action=<action>&token=... HTTP/1.0`
     
     Valid actions are: `flag`, `unflag`, `add` & `remove`.
     
