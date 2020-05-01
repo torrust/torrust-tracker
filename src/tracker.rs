@@ -1,9 +1,7 @@
-use binascii;
-use serde;
-use serde_json;
-use std;
 
-use server::Events;
+use crate::server::Events;
+use serde::{Serialize, Deserialize};
+use log::{error, trace};
 
 #[derive(Deserialize, Clone, PartialEq)]
 pub enum TrackerMode {
@@ -242,7 +240,6 @@ impl TorrentTracker {
         mode: TrackerMode,
         reader: &mut R,
     ) -> serde_json::Result<TorrentTracker> {
-        use bzip2;
         let decomp_reader = bzip2::read::BzDecoder::new(reader);
         let result: serde_json::Result<std::collections::BTreeMap<InfoHash, TorrentEntry>> =
             serde_json::from_reader(decomp_reader);
@@ -369,8 +366,6 @@ impl TorrentTracker {
     }
 
     pub fn save_database<W: std::io::Write>(&self, writer: &mut W) -> serde_json::Result<()> {
-        use bzip2;
-
         let compressor = bzip2::write::BzEncoder::new(writer, bzip2::Compression::Best);
 
         let db_lock = self.database.torrent_peers.read().unwrap();

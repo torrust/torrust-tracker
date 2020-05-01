@@ -1,23 +1,10 @@
 #![forbid(unsafe_code)]
 
-extern crate bincode;
-extern crate clap;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate actix_web;
-extern crate actix_net;
-extern crate binascii;
-extern crate toml;
-#[macro_use]
-extern crate log;
-extern crate bzip2;
-extern crate fern;
-extern crate num_cpus;
-extern crate serde_json;
-extern crate futures;
-#[macro_use]
-extern crate lazy_static;
+use clap;
+use log::{trace, warn, info, debug, error};
+use fern;
+use num_cpus;
+use lazy_static::lazy_static;
 
 mod config;
 mod server;

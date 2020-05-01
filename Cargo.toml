@@ -1,25 +1,25 @@
 [package]
 name = "udpt-rs"
 version = "3.0.0-alpha"
-authors = ["Naim A. <naim94a@github.com>"]
+authors = ["Naim A. <naim@abda.nl>"]
 description = "High performance torrent tracker"
+edition = "2018"
 
 [profile.release]
-lto = "thin"
+lto = "fat"
 
 [dependencies]
-serde = "1.0.80"
-bincode = "1.0.1"
-serde_derive = "1.0.80"
-actix-web = "0.7.16"
-actix-net = "0.2.5"
-binascii = "0.1.2"
-toml = "0.4.8"
-clap = "2.32.0"
-log = "0.4.5"
-fern = "0.5.6"
-num_cpus = "1.8.0"
-serde_json = "1.0.32"
-bzip2 = "0.3.3"
-futures = "0.1.25"
-lazy_static = "1.2.0"
+serde = {version = "1.0", features = ["derive"]}
+bincode = "1.2"
+actix-web = "0.7"
+actix-net = "0.2"
+binascii = "0.1"
+toml = "0.5"
+clap = "2.33"
+log = "0.4"
+fern = "0.6"
+num_cpus = "1.13"
+serde_json = "1.0"
+bzip2 = "0.3"
+futures = "0.1"
+lazy_static = "1.4"

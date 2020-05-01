@@ -5,8 +5,9 @@ use actix_web;
 use actix_net;
 use binascii;
 
-use config;
-use tracker;
+use crate::config;
+use crate::tracker::TorrentTracker;
+use log::{error, warn, info, debug};
 
 const SERVER: &str = concat!("udpt/", env!("CARGO_PKG_VERSION"));
 
@@ -16,7 +17,8 @@ pub struct WebServer {
 }
 
 mod http_responses {
-    use tracker::InfoHash;
+    use serde::Serialize;
+    use crate::tracker::InfoHash;
 
     #[derive(Serialize)]
     pub struct TorrentInfo {
@@ -46,11 +48,11 @@ mod http_responses {
 struct UdptState {
     // k=token, v=username.
     access_tokens: HashMap<String, String>,
-    tracker: Arc<tracker::TorrentTracker>,
+    tracker: Arc<TorrentTracker>,
 }
 
 impl UdptState {
-    fn new(tracker: Arc<tracker::TorrentTracker>, tokens: HashMap<String, String>) -> UdptState {
+    fn new(tracker: Arc<TorrentTracker>, tokens: HashMap<String, String>) -> UdptState {
         UdptState {
             tracker,
             access_tokens: tokens,
@@ -149,7 +151,7 @@ impl WebServer {
     }
 
     pub fn new(
-        tracker: Arc<tracker::TorrentTracker>,
+        tracker: Arc<TorrentTracker>,
         cfg: Arc<config::Configuration>,
     ) -> WebServer {
         let cfg_cp = cfg.clone();

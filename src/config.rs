@@ -1,7 +1,8 @@
 use std;
 use std::collections::HashMap;
 use toml;
-pub use tracker::TrackerMode;
+pub use crate::tracker::TrackerMode;
+use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct UDPConfig {
