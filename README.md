@@ -35,8 +35,3 @@ For a few reasons,
 
 
 UDPT was originally developed for fun in 2012 by [@naim94a](https://github.com/naim94a).
-
----
-The UDPT project would like to thank JetBrains for providing us with a Open Source license for the best IDEs there are out there!
-
-<a href="https://www.jetbrains.com/?from=udpt"><img src=".github/jetbrains-variant-4.svg" alt="JetBrains"></img></a>
