@@ -507,12 +507,16 @@ mod tests {
     #[tokio::test]
     async fn test_save_db() {
         let tracker = TorrentTracker::new(TrackerMode::DynamicMode);
-        tracker.add_torrent(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].into());
+        tracker
+            .add_torrent(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].into())
+            .await
+            .expect("failed to add torrent");
 
         let mut out = Vec::new();
+        let mut cursor = std::io::Cursor::new(&mut out);
 
-        tracker.save_database(&mut out).await.expect("db save failed");
-        assert!(out.len() > 0);
+        tracker.save_database(&mut cursor).await.expect("db save failed");
+        assert!(cursor.position() > 0);
     }
 
     #[test]

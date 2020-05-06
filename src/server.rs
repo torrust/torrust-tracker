@@ -407,7 +407,7 @@ mod tests {
         let mut payload = StackVec::from(&mut buffer);
 
         assert!(pack_into(&mut payload, &mystruct).is_ok());
-        assert_eq!(payload.len(), 16);
+        assert_eq!(payload.as_slice().len(), 16);
         assert_eq!(payload.as_slice(), &[0, 0, 0, 0, 0, 0, 0, 200u8, 0, 0, 0, 0, 0, 1, 47, 203]);
     }
 
