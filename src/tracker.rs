@@ -1,9 +1,10 @@
 use crate::server::Events;
+use crate::utils;
 use log::{error, trace};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
+use tokio::io::AsyncBufReadExt;
 use tokio::stream::StreamExt;
 use tokio::sync::RwLock;
 
@@ -256,6 +257,11 @@ impl TorrentTracker {
         mode: TrackerMode, reader: &mut R,
     ) -> Result<TorrentTracker, std::io::Error> {
         let reader = tokio::io::BufReader::new(reader);
+        let reader = utils::TokioFuturesCompat::from(reader);
+        let reader = async_compression::futures::bufread::BzDecoder::new(reader);
+        let reader = utils::TokioFuturesCompat::from(reader);
+        let reader = tokio::io::BufReader::new(reader);
+
         let mut tmp: Vec<u8> = Vec::with_capacity(4096);
         tmp.resize(tmp.capacity(), 0);
 
@@ -264,13 +270,13 @@ impl TorrentTracker {
 
         let mut records = reader
             .lines()
-            .filter_map(|res| {
+            .filter_map(|res: Result<String, _>| {
                 if let Err(ref err) = res {
                     error!("failed to read lines! {}", err);
                 }
                 res.ok()
             })
-            .map(|line| serde_json::from_str::<DatabaseRow>(&line))
+            .map(|line: String| serde_json::from_str::<DatabaseRow>(&line))
             .filter_map(|jsr| {
                 if let Err(ref err) = jsr {
                     error!("failed to parse json: {}", err);
@@ -284,6 +290,7 @@ impl TorrentTracker {
             let a = a.into_owned();
             db.insert(b, a);
         }
+        trace!("loaded {} entries from database", db.len());
 
         drop(db);
 
@@ -390,8 +397,10 @@ impl TorrentTracker {
         self.database.torrent_peers.read().await
     }
 
-    pub async fn save_database<W: tokio::io::AsyncWrite + Unpin>(&self, mut writer: W) -> Result<(), std::io::Error> {
-        // TODO: find async friendly compressor
+    pub async fn save_database<W: tokio::io::AsyncWrite + Unpin>(&self, mut w: W) -> Result<(), std::io::Error> {
+        use futures::io::AsyncWriteExt;
+
+        let mut writer = async_compression::futures::write::BzEncoder::new(utils::TokioFuturesCompat::from(&mut w));
 
         let db_lock = self.database.torrent_peers.read().await;
 
@@ -411,6 +420,8 @@ impl TorrentTracker {
             tmp.push(b'\n');
             writer.write_all(&tmp).await?;
         }
+
+        writer.close().await?;
         Ok(())
     }
 

@@ -1,5 +1,3 @@
-#![forbid(unsafe_code)]
-
 use clap;
 use fern;
 use log::{error, info, trace, warn};
@@ -8,6 +6,7 @@ mod config;
 mod server;
 mod stackvec;
 mod tracker;
+mod utils;
 mod webserver;
 
 use config::Configuration;
