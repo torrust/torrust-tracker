@@ -1,8 +1,8 @@
+pub use crate::tracker::TrackerMode;
+use serde::Deserialize;
 use std;
 use std::collections::HashMap;
 use toml;
-pub use crate::tracker::TrackerMode;
-use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct UDPConfig {
@@ -70,10 +70,12 @@ impl Configuration {
     pub fn load_file(path: &str) -> Result<Configuration, ConfigError> {
         match std::fs::read(path) {
             Err(e) => Err(ConfigError::IOError(e)),
-            Ok(data) => match Self::load(data.as_slice()) {
-                Ok(cfg) => Ok(cfg),
-                Err(e) => Err(ConfigError::ParseError(e)),
-            },
+            Ok(data) => {
+                match Self::load(data.as_slice()) {
+                    Ok(cfg) => Ok(cfg),
+                    Err(e) => Err(ConfigError::ParseError(e)),
+                }
+            }
         }
     }
 
@@ -89,16 +91,16 @@ impl Configuration {
         &self.log_level
     }
 
-    pub fn get_http_config(&self) -> &Option<HTTPConfig> {
-        &self.http
+    pub fn get_http_config(&self) -> Option<&HTTPConfig> {
+        self.http.as_ref()
     }
 
     pub fn get_db_path(&self) -> &Option<String> {
         &self.db_path
     }
 
-    pub fn get_cleanup_interval(&self) -> &Option<u64> {
-        &self.cleanup_interval
+    pub fn get_cleanup_interval(&self) -> Option<u64> {
+        self.cleanup_interval
     }
 }
 

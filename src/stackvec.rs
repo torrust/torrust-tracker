@@ -10,10 +10,6 @@ impl<'a, T> StackVec<'a, T> {
         StackVec { data, length: 0 }
     }
 
-    pub fn len(&self) -> usize {
-        self.length
-    }
-
     pub fn as_slice(&self) -> &[T] {
         &self.data[0..self.length]
     }

@@ -1,419 +1,193 @@
-use std::collections::HashMap;
+use crate::tracker::{InfoHash, TorrentTracker};
+use serde::{Deserialize, Serialize};
+use std::cmp::min;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
+use warp::{filters, reply, reply::Reply, serve, Filter, Server};
 
-use actix_web;
-use actix_net;
-use binascii;
-
-use crate::config;
-use crate::tracker::TorrentTracker;
-use log::{error, warn, info, debug};
-
-const SERVER: &str = concat!("udpt/", env!("CARGO_PKG_VERSION"));
-
-pub struct WebServer {
-    thread: std::thread::JoinHandle<()>,
-    addr: Option<actix_web::actix::Addr<actix_net::server::Server>>,
+fn view_root() -> impl Reply {
+    reply::html(concat!(
+        r#"<html>
+        <head>
+            <title>udpt/"#,
+        env!("CARGO_PKG_VERSION"),
+        r#"</title>
+        </head>
+        <body>
+            This is your <a href="https://github.com/naim94a/udpt">udpt</a> torrent tracker.
+        </body>
+    </html>"#
+    ))
 }
 
-mod http_responses {
-    use serde::Serialize;
-    use crate::tracker::InfoHash;
+#[derive(Deserialize, Debug)]
+struct TorrentInfoQuery {
+    offset: Option<u32>,
+    limit: Option<u32>,
+}
 
-    #[derive(Serialize)]
-    pub struct TorrentInfo {
-        pub is_flagged: bool,
-        pub leecher_count: u32,
-        pub seeder_count: u32,
-        pub completed: u32,
+#[derive(Serialize)]
+struct TorrentEntry<'a> {
+    info_hash: &'a InfoHash,
+    #[serde(flatten)]
+    data: &'a crate::tracker::TorrentEntry,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TorrentFlag {
+    is_flagged: bool,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(tag = "status", rename_all = "snake_case")]
+enum ActionStatus<'a> {
+    Ok,
+    Err { reason: std::borrow::Cow<'a, str> },
+}
+
+impl warp::reject::Reject for ActionStatus<'static> {}
+
+fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Error = warp::reject::Rejection> + Clone {
+    #[derive(Deserialize)]
+    struct AuthToken {
+        token: Option<String>,
     }
 
-    #[derive(Serialize)]
-    pub struct TorrentList {
-        pub offset: u32,
-        pub length: u32,
-        pub total: u32,
-        pub torrents: Vec<InfoHash>,
-    }
+    let tokens: HashSet<String> = tokens.into_iter().map(|(_, v)| v).collect();
 
-    #[derive(Serialize)]
-    #[serde(rename_all = "snake_case")]
-    pub enum APIResponse {
-        Error(String),
-        TorrentList(TorrentList),
-        TorrentInfo(TorrentInfo),
-    }
-}
-
-struct UdptState {
-    // k=token, v=username.
-    access_tokens: HashMap<String, String>,
-    tracker: Arc<TorrentTracker>,
-}
-
-impl UdptState {
-    fn new(tracker: Arc<TorrentTracker>, tokens: HashMap<String, String>) -> UdptState {
-        UdptState {
-            tracker,
-            access_tokens: tokens,
-        }
-    }
-}
-
-#[derive(Debug)]
-struct UdptRequestState {
-    current_user: Option<String>,
-}
-
-impl Default for UdptRequestState {
-    fn default() -> Self {
-        UdptRequestState {
-            current_user: Option::None,
-        }
-    }
-}
-
-impl UdptRequestState {
-    fn get_user<S>(req: &actix_web::HttpRequest<S>) -> Option<String> {
-        let exts = req.extensions();
-        let req_state: Option<&UdptRequestState> = exts.get();
-        match req_state {
-            None => None,
-            Option::Some(state) => match state.current_user {
-                Option::Some(ref v) => Option::Some(v.clone()),
-                None => {
-                    error!(
-                        "Invalid API token from {} @ {}",
-                        req.peer_addr().unwrap(),
-                        req.path()
-                    );
-                    return None;
+    let tokens = Arc::new(tokens);
+    warp::filters::any::any()
+        .map(move || tokens.clone())
+        .and(filters::query::query::<AuthToken>())
+        .and_then(|tokens: Arc<HashSet<String>>, token: AuthToken| {
+            async move {
+                if let Some(token) = token.token {
+                    if tokens.contains(&token) {
+                        return Ok(());
+                    }
                 }
-            },
-        }
-    }
-}
-
-struct UdptMiddleware;
-
-impl actix_web::middleware::Middleware<UdptState> for UdptMiddleware {
-    fn start(
-        &self,
-        req: &actix_web::HttpRequest<UdptState>,
-    ) -> actix_web::Result<actix_web::middleware::Started> {
-        let mut req_state = UdptRequestState::default();
-        if let Option::Some(token) = req.query().get("token") {
-            let app_state: &UdptState = req.state();
-            if let Option::Some(v) = app_state.access_tokens.get(token) {
-                req_state.current_user = Option::Some(v.clone());
+                Err(warp::reject::custom(ActionStatus::Err {
+                    reason: "Access Denied".into(),
+                }))
             }
-        }
-        req.extensions_mut().insert(req_state);
-        Ok(actix_web::middleware::Started::Done)
-    }
-
-    fn response(
-        &self,
-        _req: &actix_web::HttpRequest<UdptState>,
-        mut resp: actix_web::HttpResponse,
-    ) -> actix_web::Result<actix_web::middleware::Response> {
-        resp.headers_mut().insert(
-            actix_web::http::header::SERVER,
-            actix_web::http::header::HeaderValue::from_static(SERVER),
-        );
-
-        Ok(actix_web::middleware::Response::Done(resp))
-    }
+        })
+        .untuple_one()
 }
 
-impl WebServer {
-    fn get_access_tokens(cfg: &config::HTTPConfig, tokens: &mut HashMap<String, String>) {
-        for (user, token) in cfg.get_access_tokens().iter() {
-            tokens.insert(token.clone(), user.clone());
-        }
-        if tokens.len() == 0 {
-            warn!("No access tokens provided. HTTP API will not be useful.");
-        }
-    }
+pub fn build_server(
+    tracker: Arc<TorrentTracker>, tokens: HashMap<String, String>,
+) -> Server<impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static> {
+    let root = filters::path::end().map(|| view_root());
 
-    pub fn shutdown(self) {
-        match self.addr {
-            Some(v) => {
-                use futures::future::Future;
+    let t1 = tracker.clone();
+    // view_torrent_list -> GET /t/?offset=:u32&limit=:u32 HTTP/1.1
+    let view_torrent_list = filters::path::end()
+        .and(filters::method::get())
+        .and(filters::query::query())
+        .map(move |limits| {
+            let tracker = t1.clone();
+            (limits, tracker)
+        })
+        .and_then(|(limits, tracker): (TorrentInfoQuery, Arc<TorrentTracker>)| {
+            async move {
+                let offset = limits.offset.unwrap_or(0);
+                let limit = min(limits.limit.unwrap_or(1000), 4000);
 
-                v.send(actix_web::actix::signal::Signal(actix_web::actix::signal::SignalType::Term)).wait().unwrap();
-            },
-            None => {},
-        };
+                let db = tracker.get_database().await;
+                let results: Vec<_> = db
+                    .iter()
+                    .map(|(k, v)| TorrentEntry { info_hash: k, data: v })
+                    .skip(offset as usize)
+                    .take(limit as usize)
+                    .collect();
 
-        self.thread.thread().unpark();
-        let _ = self.thread.join();
-    }
-
-    pub fn new(
-        tracker: Arc<TorrentTracker>,
-        cfg: Arc<config::Configuration>,
-    ) -> WebServer {
-        let cfg_cp = cfg.clone();
-
-        let (tx_addr, rx_addr) = std::sync::mpsc::channel();
-
-        let thread = std::thread::spawn(move || {
-            let server = actix_web::server::HttpServer::new(move || {
-                let mut access_tokens = HashMap::new();
-
-                if let Some(http_cfg) = cfg_cp.get_http_config() {
-                    Self::get_access_tokens(http_cfg, &mut access_tokens);
-                }
-
-                let state = UdptState::new(tracker.clone(), access_tokens);
-
-                actix_web::App::<UdptState>::with_state(state)
-                    .middleware(UdptMiddleware)
-                    .resource("/t", |r| r.f(Self::view_torrent_list))
-                    .scope(r"/t/{info_hash:[\dA-Fa-f]{40,40}}", |scope| {
-                        scope.resource("", |r| {
-                            r.method(actix_web::http::Method::GET)
-                                .f(Self::view_torrent_stats);
-                            r.method(actix_web::http::Method::POST)
-                                .f(Self::torrent_action);
-                        })
-                    })
-                    .resource("/", |r| {
-                        r.method(actix_web::http::Method::GET).f(Self::view_root)
-                    })
-            });
-
-            if let Some(http_cfg) = cfg.get_http_config() {
-                let bind_addr = http_cfg.get_address();
-                match server.bind(bind_addr) {
-                    Ok(v) => {
-                        let sys = actix_web::actix::System::new("http-server");
-                        let addr = v.start();
-                        let _ = tx_addr.send(addr);
-                        sys.run();
-                    }
-                    Err(err) => {
-                        error!("Failed to bind http server. {}", err);
-                    }
-                }
-            } else {
-                unreachable!();
+                Result::<_, warp::reject::Rejection>::Ok(reply::json(&results))
             }
         });
 
-        let addr = match rx_addr.recv() {
-            Ok(v) => Some(v),
-            Err(_) => None
-        };
+    let t2 = tracker.clone();
+    // view_torrent_info -> GET /t/:infohash HTTP/*
+    let view_torrent_info = filters::method::get()
+        .and(filters::path::param())
+        .map(move |info_hash: InfoHash| {
+            let tracker = t2.clone();
+            (info_hash, tracker)
+        })
+        .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| {
+            async move {
+                let db = tracker.get_database().await;
+                let info = match db.get(&info_hash) {
+                    Some(v) => v,
+                    None => return Err(warp::reject::reject()),
+                };
 
-        WebServer {
-            thread,
-            addr,
-        }
-    }
-
-    fn view_root(_req: &actix_web::HttpRequest<UdptState>) -> actix_web::HttpResponse {
-        actix_web::HttpResponse::build(actix_web::http::StatusCode::OK)
-            .content_type("text/html")
-            .body(r#"Powered by <a href="https://github.com/naim94a/udpt">https://github.com/naim94a/udpt</a>"#)
-    }
-
-    fn view_torrent_list(req: &actix_web::HttpRequest<UdptState>) -> impl actix_web::Responder {
-        use std::str::FromStr;
-
-        if UdptRequestState::get_user(req).is_none() {
-            return actix_web::Json(http_responses::APIResponse::Error(String::from(
-                "access_denied",
-            )));
-        }
-
-        let req_offset = match req.query().get("offset") {
-            None => 0,
-            Some(v) => match u32::from_str(v.as_str()) {
-                Ok(v) => v,
-                Err(_) => 0,
-            },
-        };
-
-        let mut req_limit = match req.query().get("limit") {
-            None => 0,
-            Some(v) => match u32::from_str(v.as_str()) {
-                Ok(v) => v,
-                Err(_) => 0,
-            },
-        };
-
-        if req_limit > 4096 {
-            req_limit = 4096;
-        } else if req_limit == 0 {
-            req_limit = 1000;
-        }
-
-        let app_state: &UdptState = req.state();
-        let app_db = app_state.tracker.get_database();
-
-        let total = app_db.len() as u32;
-
-        let mut torrents = Vec::with_capacity(req_limit as usize);
-
-        for (info_hash, _) in app_db
-            .iter()
-            .skip(req_offset as usize)
-            .take(req_limit as usize)
-        {
-            torrents.push(info_hash.clone());
-        }
-
-        actix_web::Json(http_responses::APIResponse::TorrentList(
-            http_responses::TorrentList {
-                total,
-                length: torrents.len() as u32,
-                offset: req_offset,
-                torrents,
-            },
-        ))
-    }
-
-    fn view_torrent_stats(req: &actix_web::HttpRequest<UdptState>) -> actix_web::HttpResponse {
-        use actix_web::FromRequest;
-
-        if UdptRequestState::get_user(req).is_none() {
-            return actix_web::HttpResponse::build(actix_web::http::StatusCode::UNAUTHORIZED).json(
-                http_responses::APIResponse::Error(String::from("access_denied")),
-            );
-        }
-
-        let path: actix_web::Path<String> = match actix_web::Path::extract(req) {
-            Ok(v) => v,
-            Err(_) => {
-                return actix_web::HttpResponse::build(
-                    actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
-                )
-                .json(http_responses::APIResponse::Error(String::from(
-                    "internal_error",
-                )));
+                Ok(reply::json(&TorrentEntry {
+                    info_hash: &info_hash,
+                    data: info,
+                }))
             }
-        };
+        });
 
-        let mut info_hash = [0u8; 20];
-        if let Err(_) = binascii::hex2bin((*path).as_bytes(), &mut info_hash) {
-            return actix_web::HttpResponse::build(actix_web::http::StatusCode::BAD_REQUEST).json(
-                http_responses::APIResponse::Error(String::from("invalid_info_hash")),
-            );
-        }
+    // DELETE /t/:info_hash
+    let t3 = tracker.clone();
+    let delete_torrent = filters::method::post()
+        .and(filters::path::param())
+        .map(move |info_hash: InfoHash| {
+            let tracker = t3.clone();
+            (info_hash, tracker)
+        })
+        .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| {
+            async move {
+                let resp = match tracker.remove_torrent(&info_hash, true).await.is_ok() {
+                    true => ActionStatus::Ok,
+                    false => {
+                        ActionStatus::Err {
+                            reason: "failed to delete torrent".into(),
+                        }
+                    }
+                };
 
-        let app_state: &UdptState = req.state();
-
-        let db = app_state.tracker.get_database();
-        let entry = match db.get(&info_hash.into()) {
-            Some(v) => v,
-            None => {
-                return actix_web::HttpResponse::build(actix_web::http::StatusCode::NOT_FOUND).json(
-                    http_responses::APIResponse::Error(String::from("not_found")),
-                );
+                Result::<_, warp::Rejection>::Ok(reply::json(&resp))
             }
-        };
+        });
 
-        let is_flagged = entry.is_flagged();
-        let (seeders, completed, leechers) = entry.get_stats();
+    let t4 = tracker.clone();
+    // add_torrent/alter: POST /t/:info_hash
+    // (optional) BODY: json: {"is_flagged": boolean}
+    let change_torrent = filters::method::post()
+        .and(filters::path::param())
+        .and(filters::body::content_length_limit(4096))
+        .and(filters::body::json())
+        .map(move |info_hash: InfoHash, body: Option<TorrentFlag>| {
+            let tracker = t4.clone();
+            (info_hash, tracker, body)
+        })
+        .and_then(
+            |(info_hash, tracker, body): (InfoHash, Arc<TorrentTracker>, Option<TorrentFlag>)| {
+                async move {
+                    let is_flagged = body.map(|e| e.is_flagged).unwrap_or(false);
+                    if !tracker.set_torrent_flag(&info_hash, is_flagged).await {
+                        // torrent doesn't exist, add it...
 
-        return actix_web::HttpResponse::build(actix_web::http::StatusCode::OK).json(
-            http_responses::APIResponse::TorrentInfo(http_responses::TorrentInfo {
-                is_flagged,
-                seeder_count: seeders,
-                leecher_count: leechers,
-                completed,
-            }),
+                        if is_flagged {
+                            if tracker.add_torrent(&info_hash).await.is_ok() {
+                                tracker.set_torrent_flag(&info_hash, is_flagged).await;
+                            } else {
+                                return Err(warp::reject::custom(ActionStatus::Err {
+                                    reason: "failed to flag torrent".into(),
+                                }));
+                            }
+                        }
+                    }
+
+                    Result::<_, warp::Rejection>::Ok(reply::json(&ActionStatus::Ok))
+                }
+            },
         );
-    }
+    let torrent_mgmt =
+        filters::path::path("t").and(view_torrent_list.or(delete_torrent).or(view_torrent_info).or(change_torrent));
 
-    fn torrent_action(req: &actix_web::HttpRequest<UdptState>) -> actix_web::HttpResponse {
-        use actix_web::FromRequest;
+    let server = root.or(authenticate(tokens).and(torrent_mgmt));
 
-        if UdptRequestState::get_user(req).is_none() {
-            return actix_web::HttpResponse::build(actix_web::http::StatusCode::UNAUTHORIZED).json(
-                http_responses::APIResponse::Error(String::from("access_denied")),
-            );
-        }
-
-        let query = req.query();
-        let action_opt = query.get("action");
-        let action = match action_opt {
-            Some(v) => v,
-            None => {
-                return actix_web::HttpResponse::build(actix_web::http::StatusCode::BAD_REQUEST)
-                    .json(http_responses::APIResponse::Error(String::from(
-                        "action_required",
-                    )));
-            }
-        };
-
-        let app_state: &UdptState = req.state();
-
-        let path: actix_web::Path<String> = match actix_web::Path::extract(req) {
-            Ok(v) => v,
-            Err(_err) => {
-                return actix_web::HttpResponse::build(
-                    actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
-                )
-                .json(http_responses::APIResponse::Error(String::from(
-                    "internal_error",
-                )));
-            }
-        };
-
-        let info_hash_str = &(*path);
-        let mut info_hash = [0u8; 20];
-        if let Err(_) = binascii::hex2bin(info_hash_str.as_bytes(), &mut info_hash) {
-            return actix_web::HttpResponse::build(actix_web::http::StatusCode::BAD_REQUEST).json(
-                http_responses::APIResponse::Error(String::from("invalid_info_hash")),
-            );
-        }
-
-        match action.as_str() {
-            "flag" => {
-                app_state.tracker.set_torrent_flag(&info_hash.into(), true);
-                info!("Flagged {}", info_hash_str.as_str());
-                return actix_web::HttpResponse::build(actix_web::http::StatusCode::OK).body("");
-            }
-            "unflag" => {
-                app_state.tracker.set_torrent_flag(&info_hash.into(), false);
-                info!("Unflagged {}", info_hash_str.as_str());
-                return actix_web::HttpResponse::build(actix_web::http::StatusCode::OK).body("");
-            }
-            "add" => {
-                let success = app_state.tracker.add_torrent(&info_hash.into()).is_ok();
-                info!("Added {}, success={}", info_hash_str.as_str(), success);
-                let code = if success {
-                    actix_web::http::StatusCode::OK
-                } else {
-                    actix_web::http::StatusCode::INTERNAL_SERVER_ERROR
-                };
-
-                return actix_web::HttpResponse::build(code).body("");
-            }
-            "remove" => {
-                let success = app_state
-                    .tracker
-                    .remove_torrent(&info_hash.into(), true)
-                    .is_ok();
-                info!("Removed {}, success={}", info_hash_str.as_str(), success);
-                let code = if success {
-                    actix_web::http::StatusCode::OK
-                } else {
-                    actix_web::http::StatusCode::INTERNAL_SERVER_ERROR
-                };
-
-                return actix_web::HttpResponse::build(code).body("");
-            }
-            _ => {
-                debug!("Invalid action {}", action.as_str());
-                return actix_web::HttpResponse::build(actix_web::http::StatusCode::BAD_REQUEST)
-                    .json(http_responses::APIResponse::Error(String::from(
-                        "invalid_action",
-                    )));
-            }
-        }
-    }
+    serve(server)
 }

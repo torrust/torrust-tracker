@@ -1,8 +1,9 @@
+use log::{debug, error, trace};
 use std;
 use std::io::Write;
-use std::net::{SocketAddr, UdpSocket};
+use std::net::SocketAddr;
 use std::sync::Arc;
-use log::{error, trace, debug};
+use tokio::net::UdpSocket;
 
 use bincode;
 use serde::{Deserialize, Serialize};
@@ -107,31 +108,18 @@ struct UDPScrapeResponseEntry {
 }
 
 pub struct UDPTracker {
-    server: std::net::UdpSocket,
+    server: UdpSocket,
     tracker: std::sync::Arc<tracker::TorrentTracker>,
     config: Arc<Configuration>,
 }
 
 impl UDPTracker {
-    pub fn new(
-        config: Arc<Configuration>,
-        tracker: std::sync::Arc<tracker::TorrentTracker>
+    pub async fn new(
+        config: Arc<Configuration>, tracker: std::sync::Arc<tracker::TorrentTracker>,
     ) -> Result<UDPTracker, std::io::Error> {
         let cfg = config.clone();
 
-        let server = match UdpSocket::bind(cfg.get_udp_config().get_address()) {
-            Ok(s) => s,
-            Err(e) => {
-                return Err(e);
-            }
-        };
-
-        match server.set_read_timeout(Some(std::time::Duration::from_secs(1))) {
-            Ok(_) => {},
-            Err(err) => {
-                error!("Failed to set read timeout on socket; will try to continue anyway. err: {}", err);
-            }
-        }
+        let server = UdpSocket::bind(cfg.get_udp_config().get_address()).await?;
 
         Ok(UDPTracker {
             server,
@@ -140,7 +128,8 @@ impl UDPTracker {
         })
     }
 
-    fn handle_packet(&self, remote_address: &SocketAddr, payload: &[u8]) {
+    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
+    async fn handle_packet(&mut self, remote_address: &SocketAddr, payload: &[u8]) {
         let header: UDPRequestHeader = match unpack(payload) {
             Some(val) => val,
             None => {
@@ -150,9 +139,9 @@ impl UDPTracker {
         };
 
         match header.action {
-            Actions::Connect => self.handle_connect(remote_address, &header, payload),
-            Actions::Announce => self.handle_announce(remote_address, &header, payload),
-            Actions::Scrape => self.handle_scrape(remote_address, &header, payload),
+            Actions::Connect => self.handle_connect(remote_address, &header, payload).await,
+            Actions::Announce => self.handle_announce(remote_address, &header, payload).await,
+            Actions::Scrape => self.handle_scrape(remote_address, &header, payload).await,
             _ => {
                 trace!("invalid action from {}", remote_address);
                 // someone is playing around... ignore request.
@@ -161,7 +150,8 @@ impl UDPTracker {
         }
     }
 
-    fn handle_connect(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, _payload: &[u8]) {
+    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
+    async fn handle_connect(&mut self, remote_addr: &SocketAddr, header: &UDPRequestHeader, _payload: &[u8]) {
         if header.connection_id != PROTOCOL_ID {
             trace!("Bad protocol magic from {}", remote_addr);
             return;
@@ -178,15 +168,16 @@ impl UDPTracker {
             connection_id: conn_id,
         };
 
-        let mut payload_buffer = [0u8; MAX_PACKET_SIZE];
-        let mut payload = StackVec::from(&mut payload_buffer);
+        let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
+        let mut payload = StackVec::from(payload_buffer.as_mut_slice());
 
         if let Ok(_) = pack_into(&mut payload, &response) {
-            let _ = self.send_packet(remote_addr, payload.as_slice());
+            let _ = self.send_packet(remote_addr, payload.as_slice()).await;
         }
     }
 
-    fn handle_announce(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
+    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
+    async fn handle_announce(&mut self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
         if header.connection_id != self.get_connection_id(remote_addr) {
             return;
         }
@@ -205,63 +196,57 @@ impl UDPTracker {
                 let bep41_payload = &payload[plen..];
 
                 // TODO: process BEP0041 payload.
-                trace!(
-                    "BEP0041 payload of {} bytes from {}",
-                    bep41_payload.len(),
-                    remote_addr
-                );
+                trace!("BEP0041 payload of {} bytes from {}", bep41_payload.len(), remote_addr);
             }
         }
 
         if packet.ip_address != 0 {
             // TODO: allow configurability of ip address
             // for now, ignore request.
-            trace!(
-                "announce request for other IP ignored. (from {})",
-                remote_addr
-            );
+            trace!("announce request for other IP ignored. (from {})", remote_addr);
             return;
         }
 
         let client_addr = SocketAddr::new(remote_addr.ip(), packet.port);
         let info_hash = packet.info_hash.into();
 
-        match self.tracker.update_torrent_and_get_stats(
-            &info_hash,
-            &packet.peer_id,
-            &client_addr,
-            packet.uploaded,
-            packet.downloaded,
-            packet.left,
-            packet.event,
-        ) {
+        match self
+            .tracker
+            .update_torrent_and_get_stats(
+                &info_hash,
+                &packet.peer_id,
+                &client_addr,
+                packet.uploaded,
+                packet.downloaded,
+                packet.left,
+                packet.event,
+            )
+            .await
+        {
             tracker::TorrentStats::Stats {
                 leechers,
                 complete: _,
                 seeders,
             } => {
-                let peers = match self.tracker.get_torrent_peers(&info_hash, &client_addr) {
+                let peers = match self.tracker.get_torrent_peers(&info_hash, &client_addr).await {
                     Some(v) => v,
                     None => {
                         return;
                     }
                 };
 
-                let mut payload_buffer = [0u8; MAX_PACKET_SIZE];
+                let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
                 let mut payload = StackVec::from(&mut payload_buffer);
 
-                match pack_into(
-                    &mut payload,
-                    &UDPAnnounceResponse {
-                        header: UDPResponseHeader {
-                            action: Actions::Announce,
-                            transaction_id: packet.header.transaction_id,
-                        },
-                        seeders,
-                        interval: self.config.get_udp_config().get_announce_interval(),
-                        leechers,
+                match pack_into(&mut payload, &UDPAnnounceResponse {
+                    header: UDPResponseHeader {
+                        action: Actions::Announce,
+                        transaction_id: packet.header.transaction_id,
                     },
-                ) {
+                    seeders,
+                    interval: self.config.get_udp_config().get_announce_interval(),
+                    leechers,
+                }) {
                     Ok(_) => {}
                     Err(_) => {
                         return;
@@ -279,24 +264,24 @@ impl UDPTracker {
                     };
 
                     let port_hton = client_addr.port().to_be();
-                    let _ =
-                        payload.write(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
+                    let _ = payload.write(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
                 }
 
-                let _ = self.send_packet(&client_addr, payload.as_slice());
+                let _ = self.send_packet(&client_addr, payload.as_slice()).await;
             }
             tracker::TorrentStats::TorrentFlagged => {
-                self.send_error(&client_addr, &packet.header, "torrent flagged.");
+                self.send_error(&client_addr, &packet.header, "torrent flagged.").await;
                 return;
             }
             tracker::TorrentStats::TorrentNotRegistered => {
-                self.send_error(&client_addr, &packet.header, "torrent not registered.");
+                self.send_error(&client_addr, &packet.header, "torrent not registered.").await;
                 return;
             }
         }
     }
 
-    fn handle_scrape(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
+    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
+    async fn handle_scrape(&mut self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
         if header.connection_id != self.get_connection_id(remote_addr) {
             return;
         }
@@ -306,15 +291,16 @@ impl UDPTracker {
         let mut response_buffer = [0u8; 8 + MAX_SCRAPE * 12];
         let mut response = StackVec::from(&mut response_buffer);
 
-        if pack_into(&mut response, &UDPResponseHeader{
+        if pack_into(&mut response, &UDPResponseHeader {
             action: Actions::Scrape,
             transaction_id: header.transaction_id,
-        }).is_err() {
+        })
+        .is_err()
+        {
             // not much we can do...
             error!("failed to encode udp scrape response header.");
             return;
         }
-
 
         // skip first 16 bytes for header...
         let info_hash_array = &payload[16..];
@@ -323,45 +309,47 @@ impl UDPTracker {
             trace!("received weird length for scrape info_hash array (!mod20).");
         }
 
-        let db = self.tracker.get_database();
+        {
+            let db = self.tracker.get_database().await;
 
-        for torrent_index in 0..MAX_SCRAPE {
-            let info_hash_start = torrent_index * 20;
-            let info_hash_end = (torrent_index + 1) * 20;
+            for torrent_index in 0..MAX_SCRAPE {
+                let info_hash_start = torrent_index * 20;
+                let info_hash_end = (torrent_index + 1) * 20;
 
-            if info_hash_end > info_hash_array.len() {
-                break;
-            }
-
-            let info_hash = &info_hash_array[info_hash_start..info_hash_end];
-            let ih = tracker::InfoHash::from(info_hash);
-            let result = match db.get(&ih) {
-                Some(torrent_info) => {
-                    let (seeders, completed, leechers) = torrent_info.get_stats();
-
-                    UDPScrapeResponseEntry{
-                        seeders,
-                        completed,
-                        leechers,
-                    }
-                },
-                None => {
-                    UDPScrapeResponseEntry{
-                        seeders: 0,
-                        completed: 0,
-                        leechers: 0,
-                    }
+                if info_hash_end > info_hash_array.len() {
+                    break;
                 }
-            };
 
-            if pack_into(&mut response, &result).is_err() {
-                debug!("failed to encode scrape entry.");
-                return;
+                let info_hash = &info_hash_array[info_hash_start..info_hash_end];
+                let ih = tracker::InfoHash::from(info_hash);
+                let result = match db.get(&ih) {
+                    Some(torrent_info) => {
+                        let (seeders, completed, leechers) = torrent_info.get_stats();
+
+                        UDPScrapeResponseEntry {
+                            seeders,
+                            completed,
+                            leechers,
+                        }
+                    }
+                    None => {
+                        UDPScrapeResponseEntry {
+                            seeders: 0,
+                            completed: 0,
+                            leechers: 0,
+                        }
+                    }
+                };
+
+                if pack_into(&mut response, &result).is_err() {
+                    debug!("failed to encode scrape entry.");
+                    return;
+                }
             }
         }
 
         // if sending fails, not much we can do...
-        let _ = self.send_packet(&remote_addr, &response.as_slice());
+        let _ = self.send_packet(&remote_addr, &response.as_slice()).await;
     }
 
     fn get_connection_id(&self, remote_address: &SocketAddr) -> u64 {
@@ -371,43 +359,37 @@ impl UDPTracker {
         }
     }
 
-    fn send_packet(
-        &self,
-        remote_addr: &SocketAddr,
-        payload: &[u8],
-    ) -> Result<usize, std::io::Error> {
-        self.server.send_to(payload, remote_addr)
+    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
+    async fn send_packet(&mut self, remote_addr: &SocketAddr, payload: &[u8]) -> Result<usize, std::io::Error> {
+        self.server.send_to(payload, remote_addr).await
     }
 
-    fn send_error(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, error_msg: &str) {
-        let mut payload_buffer = [0u8; MAX_PACKET_SIZE];
+    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
+    async fn send_error(&mut self, remote_addr: &SocketAddr, header: &UDPRequestHeader, error_msg: &str) {
+        let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut payload = StackVec::from(&mut payload_buffer);
 
-        if let Ok(_) = pack_into(
-            &mut payload,
-            &UDPResponseHeader {
-                transaction_id: header.transaction_id,
-                action: Actions::Error,
-            },
-        ) {
+        if let Ok(_) = pack_into(&mut payload, &UDPResponseHeader {
+            transaction_id: header.transaction_id,
+            action: Actions::Error,
+        }) {
             let msg_bytes = Vec::from(error_msg.as_bytes());
             payload.extend(msg_bytes);
 
-            let _ = self.send_packet(remote_addr, payload.as_slice());
+            let _ = self.send_packet(remote_addr, payload.as_slice()).await;
         }
     }
 
-    pub fn accept_packet(&self) -> Result<(), std::io::Error> {
-        let mut packet = [0u8; MAX_PACKET_SIZE];
-        match self.server.recv_from(&mut packet) {
-            Ok((size, remote_address)) => {
-                debug!("Received {} bytes from {}", size, remote_address);
-                self.handle_packet(&remote_address, &packet[..size]);
+    // TODO: remove `mut` for `accept_packet`, and spawn once https://github.com/tokio-rs/tokio/issues/1624 is resolved
+    pub async fn accept_packet(&mut self) -> Result<(), std::io::Error> {
+        let mut packet = vec![0u8; MAX_PACKET_SIZE];
+        let (size, remote_address) = self.server.recv_from(packet.as_mut_slice()).await?;
 
-                Ok(())
-            }
-            Err(e) => Err(e),
-        }
+        // tokio::spawn(async {
+        debug!("Received {} bytes from {}", size, remote_address);
+        self.handle_packet(&remote_address, &packet[..size]).await;
+        // });
+        Ok(())
     }
 }
 
@@ -426,10 +408,7 @@ mod tests {
 
         assert!(pack_into(&mut payload, &mystruct).is_ok());
         assert_eq!(payload.len(), 16);
-        assert_eq!(
-            payload.as_slice(),
-            &[0, 0, 0, 0, 0, 0, 0, 200u8, 0, 0, 0, 0, 0, 1, 47, 203]
-        );
+        assert_eq!(payload.as_slice(), &[0, 0, 0, 0, 0, 0, 0, 200u8, 0, 0, 0, 0, 0, 1, 47, 203]);
     }
 
     #[test]
