@@ -135,7 +135,7 @@ pub fn build_server(
 
     // DELETE /t/:info_hash
     let t3 = tracker.clone();
-    let delete_torrent = filters::method::post()
+    let delete_torrent = filters::method::delete()
         .and(filters::path::param())
         .map(move |info_hash: InfoHash| {
             let tracker = t3.clone();

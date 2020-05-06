@@ -7,6 +7,8 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
 use tokio::stream::StreamExt;
 use tokio::sync::RwLock;
 
+const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
+
 #[derive(Deserialize, Clone, PartialEq)]
 pub enum TrackerMode {
     /// In static mode torrents are tracked only if they were added ahead of time.
@@ -29,7 +31,7 @@ struct TorrentPeer {
     downloaded: u64,
     left: u64,
     event: Events,
-    updated: std::time::SystemTime,
+    updated: std::time::Instant,
 }
 
 #[derive(Ord, PartialEq, Eq, Clone)]
@@ -162,7 +164,7 @@ impl TorrentEntry {
         let mut was_seeder = false;
         let mut is_completed = left == 0 && (event as u32) == (Events::Complete as u32);
         if let Some(prev) = self.peers.insert(*peer_id, TorrentPeer {
-            updated: std::time::SystemTime::now(),
+            updated: std::time::Instant::now(),
             left,
             downloaded,
             uploaded,
@@ -413,8 +415,6 @@ impl TorrentTracker {
     }
 
     async fn cleanup(&self) {
-        use std::ops::Add;
-        let now = std::time::SystemTime::now();
         let mut lock = self.database.torrent_peers.write().await;
         let db: &mut BTreeMap<InfoHash, TorrentEntry> = &mut *lock;
         let mut torrents_to_remove = Vec::new();
@@ -426,7 +426,7 @@ impl TorrentTracker {
                 let torrent_peers = &mut v.peers;
 
                 for (peer_id, state) in torrent_peers.iter() {
-                    if state.updated.add(std::time::Duration::new(3600 * 2, 0)) < now {
+                    if state.updated.elapsed() > TWO_HOURS {
                         // over 2 hours past since last update...
                         peers_to_remove.push(*peer_id);
                     }
@@ -439,7 +439,7 @@ impl TorrentTracker {
 
             if self.mode == TrackerMode::DynamicMode {
                 // peer-less torrents..
-                if v.peers.len() == 0 {
+                if v.peers.len() == 0 && !v.is_flagged() {
                     torrents_to_remove.push(k.clone());
                 }
             }
