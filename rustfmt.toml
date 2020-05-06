@@ -1,0 +1,7 @@
+edition = "2018"
+brace_style = "PreferSameLine"
+fn_args_layout = "compressed"
+force_multiline_blocks = true
+max_width = 125
+overflow_delimited_expr = true
+use_field_init_shorthand = true
