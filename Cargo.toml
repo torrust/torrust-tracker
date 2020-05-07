@@ -1,6 +1,6 @@
 [package]
 name = "udpt-rs"
-version = "3.0.0-alpha"
+version = "3.1.0"
 authors = ["Naim A. <naim@abda.nl>"]
 description = "High performance torrent tracker"
 edition = "2018"
