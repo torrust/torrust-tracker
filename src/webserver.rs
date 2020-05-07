@@ -31,6 +31,11 @@ struct TorrentEntry<'a> {
     info_hash: &'a InfoHash,
     #[serde(flatten)]
     data: &'a crate::tracker::TorrentEntry,
+    seeders: u32,
+    leechers: u32,
+
+    #[serde(skip_serializing_if="Option::is_none")]
+    peers: Option<Vec<(crate::tracker::PeerId, crate::tracker::TorrentPeer)>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -101,7 +106,10 @@ pub fn build_server(
                 let db = tracker.get_database().await;
                 let results: Vec<_> = db
                     .iter()
-                    .map(|(k, v)| TorrentEntry { info_hash: k, data: v })
+                    .map(|(k, v)| {
+                        let (seeders, _, leechers) = v.get_stats();
+                        TorrentEntry { info_hash: k, data: v, seeders, leechers, peers: None }
+                    })
                     .skip(offset as usize)
                     .take(limit as usize)
                     .collect();
@@ -113,7 +121,7 @@ pub fn build_server(
     let t2 = tracker.clone();
     // view_torrent_info -> GET /t/:infohash HTTP/*
     let view_torrent_info = filters::method::get()
-        .and(filters::path::param())
+        .and(filters::path::param()).and(filters::path::end())
         .map(move |info_hash: InfoHash| {
             let tracker = t2.clone();
             (info_hash, tracker)
@@ -125,10 +133,22 @@ pub fn build_server(
                     Some(v) => v,
                     None => return Err(warp::reject::reject()),
                 };
+                let (seeders, _, leechers) = info.get_stats();
+
+                let peers: Vec<_> = info
+                    .get_peers_iter()
+                    .take(1000)
+                    .map(|(peer_id, peer_info)| {
+                        (peer_id.clone(), peer_info.clone())
+                    })
+                    .collect();
 
                 Ok(reply::json(&TorrentEntry {
                     info_hash: &info_hash,
                     data: info,
+                    seeders,
+                    leechers,
+                    peers: Some(peers),
                 }))
             }
         });
@@ -136,7 +156,7 @@ pub fn build_server(
     // DELETE /t/:info_hash
     let t3 = tracker.clone();
     let delete_torrent = filters::method::delete()
-        .and(filters::path::param())
+        .and(filters::path::param()).and(filters::path::end())
         .map(move |info_hash: InfoHash| {
             let tracker = t3.clone();
             (info_hash, tracker)
@@ -160,7 +180,7 @@ pub fn build_server(
     // add_torrent/alter: POST /t/:info_hash
     // (optional) BODY: json: {"is_flagged": boolean}
     let change_torrent = filters::method::post()
-        .and(filters::path::param())
+        .and(filters::path::param()).and(filters::path::end())
         .and(filters::body::content_length_limit(4096))
         .and(filters::body::json())
         .map(move |info_hash: InfoHash, body: Option<TorrentFlag>| {

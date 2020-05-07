@@ -25,14 +25,19 @@ pub enum TrackerMode {
     PrivateMode,
 }
 
-#[derive(Clone)]
-struct TorrentPeer {
+#[derive(Clone, Serialize)]
+pub struct TorrentPeer {
     ip: std::net::SocketAddr,
     uploaded: u64,
     downloaded: u64,
     left: u64,
     event: Events,
+    #[serde(serialize_with = "ser_instant")]
     updated: std::time::Instant,
+}
+
+fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Result<S::Ok, S::Error> {
+    ser.serialize_u64(inst.elapsed().as_millis() as u64)
 }
 
 #[derive(Ord, PartialEq, Eq, Clone)]
@@ -128,7 +133,112 @@ impl<'de> serde::de::Deserialize<'de> for InfoHash {
     }
 }
 
-pub type PeerId = [u8; 20];
+#[repr(transparent)]
+#[derive(Copy, Clone, PartialOrd, Ord, Eq, PartialEq)]
+pub struct PeerId([u8; 20]);
+impl PeerId {
+    pub fn from_array(v: &[u8; 20]) -> &PeerId {
+        unsafe {
+            // This is safe since PeerId's repr is transparent and content's are identical. PeerId == [0u8; 20]
+            core::mem::transmute(v)
+        }
+    }
+
+    pub fn get_client_name(&self) -> Option<&'static str> {
+        if self.0[0] == b'M' {
+            return Some("BitTorrent");
+        }
+        if self.0[0] == b'-' {
+            let name = match &self.0[1..3] {
+                b"AG" => "Ares",
+                b"A~" => "Ares",
+                b"AR" => "Arctic",
+                b"AV" => "Avicora",
+                b"AX" => "BitPump",
+                b"AZ" => "Azureus",
+                b"BB" => "BitBuddy",
+                b"BC" => "BitComet",
+                b"BF" => "Bitflu",
+                b"BG" => "BTG (uses Rasterbar libtorrent)",
+                b"BR" => "BitRocket",
+                b"BS" => "BTSlave",
+                b"BX" => "~Bittorrent X",
+                b"CD" => "Enhanced CTorrent",
+                b"CT" => "CTorrent",
+                b"DE" => "DelugeTorrent",
+                b"DP" => "Propagate Data Client",
+                b"EB" => "EBit",
+                b"ES" => "electric sheep",
+                b"FT" => "FoxTorrent",
+                b"FW" => "FrostWire",
+                b"FX" => "Freebox BitTorrent",
+                b"GS" => "GSTorrent",
+                b"HL" => "Halite",
+                b"HN" => "Hydranode",
+                b"KG" => "KGet",
+                b"KT" => "KTorrent",
+                b"LH" => "LH-ABC",
+                b"LP" => "Lphant",
+                b"LT" => "libtorrent",
+                b"lt" => "libTorrent",
+                b"LW" => "LimeWire",
+                b"MO" => "MonoTorrent",
+                b"MP" => "MooPolice",
+                b"MR" => "Miro",
+                b"MT" => "MoonlightTorrent",
+                b"NX" => "Net Transport",
+                b"PD" => "Pando",
+                b"qB" => "qBittorrent",
+                b"QD" => "QQDownload",
+                b"QT" => "Qt 4 Torrent example",
+                b"RT" => "Retriever",
+                b"S~" => "Shareaza alpha/beta",
+                b"SB" => "~Swiftbit",
+                b"SS" => "SwarmScope",
+                b"ST" => "SymTorrent",
+                b"st" => "sharktorrent",
+                b"SZ" => "Shareaza",
+                b"TN" => "TorrentDotNET",
+                b"TR" => "Transmission",
+                b"TS" => "Torrentstorm",
+                b"TT" => "TuoTu",
+                b"UL" => "uLeecher!",
+                b"UT" => "µTorrent",
+                b"UW" => "µTorrent Web",
+                b"VG" => "Vagaa",
+                b"WD" => "WebTorrent Desktop",
+                b"WT" => "BitLet",
+                b"WW" => "WebTorrent",
+                b"WY" => "FireTorrent",
+                b"XL" => "Xunlei",
+                b"XT" => "XanTorrent",
+                b"XX" => "Xtorrent",
+                b"ZT" => "ZipTorrent",
+                _ => return None,
+            };
+            Some(name)
+        } else {
+            None
+        }
+    }
+}
+impl Serialize for PeerId {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where S: serde::Serializer {
+        let mut tmp = [0u8; 40];
+        binascii::bin2hex(&self.0, &mut tmp).unwrap();
+        let id = std::str::from_utf8(&tmp).ok();
+
+        #[derive(Serialize)]
+        struct PeerIdInfo<'a> {
+            id: Option<&'a str>,
+            client: Option<&'a str>,
+        }
+
+        let obj = PeerIdInfo { id, client: self.get_client_name() };
+        obj.serialize(serializer)
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TorrentEntry {
@@ -206,6 +316,10 @@ impl TorrentEntry {
             list.push(peer.ip);
         }
         list
+    }
+
+    pub fn get_peers_iter(&self) -> impl Iterator<Item=(&PeerId, &TorrentPeer)> {
+        self.peers.iter()
     }
 
     pub fn get_stats(&self) -> (u32, u32, u32) {

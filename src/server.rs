@@ -210,11 +210,13 @@ impl UDPTracker {
         let client_addr = SocketAddr::new(remote_addr.ip(), packet.port);
         let info_hash = packet.info_hash.into();
 
+        let peer_id: &tracker::PeerId = tracker::PeerId::from_array(&packet.peer_id);
+
         match self
             .tracker
             .update_torrent_and_get_stats(
                 &info_hash,
-                &packet.peer_id,
+                peer_id,
                 &client_addr,
                 packet.uploaded,
                 packet.downloaded,
