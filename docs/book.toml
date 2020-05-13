@@ -8,3 +8,8 @@ create-missing = false
 
 [output.html]
 google-analytics = "UA-11289087-19"
+git-repository-url = "https://github.com/naim94a/udpt"
+default-theme = "coal"
+
+[output.html.search]
+enable = false
