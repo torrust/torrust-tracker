@@ -34,11 +34,8 @@ fn setup_logging(cfg: &Configuration) {
     if let Err(err) = fern::Dispatch::new()
         .format(|out, message, record| {
             out.finish(format_args!(
-                "{}[{}][{}]\t{}",
-                std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs(),
+                "{} [{}][{}] {}",
+                chrono::Local::now().format("%+"),
                 record.target(),
                 record.level(),
                 message
@@ -127,16 +124,14 @@ async fn main() {
         });
     }
 
-    let mut udp_server = server::UDPTracker::new(cfg.clone(), tracker.clone())
+    let udp_server = server::UDPTracker::new(cfg.clone(), tracker.clone())
         .await
         .expect("failed to bind udp socket");
 
     trace!("Waiting for UDP packets");
     let udp_server = tokio::spawn(async move {
-        loop {
-            if let Err(err) = udp_server.accept_packet().await {
-                eprintln!("error: {}", err);
-            }
+        if let Err(err) = udp_server.accept_packets().await {
+            eprintln!("error: {}", err);
         }
     });
 

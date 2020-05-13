@@ -108,7 +108,8 @@ struct UDPScrapeResponseEntry {
 }
 
 pub struct UDPTracker {
-    server: UdpSocket,
+    srv_send: tokio::net::udp::SendHalf,
+    srv_recv: Option<tokio::net::udp::RecvHalf>,
     tracker: std::sync::Arc<tracker::TorrentTracker>,
     config: Arc<Configuration>,
 }
@@ -120,16 +121,17 @@ impl UDPTracker {
         let cfg = config.clone();
 
         let server = UdpSocket::bind(cfg.get_udp_config().get_address()).await?;
+        let (srv_recv, srv_send) = server.split();
 
         Ok(UDPTracker {
-            server,
+            srv_send,
+            srv_recv: Some(srv_recv),
             tracker,
             config: cfg,
         })
     }
 
-    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
-    async fn handle_packet(&mut self, remote_address: &SocketAddr, payload: &[u8]) {
+    async fn handle_packet(&self, remote_address: &SocketAddr, payload: &[u8]) {
         let header: UDPRequestHeader = match unpack(payload) {
             Some(val) => val,
             None => {
@@ -150,8 +152,7 @@ impl UDPTracker {
         }
     }
 
-    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
-    async fn handle_connect(&mut self, remote_addr: &SocketAddr, header: &UDPRequestHeader, _payload: &[u8]) {
+    async fn handle_connect(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, _payload: &[u8]) {
         if header.connection_id != PROTOCOL_ID {
             trace!("Bad protocol magic from {}", remote_addr);
             return;
@@ -176,8 +177,7 @@ impl UDPTracker {
         }
     }
 
-    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
-    async fn handle_announce(&mut self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
+    async fn handle_announce(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
         if header.connection_id != self.get_connection_id(remote_addr) {
             return;
         }
@@ -282,8 +282,7 @@ impl UDPTracker {
         }
     }
 
-    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
-    async fn handle_scrape(&mut self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
+    async fn handle_scrape(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
         if header.connection_id != self.get_connection_id(remote_addr) {
             return;
         }
@@ -361,13 +360,14 @@ impl UDPTracker {
         }
     }
 
-    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
-    async fn send_packet(&mut self, remote_addr: &SocketAddr, payload: &[u8]) -> Result<usize, std::io::Error> {
-        self.server.send_to(payload, remote_addr).await
+    async fn send_packet(&self, remote_addr: &SocketAddr, payload: &[u8]) -> Result<usize, std::io::Error> {
+        self.srv_send.try_send_to(payload, remote_addr).await.map_err(|e| {
+            debug!("failed to send a packet: {}", e);
+            e
+        })
     }
 
-    // TODO: remove `mut` once https://github.com/tokio-rs/tokio/issues/1624 is resolved
-    async fn send_error(&mut self, remote_addr: &SocketAddr, header: &UDPRequestHeader, error_msg: &str) {
+    async fn send_error(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, error_msg: &str) {
         let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut payload = StackVec::from(&mut payload_buffer);
 
@@ -382,16 +382,20 @@ impl UDPTracker {
         }
     }
 
-    // TODO: remove `mut` for `accept_packet`, and spawn once https://github.com/tokio-rs/tokio/issues/1624 is resolved
-    pub async fn accept_packet(&mut self) -> Result<(), std::io::Error> {
-        let mut packet = vec![0u8; MAX_PACKET_SIZE];
-        let (size, remote_address) = self.server.recv_from(packet.as_mut_slice()).await?;
+    pub async fn accept_packets(mut self) -> Result<(), std::io::Error> {
+        let mut recv = self.srv_recv.take().unwrap();
+        let tracker = Arc::new(self);
 
-        // tokio::spawn(async {
-        debug!("Received {} bytes from {}", size, remote_address);
-        self.handle_packet(&remote_address, &packet[..size]).await;
-        // });
-        Ok(())
+        loop {
+            let mut packet = vec![0u8; MAX_PACKET_SIZE];
+            let (size, remote_address) = recv.recv_from(packet.as_mut_slice()).await?;
+
+            let tracker = tracker.clone();
+            tokio::spawn(async move {
+                debug!("Received {} bytes from {}", size, remote_address);
+                tracker.handle_packet(&remote_address, &packet[..size]).await;
+            });
+        }
     }
 }
 

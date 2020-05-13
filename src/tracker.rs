@@ -224,7 +224,8 @@ impl PeerId {
 }
 impl Serialize for PeerId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: serde::Serializer {
+    where
+        S: serde::Serializer, {
         let mut tmp = [0u8; 40];
         binascii::bin2hex(&self.0, &mut tmp).unwrap();
         let id = std::str::from_utf8(&tmp).ok();
@@ -235,7 +236,10 @@ impl Serialize for PeerId {
             client: Option<&'a str>,
         }
 
-        let obj = PeerIdInfo { id, client: self.get_client_name() };
+        let obj = PeerIdInfo {
+            id,
+            client: self.get_client_name(),
+        };
         obj.serialize(serializer)
     }
 }
@@ -318,7 +322,7 @@ impl TorrentEntry {
         list
     }
 
-    pub fn get_peers_iter(&self) -> impl Iterator<Item=(&PeerId, &TorrentPeer)> {
+    pub fn get_peers_iter(&self) -> impl Iterator<Item = (&PeerId, &TorrentPeer)> {
         self.peers.iter()
     }
 
