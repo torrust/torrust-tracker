@@ -6,18 +6,37 @@ use std::sync::Arc;
 use warp::{filters, reply, reply::Reply, serve, Filter, Server};
 
 fn view_root() -> impl Reply {
-    reply::html(concat!(
-        r#"<html>
-        <head>
-            <title>udpt/"#,
-        env!("CARGO_PKG_VERSION"),
-        r#"</title>
-        </head>
-        <body>
-            This is your <a href="https://github.com/naim94a/udpt">udpt</a> torrent tracker.
-        </body>
-    </html>"#
-    ))
+    warp::http::Response::builder()
+        .header("Content-Type", "text/html; charset=utf-8")
+        .header("Server", concat!("udpt/", env!("CARGO_PKG_VERSION"), "; https://abda.nl/"))
+        .body(concat!(r#"<html>
+            <head>
+                <title>udpt server</title>
+                <style>
+                body {
+                    background-color: #222;
+                    color: #eee;
+                    margin-left: auto;
+                    margin-right: auto;
+                    margin-top: 20%;
+                    max-width: 750px;
+                }
+                a, a:active, a:visited {
+                    color: lightpink;
+                }
+                </style>
+            </head>
+            <body>
+                <p>
+                    This server is running <a style="font-weight: bold; font-size: large" href="https://github.com/naim94a/udpt"><code>udpt</code></a>, a <a href="https://en.wikipedia.org/wiki/BitTorrent_tracker" rel="nofollow" target="_blank">BitTorrent tracker</a> based on the <a href="https://en.wikipedia.org/wiki/User_Datagram_Protocol" rel="nofollow" target="_blank">UDP</a> protocol.
+                </p>
+                <div style="color: grey; font-size: small; border-top: 1px solid grey; width: 75%; max-width: 300px; margin-left: auto; margin-right: auto; text-align: center; padding-top: 5px">
+                    udpt/"#, env!("CARGO_PKG_VERSION"), r#"<br />
+                    <a href="https://naim94a.github.com/udpt/">docs</a> &middot; <a href="https://github.com/naim94a/udpt/issues">issues &amp; PRs</a> &middot; <a href="https://paypal.me/naim94a">donate</a>
+                    </div>
+            </body>
+        </html>"#))
+        .unwrap()
 }
 
 #[derive(Deserialize, Debug)]

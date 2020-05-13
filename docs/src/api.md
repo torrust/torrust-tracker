@@ -9,31 +9,16 @@ APIs should not be exposed directly to the internet, they are intended for inter
 
 All Endpoints require a authorization token which must be set in the configuration before running the tracker.
 
-- Listing Torrents
-    
-    This can be useful if you want to see which torrents are currently registered in any of the tracking modes.
-    
-    `GET /t?offset=0&limit=1000&token=... HTTP/1.0`
-    
-    Optional Parameters:
-    - `offset` - Offset of the torrent list to return. Default: 0.
-    - `limit` - Limit of torrents to output. Between 1 and 4096. Default 1000.
-    
-- Getting a torrent's stats
+| Method   | Route            | Description           |
+| --       | --               | --                    |
+| `GET`    | /t               | list all tracked torrents. Possible query parameters are: <br /> _offset_ - The offset in the db where to start listing torrents from.<br />_limit_ - Maximum amount of records to retrieve (max. 1000). |
+| `GET`    | /t/_infohash_    | get information about a specific torrent: connected peers & stats |
+| `DELETE` | /t/_infohash_    | drop a torrent from the database. |
+| `POST`   | /t/_infohash_    | add/flag/unflag torrent |
 
-    Allows collection of stats from active torrents.
-    
-    `GET /t/<info_hash>?token=... HTTP/1.0`
-    
-    This request will return information about the torrent, such as:
-    - if the torrent is flagged
-    - seeders & leechers
-    - times the torrent's download was completed
-    
-- Performing actions on torrents
-    
-    `POST /t/<info_hash>?action=<action>&token=... HTTP/1.0`
-    
-    Valid actions are: `flag`, `unflag`, `add` & `remove`.
-    
-    `add` & `remove` are only valid for non-dynamic tracking modes.
+The payload expected for adding a torrent can be empty, flagging or unflagging a torrent has the following payload:
+```json
+{
+    "is_flagged": false
+}
+```

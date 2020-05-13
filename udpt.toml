@@ -1,5 +1,6 @@
 mode = "dynamic"
 db_path = "database.json.bz2"
+log_level = "trace"
 
 [udp]
 announce_interval = 120         # Two minutes
