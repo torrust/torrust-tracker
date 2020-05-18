@@ -6,7 +6,6 @@ mod config;
 mod server;
 mod stackvec;
 mod tracker;
-mod utils;
 mod webserver;
 
 use config::Configuration;
