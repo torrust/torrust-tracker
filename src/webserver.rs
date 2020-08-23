@@ -89,7 +89,7 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
                 async move {
                     if let Some(addr) = peer_addr {
                         if let Some(token) = token.token {
-                            if addr.ip().is_loopback() && tokens.contains(&token) {
+                            if tokens.contains(&token) {
                                 return Ok(());
                             }
                         }
