@@ -12,8 +12,8 @@ lto = "fat"
 serde = {version = "1.0", features = ["derive"]}
 bincode = "1.3"
 warp = {version = "0.2", default-features = false}
-tokio = {version = "0.2", features = ["macros", "net", "rt-threaded", "fs", "sync", "blocking", "signal"]}
-tokio-util = {version = "0.3", features = ["compat"]}
+tokio = {version = "0.3", features = ["macros", "net", "time", "stream", "rt-threaded", "fs", "sync", "blocking", "signal"]}
+tokio-util = {version = "0.4", features = ["compat"]}
 binascii = "0.1"
 toml = "0.5"
 clap = "2.33"
@@ -25,4 +25,5 @@ async-compression = {version = "0.3", features = ["bzip2", "futures-bufread", "f
 chrono = "0.4"
 
 [patch.crates-io]
-tokio = {git = "https://github.com/naim94a/tokio", branch = "tokio-with-trysendto", features = ["macros", "net", "rt-threaded", "fs", "sync", "blocking", "signal"]}
+tokio = {git = "https://github.com/tokio-rs/tokio", rev = "3fd043931e6d37f211e682980edc6e12e9d4fc54", features = ["macros", "net", "time", "stream", "rt-threaded", "fs", "sync", "blocking", "signal"]}
+tokio-util = {git = "https://github.com/tokio-rs/tokio", rev = "3fd043931e6d37f211e682980edc6e12e9d4fc54", features = ["compat"]}

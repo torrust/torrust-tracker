@@ -373,7 +373,7 @@ impl TorrentTracker {
     pub async fn load_database<R: tokio::io::AsyncRead + Unpin>(
         mode: TrackerMode, reader: &mut R,
     ) -> Result<TorrentTracker, std::io::Error> {
-        use tokio_util::compat::{Tokio02AsyncReadCompatExt, FuturesAsyncReadCompatExt};
+        use tokio_util::compat::{FuturesAsyncReadCompatExt, Tokio02AsyncReadCompatExt};
 
         let reader = tokio::io::BufReader::new(reader).compat();
         let reader = async_compression::futures::bufread::BzDecoder::new(reader).compat();

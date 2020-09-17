@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::config::Configuration;
 use crate::stackvec::StackVec;
 use crate::tracker;
+use bincode::Options;
 
 // maximum MTU is usually 1500, but our stack allows us to allocate the maximum - so why not?
 const MAX_PACKET_SIZE: usize = 0xffff;
@@ -37,8 +38,7 @@ pub enum Events {
 }
 
 fn pack_into<T: Serialize, W: std::io::Write>(w: &mut W, data: &T) -> Result<(), ()> {
-    let mut config = bincode::config();
-    config.big_endian();
+    let config = bincode::options().with_big_endian().with_fixint_encoding();
 
     match config.serialize_into(w, data) {
         Ok(_) => Ok(()),
@@ -47,10 +47,9 @@ fn pack_into<T: Serialize, W: std::io::Write>(w: &mut W, data: &T) -> Result<(),
 }
 
 fn unpack<'a, T: Deserialize<'a>>(data: &'a [u8]) -> Option<T> {
-    let mut bo = bincode::config();
-    bo.big_endian();
+    let config = bincode::options().with_big_endian().allow_trailing_bytes();
 
-    match bo.deserialize(data) {
+    match config.deserialize(data) {
         Ok(obj) => Some(obj),
         Err(_) => None,
     }
@@ -361,10 +360,12 @@ impl UDPTracker {
     }
 
     async fn send_packet(&self, remote_addr: &SocketAddr, payload: &[u8]) -> Result<usize, std::io::Error> {
-        self.srv_send.try_send_to(payload, remote_addr).await.map_err(|e| {
-            debug!("failed to send a packet: {}", e);
-            e
-        })
+        tokio::future::poll_fn(|cx| self.srv_send.as_ref().poll_send_to(cx, payload, remote_addr))
+            .await
+            .map_err(|e| {
+                debug!("failed to send a packet: {}", e);
+                e
+            })
     }
 
     async fn send_error(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, error_msg: &str) {

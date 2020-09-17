@@ -83,20 +83,18 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
     warp::filters::any::any()
         .map(move || tokens.clone())
         .and(filters::query::query::<AuthToken>())
-        .and_then(
-            |tokens: Arc<HashSet<String>>, token: AuthToken| {
-                async move {
-                    if let Some(token) = token.token {
-                        if tokens.contains(&token) {
-                            return Ok(());
-                        }
+        .and_then(|tokens: Arc<HashSet<String>>, token: AuthToken| {
+            async move {
+                if let Some(token) = token.token {
+                    if tokens.contains(&token) {
+                        return Ok(());
                     }
-                    Err(warp::reject::custom(ActionStatus::Err {
-                        reason: "Access Denied".into(),
-                    }))
                 }
-            },
-        )
+                Err(warp::reject::custom(ActionStatus::Err {
+                    reason: "Access Denied".into(),
+                }))
+            }
+        })
         .untuple_one()
 }
 
