@@ -27,6 +27,10 @@ Please report any bugs you find to our issue tracker. Ideas and feature requests
 
 Any pull request targeting existing issues would be very much appreciated. 
 
+If you like this project and want to buy me a coffee, there's a link for that:
+
+<a href="https://www.buymeacoffee.com/naim" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/arial-orange.png" alt="Buy Me A Coffee" height="60px" width="217px"></a>
+
 ### Why was UDPT rewritten in rust?
 For a few reasons,
 1. Rust makes it harder to make mistakes than C/C++, It provides memory safety without runtime cost.
