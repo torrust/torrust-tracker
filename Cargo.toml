@@ -12,7 +12,7 @@ lto = "fat"
 serde = {version = "1.0", features = ["derive"]}
 bincode = "1.3"
 warp = {version = "0.2", default-features = false}
-tokio = {version = "0.3", features = ["macros", "net", "time", "stream", "rt-threaded", "fs", "sync", "blocking", "signal"]}
+tokio = {version = "0.3", features = ["macros", "io-util", "net", "time", "stream", "rt-multi-thread", "fs", "sync", "signal"]}
 tokio-util = {version = "0.4", features = ["compat"]}
 binascii = "0.1"
 toml = "0.5"
@@ -23,7 +23,3 @@ serde_json = "1.0"
 futures = "0.3"
 async-compression = {version = "0.3", features = ["bzip2", "futures-bufread", "futures-write"]}
 chrono = "0.4"
-
-[patch.crates-io]
-tokio = {git = "https://github.com/tokio-rs/tokio", rev = "3fd043931e6d37f211e682980edc6e12e9d4fc54", features = ["macros", "net", "time", "stream", "rt-threaded", "fs", "sync", "blocking", "signal"]}
-tokio-util = {git = "https://github.com/tokio-rs/tokio", rev = "3fd043931e6d37f211e682980edc6e12e9d4fc54", features = ["compat"]}

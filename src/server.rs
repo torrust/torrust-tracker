@@ -107,8 +107,7 @@ struct UDPScrapeResponseEntry {
 }
 
 pub struct UDPTracker {
-    srv_send: tokio::net::udp::SendHalf,
-    srv_recv: Option<tokio::net::udp::RecvHalf>,
+    srv: tokio::net::UdpSocket,
     tracker: std::sync::Arc<tracker::TorrentTracker>,
     config: Arc<Configuration>,
 }
@@ -119,12 +118,10 @@ impl UDPTracker {
     ) -> Result<UDPTracker, std::io::Error> {
         let cfg = config.clone();
 
-        let server = UdpSocket::bind(cfg.get_udp_config().get_address()).await?;
-        let (srv_recv, srv_send) = server.split();
+        let srv = UdpSocket::bind(cfg.get_udp_config().get_address()).await?;
 
         Ok(UDPTracker {
-            srv_send,
-            srv_recv: Some(srv_recv),
+            srv,
             tracker,
             config: cfg,
         })
@@ -360,12 +357,13 @@ impl UDPTracker {
     }
 
     async fn send_packet(&self, remote_addr: &SocketAddr, payload: &[u8]) -> Result<usize, std::io::Error> {
-        tokio::future::poll_fn(|cx| self.srv_send.as_ref().poll_send_to(cx, payload, remote_addr))
-            .await
-            .map_err(|e| {
-                debug!("failed to send a packet: {}", e);
-                e
-            })
+        match self.srv.send_to(payload, remote_addr).await {
+            Err(err) => {
+                debug!("failed to send a packet: {}", err);
+                Err(err)
+            },
+            Ok(sz) => Ok(sz),
+        }
     }
 
     async fn send_error(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, error_msg: &str) {
@@ -383,13 +381,12 @@ impl UDPTracker {
         }
     }
 
-    pub async fn accept_packets(mut self) -> Result<(), std::io::Error> {
-        let mut recv = self.srv_recv.take().unwrap();
+    pub async fn accept_packets(self) -> Result<(), std::io::Error> {
         let tracker = Arc::new(self);
 
         loop {
             let mut packet = vec![0u8; MAX_PACKET_SIZE];
-            let (size, remote_address) = recv.recv_from(packet.as_mut_slice()).await?;
+            let (size, remote_address) = tracker.srv.recv_from(packet.as_mut_slice()).await?;
 
             let tracker = tracker.clone();
             tokio::spawn(async move {
