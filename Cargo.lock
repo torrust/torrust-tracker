@@ -964,11 +964,11 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24793699f4665ba0416ed287dc794fe6b11a4aa5e4e95b58624f45f6c46b97d4"
+checksum = "73af76301319bcacf00d26d3c75534ef248dcad7ceaf36d93ec902453c3b1706"
 dependencies = [
- "bytes 0.5.6",
+ "bytes 0.6.0",
  "futures-core",
  "futures-io",
  "futures-sink",
@@ -1050,7 +1050,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio 0.3.2",
- "tokio-util 0.4.0",
+ "tokio-util 0.5.0",
  "toml",
  "warp",
 ]
