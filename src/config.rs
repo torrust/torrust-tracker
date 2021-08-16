@@ -63,6 +63,10 @@ impl std::fmt::Display for ConfigError {
 impl std::error::Error for ConfigError {}
 
 impl Configuration {
+    pub fn load_defaults() -> Configuration {
+        Self::default()
+    }
+
     pub fn load(data: &[u8]) -> Result<Configuration, toml::de::Error> {
         toml::from_slice(data)
     }
@@ -104,7 +108,7 @@ impl Configuration {
     }
 }
 
-impl Default for Configuration {
+impl Configuration {
     fn default() -> Configuration {
         Configuration {
             log_level: None,
@@ -113,7 +117,10 @@ impl Default for Configuration {
                 announce_interval: 120,
                 bind_address: String::from("0.0.0.0:6969"),
             },
-            http: None,
+            http: Option::from(HTTPConfig {
+                bind_address: String::from("127.0.0.1:6969"),
+                access_tokens: Default::default()
+            }),
             db_path: None,
             cleanup_interval: None,
         }

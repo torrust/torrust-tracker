@@ -61,17 +61,23 @@ async fn main() {
                 .takes_value(true)
                 .short("-c")
                 .help("Configuration file to load.")
-                .required(true),
         );
 
     let matches = parser.get_matches();
-    let cfg_path = matches.value_of("config").unwrap();
 
-    let cfg = match Configuration::load_file(cfg_path) {
-        Ok(v) => std::sync::Arc::new(v),
-        Err(e) => {
-            eprintln!("udpt: failed to open configuration: {}", e);
-            return;
+    let cfg = match matches.value_of("config") {
+        Some(cfg_path) => {
+            match Configuration::load_file(cfg_path) {
+                Ok(v) => std::sync::Arc::new(v),
+                Err(e) => {
+                    eprintln!("udpt: failed to open configuration: {}", e);
+                    return;
+                }
+            }
+        },
+        None => {
+            eprintln!("No TOML supplied. Loading default configuration.");
+            std::sync::Arc::new(Configuration::load_defaults())
         }
     };
 
