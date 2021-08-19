@@ -63,10 +63,6 @@ impl std::fmt::Display for ConfigError {
 impl std::error::Error for ConfigError {}
 
 impl Configuration {
-    pub fn load_defaults() -> Configuration {
-        Self::default()
-    }
-
     pub fn load(data: &[u8]) -> Result<Configuration, toml::de::Error> {
         toml::from_slice(data)
     }
@@ -109,17 +105,17 @@ impl Configuration {
 }
 
 impl Configuration {
-    fn default() -> Configuration {
+    pub fn default() -> Self {
         Configuration {
             log_level: None,
             mode: TrackerMode::DynamicMode,
             udp: UDPConfig {
                 announce_interval: 120,
-                bind_address: String::from("0.0.0.0:6969"),
+                bind_address: String::from("0.0.0.0:6968"),
             },
             http: Option::from(HTTPConfig {
                 bind_address: String::from("127.0.0.1:6969"),
-                access_tokens: Default::default()
+                access_tokens: [(String::from("someone"), String::from("MyAccessToken"))].iter().cloned().collect(),
             }),
             db_path: None,
             cleanup_interval: None,
