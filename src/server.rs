@@ -1,9 +1,11 @@
 use log::{debug, error, trace};
 use std;
-use std::io::Write;
-use std::net::SocketAddr;
+use std::io::{Write, Cursor, Read};
+use std::net::{SocketAddr, Ipv4Addr};
 use std::sync::Arc;
 use tokio::net::UdpSocket;
+
+use byteorder::{NetworkEndian, ReadBytesExt, WriteBytesExt};
 
 use bincode;
 use serde::{Deserialize, Serialize};
@@ -13,14 +15,69 @@ use crate::stackvec::StackVec;
 use crate::tracker;
 use bincode::Options;
 
+use super::common::*;
+use std::convert::TryInto;
+use std::io;
+
 // maximum MTU is usually 1500, but our stack allows us to allocate the maximum - so why not?
 const MAX_PACKET_SIZE: usize = 0xffff;
 
 // protocol contants
-const PROTOCOL_ID: u64 = 0x0000041727101980;
+const PROTOCOL_ID: i64 = 4_497_486_125_440;
+
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+pub enum AnnounceEvent {
+    Started,
+    Stopped,
+    Completed,
+    None,
+}
+
+impl AnnounceEvent {
+    #[inline]
+    pub fn from_i32(i: i32) -> Self {
+        match i {
+            1 => Self::Completed,
+            2 => Self::Started,
+            3 => Self::Stopped,
+            _ => Self::None,
+        }
+    }
+
+    #[inline]
+    pub fn to_i32(&self) -> i32 {
+        match self {
+            AnnounceEvent::None => 0,
+            AnnounceEvent::Completed => 1,
+            AnnounceEvent::Started => 2,
+            AnnounceEvent::Stopped => 3,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ConnectRequest {
+    pub transaction_id: TransactionId,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct AnnounceRequest {
+    pub connection_id: ConnectionId,
+    pub transaction_id: TransactionId,
+    pub info_hash: InfoHash,
+    pub peer_id: PeerId,
+    pub bytes_downloaded: NumberOfBytes,
+    pub bytes_uploaded: NumberOfBytes,
+    pub bytes_left: NumberOfBytes,
+    pub event: AnnounceEvent,
+    pub ip_address: Option<Ipv4Addr>,
+    pub key: PeerKey,
+    pub peers_wanted: NumberOfPeers,
+    pub port: Port,
+}
 
 #[repr(u32)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 enum Actions {
     Connect = 0,
     Announce = 1,
@@ -55,7 +112,232 @@ fn unpack<'a, T: Deserialize<'a>>(data: &'a [u8]) -> Option<T> {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ScrapeRequest {
+    pub connection_id: ConnectionId,
+    pub transaction_id: TransactionId,
+    pub info_hashes: Vec<InfoHash>,
+}
+
+#[derive(Debug)]
+pub struct RequestParseError {
+    pub transaction_id: Option<TransactionId>,
+    pub message: Option<String>,
+    pub error: Option<io::Error>,
+}
+
+impl RequestParseError {
+    pub fn new(err: io::Error, transaction_id: i32) -> Self {
+        Self {
+            transaction_id: Some(TransactionId(transaction_id)),
+            message: None,
+            error: Some(err),
+        }
+    }
+    pub fn io(err: io::Error) -> Self {
+        Self {
+            transaction_id: None,
+            message: None,
+            error: Some(err),
+        }
+    }
+    pub fn text(transaction_id: i32, message: &str) -> Self {
+        Self {
+            transaction_id: Some(TransactionId(transaction_id)),
+            message: Some(message.to_string()),
+            error: None,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Request {
+    Connect(ConnectRequest),
+    Announce(AnnounceRequest),
+    Scrape(ScrapeRequest),
+}
+
+impl From<ConnectRequest> for Request {
+    fn from(r: ConnectRequest) -> Self {
+        Self::Connect(r)
+    }
+}
+
+impl From<AnnounceRequest> for Request {
+    fn from(r: AnnounceRequest) -> Self {
+        Self::Announce(r)
+    }
+}
+
+impl From<ScrapeRequest> for Request {
+    fn from(r: ScrapeRequest) -> Self {
+        Self::Scrape(r)
+    }
+}
+
+impl Request {
+    pub fn write(self, bytes: &mut impl Write) -> Result<(), io::Error> {
+        match self {
+            Request::Connect(r) => {
+                bytes.write_i64::<NetworkEndian>(PROTOCOL_ID)?;
+                bytes.write_i32::<NetworkEndian>(0)?;
+                bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+            }
+
+            Request::Announce(r) => {
+                bytes.write_i64::<NetworkEndian>(r.connection_id.0)?;
+                bytes.write_i32::<NetworkEndian>(1)?;
+                bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+
+                bytes.write_all(&r.info_hash.0)?;
+                bytes.write_all(&r.peer_id.0)?;
+
+                bytes.write_i64::<NetworkEndian>(r.bytes_downloaded.0)?;
+                bytes.write_i64::<NetworkEndian>(r.bytes_left.0)?;
+                bytes.write_i64::<NetworkEndian>(r.bytes_uploaded.0)?;
+
+                bytes.write_i32::<NetworkEndian>(r.event.to_i32())?;
+
+                bytes.write_all(&r.ip_address.map_or([0; 4], |ip| ip.octets()))?;
+
+                bytes.write_u32::<NetworkEndian>(r.key.0)?;
+                bytes.write_i32::<NetworkEndian>(r.peers_wanted.0)?;
+                bytes.write_u16::<NetworkEndian>(r.port.0)?;
+            }
+
+            Request::Scrape(r) => {
+                bytes.write_i64::<NetworkEndian>(r.connection_id.0)?;
+                bytes.write_i32::<NetworkEndian>(2)?;
+                bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+
+                for info_hash in r.info_hashes {
+                    bytes.write_all(&info_hash.0)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn from_bytes(bytes: &[u8], max_scrape_torrents: u8) -> Result<Self, RequestParseError> {
+        let mut cursor = Cursor::new(bytes);
+
+        let connection_id = cursor
+            .read_i64::<NetworkEndian>()
+            .map_err(RequestParseError::io)?;
+        let action = cursor
+            .read_i32::<NetworkEndian>()
+            .map_err(RequestParseError::io)?;
+        let transaction_id = cursor
+            .read_i32::<NetworkEndian>()
+            .map_err(RequestParseError::io)?;
+
+
+
+        match action {
+            // Connect
+            0 => {
+                if connection_id == PROTOCOL_ID {
+                    Ok((ConnectRequest {
+                        transaction_id: TransactionId(transaction_id),
+                    })
+                        .into())
+                } else {
+                    Err(RequestParseError::text(
+                        transaction_id,
+                        "Protocol identifier missing",
+                    ))
+                }
+            }
+
+            // Announce
+            1 => {
+                let mut info_hash = [0; 20];
+                let mut peer_id = [0; 20];
+                let mut ip = [0; 4];
+
+                cursor
+                    .read_exact(&mut info_hash)
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                cursor
+                    .read_exact(&mut peer_id)
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+
+                let bytes_downloaded = cursor
+                    .read_i64::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                let bytes_left = cursor
+                    .read_i64::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                let bytes_uploaded = cursor
+                    .read_i64::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                let event = cursor
+                    .read_i32::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+
+                cursor
+                    .read_exact(&mut ip)
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+
+                let key = cursor
+                    .read_u32::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                let peers_wanted = cursor
+                    .read_i32::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                let port = cursor
+                    .read_u16::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+
+                let opt_ip = if ip == [0; 4] {
+                    None
+                } else {
+                    Some(Ipv4Addr::from(ip))
+                };
+
+                Ok((AnnounceRequest {
+                    connection_id: ConnectionId(connection_id),
+                    transaction_id: TransactionId(transaction_id),
+                    info_hash: InfoHash(info_hash),
+                    peer_id: PeerId(peer_id),
+                    bytes_downloaded: NumberOfBytes(bytes_downloaded),
+                    bytes_uploaded: NumberOfBytes(bytes_uploaded),
+                    bytes_left: NumberOfBytes(bytes_left),
+                    event: AnnounceEvent::from_i32(event),
+                    ip_address: opt_ip,
+                    key: PeerKey(key),
+                    peers_wanted: NumberOfPeers(peers_wanted),
+                    port: Port(port),
+                })
+                    .into())
+            }
+
+            // Scrape
+            2 => {
+                let position = cursor.position() as usize;
+                let inner = cursor.into_inner();
+
+                let info_hashes = (&inner[position..])
+                    .chunks_exact(20)
+                    .take(max_scrape_torrents as usize)
+                    .map(|chunk| InfoHash(chunk.try_into().unwrap()))
+                    .collect();
+
+                Ok((ScrapeRequest {
+                    connection_id: ConnectionId(connection_id),
+                    transaction_id: TransactionId(transaction_id),
+                    info_hashes,
+                })
+                    .into())
+            }
+
+            _ => Err(RequestParseError::text(transaction_id, "Invalid action")),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 struct UDPRequestHeader {
     connection_id: u64,
     action: Actions,
@@ -127,32 +409,73 @@ impl UDPTracker {
         })
     }
 
+    // todo: remove magic number 255
     async fn handle_packet(&self, remote_address: &SocketAddr, payload: &[u8]) {
-        let header: UDPRequestHeader = match unpack(payload) {
-            Some(val) => val,
-            None => {
-                trace!("failed to parse packet from {}", remote_address);
-                return;
-            }
-        };
+        let request = Request::from_bytes(&payload[..payload.len()], 255);
 
-        match header.action {
-            Actions::Connect => self.handle_connect(remote_address, &header, payload).await,
-            Actions::Announce => self.handle_announce(remote_address, &header, payload).await,
-            Actions::Scrape => self.handle_scrape(remote_address, &header, payload).await,
-            _ => {
-                trace!("invalid action from {}", remote_address);
-                // someone is playing around... ignore request.
-                return;
+        match request {
+            Ok(request) => {
+                debug!("New request: {:?}", request);
+                match request {
+                    Request::Connect(..) => {
+
+                    }
+                    Request::Announce(..) =>
+                    Request::Scrape(..) => {self.handle_scrape(remote_address, &header, payload).await}
+                }
+            }
+            Err(err) => {
+                ::log::debug!("request_from_bytes error: {:?}", err);
+
+                // if let Some(transaction_id) = err.transaction_id {
+                //     let opt_message = if err.error.is_some() {
+                //         Some("Parse error".to_string())
+                //     } else if let Some(message) = err.message {
+                //         Some(message)
+                //     } else {
+                //         None
+                //     };
+                //
+                //     if let Some(message) = opt_message {
+                //         let response = ErrorResponse {
+                //             transaction_id,
+                //             message,
+                //         };
+                //
+                //         local_responses.push((response.into(), src));
+                //     }
+                // }
             }
         }
+
+        // let header: UDPRequestHeader = match unpack(payload) {
+        //     Some(val) => {
+        //         println!("{:?}, {}", val, remote_address);
+        //         val
+        //     },
+        //     None => {
+        //         trace!("failed to parse packet from {}", remote_address);
+        //         return;
+        //     }
+        // };
+        //
+        // match header.action {
+        //     Actions::Connect => self.handle_connect(remote_address, &header, payload).await,
+        //     Actions::Announce => self.handle_announce(remote_address, &header, payload).await,
+        //     Actions::Scrape => self.handle_scrape(remote_address, &header, payload).await,
+        //     _ => {
+        //         trace!("invalid action from {}", remote_address);
+        //         // someone is playing around... ignore request.
+        //         return;
+        //     }
+        // }
     }
 
     async fn handle_connect(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, _payload: &[u8]) {
-        if header.connection_id != PROTOCOL_ID {
-            trace!("Bad protocol magic from {}", remote_addr);
-            return;
-        }
+        // if header.connection_id != PROTOCOL_ID {
+        //     trace!("Bad protocol magic from {}", remote_addr);
+        //     return;
+        // }
 
         // send response...
         let conn_id = self.get_connection_id(remote_addr);
