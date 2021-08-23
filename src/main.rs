@@ -7,6 +7,7 @@ mod server;
 mod stackvec;
 mod tracker;
 mod webserver;
+mod common;
 
 use config::Configuration;
 use std::process::exit;
@@ -134,7 +135,7 @@ async fn main() {
         .expect("failed to bind udp socket");
 
     trace!("Waiting for UDP packets");
-    let udp_server = tokio::spawn(async move {
+    let _udp_server = tokio::spawn(async move {
         if let Err(err) = udp_server.accept_packets().await {
             eprintln!("error: {}", err);
         }
@@ -163,7 +164,7 @@ async fn main() {
     let ctrl_c = tokio::signal::ctrl_c();
 
     tokio::select! {
-        _ = udp_server => { warn!("udp server exited.") },
+        // _ = udp_server => { warn!("udp server exited.") },
         _ = ctrl_c => { info!("CTRL-C, exiting...") },
     }
 
