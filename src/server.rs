@@ -22,10 +22,12 @@ use std::io;
 // maximum MTU is usually 1500, but our stack allows us to allocate the maximum - so why not?
 const MAX_PACKET_SIZE: usize = 0xffff;
 
+const MAX_SCRAPE: usize = 74;
+
 // protocol contants
 const PROTOCOL_ID: i64 = 4_497_486_125_440;
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum AnnounceEvent {
     Started,
     Stopped,
@@ -56,6 +58,31 @@ impl AnnounceEvent {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Request {
+    Connect(ConnectRequest),
+    Announce(AnnounceRequest),
+    Scrape(ScrapeRequest),
+}
+
+impl From<ConnectRequest> for Request {
+    fn from(r: ConnectRequest) -> Self {
+        Self::Connect(r)
+    }
+}
+
+impl From<AnnounceRequest> for Request {
+    fn from(r: AnnounceRequest) -> Self {
+        Self::Announce(r)
+    }
+}
+
+impl From<ScrapeRequest> for Request {
+    fn from(r: ScrapeRequest) -> Self {
+        Self::Scrape(r)
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ConnectRequest {
     pub transaction_id: TransactionId,
 }
@@ -74,6 +101,13 @@ pub struct AnnounceRequest {
     pub key: PeerKey,
     pub peers_wanted: NumberOfPeers,
     pub port: Port,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ScrapeRequest {
+    pub connection_id: ConnectionId,
+    pub transaction_id: TransactionId,
+    pub info_hashes: Vec<InfoHash>,
 }
 
 #[repr(u32)]
@@ -112,13 +146,6 @@ fn unpack<'a, T: Deserialize<'a>>(data: &'a [u8]) -> Option<T> {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct ScrapeRequest {
-    pub connection_id: ConnectionId,
-    pub transaction_id: TransactionId,
-    pub info_hashes: Vec<InfoHash>,
-}
-
 #[derive(Debug)]
 pub struct RequestParseError {
     pub transaction_id: Option<TransactionId>,
@@ -147,31 +174,6 @@ impl RequestParseError {
             message: Some(message.to_string()),
             error: None,
         }
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub enum Request {
-    Connect(ConnectRequest),
-    Announce(AnnounceRequest),
-    Scrape(ScrapeRequest),
-}
-
-impl From<ConnectRequest> for Request {
-    fn from(r: ConnectRequest) -> Self {
-        Self::Connect(r)
-    }
-}
-
-impl From<AnnounceRequest> for Request {
-    fn from(r: AnnounceRequest) -> Self {
-        Self::Announce(r)
-    }
-}
-
-impl From<ScrapeRequest> for Request {
-    fn from(r: ScrapeRequest) -> Self {
-        Self::Scrape(r)
     }
 }
 
@@ -347,7 +349,7 @@ struct UDPRequestHeader {
 #[derive(Serialize, Deserialize)]
 struct UDPResponseHeader {
     action: Actions,
-    transaction_id: u32,
+    transaction_id: TransactionId,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -417,11 +419,9 @@ impl UDPTracker {
             Ok(request) => {
                 debug!("New request: {:?}", request);
                 match request {
-                    Request::Connect(..) => {
-
-                    }
-                    Request::Announce(..) =>
-                    Request::Scrape(..) => {self.handle_scrape(remote_address, &header, payload).await}
+                    Request::Connect(r) => self.handle_connect(remote_address, r).await,
+                    Request::Announce(r) => self.handle_announce(remote_address, r).await,
+                    Request::Scrape(r) => self.handle_scrape(remote_address, r).await
                 }
             }
             Err(err) => {
@@ -471,21 +471,15 @@ impl UDPTracker {
         // }
     }
 
-    async fn handle_connect(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, _payload: &[u8]) {
-        // if header.connection_id != PROTOCOL_ID {
-        //     trace!("Bad protocol magic from {}", remote_addr);
-        //     return;
-        // }
-
-        // send response...
-        let conn_id = self.get_connection_id(remote_addr);
+    async fn handle_connect(&self, remote_addr: &SocketAddr, request: ConnectRequest) {
+        let connection_id = self.get_connection_id(remote_addr);
 
         let response = UDPConnectionResponse {
             header: UDPResponseHeader {
-                transaction_id: header.transaction_id,
+                transaction_id: request.transaction_id,
                 action: Actions::Connect,
             },
-            connection_id: conn_id,
+            connection_id,
         };
 
         let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
@@ -496,124 +490,124 @@ impl UDPTracker {
         }
     }
 
-    async fn handle_announce(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
-        if header.connection_id != self.get_connection_id(remote_addr) {
-            return;
-        }
+    async fn handle_announce(&self, remote_addr: &SocketAddr, request: AnnounceRequest) {
 
-        let packet: UDPAnnounceRequest = match unpack(payload) {
-            Some(v) => v,
-            None => {
-                trace!("failed to unpack announce request from {}", remote_addr);
-                return;
-            }
-        };
+        // todo: I have no idea yet why this is here
+        // if request.connection_id != self.get_connection_id(remote_addr) {
+        //     return;
+        // }
 
-        if let Ok(_plen) = bincode::serialized_size(&packet) {
-            let plen = _plen as usize;
-            if payload.len() > plen {
-                let bep41_payload = &payload[plen..];
+        // let packet: UDPAnnounceRequest = match unpack(payload) {
+        //     Some(v) => v,
+        //     None => {
+        //         trace!("failed to unpack announce request from {}", remote_addr);
+        //         return;
+        //     }
+        // };
 
-                // TODO: process BEP0041 payload.
-                trace!("BEP0041 payload of {} bytes from {}", bep41_payload.len(), remote_addr);
-            }
-        }
+        // if let Ok(_plen) = bincode::serialized_size(&packet) {
+        //     let plen = _plen as usize;
+        //     if payload.len() > plen {
+        //         let bep41_payload = &payload[plen..];
+        //
+        //         // TODO: process BEP0041 payload.
+        //         trace!("BEP0041 payload of {} bytes from {}", bep41_payload.len(), remote_addr);
+        //     }
+        // }
+        //
+        // if packet.ip_address != 0 {
+        //     // TODO: allow configurability of ip address
+        //     // for now, ignore request.
+        //     trace!("announce request for other IP ignored. (from {})", remote_addr);
+        //     return;
+        // }
 
-        if packet.ip_address != 0 {
-            // TODO: allow configurability of ip address
-            // for now, ignore request.
-            trace!("announce request for other IP ignored. (from {})", remote_addr);
-            return;
-        }
+        let client_addr = SocketAddr::new(remote_addr.ip(), request.port.0);
+        let info_hash  = request.info_hash;
 
-        let client_addr = SocketAddr::new(remote_addr.ip(), packet.port);
-        let info_hash = packet.info_hash.into();
+        let peer_id: &tracker::PeerId = tracker::PeerId::from_array(&request.peer_id.0);
 
-        let peer_id: &tracker::PeerId = tracker::PeerId::from_array(&packet.peer_id);
-
-        match self
-            .tracker
-            .update_torrent_and_get_stats(
-                &info_hash,
-                peer_id,
-                &client_addr,
-                packet.uploaded,
-                packet.downloaded,
-                packet.left,
-                packet.event,
-            )
-            .await
-        {
-            tracker::TorrentStats::Stats {
-                leechers,
-                complete: _,
-                seeders,
-            } => {
-                let peers = match self.tracker.get_torrent_peers(&info_hash, &client_addr).await {
-                    Some(v) => v,
-                    None => {
-                        return;
-                    }
-                };
-
-                let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
-                let mut payload = StackVec::from(&mut payload_buffer);
-
-                match pack_into(&mut payload, &UDPAnnounceResponse {
-                    header: UDPResponseHeader {
-                        action: Actions::Announce,
-                        transaction_id: packet.header.transaction_id,
-                    },
-                    seeders,
-                    interval: self.config.get_udp_config().get_announce_interval(),
-                    leechers,
-                }) {
-                    Ok(_) => {}
-                    Err(_) => {
-                        return;
-                    }
-                };
-
-                for peer in peers {
-                    match peer {
-                        SocketAddr::V4(ipv4) => {
-                            let _ = payload.write(&ipv4.ip().octets());
-                        }
-                        SocketAddr::V6(ipv6) => {
-                            let _ = payload.write(&ipv6.ip().octets());
-                        }
-                    };
-
-                    let port_hton = client_addr.port().to_be();
-                    let _ = payload.write(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
-                }
-
-                let _ = self.send_packet(&client_addr, payload.as_slice()).await;
-            }
-            tracker::TorrentStats::TorrentFlagged => {
-                self.send_error(&client_addr, &packet.header, "torrent flagged.").await;
-                return;
-            }
-            tracker::TorrentStats::TorrentNotRegistered => {
-                self.send_error(&client_addr, &packet.header, "torrent not registered.").await;
-                return;
-            }
-        }
+        // match self
+        //     .tracker
+        //     .update_torrent_and_get_stats(
+        //         &info_hash,
+        //         peer_id,
+        //         &client_addr,
+        //         request.bytes_uploaded,
+        //         request.bytes_downloaded,
+        //         request.bytes_left,
+        //         request.event,
+        //     )
+        //     .await
+        // {
+        //     tracker::TorrentStats::Stats {
+        //         leechers,
+        //         complete: _,
+        //         seeders,
+        //     } => {
+        //         let peers = match self.tracker.get_torrent_peers(&info_hash, &client_addr).await {
+        //             Some(v) => v,
+        //             None => {
+        //                 return;
+        //             }
+        //         };
+        //
+        //         let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
+        //         let mut payload = StackVec::from(&mut payload_buffer);
+        //
+        //         match pack_into(&mut payload, &UDPAnnounceResponse {
+        //             header: UDPResponseHeader {
+        //                 action: Actions::Announce,
+        //                 transaction_id: request.transaction_id,
+        //             },
+        //             seeders,
+        //             interval: self.config.get_udp_config().get_announce_interval(),
+        //             leechers,
+        //         }) {
+        //             Ok(_) => {}
+        //             Err(_) => {
+        //                 return;
+        //             }
+        //         };
+        //
+        //         for peer in peers {
+        //             match peer {
+        //                 SocketAddr::V4(ipv4) => {
+        //                     let _ = payload.write(&ipv4.ip().octets());
+        //                 }
+        //                 SocketAddr::V6(ipv6) => {
+        //                     let _ = payload.write(&ipv6.ip().octets());
+        //                 }
+        //             };
+        //
+        //             let port_hton = client_addr.port().to_be();
+        //             let _ = payload.write(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
+        //         }
+        //
+        //         let _ = self.send_packet(&client_addr, payload.as_slice()).await;
+        //     }
+        //     tracker::TorrentStats::TorrentFlagged => {
+        //         self.send_error(&client_addr, &request.transaction_id, "torrent flagged.").await;
+        //         return;
+        //     }
+        //     tracker::TorrentStats::TorrentNotRegistered => {
+        //         self.send_error(&client_addr, &request.transaction_id, "torrent not registered.").await;
+        //         return;
+        //     }
+        // }
     }
 
-    async fn handle_scrape(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
-        if header.connection_id != self.get_connection_id(remote_addr) {
-            return;
-        }
-
-        const MAX_SCRAPE: usize = 74;
+    async fn handle_scrape(&self, remote_addr: &SocketAddr, request: ScrapeRequest) {
+        // if request.connection_id != self.get_connection_id(remote_addr) {
+        //     return;
+        // }
 
         let mut response_buffer = [0u8; 8 + MAX_SCRAPE * 12];
         let mut response = StackVec::from(&mut response_buffer);
 
         if pack_into(&mut response, &UDPResponseHeader {
             action: Actions::Scrape,
-            transaction_id: header.transaction_id,
+            transaction_id: request.transaction_id,
         })
         .is_err()
         {
@@ -623,7 +617,7 @@ impl UDPTracker {
         }
 
         // skip first 16 bytes for header...
-        let info_hash_array = &payload[16..];
+        let info_hash_array = &request.info_hashes;
 
         if info_hash_array.len() % 20 != 0 {
             trace!("received weird length for scrape info_hash array (!mod20).");
@@ -632,40 +626,40 @@ impl UDPTracker {
         {
             let db = self.tracker.get_database().await;
 
-            for torrent_index in 0..MAX_SCRAPE {
-                let info_hash_start = torrent_index * 20;
-                let info_hash_end = (torrent_index + 1) * 20;
-
-                if info_hash_end > info_hash_array.len() {
-                    break;
-                }
-
-                let info_hash = &info_hash_array[info_hash_start..info_hash_end];
-                let ih = tracker::InfoHash::from(info_hash);
-                let result = match db.get(&ih) {
-                    Some(torrent_info) => {
-                        let (seeders, completed, leechers) = torrent_info.get_stats();
-
-                        UDPScrapeResponseEntry {
-                            seeders,
-                            completed,
-                            leechers,
-                        }
-                    }
-                    None => {
-                        UDPScrapeResponseEntry {
-                            seeders: 0,
-                            completed: 0,
-                            leechers: 0,
-                        }
-                    }
-                };
-
-                if pack_into(&mut response, &result).is_err() {
-                    debug!("failed to encode scrape entry.");
-                    return;
-                }
-            }
+            // for torrent_index in 0..MAX_SCRAPE {
+            //     let info_hash_start = torrent_index * 20;
+            //     let info_hash_end = (torrent_index + 1) * 20;
+            //
+            //     if info_hash_end > info_hash_array.len() {
+            //         break;
+            //     }
+            //
+            //     let info_hash = &info_hash_array[info_hash_start..info_hash_end];
+            //     let ih = InfoHash::from(info_hash.0);
+            //     let result = match db.get(&ih) {
+            //         Some(torrent_info) => {
+            //             let (seeders, completed, leechers) = torrent_info.get_stats();
+            //
+            //             UDPScrapeResponseEntry {
+            //                 seeders,
+            //                 completed,
+            //                 leechers,
+            //             }
+            //         }
+            //         None => {
+            //             UDPScrapeResponseEntry {
+            //                 seeders: 0,
+            //                 completed: 0,
+            //                 leechers: 0,
+            //             }
+            //         }
+            //     };
+            //
+            //     if pack_into(&mut response, &result).is_err() {
+            //         debug!("failed to encode scrape entry.");
+            //         return;
+            //     }
+            // }
         }
 
         // if sending fails, not much we can do...
@@ -689,12 +683,12 @@ impl UDPTracker {
         }
     }
 
-    async fn send_error(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, error_msg: &str) {
+    async fn send_error(&self, remote_addr: &SocketAddr, transaction_id: &TransactionId, error_msg: &str) {
         let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut payload = StackVec::from(&mut payload_buffer);
 
         if let Ok(_) = pack_into(&mut payload, &UDPResponseHeader {
-            transaction_id: header.transaction_id,
+            transaction_id: transaction_id.clone(),
             action: Actions::Error,
         }) {
             let msg_bytes = Vec::from(error_msg.as_bytes());
@@ -716,39 +710,6 @@ impl UDPTracker {
                 debug!("Received {} bytes from {}", size, remote_address);
                 tracker.handle_packet(&remote_address, &packet[..size]).await;
             });
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn pack() {
-        let mystruct = super::UDPRequestHeader {
-            connection_id: 200,
-            action: super::Actions::Connect,
-            transaction_id: 77771,
-        };
-        let mut buffer = [0u8; MAX_PACKET_SIZE];
-        let mut payload = StackVec::from(&mut buffer);
-
-        assert!(pack_into(&mut payload, &mystruct).is_ok());
-        assert_eq!(payload.as_slice().len(), 16);
-        assert_eq!(payload.as_slice(), &[0, 0, 0, 0, 0, 0, 0, 200u8, 0, 0, 0, 0, 0, 1, 47, 203]);
-    }
-
-    #[test]
-    fn unpack() {
-        let buf = [0u8, 0, 0, 0, 0, 0, 0, 200, 0, 0, 0, 1, 0, 1, 47, 203];
-        match super::unpack(&buf) {
-            Some(obj) => {
-                let x: super::UDPResponseHeader = obj;
-                println!("conn_id={}", x.action as u32);
-            }
-            None => {
-                assert!(false);
-            }
         }
     }
 }

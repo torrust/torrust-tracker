@@ -1,10 +1,11 @@
-use crate::server::Events;
+use crate::server::{Events, AnnounceEvent};
 use log::{error, trace};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use tokio::io::AsyncBufReadExt;
 use tokio::sync::RwLock;
+use crate::common::{NumberOfBytes, InfoHash};
 
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
 
@@ -26,73 +27,16 @@ pub enum TrackerMode {
 #[derive(Clone, Serialize)]
 pub struct TorrentPeer {
     ip: std::net::SocketAddr,
-    uploaded: u64,
-    downloaded: u64,
-    left: u64,
-    event: Events,
+    uploaded: NumberOfBytes,
+    downloaded: NumberOfBytes,
+    left: NumberOfBytes,
+    event: AnnounceEvent,
     #[serde(serialize_with = "ser_instant")]
     updated: std::time::Instant,
 }
 
 fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Result<S::Ok, S::Error> {
     ser.serialize_u64(inst.elapsed().as_millis() as u64)
-}
-
-#[derive(Ord, PartialEq, Eq, Clone)]
-pub struct InfoHash {
-    info_hash: [u8; 20],
-}
-
-impl std::fmt::Display for InfoHash {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let mut chars = [0u8; 40];
-        binascii::bin2hex(&self.info_hash, &mut chars).expect("failed to hexlify");
-        write!(f, "{}", std::str::from_utf8(&chars).unwrap())
-    }
-}
-
-impl std::str::FromStr for InfoHash {
-    type Err = binascii::ConvertError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut i = Self { info_hash: [0u8; 20] };
-        if s.len() != 40 {
-            return Err(binascii::ConvertError::InvalidInputLength);
-        }
-        binascii::hex2bin(s.as_bytes(), &mut i.info_hash)?;
-        Ok(i)
-    }
-}
-
-impl std::cmp::PartialOrd<InfoHash> for InfoHash {
-    fn partial_cmp(&self, other: &InfoHash) -> Option<std::cmp::Ordering> {
-        self.info_hash.partial_cmp(&other.info_hash)
-    }
-}
-
-impl std::convert::From<&[u8]> for InfoHash {
-    fn from(data: &[u8]) -> InfoHash {
-        assert_eq!(data.len(), 20);
-        let mut ret = InfoHash { info_hash: [0u8; 20] };
-        ret.info_hash.clone_from_slice(data);
-        return ret;
-    }
-}
-
-impl std::convert::Into<InfoHash> for [u8; 20] {
-    fn into(self) -> InfoHash {
-        InfoHash { info_hash: self }
-    }
-}
-
-impl serde::ser::Serialize for InfoHash {
-    fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut buffer = [0u8; 40];
-        let bytes_out = binascii::bin2hex(&self.info_hash, &mut buffer).ok().unwrap();
-        let str_out = std::str::from_utf8(bytes_out).unwrap();
-
-        serializer.serialize_str(str_out)
-    }
 }
 
 struct InfoHashVisitor;
@@ -112,9 +56,9 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
             ));
         }
 
-        let mut res = InfoHash { info_hash: [0u8; 20] };
+        let mut res = InfoHash { 0: [0u8; 20] };
 
-        if let Err(_) = binascii::hex2bin(v.as_bytes(), &mut res.info_hash) {
+        if let Err(_) = binascii::hex2bin(v.as_bytes(), &mut res.0) {
             return Err(serde::de::Error::invalid_value(
                 serde::de::Unexpected::Str(v),
                 &"expected a hexadecimal string",
@@ -122,12 +66,6 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
         } else {
             return Ok(res);
         }
-    }
-}
-
-impl<'de> serde::de::Deserialize<'de> for InfoHash {
-    fn deserialize<D: serde::de::Deserializer<'de>>(des: D) -> Result<Self, D::Error> {
-        des.deserialize_str(InfoHashVisitor)
     }
 }
 
@@ -270,12 +208,12 @@ impl TorrentEntry {
     }
 
     pub fn update_peer(
-        &mut self, peer_id: &PeerId, remote_address: &std::net::SocketAddr, uploaded: u64, downloaded: u64, left: u64,
-        event: Events,
+        &mut self, peer_id: &PeerId, remote_address: &std::net::SocketAddr, uploaded: NumberOfBytes, downloaded: NumberOfBytes, left: NumberOfBytes,
+        event: AnnounceEvent,
     ) {
-        let is_seeder = left == 0 && uploaded > 0;
+        let is_seeder = left.0 == 0 && uploaded.0 > 0;
         let mut was_seeder = false;
-        let mut is_completed = left == 0 && (event as u32) == (Events::Complete as u32);
+        let mut is_completed = left.0 == 0 && (event as u32) == (AnnounceEvent::Completed as u32);
         if let Some(prev) = self.peers.insert(*peer_id, TorrentPeer {
             updated: std::time::Instant::now(),
             left,
@@ -284,9 +222,9 @@ impl TorrentEntry {
             ip: *remote_address,
             event,
         }) {
-            was_seeder = prev.left == 0 && prev.uploaded > 0;
+            was_seeder = prev.left.0 == 0 && prev.uploaded.0 > 0;
 
-            if is_completed && (prev.event as u32) == (Events::Complete as u32) {
+            if is_completed && (prev.event as u32) == (AnnounceEvent::Completed as u32) {
                 // don't update count again. a torrent should only be updated once per peer.
                 is_completed = false;
             }
@@ -471,8 +409,8 @@ impl TorrentTracker {
     }
 
     pub async fn update_torrent_and_get_stats(
-        &self, info_hash: &InfoHash, peer_id: &PeerId, remote_address: &std::net::SocketAddr, uploaded: u64,
-        downloaded: u64, left: u64, event: Events,
+        &self, info_hash: &InfoHash, peer_id: &PeerId, remote_address: &std::net::SocketAddr, uploaded: NumberOfBytes,
+        downloaded: NumberOfBytes, left: NumberOfBytes, event: AnnounceEvent,
     ) -> TorrentStats {
         use std::collections::btree_map::Entry;
         let mut torrent_peers = self.database.torrent_peers.write().await;
