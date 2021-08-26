@@ -13,6 +13,7 @@ use crate::response::*;
 use crate::request::{Request, ConnectRequest, AnnounceRequest, ScrapeRequest};
 use crate::utils::get_connection_id;
 use crate::tracker::TorrentTracker;
+use crate::tracker;
 
 pub struct UDPTracker {
     socket: UdpSocket,

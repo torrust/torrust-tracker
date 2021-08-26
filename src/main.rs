@@ -48,11 +48,15 @@ async fn main() {
 
     setup_logging(&cfg);
 
-    let tracker_obj = match cfg.get_db_path() {
+    // todo: instead of local database, use SQLite database
+    let torrent_tracker = match cfg.get_db_path() {
+        // start empty tracker
+        None => tracker::TorrentTracker::new(cfg.get_mode().clone()),
         Some(path) => {
             let file_path = std::path::Path::new(path);
             if !file_path.exists() {
                 warn!("database file \"{}\" doesn't exist.", path);
+                // start empty tracker
                 tracker::TorrentTracker::new(cfg.get_mode().clone())
             } else {
                 let mut input_file = match tokio::fs::File::open(file_path).await {
@@ -63,9 +67,10 @@ async fn main() {
                     }
                 };
                 match tracker::TorrentTracker::load_database(cfg.get_mode().clone(), &mut input_file).await {
-                    Ok(v) => {
+                    Ok(torrent_tracker) => {
                         info!("database loaded.");
-                        v
+                        // start tracker populated by database
+                        torrent_tracker
                     }
                     Err(err) => {
                         error!("failed to load database. error: {}", err);
@@ -74,13 +79,13 @@ async fn main() {
                 }
             }
         }
-        None => tracker::TorrentTracker::new(cfg.get_mode().clone()),
     };
 
-    let tracker = std::sync::Arc::new(tracker_obj);
+    let arc_torrent_tracker = std::sync::Arc::new(torrent_tracker);
 
+    // start http server
     if cfg.get_http_config().is_some() {
-        let https_tracker = tracker.clone();
+        let https_tracker = arc_torrent_tracker.clone();
         let http_cfg = cfg.clone();
 
         info!("Starting http server");
@@ -94,7 +99,8 @@ async fn main() {
         });
     }
 
-    let udp_server = server::UDPTracker::new(cfg.clone(), tracker.clone())
+    // start udp server
+    let udp_server = server::UDPTracker::new(cfg.clone(), arc_torrent_tracker.clone())
         .await
         .expect("failed to bind udp socket");
 
@@ -105,7 +111,8 @@ async fn main() {
         }
     });
 
-    let weak_tracker = std::sync::Arc::downgrade(&tracker);
+    // todo: find out whatever the fuck this does
+    let weak_tracker = std::sync::Arc::downgrade(&arc_torrent_tracker);
     if let Some(db_path) = cfg.get_db_path() {
         let db_path = db_path.clone();
         let interval = cfg.get_cleanup_interval().unwrap_or(600);
@@ -128,13 +135,13 @@ async fn main() {
     let ctrl_c = tokio::signal::ctrl_c();
 
     tokio::select! {
-        // _ = udp_server => { warn!("udp server exited.") },
+        //_ = udp_server => { warn!("udp server exited.") },
         _ = ctrl_c => { info!("CTRL-C, exiting...") },
     }
 
     if let Some(path) = cfg.get_db_path() {
         info!("saving database...");
-        tracker.periodic_task(path).await;
+        arc_torrent_tracker.periodic_task(path).await;
     }
 
     info!("goodbye.");
