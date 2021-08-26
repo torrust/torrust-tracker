@@ -3,7 +3,7 @@ use fern;
 use log::{error, info, trace, warn};
 
 use std::process::exit;
-use udpt_rs::{webserver, Configuration, tracker, server};
+use torrust_tracker::{webserver, Configuration, tracker, server};
 
 #[tokio::main]
 async fn main() {
