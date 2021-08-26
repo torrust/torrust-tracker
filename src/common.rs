@@ -1,11 +1,47 @@
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4};
+use std::net::{SocketAddr};
 use serde::{Deserialize, Serialize};
-use serde::ser::{Serializer, SerializeSeq, SerializeMap};
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub enum IpVersion {
-    IPv4,
-    IPv6,
+pub const MAX_PACKET_SIZE: usize = 0xffff;
+pub const MAX_SCRAPE_TORRENTS: u8 = 74;
+pub const PROTOCOL_ID: i64 = 4_497_486_125_440; // protocol constant
+
+#[repr(u32)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub enum Actions {
+    Connect = 0,
+    Announce = 1,
+    Scrape = 2,
+    Error = 3,
+}
+
+#[repr(u32)]
+#[derive(Serialize, Deserialize, Clone, Copy)]
+pub enum Events {
+    None = 0,
+    Complete = 1,
+    Started = 2,
+    Stopped = 3,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
+pub enum AnnounceEvent {
+    None,
+    Completed,
+    Started,
+    Stopped,
+}
+
+impl AnnounceEvent {
+    #[inline]
+    pub fn from_i32(i: i32) -> Self {
+        match i {
+            0 => Self::None,
+            1 => Self::Completed,
+            2 => Self::Started,
+            3 => Self::Stopped,
+            _ => Self::None,
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
@@ -159,13 +195,6 @@ pub struct ResponsePeerList(pub Vec<SocketAddr>);
 // }
 
 impl PeerId {
-    pub fn from_array(v: &[u8; 20]) -> &PeerId {
-        unsafe {
-            // This is safe since PeerId's repr is transparent and content's are identical. PeerId == [0u8; 20]
-            core::mem::transmute(v)
-        }
-    }
-
     pub fn get_client_name(&self) -> Option<&'static str> {
         if self.0[0] == b'M' {
             return Some("BitTorrent");
@@ -266,20 +295,13 @@ impl Serialize for PeerId {
     }
 }
 
-fn as_u32_be(array: &[u8; 4]) -> u32 {
-    ((array[0] as u32) << 24) +
-        ((array[1] as u32) << 16) +
-        ((array[2] as u32) <<  8) +
-        ((array[3] as u32) <<  0)
-}
-
 // //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 // pub type AnnounceInterval = i32;
 //
 // //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 // pub type InfoHash = [u8; 20];
 //
-// //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+// #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 // pub type ConnectionId = i64;
 //
 // //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
