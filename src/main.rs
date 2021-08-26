@@ -2,17 +2,8 @@ use clap;
 use fern;
 use log::{error, info, trace, warn};
 
-mod config;
-mod server;
-mod tracker;
-mod webserver;
-mod common;
-mod response;
-mod request;
-mod utils;
-
-use config::Configuration;
 use std::process::exit;
+use udpt_rs::{webserver, Configuration, tracker, server};
 
 #[tokio::main]
 async fn main() {

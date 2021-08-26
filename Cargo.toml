@@ -1,8 +1,8 @@
 [package]
-name = "udpt-rs"
-version = "3.1.1"
-authors = ["Naim A. <naim@abda.nl>"]
-description = "High performance torrent tracker"
+name = "torrust-tracker"
+version = "0.9.0"
+authors = ["Mick van Dijke <mick@dutchbits.nl>", "Naim A. <naim@abda.nl>"]
+description = "High performance torrent tracker, modified for Torrust."
 edition = "2018"
 
 [profile.release]
