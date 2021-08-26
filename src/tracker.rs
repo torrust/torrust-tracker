@@ -1,10 +1,12 @@
-use crate::server::Events;
+use crate::server::{AnnounceEvent};
 use log::{error, trace};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use tokio::io::AsyncBufReadExt;
 use tokio::sync::RwLock;
+use crate::common::{NumberOfBytes, InfoHash};
+use super::common::*;
 
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
 
@@ -26,73 +28,32 @@ pub enum TrackerMode {
 #[derive(Clone, Serialize)]
 pub struct TorrentPeer {
     ip: std::net::SocketAddr,
-    uploaded: u64,
-    downloaded: u64,
-    left: u64,
-    event: Events,
     #[serde(serialize_with = "ser_instant")]
     updated: std::time::Instant,
+    uploaded: NumberOfBytes,
+    downloaded: NumberOfBytes,
+    left: NumberOfBytes,
+    event: AnnounceEvent,
+}
+
+impl TorrentPeer {
+    fn is_seeder(&self) -> bool { self.left.0 == 0 && self.event != AnnounceEvent::Stopped }
+
+    fn is_leecher(&self) -> bool {
+        self.left.0 > 0 && self.event != AnnounceEvent::Stopped
+    }
+
+    fn is_stopped(&self) -> bool {
+        self.event == AnnounceEvent::Stopped
+    }
+
+    fn is_completed(&self) -> bool {
+        self.event == AnnounceEvent::Completed
+    }
 }
 
 fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Result<S::Ok, S::Error> {
     ser.serialize_u64(inst.elapsed().as_millis() as u64)
-}
-
-#[derive(Ord, PartialEq, Eq, Clone)]
-pub struct InfoHash {
-    info_hash: [u8; 20],
-}
-
-impl std::fmt::Display for InfoHash {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let mut chars = [0u8; 40];
-        binascii::bin2hex(&self.info_hash, &mut chars).expect("failed to hexlify");
-        write!(f, "{}", std::str::from_utf8(&chars).unwrap())
-    }
-}
-
-impl std::str::FromStr for InfoHash {
-    type Err = binascii::ConvertError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut i = Self { info_hash: [0u8; 20] };
-        if s.len() != 40 {
-            return Err(binascii::ConvertError::InvalidInputLength);
-        }
-        binascii::hex2bin(s.as_bytes(), &mut i.info_hash)?;
-        Ok(i)
-    }
-}
-
-impl std::cmp::PartialOrd<InfoHash> for InfoHash {
-    fn partial_cmp(&self, other: &InfoHash) -> Option<std::cmp::Ordering> {
-        self.info_hash.partial_cmp(&other.info_hash)
-    }
-}
-
-impl std::convert::From<&[u8]> for InfoHash {
-    fn from(data: &[u8]) -> InfoHash {
-        assert_eq!(data.len(), 20);
-        let mut ret = InfoHash { info_hash: [0u8; 20] };
-        ret.info_hash.clone_from_slice(data);
-        return ret;
-    }
-}
-
-impl std::convert::Into<InfoHash> for [u8; 20] {
-    fn into(self) -> InfoHash {
-        InfoHash { info_hash: self }
-    }
-}
-
-impl serde::ser::Serialize for InfoHash {
-    fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut buffer = [0u8; 40];
-        let bytes_out = binascii::bin2hex(&self.info_hash, &mut buffer).ok().unwrap();
-        let str_out = std::str::from_utf8(bytes_out).unwrap();
-
-        serializer.serialize_str(str_out)
-    }
 }
 
 struct InfoHashVisitor;
@@ -112,9 +73,9 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
             ));
         }
 
-        let mut res = InfoHash { info_hash: [0u8; 20] };
+        let mut res = InfoHash { 0: [0u8; 20] };
 
-        if let Err(_) = binascii::hex2bin(v.as_bytes(), &mut res.info_hash) {
+        if let Err(_) = binascii::hex2bin(v.as_bytes(), &mut res.0) {
             return Err(serde::de::Error::invalid_value(
                 serde::de::Unexpected::Str(v),
                 &"expected a hexadecimal string",
@@ -122,123 +83,6 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
         } else {
             return Ok(res);
         }
-    }
-}
-
-impl<'de> serde::de::Deserialize<'de> for InfoHash {
-    fn deserialize<D: serde::de::Deserializer<'de>>(des: D) -> Result<Self, D::Error> {
-        des.deserialize_str(InfoHashVisitor)
-    }
-}
-
-#[repr(transparent)]
-#[derive(Copy, Clone, PartialOrd, Ord, Eq, PartialEq)]
-pub struct PeerId([u8; 20]);
-impl PeerId {
-    pub fn from_array(v: &[u8; 20]) -> &PeerId {
-        unsafe {
-            // This is safe since PeerId's repr is transparent and content's are identical. PeerId == [0u8; 20]
-            core::mem::transmute(v)
-        }
-    }
-
-    pub fn get_client_name(&self) -> Option<&'static str> {
-        if self.0[0] == b'M' {
-            return Some("BitTorrent");
-        }
-        if self.0[0] == b'-' {
-            let name = match &self.0[1..3] {
-                b"AG" => "Ares",
-                b"A~" => "Ares",
-                b"AR" => "Arctic",
-                b"AV" => "Avicora",
-                b"AX" => "BitPump",
-                b"AZ" => "Azureus",
-                b"BB" => "BitBuddy",
-                b"BC" => "BitComet",
-                b"BF" => "Bitflu",
-                b"BG" => "BTG (uses Rasterbar libtorrent)",
-                b"BR" => "BitRocket",
-                b"BS" => "BTSlave",
-                b"BX" => "~Bittorrent X",
-                b"CD" => "Enhanced CTorrent",
-                b"CT" => "CTorrent",
-                b"DE" => "DelugeTorrent",
-                b"DP" => "Propagate Data Client",
-                b"EB" => "EBit",
-                b"ES" => "electric sheep",
-                b"FT" => "FoxTorrent",
-                b"FW" => "FrostWire",
-                b"FX" => "Freebox BitTorrent",
-                b"GS" => "GSTorrent",
-                b"HL" => "Halite",
-                b"HN" => "Hydranode",
-                b"KG" => "KGet",
-                b"KT" => "KTorrent",
-                b"LH" => "LH-ABC",
-                b"LP" => "Lphant",
-                b"LT" => "libtorrent",
-                b"lt" => "libTorrent",
-                b"LW" => "LimeWire",
-                b"MO" => "MonoTorrent",
-                b"MP" => "MooPolice",
-                b"MR" => "Miro",
-                b"MT" => "MoonlightTorrent",
-                b"NX" => "Net Transport",
-                b"PD" => "Pando",
-                b"qB" => "qBittorrent",
-                b"QD" => "QQDownload",
-                b"QT" => "Qt 4 Torrent example",
-                b"RT" => "Retriever",
-                b"S~" => "Shareaza alpha/beta",
-                b"SB" => "~Swiftbit",
-                b"SS" => "SwarmScope",
-                b"ST" => "SymTorrent",
-                b"st" => "sharktorrent",
-                b"SZ" => "Shareaza",
-                b"TN" => "TorrentDotNET",
-                b"TR" => "Transmission",
-                b"TS" => "Torrentstorm",
-                b"TT" => "TuoTu",
-                b"UL" => "uLeecher!",
-                b"UT" => "µTorrent",
-                b"UW" => "µTorrent Web",
-                b"VG" => "Vagaa",
-                b"WD" => "WebTorrent Desktop",
-                b"WT" => "BitLet",
-                b"WW" => "WebTorrent",
-                b"WY" => "FireTorrent",
-                b"XL" => "Xunlei",
-                b"XT" => "XanTorrent",
-                b"XX" => "Xtorrent",
-                b"ZT" => "ZipTorrent",
-                _ => return None,
-            };
-            Some(name)
-        } else {
-            None
-        }
-    }
-}
-impl Serialize for PeerId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer, {
-        let mut tmp = [0u8; 40];
-        binascii::bin2hex(&self.0, &mut tmp).unwrap();
-        let id = std::str::from_utf8(&tmp).ok();
-
-        #[derive(Serialize)]
-        struct PeerIdInfo<'a> {
-            id: Option<&'a str>,
-            client: Option<&'a str>,
-        }
-
-        let obj = PeerIdInfo {
-            id,
-            client: self.get_client_name(),
-        };
-        obj.serialize(serializer)
     }
 }
 
@@ -265,41 +109,26 @@ impl TorrentEntry {
         }
     }
 
-    pub fn is_flagged(&self) -> bool {
-        self.is_flagged
-    }
-
     pub fn update_peer(
-        &mut self, peer_id: &PeerId, remote_address: &std::net::SocketAddr, uploaded: u64, downloaded: u64, left: u64,
-        event: Events,
+        &mut self,
+        peer_id: &PeerId,
+        torrent_peer: TorrentPeer
     ) {
-        let is_seeder = left == 0 && uploaded > 0;
-        let mut was_seeder = false;
-        let mut is_completed = left == 0 && (event as u32) == (Events::Complete as u32);
-        if let Some(prev) = self.peers.insert(*peer_id, TorrentPeer {
-            updated: std::time::Instant::now(),
-            left,
-            downloaded,
-            uploaded,
-            ip: *remote_address,
-            event,
-        }) {
-            was_seeder = prev.left == 0 && prev.uploaded > 0;
+        let is_seeder = torrent_peer.is_seeder().clone();
+        let is_completed = torrent_peer.is_completed().clone();
 
-            if is_completed && (prev.event as u32) == (Events::Complete as u32) {
-                // don't update count again. a torrent should only be updated once per peer.
-                is_completed = false;
+        let torrent_peer_prev = self.peers.insert(
+            peer_id.clone(),
+            torrent_peer
+        );
+
+        match torrent_peer_prev {
+            None => {
+                self.update_stats(is_seeder, is_completed, false, false);
             }
-        }
-
-        if is_seeder && !was_seeder {
-            self.seeders += 1;
-        } else if was_seeder && !is_seeder {
-            self.seeders -= 1;
-        }
-
-        if is_completed {
-            self.completed += 1;
+            Some(torrent_peer_prev) => {
+                self.update_stats(is_seeder, is_completed, torrent_peer_prev.is_seeder(), torrent_peer_prev.is_completed());
+            }
         }
     }
 
@@ -324,9 +153,26 @@ impl TorrentEntry {
         self.peers.iter()
     }
 
+    pub fn update_stats(&mut self, is_seeder: bool, is_completed: bool, was_seeder: bool, was_completed: bool) {
+        if is_seeder && !was_seeder {
+            self.seeders += 1;
+        } else if was_seeder && !is_seeder {
+            self.seeders -= 1;
+        }
+
+        // don't double count completed events for one peer
+        if is_completed && !was_completed {
+            self.completed += 1;
+        }
+    }
+
     pub fn get_stats(&self) -> (u32, u32, u32) {
         let leechers = (self.peers.len() as u32) - self.seeders;
         (self.seeders, self.completed, leechers)
+    }
+
+    pub fn is_flagged(&self) -> bool {
+        self.is_flagged
     }
 }
 
@@ -353,10 +199,17 @@ struct DatabaseRow<'a> {
     entry: Cow<'a, TorrentEntry>,
 }
 
-pub enum TorrentStats {
+#[derive(Debug)]
+pub struct TorrentStats {
+    pub completed: u32,
+    pub seeders: u32,
+    pub leechers: u32,
+}
+
+#[derive(Debug)]
+pub enum TorrentError {
     TorrentFlagged,
     TorrentNotRegistered,
-    Stats { seeders: u32, leechers: u32, complete: u32 },
 }
 
 impl TorrentTracker {
@@ -457,51 +310,79 @@ impl TorrentTracker {
     }
 
     pub async fn get_torrent_peers(
-        &self, info_hash: &InfoHash, remote_addr: &std::net::SocketAddr,
+        &self,
+        info_hash: &InfoHash,
+        remote_addr: &std::net::SocketAddr
     ) -> Option<Vec<std::net::SocketAddr>> {
         let read_lock = self.database.torrent_peers.read().await;
         match read_lock.get(info_hash) {
             None => {
-                return None;
+                None
             }
             Some(entry) => {
-                return Some(entry.get_peers(remote_addr));
+                Some(entry.get_peers(remote_addr))
             }
-        };
+        }
     }
 
     pub async fn update_torrent_and_get_stats(
-        &self, info_hash: &InfoHash, peer_id: &PeerId, remote_address: &std::net::SocketAddr, uploaded: u64,
-        downloaded: u64, left: u64, event: Events,
-    ) -> TorrentStats {
+        &self,
+        remote_address: &std::net::SocketAddr,
+        info_hash: &InfoHash,
+        peer_id: &PeerId,
+        uploaded: &NumberOfBytes,
+        downloaded: &NumberOfBytes,
+        left: &NumberOfBytes,
+        event: &AnnounceEvent,
+    ) -> Result<TorrentStats, TorrentError> {
         use std::collections::btree_map::Entry;
         let mut torrent_peers = self.database.torrent_peers.write().await;
+
         let torrent_entry = match torrent_peers.entry(info_hash.clone()) {
             Entry::Vacant(vacant) => {
+                // todo: support multiple tracker modes
                 match self.mode {
-                    TrackerMode::DynamicMode => vacant.insert(TorrentEntry::new()),
+                    TrackerMode::DynamicMode => {
+                        Ok(vacant.insert(TorrentEntry::new()))
+                    },
                     _ => {
-                        return TorrentStats::TorrentNotRegistered;
+                        Err(TorrentError::TorrentNotRegistered)
                     }
                 }
             }
             Entry::Occupied(entry) => {
                 if entry.get().is_flagged() {
-                    return TorrentStats::TorrentFlagged;
+                    Err(TorrentError::TorrentFlagged)
+                } else {
+                    Ok(entry.into_mut())
                 }
-                entry.into_mut()
             }
         };
 
-        torrent_entry.update_peer(peer_id, remote_address, uploaded, downloaded, left, event);
+        match torrent_entry {
+            Ok(torrent_entry) => {
+                torrent_entry.update_peer(
+                    peer_id,
+                    TorrentPeer {
+                        ip: remote_address.clone(),
+                        updated: std::time::Instant::now(),
+                        uploaded: uploaded.clone(),
+                        downloaded: downloaded.clone(),
+                        left: left.clone(),
+                        event: event.clone(),
+                    }
+                );
 
-        let (seeders, complete, leechers) = torrent_entry.get_stats();
+                let (seeders, completed, leechers) = torrent_entry.get_stats();
 
-        return TorrentStats::Stats {
-            seeders,
-            leechers,
-            complete,
-        };
+                Ok(TorrentStats {
+                    seeders,
+                    leechers,
+                    completed,
+                })
+            }
+            Err(e) => Err(e)
+        }
     }
 
     pub(crate) async fn get_database<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, BTreeMap<InfoHash, TorrentEntry>> {
@@ -605,51 +486,5 @@ impl TorrentTracker {
         if let Err(err) = tokio::fs::rename(jp_str, db_path).await {
             error!("failed to move db backup. {}", err);
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn is_sync<T: Sync>() {}
-    fn is_send<T: Send>() {}
-
-    #[test]
-    fn tracker_send() {
-        is_send::<TorrentTracker>();
-    }
-
-    #[test]
-    fn tracker_sync() {
-        is_sync::<TorrentTracker>();
-    }
-
-    #[tokio::test]
-    async fn test_save_db() {
-        let tracker = TorrentTracker::new(TrackerMode::DynamicMode);
-        tracker
-            .add_torrent(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].into())
-            .await
-            .expect("failed to add torrent");
-
-        let mut out = Vec::new();
-        let mut cursor = std::io::Cursor::new(&mut out);
-
-        tracker.save_database(&mut cursor).await.expect("db save failed");
-        assert!(cursor.position() > 0);
-    }
-
-    #[test]
-    fn test_infohash_de() {
-        use serde_json;
-
-        let ih: InfoHash = [0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1].into();
-
-        let serialized_ih = serde_json::to_string(&ih).unwrap();
-
-        let de_ih: InfoHash = serde_json::from_str(serialized_ih.as_str()).unwrap();
-
-        assert!(de_ih == ih);
     }
 }

@@ -1,9 +1,11 @@
 use log::{debug, error, trace};
 use std;
-use std::io::Write;
-use std::net::SocketAddr;
+use std::io::{Write, Cursor, Read};
+use std::net::{SocketAddr, Ipv4Addr, IpAddr};
 use std::sync::Arc;
 use tokio::net::UdpSocket;
+
+use byteorder::{NetworkEndian, ReadBytesExt, WriteBytesExt};
 
 use bincode;
 use serde::{Deserialize, Serialize};
@@ -13,14 +15,104 @@ use crate::stackvec::StackVec;
 use crate::tracker;
 use bincode::Options;
 
+use super::common::*;
+use std::convert::TryInto;
+use std::io;
+use warp::http::Response;
+
 // maximum MTU is usually 1500, but our stack allows us to allocate the maximum - so why not?
 const MAX_PACKET_SIZE: usize = 0xffff;
 
+const MAX_SCRAPE_TORRENTS: u8 = 74;
+
 // protocol contants
-const PROTOCOL_ID: u64 = 0x0000041727101980;
+const PROTOCOL_ID: i64 = 4_497_486_125_440;
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
+pub enum AnnounceEvent {
+    Started,
+    Stopped,
+    Completed,
+    None,
+}
+
+impl AnnounceEvent {
+    #[inline]
+    pub fn from_i32(i: i32) -> Self {
+        match i {
+            1 => Self::Completed,
+            2 => Self::Started,
+            3 => Self::Stopped,
+            _ => Self::None,
+        }
+    }
+
+    #[inline]
+    pub fn to_i32(&self) -> i32 {
+        match self {
+            AnnounceEvent::None => 0,
+            AnnounceEvent::Completed => 1,
+            AnnounceEvent::Started => 2,
+            AnnounceEvent::Stopped => 3,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Request {
+    Connect(ConnectRequest),
+    Announce(AnnounceRequest),
+    Scrape(ScrapeRequest),
+}
+
+impl From<ConnectRequest> for Request {
+    fn from(r: ConnectRequest) -> Self {
+        Self::Connect(r)
+    }
+}
+
+impl From<AnnounceRequest> for Request {
+    fn from(r: AnnounceRequest) -> Self {
+        Self::Announce(r)
+    }
+}
+
+impl From<ScrapeRequest> for Request {
+    fn from(r: ScrapeRequest) -> Self {
+        Self::Scrape(r)
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ConnectRequest {
+    pub transaction_id: TransactionId,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct AnnounceRequest {
+    pub connection_id: ConnectionId,
+    pub transaction_id: TransactionId,
+    pub info_hash: InfoHash,
+    pub peer_id: PeerId,
+    pub bytes_downloaded: NumberOfBytes,
+    pub bytes_uploaded: NumberOfBytes,
+    pub bytes_left: NumberOfBytes,
+    pub event: AnnounceEvent,
+    pub ip_address: Option<Ipv4Addr>,
+    pub key: PeerKey,
+    pub peers_wanted: NumberOfPeers,
+    pub port: Port,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct ScrapeRequest {
+    pub connection_id: ConnectionId,
+    pub transaction_id: TransactionId,
+    pub info_hashes: Vec<InfoHash>,
+}
 
 #[repr(u32)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 enum Actions {
     Connect = 0,
     Announce = 1,
@@ -37,41 +129,318 @@ pub enum Events {
     Stopped = 3,
 }
 
-fn pack_into<T: Serialize, W: std::io::Write>(w: &mut W, data: &T) -> Result<(), ()> {
-    let config = bincode::options().with_big_endian().with_fixint_encoding();
+#[derive(Debug)]
+pub struct RequestParseError {
+    pub transaction_id: Option<TransactionId>,
+    pub message: Option<String>,
+    pub error: Option<io::Error>,
+}
 
-    match config.serialize_into(w, data) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(()),
+impl RequestParseError {
+    pub fn new(err: io::Error, transaction_id: i32) -> Self {
+        Self {
+            transaction_id: Some(TransactionId(transaction_id)),
+            message: None,
+            error: Some(err),
+        }
+    }
+    pub fn io(err: io::Error) -> Self {
+        Self {
+            transaction_id: None,
+            message: None,
+            error: Some(err),
+        }
+    }
+    pub fn text(transaction_id: i32, message: &str) -> Self {
+        Self {
+            transaction_id: Some(TransactionId(transaction_id)),
+            message: Some(message.to_string()),
+            error: None,
+        }
     }
 }
 
-fn unpack<'a, T: Deserialize<'a>>(data: &'a [u8]) -> Option<T> {
-    let config = bincode::options().with_big_endian().allow_trailing_bytes();
+impl Request {
+    pub fn write(self, bytes: &mut impl Write) -> Result<(), io::Error> {
+        match self {
+            Request::Connect(r) => {
+                bytes.write_i64::<NetworkEndian>(PROTOCOL_ID)?;
+                bytes.write_i32::<NetworkEndian>(0)?;
+                bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+            }
 
-    match config.deserialize(data) {
-        Ok(obj) => Some(obj),
-        Err(_) => None,
+            Request::Announce(r) => {
+                bytes.write_i64::<NetworkEndian>(r.connection_id.0)?;
+                bytes.write_i32::<NetworkEndian>(1)?;
+                bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+
+                bytes.write_all(&r.info_hash.0)?;
+                bytes.write_all(&r.peer_id.0)?;
+
+                bytes.write_i64::<NetworkEndian>(r.bytes_downloaded.0)?;
+                bytes.write_i64::<NetworkEndian>(r.bytes_left.0)?;
+                bytes.write_i64::<NetworkEndian>(r.bytes_uploaded.0)?;
+
+                bytes.write_i32::<NetworkEndian>(r.event.to_i32())?;
+
+                // ignore type errors
+                bytes.write_all(&r.ip_address.map_or([0; 4], |ip| ip.octets()))?;
+
+                bytes.write_u32::<NetworkEndian>(r.key.0)?;
+                bytes.write_i32::<NetworkEndian>(r.peers_wanted.0)?;
+                bytes.write_u16::<NetworkEndian>(r.port.0)?;
+            }
+
+            Request::Scrape(r) => {
+                bytes.write_i64::<NetworkEndian>(r.connection_id.0)?;
+                bytes.write_i32::<NetworkEndian>(2)?;
+                bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+
+                for info_hash in r.info_hashes {
+                    bytes.write_all(&info_hash.0)?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn from_bytes(bytes: &[u8], max_scrape_torrents: u8) -> Result<Self, RequestParseError> {
+        let mut cursor = Cursor::new(bytes);
+
+        let connection_id = cursor
+            .read_i64::<NetworkEndian>()
+            .map_err(RequestParseError::io)?;
+        let action = cursor
+            .read_i32::<NetworkEndian>()
+            .map_err(RequestParseError::io)?;
+        let transaction_id = cursor
+            .read_i32::<NetworkEndian>()
+            .map_err(RequestParseError::io)?;
+
+
+
+        match action {
+            // Connect
+            0 => {
+                if connection_id == PROTOCOL_ID {
+                    Ok((ConnectRequest {
+                        transaction_id: TransactionId(transaction_id),
+                    })
+                        .into())
+                } else {
+                    Err(RequestParseError::text(
+                        transaction_id,
+                        "Protocol identifier missing",
+                    ))
+                }
+            }
+
+            // Announce
+            1 => {
+                let mut info_hash = [0; 20];
+                let mut peer_id = [0; 20];
+                let mut ip = [0; 4];
+
+                cursor
+                    .read_exact(&mut info_hash)
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                cursor
+                    .read_exact(&mut peer_id)
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+
+                let bytes_downloaded = cursor
+                    .read_i64::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                let bytes_left = cursor
+                    .read_i64::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                let bytes_uploaded = cursor
+                    .read_i64::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                let event = cursor
+                    .read_i32::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+
+                cursor
+                    .read_exact(&mut ip)
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+
+                let key = cursor
+                    .read_u32::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                let peers_wanted = cursor
+                    .read_i32::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+                let port = cursor
+                    .read_u16::<NetworkEndian>()
+                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
+
+                let opt_ip = if ip == [0; 4] {
+                    None
+                } else {
+                    Some(Ipv4Addr::from(ip))
+                };
+
+                Ok((AnnounceRequest {
+                    connection_id: ConnectionId(connection_id),
+                    transaction_id: TransactionId(transaction_id),
+                    info_hash: InfoHash(info_hash),
+                    peer_id: PeerId(peer_id),
+                    bytes_downloaded: NumberOfBytes(bytes_downloaded),
+                    bytes_uploaded: NumberOfBytes(bytes_uploaded),
+                    bytes_left: NumberOfBytes(bytes_left),
+                    event: AnnounceEvent::from_i32(event),
+                    ip_address: opt_ip,
+                    key: PeerKey(key),
+                    peers_wanted: NumberOfPeers(peers_wanted),
+                    port: Port(port),
+                })
+                    .into())
+            }
+
+            // Scrape
+            2 => {
+                let position = cursor.position() as usize;
+                let inner = cursor.into_inner();
+
+                let info_hashes = (&inner[position..])
+                    .chunks_exact(20)
+                    .take(max_scrape_torrents as usize)
+                    .map(|chunk| InfoHash(chunk.try_into().unwrap()))
+                    .collect();
+
+                Ok((ScrapeRequest {
+                    connection_id: ConnectionId(connection_id),
+                    transaction_id: TransactionId(transaction_id),
+                    info_hashes,
+                })
+                    .into())
+            }
+
+            _ => Err(RequestParseError::text(transaction_id, "Invalid action")),
+        }
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 struct UDPRequestHeader {
     connection_id: u64,
     action: Actions,
     transaction_id: u32,
 }
 
-#[derive(Serialize, Deserialize)]
-struct UDPResponseHeader {
-    action: Actions,
-    transaction_id: u32,
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum UDPResponse {
+    Connect(UDPConnectionResponse),
+    Announce(UDPAnnounceResponse),
+    Scrape(UDPScrapeResponseEntry),
 }
 
-#[derive(Serialize, Deserialize)]
-struct UDPConnectionResponse {
-    header: UDPResponseHeader,
-    connection_id: u64,
+impl From<UDPConnectionResponse> for UDPResponse {
+    fn from(r: UDPConnectionResponse) -> Self {
+        Self::Connect(r)
+    }
+}
+
+impl From<UDPAnnounceResponse> for UDPResponse {
+    fn from(r: UDPAnnounceResponse) -> Self {
+        Self::Announce(r)
+    }
+}
+
+impl From<UDPScrapeResponseEntry> for UDPResponse {
+    fn from(r: UDPScrapeResponseEntry) -> Self {
+        Self::Scrape(r)
+    }
+}
+
+impl UDPResponse {
+    pub fn write_to_bytes(self, bytes: &mut impl Write) -> Result<(), io::Error> {
+        match self {
+            UDPResponse::Connect(r) => {
+                bytes.write_i32::<NetworkEndian>(0)?; // 0 = connect
+                bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+                bytes.write_i64::<NetworkEndian>(r.connection_id.0)?;
+            },
+            UDPResponse::Announce(r) => {
+                // if ip_version == IpVersion::IPv4 {
+                //     bytes.write_i32::<NetworkEndian>(1)?; // 1 = announce
+                // } else {
+                //     bytes.write_i32::<NetworkEndian>(4)?;
+                // }
+
+                bytes.write_i32::<NetworkEndian>(1)?; // 1 = announce
+                bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+                bytes.write_u32::<NetworkEndian>(r.interval)?;
+                bytes.write_u32::<NetworkEndian>(r.leechers)?;
+                bytes.write_u32::<NetworkEndian>(r.seeders)?;
+
+                // Silently ignore peers with wrong IP version
+                for peer in r.peers.0 {
+                    match peer {
+                        SocketAddr::V4(socket_addr) => {
+                            if socket_addr.ip() == &Ipv4Addr::new(127, 0, 0, 1) {
+                                bytes.write_all(&Ipv4Addr::new(192, 168, 2, 2).octets())?;
+                            } else {
+                                bytes.write_all(&socket_addr.ip().octets())?;
+                            }
+                            bytes.write_u16::<NetworkEndian>(peer.port())?;
+                        }
+                        SocketAddr::V6(socket_addr) => {
+                            bytes.write_all(&socket_addr.ip().octets())?;
+                            bytes.write_u16::<NetworkEndian>(peer.port())?;
+                        }
+                    }
+                }
+            },
+
+            // todo: fix scrape response
+            // UDPResponse::Scrape(r) => {
+            //     bytes.write_i32::<NetworkEndian>(2)?;
+            //     bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+            //
+            //     for torrent_stat in r.torrent_stats {
+            //         bytes.write_i32::<NetworkEndian>(torrent_stat.seeders.0)?;
+            //         bytes.write_i32::<NetworkEndian>(torrent_stat.completed.0)?;
+            //         bytes.write_i32::<NetworkEndian>(torrent_stat.leechers.0)?;
+            //     }
+            // },
+            // UDPResponse::Error(r) => {
+            //     bytes.write_i32::<NetworkEndian>(3)?;
+            //     bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+            //
+            //     bytes.write_all(r.message.as_bytes())?;
+            // },
+            _ => {}
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct UDPConnectionResponse {
+    action: Actions,
+    transaction_id: TransactionId,
+    connection_id: ConnectionId,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct UDPAnnounceResponse {
+    action: Actions,
+    transaction_id: TransactionId,
+    interval: u32,
+    leechers: u32,
+    seeders: u32,
+    peers: ResponsePeerList,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct UDPScrapeResponseEntry {
+    seeders: u32,
+    completed: u32,
+    leechers: u32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -88,22 +457,6 @@ struct UDPAnnounceRequest {
     key: u32,
     num_want: i32,
     port: u16,
-}
-
-#[derive(Serialize, Deserialize)]
-struct UDPAnnounceResponse {
-    header: UDPResponseHeader,
-
-    interval: u32,
-    leechers: u32,
-    seeders: u32,
-}
-
-#[derive(Serialize)]
-struct UDPScrapeResponseEntry {
-    seeders: u32,
-    completed: u32,
-    leechers: u32,
 }
 
 pub struct UDPTracker {
@@ -127,232 +480,214 @@ impl UDPTracker {
         })
     }
 
-    async fn handle_packet(&self, remote_address: &SocketAddr, payload: &[u8]) {
-        let header: UDPRequestHeader = match unpack(payload) {
-            Some(val) => val,
-            None => {
-                trace!("failed to parse packet from {}", remote_address);
-                return;
-            }
-        };
+    async fn handle_packet(&self, remote_address: SocketAddr, payload: &[u8]) {
+        let request = Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS);
 
-        match header.action {
-            Actions::Connect => self.handle_connect(remote_address, &header, payload).await,
-            Actions::Announce => self.handle_announce(remote_address, &header, payload).await,
-            Actions::Scrape => self.handle_scrape(remote_address, &header, payload).await,
-            _ => {
-                trace!("invalid action from {}", remote_address);
-                // someone is playing around... ignore request.
-                return;
+        match request {
+            Ok(request) => {
+                debug!("New request: {:?}", request);
+                match request {
+                    Request::Connect(r) => self.handle_connect(remote_address, r).await,
+                    Request::Announce(r) => self.handle_announce(remote_address, r).await,
+                    Request::Scrape(r) => self.handle_scrape(remote_address, r).await
+                }
+            }
+            Err(err) => {
+                debug!("request_from_bytes error: {:?}", err);
+
+                // if let Some(transaction_id) = err.transaction_id {
+                //     let opt_message = if err.error.is_some() {
+                //         Some("Parse error".to_string())
+                //     } else if let Some(message) = err.message {
+                //         Some(message)
+                //     } else {
+                //         None
+                //     };
+                //
+                //     if let Some(message) = opt_message {
+                //         let response = ErrorResponse {
+                //             transaction_id,
+                //             message,
+                //         };
+                //
+                //         local_responses.push((response.into(), src));
+                //     }
+                // }
             }
         }
     }
 
-    async fn handle_connect(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, _payload: &[u8]) {
-        if header.connection_id != PROTOCOL_ID {
-            trace!("Bad protocol magic from {}", remote_addr);
-            return;
-        }
+    async fn handle_connect(&self, remote_addr: SocketAddr, request: ConnectRequest) {
+        let connection_id = self.get_connection_id(&remote_addr);
 
-        // send response...
-        let conn_id = self.get_connection_id(remote_addr);
+        let response = UDPResponse::from(UDPConnectionResponse {
+            action: Actions::Connect,
+            transaction_id: request.transaction_id,
+            connection_id,
+        });
 
-        let response = UDPConnectionResponse {
-            header: UDPResponseHeader {
-                transaction_id: header.transaction_id,
-                action: Actions::Connect,
-            },
-            connection_id: conn_id,
-        };
-
-        let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
-        let mut payload = StackVec::from(payload_buffer.as_mut_slice());
-
-        if let Ok(_) = pack_into(&mut payload, &response) {
-            let _ = self.send_packet(remote_addr, payload.as_slice()).await;
-        }
+        let _ = self.send_response(remote_addr, response).await;
     }
 
-    async fn handle_announce(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
-        if header.connection_id != self.get_connection_id(remote_addr) {
+    async fn handle_announce(&self, remote_addr: SocketAddr, request: AnnounceRequest) {
+        // todo: I have no idea yet why this is here
+        if request.connection_id != self.get_connection_id(&remote_addr) {
+            debug!("announce: Unmatching connection_id.");
             return;
         }
 
-        let packet: UDPAnnounceRequest = match unpack(payload) {
-            Some(v) => v,
-            None => {
-                trace!("failed to unpack announce request from {}", remote_addr);
-                return;
-            }
-        };
-
-        if let Ok(_plen) = bincode::serialized_size(&packet) {
-            let plen = _plen as usize;
-            if payload.len() > plen {
-                let bep41_payload = &payload[plen..];
-
-                // TODO: process BEP0041 payload.
-                trace!("BEP0041 payload of {} bytes from {}", bep41_payload.len(), remote_addr);
-            }
-        }
-
-        if packet.ip_address != 0 {
-            // TODO: allow configurability of ip address
-            // for now, ignore request.
-            trace!("announce request for other IP ignored. (from {})", remote_addr);
-            return;
-        }
-
-        let client_addr = SocketAddr::new(remote_addr.ip(), packet.port);
-        let info_hash = packet.info_hash.into();
-
-        let peer_id: &tracker::PeerId = tracker::PeerId::from_array(&packet.peer_id);
+        let client_addr = SocketAddr::new(remote_addr.ip(), request.port.0);
 
         match self
             .tracker
             .update_torrent_and_get_stats(
-                &info_hash,
-                peer_id,
-                &client_addr,
-                packet.uploaded,
-                packet.downloaded,
-                packet.left,
-                packet.event,
+                &remote_addr,
+                &request.info_hash,
+                &request.peer_id,
+                &request.bytes_uploaded,
+                &request.bytes_downloaded,
+                &request.bytes_left,
+                &request.event,
             )
             .await
         {
-            tracker::TorrentStats::Stats {
-                leechers,
-                complete: _,
-                seeders,
-            } => {
-                let peers = match self.tracker.get_torrent_peers(&info_hash, &client_addr).await {
+            Ok(torrent_stats) => {
+                // get all peers excluding the client_addr
+                let peers = match self.tracker.get_torrent_peers(&request.info_hash, &client_addr).await {
                     Some(v) => v,
                     None => {
+                        debug!("announce: No peers found.");
                         return;
                     }
                 };
 
-                let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
-                let mut payload = StackVec::from(&mut payload_buffer);
-
-                match pack_into(&mut payload, &UDPAnnounceResponse {
-                    header: UDPResponseHeader {
-                        action: Actions::Announce,
-                        transaction_id: packet.header.transaction_id,
-                    },
-                    seeders,
+                let response = UDPResponse::from(UDPAnnounceResponse {
+                    action: Actions::Announce,
+                    transaction_id: request.transaction_id,
                     interval: self.config.get_udp_config().get_announce_interval(),
-                    leechers,
-                }) {
-                    Ok(_) => {}
-                    Err(_) => {
+                    leechers: torrent_stats.leechers,
+                    seeders: torrent_stats.seeders,
+                    peers: ResponsePeerList(peers),
+                });
+
+                let _ = self.send_response(client_addr, response).await;
+            }
+            Err(e) => {
+                match e {
+                    tracker::TorrentError::TorrentFlagged => {
+                        debug!("Torrent flagged.");
+                        self.send_error(&client_addr, &request.transaction_id, "torrent flagged.").await;
                         return;
                     }
-                };
-
-                for peer in peers {
-                    match peer {
-                        SocketAddr::V4(ipv4) => {
-                            let _ = payload.write(&ipv4.ip().octets());
-                        }
-                        SocketAddr::V6(ipv6) => {
-                            let _ = payload.write(&ipv6.ip().octets());
-                        }
-                    };
-
-                    let port_hton = client_addr.port().to_be();
-                    let _ = payload.write(&[(port_hton & 0xff) as u8, ((port_hton >> 8) & 0xff) as u8]);
+                    tracker::TorrentError::TorrentNotRegistered => {
+                        debug!("Torrent not registered.");
+                        self.send_error(&client_addr, &request.transaction_id, "torrent not registered.").await;
+                        return;
+                    }
                 }
-
-                let _ = self.send_packet(&client_addr, payload.as_slice()).await;
-            }
-            tracker::TorrentStats::TorrentFlagged => {
-                self.send_error(&client_addr, &packet.header, "torrent flagged.").await;
-                return;
-            }
-            tracker::TorrentStats::TorrentNotRegistered => {
-                self.send_error(&client_addr, &packet.header, "torrent not registered.").await;
-                return;
             }
         }
     }
 
-    async fn handle_scrape(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, payload: &[u8]) {
-        if header.connection_id != self.get_connection_id(remote_addr) {
-            return;
-        }
-
-        const MAX_SCRAPE: usize = 74;
-
-        let mut response_buffer = [0u8; 8 + MAX_SCRAPE * 12];
-        let mut response = StackVec::from(&mut response_buffer);
-
-        if pack_into(&mut response, &UDPResponseHeader {
-            action: Actions::Scrape,
-            transaction_id: header.transaction_id,
-        })
-        .is_err()
-        {
-            // not much we can do...
-            error!("failed to encode udp scrape response header.");
-            return;
-        }
-
-        // skip first 16 bytes for header...
-        let info_hash_array = &payload[16..];
-
-        if info_hash_array.len() % 20 != 0 {
-            trace!("received weird length for scrape info_hash array (!mod20).");
-        }
-
-        {
-            let db = self.tracker.get_database().await;
-
-            for torrent_index in 0..MAX_SCRAPE {
-                let info_hash_start = torrent_index * 20;
-                let info_hash_end = (torrent_index + 1) * 20;
-
-                if info_hash_end > info_hash_array.len() {
-                    break;
-                }
-
-                let info_hash = &info_hash_array[info_hash_start..info_hash_end];
-                let ih = tracker::InfoHash::from(info_hash);
-                let result = match db.get(&ih) {
-                    Some(torrent_info) => {
-                        let (seeders, completed, leechers) = torrent_info.get_stats();
-
-                        UDPScrapeResponseEntry {
-                            seeders,
-                            completed,
-                            leechers,
-                        }
-                    }
-                    None => {
-                        UDPScrapeResponseEntry {
-                            seeders: 0,
-                            completed: 0,
-                            leechers: 0,
-                        }
-                    }
-                };
-
-                if pack_into(&mut response, &result).is_err() {
-                    debug!("failed to encode scrape entry.");
-                    return;
-                }
-            }
-        }
-
-        // if sending fails, not much we can do...
-        let _ = self.send_packet(&remote_addr, &response.as_slice()).await;
+    async fn handle_scrape(&self, remote_addr: SocketAddr, request: ScrapeRequest) {
+        // if request.connection_id != self.get_connection_id(&remote_addr) {
+        //     debug!("scrape: Unmatching connection_id.");
+        //     return;
+        // }
+        //
+        // let mut response_buffer = vec![0u8; MAX_PACKET_SIZE];
+        // let mut response = StackVec::from(&mut response_buffer);
+        //
+        // if write_to_bytes(&mut response, &UDPResponseHeader {
+        //     action: Actions::Scrape,
+        //     transaction_id: request.transaction_id,
+        // })
+        // .is_err()
+        // {
+        //     // not much we can do...
+        //     error!("failed to encode udp scrape response header.");
+        //     return;
+        // }
+        //
+        // // skip first 16 bytes for header...
+        // let info_hash_array = &request.info_hashes;
+        //
+        // if info_hash_array.len() % 20 != 0 {
+        //     trace!("received weird length for scrape info_hash array (!mod20).");
+        // }
+        //
+        // {
+        //     let db = self.tracker.get_database().await;
+        //
+        //     // for torrent_index in 0..MAX_SCRAPE {
+        //     //     let info_hash_start = torrent_index * 20;
+        //     //     let info_hash_end = (torrent_index + 1) * 20;
+        //     //
+        //     //     if info_hash_end > info_hash_array.len() {
+        //     //         break;
+        //     //     }
+        //     //
+        //     //     let info_hash = &info_hash_array[info_hash_start..info_hash_end];
+        //     //     let ih = InfoHash::from(info_hash.0);
+        //     //     let result = match db.get(&ih) {
+        //     //         Some(torrent_info) => {
+        //     //             let (seeders, completed, leechers) = torrent_info.get_stats();
+        //     //
+        //     //             UDPScrapeResponseEntry {
+        //     //                 seeders,
+        //     //                 completed,
+        //     //                 leechers,
+        //     //             }
+        //     //         }
+        //     //         None => {
+        //     //             UDPScrapeResponseEntry {
+        //     //                 seeders: 0,
+        //     //                 completed: 0,
+        //     //                 leechers: 0,
+        //     //             }
+        //     //         }
+        //     //     };
+        //     //
+        //     //     if pack_into(&mut response, &result).is_err() {
+        //     //         debug!("failed to encode scrape entry.");
+        //     //         return;
+        //     //     }
+        //     // }
+        // }
+        //
+        // // if sending fails, not much we can do...
+        // let _ = self.send_packet(&remote_addr, &response.as_slice()).await;
     }
 
-    fn get_connection_id(&self, remote_address: &SocketAddr) -> u64 {
+    async fn send_response(&self, remote_addr: SocketAddr, response: UDPResponse) -> Result<usize, ()> {
+        println!("sending response to: {:?}", &remote_addr);
+
+        let mut byte_buffer = vec![0u8; MAX_PACKET_SIZE];
+        let mut bytes = StackVec::from(byte_buffer.as_mut_slice());
+
+        // todo: add proper error logging
+        match response.write_to_bytes(&mut bytes) {
+            Ok(..) => {
+                debug!("{:?}", &bytes.as_slice());
+                match self.srv.send_to(bytes.as_slice(), remote_addr).await {
+                    Ok(sz) => Ok(sz),
+                    Err(err) => {
+                        debug!("failed to send a packet: {}", err);
+                        Err(())
+                    }
+                }
+            }
+            Err(..) => {
+                debug!("could not write response to bytes.");
+                Err(())
+            }
+        }
+    }
+
+    fn get_connection_id(&self, remote_address: &SocketAddr) -> ConnectionId {
         match std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) {
-            Ok(duration) => (duration.as_secs() / 3600) | ((remote_address.port() as u64) << 36),
-            Err(_) => 0x8000000000000000,
+            Ok(duration) => ConnectionId(((duration.as_secs() / 3600) | ((remote_address.port() as u64) << 36)) as i64),
+            Err(_) => ConnectionId(0x7FFFFFFFFFFFFFFF),
         }
     }
 
@@ -366,19 +701,19 @@ impl UDPTracker {
         }
     }
 
-    async fn send_error(&self, remote_addr: &SocketAddr, header: &UDPRequestHeader, error_msg: &str) {
-        let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
-        let mut payload = StackVec::from(&mut payload_buffer);
-
-        if let Ok(_) = pack_into(&mut payload, &UDPResponseHeader {
-            transaction_id: header.transaction_id,
-            action: Actions::Error,
-        }) {
-            let msg_bytes = Vec::from(error_msg.as_bytes());
-            payload.extend(msg_bytes);
-
-            let _ = self.send_packet(remote_addr, payload.as_slice()).await;
-        }
+    async fn send_error(&self, remote_addr: &SocketAddr, transaction_id: &TransactionId, error_msg: &str) {
+        // let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
+        // let mut payload = StackVec::from(&mut payload_buffer);
+        //
+        // if let Ok(_) = write_to_bytes(&mut payload, &UDPResponseHeader {
+        //     transaction_id: transaction_id.clone(),
+        //     action: Actions::Error,
+        // }) {
+        //     let msg_bytes = Vec::from(error_msg.as_bytes());
+        //     payload.extend(msg_bytes);
+        //
+        //     let _ = self.send_packet(remote_addr, payload.as_slice()).await;
+        // }
     }
 
     pub async fn accept_packets(self) -> Result<(), std::io::Error> {
@@ -391,41 +726,8 @@ impl UDPTracker {
             let tracker = tracker.clone();
             tokio::spawn(async move {
                 debug!("Received {} bytes from {}", size, remote_address);
-                tracker.handle_packet(&remote_address, &packet[..size]).await;
+                tracker.handle_packet(remote_address, &packet[..size]).await;
             });
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn pack() {
-        let mystruct = super::UDPRequestHeader {
-            connection_id: 200,
-            action: super::Actions::Connect,
-            transaction_id: 77771,
-        };
-        let mut buffer = [0u8; MAX_PACKET_SIZE];
-        let mut payload = StackVec::from(&mut buffer);
-
-        assert!(pack_into(&mut payload, &mystruct).is_ok());
-        assert_eq!(payload.as_slice().len(), 16);
-        assert_eq!(payload.as_slice(), &[0, 0, 0, 0, 0, 0, 0, 200u8, 0, 0, 0, 0, 0, 1, 47, 203]);
-    }
-
-    #[test]
-    fn unpack() {
-        let buf = [0u8, 0, 0, 0, 0, 0, 0, 200, 0, 0, 0, 1, 0, 1, 47, 203];
-        match super::unpack(&buf) {
-            Some(obj) => {
-                let x: super::UDPResponseHeader = obj;
-                println!("conn_id={}", x.action as u32);
-            }
-            None => {
-                assert!(false);
-            }
         }
     }
 }

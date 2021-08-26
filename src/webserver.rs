@@ -1,9 +1,10 @@
-use crate::tracker::{InfoHash, TorrentTracker};
+use crate::tracker::{TorrentTracker};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use warp::{filters, reply, reply::Reply, serve, Filter, Server};
+use super::common::*;
 
 fn view_root() -> impl Reply {
     warp::http::Response::builder()
@@ -54,7 +55,7 @@ struct TorrentEntry<'a> {
     leechers: u32,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    peers: Option<Vec<(crate::tracker::PeerId, crate::tracker::TorrentPeer)>>,
+    peers: Option<Vec<(crate::common::PeerId, crate::tracker::TorrentPeer)>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -234,6 +235,7 @@ pub fn build_server(
         filters::path::path("t").and(view_torrent_list.or(delete_torrent).or(view_torrent_info).or(change_torrent));
 
     let server = root.or(authenticate(tokens).and(torrent_mgmt));
+    // let server = root.or(torrent_mgmt);
 
     serve(server)
 }

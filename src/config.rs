@@ -107,7 +107,7 @@ impl Configuration {
 impl Configuration {
     pub fn default() -> Self {
         Configuration {
-            log_level: None,
+            log_level: Option::from(String::from("trace")),
             mode: TrackerMode::DynamicMode,
             udp: UDPConfig {
                 announce_interval: 120,
