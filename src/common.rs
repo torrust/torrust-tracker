@@ -166,34 +166,6 @@ pub struct PeerKey(pub u32);
 #[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct ResponsePeerList(pub Vec<SocketAddr>);
 
-// impl Serialize for ResponsePeerList {
-//     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-//         let mut bytes = Vec::with_capacity(self.0.len() * 6);
-//         let mut seq = serializer.serialize_seq(Some(self.len()))?;
-//
-//         for peer in self.0.iter() {
-//             match peer {
-//                 SocketAddr::V4(mut ipv4) => {
-//                     // todo: get local network IP or external IP from host machine
-//                     // check for localhost, replace with local network IP or external IP
-//                     if ipv4.ip() == &Ipv4Addr::new(127, 0, 0, 1) {
-//                         bytes.extend_from_slice(&Ipv4Addr::new(192, 168, 0, 182).octets());
-//                     } else {
-//                         bytes.extend_from_slice(&ipv4.ip().octets());
-//                     }
-//                 }
-//                 SocketAddr::V6(ipv6) => {
-//                     bytes.extend_from_slice(&ipv6.ip().octets());
-//                 }
-//             };
-//
-//             bytes.extend_from_slice(&peer.port().to_be_bytes());
-//         }
-//
-//         seq.serialize_element()
-//     }
-// }
-
 impl PeerId {
     pub fn get_client_name(&self) -> Option<&'static str> {
         if self.0[0] == b'M' {

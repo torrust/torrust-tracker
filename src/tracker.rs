@@ -55,36 +55,6 @@ fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Resul
     ser.serialize_u64(inst.elapsed().as_millis() as u64)
 }
 
-struct InfoHashVisitor;
-
-impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
-    type Value = InfoHash;
-
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(formatter, "a 40 character long hash")
-    }
-
-    fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<Self::Value, E> {
-        if v.len() != 40 {
-            return Err(serde::de::Error::invalid_value(
-                serde::de::Unexpected::Str(v),
-                &"expected a 40 character long string",
-            ));
-        }
-
-        let mut res = InfoHash { 0: [0u8; 20] };
-
-        if let Err(_) = binascii::hex2bin(v.as_bytes(), &mut res.0) {
-            return Err(serde::de::Error::invalid_value(
-                serde::de::Unexpected::Str(v),
-                &"expected a hexadecimal string",
-            ));
-        } else {
-            return Ok(res);
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TorrentEntry {
     is_flagged: bool,
