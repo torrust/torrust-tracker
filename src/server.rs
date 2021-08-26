@@ -2,6 +2,8 @@ use log::{debug};
 use std;
 use std::net::{SocketAddr};
 use std::sync::Arc;
+use std::io::Error;
+use std::future::Future;
 use tokio::net::UdpSocket;
 
 use crate::config::Configuration;
@@ -10,6 +12,7 @@ use crate::tracker;
 use super::common::*;
 use crate::response::*;
 use crate::request::{Request, ConnectRequest, AnnounceRequest, ScrapeRequest};
+use crate::utils::get_connection_id;
 
 pub struct UDPTracker {
     srv: tokio::net::UdpSocket,
@@ -233,13 +236,6 @@ impl UDPTracker {
                 debug!("could not write response to bytes.");
                 Err(())
             }
-        }
-    }
-
-    fn get_connection_id(&self, remote_address: &SocketAddr) -> ConnectionId {
-        match std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) {
-            Ok(duration) => ConnectionId(((duration.as_secs() / 3600) | ((remote_address.port() as u64) << 36)) as i64),
-            Err(_) => ConnectionId(0x7FFFFFFFFFFFFFFF),
         }
     }
 

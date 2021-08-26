@@ -10,6 +10,7 @@ mod webserver;
 mod common;
 mod response;
 mod request;
+mod utils;
 
 use config::Configuration;
 use std::process::exit;
