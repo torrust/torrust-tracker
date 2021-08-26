@@ -29,11 +29,11 @@ fn view_root() -> impl Reply {
             </head>
             <body>
                 <p>
-                    This server is running <a style="font-weight: bold; font-size: large" href="https://github.com/naim94a/udpt"><code>udpt</code></a>, a <a href="https://en.wikipedia.org/wiki/BitTorrent_tracker" rel="nofollow" target="_blank">BitTorrent tracker</a> based on the <a href="https://en.wikipedia.org/wiki/User_Datagram_Protocol" rel="nofollow" target="_blank">UDP</a> protocol.
+                    This server is running <a style="font-weight: bold; font-size: large" href="https://github.com/torrust/torrust-torrent-tracker"><code>Torrust</code></a>, a <a href="https://en.wikipedia.org/wiki/BitTorrent_tracker" rel="nofollow" target="_blank">BitTorrent tracker</a> based on the <a href="https://en.wikipedia.org/wiki/User_Datagram_Protocol" rel="nofollow" target="_blank">UDP</a> protocol.
                 </p>
                 <div style="color: grey; font-size: small; border-top: 1px solid grey; width: 75%; max-width: 300px; margin-left: auto; margin-right: auto; text-align: center; padding-top: 5px">
-                    udpt/"#, env!("CARGO_PKG_VERSION"), r#"<br />
-                    <a href="https://naim94a.github.com/udpt/">docs</a> &middot; <a href="https://github.com/naim94a/udpt/issues">issues &amp; PRs</a> &middot; <a href="https://paypal.me/naim94a">donate</a>
+                    torrust-tracker/"#, env!("CARGO_PKG_VERSION"), r#"<br />
+                    <a href="https://github.com/torrust/torrust-torrent-tracker/wiki">wiki</a> &middot; <a href="https://github.com/torrust/torrust-torrent-tracker/issues">issues &amp; PRs</a> &middot; developed by <a href="https://dutchbits.nl">DutchBits</a>
                     </div>
             </body>
         </html>"#))
