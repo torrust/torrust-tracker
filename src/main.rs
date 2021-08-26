@@ -15,45 +15,6 @@ mod utils;
 use config::Configuration;
 use std::process::exit;
 
-fn setup_logging(cfg: &Configuration) {
-    let log_level = match cfg.get_log_level() {
-        None => log::LevelFilter::Info,
-        Some(level) => {
-            match level.as_str() {
-                "off" => log::LevelFilter::Off,
-                "trace" => log::LevelFilter::Trace,
-                "debug" => log::LevelFilter::Debug,
-                "info" => log::LevelFilter::Info,
-                "warn" => log::LevelFilter::Warn,
-                "error" => log::LevelFilter::Error,
-                _ => {
-                    eprintln!("udpt: unknown log level encountered '{}'", level.as_str());
-                    exit(-1);
-                }
-            }
-        }
-    };
-
-    if let Err(err) = fern::Dispatch::new()
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "{} [{}][{}] {}",
-                chrono::Local::now().format("%+"),
-                record.target(),
-                record.level(),
-                message
-            ))
-        })
-        .level(log_level)
-        .chain(std::io::stdout())
-        .apply()
-    {
-        eprintln!("udpt: failed to initialize logging. {}", err);
-        std::process::exit(-1);
-    }
-    info!("logging initialized.");
-}
-
 #[tokio::main]
 async fn main() {
     let parser = clap::App::new(env!("CARGO_PKG_NAME"))
@@ -177,4 +138,43 @@ async fn main() {
     }
 
     info!("goodbye.");
+}
+
+fn setup_logging(cfg: &Configuration) {
+    let log_level = match cfg.get_log_level() {
+        None => log::LevelFilter::Info,
+        Some(level) => {
+            match level.as_str() {
+                "off" => log::LevelFilter::Off,
+                "trace" => log::LevelFilter::Trace,
+                "debug" => log::LevelFilter::Debug,
+                "info" => log::LevelFilter::Info,
+                "warn" => log::LevelFilter::Warn,
+                "error" => log::LevelFilter::Error,
+                _ => {
+                    eprintln!("udpt: unknown log level encountered '{}'", level.as_str());
+                    exit(-1);
+                }
+            }
+        }
+    };
+
+    if let Err(err) = fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "{} [{}][{}] {}",
+                chrono::Local::now().format("%+"),
+                record.target(),
+                record.level(),
+                message
+            ))
+        })
+        .level(log_level)
+        .chain(std::io::stdout())
+        .apply()
+    {
+        eprintln!("udpt: failed to initialize logging. {}", err);
+        std::process::exit(-1);
+    }
+    info!("logging initialized.");
 }

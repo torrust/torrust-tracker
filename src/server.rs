@@ -8,24 +8,21 @@ use tokio::net::UdpSocket;
 
 use crate::config::Configuration;
 use crate::stackvec::StackVec;
-use crate::tracker;
 use super::common::*;
 use crate::response::*;
 use crate::request::{Request, ConnectRequest, AnnounceRequest, ScrapeRequest};
 use crate::utils::get_connection_id;
+use crate::tracker::TorrentTracker;
 
 pub struct UDPTracker {
     socket: UdpSocket,
-    tracker: Arc<tracker::TorrentTracker>,
+    tracker: Arc<TorrentTracker>,
     config: Arc<Configuration>,
 }
 
 impl UDPTracker {
-    pub async fn new(
-        config: Arc<Configuration>, tracker: std::sync::Arc<tracker::TorrentTracker>,
-    ) -> Result<UDPTracker, std::io::Error> {
+    pub async fn new(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Result<UDPTracker, std::io::Error> {
         let cfg = config.clone();
-
         let srv = UdpSocket::bind(cfg.get_udp_config().get_address()).await?;
 
         Ok(UDPTracker {
