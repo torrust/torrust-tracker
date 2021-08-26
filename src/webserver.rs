@@ -55,7 +55,7 @@ struct TorrentEntry<'a> {
     leechers: u32,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    peers: Option<Vec<(crate::tracker::PeerId, crate::tracker::TorrentPeer)>>,
+    peers: Option<Vec<(crate::common::PeerId, crate::tracker::TorrentPeer)>>,
 }
 
 #[derive(Serialize, Deserialize)]
