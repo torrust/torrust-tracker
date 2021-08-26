@@ -224,10 +224,10 @@ impl UDPTracker {
         match response.write_to_bytes(&mut bytes) {
             Ok(..) => {
                 debug!("{:?}", &bytes.as_slice());
-                match self.srv.send_to(bytes.as_slice(), remote_addr).await {
-                    Ok(sz) => Ok(sz),
-                    Err(err) => {
-                        debug!("failed to send a packet: {}", err);
+                match self.send_packet(&remote_addr, bytes.as_slice()).await {
+                    Ok(byte_size) => Ok(byte_size),
+                    Err(e) => {
+                        debug!("{:?}", e);
                         Err(())
                     }
                 }
