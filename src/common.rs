@@ -294,33 +294,3 @@ impl Serialize for PeerId {
         obj.serialize(serializer)
     }
 }
-
-// //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-// pub type AnnounceInterval = i32;
-//
-// //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-// pub type InfoHash = [u8; 20];
-//
-// #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-// pub type ConnectionId = i64;
-//
-// //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-// pub type TransactionId = i32;
-//
-// //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-// pub type NumberOfBytes = i64;
-//
-// //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-// pub type NumberOfPeers = i32;
-//
-// //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-// pub type NumberOfDownloads = i32;
-//
-// //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-// pub type Port = u16;
-//
-// //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, PartialOrd, Ord)]
-// pub type PeerId = [u8; 20];
-//
-// //#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-// pub type PeerKey = u32;
