@@ -4,7 +4,6 @@ use log::{error, info, trace, warn};
 
 mod config;
 mod server;
-mod stackvec;
 mod tracker;
 mod webserver;
 mod common;

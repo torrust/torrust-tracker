@@ -2,12 +2,10 @@ use log::{debug};
 use std;
 use std::net::{SocketAddr};
 use std::sync::Arc;
-use std::io::Error;
-use std::future::Future;
+use std::io::{Cursor};
 use tokio::net::UdpSocket;
 
 use crate::config::Configuration;
-use crate::stackvec::StackVec;
 use super::common::*;
 use crate::response::*;
 use crate::request::{Request, ConnectRequest, AnnounceRequest, ScrapeRequest};
@@ -215,14 +213,17 @@ impl UDPTracker {
     async fn send_response(&self, remote_addr: SocketAddr, response: UDPResponse) -> Result<usize, ()> {
         println!("sending response to: {:?}", &remote_addr);
 
-        let mut byte_buffer = vec![0u8; MAX_PACKET_SIZE];
-        let mut bytes = StackVec::from(byte_buffer.as_mut_slice());
+        let buffer = vec![0u8; MAX_PACKET_SIZE];
+        let mut cursor = Cursor::new(buffer);
 
         // todo: add proper error logging
-        match response.write_to_bytes(&mut bytes) {
+        match response.write_to_bytes(&mut cursor) {
             Ok(..) => {
-                debug!("{:?}", &bytes.as_slice());
-                match self.send_packet(&remote_addr, bytes.as_slice()).await {
+                let position = cursor.position() as usize;
+                let inner = cursor.get_ref();
+
+                debug!("{:?}", &inner[..position]);
+                match self.send_packet(&remote_addr, &inner[..position]).await {
                     Ok(byte_size) => Ok(byte_size),
                     Err(e) => {
                         debug!("{:?}", e);
