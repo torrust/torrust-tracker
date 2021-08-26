@@ -1,7 +1,7 @@
-# UDPT
-_UDPT_ is a UDP based torrent tracker which fully implements [BEP-15](http://www.bittorrent.org/beps/bep_0015.html).
+# Torrust Tracker
+_Torrust Tracker_ is a UDP based torrent tracker which fully implements [BEP-15](http://www.bittorrent.org/beps/bep_0015.html).
 
-This project was written in Rust, it is a complete rewrite of a previous C/C++ UDPT project (which is still currently available in the `v2.1` tag of the repository).
+Torrust Tracker is a fork from [UDPT](https://github.com/naim94a/udpt) and heavily modified with parts from [Aquatic](https://github.com/greatest-ape/aquatic).
 
 ## Features
 * [X] UDP torrent tracking server
@@ -10,15 +10,14 @@ This project was written in Rust, it is a complete rewrite of a previous C/C++ U
 * [X] Ability to block a torrent from being tracked
 * [X] HTTP REST API for management
 * [X] Logging
-* [ ] Windows Service or Linux/Unix daemon
 
 ## Getting started
-The easiest way is to get built binaries from [Releases](https://github.com/naim94a/udpt/releases), 
+The easiest way is to get built binaries from [Releases](https://github.com/torrust/torrust-tracker/releases), 
 but building from sources should be fairly easy as well:
 
 ```commandline
-git clone https://github.com/naim94a/udpt.git
-cd udpt
+git clone https://github.com/torrust/torrust-tracker.git
+cd torrust-tracker
 cargo build --release
 ```
 
@@ -27,15 +26,8 @@ Please report any bugs you find to our issue tracker. Ideas and feature requests
 
 Any pull request targeting existing issues would be very much appreciated. 
 
-If you like this project and want to buy me a coffee, there's a link for that:
+If you like this project and want to buy to original developer of UDPT a coffee, there's a link for that:
 
 <a href="https://www.buymeacoffee.com/naim" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/arial-orange.png" alt="Buy Me A Coffee" height="60px" width="217px"></a>
 
-### Why was UDPT rewritten in rust?
-For a few reasons,
-1. Rust makes it harder to make mistakes than C/C++, It provides memory safety without runtime cost.
-2. Rust allows easier cross-platform development with it's powerful standard library.
-3. Integrated tests and benchmarks.
-
-
-UDPT was originally developed for fun in 2012 by [@naim94a](https://github.com/naim94a).
+Credits: [@naim94a](https://github.com/naim94a), [@greatest-ape](https://github.com/greatest-ape), [@WarmBeer](https://github.com/WarmBeer), [@DutchBits](https://github.com/dutchbits)
