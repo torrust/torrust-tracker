@@ -15,8 +15,8 @@ use crate::request::{Request, ConnectRequest, AnnounceRequest, ScrapeRequest};
 use crate::utils::get_connection_id;
 
 pub struct UDPTracker {
-    srv: tokio::net::UdpSocket,
-    tracker: std::sync::Arc<tracker::TorrentTracker>,
+    socket: UdpSocket,
+    tracker: Arc<tracker::TorrentTracker>,
     config: Arc<Configuration>,
 }
 
@@ -29,7 +29,7 @@ impl UDPTracker {
         let srv = UdpSocket::bind(cfg.get_udp_config().get_address()).await?;
 
         Ok(UDPTracker {
-            srv,
+            socket: srv,
             tracker,
             config: cfg,
         })
@@ -73,7 +73,7 @@ impl UDPTracker {
     }
 
     async fn handle_connect(&self, remote_addr: SocketAddr, request: ConnectRequest) {
-        let connection_id = self.get_connection_id(&remote_addr);
+        let connection_id = get_connection_id(&remote_addr);
 
         let response = UDPResponse::from(UDPConnectionResponse {
             action: Actions::Connect,
@@ -86,7 +86,7 @@ impl UDPTracker {
 
     async fn handle_announce(&self, remote_addr: SocketAddr, request: AnnounceRequest) {
         // todo: I have no idea yet why this is here
-        if request.connection_id != self.get_connection_id(&remote_addr) {
+        if request.connection_id != get_connection_id(&remote_addr) {
             debug!("announce: Unmatching connection_id.");
             return;
         }
@@ -240,7 +240,7 @@ impl UDPTracker {
     }
 
     async fn send_packet(&self, remote_addr: &SocketAddr, payload: &[u8]) -> Result<usize, std::io::Error> {
-        match self.srv.send_to(payload, remote_addr).await {
+        match self.socket.send_to(payload, remote_addr).await {
             Err(err) => {
                 debug!("failed to send a packet: {}", err);
                 Err(err)
@@ -269,7 +269,7 @@ impl UDPTracker {
 
         loop {
             let mut packet = vec![0u8; MAX_PACKET_SIZE];
-            let (size, remote_address) = tracker.srv.recv_from(packet.as_mut_slice()).await?;
+            let (size, remote_address) = tracker.socket.recv_from(packet.as_mut_slice()).await?;
 
             let tracker = tracker.clone();
             tokio::spawn(async move {
