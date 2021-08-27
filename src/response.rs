@@ -73,11 +73,7 @@ impl UDPResponse {
                 for peer in r.peers.0 {
                     match peer {
                         SocketAddr::V4(socket_addr) => {
-                            if socket_addr.ip() == &Ipv4Addr::new(127, 0, 0, 1) {
-                                bytes.write_all(&Ipv4Addr::new(192, 168, 2, 2).octets())?;
-                            } else {
-                                bytes.write_all(&socket_addr.ip().octets())?;
-                            }
+                            bytes.write_all(&socket_addr.ip().octets())?;
                             bytes.write_u16::<NetworkEndian>(peer.port())?;
                         }
                         SocketAddr::V6(socket_addr) => {

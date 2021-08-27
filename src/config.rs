@@ -3,6 +3,7 @@ use serde::Deserialize;
 use std;
 use std::collections::HashMap;
 use toml;
+use std::net::{IpAddr, Ipv4Addr};
 
 #[derive(Deserialize)]
 pub struct UDPConfig {
@@ -44,6 +45,7 @@ pub struct Configuration {
     log_level: Option<String>,
     db_path: Option<String>,
     cleanup_interval: Option<u64>,
+    external_ip: Option<IpAddr>,
 }
 
 #[derive(Debug)]
@@ -102,10 +104,16 @@ impl Configuration {
     pub fn get_cleanup_interval(&self) -> Option<u64> {
         self.cleanup_interval
     }
+
+    pub fn get_ext_ip(&self) -> Option<IpAddr> { self.external_ip }
 }
 
 impl Configuration {
-    pub fn default() -> Self {
+    pub async fn default() -> Self {
+        let external_ip = external_ip::get_ip().await;
+
+        if external_ip.is_some() { eprintln!("external ip: {:?}", external_ip.unwrap()); }
+
         Configuration {
             log_level: Option::from(String::from("trace")),
             mode: TrackerMode::DynamicMode,
@@ -119,6 +127,7 @@ impl Configuration {
             }),
             db_path: None,
             cleanup_interval: None,
+            external_ip,
         }
     }
 }

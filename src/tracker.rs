@@ -296,7 +296,7 @@ impl TorrentTracker {
 
     pub async fn update_torrent_and_get_stats(
         &self,
-        remote_address: &std::net::SocketAddr,
+        peer_address: &std::net::SocketAddr,
         info_hash: &InfoHash,
         peer_id: &PeerId,
         uploaded: &NumberOfBytes,
@@ -333,7 +333,7 @@ impl TorrentTracker {
                 torrent_entry.update_peer(
                     peer_id,
                     TorrentPeer {
-                        ip: remote_address.clone(),
+                        ip: peer_address.clone(),
                         updated: std::time::Instant::now(),
                         uploaded: uploaded.clone(),
                         downloaded: downloaded.clone(),

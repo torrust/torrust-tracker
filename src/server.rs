@@ -1,6 +1,6 @@
 use log::{debug};
 use std;
-use std::net::{SocketAddr};
+use std::net::{SocketAddr, Ipv4Addr, IpAddr, Ipv6Addr};
 use std::sync::Arc;
 use std::io::{Cursor};
 use tokio::net::UdpSocket;
@@ -80,7 +80,7 @@ impl UDPTracker {
         let _ = self.send_response(remote_addr, response).await;
     }
 
-    async fn handle_announce(&self, remote_addr: SocketAddr, request: AnnounceRequest) {
+    async fn handle_announce(&self, mut remote_addr: SocketAddr, request: AnnounceRequest) {
         // todo: I have no idea yet why this is here
         if request.connection_id != get_connection_id(&remote_addr) {
             debug!("announce: Unmatching connection_id.");
@@ -89,10 +89,25 @@ impl UDPTracker {
 
         let client_addr = SocketAddr::new(remote_addr.ip(), request.port.0);
 
+        /// check if external IP is set and potentially substitute localhost IP with external IP
+        let peer_addr: SocketAddr = match self.config.get_ext_ip() {
+            Some(external_ip) => {
+                if remote_addr.ip() == IpAddr::from(Ipv4Addr::LOCALHOST) ||
+                    remote_addr.ip() == IpAddr::from(Ipv6Addr::LOCALHOST) {
+                    SocketAddr::new(IpAddr::from(external_ip), request.port.0)
+                } else {
+                    client_addr.clone()
+                }
+            }
+            None => {
+                 client_addr.clone()
+            }
+        };
+
         match self
             .tracker
             .update_torrent_and_get_stats(
-                &remote_addr,
+                &peer_addr,
                 &request.info_hash,
                 &request.peer_id,
                 &request.bytes_uploaded,
@@ -103,8 +118,8 @@ impl UDPTracker {
             .await
         {
             Ok(torrent_stats) => {
-                // get all peers excluding the client_addr
-                let peers = match self.tracker.get_torrent_peers(&request.info_hash, &client_addr).await {
+                /// get all peers excluding the client_addr
+                let peers = match self.tracker.get_torrent_peers(&request.info_hash, &peer_addr).await {
                     Some(v) => v,
                     None => {
                         debug!("announce: No peers found.");
