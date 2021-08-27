@@ -9,7 +9,7 @@ use std::io;
 pub enum UDPResponse {
     Connect(UDPConnectionResponse),
     Announce(UDPAnnounceResponse),
-    Scrape(UDPScrapeResponseEntry),
+    Scrape(UDPScrapeResponse),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -30,10 +30,17 @@ pub struct UDPAnnounceResponse {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+pub struct UDPScrapeResponse {
+    pub action: Actions,
+    pub transaction_id: TransactionId,
+    pub torrent_stats: Vec<UDPScrapeResponseEntry>,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct UDPScrapeResponseEntry {
-    pub seeders: u32,
-    pub completed: u32,
-    pub leechers: u32,
+    pub seeders: i32,
+    pub completed: i32,
+    pub leechers: i32,
 }
 
 impl From<UDPConnectionResponse> for UDPResponse {
@@ -48,8 +55,8 @@ impl From<UDPAnnounceResponse> for UDPResponse {
     }
 }
 
-impl From<UDPScrapeResponseEntry> for UDPResponse {
-    fn from(r: UDPScrapeResponseEntry) -> Self {
+impl From<UDPScrapeResponse> for UDPResponse {
+    fn from(r: UDPScrapeResponse) -> Self {
         Self::Scrape(r)
     }
 }
@@ -83,25 +90,22 @@ impl UDPResponse {
                     }
                 }
             },
+            UDPResponse::Scrape(r) => {
+                bytes.write_i32::<NetworkEndian>(2)?; // 2 = scrape
+                bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
 
-            // todo: fix scrape response
-            // UDPResponse::Scrape(r) => {
-            //     bytes.write_i32::<NetworkEndian>(2)?;
-            //     bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
-            //
-            //     for torrent_stat in r.torrent_stats {
-            //         bytes.write_i32::<NetworkEndian>(torrent_stat.seeders.0)?;
-            //         bytes.write_i32::<NetworkEndian>(torrent_stat.completed.0)?;
-            //         bytes.write_i32::<NetworkEndian>(torrent_stat.leechers.0)?;
-            //     }
-            // },
+                for torrent_stat in r.torrent_stats {
+                    bytes.write_i32::<NetworkEndian>(torrent_stat.seeders)?;
+                    bytes.write_i32::<NetworkEndian>(torrent_stat.completed)?;
+                    bytes.write_i32::<NetworkEndian>(torrent_stat.leechers)?;
+                }
+            },
             // UDPResponse::Error(r) => {
             //     bytes.write_i32::<NetworkEndian>(3)?;
             //     bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
             //
             //     bytes.write_all(r.message.as_bytes())?;
             // },
-            _ => {}
         }
 
         Ok(())

@@ -6,6 +6,9 @@ use tokio::io::AsyncBufReadExt;
 use tokio::sync::RwLock;
 use crate::common::{NumberOfBytes, InfoHash};
 use super::common::*;
+use std::net::{SocketAddr, IpAddr, Ipv4Addr, Ipv6Addr};
+use crate::AnnounceRequest;
+use std::collections::btree_map::Entry;
 
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
 
@@ -26,17 +29,39 @@ pub enum TrackerMode {
 
 #[derive(Clone, Serialize)]
 pub struct TorrentPeer {
-    ip: std::net::SocketAddr,
+    #[serde(skip)]
+    pub peer_id: PeerId,
+    #[serde(rename = "ip")]
+    pub peer_addr: SocketAddr,
     #[serde(serialize_with = "ser_instant")]
-    updated: std::time::Instant,
-    uploaded: NumberOfBytes,
-    downloaded: NumberOfBytes,
-    left: NumberOfBytes,
-    event: AnnounceEvent,
+    pub updated: std::time::Instant,
+    pub uploaded: NumberOfBytes,
+    pub downloaded: NumberOfBytes,
+    pub left: NumberOfBytes,
+    pub event: AnnounceEvent,
 }
 
 impl TorrentPeer {
-    fn is_seeder(&self) -> bool { self.left.0 == 0 && self.event != AnnounceEvent::Stopped }
+    pub fn from_announce_request(announce_request: &AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
+        // Potentially substitute localhost IP with external IP
+        let peer_addr = if remote_addr.ip().is_loopback() {
+            SocketAddr::new(peer_addr.unwrap_or(IpAddr::from(remote_addr.ip())), announce_request.port.0)
+        } else {
+            SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port.0)
+        };
+
+        TorrentPeer {
+            peer_id: announce_request.peer_id,
+            peer_addr,
+            updated: std::time::Instant::now(),
+            uploaded: announce_request.bytes_uploaded,
+            downloaded: announce_request.bytes_downloaded,
+            left: announce_request.bytes_left,
+            event: announce_request.event
+        }
+    }
+
+    fn is_seeder(&self) -> bool { self.left.0 <= 0 && self.event != AnnounceEvent::Stopped }
 
     fn is_leecher(&self) -> bool {
         self.left.0 > 0 && self.event != AnnounceEvent::Stopped
@@ -58,12 +83,9 @@ fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Resul
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TorrentEntry {
     is_flagged: bool,
-
     #[serde(skip)]
     peers: std::collections::BTreeMap<PeerId, TorrentPeer>,
-
     completed: u32,
-
     #[serde(skip)]
     seeders: u32,
 }
@@ -78,25 +100,15 @@ impl TorrentEntry {
         }
     }
 
-    pub fn update_peer(
-        &mut self,
-        peer_id: &PeerId,
-        torrent_peer: TorrentPeer
-    ) {
-        let is_seeder = torrent_peer.is_seeder().clone();
-        let is_completed = torrent_peer.is_completed().clone();
-
-        let torrent_peer_prev = self.peers.insert(
-            peer_id.clone(),
-            torrent_peer
-        );
-
-        match torrent_peer_prev {
-            None => {
-                self.update_stats(is_seeder, is_completed, false, false);
+    pub fn update_peer(&mut self, peer: &TorrentPeer) {
+        match peer.event {
+            AnnounceEvent::Stopped => {
+                let peer_old = self.peers.remove(&peer.peer_id);
+                self.update_torrent_stats_with_peer(peer, peer_old);
             }
-            Some(torrent_peer_prev) => {
-                self.update_stats(is_seeder, is_completed, torrent_peer_prev.is_seeder(), torrent_peer_prev.is_completed());
+            _ => {
+                let peer_old = self.peers.insert(peer.peer_id, peer.clone());
+                self.update_torrent_stats_with_peer(peer, peer_old);
             }
         }
     }
@@ -106,14 +118,14 @@ impl TorrentEntry {
         for (_, peer) in self
             .peers
             .iter()
-            .filter(|e| e.1.ip.is_ipv4() == remote_addr.is_ipv4())
+            .filter(|e| e.1.peer_addr.is_ipv4() == remote_addr.is_ipv4())
             .take(74)
         {
-            if peer.ip == *remote_addr {
+            if peer.peer_addr == *remote_addr {
                 continue;
             }
 
-            list.push(peer.ip);
+            list.push(peer.peer_addr);
         }
         list
     }
@@ -122,16 +134,39 @@ impl TorrentEntry {
         self.peers.iter()
     }
 
-    pub fn update_stats(&mut self, is_seeder: bool, is_completed: bool, was_seeder: bool, was_completed: bool) {
-        if is_seeder && !was_seeder {
-            self.seeders += 1;
-        } else if was_seeder && !is_seeder {
-            self.seeders -= 1;
-        }
+    pub fn update_torrent_stats_with_peer(&mut self, peer: &TorrentPeer, peer_old: Option<TorrentPeer>) {
+        match peer_old {
+            None => {
+                if peer.is_seeder() {
+                    self.seeders += 1;
+                }
 
-        // don't double count completed events for one peer
-        if is_completed && !was_completed {
-            self.completed += 1;
+                if peer.is_completed() {
+                    self.completed += 1;
+                }
+            }
+            Some(peer_old) => {
+                match peer.event {
+                    AnnounceEvent::None => {
+                        if peer.is_seeder() && !peer_old.is_seeder() {
+                            self.seeders += 1;
+                        }
+                    }
+                    AnnounceEvent::Completed => {
+                        if peer.is_seeder() && !peer_old.is_seeder() {
+                            self.seeders += 1;
+                        }
+
+                        // don't double count completed
+                        if !peer_old.is_completed() {
+                            self.completed += 1;
+                        }
+                    }
+                    AnnounceEvent::Started => {}
+                    // impossible, peer should have been removed on this event
+                    AnnounceEvent::Stopped => {}
+                }
+            }
         }
     }
 
@@ -146,13 +181,13 @@ impl TorrentEntry {
 }
 
 struct TorrentDatabase {
-    torrent_peers: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
+    torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
 }
 
 impl Default for TorrentDatabase {
     fn default() -> Self {
         TorrentDatabase {
-            torrent_peers: tokio::sync::RwLock::new(std::collections::BTreeMap::new()),
+            torrents: tokio::sync::RwLock::new(std::collections::BTreeMap::new()),
         }
     }
 }
@@ -186,7 +221,7 @@ impl TorrentTracker {
         TorrentTracker {
             mode,
             database: TorrentDatabase {
-                torrent_peers: RwLock::new(std::collections::BTreeMap::new()),
+                torrents: RwLock::new(std::collections::BTreeMap::new()),
             },
         }
     }
@@ -199,7 +234,7 @@ impl TorrentTracker {
         let reader = tokio::io::BufReader::new(reader);
 
         let res = TorrentTracker::new(mode);
-        let mut db = res.database.torrent_peers.write().await;
+        let mut db = res.database.torrents.write().await;
 
         let mut records = reader.lines();
         loop {
@@ -232,7 +267,7 @@ impl TorrentTracker {
 
     /// Adding torrents is not relevant to dynamic trackers.
     pub async fn add_torrent(&self, info_hash: &InfoHash) -> Result<(), ()> {
-        let mut write_lock = self.database.torrent_peers.write().await;
+        let mut write_lock = self.database.torrents.write().await;
         match write_lock.entry(info_hash.clone()) {
             std::collections::btree_map::Entry::Vacant(ve) => {
                 ve.insert(TorrentEntry::new());
@@ -247,7 +282,7 @@ impl TorrentTracker {
     /// If the torrent is flagged, it will not be removed unless force is set to true.
     pub async fn remove_torrent(&self, info_hash: &InfoHash, force: bool) -> Result<(), ()> {
         use std::collections::btree_map::Entry;
-        let mut entry_lock = self.database.torrent_peers.write().await;
+        let mut entry_lock = self.database.torrents.write().await;
         let torrent_entry = entry_lock.entry(info_hash.clone());
         match torrent_entry {
             Entry::Vacant(_) => {
@@ -266,7 +301,7 @@ impl TorrentTracker {
 
     /// flagged torrents will result in a tracking error. This is to allow enforcement against piracy.
     pub async fn set_torrent_flag(&self, info_hash: &InfoHash, is_flagged: bool) -> bool {
-        if let Some(entry) = self.database.torrent_peers.write().await.get_mut(info_hash) {
+        if let Some(entry) = self.database.torrents.write().await.get_mut(info_hash) {
             if is_flagged && !entry.is_flagged {
                 // empty peer list.
                 entry.peers.clear();
@@ -281,33 +316,23 @@ impl TorrentTracker {
     pub async fn get_torrent_peers(
         &self,
         info_hash: &InfoHash,
-        remote_addr: &std::net::SocketAddr
+        peer_addr: &std::net::SocketAddr
     ) -> Option<Vec<std::net::SocketAddr>> {
-        let read_lock = self.database.torrent_peers.read().await;
+        let read_lock = self.database.torrents.read().await;
         match read_lock.get(info_hash) {
             None => {
                 None
             }
             Some(entry) => {
-                Some(entry.get_peers(remote_addr))
+                Some(entry.get_peers(peer_addr))
             }
         }
     }
 
-    pub async fn update_torrent_and_get_stats(
-        &self,
-        peer_address: &std::net::SocketAddr,
-        info_hash: &InfoHash,
-        peer_id: &PeerId,
-        uploaded: &NumberOfBytes,
-        downloaded: &NumberOfBytes,
-        left: &NumberOfBytes,
-        event: &AnnounceEvent,
-    ) -> Result<TorrentStats, TorrentError> {
-        use std::collections::btree_map::Entry;
-        let mut torrent_peers = self.database.torrent_peers.write().await;
+    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &TorrentPeer) -> Result<TorrentStats, TorrentError> {
+        let mut torrents = self.database.torrents.write().await;
 
-        let torrent_entry = match torrent_peers.entry(info_hash.clone()) {
+        let torrent_entry = match torrents.entry(info_hash.clone()) {
             Entry::Vacant(vacant) => {
                 // todo: support multiple tracker modes
                 match self.mode {
@@ -330,17 +355,7 @@ impl TorrentTracker {
 
         match torrent_entry {
             Ok(torrent_entry) => {
-                torrent_entry.update_peer(
-                    peer_id,
-                    TorrentPeer {
-                        ip: peer_address.clone(),
-                        updated: std::time::Instant::now(),
-                        uploaded: uploaded.clone(),
-                        downloaded: downloaded.clone(),
-                        left: left.clone(),
-                        event: event.clone(),
-                    }
-                );
+                torrent_entry.update_peer(peer);
 
                 let (seeders, completed, leechers) = torrent_entry.get_stats();
 
@@ -355,7 +370,7 @@ impl TorrentTracker {
     }
 
     pub(crate) async fn get_database<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, BTreeMap<InfoHash, TorrentEntry>> {
-        self.database.torrent_peers.read().await
+        self.database.torrents.read().await
     }
 
     pub async fn save_database<W: tokio::io::AsyncWrite + Unpin>(&self, w: W) -> Result<(), std::io::Error> {
@@ -363,7 +378,7 @@ impl TorrentTracker {
 
         let mut writer = async_compression::tokio::write::BzEncoder::new(w);
 
-        let db_lock = self.database.torrent_peers.read().await;
+        let db_lock = self.database.torrents.read().await;
 
         let db: &BTreeMap<InfoHash, TorrentEntry> = &*db_lock;
         let mut tmp = Vec::with_capacity(4096);
@@ -386,7 +401,7 @@ impl TorrentTracker {
     }
 
     async fn cleanup(&self) {
-        let mut lock = self.database.torrent_peers.write().await;
+        let mut lock = self.database.torrents.write().await;
         let db: &mut BTreeMap<InfoHash, TorrentEntry> = &mut *lock;
         let mut torrents_to_remove = Vec::new();
 
