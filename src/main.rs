@@ -32,7 +32,7 @@ async fn main() {
         },
         None => {
             eprintln!("No TOML supplied. Loading default configuration.");
-            std::sync::Arc::new(Configuration::default())
+            std::sync::Arc::new(Configuration::default().await)
         }
     };
 

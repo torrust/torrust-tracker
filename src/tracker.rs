@@ -171,7 +171,12 @@ impl TorrentEntry {
     }
 
     pub fn get_stats(&self) -> (u32, u32, u32) {
-        let leechers = (self.peers.len() as u32) - self.seeders;
+        let leechers: u32 = if self.seeders < (self.peers.len() as u32) {
+            (self.peers.len() as u32) - self.seeders
+        } else {
+            0
+        };
+
         (self.seeders, self.completed, leechers)
     }
 
