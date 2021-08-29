@@ -4,6 +4,8 @@ use log::{error, info, trace, warn};
 
 use std::process::exit;
 use torrust_tracker::{webserver, Configuration, tracker, server};
+use torrust_tracker::database::SqliteDatabase;
+use rusqlite::Error;
 
 #[tokio::main]
 async fn main() {
@@ -37,6 +39,16 @@ async fn main() {
     };
 
     setup_logging(&cfg);
+
+    let sqlite_database = match SqliteDatabase::new().await {
+        Some(db) => {
+            match db.create_database() {
+                Ok(..) => db,
+                Err(..) => { eprintln!("udpt: failed to create database table."); }
+            }
+        }
+        None => { eprintln!("udpt: failed to open database."); }
+    };
 
     // todo: instead of local database, use SQLite database
     let torrent_tracker = match cfg.get_db_path() {
@@ -90,7 +102,7 @@ async fn main() {
     }
 
     // start udp server
-    let udp_server = server::UDPTracker::new(cfg.clone(), arc_torrent_tracker.clone())
+    let udp_server = server::UDPServer::new(cfg.clone(), arc_torrent_tracker.clone())
         .await
         .expect("failed to bind udp socket");
 

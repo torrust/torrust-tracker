@@ -6,6 +6,7 @@ pub mod common;
 pub mod response;
 pub mod request;
 pub mod utils;
+pub mod database;
 
 pub use self::config::*;
 pub use self::server::*;
