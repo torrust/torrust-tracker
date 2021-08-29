@@ -13,22 +13,37 @@ use crate::utils::get_connection_id;
 use crate::tracker::TorrentTracker;
 use crate::{tracker, TorrentPeer};
 
-pub struct UDPTracker {
+pub struct UDPServer {
     socket: UdpSocket,
     tracker: Arc<TorrentTracker>,
     config: Arc<Configuration>,
 }
 
-impl UDPTracker {
-    pub async fn new(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Result<UDPTracker, std::io::Error> {
+impl UDPServer {
+    pub async fn new(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Result<UDPServer, std::io::Error> {
         let cfg = config.clone();
         let srv = UdpSocket::bind(cfg.get_udp_config().get_address()).await?;
 
-        Ok(UDPTracker {
+        Ok(UDPServer {
             socket: srv,
             tracker,
             config: cfg,
         })
+    }
+
+    pub async fn accept_packets(self) -> Result<(), std::io::Error> {
+        let tracker = Arc::new(self);
+
+        loop {
+            let mut packet = vec![0u8; MAX_PACKET_SIZE];
+            let (size, remote_address) = tracker.socket.recv_from(packet.as_mut_slice()).await?;
+
+            let tracker = tracker.clone();
+            tokio::spawn(async move {
+                debug!("Received {} bytes from {}", size, remote_address);
+                tracker.handle_packet(remote_address, &packet[..size]).await;
+            });
+        }
     }
 
     async fn handle_packet(&self, remote_address: SocketAddr, payload: &[u8]) {
@@ -213,20 +228,5 @@ impl UDPTracker {
         //
         //     let _ = self.send_packet(remote_addr, payload.as_slice()).await;
         // }
-    }
-
-    pub async fn accept_packets(self) -> Result<(), std::io::Error> {
-        let tracker = Arc::new(self);
-
-        loop {
-            let mut packet = vec![0u8; MAX_PACKET_SIZE];
-            let (size, remote_address) = tracker.socket.recv_from(packet.as_mut_slice()).await?;
-
-            let tracker = tracker.clone();
-            tokio::spawn(async move {
-                debug!("Received {} bytes from {}", size, remote_address);
-                tracker.handle_packet(remote_address, &packet[..size]).await;
-            });
-        }
     }
 }
