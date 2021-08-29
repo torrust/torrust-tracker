@@ -119,7 +119,7 @@ impl TorrentEntry {
             .peers
             .iter()
             .filter(|e| e.1.peer_addr.is_ipv4() == remote_addr.is_ipv4())
-            .take(74)
+            .take(MAX_SCRAPE_TORRENTS as usize)
         {
             if peer.peer_addr == *remote_addr {
                 continue;
@@ -162,6 +162,7 @@ impl TorrentEntry {
                             self.completed += 1;
                         }
                     }
+                    // impossible, started should be the first time a peer announces itself
                     AnnounceEvent::Started => {}
                     // impossible, peer should have been removed on this event
                     AnnounceEvent::Stopped => {}
