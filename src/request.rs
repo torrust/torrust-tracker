@@ -208,20 +208,3 @@ impl Request {
         }
     }
 }
-
-#[derive(Serialize, Deserialize)]
-struct UDPAnnounceRequest {
-    connection_id: u64,
-    action: Actions,
-    transaction_id: u32,
-    info_hash: [u8; 20],
-    peer_id: [u8; 20],
-    downloaded: u64,
-    left: u64,
-    uploaded: u64,
-    event: AnnounceEvent,
-    ip_address: u32,
-    key: u32,
-    num_want: i32,
-    port: u16,
-}
