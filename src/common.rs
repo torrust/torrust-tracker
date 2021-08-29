@@ -50,6 +50,14 @@ pub struct AnnounceInterval(pub i32);
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, Ord)]
 pub struct InfoHash(pub [u8; 20]);
 
+impl InfoHash {
+    pub fn to_string(&self) -> String {
+        let mut buffer = [0u8; 40];
+        let bytes_out = binascii::bin2hex(&self.0, &mut buffer).ok().unwrap();
+        String::from(std::str::from_utf8(bytes_out).unwrap())
+    }
+}
+
 impl std::fmt::Display for InfoHash {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let mut chars = [0u8; 40];
