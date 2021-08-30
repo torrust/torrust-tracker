@@ -1,41 +1,52 @@
 use crate::InfoHash;
-use serde::Serialize;
-use std::str::FromStr;
-use rusqlite::{Connection, Error};
 use log::debug;
+use std::sync::Arc;
+use r2d2_sqlite::{SqliteConnectionManager, rusqlite};
+use r2d2::{Pool};
+use rusqlite::params;
 
 pub struct SqliteDatabase {
-    conn: Connection
+    pool: Arc<Pool<SqliteConnectionManager>>
 }
 
 impl SqliteDatabase {
     pub async fn new() -> Option<SqliteDatabase> {
-        match Connection::open("whitelist.db") {
-            Ok(conn) => {
-                Some(SqliteDatabase {
-                    conn
-                })
-            }
-            Err(e) => None
-        }
+
+        let sqlite_file = "whitelist.db";
+        let sqlite_connection_manager = SqliteConnectionManager::file(sqlite_file);
+        let sqlite_pool = r2d2::Pool::new(sqlite_connection_manager)
+            .expect("Failed to create r2d2 SQLite connection pool");
+        let pool_arc = Arc::new(sqlite_pool);
+
+        Some(SqliteDatabase {
+            pool: pool_arc.clone()
+        })
     }
 
     pub fn create_database(&self) -> Result<usize, rusqlite::Error> {
-        match self.conn.execute(
+        let conn = self.pool.get().unwrap();
+        match conn.execute(
             "CREATE TABLE IF NOT EXISTS whitelist (
-                    id integer PRIMARY KEY AUTO_INCREMENT,
+                    id integer PRIMARY KEY AUTOINCREMENT,
                     info_hash VARCHAR(20) NOT NULL UNIQUE
-                    )", []
+                    )", params![]
         ) {
             Ok(updated) => Ok(updated),
-            Err(e) => Err(e)
+            Err(e) => {
+                debug!("{:?}", e);
+                Err(e)
+            }
         }
     }
 
     pub async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, rusqlite::Error> {
-        match self.conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", [info_hash.to_string()]) {
+        let conn = self.pool.get().unwrap();
+        match conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", &[info_hash.to_string()]) {
             Ok(updated) => Ok(updated),
-            Err(e) => Err(e)
+            Err(e) => {
+                debug!("{:?}", e);
+                Err(e)
+            }
         }
     }
 }

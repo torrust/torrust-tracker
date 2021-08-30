@@ -1,6 +1,6 @@
 use log::{debug};
 use std;
-use std::net::{SocketAddr, Ipv4Addr, IpAddr, Ipv6Addr};
+use std::net::{SocketAddr};
 use std::sync::Arc;
 use std::io::{Cursor};
 use tokio::net::UdpSocket;
@@ -98,7 +98,7 @@ impl UDPServer {
         let _ = self.send_response(remote_addr, response).await;
     }
 
-    async fn handle_announce(&self, mut remote_addr: SocketAddr, request: AnnounceRequest) {
+    async fn handle_announce(&self, remote_addr: SocketAddr, request: AnnounceRequest) {
         let peer = TorrentPeer::from_announce_request(&request, remote_addr, self.config.get_ext_ip());
 
         match self.tracker.update_torrent_with_peer_and_get_stats(&request.info_hash, &peer).await {
@@ -147,7 +147,7 @@ impl UDPServer {
             torrent_stats: Vec::new(),
         };
 
-        let db = self.tracker.get_database().await;
+        let db = self.tracker.get_torrents().await;
 
         for info_hash in request.info_hashes.iter() {
             let scrape_entry = match db.get(&info_hash) {

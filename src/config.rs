@@ -3,7 +3,7 @@ use serde::Deserialize;
 use std;
 use std::collections::HashMap;
 use toml;
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::{IpAddr};
 
 #[derive(Deserialize)]
 pub struct UDPConfig {

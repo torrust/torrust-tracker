@@ -118,7 +118,7 @@ pub fn build_server(
                 let offset = limits.offset.unwrap_or(0);
                 let limit = min(limits.limit.unwrap_or(1000), 4000);
 
-                let db = tracker.get_database().await;
+                let db = tracker.get_torrents().await;
                 let results: Vec<_> = db
                     .iter()
                     .map(|(k, v)| {
@@ -150,7 +150,7 @@ pub fn build_server(
         })
         .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| {
             async move {
-                let db = tracker.get_database().await;
+                let db = tracker.get_torrents().await;
                 let info = match db.get(&info_hash) {
                     Some(v) => v,
                     None => return Err(warp::reject::reject()),

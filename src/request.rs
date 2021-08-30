@@ -4,7 +4,6 @@ use std::io;
 use std::io::{Cursor, Read};
 use byteorder::{NetworkEndian, ReadBytesExt};
 use std::convert::TryInto;
-use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Request {
