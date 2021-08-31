@@ -217,35 +217,19 @@ impl TorrentTracker {
     }
 
     /// Adding torrents is not relevant to dynamic trackers.
-    pub async fn add_torrent(&self, info_hash: &InfoHash) -> Result<(), ()> {
-        let mut write_lock = self.torrents.write().await;
-        match write_lock.entry(info_hash.clone()) {
-            std::collections::btree_map::Entry::Vacant(ve) => {
-                ve.insert(TorrentEntry::new());
-                return Ok(());
-            }
-            std::collections::btree_map::Entry::Occupied(_entry) => {
-                return Err(());
-            }
+    pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), ()>{
+        match self.database.add_info_hash_to_whitelist(info_hash.clone()).await {
+            Ok(v) => Ok(()),
+            Err(..) => Err(())
         }
     }
 
     /// If the torrent is flagged, it will not be removed unless force is set to true.
-    pub async fn remove_torrent(&self, info_hash: &InfoHash, force: bool) -> Result<(), ()> {
-        let mut entry_lock = self.torrents.write().await;
-        let torrent_entry = entry_lock.entry(info_hash.clone());
-        match torrent_entry {
-            Entry::Vacant(_) => {
-                // no entry, nothing to do...
-                return Err(());
-            }
-            Entry::Occupied(entry) => {
-                if force || !entry.get().is_flagged() {
-                    entry.remove();
-                    return Ok(());
-                }
-                return Err(());
-            }
+    // todo: remove torrent from whitelist
+    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), ()> {
+        match self.database.remove_info_hash_from_whitelist(info_hash.clone()).await {
+            Ok(v) => Ok(()),
+            Err(..) => Err(())
         }
     }
 
