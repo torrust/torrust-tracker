@@ -49,4 +49,15 @@ impl SqliteDatabase {
             }
         }
     }
+
+    pub async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, rusqlite::Error> {
+        let conn = self.pool.get().unwrap();
+        match conn.execute("DELETE FROM whitelist WHERE info_hash = ?", &[info_hash.to_string()]) {
+            Ok(updated) => Ok(updated),
+            Err(e) => {
+                debug!("{:?}", e);
+                Err(e)
+            }
+        }
+    }
 }
