@@ -9,6 +9,7 @@ use crate::{AnnounceRequest, Configuration};
 use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
+use log::debug;
 
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
 const FIVE_MINUTES: std::time::Duration = std::time::Duration::from_secs(300);
@@ -321,21 +322,23 @@ impl TorrentTracker {
     }
 
     pub async fn cleanup_torrents(&self) {
+        debug!("Cleaning torrents..");
         let mut lock = self.torrents.write().await;
         let db: &mut BTreeMap<InfoHash, TorrentEntry> = &mut *lock;
         let mut torrents_to_remove = Vec::new();
 
-        for (k, v) in db.iter_mut() {
+        for (k, torrent_entry) in db.iter_mut() {
             // timed-out peers..
             {
                 let mut peers_to_remove = Vec::new();
-                let torrent_peers = &mut v.peers;
+                let torrent_peers = &mut torrent_entry.peers;
 
                 for (peer_id, peer) in torrent_peers.iter() {
                     if peer.is_seeder() {
                         if peer.updated.elapsed() > FIVE_MINUTES {
                             // remove seeders after 5 minutes since last update...
                             peers_to_remove.push(*peer_id);
+                            torrent_entry.seeders -= 1;
                         }
                     } else if peer.updated.elapsed() > TWO_HOURS {
                         // remove peers after 2 hours since last update...
@@ -350,7 +353,7 @@ impl TorrentTracker {
 
             if self.cfg.get_mode().clone() == TrackerMode::DynamicMode {
                 // peer-less torrents..
-                if v.peers.len() == 0 && !v.is_flagged() {
+                if torrent_entry.peers.len() == 0 && !torrent_entry.is_flagged() {
                     torrents_to_remove.push(k.clone());
                 }
             }
