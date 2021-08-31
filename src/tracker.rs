@@ -10,21 +10,23 @@ use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
 use log::debug;
+use r2d2_sqlite::rusqlite::Error;
+use std::future::Future;
 
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
 const FIVE_MINUTES: std::time::Duration = std::time::Duration::from_secs(300);
 
 #[derive(Deserialize, Clone, PartialEq)]
 pub enum TrackerMode {
-    /// In static mode torrents are tracked only if they were added ahead of time.
-    #[serde(rename = "static")]
-    StaticMode,
+    /// Will track every new info hash and serve every peer.
+    #[serde(rename = "public")]
+    PublicMode,
 
-    /// In dynamic mode, torrents are tracked being added ahead of time.
-    #[serde(rename = "dynamic")]
-    DynamicMode,
+    /// Will only track whitelisted info hashes.
+    #[serde(rename = "listed")]
+    ListedMode,
 
-    /// Tracker will only serve authenticated peers.
+    /// Will only track whitelisted info hashes and serve authenticated peers
     #[serde(rename = "private")]
     PrivateMode,
 }
@@ -247,19 +249,6 @@ impl TorrentTracker {
         }
     }
 
-    /// flagged torrents will result in a tracking error. This is to allow enforcement against piracy.
-    pub async fn set_torrent_flag(&self, info_hash: &InfoHash, is_flagged: bool) -> bool {
-        if let Some(entry) = self.torrents.write().await.get_mut(info_hash) {
-            if is_flagged && !entry.is_flagged {
-                // empty peer list.
-                entry.peers.clear();
-            }
-            entry.is_flagged = is_flagged;
-            true
-        } else {
-            false
-        }
-    }
 
     pub async fn get_torrent_peers(
         &self,
@@ -284,7 +273,7 @@ impl TorrentTracker {
             Entry::Vacant(vacant) => {
                 // todo: support multiple tracker modes
                 match self.cfg.get_mode().clone() {
-                    TrackerMode::DynamicMode => {
+                    TrackerMode::PublicMode => {
                         Ok(vacant.insert(TorrentEntry::new()))
                     },
                     _ => {
@@ -317,7 +306,7 @@ impl TorrentTracker {
         }
     }
 
-    pub(crate) async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, BTreeMap<InfoHash, TorrentEntry>> {
+    pub async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, BTreeMap<InfoHash, TorrentEntry>> {
         self.torrents.read().await
     }
 
@@ -351,7 +340,7 @@ impl TorrentTracker {
                 }
             }
 
-            if self.cfg.get_mode().clone() == TrackerMode::DynamicMode {
+            if self.cfg.get_mode().clone() == TrackerMode::PublicMode {
                 // peer-less torrents..
                 if torrent_entry.peers.len() == 0 && !torrent_entry.is_flagged() {
                     torrents_to_remove.push(k.clone());
