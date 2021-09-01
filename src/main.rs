@@ -6,6 +6,7 @@ use std::process::exit;
 use torrust_tracker::{webserver, Configuration, udp_server, TorrentTracker};
 use torrust_tracker::database::SqliteDatabase;
 use std::sync::Arc;
+use torrust_tracker::key_manager::KeyManager;
 
 #[tokio::main]
 async fn main() {
@@ -34,7 +35,7 @@ async fn main() {
         },
         None => {
             eprintln!("No TOML supplied. Loading default configuration.");
-            std::sync::Arc::new(Configuration::default().await)
+            Arc::new(Configuration::default().await)
         }
     };
 
@@ -54,7 +55,10 @@ async fn main() {
 
     let arc_sqlite_database = Arc::new(sqlite_database);
 
-    let torrent_tracker = TorrentTracker::new(cfg.clone(), arc_sqlite_database);
+    let key_manager = KeyManager::new(cfg.get_secret().to_string());
+    let arc_key_manager = Arc::new(key_manager);
+
+    let torrent_tracker = TorrentTracker::new(cfg.clone(), arc_sqlite_database, arc_key_manager);
     let arc_torrent_tracker = Arc::new(torrent_tracker);
 
 

@@ -11,7 +11,7 @@ use crate::response::*;
 use crate::request::{Request, ConnectRequest, AnnounceRequest, ScrapeRequest};
 use crate::utils::get_connection_id;
 use crate::tracker::TorrentTracker;
-use crate::{tracker, TorrentPeer};
+use crate::{tracker, TorrentPeer, TrackerMode};
 
 pub struct UDPServer {
     socket: UdpSocket,
@@ -31,6 +31,31 @@ impl UDPServer {
         })
     }
 
+    async fn authenticate_announce_request(&self, announce_request: &AnnounceRequest) -> Result<(), ()> {
+        match self.config.get_mode() {
+            TrackerMode::PublicMode => Ok(()),
+            TrackerMode::ListedMode => {
+                if self.tracker.is_info_hash_whitelisted(&announce_request.info_hash).await {
+                    Ok(())
+                } else {
+                    Err(())
+                }
+            }
+            TrackerMode::PrivateMode => {
+                match &announce_request.auth_key {
+                    Some(auth_key) => {
+                        if self.tracker.key_manager.verify_auth_key(auth_key) {
+                            Ok(())
+                        } else {
+                            Err(())
+                        }
+                    }
+                    None => Err(())
+                }
+            }
+        }
+    }
+
     pub async fn accept_packets(self) -> Result<(), std::io::Error> {
         let tracker = Arc::new(self);
 
@@ -46,7 +71,7 @@ impl UDPServer {
         }
     }
 
-    async fn handle_packet(&self, remote_address: SocketAddr, payload: &[u8]) {
+    async fn handle_packet(&self, remote_addr: SocketAddr, payload: &[u8]) {
         let request = Request::from_bytes(&payload[..payload.len()]);
 
         match request {
@@ -55,9 +80,14 @@ impl UDPServer {
 
                 // todo: check for expired connection_id
                 match request {
-                    Request::Connect(r) => self.handle_connect(remote_address, r).await,
-                    Request::Announce(r) => self.handle_announce(remote_address, r).await,
-                    Request::Scrape(r) => self.handle_scrape(remote_address, r).await
+                    Request::Connect(r) => self.handle_connect(remote_addr, r).await,
+                    Request::Announce(r) => {
+                        match self.authenticate_announce_request(&r).await {
+                            Ok(()) => self.handle_announce(remote_addr, r).await,
+                            Err(()) => self.send_error(remote_addr, &r.transaction_id, "unauthenticated peer").await
+                        }
+                    },
+                    Request::Scrape(r) => self.handle_scrape(remote_addr, r).await
                 }
             }
             Err(err) => {

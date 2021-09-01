@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub const MAX_PACKET_SIZE: usize = 0xffff;
 pub const MAX_SCRAPE_TORRENTS: u8 = 74;
 pub const PROTOCOL_ID: i64 = 4_497_486_125_440; // protocol constant
+pub const AUTH_KEY_LENGTH: usize = 32;
 
 #[repr(u32)]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]

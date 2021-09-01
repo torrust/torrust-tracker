@@ -10,6 +10,7 @@ use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
 use log::debug;
+use crate::key_manager::KeyManager;
 
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
 const FIVE_MINUTES: std::time::Duration = std::time::Duration::from_secs(300);
@@ -196,14 +197,16 @@ pub struct TorrentTracker {
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     database: Arc<SqliteDatabase>,
     cfg: Arc<Configuration>,
+    pub key_manager: Arc<KeyManager>,
 }
 
 impl TorrentTracker {
-    pub fn new(cfg: Arc<Configuration>, database: Arc<SqliteDatabase>) -> TorrentTracker {
+    pub fn new(cfg: Arc<Configuration>, database: Arc<SqliteDatabase>, key_manager: Arc<KeyManager>) -> TorrentTracker {
         TorrentTracker {
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             database,
-            cfg
+            cfg,
+            key_manager,
         }
     }
 
@@ -221,6 +224,15 @@ impl TorrentTracker {
         match self.database.remove_info_hash_from_whitelist(info_hash.clone()).await {
             Ok(..) => Ok(()),
             Err(..) => Err(())
+        }
+    }
+
+    pub async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> bool {
+        match self.database.get_info_hash_from_whitelist(info_hash.clone()).await {
+            Ok(usize) => {
+                usize > 0
+            }
+            Err(_) => false
         }
     }
 

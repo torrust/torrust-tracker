@@ -39,6 +39,17 @@ impl SqliteDatabase {
         }
     }
 
+    pub async fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, rusqlite::Error> {
+        let conn = self.pool.get().unwrap();
+        match conn.execute("SELECT info_hash FROM whitelist WHERE info_hash = ?", &[info_hash.to_string()]) {
+            Ok(updated) => Ok(updated),
+            Err(e) => {
+                debug!("{:?}", e);
+                Err(e)
+            }
+        }
+    }
+
     pub async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, rusqlite::Error> {
         let conn = self.pool.get().unwrap();
         match conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", &[info_hash.to_string()]) {
