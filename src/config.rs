@@ -116,7 +116,7 @@ impl Configuration {
 
         Configuration {
             log_level: Option::from(String::from("trace")),
-            mode: TrackerMode::DynamicMode,
+            mode: TrackerMode::PublicMode,
             udp: UDPConfig {
                 announce_interval: 120,
                 bind_address: String::from("0.0.0.0:6968"),

@@ -10,8 +10,6 @@ use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
 use log::debug;
-use r2d2_sqlite::rusqlite::Error;
-use std::future::Future;
 
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
 const FIVE_MINUTES: std::time::Duration = std::time::Duration::from_secs(300);
@@ -78,7 +76,6 @@ fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Resul
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TorrentEntry {
-    is_flagged: bool,
     #[serde(skip)]
     peers: std::collections::BTreeMap<PeerId, TorrentPeer>,
     completed: u32,
@@ -89,7 +86,6 @@ pub struct TorrentEntry {
 impl TorrentEntry {
     pub fn new() -> TorrentEntry {
         TorrentEntry {
-            is_flagged: false,
             peers: std::collections::BTreeMap::new(),
             completed: 0,
             seeders: 0,
@@ -176,10 +172,6 @@ impl TorrentEntry {
 
         (self.seeders, self.completed, leechers)
     }
-
-    pub fn is_flagged(&self) -> bool {
-        self.is_flagged
-    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -219,7 +211,7 @@ impl TorrentTracker {
     /// Adding torrents is not relevant to dynamic trackers.
     pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), ()>{
         match self.database.add_info_hash_to_whitelist(info_hash.clone()).await {
-            Ok(v) => Ok(()),
+            Ok(..) => Ok(()),
             Err(..) => Err(())
         }
     }
@@ -228,7 +220,7 @@ impl TorrentTracker {
     // todo: remove torrent from whitelist
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), ()> {
         match self.database.remove_info_hash_from_whitelist(info_hash.clone()).await {
-            Ok(v) => Ok(()),
+            Ok(..) => Ok(()),
             Err(..) => Err(())
         }
     }
@@ -266,11 +258,7 @@ impl TorrentTracker {
                 }
             }
             Entry::Occupied(entry) => {
-                if entry.get().is_flagged() {
-                    Err(TorrentError::TorrentFlagged)
-                } else {
-                    Ok(entry.into_mut())
-                }
+                Ok(entry.into_mut())
             }
         };
 
@@ -326,7 +314,7 @@ impl TorrentTracker {
 
             if self.cfg.get_mode().clone() == TrackerMode::PublicMode {
                 // peer-less torrents..
-                if torrent_entry.peers.len() == 0 && !torrent_entry.is_flagged() {
+                if torrent_entry.peers.len() == 0 {
                     torrents_to_remove.push(k.clone());
                 }
             }

@@ -41,7 +41,17 @@ async fn main() {
     setup_logging(&cfg);
 
     let sqlite_database = SqliteDatabase::new().await.unwrap();
-    sqlite_database.create_database();
+
+    match sqlite_database.create_database() {
+        Ok(_) => {
+            eprintln!("Whitelist table exists in database.");
+        }
+        Err(_) => {
+            eprintln!("Could not create database table. Exiting..");
+            exit(-1);
+        }
+    }
+
     let arc_sqlite_database = Arc::new(sqlite_database);
 
     let torrent_tracker = TorrentTracker::new(cfg.clone(), arc_sqlite_database);
