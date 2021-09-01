@@ -125,14 +125,9 @@ impl UDPServer {
             }
             Err(e) => {
                 match e {
-                    tracker::TorrentError::TorrentFlagged => {
-                        debug!("Torrent flagged.");
-                        self.send_error(remote_addr, &request.transaction_id, "torrent flagged.").await;
-                        return;
-                    }
-                    tracker::TorrentError::TorrentNotRegistered => {
+                    tracker::TorrentError::TorrentNotWhitelisted => {
                         debug!("Torrent not registered.");
-                        self.send_error(remote_addr, &request.transaction_id, "torrent not registered.").await;
+                        self.send_error(remote_addr, &request.transaction_id, "torrent not whitelisted").await;
                         return;
                     }
                 }

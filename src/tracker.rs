@@ -189,8 +189,7 @@ pub struct TorrentStats {
 
 #[derive(Debug)]
 pub enum TorrentError {
-    TorrentFlagged,
-    TorrentNotRegistered,
+    TorrentNotWhitelisted,
 }
 
 pub struct TorrentTracker {
@@ -253,7 +252,7 @@ impl TorrentTracker {
                         Ok(vacant.insert(TorrentEntry::new()))
                     },
                     _ => {
-                        Err(TorrentError::TorrentNotRegistered)
+                        Err(TorrentError::TorrentNotWhitelisted)
                     }
                 }
             }
