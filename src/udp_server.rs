@@ -1,6 +1,6 @@
 use log::{debug};
 use std;
-use std::net::{SocketAddr, Ipv4Addr, IpAddr, Ipv6Addr};
+use std::net::{SocketAddr};
 use std::sync::Arc;
 use std::io::{Cursor};
 use tokio::net::UdpSocket;
@@ -11,7 +11,7 @@ use crate::response::*;
 use crate::request::{Request, ConnectRequest, AnnounceRequest, ScrapeRequest};
 use crate::utils::get_connection_id;
 use crate::tracker::TorrentTracker;
-use crate::{tracker, TorrentPeer};
+use crate::{TorrentPeer, TrackerMode};
 
 pub struct UDPServer {
     socket: UdpSocket,
@@ -31,6 +31,65 @@ impl UDPServer {
         })
     }
 
+    async fn authenticate_announce_request(&self, announce_request: &AnnounceRequest) -> Result<(), ()> {
+
+
+        match self.config.get_mode() {
+            TrackerMode::PublicMode => Ok(()),
+            TrackerMode::ListedMode => {
+                if !self.tracker.is_info_hash_whitelisted(&announce_request.info_hash).await {
+                    debug!("Info_hash not whitelisted.");
+                    // todo: send error message to client
+                    return Err(())
+                }
+
+                Ok(())
+            }
+            TrackerMode::PrivateMode => {
+                match &announce_request.auth_key {
+                    Some(auth_key) => {
+                        if !self.tracker.key_manager.verify_auth_key(auth_key).await {
+                            debug!("Key not valid.");
+                            // todo: send error message to client
+                            return Err(())
+                        }
+
+                        Ok(())
+                    }
+                    None => {
+                        debug!("No key supplied.");
+                        // todo: send error message to client
+                        Err(())
+                    }
+                }
+            }
+            TrackerMode::PrivateListedMode => {
+                match &announce_request.auth_key {
+                    Some(auth_key) => {
+                        if !self.tracker.key_manager.verify_auth_key(auth_key).await {
+                            debug!("Key not valid.");
+                            // todo: send error message to client
+                            return Err(())
+                        }
+
+                        if !self.tracker.is_info_hash_whitelisted(&announce_request.info_hash).await {
+                            debug!("Info_hash not whitelisted.");
+                            // todo: send error message to client
+                            return Err(())
+                        }
+
+                        Ok(())
+                    }
+                    None => {
+                        debug!("No key supplied.");
+                        // todo: send error message to client
+                        Err(())
+                    }
+                }
+            }
+        }
+    }
+
     pub async fn accept_packets(self) -> Result<(), std::io::Error> {
         let tracker = Arc::new(self);
 
@@ -46,7 +105,7 @@ impl UDPServer {
         }
     }
 
-    async fn handle_packet(&self, remote_address: SocketAddr, payload: &[u8]) {
+    async fn handle_packet(&self, remote_addr: SocketAddr, payload: &[u8]) {
         let request = Request::from_bytes(&payload[..payload.len()]);
 
         match request {
@@ -55,33 +114,18 @@ impl UDPServer {
 
                 // todo: check for expired connection_id
                 match request {
-                    Request::Connect(r) => self.handle_connect(remote_address, r).await,
-                    Request::Announce(r) => self.handle_announce(remote_address, r).await,
-                    Request::Scrape(r) => self.handle_scrape(remote_address, r).await
+                    Request::Connect(r) => self.handle_connect(remote_addr, r).await,
+                    Request::Announce(r) => {
+                        match self.authenticate_announce_request(&r).await {
+                            Ok(()) => self.handle_announce(remote_addr, r).await,
+                            Err(()) => self.send_error(remote_addr, &r.transaction_id, "unauthenticated peer").await
+                        }
+                    },
+                    Request::Scrape(r) => self.handle_scrape(remote_addr, r).await
                 }
             }
             Err(err) => {
                 debug!("request_from_bytes error: {:?}", err);
-
-                // todo: fix error messages to client
-                // if let Some(transaction_id) = err.transaction_id {
-                //     let opt_message = if err.error.is_some() {
-                //         Some("Parse error".to_string())
-                //     } else if let Some(message) = err.message {
-                //         Some(message)
-                //     } else {
-                //         None
-                //     };
-                //
-                //     if let Some(message) = opt_message {
-                //         let response = ErrorResponse {
-                //             transaction_id,
-                //             message,
-                //         };
-                //
-                //         local_responses.push((response.into(), src));
-                //     }
-                // }
             }
         }
     }
@@ -98,7 +142,7 @@ impl UDPServer {
         let _ = self.send_response(remote_addr, response).await;
     }
 
-    async fn handle_announce(&self, mut remote_addr: SocketAddr, request: AnnounceRequest) {
+    async fn handle_announce(&self, remote_addr: SocketAddr, request: AnnounceRequest) {
         let peer = TorrentPeer::from_announce_request(&request, remote_addr, self.config.get_ext_ip());
 
         match self.tracker.update_torrent_with_peer_and_get_stats(&request.info_hash, &peer).await {
@@ -124,18 +168,8 @@ impl UDPServer {
                 let _ = self.send_response(remote_addr, response).await;
             }
             Err(e) => {
-                match e {
-                    tracker::TorrentError::TorrentFlagged => {
-                        debug!("Torrent flagged.");
-                        self.send_error(remote_addr, &request.transaction_id, "torrent flagged.").await;
-                        return;
-                    }
-                    tracker::TorrentError::TorrentNotRegistered => {
-                        debug!("Torrent not registered.");
-                        self.send_error(remote_addr, &request.transaction_id, "torrent not registered.").await;
-                        return;
-                    }
-                }
+                debug!("{:?}", e);
+                self.send_error(remote_addr, &request.transaction_id, "error adding torrent").await;
             }
         }
     }
@@ -147,7 +181,7 @@ impl UDPServer {
             torrent_stats: Vec::new(),
         };
 
-        let db = self.tracker.get_database().await;
+        let db = self.tracker.get_torrents().await;
 
         for info_hash in request.info_hashes.iter() {
             let scrape_entry = match db.get(&info_hash) {
@@ -178,7 +212,7 @@ impl UDPServer {
     }
 
     async fn send_response(&self, remote_addr: SocketAddr, response: UDPResponse) -> Result<usize, ()> {
-        println!("sending response to: {:?}", &remote_addr);
+        debug!("sending response to: {:?}", &remote_addr);
 
         let buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(buffer);

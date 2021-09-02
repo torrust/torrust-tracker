@@ -23,4 +23,6 @@ async-compression = {version = "^0.3.7", features = ["bzip2", "tokio"]}
 chrono = "0.4"
 byteorder = "1"
 external-ip = "4.1.0"
-rusqlite = "0.25.3"
+r2d2_sqlite = "0.16.0"
+r2d2 = "0.8.8"
+rand = "0.8.4"

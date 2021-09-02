@@ -1,6 +1,6 @@
 use std;
 use std::io::{Write};
-use std::net::{SocketAddr, Ipv4Addr};
+use std::net::{SocketAddr};
 use byteorder::{NetworkEndian, WriteBytesExt};
 use super::common::*;
 use std::io;
@@ -100,6 +100,7 @@ impl UDPResponse {
                     bytes.write_i32::<NetworkEndian>(torrent_stat.leechers)?;
                 }
             },
+            // todo: fix error messaging
             // UDPResponse::Error(r) => {
             //     bytes.write_i32::<NetworkEndian>(3)?;
             //     bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
