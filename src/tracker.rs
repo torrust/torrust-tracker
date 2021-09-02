@@ -196,6 +196,8 @@ pub struct TorrentStats {
 #[derive(Debug)]
 pub enum TorrentError {
     TorrentNotWhitelisted,
+    PeerNotAuthenticated,
+    PeerKeyNotValid,
 }
 
 pub struct TorrentTracker {
@@ -216,7 +218,7 @@ impl TorrentTracker {
         }
     }
 
-    /// Adding torrents is not relevant to dynamic trackers.
+    /// Adding torrents is not relevant to public trackers.
     pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), ()>{
         match self.database.add_info_hash_to_whitelist(info_hash.clone()).await {
             Ok(..) => Ok(()),
@@ -224,8 +226,7 @@ impl TorrentTracker {
         }
     }
 
-    /// If the torrent is flagged, it will not be removed unless force is set to true.
-    // todo: remove torrent from whitelist
+    /// Removing torrents is not relevant to public trackers.
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), rusqlite::Error> {
         match self.database.remove_info_hash_from_whitelist(info_hash.clone()).await {
             Ok(..) => Ok(()),
@@ -262,7 +263,6 @@ impl TorrentTracker {
 
         let torrent_entry = match torrents.entry(info_hash.clone()) {
             Entry::Vacant(vacant) => {
-                // todo: support multiple tracker modes
                 Ok(vacant.insert(TorrentEntry::new()))
             }
             Entry::Occupied(entry) => {

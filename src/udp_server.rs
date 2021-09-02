@@ -11,7 +11,7 @@ use crate::response::*;
 use crate::request::{Request, ConnectRequest, AnnounceRequest, ScrapeRequest};
 use crate::utils::get_connection_id;
 use crate::tracker::TorrentTracker;
-use crate::{TorrentPeer, TrackerMode};
+use crate::{TorrentPeer, TrackerMode, TorrentError};
 
 pub struct UDPServer {
     socket: UdpSocket,
@@ -31,16 +31,12 @@ impl UDPServer {
         })
     }
 
-    async fn authenticate_announce_request(&self, announce_request: &AnnounceRequest) -> Result<(), ()> {
-
-
+    async fn authenticate_announce_request(&self, announce_request: &AnnounceRequest) -> Result<(), TorrentError> {
         match self.config.get_mode() {
             TrackerMode::PublicMode => Ok(()),
             TrackerMode::ListedMode => {
                 if !self.tracker.is_info_hash_whitelisted(&announce_request.info_hash).await {
-                    debug!("Info_hash not whitelisted.");
-                    // todo: send error message to client
-                    return Err(())
+                    return Err(TorrentError::TorrentNotWhitelisted)
                 }
 
                 Ok(())
@@ -49,17 +45,13 @@ impl UDPServer {
                 match &announce_request.auth_key {
                     Some(auth_key) => {
                         if !self.tracker.key_manager.verify_auth_key(auth_key).await {
-                            debug!("Key not valid.");
-                            // todo: send error message to client
-                            return Err(())
+                            return Err(TorrentError::PeerKeyNotValid)
                         }
 
                         Ok(())
                     }
                     None => {
-                        debug!("No key supplied.");
-                        // todo: send error message to client
-                        Err(())
+                        return Err(TorrentError::PeerNotAuthenticated)
                     }
                 }
             }
@@ -67,23 +59,17 @@ impl UDPServer {
                 match &announce_request.auth_key {
                     Some(auth_key) => {
                         if !self.tracker.key_manager.verify_auth_key(auth_key).await {
-                            debug!("Key not valid.");
-                            // todo: send error message to client
-                            return Err(())
+                            return Err(TorrentError::PeerKeyNotValid)
                         }
 
                         if !self.tracker.is_info_hash_whitelisted(&announce_request.info_hash).await {
-                            debug!("Info_hash not whitelisted.");
-                            // todo: send error message to client
-                            return Err(())
+                            return Err(TorrentError::TorrentNotWhitelisted)
                         }
 
                         Ok(())
                     }
                     None => {
-                        debug!("No key supplied.");
-                        // todo: send error message to client
-                        Err(())
+                        return Err(TorrentError::PeerNotAuthenticated)
                     }
                 }
             }
@@ -118,7 +104,22 @@ impl UDPServer {
                     Request::Announce(r) => {
                         match self.authenticate_announce_request(&r).await {
                             Ok(()) => self.handle_announce(remote_addr, r).await,
-                            Err(()) => self.send_error(remote_addr, &r.transaction_id, "unauthenticated peer").await
+                            Err(e) => {
+                                match e {
+                                    TorrentError::TorrentNotWhitelisted => {
+                                        debug!("Info_hash not whitelisted.");
+                                        self.send_error(remote_addr, &r.transaction_id, "torrent not whitelisted").await;
+                                    }
+                                    TorrentError::PeerKeyNotValid => {
+                                        debug!("Peer key not valid.");
+                                        self.send_error(remote_addr, &r.transaction_id, "peer key not valid").await;
+                                    }
+                                    TorrentError::PeerNotAuthenticated => {
+                                        debug!("Peer not authenticated.");
+                                        self.send_error(remote_addr, &r.transaction_id, "peer not authenticated").await;
+                                    }
+                                }
+                            }
                         }
                     },
                     Request::Scrape(r) => self.handle_scrape(remote_addr, r).await
@@ -217,9 +218,8 @@ impl UDPServer {
         let buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(buffer);
 
-        // todo: add proper error logging
         match response.write_to_bytes(&mut cursor) {
-            Ok(..) => {
+            Ok(_) => {
                 let position = cursor.position() as usize;
                 let inner = cursor.get_ref();
 
@@ -232,7 +232,7 @@ impl UDPServer {
                     }
                 }
             }
-            Err(..) => {
+            Err(_) => {
                 debug!("could not write response to bytes.");
                 Err(())
             }
@@ -250,17 +250,14 @@ impl UDPServer {
     }
 
     async fn send_error(&self, remote_addr: SocketAddr, transaction_id: &TransactionId, error_msg: &str) {
-        // let mut payload_buffer = vec![0u8; MAX_PACKET_SIZE];
-        // let mut payload = StackVec::from(&mut payload_buffer);
-        //
-        // if let Ok(_) = write_to_bytes(&mut payload, &UDPResponseHeader {
-        //     transaction_id: transaction_id.clone(),
-        //     action: Actions::Error,
-        // }) {
-        //     let msg_bytes = Vec::from(error_msg.as_bytes());
-        //     payload.extend(msg_bytes);
-        //
-        //     let _ = self.send_packet(remote_addr, payload.as_slice()).await;
-        // }
+        let error_response = UDPErrorResponse {
+            action: Actions::Error,
+            transaction_id: transaction_id.clone(),
+            message: error_msg.to_string(),
+        };
+
+        let response = UDPResponse::from(error_response);
+
+        let _ = self.send_response(remote_addr, response).await;
     }
 }
