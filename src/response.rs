@@ -10,6 +10,7 @@ pub enum UDPResponse {
     Connect(UDPConnectionResponse),
     Announce(UDPAnnounceResponse),
     Scrape(UDPScrapeResponse),
+    Error(UDPErrorResponse),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -43,6 +44,13 @@ pub struct UDPScrapeResponseEntry {
     pub leechers: i32,
 }
 
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct UDPErrorResponse {
+    pub action: Actions,
+    pub transaction_id: TransactionId,
+    pub message: String,
+}
+
 impl From<UDPConnectionResponse> for UDPResponse {
     fn from(r: UDPConnectionResponse) -> Self {
         Self::Connect(r)
@@ -58,6 +66,12 @@ impl From<UDPAnnounceResponse> for UDPResponse {
 impl From<UDPScrapeResponse> for UDPResponse {
     fn from(r: UDPScrapeResponse) -> Self {
         Self::Scrape(r)
+    }
+}
+
+impl From<UDPErrorResponse> for UDPResponse {
+    fn from(r: UDPErrorResponse) -> Self {
+        Self::Error(r)
     }
 }
 
@@ -100,13 +114,11 @@ impl UDPResponse {
                     bytes.write_i32::<NetworkEndian>(torrent_stat.leechers)?;
                 }
             },
-            // todo: fix error messaging
-            // UDPResponse::Error(r) => {
-            //     bytes.write_i32::<NetworkEndian>(3)?;
-            //     bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
-            //
-            //     bytes.write_all(r.message.as_bytes())?;
-            // },
+            UDPResponse::Error(r) => {
+                bytes.write_i32::<NetworkEndian>(3)?;
+                bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
+                bytes.write_all(r.message.as_bytes())?;
+            },
         }
 
         Ok(())
