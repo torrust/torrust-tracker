@@ -11,6 +11,7 @@ use crate::database::SqliteDatabase;
 use std::sync::Arc;
 use log::debug;
 use crate::key_manager::KeyManager;
+use r2d2_sqlite::rusqlite;
 
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
 const FIVE_MINUTES: std::time::Duration = std::time::Duration::from_secs(300);
@@ -25,9 +26,13 @@ pub enum TrackerMode {
     #[serde(rename = "listed")]
     ListedMode,
 
-    /// Will only track whitelisted info hashes and serve authenticated peers
+    /// Will only serve authenticated peers
     #[serde(rename = "private")]
     PrivateMode,
+
+    /// Will only track whitelisted info hashes and serve authenticated peers
+    #[serde(rename = "private_listed")]
+    PrivateListedMode,
 }
 
 #[derive(Clone, Serialize)]
@@ -197,6 +202,7 @@ pub struct TorrentTracker {
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     database: Arc<SqliteDatabase>,
     cfg: Arc<Configuration>,
+    // todo: make private
     pub key_manager: Arc<KeyManager>,
 }
 
@@ -220,18 +226,16 @@ impl TorrentTracker {
 
     /// If the torrent is flagged, it will not be removed unless force is set to true.
     // todo: remove torrent from whitelist
-    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), ()> {
+    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), rusqlite::Error> {
         match self.database.remove_info_hash_from_whitelist(info_hash.clone()).await {
             Ok(..) => Ok(()),
-            Err(..) => Err(())
+            Err(e) => Err(e)
         }
     }
 
     pub async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> bool {
-        match self.database.get_info_hash_from_whitelist(info_hash.clone()).await {
-            Ok(usize) => {
-                usize > 0
-            }
+        match self.database.get_info_hash_from_whitelist(&info_hash.to_string()).await {
+            Ok(_) => true,
             Err(_) => false
         }
     }
@@ -259,14 +263,7 @@ impl TorrentTracker {
         let torrent_entry = match torrents.entry(info_hash.clone()) {
             Entry::Vacant(vacant) => {
                 // todo: support multiple tracker modes
-                match self.cfg.get_mode().clone() {
-                    TrackerMode::PublicMode => {
-                        Ok(vacant.insert(TorrentEntry::new()))
-                    },
-                    _ => {
-                        Err(TorrentError::TorrentNotWhitelisted)
-                    }
-                }
+                Ok(vacant.insert(TorrentEntry::new()))
             }
             Entry::Occupied(entry) => {
                 Ok(entry.into_mut())

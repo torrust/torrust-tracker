@@ -99,10 +99,11 @@ pub fn build_server(
 ) -> Server<impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static> {
     let root = filters::path::end().map(|| view_root());
 
-    // GET /api/?offset=:u32&limit=:u32
+    // GET /api/torrents?offset=:u32&limit=:u32
     // View torrent list
     let t1 = tracker.clone();
     let view_torrent_list = filters::method::get()
+        .and(filters::path::path("torrents"))
         .and(filters::path::end())
         .and(filters::query::query())
         .map(move |limits| {
@@ -136,10 +137,11 @@ pub fn build_server(
             }
         });
 
-    // GET /api/:infohash
+    // GET /api/torrent/:infohash
     // View torrent info
     let t2 = tracker.clone();
     let view_torrent_info = filters::method::get()
+        .and(filters::path::path("torrent"))
         .and(filters::path::param())
         .and(filters::path::end())
         .map(move |info_hash: InfoHash| {
@@ -175,10 +177,11 @@ pub fn build_server(
             }
         });
 
-    // DELETE /api/:info_hash
+    // DELETE /api/whitelist/:info_hash
     // Delete info hash from whitelist
     let t3 = tracker.clone();
     let delete_torrent = filters::method::delete()
+        .and(filters::path::path("whitelist"))
         .and(filters::path::param())
         .and(filters::path::end())
         .map(move |info_hash: InfoHash| {
@@ -188,16 +191,17 @@ pub fn build_server(
         .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| {
             async move {
                  match tracker.remove_torrent_from_whitelist(&info_hash).await {
-                     Ok(()) => Ok(warp::reply::json(&ActionStatus::Ok)),
-                     Err(()) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to remove torrent from whitelist".into() }))
+                     Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
+                     Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to remove torrent from whitelist".into() }))
                  }
             }
         });
 
-    // POST /api/:info_hash
+    // POST /api/whitelist/:info_hash
     // Add info hash to whitelist
     let t4 = tracker.clone();
     let add_torrent = filters::method::post()
+        .and(filters::path::path("whitelist"))
         .and(filters::path::param())
         .and(filters::path::end())
         .map(move |info_hash: InfoHash| {
@@ -214,8 +218,55 @@ pub fn build_server(
             },
         );
 
+    // POST /api/key/:seconds_valid
+    // Generate new key
+    let t5 = tracker.clone();
+    let create_key = filters::method::post()
+        .and(filters::path::path("key"))
+        .and(filters::path::param())
+        .and(filters::path::end())
+        .map(move |seconds_valid: u64| {
+            let tracker = t5.clone();
+            (seconds_valid, tracker)
+        })
+        .and_then(|(seconds_valid, tracker): (u64, Arc<TorrentTracker>)| {
+            async move {
+                match tracker.key_manager.generate_auth_key(seconds_valid).await {
+                    Ok(auth_key) => Ok(warp::reply::json(&auth_key)),
+                    Err(..) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to generate key".into() }))
+                }
+            }
+        });
+
+    // DELETE /api/key/:key
+    // Delete key
+    let t6 = tracker.clone();
+    let delete_key = filters::method::delete()
+        .and(filters::path::path("key"))
+        .and(filters::path::param())
+        .and(filters::path::end())
+        .map(move |key: String| {
+            let tracker = t6.clone();
+            (key, tracker)
+        })
+        .and_then(|(key, tracker): (String, Arc<TorrentTracker>)| {
+            async move {
+                match tracker.key_manager.remove_auth_key(key).await {
+                    Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
+                    Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to delete key".into() }))
+                }
+            }
+        });
+
     let api_routes =
-        filters::path::path("api").and(view_torrent_list.or(delete_torrent).or(view_torrent_info).or(add_torrent));
+        filters::path::path("api")
+            .and(view_torrent_list
+                .or(delete_torrent)
+                .or(view_torrent_info)
+                .or(add_torrent)
+                .or(create_key)
+                .or(delete_key)
+            );
 
     let server = root.or(authenticate(tokens).and(api_routes));
     // let server = root.or(torrent_mgmt);

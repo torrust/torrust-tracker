@@ -28,37 +28,36 @@ async fn main() {
             match Configuration::load_file(cfg_path) {
                 Ok(v) => Arc::new(v),
                 Err(e) => {
-                    eprintln!("udpt: failed to open configuration: {}", e);
+                    info!("udpt: failed to open configuration: {}", e);
                     return;
                 }
             }
         },
         None => {
-            eprintln!("No TOML supplied. Loading default configuration.");
+            info!("No TOML supplied. Loading default configuration.");
             Arc::new(Configuration::default().await)
         }
     };
 
     setup_logging(&cfg);
 
-    let sqlite_database = SqliteDatabase::new().await.unwrap();
-
-    match sqlite_database.create_database() {
-        Ok(_) => {
-            eprintln!("Whitelist table exists in database.");
+    let sqlite_database = match SqliteDatabase::new().await {
+        Some(sqlite_database) => {
+            info!("Verified database tables.");
+            sqlite_database
         }
-        Err(_) => {
-            eprintln!("Could not create database table. Exiting..");
+        None => {
+            eprintln!("Exiting..");
             exit(-1);
         }
-    }
+    };
 
     let arc_sqlite_database = Arc::new(sqlite_database);
 
-    let key_manager = KeyManager::new(cfg.get_secret().to_string());
+    let key_manager = KeyManager::new(arc_sqlite_database.clone());
     let arc_key_manager = Arc::new(key_manager);
 
-    let torrent_tracker = TorrentTracker::new(cfg.clone(), arc_sqlite_database, arc_key_manager);
+    let torrent_tracker = TorrentTracker::new(cfg.clone(), arc_sqlite_database.clone(), arc_key_manager);
     let arc_torrent_tracker = Arc::new(torrent_tracker);
 
 

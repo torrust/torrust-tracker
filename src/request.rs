@@ -4,7 +4,6 @@ use std::io;
 use std::io::{Cursor, Read};
 use byteorder::{NetworkEndian, ReadBytesExt};
 use std::convert::TryInto;
-use log::debug;
 use crate::key_manager::AuthKey;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -164,9 +163,10 @@ impl Request {
                     .read_u16::<NetworkEndian>()
                     .map_err(|err| RequestParseError::new(err, transaction_id))?;
 
-                // add auth key if available
+                // BEP 41: add auth key if available
                 let auth_key: Option<AuthKey> = if bytes.len() > 98 + AUTH_KEY_LENGTH {
                     let mut key_buffer = [0; AUTH_KEY_LENGTH];
+                    // key should be the last bytes
                     cursor.set_position((bytes.len() - AUTH_KEY_LENGTH) as u64);
                     if cursor.read_exact(&mut key_buffer).is_ok() {
                         AuthKey::from_buffer(key_buffer)
@@ -176,8 +176,6 @@ impl Request {
                 } else {
                     None
                 };
-
-                debug!("{:?}", auth_key);
 
                 let opt_ip = if ip == [0; 4] {
                     None

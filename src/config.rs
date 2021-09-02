@@ -46,7 +46,6 @@ pub struct Configuration {
     db_path: Option<String>,
     cleanup_interval: Option<u64>,
     external_ip: Option<IpAddr>,
-    secret: String,
 }
 
 #[derive(Debug)]
@@ -81,8 +80,6 @@ impl Configuration {
             }
         }
     }
-
-    pub fn get_secret(&self) -> &str { &self.secret }
 
     pub fn get_mode(&self) -> &TrackerMode {
         &self.mode
@@ -131,7 +128,6 @@ impl Configuration {
             db_path: None,
             cleanup_interval: None,
             external_ip,
-            secret: String::from("MySecretSecret"),
         }
     }
 }
