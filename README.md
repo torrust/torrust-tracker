@@ -4,7 +4,7 @@
 
 __Torrust Tracker__ is a feature rich UDP based torrent tracker built with Rust.
 
-[documentation]() | [torrust.com]()
+[documentation](https://torrust.github.io/torrust-tracker/) | [torrust.com]()
 
 ## Features
 * [X] UDP torrent tracking server
