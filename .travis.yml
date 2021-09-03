@@ -21,7 +21,7 @@ deploy:
   strategy: git
   edge: true
   cleanup: false
-  github-token: $GITHUB_TOKEN
+  github-token: $TRAVIS_KEY
   local-dir: docs/book # In case of custom book path: path/to/mybook/book
   keep-history: false
   on:
