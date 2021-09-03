@@ -30,7 +30,7 @@ bind_address = "0.0.0.0:6969"
 announce_interval = 120 # Two minutes
 
 [http]
-bind_address = "127.0.0.1:80"
+bind_address = "127.0.0.1:1212"
 
 [http.access_tokens]
 someone = "MyAccessToken"

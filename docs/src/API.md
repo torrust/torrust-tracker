@@ -1,11 +1,12 @@
 # Torrust Tracker REST API
 
 ## Endpoints in API (v1)
-__**Notice:**__
+__Notice:__
 This API should not be exposed directly to the internet, it is intended for internal use only. 
 
 All endpoints require an authorization token which must be set in the configuration before running the tracker. 
 The default configuration uses `?token=MyAccessToken`.
+
 ---
 ### `GET /api/torrents`
 Get a list of all currently tracked torrents.

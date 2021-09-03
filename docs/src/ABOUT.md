@@ -16,17 +16,6 @@ __Torrust Tracker__ is a feature rich UDP based torrent tracker built with Rust.
 * [BEP 15](http://www.bittorrent.org/beps/bep_0015.html): UDP Tracker Protocol for BitTorrent
 * [BEP 41](http://bittorrent.org/beps/bep_0041.html): UDP Tracker Protocol Extensions
 
-
-## Getting started
-The easiest way is to get built binaries from [Releases](https://github.com/torrust/torrust-tracker/releases),
-but building from sources is also possible:
-
-```bash
-git clone https://github.com/torrust/torrust-tracker.git
-cd torrust-tracker
-cargo build --release
-```
-
 ## Contributing
 Please report any bugs you find to our issue tracker. Ideas and feature requests are welcome as well!
 Any pull request targeting existing issues would be very much appreciated.

@@ -1,4 +1,13 @@
-# Usage
+# Getting started
+The easiest way is to get built binaries from [Releases](https://github.com/torrust/torrust-tracker/releases),
+but building from sources is also possible:
+
+```bash
+git clone https://github.com/torrust/torrust-tracker.git
+cd torrust-tracker
+cargo build --release
+```
+
 __Notice:__ Skip the first step if you've downloaded the binaries directly. 
 
 1. After building __Torrust Tracker__, navigate to the folder.
@@ -28,5 +37,5 @@ someone = "MyAccessToken"
 ```
 
 4. Add your tracker announce url as follows:
-`udp://localhost:6969` or `udp://{external_url}:6969`.
+`udp://localhost:6969` or `udp://{external_ip}:6969`.
 Make sure to port forward the udp port.
