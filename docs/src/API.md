@@ -99,7 +99,7 @@ Generate a new temporary key which can be used like: ```udp://torrust-tracker.co
 
 Delete a key and immediately revoke its use.
 
-`Example: delete /api/key/2cjvmxYTzG1ESiJBSAn5dxNornXB5CeD?token=MyAccessToken`
+`Example: DELETE /api/key/2cjvmxYTzG1ESiJBSAn5dxNornXB5CeD?token=MyAccessToken`
 ```json 
 {
     "status": "ok"
