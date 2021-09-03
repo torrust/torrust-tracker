@@ -40,7 +40,7 @@ impl KeyManager {
             .map(char::from)
             .collect();
 
-        println!("Generated key: {}, valid for: {} seconds", key, seconds_valid);
+        debug!("Generated key: {}, valid for: {} seconds", key, seconds_valid);
 
         let auth_key = AuthKey {
             key: key.clone(),
