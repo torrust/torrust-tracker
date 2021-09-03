@@ -82,13 +82,16 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
         .and(filters::query::query::<AuthToken>())
         .and_then(|tokens: Arc<HashSet<String>>, token: AuthToken| {
             async move {
-                if let Some(token) = token.token {
-                    if tokens.contains(&token) {
-                        return Ok(());
-                    }
-                }
+                match token.token {
+                    Some(token) => {
+                        if !tokens.contains(&token) {
+                            return Err(warp::reject::custom(ActionStatus::Err { reason: "token not valid".into() }))
+                        }
 
-                Err(warp::reject::custom(ActionStatus::Err { reason: "unauthorized".into() }))
+                        Ok(())
+                    }
+                    None => Err(warp::reject::custom(ActionStatus::Err { reason: "unauthorized".into() }))
+                }
             }
         })
         .untuple_one()
