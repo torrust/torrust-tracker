@@ -1,6 +1,6 @@
 use clap;
 use fern;
-use log::{info, trace};
+use log::{info};
 
 use std::process::exit;
 use torrust_tracker::{webserver, Configuration, udp_server, TorrentTracker};
@@ -105,7 +105,7 @@ async fn main() {
             .await
             .expect("failed to bind udp socket");
 
-        trace!("Waiting for UDP packets");
+        info!("Waiting for UDP packets");
         let _udp_server = tokio::spawn(async move {
             if let Err(err) = udp_server.accept_packets().await {
                 eprintln!("error: {}", err);
