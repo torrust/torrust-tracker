@@ -50,10 +50,10 @@ pub struct TorrentPeer {
 }
 
 impl TorrentPeer {
-    pub fn from_announce_request(announce_request: &AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
+    pub fn from_announce_request(announce_request: &AnnounceRequest, remote_addr: SocketAddr, peer_addr: IpAddr) -> Self {
         // Potentially substitute localhost IP with external IP
         let peer_addr = if remote_addr.ip().is_loopback() {
-            SocketAddr::new(peer_addr.unwrap_or(IpAddr::from(remote_addr.ip())), announce_request.port.0)
+            SocketAddr::new(IpAddr::from(peer_addr), announce_request.port.0)
         } else {
             SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port.0)
         };

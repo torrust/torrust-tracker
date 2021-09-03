@@ -1338,7 +1338,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker"
-version = "0.9.1"
+version = "1.0.0"
 dependencies = [
  "binascii",
  "byteorder",

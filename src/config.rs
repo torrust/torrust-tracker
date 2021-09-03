@@ -45,7 +45,7 @@ pub struct Configuration {
     log_level: Option<String>,
     db_path: Option<String>,
     cleanup_interval: Option<u64>,
-    external_ip: Option<IpAddr>,
+    external_ip: IpAddr,
 }
 
 #[derive(Debug)]
@@ -74,7 +74,10 @@ impl Configuration {
             Err(e) => Err(ConfigError::IOError(e)),
             Ok(data) => {
                 match Self::load(data.as_slice()) {
-                    Ok(cfg) => Ok(cfg),
+                    Ok(cfg) => {
+                        eprintln!("Manually set external IP to: {}", cfg.get_ext_ip());
+                        Ok(cfg)
+                    },
                     Err(e) => Err(ConfigError::ParseError(e)),
                 }
             }
@@ -105,14 +108,14 @@ impl Configuration {
         self.cleanup_interval
     }
 
-    pub fn get_ext_ip(&self) -> Option<IpAddr> { self.external_ip }
+    pub fn get_ext_ip(&self) -> IpAddr { self.external_ip }
 }
 
 impl Configuration {
     pub async fn default() -> Self {
-        let external_ip = external_ip::get_ip().await;
+        let external_ip = external_ip::get_ip().await.unwrap();
 
-        if external_ip.is_some() { eprintln!("external ip: {:?}", external_ip.unwrap()); }
+        eprintln!("external ip: {:?}", external_ip);
 
         Configuration {
             log_level: Option::from(String::from("info")),
