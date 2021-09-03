@@ -4,7 +4,8 @@ Torrust Tracker's configuration is a simple TOML file. If no TOML file is found,
 ## Configuration
 
 ### Root Level
-- `REQUIRED` `mode`: Possbile Values: `public`, `listed`, `private` or `private_listed`.
+- `REQUIRED` `mode`: Possible Values: `public`, `listed`, `private` or `private_listed`.
+- `REQUIRED` `external_ip`: Set this to your external IP, like `"99.123.43.128"`,
 - `OPTIONAL` `log_level`: Possible Values: `off`, `error`, `warning`, `info`, `debug`, `trace`.
 - `OPTIONAL` `cleanup_interval`: Interval to clean inactive peers `in seconds`.
 
@@ -22,6 +23,7 @@ If this section is empty, the REST API will not be very useful.
 ## Sample Configuration
 ```toml
 mode = "public"
+external_ip = "0.0.0.0" # set this to your external IP
 
 [udp]
 bind_address = "0.0.0.0:6969"

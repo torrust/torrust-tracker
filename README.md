@@ -37,9 +37,10 @@ __Notice:__ Skip the first step if you've downloaded the binaries directly.
 cd torrust-tracker/target
 ```
 
-2. Create a file called `configuration.toml`:
+2. Create a file called `configuration.toml` with the following contents and change the [configuration](https://torrust.github.io/torrust-tracker/CONFIG.html) according to your liking:
 ```toml
 mode = "public"
+external_ip = "0.0.0.0" # set this to your external IP
 
 [udp]
 bind_address = "0.0.0.0:6969"
