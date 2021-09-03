@@ -3,3 +3,4 @@
 **/*.rs.bk
 /database.json.bz2
 /database.db
+/.idea/

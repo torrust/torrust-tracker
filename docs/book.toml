@@ -1,14 +1,13 @@
 [book]
-authors = ["Naim A."]
-title = "UDPT v3"
-description = "UDPT v3 User Guide"
+authors = ["Naim A.", "Mick van Dijke"]
+title = "Torrust Tracker v1"
+description = "Torrust Tracker v1 Documentation"
 
 [build]
 create-missing = false
 
 [output.html]
-google-analytics = "UA-11289087-19"
-git-repository-url = "https://github.com/naim94a/udpt"
+git-repository-url = "https://github.com/torrust/torrust-tracker"
 default-theme = "coal"
 
 [output.html.search]

@@ -1,9 +1,8 @@
 # Summary
 
-[UDPT](README.md)
-
-* [Building](./build.md)
-* [Configuration](./config.md)
-    - [Tracking Modes](tracking_modes.md)
-* [Usage](./usage.md)
-* [REST API](./api.md)
+* [About](ABOUT.md)
+* [Building](BUILD.md)
+* [Configuration](CONFIG.md)
+    - [Tracking Modes](TRACKING_MODES.md)
+* [Usage](USAGE.md)
+* [REST API](API.md)
