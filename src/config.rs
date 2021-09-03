@@ -115,14 +115,14 @@ impl Configuration {
         if external_ip.is_some() { eprintln!("external ip: {:?}", external_ip.unwrap()); }
 
         Configuration {
-            log_level: Option::from(String::from("trace")),
+            log_level: Option::from(String::from("info")),
             mode: TrackerMode::PrivateMode,
             udp: UDPConfig {
                 announce_interval: 120,
-                bind_address: String::from("0.0.0.0:6968"),
+                bind_address: String::from("0.0.0.0:6969"),
             },
             http: Option::from(HTTPConfig {
-                bind_address: String::from("127.0.0.1:6969"),
+                bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("someone"), String::from("MyAccessToken"))].iter().cloned().collect(),
             }),
             db_path: None,
