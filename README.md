@@ -58,6 +58,10 @@ someone = "MyAccessToken"
 ./torrust-tracker -c configuration.toml
 ```
 
+4. Add your tracker announce url as follows:
+`udp://localhost:6969` or `udp://{external_url}:6969`.
+Make sure to port forward the udp port.
+
 ## Contributing
 Please report any bugs you find to our issue tracker. Ideas and feature requests are welcome as well!
 Any pull request targeting existing issues would be very much appreciated.
