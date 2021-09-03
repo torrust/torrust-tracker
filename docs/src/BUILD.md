@@ -5,7 +5,7 @@
 - [Rust](https://www.rust-lang.org/) - Compiler toolchain & Package Manager (cargo)
 
 ### Getting the sources
-```
+```bash
 git clone https://github.com/torrust/torrust-tracker.git
 ```
 

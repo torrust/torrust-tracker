@@ -1,4 +1,7 @@
 # Torrust Tracker
+
+[![Build Status](https://app.travis-ci.com/torrust/torrust-tracker.svg?branch=master)](https://app.travis-ci.com/torrust/torrust-tracker)
+
 __Torrust Tracker__ is a feature rich UDP based torrent tracker built with Rust.
 
 ## Features
