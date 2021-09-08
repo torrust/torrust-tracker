@@ -1,8 +1,10 @@
 # Torrust Tracker
 
+[![Torrust - torrust-website-backend](https://img.shields.io/static/v1?label=Torrust&message=torrust-tracker&color=blue&logo=github)](https://github.com/torrust/torrust-website-backend)
+
 __Torrust Tracker__ is a feature rich UDP based torrent tracker built with Rust.
 
-[documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/about/) | [torrust.com]()
+[Documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/about/)
 
 ## Features
 * [X] UDP torrent tracking server
@@ -13,9 +15,8 @@ __Torrust Tracker__ is a feature rich UDP based torrent tracker built with Rust.
 * [X] Peer authentication using time-bound keys
 
 ## BEPs
-* [X] [BEP 15](http://www.bittorrent.org/beps/bep_0015.html): UDP Tracker Protocol for BitTorrent
-* [X] [BEP 41](http://bittorrent.org/beps/bep_0041.html): UDP Tracker Protocol Extensions
-
+* [BEP 15](http://www.bittorrent.org/beps/bep_0015.html): UDP Tracker Protocol for BitTorrent
+* [BEP 41](http://bittorrent.org/beps/bep_0041.html): UDP Tracker Protocol Extensions
 
 ## Getting started
 The easiest way is to get built binaries from [Releases](https://github.com/torrust/torrust-tracker/releases),
