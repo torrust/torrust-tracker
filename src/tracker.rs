@@ -160,10 +160,13 @@ impl TorrentEntry {
                             self.completed += 1;
                         }
                     }
+                    AnnounceEvent::Stopped => {
+                        if peer_old.is_seeder() {
+                            self.seeders -= 1;
+                        }
+                    }
                     // impossible, started should be the first time a peer announces itself
                     AnnounceEvent::Started => {}
-                    // impossible, peer should have been removed on this event
-                    AnnounceEvent::Stopped => {}
                 }
             }
         }
