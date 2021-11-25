@@ -1,11 +1,14 @@
+use std::net::{SocketAddrV4};
 use clap;
 use fern;
-use log::{info};
+use log::{info, warn};
 
 use std::process::exit;
-use torrust_tracker::{webserver, Configuration, udp_server, TorrentTracker};
+use torrust_tracker::{webserver, Configuration, TorrentTracker, UDPServer};
 use torrust_tracker::database::SqliteDatabase;
 use std::sync::Arc;
+use tokio::task::JoinHandle;
+use torrust_tracker::http_server::HttpServer;
 use torrust_tracker::key_manager::KeyManager;
 
 #[tokio::main]
@@ -81,46 +84,67 @@ async fn main() {
         });
     }
 
-    // start http server
-    {
-        if cfg.get_http_config().is_some() {
-            let https_tracker = arc_torrent_tracker.clone();
-            let http_cfg = cfg.clone();
+    // start HTTP API server
+    let _api_server = start_api_server(cfg.clone(),arc_torrent_tracker.clone());
 
-            info!("Starting HTTP server");
-            tokio::spawn(async move {
-                let http_cfg = http_cfg.get_http_config().unwrap();
-                let bind_addr = http_cfg.get_address();
-                let tokens = http_cfg.get_access_tokens();
+    // start HTTP Tracker server
+    let _http_server = start_http_tracker_server(cfg.clone(),arc_torrent_tracker.clone());
 
-                let server = webserver::build_server(https_tracker, tokens.clone());
-                server.bind(bind_addr.parse::<std::net::SocketAddr>().unwrap()).await;
-            });
-        }
-    }
-
-    // start udp server
-    {
-        let udp_server = udp_server::UDPServer::new(cfg.clone(), arc_torrent_tracker.clone())
-            .await
-            .expect("failed to bind udp socket");
-
-        info!("Waiting for UDP packets");
-        let _udp_server = tokio::spawn(async move {
-            if let Err(err) = udp_server.accept_packets().await {
-                eprintln!("error: {}", err);
-            }
-        });
-    }
+    // start UDP Tracker server
+    let udp_server = start_udp_tracker_server(cfg.clone(),arc_torrent_tracker.clone()).await.unwrap();
 
     let ctrl_c = tokio::signal::ctrl_c();
 
     tokio::select! {
-        //_ = udp_server => { warn!("udp server exited.") },
-        _ = ctrl_c => { info!("CTRL-C, exiting...") },
+        _ = udp_server => { warn!("UDP Tracker server exited.") },
+        _ = ctrl_c => { info!("T3 shutting down..") }
+    }
+}
+
+fn start_api_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+    if config.get_http_config().is_some() {
+        info!("Starting API server..");
+        return Some(tokio::spawn(async move {
+            let http_cfg = config.get_http_config().unwrap();
+            let bind_addr = http_cfg.get_address();
+            let tokens = http_cfg.get_access_tokens();
+
+            let server = webserver::build_server(tracker, tokens.clone());
+            server.bind(bind_addr.parse::<std::net::SocketAddr>().unwrap()).await;
+        }))
     }
 
-    info!("goodbye.");
+    None
+}
+
+fn start_http_tracker_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+    if config.get_http_config().is_some() {
+        let http_tracker = Arc::new(HttpServer::new(config, tracker));
+
+        info!("Starting HTTP tracker server..");
+        return Some(tokio::spawn(async move {
+            warp::serve(HttpServer::routes(http_tracker))
+                .tls()
+                .cert_path("ssl/cert.pem")
+                .key_path("ssl/key.rsa")
+                .run(SocketAddrV4::new("0.0.0.0".parse().unwrap(), 7878)).await;
+        }))
+    }
+
+    None
+}
+
+async fn start_udp_tracker_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+    let udp_server = UDPServer::new(config, tracker)
+        .await
+        .expect("failed to bind udp socket");
+
+    info!("Starting UDP tracker server..");
+    Some(tokio::spawn(async move {
+        if let Err(err) = udp_server.accept_packets().await {
+            eprintln!("error: {}", err);
+        }
+    }))
 }
 
 fn setup_logging(cfg: &Configuration) {

@@ -4,6 +4,7 @@ use std::net::{SocketAddr};
 use byteorder::{NetworkEndian, WriteBytesExt};
 use super::common::*;
 use std::io;
+use crate::TorrentPeer;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum UDPResponse {
@@ -27,7 +28,7 @@ pub struct UDPAnnounceResponse {
     pub interval: u32,
     pub leechers: u32,
     pub seeders: u32,
-    pub peers: ResponsePeerList,
+    pub peers: Vec<TorrentPeer>,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -90,16 +91,15 @@ impl UDPResponse {
                 bytes.write_u32::<NetworkEndian>(r.leechers)?;
                 bytes.write_u32::<NetworkEndian>(r.seeders)?;
 
-                // Silently ignore peers with wrong IP version
-                for peer in r.peers.0 {
-                    match peer {
+                for peer in r.peers {
+                    match peer.peer_addr {
                         SocketAddr::V4(socket_addr) => {
                             bytes.write_all(&socket_addr.ip().octets())?;
-                            bytes.write_u16::<NetworkEndian>(peer.port())?;
+                            bytes.write_u16::<NetworkEndian>(socket_addr.port())?;
                         }
                         SocketAddr::V6(socket_addr) => {
                             bytes.write_all(&socket_addr.ip().octets())?;
-                            bytes.write_u16::<NetworkEndian>(peer.port())?;
+                            bytes.write_u16::<NetworkEndian>(socket_addr.port())?;
                         }
                     }
                 }

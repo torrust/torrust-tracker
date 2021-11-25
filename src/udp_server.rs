@@ -31,7 +31,7 @@ impl UDPServer {
         })
     }
 
-    async fn authenticate_announce_request(&self, announce_request: &AnnounceRequest) -> Result<(), TorrentError> {
+    pub async fn authenticate_announce_request(&self, announce_request: &AnnounceRequest) -> Result<(), TorrentError> {
         match self.config.get_mode() {
             TrackerMode::PublicMode => Ok(()),
             TrackerMode::ListedMode => {
@@ -102,7 +102,7 @@ impl UDPServer {
                 match request {
                     Request::Connect(r) => self.handle_connect(remote_addr, r).await,
                     Request::Announce(r) => {
-                        match self.authenticate_announce_request(&r).await {
+                        match self.tracker.authenticate_announce_request(&r.info_hash, &r.auth_key).await {
                             Ok(()) => self.handle_announce(remote_addr, r).await,
                             Err(e) => {
                                 match e {
@@ -144,7 +144,7 @@ impl UDPServer {
     }
 
     async fn handle_announce(&self, remote_addr: SocketAddr, request: AnnounceRequest) {
-        let peer = TorrentPeer::from_announce_request(&request, remote_addr, self.config.get_ext_ip());
+        let peer = TorrentPeer::from_udp_announce_request(&request, remote_addr, self.config.get_ext_ip());
 
         match self.tracker.update_torrent_with_peer_and_get_stats(&request.info_hash, &peer).await {
             Ok(torrent_stats) => {
@@ -163,7 +163,7 @@ impl UDPServer {
                     interval: self.config.get_udp_config().get_announce_interval(),
                     leechers: torrent_stats.leechers,
                     seeders: torrent_stats.seeders,
-                    peers: ResponsePeerList(peers),
+                    peers,
                 });
 
                 let _ = self.send_response(remote_addr, response).await;

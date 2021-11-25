@@ -20,6 +20,15 @@ impl AuthKey {
             valid_until: None,
         })
     }
+
+    pub fn from_string(key: &str) -> Option<AuthKey> {
+        if key.len() != AUTH_KEY_LENGTH { return None }
+
+        Some(AuthKey {
+            key: key.to_string(),
+            valid_until: None,
+        })
+    }
 }
 
 pub struct KeyManager {

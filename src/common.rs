@@ -1,4 +1,3 @@
-use std::net::{SocketAddr};
 use serde::{Deserialize, Serialize};
 
 pub const MAX_PACKET_SIZE: usize = 0xffff;
@@ -172,9 +171,6 @@ pub struct PeerId(pub [u8; 20]);
 #[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct PeerKey(pub u32);
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Debug)]
-pub struct ResponsePeerList(pub Vec<SocketAddr>);
-
 impl PeerId {
     pub fn get_client_name(&self) -> Option<&'static str> {
         if self.0[0] == b'M' {
@@ -273,5 +269,14 @@ impl Serialize for PeerId {
             client: self.get_client_name(),
         };
         obj.serialize(serializer)
+    }
+}
+
+impl std::convert::From<&[u8]> for PeerId {
+    fn from(data: &[u8]) -> PeerId {
+        assert_eq!(data.len(), 20);
+        let mut ret = PeerId { 0: [0u8; 20] };
+        ret.0.clone_from_slice(data);
+        return ret;
     }
 }

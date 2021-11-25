@@ -272,7 +272,6 @@ pub fn build_server(
             );
 
     let server = root.or(authenticate(tokens).and(api_routes));
-    // let server = root.or(torrent_mgmt);
 
     serve(server)
 }
