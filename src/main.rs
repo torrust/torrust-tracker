@@ -9,7 +9,6 @@ use torrust_tracker::database::SqliteDatabase;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use torrust_tracker::http_server::HttpServer;
-use torrust_tracker::key_manager::KeyManager;
 
 #[tokio::main]
 async fn main() {
@@ -26,7 +25,7 @@ async fn main() {
 
     let matches = parser.get_matches();
 
-    let cfg = match matches.value_of("config") {
+    let config = match matches.value_of("config") {
         Some(cfg_path) => {
             match Configuration::load_file(cfg_path) {
                 Ok(v) => Arc::new(v),
@@ -42,12 +41,12 @@ async fn main() {
         }
     };
 
-    setup_logging(&cfg);
+    setup_logging(&config);
 
     let sqlite_database = match SqliteDatabase::new().await {
         Some(sqlite_database) => {
             info!("Verified database tables.");
-            sqlite_database
+            Arc::new(sqlite_database)
         }
         None => {
             eprintln!("Exiting..");
@@ -55,43 +54,20 @@ async fn main() {
         }
     };
 
-    let arc_sqlite_database = Arc::new(sqlite_database);
+    // the singleton torrent tracker that gets passed to the HTTP and UDP server
+    let tracker = Arc::new(TorrentTracker::new(config.clone(), sqlite_database.clone()));
 
-    let key_manager = KeyManager::new(arc_sqlite_database.clone());
-    let arc_key_manager = Arc::new(key_manager);
-
-    let torrent_tracker = TorrentTracker::new(cfg.clone(), arc_sqlite_database.clone(), arc_key_manager);
-    let arc_torrent_tracker = Arc::new(torrent_tracker);
-
-
-    // periodically call tracker.cleanup_torrents()
-    {
-        let weak_tracker = std::sync::Arc::downgrade(&arc_torrent_tracker);
-        let interval = cfg.get_cleanup_interval().unwrap_or(600);
-
-        tokio::spawn(async move {
-            let interval = std::time::Duration::from_secs(interval);
-            let mut interval = tokio::time::interval(interval);
-            interval.tick().await; // first tick is immediate...
-            loop {
-                interval.tick().await;
-                if let Some(tracker) = weak_tracker.upgrade() {
-                    tracker.cleanup_torrents().await;
-                } else {
-                    break;
-                }
-            }
-        });
-    }
+    // start torrent cleanup job (periodically removes old peers)
+    let _torrent_cleanup_job = start_torrent_cleanup_job(config.clone(), tracker.clone()).unwrap();
 
     // start HTTP API server
-    let _api_server = start_api_server(cfg.clone(),arc_torrent_tracker.clone());
+    let _api_server = start_api_server(config.clone(), tracker.clone());
 
     // start HTTP Tracker server
-    let _http_server = start_http_tracker_server(cfg.clone(),arc_torrent_tracker.clone());
+    let _http_server = start_http_tracker_server(config.clone(), tracker.clone());
 
     // start UDP Tracker server
-    let udp_server = start_udp_tracker_server(cfg.clone(),arc_torrent_tracker.clone()).await.unwrap();
+    let udp_server = start_udp_tracker_server(config.clone(), tracker.clone()).await.unwrap();
 
     let ctrl_c = tokio::signal::ctrl_c();
 
@@ -99,6 +75,26 @@ async fn main() {
         _ = udp_server => { warn!("UDP Tracker server exited.") },
         _ = ctrl_c => { info!("T3 shutting down..") }
     }
+}
+
+fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+    let weak_tracker = std::sync::Arc::downgrade(&tracker);
+    let interval = config.get_cleanup_interval().unwrap_or(600);
+
+    return Some(tokio::spawn(async move {
+        let interval = std::time::Duration::from_secs(interval);
+        let mut interval = tokio::time::interval(interval);
+        interval.tick().await; // first tick is immediate...
+        // periodically call tracker.cleanup_torrents()
+        loop {
+            interval.tick().await;
+            if let Some(tracker) = weak_tracker.upgrade() {
+                tracker.cleanup_torrents().await;
+            } else {
+                break;
+            }
+        }
+    }))
 }
 
 fn start_api_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {

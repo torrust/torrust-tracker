@@ -246,7 +246,9 @@ pub struct TorrentTracker {
 }
 
 impl TorrentTracker {
-    pub fn new(config: Arc<Configuration>, database: Arc<SqliteDatabase>, key_manager: Arc<KeyManager>) -> TorrentTracker {
+    pub fn new(config: Arc<Configuration>, database: Arc<SqliteDatabase>) -> TorrentTracker {
+        let key_manager = Arc::new(KeyManager::new(database.clone()));
+
         TorrentTracker {
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             database,
