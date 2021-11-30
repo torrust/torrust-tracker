@@ -25,6 +25,9 @@ impl UDPConfig {
 pub struct HTTPConfig {
     bind_address: String,
     access_tokens: HashMap<String, String>,
+    ssl_enabled: bool,
+    pub ssl_cert_path: Option<String>,
+    pub ssl_key_path: Option<String>
 }
 
 impl HTTPConfig {
@@ -34,6 +37,10 @@ impl HTTPConfig {
 
     pub fn get_access_tokens(&self) -> &HashMap<String, String> {
         &self.access_tokens
+    }
+
+    pub fn is_ssl_enabled(&self) -> bool {
+        self.ssl_enabled && self.ssl_cert_path.is_some() && self.ssl_key_path.is_some()
     }
 }
 
@@ -118,7 +125,7 @@ impl Configuration {
         eprintln!("external ip: {:?}", external_ip);
 
         Configuration {
-            log_level: Option::from(String::from("info")),
+            log_level: Option::from(String::from("trace")),
             mode: TrackerMode::PrivateMode,
             udp: UDPConfig {
                 announce_interval: 120,
@@ -127,6 +134,9 @@ impl Configuration {
             http: Option::from(HTTPConfig {
                 bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("someone"), String::from("MyAccessToken"))].iter().cloned().collect(),
+                ssl_enabled: false,
+                ssl_cert_path: None,
+                ssl_key_path: None
             }),
             db_path: None,
             cleanup_interval: None,

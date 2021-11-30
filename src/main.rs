@@ -119,11 +119,16 @@ fn start_http_tracker_server(config: Arc<Configuration>, tracker: Arc<TorrentTra
 
         info!("Starting HTTP tracker server..");
         return Some(tokio::spawn(async move {
-            warp::serve(HttpServer::routes(http_tracker))
-                .tls()
-                .cert_path("ssl/cert.pem")
-                .key_path("ssl/key.rsa")
-                .run(SocketAddrV4::new("0.0.0.0".parse().unwrap(), 7878)).await;
+            // todo: add tls option
+
+            if &config.get_http_config().unwrap().is_ssl_enabled() {
+                warp::serve(HttpServer::routes(http_tracker))
+                    .tls()
+                    .cert_path(&config.get_http_config().unwrap().ssl_cert_path.unwrap())
+                    .key_path(&config.get_http_config().unwrap().ssl_key_path.unwrap())
+                    .run(SocketAddrV4::new("0.0.0.0".parse().unwrap(), 7878)).await;
+            }
+
         }))
     }
 
@@ -155,7 +160,7 @@ fn setup_logging(cfg: &Configuration) {
                 "warn" => log::LevelFilter::Warn,
                 "error" => log::LevelFilter::Error,
                 _ => {
-                    eprintln!("udpt: unknown log level encountered '{}'", level.as_str());
+                    eprintln!("T3: unknown log level encountered '{}'", level.as_str());
                     exit(-1);
                 }
             }
@@ -176,7 +181,7 @@ fn setup_logging(cfg: &Configuration) {
         .chain(std::io::stdout())
         .apply()
     {
-        eprintln!("udpt: failed to initialize logging. {}", err);
+        eprintln!("T3: failed to initialize logging. {}", err);
         std::process::exit(-1);
     }
     info!("logging initialized.");

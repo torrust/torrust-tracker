@@ -56,6 +56,34 @@ impl HttpResponse {
     }
 }
 
+// todo: serve proper byte string format
+// fn peers_to_bytes(peers: &Vec<SocketAddr>) -> String {
+//     let mut bytes = Vec::with_capacity(peers.len() * 6);
+//
+//     for peer in peers {
+//         match peer {
+//             SocketAddr::V4(peer) => {
+//                 println!("{:?}", peer.ip());
+//                 bytes.write(b":");
+//                 bytes.extend_from_slice(&u32::from(peer.ip().clone()).to_be_bytes());
+//                 bytes.extend_from_slice(&peer.port().to_be_bytes());
+//             }
+//             SocketAddr::V6(_) => {}
+//         }
+//     }
+//
+//     println!("{:?}", String::from_utf8_lossy(&bytes).to_string());
+//     String::from_utf8_lossy(&bytes).to_string()
+// }
+
+// format!("8:intervali{}e8:completei{}e10:incompletei{}e5:peers{}:{}e",
+//         &self.interval,
+//         &self.complete,
+//         &self.incomplete,
+//         &self.peers.len() * 26,
+//         serde_bencode::to_string(&peers).unwrap()
+// )
+
 #[derive(Serialize)]
 struct HttpErrorResponse {
     failure_reason: String
@@ -81,6 +109,7 @@ impl HttpServer {
         }
     }
 
+    // &self did not work here
     pub fn routes(http_server: Arc<HttpServer>) -> impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static {
         // optional tracker key
         let opt_key = warp::path::param::<String>()
@@ -97,13 +126,15 @@ impl HttpServer {
                 .and(filters::method::get())
                 .and(warp::addr::remote())
                 .and(opt_key)
+                .and(filters::query::raw())
                 .and(filters::query::query())
-                .map(move |remote_addr, key, query| {
-                    (remote_addr, key, query, http_server.clone())
+                .map(move |remote_addr, key, raw_query, query| {
+                    println!("{}", raw_query);
+                    (remote_addr, key, raw_query, query, http_server.clone())
                 })
-                .and_then(move |(remote_addr, key, query, http_server): (Option<SocketAddr>, Option<String>, HttpAnnounceRequest, Arc<HttpServer>)| {
+                .and_then(move |(remote_addr, key, raw_query, mut query, http_server): (Option<SocketAddr>, Option<String>, String, HttpAnnounceRequest, Arc<HttpServer>)| {
                     async move {
-                        println!("{:?} {:?} {:?}", remote_addr, key, query);
+                        println!("{:?}", raw_query);
 
                         if remote_addr.is_none() { return HttpServer::send_error("could not get remote address") }
 
@@ -111,6 +142,8 @@ impl HttpServer {
                             None => None,
                             Some(v) => AuthKey::from_string(&v)
                         };
+
+
 
                         http_server.handle_announce(query, remote_addr.unwrap(), auth_key).await
                     }
@@ -195,33 +228,3 @@ impl HttpServer {
         }
     }
 }
-
-
-
-// todo: serve proper byte string format
-// fn peers_to_bytes(peers: &Vec<SocketAddr>) -> String {
-//     let mut bytes = Vec::with_capacity(peers.len() * 6);
-//
-//     for peer in peers {
-//         match peer {
-//             SocketAddr::V4(peer) => {
-//                 println!("{:?}", peer.ip());
-//                 bytes.write(b":");
-//                 bytes.extend_from_slice(&u32::from(peer.ip().clone()).to_be_bytes());
-//                 bytes.extend_from_slice(&peer.port().to_be_bytes());
-//             }
-//             SocketAddr::V6(_) => {}
-//         }
-//     }
-//
-//     println!("{:?}", String::from_utf8_lossy(&bytes).to_string());
-//     String::from_utf8_lossy(&bytes).to_string()
-// }
-
-// format!("8:intervali{}e8:completei{}e10:incompletei{}e5:peers{}:{}e",
-//         &self.interval,
-//         &self.complete,
-//         &self.incomplete,
-//         &self.peers.len() * 26,
-//         serde_bencode::to_string(&peers).unwrap()
-// )
