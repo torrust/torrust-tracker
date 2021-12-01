@@ -1,12 +1,19 @@
 mode = "public"
 external_ip = "0.0.0.0" # set this to your external IP
 
-[udp]
+[udp_tracker]
 bind_address = "0.0.0.0:6969"
 announce_interval = 120 # Two minutes
 
-[http]
+[http_tracker]
+bind_address = "0.0.0.0:7878"
+announce_interval = 120 # Two minutes
+ssl_enabled = false
+ssl_cert_path = ""
+ssl_key_path = ""
+
+[http_api]
 bind_address = "127.0.0.1:1212"
 
-[http.access_tokens]
+[http_api.access_tokens]
 someone = "MyAccessToken"

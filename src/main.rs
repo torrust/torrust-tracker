@@ -1,8 +1,6 @@
-use std::net::{SocketAddrV4};
 use clap;
 use fern;
 use log::{info, warn};
-
 use std::process::exit;
 use torrust_tracker::{webserver, Configuration, TorrentTracker, UDPServer};
 use torrust_tracker::database::SqliteDatabase;
@@ -98,10 +96,10 @@ fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTra
 }
 
 fn start_api_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
-    if config.get_http_config().is_some() {
+    if config.get_http_api_config().is_some() {
         info!("Starting API server..");
         return Some(tokio::spawn(async move {
-            let http_cfg = config.get_http_config().unwrap();
+            let http_cfg = config.get_http_api_config().unwrap();
             let bind_addr = http_cfg.get_address();
             let tokens = http_cfg.get_access_tokens();
 
@@ -114,19 +112,26 @@ fn start_api_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) ->
 }
 
 fn start_http_tracker_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
-    if config.get_http_config().is_some() {
-        let http_tracker = Arc::new(HttpServer::new(config, tracker));
+    if config.get_http_tracker_config().is_some() {
+        let http_tracker = Arc::new(HttpServer::new(config.clone(), tracker));
 
-        info!("Starting HTTP tracker server..");
         return Some(tokio::spawn(async move {
-            // todo: add tls option
+            let http_tracker_config = config.get_http_tracker_config().unwrap();
+            let bind_addr = http_tracker_config.get_address().parse::<std::net::SocketAddrV4>().unwrap();
+            println!("{}", bind_addr);
 
-            if &config.get_http_config().unwrap().is_ssl_enabled() {
+            // run with tls if ssl_enabled and cert and key path are set
+            if http_tracker_config.is_ssl_enabled() {
+                info!("Starting HTTP tracker server in TLS mode..");
                 warp::serve(HttpServer::routes(http_tracker))
                     .tls()
-                    .cert_path(&config.get_http_config().unwrap().ssl_cert_path.unwrap())
-                    .key_path(&config.get_http_config().unwrap().ssl_key_path.unwrap())
-                    .run(SocketAddrV4::new("0.0.0.0".parse().unwrap(), 7878)).await;
+                    .cert_path(&http_tracker_config.ssl_cert_path.as_ref().unwrap())
+                    .key_path(&http_tracker_config.ssl_key_path.as_ref().unwrap())
+                    .run(bind_addr).await;
+            } else {
+                info!("Starting HTTP tracker server..");
+                warp::serve(HttpServer::routes(http_tracker))
+                    .run(bind_addr).await;
             }
 
         }))
