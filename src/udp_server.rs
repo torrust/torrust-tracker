@@ -22,7 +22,7 @@ pub struct UDPServer {
 impl UDPServer {
     pub async fn new(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Result<UDPServer, std::io::Error> {
         let cfg = config.clone();
-        let srv = UdpSocket::bind(cfg.get_udp_config().get_address()).await?;
+        let srv = UdpSocket::bind(cfg.get_udp_tracker_config().get_address()).await?;
 
         Ok(UDPServer {
             socket: srv,
@@ -160,7 +160,7 @@ impl UDPServer {
                 let response = UDPResponse::from(UDPAnnounceResponse {
                     action: Actions::Announce,
                     transaction_id: request.transaction_id,
-                    interval: self.config.get_udp_config().get_announce_interval(),
+                    interval: self.config.get_udp_tracker_config().get_announce_interval(),
                     leechers: torrent_stats.leechers,
                     seeders: torrent_stats.seeders,
                     peers,

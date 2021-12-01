@@ -154,7 +154,7 @@ impl TorrentEntry {
 
             // skip ip address of client
             if peer.peer_addr == *remote_addr {
-                continue;
+                //continue;
             }
 
             list.push(peer.clone());

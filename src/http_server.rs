@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::tracker::{TorrentTracker};
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
@@ -129,13 +130,10 @@ impl HttpServer {
                 .and(filters::query::raw())
                 .and(filters::query::query())
                 .map(move |remote_addr, key, raw_query, query| {
-                    println!("{}", raw_query);
                     (remote_addr, key, raw_query, query, http_server.clone())
                 })
                 .and_then(move |(remote_addr, key, raw_query, mut query, http_server): (Option<SocketAddr>, Option<String>, String, HttpAnnounceRequest, Arc<HttpServer>)| {
                     async move {
-                        println!("{:?}", raw_query);
-
                         if remote_addr.is_none() { return HttpServer::send_error("could not get remote address") }
 
                         let auth_key = match key {
@@ -143,7 +141,13 @@ impl HttpServer {
                             Some(v) => AuthKey::from_string(&v)
                         };
 
-
+                        // query.info_hash somehow receives a corrupt string
+                        // so we have to get the info_hash manually from the raw query
+                        let raw_info_hash = HttpServer::get_raw_info_hash_from_raw_query(&raw_query);
+                        if raw_info_hash.is_none() { return HttpServer::send_error("info_hash not found") }
+                        let info_hash = percent_encoding::percent_decode_str(raw_info_hash.unwrap()).collect::<Vec<u8>>();
+                        query.info_hash = hex::encode(info_hash);
+                        println!("{:?}", query.info_hash);
 
                         http_server.handle_announce(query, remote_addr.unwrap(), auth_key).await
                     }
@@ -151,6 +155,21 @@ impl HttpServer {
 
         // all routes
         warp::any().and(announce_route)
+    }
+
+    fn get_raw_info_hash_from_raw_query(raw_query: &str) -> Option<&str> {
+        let split_raw_query: Vec<&str> = raw_query.split("&").collect();
+
+        let mut raw_info_hash = None;
+
+        for v in split_raw_query {
+            if v.contains("info_hash") {
+                let rih: Vec<&str> = v.split("=").collect();
+                raw_info_hash = Some(rih[1]);
+            }
+        }
+
+        raw_info_hash
     }
 
     fn send_announce_response(torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32) -> Result<warp::reply::Response, Infallible> {
@@ -169,8 +188,6 @@ impl HttpServer {
             peers: http_peers
         };
 
-        println!("{:?}", res.write());
-
         Ok(Response::new(res.write().into()))
     }
 
@@ -181,8 +198,7 @@ impl HttpServer {
     }
 
     async fn handle_announce(&self, query: HttpAnnounceRequest, remote_addr: SocketAddr, auth_key: Option<AuthKey>) -> Result<warp::reply::Response, Infallible> {
-        // todo: parse info_hash from URL encoded byte hash string
-        let info_hash = match InfoHash::from_str("dae76f48e490adc13f1c27a7c17c7fb9d1f71676") {
+        let info_hash = match InfoHash::from_str(&query.info_hash) {
             Ok(v) => v,
             Err(_) => {
                 return HttpServer::send_error("info_hash is invalid")
@@ -223,7 +239,7 @@ impl HttpServer {
 
                 // todo: add http announce interval config option
                 // success response
-                HttpServer::send_announce_response(torrent_stats, peers.unwrap(), self.config.get_udp_config().get_announce_interval())
+                HttpServer::send_announce_response(torrent_stats, peers.unwrap(), self.config.get_udp_tracker_config().get_announce_interval())
             }
         }
     }
