@@ -102,7 +102,7 @@ impl UDPServer {
                 match request {
                     Request::Connect(r) => self.handle_connect(remote_addr, r).await,
                     Request::Announce(r) => {
-                        match self.tracker.authenticate_announce_request(&r.info_hash, &r.auth_key).await {
+                        match self.tracker.authenticate_request(&r.info_hash, &r.auth_key).await {
                             Ok(()) => self.handle_announce(remote_addr, r).await,
                             Err(e) => {
                                 match e {

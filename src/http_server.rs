@@ -1,15 +1,18 @@
-use std::collections::HashMap;
+use std::collections::{HashMap};
 use crate::tracker::{TorrentTracker};
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
+use std::error::Error;
+use std::io::Write;
 use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 use std::str::FromStr;
-use log::debug;
+use log::{debug};
 use warp::{filters, reply::Reply, Filter};
 use warp::http::Response;
 use crate::{Configuration, TorrentError, TorrentPeer, TorrentStats};
 use crate::key_manager::AuthKey;
+use crate::utils::url_encode_bytes;
 use super::common::*;
 
 #[derive(Deserialize, Debug)]
@@ -31,6 +34,11 @@ impl HttpAnnounceRequest {
     }
 }
 
+#[derive(Deserialize, Debug)]
+pub struct HttpScrapeRequest {
+    pub info_hash: String,
+}
+
 #[derive(Serialize)]
 struct HttpPeer {
     peer_id: String,
@@ -39,7 +47,7 @@ struct HttpPeer {
 }
 
 #[derive(Serialize)]
-struct HttpResponse {
+struct HttpAnnounceResponse {
     interval: u32,
     //tracker_id: String,
     complete: u32,
@@ -47,43 +55,70 @@ struct HttpResponse {
     peers: Vec<HttpPeer>
 }
 
-impl HttpResponse {
+impl HttpAnnounceResponse {
     pub fn write(&self) -> String {
         serde_bencode::to_string(&self).unwrap()
     }
 
-    pub fn write_compact(&self) -> String {
-        String::new()
+    pub fn write_compact(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+        let mut peers_v4: Vec<u8> = Vec::new();
+        let mut peers_v6: Vec<u8> = Vec::new();
+
+        for peer in &self.peers {
+            match peer.ip {
+                IpAddr::V4(ip) => {
+                    peers_v4.write(&u32::from(ip).to_be_bytes())?;
+                    peers_v4.write(&peer.port.to_be_bytes())?;
+                }
+                IpAddr::V6(ip) => {
+                    peers_v6.write(&u128::from(ip).to_be_bytes())?;
+                    peers_v6.write(&peer.port.to_be_bytes())?;
+                }
+            }
+        }
+
+        debug!("{:?}", String::from_utf8_lossy(peers_v4.as_slice()));
+        debug!("{:?}", String::from_utf8_lossy(peers_v6.as_slice()));
+
+        let mut bytes: Vec<u8> = Vec::new();
+        bytes.write(b"d8:intervali")?;
+        bytes.write(&self.interval.to_string().as_bytes())?;
+        bytes.write(b"e8:completei")?;
+        bytes.write(&self.complete.to_string().as_bytes())?;
+        bytes.write(b"e10:incompletei")?;
+        bytes.write(&self.incomplete.to_string().as_bytes())?;
+        bytes.write(b"e5:peers")?;
+        bytes.write(&peers_v4.len().to_string().as_bytes())?;
+        bytes.write(b":")?;
+        bytes.write(peers_v4.as_slice())?;
+        bytes.write(b"e6:peers6")?;
+        bytes.write(&peers_v6.len().to_string().as_bytes())?;
+        bytes.write(b":")?;
+        bytes.write(peers_v6.as_slice())?;
+        bytes.write(b"e")?;
+
+        debug!("{:?}", String::from_utf8_lossy(bytes.as_slice()));
+        Ok(bytes)
     }
 }
 
-// todo: serve proper byte string format
-// fn peers_to_bytes(peers: &Vec<SocketAddr>) -> String {
-//     let mut bytes = Vec::with_capacity(peers.len() * 6);
-//
-//     for peer in peers {
-//         match peer {
-//             SocketAddr::V4(peer) => {
-//                 println!("{:?}", peer.ip());
-//                 bytes.write(b":");
-//                 bytes.extend_from_slice(&u32::from(peer.ip().clone()).to_be_bytes());
-//                 bytes.extend_from_slice(&peer.port().to_be_bytes());
-//             }
-//             SocketAddr::V6(_) => {}
-//         }
-//     }
-//
-//     println!("{:?}", String::from_utf8_lossy(&bytes).to_string());
-//     String::from_utf8_lossy(&bytes).to_string()
-// }
+#[derive(Serialize)]
+struct HttpScrapeResponse {
+    files: HashMap<String, HttpScrapeResponseEntry>
+}
 
-// format!("8:intervali{}e8:completei{}e10:incompletei{}e5:peers{}:{}e",
-//         &self.interval,
-//         &self.complete,
-//         &self.incomplete,
-//         &self.peers.len() * 26,
-//         serde_bencode::to_string(&peers).unwrap()
-// )
+impl HttpScrapeResponse {
+    pub fn write(&self) -> String {
+        serde_bencode::to_string(&self).unwrap()
+    }
+}
+
+#[derive(Serialize)]
+struct HttpScrapeResponseEntry {
+    complete: u32,
+    downloaded: u32,
+    incomplete: u32,
+}
 
 #[derive(Serialize)]
 struct HttpErrorResponse {
@@ -122,6 +157,7 @@ impl HttpServer {
 
         // GET /announce?key=:String
         // Announce peer
+        let hs1 = http_server.clone();
         let announce_route =
             filters::path::path("announce")
                 .and(filters::method::get())
@@ -130,65 +166,108 @@ impl HttpServer {
                 .and(filters::query::raw())
                 .and(filters::query::query())
                 .map(move |remote_addr, key, raw_query, query| {
-                    (remote_addr, key, raw_query, query, http_server.clone())
+                    debug!("Request: {}", raw_query);
+                    (remote_addr, key, raw_query, query, hs1.clone())
                 })
                 .and_then(move |(remote_addr, key, raw_query, mut query, http_server): (Option<SocketAddr>, Option<String>, String, HttpAnnounceRequest, Arc<HttpServer>)| {
                     async move {
                         if remote_addr.is_none() { return HttpServer::send_error("could not get remote address") }
 
-                        let auth_key = match key {
-                            None => None,
-                            Some(v) => AuthKey::from_string(&v)
-                        };
-
                         // query.info_hash somehow receives a corrupt string
                         // so we have to get the info_hash manually from the raw query
-                        let raw_info_hash = HttpServer::get_raw_info_hash_from_raw_query(&raw_query);
-                        if raw_info_hash.is_none() { return HttpServer::send_error("info_hash not found") }
-                        let info_hash = percent_encoding::percent_decode_str(raw_info_hash.unwrap()).collect::<Vec<u8>>();
-                        query.info_hash = hex::encode(info_hash);
-                        println!("{:?}", query.info_hash);
+                        let info_hashes = HttpServer::get_info_hashes_from_raw_query(&raw_query);
+                        if info_hashes.len() < 1 { return HttpServer::send_error("info_hash not found") }
+                        query.info_hash = info_hashes[0].to_string();
+                        debug!("{:?}", query.info_hash);
 
-                        http_server.handle_announce(query, remote_addr.unwrap(), auth_key).await
+                        if let Some(err) = http_server.authenticate_request(&query.info_hash, key).await { return err }
+
+                        http_server.handle_announce(query, remote_addr.unwrap()).await
+                    }
+                });
+
+        // GET /scrape?key=:String
+        // Get torrent info
+        let hs2 = http_server.clone();
+        let scrape_route =
+            filters::path::path("scrape")
+                .and(filters::method::get())
+                .and(opt_key)
+                .and(filters::query::raw())
+                .map(move |key, raw_query| {
+                    debug!("Request: {}", raw_query);
+                    (key, raw_query, hs2.clone())
+                })
+                .and_then(move |(key, raw_query, http_server): (Option<String>, String, Arc<HttpServer>)| {
+                    async move {
+                        let info_hashes = HttpServer::get_info_hashes_from_raw_query(&raw_query);
+                        if info_hashes.len() < 1 { return HttpServer::send_error("info_hash not found") }
+                        if info_hashes.len() > 50 { return HttpServer::send_error("exceeded the max of 50 info_hashes") }
+                        debug!("{:?}", info_hashes);
+
+                        // todo: verify all info_hashes before scrape
+                        if let Some(err) = http_server.authenticate_request(&info_hashes[0].to_string(), key).await { return err }
+
+                        http_server.handle_scrape(info_hashes).await
                     }
                 });
 
         // all routes
-        warp::any().and(announce_route)
+        warp::any().and(announce_route.or(scrape_route))
     }
 
-    fn get_raw_info_hash_from_raw_query(raw_query: &str) -> Option<&str> {
+    fn get_info_hashes_from_raw_query(raw_query: &str) -> Vec<InfoHash> {
         let split_raw_query: Vec<&str> = raw_query.split("&").collect();
-
-        let mut raw_info_hash = None;
+        let mut info_hashes: Vec<InfoHash> = Vec::new();
 
         for v in split_raw_query {
             if v.contains("info_hash") {
-                let rih: Vec<&str> = v.split("=").collect();
-                raw_info_hash = Some(rih[1]);
+                let raw_info_hash = v.split("=").collect::<Vec<&str>>()[1];
+                let info_hash_bytes = percent_encoding::percent_decode_str(raw_info_hash).collect::<Vec<u8>>();
+                let info_hash = InfoHash::from_str(&hex::encode(info_hash_bytes));
+                if let Ok(ih) = info_hash {
+                    info_hashes.push(ih);
+                }
             }
         }
 
-        raw_info_hash
+        info_hashes
     }
 
-    fn send_announce_response(torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32) -> Result<warp::reply::Response, Infallible> {
-        // todo: add old non-compacted response (very rarely used)
-
+    fn send_announce_response(query: &HttpAnnounceRequest, torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32) -> Result<warp::reply::Response, Infallible> {
         let http_peers: Vec<HttpPeer> = peers.iter().map(|peer| HttpPeer {
             peer_id: String::from_utf8_lossy(&peer.peer_id.0).to_string(),
             ip: peer.peer_addr.ip(),
             port: peer.peer_addr.port()
         }).collect();
 
-        let res = HttpResponse {
+        let res = HttpAnnounceResponse {
             interval,
             complete: torrent_stats.seeders,
             incomplete: torrent_stats.leechers,
             peers: http_peers
         };
 
-        Ok(Response::new(res.write().into()))
+        // check for compact response request
+        let response = match query.compact {
+            None => Response::new(res.write().into()),
+            Some(int) => {
+                if int == 1 {
+                    let res_compact = res.write_compact();
+                    match res_compact {
+                        Ok(response) => Response::new(response.into()),
+                        Err(e) => {
+                            debug!("{}", e);
+                            HttpServer::send_error("server error").unwrap()
+                        }
+                    }
+                } else {
+                    Response::new(res.write().into())
+                }
+            }
+        };
+
+        Ok(response)
     }
 
     fn send_error(msg: &str) -> Result<warp::reply::Response, Infallible> {
@@ -197,30 +276,41 @@ impl HttpServer {
         }.into_response())
     }
 
-    async fn handle_announce(&self, query: HttpAnnounceRequest, remote_addr: SocketAddr, auth_key: Option<AuthKey>) -> Result<warp::reply::Response, Infallible> {
+    async fn authenticate_request(&self, info_hash_str: &str, key: Option<String>) -> Option<Result<warp::reply::Response, Infallible>> {
+        let info_hash= InfoHash::from_str(info_hash_str);
+        if info_hash.is_err() { return Some(HttpServer::send_error("invalid info_hash")) }
+
+        let auth_key = match key {
+            None => None,
+            Some(v) => AuthKey::from_string(&v)
+        };
+
+        if let Err(e) = self.tracker.authenticate_request(&info_hash.unwrap(), &auth_key).await {
+            return match e {
+                TorrentError::TorrentNotWhitelisted => {
+                    debug!("Info_hash not whitelisted.");
+                    Some(HttpServer::send_error("torrent not whitelisted"))
+                }
+                TorrentError::PeerKeyNotValid => {
+                    debug!("Peer key not valid.");
+                    Some(HttpServer::send_error("peer key not valid"))
+                }
+                TorrentError::PeerNotAuthenticated => {
+                    debug!("Peer not authenticated.");
+                    Some(HttpServer::send_error("peer not authenticated"))
+                }
+            }
+        }
+        None
+    }
+
+    async fn handle_announce(&self, query: HttpAnnounceRequest, remote_addr: SocketAddr) -> Result<warp::reply::Response, Infallible> {
         let info_hash = match InfoHash::from_str(&query.info_hash) {
             Ok(v) => v,
             Err(_) => {
                 return HttpServer::send_error("info_hash is invalid")
             }
         };
-
-        if let Err(e) = self.tracker.authenticate_announce_request(&info_hash, &auth_key).await {
-            return match e {
-                TorrentError::TorrentNotWhitelisted => {
-                    debug!("Info_hash not whitelisted.");
-                    HttpServer::send_error("torrent not whitelisted")
-                }
-                TorrentError::PeerKeyNotValid => {
-                    debug!("Peer key not valid.");
-                    HttpServer::send_error("peer key not valid")
-                }
-                TorrentError::PeerNotAuthenticated => {
-                    debug!("Peer not authenticated.");
-                    HttpServer::send_error("peer not authenticated")
-                }
-            }
-        }
 
         let peer = TorrentPeer::from_http_announce_request(&query, remote_addr, self.config.get_ext_ip());
 
@@ -239,8 +329,43 @@ impl HttpServer {
 
                 // todo: add http announce interval config option
                 // success response
-                HttpServer::send_announce_response(torrent_stats, peers.unwrap(), self.config.get_udp_tracker_config().get_announce_interval())
+                let announce_interval = self.config.get_http_tracker_config().unwrap().get_announce_interval();
+                HttpServer::send_announce_response(&query, torrent_stats, peers.unwrap(), announce_interval)
             }
         }
+    }
+
+    async fn handle_scrape(&self, info_hashes: Vec<InfoHash>) -> Result<warp::reply::Response, Infallible> {
+        let mut res = HttpScrapeResponse {
+            files: HashMap::new()
+        };
+        let db = self.tracker.get_torrents().await;
+
+        for info_hash in info_hashes.iter() {
+            let scrape_entry = match db.get(&info_hash) {
+                Some(torrent_info) => {
+                    let (seeders, completed, leechers) = torrent_info.get_stats();
+
+                    HttpScrapeResponseEntry {
+                        complete: seeders,
+                        downloaded: completed,
+                        incomplete: leechers
+                    }
+                }
+                None => {
+                    HttpScrapeResponseEntry {
+                        complete: 0,
+                        downloaded: 0,
+                        incomplete: 0
+                    }
+                }
+            };
+
+            if let Ok(encoded_info_hash) = url_encode_bytes(&info_hash.0) {
+                res.files.insert(encoded_info_hash, scrape_entry);
+            }
+        }
+
+        Ok(Response::new(res.write().into()))
     }
 }

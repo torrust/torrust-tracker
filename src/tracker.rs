@@ -257,7 +257,7 @@ impl TorrentTracker {
         }
     }
 
-    pub async fn authenticate_announce_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
+    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
         match self.config.get_mode() {
             TrackerMode::PublicMode => Ok(()),
             TrackerMode::ListedMode => {
