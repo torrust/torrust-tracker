@@ -1,12 +1,12 @@
 use clap;
 use fern;
-use log::{info};
-
+use log::{info, warn};
 use std::process::exit;
-use torrust_tracker::{webserver, Configuration, udp_server, TorrentTracker};
+use torrust_tracker::{webserver, Configuration, TorrentTracker, UDPServer};
 use torrust_tracker::database::SqliteDatabase;
 use std::sync::Arc;
-use torrust_tracker::key_manager::KeyManager;
+use tokio::task::JoinHandle;
+use torrust_tracker::http_server::HttpServer;
 
 #[tokio::main]
 async fn main() {
@@ -23,7 +23,7 @@ async fn main() {
 
     let matches = parser.get_matches();
 
-    let cfg = match matches.value_of("config") {
+    let config = match matches.value_of("config") {
         Some(cfg_path) => {
             match Configuration::load_file(cfg_path) {
                 Ok(v) => Arc::new(v),
@@ -39,12 +39,12 @@ async fn main() {
         }
     };
 
-    setup_logging(&cfg);
+    setup_logging(&config);
 
     let sqlite_database = match SqliteDatabase::new().await {
         Some(sqlite_database) => {
             info!("Verified database tables.");
-            sqlite_database
+            Arc::new(sqlite_database)
         }
         None => {
             eprintln!("Exiting..");
@@ -52,75 +52,105 @@ async fn main() {
         }
     };
 
-    let arc_sqlite_database = Arc::new(sqlite_database);
+    // the singleton torrent tracker that gets passed to the HTTP and UDP server
+    let tracker = Arc::new(TorrentTracker::new(config.clone(), sqlite_database.clone()));
 
-    let key_manager = KeyManager::new(arc_sqlite_database.clone());
-    let arc_key_manager = Arc::new(key_manager);
+    // start torrent cleanup job (periodically removes old peers)
+    let _torrent_cleanup_job = start_torrent_cleanup_job(config.clone(), tracker.clone()).unwrap();
 
-    let torrent_tracker = TorrentTracker::new(cfg.clone(), arc_sqlite_database.clone(), arc_key_manager);
-    let arc_torrent_tracker = Arc::new(torrent_tracker);
+    // start HTTP API server
+    let _api_server = start_api_server(config.clone(), tracker.clone());
 
+    // start HTTP Tracker server
+    let _http_server = start_http_tracker_server(config.clone(), tracker.clone());
 
-    // periodically call tracker.cleanup_torrents()
-    {
-        let weak_tracker = std::sync::Arc::downgrade(&arc_torrent_tracker);
-        let interval = cfg.get_cleanup_interval().unwrap_or(600);
-
-        tokio::spawn(async move {
-            let interval = std::time::Duration::from_secs(interval);
-            let mut interval = tokio::time::interval(interval);
-            interval.tick().await; // first tick is immediate...
-            loop {
-                interval.tick().await;
-                if let Some(tracker) = weak_tracker.upgrade() {
-                    tracker.cleanup_torrents().await;
-                } else {
-                    break;
-                }
-            }
-        });
-    }
-
-    // start http server
-    {
-        if cfg.get_http_config().is_some() {
-            let https_tracker = arc_torrent_tracker.clone();
-            let http_cfg = cfg.clone();
-
-            info!("Starting HTTP server");
-            tokio::spawn(async move {
-                let http_cfg = http_cfg.get_http_config().unwrap();
-                let bind_addr = http_cfg.get_address();
-                let tokens = http_cfg.get_access_tokens();
-
-                let server = webserver::build_server(https_tracker, tokens.clone());
-                server.bind(bind_addr.parse::<std::net::SocketAddr>().unwrap()).await;
-            });
-        }
-    }
-
-    // start udp server
-    {
-        let udp_server = udp_server::UDPServer::new(cfg.clone(), arc_torrent_tracker.clone())
-            .await
-            .expect("failed to bind udp socket");
-
-        info!("Waiting for UDP packets");
-        let _udp_server = tokio::spawn(async move {
-            if let Err(err) = udp_server.accept_packets().await {
-                eprintln!("error: {}", err);
-            }
-        });
-    }
+    // start UDP Tracker server
+    let udp_server = start_udp_tracker_server(config.clone(), tracker.clone()).await.unwrap();
 
     let ctrl_c = tokio::signal::ctrl_c();
 
     tokio::select! {
-        //_ = udp_server => { warn!("udp server exited.") },
-        _ = ctrl_c => { info!("CTRL-C, exiting...") },
+        _ = udp_server => { warn!("UDP Tracker server exited.") },
+        _ = ctrl_c => { info!("T3 shutting down..") }
+    }
+}
+
+fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+    let weak_tracker = std::sync::Arc::downgrade(&tracker);
+    let interval = config.get_cleanup_interval().unwrap_or(600);
+
+    return Some(tokio::spawn(async move {
+        let interval = std::time::Duration::from_secs(interval);
+        let mut interval = tokio::time::interval(interval);
+        interval.tick().await; // first tick is immediate...
+        // periodically call tracker.cleanup_torrents()
+        loop {
+            interval.tick().await;
+            if let Some(tracker) = weak_tracker.upgrade() {
+                tracker.cleanup_torrents().await;
+            } else {
+                break;
+            }
+        }
+    }))
+}
+
+fn start_api_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+    if config.get_http_api_config().is_some() {
+        info!("Starting API server..");
+        return Some(tokio::spawn(async move {
+            let http_cfg = config.get_http_api_config().unwrap();
+            let bind_addr = http_cfg.get_address();
+            let tokens = http_cfg.get_access_tokens();
+
+            let server = webserver::build_server(tracker, tokens.clone());
+            server.bind(bind_addr.parse::<std::net::SocketAddr>().unwrap()).await;
+        }))
     }
 
-    info!("goodbye.");
+    None
+}
+
+fn start_http_tracker_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+    if config.get_http_tracker_config().is_some() {
+        let http_tracker = Arc::new(HttpServer::new(config.clone(), tracker));
+
+        return Some(tokio::spawn(async move {
+            let http_tracker_config = config.get_http_tracker_config().unwrap();
+            let bind_addr = http_tracker_config.get_address().parse::<std::net::SocketAddrV4>().unwrap();
+            println!("{}", bind_addr);
+
+            // run with tls if ssl_enabled and cert and key path are set
+            if http_tracker_config.is_ssl_enabled() {
+                info!("Starting HTTP tracker server in TLS mode..");
+                warp::serve(HttpServer::routes(http_tracker))
+                    .tls()
+                    .cert_path(&http_tracker_config.ssl_cert_path.as_ref().unwrap())
+                    .key_path(&http_tracker_config.ssl_key_path.as_ref().unwrap())
+                    .run(bind_addr).await;
+            } else {
+                info!("Starting HTTP tracker server..");
+                warp::serve(HttpServer::routes(http_tracker))
+                    .run(bind_addr).await;
+            }
+
+        }))
+    }
+
+    None
+}
+
+async fn start_udp_tracker_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+    let udp_server = UDPServer::new(config, tracker)
+        .await
+        .expect("failed to bind udp socket");
+
+    info!("Starting UDP tracker server..");
+    Some(tokio::spawn(async move {
+        if let Err(err) = udp_server.accept_packets().await {
+            eprintln!("error: {}", err);
+        }
+    }))
 }
 
 fn setup_logging(cfg: &Configuration) {
@@ -135,7 +165,7 @@ fn setup_logging(cfg: &Configuration) {
                 "warn" => log::LevelFilter::Warn,
                 "error" => log::LevelFilter::Error,
                 _ => {
-                    eprintln!("udpt: unknown log level encountered '{}'", level.as_str());
+                    eprintln!("T3: unknown log level encountered '{}'", level.as_str());
                     exit(-1);
                 }
             }
@@ -156,7 +186,7 @@ fn setup_logging(cfg: &Configuration) {
         .chain(std::io::stdout())
         .apply()
     {
-        eprintln!("udpt: failed to initialize logging. {}", err);
+        eprintln!("T3: failed to initialize logging. {}", err);
         std::process::exit(-1);
     }
     info!("logging initialized.");
