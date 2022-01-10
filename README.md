@@ -2,41 +2,48 @@
 
 [![Torrust - torrust-website-backend](https://img.shields.io/static/v1?label=Torrust&message=torrust-tracker&color=blue&logo=github)](https://github.com/torrust/torrust-website-backend)
 
-__Torrust Tracker__ is a feature rich UDP based torrent tracker built with Rust.
+## Project Description
+Torrust Tracker is a lightweight but incredibly powerful and feature-rich BitTorrent tracker made using Rust.
 
-[Documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/about/)
 
-## Features
-* [X] UDP torrent tracking server
-* [X] SQLite database
-* [X] 4 Different tracker modes
-* [X] HTTP REST API for easy use
+### Features
+* [X] UDP server
+* [X] HTTP (optional SSL) server
+* [X] Private & Whitelisted mode
+* [X] API Hooks
 * [X] Torrent whitelisting
 * [X] Peer authentication using time-bound keys
 
-## BEPs
+### Implemented BEPs
 * [BEP 15](http://www.bittorrent.org/beps/bep_0015.html): UDP Tracker Protocol for BitTorrent
+* [BEP 23](http://bittorrent.org/beps/bep_0023.html): Tracker Returns Compact Peer Lists
+* [BEP 27](http://bittorrent.org/beps/bep_0027.html): Private Torrents
 * [BEP 41](http://bittorrent.org/beps/bep_0041.html): UDP Tracker Protocol Extensions
+* [BEP 48](http://bittorrent.org/beps/bep_0048.html): Tracker Protocol Extension: Scrape
 
-## Getting started
-The easiest way is to get built binaries from [Releases](https://github.com/torrust/torrust-tracker/releases),
-but building from sources is also possible:
+## Getting Started
+You can get the latetst binaries from [releases](https://github.com/torrust/torrust-tracker/releases) or follow the install instructions below.
 
+### Install
+
+1. Clone the repo.
 ```bash
 git clone https://github.com/torrust/torrust-tracker.git
 cd torrust-tracker
+```
+
+2. Build the source code.
+```bash
 cargo build --release
 ```
 
-## Usage
-__Notice:__ Skip the first step if you've downloaded the binaries directly.
-
+### Usage
 1. After building __Torrust Tracker__, navigate to the folder.
 ```bash
 cd torrust-tracker/target
 ```
 
-2. Create a file called `configuration.toml` with the following contents and change the [configuration](https://torrust.github.io/torrust-tracker/CONFIG.html) according to your liking:
+2. Create a file called `configuration.toml` with the following contents and change the [configuration](https://torrust.com/torrust-tracker/CONFIG.html) according to your liking:
 ```toml
 mode = "public"
 external_ip = "0.0.0.0" # set this to your external IP
@@ -57,15 +64,9 @@ someone = "MyAccessToken"
 ./torrust-tracker -c configuration.toml
 ```
 
-4. Add your tracker announce url as follows:
-`udp://localhost:6969` or `udp://{external_url}:6969`.
-Make sure to port forward the udp port.
+### Tracker URL
+Your tracker will be `udp://tracker-ip:port` or `https://tracker-ip:port` depending on your tracker mode.
+In private mode, tracker keys are added after the tracker URL like: `https://tracker-ip:port/tracker-key`.
 
-## Contributing
-Please report any bugs you find to our issue tracker. Ideas and feature requests are welcome as well!
-Any pull request targeting existing issues would be very much appreciated.
-
-## Credits
-Torrust Tracker was built by [@WarmBeer](https://github.com/WarmBeer)
-as a fork from [UDPT](https://github.com/naim94a/udpt): [@naim94a](https://github.com/naim94a)
-and heavily modified with parts from [Aquatic](https://github.com/greatest-ape/aquatic): [@greatest-ape](https://github.com/greatest-ape).
+### Credits
+This project was a joint effort by [Nautilus Cyberneering GmbH](https://nautilus-cyberneering.de/) and [DUTCH BITS](https://dutchbits.nl).
