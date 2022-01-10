@@ -1,6 +1,5 @@
 # Torrust Tracker
-
-[![Torrust - torrust-website-backend](https://img.shields.io/static/v1?label=Torrust&message=torrust-tracker&color=blue&logo=github)](https://github.com/torrust/torrust-website-backend)
+![Test](https://github.com/torrust/torrust-tracker/actions/workflows/test.yml/badge.svg)
 
 ## Project Description
 Torrust Tracker is a lightweight but incredibly powerful and feature-rich BitTorrent tracker made using Rust.
