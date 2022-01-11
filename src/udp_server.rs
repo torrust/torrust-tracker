@@ -22,7 +22,7 @@ pub struct UDPServer {
 impl UDPServer {
     pub async fn new(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Result<UDPServer, std::io::Error> {
         let cfg = config.clone();
-        let srv = UdpSocket::bind(cfg.get_udp_tracker_config().get_address()).await?;
+        let srv = UdpSocket::bind(&cfg.udp_tracker.bind_address).await?;
 
         Ok(UDPServer {
             socket: srv,
@@ -32,7 +32,7 @@ impl UDPServer {
     }
 
     pub async fn authenticate_announce_request(&self, announce_request: &AnnounceRequest) -> Result<(), TorrentError> {
-        match self.config.get_mode() {
+        match self.config.mode {
             TrackerMode::PublicMode => Ok(()),
             TrackerMode::ListedMode => {
                 if !self.tracker.is_info_hash_whitelisted(&announce_request.info_hash).await {
@@ -160,7 +160,7 @@ impl UDPServer {
                 let response = UDPResponse::from(UDPAnnounceResponse {
                     action: Actions::Announce,
                     transaction_id: request.transaction_id,
-                    interval: self.config.get_udp_tracker_config().get_announce_interval(),
+                    interval: self.config.udp_tracker.announce_interval,
                     leechers: torrent_stats.leechers,
                     seeders: torrent_stats.seeders,
                     peers,

@@ -19,7 +19,7 @@ async fn main() {
 
     setup_logging(&config);
 
-    let sqlite_database = match SqliteDatabase::new(config.get_db_path()).await {
+    let sqlite_database = match SqliteDatabase::new(&config.db_path).await {
         Some(sqlite_database) => {
             info!("Verified database tables.");
             Arc::new(sqlite_database)
@@ -55,7 +55,7 @@ async fn main() {
 
 fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
     let weak_tracker = std::sync::Arc::downgrade(&tracker);
-    let interval = config.get_cleanup_interval().unwrap_or(600);
+    let interval = config.cleanup_interval.unwrap_or(600);
 
     return Some(tokio::spawn(async move {
         let interval = std::time::Duration::from_secs(interval);
@@ -74,14 +74,12 @@ fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTra
 }
 
 fn start_api_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
-    if config.get_http_api_config().is_some() {
+    if config.http_api.is_some() {
         info!("Starting API server..");
         return Some(tokio::spawn(async move {
-            let http_cfg = config.get_http_api_config().unwrap();
-            let bind_addr = http_cfg.get_address();
-            let tokens = http_cfg.get_access_tokens();
-
-            let server = webserver::build_server(tracker, tokens.clone());
+            let http_cfg = config.http_api.as_ref().unwrap();
+            let bind_addr = &http_cfg.bind_address;
+            let server = webserver::build_server(tracker);
             server.bind(bind_addr.parse::<std::net::SocketAddr>().unwrap()).await;
         }))
     }
@@ -90,12 +88,12 @@ fn start_api_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) ->
 }
 
 fn start_http_tracker_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
-    if config.get_http_tracker_config().is_some() {
+    if config.http_tracker.is_some() {
         let http_tracker = Arc::new(HttpServer::new(config.clone(), tracker));
 
         return Some(tokio::spawn(async move {
-            let http_tracker_config = config.get_http_tracker_config().unwrap();
-            let bind_addr = http_tracker_config.get_address().parse::<std::net::SocketAddrV4>().unwrap();
+            let http_tracker_config = config.http_tracker.as_ref().unwrap();
+            let bind_addr = http_tracker_config.bind_address.parse::<std::net::SocketAddrV4>().unwrap();
             println!("{}", bind_addr);
 
             // run with tls if ssl_enabled and cert and key path are set
@@ -132,7 +130,7 @@ async fn start_udp_tracker_server(config: Arc<Configuration>, tracker: Arc<Torre
 }
 
 fn setup_logging(cfg: &Configuration) {
-    let log_level = match cfg.get_log_level() {
+    let log_level = match &cfg.log_level {
         None => log::LevelFilter::Info,
         Some(level) => {
             match level.as_str() {

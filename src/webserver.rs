@@ -97,9 +97,7 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
         .untuple_one()
 }
 
-pub fn build_server(
-    tracker: Arc<TorrentTracker>, tokens: HashMap<String, String>,
-) -> Server<impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static> {
+pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static> {
     let root = filters::path::end().map(|| view_root());
 
     // GET /api/torrents?offset=:u32&limit=:u32
@@ -271,7 +269,7 @@ pub fn build_server(
                 .or(delete_key)
             );
 
-    let server = root.or(authenticate(tokens).and(api_routes));
+    let server = root.or(authenticate(tracker.config.http_api.as_ref().unwrap().access_tokens.clone()).and(api_routes));
 
     serve(server)
 }

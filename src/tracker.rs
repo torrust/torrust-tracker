@@ -249,8 +249,7 @@ pub enum TorrentError {
 pub struct TorrentTracker {
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     database: Arc<SqliteDatabase>,
-    config: Arc<Configuration>,
-    // todo: make private
+    pub config: Arc<Configuration>,
     pub key_manager: Arc<KeyManager>,
 }
 
@@ -267,7 +266,7 @@ impl TorrentTracker {
     }
 
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
-        match self.config.get_mode() {
+        match self.config.mode {
             TrackerMode::PublicMode => Ok(()),
             TrackerMode::ListedMode => {
                 if !self.is_info_hash_whitelisted(info_hash).await {
@@ -413,7 +412,7 @@ impl TorrentTracker {
                 }
             }
 
-            if self.config.get_mode().clone() == TrackerMode::PublicMode {
+            if self.config.mode.clone() == TrackerMode::PublicMode {
                 // peer-less torrents..
                 if torrent_entry.peers.len() == 0 {
                     torrents_to_remove.push(k.clone());

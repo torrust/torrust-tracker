@@ -11,25 +11,15 @@ use config::{ConfigError, Config, File};
 
 #[derive(Serialize, Deserialize)]
 pub struct UdpTrackerConfig {
-    bind_address: String,
-    announce_interval: u32,
-}
-
-impl UdpTrackerConfig {
-    pub fn get_address(&self) -> &str {
-        self.bind_address.as_str()
-    }
-
-    pub fn get_announce_interval(&self) -> u32 {
-        self.announce_interval
-    }
+    pub bind_address: String,
+    pub announce_interval: u32,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct HttpTrackerConfig {
-    bind_address: String,
-    announce_interval: u32,
-    ssl_enabled: bool,
+    pub bind_address: String,
+    pub announce_interval: u32,
+    pub ssl_enabled: bool,
     #[serde(serialize_with = "none_as_empty_string")]
     pub ssl_cert_path: Option<String>,
     #[serde(serialize_with = "none_as_empty_string")]
@@ -37,14 +27,6 @@ pub struct HttpTrackerConfig {
 }
 
 impl HttpTrackerConfig {
-    pub fn get_address(&self) -> &str {
-        self.bind_address.as_str()
-    }
-
-    pub fn get_announce_interval(&self) -> u32 {
-        self.announce_interval
-    }
-
     pub fn is_ssl_enabled(&self) -> bool {
         self.ssl_enabled && self.ssl_cert_path.is_some() && self.ssl_key_path.is_some()
     }
@@ -52,30 +34,20 @@ impl HttpTrackerConfig {
 
 #[derive(Serialize, Deserialize)]
 pub struct HttpApiConfig {
-    bind_address: String,
-    access_tokens: HashMap<String, String>,
-}
-
-impl HttpApiConfig {
-    pub fn get_address(&self) -> &str {
-        self.bind_address.as_str()
-    }
-
-    pub fn get_access_tokens(&self) -> &HashMap<String, String> {
-        &self.access_tokens
-    }
+    pub bind_address: String,
+    pub access_tokens: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Configuration {
-    log_level: Option<String>,
-    mode: TrackerMode,
-    db_path: String,
-    cleanup_interval: Option<u64>,
-    external_ip: Option<String>,
-    udp_tracker: UdpTrackerConfig,
-    http_tracker: Option<HttpTrackerConfig>,
-    http_api: Option<HttpApiConfig>,
+    pub log_level: Option<String>,
+    pub mode: TrackerMode,
+    pub db_path: String,
+    pub cleanup_interval: Option<u64>,
+    pub external_ip: Option<String>,
+    pub udp_tracker: UdpTrackerConfig,
+    pub http_tracker: Option<HttpTrackerConfig>,
+    pub http_api: Option<HttpApiConfig>,
 }
 
 #[derive(Debug)]
@@ -126,34 +98,6 @@ impl Configuration {
         }
     }
 
-    pub fn get_mode(&self) -> &TrackerMode {
-        &self.mode
-    }
-
-    pub fn get_log_level(&self) -> &Option<String> {
-        &self.log_level
-    }
-
-    pub fn get_udp_tracker_config(&self) -> &UdpTrackerConfig {
-        &self.udp_tracker
-    }
-
-    pub fn get_http_tracker_config(&self) -> Option<&HttpTrackerConfig> {
-        self.http_tracker.as_ref()
-    }
-
-    pub fn get_http_api_config(&self) -> Option<&HttpApiConfig> {
-        self.http_api.as_ref()
-    }
-
-    pub fn get_db_path(&self) -> &str {
-        &self.db_path
-    }
-
-    pub fn get_cleanup_interval(&self) -> Option<u64> {
-        self.cleanup_interval
-    }
-
     pub fn get_ext_ip(&self) -> Option<IpAddr> {
         match &self.external_ip {
             None => None,
@@ -188,7 +132,7 @@ impl Configuration {
             }),
             http_api: Option::from(HttpApiConfig {
                 bind_address: String::from("127.0.0.1:1212"),
-                access_tokens: [(String::from("someone"), String::from("MyAccessToken"))].iter().cloned().collect(),
+                access_tokens: [(String::from("admin"), String::from("MyAccessToken"))].iter().cloned().collect(),
             }),
         }
     }
@@ -218,17 +162,5 @@ impl Configuration {
         let toml_string = toml::to_string(self).expect("Could not encode TOML value");
         fs::write("config.toml", toml_string).expect("Could not write to file!");
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::Configuration;
-
-    #[test]
-    fn save_to_file() {
-        let config = Configuration::default();
-        let test = config.save_to_file();
-        assert!(test.is_ok());
     }
 }
