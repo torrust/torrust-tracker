@@ -1,11 +1,15 @@
 pub use crate::tracker::TrackerMode;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize, Serializer};
 use std;
 use std::collections::HashMap;
+use std::fs;
 use toml;
 use std::net::{IpAddr};
+use std::path::Path;
+use std::str::FromStr;
+use config::{ConfigError, Config, File};
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct UdpTrackerConfig {
     bind_address: String,
     announce_interval: u32,
@@ -21,12 +25,14 @@ impl UdpTrackerConfig {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct HttpTrackerConfig {
     bind_address: String,
     announce_interval: u32,
     ssl_enabled: bool,
+    #[serde(serialize_with = "none_as_empty_string")]
     pub ssl_cert_path: Option<String>,
+    #[serde(serialize_with = "none_as_empty_string")]
     pub ssl_key_path: Option<String>
 }
 
@@ -44,7 +50,7 @@ impl HttpTrackerConfig {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct HttpApiConfig {
     bind_address: String,
     access_tokens: HashMap<String, String>,
@@ -60,49 +66,61 @@ impl HttpApiConfig {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Configuration {
+    log_level: Option<String>,
     mode: TrackerMode,
+    db_path: String,
+    cleanup_interval: Option<u64>,
+    external_ip: Option<String>,
     udp_tracker: UdpTrackerConfig,
     http_tracker: Option<HttpTrackerConfig>,
     http_api: Option<HttpApiConfig>,
-    log_level: Option<String>,
-    db_path: Option<String>,
-    cleanup_interval: Option<u64>,
-    external_ip: IpAddr,
 }
 
 #[derive(Debug)]
-pub enum ConfigError {
+pub enum ConfigurationError {
     IOError(std::io::Error),
     ParseError(toml::de::Error),
 }
 
-impl std::fmt::Display for ConfigError {
+impl std::fmt::Display for ConfigurationError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            ConfigError::IOError(e) => e.fmt(formatter),
-            ConfigError::ParseError(e) => e.fmt(formatter),
+            ConfigurationError::IOError(e) => e.fmt(formatter),
+            ConfigurationError::ParseError(e) => e.fmt(formatter),
         }
     }
 }
-impl std::error::Error for ConfigError {}
+
+impl std::error::Error for ConfigurationError {}
+
+pub fn none_as_empty_string<T, S>(option: &Option<T>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        T: Serialize,
+        S: Serializer,
+{
+    if let Some(value) = option {
+        value.serialize(serializer)
+    } else {
+        "".serialize(serializer)
+    }
+}
 
 impl Configuration {
     pub fn load(data: &[u8]) -> Result<Configuration, toml::de::Error> {
         toml::from_slice(data)
     }
 
-    pub fn load_file(path: &str) -> Result<Configuration, ConfigError> {
+    pub fn load_file(path: &str) -> Result<Configuration, ConfigurationError> {
         match std::fs::read(path) {
-            Err(e) => Err(ConfigError::IOError(e)),
+            Err(e) => Err(ConfigurationError::IOError(e)),
             Ok(data) => {
                 match Self::load(data.as_slice()) {
                     Ok(cfg) => {
-                        eprintln!("Manually set external IP to: {}", cfg.get_ext_ip());
                         Ok(cfg)
                     },
-                    Err(e) => Err(ConfigError::ParseError(e)),
+                    Err(e) => Err(ConfigurationError::ParseError(e)),
                 }
             }
         }
@@ -128,7 +146,7 @@ impl Configuration {
         self.http_api.as_ref()
     }
 
-    pub fn get_db_path(&self) -> &Option<String> {
+    pub fn get_db_path(&self) -> &str {
         &self.db_path
     }
 
@@ -136,18 +154,27 @@ impl Configuration {
         self.cleanup_interval
     }
 
-    pub fn get_ext_ip(&self) -> IpAddr { self.external_ip }
+    pub fn get_ext_ip(&self) -> Option<IpAddr> {
+        match &self.external_ip {
+            None => None,
+            Some(external_ip) => {
+                match IpAddr::from_str(external_ip) {
+                    Ok(external_ip) => Some(external_ip),
+                    Err(_) => None
+                }
+            }
+        }
+    }
 }
 
 impl Configuration {
-    pub async fn default() -> Self {
-        let external_ip = external_ip::get_ip().await.unwrap();
-
-        eprintln!("external ip: {:?}", external_ip);
-
+    pub fn default() -> Configuration {
         Configuration {
-            log_level: Option::from(String::from("trace")),
+            log_level: Option::from(String::from("info")),
             mode: TrackerMode::PublicMode,
+            db_path: String::from("data.db"),
+            cleanup_interval: Some(600),
+            external_ip: Some(String::from("0.0.0.0")),
             udp_tracker: UdpTrackerConfig {
                 bind_address: String::from("0.0.0.0:6969"),
                 announce_interval: 120,
@@ -163,9 +190,45 @@ impl Configuration {
                 bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("someone"), String::from("MyAccessToken"))].iter().cloned().collect(),
             }),
-            db_path: None,
-            cleanup_interval: None,
-            external_ip,
         }
+    }
+
+    pub fn load_from_file() -> Result<Configuration, ConfigError> {
+        let mut config = Config::new();
+
+        const CONFIG_PATH: &str = "config.toml";
+
+        if Path::new(CONFIG_PATH).exists() {
+            config.merge(File::with_name(CONFIG_PATH))?;
+        } else {
+            eprintln!("No config file found.");
+            eprintln!("Creating config file..");
+            let config = Configuration::default();
+            let _ = config.save_to_file();
+            return Err(ConfigError::Message(format!("Please edit the config.TOML in the root folder and restart the tracker.")))
+        }
+
+        match config.try_into() {
+            Ok(data) => Ok(data),
+            Err(e) => Err(ConfigError::Message(format!("Errors while processing config: {}.", e))),
+        }
+    }
+
+    pub fn save_to_file(&self) -> Result<(), ()>{
+        let toml_string = toml::to_string(self).expect("Could not encode TOML value");
+        fs::write("config.toml", toml_string).expect("Could not write to file!");
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Configuration;
+
+    #[test]
+    fn save_to_file() {
+        let config = Configuration::default();
+        let test = config.save_to_file();
+        assert!(test.is_ok());
     }
 }

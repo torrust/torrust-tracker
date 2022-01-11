@@ -19,7 +19,6 @@ warp = {version = "0.3", features = ["tls"]}
 tokio = {version = "1.7", features = ["macros", "io-util", "net", "time", "rt-multi-thread", "fs", "sync", "signal"]}
 binascii = "0.1"
 toml = "0.5"
-clap = "2.33"
 log = {version = "0.4", features = ["release_max_level_info"]}
 fern = "0.6"
 chrono = "0.4"
@@ -29,3 +28,4 @@ r2d2_sqlite = "0.16.0"
 r2d2 = "0.8.8"
 rand = "0.8.4"
 env_logger = "0.9.0"
+config = "0.11"

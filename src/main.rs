@@ -1,4 +1,3 @@
-use clap;
 use fern;
 use log::{info, warn};
 use std::process::exit;
@@ -10,38 +9,17 @@ use torrust_tracker::http_server::HttpServer;
 
 #[tokio::main]
 async fn main() {
-    let parser = clap::App::new(env!("CARGO_PKG_NAME"))
-        .about(env!("CARGO_PKG_DESCRIPTION"))
-        .author(env!("CARGO_PKG_AUTHORS"))
-        .version(env!("CARGO_PKG_VERSION"))
-        .arg(
-            clap::Arg::with_name("config")
-                .takes_value(true)
-                .short("-c")
-                .help("Configuration file to load.")
-        );
-
-    let matches = parser.get_matches();
-
-    let config = match matches.value_of("config") {
-        Some(cfg_path) => {
-            match Configuration::load_file(cfg_path) {
-                Ok(v) => Arc::new(v),
-                Err(e) => {
-                    info!("udpt: failed to open configuration: {}", e);
-                    return;
-                }
-            }
-        },
-        None => {
-            info!("No TOML supplied. Loading default configuration.");
-            Arc::new(Configuration::default().await)
+    let config = match Configuration::load_from_file() {
+        Ok(config) => Arc::new(config),
+        Err(error) => {
+            eprintln!("{}", error);
+            exit(-1);
         }
     };
 
     setup_logging(&config);
 
-    let sqlite_database = match SqliteDatabase::new().await {
+    let sqlite_database = match SqliteDatabase::new(config.get_db_path()).await {
         Some(sqlite_database) => {
             info!("Verified database tables.");
             Arc::new(sqlite_database)

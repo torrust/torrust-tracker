@@ -12,12 +12,10 @@ pub struct SqliteDatabase {
 }
 
 impl SqliteDatabase {
-    pub async fn new() -> Option<SqliteDatabase> {
-
-        let sqlite_file = "database.db";
-        let sqlite_connection_manager = SqliteConnectionManager::file(sqlite_file);
+    pub async fn new(db_path: &str) -> Option<SqliteDatabase> {
+        let sqlite_connection_manager = SqliteConnectionManager::file(db_path);
         let sqlite_pool = r2d2::Pool::new(sqlite_connection_manager)
-            .expect("Failed to create r2d2 SQLite connection pool");
+            .expect("Failed to create r2d2 SQLite connection pool.");
         let pool_arc = Arc::new(sqlite_pool);
 
         match SqliteDatabase::create_database_tables(pool_arc.clone()) {
@@ -27,12 +25,10 @@ impl SqliteDatabase {
                 })
             }
             Err(_) => {
-                eprintln!("Could not create database table.");
+                eprintln!("Could not create database tables.");
                 None
             }
         }
-
-
     }
 
     pub fn create_database_tables(pool: Arc<Pool<SqliteConnectionManager>>) -> Result<usize, rusqlite::Error> {

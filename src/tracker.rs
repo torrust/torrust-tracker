@@ -17,7 +17,7 @@ use crate::http_server::HttpAnnounceRequest;
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
 const FIVE_MINUTES: std::time::Duration = std::time::Duration::from_secs(300);
 
-#[derive(Deserialize, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum TrackerMode {
     /// Will track every new info hash and serve every peer.
     #[serde(rename = "public")]
@@ -51,12 +51,17 @@ pub struct TorrentPeer {
 }
 
 impl TorrentPeer {
-    pub fn from_udp_announce_request(announce_request: &AnnounceRequest, remote_addr: SocketAddr, peer_addr: IpAddr) -> Self {
+    pub fn from_udp_announce_request(announce_request: &AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
         // Potentially substitute localhost IP with external IP
-        let peer_addr = if remote_addr.ip().is_loopback() {
-            SocketAddr::new(IpAddr::from(peer_addr), announce_request.port.0)
-        } else {
-            SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port.0)
+        let peer_addr = match peer_addr {
+            None => SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port.0),
+            Some(peer_addr) => {
+                if remote_addr.ip().is_loopback() {
+                    SocketAddr::new(IpAddr::from(peer_addr), announce_request.port.0)
+                } else {
+                    SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port.0)
+                }
+            }
         };
 
         TorrentPeer {
@@ -70,14 +75,18 @@ impl TorrentPeer {
         }
     }
 
-    pub fn from_http_announce_request(announce_request: &HttpAnnounceRequest, remote_addr: SocketAddr, peer_addr: IpAddr) -> Self {
+    pub fn from_http_announce_request(announce_request: &HttpAnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
         // Potentially substitute localhost IP with external IP
-        let peer_addr = if remote_addr.ip().is_loopback() {
-            SocketAddr::new(IpAddr::from(peer_addr), announce_request.port)
-        } else {
-            SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port)
+        let peer_addr = match peer_addr {
+            None => SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port),
+            Some(peer_addr) => {
+                if remote_addr.ip().is_loopback() {
+                    SocketAddr::new(IpAddr::from(peer_addr), announce_request.port)
+                } else {
+                    SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port)
+                }
+            }
         };
-
 
         let event: AnnounceEvent = if let Some(event) = &announce_request.event {
             match event.as_ref() {
