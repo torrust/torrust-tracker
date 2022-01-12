@@ -2,6 +2,9 @@ name: Build & Release
 
 # Only trigger, when the test workflow succeeded
 on:
+  push:
+    tags:
+      - 'v*.*.*'
   workflow_run:
     workflows: [ "Test" ]
     branches: [ main ]
