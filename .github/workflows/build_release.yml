@@ -1,4 +1,4 @@
-name: Build
+name: Build & Release
 
 # Only trigger, when the test workflow succeeded
 on:

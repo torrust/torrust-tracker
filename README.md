@@ -21,10 +21,9 @@ Torrust Tracker is a lightweight but incredibly powerful and feature-rich BitTor
 * [BEP 48](http://bittorrent.org/beps/bep_0048.html): Tracker Protocol Extension: Scrape
 
 ## Getting Started
-You can get the latetst binaries from [releases](https://github.com/torrust/torrust-tracker/releases) or follow the install instructions below.
+You can get the latest binaries from [releases](https://github.com/torrust/torrust-tracker/releases) or follow the install from scratch instructions below.
 
-### Install
-
+### Install From Scratch
 1. Clone the repo.
 ```bash
 git clone https://github.com/torrust/torrust-tracker.git
@@ -36,31 +35,24 @@ cd torrust-tracker
 cargo build --release
 ```
 
+3. Copy binaries: `torrust-tracker/target/torrust-tracker` to a new folder.
+
 ### Usage
-1. After building __Torrust Tracker__, navigate to the folder.
+1. Navigate to the folder you put the torrust-tracker binaries in.
+
+
+2. Run the torrust-tracker once to create the `config.toml` file:
 ```bash
-cd torrust-tracker/target
+./torrust-tracker
 ```
 
-2. Create a file called `configuration.toml` with the following contents and change the [configuration](https://torrust.com/torrust-tracker/CONFIG.html) according to your liking:
-```toml
-mode = "public"
-external_ip = "0.0.0.0" # set this to your external IP
 
-[udp]
-bind_address = "0.0.0.0:6969"
-announce_interval = 120 # Two minutes
+3. Edit the newly created config.toml file in the same folder as your torrust-tracker binaries according to your liking. See [configuration documentation](https://torrust.com/torrust-tracker/CONFIG.html).
 
-[http]
-bind_address = "127.0.0.1:1212"
 
-[http.access_tokens]
-someone = "MyAccessToken"
-```
-
-3. And run __Torrust Tracker__:
+4. Run the torrust-tracker again:
 ```bash
-./torrust-tracker -c configuration.toml
+./torrust-tracker
 ```
 
 ### Tracker URL
@@ -68,4 +60,4 @@ Your tracker will be `udp://tracker-ip:port` or `https://tracker-ip:port` depend
 In private mode, tracker keys are added after the tracker URL like: `https://tracker-ip:port/tracker-key`.
 
 ### Credits
-This project was a joint effort by [Nautilus Cyberneering GmbH](https://nautilus-cyberneering.de/) and [DUTCH BITS](https://dutchbits.nl).
+This project was a joint effort by [Nautilus Cyberneering GmbH](https://nautilus-cyberneering.de/) and [Dutch Bits](https://dutchbits.nl).
