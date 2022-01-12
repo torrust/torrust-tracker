@@ -47,7 +47,7 @@ cargo build --release
 ```
 
 
-3. Edit the newly created config.toml file in the same folder as your torrust-tracker binaries according to your liking. See [configuration documentation](https://torrust.com/torrust-tracker/CONFIG.html).
+3. Edit the newly created config.toml file in the same folder as your torrust-tracker binaries according to your liking. See [configuration documentation](https://torrust.com/torrust-tracker/config/).
 
 
 4. Run the torrust-tracker again:
