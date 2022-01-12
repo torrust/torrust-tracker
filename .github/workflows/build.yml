@@ -1,0 +1,29 @@
+name: Build
+
+# Only trigger, when the test workflow succeeded
+on:
+  workflow_run:
+    workflows: ["Test"]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v1
+      - name: Build torrust tracker
+        run: cargo build --release
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: torrust-tracker
+          path: ./target/release/torrust
