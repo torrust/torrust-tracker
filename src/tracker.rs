@@ -5,7 +5,7 @@ use tokio::sync::RwLock;
 use crate::common::{NumberOfBytes, InfoHash};
 use super::common::*;
 use std::net::{SocketAddr, IpAddr};
-use crate::{AnnounceRequest, Configuration};
+use crate::{AnnounceRequest, Configuration, key_manager};
 use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
@@ -247,22 +247,42 @@ pub enum TorrentError {
 }
 
 pub struct TorrentTracker {
-    torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
-    database: Arc<SqliteDatabase>,
     pub config: Arc<Configuration>,
-    pub key_manager: Arc<KeyManager>,
+    torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
+    database: SqliteDatabase,
+    key_manager: KeyManager,
 }
 
 impl TorrentTracker {
-    pub fn new(config: Arc<Configuration>, database: Arc<SqliteDatabase>) -> TorrentTracker {
-        let key_manager = Arc::new(KeyManager::new(database.clone()));
+    pub fn new(config: Arc<Configuration>) -> TorrentTracker {
+        let database = SqliteDatabase::new(&config.db_path).unwrap_or_else(|error| {
+            panic!("Could not create SQLite database. Reason: {}", error)
+        });
 
         TorrentTracker {
+            config,
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             database,
-            config,
-            key_manager,
+            key_manager: KeyManager {}
         }
+    }
+
+    pub async fn generate_auth_key(&self, seconds_valid: u64) -> Result<AuthKey, rusqlite::Error> {
+        let auth_key = self.key_manager.generate_auth_key(seconds_valid);
+
+        // add key to database
+        if let Err(error) = self.database.add_key_to_keys(&auth_key).await { return Err(error) }
+
+        Ok(auth_key)
+    }
+
+    pub async fn remove_auth_key(&self, key: String) -> Result<usize, rusqlite::Error> {
+        self.database.remove_key_from_keys(key).await
+    }
+
+    pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> Result<(), key_manager::Error> {
+        let db_key = self.database.get_key_from_keys(&auth_key.key).await?;
+        self.key_manager.verify_auth_key(&db_key).await
     }
 
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
@@ -278,7 +298,7 @@ impl TorrentTracker {
             TrackerMode::PrivateMode => {
                 match key {
                     Some(key) => {
-                        if !self.key_manager.verify_auth_key(key).await {
+                        if self.key_manager.verify_auth_key(key).await.is_err() {
                             return Err(TorrentError::PeerKeyNotValid)
                         }
 
@@ -292,7 +312,7 @@ impl TorrentTracker {
             TrackerMode::PrivateListedMode => {
                 match key {
                     Some(key) => {
-                        if !self.key_manager.verify_auth_key(key).await {
+                        if self.key_manager.verify_auth_key(key).await.is_err() {
                             return Err(TorrentError::PeerKeyNotValid)
                         }
 
@@ -311,19 +331,13 @@ impl TorrentTracker {
     }
 
     /// Adding torrents is not relevant to public trackers.
-    pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), ()>{
-        match self.database.add_info_hash_to_whitelist(info_hash.clone()).await {
-            Ok(..) => Ok(()),
-            Err(..) => Err(())
-        }
+    pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<usize, rusqlite::Error> {
+        self.database.add_info_hash_to_whitelist(info_hash.clone()).await
     }
 
     /// Removing torrents is not relevant to public trackers.
-    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), rusqlite::Error> {
-        match self.database.remove_info_hash_from_whitelist(info_hash.clone()).await {
-            Ok(..) => Ok(()),
-            Err(e) => Err(e)
-        }
+    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<usize, rusqlite::Error> {
+        self.database.remove_info_hash_from_whitelist(info_hash.clone()).await
     }
 
     pub async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> bool {
@@ -378,7 +392,7 @@ impl TorrentTracker {
         }
     }
 
-    pub async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, BTreeMap<InfoHash, TorrentEntry>> {
+    pub async fn get_torrents(&self) -> tokio::sync::RwLockReadGuard<'_, BTreeMap<InfoHash, TorrentEntry>> {
         self.torrents.read().await
     }
 

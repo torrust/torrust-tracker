@@ -1,8 +1,7 @@
 use fern;
-use log::{info, warn};
+use log::{info};
 use std::process::exit;
-use torrust_tracker::{webserver, Configuration, TorrentTracker, UDPServer};
-use torrust_tracker::database::SqliteDatabase;
+use torrust_tracker::{webserver, Configuration, TorrentTracker, UDPServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig};
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use torrust_tracker::http_server::HttpServer;
@@ -12,44 +11,39 @@ async fn main() {
     let config = match Configuration::load_from_file() {
         Ok(config) => Arc::new(config),
         Err(error) => {
-            eprintln!("{}", error);
-            exit(-1);
+            panic!("{}", error)
         }
     };
 
     setup_logging(&config);
 
-    let sqlite_database = match SqliteDatabase::new(&config.db_path).await {
-        Some(sqlite_database) => {
-            info!("Verified database tables.");
-            Arc::new(sqlite_database)
-        }
-        None => {
-            eprintln!("Exiting..");
-            exit(-1);
-        }
-    };
-
     // the singleton torrent tracker that gets passed to the HTTP and UDP server
-    let tracker = Arc::new(TorrentTracker::new(config.clone(), sqlite_database.clone()));
+    let tracker = Arc::new(TorrentTracker::new(config.clone()));
 
     // start torrent cleanup job (periodically removes old peers)
     let _torrent_cleanup_job = start_torrent_cleanup_job(config.clone(), tracker.clone()).unwrap();
 
     // start HTTP API server
-    let _api_server = start_api_server(config.clone(), tracker.clone());
+    if let Some(http_api_config) = &config.http_api {
+        let _api_server = start_api_server(&http_api_config, tracker.clone());
+    };
 
-    // start HTTP Tracker server
-    let _http_server = start_http_tracker_server(config.clone(), tracker.clone());
-
-    // start UDP Tracker server
-    let udp_server = start_udp_tracker_server(config.clone(), tracker.clone()).await.unwrap();
+    // check which tracker to run, UDP (Default) or HTTP
+    let _tracker_server = if let Some(http_config) = &config.http_tracker {
+        if http_config.enabled {
+            start_http_tracker_server(http_config, tracker.clone())
+        } else {
+            start_udp_tracker_server(&config.udp_tracker, tracker.clone()).await
+        }
+    } else {
+        start_udp_tracker_server(&config.udp_tracker, tracker.clone()).await
+    };
 
     let ctrl_c = tokio::signal::ctrl_c();
 
     tokio::select! {
-        _ = udp_server => { warn!("UDP Tracker server exited.") },
-        _ = ctrl_c => { info!("T3 shutting down..") }
+        _ = _tracker_server => { panic!("Tracker server exited.") },
+        _ = ctrl_c => { info!("Torrust shutting down..") }
     }
 }
 
@@ -73,60 +67,52 @@ fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTra
     }))
 }
 
-fn start_api_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
-    if config.http_api.is_some() {
-        info!("Starting API server..");
-        return Some(tokio::spawn(async move {
-            let http_cfg = config.http_api.as_ref().unwrap();
-            let bind_addr = &http_cfg.bind_address;
-            let server = webserver::build_server(tracker);
-            server.bind(bind_addr.parse::<std::net::SocketAddr>().unwrap()).await;
-        }))
-    }
+fn start_api_server(config: &HttpApiConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
+    info!("Starting HTTP API server on: {}", config.bind_address);
+    let bind_addr = config.bind_address.parse::<std::net::SocketAddr>().unwrap();
 
-    None
+    tokio::spawn(async move {
+        let server = webserver::build_server(tracker);
+        server.bind(bind_addr).await;
+    })
 }
 
-fn start_http_tracker_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
-    if config.http_tracker.is_some() {
-        let http_tracker = Arc::new(HttpServer::new(config.clone(), tracker));
+fn start_http_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
+    info!("Starting HTTP server on: {}", config.bind_address);
+    let http_tracker = Arc::new(HttpServer::new(tracker));
+    let bind_addr = config.bind_address.parse::<std::net::SocketAddrV4>().unwrap();
+    let ssl_enabled = config.ssl_enabled;
+    let ssl_cert_path = config.ssl_cert_path.clone();
+    let ssl_key_path = config.ssl_key_path.clone();
 
-        return Some(tokio::spawn(async move {
-            let http_tracker_config = config.http_tracker.as_ref().unwrap();
-            let bind_addr = http_tracker_config.bind_address.parse::<std::net::SocketAddrV4>().unwrap();
-            println!("{}", bind_addr);
-
-            // run with tls if ssl_enabled and cert and key path are set
-            if http_tracker_config.is_ssl_enabled() {
-                info!("Starting HTTP tracker server in TLS mode..");
-                warp::serve(HttpServer::routes(http_tracker))
-                    .tls()
-                    .cert_path(&http_tracker_config.ssl_cert_path.as_ref().unwrap())
-                    .key_path(&http_tracker_config.ssl_key_path.as_ref().unwrap())
-                    .run(bind_addr).await;
-            } else {
-                info!("Starting HTTP tracker server..");
-                warp::serve(HttpServer::routes(http_tracker))
-                    .run(bind_addr).await;
-            }
-
-        }))
-    }
-
-    None
+    tokio::spawn(async move {
+        // run with tls if ssl_enabled and cert and key path are set
+        if ssl_enabled {
+            info!("SSL enabled.");
+            warp::serve(HttpServer::routes(http_tracker))
+                .tls()
+                .cert_path(ssl_cert_path.as_ref().unwrap())
+                .key_path(ssl_key_path.as_ref().unwrap())
+                .run(bind_addr).await;
+        } else {
+            warp::serve(HttpServer::routes(http_tracker))
+                .run(bind_addr).await;
+        }
+    })
 }
 
-async fn start_udp_tracker_server(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
-    let udp_server = UDPServer::new(config, tracker)
-        .await
-        .expect("failed to bind udp socket");
+async fn start_udp_tracker_server(config: &UdpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
+    info!("Starting UDP server on: {}", config.bind_address);
+    let udp_server = UDPServer::new(tracker).await.unwrap_or_else(|e| {
+        panic!("Could not start UDP server: {}", e);
+    });
 
     info!("Starting UDP tracker server..");
-    Some(tokio::spawn(async move {
-        if let Err(err) = udp_server.accept_packets().await {
-            eprintln!("error: {}", err);
+    tokio::spawn(async move {
+        if let Err(e) = udp_server.accept_packets().await {
+            panic!("Could not start UDP server: {}", e);
         }
-    }))
+    })
 }
 
 fn setup_logging(cfg: &Configuration) {
