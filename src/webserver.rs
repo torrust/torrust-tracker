@@ -6,40 +6,6 @@ use std::sync::Arc;
 use warp::{filters, reply, reply::Reply, serve, Filter, Server};
 use super::common::*;
 
-fn view_root() -> impl Reply {
-    warp::http::Response::builder()
-        .header("Content-Type", "text/html; charset=utf-8")
-        .header("Server", concat!("udpt/", env!("CARGO_PKG_VERSION"), "; https://abda.nl/"))
-        .body(concat!(r#"<html>
-            <head>
-                <title>udpt server</title>
-                <style>
-                body {
-                    background-color: #222;
-                    color: #eee;
-                    margin-left: auto;
-                    margin-right: auto;
-                    margin-top: 20%;
-                    max-width: 750px;
-                }
-                a, a:active, a:visited {
-                    color: lightpink;
-                }
-                </style>
-            </head>
-            <body>
-                <p>
-                    This server is running <a style="font-weight: bold; font-size: large" href="https://github.com/torrust/torrust-torrent-tracker"><code>Torrust</code></a>, a <a href="https://en.wikipedia.org/wiki/BitTorrent_tracker" rel="nofollow" target="_blank">BitTorrent tracker</a> based on the <a href="https://en.wikipedia.org/wiki/User_Datagram_Protocol" rel="nofollow" target="_blank">UDP</a> protocol.
-                </p>
-                <div style="color: grey; font-size: small; border-top: 1px solid grey; width: 75%; max-width: 300px; margin-left: auto; margin-right: auto; text-align: center; padding-top: 5px">
-                    torrust-tracker/"#, env!("CARGO_PKG_VERSION"), r#"<br />
-                    <a href="https://github.com/torrust/torrust-torrent-tracker/wiki">wiki</a> &middot; <a href="https://github.com/torrust/torrust-torrent-tracker/issues">issues &amp; PRs</a> &middot; developed by <a href="https://dutchbits.nl">DutchBits</a>
-                    </div>
-            </body>
-        </html>"#))
-        .unwrap()
-}
-
 #[derive(Deserialize, Debug)]
 struct TorrentInfoQuery {
     offset: Option<u32>,
@@ -98,8 +64,6 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
 }
 
 pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static> {
-    let root = filters::path::end().map(|| view_root());
-
     // GET /api/torrents?offset=:u32&limit=:u32
     // View torrent list
     let t1 = tracker.clone();
@@ -232,7 +196,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
         })
         .and_then(|(seconds_valid, tracker): (u64, Arc<TorrentTracker>)| {
             async move {
-                match tracker.key_manager.generate_auth_key(seconds_valid).await {
+                match tracker.generate_auth_key(seconds_valid).await {
                     Ok(auth_key) => Ok(warp::reply::json(&auth_key)),
                     Err(..) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to generate key".into() }))
                 }
@@ -252,7 +216,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
         })
         .and_then(|(key, tracker): (String, Arc<TorrentTracker>)| {
             async move {
-                match tracker.key_manager.remove_auth_key(key).await {
+                match tracker.remove_auth_key(key).await {
                     Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                     Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to delete key".into() }))
                 }
@@ -269,7 +233,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                 .or(delete_key)
             );
 
-    let server = root.or(authenticate(tracker.config.http_api.as_ref().unwrap().access_tokens.clone()).and(api_routes));
+    let server = api_routes.and(authenticate(tracker.config.http_api.as_ref().unwrap().access_tokens.clone()));
 
     serve(server)
 }

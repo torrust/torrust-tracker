@@ -5,7 +5,6 @@ use std::sync::Arc;
 use std::io::{Cursor};
 use tokio::net::UdpSocket;
 
-use crate::config::Configuration;
 use super::common::*;
 use crate::response::*;
 use crate::request::{Request, ConnectRequest, AnnounceRequest, ScrapeRequest};
@@ -16,23 +15,20 @@ use crate::{TorrentPeer, TrackerMode, TorrentError};
 pub struct UDPServer {
     socket: UdpSocket,
     tracker: Arc<TorrentTracker>,
-    config: Arc<Configuration>,
 }
 
 impl UDPServer {
-    pub async fn new(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Result<UDPServer, std::io::Error> {
-        let cfg = config.clone();
-        let srv = UdpSocket::bind(&cfg.udp_tracker.bind_address).await?;
+    pub async fn new(tracker: Arc<TorrentTracker>) -> Result<UDPServer, std::io::Error> {
+        let srv = UdpSocket::bind(&tracker.config.udp_tracker.bind_address).await?;
 
         Ok(UDPServer {
             socket: srv,
             tracker,
-            config: cfg,
         })
     }
 
     pub async fn authenticate_announce_request(&self, announce_request: &AnnounceRequest) -> Result<(), TorrentError> {
-        match self.config.mode {
+        match self.tracker.config.mode {
             TrackerMode::PublicMode => Ok(()),
             TrackerMode::ListedMode => {
                 if !self.tracker.is_info_hash_whitelisted(&announce_request.info_hash).await {
@@ -44,7 +40,7 @@ impl UDPServer {
             TrackerMode::PrivateMode => {
                 match &announce_request.auth_key {
                     Some(auth_key) => {
-                        if !self.tracker.key_manager.verify_auth_key(auth_key).await {
+                        if self.tracker.verify_auth_key(auth_key).await.is_err() {
                             return Err(TorrentError::PeerKeyNotValid)
                         }
 
@@ -58,7 +54,7 @@ impl UDPServer {
             TrackerMode::PrivateListedMode => {
                 match &announce_request.auth_key {
                     Some(auth_key) => {
-                        if !self.tracker.key_manager.verify_auth_key(auth_key).await {
+                        if self.tracker.verify_auth_key(auth_key).await.is_err() {
                             return Err(TorrentError::PeerKeyNotValid)
                         }
 
@@ -144,7 +140,7 @@ impl UDPServer {
     }
 
     async fn handle_announce(&self, remote_addr: SocketAddr, request: AnnounceRequest) {
-        let peer = TorrentPeer::from_udp_announce_request(&request, remote_addr, self.config.get_ext_ip());
+        let peer = TorrentPeer::from_udp_announce_request(&request, remote_addr, self.tracker.config.get_ext_ip());
 
         match self.tracker.update_torrent_with_peer_and_get_stats(&request.info_hash, &peer).await {
             Ok(torrent_stats) => {
@@ -160,7 +156,7 @@ impl UDPServer {
                 let response = UDPResponse::from(UDPAnnounceResponse {
                     action: Actions::Announce,
                     transaction_id: request.transaction_id,
-                    interval: self.config.udp_tracker.announce_interval,
+                    interval: self.tracker.config.udp_tracker.announce_interval,
                     leechers: torrent_stats.leechers,
                     seeders: torrent_stats.seeders,
                     peers,

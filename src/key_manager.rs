@@ -1,11 +1,10 @@
 use super::common::AUTH_KEY_LENGTH;
 use crate::utils::current_time;
-use crate::database::SqliteDatabase;
-use std::sync::Arc;
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
 use serde::Serialize;
 use log::debug;
+use derive_more::{Display, Error};
 
 #[derive(Serialize, Debug, Eq, PartialEq, Clone)]
 pub struct AuthKey {
@@ -31,18 +30,26 @@ impl AuthKey {
     }
 }
 
-pub struct KeyManager {
-    database: Arc<SqliteDatabase>,
+#[derive(Debug, Display, PartialEq, Error)]
+#[allow(dead_code)]
+pub enum Error {
+    #[display(fmt = "Key is invalid.")]
+    KeyVerificationError,
+    #[display(fmt = "Key has expired.")]
+    KeyExpired
 }
 
-impl KeyManager {
-    pub fn new(database: Arc<SqliteDatabase>) -> KeyManager {
-        KeyManager {
-            database
-        }
+impl From<r2d2_sqlite::rusqlite::Error> for Error {
+    fn from(e: r2d2_sqlite::rusqlite::Error) -> Self {
+        eprintln!("{}", e);
+        Error::KeyVerificationError
     }
+}
 
-    pub async fn generate_auth_key(&self, seconds_valid: u64) -> Result<AuthKey, ()> {
+pub struct KeyManager;
+
+impl KeyManager {
+    pub fn generate_auth_key(&self, seconds_valid: u64) -> AuthKey {
         let key: String = thread_rng()
             .sample_iter(&Alphanumeric)
             .take(AUTH_KEY_LENGTH)
@@ -51,40 +58,17 @@ impl KeyManager {
 
         debug!("Generated key: {}, valid for: {} seconds", key, seconds_valid);
 
-        let auth_key = AuthKey {
-            key: key.clone(),
+        AuthKey {
+            key,
             valid_until: Some(current_time() + seconds_valid),
-        };
-
-        // add key to database
-        match self.database.add_key_to_keys(auth_key.clone()).await {
-            Ok(_) => Ok(auth_key),
-            Err(_) => Err(())
         }
     }
 
-    pub async fn remove_auth_key(&self, key: String) -> Result<(), ()> {
-        match self.database.remove_key_from_keys(key).await {
-            Ok(_) => Ok(()),
-            Err(_) => Err(())
-        }
-    }
-
-    pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> bool {
+    pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> Result<(), Error> {
         let current_time = current_time();
+        if auth_key.valid_until.is_none() { return Err(Error::KeyVerificationError) }
+        if &auth_key.valid_until.unwrap() < &current_time { return Err(Error::KeyExpired) }
 
-        match self.database.get_key_from_keys(auth_key.key.to_string()).await {
-            Ok(auth_key) => {
-                match auth_key.valid_until {
-                    // should not be possible, valid_until is required
-                    None => false,
-                    Some(valid_until) => valid_until > current_time
-                }
-            }
-            Err(e) => {
-                debug!{"{:?}", e}
-                false
-            }
-        }
+        Ok(())
     }
 }

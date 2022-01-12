@@ -1,6 +1,5 @@
 use crate::{InfoHash, AUTH_KEY_LENGTH};
 use log::debug;
-use std::sync::Arc;
 use r2d2_sqlite::{SqliteConnectionManager, rusqlite};
 use r2d2::{Pool};
 use r2d2_sqlite::rusqlite::NO_PARAMS;
@@ -8,30 +7,25 @@ use crate::key_manager::AuthKey;
 use std::str::FromStr;
 
 pub struct SqliteDatabase {
-    pool: Arc<Pool<SqliteConnectionManager>>
+    pool: Pool<SqliteConnectionManager>
 }
 
 impl SqliteDatabase {
-    pub async fn new(db_path: &str) -> Option<SqliteDatabase> {
+    pub fn new(db_path: &str) -> Result<SqliteDatabase, rusqlite::Error> {
         let sqlite_connection_manager = SqliteConnectionManager::file(db_path);
-        let sqlite_pool = r2d2::Pool::new(sqlite_connection_manager)
-            .expect("Failed to create r2d2 SQLite connection pool.");
-        let pool_arc = Arc::new(sqlite_pool);
+        let sqlite_pool = r2d2::Pool::new(sqlite_connection_manager).expect("Failed to create r2d2 SQLite connection pool.");
+        let sqlite_database = SqliteDatabase {
+            pool: sqlite_pool
+        };
 
-        match SqliteDatabase::create_database_tables(pool_arc.clone()) {
-            Ok(_) => {
-                Some(SqliteDatabase {
-                    pool: pool_arc.clone()
-                })
-            }
-            Err(_) => {
-                eprintln!("Could not create database tables.");
-                None
-            }
-        }
+        if let Err(error) = SqliteDatabase::create_database_tables(&sqlite_database.pool) {
+            return Err(error)
+        };
+
+        Ok(sqlite_database)
     }
 
-    pub fn create_database_tables(pool: Arc<Pool<SqliteConnectionManager>>) -> Result<usize, rusqlite::Error> {
+    pub fn create_database_tables(pool: &Pool<SqliteConnectionManager>) -> Result<usize, rusqlite::Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
             id integer PRIMARY KEY AUTOINCREMENT,
@@ -106,10 +100,10 @@ impl SqliteDatabase {
         }
     }
 
-    pub async fn get_key_from_keys(&self, key: String) -> Result<AuthKey, rusqlite::Error> {
+    pub async fn get_key_from_keys(&self, key: &str) -> Result<AuthKey, rusqlite::Error> {
         let conn = self.pool.get().unwrap();
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys WHERE key = ?")?;
-        let mut rows = stmt.query(&[key])?;
+        let mut rows = stmt.query(&[key.to_string()])?;
 
         if let Some(row) = rows.next()? {
             let key: String = row.get(0).unwrap();
@@ -124,10 +118,10 @@ impl SqliteDatabase {
         }
     }
 
-    pub async fn add_key_to_keys(&self, auth_key: AuthKey) -> Result<usize, rusqlite::Error> {
+    pub async fn add_key_to_keys(&self, auth_key: &AuthKey) -> Result<usize, rusqlite::Error> {
         let conn = self.pool.get().unwrap();
         match conn.execute("INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
-                           &[auth_key.key, auth_key.valid_until.unwrap().to_string()]
+                           &[auth_key.key.to_string(), auth_key.valid_until.unwrap().to_string()]
         ) {
             Ok(updated) => {
                 if updated > 0 { return Ok(updated) }

@@ -10,7 +10,7 @@ use std::str::FromStr;
 use log::{debug};
 use warp::{filters, reply::Reply, Filter};
 use warp::http::Response;
-use crate::{Configuration, TorrentError, TorrentPeer, TorrentStats};
+use crate::{TorrentError, TorrentPeer, TorrentStats};
 use crate::key_manager::AuthKey;
 use crate::utils::url_encode_bytes;
 use super::common::*;
@@ -133,14 +133,12 @@ impl warp::Reply for HttpErrorResponse {
 
 #[derive(Clone)]
 pub struct HttpServer {
-    pub config: Arc<Configuration>,
-    pub tracker: Arc<TorrentTracker>,
+    tracker: Arc<TorrentTracker>,
 }
 
 impl HttpServer {
-    pub fn new(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> HttpServer {
+    pub fn new(tracker: Arc<TorrentTracker>) -> HttpServer {
         HttpServer {
-            config,
             tracker
         }
     }
@@ -312,7 +310,7 @@ impl HttpServer {
             }
         };
 
-        let peer = TorrentPeer::from_http_announce_request(&query, remote_addr, self.config.get_ext_ip());
+        let peer = TorrentPeer::from_http_announce_request(&query, remote_addr, self.tracker.config.get_ext_ip());
 
         match self.tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await {
             Err(e) => {
@@ -329,7 +327,7 @@ impl HttpServer {
 
                 // todo: add http announce interval config option
                 // success response
-                let announce_interval = self.config.http_tracker.as_ref().unwrap().announce_interval;
+                let announce_interval = self.tracker.config.http_tracker.as_ref().unwrap().announce_interval;
                 HttpServer::send_announce_response(&query, torrent_stats, peers.unwrap(), announce_interval)
             }
         }

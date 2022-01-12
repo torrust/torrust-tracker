@@ -17,6 +17,7 @@ pub struct UdpTrackerConfig {
 
 #[derive(Serialize, Deserialize)]
 pub struct HttpTrackerConfig {
+    pub enabled: bool,
     pub bind_address: String,
     pub announce_interval: u32,
     pub ssl_enabled: bool,
@@ -34,6 +35,7 @@ impl HttpTrackerConfig {
 
 #[derive(Serialize, Deserialize)]
 pub struct HttpApiConfig {
+    pub enabled: bool,
     pub bind_address: String,
     pub access_tokens: HashMap<String, String>,
 }
@@ -124,6 +126,7 @@ impl Configuration {
                 announce_interval: 120,
             },
             http_tracker: Option::from(HttpTrackerConfig {
+                enabled: false,
                 bind_address: String::from("0.0.0.0:7878"),
                 announce_interval: 120,
                 ssl_enabled: false,
@@ -131,6 +134,7 @@ impl Configuration {
                 ssl_key_path: None
             }),
             http_api: Option::from(HttpApiConfig {
+                enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))].iter().cloned().collect(),
             }),
