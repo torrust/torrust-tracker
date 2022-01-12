@@ -9,6 +9,7 @@ pub mod utils;
 pub mod database;
 pub mod key_manager;
 pub mod http_server;
+pub mod logging;
 
 pub use self::config::*;
 pub use self::udp_server::*;

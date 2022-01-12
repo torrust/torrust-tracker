@@ -1,7 +1,5 @@
-use fern;
 use log::{info};
-use std::process::exit;
-use torrust_tracker::{webserver, Configuration, TorrentTracker, UDPServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig};
+use torrust_tracker::{webserver, Configuration, TorrentTracker, UDPServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig, logging};
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use torrust_tracker::http_server::HttpServer;
@@ -15,7 +13,7 @@ async fn main() {
         }
     };
 
-    setup_logging(&config);
+    logging::setup_logging(&config);
 
     // the singleton torrent tracker that gets passed to the HTTP and UDP server
     let tracker = Arc::new(TorrentTracker::new(config.clone()));
@@ -113,43 +111,4 @@ async fn start_udp_tracker_server(config: &UdpTrackerConfig, tracker: Arc<Torren
             panic!("Could not start UDP server: {}", e);
         }
     })
-}
-
-fn setup_logging(cfg: &Configuration) {
-    let log_level = match &cfg.log_level {
-        None => log::LevelFilter::Info,
-        Some(level) => {
-            match level.as_str() {
-                "off" => log::LevelFilter::Off,
-                "trace" => log::LevelFilter::Trace,
-                "debug" => log::LevelFilter::Debug,
-                "info" => log::LevelFilter::Info,
-                "warn" => log::LevelFilter::Warn,
-                "error" => log::LevelFilter::Error,
-                _ => {
-                    eprintln!("T3: unknown log level encountered '{}'", level.as_str());
-                    exit(-1);
-                }
-            }
-        }
-    };
-
-    if let Err(err) = fern::Dispatch::new()
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "{} [{}][{}] {}",
-                chrono::Local::now().format("%+"),
-                record.target(),
-                record.level(),
-                message
-            ))
-        })
-        .level(log_level)
-        .chain(std::io::stdout())
-        .apply()
-    {
-        eprintln!("T3: failed to initialize logging. {}", err);
-        std::process::exit(-1);
-    }
-    info!("logging initialized.");
 }
