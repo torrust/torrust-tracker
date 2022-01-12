@@ -5,14 +5,12 @@ on:
   workflow_run:
     workflows: [ "Test" ]
     branches: [ main ]
-    push:
-      tags:
-        - "v*.*.*"
     types:
       - completed
 
 jobs:
   build:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: always
