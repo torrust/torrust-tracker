@@ -23,7 +23,9 @@ async fn main() {
 
     // start HTTP API server
     if let Some(http_api_config) = &config.http_api {
-        let _api_server = start_api_server(&http_api_config, tracker.clone());
+        if http_api_config.enabled {
+            let _api_server = start_api_server(&http_api_config, tracker.clone());
+        }
     };
 
     // check which tracker to run, UDP (Default) or HTTP
