@@ -1,6 +1,6 @@
 [package]
 name = "torrust-tracker"
-version = "1.0.0"
+version = "2.0.0"
 authors = ["Mick van Dijke <mick@dutchbits.nl>", "Naim A. <naim@abda.nl>"]
 description = "A feature rich UDP based BitTorrent tracker."
 edition = "2018"

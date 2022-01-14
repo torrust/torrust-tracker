@@ -7,22 +7,22 @@ use std::io;
 use crate::TorrentPeer;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub enum UDPResponse {
-    Connect(UDPConnectionResponse),
-    Announce(UDPAnnounceResponse),
-    Scrape(UDPScrapeResponse),
-    Error(UDPErrorResponse),
+pub enum UdpResponse {
+    Connect(UdpConnectionResponse),
+    Announce(UdpAnnounceResponse),
+    Scrape(UdpScrapeResponse),
+    Error(UdpErrorResponse),
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub struct UDPConnectionResponse {
+pub struct UdpConnectionResponse {
     pub action: Actions,
     pub transaction_id: TransactionId,
     pub connection_id: ConnectionId,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub struct UDPAnnounceResponse {
+pub struct UdpAnnounceResponse {
     pub action: Actions,
     pub transaction_id: TransactionId,
     pub interval: u32,
@@ -32,59 +32,59 @@ pub struct UDPAnnounceResponse {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub struct UDPScrapeResponse {
+pub struct UdpScrapeResponse {
     pub action: Actions,
     pub transaction_id: TransactionId,
-    pub torrent_stats: Vec<UDPScrapeResponseEntry>,
+    pub torrent_stats: Vec<UdpScrapeResponseEntry>,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub struct UDPScrapeResponseEntry {
+pub struct UdpScrapeResponseEntry {
     pub seeders: i32,
     pub completed: i32,
     pub leechers: i32,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
-pub struct UDPErrorResponse {
+pub struct UdpErrorResponse {
     pub action: Actions,
     pub transaction_id: TransactionId,
     pub message: String,
 }
 
-impl From<UDPConnectionResponse> for UDPResponse {
-    fn from(r: UDPConnectionResponse) -> Self {
+impl From<UdpConnectionResponse> for UdpResponse {
+    fn from(r: UdpConnectionResponse) -> Self {
         Self::Connect(r)
     }
 }
 
-impl From<UDPAnnounceResponse> for UDPResponse {
-    fn from(r: UDPAnnounceResponse) -> Self {
+impl From<UdpAnnounceResponse> for UdpResponse {
+    fn from(r: UdpAnnounceResponse) -> Self {
         Self::Announce(r)
     }
 }
 
-impl From<UDPScrapeResponse> for UDPResponse {
-    fn from(r: UDPScrapeResponse) -> Self {
+impl From<UdpScrapeResponse> for UdpResponse {
+    fn from(r: UdpScrapeResponse) -> Self {
         Self::Scrape(r)
     }
 }
 
-impl From<UDPErrorResponse> for UDPResponse {
-    fn from(r: UDPErrorResponse) -> Self {
+impl From<UdpErrorResponse> for UdpResponse {
+    fn from(r: UdpErrorResponse) -> Self {
         Self::Error(r)
     }
 }
 
-impl UDPResponse {
+impl UdpResponse {
     pub fn write_to_bytes(self, bytes: &mut impl Write) -> Result<(), io::Error> {
         match self {
-            UDPResponse::Connect(r) => {
+            UdpResponse::Connect(r) => {
                 bytes.write_i32::<NetworkEndian>(0)?; // 0 = connect
                 bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
                 bytes.write_i64::<NetworkEndian>(r.connection_id.0)?;
             },
-            UDPResponse::Announce(r) => {
+            UdpResponse::Announce(r) => {
                 bytes.write_i32::<NetworkEndian>(1)?; // 1 = announce
                 bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
                 bytes.write_u32::<NetworkEndian>(r.interval)?;
@@ -104,7 +104,7 @@ impl UDPResponse {
                     }
                 }
             },
-            UDPResponse::Scrape(r) => {
+            UdpResponse::Scrape(r) => {
                 bytes.write_i32::<NetworkEndian>(2)?; // 2 = scrape
                 bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
 
@@ -114,7 +114,7 @@ impl UDPResponse {
                     bytes.write_i32::<NetworkEndian>(torrent_stat.leechers)?;
                 }
             },
-            UDPResponse::Error(r) => {
+            UdpResponse::Error(r) => {
                 bytes.write_i32::<NetworkEndian>(3)?;
                 bytes.write_i32::<NetworkEndian>(r.transaction_id.0)?;
                 bytes.write_all(r.message.as_bytes())?;

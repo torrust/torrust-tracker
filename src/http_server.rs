@@ -16,7 +16,7 @@ use crate::utils::url_encode_bytes;
 use super::common::*;
 
 #[derive(Deserialize, Debug)]
-pub struct HttpAnnounceRequest {
+pub struct AnnounceRequest {
     pub downloaded: NumberOfBytes,
     pub uploaded: NumberOfBytes,
     pub key: String,
@@ -28,34 +28,34 @@ pub struct HttpAnnounceRequest {
     pub compact: Option<u8>,
 }
 
-impl HttpAnnounceRequest {
+impl AnnounceRequest {
     pub fn is_compact(&self) -> bool {
         self.compact.unwrap_or(0) == 1
     }
 }
 
 #[derive(Deserialize, Debug)]
-pub struct HttpScrapeRequest {
+pub struct ScrapeRequest {
     pub info_hash: String,
 }
 
 #[derive(Serialize)]
-struct HttpPeer {
+struct Peer {
     peer_id: String,
     ip: IpAddr,
     port: u16,
 }
 
 #[derive(Serialize)]
-struct HttpAnnounceResponse {
+struct AnnounceResponse {
     interval: u32,
     //tracker_id: String,
     complete: u32,
     incomplete: u32,
-    peers: Vec<HttpPeer>
+    peers: Vec<Peer>
 }
 
-impl HttpAnnounceResponse {
+impl AnnounceResponse {
     pub fn write(&self) -> String {
         serde_bencode::to_string(&self).unwrap()
     }
@@ -103,29 +103,29 @@ impl HttpAnnounceResponse {
 }
 
 #[derive(Serialize)]
-struct HttpScrapeResponse {
-    files: HashMap<String, HttpScrapeResponseEntry>
+struct ScrapeResponse {
+    files: HashMap<String, ScrapeResponseEntry>
 }
 
-impl HttpScrapeResponse {
+impl ScrapeResponse {
     pub fn write(&self) -> String {
         serde_bencode::to_string(&self).unwrap()
     }
 }
 
 #[derive(Serialize)]
-struct HttpScrapeResponseEntry {
+struct ScrapeResponseEntry {
     complete: u32,
     downloaded: u32,
     incomplete: u32,
 }
 
 #[derive(Serialize)]
-struct HttpErrorResponse {
+struct ErrorResponse {
     failure_reason: String
 }
 
-impl warp::Reply for HttpErrorResponse {
+impl warp::Reply for ErrorResponse {
     fn into_response(self) -> warp::reply::Response {
         Response::new(format!("{}", serde_bencode::to_string(&self).unwrap()).into())
     }
@@ -167,7 +167,7 @@ impl HttpServer {
                     debug!("Request: {}", raw_query);
                     (remote_addr, key, raw_query, query, hs1.clone())
                 })
-                .and_then(move |(remote_addr, key, raw_query, mut query, http_server): (Option<SocketAddr>, Option<String>, String, HttpAnnounceRequest, Arc<HttpServer>)| {
+                .and_then(move |(remote_addr, key, raw_query, mut query, http_server): (Option<SocketAddr>, Option<String>, String, AnnounceRequest, Arc<HttpServer>)| {
                     async move {
                         if remote_addr.is_none() { return HttpServer::send_error("could not get remote address") }
 
@@ -232,14 +232,14 @@ impl HttpServer {
         info_hashes
     }
 
-    fn send_announce_response(query: &HttpAnnounceRequest, torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32) -> Result<warp::reply::Response, Infallible> {
-        let http_peers: Vec<HttpPeer> = peers.iter().map(|peer| HttpPeer {
+    fn send_announce_response(query: &AnnounceRequest, torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32) -> Result<warp::reply::Response, Infallible> {
+        let http_peers: Vec<Peer> = peers.iter().map(|peer| Peer {
             peer_id: String::from_utf8_lossy(&peer.peer_id.0).to_string(),
             ip: peer.peer_addr.ip(),
             port: peer.peer_addr.port()
         }).collect();
 
-        let res = HttpAnnounceResponse {
+        let res = AnnounceResponse {
             interval,
             complete: torrent_stats.seeders,
             incomplete: torrent_stats.leechers,
@@ -269,7 +269,7 @@ impl HttpServer {
     }
 
     fn send_error(msg: &str) -> Result<warp::reply::Response, Infallible> {
-        Ok(HttpErrorResponse {
+        Ok(ErrorResponse {
             failure_reason: msg.to_string()
         }.into_response())
     }
@@ -302,7 +302,7 @@ impl HttpServer {
         None
     }
 
-    async fn handle_announce(&self, query: HttpAnnounceRequest, remote_addr: SocketAddr) -> Result<warp::reply::Response, Infallible> {
+    async fn handle_announce(&self, query: AnnounceRequest, remote_addr: SocketAddr) -> Result<warp::reply::Response, Infallible> {
         let info_hash = match InfoHash::from_str(&query.info_hash) {
             Ok(v) => v,
             Err(_) => {
@@ -334,7 +334,7 @@ impl HttpServer {
     }
 
     async fn handle_scrape(&self, info_hashes: Vec<InfoHash>) -> Result<warp::reply::Response, Infallible> {
-        let mut res = HttpScrapeResponse {
+        let mut res = ScrapeResponse {
             files: HashMap::new()
         };
         let db = self.tracker.get_torrents().await;
@@ -344,14 +344,14 @@ impl HttpServer {
                 Some(torrent_info) => {
                     let (seeders, completed, leechers) = torrent_info.get_stats();
 
-                    HttpScrapeResponseEntry {
+                    ScrapeResponseEntry {
                         complete: seeders,
                         downloaded: completed,
                         incomplete: leechers
                     }
                 }
                 None => {
-                    HttpScrapeResponseEntry {
+                    ScrapeResponseEntry {
                         complete: 0,
                         downloaded: 0,
                         incomplete: 0

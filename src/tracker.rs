@@ -5,33 +5,32 @@ use tokio::sync::RwLock;
 use crate::common::{NumberOfBytes, InfoHash};
 use super::common::*;
 use std::net::{SocketAddr, IpAddr};
-use crate::{AnnounceRequest, Configuration, key_manager};
+use crate::{Configuration, http_server, key_manager, udp_server};
 use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
 use log::debug;
 use crate::key_manager::{AuthKey};
 use r2d2_sqlite::rusqlite;
-use crate::http_server::HttpAnnounceRequest;
 
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
 const FIVE_MINUTES: std::time::Duration = std::time::Duration::from_secs(300);
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum TrackerMode {
-    /// Will track every new info hash and serve every peer.
+    // Will track every new info hash and serve every peer.
     #[serde(rename = "public")]
     PublicMode,
 
-    /// Will only track whitelisted info hashes.
+    // Will only track whitelisted info hashes.
     #[serde(rename = "listed")]
     ListedMode,
 
-    /// Will only serve authenticated peers
+    // Will only serve authenticated peers
     #[serde(rename = "private")]
     PrivateMode,
 
-    /// Will only track whitelisted info hashes and serve authenticated peers
+    // Will only track whitelisted info hashes and serve authenticated peers
     #[serde(rename = "private_listed")]
     PrivateListedMode,
 }
@@ -51,7 +50,7 @@ pub struct TorrentPeer {
 }
 
 impl TorrentPeer {
-    pub fn from_udp_announce_request(announce_request: &AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
+    pub fn from_udp_announce_request(announce_request: &udp_server::AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
         // Potentially substitute localhost IP with external IP
         let peer_addr = match peer_addr {
             None => SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port.0),
@@ -75,7 +74,7 @@ impl TorrentPeer {
         }
     }
 
-    pub fn from_http_announce_request(announce_request: &HttpAnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
+    pub fn from_http_announce_request(announce_request: &http_server::AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
         // Potentially substitute localhost IP with external IP
         let peer_addr = match peer_addr {
             None => SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port),
@@ -328,12 +327,12 @@ impl TorrentTracker {
         }
     }
 
-    /// Adding torrents is not relevant to public trackers.
+    // Adding torrents is not relevant to public trackers.
     pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<usize, rusqlite::Error> {
         self.database.add_info_hash_to_whitelist(info_hash.clone()).await
     }
 
-    /// Removing torrents is not relevant to public trackers.
+    // Removing torrents is not relevant to public trackers.
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<usize, rusqlite::Error> {
         self.database.remove_info_hash_from_whitelist(info_hash.clone()).await
     }
@@ -394,6 +393,7 @@ impl TorrentTracker {
         self.torrents.read().await
     }
 
+    // remove torrents without peers
     pub async fn cleanup_torrents(&self) {
         debug!("Cleaning torrents..");
         let mut lock = self.torrents.write().await;

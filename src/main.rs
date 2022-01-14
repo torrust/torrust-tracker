@@ -1,5 +1,5 @@
 use log::{info};
-use torrust_tracker::{webserver, Configuration, TorrentTracker, UDPServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig, logging};
+use torrust_tracker::{webserver, Configuration, TorrentTracker, UdpServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig, logging};
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use torrust_tracker::http_server::HttpServer;
@@ -103,7 +103,7 @@ fn start_http_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTra
 
 async fn start_udp_tracker_server(config: &UdpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     info!("Starting UDP server on: {}", config.bind_address);
-    let udp_server = UDPServer::new(tracker).await.unwrap_or_else(|e| {
+    let udp_server = UdpServer::new(tracker).await.unwrap_or_else(|e| {
         panic!("Could not start UDP server: {}", e);
     });
 
