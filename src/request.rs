@@ -4,6 +4,7 @@ use std::io;
 use std::io::{Cursor, Read};
 use byteorder::{NetworkEndian, ReadBytesExt};
 use std::convert::TryInto;
+use log::debug;
 use crate::key_manager::AuthKey;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -169,6 +170,7 @@ impl Request {
                     // key should be the last bytes
                     cursor.set_position((bytes.len() - AUTH_KEY_LENGTH) as u64);
                     if cursor.read_exact(&mut key_buffer).is_ok() {
+                        debug!("AuthKey buffer: {:?}", key_buffer);
                         AuthKey::from_buffer(key_buffer)
                     } else {
                         None

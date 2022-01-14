@@ -10,7 +10,7 @@ use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
 use log::debug;
-use crate::key_manager::{AuthKey, KeyManager};
+use crate::key_manager::{AuthKey};
 use r2d2_sqlite::rusqlite;
 use crate::http_server::HttpAnnounceRequest;
 
@@ -250,7 +250,6 @@ pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     database: SqliteDatabase,
-    key_manager: KeyManager,
 }
 
 impl TorrentTracker {
@@ -263,12 +262,11 @@ impl TorrentTracker {
             config,
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             database,
-            key_manager: KeyManager {}
         }
     }
 
     pub async fn generate_auth_key(&self, seconds_valid: u64) -> Result<AuthKey, rusqlite::Error> {
-        let auth_key = self.key_manager.generate_auth_key(seconds_valid);
+        let auth_key = key_manager::generate_auth_key(seconds_valid);
 
         // add key to database
         if let Err(error) = self.database.add_key_to_keys(&auth_key).await { return Err(error) }
@@ -282,7 +280,7 @@ impl TorrentTracker {
 
     pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> Result<(), key_manager::Error> {
         let db_key = self.database.get_key_from_keys(&auth_key.key).await?;
-        self.key_manager.verify_auth_key(&db_key).await
+        key_manager::verify_auth_key(&db_key)
     }
 
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
@@ -298,7 +296,7 @@ impl TorrentTracker {
             TrackerMode::PrivateMode => {
                 match key {
                     Some(key) => {
-                        if self.key_manager.verify_auth_key(key).await.is_err() {
+                        if key_manager::verify_auth_key(key).is_err() {
                             return Err(TorrentError::PeerKeyNotValid)
                         }
 
@@ -312,7 +310,7 @@ impl TorrentTracker {
             TrackerMode::PrivateListedMode => {
                 match key {
                     Some(key) => {
-                        if self.key_manager.verify_auth_key(key).await.is_err() {
+                        if key_manager::verify_auth_key(key).is_err() {
                             return Err(TorrentError::PeerKeyNotValid)
                         }
 

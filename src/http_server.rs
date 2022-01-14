@@ -173,7 +173,7 @@ impl HttpServer {
 
                         // query.info_hash somehow receives a corrupt string
                         // so we have to get the info_hash manually from the raw query
-                        let info_hashes = HttpServer::get_info_hashes_from_raw_query(&raw_query);
+                        let info_hashes = HttpServer::info_hashes_from_raw_query(&raw_query);
                         if info_hashes.len() < 1 { return HttpServer::send_error("info_hash not found") }
                         query.info_hash = info_hashes[0].to_string();
                         debug!("{:?}", query.info_hash);
@@ -198,7 +198,7 @@ impl HttpServer {
                 })
                 .and_then(move |(key, raw_query, http_server): (Option<String>, String, Arc<HttpServer>)| {
                     async move {
-                        let info_hashes = HttpServer::get_info_hashes_from_raw_query(&raw_query);
+                        let info_hashes = HttpServer::info_hashes_from_raw_query(&raw_query);
                         if info_hashes.len() < 1 { return HttpServer::send_error("info_hash not found") }
                         if info_hashes.len() > 50 { return HttpServer::send_error("exceeded the max of 50 info_hashes") }
                         debug!("{:?}", info_hashes);
@@ -214,7 +214,7 @@ impl HttpServer {
         warp::any().and(announce_route.or(scrape_route))
     }
 
-    fn get_info_hashes_from_raw_query(raw_query: &str) -> Vec<InfoHash> {
+    fn info_hashes_from_raw_query(raw_query: &str) -> Vec<InfoHash> {
         let split_raw_query: Vec<&str> = raw_query.split("&").collect();
         let mut info_hashes: Vec<InfoHash> = Vec::new();
 
