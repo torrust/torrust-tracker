@@ -61,3 +61,4 @@ In private mode, tracker keys are added after the tracker URL like: `https://tra
 
 ### Credits
 This project was a joint effort by [Nautilus Cyberneering GmbH](https://nautilus-cyberneering.de/) and [Dutch Bits](https://dutchbits.nl).
+Also thanks to [Naim A.](https://github.com/naim94a/udpt) for some parts of the code.
