@@ -174,14 +174,13 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
             (info_hash, tracker)
         })
         .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| {
-                async move {
-                    match tracker.add_torrent_to_whitelist(&info_hash).await {
-                        Ok(..) => Ok(warp::reply::json(&ActionStatus::Ok)),
-                        Err(..) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to whitelist torrent".into() }))
-                    }
+            async move {
+                match tracker.add_torrent_to_whitelist(&info_hash).await {
+                    Ok(..) => Ok(warp::reply::json(&ActionStatus::Ok)),
+                    Err(..) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to whitelist torrent".into() }))
                 }
-            },
-        );
+            }
+        });
 
     // POST /api/key/:seconds_valid
     // Generate new key

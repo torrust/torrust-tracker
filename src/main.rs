@@ -1,5 +1,5 @@
 use log::{info};
-use torrust_tracker::{webserver, Configuration, TorrentTracker, UdpServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig, logging};
+use torrust_tracker::{http_api_server, Configuration, TorrentTracker, UdpServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig, logging};
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use torrust_tracker::http_server::HttpServer;
@@ -72,7 +72,7 @@ fn start_api_server(config: &HttpApiConfig, tracker: Arc<TorrentTracker>) -> Joi
     let bind_addr = config.bind_address.parse::<std::net::SocketAddr>().unwrap();
 
     tokio::spawn(async move {
-        let server = webserver::build_server(tracker);
+        let server = http_api_server::build_server(tracker);
         server.bind(bind_addr).await;
     })
 }
