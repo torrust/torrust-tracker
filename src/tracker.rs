@@ -295,7 +295,7 @@ impl TorrentTracker {
             TrackerMode::PrivateMode => {
                 match key {
                     Some(key) => {
-                        if key_manager::verify_auth_key(key).is_err() {
+                        if self.verify_auth_key(key).await.is_err() {
                             return Err(TorrentError::PeerKeyNotValid)
                         }
 
@@ -309,7 +309,7 @@ impl TorrentTracker {
             TrackerMode::PrivateListedMode => {
                 match key {
                     Some(key) => {
-                        if key_manager::verify_auth_key(key).is_err() {
+                        if self.verify_auth_key(key).await.is_err() {
                             return Err(TorrentError::PeerKeyNotValid)
                         }
 
