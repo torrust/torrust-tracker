@@ -56,8 +56,8 @@ cargo build --release
 ```
 
 ### Tracker URL
-Your tracker will be `udp://tracker-ip:port` or `https://tracker-ip:port` depending on your tracker mode.
-In private mode, tracker keys are added after the tracker URL like: `https://tracker-ip:port/tracker-key`.
+Your tracker will be `udp://tracker-ip:port` or `https://tracker-ip:port/announce` depending on your tracker mode.
+In private mode, tracker keys are added after the tracker URL like: `https://tracker-ip:port/announce/tracker-key`.
 
 ### Credits
 This project was a joint effort by [Nautilus Cyberneering GmbH](https://nautilus-cyberneering.de/) and [Dutch Bits](https://dutchbits.nl).
