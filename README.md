@@ -56,7 +56,7 @@ cargo build --release
 ```
 
 ### Tracker URL
-Your tracker will be `udp://tracker-ip:port` or `https://tracker-ip:port/announce` depending on your tracker mode.
+Your tracker will be `udp://tracker-ip:port/announce` or `https://tracker-ip:port/announce` depending on your tracker mode.
 In private mode, tracker keys are added after the tracker URL like: `https://tracker-ip:port/announce/tracker-key`.
 
 ### Built-in API
