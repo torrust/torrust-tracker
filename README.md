@@ -47,7 +47,7 @@ cargo build --release
 ```
 
 
-3. Edit the newly created config.toml file in the same folder as your torrust-tracker binaries according to your liking. See [configuration documentation](https://torrust.com/torrust-tracker/config/).
+3. Edit the newly created config.toml file in the same folder as your torrust-tracker binaries according to your liking. See [configuration documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/config/).
 
 
 4. Run the torrust-tracker again:
@@ -58,6 +58,9 @@ cargo build --release
 ### Tracker URL
 Your tracker will be `udp://tracker-ip:port` or `https://tracker-ip:port/announce` depending on your tracker mode.
 In private mode, tracker keys are added after the tracker URL like: `https://tracker-ip:port/announce/tracker-key`.
+
+### Built-in API
+Read the API documentation [here](https://torrust.github.io/torrust-documentation/torrust-tracker/api/).
 
 ### Credits
 This project was a joint effort by [Nautilus Cyberneering GmbH](https://nautilus-cyberneering.de/) and [Dutch Bits](https://dutchbits.nl).
