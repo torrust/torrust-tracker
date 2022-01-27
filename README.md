@@ -64,4 +64,4 @@ Read the API documentation [here](https://torrust.github.io/torrust-documentatio
 
 ### Credits
 This project was a joint effort by [Nautilus Cyberneering GmbH](https://nautilus-cyberneering.de/) and [Dutch Bits](https://dutchbits.nl).
-Also thanks to [Naim A.](https://github.com/naim94a/udpt) for some parts of the code.
+Also thanks to [Naim A.](https://github.com/naim94a/udpt) and [greatest-ape](https://github.com/greatest-ape/aquatic) for some parts of the code.
