@@ -9,7 +9,7 @@ Torrust Tracker is a lightweight but incredibly powerful and feature-rich BitTor
 * [X] UDP server
 * [X] HTTP (optional SSL) server
 * [X] Private & Whitelisted mode
-* [X] API Hooks
+* [X] Built-in API
 * [X] Torrent whitelisting
 * [X] Peer authentication using time-bound keys
 
