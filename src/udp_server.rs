@@ -1,236 +1,31 @@
 use log::{debug};
 use std;
-use std::convert::TryInto;
-use std::io;
-use std::net::{Ipv4Addr, SocketAddr};
+use std::net::{SocketAddr};
 use std::sync::Arc;
-use std::io::{Cursor, Read};
+use std::io::{Cursor};
+use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, IpVersion, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId};
 use tokio::net::UdpSocket;
-use byteorder::{NetworkEndian, ReadBytesExt};
 
 use super::common::*;
-use crate::response::*;
 use crate::utils::get_connection_id;
 use crate::tracker::TorrentTracker;
-use crate::{TorrentPeer, TrackerMode, TorrentError};
-use crate::key_manager::AuthKey;
+use crate::{TorrentPeer, TorrentError};
 
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub enum Request {
-    Connect(ConnectRequest),
-    Announce(AnnounceRequest),
-    Scrape(ScrapeRequest),
+struct RequestError {
+    error: TorrentError,
+    transaction_id: TransactionId
 }
 
-impl From<ConnectRequest> for Request {
-    fn from(r: ConnectRequest) -> Self {
-        Self::Connect(r)
-    }
+struct AnnounceRequestWrapper {
+    announce_request: AnnounceRequest,
+    info_hash: super::common::InfoHash,
 }
 
-impl From<AnnounceRequest> for Request {
-    fn from(r: AnnounceRequest) -> Self {
-        Self::Announce(r)
-    }
-}
-
-impl From<ScrapeRequest> for Request {
-    fn from(r: ScrapeRequest) -> Self {
-        Self::Scrape(r)
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct ConnectRequest {
-    pub transaction_id: TransactionId,
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct AnnounceRequest {
-    pub connection_id: ConnectionId,
-    pub transaction_id: TransactionId,
-    pub info_hash: InfoHash,
-    pub peer_id: PeerId,
-    pub bytes_downloaded: NumberOfBytes,
-    pub bytes_uploaded: NumberOfBytes,
-    pub bytes_left: NumberOfBytes,
-    pub event: AnnounceEvent,
-    pub ip_address: Option<Ipv4Addr>,
-    pub key: PeerKey,
-    pub peers_wanted: NumberOfPeers,
-    pub port: Port,
-    pub auth_key: Option<AuthKey>,
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct ScrapeRequest {
-    pub connection_id: ConnectionId,
-    pub transaction_id: TransactionId,
-    pub info_hashes: Vec<InfoHash>,
-}
-
-#[derive(Debug)]
-pub struct RequestParseError {
-    pub transaction_id: Option<TransactionId>,
-    pub message: Option<String>,
-    pub error: Option<io::Error>,
-}
-
-impl RequestParseError {
-    pub fn new(err: io::Error, transaction_id: i32) -> Self {
-        Self {
-            transaction_id: Some(TransactionId(transaction_id)),
-            message: None,
-            error: Some(err),
-        }
-    }
-    pub fn io(err: io::Error) -> Self {
-        Self {
-            transaction_id: None,
-            message: None,
-            error: Some(err),
-        }
-    }
-    pub fn text(transaction_id: i32, message: &str) -> Self {
-        Self {
-            transaction_id: Some(TransactionId(transaction_id)),
-            message: Some(message.to_string()),
-            error: None,
-        }
-    }
-}
-
-impl Request {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, RequestParseError> {
-        let mut cursor = Cursor::new(bytes);
-
-        let connection_id = cursor
-            .read_i64::<NetworkEndian>()
-            .map_err(RequestParseError::io)?;
-        let action = cursor
-            .read_i32::<NetworkEndian>()
-            .map_err(RequestParseError::io)?;
-        let transaction_id = cursor
-            .read_i32::<NetworkEndian>()
-            .map_err(RequestParseError::io)?;
-
-
-
-        match action {
-            // Connect
-            0 => {
-                if connection_id == PROTOCOL_ID {
-                    Ok((ConnectRequest {
-                        transaction_id: TransactionId(transaction_id),
-                    })
-                        .into())
-                } else {
-                    Err(RequestParseError::text(
-                        transaction_id,
-                        "Protocol identifier missing",
-                    ))
-                }
-            }
-
-            // Announce
-            1 => {
-                let mut info_hash = [0; 20];
-                let mut peer_id = [0; 20];
-                let mut ip = [0; 4];
-
-                cursor
-                    .read_exact(&mut info_hash)
-                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
-                cursor
-                    .read_exact(&mut peer_id)
-                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
-
-                let bytes_downloaded = cursor
-                    .read_i64::<NetworkEndian>()
-                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
-                let bytes_left = cursor
-                    .read_i64::<NetworkEndian>()
-                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
-                let bytes_uploaded = cursor
-                    .read_i64::<NetworkEndian>()
-                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
-                let event = cursor
-                    .read_i32::<NetworkEndian>()
-                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
-
-                cursor
-                    .read_exact(&mut ip)
-                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
-
-                let key = cursor
-                    .read_u32::<NetworkEndian>()
-                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
-                let peers_wanted = cursor
-                    .read_i32::<NetworkEndian>()
-                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
-                let port = cursor
-                    .read_u16::<NetworkEndian>()
-                    .map_err(|err| RequestParseError::new(err, transaction_id))?;
-
-                // BEP 41: add auth key if available
-                let auth_key: Option<AuthKey> = if bytes.len() > 98 + AUTH_KEY_LENGTH {
-                    let mut key_buffer = [0; AUTH_KEY_LENGTH];
-                    // key should be the last bytes
-                    cursor.set_position((bytes.len() - AUTH_KEY_LENGTH) as u64);
-                    if cursor.read_exact(&mut key_buffer).is_ok() {
-                        debug!("AuthKey buffer: {:?}", key_buffer);
-                        AuthKey::from_buffer(key_buffer)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                };
-
-                let opt_ip = if ip == [0; 4] {
-                    None
-                } else {
-                    Some(Ipv4Addr::from(ip))
-                };
-
-                Ok((AnnounceRequest {
-                    connection_id: ConnectionId(connection_id),
-                    transaction_id: TransactionId(transaction_id),
-                    info_hash: InfoHash(info_hash),
-                    peer_id: PeerId(peer_id),
-                    bytes_downloaded: NumberOfBytes(bytes_downloaded),
-                    bytes_uploaded: NumberOfBytes(bytes_uploaded),
-                    bytes_left: NumberOfBytes(bytes_left),
-                    event: AnnounceEvent::from_i32(event),
-                    ip_address: opt_ip,
-                    key: PeerKey(key),
-                    peers_wanted: NumberOfPeers(peers_wanted),
-                    port: Port(port),
-                    auth_key,
-                })
-                    .into())
-            }
-
-            // Scrape
-            2 => {
-                let position = cursor.position() as usize;
-                let inner = cursor.into_inner();
-
-                let info_hashes = (&inner[position..])
-                    .chunks_exact(20)
-                    .take(MAX_SCRAPE_TORRENTS as usize)
-                    .map(|chunk| InfoHash(chunk.try_into().unwrap()))
-                    .collect();
-
-                Ok((ScrapeRequest {
-                    connection_id: ConnectionId(connection_id),
-                    transaction_id: TransactionId(transaction_id),
-                    info_hashes,
-                })
-                    .into())
-            }
-
-            _ => Err(RequestParseError::text(transaction_id, "Invalid action")),
+impl AnnounceRequestWrapper {
+    pub fn new(announce_request: AnnounceRequest) -> Self {
+        AnnounceRequestWrapper {
+            announce_request: announce_request.clone(),
+            info_hash: InfoHash(announce_request.info_hash.0)
         }
     }
 }
@@ -250,51 +45,6 @@ impl UdpServer {
         })
     }
 
-    pub async fn authenticate_announce_request(&self, announce_request: &AnnounceRequest) -> Result<(), TorrentError> {
-        match self.tracker.config.mode {
-            TrackerMode::PublicMode => Ok(()),
-            TrackerMode::ListedMode => {
-                if !self.tracker.is_info_hash_whitelisted(&announce_request.info_hash).await {
-                    return Err(TorrentError::TorrentNotWhitelisted)
-                }
-
-                Ok(())
-            }
-            TrackerMode::PrivateMode => {
-                match &announce_request.auth_key {
-                    Some(auth_key) => {
-                        if self.tracker.verify_auth_key(auth_key).await.is_err() {
-                            return Err(TorrentError::PeerKeyNotValid)
-                        }
-
-                        Ok(())
-                    }
-                    None => {
-                        return Err(TorrentError::PeerNotAuthenticated)
-                    }
-                }
-            }
-            TrackerMode::PrivateListedMode => {
-                match &announce_request.auth_key {
-                    Some(auth_key) => {
-                        if self.tracker.verify_auth_key(auth_key).await.is_err() {
-                            return Err(TorrentError::PeerKeyNotValid)
-                        }
-
-                        if !self.tracker.is_info_hash_whitelisted(&announce_request.info_hash).await {
-                            return Err(TorrentError::TorrentNotWhitelisted)
-                        }
-
-                        Ok(())
-                    }
-                    None => {
-                        return Err(TorrentError::PeerNotAuthenticated)
-                    }
-                }
-            }
-        }
-    }
-
     pub async fn accept_packets(self) -> Result<(), std::io::Error> {
         let tracker = Arc::new(self);
 
@@ -311,38 +61,12 @@ impl UdpServer {
     }
 
     async fn handle_packet(&self, remote_addr: SocketAddr, payload: &[u8]) {
-        let request = Request::from_bytes(&payload[..payload.len()]);
+        let request = Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS);
 
         match request {
             Ok(request) => {
                 debug!("New request: {:?}", request);
-
-                // todo: check for expired connection_id
-                match request {
-                    Request::Connect(r) => self.handle_connect(remote_addr, r).await,
-                    Request::Announce(r) => {
-                        match self.tracker.authenticate_request(&r.info_hash, &r.auth_key).await {
-                            Ok(()) => self.handle_announce(remote_addr, r).await,
-                            Err(e) => {
-                                match e {
-                                    TorrentError::TorrentNotWhitelisted => {
-                                        debug!("Info_hash not whitelisted.");
-                                        self.send_error(remote_addr, &r.transaction_id, "torrent not whitelisted").await;
-                                    }
-                                    TorrentError::PeerKeyNotValid => {
-                                        debug!("Peer key not valid.");
-                                        self.send_error(remote_addr, &r.transaction_id, "peer key not valid").await;
-                                    }
-                                    TorrentError::PeerNotAuthenticated => {
-                                        debug!("Peer not authenticated.");
-                                        self.send_error(remote_addr, &r.transaction_id, "peer not authenticated").await;
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    Request::Scrape(r) => self.handle_scrape(remote_addr, r).await
-                }
+                self.handle_request(request, remote_addr).await;
             }
             Err(err) => {
                 debug!("request_from_bytes error: {:?}", err);
@@ -350,94 +74,148 @@ impl UdpServer {
         }
     }
 
-    async fn handle_connect(&self, remote_addr: SocketAddr, request: ConnectRequest) {
+    async fn handle_request(&self, request: Request, remote_addr: SocketAddr) {
+        // todo: check for expired connection_id
+        let request_result = match request {
+            Request::Connect(connect_request) => {
+                self.handle_connect(remote_addr, &connect_request).await
+                    .map_err(|error| RequestError { error, transaction_id: connect_request.transaction_id })
+            }
+            Request::Announce(announce_request) => {
+                self.handle_announce(remote_addr, &announce_request).await
+                    .map_err(|error| RequestError { error, transaction_id: announce_request.transaction_id })
+            }
+            Request::Scrape(scrape_request) => {
+                self.handle_scrape(&scrape_request).await
+                    .map_err(|error| RequestError { error, transaction_id: scrape_request.transaction_id })
+            }
+        };
+
+        match request_result {
+            Ok(response) => {
+                let _ = self.send_response(remote_addr, response).await;
+            }
+            Err(request_error) => {
+                let _ = self.handle_error(request_error.error, remote_addr, request_error.transaction_id).await;
+            }
+        }
+    }
+
+    async fn handle_connect(&self, remote_addr: SocketAddr, request: &ConnectRequest) -> Result<Response, TorrentError> {
         let connection_id = get_connection_id(&remote_addr);
 
-        let response = UdpResponse::from(UdpConnectionResponse {
-            action: Actions::Connect,
+        let response = Response::from(ConnectResponse {
             transaction_id: request.transaction_id,
             connection_id,
         });
 
-        let _ = self.send_response(remote_addr, response).await;
+        Ok(response)
     }
 
-    async fn handle_announce(&self, remote_addr: SocketAddr, request: AnnounceRequest) {
-        let peer = TorrentPeer::from_udp_announce_request(&request, remote_addr, self.tracker.config.get_ext_ip());
+    async fn handle_announce(&self, remote_addr: SocketAddr, announce_request: &AnnounceRequest) -> Result<Response, TorrentError> {
+        let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request.clone());
+        self.tracker.authenticate_request(&wrapped_announce_request.info_hash, None).await?;
 
-        match self.tracker.update_torrent_with_peer_and_get_stats(&request.info_hash, &peer).await {
+        let peer = TorrentPeer::from_udp_announce_request(&wrapped_announce_request.announce_request, remote_addr, self.tracker.config.get_ext_ip());
+
+        return match self.tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await {
             Ok(torrent_stats) => {
                 // get all peers excluding the client_addr
-                let peers = match self.tracker.get_torrent_peers(&request.info_hash, &peer.peer_addr).await {
+                let peers = match self.tracker.get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr).await {
                     Some(v) => v,
                     None => {
-                        debug!("announce: No peers found.");
-                        return;
+                        return Err(TorrentError::NoPeersFound);
                     }
                 };
 
-                let response = UdpResponse::from(UdpAnnounceResponse {
-                    action: Actions::Announce,
-                    transaction_id: request.transaction_id,
-                    interval: self.tracker.config.udp_tracker.announce_interval,
-                    leechers: torrent_stats.leechers,
-                    seeders: torrent_stats.seeders,
-                    peers,
+                let response = Response::from(AnnounceResponse {
+                    transaction_id: wrapped_announce_request.announce_request.transaction_id,
+                    announce_interval: AnnounceInterval(self.tracker.config.udp_tracker.announce_interval as i32),
+                    leechers: NumberOfPeers(torrent_stats.leechers as i32),
+                    seeders: NumberOfPeers(torrent_stats.seeders as i32),
+                    peers: peers.iter().map(|peer|
+                        ResponsePeer {
+                            ip_address: peer.peer_addr.ip(),
+                            port: Port(peer.peer_addr.port())
+                        }).collect()
                 });
 
-                let _ = self.send_response(remote_addr, response).await;
+                Ok(response)
             }
-            Err(e) => {
-                debug!("{:?}", e);
-                self.send_error(remote_addr, &request.transaction_id, "error adding torrent").await;
-            }
+            Err(e) => Err(e)
         }
     }
 
-    async fn handle_scrape(&self, remote_addr: SocketAddr, request: ScrapeRequest) {
-        let mut scrape_response = UdpScrapeResponse {
-            action: Actions::Scrape,
-            transaction_id: request.transaction_id,
-            torrent_stats: Vec::new(),
-        };
-
+    async fn handle_scrape(&self, request: &ScrapeRequest) -> Result<Response, TorrentError> {
         let db = self.tracker.get_torrents().await;
 
+        let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
+
         for info_hash in request.info_hashes.iter() {
+            let info_hash = InfoHash(info_hash.0);
             let scrape_entry = match db.get(&info_hash) {
                 Some(torrent_info) => {
                     let (seeders, completed, leechers) = torrent_info.get_stats();
 
-                    UdpScrapeResponseEntry {
-                        seeders: seeders as i32,
-                        completed: completed as i32,
-                        leechers: leechers as i32,
+                    TorrentScrapeStatistics {
+                        seeders: NumberOfPeers(seeders as i32),
+                        completed: NumberOfDownloads(completed as i32),
+                        leechers: NumberOfPeers(leechers as i32),
                     }
                 }
                 None => {
-                    UdpScrapeResponseEntry {
-                        seeders: 0,
-                        completed: 0,
-                        leechers: 0,
+                    TorrentScrapeStatistics {
+                        seeders: NumberOfPeers(0),
+                        completed: NumberOfDownloads(0),
+                        leechers: NumberOfPeers(0),
                     }
                 }
             };
 
-            scrape_response.torrent_stats.push(scrape_entry);
+            torrent_stats.push(scrape_entry);
         }
 
-        let response = UdpResponse::from(scrape_response);
+        let response = Response::from(ScrapeResponse {
+            transaction_id: request.transaction_id,
+            torrent_stats
+        });
 
-        let _ = self.send_response(remote_addr, response).await;
+        Ok(response)
     }
 
-    async fn send_response(&self, remote_addr: SocketAddr, response: UdpResponse) -> Result<usize, ()> {
+    async fn handle_error(&self, e: TorrentError, remote_addr: SocketAddr, tx_id: TransactionId) {
+        let mut err_msg = "oops";
+
+        match e {
+            TorrentError::TorrentNotWhitelisted => {
+                debug!("Info_hash not whitelisted.");
+                err_msg = "info hash not whitelisted";
+            }
+            TorrentError::PeerKeyNotValid => {
+                debug!("Peer key not valid.");
+                err_msg = "peer key not valid";
+            }
+            TorrentError::PeerNotAuthenticated => {
+                debug!("Peer not authenticated.");
+                err_msg = "peer not authenticated";
+            }
+            TorrentError::NoPeersFound => {
+                debug!("No peers found.");
+                err_msg = "no peers found";
+            }
+            _ => {}
+        }
+
+        self.send_error(remote_addr, tx_id, err_msg).await;
+    }
+
+    async fn send_response(&self, remote_addr: SocketAddr, response: Response) -> Result<usize, ()> {
         debug!("sending response to: {:?}", &remote_addr);
 
         let buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(buffer);
 
-        match response.write_to_bytes(&mut cursor) {
+        match response.write(&mut cursor, IpVersion::IPv4) {
             Ok(_) => {
                 let position = cursor.position() as usize;
                 let inner = cursor.get_ref();
@@ -458,6 +236,15 @@ impl UdpServer {
         }
     }
 
+    async fn send_error(&self, remote_addr: SocketAddr, transaction_id: TransactionId, error_msg: &str) {
+        let response = Response::from(ErrorResponse {
+            transaction_id,
+            message: error_msg.to_string(),
+        });
+
+        let _ = self.send_response(remote_addr, response).await;
+    }
+
     async fn send_packet(&self, remote_addr: &SocketAddr, payload: &[u8]) -> Result<usize, std::io::Error> {
         match self.socket.send_to(payload, remote_addr).await {
             Err(err) => {
@@ -466,17 +253,5 @@ impl UdpServer {
             },
             Ok(sz) => Ok(sz),
         }
-    }
-
-    async fn send_error(&self, remote_addr: SocketAddr, transaction_id: &TransactionId, error_msg: &str) {
-        let error_response = UdpErrorResponse {
-            action: Actions::Error,
-            transaction_id: transaction_id.clone(),
-            message: error_msg.to_string(),
-        };
-
-        let response = UdpResponse::from(error_response);
-
-        let _ = self.send_response(remote_addr, response).await;
     }
 }

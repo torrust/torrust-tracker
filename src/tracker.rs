@@ -1,14 +1,16 @@
 use serde::{Deserialize, Serialize};
+use serde;
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use tokio::sync::RwLock;
-use crate::common::{NumberOfBytes, InfoHash};
+use crate::common::{InfoHash};
 use super::common::*;
 use std::net::{SocketAddr, IpAddr};
-use crate::{Configuration, http_server, key_manager, udp_server};
+use crate::{Configuration, http_server, key_manager};
 use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use log::debug;
 use crate::key_manager::{AuthKey};
 use r2d2_sqlite::rusqlite;
@@ -37,20 +39,22 @@ pub enum TrackerMode {
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize)]
 pub struct TorrentPeer {
-    #[serde(skip)]
     pub peer_id: PeerId,
-    #[serde(rename = "ip")]
     pub peer_addr: SocketAddr,
     #[serde(serialize_with = "ser_instant")]
     pub updated: std::time::Instant,
+    #[serde(with = "NumberOfBytesDef")]
     pub uploaded: NumberOfBytes,
+    #[serde(with = "NumberOfBytesDef")]
     pub downloaded: NumberOfBytes,
+    #[serde(with = "NumberOfBytesDef")]
     pub left: NumberOfBytes,
+    #[serde(with = "AnnounceEventDef")]
     pub event: AnnounceEvent,
 }
 
 impl TorrentPeer {
-    pub fn from_udp_announce_request(announce_request: &udp_server::AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
+    pub fn from_udp_announce_request(announce_request: &aquatic_udp_protocol::AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
         // Potentially substitute localhost IP with external IP
         let peer_addr = match peer_addr {
             None => SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port.0),
@@ -64,7 +68,7 @@ impl TorrentPeer {
         };
 
         TorrentPeer {
-            peer_id: announce_request.peer_id,
+            peer_id: PeerId(announce_request.peer_id.0),
             peer_addr,
             updated: std::time::Instant::now(),
             uploaded: announce_request.bytes_uploaded,
@@ -102,9 +106,9 @@ impl TorrentPeer {
             peer_id: PeerId::from(announce_request.peer_id.as_bytes()),
             peer_addr,
             updated: std::time::Instant::now(),
-            uploaded: announce_request.uploaded,
-            downloaded: announce_request.downloaded,
-            left: announce_request.left,
+            uploaded: NumberOfBytes(announce_request.uploaded as i64),
+            downloaded: NumberOfBytes(announce_request.downloaded as i64),
+            left: NumberOfBytes(announce_request.left as i64),
             event
         }
     }
@@ -151,7 +155,7 @@ impl TorrentEntry {
         }
     }
 
-    pub fn get_peers(&self, remote_addr: &std::net::SocketAddr) -> Vec<TorrentPeer> {
+    pub fn get_peers(&self, remote_addr: Option<&std::net::SocketAddr>) -> Vec<TorrentPeer> {
         let mut list = Vec::new();
         for (_, peer) in self
             .peers
@@ -161,17 +165,15 @@ impl TorrentEntry {
         {
 
             // skip ip address of client
-            if peer.peer_addr == *remote_addr {
-                //continue;
+            if let Some(remote_addr) = remote_addr {
+                if peer.peer_addr == *remote_addr {
+                    continue;
+                }
             }
 
             list.push(peer.clone());
         }
         list
-    }
-
-    pub fn get_peers_iter(&self) -> impl Iterator<Item = (&PeerId, &TorrentPeer)> {
-        self.peers.iter()
     }
 
     pub fn update_torrent_stats_with_peer(&mut self, peer: &TorrentPeer, peer_old: Option<TorrentPeer>) {
@@ -243,6 +245,8 @@ pub enum TorrentError {
     TorrentNotWhitelisted,
     PeerNotAuthenticated,
     PeerKeyNotValid,
+    NoPeersFound,
+    CouldNotSendResponse
 }
 
 pub struct TorrentTracker {
@@ -282,7 +286,7 @@ impl TorrentTracker {
         key_manager::verify_auth_key(&db_key)
     }
 
-    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
+    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: Option<AuthKey>) -> Result<(), TorrentError> {
         match self.config.mode {
             TrackerMode::PublicMode => Ok(()),
             TrackerMode::ListedMode => {
@@ -295,7 +299,7 @@ impl TorrentTracker {
             TrackerMode::PrivateMode => {
                 match key {
                     Some(key) => {
-                        if self.verify_auth_key(key).await.is_err() {
+                        if self.verify_auth_key(&key).await.is_err() {
                             return Err(TorrentError::PeerKeyNotValid)
                         }
 
@@ -309,7 +313,7 @@ impl TorrentTracker {
             TrackerMode::PrivateListedMode => {
                 match key {
                     Some(key) => {
-                        if self.verify_auth_key(key).await.is_err() {
+                        if self.verify_auth_key(&key).await.is_err() {
                             return Err(TorrentError::PeerKeyNotValid)
                         }
 
@@ -356,7 +360,7 @@ impl TorrentTracker {
                 None
             }
             Some(entry) => {
-                Some(entry.get_peers(peer_addr))
+                Some(entry.get_peers(Some(peer_addr)))
             }
         }
     }

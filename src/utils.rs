@@ -1,8 +1,8 @@
 use std::net::SocketAddr;
-use crate::common::*;
 use std::time::SystemTime;
 use std::error::Error;
 use std::fmt::Write;
+use aquatic_udp_protocol::ConnectionId;
 
 pub fn get_connection_id(remote_address: &SocketAddr) -> ConnectionId {
     match std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) {
