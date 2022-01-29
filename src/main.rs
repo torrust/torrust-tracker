@@ -1,5 +1,5 @@
 use log::{info};
-use torrust_tracker::{http_api_server, Configuration, TorrentTracker, UdpServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig, logging};
+use torrust_tracker::{http_api_server, Configuration, TorrentTracker, UdpServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig, logging, TrackerServer};
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 use torrust_tracker::http_server::HttpServer;
@@ -22,25 +22,21 @@ async fn main() {
     let _torrent_cleanup_job = start_torrent_cleanup_job(config.clone(), tracker.clone()).unwrap();
 
     // start HTTP API server
-    if let Some(http_api_config) = &config.http_api {
-        if http_api_config.enabled {
-            let _api_server = start_api_server(&http_api_config, tracker.clone());
-        }
-    };
+    if config.http_api.enabled {
+        let _api_server = start_api_server(&config.http_api, tracker.clone());
+    }
 
     // check which tracker to run, UDP (Default) or HTTP
-    let _tracker_server = if let Some(http_config) = &config.http_tracker {
-        if http_config.enabled {
-            start_http_tracker_server(http_config, tracker.clone())
-        } else {
+    let _tracker_server = match config.get_tracker_server() {
+        TrackerServer::UDP => {
             start_udp_tracker_server(&config.udp_tracker, tracker.clone()).await
         }
-    } else {
-        start_udp_tracker_server(&config.udp_tracker, tracker.clone()).await
+        TrackerServer::HTTP => {
+            start_http_tracker_server(&config.http_tracker, tracker.clone())
+        }
     };
 
     let ctrl_c = tokio::signal::ctrl_c();
-
     tokio::select! {
         _ = _tracker_server => { panic!("Tracker server exited.") },
         _ = ctrl_c => { info!("Torrust shutting down..") }

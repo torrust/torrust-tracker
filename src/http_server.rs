@@ -332,7 +332,7 @@ impl HttpServer {
 
                 // todo: add http announce interval config option
                 // success response
-                let announce_interval = self.tracker.config.http_tracker.as_ref().unwrap().announce_interval;
+                let announce_interval = self.tracker.config.http_tracker.announce_interval;
                 HttpServer::send_announce_response(&query, torrent_stats, peers.unwrap(), announce_interval)
             }
         }

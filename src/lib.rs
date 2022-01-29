@@ -8,6 +8,8 @@ pub mod utils;
 pub mod database;
 pub mod key_manager;
 pub mod logging;
+pub mod udp_tracker;
+mod http_tracker;
 
 pub use self::config::*;
 pub use self::udp_server::*;

@@ -9,6 +9,12 @@ use std::path::Path;
 use std::str::FromStr;
 use config::{ConfigError, Config, File};
 
+#[derive(Serialize, Deserialize, PartialEq)]
+pub enum TrackerServer {
+    UDP,
+    HTTP
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct UdpTrackerConfig {
     pub bind_address: String,
@@ -48,21 +54,23 @@ pub struct Configuration {
     pub cleanup_interval: Option<u64>,
     pub external_ip: Option<String>,
     pub udp_tracker: UdpTrackerConfig,
-    pub http_tracker: Option<HttpTrackerConfig>,
-    pub http_api: Option<HttpApiConfig>,
+    pub http_tracker: HttpTrackerConfig,
+    pub http_api: HttpApiConfig,
 }
 
 #[derive(Debug)]
 pub enum ConfigurationError {
     IOError(std::io::Error),
     ParseError(toml::de::Error),
+    TrackerModeIncompatible,
 }
 
 impl std::fmt::Display for ConfigurationError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            ConfigurationError::IOError(e) => e.fmt(formatter),
-            ConfigurationError::ParseError(e) => e.fmt(formatter),
+            ConfigurationError::IOError(e) => e.fmt(f),
+            ConfigurationError::ParseError(e) => e.fmt(f),
+            _ => write!(f, "{:?}", self)
         }
     }
 }
@@ -125,20 +133,29 @@ impl Configuration {
                 bind_address: String::from("0.0.0.0:6969"),
                 announce_interval: 120,
             },
-            http_tracker: Option::from(HttpTrackerConfig {
+            http_tracker: HttpTrackerConfig {
                 enabled: false,
                 bind_address: String::from("0.0.0.0:7878"),
                 announce_interval: 120,
                 ssl_enabled: false,
                 ssl_cert_path: None,
                 ssl_key_path: None
-            }),
-            http_api: Option::from(HttpApiConfig {
+            },
+            http_api: HttpApiConfig {
                 enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))].iter().cloned().collect(),
-            }),
+            },
         }
+    }
+
+    pub fn verify(&self) -> Result<(), ConfigurationError> {
+        // UDP is not secure for sending private keys
+        if (self.mode == TrackerMode::PrivateMode || self.mode == TrackerMode::PrivateListedMode) && self.get_tracker_server() == TrackerServer::UDP {
+            return Err(ConfigurationError::TrackerModeIncompatible)
+        }
+
+        Ok(())
     }
 
     pub fn load_from_file() -> Result<Configuration, ConfigError> {
@@ -156,9 +173,11 @@ impl Configuration {
             return Err(ConfigError::Message(format!("Please edit the config.TOML in the root folder and restart the tracker.")))
         }
 
-        match config.try_into() {
-            Ok(data) => Ok(data),
-            Err(e) => Err(ConfigError::Message(format!("Errors while processing config: {}.", e))),
+        let torrust_config: Configuration = config.try_into().map_err(|e| ConfigError::Message(format!("Errors while processing config: {}.", e)))?;
+
+        match torrust_config.verify() {
+            Ok(_) => Ok(torrust_config),
+            Err(e) => Err(ConfigError::Message(format!("Errors while processing config: {}.", e)))
         }
     }
 
@@ -166,5 +185,13 @@ impl Configuration {
         let toml_string = toml::to_string(self).expect("Could not encode TOML value");
         fs::write("config.toml", toml_string).expect("Could not write to file!");
         Ok(())
+    }
+
+    pub fn get_tracker_server(&self) -> TrackerServer {
+        if self.http_tracker.enabled {
+            TrackerServer::HTTP
+        } else {
+            TrackerServer::UDP
+        }
     }
 }

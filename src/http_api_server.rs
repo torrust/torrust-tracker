@@ -224,7 +224,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                 .or(delete_key)
             );
 
-    let server = api_routes.and(authenticate(tracker.config.http_api.as_ref().unwrap().access_tokens.clone()));
+    let server = api_routes.and(authenticate(tracker.config.http_api.access_tokens.clone()));
 
     serve(server)
 }
