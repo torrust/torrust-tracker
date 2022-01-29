@@ -35,29 +35,24 @@ cd torrust-tracker
 cargo build --release
 ```
 
-3. Copy binaries: `torrust-tracker/target/torrust-tracker` to a new folder.
-
 ### Usage
-1. Navigate to the folder you put the torrust-tracker binaries in.
-
-
-2. Run the torrust-tracker once to create the `config.toml` file:
+1. Run the torrust-tracker once to create the `config.toml` file:
 ```bash
-./torrust-tracker
+./target/release/torrust-tracker
 ```
 
 
-3. Edit the newly created config.toml file in the same folder as your torrust-tracker binaries according to your liking. See [configuration documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/config/).
+2. Edit the newly created config.toml file according to your liking, see [configuration documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/config/).
 
 
-4. Run the torrust-tracker again:
+3. Run the torrust-tracker again:
 ```bash
-./torrust-tracker
+./target/release/torrust-tracker
 ```
 
 ### Tracker URL
-Your tracker will be `udp://tracker-ip:port/announce` or `https://tracker-ip:port/announce` depending on your tracker mode.
-In private mode, tracker keys are added after the tracker URL like: `https://tracker-ip:port/announce/tracker-key`.
+Your tracker announce URL will be **udp://{tracker-ip:port}** or **https://{tracker-ip:port}/announce** depending on your tracker mode.
+In private & private_listed mode, tracker keys are added after the tracker URL like: **https://{tracker-ip:port}/announce/{key}**.
 
 ### Built-in API
 Read the API documentation [here](https://torrust.github.io/torrust-documentation/torrust-tracker/api/).
