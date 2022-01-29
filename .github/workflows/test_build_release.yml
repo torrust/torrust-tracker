@@ -42,16 +42,16 @@ jobs:
           name: torrust-tracker
           path: ./target/release/torrust-tracker
 
-#  release:
-#    needs: build
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Download build artifact
-#        uses: actions/download-artifact@v2
-#        with:
-#          name: torrust-tracker
-#      - name: Release
-#        uses: softprops/action-gh-release@v1
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: torrust-tracker
+      - name: Release
+        uses: softprops/action-gh-release@v1
 #        with:
 #          files: |
 #            torrust-tracker
