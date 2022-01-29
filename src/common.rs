@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
 pub const MAX_PACKET_SIZE: usize = 0xffff;
 pub const MAX_SCRAPE_TORRENTS: u8 = 74;
@@ -14,41 +15,24 @@ pub enum Actions {
     Error = 3,
 }
 
-#[repr(u32)]
-#[derive(Serialize, Deserialize, Clone, Copy)]
-pub enum Events {
-    None = 0,
-    Complete = 1,
-    Started = 2,
-    Stopped = 3,
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub enum AnnounceEvent {
-    None,
-    Completed,
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "AnnounceEvent")]
+pub enum AnnounceEventDef {
     Started,
     Stopped,
+    Completed,
+    None
 }
 
-impl AnnounceEvent {
-    #[inline]
-    pub fn from_i32(i: i32) -> Self {
-        match i {
-            0 => Self::None,
-            1 => Self::Completed,
-            2 => Self::Started,
-            3 => Self::Stopped,
-            _ => Self::None,
-        }
-    }
-}
-
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct AnnounceInterval(pub i32);
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "NumberOfBytes")]
+pub struct NumberOfBytesDef(pub i64);
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, Ord)]
 pub struct InfoHash(pub [u8; 20]);
+
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, PartialOrd, Ord)]
+pub struct PeerId(pub [u8; 20]);
 
 impl InfoHash {
     pub fn to_string(&self) -> String {
@@ -145,31 +129,6 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
         }
     }
 }
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct ConnectionId(pub i64);
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct TransactionId(pub i32);
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct NumberOfBytes(pub i64);
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct NumberOfPeers(pub i32);
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct NumberOfDownloads(pub i32);
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct Port(pub u16);
-
-#[repr(transparent)]
-#[derive(Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug, PartialOrd, Ord)]
-pub struct PeerId(pub [u8; 20]);
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct PeerKey(pub u32);
 
 impl PeerId {
     pub fn get_client_name(&self) -> Option<&'static str> {

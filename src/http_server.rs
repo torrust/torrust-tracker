@@ -17,13 +17,13 @@ use super::common::*;
 
 #[derive(Deserialize, Debug)]
 pub struct AnnounceRequest {
-    pub downloaded: NumberOfBytes,
-    pub uploaded: NumberOfBytes,
+    pub downloaded: u32,
+    pub uploaded: u32,
     pub key: String,
     pub peer_id: String,
     pub port: u16,
     pub info_hash: String,
-    pub left: NumberOfBytes,
+    pub left: u32,
     pub event: Option<String>,
     pub compact: Option<u8>,
 }
@@ -283,7 +283,7 @@ impl HttpServer {
             Some(v) => AuthKey::from_string(&v)
         };
 
-        if let Err(e) = self.tracker.authenticate_request(&info_hash.unwrap(), &auth_key).await {
+        if let Err(e) = self.tracker.authenticate_request(&info_hash.unwrap(), auth_key).await {
             return match e {
                 TorrentError::TorrentNotWhitelisted => {
                     debug!("Info_hash not whitelisted.");
@@ -297,8 +297,13 @@ impl HttpServer {
                     debug!("Peer not authenticated.");
                     Some(HttpServer::send_error("peer not authenticated"))
                 }
+                _ => {
+                    debug!("Unhandled HTTP error.");
+                    Some(HttpServer::send_error("oops"))
+                }
             }
         }
+
         None
     }
 

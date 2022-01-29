@@ -1,6 +1,6 @@
 [package]
 name = "torrust-tracker"
-version = "2.0.1"
+version = "2.1.0"
 authors = ["Mick van Dijke <mick@dutchbits.nl>", "Naim A. <naim@abda.nl>"]
 description = "A feature rich BitTorrent tracker."
 edition = "2018"
@@ -30,3 +30,5 @@ rand = "0.8.4"
 env_logger = "0.9.0"
 config = "0.11"
 derive_more = "0.99"
+
+aquatic_udp_protocol = "0.1.0"

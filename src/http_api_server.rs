@@ -4,6 +4,7 @@ use std::cmp::min;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use warp::{filters, reply, reply::Reply, serve, Filter, Server};
+use crate::TorrentPeer;
 use super::common::*;
 
 #[derive(Deserialize, Debug)]
@@ -15,14 +16,11 @@ struct TorrentInfoQuery {
 #[derive(Serialize)]
 struct Torrent<'a> {
     info_hash: &'a InfoHash,
-    #[serde(flatten)]
-    data: &'a crate::tracker::TorrentEntry,
     seeders: u32,
     completed: u32,
     leechers: u32,
-
     #[serde(skip_serializing_if = "Option::is_none")]
-    peers: Option<Vec<(crate::common::PeerId, crate::tracker::TorrentPeer)>>,
+    peers: Option<Vec<TorrentPeer>>,
 }
 
 #[derive(Serialize, Debug)]
@@ -87,7 +85,6 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                         let (seeders, completed, leechers) = torrent_entry.get_stats();
                         Torrent {
                             info_hash,
-                            data: torrent_entry,
                             seeders,
                             completed,
                             leechers,
@@ -102,7 +99,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
             }
         });
 
-    // GET /api/torrent/:infohash
+    // GET /api/torrent/:info_hash
     // View torrent info
     let t2 = tracker.clone();
     let view_torrent_info = filters::method::get()
@@ -125,15 +122,10 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                 let torrent_entry = torrent_entry_option.unwrap();
                 let (seeders, completed, leechers) = torrent_entry.get_stats();
 
-                let peers: Vec<_> = torrent_entry
-                    .get_peers_iter()
-                    .take(1000)
-                    .map(|(peer_id, peer_info)| (peer_id.clone(), peer_info.clone()))
-                    .collect();
+                let peers = torrent_entry.get_peers(None);
 
                 Ok(reply::json(&Torrent {
                     info_hash: &info_hash,
-                    data: torrent_entry,
                     seeders,
                     completed,
                     leechers,

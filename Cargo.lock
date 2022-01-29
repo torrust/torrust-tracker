@@ -12,6 +12,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "aquatic_udp_protocol"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "84c3026324bc5073042edfbc47699cc60c1a9cf24849f5b104c18f98d2ad4175"
+dependencies = [
+ "byteorder",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1733,8 +1742,9 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker"
-version = "2.0.1"
+version = "2.1.0"
 dependencies = [
+ "aquatic_udp_protocol",
  "binascii",
  "byteorder",
  "chrono",
