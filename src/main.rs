@@ -2,7 +2,7 @@ use log::{info};
 use torrust_tracker::{http_api_server, Configuration, TorrentTracker, UdpServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig, logging, TrackerServer};
 use std::sync::Arc;
 use tokio::task::JoinHandle;
-use torrust_tracker::http_server::HttpServer;
+use torrust_tracker::torrust_http_tracker::server::HttpServer;
 
 #[tokio::main]
 async fn main() {

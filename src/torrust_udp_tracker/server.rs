@@ -1,15 +1,15 @@
-use log::{debug};
+use log::debug;
 use std;
-use std::net::{SocketAddr};
+use std::net::SocketAddr;
 use std::sync::Arc;
-use std::io::{Cursor};
+use std::io::Cursor;
 use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, IpVersion, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId};
 use tokio::net::UdpSocket;
 
-use super::common::*;
+use crate::common::*;
 use crate::utils::get_connection_id;
 use crate::tracker::TorrentTracker;
-use crate::{TorrentPeer, TorrentError};
+use crate::{InfoHash, TorrentError, TorrentPeer};
 
 struct RequestError {
     error: TorrentError,
@@ -18,7 +18,7 @@ struct RequestError {
 
 struct AnnounceRequestWrapper {
     announce_request: AnnounceRequest,
-    info_hash: super::common::InfoHash,
+    info_hash: InfoHash,
 }
 
 impl AnnounceRequestWrapper {

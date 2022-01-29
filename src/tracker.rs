@@ -3,15 +3,15 @@ use serde;
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use tokio::sync::RwLock;
-use crate::common::{InfoHash, NumberOfBytesDef, AnnounceEventDef, PeerId};
-use std::net::{SocketAddr, IpAddr};
-use crate::{Configuration, http_server, key_manager, MAX_SCRAPE_TORRENTS};
+use crate::common::{AnnounceEventDef, InfoHash, NumberOfBytesDef, PeerId};
+use std::net::{IpAddr, SocketAddr};
+use crate::{Configuration, torrust_http_tracker, key_manager, MAX_SCRAPE_TORRENTS};
 use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use log::debug;
-use crate::key_manager::{AuthKey};
+use crate::key_manager::AuthKey;
 use r2d2_sqlite::rusqlite;
 
 const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
@@ -77,7 +77,7 @@ impl TorrentPeer {
         }
     }
 
-    pub fn from_http_announce_request(announce_request: &http_server::AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
+    pub fn from_http_announce_request(announce_request: &torrust_http_tracker::request::AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
         // Potentially substitute localhost IP with external IP
         let peer_addr = match peer_addr {
             None => SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port),

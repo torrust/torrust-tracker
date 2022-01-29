@@ -1,135 +1,19 @@
 use std::collections::{HashMap};
 use crate::tracker::{TorrentTracker};
-use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
-use std::error::Error;
-use std::io::Write;
-use std::net::{IpAddr, SocketAddr};
+use std::net::{SocketAddr};
 use std::sync::Arc;
 use std::str::FromStr;
+use super::{AnnounceResponse, ScrapeResponse};
 use log::{debug};
 use warp::{filters, reply::Reply, Filter};
 use warp::http::Response;
 use crate::{TorrentError, TorrentPeer, TorrentStats};
 use crate::key_manager::AuthKey;
 use crate::utils::url_encode_bytes;
-use super::common::*;
-
-#[derive(Deserialize, Debug)]
-pub struct AnnounceRequest {
-    pub downloaded: u32,
-    pub uploaded: u32,
-    pub key: String,
-    pub peer_id: String,
-    pub port: u16,
-    pub info_hash: String,
-    pub left: u32,
-    pub event: Option<String>,
-    pub compact: Option<u8>,
-}
-
-impl AnnounceRequest {
-    pub fn is_compact(&self) -> bool {
-        self.compact.unwrap_or(0) == 1
-    }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct ScrapeRequest {
-    pub info_hash: String,
-}
-
-#[derive(Serialize)]
-struct Peer {
-    peer_id: String,
-    ip: IpAddr,
-    port: u16,
-}
-
-#[derive(Serialize)]
-struct AnnounceResponse {
-    interval: u32,
-    //tracker_id: String,
-    complete: u32,
-    incomplete: u32,
-    peers: Vec<Peer>
-}
-
-impl AnnounceResponse {
-    pub fn write(&self) -> String {
-        serde_bencode::to_string(&self).unwrap()
-    }
-
-    pub fn write_compact(&self) -> Result<Vec<u8>, Box<dyn Error>> {
-        let mut peers_v4: Vec<u8> = Vec::new();
-        let mut peers_v6: Vec<u8> = Vec::new();
-
-        for peer in &self.peers {
-            match peer.ip {
-                IpAddr::V4(ip) => {
-                    peers_v4.write(&u32::from(ip).to_be_bytes())?;
-                    peers_v4.write(&peer.port.to_be_bytes())?;
-                }
-                IpAddr::V6(ip) => {
-                    peers_v6.write(&u128::from(ip).to_be_bytes())?;
-                    peers_v6.write(&peer.port.to_be_bytes())?;
-                }
-            }
-        }
-
-        debug!("{:?}", String::from_utf8_lossy(peers_v4.as_slice()));
-        debug!("{:?}", String::from_utf8_lossy(peers_v6.as_slice()));
-
-        let mut bytes: Vec<u8> = Vec::new();
-        bytes.write(b"d8:intervali")?;
-        bytes.write(&self.interval.to_string().as_bytes())?;
-        bytes.write(b"e8:completei")?;
-        bytes.write(&self.complete.to_string().as_bytes())?;
-        bytes.write(b"e10:incompletei")?;
-        bytes.write(&self.incomplete.to_string().as_bytes())?;
-        bytes.write(b"e5:peers")?;
-        bytes.write(&peers_v4.len().to_string().as_bytes())?;
-        bytes.write(b":")?;
-        bytes.write(peers_v4.as_slice())?;
-        bytes.write(b"e6:peers6")?;
-        bytes.write(&peers_v6.len().to_string().as_bytes())?;
-        bytes.write(b":")?;
-        bytes.write(peers_v6.as_slice())?;
-        bytes.write(b"e")?;
-
-        debug!("{:?}", String::from_utf8_lossy(bytes.as_slice()));
-        Ok(bytes)
-    }
-}
-
-#[derive(Serialize)]
-struct ScrapeResponse {
-    files: HashMap<String, ScrapeResponseEntry>
-}
-
-impl ScrapeResponse {
-    pub fn write(&self) -> String {
-        serde_bencode::to_string(&self).unwrap()
-    }
-}
-
-#[derive(Serialize)]
-struct ScrapeResponseEntry {
-    complete: u32,
-    downloaded: u32,
-    incomplete: u32,
-}
-
-#[derive(Serialize)]
-struct ErrorResponse {
-    failure_reason: String
-}
-
-impl warp::Reply for ErrorResponse {
-    fn into_response(self) -> warp::reply::Response {
-        Response::new(format!("{}", serde_bencode::to_string(&self).unwrap()).into())
-    }
-}
+use crate::common::*;
+use crate::torrust_http_tracker::request::AnnounceRequest;
+use crate::torrust_http_tracker::{ErrorResponse, Peer, ScrapeResponseEntry};
 
 #[derive(Clone)]
 pub struct HttpServer {
