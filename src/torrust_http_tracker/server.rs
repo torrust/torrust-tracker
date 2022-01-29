@@ -1,13 +1,13 @@
 use std::collections::{HashMap};
-use crate::tracker::{TorrentTracker};
 use std::convert::Infallible;
 use std::net::{SocketAddr};
 use std::sync::Arc;
 use std::str::FromStr;
-use super::{AnnounceResponse, ScrapeResponse};
 use log::{debug};
 use warp::{filters, reply::Reply, Filter};
 use warp::http::Response;
+use super::{AnnounceResponse, ScrapeResponse};
+use crate::tracker::{TorrentTracker};
 use crate::{TorrentError, TorrentPeer, TorrentStats};
 use crate::key_manager::AuthKey;
 use crate::utils::url_encode_bytes;
