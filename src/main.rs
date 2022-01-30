@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use log::{info};
 use torrust_tracker::{http_api_server, Configuration, TorrentTracker, UdpServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig, logging, TrackerServer};
 use std::sync::Arc;
@@ -74,25 +75,21 @@ fn start_api_server(config: &HttpApiConfig, tracker: Arc<TorrentTracker>) -> Joi
 }
 
 fn start_http_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
-    info!("Starting HTTP server on: {}", config.bind_address);
-    let http_tracker = Arc::new(HttpServer::new(tracker));
-    let bind_addr = config.bind_address.parse::<std::net::SocketAddrV4>().unwrap();
+    let http_tracker = HttpServer::new(tracker);
+    let bind_addr = config.bind_address.parse::<SocketAddr>().unwrap();
     let ssl_enabled = config.ssl_enabled;
     let ssl_cert_path = config.ssl_cert_path.clone();
     let ssl_key_path = config.ssl_key_path.clone();
 
+
     tokio::spawn(async move {
         // run with tls if ssl_enabled and cert and key path are set
-        if ssl_enabled {
-            info!("SSL enabled.");
-            warp::serve(HttpServer::routes(http_tracker))
-                .tls()
-                .cert_path(ssl_cert_path.as_ref().unwrap())
-                .key_path(ssl_key_path.as_ref().unwrap())
-                .run(bind_addr).await;
+        if ssl_enabled && ssl_cert_path.is_some() && ssl_key_path.is_some() {
+            info!("Starting HTTPS server on: {} (TLS)", bind_addr);
+            http_tracker.start_tls(bind_addr, ssl_cert_path.as_ref().unwrap(), ssl_key_path.as_ref().unwrap()).await;
         } else {
-            warp::serve(HttpServer::routes(http_tracker))
-                .run(bind_addr).await;
+            info!("Starting HTTP server on: {}", bind_addr);
+            http_tracker.start(bind_addr).await;
         }
     })
 }

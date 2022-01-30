@@ -3,7 +3,6 @@ use std::error::Error;
 use std::io::Write;
 use std::net::IpAddr;
 use serde::{Serialize};
-use warp::http::Response;
 
 #[derive(Serialize)]
 pub struct Peer {
@@ -85,10 +84,4 @@ impl ScrapeResponse {
 #[derive(Serialize)]
 pub struct ErrorResponse {
     pub failure_reason: String
-}
-
-impl warp::Reply for ErrorResponse {
-    fn into_response(self) -> warp::reply::Response {
-        Response::new(format!("{}", serde_bencode::to_string(&self).unwrap()).into())
-    }
 }

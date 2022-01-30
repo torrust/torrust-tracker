@@ -114,7 +114,7 @@ impl UdpServer {
 
     async fn handle_announce(&self, remote_addr: SocketAddr, announce_request: &AnnounceRequest) -> Result<Response, TorrentError> {
         let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request.clone());
-        self.tracker.authenticate_request(&wrapped_announce_request.info_hash, None).await?;
+        self.tracker.authenticate_request(&wrapped_announce_request.info_hash, &None).await?;
 
         let peer = TorrentPeer::from_udp_announce_request(&wrapped_announce_request.announce_request, remote_addr, self.tracker.config.get_ext_ip());
 
