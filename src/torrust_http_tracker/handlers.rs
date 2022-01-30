@@ -6,12 +6,10 @@ use warp::{reject, Rejection, Reply};
 use warp::http::{Response, StatusCode};
 use crate::{InfoHash, TorrentPeer, TorrentStats, TorrentTracker};
 use crate::key_manager::AuthKey;
-use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError};
+use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError, WebResult};
 use crate::utils::url_encode_bytes;
 
-type WebResult<T> = std::result::Result<T, Rejection>;
-
-/// Authenticate AnnounceRequest using optional AuthKey
+/// Authenticate InfoHash using optional AuthKey
 pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
     match tracker.authenticate_request(info_hash, auth_key).await {
         Ok(_) => Ok(()),
