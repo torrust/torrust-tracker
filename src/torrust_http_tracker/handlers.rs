@@ -9,6 +9,8 @@ use crate::key_manager::AuthKey;
 use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError};
 use crate::utils::url_encode_bytes;
 
+type WebResult<T> = std::result::Result<T, Rejection>;
+
 /// Authenticate AnnounceRequest using optional AuthKey
 pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
     match tracker.authenticate_request(info_hash, auth_key).await {

@@ -13,3 +13,5 @@ pub use self::errors::*;
 pub use self::routes::*;
 pub use self::handlers::*;
 pub use self::filters::*;
+
+pub type WebResult<T> = std::result::Result<T, warp::Rejection>;

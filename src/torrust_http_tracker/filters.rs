@@ -5,16 +5,16 @@ use std::sync::Arc;
 use warp::{Filter, reject, Rejection};
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS, TorrentTracker};
 use crate::key_manager::AuthKey;
-use crate::torrust_http_tracker::{AnnounceRequest, AnnounceRequestQuery, ScrapeRequest, ServerError};
+use crate::torrust_http_tracker::{AnnounceRequest, AnnounceRequestQuery, ScrapeRequest, ServerError, WebResult};
 
 /// Pass Arc<TorrentTracker> along
-fn with_tracker(tracker: Arc<TorrentTracker>) -> impl Filter<Extract = (Arc<TorrentTracker>,), Error = Infallible> + Clone {
+pub fn with_tracker(tracker: Arc<TorrentTracker>) -> impl Filter<Extract = (Arc<TorrentTracker>,), Error = Infallible> + Clone {
     warp::any()
         .map(move || tracker.clone())
 }
 
 /// Check for infoHash
-fn with_info_hash() -> impl Filter<Extract = (Vec<InfoHash>,), Error = Rejection> + Clone {
+pub fn with_info_hash() -> impl Filter<Extract = (Vec<InfoHash>,), Error = Rejection> + Clone {
     warp::filters::query::raw()
         .and_then(info_hashes)
 }
@@ -45,7 +45,7 @@ async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
 }
 
 /// Pass Arc<TorrentTracker> along
-fn with_auth_key() -> impl Filter<Extract = (Option<AuthKey>,), Error = warp::Rejection> + Clone {
+pub fn with_auth_key() -> impl Filter<Extract = (Option<AuthKey>,), Error = warp::Rejection> + Clone {
     warp::path::param::<String>()
         .map(|key_string: String| {
             AuthKey::from_string(&key_string)
@@ -53,7 +53,7 @@ fn with_auth_key() -> impl Filter<Extract = (Option<AuthKey>,), Error = warp::Re
 }
 
 /// Check for AnnounceRequest
-fn with_announce_request() -> impl Filter<Extract = (AnnounceRequest,), Error = Rejection> + Clone {
+pub fn with_announce_request() -> impl Filter<Extract = (AnnounceRequest,), Error = Rejection> + Clone {
     warp::filters::query::query::<AnnounceRequestQuery>()
         .and(with_info_hash())
         .and(warp::addr::remote())
@@ -78,7 +78,7 @@ async fn announce_request(announce_request_query: AnnounceRequestQuery, info_has
 }
 
 /// Check for ScrapeRequest
-fn with_scrape_request() -> impl Filter<Extract = (ScrapeRequest,), Error = Rejection> + Clone {
+pub fn with_scrape_request() -> impl Filter<Extract = (ScrapeRequest,), Error = Rejection> + Clone {
     warp::any()
         .and(with_info_hash())
         .and_then(scrape_request)
