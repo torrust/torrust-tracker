@@ -12,7 +12,7 @@ use crate::{TorrentPeer, TorrentStats};
 use crate::key_manager::AuthKey;
 use crate::common::*;
 use crate::torrust_http_tracker::request::AnnounceRequestQuery;
-use crate::torrust_http_tracker::{AnnounceRequest, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry};
+use crate::torrust_http_tracker::{AnnounceRequest, ErrorResponse, Peer, routes, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry};
 use crate::torrust_http_tracker::errors::ServerError;
 use crate::utils::url_encode_bytes;
 

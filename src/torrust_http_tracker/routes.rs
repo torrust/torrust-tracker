@@ -2,10 +2,10 @@ use std::convert::Infallible;
 use std::sync::Arc;
 use warp::{Filter, Rejection};
 use crate::TorrentTracker;
-use crate::torrust_http_tracker::{handle_announce, handle_scrape};
+use crate::torrust_http_tracker::{handle_announce, handle_error, handle_scrape};
 
 /// All routes
-fn routes(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::Reply, Error = Infallible> + Clone {
+pub fn routes(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::Reply, Error = Infallible> + Clone {
     announce(tracker.clone())
         .or(scrape(tracker.clone()))
         .recover(handle_error)

@@ -10,7 +10,7 @@ use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorRespon
 use crate::utils::url_encode_bytes;
 
 /// Authenticate AnnounceRequest using optional AuthKey
-async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
+pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
     match tracker.authenticate_request(info_hash, auth_key).await {
         Ok(_) => Ok(()),
         Err(e) => Err(ServerError::from(e))
@@ -67,7 +67,7 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
 }
 
 /// Handle all server errors and send error reply
-async fn handle_error(r: Rejection) -> std::result::Result<impl Reply, Infallible> {
+pub async fn handle_error(r: Rejection) -> std::result::Result<impl Reply, Infallible> {
     if let Some(e) = r.find::<ServerError>() {
         debug!("{:?}", e);
         let reply = warp::reply::json(&ErrorResponse { failure_reason: e.to_string() });
