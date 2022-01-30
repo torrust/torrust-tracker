@@ -1,3 +1,12 @@
+use std::convert::Infallible;
+use std::net::SocketAddr;
+use std::str::FromStr;
+use std::sync::Arc;
+use warp::{Filter, reject, Rejection};
+use crate::{InfoHash, MAX_SCRAPE_TORRENTS, TorrentTracker};
+use crate::key_manager::AuthKey;
+use crate::torrust_http_tracker::{AnnounceRequest, AnnounceRequestQuery, ScrapeRequest, ServerError};
+
 /// Pass Arc<TorrentTracker> along
 fn with_tracker(tracker: Arc<TorrentTracker>) -> impl Filter<Extract = (Arc<TorrentTracker>,), Error = Infallible> + Clone {
     warp::any()

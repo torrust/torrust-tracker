@@ -1,3 +1,14 @@
+use std::collections::HashMap;
+use std::convert::Infallible;
+use std::sync::Arc;
+use log::debug;
+use warp::{reject, Rejection, Reply};
+use warp::http::{Response, StatusCode};
+use crate::{InfoHash, TorrentPeer, TorrentStats, TorrentTracker};
+use crate::key_manager::AuthKey;
+use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError};
+use crate::utils::url_encode_bytes;
+
 /// Authenticate AnnounceRequest using optional AuthKey
 async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
     match tracker.authenticate_request(info_hash, auth_key).await {
@@ -40,7 +51,6 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
         let scrape_entry = match db.get(&info_hash) {
             Some(torrent_info) => {
                 let (seeders, completed, leechers) = torrent_info.get_stats();
-
                 ScrapeResponseEntry { complete: seeders, downloaded: completed, incomplete: leechers }
             }
             None => {
