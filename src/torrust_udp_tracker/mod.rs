@@ -1,12 +1,10 @@
 pub mod errors;
 pub mod request;
-pub mod response;
 pub mod server;
 pub mod handlers;
 
 pub use self::errors::*;
 pub use self::request::*;
-pub use self::response::*;
 pub use self::server::*;
 pub use self::handlers::*;
 
