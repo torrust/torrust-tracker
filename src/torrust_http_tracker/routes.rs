@@ -6,12 +6,23 @@ use crate::torrust_http_tracker::{handle_announce, handle_error, handle_scrape, 
 
 /// All routes
 pub fn routes(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::Reply, Error = Infallible> + Clone {
-    announce(tracker.clone())
+    root(tracker.clone())
+        .or(announce(tracker.clone()))
         .or(scrape(tracker.clone()))
         .recover(handle_error)
 }
 
-/// GET /announce/<key>
+/// GET / or /<key>
+fn root(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::Reply, Error = Rejection> + Clone {
+    warp::any()
+        .and(warp::filters::method::get())
+        .and(with_announce_request())
+        .and(with_auth_key())
+        .and(with_tracker(tracker))
+        .and_then(handle_announce)
+}
+
+/// GET /announce or /announce/<key>
 fn announce(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::Reply, Error = Rejection> + Clone {
     warp::path::path("announce")
         .and(warp::filters::method::get())
