@@ -361,31 +361,26 @@ impl TorrentTracker {
         }
     }
 
-    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &TorrentPeer) -> Result<TorrentStats, TorrentError> {
+    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &TorrentPeer) -> TorrentStats {
         let mut torrents = self.torrents.write().await;
 
         let torrent_entry = match torrents.entry(info_hash.clone()) {
             Entry::Vacant(vacant) => {
-                Ok(vacant.insert(TorrentEntry::new()))
+                vacant.insert(TorrentEntry::new())
             }
             Entry::Occupied(entry) => {
-                Ok(entry.into_mut())
+                entry.into_mut()
             }
         };
 
-        match torrent_entry {
-            Ok(torrent_entry) => {
-                torrent_entry.update_peer(peer);
+        torrent_entry.update_peer(peer);
 
-                let (seeders, completed, leechers) = torrent_entry.get_stats();
+        let (seeders, completed, leechers) = torrent_entry.get_stats();
 
-                Ok(TorrentStats {
-                    seeders,
-                    leechers,
-                    completed,
-                })
-            }
-            Err(e) => Err(e)
+        TorrentStats {
+            seeders,
+            leechers,
+            completed,
         }
     }
 

@@ -2,11 +2,13 @@ pub mod errors;
 pub mod request;
 pub mod response;
 pub mod server;
+pub mod handlers;
 
-use self::errors::*;
-use self::request::*;
-use self::response::*;
-use self::server::*;
+pub use self::errors::*;
+pub use self::request::*;
+pub use self::response::*;
+pub use self::server::*;
+pub use self::handlers::*;
 
 pub type Bytes = u64;
 pub type Port = u16;

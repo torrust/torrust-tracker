@@ -4,7 +4,7 @@ use std::sync::Arc;
 use log::debug;
 use warp::{reject, Rejection, Reply};
 use warp::http::{Response, StatusCode};
-use crate::{InfoHash, TorrentPeer, TorrentStats, TorrentTracker};
+use crate::{InfoHash, TorrentError, TorrentPeer, TorrentStats, TorrentTracker};
 use crate::key_manager::AuthKey;
 use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError, WebResult};
 use crate::utils::url_encode_bytes;
@@ -13,7 +13,18 @@ use crate::utils::url_encode_bytes;
 pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
     match tracker.authenticate_request(info_hash, auth_key).await {
         Ok(_) => Ok(()),
-        Err(e) => Err(ServerError::from(e))
+        Err(e) => {
+            let err = match e {
+                TorrentError::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
+                TorrentError::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
+                TorrentError::PeerKeyNotValid => ServerError::PeerKeyNotValid,
+                TorrentError::NoPeersFound => ServerError::NoPeersFound,
+                TorrentError::CouldNotSendResponse => ServerError::InternalServerError,
+                TorrentError::InvalidInfoHash => ServerError::InvalidInfoHash,
+            };
+
+            Err(err)
+        }
     }
 }
 
@@ -24,19 +35,14 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
     }
 
     let peer = TorrentPeer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
+    let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer).await;
+    // get all peers excluding the client_addr
+    let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;
+    if peers.is_none() { return Err(reject::custom(ServerError::NoPeersFound)) }
 
-    match tracker.update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer).await {
-        Err(e) => Err(reject::custom(ServerError::from(e))),
-        Ok(torrent_stats) => {
-            // get all peers excluding the client_addr
-            let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;
-            if peers.is_none() { return Err(reject::custom(ServerError::NoPeersFound)) }
-
-            // success response
-            let announce_interval = tracker.config.http_tracker.announce_interval;
-            send_announce_response(&announce_request, torrent_stats, peers.unwrap(), announce_interval)
-        }
-    }
+    // success response
+    let announce_interval = tracker.config.http_tracker.announce_interval;
+    send_announce_response(&announce_request, torrent_stats, peers.unwrap(), announce_interval)
 }
 
 /// Handle scrape request

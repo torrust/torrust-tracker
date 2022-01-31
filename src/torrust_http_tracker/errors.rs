@@ -30,16 +30,3 @@ pub enum ServerError {
 }
 
 impl Reject for ServerError {}
-
-impl From<TorrentError> for ServerError {
-    fn from(e: TorrentError) -> Self {
-        match e {
-            TorrentError::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
-            TorrentError::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
-            TorrentError::PeerKeyNotValid => ServerError::PeerKeyNotValid,
-            TorrentError::NoPeersFound => ServerError::NoPeersFound,
-            TorrentError::CouldNotSendResponse => ServerError::InternalServerError,
-            TorrentError::InvalidInfoHash => ServerError::InvalidInfoHash,
-        }
-    }
-}
