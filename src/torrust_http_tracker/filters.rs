@@ -45,10 +45,13 @@ async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
 }
 
 /// Pass Arc<TorrentTracker> along
-pub fn with_auth_key() -> impl Filter<Extract = (Option<AuthKey>,), Error = warp::Rejection> + Clone {
+pub fn with_auth_key() -> impl Filter<Extract = (Option<AuthKey>,), Error = Infallible> + Clone {
     warp::path::param::<String>()
-        .map(|key_string: String| {
-            AuthKey::from_string(&key_string)
+        .map(|key: String| {
+            AuthKey::from_string(&key)
+        })
+        .or_else(|_| async {
+            Ok::<(Option<AuthKey>,), Infallible>((None,))
         })
 }
 
