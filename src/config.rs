@@ -135,7 +135,7 @@ impl Configuration {
             },
             http_tracker: HttpTrackerConfig {
                 enabled: false,
-                bind_address: String::from("0.0.0.0:7878"),
+                bind_address: String::from("0.0.0.0:6969"),
                 announce_interval: 120,
                 ssl_enabled: false,
                 ssl_cert_path: None,
