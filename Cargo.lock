@@ -1742,7 +1742,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "aquatic_udp_protocol",
  "binascii",
@@ -1763,6 +1763,7 @@ dependencies = [
  "serde_bencode",
  "serde_bytes",
  "serde_json",
+ "thiserror",
  "tokio",
  "toml",
  "warp",
