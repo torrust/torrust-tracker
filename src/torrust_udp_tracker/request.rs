@@ -1,7 +1,5 @@
-use std::net::Ipv4Addr;
-use aquatic_udp_protocol::{AnnounceEvent, AnnounceRequest};
-use crate::{InfoHash, PeerId};
-use crate::torrust_udp_tracker::{Bytes, Port};
+use aquatic_udp_protocol::{AnnounceRequest};
+use crate::{InfoHash};
 
 // struct AnnounceRequest {
 //     pub connection_id: i64,

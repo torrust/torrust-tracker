@@ -1,6 +1,5 @@
 use warp::reject::Reject;
 use thiserror::Error;
-use crate::TorrentError;
 
 #[derive(Error, Debug)]
 pub enum ServerError {

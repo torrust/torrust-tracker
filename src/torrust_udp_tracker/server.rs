@@ -1,18 +1,11 @@
-use log::debug;
-use std;
-use std::net::SocketAddr;
-use std::sync::Arc;
 use std::io::Cursor;
-use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, IpVersion, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId};
+use std::net::{SocketAddr};
+use std::sync::Arc;
+use aquatic_udp_protocol::{IpVersion, Response};
+use log::debug;
 use tokio::net::UdpSocket;
-
-use crate::common::*;
-use crate::utils::get_connection_id;
-use crate::tracker::TorrentTracker;
-use crate::{InfoHash, TorrentError, TorrentPeer};
-use crate::torrust_udp_tracker::errors::ServerError;
+use crate::TorrentTracker;
 use crate::torrust_udp_tracker::{handle_packet, MAX_PACKET_SIZE};
-use crate::torrust_udp_tracker::request::{AnnounceRequestWrapper};
 
 pub struct UdpServer {
     socket: UdpSocket,
@@ -47,7 +40,12 @@ impl UdpServer {
         let buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(buffer);
 
-        match response.write(&mut cursor, IpVersion::IPv4) {
+        let ip_version = match remote_addr {
+            SocketAddr::V4(_) => IpVersion::IPv4,
+            SocketAddr::V6(_) => IpVersion::IPv6
+        };
+
+        match response.write(&mut cursor, ip_version) {
             Ok(_) => {
                 let position = cursor.position() as usize;
                 let inner = cursor.get_ref();
