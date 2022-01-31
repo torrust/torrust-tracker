@@ -95,15 +95,12 @@ fn start_http_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTra
 }
 
 async fn start_udp_tracker_server(config: &UdpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
-    info!("Starting UDP server on: {}", config.bind_address);
     let udp_server = UdpServer::new(tracker).await.unwrap_or_else(|e| {
         panic!("Could not start UDP server: {}", e);
     });
 
-    info!("Starting UDP tracker server..");
+    info!("Starting UDP server on: {}", config.bind_address);
     tokio::spawn(async move {
-        if let Err(e) = udp_server.accept_packets().await {
-            panic!("Could not start UDP server: {}", e);
-        }
+        udp_server.start().await;
     })
 }
