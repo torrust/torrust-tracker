@@ -34,7 +34,16 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
         return Err(reject::custom(e))
     }
 
-    let peer = TorrentPeer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
+    if tracker.config.http_tracker.on_reverse_proxy && announce_request.forwarded_ip.is_none() {
+        return Err(reject::custom(ServerError::AddressNotFound))
+    }
+
+    let peer_ip = match tracker.config.http_tracker.on_reverse_proxy {
+        true => announce_request.forwarded_ip.unwrap(),
+        false => announce_request.peer_addr.ip()
+    };
+
+    let peer = TorrentPeer::from_http_announce_request(&announce_request, peer_ip, tracker.config.get_ext_ip());
     let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer).await;
     // get all peers excluding the client_addr
     let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;

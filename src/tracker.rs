@@ -54,18 +54,8 @@ pub struct TorrentPeer {
 }
 
 impl TorrentPeer {
-    pub fn from_udp_announce_request(announce_request: &aquatic_udp_protocol::AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
-        // Potentially substitute localhost IP with external IP
-        let peer_addr = match peer_addr {
-            None => SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port.0),
-            Some(peer_addr) => {
-                if remote_addr.ip().is_loopback() {
-                    SocketAddr::new(IpAddr::from(peer_addr), announce_request.port.0)
-                } else {
-                    SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port.0)
-                }
-            }
-        };
+    pub fn from_udp_announce_request(announce_request: &aquatic_udp_protocol::AnnounceRequest, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
+        let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port.0);
 
         TorrentPeer {
             peer_id: PeerId(announce_request.peer_id.0),
@@ -78,18 +68,8 @@ impl TorrentPeer {
         }
     }
 
-    pub fn from_http_announce_request(announce_request: &AnnounceRequest, remote_addr: SocketAddr, peer_addr: Option<IpAddr>) -> Self {
-        // Potentially substitute localhost IP with external IP
-        let peer_addr = match peer_addr {
-            None => SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port),
-            Some(peer_addr) => {
-                if remote_addr.ip().is_loopback() {
-                    SocketAddr::new(IpAddr::from(peer_addr), announce_request.port)
-                } else {
-                    SocketAddr::new(IpAddr::from(remote_addr.ip()), announce_request.port)
-                }
-            }
-        };
+    pub fn from_http_announce_request(announce_request: &AnnounceRequest, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
+        let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port);
 
         let event: AnnounceEvent = if let Some(event) = &announce_request.event {
             match event.as_ref() {
@@ -110,6 +90,15 @@ impl TorrentPeer {
             downloaded: NumberOfBytes(announce_request.downloaded as i64),
             left: NumberOfBytes(announce_request.left as i64),
             event
+        }
+    }
+
+    // potentially substitute localhost ip with external ip
+    pub fn peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip: IpAddr, host_opt_ip: Option<IpAddr>, port: u16) -> SocketAddr {
+        if remote_ip.is_loopback() && host_opt_ip.is_some() {
+            SocketAddr::new(host_opt_ip.unwrap(), port)
+        } else {
+            SocketAddr::new(remote_ip, port)
         }
     }
 

@@ -1,5 +1,5 @@
 use std::convert::Infallible;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use std::sync::Arc;
 use warp::{Filter, reject, Rejection};
@@ -60,16 +60,27 @@ pub fn with_announce_request() -> impl Filter<Extract = (AnnounceRequest,), Erro
     warp::filters::query::query::<AnnounceRequestQuery>()
         .and(with_info_hash())
         .and(warp::addr::remote())
+        .and(warp::header::optional::<String>("X-Forwarded-For"))
         .and_then(announce_request)
 }
 
 /// Parse AnnounceRequest from raw AnnounceRequestQuery, InfoHash and Option<SocketAddr>
-async fn announce_request(announce_request_query: AnnounceRequestQuery, info_hashes: Vec<InfoHash>, remote_addr: Option<SocketAddr>) -> WebResult<AnnounceRequest> {
+async fn announce_request(announce_request_query: AnnounceRequestQuery, info_hashes: Vec<InfoHash>, remote_addr: Option<SocketAddr>, forwarded_for: Option<String>) -> WebResult<AnnounceRequest> {
     if remote_addr.is_none() { return Err(reject::custom(ServerError::AddressNotFound)) }
 
+    // get first forwarded ip
+    let forwarded_ip = match forwarded_for {
+        None => None,
+        Some(forwarded_for_str) => {
+            forwarded_for_str.split(",").next()
+                .and_then(|ip_str| IpAddr::from_str(ip_str).ok())
+        }
+    };
+    
     Ok(AnnounceRequest {
         info_hash: info_hashes[0],
         peer_addr: remote_addr.unwrap(),
+        forwarded_ip,
         downloaded: announce_request_query.downloaded,
         uploaded: announce_request_query.uploaded,
         peer_id: announce_request_query.peer_id,

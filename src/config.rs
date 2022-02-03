@@ -25,6 +25,7 @@ pub struct UdpTrackerConfig {
 pub struct HttpTrackerConfig {
     pub enabled: bool,
     pub bind_address: String,
+    pub on_reverse_proxy: bool,
     pub announce_interval: u32,
     pub ssl_enabled: bool,
     #[serde(serialize_with = "none_as_empty_string")]
@@ -136,6 +137,7 @@ impl Configuration {
             http_tracker: HttpTrackerConfig {
                 enabled: false,
                 bind_address: String::from("0.0.0.0:6969"),
+                on_reverse_proxy: false,
                 announce_interval: 120,
                 ssl_enabled: false,
                 ssl_cert_path: None,

@@ -36,16 +36,43 @@ cargo build --release
 ```
 
 ### Usage
-1. Run the torrust-tracker once to create the `config.toml` file:
+* Run the torrust-tracker once to create the `config.toml` file:
 ```bash
 ./target/release/torrust-tracker
 ```
 
 
-2. Edit the newly created config.toml file according to your liking, see [configuration documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/config/).
+* Edit the newly created config.toml file according to your liking, see [configuration documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/config/). Eg:
+```toml
+log_level = "trace"
+mode = "public"
+db_path = "data.db"
+cleanup_interval = 600
+external_ip = "YOUR_EXTERNAL_IP"
+
+[udp_tracker]
+bind_address = "0.0.0.0:6969"
+announce_interval = 120
+
+[http_tracker]
+enabled = true
+bind_address = "0.0.0.0:6969"
+on_reverse_proxy = false
+announce_interval = 120
+ssl_enabled = false
+ssl_cert_path = ""
+ssl_key_path = ""
+
+[http_api]
+enabled = true
+bind_address = "127.0.0.1:1212"
+
+[http_api.access_tokens]
+admin = "MyAccessToken"
+```
 
 
-3. Run the torrust-tracker again:
+* Run the torrust-tracker again:
 ```bash
 ./target/release/torrust-tracker
 ```

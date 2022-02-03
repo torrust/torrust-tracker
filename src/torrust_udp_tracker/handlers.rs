@@ -79,7 +79,7 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
 
     authenticate(&wrapped_announce_request.info_hash, tracker.clone()).await?;
 
-    let peer = TorrentPeer::from_udp_announce_request(&wrapped_announce_request.announce_request, remote_addr, tracker.config.get_ext_ip());
+    let peer = TorrentPeer::from_udp_announce_request(&wrapped_announce_request.announce_request, remote_addr.ip(), tracker.config.get_ext_ip());
 
     let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
     // get all peers excluding the client_addr
