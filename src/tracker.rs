@@ -57,8 +57,10 @@ impl TorrentPeer {
     pub fn from_udp_announce_request(announce_request: &aquatic_udp_protocol::AnnounceRequest, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
         let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port.0);
 
+        let peer_id = String::from_utf8_lossy(&announce_request.peer_id.0).parse().unwrap_or("unknown".to_string());
+
         TorrentPeer {
-            peer_id: PeerId(announce_request.peer_id.0),
+            peer_id: PeerId(peer_id),
             peer_addr,
             updated: std::time::Instant::now(),
             uploaded: announce_request.bytes_uploaded,
@@ -70,6 +72,9 @@ impl TorrentPeer {
 
     pub fn from_http_announce_request(announce_request: &AnnounceRequest, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
         let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port);
+
+        let max_string_size = announce_request.peer_id.len().clamp(0, 40);
+        let peer_id = announce_request.peer_id[..max_string_size].to_string();
 
         let event: AnnounceEvent = if let Some(event) = &announce_request.event {
             match event.as_ref() {
@@ -83,7 +88,7 @@ impl TorrentPeer {
         };
 
         TorrentPeer {
-            peer_id: PeerId::from(announce_request.peer_id.as_bytes()),
+            peer_id: PeerId(peer_id),
             peer_addr,
             updated: std::time::Instant::now(),
             uploaded: NumberOfBytes(announce_request.uploaded as i64),
@@ -138,7 +143,7 @@ impl TorrentEntry {
                 self.update_torrent_stats_with_peer(peer, peer_old);
             }
             _ => {
-                let peer_old = self.peers.insert(peer.peer_id, peer.clone());
+                let peer_old = self.peers.insert(peer.peer_id.clone(), peer.clone());
                 self.update_torrent_stats_with_peer(peer, peer_old);
             }
         }
@@ -394,12 +399,12 @@ impl TorrentTracker {
                     if peer.is_seeder() {
                         if peer.updated.elapsed() > FIVE_MINUTES {
                             // remove seeders after 5 minutes since last update...
-                            peers_to_remove.push(*peer_id);
+                            peers_to_remove.push(peer_id.clone());
                             torrent_entry.seeders -= 1;
                         }
                     } else if peer.updated.elapsed() > TWO_HOURS {
                         // remove peers after 2 hours since last update...
-                        peers_to_remove.push(*peer_id);
+                        peers_to_remove.push(peer_id.clone());
                     }
                 }
 
