@@ -15,6 +15,7 @@ pub struct AnnounceRequestQuery {
     pub compact: Option<u8>,
 }
 
+#[derive(Debug)]
 pub struct AnnounceRequest {
     pub info_hash: InfoHash,
     pub peer_addr: SocketAddr,

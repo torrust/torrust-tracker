@@ -34,6 +34,8 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
         return Err(reject::custom(e))
     }
 
+    debug!("{:?}", announce_request);
+
     if tracker.config.http_tracker.on_reverse_proxy && announce_request.forwarded_ip.is_none() {
         return Err(reject::custom(ServerError::AddressNotFound))
     }
