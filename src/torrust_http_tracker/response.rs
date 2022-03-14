@@ -85,3 +85,9 @@ impl ScrapeResponse {
 pub struct ErrorResponse {
     pub failure_reason: String
 }
+
+impl ErrorResponse {
+    pub fn write(&self) -> String {
+        serde_bencode::to_string(&self).unwrap()
+    }
+}

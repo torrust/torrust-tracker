@@ -3,7 +3,7 @@ use std::convert::Infallible;
 use std::sync::Arc;
 use log::debug;
 use warp::{reject, Rejection, Reply};
-use warp::http::{Response, StatusCode};
+use warp::http::{Response};
 use crate::{InfoHash, TorrentError, TorrentPeer, TorrentStats, TorrentTracker};
 use crate::key_manager::AuthKey;
 use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError, WebResult};
@@ -87,11 +87,11 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
 pub async fn handle_error(r: Rejection) -> std::result::Result<impl Reply, Infallible> {
     if let Some(e) = r.find::<ServerError>() {
         debug!("{:?}", e);
-        let reply = warp::reply::json(&ErrorResponse { failure_reason: e.to_string() });
-        Ok(warp::reply::with_status(reply, StatusCode::BAD_REQUEST))
+        let body: String = ErrorResponse { failure_reason: e.to_string() }.write();
+        Ok(Response::new(body))
     } else {
-        let reply = warp::reply::json(&ErrorResponse { failure_reason: "internal server error".to_string() });
-        Ok(warp::reply::with_status(reply, StatusCode::INTERNAL_SERVER_ERROR))
+        let body: String = ErrorResponse { failure_reason: "internal server error".to_string() }.write();
+        Ok(Response::new(body))
     }
 }
 
