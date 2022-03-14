@@ -5,12 +5,12 @@ use crate::torrust_http_tracker::Bytes;
 
 #[derive(Deserialize)]
 pub struct AnnounceRequestQuery {
-    pub downloaded: Bytes,
-    pub uploaded: Bytes,
-    pub key: String,
+    pub downloaded: Option<Bytes>,
+    pub uploaded: Option<Bytes>,
+    pub key: Option<String>,
     pub peer_id: String,
     pub port: u16,
-    pub left: Bytes,
+    pub left: Option<Bytes>,
     pub event: Option<String>,
     pub compact: Option<u8>,
 }

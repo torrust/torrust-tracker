@@ -76,16 +76,16 @@ async fn announce_request(announce_request_query: AnnounceRequestQuery, info_has
                 .and_then(|ip_str| IpAddr::from_str(ip_str).ok())
         }
     };
-    
+
     Ok(AnnounceRequest {
         info_hash: info_hashes[0],
         peer_addr: remote_addr.unwrap(),
         forwarded_ip,
-        downloaded: announce_request_query.downloaded,
-        uploaded: announce_request_query.uploaded,
+        downloaded: announce_request_query.downloaded.unwrap_or(0),
+        uploaded: announce_request_query.uploaded.unwrap_or(0),
         peer_id: announce_request_query.peer_id,
         port: announce_request_query.port,
-        left: announce_request_query.left,
+        left: announce_request_query.left.unwrap_or(0),
         event: announce_request_query.event,
         compact: announce_request_query.compact
     })
