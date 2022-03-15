@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+use log::info;
 
 pub const MAX_SCRAPE_TORRENTS: u8 = 74;
 pub const AUTH_KEY_LENGTH: usize = 32;
@@ -132,6 +133,7 @@ impl PeerId {
     pub fn to_string(&self) -> String {
         let mut buffer = [0u8; 20];
         let bytes_out = binascii::bin2hex(&self.0, &mut buffer).ok().unwrap();
+        info!("{:#?}", bytes_out);
         String::from(std::str::from_utf8(bytes_out).unwrap())
     }
 }
