@@ -67,7 +67,7 @@ async fn peer_id(raw_query: String) -> WebResult<PeerId> {
             let peer_id_bytes = percent_encoding::percent_decode_str(raw_peer_id).collect::<Vec<u8>>();
 
             // peer_id must be 20 bytes
-            if peer_id_bytes.len() > 20 {
+            if peer_id_bytes.len() != 20 {
                 return Err(reject::custom(ServerError::InvalidPeerId));
             }
 
