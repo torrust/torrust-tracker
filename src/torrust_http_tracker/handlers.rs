@@ -45,6 +45,10 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
         false => announce_request.peer_addr.ip()
     };
 
+    if announce_request.peer_id.len() != 40 {
+        return Err(reject::custom(ServerError::InvalidPeerId))
+    }
+
     let peer = TorrentPeer::from_http_announce_request(&announce_request, peer_ip, tracker.config.get_ext_ip());
     let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer).await;
     // get all peers excluding the client_addr
