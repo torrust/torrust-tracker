@@ -96,7 +96,7 @@ pub async fn handle_error(r: Rejection) -> std::result::Result<impl Reply, Infal
 /// Send announce response
 fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32) -> WebResult<impl Reply> {
     let http_peers: Vec<Peer> = peers.iter().map(|peer| Peer {
-        peer_id: peer.peer_id.0.clone(),
+        peer_id: peer.peer_id.to_string(),
         ip: peer.peer_addr.ip(),
         port: peer.peer_addr.port()
     }).collect();

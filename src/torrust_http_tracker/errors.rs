@@ -9,6 +9,9 @@ pub enum ServerError {
     #[error("info_hash is either missing or invalid")]
     InvalidInfoHash,
 
+    #[error("peer_id is either missing or invalid")]
+    InvalidPeerId,
+
     #[error("could not find remote address")]
     AddressNotFound,
 
