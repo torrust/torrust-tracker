@@ -56,6 +56,7 @@ pub struct Configuration {
     pub cleanup_peerless: bool,
     pub external_ip: Option<String>,
     pub announce_interval: u32,
+    pub peer_timeout: u32,
     pub on_reverse_proxy: bool,
     pub udp_trackers: Vec<UdpTrackerConfig>,
     pub http_trackers: Vec<HttpTrackerConfig>,
@@ -135,7 +136,8 @@ impl Configuration {
             cleanup_interval: Some(600),
             cleanup_peerless: true,
             external_ip: Some(String::from("0.0.0.0")),
-            announce_interval: 0,
+            announce_interval: 120,
+            peer_timeout: 900,
             on_reverse_proxy: false,
             udp_trackers: Vec::new(),
             http_trackers: Vec::new(),
@@ -143,7 +145,7 @@ impl Configuration {
                 enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))].iter().cloned().collect(),
-            },
+            }
         };
         configuration.udp_trackers.push(
             UdpTrackerConfig{

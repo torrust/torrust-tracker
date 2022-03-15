@@ -15,9 +15,6 @@ use crate::key_manager::AuthKey;
 use r2d2_sqlite::rusqlite;
 use crate::torrust_http_tracker::AnnounceRequest;
 
-const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
-const FIVE_MINUTES: std::time::Duration = std::time::Duration::from_secs(300);
-
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum TrackerMode {
     // Will track every new info hash and serve every peer.
@@ -423,12 +420,12 @@ impl TorrentTracker {
 
                 for (peer_id, peer) in torrent_peers.iter() {
                     if peer.is_seeder() {
-                        if peer.updated.elapsed() > FIVE_MINUTES {
+                        if peer.updated.elapsed() > std::time::Duration::from_secs(self.config.peer_timeout as u64) {
                             // remove seeders after 5 minutes since last update...
                             peers_to_remove.push(peer_id.clone());
                             torrent_entry.seeders -= 1;
                         }
-                    } else if peer.updated.elapsed() > TWO_HOURS {
+                    } else if peer.updated.elapsed() > std::time::Duration::from_secs(self.config.peer_timeout as u64) {
                         // remove peers after 2 hours since last update...
                         peers_to_remove.push(peer_id.clone());
                     }
