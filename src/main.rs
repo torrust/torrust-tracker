@@ -121,20 +121,6 @@ fn start_http_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTra
     })
 }
 
-fn start_http_ssl_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
-    let http_tracker = HttpServer::new(tracker);
-    let ssl_bind_addr = config.ssl_bind_address.parse::<SocketAddr>().unwrap();
-    let ssl_cert_path = config.ssl_cert_path.clone();
-    let ssl_key_path = config.ssl_key_path.clone();
-
-
-    tokio::spawn(async move {
-        // run with tls if ssl_enabled and cert and key path are set
-        if ssl_cert_path.is_some() && ssl_key_path.is_some() {
-        }
-    })
-}
-
 async fn start_udp_tracker_server(config: &UdpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let udp_server = UdpServer::new(tracker, config).await.unwrap_or_else(|e| {
         panic!("Could not start UDP server: {}", e);
