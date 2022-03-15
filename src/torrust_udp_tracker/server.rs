@@ -22,6 +22,15 @@ impl UdpServer {
         })
     }
 
+    pub async fn new_ipv6(tracker: Arc<TorrentTracker>) -> Result<UdpServer, std::io::Error> {
+        let srv = UdpSocket::bind(&tracker.config.udp_tracker_ipv6.bind_address).await?;
+
+        Ok(UdpServer {
+            socket: srv,
+            tracker,
+        })
+    }
+
     pub async fn start(&self) {
         loop {
             let mut data = [0; MAX_PACKET_SIZE];

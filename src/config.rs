@@ -17,6 +17,7 @@ pub enum TrackerServer {
 
 #[derive(Serialize, Deserialize)]
 pub struct UdpTrackerConfig {
+    pub enabled: bool,
     pub bind_address: String,
     pub announce_interval: u32,
 }
@@ -28,6 +29,7 @@ pub struct HttpTrackerConfig {
     pub on_reverse_proxy: bool,
     pub announce_interval: u32,
     pub ssl_enabled: bool,
+    pub ssl_bind_address: String,
     #[serde(serialize_with = "none_as_empty_string")]
     pub ssl_cert_path: Option<String>,
     #[serde(serialize_with = "none_as_empty_string")]
@@ -52,10 +54,14 @@ pub struct Configuration {
     pub log_level: Option<String>,
     pub mode: TrackerMode,
     pub db_path: String,
+    pub persistence: bool,
     pub cleanup_interval: Option<u64>,
+    pub cleanup_peerless: bool,
     pub external_ip: Option<String>,
     pub udp_tracker: UdpTrackerConfig,
+    pub udp_tracker_ipv6: UdpTrackerConfig,
     pub http_tracker: HttpTrackerConfig,
+    pub http_tracker_ipv6: HttpTrackerConfig,
     pub http_api: HttpApiConfig,
 }
 
@@ -128,10 +134,18 @@ impl Configuration {
             log_level: Option::from(String::from("info")),
             mode: TrackerMode::PublicMode,
             db_path: String::from("data.db"),
+            persistence: false,
             cleanup_interval: Some(600),
+            cleanup_peerless: true,
             external_ip: Some(String::from("0.0.0.0")),
             udp_tracker: UdpTrackerConfig {
+                enabled: true,
                 bind_address: String::from("0.0.0.0:6969"),
+                announce_interval: 120,
+            },
+            udp_tracker_ipv6: UdpTrackerConfig {
+                enabled: false,
+                bind_address: String::from("[::]:6969"),
                 announce_interval: 120,
             },
             http_tracker: HttpTrackerConfig {
@@ -140,6 +154,17 @@ impl Configuration {
                 on_reverse_proxy: false,
                 announce_interval: 120,
                 ssl_enabled: false,
+                ssl_bind_address: String::from("0.0.0.0:6868"),
+                ssl_cert_path: None,
+                ssl_key_path: None
+            },
+            http_tracker_ipv6: HttpTrackerConfig {
+                enabled: false,
+                bind_address: String::from("[::]:6969"),
+                on_reverse_proxy: false,
+                announce_interval: 120,
+                ssl_enabled: false,
+                ssl_bind_address: String::from("[::]:6868"),
                 ssl_cert_path: None,
                 ssl_key_path: None
             },

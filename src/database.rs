@@ -1,10 +1,11 @@
-use crate::{InfoHash, AUTH_KEY_LENGTH};
+use crate::{InfoHash, AUTH_KEY_LENGTH, TorrentTracker};
 use log::debug;
 use r2d2_sqlite::{SqliteConnectionManager, rusqlite};
 use r2d2::{Pool};
 use r2d2_sqlite::rusqlite::NO_PARAMS;
 use crate::key_manager::AuthKey;
 use std::str::FromStr;
+use std::sync::Arc;
 
 pub struct SqliteDatabase {
     pool: Pool<SqliteConnectionManager>
@@ -32,6 +33,13 @@ impl SqliteDatabase {
             info_hash VARCHAR(20) NOT NULL UNIQUE
         );".to_string();
 
+        let create_torrents_table = "
+        CREATE TABLE IF NOT EXISTS torrents (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            info_hash VARCHAR(20) NOT NULL UNIQUE,
+            completed INTEGER DEFAULT 0 NOT NULL
+        );".to_string();
+
         let create_keys_table = format!("
         CREATE TABLE IF NOT EXISTS keys (
             id integer PRIMARY KEY AUTOINCREMENT,
@@ -43,7 +51,15 @@ impl SqliteDatabase {
         match conn.execute(&create_whitelist_table, NO_PARAMS) {
             Ok(updated) => {
                 match conn.execute(&create_keys_table, NO_PARAMS) {
-                    Ok(updated2) => Ok(updated + updated2),
+                    Ok(updated2) => {
+                        match conn.execute(&create_torrents_table, NO_PARAMS) {
+                            Ok(updated3) => Ok(updated + updated2 + updated3),
+                            Err(e) => {
+                                debug!("{:?}", e);
+                                Err(e)
+                            }
+                        }
+                    }
                     Err(e) => {
                         debug!("{:?}", e);
                         Err(e)
@@ -55,6 +71,42 @@ impl SqliteDatabase {
                 Err(e)
             }
         }
+    }
+
+    pub async fn load_persistent_torrent_data(&self, tracker: Arc<TorrentTracker>) -> Result<bool, rusqlite::Error> {
+        let tracker_copy = tracker.clone();
+        let conn = self.pool.get().unwrap();
+        let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
+
+        let info_hash_iter = stmt.query_map(NO_PARAMS, |row| {
+            let info_hash: String = row.get(0)?;
+            let info_hash_converted = InfoHash::from_str(&info_hash).unwrap();
+            let completed: u32 = row.get(1)?;
+            Ok((info_hash_converted, completed))
+        })?;
+
+        for info_hash_item in info_hash_iter {
+            let (info_hash, completed): (InfoHash, u32) = info_hash_item.unwrap();
+            tracker_copy.add_torrent(&info_hash, 0u32, completed, 0u32).await;
+        }
+
+        Ok(true)
+    }
+
+    pub async fn save_persistent_torrent_data(&self, tracker: Arc<TorrentTracker>) -> Result<bool, rusqlite::Error> {
+        let tracker_copy = tracker.clone();
+        let mut conn = self.pool.get().unwrap();
+        let db = tracker_copy.get_torrents().await;
+        let db_transaction = conn.transaction()?;
+        let _: Vec<_> = db
+            .iter()
+            .map(|(info_hash, torrent_entry)| {
+                let (_seeders, completed, _leechers) = torrent_entry.get_stats();
+                let _ = db_transaction.execute("INSERT OR REPLACE INTO torrents (info_hash, completed) VALUES (?, ?)", &[info_hash.to_string(), completed.to_string()]);
+            })
+            .collect();
+        let _ = db_transaction.commit();
+        Ok(true)
     }
 
     pub async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, rusqlite::Error> {

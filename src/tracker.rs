@@ -321,6 +321,16 @@ impl TorrentTracker {
         Ok(())
     }
 
+    // Loading the torrents into memory
+    pub async fn load_torrents(&self, tracker: Arc<TorrentTracker>) -> Result<bool, rusqlite::Error> {
+        self.database.load_persistent_torrent_data(tracker).await
+    }
+
+    // Saving the torrents from memory
+    pub async fn save_torrents(&self, tracker: Arc<TorrentTracker>) -> Result<bool, rusqlite::Error> {
+        self.database.save_persistent_torrent_data(tracker).await
+    }
+
     // Adding torrents is not relevant to public trackers.
     pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<usize, rusqlite::Error> {
         self.database.add_info_hash_to_whitelist(info_hash.clone()).await
@@ -378,6 +388,22 @@ impl TorrentTracker {
         }
     }
 
+    pub async fn add_torrent(&self, info_hash: &InfoHash, seeders: u32, completed: u32, leechers: u32) -> TorrentStats {
+        let mut torrents = self.torrents.write().await;
+
+        if !torrents.contains_key(&info_hash) {
+            let mut torrent_entry = TorrentEntry::new();
+            torrent_entry.completed = completed;
+            torrents.insert(info_hash.clone(), torrent_entry);
+        }
+
+        TorrentStats {
+            seeders,
+            completed,
+            leechers,
+        }
+    }
+
     pub async fn get_torrents(&self) -> tokio::sync::RwLockReadGuard<'_, BTreeMap<InfoHash, TorrentEntry>> {
         self.torrents.read().await
     }
@@ -413,7 +439,7 @@ impl TorrentTracker {
                 }
             }
 
-            if self.config.mode.clone() == TrackerMode::PublicMode {
+            if self.config.mode.clone() == TrackerMode::PublicMode && self.config.cleanup_peerless && !self.config.persistence {
                 // peer-less torrents..
                 if torrent_entry.peers.len() == 0 {
                     torrents_to_remove.push(k.clone());
