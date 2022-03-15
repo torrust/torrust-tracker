@@ -3,7 +3,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use std::sync::Arc;
 use warp::{Filter, reject, Rejection};
-use crate::{InfoHash, MAX_SCRAPE_TORRENTS, TorrentTracker};
+use crate::{InfoHash, MAX_SCRAPE_TORRENTS, PeerId, TorrentTracker};
 use crate::key_manager::AuthKey;
 use crate::torrust_http_tracker::{AnnounceRequest, AnnounceRequestQuery, ScrapeRequest, ServerError, WebResult};
 
@@ -44,6 +44,49 @@ async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
     }
 }
 
+/// Check for PeerId
+pub fn with_peer_id() -> impl Filter<Extract = (PeerId,), Error = Rejection> + Clone {
+    warp::filters::query::raw()
+        .and_then(peer_id)
+}
+
+/// Parse PeerId from raw query string
+async fn peer_id(raw_query: String) -> WebResult<PeerId> {
+    // put all query params in a vec
+    let split_raw_query: Vec<&str> = raw_query.split("&").collect();
+
+    let mut peer_id: Option<PeerId> = None;
+
+    for v in split_raw_query {
+        // look for the peer_id param
+        if v.contains("peer_id") {
+            // get raw percent_encoded peer_id
+            let raw_peer_id = v.split("=").collect::<Vec<&str>>()[1];
+
+            // decode peer_id
+            let peer_id_bytes = percent_encoding::percent_decode_str(raw_peer_id).collect::<Vec<u8>>();
+
+            // peer_id must be 20 bytes
+            if peer_id_bytes.len() > 20 {
+                return Err(reject::custom(ServerError::InvalidPeerId));
+            }
+
+            // clone peer_id_bytes into fixed length array
+            let mut byte_arr: [u8; 20] = Default::default();
+            byte_arr.clone_from_slice(peer_id_bytes.as_slice());
+
+            peer_id = Some(PeerId(byte_arr));
+            break;
+        }
+    }
+
+    if peer_id.is_none() {
+        Err(reject::custom(ServerError::InvalidPeerId))
+    } else {
+        Ok(peer_id.unwrap())
+    }
+}
+
 /// Pass Arc<TorrentTracker> along
 pub fn with_auth_key() -> impl Filter<Extract = (Option<AuthKey>,), Error = Infallible> + Clone {
     warp::path::param::<String>()
@@ -59,15 +102,14 @@ pub fn with_auth_key() -> impl Filter<Extract = (Option<AuthKey>,), Error = Infa
 pub fn with_announce_request() -> impl Filter<Extract = (AnnounceRequest,), Error = Rejection> + Clone {
     warp::filters::query::query::<AnnounceRequestQuery>()
         .and(with_info_hash())
+        .and(with_peer_id())
         .and(warp::addr::remote())
         .and(warp::header::optional::<String>("X-Forwarded-For"))
         .and_then(announce_request)
 }
 
 /// Parse AnnounceRequest from raw AnnounceRequestQuery, InfoHash and Option<SocketAddr>
-async fn announce_request(announce_request_query: AnnounceRequestQuery, info_hashes: Vec<InfoHash>, remote_addr: Option<SocketAddr>, forwarded_for: Option<String>) -> WebResult<AnnounceRequest> {
-    if remote_addr.is_none() { return Err(reject::custom(ServerError::AddressNotFound)) }
-
+async fn announce_request(announce_request_query: AnnounceRequestQuery, info_hashes: Vec<InfoHash>, peer_id: PeerId, remote_addr: Option<SocketAddr>, forwarded_for: Option<String>) -> WebResult<AnnounceRequest> {
     // get first forwarded ip
     let forwarded_ip = match forwarded_for {
         None => None,
@@ -83,7 +125,7 @@ async fn announce_request(announce_request_query: AnnounceRequestQuery, info_has
         forwarded_ip,
         downloaded: announce_request_query.downloaded.unwrap_or(0),
         uploaded: announce_request_query.uploaded.unwrap_or(0),
-        peer_id: announce_request_query.peer_id,
+        peer_id,
         port: announce_request_query.port,
         left: announce_request_query.left.unwrap_or(0),
         event: announce_request_query.event,

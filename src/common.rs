@@ -126,15 +126,23 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)]
-pub struct PeerId(pub String);
+pub struct PeerId(pub [u8; 20]);
+
+impl PeerId {
+    pub fn to_string(&self) -> String {
+        let mut buffer = [0u8; 20];
+        let bytes_out = binascii::bin2hex(&self.0, &mut buffer).ok().unwrap();
+        String::from(std::str::from_utf8(bytes_out).unwrap())
+    }
+}
 
 impl PeerId {
     pub fn get_client_name(&self) -> Option<&'static str> {
-        if self.0.as_bytes()[0] == b'M' {
+        if self.0[0] == b'M' {
             return Some("BitTorrent");
         }
-        if self.0.as_bytes()[0] == b'-' {
-            let name = match &self.0.as_bytes()[1..3] {
+        if self.0[0] == b'-' {
+            let name = match &self.0[1..3] {
                 b"AG" => "Ares",
                 b"A~" => "Ares",
                 b"AR" => "Arctic",
@@ -211,9 +219,9 @@ impl Serialize for PeerId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: serde::Serializer, {
-        let buff_size = self.0.as_bytes().len() * 2;
+        let buff_size = self.0.len() * 2;
         let mut tmp: Vec<u8> = vec![0; buff_size];
-        binascii::bin2hex(&self.0.as_bytes(), &mut tmp).unwrap();
+        binascii::bin2hex(&self.0, &mut tmp).unwrap();
         let id = std::str::from_utf8(&tmp).ok();
 
         #[derive(Serialize)]
