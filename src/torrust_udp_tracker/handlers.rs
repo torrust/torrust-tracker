@@ -90,7 +90,7 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
 
     Ok(Response::from(AnnounceResponse {
         transaction_id: wrapped_announce_request.announce_request.transaction_id,
-        announce_interval: AnnounceInterval(tracker.config.udp_tracker.announce_interval as i32),
+        announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
         leechers: NumberOfPeers(torrent_stats.leechers as i32),
         seeders: NumberOfPeers(torrent_stats.seeders as i32),
         peers: peers.iter().map(|peer|

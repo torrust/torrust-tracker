@@ -36,11 +36,11 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
 
     debug!("{:?}", announce_request);
 
-    if tracker.config.http_tracker.on_reverse_proxy && announce_request.forwarded_ip.is_none() {
+    if tracker.config.on_reverse_proxy && announce_request.forwarded_ip.is_none() {
         return Err(reject::custom(ServerError::AddressNotFound))
     }
 
-    let peer_ip = match tracker.config.http_tracker.on_reverse_proxy {
+    let peer_ip = match tracker.config.on_reverse_proxy {
         true => announce_request.forwarded_ip.unwrap(),
         false => announce_request.peer_addr.ip()
     };
@@ -52,7 +52,7 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
     if peers.is_none() { return Err(reject::custom(ServerError::NoPeersFound)) }
 
     // success response
-    let announce_interval = tracker.config.http_tracker.announce_interval;
+    let announce_interval = tracker.config.announce_interval;
     send_announce_response(&announce_request, torrent_stats, peers.unwrap(), announce_interval)
 }
 
