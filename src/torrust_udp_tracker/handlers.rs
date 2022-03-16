@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId};
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS, TorrentError, TorrentPeer, TorrentTracker};
@@ -108,17 +108,43 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
         }
     });
 
-    Ok(Response::from(AnnounceResponse {
-        transaction_id: wrapped_announce_request.announce_request.transaction_id,
-        announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
-        leechers: NumberOfPeers(torrent_stats.leechers as i32),
-        seeders: NumberOfPeers(torrent_stats.seeders as i32),
-        peers: peers.iter().map(|peer|
-            ResponsePeer {
-                ip_address: peer.peer_addr.ip(),
-                port: Port(peer.peer_addr.port())
-            }).collect()
-    }))
+    let announce_response = if remote_addr.is_ipv4() {
+        Response::from(AnnounceResponse {
+            transaction_id: wrapped_announce_request.announce_request.transaction_id,
+            announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
+            leechers: NumberOfPeers(torrent_stats.leechers as i32),
+            seeders: NumberOfPeers(torrent_stats.seeders as i32),
+            peers: peers.iter()
+                .filter_map(|peer| if let IpAddr::V4(ip) =  peer.peer_addr.ip() {
+                    Some(ResponsePeer::<Ipv4Addr> {
+                        ip_address: ip,
+                        port: Port(peer.peer_addr.port())
+                    })
+                } else {
+                    None
+                }
+                ).collect()
+        })
+    } else {
+        Response::from(AnnounceResponse {
+            transaction_id: wrapped_announce_request.announce_request.transaction_id,
+            announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
+            leechers: NumberOfPeers(torrent_stats.leechers as i32),
+            seeders: NumberOfPeers(torrent_stats.seeders as i32),
+            peers: peers.iter()
+                .filter_map(|peer| if let IpAddr::V6(ip) =  peer.peer_addr.ip() {
+                    Some(ResponsePeer::<Ipv6Addr> {
+                        ip_address: ip,
+                        port: Port(peer.peer_addr.port())
+                    })
+                } else {
+                    None
+                }
+            ).collect()
+        })
+    };
+
+    Ok(announce_response)
 }
 
 pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
@@ -171,5 +197,5 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
 
 fn handle_error(e: ServerError, transaction_id: TransactionId) -> Response {
     let message = e.to_string();
-    Response::from(ErrorResponse { transaction_id, message })
+    Response::from(ErrorResponse { transaction_id, message: message.into() })
 }

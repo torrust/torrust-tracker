@@ -14,10 +14,10 @@ dependencies = [
 [[package]]
 name = "aquatic_udp_protocol"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84c3026324bc5073042edfbc47699cc60c1a9cf24849f5b104c18f98d2ad4175"
+source = "git+https://github.com/greatest-ape/aquatic#065e007ede84de20f20983b4b504471bbda2fdf2"
 dependencies = [
  "byteorder",
+ "either",
 ]
 
 [[package]]
@@ -262,6 +262,12 @@ checksum = "d3dd60d1080a57a05ab032377049e0591415d2b31afd7028356dbf3cc6dcb066"
 dependencies = [
  "generic-array 0.14.4",
 ]
+
+[[package]]
+name = "either"
+version = "1.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
 name = "enum-as-inner"

@@ -1,7 +1,7 @@
 use std::io::Cursor;
 use std::net::{SocketAddr};
 use std::sync::Arc;
-use aquatic_udp_protocol::{IpVersion, Response};
+use aquatic_udp_protocol::{Response};
 use log::debug;
 use tokio::net::UdpSocket;
 use crate::{TorrentTracker, UdpTrackerConfig};
@@ -41,12 +41,7 @@ impl UdpServer {
         let buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(buffer);
 
-        let ip_version = match remote_addr {
-            SocketAddr::V4(_) => IpVersion::IPv4,
-            SocketAddr::V6(_) => IpVersion::IPv6
-        };
-
-        match response.write(&mut cursor, ip_version) {
+        match response.write(&mut cursor) {
             Ok(_) => {
                 let position = cursor.position() as usize;
                 let inner = cursor.get_ref();
