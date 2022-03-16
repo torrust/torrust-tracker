@@ -146,7 +146,17 @@ impl TorrentEntry {
         for (_, peer) in self
             .peers
             .iter()
-            .filter(|e| e.1.peer_addr.is_ipv4())
+            .filter(|e| match remote_addr {
+                // don't filter on ip_version
+                None => true,
+                // filter out different ip_version from remote_addr
+                Some(remote_address) => {
+                    match e.1.peer_addr.ip() {
+                        IpAddr::V4(_) => { remote_address.is_ipv4() }
+                        IpAddr::V6(_) => { remote_address.is_ipv6() }
+                    }
+                }
+            })
             .take(MAX_SCRAPE_TORRENTS as usize)
         {
 
