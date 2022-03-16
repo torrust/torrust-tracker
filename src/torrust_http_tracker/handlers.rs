@@ -29,18 +29,18 @@ pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, trac
 }
 
 /// Handle announce request
-pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>,) -> WebResult<impl Reply> {
+pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>) -> WebResult<impl Reply> {
     if let Err(e) = authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await {
         return Err(reject::custom(e))
     }
 
     debug!("{:?}", announce_request);
 
-    if tracker.config.http_tracker.on_reverse_proxy && announce_request.forwarded_ip.is_none() {
+    if tracker.config.on_reverse_proxy && announce_request.forwarded_ip.is_none() {
         return Err(reject::custom(ServerError::AddressNotFound))
     }
 
-    let peer_ip = match tracker.config.http_tracker.on_reverse_proxy {
+    let peer_ip = match tracker.config.on_reverse_proxy {
         true => announce_request.forwarded_ip.unwrap(),
         false => announce_request.peer_addr.ip()
     };
@@ -52,12 +52,23 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
     if peers.is_none() { return Err(reject::custom(ServerError::NoPeersFound)) }
 
     // success response
-    let announce_interval = tracker.config.http_tracker.announce_interval;
+    let tracker_copy = tracker.clone();
+    tokio::spawn(async move {
+        let mut status_writer = tracker_copy.set_stats().await;
+        if peer_ip.is_ipv4() {
+            status_writer.tcp4_connections_handled += 1;
+            status_writer.tcp4_announces_handled += 1;
+        } else {
+            status_writer.tcp6_connections_handled += 1;
+            status_writer.tcp6_announces_handled += 1;
+        }
+    });
+    let announce_interval = tracker.config.announce_interval;
     send_announce_response(&announce_request, torrent_stats, peers.unwrap(), announce_interval)
 }
 
 /// Handle scrape request
-pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>,) -> WebResult<impl Reply> {
+pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>) -> WebResult<impl Reply> {
     let mut files: HashMap<String, ScrapeResponseEntry> = HashMap::new();
     let db = tracker.get_torrents().await;
 
@@ -80,6 +91,22 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
         }
     }
 
+    let ip = match tracker.config.on_reverse_proxy {
+        true => scrape_request.forwarded_ip.unwrap(),
+        false => scrape_request.remote_addr.ip()
+    };
+
+    let tracker_copy = tracker.clone();
+    tokio::spawn(async move {
+        let mut status_writer = tracker_copy.set_stats().await;
+        if ip.is_ipv4() {
+            status_writer.tcp4_connections_handled += 1;
+            status_writer.tcp4_scrapes_handled += 1;
+        } else {
+            status_writer.tcp6_connections_handled += 1;
+            status_writer.tcp6_scrapes_handled += 1;
+        }
+    });
     send_scrape_response(files)
 }
 
@@ -98,7 +125,7 @@ pub async fn handle_error(r: Rejection) -> std::result::Result<impl Reply, Infal
 /// Send announce response
 fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32) -> WebResult<impl Reply> {
     let http_peers: Vec<Peer> = peers.iter().map(|peer| Peer {
-        peer_id: peer.peer_id.0.clone(),
+        peer_id: peer.peer_id.to_string(),
         ip: peer.peer_addr.ip(),
         port: peer.peer_addr.port()
     }).collect();

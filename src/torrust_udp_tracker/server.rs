@@ -4,7 +4,7 @@ use std::sync::Arc;
 use aquatic_udp_protocol::{IpVersion, Response};
 use log::debug;
 use tokio::net::UdpSocket;
-use crate::TorrentTracker;
+use crate::{TorrentTracker, UdpTrackerConfig};
 use crate::torrust_udp_tracker::{handle_packet, MAX_PACKET_SIZE};
 
 pub struct UdpServer {
@@ -13,17 +13,8 @@ pub struct UdpServer {
 }
 
 impl UdpServer {
-    pub async fn new(tracker: Arc<TorrentTracker>) -> Result<UdpServer, std::io::Error> {
-        let srv = UdpSocket::bind(&tracker.config.udp_tracker.bind_address).await?;
-
-        Ok(UdpServer {
-            socket: srv,
-            tracker,
-        })
-    }
-
-    pub async fn new_ipv6(tracker: Arc<TorrentTracker>) -> Result<UdpServer, std::io::Error> {
-        let srv = UdpSocket::bind(&tracker.config.udp_tracker_ipv6.bind_address).await?;
+    pub async fn new(tracker: Arc<TorrentTracker>, config: &UdpTrackerConfig) -> Result<UdpServer, std::io::Error> {
+        let srv = UdpSocket::bind(&config.bind_address).await?;
 
         Ok(UdpServer {
             socket: srv,

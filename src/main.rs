@@ -32,34 +32,17 @@ async fn main() {
         let _api_server = start_api_server(&config.http_api, tracker.clone());
     }
 
-    // start UDP tracker if enabled
-    if config.udp_tracker.enabled {
-        let _udp_server = start_udp_tracker_server(&config.udp_tracker, tracker.clone()).await;
+    // start the udp blocks
+    for udp_tracker in &config.udp_trackers {
+        if udp_tracker.enabled {
+            let _ = start_udp_tracker_server(&udp_tracker, tracker.clone()).await;
+        }
     }
 
-    // start UDP tracker for IPv6 if enabled
-    if config.udp_tracker_ipv6.enabled {
-        let _udp_server_ipv6 = start_udp_ipv6_tracker_server(&config.udp_tracker_ipv6, tracker.clone()).await;
-    }
-
-    // start HTTP tracker if enabled
-    if config.http_tracker.enabled {
-        let _http_server = start_http_tracker_server(&config.http_tracker, tracker.clone());
-    }
-
-    // start HTTPS tracker if enabled
-    if config.http_tracker.ssl_enabled {
-        let _http_ssl_server = start_http_ssl_tracker_server(&config.http_tracker, tracker.clone());
-    }
-
-    //start HTTP tracker for IPv6 if enabled
-    if config.http_tracker_ipv6.enabled {
-        let _http_server_ipv6 = start_http_tracker_server(&config.http_tracker_ipv6, tracker.clone());
-    }
-
-    // start HTTPS tracker for IPv6 if enabled
-    if config.http_tracker_ipv6.ssl_enabled {
-        let _http_ssl_server_ipv6 = start_http_ssl_tracker_server(&config.http_tracker_ipv6, tracker.clone());
+    // start the http blocks
+    for http_tracker in &config.http_trackers {
+        let _ = start_http_tracker_server(&http_tracker, tracker.clone(), true);
+        let _ = start_http_tracker_server(&http_tracker, tracker.clone(), false);
     }
 
     // handle the signals here
@@ -116,47 +99,31 @@ fn start_api_server(config: &HttpApiConfig, tracker: Arc<TorrentTracker>) -> Joi
     })
 }
 
-fn start_http_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
+fn start_http_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>, ssl: bool) -> JoinHandle<()> {
     let http_tracker = HttpServer::new(tracker);
+    let enabled = config.enabled;
     let bind_addr = config.bind_address.parse::<SocketAddr>().unwrap();
-
-    tokio::spawn(async move {
-        // run with tls if ssl_enabled and cert and key path are set
-        info!("Starting HTTP server on: {}", bind_addr);
-        http_tracker.start(bind_addr).await;
-    })
-}
-
-fn start_http_ssl_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
-    let http_tracker = HttpServer::new(tracker);
+    let ssl_enabled = config.ssl_enabled;
     let ssl_bind_addr = config.ssl_bind_address.parse::<SocketAddr>().unwrap();
     let ssl_cert_path = config.ssl_cert_path.clone();
     let ssl_key_path = config.ssl_key_path.clone();
 
-
     tokio::spawn(async move {
         // run with tls if ssl_enabled and cert and key path are set
-        if ssl_cert_path.is_some() && ssl_key_path.is_some() {
+        if ssl && ssl_enabled && ssl_cert_path.is_some() && ssl_key_path.is_some() {
             info!("Starting HTTPS server on: {} (TLS)", ssl_bind_addr);
             http_tracker.start_tls(ssl_bind_addr, ssl_cert_path.as_ref().unwrap(), ssl_key_path.as_ref().unwrap()).await;
+        }
+        if !ssl && enabled {
+            info!("Starting HTTP server on: {}", bind_addr);
+            http_tracker.start(bind_addr).await;
         }
     })
 }
 
 async fn start_udp_tracker_server(config: &UdpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
-    let udp_server = UdpServer::new(tracker).await.unwrap_or_else(|e| {
+    let udp_server = UdpServer::new(tracker, config).await.unwrap_or_else(|e| {
         panic!("Could not start UDP server: {}", e);
-    });
-
-    info!("Starting UDP server on: {}", config.bind_address);
-    tokio::spawn(async move {
-        udp_server.start().await;
-    })
-}
-
-async fn start_udp_ipv6_tracker_server(config: &UdpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
-    let udp_server = UdpServer::new_ipv6(tracker).await.unwrap_or_else(|e| {
-        panic!("Could not start UDP server (IPv6): {}", e);
     });
 
     info!("Starting UDP server on: {}", config.bind_address);

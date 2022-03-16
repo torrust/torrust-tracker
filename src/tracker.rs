@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde;
 use std::borrow::Cow;
 use std::collections::BTreeMap;
-use tokio::sync::RwLock;
+use tokio::sync::{RwLock, RwLockWriteGuard};
 use crate::common::{AnnounceEventDef, InfoHash, NumberOfBytesDef, PeerId};
 use std::net::{IpAddr, SocketAddr};
 use crate::{Configuration, key_manager, MAX_SCRAPE_TORRENTS};
@@ -14,9 +14,6 @@ use log::debug;
 use crate::key_manager::AuthKey;
 use r2d2_sqlite::rusqlite;
 use crate::torrust_http_tracker::AnnounceRequest;
-
-const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
-const FIVE_MINUTES: std::time::Duration = std::time::Duration::from_secs(300);
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum TrackerMode {
@@ -57,10 +54,8 @@ impl TorrentPeer {
     pub fn from_udp_announce_request(announce_request: &aquatic_udp_protocol::AnnounceRequest, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
         let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port.0);
 
-        let peer_id = String::from_utf8_lossy(&announce_request.peer_id.0).parse().unwrap_or("unknown".to_string());
-
         TorrentPeer {
-            peer_id: PeerId(peer_id),
+            peer_id: PeerId(announce_request.peer_id.0),
             peer_addr,
             updated: std::time::Instant::now(),
             uploaded: announce_request.bytes_uploaded,
@@ -72,9 +67,6 @@ impl TorrentPeer {
 
     pub fn from_http_announce_request(announce_request: &AnnounceRequest, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
         let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port);
-
-        let max_string_size = announce_request.peer_id.len().clamp(0, 40);
-        let peer_id = announce_request.peer_id[..max_string_size].to_string();
 
         let event: AnnounceEvent = if let Some(event) = &announce_request.event {
             match event.as_ref() {
@@ -88,7 +80,7 @@ impl TorrentPeer {
         };
 
         TorrentPeer {
-            peer_id: PeerId(peer_id),
+            peer_id: announce_request.peer_id.clone(),
             peer_addr,
             updated: std::time::Instant::now(),
             uploaded: NumberOfBytes(announce_request.uploaded as i64),
@@ -244,10 +236,27 @@ pub enum TorrentError {
     InvalidInfoHash,
 }
 
+#[derive(Debug)]
+pub struct TrackerStats {
+    pub tcp4_connections_handled: u64,
+    pub tcp4_announces_handled: u64,
+    pub tcp4_scrapes_handled: u64,
+    pub tcp6_connections_handled: u64,
+    pub tcp6_announces_handled: u64,
+    pub tcp6_scrapes_handled: u64,
+    pub udp4_connections_handled: u64,
+    pub udp4_announces_handled: u64,
+    pub udp4_scrapes_handled: u64,
+    pub udp6_connections_handled: u64,
+    pub udp6_announces_handled: u64,
+    pub udp6_scrapes_handled: u64,
+}
+
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     database: SqliteDatabase,
+    stats: tokio::sync::RwLock<TrackerStats>,
 }
 
 impl TorrentTracker {
@@ -260,6 +269,20 @@ impl TorrentTracker {
             config,
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             database,
+            stats: RwLock::new(TrackerStats {
+                tcp4_connections_handled: 0,
+                tcp4_announces_handled: 0,
+                tcp4_scrapes_handled: 0,
+                tcp6_connections_handled: 0,
+                tcp6_announces_handled: 0,
+                tcp6_scrapes_handled: 0,
+                udp4_connections_handled: 0,
+                udp4_announces_handled: 0,
+                udp4_scrapes_handled: 0,
+                udp6_connections_handled: 0,
+                udp6_announces_handled: 0,
+                udp6_scrapes_handled: 0,
+            }),
         }
     }
 
@@ -408,6 +431,14 @@ impl TorrentTracker {
         self.torrents.read().await
     }
 
+    pub async fn set_stats(&self) -> RwLockWriteGuard<'_, TrackerStats> {
+        self.stats.write().await
+    }
+
+    pub async fn get_stats(&self) -> tokio::sync::RwLockReadGuard<'_, TrackerStats> {
+        self.stats.read().await
+    }
+
     // remove torrents without peers
     pub async fn cleanup_torrents(&self) {
         debug!("Cleaning torrents..");
@@ -423,12 +454,12 @@ impl TorrentTracker {
 
                 for (peer_id, peer) in torrent_peers.iter() {
                     if peer.is_seeder() {
-                        if peer.updated.elapsed() > FIVE_MINUTES {
+                        if peer.updated.elapsed() > std::time::Duration::from_secs(self.config.peer_timeout as u64) {
                             // remove seeders after 5 minutes since last update...
                             peers_to_remove.push(peer_id.clone());
                             torrent_entry.seeders -= 1;
                         }
-                    } else if peer.updated.elapsed() > TWO_HOURS {
+                    } else if peer.updated.elapsed() > std::time::Duration::from_secs(self.config.peer_timeout as u64) {
                         // remove peers after 2 hours since last update...
                         peers_to_remove.push(peer_id.clone());
                     }
