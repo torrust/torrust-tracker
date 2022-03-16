@@ -91,6 +91,10 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
         }
     }
 
+    if tracker.config.on_reverse_proxy && scrape_request.forwarded_ip.is_none() {
+        return Err(reject::custom(ServerError::AddressNotFound))
+    }
+
     let ip = match tracker.config.on_reverse_proxy {
         true => scrape_request.forwarded_ip.unwrap(),
         false => scrape_request.remote_addr.ip()
