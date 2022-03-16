@@ -1,11 +1,11 @@
-use crate::{InfoHash, AUTH_KEY_LENGTH, TorrentTracker};
+use std::collections::BTreeMap;
+use crate::{InfoHash, AUTH_KEY_LENGTH, TorrentEntry};
 use log::debug;
 use r2d2_sqlite::{SqliteConnectionManager, rusqlite};
 use r2d2::{Pool};
 use r2d2_sqlite::rusqlite::NO_PARAMS;
 use crate::key_manager::AuthKey;
 use std::str::FromStr;
-use std::sync::Arc;
 
 pub struct SqliteDatabase {
     pool: Pool<SqliteConnectionManager>
@@ -73,40 +73,34 @@ impl SqliteDatabase {
         }
     }
 
-    pub async fn load_persistent_torrent_data(&self, tracker: Arc<TorrentTracker>) -> Result<bool, rusqlite::Error> {
-        let tracker_copy = tracker.clone();
+    pub async fn load_persistent_torrent_data(&self) -> Result<Vec<(InfoHash, u32)>, rusqlite::Error> {
         let conn = self.pool.get().unwrap();
         let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
 
-        let info_hash_iter = stmt.query_map(NO_PARAMS, |row| {
-            let info_hash: String = row.get(0)?;
-            let info_hash_converted = InfoHash::from_str(&info_hash).unwrap();
+        let torrent_iter = stmt.query_map(NO_PARAMS, |row| {
+            let info_hash_string: String = row.get(0)?;
+            let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
             let completed: u32 = row.get(1)?;
-            Ok((info_hash_converted, completed))
+            Ok((info_hash, completed))
         })?;
 
-        for info_hash_item in info_hash_iter {
-            let (info_hash, completed): (InfoHash, u32) = info_hash_item.unwrap();
-            tracker_copy.add_torrent(&info_hash, 0u32, completed, 0u32).await;
-        }
+        let torrents: Vec<(InfoHash, u32)> = torrent_iter.filter_map(|x| x.ok() ).collect();
 
-        Ok(true)
+        Ok(torrents)
     }
 
-    pub async fn save_persistent_torrent_data(&self, tracker: Arc<TorrentTracker>) -> Result<bool, rusqlite::Error> {
-        let tracker_copy = tracker.clone();
+    pub async fn save_persistent_torrent_data(&self, torrents: &BTreeMap<InfoHash, TorrentEntry>) -> Result<(), rusqlite::Error> {
         let mut conn = self.pool.get().unwrap();
-        let db = tracker_copy.get_torrents().await;
         let db_transaction = conn.transaction()?;
-        let _: Vec<_> = db
-            .iter()
-            .map(|(info_hash, torrent_entry)| {
+
+        for (info_hash, torrent_entry) in torrents {
                 let (_seeders, completed, _leechers) = torrent_entry.get_stats();
                 let _ = db_transaction.execute("INSERT OR REPLACE INTO torrents (info_hash, completed) VALUES (?, ?)", &[info_hash.to_string(), completed.to_string()]);
-            })
-            .collect();
+        }
+
         let _ = db_transaction.commit();
-        Ok(true)
+
+        Ok(())
     }
 
     pub async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, rusqlite::Error> {

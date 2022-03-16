@@ -10,7 +10,7 @@ use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use log::debug;
+use log::{debug};
 use crate::key_manager::AuthKey;
 use r2d2_sqlite::rusqlite;
 use crate::torrust_http_tracker::AnnounceRequest;
@@ -270,12 +270,10 @@ pub struct TorrentTracker {
 }
 
 impl TorrentTracker {
-    pub fn new(config: Arc<Configuration>) -> TorrentTracker {
-        let database = SqliteDatabase::new(&config.db_path).unwrap_or_else(|error| {
-            panic!("Could not create SQLite database. Reason: {}", error)
-        });
+    pub fn new(config: Arc<Configuration>) -> Result<TorrentTracker, rusqlite::Error> {
+        let database = SqliteDatabase::new(&config.db_path)?;
 
-        TorrentTracker {
+        Ok(TorrentTracker {
             config,
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             database,
@@ -293,7 +291,7 @@ impl TorrentTracker {
                 udp6_announces_handled: 0,
                 udp6_scrapes_handled: 0,
             }),
-        }
+        })
     }
 
     fn is_public(&self) -> bool {
@@ -355,13 +353,20 @@ impl TorrentTracker {
     }
 
     // Loading the torrents into memory
-    pub async fn load_torrents(&self, tracker: Arc<TorrentTracker>) -> Result<bool, rusqlite::Error> {
-        self.database.load_persistent_torrent_data(tracker).await
+    pub async fn load_torrents(&self) -> Result<(), rusqlite::Error> {
+        let torrents = self.database.load_persistent_torrent_data().await?;
+
+        for torrent in torrents {
+            self.add_torrent(torrent.0, 0, torrent.1, 0).await;
+        }
+
+        Ok(())
     }
 
     // Saving the torrents from memory
-    pub async fn save_torrents(&self, tracker: Arc<TorrentTracker>) -> Result<bool, rusqlite::Error> {
-        self.database.save_persistent_torrent_data(tracker).await
+    pub async fn save_torrents(&self) -> Result<(), rusqlite::Error> {
+        let torrents = self.torrents.read().await;
+        self.database.save_persistent_torrent_data(&*torrents).await
     }
 
     // Adding torrents is not relevant to public trackers.
@@ -419,12 +424,15 @@ impl TorrentTracker {
         }
     }
 
-    pub async fn add_torrent(&self, info_hash: &InfoHash, seeders: u32, completed: u32, leechers: u32) -> TorrentStats {
+    pub async fn add_torrent(&self, info_hash: InfoHash, seeders: u32, completed: u32, leechers: u32) -> TorrentStats {
         let mut torrents = self.torrents.write().await;
 
         if !torrents.contains_key(&info_hash) {
-            let mut torrent_entry = TorrentEntry::new();
-            torrent_entry.completed = completed;
+            let torrent_entry = TorrentEntry {
+                peers: Default::default(),
+                completed,
+                seeders
+            };
             torrents.insert(info_hash.clone(), torrent_entry);
         }
 

@@ -17,11 +17,17 @@ async fn main() {
     logging::setup_logging(&config);
 
     // the singleton torrent tracker that gets passed to the HTTP and UDP server
-    let tracker = Arc::new(TorrentTracker::new(config.clone()));
+    let tracker = Arc::new(TorrentTracker::new(config.clone()).unwrap_or_else(|e| {
+        panic!("{}", e)
+    }));
 
-    // Load torrents if enabled
+    // load persistent torrents if enabled
     if config.persistence {
-        load_torrents_into_memory(tracker.clone()).await;
+        info!("Loading persistent torrents into memory...");
+        if tracker.load_torrents().await.is_err() {
+            panic!("Could not load persistent torrents.")
+        };
+        info!("Persistent torrents loaded.");
     }
 
     // start torrent cleanup job (periodically removes old peers)
@@ -48,25 +54,16 @@ async fn main() {
     // handle the signals here
     let ctrl_c = tokio::signal::ctrl_c();
     tokio::select! {
-        _ = ctrl_c => { info!("Torrust shutting down..") }
+        _ = ctrl_c => {
+            info!("Torrust shutting down..");
+            // Save torrents if enabled
+            if config.persistence {
+                info!("Saving torrents into SQL from memory...");
+                let _ = tracker.save_torrents().await;
+                info!("Torrents saved");
+            }
+        }
     }
-
-    // Save torrents if enabled
-    if config.persistence {
-        save_torrents_into_memory(tracker.clone()).await;
-    }
-}
-
-async fn load_torrents_into_memory(tracker: Arc<TorrentTracker>) {
-    info!("Loading torrents from SQL into memory...");
-    let _ = tracker.load_torrents(tracker.clone()).await;
-    info!("Torrents loaded");
-}
-
-async fn save_torrents_into_memory(tracker: Arc<TorrentTracker>) {
-    info!("Saving torrents into SQL from memory...");
-    let _ = tracker.save_torrents(tracker.clone()).await;
-    info!("Torrents saved");
 }
 
 fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
