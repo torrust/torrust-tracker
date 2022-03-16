@@ -85,7 +85,11 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
     // get all peers excluding the client_addr
     let peers = match tracker.get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr).await {
         Some(v) => v,
-        None => { return Err(ServerError::NoPeersFound); }
+        None => {
+            // return Err(ServerError::NoPeersFound);
+            let return_data: Vec<TorrentPeer> = Vec::new();
+            return_data
+        }
     };
 
     Ok(Response::from(AnnounceResponse {
