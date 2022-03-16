@@ -28,6 +28,7 @@ impl UdpServer {
             if let Ok((valid_bytes, remote_addr)) = self.socket.recv_from(&mut data).await {
                 let data = &data[..valid_bytes];
                 debug!("Received {} bytes from {}", data.len(), remote_addr);
+                debug!("{:?}", data);
                 let response = handle_packet(remote_addr, data, self.tracker.clone()).await;
                 self.send_response(remote_addr, response).await;
             }

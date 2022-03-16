@@ -376,14 +376,12 @@ impl TorrentTracker {
         &self,
         info_hash: &InfoHash,
         peer_addr: &SocketAddr
-    ) -> Option<Vec<TorrentPeer>> {
+    ) -> Vec<TorrentPeer> {
         let read_lock = self.torrents.read().await;
         match read_lock.get(info_hash) {
-            None => {
-                None
-            }
+            None => vec![],
             Some(entry) => {
-                Some(entry.get_peers(Some(peer_addr)))
+                entry.get_peers(Some(peer_addr))
             }
         }
     }

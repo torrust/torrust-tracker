@@ -49,7 +49,7 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
     let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer).await;
     // get all peers excluding the client_addr
     let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;
-    if peers.is_none() { return Err(reject::custom(ServerError::NoPeersFound)) }
+    //if peers.is_none() { return Err(reject::custom(ServerError::NoPeersFound)) }
 
     // success response
     let tracker_copy = tracker.clone();
@@ -64,7 +64,7 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
         }
     });
     let announce_interval = tracker.config.announce_interval;
-    send_announce_response(&announce_request, torrent_stats, peers.unwrap(), announce_interval)
+    send_announce_response(&announce_request, torrent_stats, peers, announce_interval)
 }
 
 /// Handle scrape request

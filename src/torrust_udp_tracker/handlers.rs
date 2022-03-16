@@ -91,16 +91,12 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
 
     let peer = TorrentPeer::from_udp_announce_request(&wrapped_announce_request.announce_request, remote_addr.ip(), tracker.config.get_ext_ip());
 
+    //let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
+
     let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
+
     // get all peers excluding the client_addr
-    let peers = match tracker.get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr).await {
-        Some(v) => v,
-        None => {
-            // return Err(ServerError::NoPeersFound);
-            let return_data: Vec<TorrentPeer> = Vec::new();
-            return_data
-        }
-    };
+    let peers = tracker.get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr).await;
 
     let tracker_copy = tracker.clone();
     tokio::spawn(async move {
