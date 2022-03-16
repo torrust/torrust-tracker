@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde;
 use std::borrow::Cow;
 use std::collections::BTreeMap;
-use tokio::sync::RwLock;
+use tokio::sync::{RwLock, RwLockWriteGuard};
 use crate::common::{AnnounceEventDef, InfoHash, NumberOfBytesDef, PeerId};
 use std::net::{IpAddr, SocketAddr};
 use crate::{Configuration, key_manager, MAX_SCRAPE_TORRENTS};
@@ -236,10 +236,27 @@ pub enum TorrentError {
     InvalidInfoHash,
 }
 
+#[derive(Debug)]
+pub struct TrackerStats {
+    pub tcp4_connections_handled: u64,
+    pub tcp4_announces_handled: u64,
+    pub tcp4_scrapes_handled: u64,
+    pub tcp6_connections_handled: u64,
+    pub tcp6_announces_handled: u64,
+    pub tcp6_scrapes_handled: u64,
+    pub udp4_connections_handled: u64,
+    pub udp4_announces_handled: u64,
+    pub udp4_scrapes_handled: u64,
+    pub udp6_connections_handled: u64,
+    pub udp6_announces_handled: u64,
+    pub udp6_scrapes_handled: u64,
+}
+
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     database: SqliteDatabase,
+    stats: tokio::sync::RwLock<TrackerStats>,
 }
 
 impl TorrentTracker {
@@ -252,6 +269,20 @@ impl TorrentTracker {
             config,
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             database,
+            stats: RwLock::new(TrackerStats {
+                tcp4_connections_handled: 0,
+                tcp4_announces_handled: 0,
+                tcp4_scrapes_handled: 0,
+                tcp6_connections_handled: 0,
+                tcp6_announces_handled: 0,
+                tcp6_scrapes_handled: 0,
+                udp4_connections_handled: 0,
+                udp4_announces_handled: 0,
+                udp4_scrapes_handled: 0,
+                udp6_connections_handled: 0,
+                udp6_announces_handled: 0,
+                udp6_scrapes_handled: 0,
+            }),
         }
     }
 
@@ -398,6 +429,14 @@ impl TorrentTracker {
 
     pub async fn get_torrents(&self) -> tokio::sync::RwLockReadGuard<'_, BTreeMap<InfoHash, TorrentEntry>> {
         self.torrents.read().await
+    }
+
+    pub async fn set_stats(&self) -> RwLockWriteGuard<'_, TrackerStats> {
+        self.stats.write().await
+    }
+
+    pub async fn get_stats(&self) -> tokio::sync::RwLockReadGuard<'_, TrackerStats> {
+        self.stats.read().await
     }
 
     // remove torrents without peers

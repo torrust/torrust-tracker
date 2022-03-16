@@ -29,7 +29,7 @@ pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, trac
 }
 
 /// Handle announce request
-pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>,) -> WebResult<impl Reply> {
+pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>) -> WebResult<impl Reply> {
     if let Err(e) = authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await {
         return Err(reject::custom(e))
     }
@@ -52,12 +52,23 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
     if peers.is_none() { return Err(reject::custom(ServerError::NoPeersFound)) }
 
     // success response
+    let tracker_copy = tracker.clone();
+    tokio::spawn(async move {
+        let mut status_writer = tracker_copy.set_stats().await;
+        if peer_ip.is_ipv4() {
+            status_writer.tcp4_connections_handled += 1;
+            status_writer.tcp4_announces_handled += 1;
+        } else {
+            status_writer.tcp6_connections_handled += 1;
+            status_writer.tcp6_announces_handled += 1;
+        }
+    });
     let announce_interval = tracker.config.announce_interval;
     send_announce_response(&announce_request, torrent_stats, peers.unwrap(), announce_interval)
 }
 
 /// Handle scrape request
-pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>,) -> WebResult<impl Reply> {
+pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>) -> WebResult<impl Reply> {
     let mut files: HashMap<String, ScrapeResponseEntry> = HashMap::new();
     let db = tracker.get_torrents().await;
 
@@ -80,6 +91,22 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
         }
     }
 
+    let ip = match tracker.config.on_reverse_proxy {
+        true => scrape_request.forwarded_ip.unwrap(),
+        false => scrape_request.remote_addr.ip()
+    };
+
+    let tracker_copy = tracker.clone();
+    tokio::spawn(async move {
+        let mut status_writer = tracker_copy.set_stats().await;
+        if ip.is_ipv4() {
+            status_writer.tcp4_connections_handled += 1;
+            status_writer.tcp4_scrapes_handled += 1;
+        } else {
+            status_writer.tcp6_connections_handled += 1;
+            status_writer.tcp6_scrapes_handled += 1;
+        }
+    });
     send_scrape_response(files)
 }
 

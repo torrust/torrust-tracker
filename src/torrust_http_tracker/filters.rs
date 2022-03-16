@@ -137,12 +137,27 @@ async fn announce_request(announce_request_query: AnnounceRequestQuery, info_has
 pub fn with_scrape_request() -> impl Filter<Extract = (ScrapeRequest,), Error = Rejection> + Clone {
     warp::any()
         .and(with_info_hash())
+        .and(warp::addr::remote())
+        .and(warp::header::optional::<String>("X-Forwarded-For"))
         .and_then(scrape_request)
 }
 
 /// Parse ScrapeRequest from InfoHash
-async fn scrape_request(info_hashes: Vec<InfoHash>) -> WebResult<ScrapeRequest> {
+async fn scrape_request(info_hashes: Vec<InfoHash>, remote_addr: Option<SocketAddr>, forwarded_for: Option<String>) -> WebResult<ScrapeRequest> {
+    if remote_addr.is_none() { return Err(reject::custom(ServerError::AddressNotFound)) }
+
+    // get first forwarded ip
+    let forwarded_ip = match forwarded_for {
+        None => None,
+        Some(forwarded_for_str) => {
+            forwarded_for_str.split(",").next()
+                .and_then(|ip_str| IpAddr::from_str(ip_str).ok())
+        }
+    };
+
     Ok(ScrapeRequest {
         info_hashes,
+        remote_addr: remote_addr.unwrap(),
+        forwarded_ip,
     })
 }

@@ -52,23 +52,33 @@ pub async fn handle_packet(remote_addr: SocketAddr, payload: &[u8], tracker: Arc
 pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
     match request {
         Request::Connect(connect_request) => {
-            handle_connect(remote_addr, &connect_request).await
+            handle_connect(remote_addr, &connect_request, tracker).await
         }
         Request::Announce(announce_request) => {
             handle_announce(remote_addr, &announce_request, tracker).await
         }
         Request::Scrape(scrape_request) => {
-            handle_scrape(&scrape_request, tracker).await
+            handle_scrape(remote_addr, &scrape_request, tracker).await
         }
     }
 }
 
-pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest) -> Result<Response, ServerError> {
+pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
     let connection_id = get_connection_id(&remote_addr);
 
     let response = Response::from(ConnectResponse {
         transaction_id: request.transaction_id,
         connection_id,
+    });
+
+    let tracker_copy = tracker.clone();
+    tokio::spawn(async move {
+        let mut status_writer = tracker_copy.set_stats().await;
+        if remote_addr.is_ipv4() {
+            status_writer.udp4_connections_handled += 1;
+        } else {
+            status_writer.udp6_connections_handled += 1;
+        }
     });
 
     Ok(response)
@@ -92,6 +102,16 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
         }
     };
 
+    let tracker_copy = tracker.clone();
+    tokio::spawn(async move {
+        let mut status_writer = tracker_copy.set_stats().await;
+        if remote_addr.is_ipv4() {
+            status_writer.udp4_announces_handled += 1;
+        } else {
+            status_writer.udp6_announces_handled += 1;
+        }
+    });
+
     Ok(Response::from(AnnounceResponse {
         transaction_id: wrapped_announce_request.announce_request.transaction_id,
         announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
@@ -105,7 +125,7 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
     }))
 }
 
-pub async fn handle_scrape(request: &ScrapeRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
+pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
     let db = tracker.get_torrents().await;
 
     let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
@@ -136,6 +156,16 @@ pub async fn handle_scrape(request: &ScrapeRequest, tracker: Arc<TorrentTracker>
 
         torrent_stats.push(scrape_entry);
     }
+
+    let tracker_copy = tracker.clone();
+    tokio::spawn(async move {
+        let mut status_writer = tracker_copy.set_stats().await;
+        if remote_addr.is_ipv4() {
+            status_writer.udp4_scrapes_handled += 1;
+        } else {
+            status_writer.udp6_scrapes_handled += 1;
+        }
+    });
 
     Ok(Response::from(ScrapeResponse {
         transaction_id: request.transaction_id,

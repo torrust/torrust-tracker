@@ -23,6 +23,26 @@ struct Torrent<'a> {
     peers: Option<Vec<TorrentPeer>>,
 }
 
+#[derive(Serialize)]
+struct Stats {
+    torrents: u32,
+    seeders: u32,
+    completed: u32,
+    leechers: u32,
+    tcp4_connections_handled: u32,
+    tcp4_announces_handled: u32,
+    tcp4_scrapes_handled: u32,
+    tcp6_connections_handled: u32,
+    tcp6_announces_handled: u32,
+    tcp6_scrapes_handled: u32,
+    udp4_connections_handled: u32,
+    udp4_announces_handled: u32,
+    udp4_scrapes_handled: u32,
+    udp6_connections_handled: u32,
+    udp6_announces_handled: u32,
+    udp6_scrapes_handled: u32,
+}
+
 #[derive(Serialize, Debug)]
 #[serde(tag = "status", rename_all = "snake_case")]
 enum ActionStatus<'a> {
@@ -64,13 +84,13 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
 pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static> {
     // GET /api/torrents?offset=:u32&limit=:u32
     // View torrent list
-    let t1 = tracker.clone();
+    let api_torrents = tracker.clone();
     let view_torrent_list = filters::method::get()
         .and(filters::path::path("torrents"))
         .and(filters::path::end())
         .and(filters::query::query())
         .map(move |limits| {
-            let tracker = t1.clone();
+            let tracker = api_torrents.clone();
             (limits, tracker)
         })
         .and_then(|(limits, tracker): (TorrentInfoQuery, Arc<TorrentTracker>)| {
@@ -94,6 +114,65 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                     .skip(offset as usize)
                     .take(limit as usize)
                     .collect();
+
+                Result::<_, warp::reject::Rejection>::Ok(reply::json(&results))
+            }
+        });
+
+    // GET /api/stats
+    // View tracker status
+    let api_stats = tracker.clone();
+    let view_stats_list = filters::method::get()
+        .and(filters::path::path("stats"))
+        .and(filters::path::end())
+        .map(move || {
+            let tracker = api_stats.clone();
+            tracker
+        })
+        .and_then(|tracker: Arc<TorrentTracker>| {
+            async move {
+                let mut results = Stats{
+                    torrents: 0,
+                    seeders: 0,
+                    completed: 0,
+                    leechers: 0,
+                    tcp4_connections_handled: 0,
+                    tcp4_announces_handled: 0,
+                    tcp4_scrapes_handled: 0,
+                    tcp6_connections_handled: 0,
+                    tcp6_announces_handled: 0,
+                    tcp6_scrapes_handled: 0,
+                    udp4_connections_handled: 0,
+                    udp4_announces_handled: 0,
+                    udp4_scrapes_handled: 0,
+                    udp6_connections_handled: 0,
+                    udp6_announces_handled: 0,
+                    udp6_scrapes_handled: 0
+                };
+                let db = tracker.get_torrents().await;
+                let _: Vec<_> = db
+                    .iter()
+                    .map(|(_info_hash, torrent_entry)| {
+                        let (seeders, completed, leechers) = torrent_entry.get_stats();
+                        results.seeders += seeders;
+                        results.completed += completed;
+                        results.leechers += leechers;
+                        results.torrents += 1;
+                    })
+                    .collect();
+                let stats = tracker.get_stats().await;
+                results.tcp4_connections_handled = stats.tcp4_connections_handled as u32;
+                results.tcp4_announces_handled = stats.tcp4_announces_handled as u32;
+                results.tcp4_scrapes_handled = stats.tcp4_scrapes_handled as u32;
+                results.tcp6_connections_handled = stats.tcp6_connections_handled as u32;
+                results.tcp6_announces_handled = stats.tcp6_announces_handled as u32;
+                results.tcp6_scrapes_handled = stats.tcp6_scrapes_handled as u32;
+                results.udp4_connections_handled = stats.udp4_connections_handled as u32;
+                results.udp4_announces_handled = stats.udp4_announces_handled as u32;
+                results.udp4_scrapes_handled = stats.udp4_scrapes_handled as u32;
+                results.udp6_connections_handled = stats.udp6_connections_handled as u32;
+                results.udp6_announces_handled = stats.udp6_announces_handled as u32;
+                results.udp6_scrapes_handled = stats.udp6_scrapes_handled as u32;
 
                 Result::<_, warp::reject::Rejection>::Ok(reply::json(&results))
             }
@@ -219,6 +298,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
             .and(view_torrent_list
                 .or(delete_torrent)
                 .or(view_torrent_info)
+                .or(view_stats_list)
                 .or(add_torrent)
                 .or(create_key)
                 .or(delete_key)

@@ -30,4 +30,6 @@ pub struct AnnounceRequest {
 
 pub struct ScrapeRequest {
     pub info_hashes: Vec<InfoHash>,
+    pub forwarded_ip: Option<IpAddr>,
+    pub remote_addr: SocketAddr,
 }
