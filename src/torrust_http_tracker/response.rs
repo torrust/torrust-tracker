@@ -46,8 +46,8 @@ impl AnnounceResponse {
         let mut bytes: Vec<u8> = Vec::new();
         bytes.write(b"d8:intervali")?;
         bytes.write(&self.interval.to_string().as_bytes())?;
-        bytes.write(b"d12:min intervali")?;
-        bytes.write(&self.interval.to_string().as_bytes())?;
+        bytes.write(b"e12:min intervali")?;
+        bytes.write(&self.interval_min.to_string().as_bytes())?;
         bytes.write(b"e8:completei")?;
         bytes.write(&self.complete.to_string().as_bytes())?;
         bytes.write(b"e10:incompletei")?;
