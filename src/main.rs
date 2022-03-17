@@ -92,11 +92,7 @@ fn start_api_server(config: &HttpApiConfig, tracker: Arc<TorrentTracker>) -> Joi
 
     tokio::spawn(async move {
         let server = http_api_server::build_server(tracker);
-        let _ = server.bind_with_graceful_shutdown(bind_addr, async move {
-            tokio::signal::ctrl_c()
-                .await
-                .expect("failed to listen to shutdown signal");
-        });
+        let _ = server.bind(bind_addr).await;
     })
 }
 
