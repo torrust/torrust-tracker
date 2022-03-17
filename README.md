@@ -53,20 +53,26 @@ persistence = false
 cleanup_interval = 600
 cleanup_peerless = true
 external_ip = "0.0.0.0"
-announce_interval = 0
+announce_interval = 120
+announce_interval_min = 900
+peer_timeout = 900
 on_reverse_proxy = false
 
 [[udp_trackers]]
-enabled = true
+enabled = false
 bind_address = "0.0.0.0:6969"
+
+[[udp_trackers]]
+enabled = true
+bind_address = "[::]:6969"
 
 [[http_trackers]]
 enabled = true
 bind_address = "0.0.0.0:6969"
-ssl_enabled = true
+ssl_enabled = false
 ssl_bind_address = "0.0.0.0:6868"
-ssl_cert_path = "cert.pem"
-ssl_key_path = "key.pem"
+ssl_cert_path = ""
+ssl_key_path = ""
 
 [http_api]
 enabled = true
