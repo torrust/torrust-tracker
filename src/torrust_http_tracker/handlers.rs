@@ -64,7 +64,7 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
         }
     });
     let announce_interval = tracker.config.announce_interval;
-    send_announce_response(&announce_request, torrent_stats, peers, announce_interval)
+    send_announce_response(&announce_request, torrent_stats, peers, announce_interval, tracker.config.announce_interval_min)
 }
 
 /// Handle scrape request
@@ -127,7 +127,7 @@ pub async fn handle_error(r: Rejection) -> std::result::Result<impl Reply, Infal
 }
 
 /// Send announce response
-fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32) -> WebResult<impl Reply> {
+fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32, interval_min: u32) -> WebResult<impl Reply> {
     let http_peers: Vec<Peer> = peers.iter().map(|peer| Peer {
         peer_id: peer.peer_id.to_string(),
         ip: peer.peer_addr.ip(),
@@ -136,6 +136,7 @@ fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: Tor
 
     let res = AnnounceResponse {
         interval,
+        interval_min,
         complete: torrent_stats.seeders,
         incomplete: torrent_stats.leechers,
         peers: http_peers
