@@ -31,3 +31,4 @@ config = "0.11"
 derive_more = "0.99"
 thiserror = "1.0"
 aquatic_udp_protocol = { git = "https://github.com/greatest-ape/aquatic" }
+futures = "0.3.21"

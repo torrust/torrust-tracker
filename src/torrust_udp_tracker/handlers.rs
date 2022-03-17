@@ -24,7 +24,7 @@ pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<TorrentTracker>) ->
     }
 }
 
-pub async fn handle_packet(remote_addr: SocketAddr, payload: &[u8], tracker: Arc<TorrentTracker>) -> Response {
+pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: Arc<TorrentTracker>) -> Response {
     match Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS).map_err(|_| ServerError::InternalServerError) {
         Ok(request) => {
             let transaction_id = match &request {

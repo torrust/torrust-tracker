@@ -7,6 +7,7 @@ use torrust_tracker::torrust_http_tracker::server::HttpServer;
 
 #[tokio::main]
 async fn main() {
+    // torrust config
     let config = match Configuration::load_from_file() {
         Ok(config) => Arc::new(config),
         Err(error) => {
@@ -14,12 +15,12 @@ async fn main() {
         }
     };
 
-    logging::setup_logging(&config);
-
     // the singleton torrent tracker that gets passed to the HTTP and UDP server
     let tracker = Arc::new(TorrentTracker::new(config.clone()).unwrap_or_else(|e| {
         panic!("{}", e)
     }));
+
+    logging::setup_logging(&config);
 
     // load persistent torrents if enabled
     if config.persistence {
@@ -38,10 +39,17 @@ async fn main() {
         let _api_server = start_api_server(&config.http_api, tracker.clone());
     }
 
+    let (tx, rx) = tokio::sync::watch::channel(false);
+    let mut udp_server_handles = Vec::new();
+
     // start the udp blocks
     for udp_tracker in &config.udp_trackers {
+        // used to send kill signal to thread
+
         if udp_tracker.enabled {
-            let _ = start_udp_tracker_server(&udp_tracker, tracker.clone()).await;
+            udp_server_handles.push(
+                start_udp_tracker_server(&udp_tracker, tracker.clone(), rx.clone()).await
+            )
         }
     }
 
@@ -52,10 +60,16 @@ async fn main() {
     }
 
     // handle the signals here
-    let ctrl_c = tokio::signal::ctrl_c();
     tokio::select! {
-        _ = ctrl_c => {
+        _ = tokio::signal::ctrl_c() => {
             info!("Torrust shutting down..");
+
+            // send kill signal
+            let _ = tx.send(true);
+
+            // await for all udp servers to shutdown
+            futures::future::join_all(udp_server_handles).await;
+
             // Save torrents if enabled
             if config.persistence {
                 info!("Saving torrents into SQL from memory...");
@@ -118,13 +132,13 @@ fn start_http_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTra
     })
 }
 
-async fn start_udp_tracker_server(config: &UdpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
-    let udp_server = UdpServer::new(tracker, config).await.unwrap_or_else(|e| {
+async fn start_udp_tracker_server(config: &UdpTrackerConfig, tracker: Arc<TorrentTracker>, rx: tokio::sync::watch::Receiver<bool>) -> JoinHandle<()> {
+    let udp_server = UdpServer::new(tracker, &config.bind_address).await.unwrap_or_else(|e| {
         panic!("Could not start UDP server: {}", e);
     });
 
     info!("Starting UDP server on: {}", config.bind_address);
     tokio::spawn(async move {
-        udp_server.start().await;
+        udp_server.start(rx).await;
     })
 }
