@@ -1,4 +1,3 @@
-use std::future::Future;
 use std::io::Cursor;
 use std::net::{SocketAddr};
 use std::sync::Arc;
