@@ -6,15 +6,13 @@ Torrust Tracker is a lightweight but incredibly powerful and feature-rich BitTor
 
 
 ### Features
-* [X] UDP server
-* [X] HTTP and/or HTTPS (SSL) server
-* [X] Multiple UDP and HTTP(S) blocks for socket binding possible
+* [X] Multiple UDP server and HTTP(S) server blocks for socket binding possible
 * [X] Full IPv4 and IPv6 support for both UDP and HTTP(S)
 * [X] Private & Whitelisted mode
 * [X] Built-in API
 * [X] Torrent whitelisting
 * [X] Peer authentication using time-bound keys
-* [ ] NewTrackOn check supported
+* [X] newTrackon check supported for both HTTP, UDP, where IPv4 and IPv6 is properly handled
 * [X] SQLite3 Persistent loading and saving of the torrent hashes and completed count
 
 ### Implemented BEPs
