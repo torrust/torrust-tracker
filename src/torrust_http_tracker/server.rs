@@ -18,16 +18,26 @@ impl HttpServer {
 
     /// Start the HttpServer
     pub async fn start(&self, socket_addr: SocketAddr) {
-        warp::serve(routes(self.tracker.clone()))
-            .run(socket_addr).await;
+        let (_addr, server) = warp::serve(routes(self.tracker.clone()))
+            .bind_with_graceful_shutdown(socket_addr, async move {
+                tokio::signal::ctrl_c()
+                    .await
+                    .expect("failed to listen to shutdown signal");
+            });
+        tokio::task::spawn(server);
     }
 
     /// Start the HttpServer in TLS mode
     pub async fn start_tls(&self, socket_addr: SocketAddr, ssl_cert_path: &str, ssl_key_path: &str) {
-        warp::serve(routes(self.tracker.clone()))
+        let (_addr, server) = warp::serve(routes(self.tracker.clone()))
             .tls()
             .cert_path(ssl_cert_path)
             .key_path(ssl_key_path)
-            .run(socket_addr).await;
+            .bind_with_graceful_shutdown(socket_addr, async move {
+                tokio::signal::ctrl_c()
+                    .await
+                    .expect("failed to listen to shutdown signal");
+            });
+        tokio::task::spawn(server);
     }
 }

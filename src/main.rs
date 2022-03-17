@@ -1,8 +1,8 @@
 use std::net::SocketAddr;
-use log::{info};
-use torrust_tracker::{http_api_server, Configuration, TorrentTracker, UdpServer, HttpTrackerConfig, UdpTrackerConfig, HttpApiConfig, logging};
 use std::sync::Arc;
+use log::info;
 use tokio::task::JoinHandle;
+use torrust_tracker::{Configuration, http_api_server, HttpApiConfig, HttpTrackerConfig, logging, TorrentTracker, UdpServer, UdpTrackerConfig};
 use torrust_tracker::torrust_http_tracker::server::HttpServer;
 
 #[tokio::main]
@@ -83,7 +83,7 @@ fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTra
                 break;
             }
         }
-    }))
+    }));
 }
 
 fn start_api_server(config: &HttpApiConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
@@ -92,7 +92,11 @@ fn start_api_server(config: &HttpApiConfig, tracker: Arc<TorrentTracker>) -> Joi
 
     tokio::spawn(async move {
         let server = http_api_server::build_server(tracker);
-        server.bind(bind_addr).await;
+        let _ = server.bind_with_graceful_shutdown(bind_addr, async move {
+            tokio::signal::ctrl_c()
+                .await
+                .expect("failed to listen to shutdown signal");
+        });
     })
 }
 

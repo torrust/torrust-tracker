@@ -14,6 +14,7 @@ pub struct Peer {
 #[derive(Serialize)]
 pub struct AnnounceResponse {
     pub interval: u32,
+    pub interval_min: u32,
     //pub tracker_id: String,
     pub complete: u32,
     pub incomplete: u32,
@@ -44,6 +45,8 @@ impl AnnounceResponse {
 
         let mut bytes: Vec<u8> = Vec::new();
         bytes.write(b"d8:intervali")?;
+        bytes.write(&self.interval.to_string().as_bytes())?;
+        bytes.write(b"d12:min intervali")?;
         bytes.write(&self.interval.to_string().as_bytes())?;
         bytes.write(b"e8:completei")?;
         bytes.write(&self.complete.to_string().as_bytes())?;
