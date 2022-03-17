@@ -16,6 +16,8 @@ Torrust Tracker is a lightweight but incredibly powerful and feature-rich BitTor
 * [X] SQLite3 Persistent loading and saving of the torrent hashes and completed count
 
 ### Implemented BEPs
+* [BEP 3](https://www.bittorrent.org/beps/bep_0003.html): The BitTorrent Protocol
+* [BEP 7](https://www.bittorrent.org/beps/bep_0007.html): IPv6 Support
 * [BEP 15](http://www.bittorrent.org/beps/bep_0015.html): UDP Tracker Protocol for BitTorrent
 * [BEP 23](http://bittorrent.org/beps/bep_0023.html): Tracker Returns Compact Peer Lists
 * [BEP 27](http://bittorrent.org/beps/bep_0027.html): Private Torrents
