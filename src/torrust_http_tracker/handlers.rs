@@ -36,26 +36,19 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
 
     debug!("{:?}", announce_request);
 
-    if tracker.config.on_reverse_proxy && announce_request.forwarded_ip.is_none() {
-        return Err(reject::custom(ServerError::AddressNotFound))
-    }
-
-    let peer_ip = match tracker.config.on_reverse_proxy {
-        true => announce_request.forwarded_ip.unwrap(),
-        false => announce_request.peer_addr.ip()
-    };
-
-    let peer = TorrentPeer::from_http_announce_request(&announce_request, peer_ip, tracker.config.get_ext_ip());
+    let peer = TorrentPeer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
     let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer).await;
-    // get all peers excluding the client_addr
+
+    // get all torrent peers excluding the peer_addr
     let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;
-    //if peers.is_none() { return Err(reject::custom(ServerError::NoPeersFound)) }
 
     // success response
     let tracker_copy = tracker.clone();
+    let is_ipv4 = announce_request.peer_addr.is_ipv4();
+
     tokio::spawn(async move {
         let mut status_writer = tracker_copy.set_stats().await;
-        if peer_ip.is_ipv4() {
+        if is_ipv4 {
             status_writer.tcp4_connections_handled += 1;
             status_writer.tcp4_announces_handled += 1;
         } else {
@@ -63,7 +56,9 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
             status_writer.tcp6_announces_handled += 1;
         }
     });
+
     let announce_interval = tracker.config.announce_interval;
+
     send_announce_response(&announce_request, torrent_stats, peers, announce_interval, tracker.config.announce_interval_min)
 }
 
@@ -91,19 +86,11 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
         }
     }
 
-    if tracker.config.on_reverse_proxy && scrape_request.forwarded_ip.is_none() {
-        return Err(reject::custom(ServerError::AddressNotFound))
-    }
-
-    let ip = match tracker.config.on_reverse_proxy {
-        true => scrape_request.forwarded_ip.unwrap(),
-        false => scrape_request.remote_addr.ip()
-    };
-
     let tracker_copy = tracker.clone();
+
     tokio::spawn(async move {
         let mut status_writer = tracker_copy.set_stats().await;
-        if ip.is_ipv4() {
+        if scrape_request.peer_addr.is_ipv4() {
             status_writer.tcp4_connections_handled += 1;
             status_writer.tcp4_scrapes_handled += 1;
         } else {
@@ -111,19 +98,8 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
             status_writer.tcp6_scrapes_handled += 1;
         }
     });
-    send_scrape_response(files)
-}
 
-/// Handle all server errors and send error reply
-pub async fn handle_error(r: Rejection) -> std::result::Result<impl Reply, Infallible> {
-    if let Some(e) = r.find::<ServerError>() {
-        debug!("{:?}", e);
-        let body: String = ErrorResponse { failure_reason: e.to_string() }.write();
-        Ok(Response::new(body))
-    } else {
-        let body: String = ErrorResponse { failure_reason: "internal server error".to_string() }.write();
-        Ok(Response::new(body))
-    }
+    send_scrape_response(files)
 }
 
 /// Send announce response
@@ -156,4 +132,16 @@ fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: Tor
 /// Send scrape response
 fn send_scrape_response(files: HashMap<String, ScrapeResponseEntry>) -> WebResult<impl Reply> {
     Ok(Response::new(ScrapeResponse { files }.write()))
+}
+
+/// Handle all server errors and send error reply
+pub async fn send_error(r: Rejection) -> std::result::Result<impl Reply, Infallible> {
+    let body = if let Some(server_error) = r.find::<ServerError>() {
+        debug!("{:?}", server_error);
+        ErrorResponse { failure_reason: server_error.to_string() }.write()
+    } else {
+        ErrorResponse { failure_reason: ServerError::InternalServerError.to_string() }.write()
+    };
+
+    Ok(Response::new(body))
 }

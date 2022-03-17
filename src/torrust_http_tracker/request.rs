@@ -1,4 +1,4 @@
-use std::net::{IpAddr, SocketAddr};
+use std::net::{IpAddr};
 use serde::{Deserialize};
 use crate::{InfoHash, PeerId};
 use crate::torrust_http_tracker::Bytes;
@@ -17,8 +17,7 @@ pub struct AnnounceRequestQuery {
 #[derive(Debug)]
 pub struct AnnounceRequest {
     pub info_hash: InfoHash,
-    pub peer_addr: SocketAddr,
-    pub forwarded_ip: Option<IpAddr>,
+    pub peer_addr: IpAddr,
     pub downloaded: Bytes,
     pub uploaded: Bytes,
     pub peer_id: PeerId,
@@ -30,6 +29,5 @@ pub struct AnnounceRequest {
 
 pub struct ScrapeRequest {
     pub info_hashes: Vec<InfoHash>,
-    pub forwarded_ip: Option<IpAddr>,
-    pub remote_addr: SocketAddr,
+    pub peer_addr: IpAddr,
 }
