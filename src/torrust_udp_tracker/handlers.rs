@@ -147,6 +147,7 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
     Ok(announce_response)
 }
 
+// todo: refactor this, db lock can be a lot shorter
 pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
     let db = tracker.get_torrents().await;
 

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde;
 use std::borrow::Cow;
 use std::collections::BTreeMap;
-use tokio::sync::{RwLock, RwLockWriteGuard};
+use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::common::{AnnounceEventDef, InfoHash, NumberOfBytesDef, PeerId};
 use std::net::{IpAddr, SocketAddr};
 use crate::{Configuration, key_manager, MAX_SCRAPE_TORRENTS};
@@ -443,7 +443,7 @@ impl TorrentTracker {
         }
     }
 
-    pub async fn get_torrents(&self) -> tokio::sync::RwLockReadGuard<'_, BTreeMap<InfoHash, TorrentEntry>> {
+    pub async fn get_torrents(&self) -> RwLockReadGuard<'_, BTreeMap<InfoHash, TorrentEntry>> {
         self.torrents.read().await
     }
 
@@ -451,7 +451,7 @@ impl TorrentTracker {
         self.stats.write().await
     }
 
-    pub async fn get_stats(&self) -> tokio::sync::RwLockReadGuard<'_, TrackerStats> {
+    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStats> {
         self.stats.read().await
     }
 

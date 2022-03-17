@@ -16,6 +16,8 @@ Torrust Tracker is a lightweight but incredibly powerful and feature-rich BitTor
 * [X] SQLite3 Persistent loading and saving of the torrent hashes and completed count
 
 ### Implemented BEPs
+* [BEP 3](https://www.bittorrent.org/beps/bep_0003.html): The BitTorrent Protocol
+* [BEP 7](https://www.bittorrent.org/beps/bep_0007.html): IPv6 Support
 * [BEP 15](http://www.bittorrent.org/beps/bep_0015.html): UDP Tracker Protocol for BitTorrent
 * [BEP 23](http://bittorrent.org/beps/bep_0023.html): Tracker Returns Compact Peer Lists
 * [BEP 27](http://bittorrent.org/beps/bep_0027.html): Private Torrents
@@ -53,20 +55,26 @@ persistence = false
 cleanup_interval = 600
 cleanup_peerless = true
 external_ip = "0.0.0.0"
-announce_interval = 0
+announce_interval = 120
+announce_interval_min = 900
+peer_timeout = 900
 on_reverse_proxy = false
 
 [[udp_trackers]]
-enabled = true
+enabled = false
 bind_address = "0.0.0.0:6969"
+
+[[udp_trackers]]
+enabled = true
+bind_address = "[::]:6969"
 
 [[http_trackers]]
 enabled = true
 bind_address = "0.0.0.0:6969"
-ssl_enabled = true
+ssl_enabled = false
 ssl_bind_address = "0.0.0.0:6868"
-ssl_cert_path = "cert.pem"
-ssl_key_path = "key.pem"
+ssl_cert_path = ""
+ssl_key_path = ""
 
 [http_api]
 enabled = true
