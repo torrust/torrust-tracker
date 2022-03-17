@@ -84,7 +84,6 @@ impl serde::ser::Serialize for InfoHash {
         let mut buffer = [0u8; 40];
         let bytes_out = binascii::bin2hex(&self.0, &mut buffer).ok().unwrap();
         let str_out = std::str::from_utf8(bytes_out).unwrap();
-
         serializer.serialize_str(str_out)
     }
 }
@@ -131,8 +130,12 @@ pub struct PeerId(pub [u8; 20]);
 impl PeerId {
     pub fn to_string(&self) -> String {
         let mut buffer = [0u8; 20];
-        let bytes_out = binascii::bin2hex(&self.0, &mut buffer).ok().unwrap();
-        String::from(std::str::from_utf8(bytes_out).unwrap())
+        let bytes_out = binascii::bin2hex(&self.0, &mut buffer).ok();
+        return if let Some(bytes_out) = bytes_out {
+            String::from(std::str::from_utf8(bytes_out).unwrap())
+        } else {
+            "".to_string()
+        }
     }
 }
 

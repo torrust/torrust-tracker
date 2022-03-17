@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde;
 use std::borrow::Cow;
 use std::collections::BTreeMap;
-use tokio::sync::RwLock;
+use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::common::{AnnounceEventDef, InfoHash, NumberOfBytesDef, PeerId};
 use std::net::{IpAddr, SocketAddr};
 use crate::{Configuration, key_manager, MAX_SCRAPE_TORRENTS};
@@ -10,13 +10,10 @@ use std::collections::btree_map::Entry;
 use crate::database::SqliteDatabase;
 use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use log::debug;
+use log::{debug};
 use crate::key_manager::AuthKey;
 use r2d2_sqlite::rusqlite;
 use crate::torrust_http_tracker::AnnounceRequest;
-
-const TWO_HOURS: std::time::Duration = std::time::Duration::from_secs(3600 * 2);
-const FIVE_MINUTES: std::time::Duration = std::time::Duration::from_secs(300);
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum TrackerMode {
@@ -149,7 +146,17 @@ impl TorrentEntry {
         for (_, peer) in self
             .peers
             .iter()
-            .filter(|e| e.1.peer_addr.is_ipv4())
+            .filter(|e| match remote_addr {
+                // don't filter on ip_version
+                None => true,
+                // filter out different ip_version from remote_addr
+                Some(remote_address) => {
+                    match e.1.peer_addr.ip() {
+                        IpAddr::V4(_) => { remote_address.is_ipv4() }
+                        IpAddr::V6(_) => { remote_address.is_ipv6() }
+                    }
+                }
+            })
             .take(MAX_SCRAPE_TORRENTS as usize)
         {
 
@@ -239,23 +246,52 @@ pub enum TorrentError {
     InvalidInfoHash,
 }
 
+#[derive(Debug)]
+pub struct TrackerStats {
+    pub tcp4_connections_handled: u64,
+    pub tcp4_announces_handled: u64,
+    pub tcp4_scrapes_handled: u64,
+    pub tcp6_connections_handled: u64,
+    pub tcp6_announces_handled: u64,
+    pub tcp6_scrapes_handled: u64,
+    pub udp4_connections_handled: u64,
+    pub udp4_announces_handled: u64,
+    pub udp4_scrapes_handled: u64,
+    pub udp6_connections_handled: u64,
+    pub udp6_announces_handled: u64,
+    pub udp6_scrapes_handled: u64,
+}
+
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     database: SqliteDatabase,
+    stats: tokio::sync::RwLock<TrackerStats>,
 }
 
 impl TorrentTracker {
-    pub fn new(config: Arc<Configuration>) -> TorrentTracker {
-        let database = SqliteDatabase::new(&config.db_path).unwrap_or_else(|error| {
-            panic!("Could not create SQLite database. Reason: {}", error)
-        });
+    pub fn new(config: Arc<Configuration>) -> Result<TorrentTracker, rusqlite::Error> {
+        let database = SqliteDatabase::new(&config.db_path)?;
 
-        TorrentTracker {
+        Ok(TorrentTracker {
             config,
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             database,
-        }
+            stats: RwLock::new(TrackerStats {
+                tcp4_connections_handled: 0,
+                tcp4_announces_handled: 0,
+                tcp4_scrapes_handled: 0,
+                tcp6_connections_handled: 0,
+                tcp6_announces_handled: 0,
+                tcp6_scrapes_handled: 0,
+                udp4_connections_handled: 0,
+                udp4_announces_handled: 0,
+                udp4_scrapes_handled: 0,
+                udp6_connections_handled: 0,
+                udp6_announces_handled: 0,
+                udp6_scrapes_handled: 0,
+            }),
+        })
     }
 
     fn is_public(&self) -> bool {
@@ -316,6 +352,23 @@ impl TorrentTracker {
         Ok(())
     }
 
+    // Loading the torrents into memory
+    pub async fn load_torrents(&self) -> Result<(), rusqlite::Error> {
+        let torrents = self.database.load_persistent_torrent_data().await?;
+
+        for torrent in torrents {
+            self.add_torrent(torrent.0, 0, torrent.1, 0).await;
+        }
+
+        Ok(())
+    }
+
+    // Saving the torrents from memory
+    pub async fn save_torrents(&self) -> Result<(), rusqlite::Error> {
+        let torrents = self.torrents.read().await;
+        self.database.save_persistent_torrent_data(&*torrents).await
+    }
+
     // Adding torrents is not relevant to public trackers.
     pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<usize, rusqlite::Error> {
         self.database.add_info_hash_to_whitelist(info_hash.clone()).await
@@ -338,14 +391,12 @@ impl TorrentTracker {
         &self,
         info_hash: &InfoHash,
         peer_addr: &SocketAddr
-    ) -> Option<Vec<TorrentPeer>> {
+    ) -> Vec<TorrentPeer> {
         let read_lock = self.torrents.read().await;
         match read_lock.get(info_hash) {
-            None => {
-                None
-            }
+            None => vec![],
             Some(entry) => {
-                Some(entry.get_peers(Some(peer_addr)))
+                entry.get_peers(Some(peer_addr))
             }
         }
     }
@@ -373,8 +424,35 @@ impl TorrentTracker {
         }
     }
 
-    pub async fn get_torrents(&self) -> tokio::sync::RwLockReadGuard<'_, BTreeMap<InfoHash, TorrentEntry>> {
+    pub async fn add_torrent(&self, info_hash: InfoHash, seeders: u32, completed: u32, leechers: u32) -> TorrentStats {
+        let mut torrents = self.torrents.write().await;
+
+        if !torrents.contains_key(&info_hash) {
+            let torrent_entry = TorrentEntry {
+                peers: Default::default(),
+                completed,
+                seeders
+            };
+            torrents.insert(info_hash.clone(), torrent_entry);
+        }
+
+        TorrentStats {
+            seeders,
+            completed,
+            leechers,
+        }
+    }
+
+    pub async fn get_torrents(&self) -> RwLockReadGuard<'_, BTreeMap<InfoHash, TorrentEntry>> {
         self.torrents.read().await
+    }
+
+    pub async fn set_stats(&self) -> RwLockWriteGuard<'_, TrackerStats> {
+        self.stats.write().await
+    }
+
+    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStats> {
+        self.stats.read().await
     }
 
     // remove torrents without peers
@@ -392,12 +470,12 @@ impl TorrentTracker {
 
                 for (peer_id, peer) in torrent_peers.iter() {
                     if peer.is_seeder() {
-                        if peer.updated.elapsed() > FIVE_MINUTES {
+                        if peer.updated.elapsed() > std::time::Duration::from_secs(self.config.peer_timeout as u64) {
                             // remove seeders after 5 minutes since last update...
                             peers_to_remove.push(peer_id.clone());
                             torrent_entry.seeders -= 1;
                         }
-                    } else if peer.updated.elapsed() > TWO_HOURS {
+                    } else if peer.updated.elapsed() > std::time::Duration::from_secs(self.config.peer_timeout as u64) {
                         // remove peers after 2 hours since last update...
                         peers_to_remove.push(peer_id.clone());
                     }
@@ -408,7 +486,7 @@ impl TorrentTracker {
                 }
             }
 
-            if self.config.mode.clone() == TrackerMode::PublicMode {
+            if self.config.mode.clone() == TrackerMode::PublicMode && self.config.cleanup_peerless && !self.config.persistence {
                 // peer-less torrents..
                 if torrent_entry.peers.len() == 0 {
                     torrents_to_remove.push(k.clone());

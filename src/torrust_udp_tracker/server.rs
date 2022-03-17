@@ -1,64 +1,72 @@
 use std::io::Cursor;
 use std::net::{SocketAddr};
 use std::sync::Arc;
-use aquatic_udp_protocol::{IpVersion, Response};
-use log::debug;
+use aquatic_udp_protocol::{Response};
+use log::{debug, info};
 use tokio::net::UdpSocket;
-use crate::TorrentTracker;
+use crate::{TorrentTracker};
 use crate::torrust_udp_tracker::{handle_packet, MAX_PACKET_SIZE};
 
 pub struct UdpServer {
-    socket: UdpSocket,
+    socket: Arc<UdpSocket>,
     tracker: Arc<TorrentTracker>,
 }
 
 impl UdpServer {
-    pub async fn new(tracker: Arc<TorrentTracker>) -> Result<UdpServer, std::io::Error> {
-        let srv = UdpSocket::bind(&tracker.config.udp_tracker.bind_address).await?;
+    pub async fn new(tracker: Arc<TorrentTracker>, bind_address: &str) -> tokio::io::Result<UdpServer> {
+        let socket = UdpSocket::bind(bind_address).await?;
 
         Ok(UdpServer {
-            socket: srv,
+            socket: Arc::new(socket),
             tracker,
         })
     }
 
-    pub async fn start(&self) {
+    pub async fn start(&self, rx: tokio::sync::watch::Receiver<bool>) {
         loop {
+            let mut rx = rx.clone();
             let mut data = [0; MAX_PACKET_SIZE];
-            if let Ok((valid_bytes, remote_addr)) = self.socket.recv_from(&mut data).await {
-                let data = &data[..valid_bytes];
-                debug!("Received {} bytes from {}", data.len(), remote_addr);
-                let response = handle_packet(remote_addr, data, self.tracker.clone()).await;
-                self.send_response(remote_addr, response).await;
+            let socket = self.socket.clone();
+            let tracker = self.tracker.clone();
+
+            tokio::select! {
+                _ = rx.changed() => {
+                    info!("Stopping UDP server: {}...", socket.local_addr().unwrap());
+                    break;
+                }
+                Ok((valid_bytes, remote_addr)) = socket.recv_from(&mut data) => {
+                    let payload = data[..valid_bytes].to_vec();
+
+                    debug!("Received {} bytes from {}", payload.len(), remote_addr);
+                    debug!("{:?}", payload);
+
+                    let response = handle_packet(remote_addr, payload, tracker).await;
+                    UdpServer::send_response(socket, remote_addr, response).await;
+                }
             }
         }
     }
 
-    async fn send_response(&self, remote_addr: SocketAddr, response: Response) {
+    async fn send_response(socket: Arc<UdpSocket>, remote_addr: SocketAddr, response: Response) {
         debug!("sending response to: {:?}", &remote_addr);
 
         let buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(buffer);
 
-        let ip_version = match remote_addr {
-            SocketAddr::V4(_) => IpVersion::IPv4,
-            SocketAddr::V6(_) => IpVersion::IPv6
-        };
-
-        match response.write(&mut cursor, ip_version) {
+        match response.write(&mut cursor) {
             Ok(_) => {
                 let position = cursor.position() as usize;
                 let inner = cursor.get_ref();
 
                 debug!("{:?}", &inner[..position]);
-                self.send_packet(&remote_addr, &inner[..position]).await;
+                UdpServer::send_packet(socket, &remote_addr, &inner[..position]).await;
             }
             Err(_) => { debug!("could not write response to bytes."); }
         }
     }
 
-    async fn send_packet(&self, remote_addr: &SocketAddr, payload: &[u8]) {
+    async fn send_packet(socket: Arc<UdpSocket>, remote_addr: &SocketAddr, payload: &[u8]) {
         // doesn't matter if it reaches or not
-        let _ = self.socket.send_to(payload, remote_addr).await;
+        let _ = socket.send_to(payload, remote_addr).await;
     }
 }

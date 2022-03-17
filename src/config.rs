@@ -17,17 +17,16 @@ pub enum TrackerServer {
 
 #[derive(Serialize, Deserialize)]
 pub struct UdpTrackerConfig {
+    pub enabled: bool,
     pub bind_address: String,
-    pub announce_interval: u32,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct HttpTrackerConfig {
     pub enabled: bool,
     pub bind_address: String,
-    pub on_reverse_proxy: bool,
-    pub announce_interval: u32,
     pub ssl_enabled: bool,
+    pub ssl_bind_address: String,
     #[serde(serialize_with = "none_as_empty_string")]
     pub ssl_cert_path: Option<String>,
     #[serde(serialize_with = "none_as_empty_string")]
@@ -52,10 +51,16 @@ pub struct Configuration {
     pub log_level: Option<String>,
     pub mode: TrackerMode,
     pub db_path: String,
+    pub persistence: bool,
     pub cleanup_interval: Option<u64>,
+    pub cleanup_peerless: bool,
     pub external_ip: Option<String>,
-    pub udp_tracker: UdpTrackerConfig,
-    pub http_tracker: HttpTrackerConfig,
+    pub announce_interval: u32,
+    pub announce_interval_min: u32,
+    pub peer_timeout: u32,
+    pub on_reverse_proxy: bool,
+    pub udp_trackers: Vec<UdpTrackerConfig>,
+    pub http_trackers: Vec<HttpTrackerConfig>,
     pub http_api: HttpApiConfig,
 }
 
@@ -124,36 +129,48 @@ impl Configuration {
 
 impl Configuration {
     pub fn default() -> Configuration {
-        Configuration {
+        let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             mode: TrackerMode::PublicMode,
             db_path: String::from("data.db"),
+            persistence: false,
             cleanup_interval: Some(600),
+            cleanup_peerless: true,
             external_ip: Some(String::from("0.0.0.0")),
-            udp_tracker: UdpTrackerConfig {
-                bind_address: String::from("0.0.0.0:6969"),
-                announce_interval: 120,
-            },
-            http_tracker: HttpTrackerConfig {
-                enabled: false,
-                bind_address: String::from("0.0.0.0:6969"),
-                on_reverse_proxy: false,
-                announce_interval: 120,
-                ssl_enabled: false,
-                ssl_cert_path: None,
-                ssl_key_path: None
-            },
+            announce_interval: 120,
+            announce_interval_min: 120,
+            peer_timeout: 900,
+            on_reverse_proxy: false,
+            udp_trackers: Vec::new(),
+            http_trackers: Vec::new(),
             http_api: HttpApiConfig {
                 enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))].iter().cloned().collect(),
-            },
-        }
+            }
+        };
+        configuration.udp_trackers.push(
+            UdpTrackerConfig{
+                enabled: false,
+                bind_address: String::from("0.0.0.0:6969")
+            }
+        );
+        configuration.http_trackers.push(
+            HttpTrackerConfig{
+                enabled: false,
+                bind_address: String::from("0.0.0.0:6969"),
+                ssl_enabled: false,
+                ssl_bind_address: String::from("0.0.0.0:6868"),
+                ssl_cert_path: None,
+                ssl_key_path: None
+            }
+        );
+        configuration
     }
 
     pub fn verify(&self) -> Result<(), ConfigurationError> {
         // UDP is not secure for sending private keys
-        if (self.mode == TrackerMode::PrivateMode || self.mode == TrackerMode::PrivateListedMode) && self.get_tracker_server() == TrackerServer::UDP {
+        if self.mode == TrackerMode::PrivateMode || self.mode == TrackerMode::PrivateListedMode {
             return Err(ConfigurationError::TrackerModeIncompatible)
         }
 
@@ -187,13 +204,5 @@ impl Configuration {
         let toml_string = toml::to_string(self).expect("Could not encode TOML value");
         fs::write("config.toml", toml_string).expect("Could not write to file!");
         Ok(())
-    }
-
-    pub fn get_tracker_server(&self) -> TrackerServer {
-        if self.http_tracker.enabled {
-            TrackerServer::HTTP
-        } else {
-            TrackerServer::UDP
-        }
     }
 }

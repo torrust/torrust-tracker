@@ -3,7 +3,7 @@ use std::convert::Infallible;
 use std::sync::Arc;
 use log::debug;
 use warp::{reject, Rejection, Reply};
-use warp::http::{Response, StatusCode};
+use warp::http::{Response};
 use crate::{InfoHash, TorrentError, TorrentPeer, TorrentStats, TorrentTracker};
 use crate::key_manager::AuthKey;
 use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError, WebResult};
@@ -29,33 +29,41 @@ pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, trac
 }
 
 /// Handle announce request
-pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>,) -> WebResult<impl Reply> {
+pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>) -> WebResult<impl Reply> {
     if let Err(e) = authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await {
         return Err(reject::custom(e))
     }
 
-    if tracker.config.http_tracker.on_reverse_proxy && announce_request.forwarded_ip.is_none() {
-        return Err(reject::custom(ServerError::AddressNotFound))
-    }
+    debug!("{:?}", announce_request);
 
-    let peer_ip = match tracker.config.http_tracker.on_reverse_proxy {
-        true => announce_request.forwarded_ip.unwrap(),
-        false => announce_request.peer_addr.ip()
-    };
-
-    let peer = TorrentPeer::from_http_announce_request(&announce_request, peer_ip, tracker.config.get_ext_ip());
+    let peer = TorrentPeer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
     let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer).await;
-    // get all peers excluding the client_addr
+
+    // get all torrent peers excluding the peer_addr
     let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;
-    if peers.is_none() { return Err(reject::custom(ServerError::NoPeersFound)) }
 
     // success response
-    let announce_interval = tracker.config.http_tracker.announce_interval;
-    send_announce_response(&announce_request, torrent_stats, peers.unwrap(), announce_interval)
+    let tracker_copy = tracker.clone();
+    let is_ipv4 = announce_request.peer_addr.is_ipv4();
+
+    tokio::spawn(async move {
+        let mut status_writer = tracker_copy.set_stats().await;
+        if is_ipv4 {
+            status_writer.tcp4_connections_handled += 1;
+            status_writer.tcp4_announces_handled += 1;
+        } else {
+            status_writer.tcp6_connections_handled += 1;
+            status_writer.tcp6_announces_handled += 1;
+        }
+    });
+
+    let announce_interval = tracker.config.announce_interval;
+
+    send_announce_response(&announce_request, torrent_stats, peers, announce_interval, tracker.config.announce_interval_min)
 }
 
 /// Handle scrape request
-pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>,) -> WebResult<impl Reply> {
+pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>) -> WebResult<impl Reply> {
     let mut files: HashMap<String, ScrapeResponseEntry> = HashMap::new();
     let db = tracker.get_torrents().await;
 
@@ -78,23 +86,24 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
         }
     }
 
+    let tracker_copy = tracker.clone();
+
+    tokio::spawn(async move {
+        let mut status_writer = tracker_copy.set_stats().await;
+        if scrape_request.peer_addr.is_ipv4() {
+            status_writer.tcp4_connections_handled += 1;
+            status_writer.tcp4_scrapes_handled += 1;
+        } else {
+            status_writer.tcp6_connections_handled += 1;
+            status_writer.tcp6_scrapes_handled += 1;
+        }
+    });
+
     send_scrape_response(files)
 }
 
-/// Handle all server errors and send error reply
-pub async fn handle_error(r: Rejection) -> std::result::Result<impl Reply, Infallible> {
-    if let Some(e) = r.find::<ServerError>() {
-        debug!("{:?}", e);
-        let reply = warp::reply::json(&ErrorResponse { failure_reason: e.to_string() });
-        Ok(warp::reply::with_status(reply, StatusCode::BAD_REQUEST))
-    } else {
-        let reply = warp::reply::json(&ErrorResponse { failure_reason: "internal server error".to_string() });
-        Ok(warp::reply::with_status(reply, StatusCode::INTERNAL_SERVER_ERROR))
-    }
-}
-
 /// Send announce response
-fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32) -> WebResult<impl Reply> {
+fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: TorrentStats, peers: Vec<TorrentPeer>, interval: u32, interval_min: u32) -> WebResult<impl Reply> {
     let http_peers: Vec<Peer> = peers.iter().map(|peer| Peer {
         peer_id: peer.peer_id.to_string(),
         ip: peer.peer_addr.ip(),
@@ -103,6 +112,7 @@ fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: Tor
 
     let res = AnnounceResponse {
         interval,
+        interval_min,
         complete: torrent_stats.seeders,
         incomplete: torrent_stats.leechers,
         peers: http_peers
@@ -122,4 +132,16 @@ fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: Tor
 /// Send scrape response
 fn send_scrape_response(files: HashMap<String, ScrapeResponseEntry>) -> WebResult<impl Reply> {
     Ok(Response::new(ScrapeResponse { files }.write()))
+}
+
+/// Handle all server errors and send error reply
+pub async fn send_error(r: Rejection) -> std::result::Result<impl Reply, Infallible> {
+    let body = if let Some(server_error) = r.find::<ServerError>() {
+        debug!("{:?}", server_error);
+        ErrorResponse { failure_reason: server_error.to_string() }.write()
+    } else {
+        ErrorResponse { failure_reason: ServerError::InternalServerError.to_string() }.write()
+    };
+
+    Ok(Response::new(body))
 }

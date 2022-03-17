@@ -1,4 +1,5 @@
-use crate::{InfoHash, AUTH_KEY_LENGTH};
+use std::collections::BTreeMap;
+use crate::{InfoHash, AUTH_KEY_LENGTH, TorrentEntry};
 use log::debug;
 use r2d2_sqlite::{SqliteConnectionManager, rusqlite};
 use r2d2::{Pool};
@@ -32,6 +33,13 @@ impl SqliteDatabase {
             info_hash VARCHAR(20) NOT NULL UNIQUE
         );".to_string();
 
+        let create_torrents_table = "
+        CREATE TABLE IF NOT EXISTS torrents (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            info_hash VARCHAR(20) NOT NULL UNIQUE,
+            completed INTEGER DEFAULT 0 NOT NULL
+        );".to_string();
+
         let create_keys_table = format!("
         CREATE TABLE IF NOT EXISTS keys (
             id integer PRIMARY KEY AUTOINCREMENT,
@@ -43,7 +51,15 @@ impl SqliteDatabase {
         match conn.execute(&create_whitelist_table, NO_PARAMS) {
             Ok(updated) => {
                 match conn.execute(&create_keys_table, NO_PARAMS) {
-                    Ok(updated2) => Ok(updated + updated2),
+                    Ok(updated2) => {
+                        match conn.execute(&create_torrents_table, NO_PARAMS) {
+                            Ok(updated3) => Ok(updated + updated2 + updated3),
+                            Err(e) => {
+                                debug!("{:?}", e);
+                                Err(e)
+                            }
+                        }
+                    }
                     Err(e) => {
                         debug!("{:?}", e);
                         Err(e)
@@ -55,6 +71,36 @@ impl SqliteDatabase {
                 Err(e)
             }
         }
+    }
+
+    pub async fn load_persistent_torrent_data(&self) -> Result<Vec<(InfoHash, u32)>, rusqlite::Error> {
+        let conn = self.pool.get().unwrap();
+        let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
+
+        let torrent_iter = stmt.query_map(NO_PARAMS, |row| {
+            let info_hash_string: String = row.get(0)?;
+            let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
+            let completed: u32 = row.get(1)?;
+            Ok((info_hash, completed))
+        })?;
+
+        let torrents: Vec<(InfoHash, u32)> = torrent_iter.filter_map(|x| x.ok() ).collect();
+
+        Ok(torrents)
+    }
+
+    pub async fn save_persistent_torrent_data(&self, torrents: &BTreeMap<InfoHash, TorrentEntry>) -> Result<(), rusqlite::Error> {
+        let mut conn = self.pool.get().unwrap();
+        let db_transaction = conn.transaction()?;
+
+        for (info_hash, torrent_entry) in torrents {
+                let (_seeders, completed, _leechers) = torrent_entry.get_stats();
+                let _ = db_transaction.execute("INSERT OR REPLACE INTO torrents (info_hash, completed) VALUES (?, ?)", &[info_hash.to_string(), completed.to_string()]);
+        }
+
+        let _ = db_transaction.commit();
+
+        Ok(())
     }
 
     pub async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, rusqlite::Error> {

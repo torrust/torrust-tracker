@@ -6,12 +6,14 @@ Torrust Tracker is a lightweight but incredibly powerful and feature-rich BitTor
 
 
 ### Features
-* [X] UDP server
-* [X] HTTP (optional SSL) server
+* [X] Multiple UDP server and HTTP(S) server blocks for socket binding possible
+* [X] Full IPv4 and IPv6 support for both UDP and HTTP(S)
 * [X] Private & Whitelisted mode
 * [X] Built-in API
 * [X] Torrent whitelisting
 * [X] Peer authentication using time-bound keys
+* [X] newTrackon check supported for both HTTP, UDP, where IPv4 and IPv6 is properly handled
+* [X] SQLite3 Persistent loading and saving of the torrent hashes and completed count
 
 ### Implemented BEPs
 * [BEP 3](https://www.bittorrent.org/beps/bep_0003.html): The BitTorrent Protocol
@@ -46,22 +48,31 @@ cargo build --release
 
 * Edit the newly created config.toml file according to your liking, see [configuration documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/config/). Eg:
 ```toml
-log_level = "trace"
+log_level = "info"
 mode = "public"
 db_path = "data.db"
+persistence = false
 cleanup_interval = 600
-external_ip = "YOUR_EXTERNAL_IP"
-
-[udp_tracker]
-bind_address = "0.0.0.0:6969"
+cleanup_peerless = true
+external_ip = "0.0.0.0"
 announce_interval = 120
+announce_interval_min = 900
+peer_timeout = 900
+on_reverse_proxy = false
 
-[http_tracker]
+[[udp_trackers]]
+enabled = false
+bind_address = "0.0.0.0:6969"
+
+[[udp_trackers]]
+enabled = true
+bind_address = "[::]:6969"
+
+[[http_trackers]]
 enabled = true
 bind_address = "0.0.0.0:6969"
-on_reverse_proxy = false
-announce_interval = 120
 ssl_enabled = false
+ssl_bind_address = "0.0.0.0:6868"
 ssl_cert_path = ""
 ssl_key_path = ""
 
@@ -80,7 +91,7 @@ admin = "MyAccessToken"
 ```
 
 ### Tracker URL
-Your tracker announce URL will be **udp://{tracker-ip:port}** or **https://{tracker-ip:port}/announce** depending on your tracker mode.
+Your tracker announce URL will be **udp://{tracker-ip:port}** and/or **http://{tracker-ip:port}/announce** and/or **https://{tracker-ip:port}/announce** depending on your bindings.
 In private & private_listed mode, tracker keys are added after the tracker URL like: **https://{tracker-ip:port}/announce/{key}**.
 
 ### Built-in API
@@ -89,3 +100,4 @@ Read the API documentation [here](https://torrust.github.io/torrust-documentatio
 ### Credits
 This project was a joint effort by [Nautilus Cyberneering GmbH](https://nautilus-cyberneering.de/) and [Dutch Bits](https://dutchbits.nl).
 Also thanks to [Naim A.](https://github.com/naim94a/udpt) and [greatest-ape](https://github.com/greatest-ape/aquatic) for some parts of the code.
+Further added features and functions thanks to [Power2All](https://github.com/power2all).
