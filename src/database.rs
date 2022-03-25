@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use crate::{InfoHash, AUTH_KEY_LENGTH, TorrentEntry};
+use crate::{InfoHash, TorrentEntry};
 use log::debug;
 use r2d2_sqlite::{SqliteConnectionManager, rusqlite};
 use r2d2::{Pool};
@@ -29,23 +29,23 @@ impl SqliteDatabase {
     pub fn create_database_tables(pool: &Pool<SqliteConnectionManager>) -> Result<usize, rusqlite::Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            info_hash VARCHAR(20) NOT NULL UNIQUE
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            info_hash TEXT NOT NULL UNIQUE
         );".to_string();
 
         let create_torrents_table = "
         CREATE TABLE IF NOT EXISTS torrents (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            info_hash VARCHAR(20) NOT NULL UNIQUE,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            info_hash TEXT NOT NULL UNIQUE,
             completed INTEGER DEFAULT 0 NOT NULL
         );".to_string();
 
-        let create_keys_table = format!("
+        let create_keys_table = "
         CREATE TABLE IF NOT EXISTS keys (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            key VARCHAR({}) NOT NULL UNIQUE,
-            valid_until INT(10) NOT NULL
-         );", AUTH_KEY_LENGTH as i8);
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT NOT NULL UNIQUE,
+            valid_until INTEGER NOT NULL
+        );".to_string();
 
         let conn = pool.get().unwrap();
         match conn.execute(&create_whitelist_table, NO_PARAMS) {
