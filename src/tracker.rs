@@ -5,14 +5,14 @@ use std::collections::BTreeMap;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::common::{AnnounceEventDef, InfoHash, NumberOfBytesDef, PeerId};
 use std::net::{IpAddr, SocketAddr};
-use crate::{Configuration, key_manager, MAX_SCRAPE_TORRENTS};
+use crate::{Configuration, database, key_manager, MAX_SCRAPE_TORRENTS};
 use std::collections::btree_map::Entry;
-use crate::database::SqliteDatabase;
 use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use log::{debug};
 use crate::key_manager::AuthKey;
-use r2d2_sqlite::rusqlite;
+use crate::database::{Database, DatabaseDrivers};
+use crate::key_manager::Error::KeyInvalid;
 use crate::torrust_http_tracker::AnnounceRequest;
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
@@ -265,18 +265,19 @@ pub struct TrackerStats {
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
-    database: SqliteDatabase,
+    database: Box<dyn Database>,
     stats: tokio::sync::RwLock<TrackerStats>,
 }
 
 impl TorrentTracker {
-    pub fn new(config: Arc<Configuration>) -> Result<TorrentTracker, rusqlite::Error> {
-        let database = SqliteDatabase::new(&config.db_path)?;
+    pub fn new(config: Arc<Configuration>) -> Result<TorrentTracker, r2d2::Error> {
+        let db_driver = DatabaseDrivers::Sqlite3;
+        let database = database::connect_database(&db_driver, "data")?;
 
         Ok(TorrentTracker {
             config,
             torrents: RwLock::new(std::collections::BTreeMap::new()),
-            database,
+            database: Box::new(database),
             stats: RwLock::new(TrackerStats {
                 tcp4_connections_handled: 0,
                 tcp4_announces_handled: 0,
@@ -306,7 +307,7 @@ impl TorrentTracker {
         self.config.mode == TrackerMode::ListedMode || self.config.mode == TrackerMode::PrivateListedMode
     }
 
-    pub async fn generate_auth_key(&self, seconds_valid: u64) -> Result<AuthKey, rusqlite::Error> {
+    pub async fn generate_auth_key(&self, seconds_valid: u64) -> Result<AuthKey, database::Error> {
         let auth_key = key_manager::generate_auth_key(seconds_valid);
 
         // add key to database
@@ -315,12 +316,12 @@ impl TorrentTracker {
         Ok(auth_key)
     }
 
-    pub async fn remove_auth_key(&self, key: String) -> Result<usize, rusqlite::Error> {
+    pub async fn remove_auth_key(&self, key: String) -> Result<usize, database::Error> {
         self.database.remove_key_from_keys(key).await
     }
 
     pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> Result<(), key_manager::Error> {
-        let db_key = self.database.get_key_from_keys(&auth_key.key).await?;
+        let db_key = self.database.get_key_from_keys(&auth_key.key).await.map_err(|_| KeyInvalid)?;
         key_manager::verify_auth_key(&db_key)
     }
 
@@ -353,7 +354,7 @@ impl TorrentTracker {
     }
 
     // Loading the torrents into memory
-    pub async fn load_torrents(&self) -> Result<(), rusqlite::Error> {
+    pub async fn load_torrents(&self) -> Result<(), database::Error> {
         let torrents = self.database.load_persistent_torrent_data().await?;
 
         for torrent in torrents {
@@ -364,18 +365,18 @@ impl TorrentTracker {
     }
 
     // Saving the torrents from memory
-    pub async fn save_torrents(&self) -> Result<(), rusqlite::Error> {
+    pub async fn save_torrents(&self) -> Result<(), database::Error> {
         let torrents = self.torrents.read().await;
         self.database.save_persistent_torrent_data(&*torrents).await
     }
 
     // Adding torrents is not relevant to public trackers.
-    pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<usize, rusqlite::Error> {
+    pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<usize, database::Error> {
         self.database.add_info_hash_to_whitelist(info_hash.clone()).await
     }
 
     // Removing torrents is not relevant to public trackers.
-    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<usize, rusqlite::Error> {
+    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<usize, database::Error> {
         self.database.remove_info_hash_from_whitelist(info_hash.clone()).await
     }
 
