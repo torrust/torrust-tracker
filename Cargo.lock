@@ -2301,7 +2301,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker"
-version = "2.2.0"
+version = "2.2.1"
 dependencies = [
  "aquatic_udp_protocol",
  "async-trait",

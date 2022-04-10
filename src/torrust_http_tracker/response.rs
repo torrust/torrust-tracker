@@ -86,6 +86,7 @@ impl ScrapeResponse {
 
 #[derive(Serialize)]
 pub struct ErrorResponse {
+    #[serde(rename = "failure reason")]
     pub failure_reason: String
 }
 

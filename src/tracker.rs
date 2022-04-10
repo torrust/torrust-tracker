@@ -9,7 +9,7 @@ use crate::{Configuration, database, key_manager, MAX_SCRAPE_TORRENTS};
 use std::collections::btree_map::Entry;
 use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use log::{debug};
+use log::info;
 use crate::key_manager::AuthKey;
 use crate::database::{Database, DatabaseDrivers};
 use crate::key_manager::Error::KeyInvalid;
@@ -456,47 +456,53 @@ impl TorrentTracker {
         self.stats.read().await
     }
 
-    // remove torrents without peers
+    // remove torrents without peers if enabled, and defragment memory
     pub async fn cleanup_torrents(&self) {
-        debug!("Cleaning torrents..");
-        let mut lock = self.torrents.write().await;
-        let db: &mut BTreeMap<InfoHash, TorrentEntry> = &mut *lock;
-        let mut torrents_to_remove = Vec::new();
+        info!("Cleaning torrents...");
+        let lock = self.torrents.write().await;
 
-        for (k, torrent_entry) in db.iter_mut() {
-            // timed-out peers..
-            {
-                let mut peers_to_remove = Vec::new();
-                let torrent_peers = &mut torrent_entry.peers;
+        // First we create a mapping of all the torrent hashes in a vector, and we use this to iterate through the btreemap.
+        // Every hash we have handled, we remove from the btreemap completely, and push it to the top.
+        let mut torrent_hashes: Vec<InfoHash> = Vec::new();
+        for (k, _torrent_entry) in lock.iter() {
+            torrent_hashes.push(k.clone());
+        }
 
-                for (peer_id, peer) in torrent_peers.iter() {
-                    if peer.is_seeder() {
-                        if peer.updated.elapsed() > std::time::Duration::from_secs(self.config.peer_timeout as u64) {
-                            // remove seeders after 5 minutes since last update...
-                            peers_to_remove.push(peer_id.clone());
-                            torrent_entry.seeders -= 1;
-                        }
-                    } else if peer.updated.elapsed() > std::time::Duration::from_secs(self.config.peer_timeout as u64) {
-                        // remove peers after 2 hours since last update...
-                        peers_to_remove.push(peer_id.clone());
-                    }
+        drop(lock);
+
+        // Let's iterate through all torrents, and parse.
+        for hash in torrent_hashes.iter() {
+            let mut torrent = TorrentEntry{
+                peers: BTreeMap::new(),
+                completed: 0,
+                seeders: 0
+            };
+
+            let lock = self.torrents.write().await;
+            let torrent_data = lock.get(hash).unwrap().clone();
+            drop(lock);
+
+            torrent.completed = torrent_data.completed.clone();
+            for (peer_id, peer) in torrent_data.peers.iter() {
+                if peer.updated.elapsed() > std::time::Duration::from_secs(self.config.peer_timeout as u64) {
+                    continue;
                 }
-
-                for peer_id in peers_to_remove.iter() {
-                    torrent_peers.remove(peer_id);
+                torrent.peers.insert(peer_id.clone(), peer.clone());
+                if peer.is_seeder() {
+                    torrent.seeders += 1;
                 }
             }
-
+            let mut lock = self.torrents.write().await;
+            lock.remove(hash);
             if self.config.mode.clone() == TrackerMode::PublicMode && self.config.cleanup_peerless && !self.config.persistence {
-                // peer-less torrents..
-                if torrent_entry.peers.len() == 0 {
-                    torrents_to_remove.push(k.clone());
+                if torrent.peers.len() != 0 {
+                    lock.insert(hash.clone(), torrent);
                 }
+            } else {
+                lock.insert(hash.clone(), torrent);
             }
+            drop(lock);
         }
-
-        for info_hash in torrents_to_remove {
-            db.remove(&info_hash);
-        }
+        info!("Torrents cleaned up.");
     }
 }
