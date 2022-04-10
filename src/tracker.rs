@@ -11,7 +11,7 @@ use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use log::info;
 use crate::key_manager::AuthKey;
-use crate::database::{Database, DatabaseDrivers};
+use crate::database::{Database};
 use crate::key_manager::Error::KeyInvalid;
 use crate::torrust_http_tracker::AnnounceRequest;
 
@@ -271,13 +271,12 @@ pub struct TorrentTracker {
 
 impl TorrentTracker {
     pub fn new(config: Arc<Configuration>) -> Result<TorrentTracker, r2d2::Error> {
-        let db_driver = DatabaseDrivers::Sqlite3;
-        let database = database::connect_database(&db_driver, "data")?;
+        let database = database::connect_database(&config.db_driver, &config.db_path)?;
 
         Ok(TorrentTracker {
             config,
             torrents: RwLock::new(std::collections::BTreeMap::new()),
-            database: Box::new(database),
+            database,
             stats: RwLock::new(TrackerStats {
                 tcp4_connections_handled: 0,
                 tcp4_announces_handled: 0,

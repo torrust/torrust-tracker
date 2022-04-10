@@ -8,6 +8,7 @@ use std::net::{IpAddr};
 use std::path::Path;
 use std::str::FromStr;
 use config::{ConfigError, Config, File};
+use crate::database::DatabaseDrivers;
 
 #[derive(Serialize, Deserialize, PartialEq)]
 pub enum TrackerServer {
@@ -50,6 +51,7 @@ pub struct HttpApiConfig {
 pub struct Configuration {
     pub log_level: Option<String>,
     pub mode: TrackerMode,
+    pub db_driver: DatabaseDrivers,
     pub db_path: String,
     pub persistence: bool,
     pub cleanup_interval: Option<u64>,
@@ -132,6 +134,7 @@ impl Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             mode: TrackerMode::PublicMode,
+            db_driver: DatabaseDrivers::Sqlite3,
             db_path: String::from("data.db"),
             persistence: false,
             cleanup_interval: Some(600),

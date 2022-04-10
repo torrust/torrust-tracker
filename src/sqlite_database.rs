@@ -25,7 +25,7 @@ impl SqliteDatabase {
 
 #[async_trait]
 impl Database for SqliteDatabase {
-    fn create_database_tables(&self) -> Result<usize, database::Error> {
+    fn create_database_tables(&self) -> Result<(), database::Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
             id integer PRIMARY KEY AUTOINCREMENT,
@@ -49,10 +49,10 @@ impl Database for SqliteDatabase {
         let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
         conn.execute(&create_whitelist_table, NO_PARAMS)
-            .and_then(|_| conn.execute(&create_whitelist_table, NO_PARAMS))
             .and_then(|_| conn.execute(&create_keys_table, NO_PARAMS))
             .and_then(|_| conn.execute(&create_torrents_table, NO_PARAMS))
             .map_err(|_| database::Error::InvalidQuery)
+            .map(|_| ())
     }
 
     async fn load_persistent_torrent_data(&self) -> Result<Vec<(InfoHash, u32)>, database::Error> {
