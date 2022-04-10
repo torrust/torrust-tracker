@@ -24,6 +24,7 @@ log = {version = "0.4", features = ["release_max_level_info"]}
 fern = "0.6"
 chrono = "0.4"
 byteorder = "1"
+r2d2_mysql = "21.0.0"
 r2d2_sqlite = "0.16.0"
 r2d2 = "0.8.8"
 rand = "0.8.4"
@@ -32,3 +33,4 @@ derive_more = "0.99"
 thiserror = "1.0"
 aquatic_udp_protocol = { git = "https://github.com/greatest-ape/aquatic" }
 futures = "0.3.21"
+async-trait = "0.1.52"
