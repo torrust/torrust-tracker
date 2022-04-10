@@ -1,6 +1,6 @@
 [package]
 name = "torrust-tracker"
-version = "2.2.0"
+version = "2.2.1"
 license = "AGPL-3.0"
 authors = ["Mick van Dijke <mick@dutchbits.nl>"]
 description = "A feature rich BitTorrent tracker."
