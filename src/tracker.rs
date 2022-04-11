@@ -15,7 +15,7 @@ use crate::database::{Database};
 use crate::key_manager::Error::KeyInvalid;
 use crate::torrust_http_tracker::AnnounceRequest;
 
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub enum TrackerMode {
     // Will track every new info hash and serve every peer.
     #[serde(rename = "public")]
@@ -294,15 +294,15 @@ impl TorrentTracker {
         })
     }
 
-    fn is_public(&self) -> bool {
+    pub fn is_public(&self) -> bool {
         self.config.mode == TrackerMode::PublicMode
     }
 
-    fn is_private(&self) -> bool {
+    pub fn is_private(&self) -> bool {
         self.config.mode == TrackerMode::PrivateMode || self.config.mode == TrackerMode::PrivateListedMode
     }
 
-    fn is_whitelisted(&self) -> bool {
+    pub fn is_whitelisted(&self) -> bool {
         self.config.mode == TrackerMode::ListedMode || self.config.mode == TrackerMode::PrivateListedMode
     }
 

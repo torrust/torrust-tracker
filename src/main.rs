@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
-use log::info;
+use log::{info};
 use tokio::task::JoinHandle;
 use torrust_tracker::{Configuration, http_api_server, HttpApiConfig, HttpTrackerConfig, logging, TorrentTracker, UdpServer, UdpTrackerConfig};
 use torrust_tracker::torrust_http_tracker::server::HttpServer;
@@ -39,24 +39,33 @@ async fn main() {
         let _api_server = start_api_server(&config.http_api, tracker.clone());
     }
 
+    // used to send graceful shutdown signal to udp listeners
     let (tx, rx) = tokio::sync::watch::channel(false);
     let mut udp_server_handles = Vec::new();
 
     // start the udp blocks
     for udp_tracker in &config.udp_trackers {
-        // used to send kill signal to thread
+        if !udp_tracker.enabled { continue; }
 
-        if udp_tracker.enabled {
-            udp_server_handles.push(
-                start_udp_tracker_server(&udp_tracker, tracker.clone(), rx.clone()).await
-            )
+        if tracker.is_private() {
+            panic!("Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!", udp_tracker.bind_address, config.mode);
         }
+
+        udp_server_handles.push(
+            start_udp_tracker_server(&udp_tracker, tracker.clone(), rx.clone()).await
+        )
     }
 
     // start the http blocks
     for http_tracker in &config.http_trackers {
-        let _ = start_http_tracker_server(&http_tracker, tracker.clone(), true);
-        let _ = start_http_tracker_server(&http_tracker, tracker.clone(), false);
+        if !http_tracker.enabled { continue; }
+
+        // SSL requires a cert and a key
+        if http_tracker.ssl_enabled && !http_tracker.verify_ssl_cert_and_key_set() {
+            panic!("Could not start HTTP tracker on: {}, missing SSL Cert or Key!", http_tracker.bind_address);
+        }
+
+        let _ = start_http_tracker_server(&http_tracker, tracker.clone());
     }
 
     // handle the signals here
@@ -110,22 +119,19 @@ fn start_api_server(config: &HttpApiConfig, tracker: Arc<TorrentTracker>) -> Joi
     })
 }
 
-fn start_http_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>, ssl: bool) -> JoinHandle<()> {
+fn start_http_tracker_server(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let http_tracker = HttpServer::new(tracker);
-    let enabled = config.enabled;
     let bind_addr = config.bind_address.parse::<SocketAddr>().unwrap();
     let ssl_enabled = config.ssl_enabled;
-    let ssl_bind_addr = config.ssl_bind_address.parse::<SocketAddr>().unwrap();
     let ssl_cert_path = config.ssl_cert_path.clone();
     let ssl_key_path = config.ssl_key_path.clone();
 
     tokio::spawn(async move {
         // run with tls if ssl_enabled and cert and key path are set
-        if ssl && ssl_enabled && ssl_cert_path.is_some() && ssl_key_path.is_some() {
-            info!("Starting HTTPS server on: {} (TLS)", ssl_bind_addr);
-            http_tracker.start_tls(ssl_bind_addr, ssl_cert_path.as_ref().unwrap(), ssl_key_path.as_ref().unwrap()).await;
-        }
-        if !ssl && enabled {
+        if ssl_enabled {
+            info!("Starting HTTPS server on: {} (TLS)", bind_addr);
+            http_tracker.start_tls(bind_addr, ssl_cert_path.as_ref().unwrap(), ssl_key_path.as_ref().unwrap()).await;
+        } else {
             info!("Starting HTTP server on: {}", bind_addr);
             http_tracker.start(bind_addr).await;
         }

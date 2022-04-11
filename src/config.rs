@@ -16,18 +16,17 @@ pub enum TrackerServer {
     HTTP
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UdpTrackerConfig {
     pub enabled: bool,
     pub bind_address: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct HttpTrackerConfig {
     pub enabled: bool,
     pub bind_address: String,
     pub ssl_enabled: bool,
-    pub ssl_bind_address: String,
     #[serde(serialize_with = "none_as_empty_string")]
     pub ssl_cert_path: Option<String>,
     #[serde(serialize_with = "none_as_empty_string")]
@@ -35,8 +34,11 @@ pub struct HttpTrackerConfig {
 }
 
 impl HttpTrackerConfig {
-    pub fn is_ssl_enabled(&self) -> bool {
-        self.ssl_enabled && self.ssl_cert_path.is_some() && self.ssl_key_path.is_some()
+    pub fn verify_ssl_cert_and_key_set(&self) -> bool {
+        self.ssl_cert_path.is_some()
+            && self.ssl_key_path.is_some()
+            && !self.ssl_cert_path.as_ref().unwrap().is_empty()
+            && !self.ssl_key_path.as_ref().unwrap().is_empty()
     }
 }
 
@@ -163,21 +165,11 @@ impl Configuration {
                 enabled: false,
                 bind_address: String::from("0.0.0.0:6969"),
                 ssl_enabled: false,
-                ssl_bind_address: String::from("0.0.0.0:6868"),
                 ssl_cert_path: None,
                 ssl_key_path: None
             }
         );
         configuration
-    }
-
-    pub fn verify(&self) -> Result<(), ConfigurationError> {
-        // UDP is not secure for sending private keys
-        if self.mode == TrackerMode::PrivateMode || self.mode == TrackerMode::PrivateListedMode {
-            return Err(ConfigurationError::TrackerModeIncompatible)
-        }
-
-        Ok(())
     }
 
     pub fn load_from_file() -> Result<Configuration, ConfigError> {
@@ -197,10 +189,7 @@ impl Configuration {
 
         let torrust_config: Configuration = config.try_into().map_err(|e| ConfigError::Message(format!("Errors while processing config: {}.", e)))?;
 
-        match torrust_config.verify() {
-            Ok(_) => Ok(torrust_config),
-            Err(e) => Err(ConfigError::Message(format!("Errors while processing config: {}.", e)))
-        }
+        Ok(torrust_config)
     }
 
     pub fn save_to_file(&self) -> Result<(), ()>{
