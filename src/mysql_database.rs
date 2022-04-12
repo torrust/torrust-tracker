@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use crate::{InfoHash, AUTH_KEY_LENGTH, TorrentEntry, database};
 use log::debug;
 use r2d2::{Pool};
@@ -6,6 +5,7 @@ use crate::key_manager::AuthKey;
 use std::str::FromStr;
 use crate::database::Database;
 use async_trait::async_trait;
+use btree_slab::BTreeMap;
 use r2d2_mysql::mysql::{Opts, OptsBuilder, params, TxOpts};
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::MysqlConnectionManager;
