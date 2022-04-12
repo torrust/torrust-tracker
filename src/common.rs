@@ -113,13 +113,13 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
 
         let mut res = InfoHash { 0: [0u8; 20] };
 
-        if let Err(_) = binascii::hex2bin(v.as_bytes(), &mut res.0) {
-            return Err(serde::de::Error::invalid_value(
+        return if let Err(_) = binascii::hex2bin(v.as_bytes(), &mut res.0) {
+            Err(serde::de::Error::invalid_value(
                 serde::de::Unexpected::Str(v),
                 &"expected a hexadecimal string",
-            ));
+            ))
         } else {
-            return Ok(res);
+            Ok(res)
         }
     }
 }

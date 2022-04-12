@@ -1,8 +1,8 @@
-use std::collections::BTreeMap;
 use crate::{InfoHash, TorrentEntry};
 use crate::key_manager::AuthKey;
 use crate::sqlite_database::SqliteDatabase;
 use async_trait::async_trait;
+use btree_slab::BTreeMap;
 use derive_more::{Display, Error};
 use log::debug;
 use crate::mysql_database::MysqlDatabase;
