@@ -188,17 +188,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "btree-slab"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6d5d99a446fc43a159e25be12c72f84674e1e67ec8c7402e55d1cb49205507f"
-dependencies = [
- "cc-traits",
- "slab",
- "smallvec",
-]
-
-[[package]]
 name = "buf_redux"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -243,15 +232,6 @@ name = "cc"
 version = "1.0.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2fff2a6927b3bb87f9595d67196a70493f627687a71d87a0d692242c33f58c11"
-
-[[package]]
-name = "cc-traits"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96f4614c29427db9a77b60dd57ba901a163074067f2c048d721703ed0d1572ba"
-dependencies = [
- "slab",
-]
 
 [[package]]
 name = "cexpr"
@@ -2326,7 +2306,6 @@ dependencies = [
  "aquatic_udp_protocol",
  "async-trait",
  "binascii",
- "btree-slab",
  "byteorder",
  "chrono",
  "config",
