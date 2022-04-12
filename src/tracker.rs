@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 use serde;
 use std::borrow::Cow;
+use std::collections::BTreeMap;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::common::{AnnounceEventDef, InfoHash, NumberOfBytesDef, PeerId};
 use std::net::{IpAddr, SocketAddr};
 use crate::{Configuration, database, key_manager, MAX_SCRAPE_TORRENTS};
+use std::collections::btree_map::Entry;
 use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use btree_slab::BTreeMap;
-use btree_slab::generic::map::Entry;
 use log::info;
 use crate::key_manager::AuthKey;
 use crate::database::{Database, DatabaseDrivers};
@@ -113,7 +113,7 @@ fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Resul
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TorrentEntry {
     #[serde(skip)]
-    peers: BTreeMap<PeerId, TorrentPeer>,
+    peers: std::collections::BTreeMap<PeerId, TorrentPeer>,
     completed: u32,
     #[serde(skip)]
     seeders: u32,
@@ -122,7 +122,7 @@ pub struct TorrentEntry {
 impl TorrentEntry {
     pub fn new() -> TorrentEntry {
         TorrentEntry {
-            peers: BTreeMap::new(),
+            peers: std::collections::BTreeMap::new(),
             completed: 0,
             seeders: 0,
         }
@@ -262,15 +262,9 @@ pub struct TrackerStats {
     pub udp6_scrapes_handled: u64,
 }
 
-pub struct TorrentsContainers {
-    torrents: BTreeMap<InfoHash, TorrentEntry>,
-    torrents_updated: BTreeMap<InfoHash, TorrentEntry>,
-    torrents_updated_shadow: BTreeMap<InfoHash, TorrentEntry>
-}
-
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
-    torrents: tokio::sync::RwLock<TorrentsContainers>,
+    torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     database: Box<dyn Database>,
     stats: tokio::sync::RwLock<TrackerStats>,
 }
@@ -282,11 +276,7 @@ impl TorrentTracker {
 
         Ok(TorrentTracker {
             config,
-            torrents: RwLock::new(TorrentsContainers {
-                torrents: BTreeMap::new(),
-                torrents_updated: BTreeMap::new(),
-                torrents_updated_shadow: BTreeMap::new()
-            }),
+            torrents: RwLock::new(std::collections::BTreeMap::new()),
             database: Box::new(database),
             stats: RwLock::new(TrackerStats {
                 tcp4_connections_handled: 0,
@@ -377,7 +367,7 @@ impl TorrentTracker {
     // Saving the torrents from memory
     pub async fn save_torrents(&self) -> Result<(), database::Error> {
         let torrents = self.torrents.read().await;
-        self.database.save_persistent_torrent_data(&torrents.torrents).await
+        self.database.save_persistent_torrent_data(&*torrents).await
     }
 
     // Adding torrents is not relevant to public trackers.
@@ -404,7 +394,7 @@ impl TorrentTracker {
         peer_addr: &SocketAddr
     ) -> Vec<TorrentPeer> {
         let read_lock = self.torrents.read().await;
-        match read_lock.torrents.get(info_hash) {
+        match read_lock.get(info_hash) {
             None => vec![],
             Some(entry) => {
                 entry.get_peers(Some(peer_addr))
@@ -415,7 +405,7 @@ impl TorrentTracker {
     pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &TorrentPeer) -> TorrentStats {
         let mut torrents = self.torrents.write().await;
 
-        let torrent_entry = match torrents.torrents.entry(info_hash.clone()) {
+        let torrent_entry = match torrents.entry(info_hash.clone()) {
             Entry::Vacant(vacant) => {
                 vacant.insert(TorrentEntry::new())
             }
@@ -438,13 +428,13 @@ impl TorrentTracker {
     pub async fn add_torrent(&self, info_hash: InfoHash, seeders: u32, completed: u32, leechers: u32) -> TorrentStats {
         let mut torrents = self.torrents.write().await;
 
-        if !torrents.torrents.contains_key(&info_hash) {
+        if !torrents.contains_key(&info_hash) {
             let torrent_entry = TorrentEntry {
                 peers: Default::default(),
                 completed,
                 seeders
             };
-            torrents.torrents.insert(info_hash.clone(), torrent_entry);
+            torrents.insert(info_hash.clone(), torrent_entry);
         }
 
         TorrentStats {
@@ -454,10 +444,8 @@ impl TorrentTracker {
         }
     }
 
-    pub async fn get_torrents(&self) -> BTreeMap<InfoHash, TorrentEntry> {
-        let lock = self.torrents.read().await;
-        let db = lock.torrents.clone();
-        db
+    pub async fn get_torrents(&self) -> RwLockReadGuard<'_, BTreeMap<InfoHash, TorrentEntry>> {
+        self.torrents.read().await
     }
 
     pub async fn set_stats(&self) -> RwLockWriteGuard<'_, TrackerStats> {
@@ -476,7 +464,7 @@ impl TorrentTracker {
         // First we create a mapping of all the torrent hashes in a vector, and we use this to iterate through the btreemap.
         // Every hash we have handled, we remove from the btreemap completely, and push it to the top.
         let mut torrent_hashes: Vec<InfoHash> = Vec::new();
-        for (k, _torrent_entry) in lock.torrents.iter() {
+        for (k, _torrent_entry) in lock.iter() {
             torrent_hashes.push(k.clone());
         }
 
@@ -484,14 +472,14 @@ impl TorrentTracker {
 
         // Let's iterate through all torrents, and parse.
         for hash in torrent_hashes.iter() {
-            let mut torrent = TorrentEntry {
+            let mut torrent = TorrentEntry{
                 peers: BTreeMap::new(),
                 completed: 0,
                 seeders: 0
             };
 
             let lock = self.torrents.write().await;
-            let torrent_data = lock.torrents.get(hash).unwrap().clone();
+            let torrent_data = lock.get(hash).unwrap().clone();
             drop(lock);
 
             torrent.completed = torrent_data.completed.clone();
@@ -505,21 +493,16 @@ impl TorrentTracker {
                 }
             }
             let mut lock = self.torrents.write().await;
-            lock.torrents.remove(hash);
+            lock.remove(hash);
             if self.config.mode.clone() == TrackerMode::PublicMode && self.config.cleanup_peerless && !self.config.persistence {
                 if torrent.peers.len() != 0 {
-                    lock.torrents.insert(hash.clone(), torrent);
+                    lock.insert(hash.clone(), torrent);
                 }
             } else {
-                lock.torrents.insert(hash.clone(), torrent);
+                lock.insert(hash.clone(), torrent);
             }
             drop(lock);
         }
         info!("Torrents cleaned up.");
-    }
-
-    // save periodically data to MySQL
-    pub async fn periodic_saving_torrents(&self) {
-
     }
 }
