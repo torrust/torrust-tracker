@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 use serde;
 use std::borrow::Cow;
+use std::collections::btree_map::Entry;
+use std::collections::BTreeMap;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::common::{AnnounceEventDef, InfoHash, NumberOfBytesDef, PeerId};
 use std::net::{IpAddr, SocketAddr};
 use crate::{Configuration, database, key_manager, MAX_SCRAPE_TORRENTS};
 use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use btree_slab::BTreeMap;
-use btree_slab::generic::map::Entry;
 use log::info;
 use crate::key_manager::AuthKey;
 use crate::database::{Database};

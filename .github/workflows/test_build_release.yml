@@ -13,10 +13,10 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable
       - uses: Swatinem/rust-cache@v1
       - name: Run tests
-        run: cargo +nightly test
+        run: cargo test
 
   build:
     needs: test
@@ -32,10 +32,10 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable
       - uses: Swatinem/rust-cache@v1
       - name: Build torrust tracker
-        run: cargo +nightly build --release
+        run: cargo build --release
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
