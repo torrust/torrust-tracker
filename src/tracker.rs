@@ -11,11 +11,11 @@ use btree_slab::BTreeMap;
 use btree_slab::generic::map::Entry;
 use log::info;
 use crate::key_manager::AuthKey;
-use crate::database::{Database};
+use crate::database::{Database, DatabaseDrivers};
 use crate::key_manager::Error::KeyInvalid;
 use crate::torrust_http_tracker::AnnounceRequest;
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum TrackerMode {
     // Will track every new info hash and serve every peer.
     #[serde(rename = "public")]
@@ -277,7 +277,8 @@ pub struct TorrentTracker {
 
 impl TorrentTracker {
     pub fn new(config: Arc<Configuration>) -> Result<TorrentTracker, r2d2::Error> {
-        let database = database::connect_database(&config.db_driver, &config.db_path)?;
+        let db_driver = DatabaseDrivers::Sqlite3;
+        let database = database::connect_database(&db_driver, "data")?;
 
         Ok(TorrentTracker {
             config,
@@ -286,7 +287,7 @@ impl TorrentTracker {
                 torrents_updated: BTreeMap::new(),
                 torrents_updated_shadow: BTreeMap::new()
             }),
-            database,
+            database: Box::new(database),
             stats: RwLock::new(TrackerStats {
                 tcp4_connections_handled: 0,
                 tcp4_announces_handled: 0,
@@ -304,15 +305,15 @@ impl TorrentTracker {
         })
     }
 
-    pub fn is_public(&self) -> bool {
+    fn is_public(&self) -> bool {
         self.config.mode == TrackerMode::PublicMode
     }
 
-    pub fn is_private(&self) -> bool {
+    fn is_private(&self) -> bool {
         self.config.mode == TrackerMode::PrivateMode || self.config.mode == TrackerMode::PrivateListedMode
     }
 
-    pub fn is_whitelisted(&self) -> bool {
+    fn is_whitelisted(&self) -> bool {
         self.config.mode == TrackerMode::ListedMode || self.config.mode == TrackerMode::PrivateListedMode
     }
 

@@ -4,38 +4,28 @@ use crate::sqlite_database::SqliteDatabase;
 use async_trait::async_trait;
 use btree_slab::BTreeMap;
 use derive_more::{Display, Error};
-use log::debug;
-use crate::mysql_database::MysqlDatabase;
-use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize, Debug)]
 pub enum DatabaseDrivers {
     Sqlite3,
     MySQL
 }
 
-pub fn connect_database(db_driver: &DatabaseDrivers, db_path: &str) -> Result<Box<dyn Database>, r2d2::Error> {
-    debug!("{:?}", db_driver);
-
-    let database: Box<dyn Database> = match db_driver {
+pub fn connect_database(db_driver: &DatabaseDrivers, db_path: &str) -> Result<impl Database, r2d2::Error> {
+    match db_driver {
         DatabaseDrivers::Sqlite3 => {
             let db = SqliteDatabase::new(db_path)?;
-            Box::new(db)
+            Ok(db)
         }
-        DatabaseDrivers::MySQL => {
-            let db = MysqlDatabase::new(db_path)?;
-            Box::new(db)
+        _ => {
+            let db = SqliteDatabase::new(db_path)?;
+            Ok(db)
         }
-    };
-
-    database.create_database_tables().expect("Could not create database tables.");
-
-    Ok(database)
+    }
 }
 
 #[async_trait]
 pub trait Database: Sync + Send {
-    fn create_database_tables(&self) -> Result<(), Error>;
+    fn create_database_tables(&self) -> Result<usize, Error>;
 
     async fn load_persistent_torrent_data(&self) -> Result<Vec<(InfoHash, u32)>, Error>;
 
@@ -61,8 +51,6 @@ pub enum Error {
     QueryReturnedNoRows,
     #[display(fmt = "Invalid query.")]
     InvalidQuery,
-    #[display(fmt = "Database error.")]
-    DatabaseError,
 }
 
 impl From<r2d2_sqlite::rusqlite::Error> for Error {
