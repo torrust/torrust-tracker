@@ -202,7 +202,9 @@ impl TorrentEntry {
                     }
                     AnnounceEvent::Stopped => {
                         if peer_old.is_seeder() {
-                            self.seeders -= 1;
+                            if self.seeders != 0 {
+                                self.seeders -= 1;
+                            }
                         }
                     }
                     // impossible, started should be the first time a peer announces itself
