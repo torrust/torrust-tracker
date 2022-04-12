@@ -8,6 +8,7 @@ use std::net::{IpAddr};
 use std::path::Path;
 use std::str::FromStr;
 use config::{ConfigError, Config, File};
+use crate::database::DatabaseDrivers;
 
 #[derive(Serialize, Deserialize, PartialEq)]
 pub enum TrackerServer {
@@ -15,18 +16,17 @@ pub enum TrackerServer {
     HTTP
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UdpTrackerConfig {
     pub enabled: bool,
     pub bind_address: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct HttpTrackerConfig {
     pub enabled: bool,
     pub bind_address: String,
     pub ssl_enabled: bool,
-    pub ssl_bind_address: String,
     #[serde(serialize_with = "none_as_empty_string")]
     pub ssl_cert_path: Option<String>,
     #[serde(serialize_with = "none_as_empty_string")]
@@ -34,8 +34,11 @@ pub struct HttpTrackerConfig {
 }
 
 impl HttpTrackerConfig {
-    pub fn is_ssl_enabled(&self) -> bool {
-        self.ssl_enabled && self.ssl_cert_path.is_some() && self.ssl_key_path.is_some()
+    pub fn verify_ssl_cert_and_key_set(&self) -> bool {
+        self.ssl_cert_path.is_some()
+            && self.ssl_key_path.is_some()
+            && !self.ssl_cert_path.as_ref().unwrap().is_empty()
+            && !self.ssl_key_path.as_ref().unwrap().is_empty()
     }
 }
 
@@ -50,6 +53,7 @@ pub struct HttpApiConfig {
 pub struct Configuration {
     pub log_level: Option<String>,
     pub mode: TrackerMode,
+    pub db_driver: DatabaseDrivers,
     pub db_path: String,
     pub persistence: bool,
     pub cleanup_interval: Option<u64>,
@@ -132,6 +136,7 @@ impl Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             mode: TrackerMode::PublicMode,
+            db_driver: DatabaseDrivers::Sqlite3,
             db_path: String::from("data.db"),
             persistence: false,
             cleanup_interval: Some(600),
@@ -160,21 +165,11 @@ impl Configuration {
                 enabled: false,
                 bind_address: String::from("0.0.0.0:6969"),
                 ssl_enabled: false,
-                ssl_bind_address: String::from("0.0.0.0:6868"),
                 ssl_cert_path: None,
                 ssl_key_path: None
             }
         );
         configuration
-    }
-
-    pub fn verify(&self) -> Result<(), ConfigurationError> {
-        // UDP is not secure for sending private keys
-        if self.mode == TrackerMode::PrivateMode || self.mode == TrackerMode::PrivateListedMode {
-            return Err(ConfigurationError::TrackerModeIncompatible)
-        }
-
-        Ok(())
     }
 
     pub fn load_from_file() -> Result<Configuration, ConfigError> {
@@ -194,10 +189,7 @@ impl Configuration {
 
         let torrust_config: Configuration = config.try_into().map_err(|e| ConfigError::Message(format!("Errors while processing config: {}.", e)))?;
 
-        match torrust_config.verify() {
-            Ok(_) => Ok(torrust_config),
-            Err(e) => Err(ConfigError::Message(format!("Errors while processing config: {}.", e)))
-        }
+        Ok(torrust_config)
     }
 
     pub fn save_to_file(&self) -> Result<(), ()>{
