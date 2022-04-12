@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use crate::{InfoHash, AUTH_KEY_LENGTH, TorrentEntry, database};
+use crate::{InfoHash, AUTH_KEY_LENGTH, database};
 use log::debug;
 use r2d2::{Pool};
 use crate::key_manager::AuthKey;
@@ -9,6 +9,7 @@ use async_trait::async_trait;
 use r2d2_mysql::mysql::{Opts, OptsBuilder, params, TxOpts};
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::MysqlConnectionManager;
+use crate::torrent::TorrentEntry;
 
 pub struct MysqlDatabase {
     pool: Pool<MysqlConnectionManager>
@@ -136,7 +137,7 @@ impl Database for MysqlDatabase {
     async fn get_key_from_keys(&self, key: &str) -> Result<AuthKey, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
-        match conn.exec_first::<(String, i64), _, _>("SELECT `key`, valid_until FROM `keys` WHERE `key` = :key", params! { key => key })
+        match conn.exec_first::<(String, i64), _, _>("SELECT `key`, valid_until FROM `keys` WHERE `key` = :key", params! { key })
             .map_err(|_| database::Error::QueryReturnedNoRows)? {
             Some((key, valid_until)) => {
                 Ok(AuthKey {
