@@ -103,7 +103,9 @@ fn start_torrent_periodic_job(config: Arc<Configuration>, tracker: Arc<TorrentTr
         loop {
             interval.tick().await;
             if let Some(tracker) = weak_tracker.upgrade() {
+                info!("Executing periodic saving...");
                 tracker.periodic_saving().await;
+                info!("Periodic saving done.");
             } else {
                 break;
             }
