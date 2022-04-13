@@ -84,7 +84,7 @@ async fn main() {
             // Save torrents if enabled
             if config.persistence {
                 info!("Saving torrents into SQL from memory...");
-                let _ = tracker.save_torrents().await;
+                let _ = tracker.periodic_saving().await;
                 info!("Torrents saved");
             }
         }
