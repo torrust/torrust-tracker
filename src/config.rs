@@ -52,10 +52,12 @@ pub struct HttpApiConfig {
 #[derive(Serialize, Deserialize)]
 pub struct Configuration {
     pub log_level: Option<String>,
+    pub log_interval: Option<u64>,
     pub mode: TrackerMode,
     pub db_driver: DatabaseDrivers,
     pub db_path: String,
     pub persistence: bool,
+    pub persistence_interval: Option<u64>,
     pub cleanup_interval: Option<u64>,
     pub cleanup_peerless: bool,
     pub external_ip: Option<String>,
@@ -135,10 +137,12 @@ impl Configuration {
     pub fn default() -> Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
+            log_interval: Some(60),
             mode: TrackerMode::PublicMode,
             db_driver: DatabaseDrivers::Sqlite3,
             db_path: String::from("data.db"),
             persistence: false,
+            persistence_interval: Some(900),
             cleanup_interval: Some(600),
             cleanup_peerless: true,
             external_ip: Some(String::from("0.0.0.0")),
