@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use tokio::sync::{RwLock, RwLockReadGuard};
 use crate::common::{InfoHash};
 use std::net::{SocketAddr};
@@ -36,6 +36,8 @@ pub enum TrackerMode {
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
+    updates: tokio::sync::RwLock<std::collections::HashMap<InfoHash, u32>>,
+    shadow: tokio::sync::RwLock<std::collections::HashMap<InfoHash, u32>>,
     database: Box<dyn Database>,
     pub stats_tracker: StatsTracker
 }
@@ -50,6 +52,8 @@ impl TorrentTracker {
         Ok(TorrentTracker {
             config,
             torrents: RwLock::new(std::collections::BTreeMap::new()),
+            updates: RwLock::new(std::collections::HashMap::new()),
+            shadow: RwLock::new(std::collections::HashMap::new()),
             database,
             stats_tracker
         })
@@ -178,6 +182,15 @@ impl TorrentTracker {
 
         let (seeders, completed, leechers) = torrent_entry.get_stats();
 
+        if self.config.persistence {
+            let mut updates = self.updates.write().await;
+            if updates.contains_key(info_hash) {
+                updates.remove(info_hash);
+            }
+            updates.insert(*info_hash, completed);
+            drop(updates);
+        }
+
         TorrentStats {
             seeders,
             leechers,
@@ -260,5 +273,44 @@ impl TorrentTracker {
             drop(lock);
         }
         info!("Torrents cleaned up.");
+    }
+
+    pub async fn periodic_saving(&self) {
+        // Get a lock for writing
+        let mut shadow = self.shadow.write().await;
+
+        // We will get the data and insert it into the shadow, while clearing updates.
+        let mut updates = self.updates.write().await;
+
+        for (infohash, completed) in updates.iter() {
+            if shadow.contains_key(infohash) {
+                shadow.remove(infohash);
+            }
+            shadow.insert(*infohash, *completed);
+        }
+        updates.clear();
+        drop(updates);
+
+        // We get shadow data into local array to be handled.
+        let mut shadow_copy: BTreeMap<InfoHash, TorrentEntry> = BTreeMap::new();
+        for (infohash, completed) in shadow.iter() {
+            shadow_copy.insert(*infohash, TorrentEntry{
+                peers: Default::default(),
+                completed: *completed,
+                seeders: 0
+            });
+        }
+
+        // Drop the lock
+        drop(shadow);
+
+        // We will now save the data from the shadow into the database.
+        // This should not put any strain on the server itself, other then the harddisk/ssd.
+        let result = self.database.save_persistent_torrent_data(&shadow_copy).await;
+        if result.is_ok() {
+            let mut shadow = self.shadow.write().await;
+            shadow.clear();
+            drop(shadow);
+        }
     }
 }

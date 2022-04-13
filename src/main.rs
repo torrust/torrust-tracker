@@ -29,6 +29,8 @@ async fn main() {
             panic!("Could not load persistent torrents.")
         };
         info!("Persistent torrents loaded.");
+
+        let _torrent_periodic_job = start_torrent_periodic_job(config.clone(), tracker.clone()).unwrap();
     }
 
     // start torrent cleanup job (periodically removes old peers)
@@ -87,6 +89,26 @@ async fn main() {
             }
         }
     }
+}
+
+fn start_torrent_periodic_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+    let weak_tracker = std::sync::Arc::downgrade(&tracker);
+    let interval = config.persistence_interval.unwrap_or(900);
+
+    return Some(tokio::spawn(async move {
+        let interval = std::time::Duration::from_secs(interval);
+        let mut interval = tokio::time::interval(interval);
+        interval.tick().await; // first tick is immediate...
+        // periodically call tracker.cleanup_torrents()
+        loop {
+            interval.tick().await;
+            if let Some(tracker) = weak_tracker.upgrade() {
+                tracker.periodic_saving().await;
+            } else {
+                break;
+            }
+        }
+    }));
 }
 
 fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
