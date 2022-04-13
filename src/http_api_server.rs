@@ -4,7 +4,7 @@ use std::cmp::min;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use warp::{filters, reply, reply::Reply, serve, Filter, Server};
-use crate::TorrentPeer;
+use crate::torrent::TorrentPeer;
 use super::common::*;
 
 #[derive(Deserialize, Debug)]

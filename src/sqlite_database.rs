@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use crate::{InfoHash, AUTH_KEY_LENGTH, TorrentEntry, database};
+use crate::{InfoHash, AUTH_KEY_LENGTH, database};
 use log::debug;
 use r2d2_sqlite::{SqliteConnectionManager};
 use r2d2::{Pool};
@@ -8,6 +8,7 @@ use crate::key_manager::AuthKey;
 use std::str::FromStr;
 use crate::database::Database;
 use async_trait::async_trait;
+use crate::torrent::TorrentEntry;
 
 pub struct SqliteDatabase {
     pool: Pool<SqliteConnectionManager>

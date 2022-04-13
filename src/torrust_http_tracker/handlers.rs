@@ -1,12 +1,15 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
+use std::net::IpAddr;
 use std::sync::Arc;
 use log::debug;
 use warp::{reject, Rejection, Reply};
 use warp::http::{Response};
-use crate::{InfoHash, TorrentError, TorrentPeer, TorrentStats, TorrentTracker};
+use crate::{InfoHash, TorrentTracker};
 use crate::key_manager::AuthKey;
+use crate::torrent::{TorrentError, TorrentPeer, TorrentStats};
 use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError, WebResult};
+use crate::tracker_stats::TrackerStatsEvent;
 use crate::utils::url_encode_bytes;
 
 /// Authenticate InfoHash using optional AuthKey
@@ -42,22 +45,13 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
     // get all torrent peers excluding the peer_addr
     let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;
 
-    // success response
-    let tracker_copy = tracker.clone();
-    let is_ipv4 = announce_request.peer_addr.is_ipv4();
-
-    tokio::spawn(async move {
-        let mut status_writer = tracker_copy.set_stats().await;
-        if is_ipv4 {
-            status_writer.tcp4_connections_handled += 1;
-            status_writer.tcp4_announces_handled += 1;
-        } else {
-            status_writer.tcp6_connections_handled += 1;
-            status_writer.tcp6_announces_handled += 1;
-        }
-    });
-
     let announce_interval = tracker.config.announce_interval;
+
+    // send stats event
+    match announce_request.peer_addr {
+        IpAddr::V4(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Tcp4Announce).await; }
+        IpAddr::V6(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Tcp6Announce).await; }
+    }
 
     send_announce_response(&announce_request, torrent_stats, peers, announce_interval, tracker.config.announce_interval_min)
 }
@@ -86,18 +80,11 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
         }
     }
 
-    let tracker_copy = tracker.clone();
-
-    tokio::spawn(async move {
-        let mut status_writer = tracker_copy.set_stats().await;
-        if scrape_request.peer_addr.is_ipv4() {
-            status_writer.tcp4_connections_handled += 1;
-            status_writer.tcp4_scrapes_handled += 1;
-        } else {
-            status_writer.tcp6_connections_handled += 1;
-            status_writer.tcp6_scrapes_handled += 1;
-        }
-    });
+    // send stats event
+    match scrape_request.peer_addr {
+        IpAddr::V4(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Tcp4Scrape).await; }
+        IpAddr::V6(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Tcp6Scrape).await; }
+    }
 
     send_scrape_response(files)
 }

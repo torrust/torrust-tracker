@@ -10,6 +10,8 @@ pub mod torrust_udp_tracker;
 pub mod torrust_http_tracker;
 pub mod database;
 pub mod mysql_database;
+pub mod torrent;
+pub mod tracker_stats;
 
 pub use self::config::*;
 pub use torrust_udp_tracker::server::*;

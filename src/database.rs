@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use crate::{InfoHash, TorrentEntry};
+use crate::{InfoHash};
 use crate::key_manager::AuthKey;
 use crate::sqlite_database::SqliteDatabase;
 use async_trait::async_trait;
@@ -7,6 +7,7 @@ use derive_more::{Display, Error};
 use log::debug;
 use crate::mysql_database::MysqlDatabase;
 use serde::{Serialize, Deserialize};
+use crate::torrent::TorrentEntry;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum DatabaseDrivers {
