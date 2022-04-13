@@ -34,6 +34,7 @@ pub enum TrackerMode {
     PrivateListedMode,
 }
 
+
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
@@ -228,15 +229,15 @@ impl TorrentTracker {
 
     pub async fn post_log(&self) {
         let torrents = self.torrents.read().await;
-        let torrents_size = mem::size_of_val(&*torrents);
+        let torrents_size = torrents.len();
         drop(torrents);
         let updates = self.updates.read().await;
-        let updates_size = mem::size_of_val(&*updates);
+        let updates_size = updates.len();
         drop(updates);
         let shadow = self.shadow.read().await;
-        let shadow_size = mem::size_of_val(&*shadow);
+        let shadow_size = shadow.len();
         drop(shadow);
-        info!("Stats [::] Torrents: {} byte(s) | Updates: {} byte(s) | Shadow: {} byte(s)", torrents_size, updates_size, shadow_size);
+        info!("-=[ Stats ]=- | Torrents: {} | Updates: {} | Shadow: {}", torrents_size, updates_size, shadow_size);
     }
 
     // remove torrents without peers if enabled, and defragment memory
