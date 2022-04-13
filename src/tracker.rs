@@ -41,8 +41,7 @@ pub struct TorrentTracker {
     updates: tokio::sync::RwLock<std::collections::HashMap<InfoHash, u32>>,
     shadow: tokio::sync::RwLock<std::collections::HashMap<InfoHash, u32>>,
     database: Box<dyn Database>,
-    pub stats_tracker: StatsTracker,
-    pub guard: pprof
+    pub stats_tracker: StatsTracker
 }
 
 impl TorrentTracker {
@@ -58,8 +57,7 @@ impl TorrentTracker {
             updates: RwLock::new(std::collections::HashMap::new()),
             shadow: RwLock::new(std::collections::HashMap::new()),
             database,
-            stats_tracker,
-            guard: pprof::ProfilerGuard::new(100).unwrap()
+            stats_tracker
         })
     }
 
