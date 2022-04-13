@@ -228,13 +228,13 @@ impl TorrentTracker {
 
     pub async fn post_log(&self) {
         let torrents = self.torrents.read().await;
-        let torrents_size = em::size_of_val(&*torrents);
+        let torrents_size = mem::size_of_val(&*torrents);
         drop(torrents);
         let updates = self.updates.read().await;
-        let updates_size = em::size_of_val(&*updates);
+        let updates_size = mem::size_of_val(&*updates);
         drop(updates);
         let shadow = self.shadow.read().await;
-        let shadow_size = em::size_of_val(&*shadow);
+        let shadow_size = mem::size_of_val(&*shadow);
         drop(shadow);
         info!("Stats [::] Torrents: {} byte(s) | Updates: {} byte(s) | Shadow: {} byte(s)", torrents_size, updates_size, shadow_size);
     }
