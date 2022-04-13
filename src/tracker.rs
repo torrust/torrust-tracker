@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
 use serde;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use tokio::sync::{RwLock, RwLockReadGuard};
 use crate::common::{InfoHash};
 use std::net::{SocketAddr};
 use crate::{Configuration, database, key_manager};
 use std::collections::btree_map::Entry;
+use std::mem;
 use std::sync::Arc;
 use log::info;
 use crate::key_manager::AuthKey;
@@ -223,6 +224,19 @@ impl TorrentTracker {
 
     pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStats> {
         self.stats_tracker.get_stats().await
+    }
+
+    pub async fn post_log(&self) {
+        let torrents = self.torrents.read().await;
+        let torrents_size = em::size_of_val(&*torrents);
+        drop(torrents);
+        let updates = self.updates.read().await;
+        let updates_size = em::size_of_val(&*updates);
+        drop(updates);
+        let shadow = self.shadow.read().await;
+        let shadow_size = em::size_of_val(&*shadow);
+        drop(shadow);
+        info!("Stats [::] Torrents: {} byte(s) | Updates: {} byte(s) | Shadow: {} byte(s)", torrents_size, updates_size, shadow_size);
     }
 
     // remove torrents without peers if enabled, and defragment memory
