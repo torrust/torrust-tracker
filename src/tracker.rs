@@ -6,7 +6,6 @@ use crate::common::{InfoHash};
 use std::net::{SocketAddr};
 use crate::{Configuration, database, key_manager};
 use std::collections::btree_map::Entry;
-use std::mem;
 use std::sync::Arc;
 use log::info;
 use crate::key_manager::AuthKey;
@@ -33,7 +32,6 @@ pub enum TrackerMode {
     #[serde(rename = "private_listed")]
     PrivateListedMode,
 }
-
 
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
