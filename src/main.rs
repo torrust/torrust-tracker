@@ -1,5 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
+use crossbeam_channel::bounded;
 use log::{info};
 use tokio::task::JoinHandle;
 use torrust_tracker::{Configuration, http_api_server, HttpApiConfig, HttpTrackerConfig, logging, TorrentTracker, UdpServer, UdpTrackerConfig};
@@ -9,10 +10,27 @@ use torrust_tracker::torrust_http_tracker::server::HttpServer;
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
+pub struct DataStream {
+    action: u8,
+    data: Vec<()>
+}
+
 #[tokio::main]
 async fn main() {
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
+
+    // Loading configuration
+    let config = match Configuration::load_from_file() {
+        Ok(config) => config,
+        Err(error) => {
+            panic!("{}", error)
+        }
+    };
+
+    // Start the thread where data is being exchanged for usaga
+    let (sender, receiver): (crossbeam_channel::Sender<DataStream>, crossbeam_channel::Receiver<DataStream>) = bounded(1);
+    let _torrents_memory_handler = start_torrents_memory_handler(&config, sender.clone(), receiver.clone());
 
     // torrust config
     let config = match Configuration::load_from_file() {
@@ -97,8 +115,45 @@ async fn main() {
                 let _ = tracker.periodic_saving().await;
                 info!("Torrents saved");
             }
+
+            // Closing down channel
+            sender.clone().send(DataStream{
+                action: ACTION_CLOSE_CHANNEL,
+                data: Vec::new()
+            });
         }
     }
+}
+
+
+const ACTION_CLOSE_CHANNEL: u8 = 0;
+const ACTION_READ_TORRENTS: u8 = 1;
+const ACTION_WRITE_TORRENTS: u8 = 2;
+const ACTION_UPDATE_TORRENTS: u8 = 3;
+const ACTION_READ_PEERS: u8 = 4;
+const ACTION_WRITE_PEERS: u8 = 5;
+const ACTION_UPDATE_PEERS: u8 = 6;
+fn start_torrents_memory_handler(config: &Configuration, sender: crossbeam_channel::Sender<DataStream>, receiver: crossbeam_channel::Receiver<DataStream>) -> Option<JoinHandle<()>> {
+    // This is our main memory handler, everything will be received, handled and send back.
+    return Some(tokio::spawn(async move {
+        loop {
+            // Wait for incoming data.
+            let data: DataStream = receiver.recv().unwrap();
+
+            // Lets check what action is given.
+            match data.action {
+                ACTION_CLOSE_CHANNEL => {
+                    info!("Ending the memory handler thread...");
+                    sender.send(DataStream{
+                        action: ACTION_CLOSE_CHANNEL,
+                        data: Vec::new()
+                    });
+                    break;
+                }
+                _ => {}
+            }
+        }
+    }));
 }
 
 fn start_torrent_periodic_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {

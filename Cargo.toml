@@ -39,3 +39,5 @@ aquatic_udp_protocol = { git = "https://github.com/greatest-ape/aquatic" }
 futures = "0.3.21"
 async-trait = "0.1.52"
 dhat = "0.3.0"
+crossbeam = "0.8.1"
+crossbeam-channel = "0.5.4"
