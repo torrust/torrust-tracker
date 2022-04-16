@@ -28,11 +28,8 @@ async fn main() {
         }
     };
 
-    // Enable logging handling
-    logging::setup_logging(&config);
-
     // Start the thread where data is being exchanged for usaga
-    let (sender, receiver): (crossbeam_channel::Sender<DataStream>, crossbeam_channel::Receiver<DataStream>) = bounded(0);
+    let (sender, receiver): (crossbeam_channel::Sender<DataStream>, crossbeam_channel::Receiver<DataStream>) = bounded(1);
     let _torrents_memory_handler = start_torrents_memory_handler(&config, sender.clone(), receiver.clone());
 
     // torrust config
@@ -47,6 +44,8 @@ async fn main() {
     let tracker = Arc::new(TorrentTracker::new(config.clone()).unwrap_or_else(|e| {
         panic!("{}", e)
     }));
+
+    logging::setup_logging(&config);
 
     // load persistent torrents if enabled
     if config.persistence {
@@ -118,7 +117,7 @@ async fn main() {
             }
 
             // Closing down channel
-            let _ = sender.clone().send(DataStream{
+            sender.clone().send(DataStream{
                 action: ACTION_CLOSE_CHANNEL,
                 data: Vec::new()
             });
@@ -136,8 +135,6 @@ const ACTION_WRITE_PEERS: u8 = 5;
 const ACTION_UPDATE_PEERS: u8 = 6;
 fn start_torrents_memory_handler(config: &Configuration, sender: crossbeam_channel::Sender<DataStream>, receiver: crossbeam_channel::Receiver<DataStream>) -> Option<JoinHandle<()>> {
     // This is our main memory handler, everything will be received, handled and send back.
-    info!("Starting memory handler thread...");
-
     return Some(tokio::spawn(async move {
         loop {
             // Wait for incoming data.
@@ -147,29 +144,11 @@ fn start_torrents_memory_handler(config: &Configuration, sender: crossbeam_chann
             match data.action {
                 ACTION_CLOSE_CHANNEL => {
                     info!("Ending the memory handler thread...");
-                    let _ = sender.send(DataStream{
+                    sender.send(DataStream{
                         action: ACTION_CLOSE_CHANNEL,
                         data: Vec::new()
                     });
                     break;
-                }
-                ACTION_READ_TORRENTS => {
-
-                }
-                ACTION_WRITE_TORRENTS => {
-
-                }
-                ACTION_UPDATE_TORRENTS => {
-
-                }
-                ACTION_READ_PEERS => {
-
-                }
-                ACTION_WRITE_PEERS => {
-
-                }
-                ACTION_UPDATE_PEERS => {
-
                 }
                 _ => {}
             }
