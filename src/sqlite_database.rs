@@ -1,17 +1,19 @@
 use std::collections::BTreeMap;
-use crate::{InfoHash, AUTH_KEY_LENGTH, database};
-use log::debug;
-use r2d2_sqlite::{SqliteConnectionManager};
-use r2d2::{Pool};
-use r2d2_sqlite::rusqlite::NO_PARAMS;
-use crate::key_manager::AuthKey;
 use std::str::FromStr;
-use crate::database::Database;
+
 use async_trait::async_trait;
+use log::debug;
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
+use r2d2_sqlite::rusqlite::NO_PARAMS;
+
+use crate::{AUTH_KEY_LENGTH, database, InfoHash};
+use crate::database::Database;
+use crate::key_manager::AuthKey;
 use crate::torrent::TorrentEntry;
 
 pub struct SqliteDatabase {
-    pool: Pool<SqliteConnectionManager>
+    pool: Pool<SqliteConnectionManager>,
 }
 
 impl SqliteDatabase {
@@ -68,7 +70,7 @@ impl Database for SqliteDatabase {
             Ok((info_hash, completed))
         })?;
 
-        let torrents: Vec<(InfoHash, u32)> = torrent_iter.filter_map(|x| x.ok() ).collect();
+        let torrents: Vec<(InfoHash, u32)> = torrent_iter.filter_map(|x| x.ok()).collect();
 
         Ok(torrents)
     }
@@ -79,8 +81,8 @@ impl Database for SqliteDatabase {
         let db_transaction = conn.transaction()?;
 
         for (info_hash, torrent_entry) in torrents {
-                let (_seeders, completed, _leechers) = torrent_entry.get_stats();
-                let _ = db_transaction.execute("INSERT OR REPLACE INTO torrents (info_hash, completed) VALUES (?, ?)", &[info_hash.to_string(), completed.to_string()]);
+            let (_seeders, completed, _leechers) = torrent_entry.get_stats();
+            let _ = db_transaction.execute("INSERT OR REPLACE INTO torrents (info_hash, completed) VALUES (?, ?)", &[info_hash.to_string(), completed.to_string()]);
         }
 
         let _ = db_transaction.commit();
@@ -109,9 +111,9 @@ impl Database for SqliteDatabase {
 
         match conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", &[info_hash.to_string()]) {
             Ok(updated) => {
-                if updated > 0 { return Ok(updated) }
+                if updated > 0 { return Ok(updated); }
                 Err(database::Error::QueryReturnedNoRows)
-            },
+            }
             Err(e) => {
                 debug!("{:?}", e);
                 Err(database::Error::InvalidQuery)
@@ -124,9 +126,9 @@ impl Database for SqliteDatabase {
 
         match conn.execute("DELETE FROM whitelist WHERE info_hash = ?", &[info_hash.to_string()]) {
             Ok(updated) => {
-                if updated > 0 { return Ok(updated) }
+                if updated > 0 { return Ok(updated); }
                 Err(database::Error::QueryReturnedNoRows)
-            },
+            }
             Err(e) => {
                 debug!("{:?}", e);
                 Err(database::Error::InvalidQuery)
@@ -146,7 +148,7 @@ impl Database for SqliteDatabase {
 
             Ok(AuthKey {
                 key,
-                valid_until: Some(valid_until_i64 as u64)
+                valid_until: Some(valid_until_i64 as u64),
             })
         } else {
             Err(database::Error::QueryReturnedNoRows)
@@ -157,12 +159,12 @@ impl Database for SqliteDatabase {
         let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
         match conn.execute("INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
-                           &[auth_key.key.to_string(), auth_key.valid_until.unwrap().to_string()]
+                           &[auth_key.key.to_string(), auth_key.valid_until.unwrap().to_string()],
         ) {
             Ok(updated) => {
-                if updated > 0 { return Ok(updated) }
+                if updated > 0 { return Ok(updated); }
                 Err(database::Error::QueryReturnedNoRows)
-            },
+            }
             Err(e) => {
                 debug!("{:?}", e);
                 Err(database::Error::InvalidQuery)
@@ -175,9 +177,9 @@ impl Database for SqliteDatabase {
 
         match conn.execute("DELETE FROM keys WHERE key = ?", &[key]) {
             Ok(updated) => {
-                if updated > 0 { return Ok(updated) }
+                if updated > 0 { return Ok(updated); }
                 Err(database::Error::QueryReturnedNoRows)
-            },
+            }
             Err(e) => {
                 debug!("{:?}", e);
                 Err(database::Error::InvalidQuery)

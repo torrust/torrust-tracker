@@ -1,7 +1,9 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
-use log::{info};
+
+use log::info;
 use tokio::task::JoinHandle;
+
 use torrust_tracker::{Configuration, http_api_server, HttpApiConfig, HttpTrackerConfig, logging, TorrentTracker, UdpServer, UdpTrackerConfig};
 use torrust_tracker::torrust_http_tracker::server::HttpServer;
 
@@ -12,7 +14,7 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 #[tokio::main]
 async fn main() {
     #[cfg(feature = "dhat-heap")]
-    let _profiler = dhat::Profiler::new_heap();
+        let _profiler = dhat::Profiler::new_heap();
 
     // torrust config
     let config = match Configuration::load_from_file() {

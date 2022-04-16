@@ -1,10 +1,12 @@
 use std::borrow::Cow;
 use std::net::{IpAddr, SocketAddr};
+
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS, PeerId};
-use crate::torrust_http_tracker::AnnounceRequest;
 use crate::common::{AnnounceEventDef, NumberOfBytesDef};
+use crate::torrust_http_tracker::AnnounceRequest;
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize)]
 pub struct TorrentPeer {
@@ -33,7 +35,7 @@ impl TorrentPeer {
             uploaded: announce_request.bytes_uploaded,
             downloaded: announce_request.bytes_downloaded,
             left: announce_request.bytes_left,
-            event: announce_request.event
+            event: announce_request.event,
         }
     }
 
@@ -58,7 +60,7 @@ impl TorrentPeer {
             uploaded: NumberOfBytes(announce_request.uploaded as i64),
             downloaded: NumberOfBytes(announce_request.downloaded as i64),
             left: NumberOfBytes(announce_request.left as i64),
-            event
+            event,
         }
     }
 

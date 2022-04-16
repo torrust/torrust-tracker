@@ -1,15 +1,17 @@
+use std::collections::btree_map::Entry;
+use std::collections::BTreeMap;
+use std::net::SocketAddr;
+use std::sync::Arc;
+
+use log::info;
 use serde::{Deserialize, Serialize};
 use serde;
-use std::collections::BTreeMap;
 use tokio::sync::{RwLock, RwLockReadGuard};
-use crate::common::{InfoHash};
-use std::net::{SocketAddr};
+
 use crate::{Configuration, database, key_manager};
-use std::collections::btree_map::Entry;
-use std::sync::Arc;
-use log::info;
+use crate::common::InfoHash;
+use crate::database::Database;
 use crate::key_manager::AuthKey;
-use crate::database::{Database};
 use crate::key_manager::Error::KeyInvalid;
 use crate::torrent::{TorrentEntry, TorrentError, TorrentPeer, TorrentStats};
 use crate::tracker_stats::{StatsTracker, TrackerStats};
@@ -39,7 +41,7 @@ pub struct TorrentTracker {
     updates: tokio::sync::RwLock<std::collections::HashMap<InfoHash, u32>>,
     shadow: tokio::sync::RwLock<std::collections::HashMap<InfoHash, u32>>,
     database: Box<dyn Database>,
-    pub stats_tracker: StatsTracker
+    pub stats_tracker: StatsTracker,
 }
 
 impl TorrentTracker {
@@ -55,7 +57,7 @@ impl TorrentTracker {
             updates: RwLock::new(std::collections::HashMap::new()),
             shadow: RwLock::new(std::collections::HashMap::new()),
             database,
-            stats_tracker
+            stats_tracker,
         })
     }
 
@@ -75,7 +77,7 @@ impl TorrentTracker {
         let auth_key = key_manager::generate_auth_key(seconds_valid);
 
         // add key to database
-        if let Err(error) = self.database.add_key_to_keys(&auth_key).await { return Err(error) }
+        if let Err(error) = self.database.add_key_to_keys(&auth_key).await { return Err(error); }
 
         Ok(auth_key)
     }
@@ -91,18 +93,18 @@ impl TorrentTracker {
 
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
         // no authentication needed in public mode
-        if self.is_public() { return Ok(()) }
+        if self.is_public() { return Ok(()); }
 
         // check if auth_key is set and valid
         if self.is_private() {
             match key {
                 Some(key) => {
                     if self.verify_auth_key(key).await.is_err() {
-                        return Err(TorrentError::PeerKeyNotValid)
+                        return Err(TorrentError::PeerKeyNotValid);
                     }
                 }
                 None => {
-                    return Err(TorrentError::PeerNotAuthenticated)
+                    return Err(TorrentError::PeerNotAuthenticated);
                 }
             }
         }
@@ -110,7 +112,7 @@ impl TorrentTracker {
         // check if info_hash is whitelisted
         if self.is_whitelisted() {
             if self.is_info_hash_whitelisted(info_hash).await == false {
-                return Err(TorrentError::TorrentNotWhitelisted)
+                return Err(TorrentError::TorrentNotWhitelisted);
             }
         }
 
@@ -155,7 +157,7 @@ impl TorrentTracker {
     pub async fn get_torrent_peers(
         &self,
         info_hash: &InfoHash,
-        peer_addr: &SocketAddr
+        peer_addr: &SocketAddr,
     ) -> Vec<TorrentPeer> {
         let read_lock = self.torrents.read().await;
         match read_lock.get(info_hash) {
@@ -205,7 +207,7 @@ impl TorrentTracker {
             let torrent_entry = TorrentEntry {
                 peers: Default::default(),
                 completed,
-                seeders
+                seeders,
             };
             torrents.insert(info_hash.clone(), torrent_entry);
         }
@@ -254,10 +256,10 @@ impl TorrentTracker {
 
         // Let's iterate through all torrents, and parse.
         for hash in torrent_hashes.iter() {
-            let mut torrent = TorrentEntry{
+            let mut torrent = TorrentEntry {
                 peers: BTreeMap::new(),
                 completed: 0,
-                seeders: 0
+                seeders: 0,
             };
 
             let lock = self.torrents.write().await;
@@ -307,10 +309,10 @@ impl TorrentTracker {
         // We get shadow data into local array to be handled.
         let mut shadow_copy: BTreeMap<InfoHash, TorrentEntry> = BTreeMap::new();
         for (infohash, completed) in shadow.iter() {
-            shadow_copy.insert(*infohash, TorrentEntry{
+            shadow_copy.insert(*infohash, TorrentEntry {
                 peers: Default::default(),
                 completed: *completed,
-                seeders: 0
+                seeders: 0,
             });
         }
 

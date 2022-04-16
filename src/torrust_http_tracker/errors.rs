@@ -1,5 +1,5 @@
-use warp::reject::Reject;
 use thiserror::Error;
+use warp::reject::Reject;
 
 #[derive(Error, Debug)]
 pub enum ServerError {

@@ -1,5 +1,7 @@
-use std::net::{IpAddr};
-use serde::{Deserialize};
+use std::net::IpAddr;
+
+use serde::Deserialize;
+
 use crate::{InfoHash, PeerId};
 use crate::torrust_http_tracker::Bytes;
 

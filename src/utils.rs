@@ -1,8 +1,9 @@
-use std::net::SocketAddr;
-use std::time::SystemTime;
 use std::error::Error;
 use std::fmt::Write;
 use std::io::Cursor;
+use std::net::SocketAddr;
+use std::time::SystemTime;
+
 use aquatic_udp_protocol::ConnectionId;
 use byteorder::{BigEndian, ReadBytesExt};
 

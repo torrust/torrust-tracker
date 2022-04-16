@@ -1,18 +1,20 @@
 use std::collections::BTreeMap;
-use crate::{InfoHash};
-use crate::key_manager::AuthKey;
-use crate::sqlite_database::SqliteDatabase;
+
 use async_trait::async_trait;
 use derive_more::{Display, Error};
 use log::debug;
+use serde::{Deserialize, Serialize};
+
+use crate::InfoHash;
+use crate::key_manager::AuthKey;
 use crate::mysql_database::MysqlDatabase;
-use serde::{Serialize, Deserialize};
+use crate::sqlite_database::SqliteDatabase;
 use crate::torrent::TorrentEntry;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum DatabaseDrivers {
     Sqlite3,
-    MySQL
+    MySQL,
 }
 
 pub fn connect_database(db_driver: &DatabaseDrivers, db_path: &str) -> Result<Box<dyn Database>, r2d2::Error> {

@@ -1,19 +1,21 @@
-pub use crate::tracker::TrackerMode;
-use serde::{Serialize, Deserialize, Serializer};
 use std;
 use std::collections::HashMap;
 use std::fs;
-use toml;
-use std::net::{IpAddr};
+use std::net::IpAddr;
 use std::path::Path;
 use std::str::FromStr;
-use config::{ConfigError, Config, File};
+
+use config::{Config, ConfigError, File};
+use serde::{Deserialize, Serialize, Serializer};
+use toml;
+
 use crate::database::DatabaseDrivers;
+pub use crate::tracker::TrackerMode;
 
 #[derive(Serialize, Deserialize, PartialEq)]
 pub enum TrackerServer {
     UDP,
-    HTTP
+    HTTP,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -30,7 +32,7 @@ pub struct HttpTrackerConfig {
     #[serde(serialize_with = "none_as_empty_string")]
     pub ssl_cert_path: Option<String>,
     #[serde(serialize_with = "none_as_empty_string")]
-    pub ssl_key_path: Option<String>
+    pub ssl_key_path: Option<String>,
 }
 
 impl HttpTrackerConfig {
@@ -113,7 +115,7 @@ impl Configuration {
                 match Self::load(data.as_slice()) {
                     Ok(cfg) => {
                         Ok(cfg)
-                    },
+                    }
                     Err(e) => Err(ConfigurationError::ParseError(e)),
                 }
             }
@@ -156,21 +158,21 @@ impl Configuration {
                 enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))].iter().cloned().collect(),
-            }
+            },
         };
         configuration.udp_trackers.push(
-            UdpTrackerConfig{
+            UdpTrackerConfig {
                 enabled: false,
-                bind_address: String::from("0.0.0.0:6969")
+                bind_address: String::from("0.0.0.0:6969"),
             }
         );
         configuration.http_trackers.push(
-            HttpTrackerConfig{
+            HttpTrackerConfig {
                 enabled: false,
                 bind_address: String::from("0.0.0.0:6969"),
                 ssl_enabled: false,
                 ssl_cert_path: None,
-                ssl_key_path: None
+                ssl_key_path: None,
             }
         );
         configuration
@@ -188,7 +190,7 @@ impl Configuration {
             eprintln!("Creating config file..");
             let config = Configuration::default();
             let _ = config.save_to_file();
-            return Err(ConfigError::Message(format!("Please edit the config.TOML in the root folder and restart the tracker.")))
+            return Err(ConfigError::Message(format!("Please edit the config.TOML in the root folder and restart the tracker.")));
         }
 
         let torrust_config: Configuration = config.try_into().map_err(|e| ConfigError::Message(format!("Errors while processing config: {}.", e)))?;
@@ -196,7 +198,7 @@ impl Configuration {
         Ok(torrust_config)
     }
 
-    pub fn save_to_file(&self) -> Result<(), ()>{
+    pub fn save_to_file(&self) -> Result<(), ()> {
         let toml_string = toml::to_string(self).expect("Could not encode TOML value");
         fs::write("config.toml", toml_string).expect("Could not write to file!");
         Ok(())
