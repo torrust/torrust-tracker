@@ -82,10 +82,10 @@ impl Database for MysqlDatabase {
 
         for (info_hash, torrent_entry) in torrents {
             let (_seeders, completed, _leechers) = torrent_entry.get_stats();
-            if db_transaction.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX(?), ?) ON DUPLICATE KEY UPDATE completed = completed", (info_hash.to_string(), completed.to_string())).is_err() {
+            if db_transaction.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX(?), ?) ON DUPLICATE KEY UPDATE completed = VALUES(completed)", (info_hash.to_string(), completed.to_string())).is_err() {
                 return Err(Error::InvalidQuery);
             }
-            debug!("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX('{}'), {}) ON DUPLICATE KEY UPDATE completed = completed", info_hash.to_string(), completed.to_string());
+            debug!("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX('{}'), {}) ON DUPLICATE KEY UPDATE completed = VALUES(completed)", info_hash.to_string(), completed.to_string());
         }
 
         if db_transaction.commit().is_err() {
