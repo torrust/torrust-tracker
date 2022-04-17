@@ -315,19 +315,21 @@ impl TorrentTracker {
         updates.clear();
         drop(updates);
 
-        let mut shadows = self.shadow.write().await;
         info!("Copying updates_cloned into the shadow to overwrite...");
         for (k, completed) in updates_cloned.iter() {
+            let mut shadows = self.shadow.write().await;
             if shadows.contains_key(k) {
                 shadows.remove(k);
             }
             shadows.insert(k.clone(), completed.clone());
+            drop(shadows);
         }
         drop(updates_cloned);
 
         // We updated the shadow data from the updates data, let's handle shadow data as expected.
         info!("Handle shadow_copy to be updated into SQL...");
         let mut shadow_copy: BTreeMap<InfoHash, TorrentEntry> = BTreeMap::new();
+        let mut shadows = self.shadow.write().await;
         for (infohash, completed) in shadows.iter() {
             shadow_copy.insert(infohash.clone(), TorrentEntry {
                 peers: Default::default(),
@@ -335,8 +337,6 @@ impl TorrentTracker {
                 seeders: 0,
             });
         }
-
-        // Drop the lock
         drop(shadows);
 
         // We will now save the data from the shadow into the database.
