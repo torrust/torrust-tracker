@@ -84,9 +84,10 @@ impl Database for MysqlDatabase {
 
         for (info_hash, torrent_entry) in torrents {
             let (_seeders, completed, _leechers) = torrent_entry.get_stats();
-            insert_vector.push("(UNHEX('" + info_hash.to_string() + "'), " + completed.to_string() + ")");
+            insert_vector.push(format!("(UNHEX('{}'), {})", info_hash.to_string(), completed.to_string()));
             if insert_vector.len() == 1000 {
-                if db_transaction.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES " + insert_vector.join(",") + "ON DUPLICATE KEY UPDATE completed = VALUES(completed)").is_err() {
+                let query = format!("INSERT INTO torrents (info_hash, completed) VALUES {} ON DUPLICATE KEY UPDATE completed = VALUES(completed)", insert_vector.join(","));
+                if db_transaction.query_drop(query).is_err() {
                     return Err(Error::InvalidQuery);
                 }
                 insert_vector.clear();
@@ -94,7 +95,8 @@ impl Database for MysqlDatabase {
         }
 
         if insert_vector.len() != 0 {
-            if db_transaction.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES " + insert_vector.join(",") + "ON DUPLICATE KEY UPDATE completed = VALUES(completed)").is_err() {
+            let query = format!("INSERT INTO torrents (info_hash, completed) VALUES {} ON DUPLICATE KEY UPDATE completed = VALUES(completed)", insert_vector.join(","));
+            if db_transaction.query_drop(query).is_err() {
                 return Err(Error::InvalidQuery);
             }
             insert_vector.clear();
