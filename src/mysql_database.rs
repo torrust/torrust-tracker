@@ -80,12 +80,24 @@ impl Database for MysqlDatabase {
 
         let mut db_transaction = conn.start_transaction(TxOpts::default()).map_err(|_| database::Error::DatabaseError)?;
 
+        let mut insert_vector= vec![];
+
         for (info_hash, torrent_entry) in torrents {
             let (_seeders, completed, _leechers) = torrent_entry.get_stats();
-            if db_transaction.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX(?), ?) ON DUPLICATE KEY UPDATE completed = VALUES(completed)", (info_hash.to_string(), completed.to_string())).is_err() {
+            insert_vector.push("(UNHEX('" + info_hash.to_string() + "'), " + completed.to_string() + ")");
+            if insert_vector.len() == 1000 {
+                if db_transaction.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES " + insert_vector.join(",") + "ON DUPLICATE KEY UPDATE completed = VALUES(completed)").is_err() {
+                    return Err(Error::InvalidQuery);
+                }
+                insert_vector.clear();
+            }
+        }
+
+        if insert_vector.len() != 0 {
+            if db_transaction.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES " + insert_vector.join(",") + "ON DUPLICATE KEY UPDATE completed = VALUES(completed)").is_err() {
                 return Err(Error::InvalidQuery);
             }
-            debug!("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX('{}'), {}) ON DUPLICATE KEY UPDATE completed = VALUES(completed)", info_hash.to_string(), completed.to_string());
+            insert_vector.clear();
         }
 
         if db_transaction.commit().is_err() {
