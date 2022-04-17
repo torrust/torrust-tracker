@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use log::info;
+use log::{debug, info};
 use serde::{Deserialize, Serialize};
 use serde;
 use tokio::sync::{RwLock, RwLockReadGuard};
@@ -128,6 +128,7 @@ impl TorrentTracker {
         let torrents = self.database.load_persistent_torrent_data().await?;
 
         for torrent in torrents {
+            debug!("{:#?}", torrent);
             let _ = self.add_torrent(torrent.0, 0, torrent.1, 0).await;
         }
 
@@ -308,7 +309,7 @@ impl TorrentTracker {
         let mut updates_cloned: std::collections::HashMap<InfoHash, u32> = std::collections::HashMap::new();
         // let mut torrent_hashes: Vec<InfoHash> = Vec::new();
         for (k, completed) in updates.iter() {
-            updates_cloned.insert(*k, *completed);
+            updates_cloned.insert(k.clone(), completed.clone());
         }
         updates.clear();
         drop(updates);
@@ -318,16 +319,16 @@ impl TorrentTracker {
             if shadows.contains_key(k) {
                 shadows.remove(k);
             }
-            shadows.insert(*k, *completed);
+            shadows.insert(k.clone(), completed.clone());
         }
         drop(updates_cloned);
 
         // We updated the shadow data from the updates data, let's handle shadow data as expected.
         let mut shadow_copy: BTreeMap<InfoHash, TorrentEntry> = BTreeMap::new();
         for (infohash, completed) in shadows.iter() {
-            shadow_copy.insert(*infohash, TorrentEntry {
+            shadow_copy.insert(infohash.clone(), TorrentEntry {
                 peers: Default::default(),
-                completed: *completed,
+                completed: completed.clone(),
                 seeders: 0,
             });
         }
