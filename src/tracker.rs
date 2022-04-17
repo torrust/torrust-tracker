@@ -329,7 +329,7 @@ impl TorrentTracker {
         // We updated the shadow data from the updates data, let's handle shadow data as expected.
         info!("Handle shadow_copy to be updated into SQL...");
         let mut shadow_copy: BTreeMap<InfoHash, TorrentEntry> = BTreeMap::new();
-        let mut shadows = self.shadow.write().await;
+        let shadows = self.shadow.read().await;
         for (infohash, completed) in shadows.iter() {
             shadow_copy.insert(infohash.clone(), TorrentEntry {
                 peers: Default::default(),
