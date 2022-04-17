@@ -243,6 +243,7 @@ impl TorrentTracker {
     // remove torrents without peers if enabled, and defragment memory
     pub async fn cleanup_torrents(&self) {
         info!("Cleaning torrents...");
+
         let lock = self.torrents.write().await;
 
         // First we create a mapping of all the torrent hashes in a vector, and we use this to iterate through the btreemap.
@@ -292,23 +293,30 @@ impl TorrentTracker {
 
     pub async fn periodic_saving(&self) {
         // Get a lock for writing
-        let mut shadow = self.shadow.write().await;
+        // let mut shadow = self.shadow.write().await;
 
         // We will get the data and insert it into the shadow, while clearing updates.
         let mut updates = self.updates.write().await;
-
-        for (infohash, completed) in updates.iter() {
-            if shadow.contains_key(infohash) {
-                shadow.remove(infohash);
-            }
-            shadow.insert(*infohash, *completed);
+        let mut updates_cloned: std::collections::HashMap<InfoHash, u32> = std::collections::HashMap::new();
+        // let mut torrent_hashes: Vec<InfoHash> = Vec::new();
+        for (k, completed) in updates.iter() {
+            updates_cloned.insert(*k, *completed);
         }
         updates.clear();
         drop(updates);
 
-        // We get shadow data into local array to be handled.
+        let mut shadows = self.shadow.write().await;
+        for (k, completed) in updates_cloned.iter() {
+            if shadows.contains_key(k) {
+                shadows.remove(k);
+            }
+            shadows.insert(*k, *completed);
+        }
+        drop(updates_cloned);
+
+        // We updated the shadow data from the updates data, let's handle shadow data as expected.
         let mut shadow_copy: BTreeMap<InfoHash, TorrentEntry> = BTreeMap::new();
-        for (infohash, completed) in shadow.iter() {
+        for (infohash, completed) in shadows.iter() {
             shadow_copy.insert(*infohash, TorrentEntry {
                 peers: Default::default(),
                 completed: *completed,
@@ -317,7 +325,7 @@ impl TorrentTracker {
         }
 
         // Drop the lock
-        drop(shadow);
+        drop(shadows);
 
         // We will now save the data from the shadow into the database.
         // This should not put any strain on the server itself, other then the harddisk/ssd.

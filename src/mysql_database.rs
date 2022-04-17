@@ -9,7 +9,7 @@ use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::MysqlConnectionManager;
 
 use crate::{AUTH_KEY_LENGTH, database, InfoHash};
-use crate::database::Database;
+use crate::database::{Database, Error};
 use crate::key_manager::AuthKey;
 use crate::torrent::TorrentEntry;
 
@@ -82,11 +82,15 @@ impl Database for MysqlDatabase {
 
         for (info_hash, torrent_entry) in torrents {
             let (_seeders, completed, _leechers) = torrent_entry.get_stats();
-            let _ = db_transaction.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX(?), ?) ON DUPLICATE KEY UPDATE completed = completed", (info_hash.to_string(), completed.to_string()));
+            if db_transaction.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX(?), ?) ON DUPLICATE KEY UPDATE completed = completed", (info_hash.to_string(), completed.to_string())).is_err() {
+                return Err(Error::InvalidQuery);
+            }
             debug!("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX('{}'), {}) ON DUPLICATE KEY UPDATE completed = completed", info_hash.to_string(), completed.to_string());
         }
 
-        let _ = db_transaction.commit();
+        if db_transaction.commit().is_err() {
+            return Err(Error::DatabaseError);
+        };
 
         Ok(())
     }
