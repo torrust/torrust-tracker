@@ -1,11 +1,13 @@
 use std::convert::Infallible;
 use std::sync::Arc;
+
 use warp::{Filter, Rejection};
+
 use crate::TorrentTracker;
-use crate::torrust_http_tracker::{handle_announce, send_error, handle_scrape, with_announce_request, with_auth_key, with_scrape_request, with_tracker};
+use crate::torrust_http_tracker::{handle_announce, handle_scrape, send_error, with_announce_request, with_auth_key, with_scrape_request, with_tracker};
 
 /// All routes
-pub fn routes(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::Reply, Error = Infallible> + Clone {
+pub fn routes(tracker: Arc<TorrentTracker>) -> impl Filter<Extract=impl warp::Reply, Error=Infallible> + Clone {
     root(tracker.clone())
         .or(announce(tracker.clone()))
         .or(scrape(tracker.clone()))
@@ -13,7 +15,7 @@ pub fn routes(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp:
 }
 
 /// GET / or /<key>
-fn root(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::Reply, Error = Rejection> + Clone {
+fn root(tracker: Arc<TorrentTracker>) -> impl Filter<Extract=impl warp::Reply, Error=Rejection> + Clone {
     warp::any()
         .and(warp::filters::method::get())
         .and(with_announce_request(tracker.config.on_reverse_proxy))
@@ -23,7 +25,7 @@ fn root(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::Reply
 }
 
 /// GET /announce or /announce/<key>
-fn announce(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::Reply, Error = Rejection> + Clone {
+fn announce(tracker: Arc<TorrentTracker>) -> impl Filter<Extract=impl warp::Reply, Error=Rejection> + Clone {
     warp::path::path("announce")
         .and(warp::filters::method::get())
         .and(with_announce_request(tracker.config.on_reverse_proxy))
@@ -33,7 +35,7 @@ fn announce(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::R
 }
 
 /// GET /scrape/<key>
-fn scrape(tracker: Arc<TorrentTracker>,) -> impl Filter<Extract = impl warp::Reply, Error = Rejection> + Clone {
+fn scrape(tracker: Arc<TorrentTracker>) -> impl Filter<Extract=impl warp::Reply, Error=Rejection> + Clone {
     warp::path::path("scrape")
         .and(warp::filters::method::get())
         .and(with_scrape_request(tracker.config.on_reverse_proxy))

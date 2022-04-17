@@ -1,3 +1,11 @@
+pub use torrust_http_tracker::server::*;
+pub use torrust_udp_tracker::server::*;
+
+pub use self::common::*;
+pub use self::config::*;
+pub use self::http_api_server::*;
+pub use self::tracker::*;
+
 pub mod config;
 pub mod tracker;
 pub mod http_api_server;
@@ -13,9 +21,3 @@ pub mod mysql_database;
 pub mod torrent;
 pub mod tracker_stats;
 
-pub use self::config::*;
-pub use torrust_udp_tracker::server::*;
-pub use torrust_http_tracker::server::*;
-pub use self::tracker::*;
-pub use self::http_api_server::*;
-pub use self::common::*;

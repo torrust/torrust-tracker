@@ -1,10 +1,12 @@
-use super::common::AUTH_KEY_LENGTH;
-use crate::utils::current_time;
-use rand::{thread_rng, Rng};
+use derive_more::{Display, Error};
+use log::debug;
+use rand::{Rng, thread_rng};
 use rand::distributions::Alphanumeric;
 use serde::Serialize;
-use log::debug;
-use derive_more::{Display, Error};
+
+use crate::utils::current_time;
+
+use super::common::AUTH_KEY_LENGTH;
 
 pub fn generate_auth_key(seconds_valid: u64) -> AuthKey {
     let key: String = thread_rng()
@@ -23,8 +25,8 @@ pub fn generate_auth_key(seconds_valid: u64) -> AuthKey {
 
 pub fn verify_auth_key(auth_key: &AuthKey) -> Result<(), Error> {
     let current_time = current_time();
-    if auth_key.valid_until.is_none() { return Err(Error::KeyInvalid) }
-    if auth_key.valid_until.unwrap() < current_time { return Err(Error::KeyExpired) }
+    if auth_key.valid_until.is_none() { return Err(Error::KeyInvalid); }
+    if auth_key.valid_until.unwrap() < current_time { return Err(Error::KeyExpired); }
 
     Ok(())
 }
@@ -67,7 +69,7 @@ pub enum Error {
     #[display(fmt = "Key is invalid.")]
     KeyInvalid,
     #[display(fmt = "Key has expired.")]
-    KeyExpired
+    KeyExpired,
 }
 
 impl From<r2d2_sqlite::rusqlite::Error> for Error {

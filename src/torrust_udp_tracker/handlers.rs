@@ -1,6 +1,8 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
+
 use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId};
+
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS, TorrentTracker};
 use crate::torrent::{TorrentError, TorrentPeer};
 use crate::torrust_udp_tracker::errors::ServerError;
@@ -103,15 +105,15 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
             leechers: NumberOfPeers(torrent_stats.leechers as i32),
             seeders: NumberOfPeers(torrent_stats.seeders as i32),
             peers: peers.iter()
-                .filter_map(|peer| if let IpAddr::V4(ip) =  peer.peer_addr.ip() {
+                .filter_map(|peer| if let IpAddr::V4(ip) = peer.peer_addr.ip() {
                     Some(ResponsePeer::<Ipv4Addr> {
                         ip_address: ip,
-                        port: Port(peer.peer_addr.port())
+                        port: Port(peer.peer_addr.port()),
                     })
                 } else {
                     None
                 }
-                ).collect()
+                ).collect(),
         })
     } else {
         Response::from(AnnounceResponse {
@@ -120,15 +122,15 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
             leechers: NumberOfPeers(torrent_stats.leechers as i32),
             seeders: NumberOfPeers(torrent_stats.seeders as i32),
             peers: peers.iter()
-                .filter_map(|peer| if let IpAddr::V6(ip) =  peer.peer_addr.ip() {
+                .filter_map(|peer| if let IpAddr::V6(ip) = peer.peer_addr.ip() {
                     Some(ResponsePeer::<Ipv6Addr> {
                         ip_address: ip,
-                        port: Port(peer.peer_addr.port())
+                        port: Port(peer.peer_addr.port()),
                     })
                 } else {
                     None
                 }
-            ).collect()
+                ).collect(),
         })
     };
 
@@ -150,7 +152,7 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
     for info_hash in request.info_hashes.iter() {
         let info_hash = InfoHash(info_hash.0);
 
-        if authenticate(&info_hash,  tracker.clone()).await.is_err() { continue }
+        if authenticate(&info_hash, tracker.clone()).await.is_err() { continue; }
 
         let scrape_entry = match db.get(&info_hash) {
             Some(torrent_info) => {
@@ -182,7 +184,7 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
 
     Ok(Response::from(ScrapeResponse {
         transaction_id: request.transaction_id,
-        torrent_stats
+        torrent_stats,
     }))
 }
 

@@ -2,9 +2,11 @@ use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::IpAddr;
 use std::sync::Arc;
+
 use log::debug;
 use warp::{reject, Rejection, Reply};
-use warp::http::{Response};
+use warp::http::Response;
+
 use crate::{InfoHash, TorrentTracker};
 use crate::key_manager::AuthKey;
 use crate::torrent::{TorrentError, TorrentPeer, TorrentStats};
@@ -34,7 +36,7 @@ pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, trac
 /// Handle announce request
 pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>) -> WebResult<impl Reply> {
     if let Err(e) = authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await {
-        return Err(reject::custom(e))
+        return Err(reject::custom(e));
     }
 
     debug!("{:?}", announce_request);
@@ -63,7 +65,7 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
 
     for info_hash in scrape_request.info_hashes.iter() {
         // authenticate every info_hash
-        if authenticate(info_hash, &auth_key, tracker.clone()).await.is_err() { continue }
+        if authenticate(info_hash, &auth_key, tracker.clone()).await.is_err() { continue; }
 
         let scrape_entry = match db.get(&info_hash) {
             Some(torrent_info) => {
@@ -94,7 +96,7 @@ fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: Tor
     let http_peers: Vec<Peer> = peers.iter().map(|peer| Peer {
         peer_id: peer.peer_id.to_string(),
         ip: peer.peer_addr.ip(),
-        port: peer.peer_addr.port()
+        port: peer.peer_addr.port(),
     }).collect();
 
     let res = AnnounceResponse {
@@ -102,7 +104,7 @@ fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: Tor
         interval_min,
         complete: torrent_stats.seeders,
         incomplete: torrent_stats.leechers,
-        peers: http_peers
+        peers: http_peers,
     };
 
     // check for compact response request

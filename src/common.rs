@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+use serde::{Deserialize, Serialize};
 
 pub const MAX_SCRAPE_TORRENTS: u8 = 74;
 pub const AUTH_KEY_LENGTH: usize = 32;
@@ -19,7 +19,7 @@ pub enum AnnounceEventDef {
     Started,
     Stopped,
     Completed,
-    None
+    None,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -135,7 +135,7 @@ impl PeerId {
             String::from(std::str::from_utf8(bytes_out).unwrap())
         } else {
             "".to_string()
-        }
+        };
     }
 }
 
@@ -218,6 +218,7 @@ impl PeerId {
         }
     }
 }
+
 impl Serialize for PeerId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where

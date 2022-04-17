@@ -1,6 +1,7 @@
 use std::sync::Arc;
+
 use tokio::sync::{mpsc, RwLock, RwLockReadGuard};
-use tokio::sync::mpsc::{Sender};
+use tokio::sync::mpsc::Sender;
 use tokio::sync::mpsc::error::SendError;
 
 const CHANNEL_BUFFER_SIZE: usize = 65_535;
@@ -16,7 +17,7 @@ pub enum TrackerStatsEvent {
     Udp4Scrape,
     Udp6Connect,
     Udp6Announce,
-    Udp6Scrape
+    Udp6Scrape,
 }
 
 #[derive(Debug)]
@@ -56,14 +57,14 @@ impl TrackerStats {
 
 pub struct StatsTracker {
     channel_sender: Option<Sender<TrackerStatsEvent>>,
-    pub stats: Arc<RwLock<TrackerStats>>
+    pub stats: Arc<RwLock<TrackerStats>>,
 }
 
 impl StatsTracker {
     pub fn new() -> Self {
         Self {
             channel_sender: None,
-            stats: Arc::new(RwLock::new(TrackerStats::new()))
+            stats: Arc::new(RwLock::new(TrackerStats::new())),
         }
     }
 

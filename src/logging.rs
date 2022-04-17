@@ -1,4 +1,5 @@
 use log::info;
+
 use crate::Configuration;
 
 pub fn setup_logging(cfg: &Configuration) {

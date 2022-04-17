@@ -1,10 +1,13 @@
-use crate::tracker::{TorrentTracker};
-use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
-use warp::{filters, reply, reply::Reply, serve, Filter, Server};
+
+use serde::{Deserialize, Serialize};
+use warp::{Filter, filters, reply, reply::Reply, serve, Server};
+
 use crate::torrent::TorrentPeer;
+use crate::tracker::TorrentTracker;
+
 use super::common::*;
 
 #[derive(Deserialize, Debug)]
@@ -52,7 +55,7 @@ enum ActionStatus<'a> {
 
 impl warp::reject::Reject for ActionStatus<'static> {}
 
-fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Error = warp::reject::Rejection> + Clone {
+fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract=(), Error=warp::reject::Rejection> + Clone {
     #[derive(Deserialize)]
     struct AuthToken {
         token: Option<String>,
@@ -69,7 +72,7 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
                 match token.token {
                     Some(token) => {
                         if !tokens.contains(&token) {
-                            return Err(warp::reject::custom(ActionStatus::Err { reason: "token not valid".into() }))
+                            return Err(warp::reject::custom(ActionStatus::Err { reason: "token not valid".into() }));
                         }
 
                         Ok(())
@@ -81,7 +84,7 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
         .untuple_one()
 }
 
-pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static> {
+pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract=impl Reply> + Clone + Send + Sync + 'static> {
     // GET /api/torrents?offset=:u32&limit=:u32
     // View torrent list
     let api_torrents = tracker.clone();
@@ -131,7 +134,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
         })
         .and_then(|tracker: Arc<TorrentTracker>| {
             async move {
-                let mut results = Stats{
+                let mut results = Stats {
                     torrents: 0,
                     seeders: 0,
                     completed: 0,
@@ -147,7 +150,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                     udp4_scrapes_handled: 0,
                     udp6_connections_handled: 0,
                     udp6_announces_handled: 0,
-                    udp6_scrapes_handled: 0
+                    udp6_scrapes_handled: 0,
                 };
                 let db = tracker.get_torrents().await;
                 let _: Vec<_> = db
@@ -195,7 +198,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                 let torrent_entry_option = db.get(&info_hash);
 
                 if torrent_entry_option.is_none() {
-                    return Err(warp::reject::custom(ActionStatus::Err { reason: "torrent does not exist".into() }))
+                    return Err(warp::reject::custom(ActionStatus::Err { reason: "torrent does not exist".into() }));
                 }
 
                 let torrent_entry = torrent_entry_option.unwrap();
@@ -226,10 +229,10 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
         })
         .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| {
             async move {
-                 match tracker.remove_torrent_from_whitelist(&info_hash).await {
-                     Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
-                     Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to remove torrent from whitelist".into() }))
-                 }
+                match tracker.remove_torrent_from_whitelist(&info_hash).await {
+                    Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
+                    Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to remove torrent from whitelist".into() }))
+                }
             }
         });
 

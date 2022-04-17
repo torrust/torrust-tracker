@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::io::Write;
 use std::net::IpAddr;
-use serde::{Serialize};
+
+use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct Peer {
@@ -18,7 +19,7 @@ pub struct AnnounceResponse {
     //pub tracker_id: String,
     pub complete: u32,
     pub incomplete: u32,
-    pub peers: Vec<Peer>
+    pub peers: Vec<Peer>,
 }
 
 impl AnnounceResponse {
@@ -75,7 +76,7 @@ pub struct ScrapeResponseEntry {
 
 #[derive(Serialize)]
 pub struct ScrapeResponse {
-    pub files: HashMap<String, ScrapeResponseEntry>
+    pub files: HashMap<String, ScrapeResponseEntry>,
 }
 
 impl ScrapeResponse {
@@ -87,7 +88,7 @@ impl ScrapeResponse {
 #[derive(Serialize)]
 pub struct ErrorResponse {
     #[serde(rename = "failure reason")]
-    pub failure_reason: String
+    pub failure_reason: String,
 }
 
 impl ErrorResponse {

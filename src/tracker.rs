@@ -1,16 +1,18 @@
+use std::collections::btree_map::Entry;
+use std::collections::BTreeMap;
+use std::net::SocketAddr;
+use std::sync::Arc;
+
+use log::info;
 use serde::{Deserialize, Serialize};
 use serde;
-use std::collections::BTreeMap;
 use tokio::sync::{RwLock, RwLockReadGuard};
-use crate::common::{InfoHash};
-use std::net::{SocketAddr};
+
 use crate::{Configuration, database, key_manager};
-use std::collections::btree_map::Entry;
-use std::sync::Arc;
-use log::info;
+use crate::common::InfoHash;
+use crate::database::Database;
 use tokio::sync::mpsc::error::SendError;
 use crate::key_manager::AuthKey;
-use crate::database::{Database};
 use crate::key_manager::Error::KeyInvalid;
 use crate::torrent::{TorrentEntry, TorrentError, TorrentPeer, TorrentStats};
 use crate::tracker_stats::{StatsTracker, TrackerStats, TrackerStatsEvent};
@@ -33,7 +35,6 @@ pub enum TrackerMode {
     #[serde(rename = "private_listed")]
     PrivateListedMode,
 }
-
 
 pub struct TorrentTracker {
     mode: TrackerMode,
@@ -80,7 +81,7 @@ impl TorrentTracker {
         let auth_key = key_manager::generate_auth_key(seconds_valid);
 
         // add key to database
-        if let Err(error) = self.database.add_key_to_keys(&auth_key).await { return Err(error) }
+        if let Err(error) = self.database.add_key_to_keys(&auth_key).await { return Err(error); }
 
         Ok(auth_key)
     }
@@ -96,18 +97,18 @@ impl TorrentTracker {
 
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
         // no authentication needed in public mode
-        if self.is_public() { return Ok(()) }
+        if self.is_public() { return Ok(()); }
 
         // check if auth_key is set and valid
         if self.is_private() {
             match key {
                 Some(key) => {
                     if self.verify_auth_key(key).await.is_err() {
-                        return Err(TorrentError::PeerKeyNotValid)
+                        return Err(TorrentError::PeerKeyNotValid);
                     }
                 }
                 None => {
-                    return Err(TorrentError::PeerNotAuthenticated)
+                    return Err(TorrentError::PeerNotAuthenticated);
                 }
             }
         }
@@ -115,7 +116,7 @@ impl TorrentTracker {
         // check if info_hash is whitelisted
         if self.is_whitelisted() {
             if self.is_info_hash_whitelisted(info_hash).await == false {
-                return Err(TorrentError::TorrentNotWhitelisted)
+                return Err(TorrentError::TorrentNotWhitelisted);
             }
         }
 
@@ -160,7 +161,7 @@ impl TorrentTracker {
     pub async fn get_torrent_peers(
         &self,
         info_hash: &InfoHash,
-        peer_addr: &SocketAddr
+        peer_addr: &SocketAddr,
     ) -> Vec<TorrentPeer> {
         let read_lock = self.torrents.read().await;
         match read_lock.get(info_hash) {
@@ -210,7 +211,7 @@ impl TorrentTracker {
             let torrent_entry = TorrentEntry {
                 peers: Default::default(),
                 completed,
-                seeders
+                seeders,
             };
             torrents.insert(info_hash.clone(), torrent_entry);
         }
@@ -250,6 +251,7 @@ impl TorrentTracker {
     // remove torrents without peers if enabled, and defragment memory
     pub async fn cleanup_torrents(&self) {
         info!("Cleaning torrents...");
+
         let lock = self.torrents.write().await;
 
         // First we create a mapping of all the torrent hashes in a vector, and we use this to iterate through the btreemap.
@@ -263,10 +265,10 @@ impl TorrentTracker {
 
         // Let's iterate through all torrents, and parse.
         for hash in torrent_hashes.iter() {
-            let mut torrent = TorrentEntry{
+            let mut torrent = TorrentEntry {
                 peers: BTreeMap::new(),
                 completed: 0,
-                seeders: 0
+                seeders: 0,
             };
 
             let lock = self.torrents.write().await;
@@ -299,32 +301,39 @@ impl TorrentTracker {
 
     pub async fn periodic_saving(&self) {
         // Get a lock for writing
-        let mut shadow = self.shadow.write().await;
+        // let mut shadow = self.shadow.write().await;
 
         // We will get the data and insert it into the shadow, while clearing updates.
         let mut updates = self.updates.write().await;
-
-        for (infohash, completed) in updates.iter() {
-            if shadow.contains_key(infohash) {
-                shadow.remove(infohash);
-            }
-            shadow.insert(*infohash, *completed);
+        let mut updates_cloned: std::collections::HashMap<InfoHash, u32> = std::collections::HashMap::new();
+        // let mut torrent_hashes: Vec<InfoHash> = Vec::new();
+        for (k, completed) in updates.iter() {
+            updates_cloned.insert(*k, *completed);
         }
         updates.clear();
         drop(updates);
 
-        // We get shadow data into local array to be handled.
+        let mut shadows = self.shadow.write().await;
+        for (k, completed) in updates_cloned.iter() {
+            if shadows.contains_key(k) {
+                shadows.remove(k);
+            }
+            shadows.insert(*k, *completed);
+        }
+        drop(updates_cloned);
+
+        // We updated the shadow data from the updates data, let's handle shadow data as expected.
         let mut shadow_copy: BTreeMap<InfoHash, TorrentEntry> = BTreeMap::new();
-        for (infohash, completed) in shadow.iter() {
-            shadow_copy.insert(*infohash, TorrentEntry{
+        for (infohash, completed) in shadows.iter() {
+            shadow_copy.insert(*infohash, TorrentEntry {
                 peers: Default::default(),
                 completed: *completed,
-                seeders: 0
+                seeders: 0,
             });
         }
 
         // Drop the lock
-        drop(shadow);
+        drop(shadows);
 
         // We will now save the data from the shadow into the database.
         // This should not put any strain on the server itself, other then the harddisk/ssd.

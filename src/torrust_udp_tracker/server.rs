@@ -1,10 +1,12 @@
 use std::io::Cursor;
-use std::net::{SocketAddr};
+use std::net::SocketAddr;
 use std::sync::Arc;
-use aquatic_udp_protocol::{Response};
+
+use aquatic_udp_protocol::Response;
 use log::{debug, info};
 use tokio::net::UdpSocket;
-use crate::{TorrentTracker};
+
+use crate::TorrentTracker;
 use crate::torrust_udp_tracker::{handle_packet, MAX_PACKET_SIZE};
 
 pub struct UdpServer {

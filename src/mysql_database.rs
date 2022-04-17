@@ -1,18 +1,20 @@
 use std::collections::BTreeMap;
-use crate::{InfoHash, AUTH_KEY_LENGTH, database};
-use log::debug;
-use r2d2::{Pool};
-use crate::key_manager::AuthKey;
 use std::str::FromStr;
-use crate::database::Database;
+
 use async_trait::async_trait;
+use log::debug;
+use r2d2::Pool;
 use r2d2_mysql::mysql::{Opts, OptsBuilder, params, TxOpts};
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::MysqlConnectionManager;
+
+use crate::{AUTH_KEY_LENGTH, database, InfoHash};
+use crate::database::{Database, Error};
+use crate::key_manager::AuthKey;
 use crate::torrent::TorrentEntry;
 
 pub struct MysqlDatabase {
-    pool: Pool<MysqlConnectionManager>
+    pool: Pool<MysqlConnectionManager>,
 }
 
 impl MysqlDatabase {
@@ -34,20 +36,20 @@ impl Database for MysqlDatabase {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
             id integer PRIMARY KEY AUTO_INCREMENT,
-            info_hash VARCHAR(20) NOT NULL UNIQUE
+            info_hash BINARY(20) NOT NULL UNIQUE
         );".to_string();
 
         let create_torrents_table = "
         CREATE TABLE IF NOT EXISTS torrents (
             id integer PRIMARY KEY AUTO_INCREMENT,
-            info_hash VARCHAR(20) NOT NULL UNIQUE,
+            info_hash BINARY(20) NOT NULL UNIQUE,
             completed INTEGER DEFAULT 0 NOT NULL
         );".to_string();
 
         let create_keys_table = format!("
         CREATE TABLE IF NOT EXISTS `keys` (
           `id` INT NOT NULL AUTO_INCREMENT,
-          `key` VARCHAR({}) NOT NULL,
+          `key` BINARY({}) NOT NULL,
           `valid_until` INT(10) NOT NULL,
           PRIMARY KEY (`id`),
           UNIQUE (`key`)
@@ -65,7 +67,7 @@ impl Database for MysqlDatabase {
     async fn load_persistent_torrent_data(&self) -> Result<Vec<(InfoHash, u32)>, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
-        let torrents: Vec<(InfoHash, u32)> = conn.query_map("SELECT info_hash, completed FROM torrents", |(info_hash_string, completed): (String, u32)| {
+        let torrents: Vec<(InfoHash, u32)> = conn.query_map("SELECT HEX(info_hash), completed FROM torrents", |(info_hash_string, completed): (String, u32)| {
             let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
             (info_hash, completed)
         }).map_err(|_| database::Error::QueryReturnedNoRows)?;
@@ -79,11 +81,16 @@ impl Database for MysqlDatabase {
         let mut db_transaction = conn.start_transaction(TxOpts::default()).map_err(|_| database::Error::DatabaseError)?;
 
         for (info_hash, torrent_entry) in torrents {
-                let (_seeders, completed, _leechers) = torrent_entry.get_stats();
-                let _ = db_transaction.exec_drop("INSERT OR REPLACE INTO torrents (info_hash, completed) VALUES (?, ?)", (info_hash.to_string(), completed.to_string()));
+            let (_seeders, completed, _leechers) = torrent_entry.get_stats();
+            if db_transaction.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX(?), ?) ON DUPLICATE KEY UPDATE completed = completed", (info_hash.to_string(), completed.to_string())).is_err() {
+                return Err(Error::InvalidQuery);
+            }
+            debug!("INSERT INTO torrents (info_hash, completed) VALUES (UNHEX('{}'), {}) ON DUPLICATE KEY UPDATE completed = completed", info_hash.to_string(), completed.to_string());
         }
 
-        let _ = db_transaction.commit();
+        if db_transaction.commit().is_err() {
+            return Err(Error::DatabaseError);
+        };
 
         Ok(())
     }
@@ -91,15 +98,15 @@ impl Database for MysqlDatabase {
     async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
-        match conn.exec_first::<String, _, _>("SELECT info_hash FROM whitelist WHERE info_hash = :info_hash", params! { info_hash => info_hash })
+        match conn.exec_first::<String, _, _>("SELECT HEX(info_hash) FROM whitelist WHERE info_hash = UNHEX(:info_hash)", params! { info_hash => info_hash })
             .map_err(|_| database::Error::QueryReturnedNoRows)? {
-                Some(info_hash) => {
-                    Ok(InfoHash::from_str(&info_hash).unwrap())
-                },
-                None => {
-                    Err(database::Error::InvalidQuery)
-                }
+            Some(info_hash) => {
+                Ok(InfoHash::from_str(&info_hash).unwrap())
             }
+            None => {
+                Err(database::Error::InvalidQuery)
+            }
+        }
     }
 
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, database::Error> {
@@ -107,10 +114,10 @@ impl Database for MysqlDatabase {
 
         let info_hash_str = info_hash.to_string();
 
-        match conn.exec_drop("INSERT INTO whitelist (info_hash) VALUES (:info_hash_str)", params! { info_hash_str }) {
+        match conn.exec_drop("INSERT INTO whitelist (info_hash) VALUES (UNHEX(:info_hash_str))", params! { info_hash_str }) {
             Ok(_) => {
                 Ok(1)
-            },
+            }
             Err(e) => {
                 debug!("{:?}", e);
                 Err(database::Error::InvalidQuery)
@@ -123,10 +130,10 @@ impl Database for MysqlDatabase {
 
         let info_hash = info_hash.to_string();
 
-        match conn.exec_drop("DELETE FROM whitelist WHERE info_hash = :info_hash", params! { info_hash }) {
+        match conn.exec_drop("DELETE FROM whitelist WHERE info_hash = UNHEX(:info_hash)", params! { info_hash }) {
             Ok(_) => {
                 Ok(1)
-            },
+            }
             Err(e) => {
                 debug!("{:?}", e);
                 Err(database::Error::InvalidQuery)
@@ -142,9 +149,9 @@ impl Database for MysqlDatabase {
             Some((key, valid_until)) => {
                 Ok(AuthKey {
                     key,
-                    valid_until: Some(valid_until as u64)
+                    valid_until: Some(valid_until as u64),
                 })
-            },
+            }
             None => {
                 Err(database::Error::InvalidQuery)
             }
@@ -160,7 +167,7 @@ impl Database for MysqlDatabase {
         match conn.exec_drop("INSERT INTO `keys` (`key`, valid_until) VALUES (:key, :valid_until)", params! { key, valid_until }) {
             Ok(_) => {
                 Ok(1)
-            },
+            }
             Err(e) => {
                 debug!("{:?}", e);
                 Err(database::Error::InvalidQuery)
@@ -174,7 +181,7 @@ impl Database for MysqlDatabase {
         match conn.exec_drop("DELETE FROM `keys` WHERE key = :key", params! { key }) {
             Ok(_) => {
                 Ok(1)
-            },
+            }
             Err(e) => {
                 debug!("{:?}", e);
                 Err(database::Error::InvalidQuery)
