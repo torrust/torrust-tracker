@@ -308,6 +308,7 @@ impl TorrentTracker {
         let mut updates = self.updates.write().await;
         let mut updates_cloned: std::collections::HashMap<InfoHash, u32> = std::collections::HashMap::new();
         // let mut torrent_hashes: Vec<InfoHash> = Vec::new();
+        info!("Copying updates to updates_cloned...");
         for (k, completed) in updates.iter() {
             updates_cloned.insert(k.clone(), completed.clone());
         }
@@ -315,6 +316,7 @@ impl TorrentTracker {
         drop(updates);
 
         let mut shadows = self.shadow.write().await;
+        info!("Copying updates_cloned into the shadow to overwrite...");
         for (k, completed) in updates_cloned.iter() {
             if shadows.contains_key(k) {
                 shadows.remove(k);
@@ -324,6 +326,7 @@ impl TorrentTracker {
         drop(updates_cloned);
 
         // We updated the shadow data from the updates data, let's handle shadow data as expected.
+        info!("Handle shadow_copy to be updated into SQL...");
         let mut shadow_copy: BTreeMap<InfoHash, TorrentEntry> = BTreeMap::new();
         for (infohash, completed) in shadows.iter() {
             shadow_copy.insert(infohash.clone(), TorrentEntry {
@@ -338,11 +341,15 @@ impl TorrentTracker {
 
         // We will now save the data from the shadow into the database.
         // This should not put any strain on the server itself, other then the harddisk/ssd.
+        info!("Start saving shadow data into SQL...");
         let result = self.database.save_persistent_torrent_data(&shadow_copy).await;
         if result.is_ok() {
+            info!("Done saving data to SQL and succeeded, emptying shadow...");
             let mut shadow = self.shadow.write().await;
             shadow.clear();
             drop(shadow);
+        } else {
+            info!("Done saving data to SQL and failed, not emptying shadow...");
         }
     }
 }
