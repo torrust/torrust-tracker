@@ -49,8 +49,8 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
 
     // send stats event
     match announce_request.peer_addr {
-        IpAddr::V4(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Tcp4Announce).await; }
-        IpAddr::V6(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Tcp6Announce).await; }
+        IpAddr::V4(_) => { tracker.send_stats_event(TrackerStatsEvent::Tcp4Announce).await; }
+        IpAddr::V6(_) => { tracker.send_stats_event(TrackerStatsEvent::Tcp6Announce).await; }
     }
 
     send_announce_response(&announce_request, torrent_stats, peers, announce_interval, tracker.config.announce_interval_min)
@@ -82,8 +82,8 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
 
     // send stats event
     match scrape_request.peer_addr {
-        IpAddr::V4(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Tcp4Scrape).await; }
-        IpAddr::V6(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Tcp6Scrape).await; }
+        IpAddr::V4(_) => { tracker.send_stats_event(TrackerStatsEvent::Tcp4Scrape).await; }
+        IpAddr::V6(_) => { tracker.send_stats_event(TrackerStatsEvent::Tcp6Scrape).await; }
     }
 
     send_scrape_response(files)
