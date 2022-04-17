@@ -11,12 +11,13 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 use crate::{Configuration, database, key_manager};
 use crate::common::InfoHash;
 use crate::database::Database;
+use tokio::sync::mpsc::error::SendError;
 use crate::key_manager::AuthKey;
 use crate::key_manager::Error::KeyInvalid;
 use crate::torrent::{TorrentEntry, TorrentError, TorrentPeer, TorrentStats};
-use crate::tracker_stats::{StatsTracker, TrackerStats};
+use crate::tracker_stats::{StatsTracker, TrackerStats, TrackerStatsEvent};
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Debug)]
 pub enum TrackerMode {
     // Will track every new info hash and serve every peer.
     #[serde(rename = "public")]
@@ -36,12 +37,13 @@ pub enum TrackerMode {
 }
 
 pub struct TorrentTracker {
+    mode: TrackerMode,
     pub config: Arc<Configuration>,
-    torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
-    updates: tokio::sync::RwLock<std::collections::HashMap<InfoHash, u32>>,
-    shadow: tokio::sync::RwLock<std::collections::HashMap<InfoHash, u32>>,
-    database: Box<dyn Database>,
-    pub stats_tracker: StatsTracker,
+    torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
+    updates: RwLock<std::collections::HashMap<InfoHash, u32>>,
+    shadow: RwLock<std::collections::HashMap<InfoHash, u32>>,
+    stats_tracker: StatsTracker,
+    database: Box<dyn Database>
 }
 
 impl TorrentTracker {
@@ -49,28 +51,30 @@ impl TorrentTracker {
         let database = database::connect_database(&config.db_driver, &config.db_path)?;
         let mut stats_tracker = StatsTracker::new();
 
-        stats_tracker.run_worker();
+        // starts a thread for updating tracker stats
+        if config.statistics { stats_tracker.run_worker(); }
 
         Ok(TorrentTracker {
-            config,
+            mode: config.mode,
+            config: config.clone(),
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             updates: RwLock::new(std::collections::HashMap::new()),
             shadow: RwLock::new(std::collections::HashMap::new()),
-            database,
             stats_tracker,
+            database
         })
     }
 
     pub fn is_public(&self) -> bool {
-        self.config.mode == TrackerMode::PublicMode
+        self.mode == TrackerMode::PublicMode
     }
 
     pub fn is_private(&self) -> bool {
-        self.config.mode == TrackerMode::PrivateMode || self.config.mode == TrackerMode::PrivateListedMode
+        self.mode == TrackerMode::PrivateMode || self.mode == TrackerMode::PrivateListedMode
     }
 
     pub fn is_whitelisted(&self) -> bool {
-        self.config.mode == TrackerMode::ListedMode || self.config.mode == TrackerMode::PrivateListedMode
+        self.mode == TrackerMode::ListedMode || self.mode == TrackerMode::PrivateListedMode
     }
 
     pub async fn generate_auth_key(&self, seconds_valid: u64) -> Result<AuthKey, database::Error> {
@@ -225,6 +229,10 @@ impl TorrentTracker {
 
     pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStats> {
         self.stats_tracker.get_stats().await
+    }
+
+    pub async fn send_stats_event(&self, event: TrackerStatsEvent) -> Option<Result<(), SendError<TrackerStatsEvent>>> {
+        self.stats_tracker.send_event(event).await
     }
 
     pub async fn post_log(&self) {
