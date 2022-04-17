@@ -77,8 +77,8 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
 
     // send stats event
     match remote_addr {
-        SocketAddr::V4(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Udp4Connect).await; }
-        SocketAddr::V6(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Udp6Connect).await; }
+        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp4Connect).await; }
+        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp6Connect).await; }
     }
 
     Ok(response)
@@ -136,8 +136,8 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
 
     // send stats event
     match remote_addr {
-        SocketAddr::V4(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Udp4Announce).await; }
-        SocketAddr::V6(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Udp6Announce).await; }
+        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp4Announce).await; }
+        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp6Announce).await; }
     }
 
     Ok(announce_response)
@@ -178,8 +178,8 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
 
     // send stats event
     match remote_addr {
-        SocketAddr::V4(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Udp4Scrape).await; }
-        SocketAddr::V6(_) => { tracker.stats_tracker.send_event(TrackerStatsEvent::Udp6Scrape).await; }
+        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp4Scrape).await; }
+        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp6Scrape).await; }
     }
 
     Ok(Response::from(ScrapeResponse {
