@@ -82,8 +82,7 @@ impl Database for SqliteDatabase {
 
         for (info_hash, torrent_entry) in torrents {
             let (_seeders, completed, _leechers) = torrent_entry.get_stats();
-            let _ = db_transaction.execute("INSERT OR IGNORE INTO torrents (info_hash, completed) VALUES (?, ?)", &[info_hash.to_string(), completed.to_string()]);
-            let _ = db_transaction.execute("UPDATE torrents SET completed = ? WHERE info_hash = ?", &[completed.to_string(), info_hash.to_string()]);
+            let _ = db_transaction.execute("INSERT OR REPLACE INTO torrents (info_hash, completed) VALUES (?, ?)", &[info_hash.to_string(), completed.to_string()]);
         }
 
         let _ = db_transaction.commit();

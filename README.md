@@ -14,8 +14,6 @@ Torrust Tracker is a lightweight but incredibly powerful and feature-rich BitTor
 * [X] Peer authentication using time-bound keys
 * [X] newTrackon check supported for both HTTP, UDP, where IPv4 and IPv6 is properly handled
 * [X] SQLite3 Persistent loading and saving of the torrent hashes and completed count
-* [X] MySQL support added as engine option
-* [X] Periodically saving added, interval can be configured
 
 ### Implemented BEPs
 * [BEP 3](https://www.bittorrent.org/beps/bep_0003.html): The BitTorrent Protocol
