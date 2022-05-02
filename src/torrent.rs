@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS, PeerId};
 use crate::common::{AnnounceEventDef, NumberOfBytesDef};
-use crate::torrust_http_tracker::AnnounceRequest;
+use crate::http::AnnounceRequest;
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize)]
 pub struct TorrentPeer {

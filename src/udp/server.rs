@@ -7,7 +7,7 @@ use log::{debug, info};
 use tokio::net::UdpSocket;
 
 use crate::TorrentTracker;
-use crate::torrust_udp_tracker::{handle_packet, MAX_PACKET_SIZE};
+use crate::udp::{handle_packet, MAX_PACKET_SIZE};
 
 pub struct UdpServer {
     socket: Arc<UdpSocket>,

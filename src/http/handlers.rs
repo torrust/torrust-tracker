@@ -10,7 +10,7 @@ use warp::http::Response;
 use crate::{InfoHash, TorrentTracker};
 use crate::key_manager::AuthKey;
 use crate::torrent::{TorrentError, TorrentPeer, TorrentStats};
-use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError, WebResult};
+use crate::http::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError, WebResult};
 use crate::tracker_stats::TrackerStatsEvent;
 use crate::utils::url_encode_bytes;
 

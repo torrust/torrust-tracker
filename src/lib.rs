@@ -1,5 +1,5 @@
-pub use torrust_http_tracker::server::*;
-pub use torrust_udp_tracker::server::*;
+pub use http::server::*;
+pub use udp::server::*;
 
 pub use self::common::*;
 pub use self::config::*;
@@ -14,8 +14,8 @@ pub mod utils;
 pub mod sqlite_database;
 pub mod key_manager;
 pub mod logging;
-pub mod torrust_udp_tracker;
-pub mod torrust_http_tracker;
+pub mod udp;
+pub mod http;
 pub mod database;
 pub mod mysql_database;
 pub mod torrent;

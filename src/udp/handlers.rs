@@ -5,8 +5,8 @@ use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, 
 
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS, TorrentTracker};
 use crate::torrent::{TorrentError, TorrentPeer};
-use crate::torrust_udp_tracker::errors::ServerError;
-use crate::torrust_udp_tracker::request::AnnounceRequestWrapper;
+use crate::udp::errors::ServerError;
+use crate::udp::request::AnnounceRequestWrapper;
 use crate::tracker_stats::TrackerStatsEvent;
 use crate::utils::get_connection_id;
 

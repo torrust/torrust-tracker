@@ -5,7 +5,7 @@ use log::info;
 use tokio::task::JoinHandle;
 
 use torrust_tracker::{Configuration, http_api_server, HttpApiConfig, HttpTrackerConfig, logging, TorrentTracker, UdpServer, UdpTrackerConfig};
-use torrust_tracker::torrust_http_tracker::server::HttpServer;
+use torrust_tracker::http::server::HttpServer;
 
 #[tokio::main]
 async fn main() {

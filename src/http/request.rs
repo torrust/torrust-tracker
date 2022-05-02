@@ -3,7 +3,7 @@ use std::net::IpAddr;
 use serde::Deserialize;
 
 use crate::{InfoHash, PeerId};
-use crate::torrust_http_tracker::Bytes;
+use crate::http::Bytes;
 
 #[derive(Deserialize)]
 pub struct AnnounceRequestQuery {

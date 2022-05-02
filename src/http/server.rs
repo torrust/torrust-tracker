@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use crate::TorrentTracker;
-use crate::torrust_http_tracker::routes;
+use crate::http::routes;
 
 /// Server that listens on HTTP, needs a TorrentTracker
 #[derive(Clone)]
