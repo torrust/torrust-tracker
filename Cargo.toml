@@ -10,9 +10,6 @@ edition = "2018"
 debug = 1
 lto = "fat"
 
-[features]
-dhat-heap = []    # if you are doing heap profiling
-
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_bencode = "^0.2.3"
@@ -38,4 +35,3 @@ thiserror = "1.0"
 aquatic_udp_protocol = { git = "https://github.com/greatest-ape/aquatic" }
 futures = "0.3.21"
 async-trait = "0.1.52"
-dhat = "0.3.0"

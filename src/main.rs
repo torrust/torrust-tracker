@@ -7,15 +7,8 @@ use tokio::task::JoinHandle;
 use torrust_tracker::{Configuration, http_api_server, HttpApiConfig, HttpTrackerConfig, logging, TorrentTracker, UdpServer, UdpTrackerConfig};
 use torrust_tracker::torrust_http_tracker::server::HttpServer;
 
-#[cfg(feature = "dhat-heap")]
-#[global_allocator]
-static ALLOC: dhat::Alloc = dhat::Alloc;
-
 #[tokio::main]
 async fn main() {
-    #[cfg(feature = "dhat-heap")]
-        let _profiler = dhat::Profiler::new_heap();
-
     // torrust config
     let config = match Configuration::load_from_file() {
         Ok(config) => Arc::new(config),
@@ -29,6 +22,7 @@ async fn main() {
         panic!("{}", e)
     }));
 
+    // initialize logging
     logging::setup_logging(&config);
 
     // load persistent torrents if enabled
@@ -39,11 +33,11 @@ async fn main() {
         };
         info!("Persistent torrents loaded.");
 
-        let _torrent_periodic_job = start_torrent_periodic_job(config.clone(), tracker.clone()).unwrap();
+        let _torrent_periodic_job = start_torrent_periodic_job(config.clone(), tracker.clone());
     }
 
     // start torrent cleanup job (periodically removes old peers)
-    let _torrent_cleanup_job = start_torrent_cleanup_job(config.clone(), tracker.clone()).unwrap();
+    let _torrent_cleanup_job = start_torrent_cleanup_job(config.clone(), tracker.clone());
 
     // start HTTP API server
     if config.http_api.enabled {
@@ -80,7 +74,7 @@ async fn main() {
     }
 
     // start a thread to post statistics
-    let _ = start_statistics_job(config.clone(), tracker.clone()).unwrap();
+    let _ = start_statistics_job(config.clone(), tracker.clone());
 
     // handle the signals here
     tokio::select! {
@@ -103,11 +97,11 @@ async fn main() {
     }
 }
 
-fn start_torrent_periodic_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+fn start_torrent_periodic_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let weak_tracker = std::sync::Arc::downgrade(&tracker);
     let interval = config.persistence_interval.unwrap_or(900);
 
-    return Some(tokio::spawn(async move {
+    tokio::spawn(async move {
         let interval = std::time::Duration::from_secs(interval);
         let mut interval = tokio::time::interval(interval);
         interval.tick().await; // first tick is immediate...
@@ -122,14 +116,14 @@ fn start_torrent_periodic_job(config: Arc<Configuration>, tracker: Arc<TorrentTr
                 break;
             }
         }
-    }));
+    })
 }
 
-fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let weak_tracker = std::sync::Arc::downgrade(&tracker);
     let interval = config.cleanup_interval.unwrap_or(600);
 
-    return Some(tokio::spawn(async move {
+    tokio::spawn(async move {
         let interval = std::time::Duration::from_secs(interval);
         let mut interval = tokio::time::interval(interval);
         interval.tick().await; // first tick is immediate...
@@ -142,14 +136,14 @@ fn start_torrent_cleanup_job(config: Arc<Configuration>, tracker: Arc<TorrentTra
                 break;
             }
         }
-    }));
+    })
 }
 
-fn start_statistics_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> Option<JoinHandle<()>> {
+fn start_statistics_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let weak_tracker = std::sync::Arc::downgrade(&tracker);
     let interval = config.log_interval.unwrap_or(60);
 
-    return Some(tokio::spawn(async move {
+    tokio::spawn(async move {
         let interval = std::time::Duration::from_secs(interval);
         let mut interval = tokio::time::interval(interval);
         interval.tick().await; // first tick is immediate...
@@ -162,7 +156,7 @@ fn start_statistics_job(config: Arc<Configuration>, tracker: Arc<TorrentTracker>
                 break;
             }
         }
-    }));
+    })
 }
 
 fn start_api_server(config: &HttpApiConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
