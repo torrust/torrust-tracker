@@ -8,10 +8,11 @@ use serde::{Deserialize, Serialize};
 use serde;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
-use crate::{Configuration, database, key_manager};
+use crate::{Configuration, key_manager};
 use crate::common::InfoHash;
-use crate::database::Database;
+use crate::databases::database::Database;
 use tokio::sync::mpsc::error::SendError;
+use crate::databases::database;
 use crate::key_manager::AuthKey;
 use crate::key_manager::Error::KeyInvalid;
 use crate::torrent::{TorrentEntry, TorrentError, TorrentPeer, TorrentStats};
@@ -124,7 +125,7 @@ impl TorrentTracker {
     }
 
     // Loading the torrents into memory
-    pub async fn load_torrents(&self) -> Result<(), database::Error> {
+    pub async fn load_persistent_torrents(&self) -> Result<(), database::Error> {
         let torrents = self.database.load_persistent_torrent_data().await?;
 
         for torrent in torrents {

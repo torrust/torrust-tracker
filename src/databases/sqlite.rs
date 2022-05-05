@@ -7,8 +7,9 @@ use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use r2d2_sqlite::rusqlite::NO_PARAMS;
 
-use crate::{AUTH_KEY_LENGTH, database, InfoHash};
-use crate::database::Database;
+use crate::{AUTH_KEY_LENGTH, InfoHash};
+use crate::databases::database::Database;
+use crate::databases::database;
 use crate::key_manager::AuthKey;
 use crate::torrent::TorrentEntry;
 

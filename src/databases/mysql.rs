@@ -8,8 +8,9 @@ use r2d2_mysql::mysql::{Opts, OptsBuilder, params, TxOpts};
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::MysqlConnectionManager;
 
-use crate::{AUTH_KEY_LENGTH, database, InfoHash};
-use crate::database::{Database, Error};
+use crate::{AUTH_KEY_LENGTH, InfoHash};
+use crate::databases::database::{Database, Error};
+use crate::databases::database;
 use crate::key_manager::AuthKey;
 use crate::torrent::TorrentEntry;
 

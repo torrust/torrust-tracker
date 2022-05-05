@@ -9,7 +9,7 @@ use config::{Config, ConfigError, File};
 use serde::{Deserialize, Serialize, Serializer};
 use toml;
 
-use crate::database::DatabaseDrivers;
+use crate::databases::database::DatabaseDrivers;
 pub use crate::tracker::TrackerMode;
 
 #[derive(Serialize, Deserialize, PartialEq)]

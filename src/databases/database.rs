@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::InfoHash;
 use crate::key_manager::AuthKey;
-use crate::mysql_database::MysqlDatabase;
-use crate::sqlite_database::SqliteDatabase;
+use crate::databases::mysql::MysqlDatabase;
+use crate::databases::sqlite::SqliteDatabase;
 use crate::torrent::TorrentEntry;
 
 #[derive(Serialize, Deserialize, Debug)]
