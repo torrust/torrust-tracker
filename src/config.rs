@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize, Serializer};
 use toml;
 
 use crate::databases::database::DatabaseDrivers;
-use crate::tracker::tracker::TrackerMode;
+use crate::mode::TrackerMode;
 
 #[derive(Serialize, Deserialize, PartialEq)]
 pub enum TrackerServer {
@@ -141,7 +141,7 @@ impl Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             log_interval: Some(60),
-            mode: TrackerMode::PublicMode,
+            mode: TrackerMode::Public,
             db_driver: DatabaseDrivers::Sqlite3,
             db_path: String::from("data.db"),
             statistics: true,

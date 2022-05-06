@@ -1,8 +1,11 @@
 use std::net::{IpAddr, SocketAddr};
+
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde;
 use serde::{Serialize};
+
 use crate::protocol::common::{NumberOfBytesDef, AnnounceEventDef};
+use crate::protocol::utils::ser_instant;
 use crate::http::AnnounceRequest;
 use crate::PeerId;
 
@@ -71,13 +74,5 @@ impl TorrentPeer {
         }
     }
 
-    pub(crate) fn is_seeder(&self) -> bool { self.left.0 <= 0 && self.event != AnnounceEvent::Stopped }
-
-    pub(crate) fn is_completed(&self) -> bool {
-        self.event == AnnounceEvent::Completed
-    }
-}
-
-fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Result<S::Ok, S::Error> {
-    ser.serialize_u64(inst.elapsed().as_millis() as u64)
+    pub fn is_seeder(&self) -> bool { self.left.0 <= 0 && self.event != AnnounceEvent::Stopped }
 }

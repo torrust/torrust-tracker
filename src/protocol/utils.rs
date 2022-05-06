@@ -57,3 +57,7 @@ pub async fn convert_bytes_to_int(array: &Vec<u8>) -> u64 {
     let mut rdr = Cursor::new(array_fixed);
     return rdr.read_u64::<BigEndian>().unwrap();
 }
+
+pub fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Result<S::Ok, S::Error> {
+    ser.serialize_u64(inst.elapsed().as_millis() as u64)
+}

@@ -23,7 +23,7 @@ struct Torrent<'a> {
     completed: u32,
     leechers: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
-    peers: Option<Vec<TorrentPeer>>,
+    peers: Option<Vec<&'a TorrentPeer>>,
 }
 
 #[derive(Serialize)]
@@ -198,7 +198,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
                 let torrent_entry_option = db.get(&info_hash);
 
                 if torrent_entry_option.is_none() {
-                    return Err(warp::reject::custom(ActionStatus::Err { reason: "torrent does not exist".into() }));
+                    return Result::<_, warp::reject::Rejection>::Ok(reply::json(&"torrent not known"))
                 }
 
                 let torrent_entry = torrent_entry_option.unwrap();

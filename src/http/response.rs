@@ -3,6 +3,7 @@ use std::error::Error;
 use std::io::Write;
 use std::net::IpAddr;
 
+use serde;
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -15,6 +16,7 @@ pub struct Peer {
 #[derive(Serialize)]
 pub struct AnnounceResponse {
     pub interval: u32,
+    #[serde(rename = "min interval")]
     pub interval_min: u32,
     //pub tracker_id: String,
     pub complete: u32,
