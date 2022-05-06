@@ -12,12 +12,6 @@ use toml;
 use crate::databases::database::DatabaseDrivers;
 use crate::mode::TrackerMode;
 
-#[derive(Serialize, Deserialize, PartialEq)]
-pub enum TrackerServer {
-    UDP,
-    HTTP,
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UdpTrackerConfig {
     pub enabled: bool,
