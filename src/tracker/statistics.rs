@@ -7,7 +7,7 @@ use tokio::sync::mpsc::error::SendError;
 const CHANNEL_BUFFER_SIZE: usize = 65_535;
 
 #[derive(Debug)]
-pub enum TrackerStatsEvent {
+pub enum TrackerStatisticsEvent {
     Tcp4Announce,
     Tcp4Scrape,
     Tcp6Announce,
@@ -21,7 +21,7 @@ pub enum TrackerStatsEvent {
 }
 
 #[derive(Debug)]
-pub struct TrackerStats {
+pub struct TrackerStatistics {
     pub tcp4_connections_handled: u64,
     pub tcp4_announces_handled: u64,
     pub tcp4_scrapes_handled: u64,
@@ -36,7 +36,7 @@ pub struct TrackerStats {
     pub udp6_scrapes_handled: u64,
 }
 
-impl TrackerStats {
+impl TrackerStatistics {
     pub fn new() -> Self {
         Self {
             tcp4_connections_handled: 0,
@@ -56,23 +56,23 @@ impl TrackerStats {
 }
 
 pub struct StatsTracker {
-    channel_sender: Option<Sender<TrackerStatsEvent>>,
-    pub stats: Arc<RwLock<TrackerStats>>,
+    channel_sender: Option<Sender<TrackerStatisticsEvent>>,
+    pub stats: Arc<RwLock<TrackerStatistics>>,
 }
 
 impl StatsTracker {
     pub fn new() -> Self {
         Self {
             channel_sender: None,
-            stats: Arc::new(RwLock::new(TrackerStats::new())),
+            stats: Arc::new(RwLock::new(TrackerStatistics::new())),
         }
     }
 
-    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStats> {
+    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
         self.stats.read().await
     }
 
-    pub async fn send_event(&self, event: TrackerStatsEvent) -> Option<Result<(), SendError<TrackerStatsEvent>>> {
+    pub async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
         if let Some(tx) = &self.channel_sender {
             Some(tx.send(event).await)
         } else {
@@ -81,7 +81,7 @@ impl StatsTracker {
     }
 
     pub fn run_worker(&mut self) {
-        let (tx, mut rx) = mpsc::channel::<TrackerStatsEvent>(CHANNEL_BUFFER_SIZE);
+        let (tx, mut rx) = mpsc::channel::<TrackerStatisticsEvent>(CHANNEL_BUFFER_SIZE);
 
         // set send channel on stats_tracker
         self.channel_sender = Some(tx);
@@ -93,28 +93,28 @@ impl StatsTracker {
                 let mut stats_lock = stats.write().await;
 
                 match event {
-                    TrackerStatsEvent::Tcp4Announce => {
+                    TrackerStatisticsEvent::Tcp4Announce => {
                         stats_lock.tcp4_announces_handled += 1;
                         stats_lock.tcp4_connections_handled += 1;
                     }
-                    TrackerStatsEvent::Tcp4Scrape => {
+                    TrackerStatisticsEvent::Tcp4Scrape => {
                         stats_lock.tcp4_scrapes_handled += 1;
                         stats_lock.tcp4_connections_handled += 1;
                     }
-                    TrackerStatsEvent::Tcp6Announce => {
+                    TrackerStatisticsEvent::Tcp6Announce => {
                         stats_lock.tcp6_announces_handled += 1;
                         stats_lock.tcp6_connections_handled += 1;
                     }
-                    TrackerStatsEvent::Tcp6Scrape => {
+                    TrackerStatisticsEvent::Tcp6Scrape => {
                         stats_lock.tcp6_scrapes_handled += 1;
                         stats_lock.tcp6_connections_handled += 1;
                     }
-                    TrackerStatsEvent::Udp4Connect => { stats_lock.udp4_connections_handled += 1; }
-                    TrackerStatsEvent::Udp4Announce => { stats_lock.udp4_announces_handled += 1; }
-                    TrackerStatsEvent::Udp4Scrape => { stats_lock.udp4_scrapes_handled += 1; }
-                    TrackerStatsEvent::Udp6Connect => { stats_lock.udp6_connections_handled += 1; }
-                    TrackerStatsEvent::Udp6Announce => { stats_lock.udp6_announces_handled += 1; }
-                    TrackerStatsEvent::Udp6Scrape => { stats_lock.udp6_scrapes_handled += 1; }
+                    TrackerStatisticsEvent::Udp4Connect => { stats_lock.udp4_connections_handled += 1; }
+                    TrackerStatisticsEvent::Udp4Announce => { stats_lock.udp4_announces_handled += 1; }
+                    TrackerStatisticsEvent::Udp4Scrape => { stats_lock.udp4_scrapes_handled += 1; }
+                    TrackerStatisticsEvent::Udp6Connect => { stats_lock.udp6_connections_handled += 1; }
+                    TrackerStatisticsEvent::Udp6Announce => { stats_lock.udp6_announces_handled += 1; }
+                    TrackerStatisticsEvent::Udp6Scrape => { stats_lock.udp6_scrapes_handled += 1; }
                 }
 
                 drop(stats_lock);

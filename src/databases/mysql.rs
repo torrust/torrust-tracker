@@ -11,8 +11,8 @@ use r2d2_mysql::MysqlConnectionManager;
 use crate::{AUTH_KEY_LENGTH, InfoHash};
 use crate::databases::database::{Database, Error};
 use crate::databases::database;
-use crate::key_manager::AuthKey;
-use crate::torrent::TorrentEntry;
+use crate::tracker::key::AuthKey;
+use crate::tracker::torrent::TorrentEntry;
 
 pub struct MysqlDatabase {
     pool: Pool<MysqlConnectionManager>,
@@ -65,7 +65,7 @@ impl Database for MysqlDatabase {
         Ok(())
     }
 
-    async fn load_persistent_torrent_data(&self) -> Result<Vec<(InfoHash, u32)>, database::Error> {
+    async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
         let torrents: Vec<(InfoHash, u32)> = conn.query_map("SELECT HEX(info_hash), completed FROM torrents", |(info_hash_string, completed): (String, u32)| {

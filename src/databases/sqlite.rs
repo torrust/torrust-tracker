@@ -10,8 +10,8 @@ use r2d2_sqlite::rusqlite::NO_PARAMS;
 use crate::{AUTH_KEY_LENGTH, InfoHash};
 use crate::databases::database::Database;
 use crate::databases::database;
-use crate::key_manager::AuthKey;
-use crate::torrent::TorrentEntry;
+use crate::tracker::key::AuthKey;
+use crate::tracker::torrent::TorrentEntry;
 
 pub struct SqliteDatabase {
     pool: Pool<SqliteConnectionManager>,
@@ -59,7 +59,7 @@ impl Database for SqliteDatabase {
             .map(|_| ())
     }
 
-    async fn load_persistent_torrent_data(&self) -> Result<Vec<(InfoHash, u32)>, database::Error> {
+    async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, database::Error> {
         let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
         let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;

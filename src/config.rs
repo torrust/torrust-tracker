@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize, Serializer};
 use toml;
 
 use crate::databases::database::DatabaseDrivers;
-pub use crate::tracker::TrackerMode;
+use crate::tracker::tracker::TrackerMode;
 
 #[derive(Serialize, Deserialize, PartialEq)]
 pub enum TrackerServer {
@@ -61,7 +61,7 @@ pub struct Configuration {
     pub statistics: bool,
     pub persistence: bool,
     pub persistence_interval: Option<u64>,
-    pub cleanup_interval: Option<u64>,
+    pub cleanup_interval: u64,
     pub cleanup_peerless: bool,
     pub external_ip: Option<String>,
     pub announce_interval: u32,
@@ -147,7 +147,7 @@ impl Configuration {
             statistics: true,
             persistence: false,
             persistence_interval: Some(900),
-            cleanup_interval: Some(600),
+            cleanup_interval: 600,
             cleanup_peerless: true,
             external_ip: Some(String::from("0.0.0.0")),
             announce_interval: 120,

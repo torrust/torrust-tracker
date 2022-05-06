@@ -1,14 +1,14 @@
 use std::cmp::min;
 use std::collections::{HashMap, HashSet};
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
-use warp::{Filter, filters, reply, reply::Reply, serve, Server};
+use warp::{Filter, filters, reply, serve};
 
-use crate::torrent::TorrentPeer;
-use crate::tracker::TorrentTracker;
-
-use super::common::*;
+use crate::protocol::common::*;
+use crate::peer::TorrentPeer;
+use crate::tracker::tracker::TorrentTracker;
 
 #[derive(Deserialize, Debug)]
 struct TorrentInfoQuery {
@@ -84,7 +84,7 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract=(), Erro
         .untuple_one()
 }
 
-pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract=impl Reply> + Clone + Send + Sync + 'static> {
+pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp::Future<Output = ()> {
     // GET /api/torrents?offset=:u32&limit=:u32
     // View torrent list
     let api_torrents = tracker.clone();
@@ -309,5 +309,11 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract=
 
     let server = api_routes.and(authenticate(tracker.config.http_api.access_tokens.clone()));
 
-    serve(server)
+    let (_addr, api_server) = serve(server).bind_with_graceful_shutdown(socket_addr, async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to listen to shutdown signal.");
+    });
+
+    api_server
 }

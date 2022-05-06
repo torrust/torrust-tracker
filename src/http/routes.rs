@@ -3,8 +3,14 @@ use std::sync::Arc;
 
 use warp::{Filter, Rejection};
 
-use crate::TorrentTracker;
-use crate::http::{handle_announce, handle_scrape, send_error, with_announce_request, with_auth_key, with_scrape_request, with_tracker};
+use crate::http::handle_announce;
+use crate::http::handle_scrape;
+use crate::http::send_error;
+use crate::http::with_announce_request;
+use crate::http::with_auth_key;
+use crate::http::with_scrape_request;
+use crate::http::with_tracker;
+use crate::tracker::tracker::TorrentTracker;
 
 /// All routes
 pub fn routes(tracker: Arc<TorrentTracker>) -> impl Filter<Extract=impl warp::Reply, Error=Infallible> + Clone {

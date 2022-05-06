@@ -3,12 +3,14 @@ use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId};
 
-use crate::{InfoHash, MAX_SCRAPE_TORRENTS, TorrentTracker};
-use crate::torrent::{TorrentError, TorrentPeer};
+use crate::{InfoHash, MAX_SCRAPE_TORRENTS};
+use crate::peer::TorrentPeer;
+use crate::tracker::torrent::{TorrentError};
 use crate::udp::errors::ServerError;
 use crate::udp::request::AnnounceRequestWrapper;
-use crate::tracker_stats::TrackerStatsEvent;
-use crate::utils::get_connection_id;
+use crate::tracker::statistics::TrackerStatisticsEvent;
+use crate::tracker::tracker::TorrentTracker;
+use crate::protocol::utils::get_connection_id;
 
 pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
     match tracker.authenticate_request(info_hash, &None).await {
@@ -77,8 +79,8 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
 
     // send stats event
     match remote_addr {
-        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp4Connect).await; }
-        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp6Connect).await; }
+        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Connect).await; }
+        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Connect).await; }
     }
 
     Ok(response)
@@ -136,8 +138,8 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
 
     // send stats event
     match remote_addr {
-        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp4Announce).await; }
-        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp6Announce).await; }
+        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Announce).await; }
+        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Announce).await; }
     }
 
     Ok(announce_response)
@@ -178,8 +180,8 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
 
     // send stats event
     match remote_addr {
-        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp4Scrape).await; }
-        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatsEvent::Udp6Scrape).await; }
+        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Scrape).await; }
+        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Scrape).await; }
     }
 
     Ok(Response::from(ScrapeResponse {

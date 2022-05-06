@@ -3,20 +3,22 @@ use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use log::{debug, info};
+use log::info;
 use serde::{Deserialize, Serialize};
 use serde;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
-use crate::{Configuration, key_manager};
-use crate::common::InfoHash;
+use crate::Configuration;
+use crate::protocol::common::InfoHash;
 use crate::databases::database::Database;
 use tokio::sync::mpsc::error::SendError;
 use crate::databases::database;
-use crate::key_manager::AuthKey;
-use crate::key_manager::Error::KeyInvalid;
-use crate::torrent::{TorrentEntry, TorrentError, TorrentPeer, TorrentStats};
-use crate::tracker_stats::{StatsTracker, TrackerStats, TrackerStatsEvent};
+use crate::peer::TorrentPeer;
+use crate::tracker::key::AuthKey;
+use crate::tracker::key::Error::KeyInvalid;
+use crate::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsEvent};
+use crate::tracker::key;
+use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
 
 #[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Debug)]
 pub enum TrackerMode {
@@ -79,7 +81,7 @@ impl TorrentTracker {
     }
 
     pub async fn generate_auth_key(&self, seconds_valid: u64) -> Result<AuthKey, database::Error> {
-        let auth_key = key_manager::generate_auth_key(seconds_valid);
+        let auth_key = key::generate_auth_key(seconds_valid);
 
         // add key to database
         if let Err(error) = self.database.add_key_to_keys(&auth_key).await { return Err(error); }
@@ -91,9 +93,9 @@ impl TorrentTracker {
         self.database.remove_key_from_keys(key).await
     }
 
-    pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> Result<(), key_manager::Error> {
+    pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> Result<(), key::Error> {
         let db_key = self.database.get_key_from_keys(&auth_key.key).await.map_err(|_| KeyInvalid)?;
-        key_manager::verify_auth_key(&db_key)
+        key::verify_auth_key(&db_key)
     }
 
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
@@ -124,13 +126,22 @@ impl TorrentTracker {
         Ok(())
     }
 
-    // Loading the torrents into memory
+    // Loading the torrents from database into memory
     pub async fn load_persistent_torrents(&self) -> Result<(), database::Error> {
-        let torrents = self.database.load_persistent_torrent_data().await?;
+        let persistent_torrents = self.database.load_persistent_torrents().await?;
+        let mut torrents = self.torrents.write().await;
 
-        for torrent in torrents {
-            debug!("{:#?}", torrent);
-            let _ = self.add_torrent(torrent.0, 0, torrent.1, 0).await;
+        for (info_hash, completed) in persistent_torrents {
+            // Skip if torrent entry already exists
+            if torrents.contains_key(&info_hash) { continue; }
+
+            let torrent_entry = TorrentEntry {
+                peers: Default::default(),
+                completed,
+                seeders: Default::default(),
+            };
+
+            torrents.insert(info_hash.clone(), torrent_entry);
         }
 
         Ok(())
@@ -206,34 +217,15 @@ impl TorrentTracker {
         }
     }
 
-    pub async fn add_torrent(&self, info_hash: InfoHash, seeders: u32, completed: u32, leechers: u32) -> TorrentStats {
-        let mut torrents = self.torrents.write().await;
-
-        if !torrents.contains_key(&info_hash) {
-            let torrent_entry = TorrentEntry {
-                peers: Default::default(),
-                completed,
-                seeders,
-            };
-            torrents.insert(info_hash.clone(), torrent_entry);
-        }
-
-        TorrentStats {
-            seeders,
-            completed,
-            leechers,
-        }
-    }
-
     pub async fn get_torrents(&self) -> RwLockReadGuard<'_, BTreeMap<InfoHash, TorrentEntry>> {
         self.torrents.read().await
     }
 
-    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStats> {
+    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
         self.stats_tracker.get_stats().await
     }
 
-    pub async fn send_stats_event(&self, event: TrackerStatsEvent) -> Option<Result<(), SendError<TrackerStatsEvent>>> {
+    pub async fn send_stats_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
         self.stats_tracker.send_event(event).await
     }
 
@@ -252,8 +244,6 @@ impl TorrentTracker {
 
     // remove torrents without peers if enabled, and defragment memory
     pub async fn cleanup_torrents(&self) {
-        info!("Cleaning torrents...");
-
         let lock = self.torrents.write().await;
 
         // First we create a mapping of all the torrent hashes in a vector, and we use this to iterate through the btreemap.
@@ -298,7 +288,6 @@ impl TorrentTracker {
             }
             drop(lock);
         }
-        info!("Torrents cleaned up.");
     }
 
     pub async fn periodic_saving(&self) {

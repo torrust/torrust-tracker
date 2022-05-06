@@ -6,10 +6,10 @@ use log::debug;
 use serde::{Deserialize, Serialize};
 
 use crate::InfoHash;
-use crate::key_manager::AuthKey;
+use crate::tracker::key::AuthKey;
 use crate::databases::mysql::MysqlDatabase;
 use crate::databases::sqlite::SqliteDatabase;
-use crate::torrent::TorrentEntry;
+use crate::tracker::torrent::TorrentEntry;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum DatabaseDrivers {
@@ -40,7 +40,7 @@ pub fn connect_database(db_driver: &DatabaseDrivers, db_path: &str) -> Result<Bo
 pub trait Database: Sync + Send {
     fn create_database_tables(&self) -> Result<(), Error>;
 
-    async fn load_persistent_torrent_data(&self) -> Result<Vec<(InfoHash, u32)>, Error>;
+    async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error>;
 
     async fn save_persistent_torrent_data(&self, torrents: &BTreeMap<InfoHash, TorrentEntry>) -> Result<(), Error>;
 

@@ -4,9 +4,9 @@ use rand::{Rng, thread_rng};
 use rand::distributions::Alphanumeric;
 use serde::Serialize;
 
-use crate::utils::current_time;
+use crate::protocol::utils::current_time;
 
-use super::common::AUTH_KEY_LENGTH;
+use crate::AUTH_KEY_LENGTH;
 
 pub fn generate_auth_key(seconds_valid: u64) -> AuthKey {
     let key: String = thread_rng()
@@ -81,11 +81,11 @@ impl From<r2d2_sqlite::rusqlite::Error> for Error {
 
 #[cfg(test)]
 mod tests {
-    use crate::key_manager;
+    use crate::tracker::key;
 
     #[test]
     fn auth_key_from_buffer() {
-        let auth_key = key_manager::AuthKey::from_buffer(
+        let auth_key = key::AuthKey::from_buffer(
             [
                 89, 90, 83, 108,
                 52, 108, 77, 90,
@@ -104,7 +104,7 @@ mod tests {
     #[test]
     fn auth_key_from_string() {
         let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
-        let auth_key = key_manager::AuthKey::from_string(key_string);
+        let auth_key = key::AuthKey::from_string(key_string);
 
         assert!(auth_key.is_some());
         assert_eq!(auth_key.unwrap().key, key_string);
@@ -112,16 +112,16 @@ mod tests {
 
     #[test]
     fn generate_valid_auth_key() {
-        let auth_key = key_manager::generate_auth_key(9999);
+        let auth_key = key::generate_auth_key(9999);
 
-        assert!(key_manager::verify_auth_key(&auth_key).is_ok());
+        assert!(key::verify_auth_key(&auth_key).is_ok());
     }
 
     #[test]
     fn generate_expired_auth_key() {
-        let mut auth_key = key_manager::generate_auth_key(0);
+        let mut auth_key = key::generate_auth_key(0);
         auth_key.valid_until = Some(0);
 
-        assert!(key_manager::verify_auth_key(&auth_key).is_err());
+        assert!(key::verify_auth_key(&auth_key).is_err());
     }
 }
