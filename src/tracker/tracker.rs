@@ -14,7 +14,6 @@ use crate::databases::database;
 use crate::mode::TrackerMode;
 use crate::peer::TorrentPeer;
 use crate::tracker::key::AuthKey;
-use crate::tracker::key::Error::KeyInvalid;
 use crate::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsEvent};
 use crate::tracker::key;
 use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
@@ -22,6 +21,7 @@ use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     mode: TrackerMode,
+    keys: RwLock<std::collections::HashMap<String, AuthKey>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     updates: RwLock<std::collections::HashMap<InfoHash, u32>>,
     shadow: RwLock<std::collections::HashMap<InfoHash, u32>>,
@@ -40,6 +40,7 @@ impl TorrentTracker {
         Ok(TorrentTracker {
             config: config.clone(),
             mode: config.mode,
+            keys: RwLock::new(std::collections::HashMap::new()),
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             updates: RwLock::new(std::collections::HashMap::new()),
             shadow: RwLock::new(std::collections::HashMap::new()),
@@ -66,18 +67,32 @@ impl TorrentTracker {
         // add key to database
         if let Err(error) = self.database.add_key_to_keys(&auth_key).await { return Err(error); }
 
+        // Add key to in-memory database
+        self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
+
         Ok(auth_key)
     }
 
-    pub async fn remove_auth_key(&self, key: String) -> Result<usize, database::Error> {
-        self.database.remove_key_from_keys(key).await
+    pub async fn remove_auth_key(&self, key: &str) -> Result<usize, database::Error> {
+        self.database.remove_key_from_keys(&key).await?;
+
+        // Remove key from in-memory database
+        self.keys.write().await.remove(key);
+
+        Ok(1)
     }
 
     pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> Result<(), key::Error> {
-        let db_key = self.database.get_key_from_keys(&auth_key.key).await.map_err(|_| KeyInvalid)?;
-        key::verify_auth_key(&db_key)
+        let keys_lock = self.keys.read().await;
+
+        if let Some(key) = keys_lock.get(&auth_key.key) {
+            key::verify_auth_key(key)
+        } else {
+            Err(key::Error::KeyInvalid)
+        }
     }
 
+    // todo: speed this up in non-public modes
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
         // no authentication needed in public mode
         if self.is_public() { return Ok(()); }
@@ -98,9 +113,20 @@ impl TorrentTracker {
 
         // check if info_hash is whitelisted
         if self.is_whitelisted() {
-            if self.is_info_hash_whitelisted(info_hash).await == false {
+            if !self.is_info_hash_whitelisted(info_hash).await {
                 return Err(TorrentError::TorrentNotWhitelisted);
             }
+        }
+
+        Ok(())
+    }
+
+    pub async fn load_keys(&self) -> Result<(), database::Error> {
+        let keys_from_database = self.database.load_keys().await?;
+        let mut keys = self.keys.write().await;
+
+        for key in keys_from_database {
+            let _ = keys.insert(key.key.clone(), key);
         }
 
         Ok(())

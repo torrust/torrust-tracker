@@ -8,6 +8,10 @@ use crate::tracker::tracker::TorrentTracker;
 pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<JoinHandle<()>>{
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
+    if tracker.is_private() {
+        tracker.load_keys().await.expect("Could not retrieve keys.");
+    }
+
     // todo: replace by realtime updates
     // Load persistent torrents
     if config.persistent_torrent_completed_stat && config.persistence_interval > 0 {

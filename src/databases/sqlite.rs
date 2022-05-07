@@ -8,7 +8,7 @@ use r2d2_sqlite::SqliteConnectionManager;
 use r2d2_sqlite::rusqlite::NO_PARAMS;
 
 use crate::{AUTH_KEY_LENGTH, InfoHash};
-use crate::databases::database::Database;
+use crate::databases::database::{Database, Error};
 use crate::databases::database;
 use crate::tracker::key::AuthKey;
 use crate::tracker::torrent::TorrentEntry;
@@ -74,6 +74,26 @@ impl Database for SqliteDatabase {
         let torrents: Vec<(InfoHash, u32)> = torrent_iter.filter_map(|x| x.ok()).collect();
 
         Ok(torrents)
+    }
+
+    async fn load_keys(&self) -> Result<Vec<AuthKey>, Error> {
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+
+        let mut stmt = conn.prepare("SELECT key, valid_until FROM keys")?;
+
+        let keys_iter = stmt.query_map(NO_PARAMS, |row| {
+            let key = row.get(0)?;
+            let valid_until: i64 = row.get(1)?;
+
+            Ok(AuthKey {
+                key,
+                valid_until: Some(valid_until as u64)
+            })
+        })?;
+
+        let keys: Vec<AuthKey> = keys_iter.filter_map(|x| x.ok()).collect();
+
+        Ok(keys)
     }
 
     async fn save_persistent_torrent_data(&self, torrents: &BTreeMap<InfoHash, TorrentEntry>) -> Result<(), database::Error> {
@@ -174,7 +194,7 @@ impl Database for SqliteDatabase {
         }
     }
 
-    async fn remove_key_from_keys(&self, key: String) -> Result<usize, database::Error> {
+    async fn remove_key_from_keys(&self, key: &str) -> Result<usize, database::Error> {
         let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
         match conn.execute("DELETE FROM keys WHERE key = ?", &[key]) {

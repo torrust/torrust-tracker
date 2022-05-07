@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::str::FromStr;
 
 use async_trait::async_trait;
-use log::debug;
+use log::{debug};
 use r2d2::Pool;
 use r2d2_mysql::mysql::{Opts, OptsBuilder, params, TxOpts};
 use r2d2_mysql::mysql::prelude::Queryable;
@@ -74,6 +74,19 @@ impl Database for MysqlDatabase {
         }).map_err(|_| database::Error::QueryReturnedNoRows)?;
 
         Ok(torrents)
+    }
+
+    async fn load_keys(&self) -> Result<Vec<AuthKey>, Error> {
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+
+        let keys: Vec<AuthKey> = conn.query_map("SELECT `key`, valid_until FROM `keys`", |(key, valid_until): (String, i64)| {
+            AuthKey {
+                key,
+                valid_until: Some(valid_until as u64)
+            }
+        }).map_err(|_| database::Error::QueryReturnedNoRows)?;
+
+        Ok(keys)
     }
 
     async fn save_persistent_torrent_data(&self, torrents: &BTreeMap<InfoHash, TorrentEntry>) -> Result<(), database::Error> {
@@ -190,7 +203,7 @@ impl Database for MysqlDatabase {
         }
     }
 
-    async fn remove_key_from_keys(&self, key: String) -> Result<usize, database::Error> {
+    async fn remove_key_from_keys(&self, key: &str) -> Result<usize, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
         match conn.exec_drop("DELETE FROM `keys` WHERE key = :key", params! { key }) {

@@ -42,6 +42,8 @@ pub trait Database: Sync + Send {
 
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error>;
 
+    async fn load_keys(&self) -> Result<Vec<AuthKey>, Error>;
+
     async fn save_persistent_torrent_data(&self, torrents: &BTreeMap<InfoHash, TorrentEntry>) -> Result<(), Error>;
 
     async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, Error>;
@@ -54,7 +56,7 @@ pub trait Database: Sync + Send {
 
     async fn add_key_to_keys(&self, auth_key: &AuthKey) -> Result<usize, Error>;
 
-    async fn remove_key_from_keys(&self, key: String) -> Result<usize, Error>;
+    async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error>;
 }
 
 #[derive(Debug, Display, PartialEq, Error)]

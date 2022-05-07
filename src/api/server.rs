@@ -289,7 +289,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
         })
         .and_then(|(key, tracker): (String, Arc<TorrentTracker>)| {
             async move {
-                match tracker.remove_auth_key(key).await {
+                match tracker.remove_auth_key(&key).await {
                     Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                     Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to delete key".into() }))
                 }
