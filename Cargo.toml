@@ -7,8 +7,14 @@ authors = ["Mick van Dijke <mick@dutchbits.nl>"]
 description = "A feature rich BitTorrent tracker."
 repository = "https://github.com/torrust/torrust-tracker"
 
+[profile.dev]
+debug = 1
+opt-level = 1
+lto = "thin"
+
 [profile.release]
 debug = 1
+opt-level = 3
 lto = "fat"
 
 [dependencies]
