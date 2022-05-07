@@ -6,7 +6,7 @@ use crate::tracker::tracker::TorrentTracker;
 
 pub fn start_job(config: &Configuration, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let weak_tracker = std::sync::Arc::downgrade(&tracker);
-    let interval = config.persistence_interval.unwrap_or(900);
+    let interval = config.persistence_interval;
 
     tokio::spawn(async move {
         let interval = std::time::Duration::from_secs(interval);

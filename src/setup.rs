@@ -8,8 +8,9 @@ use crate::tracker::tracker::TorrentTracker;
 pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<JoinHandle<()>>{
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
+    // todo: replace by realtime updates
     // Load persistent torrents
-    if config.persistence {
+    if config.persistent_torrent_completed_stat && config.persistence_interval > 0 {
         info!("Loading persistent torrents into memory..");
         tracker.load_persistent_torrents().await.expect("Could not load persistent torrents.");
         info!("Persistent torrents loaded.");
@@ -39,7 +40,7 @@ pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<
     }
 
     // Remove torrents without peers, every interval
-    if config.cleanup_interval > 0 {
+    if config.inactive_peer_cleanup_interval > 0 {
         jobs.push(torrent_cleanup::start_job(&config, tracker.clone()));
     }
 
