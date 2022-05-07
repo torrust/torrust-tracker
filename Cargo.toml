@@ -1,10 +1,11 @@
 [package]
+edition = "2021"
 name = "torrust-tracker"
 version = "2.3.0"
 license = "AGPL-3.0"
 authors = ["Mick van Dijke <mick@dutchbits.nl>"]
 description = "A feature rich BitTorrent tracker."
-edition = "2018"
+repository = "https://github.com/torrust/torrust-tracker"
 
 [profile.release]
 debug = 1
