@@ -13,7 +13,6 @@ use crate::tracker::torrent::{TorrentError, TorrentStats};
 use crate::http::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError, WebResult};
 use crate::peer::TorrentPeer;
 use crate::tracker::statistics::TrackerStatisticsEvent;
-use crate::protocol::utils::url_encode_bytes;
 use crate::tracker::tracker::TorrentTracker;
 
 /// Authenticate InfoHash using optional AuthKey
@@ -62,7 +61,7 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
 
 /// Handle scrape request
 pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>) -> WebResult<impl Reply> {
-    let mut files: HashMap<String, ScrapeResponseEntry> = HashMap::new();
+    let mut files: HashMap<InfoHash, ScrapeResponseEntry> = HashMap::new();
     let db = tracker.get_torrents().await;
 
     for info_hash in scrape_request.info_hashes.iter() {
@@ -79,9 +78,7 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
             }
         };
 
-        if let Ok(encoded_info_hash) = url_encode_bytes(&info_hash.0) {
-            files.insert(encoded_info_hash, scrape_entry);
-        }
+        files.insert(info_hash.clone(), scrape_entry);
     }
 
     // send stats event
@@ -121,8 +118,13 @@ fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: Tor
 }
 
 /// Send scrape response
-fn send_scrape_response(files: HashMap<String, ScrapeResponseEntry>) -> WebResult<impl Reply> {
-    Ok(Response::new(ScrapeResponse { files }.write()))
+fn send_scrape_response(files: HashMap<InfoHash, ScrapeResponseEntry>) -> WebResult<impl Reply> {
+    let res = ScrapeResponse { files };
+
+    match res.write() {
+        Ok(body) => Ok(Response::new(body)),
+        Err(_) => Err(reject::custom(ServerError::InternalServerError))
+    }
 }
 
 /// Handle all server errors and send error reply

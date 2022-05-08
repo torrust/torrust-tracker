@@ -18,19 +18,6 @@ pub fn current_time() -> u64 {
         .as_secs()
 }
 
-pub fn url_encode_bytes(content: &[u8]) -> Result<String, Box<dyn Error>> {
-    let mut out: String = String::new();
-
-    for byte in content.iter() {
-        match *byte as char {
-            '0'..='9' | 'a'..='z' | 'A'..='Z' | '.' | '-' | '_' | '~' => out.push(*byte as char),
-            _ => write!(&mut out, "%{:02x}", byte)?,
-        };
-    }
-
-    Ok(out)
-}
-
 pub fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Result<S::Ok, S::Error> {
     ser.serialize_u64(inst.elapsed().as_millis() as u64)
 }

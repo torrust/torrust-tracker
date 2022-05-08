@@ -92,7 +92,6 @@ impl TorrentTracker {
         }
     }
 
-    // todo: speed this up in non-public modes
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
         // no authentication needed in public mode
         if self.is_public() { return Ok(()); }
@@ -111,6 +110,7 @@ impl TorrentTracker {
             }
         }
 
+        // todo: speed this up
         // check if info_hash is whitelisted
         if self.is_whitelisted() {
             if !self.is_info_hash_whitelisted(info_hash).await {
