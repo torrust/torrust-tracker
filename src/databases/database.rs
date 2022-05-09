@@ -1,15 +1,11 @@
-use std::collections::BTreeMap;
-
 use async_trait::async_trait;
 use derive_more::{Display, Error};
-use log::debug;
 use serde::{Deserialize, Serialize};
 
 use crate::InfoHash;
 use crate::tracker::key::AuthKey;
 use crate::databases::mysql::MysqlDatabase;
 use crate::databases::sqlite::SqliteDatabase;
-use crate::tracker::torrent::TorrentEntry;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum DatabaseDrivers {
@@ -18,8 +14,6 @@ pub enum DatabaseDrivers {
 }
 
 pub fn connect_database(db_driver: &DatabaseDrivers, db_path: &str) -> Result<Box<dyn Database>, r2d2::Error> {
-    debug!("{:?}", db_driver);
-
     let database: Box<dyn Database> = match db_driver {
         DatabaseDrivers::Sqlite3 => {
             let db = SqliteDatabase::new(db_path)?;
@@ -44,7 +38,9 @@ pub trait Database: Sync + Send {
 
     async fn load_keys(&self) -> Result<Vec<AuthKey>, Error>;
 
-    async fn save_persistent_torrent_data(&self, torrents: &BTreeMap<InfoHash, TorrentEntry>) -> Result<(), Error>;
+    async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error>;
+
+    async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error>;
 
     async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, Error>;
 

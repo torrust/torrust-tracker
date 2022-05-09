@@ -56,7 +56,7 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
         IpAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Tcp6Announce).await; }
     }
 
-    send_announce_response(&announce_request, torrent_stats, peers, announce_interval, tracker.config.announce_interval_min)
+    send_announce_response(&announce_request, torrent_stats, peers, announce_interval, tracker.config.min_announce_interval)
 }
 
 /// Handle scrape request

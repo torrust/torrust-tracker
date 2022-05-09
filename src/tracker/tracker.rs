@@ -3,7 +3,6 @@ use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use log::info;
 use tokio::sync::{RwLock, RwLockReadGuard};
 use tokio::sync::mpsc::error::SendError;
 
@@ -22,9 +21,8 @@ pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     mode: TrackerMode,
     keys: RwLock<std::collections::HashMap<String, AuthKey>>,
+    whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
-    updates: RwLock<std::collections::HashMap<InfoHash, u32>>,
-    shadow: RwLock<std::collections::HashMap<InfoHash, u32>>,
     stats_tracker: StatsTracker,
     database: Box<dyn Database>
 }
@@ -35,15 +33,14 @@ impl TorrentTracker {
         let mut stats_tracker = StatsTracker::new();
 
         // starts a thread for updating tracker stats
-        if config.statistics { stats_tracker.run_worker(); }
+        if config.tracker_usage_statistics { stats_tracker.run_worker(); }
 
         Ok(TorrentTracker {
             config: config.clone(),
             mode: config.mode,
             keys: RwLock::new(std::collections::HashMap::new()),
+            whitelist: RwLock::new(std::collections::HashSet::new()),
             torrents: RwLock::new(std::collections::BTreeMap::new()),
-            updates: RwLock::new(std::collections::HashMap::new()),
-            shadow: RwLock::new(std::collections::HashMap::new()),
             stats_tracker,
             database
         })
@@ -64,7 +61,7 @@ impl TorrentTracker {
     pub async fn generate_auth_key(&self, seconds_valid: u64) -> Result<AuthKey, database::Error> {
         let auth_key = key::generate_auth_key(seconds_valid);
 
-        // add key to database
+        // Add key to database
         if let Err(error) = self.database.add_key_to_keys(&auth_key).await { return Err(error); }
 
         // Add key to in-memory database
@@ -125,8 +122,23 @@ impl TorrentTracker {
         let keys_from_database = self.database.load_keys().await?;
         let mut keys = self.keys.write().await;
 
+        keys.clear();
+
         for key in keys_from_database {
             let _ = keys.insert(key.key.clone(), key);
+        }
+
+        Ok(())
+    }
+
+    pub async fn load_whitelist(&self) -> Result<(), database::Error> {
+        let whitelisted_torrents_from_database = self.database.load_whitelist().await?;
+        let mut whitelist = self.whitelist.write().await;
+
+        whitelist.clear();
+
+        for info_hash in whitelisted_torrents_from_database {
+            let _ = whitelist.insert(info_hash);
         }
 
         Ok(())
@@ -150,12 +162,6 @@ impl TorrentTracker {
         }
 
         Ok(())
-    }
-
-    // Saving the torrents from memory
-    pub async fn save_torrents(&self) -> Result<(), database::Error> {
-        let torrents = self.torrents.read().await;
-        self.database.save_persistent_torrent_data(&*torrents).await
     }
 
     // Adding torrents is not relevant to public trackers.
@@ -199,18 +205,14 @@ impl TorrentTracker {
             }
         };
 
-        torrent_entry.update_peer(peer);
+        let stats_updated = torrent_entry.update_peer(peer);
+
+        // todo: move this action to a separate worker
+        if self.config.persistent_torrent_completed_stat && stats_updated {
+            let _ = self.database.save_persistent_torrent(&info_hash, torrent_entry.completed).await;
+        }
 
         let (seeders, completed, leechers) = torrent_entry.get_stats();
-
-        if self.config.persistent_torrent_completed_stat {
-            let mut updates = self.updates.write().await;
-            if updates.contains_key(info_hash) {
-                updates.remove(info_hash);
-            }
-            updates.insert(*info_hash, completed);
-            drop(updates);
-        }
 
         TorrentStats {
             seeders,
@@ -231,19 +233,6 @@ impl TorrentTracker {
         self.stats_tracker.send_event(event).await
     }
 
-    pub async fn post_log(&self) {
-        let torrents = self.torrents.read().await;
-        let torrents_size = torrents.len();
-        drop(torrents);
-        let updates = self.updates.read().await;
-        let updates_size = updates.len();
-        drop(updates);
-        let shadow = self.shadow.read().await;
-        let shadow_size = shadow.len();
-        drop(shadow);
-        info!("-=[ Stats ]=- | Torrents: {} | Updates: {} | Shadow: {}", torrents_size, updates_size, shadow_size);
-    }
-
     // Remove inactive peers and (optionally) peerless torrents
     pub async fn cleanup_torrents(&self) {
         let mut torrents_lock = self.torrents.write().await;
@@ -251,7 +240,7 @@ impl TorrentTracker {
         // If we don't need to remove torrents we will use the faster iter
         if self.config.remove_peerless_torrents {
             torrents_lock.retain(|_, torrent_entry| {
-                torrent_entry.remove_inactive_peers(self.config.peer_timeout);
+                torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
 
                 match self.config.persistent_torrent_completed_stat {
                     true => { torrent_entry.completed > 0 || torrent_entry.peers.len() > 0 }
@@ -260,61 +249,8 @@ impl TorrentTracker {
             });
         } else {
             for (_, torrent_entry) in torrents_lock.iter_mut() {
-                torrent_entry.remove_inactive_peers(self.config.peer_timeout);
+                torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
             }
-        }
-    }
-
-    // todo: refactor
-    pub async fn periodic_saving(&self) {
-        // Get a lock for writing
-        // let mut shadow = self.shadow.write().await;
-
-        // We will get the data and insert it into the shadow, while clearing updates.
-        let mut updates = self.updates.write().await;
-        let mut updates_cloned: std::collections::HashMap<InfoHash, u32> = std::collections::HashMap::new();
-        // let mut torrent_hashes: Vec<InfoHash> = Vec::new();
-        // Copying updates to updates_cloned
-        for (k, completed) in updates.iter() {
-            updates_cloned.insert(k.clone(), completed.clone());
-        }
-        updates.clear();
-        drop(updates);
-
-        // Copying updates_cloned into the shadow to overwrite
-        for (k, completed) in updates_cloned.iter() {
-            let mut shadows = self.shadow.write().await;
-            if shadows.contains_key(k) {
-                shadows.remove(k);
-            }
-            shadows.insert(k.clone(), completed.clone());
-            drop(shadows);
-        }
-        drop(updates_cloned);
-
-        // We updated the shadow data from the updates data, let's handle shadow data as expected.
-        // Handle shadow_copy to be updated into SQL
-        let mut shadow_copy: BTreeMap<InfoHash, TorrentEntry> = BTreeMap::new();
-        let shadows = self.shadow.read().await;
-        for (infohash, completed) in shadows.iter() {
-            shadow_copy.insert(infohash.clone(), TorrentEntry {
-                peers: Default::default(),
-                completed: completed.clone(),
-            });
-        }
-        drop(shadows);
-
-        // We will now save the data from the shadow into the database.
-        // This should not put any strain on the server itself, other then the harddisk/ssd.
-        info!("Start saving shadow data into SQL...");
-        let result = self.database.save_persistent_torrent_data(&shadow_copy).await;
-        if result.is_ok() {
-            info!("Done saving data to SQL and succeeded, emptying shadow...");
-            let mut shadow = self.shadow.write().await;
-            shadow.clear();
-            drop(shadow);
-        } else {
-            info!("Done saving data to SQL and failed, not emptying shadow...");
         }
     }
 }

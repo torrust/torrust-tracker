@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::str::FromStr;
 
 use async_trait::async_trait;
@@ -11,7 +10,6 @@ use crate::{AUTH_KEY_LENGTH, InfoHash};
 use crate::databases::database::{Database, Error};
 use crate::databases::database;
 use crate::tracker::key::AuthKey;
-use crate::tracker::torrent::TorrentEntry;
 
 pub struct SqliteDatabase {
     pool: Pool<SqliteConnectionManager>,
@@ -96,20 +94,35 @@ impl Database for SqliteDatabase {
         Ok(keys)
     }
 
-    async fn save_persistent_torrent_data(&self, torrents: &BTreeMap<InfoHash, TorrentEntry>) -> Result<(), database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+    async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
-        let db_transaction = conn.transaction()?;
+        let mut stmt = conn.prepare("SELECT info_hash FROM whitelist")?;
 
-        for (info_hash, torrent_entry) in torrents {
-            let (_seeders, completed, _leechers) = torrent_entry.get_stats();
-            let _ = db_transaction.execute("INSERT OR IGNORE INTO torrents (info_hash, completed) VALUES (?, ?)", &[info_hash.to_string(), completed.to_string()]);
-            let _ = db_transaction.execute("UPDATE torrents SET completed = ? WHERE info_hash = ?", &[completed.to_string(), info_hash.to_string()]);
+        let info_hash_iter = stmt.query_map(NO_PARAMS, |row| {
+            let info_hash: String = row.get(0)?;
+
+            Ok(InfoHash::from_str(&info_hash).unwrap())
+        })?;
+
+        let info_hashes: Vec<InfoHash> = info_hash_iter.filter_map(|x| x.ok()).collect();
+
+        Ok(info_hashes)
+    }
+
+    async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), database::Error> {
+        let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+
+        match conn.execute("INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2", &[info_hash.to_string(), completed.to_string()]) {
+            Ok(updated) => {
+                if updated > 0 { return Ok(()); }
+                Err(database::Error::QueryReturnedNoRows)
+            }
+            Err(e) => {
+                debug!("{:?}", e);
+                Err(database::Error::InvalidQuery)
+            }
         }
-
-        let _ = db_transaction.commit();
-
-        Ok(())
     }
 
     async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, database::Error> {

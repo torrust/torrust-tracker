@@ -1,10 +1,9 @@
-use std::collections::BTreeMap;
 use std::str::FromStr;
 
 use async_trait::async_trait;
 use log::{debug};
 use r2d2::Pool;
-use r2d2_mysql::mysql::{Opts, OptsBuilder, params, TxOpts};
+use r2d2_mysql::mysql::{Opts, OptsBuilder, params};
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::MysqlConnectionManager;
 
@@ -12,7 +11,6 @@ use crate::{AUTH_KEY_LENGTH, InfoHash};
 use crate::databases::database::{Database, Error};
 use crate::databases::database;
 use crate::tracker::key::AuthKey;
-use crate::tracker::torrent::TorrentEntry;
 
 pub struct MysqlDatabase {
     pool: Pool<MysqlConnectionManager>,
@@ -37,20 +35,20 @@ impl Database for MysqlDatabase {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
             id integer PRIMARY KEY AUTO_INCREMENT,
-            info_hash BINARY(20) NOT NULL UNIQUE
+            info_hash VARCHAR(40) NOT NULL UNIQUE
         );".to_string();
 
         let create_torrents_table = "
         CREATE TABLE IF NOT EXISTS torrents (
             id integer PRIMARY KEY AUTO_INCREMENT,
-            info_hash BINARY(20) NOT NULL UNIQUE,
+            info_hash VARCHAR(40) NOT NULL UNIQUE,
             completed INTEGER DEFAULT 0 NOT NULL
         );".to_string();
 
         let create_keys_table = format!("
         CREATE TABLE IF NOT EXISTS `keys` (
           `id` INT NOT NULL AUTO_INCREMENT,
-          `key` BINARY({}) NOT NULL,
+          `key` VARCHAR({}) NOT NULL,
           `valid_until` INT(10) NOT NULL,
           PRIMARY KEY (`id`),
           UNIQUE (`key`)
@@ -68,7 +66,7 @@ impl Database for MysqlDatabase {
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
-        let torrents: Vec<(InfoHash, u32)> = conn.query_map("SELECT HEX(info_hash), completed FROM torrents", |(info_hash_string, completed): (String, u32)| {
+        let torrents: Vec<(InfoHash, u32)> = conn.query_map("SELECT info_hash, completed FROM torrents", |(info_hash_string, completed): (String, u32)| {
             let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
             (info_hash, completed)
         }).map_err(|_| database::Error::QueryReturnedNoRows)?;
@@ -89,44 +87,38 @@ impl Database for MysqlDatabase {
         Ok(keys)
     }
 
-    async fn save_persistent_torrent_data(&self, torrents: &BTreeMap<InfoHash, TorrentEntry>) -> Result<(), database::Error> {
+    async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+
+        let info_hashes: Vec<InfoHash> = conn.query_map("SELECT info_hash FROM whitelist", |info_hash: String| {
+            InfoHash::from_str(&info_hash).unwrap()
+        }).map_err(|_| database::Error::QueryReturnedNoRows)?;
+
+        Ok(info_hashes)
+    }
+
+    async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
-        let mut db_transaction = conn.start_transaction(TxOpts::default()).map_err(|_| database::Error::DatabaseError)?;
+        let info_hash_str = info_hash.to_string();
 
-        let mut insert_vector= vec![];
+        debug!("{}", info_hash_str);
 
-        for (info_hash, torrent_entry) in torrents {
-            let (_seeders, completed, _leechers) = torrent_entry.get_stats();
-            insert_vector.push(format!("(UNHEX('{}'), {})", info_hash.to_string(), completed.to_string()));
-            if insert_vector.len() == 1000 {
-                let query = format!("INSERT INTO torrents (info_hash, completed) VALUES {} ON DUPLICATE KEY UPDATE completed = VALUES(completed)", insert_vector.join(","));
-                if db_transaction.query_drop(query).is_err() {
-                    return Err(Error::InvalidQuery);
-                }
-                insert_vector.clear();
+        match conn.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)", params! { info_hash_str, completed }) {
+            Ok(_) => {
+                Ok(())
+            }
+            Err(e) => {
+                debug!("{:?}", e);
+                Err(database::Error::InvalidQuery)
             }
         }
-
-        if insert_vector.len() != 0 {
-            let query = format!("INSERT INTO torrents (info_hash, completed) VALUES {} ON DUPLICATE KEY UPDATE completed = VALUES(completed)", insert_vector.join(","));
-            if db_transaction.query_drop(query).is_err() {
-                return Err(Error::InvalidQuery);
-            }
-            insert_vector.clear();
-        }
-
-        if db_transaction.commit().is_err() {
-            return Err(Error::DatabaseError);
-        };
-
-        Ok(())
     }
 
     async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
 
-        match conn.exec_first::<String, _, _>("SELECT HEX(info_hash) FROM whitelist WHERE info_hash = UNHEX(:info_hash)", params! { info_hash => info_hash })
+        match conn.exec_first::<String, _, _>("SELECT info_hash FROM whitelist WHERE info_hash = :info_hash", params! { info_hash })
             .map_err(|_| database::Error::QueryReturnedNoRows)? {
             Some(info_hash) => {
                 Ok(InfoHash::from_str(&info_hash).unwrap())
@@ -142,7 +134,7 @@ impl Database for MysqlDatabase {
 
         let info_hash_str = info_hash.to_string();
 
-        match conn.exec_drop("INSERT INTO whitelist (info_hash) VALUES (UNHEX(:info_hash_str))", params! { info_hash_str }) {
+        match conn.exec_drop("INSERT INTO whitelist (info_hash) VALUES (:info_hash_str)", params! { info_hash_str }) {
             Ok(_) => {
                 Ok(1)
             }
@@ -158,7 +150,7 @@ impl Database for MysqlDatabase {
 
         let info_hash = info_hash.to_string();
 
-        match conn.exec_drop("DELETE FROM whitelist WHERE info_hash = UNHEX(:info_hash)", params! { info_hash }) {
+        match conn.exec_drop("DELETE FROM whitelist WHERE info_hash = :info_hash", params! { info_hash }) {
             Ok(_) => {
                 Ok(1)
             }

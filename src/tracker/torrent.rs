@@ -21,7 +21,10 @@ impl TorrentEntry {
         }
     }
 
-    pub fn update_peer(&mut self, peer: &TorrentPeer) {
+    // Update peer and return completed (times torrent has been downloaded)
+    pub fn update_peer(&mut self, peer: &TorrentPeer) -> bool {
+        let mut did_torrent_stats_change: bool = false;
+
         match peer.event {
             AnnounceEvent::Stopped => {
                 let _ = self.peers.remove(&peer.peer_id);
@@ -29,12 +32,17 @@ impl TorrentEntry {
             AnnounceEvent::Completed => {
                 let peer_old = self.peers.insert(peer.peer_id.clone(), peer.clone());
                 // Don't count if peer was not previously known
-                if peer_old.is_some() { self.completed += 1; }
+                if peer_old.is_some() {
+                    self.completed += 1;
+                    did_torrent_stats_change = true;
+                }
             }
             _ => {
                 let _ = self.peers.insert(peer.peer_id.clone(), peer.clone());
             }
         }
+
+        did_torrent_stats_change
     }
 
     pub fn get_peers(&self, client_addr: Option<&SocketAddr>) -> Vec<&TorrentPeer> {

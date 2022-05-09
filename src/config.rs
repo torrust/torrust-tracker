@@ -29,15 +29,6 @@ pub struct HttpTrackerConfig {
     pub ssl_key_path: Option<String>,
 }
 
-impl HttpTrackerConfig {
-    pub fn verify_ssl_cert_and_key_set(&self) -> bool {
-        self.ssl_cert_path.is_some()
-            && self.ssl_key_path.is_some()
-            && !self.ssl_cert_path.as_ref().unwrap().is_empty()
-            && !self.ssl_key_path.as_ref().unwrap().is_empty()
-    }
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct HttpApiConfig {
     pub enabled: bool,
@@ -48,20 +39,18 @@ pub struct HttpApiConfig {
 #[derive(Serialize, Deserialize)]
 pub struct Configuration {
     pub log_level: Option<String>,
-    pub log_interval: Option<u64>,
     pub mode: TrackerMode,
     pub db_driver: DatabaseDrivers,
     pub db_path: String,
-    pub statistics: bool,
+    pub announce_interval: u32,
+    pub min_announce_interval: u32,
+    pub max_peer_timeout: u32,
+    pub on_reverse_proxy: bool,
+    pub external_ip: Option<String>,
+    pub tracker_usage_statistics: bool,
     pub persistent_torrent_completed_stat: bool,
-    pub persistence_interval: u64,
     pub inactive_peer_cleanup_interval: u64,
     pub remove_peerless_torrents: bool,
-    pub external_ip: Option<String>,
-    pub announce_interval: u32,
-    pub announce_interval_min: u32,
-    pub peer_timeout: u32,
-    pub on_reverse_proxy: bool,
     pub udp_trackers: Vec<UdpTrackerConfig>,
     pub http_trackers: Vec<HttpTrackerConfig>,
     pub http_api: HttpApiConfig,
@@ -134,20 +123,18 @@ impl Configuration {
     pub fn default() -> Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
-            log_interval: Some(60),
             mode: TrackerMode::Public,
             db_driver: DatabaseDrivers::Sqlite3,
             db_path: String::from("data.db"),
-            statistics: true,
+            announce_interval: 120,
+            min_announce_interval: 120,
+            max_peer_timeout: 900,
+            on_reverse_proxy: false,
+            external_ip: Some(String::from("0.0.0.0")),
+            tracker_usage_statistics: true,
             persistent_torrent_completed_stat: false,
-            persistence_interval: 0,
             inactive_peer_cleanup_interval: 600,
             remove_peerless_torrents: true,
-            external_ip: Some(String::from("0.0.0.0")),
-            announce_interval: 120,
-            announce_interval_min: 120,
-            peer_timeout: 900,
-            on_reverse_proxy: false,
             udp_trackers: Vec::new(),
             http_trackers: Vec::new(),
             http_api: HttpApiConfig {

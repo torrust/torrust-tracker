@@ -3,7 +3,6 @@ use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use log::debug;
 use warp::{Filter, reject, Rejection};
 
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS, PeerId};
@@ -75,11 +74,9 @@ async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
     for v in split_raw_query {
         if v.contains("info_hash") {
             let raw_info_hash = v.split("=").collect::<Vec<&str>>()[1];
-            debug!("Raw info hash: {}", raw_info_hash);
             let info_hash_bytes = percent_encoding::percent_decode_str(raw_info_hash).collect::<Vec<u8>>();
             let info_hash = InfoHash::from_str(&hex::encode(info_hash_bytes));
             if let Ok(ih) = info_hash {
-                debug!("Parsed info hash: {}", ih.to_string());
                 info_hashes.push(ih);
             }
         }
@@ -151,8 +148,7 @@ async fn peer_addr((on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Opti
             // set client ip to last forwarded ip
             let x_forwarded_ip = *x_forwarded_ips.last().unwrap();
 
-            IpAddr::from_str(x_forwarded_ip).or_else(|e| {
-                debug!("{}", e);
+            IpAddr::from_str(x_forwarded_ip).or_else(|_| {
                 Err(reject::custom(ServerError::AddressNotFound))
             })
         }

@@ -109,12 +109,24 @@ impl StatsTracker {
                         stats_lock.tcp6_scrapes_handled += 1;
                         stats_lock.tcp6_connections_handled += 1;
                     }
-                    TrackerStatisticsEvent::Udp4Connect => { stats_lock.udp4_connections_handled += 1; }
-                    TrackerStatisticsEvent::Udp4Announce => { stats_lock.udp4_announces_handled += 1; }
-                    TrackerStatisticsEvent::Udp4Scrape => { stats_lock.udp4_scrapes_handled += 1; }
-                    TrackerStatisticsEvent::Udp6Connect => { stats_lock.udp6_connections_handled += 1; }
-                    TrackerStatisticsEvent::Udp6Announce => { stats_lock.udp6_announces_handled += 1; }
-                    TrackerStatisticsEvent::Udp6Scrape => { stats_lock.udp6_scrapes_handled += 1; }
+                    TrackerStatisticsEvent::Udp4Connect => {
+                        stats_lock.udp4_connections_handled += 1;
+                    }
+                    TrackerStatisticsEvent::Udp4Announce => {
+                        stats_lock.udp4_announces_handled += 1;
+                    }
+                    TrackerStatisticsEvent::Udp4Scrape => {
+                        stats_lock.udp4_scrapes_handled += 1;
+                    }
+                    TrackerStatisticsEvent::Udp6Connect => {
+                        stats_lock.udp6_connections_handled += 1;
+                    }
+                    TrackerStatisticsEvent::Udp6Announce => {
+                        stats_lock.udp6_announces_handled += 1;
+                    }
+                    TrackerStatisticsEvent::Udp6Scrape => {
+                        stats_lock.udp6_scrapes_handled += 1;
+                    }
                 }
 
                 drop(stats_lock);
