@@ -1,10 +1,16 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
+
 use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId};
-use crate::{InfoHash, MAX_SCRAPE_TORRENTS, TorrentError, TorrentPeer, TorrentTracker};
-use crate::torrust_udp_tracker::errors::ServerError;
-use crate::torrust_udp_tracker::request::AnnounceRequestWrapper;
-use crate::utils::get_connection_id;
+
+use crate::{InfoHash, MAX_SCRAPE_TORRENTS};
+use crate::peer::TorrentPeer;
+use crate::tracker::torrent::{TorrentError};
+use crate::udp::errors::ServerError;
+use crate::udp::request::AnnounceRequestWrapper;
+use crate::tracker::statistics::TrackerStatisticsEvent;
+use crate::tracker::tracker::TorrentTracker;
+use crate::protocol::utils::get_connection_id;
 
 pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
     match tracker.authenticate_request(info_hash, &None).await {
@@ -71,15 +77,11 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
         connection_id,
     });
 
-    let tracker_copy = tracker.clone();
-    tokio::spawn(async move {
-        let mut status_writer = tracker_copy.set_stats().await;
-        if remote_addr.is_ipv4() {
-            status_writer.udp4_connections_handled += 1;
-        } else {
-            status_writer.udp6_connections_handled += 1;
-        }
-    });
+    // send stats event
+    match remote_addr {
+        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Connect).await; }
+        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Connect).await; }
+    }
 
     Ok(response)
 }
@@ -98,16 +100,6 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
     // get all peers excluding the client_addr
     let peers = tracker.get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr).await;
 
-    let tracker_copy = tracker.clone();
-    tokio::spawn(async move {
-        let mut status_writer = tracker_copy.set_stats().await;
-        if remote_addr.is_ipv4() {
-            status_writer.udp4_announces_handled += 1;
-        } else {
-            status_writer.udp6_announces_handled += 1;
-        }
-    });
-
     let announce_response = if remote_addr.is_ipv4() {
         Response::from(AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
@@ -115,15 +107,15 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
             leechers: NumberOfPeers(torrent_stats.leechers as i32),
             seeders: NumberOfPeers(torrent_stats.seeders as i32),
             peers: peers.iter()
-                .filter_map(|peer| if let IpAddr::V4(ip) =  peer.peer_addr.ip() {
+                .filter_map(|peer| if let IpAddr::V4(ip) = peer.peer_addr.ip() {
                     Some(ResponsePeer::<Ipv4Addr> {
                         ip_address: ip,
-                        port: Port(peer.peer_addr.port())
+                        port: Port(peer.peer_addr.port()),
                     })
                 } else {
                     None
                 }
-                ).collect()
+                ).collect(),
         })
     } else {
         Response::from(AnnounceResponse {
@@ -132,17 +124,23 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
             leechers: NumberOfPeers(torrent_stats.leechers as i32),
             seeders: NumberOfPeers(torrent_stats.seeders as i32),
             peers: peers.iter()
-                .filter_map(|peer| if let IpAddr::V6(ip) =  peer.peer_addr.ip() {
+                .filter_map(|peer| if let IpAddr::V6(ip) = peer.peer_addr.ip() {
                     Some(ResponsePeer::<Ipv6Addr> {
                         ip_address: ip,
-                        port: Port(peer.peer_addr.port())
+                        port: Port(peer.peer_addr.port()),
                     })
                 } else {
                     None
                 }
-            ).collect()
+                ).collect(),
         })
     };
+
+    // send stats event
+    match remote_addr {
+        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Announce).await; }
+        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Announce).await; }
+    }
 
     Ok(announce_response)
 }
@@ -156,16 +154,22 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
     for info_hash in request.info_hashes.iter() {
         let info_hash = InfoHash(info_hash.0);
 
-        if authenticate(&info_hash,  tracker.clone()).await.is_err() { continue }
-
         let scrape_entry = match db.get(&info_hash) {
             Some(torrent_info) => {
-                let (seeders, completed, leechers) = torrent_info.get_stats();
+                if authenticate(&info_hash, tracker.clone()).await.is_ok() {
+                    let (seeders, completed, leechers) = torrent_info.get_stats();
 
-                TorrentScrapeStatistics {
-                    seeders: NumberOfPeers(seeders as i32),
-                    completed: NumberOfDownloads(completed as i32),
-                    leechers: NumberOfPeers(leechers as i32),
+                    TorrentScrapeStatistics {
+                        seeders: NumberOfPeers(seeders as i32),
+                        completed: NumberOfDownloads(completed as i32),
+                        leechers: NumberOfPeers(leechers as i32),
+                    }
+                } else {
+                    TorrentScrapeStatistics {
+                        seeders: NumberOfPeers(0),
+                        completed: NumberOfDownloads(0),
+                        leechers: NumberOfPeers(0),
+                    }
                 }
             }
             None => {
@@ -180,19 +184,17 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
         torrent_stats.push(scrape_entry);
     }
 
-    let tracker_copy = tracker.clone();
-    tokio::spawn(async move {
-        let mut status_writer = tracker_copy.set_stats().await;
-        if remote_addr.is_ipv4() {
-            status_writer.udp4_scrapes_handled += 1;
-        } else {
-            status_writer.udp6_scrapes_handled += 1;
-        }
-    });
+    drop(db);
+
+    // send stats event
+    match remote_addr {
+        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Scrape).await; }
+        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Scrape).await; }
+    }
 
     Ok(Response::from(ScrapeResponse {
         transaction_id: request.transaction_id,
-        torrent_stats
+        torrent_stats,
     }))
 }
 

@@ -2,7 +2,10 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::io::Write;
 use std::net::IpAddr;
-use serde::{Serialize};
+
+use serde;
+use serde::Serialize;
+use crate::InfoHash;
 
 #[derive(Serialize)]
 pub struct Peer {
@@ -14,11 +17,12 @@ pub struct Peer {
 #[derive(Serialize)]
 pub struct AnnounceResponse {
     pub interval: u32,
+    #[serde(rename = "min interval")]
     pub interval_min: u32,
     //pub tracker_id: String,
     pub complete: u32,
     pub incomplete: u32,
-    pub peers: Vec<Peer>
+    pub peers: Vec<Peer>,
 }
 
 impl AnnounceResponse {
@@ -75,18 +79,37 @@ pub struct ScrapeResponseEntry {
 
 #[derive(Serialize)]
 pub struct ScrapeResponse {
-    pub files: HashMap<String, ScrapeResponseEntry>
+    pub files: HashMap<InfoHash, ScrapeResponseEntry>,
 }
 
 impl ScrapeResponse {
-    pub fn write(&self) -> String {
-        serde_bencode::to_string(&self).unwrap()
+    pub fn write(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+        let mut bytes: Vec<u8> = Vec::new();
+
+        bytes.write(b"d5:filesd")?;
+
+        for (info_hash, scrape_response_entry) in self.files.iter() {
+            bytes.write(b"20:")?;
+            bytes.write(&info_hash.0)?;
+            bytes.write(b"d8:completei")?;
+            bytes.write(scrape_response_entry.complete.to_string().as_bytes())?;
+            bytes.write(b"e10:downloadedi")?;
+            bytes.write(scrape_response_entry.downloaded.to_string().as_bytes())?;
+            bytes.write(b"e10:incompletei")?;
+            bytes.write(scrape_response_entry.incomplete.to_string().as_bytes())?;
+            bytes.write(b"ee")?;
+        }
+
+        bytes.write(b"ee")?;
+
+        Ok(bytes)
     }
 }
 
 #[derive(Serialize)]
 pub struct ErrorResponse {
-    pub failure_reason: String
+    #[serde(rename = "failure reason")]
+    pub failure_reason: String,
 }
 
 impl ErrorResponse {

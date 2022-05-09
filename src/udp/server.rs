@@ -1,11 +1,13 @@
 use std::io::Cursor;
-use std::net::{SocketAddr};
+use std::net::SocketAddr;
 use std::sync::Arc;
-use aquatic_udp_protocol::{Response};
+
+use aquatic_udp_protocol::Response;
 use log::{debug, info};
 use tokio::net::UdpSocket;
-use crate::{TorrentTracker};
-use crate::torrust_udp_tracker::{handle_packet, MAX_PACKET_SIZE};
+
+use crate::tracker::tracker::TorrentTracker;
+use crate::udp::{handle_packet, MAX_PACKET_SIZE};
 
 pub struct UdpServer {
     socket: Arc<UdpSocket>,
@@ -22,16 +24,15 @@ impl UdpServer {
         })
     }
 
-    pub async fn start(&self, rx: tokio::sync::watch::Receiver<bool>) {
+    pub async fn start(&self) {
         loop {
-            let mut rx = rx.clone();
             let mut data = [0; MAX_PACKET_SIZE];
             let socket = self.socket.clone();
             let tracker = self.tracker.clone();
 
             tokio::select! {
-                _ = rx.changed() => {
-                    info!("Stopping UDP server: {}...", socket.local_addr().unwrap());
+                _ = tokio::signal::ctrl_c() => {
+                    info!("Stopping UDP server: {}..", socket.local_addr().unwrap());
                     break;
                 }
                 Ok((valid_bytes, remote_addr)) = socket.recv_from(&mut data) => {

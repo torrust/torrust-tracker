@@ -1,42 +1,32 @@
-pub use crate::tracker::TrackerMode;
-use serde::{Serialize, Deserialize, Serializer};
 use std;
 use std::collections::HashMap;
 use std::fs;
-use toml;
-use std::net::{IpAddr};
+use std::net::IpAddr;
 use std::path::Path;
 use std::str::FromStr;
-use config::{ConfigError, Config, File};
 
-#[derive(Serialize, Deserialize, PartialEq)]
-pub enum TrackerServer {
-    UDP,
-    HTTP
-}
+use config::{Config, ConfigError, File};
+use serde::{Deserialize, Serialize, Serializer};
+use toml;
 
-#[derive(Serialize, Deserialize)]
+use crate::databases::database::DatabaseDrivers;
+use crate::mode::TrackerMode;
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UdpTrackerConfig {
     pub enabled: bool,
     pub bind_address: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct HttpTrackerConfig {
     pub enabled: bool,
     pub bind_address: String,
     pub ssl_enabled: bool,
-    pub ssl_bind_address: String,
     #[serde(serialize_with = "none_as_empty_string")]
     pub ssl_cert_path: Option<String>,
     #[serde(serialize_with = "none_as_empty_string")]
-    pub ssl_key_path: Option<String>
-}
-
-impl HttpTrackerConfig {
-    pub fn is_ssl_enabled(&self) -> bool {
-        self.ssl_enabled && self.ssl_cert_path.is_some() && self.ssl_key_path.is_some()
-    }
+    pub ssl_key_path: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -50,15 +40,17 @@ pub struct HttpApiConfig {
 pub struct Configuration {
     pub log_level: Option<String>,
     pub mode: TrackerMode,
+    pub db_driver: DatabaseDrivers,
     pub db_path: String,
-    pub persistence: bool,
-    pub cleanup_interval: Option<u64>,
-    pub cleanup_peerless: bool,
-    pub external_ip: Option<String>,
     pub announce_interval: u32,
-    pub announce_interval_min: u32,
-    pub peer_timeout: u32,
+    pub min_announce_interval: u32,
+    pub max_peer_timeout: u32,
     pub on_reverse_proxy: bool,
+    pub external_ip: Option<String>,
+    pub tracker_usage_statistics: bool,
+    pub persistent_torrent_completed_stat: bool,
+    pub inactive_peer_cleanup_interval: u64,
+    pub remove_peerless_torrents: bool,
     pub udp_trackers: Vec<UdpTrackerConfig>,
     pub http_trackers: Vec<HttpTrackerConfig>,
     pub http_api: HttpApiConfig,
@@ -107,7 +99,7 @@ impl Configuration {
                 match Self::load(data.as_slice()) {
                     Ok(cfg) => {
                         Ok(cfg)
-                    },
+                    }
                     Err(e) => Err(ConfigurationError::ParseError(e)),
                 }
             }
@@ -131,50 +123,42 @@ impl Configuration {
     pub fn default() -> Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
-            mode: TrackerMode::PublicMode,
+            mode: TrackerMode::Public,
+            db_driver: DatabaseDrivers::Sqlite3,
             db_path: String::from("data.db"),
-            persistence: false,
-            cleanup_interval: Some(600),
-            cleanup_peerless: true,
-            external_ip: Some(String::from("0.0.0.0")),
             announce_interval: 120,
-            announce_interval_min: 120,
-            peer_timeout: 900,
+            min_announce_interval: 120,
+            max_peer_timeout: 900,
             on_reverse_proxy: false,
+            external_ip: Some(String::from("0.0.0.0")),
+            tracker_usage_statistics: true,
+            persistent_torrent_completed_stat: false,
+            inactive_peer_cleanup_interval: 600,
+            remove_peerless_torrents: true,
             udp_trackers: Vec::new(),
             http_trackers: Vec::new(),
             http_api: HttpApiConfig {
                 enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))].iter().cloned().collect(),
-            }
+            },
         };
         configuration.udp_trackers.push(
-            UdpTrackerConfig{
+            UdpTrackerConfig {
                 enabled: false,
-                bind_address: String::from("0.0.0.0:6969")
+                bind_address: String::from("0.0.0.0:6969"),
             }
         );
         configuration.http_trackers.push(
-            HttpTrackerConfig{
+            HttpTrackerConfig {
                 enabled: false,
                 bind_address: String::from("0.0.0.0:6969"),
                 ssl_enabled: false,
-                ssl_bind_address: String::from("0.0.0.0:6868"),
                 ssl_cert_path: None,
-                ssl_key_path: None
+                ssl_key_path: None,
             }
         );
         configuration
-    }
-
-    pub fn verify(&self) -> Result<(), ConfigurationError> {
-        // UDP is not secure for sending private keys
-        if self.mode == TrackerMode::PrivateMode || self.mode == TrackerMode::PrivateListedMode {
-            return Err(ConfigurationError::TrackerModeIncompatible)
-        }
-
-        Ok(())
     }
 
     pub fn load_from_file() -> Result<Configuration, ConfigError> {
@@ -189,18 +173,15 @@ impl Configuration {
             eprintln!("Creating config file..");
             let config = Configuration::default();
             let _ = config.save_to_file();
-            return Err(ConfigError::Message(format!("Please edit the config.TOML in the root folder and restart the tracker.")))
+            return Err(ConfigError::Message(format!("Please edit the config.TOML in the root folder and restart the tracker.")));
         }
 
         let torrust_config: Configuration = config.try_into().map_err(|e| ConfigError::Message(format!("Errors while processing config: {}.", e)))?;
 
-        match torrust_config.verify() {
-            Ok(_) => Ok(torrust_config),
-            Err(e) => Err(ConfigError::Message(format!("Errors while processing config: {}.", e)))
-        }
+        Ok(torrust_config)
     }
 
-    pub fn save_to_file(&self) -> Result<(), ()>{
+    pub fn save_to_file(&self) -> Result<(), ()> {
         let toml_string = toml::to_string(self).expect("Could not encode TOML value");
         fs::write("config.toml", toml_string).expect("Could not write to file!");
         Ok(())

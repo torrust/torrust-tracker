@@ -1,7 +1,8 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
-use crate::TorrentTracker;
-use crate::torrust_http_tracker::routes;
+
+use crate::http::routes;
+use crate::tracker::tracker::TorrentTracker;
 
 /// Server that listens on HTTP, needs a TorrentTracker
 #[derive(Clone)]
@@ -17,18 +18,19 @@ impl HttpServer {
     }
 
     /// Start the HttpServer
-    pub async fn start(&self, socket_addr: SocketAddr) {
+    pub fn start(&self, socket_addr: SocketAddr) -> impl warp::Future<Output = ()> {
         let (_addr, server) = warp::serve(routes(self.tracker.clone()))
             .bind_with_graceful_shutdown(socket_addr, async move {
                 tokio::signal::ctrl_c()
                     .await
-                    .expect("failed to listen to shutdown signal");
+                    .expect("Failed to listen to shutdown signal.");
             });
-        tokio::task::spawn(server);
+
+        server
     }
 
     /// Start the HttpServer in TLS mode
-    pub async fn start_tls(&self, socket_addr: SocketAddr, ssl_cert_path: &str, ssl_key_path: &str) {
+    pub fn start_tls(&self, socket_addr: SocketAddr, ssl_cert_path: String, ssl_key_path: String) -> impl warp::Future<Output = ()> {
         let (_addr, server) = warp::serve(routes(self.tracker.clone()))
             .tls()
             .cert_path(ssl_cert_path)
@@ -36,8 +38,9 @@ impl HttpServer {
             .bind_with_graceful_shutdown(socket_addr, async move {
                 tokio::signal::ctrl_c()
                     .await
-                    .expect("failed to listen to shutdown signal");
+                    .expect("Failed to listen to shutdown signal.");
             });
-        tokio::task::spawn(server);
+
+        server
     }
 }

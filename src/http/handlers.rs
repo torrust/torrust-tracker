@@ -1,13 +1,19 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
+use std::net::IpAddr;
 use std::sync::Arc;
+
 use log::debug;
 use warp::{reject, Rejection, Reply};
-use warp::http::{Response};
-use crate::{InfoHash, TorrentError, TorrentPeer, TorrentStats, TorrentTracker};
-use crate::key_manager::AuthKey;
-use crate::torrust_http_tracker::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError, WebResult};
-use crate::utils::url_encode_bytes;
+use warp::http::Response;
+
+use crate::{InfoHash};
+use crate::tracker::key::AuthKey;
+use crate::tracker::torrent::{TorrentError, TorrentStats};
+use crate::http::{AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError, WebResult};
+use crate::peer::TorrentPeer;
+use crate::tracker::statistics::TrackerStatisticsEvent;
+use crate::tracker::tracker::TorrentTracker;
 
 /// Authenticate InfoHash using optional AuthKey
 pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
@@ -31,7 +37,7 @@ pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<AuthKey>, trac
 /// Handle announce request
 pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>) -> WebResult<impl Reply> {
     if let Err(e) = authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await {
-        return Err(reject::custom(e))
+        return Err(reject::custom(e));
     }
 
     debug!("{:?}", announce_request);
@@ -42,62 +48,45 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
     // get all torrent peers excluding the peer_addr
     let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;
 
-    // success response
-    let tracker_copy = tracker.clone();
-    let is_ipv4 = announce_request.peer_addr.is_ipv4();
-
-    tokio::spawn(async move {
-        let mut status_writer = tracker_copy.set_stats().await;
-        if is_ipv4 {
-            status_writer.tcp4_connections_handled += 1;
-            status_writer.tcp4_announces_handled += 1;
-        } else {
-            status_writer.tcp6_connections_handled += 1;
-            status_writer.tcp6_announces_handled += 1;
-        }
-    });
-
     let announce_interval = tracker.config.announce_interval;
 
-    send_announce_response(&announce_request, torrent_stats, peers, announce_interval, tracker.config.announce_interval_min)
+    // send stats event
+    match announce_request.peer_addr {
+        IpAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Tcp4Announce).await; }
+        IpAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Tcp6Announce).await; }
+    }
+
+    send_announce_response(&announce_request, torrent_stats, peers, announce_interval, tracker.config.min_announce_interval)
 }
 
 /// Handle scrape request
 pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthKey>, tracker: Arc<TorrentTracker>) -> WebResult<impl Reply> {
-    let mut files: HashMap<String, ScrapeResponseEntry> = HashMap::new();
+    let mut files: HashMap<InfoHash, ScrapeResponseEntry> = HashMap::new();
     let db = tracker.get_torrents().await;
 
     for info_hash in scrape_request.info_hashes.iter() {
-        // authenticate every info_hash
-        if authenticate(info_hash, &auth_key, tracker.clone()).await.is_err() { continue }
-
         let scrape_entry = match db.get(&info_hash) {
             Some(torrent_info) => {
-                let (seeders, completed, leechers) = torrent_info.get_stats();
-                ScrapeResponseEntry { complete: seeders, downloaded: completed, incomplete: leechers }
+                if authenticate(info_hash, &auth_key, tracker.clone()).await.is_ok() {
+                    let (seeders, completed, leechers) = torrent_info.get_stats();
+                    ScrapeResponseEntry { complete: seeders, downloaded: completed, incomplete: leechers }
+                } else {
+                    ScrapeResponseEntry { complete: 0, downloaded: 0, incomplete: 0 }
+                }
             }
             None => {
                 ScrapeResponseEntry { complete: 0, downloaded: 0, incomplete: 0 }
             }
         };
 
-        if let Ok(encoded_info_hash) = url_encode_bytes(&info_hash.0) {
-            files.insert(encoded_info_hash, scrape_entry);
-        }
+        files.insert(info_hash.clone(), scrape_entry);
     }
 
-    let tracker_copy = tracker.clone();
-
-    tokio::spawn(async move {
-        let mut status_writer = tracker_copy.set_stats().await;
-        if scrape_request.peer_addr.is_ipv4() {
-            status_writer.tcp4_connections_handled += 1;
-            status_writer.tcp4_scrapes_handled += 1;
-        } else {
-            status_writer.tcp6_connections_handled += 1;
-            status_writer.tcp6_scrapes_handled += 1;
-        }
-    });
+    // send stats event
+    match scrape_request.peer_addr {
+        IpAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Tcp4Scrape).await; }
+        IpAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Tcp6Scrape).await; }
+    }
 
     send_scrape_response(files)
 }
@@ -107,7 +96,7 @@ fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: Tor
     let http_peers: Vec<Peer> = peers.iter().map(|peer| Peer {
         peer_id: peer.peer_id.to_string(),
         ip: peer.peer_addr.ip(),
-        port: peer.peer_addr.port()
+        port: peer.peer_addr.port(),
     }).collect();
 
     let res = AnnounceResponse {
@@ -115,7 +104,7 @@ fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: Tor
         interval_min,
         complete: torrent_stats.seeders,
         incomplete: torrent_stats.leechers,
-        peers: http_peers
+        peers: http_peers,
     };
 
     // check for compact response request
@@ -130,8 +119,13 @@ fn send_announce_response(announce_request: &AnnounceRequest, torrent_stats: Tor
 }
 
 /// Send scrape response
-fn send_scrape_response(files: HashMap<String, ScrapeResponseEntry>) -> WebResult<impl Reply> {
-    Ok(Response::new(ScrapeResponse { files }.write()))
+fn send_scrape_response(files: HashMap<InfoHash, ScrapeResponseEntry>) -> WebResult<impl Reply> {
+    let res = ScrapeResponse { files };
+
+    match res.write() {
+        Ok(body) => Ok(Response::new(body)),
+        Err(_) => Err(reject::custom(ServerError::InternalServerError))
+    }
 }
 
 /// Handle all server errors and send error reply

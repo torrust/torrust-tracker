@@ -1,11 +1,14 @@
-use crate::tracker::{TorrentTracker};
-use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::collections::{HashMap, HashSet};
+use std::net::SocketAddr;
 use std::sync::Arc;
-use warp::{filters, reply, reply::Reply, serve, Filter, Server};
-use crate::TorrentPeer;
-use super::common::*;
+
+use serde::{Deserialize, Serialize};
+use warp::{Filter, filters, reply, serve};
+
+use crate::protocol::common::*;
+use crate::peer::TorrentPeer;
+use crate::tracker::tracker::TorrentTracker;
 
 #[derive(Deserialize, Debug)]
 struct TorrentInfoQuery {
@@ -20,7 +23,7 @@ struct Torrent<'a> {
     completed: u32,
     leechers: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
-    peers: Option<Vec<TorrentPeer>>,
+    peers: Option<Vec<&'a TorrentPeer>>,
 }
 
 #[derive(Serialize)]
@@ -52,7 +55,7 @@ enum ActionStatus<'a> {
 
 impl warp::reject::Reject for ActionStatus<'static> {}
 
-fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Error = warp::reject::Rejection> + Clone {
+fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract=(), Error=warp::reject::Rejection> + Clone {
     #[derive(Deserialize)]
     struct AuthToken {
         token: Option<String>,
@@ -69,7 +72,7 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
                 match token.token {
                     Some(token) => {
                         if !tokens.contains(&token) {
-                            return Err(warp::reject::custom(ActionStatus::Err { reason: "token not valid".into() }))
+                            return Err(warp::reject::custom(ActionStatus::Err { reason: "token not valid".into() }));
                         }
 
                         Ok(())
@@ -81,7 +84,7 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
         .untuple_one()
 }
 
-pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract = impl Reply> + Clone + Send + Sync + 'static> {
+pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp::Future<Output = ()> {
     // GET /api/torrents?offset=:u32&limit=:u32
     // View torrent list
     let api_torrents = tracker.clone();
@@ -131,7 +134,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
         })
         .and_then(|tracker: Arc<TorrentTracker>| {
             async move {
-                let mut results = Stats{
+                let mut results = Stats {
                     torrents: 0,
                     seeders: 0,
                     completed: 0,
@@ -147,9 +150,11 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                     udp4_scrapes_handled: 0,
                     udp6_connections_handled: 0,
                     udp6_announces_handled: 0,
-                    udp6_scrapes_handled: 0
+                    udp6_scrapes_handled: 0,
                 };
+
                 let db = tracker.get_torrents().await;
+
                 let _: Vec<_> = db
                     .iter()
                     .map(|(_info_hash, torrent_entry)| {
@@ -160,7 +165,9 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                         results.torrents += 1;
                     })
                     .collect();
+
                 let stats = tracker.get_stats().await;
+
                 results.tcp4_connections_handled = stats.tcp4_connections_handled as u32;
                 results.tcp4_announces_handled = stats.tcp4_announces_handled as u32;
                 results.tcp4_scrapes_handled = stats.tcp4_scrapes_handled as u32;
@@ -195,7 +202,7 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                 let torrent_entry_option = db.get(&info_hash);
 
                 if torrent_entry_option.is_none() {
-                    return Err(warp::reject::custom(ActionStatus::Err { reason: "torrent does not exist".into() }))
+                    return Result::<_, warp::reject::Rejection>::Ok(reply::json(&"torrent not known"))
                 }
 
                 let torrent_entry = torrent_entry_option.unwrap();
@@ -226,10 +233,10 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
         })
         .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| {
             async move {
-                 match tracker.remove_torrent_from_whitelist(&info_hash).await {
-                     Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
-                     Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to remove torrent from whitelist".into() }))
-                 }
+                match tracker.remove_torrent_from_whitelist(&info_hash).await {
+                    Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
+                    Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to remove torrent from whitelist".into() }))
+                }
             }
         });
 
@@ -286,9 +293,49 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
         })
         .and_then(|(key, tracker): (String, Arc<TorrentTracker>)| {
             async move {
-                match tracker.remove_auth_key(key).await {
+                match tracker.remove_auth_key(&key).await {
                     Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                     Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to delete key".into() }))
+                }
+            }
+        });
+
+    // GET /api/whitelist/reload
+    // Reload whitelist
+    let t7 = tracker.clone();
+    let reload_whitelist = filters::method::get()
+        .and(filters::path::path("whitelist"))
+        .and(filters::path::path("reload"))
+        .and(filters::path::end())
+        .map(move || {
+            let tracker = t7.clone();
+            tracker
+        })
+        .and_then(|tracker: Arc<TorrentTracker>| {
+            async move {
+                match tracker.load_whitelist().await {
+                    Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
+                    Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to reload whitelist".into() }))
+                }
+            }
+        });
+
+    // GET /api/keys/reload
+    // Reload whitelist
+    let t8 = tracker.clone();
+    let reload_keys = filters::method::get()
+        .and(filters::path::path("keys"))
+        .and(filters::path::path("reload"))
+        .and(filters::path::end())
+        .map(move || {
+            let tracker = t8.clone();
+            tracker
+        })
+        .and_then(|tracker: Arc<TorrentTracker>| {
+            async move {
+                match tracker.load_keys().await {
+                    Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
+                    Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to reload keys".into() }))
                 }
             }
         });
@@ -302,9 +349,17 @@ pub fn build_server(tracker: Arc<TorrentTracker>) -> Server<impl Filter<Extract 
                 .or(add_torrent)
                 .or(create_key)
                 .or(delete_key)
+                .or(reload_whitelist)
+                .or(reload_keys)
             );
 
     let server = api_routes.and(authenticate(tracker.config.http_api.access_tokens.clone()));
 
-    serve(server)
+    let (_addr, api_server) = serve(server).bind_with_graceful_shutdown(socket_addr, async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to listen to shutdown signal.");
+    });
+
+    api_server
 }

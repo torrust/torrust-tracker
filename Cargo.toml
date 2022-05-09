@@ -1,34 +1,50 @@
 [package]
+edition = "2021"
 name = "torrust-tracker"
-version = "2.2.0"
+version = "2.3.0"
 license = "AGPL-3.0"
 authors = ["Mick van Dijke <mick@dutchbits.nl>"]
 description = "A feature rich BitTorrent tracker."
-edition = "2018"
+repository = "https://github.com/torrust/torrust-tracker"
+
+[profile.dev]
+debug = 1
+opt-level = 1
+lto = "thin"
 
 [profile.release]
+debug = 1
+opt-level = 3
 lto = "fat"
+strip = true
 
 [dependencies]
-serde = {version = "1.0", features = ["derive"]}
+tokio = { version = "1.7", features = ["full"] }
+
+serde = { version = "1.0", features = ["derive"] }
 serde_bencode = "^0.2.3"
-serde_bytes = "0.11"
 serde_json = "1.0.72"
 hex = "0.4.3"
 percent-encoding = "2.1.0"
-warp = {version = "0.3", features = ["tls"]}
-tokio = {version = "1.7", features = ["macros", "io-util", "net", "time", "rt-multi-thread", "fs", "sync", "signal"]}
 binascii = "0.1"
+
+warp = { version = "0.3", features = ["tls"] }
+
+config = "0.11"
 toml = "0.5"
-log = {version = "0.4", features = ["release_max_level_info"]}
+
+log = { version = "0.4", features = ["release_max_level_info"] }
 fern = "0.6"
 chrono = "0.4"
-byteorder = "1"
-r2d2_sqlite = "0.16.0"
+
 r2d2 = "0.8.8"
+r2d2_mysql = "21.0.0"
+r2d2_sqlite = "0.16.0"
+
 rand = "0.8.4"
-config = "0.11"
 derive_more = "0.99"
 thiserror = "1.0"
-aquatic_udp_protocol = { git = "https://github.com/greatest-ape/aquatic" }
 futures = "0.3.21"
+async-trait = "0.1.52"
+
+aquatic_udp_protocol = "0.2.0"
