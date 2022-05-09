@@ -300,6 +300,46 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
             }
         });
 
+    // GET /api/whitelist/reload
+    // Reload whitelist
+    let t7 = tracker.clone();
+    let reload_whitelist = filters::method::get()
+        .and(filters::path::path("whitelist"))
+        .and(filters::path::path("reload"))
+        .and(filters::path::end())
+        .map(move || {
+            let tracker = t7.clone();
+            tracker
+        })
+        .and_then(|tracker: Arc<TorrentTracker>| {
+            async move {
+                match tracker.load_whitelist().await {
+                    Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
+                    Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to reload whitelist".into() }))
+                }
+            }
+        });
+
+    // GET /api/keys/reload
+    // Reload whitelist
+    let t8 = tracker.clone();
+    let reload_keys = filters::method::get()
+        .and(filters::path::path("keys"))
+        .and(filters::path::path("reload"))
+        .and(filters::path::end())
+        .map(move || {
+            let tracker = t8.clone();
+            tracker
+        })
+        .and_then(|tracker: Arc<TorrentTracker>| {
+            async move {
+                match tracker.load_keys().await {
+                    Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
+                    Err(_) => Err(warp::reject::custom(ActionStatus::Err { reason: "failed to reload keys".into() }))
+                }
+            }
+        });
+
     let api_routes =
         filters::path::path("api")
             .and(view_torrent_list
@@ -309,6 +349,8 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
                 .or(add_torrent)
                 .or(create_key)
                 .or(delete_key)
+                .or(reload_whitelist)
+                .or(reload_keys)
             );
 
     let server = api_routes.and(authenticate(tracker.config.http_api.access_tokens.clone()));
