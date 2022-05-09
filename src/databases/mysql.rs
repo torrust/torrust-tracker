@@ -54,7 +54,7 @@ impl Database for MysqlDatabase {
           UNIQUE (`key`)
         );", AUTH_KEY_LENGTH as i8);
 
-        let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         conn.query_drop(&create_torrents_table).expect("Could not create torrents table.");
         conn.query_drop(&create_keys_table).expect("Could not create keys table.");
@@ -64,7 +64,7 @@ impl Database for MysqlDatabase {
     }
 
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let torrents: Vec<(InfoHash, u32)> = conn.query_map("SELECT info_hash, completed FROM torrents", |(info_hash_string, completed): (String, u32)| {
             let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
@@ -98,7 +98,7 @@ impl Database for MysqlDatabase {
     }
 
     async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let info_hash_str = info_hash.to_string();
 
@@ -116,7 +116,7 @@ impl Database for MysqlDatabase {
     }
 
     async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn.exec_first::<String, _, _>("SELECT info_hash FROM whitelist WHERE info_hash = :info_hash", params! { info_hash })
             .map_err(|_| database::Error::QueryReturnedNoRows)? {
@@ -130,7 +130,7 @@ impl Database for MysqlDatabase {
     }
 
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let info_hash_str = info_hash.to_string();
 
@@ -146,7 +146,7 @@ impl Database for MysqlDatabase {
     }
 
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let info_hash = info_hash.to_string();
 
@@ -162,7 +162,7 @@ impl Database for MysqlDatabase {
     }
 
     async fn get_key_from_keys(&self, key: &str) -> Result<AuthKey, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn.exec_first::<(String, i64), _, _>("SELECT `key`, valid_until FROM `keys` WHERE `key` = :key", params! { key })
             .map_err(|_| database::Error::QueryReturnedNoRows)? {
@@ -179,7 +179,7 @@ impl Database for MysqlDatabase {
     }
 
     async fn add_key_to_keys(&self, auth_key: &AuthKey) -> Result<usize, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let key = auth_key.key.to_string();
         let valid_until = auth_key.valid_until.unwrap_or(0).to_string();
@@ -196,7 +196,7 @@ impl Database for MysqlDatabase {
     }
 
     async fn remove_key_from_keys(&self, key: &str) -> Result<usize, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn.exec_drop("DELETE FROM `keys` WHERE key = :key", params! { key }) {
             Ok(_) => {

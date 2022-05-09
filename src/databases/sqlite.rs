@@ -6,7 +6,7 @@ use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use r2d2_sqlite::rusqlite::NO_PARAMS;
 
-use crate::{AUTH_KEY_LENGTH, InfoHash};
+use crate::{InfoHash};
 use crate::databases::database::{Database, Error};
 use crate::databases::database;
 use crate::tracker::key::AuthKey;
@@ -30,25 +30,25 @@ impl Database for SqliteDatabase {
     fn create_database_tables(&self) -> Result<(), database::Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            info_hash VARCHAR(20) NOT NULL UNIQUE
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            info_hash TEXT NOT NULL UNIQUE
         );".to_string();
 
         let create_torrents_table = "
         CREATE TABLE IF NOT EXISTS torrents (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            info_hash VARCHAR(20) NOT NULL UNIQUE,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            info_hash TEXT NOT NULL UNIQUE,
             completed INTEGER DEFAULT 0 NOT NULL
         );".to_string();
 
-        let create_keys_table = format!("
+        let create_keys_table = "
         CREATE TABLE IF NOT EXISTS keys (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            key VARCHAR({}) NOT NULL UNIQUE,
-            valid_until INT(10) NOT NULL
-         );", AUTH_KEY_LENGTH as i8);
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT NOT NULL UNIQUE,
+            valid_until INTEGER NOT NULL
+         );".to_string();
 
-        let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         conn.execute(&create_whitelist_table, NO_PARAMS)
             .and_then(|_| conn.execute(&create_keys_table, NO_PARAMS))
@@ -58,7 +58,7 @@ impl Database for SqliteDatabase {
     }
 
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, database::Error> {
-        let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
 
@@ -111,7 +111,7 @@ impl Database for SqliteDatabase {
     }
 
     async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), database::Error> {
-        let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn.execute("INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2", &[info_hash.to_string(), completed.to_string()]) {
             Ok(updated) => {
@@ -126,7 +126,7 @@ impl Database for SqliteDatabase {
     }
 
     async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, database::Error> {
-        let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let mut stmt = conn.prepare("SELECT info_hash FROM whitelist WHERE info_hash = ?")?;
         let mut rows = stmt.query(&[info_hash])?;
@@ -142,7 +142,7 @@ impl Database for SqliteDatabase {
     }
 
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, database::Error> {
-        let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", &[info_hash.to_string()]) {
             Ok(updated) => {
@@ -157,7 +157,7 @@ impl Database for SqliteDatabase {
     }
 
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, database::Error> {
-        let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn.execute("DELETE FROM whitelist WHERE info_hash = ?", &[info_hash.to_string()]) {
             Ok(updated) => {
@@ -172,7 +172,7 @@ impl Database for SqliteDatabase {
     }
 
     async fn get_key_from_keys(&self, key: &str) -> Result<AuthKey, database::Error> {
-        let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys WHERE key = ?")?;
         let mut rows = stmt.query(&[key.to_string()])?;
@@ -191,7 +191,7 @@ impl Database for SqliteDatabase {
     }
 
     async fn add_key_to_keys(&self, auth_key: &AuthKey) -> Result<usize, database::Error> {
-        let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn.execute("INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
                            &[auth_key.key.to_string(), auth_key.valid_until.unwrap().to_string()],
@@ -208,7 +208,7 @@ impl Database for SqliteDatabase {
     }
 
     async fn remove_key_from_keys(&self, key: &str) -> Result<usize, database::Error> {
-        let conn = self.pool.get().map_err(|_| database::Error::InvalidQuery)?;
+        let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn.execute("DELETE FROM keys WHERE key = ?", &[key]) {
             Ok(updated) => {
