@@ -14,20 +14,9 @@ use crate::tracker::tracker::TorrentTracker;
 
 /// All routes
 pub fn routes(tracker: Arc<TorrentTracker>) -> impl Filter<Extract=impl warp::Reply, Error=Infallible> + Clone {
-    root(tracker.clone())
-        .or(announce(tracker.clone()))
-        .or(scrape(tracker.clone()))
+    announce(tracker.clone())
+        .or(scrape(tracker))
         .recover(send_error)
-}
-
-/// GET / or /<key>
-fn root(tracker: Arc<TorrentTracker>) -> impl Filter<Extract=impl warp::Reply, Error=Rejection> + Clone {
-    warp::any()
-        .and(warp::filters::method::get())
-        .and(with_announce_request(tracker.config.on_reverse_proxy))
-        .and(with_auth_key())
-        .and(with_tracker(tracker))
-        .and_then(handle_announce)
 }
 
 /// GET /announce or /announce/<key>
