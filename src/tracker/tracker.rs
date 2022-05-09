@@ -60,33 +60,66 @@ impl TorrentTracker {
 
     pub async fn generate_auth_key(&self, seconds_valid: u64) -> Result<AuthKey, database::Error> {
         let auth_key = key::generate_auth_key(seconds_valid);
-
-        // Add key to database
-        if let Err(error) = self.database.add_key_to_keys(&auth_key).await { return Err(error); }
-
-        // Add key to in-memory database
+        self.database.add_key_to_keys(&auth_key).await?;
         self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
-
         Ok(auth_key)
     }
 
-    pub async fn remove_auth_key(&self, key: &str) -> Result<usize, database::Error> {
+    pub async fn remove_auth_key(&self, key: &str) -> Result<(), database::Error> {
         self.database.remove_key_from_keys(&key).await?;
-
-        // Remove key from in-memory database
         self.keys.write().await.remove(key);
-
-        Ok(1)
+        Ok(())
     }
 
     pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> Result<(), key::Error> {
-        let keys_lock = self.keys.read().await;
-
-        if let Some(key) = keys_lock.get(&auth_key.key) {
-            key::verify_auth_key(key)
-        } else {
-            Err(key::Error::KeyInvalid)
+        match self.keys.read().await.get(&auth_key.key) {
+            None => Err(key::Error::KeyInvalid),
+            Some(key) => key::verify_auth_key(key)
         }
+    }
+
+    pub async fn load_keys(&self) -> Result<(), database::Error> {
+        let keys_from_database = self.database.load_keys().await?;
+        let mut keys = self.keys.write().await;
+
+        keys.clear();
+
+        for key in keys_from_database {
+            let _ = keys.insert(key.key.clone(), key);
+        }
+
+        Ok(())
+    }
+
+    // Adding torrents is not relevant to public trackers.
+    pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
+        self.database.add_info_hash_to_whitelist(info_hash.clone()).await?;
+        self.whitelist.write().await.insert(info_hash.clone());
+        Ok(())
+    }
+
+    // Removing torrents is not relevant to public trackers.
+    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
+        self.database.remove_info_hash_from_whitelist(info_hash.clone()).await?;
+        self.whitelist.write().await.remove(info_hash);
+        Ok(())
+    }
+
+    pub async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> bool {
+        self.whitelist.read().await.contains(info_hash)
+    }
+
+    pub async fn load_whitelist(&self) -> Result<(), database::Error> {
+        let whitelisted_torrents_from_database = self.database.load_whitelist().await?;
+        let mut whitelist = self.whitelist.write().await;
+
+        whitelist.clear();
+
+        for info_hash in whitelisted_torrents_from_database {
+            let _ = whitelist.insert(info_hash);
+        }
+
+        Ok(())
     }
 
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
@@ -107,38 +140,11 @@ impl TorrentTracker {
             }
         }
 
-        // todo: speed this up
         // check if info_hash is whitelisted
         if self.is_whitelisted() {
             if !self.is_info_hash_whitelisted(info_hash).await {
                 return Err(TorrentError::TorrentNotWhitelisted);
             }
-        }
-
-        Ok(())
-    }
-
-    pub async fn load_keys(&self) -> Result<(), database::Error> {
-        let keys_from_database = self.database.load_keys().await?;
-        let mut keys = self.keys.write().await;
-
-        keys.clear();
-
-        for key in keys_from_database {
-            let _ = keys.insert(key.key.clone(), key);
-        }
-
-        Ok(())
-    }
-
-    pub async fn load_whitelist(&self) -> Result<(), database::Error> {
-        let whitelisted_torrents_from_database = self.database.load_whitelist().await?;
-        let mut whitelist = self.whitelist.write().await;
-
-        whitelist.clear();
-
-        for info_hash in whitelisted_torrents_from_database {
-            let _ = whitelist.insert(info_hash);
         }
 
         Ok(())
@@ -163,24 +169,6 @@ impl TorrentTracker {
 
         Ok(())
     }
-
-    // Adding torrents is not relevant to public trackers.
-    pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<usize, database::Error> {
-        self.database.add_info_hash_to_whitelist(info_hash.clone()).await
-    }
-
-    // Removing torrents is not relevant to public trackers.
-    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<usize, database::Error> {
-        self.database.remove_info_hash_from_whitelist(info_hash.clone()).await
-    }
-
-    pub async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> bool {
-        match self.database.get_info_hash_from_whitelist(&info_hash.to_string()).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
-    }
-
 
     pub async fn get_torrent_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr, ) -> Vec<TorrentPeer> {
         let read_lock = self.torrents.read().await;

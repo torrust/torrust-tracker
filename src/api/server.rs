@@ -152,7 +152,9 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
                     udp6_announces_handled: 0,
                     udp6_scrapes_handled: 0,
                 };
+
                 let db = tracker.get_torrents().await;
+
                 let _: Vec<_> = db
                     .iter()
                     .map(|(_info_hash, torrent_entry)| {
@@ -163,7 +165,9 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
                         results.torrents += 1;
                     })
                     .collect();
+
                 let stats = tracker.get_stats().await;
+
                 results.tcp4_connections_handled = stats.tcp4_connections_handled as u32;
                 results.tcp4_announces_handled = stats.tcp4_announces_handled as u32;
                 results.tcp4_scrapes_handled = stats.tcp4_scrapes_handled as u32;
