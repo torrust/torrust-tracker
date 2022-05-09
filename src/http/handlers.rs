@@ -65,13 +65,14 @@ pub async fn handle_scrape(scrape_request: ScrapeRequest, auth_key: Option<AuthK
     let db = tracker.get_torrents().await;
 
     for info_hash in scrape_request.info_hashes.iter() {
-        // authenticate every info_hash
-        if authenticate(info_hash, &auth_key, tracker.clone()).await.is_err() { continue; }
-
         let scrape_entry = match db.get(&info_hash) {
             Some(torrent_info) => {
-                let (seeders, completed, leechers) = torrent_info.get_stats();
-                ScrapeResponseEntry { complete: seeders, downloaded: completed, incomplete: leechers }
+                if authenticate(info_hash, &auth_key, tracker.clone()).await.is_ok() {
+                    let (seeders, completed, leechers) = torrent_info.get_stats();
+                    ScrapeResponseEntry { complete: seeders, downloaded: completed, incomplete: leechers }
+                } else {
+                    ScrapeResponseEntry { complete: 0, downloaded: 0, incomplete: 0 }
+                }
             }
             None => {
                 ScrapeResponseEntry { complete: 0, downloaded: 0, incomplete: 0 }

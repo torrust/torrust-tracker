@@ -154,16 +154,22 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
     for info_hash in request.info_hashes.iter() {
         let info_hash = InfoHash(info_hash.0);
 
-        if authenticate(&info_hash, tracker.clone()).await.is_err() { continue; }
-
         let scrape_entry = match db.get(&info_hash) {
             Some(torrent_info) => {
-                let (seeders, completed, leechers) = torrent_info.get_stats();
+                if authenticate(&info_hash, tracker.clone()).await.is_ok() {
+                    let (seeders, completed, leechers) = torrent_info.get_stats();
 
-                TorrentScrapeStatistics {
-                    seeders: NumberOfPeers(seeders as i32),
-                    completed: NumberOfDownloads(completed as i32),
-                    leechers: NumberOfPeers(leechers as i32),
+                    TorrentScrapeStatistics {
+                        seeders: NumberOfPeers(seeders as i32),
+                        completed: NumberOfDownloads(completed as i32),
+                        leechers: NumberOfPeers(leechers as i32),
+                    }
+                } else {
+                    TorrentScrapeStatistics {
+                        seeders: NumberOfPeers(0),
+                        completed: NumberOfDownloads(0),
+                        leechers: NumberOfPeers(0),
+                    }
                 }
             }
             None => {
@@ -177,6 +183,8 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
 
         torrent_stats.push(scrape_entry);
     }
+
+    drop(db);
 
     // send stats event
     match remote_addr {
