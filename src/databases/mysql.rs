@@ -54,11 +54,17 @@ impl Database for MysqlDatabase {
           UNIQUE (`key`)
         );", AUTH_KEY_LENGTH as i8);
 
+        // When upgrading from < v2.3.0
+        let alter_whitelist_table = "ALTER TABLE `whitelist` MODIFY `info_hash` VARCHAR(40);".to_string();
+        let alter_torrents_table = "ALTER TABLE `torrents` MODIFY `info_hash` VARCHAR(40);".to_string();
+
         let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         conn.query_drop(&create_torrents_table).expect("Could not create torrents table.");
         conn.query_drop(&create_keys_table).expect("Could not create keys table.");
         conn.query_drop(&create_whitelist_table).expect("Could not create whitelist table.");
+        conn.query_drop(&alter_whitelist_table).expect("Could not alter whitelist table.");
+        conn.query_drop(&alter_torrents_table).expect("Could not alter torrents table.");
 
         Ok(())
     }
