@@ -74,7 +74,7 @@ impl TorrentEntry {
 
     pub fn remove_inactive_peers(&mut self, max_peer_timeout: u32) {
         self.peers.retain(|_, peer| {
-            peer.updated.elapsed() > std::time::Duration::from_secs(max_peer_timeout as u64)
+            peer.updated.elapsed() < std::time::Duration::from_secs(max_peer_timeout as u64)
         });
     }
 }
