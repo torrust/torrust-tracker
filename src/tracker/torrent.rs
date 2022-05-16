@@ -32,9 +32,12 @@ impl TorrentEntry {
             AnnounceEvent::Completed => {
                 let peer_old = self.peers.insert(peer.peer_id.clone(), peer.clone());
                 // Don't count if peer was not previously known
-                if peer_old.is_some() {
-                    self.completed += 1;
-                    did_torrent_stats_change = true;
+                if let Some(old_peer) = peer_old {
+                    // Don't double count
+                    if !old_peer.is_seeder() {
+                        self.completed += 1;
+                        did_torrent_stats_change = true;
+                    }
                 }
             }
             _ => {
@@ -74,7 +77,7 @@ impl TorrentEntry {
 
     pub fn remove_inactive_peers(&mut self, max_peer_timeout: u32) {
         self.peers.retain(|_, peer| {
-            peer.updated.elapsed() > std::time::Duration::from_secs(max_peer_timeout as u64)
+            peer.updated.elapsed() < std::time::Duration::from_secs(max_peer_timeout as u64)
         });
     }
 }
