@@ -1,0 +1,6 @@
+.git
+.github
+bin/docker/
+data.db
+storage/
+target/

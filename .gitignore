@@ -1,7 +1,7 @@
-/target
 **/*.rs.bk
-/database.json.bz2
-/database.db
 /.idea/
 /config.toml
-/data.db
+/database.db
+/database.json.bz2
+/storage/data.db
+/target
