@@ -7,8 +7,10 @@ use torrust_tracker::tracker::tracker::TorrentTracker;
 
 #[tokio::main]
 async fn main() {
+    const CONFIG_PATH: &str = "config.toml";
+
     // Initialize Torrust config
-    let config = match Configuration::load_from_file() {
+    let config = match Configuration::load_from_file(CONFIG_PATH) {
         Ok(config) => Arc::new(config),
         Err(error) => {
             panic!("{}", error)
