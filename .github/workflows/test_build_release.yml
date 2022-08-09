@@ -14,9 +14,12 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v1
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - uses: taiki-e/install-action@nextest
       - name: Run tests
-        run: cargo test
+        run: cargo llvm-cov nextest
 
   build:
     needs: test
