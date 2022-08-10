@@ -198,6 +198,26 @@ mod tests {
     }
 
     #[test]
+    fn configuration_should_have_default_values() {
+        use crate::Configuration;
+
+        let configuration = Configuration::default();
+
+        let toml = toml::to_string(&configuration).expect("Could not encode TOML value");
+
+        assert_eq!(toml, default_config_toml());
+    }
+
+    #[test]
+    fn configuration_should_contain_the_external_ip() {
+        use crate::Configuration;
+
+        let configuration = Configuration::default();
+
+        assert_eq!(configuration.external_ip, Option::Some(String::from("0.0.0.0")));
+    }
+
+    #[test]
     fn configuration_should_be_saved_in_a_toml_config_file() {
         use std::env;
         use crate::Configuration;
@@ -252,5 +272,14 @@ mod tests {
         let configuration = Configuration::load_from_file(&config_file_path).expect("Could not load configuration from file");
 
         assert_eq!(configuration, Configuration::default());
+    }
+
+    #[test]
+    fn configuration_error_could_be_displayed() {
+        use crate::ConfigurationError;
+
+        let error = ConfigurationError::TrackerModeIncompatible;
+
+        assert_eq!(format!("{}", error), "TrackerModeIncompatible");
     }
 }
