@@ -217,15 +217,6 @@ mod tests {
     }
 
     #[test]
-    fn configuration_should_have_a_default_value_for_the_log_level() {
-        use crate::Configuration;
-
-        let configuration = Configuration::default();
-
-        assert_eq!(configuration.log_level, Option::from(String::from("info")), "Expected default log level to be: {:?}, got {:?}", Option::from(String::from("info")), configuration.log_level);
-    }
-
-    #[test]
     fn configuration_should_be_saved_in_a_toml_config_file() {
         use std::env;
         use crate::Configuration;
