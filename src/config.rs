@@ -107,9 +107,7 @@ impl Configuration {
             }
         }
     }
-}
 
-impl Configuration {
     pub fn default() -> Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
