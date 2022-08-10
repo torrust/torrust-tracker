@@ -1,3 +1,9 @@
+//! BitTorrent UDP Tracker Implementation.
+//!
+//! Protocol Specification:
+//!
+//! [BEP 15](https://www.bittorrent.org/beps/bep_0015.html)
+
 pub use self::errors::*;
 pub use self::handlers::*;
 pub use self::request::*;
