@@ -176,7 +176,8 @@ impl Configuration {
     }
 }
 
-mod configuration {
+#[cfg(test)]
+mod tests {
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -216,7 +217,7 @@ mod configuration {
     }
 
     #[test]
-    fn should_have_a_default_value_for_the_log_level() {
+    fn configuration_should_have_a_default_value_for_the_log_level() {
         use crate::Configuration;
 
         let configuration = Configuration::default();
@@ -225,7 +226,7 @@ mod configuration {
     }
 
     #[test]
-    fn should_be_saved_in_a_toml_config_file() {
+    fn configuration_should_be_saved_in_a_toml_config_file() {
         use std::env;
         use crate::Configuration;
         use std::fs;
@@ -271,7 +272,7 @@ mod configuration {
     }
 
     #[test]
-    fn should_be_loaded_from_a_toml_config_file() {
+    fn configuration_should_be_loaded_from_a_toml_config_file() {
         use crate::Configuration;
 
         let config_file_path = create_temp_config_file_with_default_config();
