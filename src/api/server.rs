@@ -1,3 +1,47 @@
+//! # API Server
+//!
+//! HTTP server for the tracker HTTP API.
+//!
+//! Endpoint example: 
+//!
+//! GET /api/torrent/:info_hash
+//!
+//! Get torrent details.
+//!
+//! ```s
+//! curl -s http://127.0.0.1:1212/api/torrent/4beb7001cb833968582c67f55cc59dcc6c8d3fe5?token=MyAccessToken | jq
+//! ```
+//!
+//! ```json
+//! {
+//!   "info_hash": "4beb7001cb833968582c67f55cc59dcc6c8d3fe5",
+//!   "seeders": 1,
+//!   "completed": 0,
+//!   "leechers": 0,
+//!   "peers": [
+//!     {
+//!       "peer_id": {
+//!         "id": "2d7142343431302d7358376d33786d2877674179",
+//!         "client": "qBittorrent"
+//!       },
+//!       "peer_addr": "192.168.1.88:17548",
+//!       "updated": 385,
+//!       "uploaded": 0,
+//!       "downloaded": 0,
+//!       "left": 0,
+//!       "event": "None"
+//!     }
+//!   ]
+//! }
+//! ```
+//!
+//! | Parameter | Description |
+//! |-----------|-------------|
+//! | info_hash | The info_hash of the torrent. |
+//!
+//! The `info_hash.peers.updated` are the number of milliseconds since the last update.
+//!
+
 use std::cmp::min;
 use std::collections::{HashMap, HashSet};
 use std::net::SocketAddr;
