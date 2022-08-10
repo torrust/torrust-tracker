@@ -78,23 +78,6 @@ impl std::fmt::Display for ConfigurationError {
 impl std::error::Error for ConfigurationError {}
 
 impl Configuration {
-    pub fn load(data: &[u8]) -> Result<Configuration, toml::de::Error> {
-        toml::from_slice(data)
-    }
-
-    pub fn load_file(path: &str) -> Result<Configuration, ConfigurationError> {
-        match std::fs::read(path) {
-            Err(e) => Err(ConfigurationError::IOError(e)),
-            Ok(data) => {
-                match Self::load(data.as_slice()) {
-                    Ok(cfg) => {
-                        Ok(cfg)
-                    }
-                    Err(e) => Err(ConfigurationError::ParseError(e)),
-                }
-            }
-        }
-    }
 
     pub fn get_ext_ip(&self) -> Option<IpAddr> {
         match &self.external_ip {
