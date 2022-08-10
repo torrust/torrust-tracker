@@ -7,7 +7,7 @@ use crate::tracker::key::AuthKey;
 use crate::databases::mysql::MysqlDatabase;
 use crate::databases::sqlite::SqliteDatabase;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub enum DatabaseDrivers {
     Sqlite3,
     MySQL,
