@@ -107,11 +107,11 @@ mod tests {
 
         let connection_id = get_connection_id(&client_addr, now);
 
-        let in_one_hour = now + 120 - 1;
+        let in_two_minutes = now + 120 - 1;
 
-        let connection_id_after_one_hour = get_connection_id(&client_addr, in_one_hour);
+        let connection_id_after_two_minutes = get_connection_id(&client_addr, in_two_minutes);
 
-        assert_eq!(connection_id, connection_id_after_one_hour);
+        assert_eq!(connection_id, connection_id_after_two_minutes);
     }
 
     #[test]
