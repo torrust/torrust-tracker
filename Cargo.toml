@@ -18,6 +18,13 @@ opt-level = 3
 lto = "fat"
 strip = true
 
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "generate_connection_id"
+harness = false
+
 [dependencies]
 tokio = { version = "1.7", features = ["full"] }
 
@@ -28,6 +35,7 @@ serde_with = "2.0.0"
 hex = "0.4.3"
 percent-encoding = "2.1.0"
 binascii = "0.1"
+blake3 = "1.3.1"
 
 warp = { version = "0.3", features = ["tls"] }
 
