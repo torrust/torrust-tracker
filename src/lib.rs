@@ -1,3 +1,5 @@
+extern crate core;
+
 pub use http::server::*;
 pub use udp::server::*;
 

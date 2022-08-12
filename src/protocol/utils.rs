@@ -1,9 +1,44 @@
 use std::{net::SocketAddr, time::SystemTime};
+use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
 
+// todo: SALT should be randomly generated on startup
+const SALT: &str = "SALT";
+
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
-pub fn get_connection_id(remote_address: &SocketAddr, current_timestamp: u64) -> ConnectionId {
-    ConnectionId(((current_timestamp / 3600) | ((remote_address.port() as u64) << 36)) as i64)
+pub fn get_connection_id(remote_address: &SocketAddr, time_as_seconds: u64) -> ConnectionId {
+    let peer_ip_as_bytes = match remote_address.ip() {
+        IpAddr::V4(ip) => ip.octets().to_vec(),
+        IpAddr::V6(ip) => ip.octets().to_vec(),
+    };
+
+    let input: Vec<u8> = [
+        (time_as_seconds / 120).to_be_bytes().as_slice(),
+        peer_ip_as_bytes.as_slice(),
+        remote_address.port().to_be_bytes().as_slice(),
+        SALT.as_bytes()
+    ].concat();
+
+    let hash = blake3::hash(&input);
+
+    let mut truncated_hash: [u8; 8] = [0u8; 8];
+
+    truncated_hash.copy_from_slice(&hash.as_bytes()[..8]);
+
+    let connection_id = i64::from_le_bytes(truncated_hash);
+
+    ConnectionId(connection_id)
+}
+
+/// Verifies whether a connection id is valid at this time for a given remote address (ip + port)
+pub fn verify_connection_id(connection_id: ConnectionId, remote_address: &SocketAddr) -> Result<(), ()> {
+    let current_time = current_time();
+
+    match connection_id {
+        cid if cid == get_connection_id(remote_address, current_time) => Ok(()),
+        cid if cid == get_connection_id(remote_address, current_time - 120) => Ok(()),
+        _ => Err(())
+    }
 }
 
 pub fn current_time() -> u64 {
@@ -29,6 +64,8 @@ pub fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> R
 #[cfg(test)]
 mod tests {
     use std::{time::Instant, net::{SocketAddr, IpAddr, Ipv4Addr}};
+    use serde::Serialize;
+    use crate::protocol::utils::{ConnectionId, get_connection_id};
 
     #[test]
     fn connection_id_is_generated_based_on_remote_client_port_and_hours_passed_since_unix_epoch() {
@@ -117,11 +154,6 @@ mod tests {
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }
-
-    use aquatic_udp_protocol::ConnectionId;
-    use serde::Serialize;
-
-    use crate::protocol::utils::get_connection_id;
 
     #[warn(unused_imports)]
     use super::ser_instant;
