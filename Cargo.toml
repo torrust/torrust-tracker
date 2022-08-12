@@ -18,6 +18,13 @@ opt-level = 3
 lto = "fat"
 strip = true
 
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "generate_connection_id"
+harness = false
+
 [dependencies]
 tokio = { version = "1.7", features = ["rt-multi-thread", "net", "sync", "macros", "signal"] }
 
