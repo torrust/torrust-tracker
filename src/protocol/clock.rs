@@ -14,7 +14,7 @@ impl Clock for SystemClock {
 }
 
 /// It returns the current timestamp using the system clock.
-pub fn current_timestamp_from_system_clock() -> u64 {
+pub fn current_timestamp() -> u64 {
     let system_clock = SystemClock;
     system_clock.now_as_timestamp()
 }

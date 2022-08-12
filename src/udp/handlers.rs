@@ -11,7 +11,7 @@ use crate::udp::request::AnnounceRequestWrapper;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::tracker::TorrentTracker;
 use crate::protocol::utils::get_connection_id;
-use crate::protocol::clock::current_timestamp_from_system_clock;
+use crate::protocol::clock::current_timestamp;
 
 pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
     match tracker.authenticate_request(info_hash, &None).await {
@@ -71,7 +71,7 @@ pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: 
 }
 
 pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    let connection_id = get_connection_id(&remote_addr, current_timestamp_from_system_clock());
+    let connection_id = get_connection_id(&remote_addr, current_timestamp());
 
     let response = Response::from(ConnectResponse {
         transaction_id: request.transaction_id,
