@@ -4,7 +4,6 @@ use async_trait::async_trait;
 use log::debug;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
-use r2d2_sqlite::rusqlite::NO_PARAMS;
 
 use crate::{InfoHash};
 use crate::databases::database::{Database, Error};
@@ -50,9 +49,9 @@ impl Database for SqliteDatabase {
 
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
-        conn.execute(&create_whitelist_table, NO_PARAMS)
-            .and_then(|_| conn.execute(&create_keys_table, NO_PARAMS))
-            .and_then(|_| conn.execute(&create_torrents_table, NO_PARAMS))
+        conn.execute(&create_whitelist_table, [])
+            .and_then(|_| conn.execute(&create_keys_table, []))
+            .and_then(|_| conn.execute(&create_torrents_table, []))
             .map_err(|_| database::Error::InvalidQuery)
             .map(|_| ())
     }
@@ -62,7 +61,7 @@ impl Database for SqliteDatabase {
 
         let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
 
-        let torrent_iter = stmt.query_map(NO_PARAMS, |row| {
+        let torrent_iter = stmt.query_map([], |row| {
             let info_hash_string: String = row.get(0)?;
             let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
             let completed: u32 = row.get(1)?;
@@ -79,7 +78,7 @@ impl Database for SqliteDatabase {
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys")?;
 
-        let keys_iter = stmt.query_map(NO_PARAMS, |row| {
+        let keys_iter = stmt.query_map([], |row| {
             let key = row.get(0)?;
             let valid_until: i64 = row.get(1)?;
 
@@ -99,7 +98,7 @@ impl Database for SqliteDatabase {
 
         let mut stmt = conn.prepare("SELECT info_hash FROM whitelist")?;
 
-        let info_hash_iter = stmt.query_map(NO_PARAMS, |row| {
+        let info_hash_iter = stmt.query_map([], |row| {
             let info_hash: String = row.get(0)?;
 
             Ok(InfoHash::from_str(&info_hash).unwrap())
@@ -113,7 +112,7 @@ impl Database for SqliteDatabase {
     async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), database::Error> {
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
-        match conn.execute("INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2", &[info_hash.to_string(), completed.to_string()]) {
+        match conn.execute("INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2", [info_hash.to_string(), completed.to_string()]) {
             Ok(updated) => {
                 if updated > 0 { return Ok(()); }
                 Err(database::Error::QueryReturnedNoRows)
@@ -144,7 +143,7 @@ impl Database for SqliteDatabase {
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, database::Error> {
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
-        match conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", &[info_hash.to_string()]) {
+        match conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", [info_hash.to_string()]) {
             Ok(updated) => {
                 if updated > 0 { return Ok(updated); }
                 Err(database::Error::QueryReturnedNoRows)
@@ -159,7 +158,7 @@ impl Database for SqliteDatabase {
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, database::Error> {
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
-        match conn.execute("DELETE FROM whitelist WHERE info_hash = ?", &[info_hash.to_string()]) {
+        match conn.execute("DELETE FROM whitelist WHERE info_hash = ?", [info_hash.to_string()]) {
             Ok(updated) => {
                 if updated > 0 { return Ok(updated); }
                 Err(database::Error::QueryReturnedNoRows)
@@ -175,7 +174,7 @@ impl Database for SqliteDatabase {
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys WHERE key = ?")?;
-        let mut rows = stmt.query(&[key.to_string()])?;
+        let mut rows = stmt.query([key.to_string()])?;
 
         if let Some(row) = rows.next()? {
             let key: String = row.get(0).unwrap();
@@ -194,7 +193,7 @@ impl Database for SqliteDatabase {
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn.execute("INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
-                           &[auth_key.key.to_string(), auth_key.valid_until.unwrap().to_string()],
+                           [auth_key.key.to_string(), auth_key.valid_until.unwrap().to_string()],
         ) {
             Ok(updated) => {
                 if updated > 0 { return Ok(updated); }
