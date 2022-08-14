@@ -19,7 +19,7 @@ lto = "fat"
 strip = true
 
 [dependencies]
-tokio = { version = "1.7", features = ["full"] }
+tokio = { version = "1.7", features = ["rt-multi-thread", "net", "sync", "macros", "signal"] }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_bencode = "^0.2.3"
@@ -28,6 +28,8 @@ serde_with = "2.0.0"
 hex = "0.4.3"
 percent-encoding = "2.1.0"
 binascii = "0.1"
+
+openssl = { version = "0.10.41", features = ["vendored"] }
 
 warp = { version = "0.3", features = ["tls"] }
 
@@ -40,7 +42,7 @@ chrono = "0.4"
 
 r2d2 = "0.8.8"
 r2d2_mysql = "21.0.0"
-r2d2_sqlite = "0.16.0"
+r2d2_sqlite = { version = "0.21.0", features = ["bundled"] }
 
 rand = "0.8.4"
 derive_more = "0.99"
