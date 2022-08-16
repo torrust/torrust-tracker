@@ -2,11 +2,23 @@ use std::{net::SocketAddr};
 use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
 
-// todo: SALT should be randomly generated on startup
-const SALT: &str = "SALT";
+// todo: SERVER_SECRET should be randomly generated on startup
+const SERVER_SECRET: &str = "SALT";
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
 pub fn get_connection_id(remote_address: &SocketAddr, current_timestamp: u64) -> ConnectionId {
+
+    /* WIP: New proposal by @da2ce7
+
+    Static_Sever_Secret = Random (32-bytes), generated on sever start.
+    
+    Time_Bound_Pepper = Hash(Static_Secret || Unix_Time_Minutes / 2) (32-bytes), cached, expires every two minutes.
+    
+    Authentication_String = IP_Address || Port || User Token || Etc. (32-bytes), unique for each client.
+    
+    ConnectionID = Hash(Time_Bound_Pepper || Authentication_String) (64-bit)
+    */
+
     let peer_ip_as_bytes = match remote_address.ip() {
         IpAddr::V4(ip) => ip.octets().to_vec(),
         IpAddr::V6(ip) => ip.octets().to_vec(),
@@ -16,7 +28,7 @@ pub fn get_connection_id(remote_address: &SocketAddr, current_timestamp: u64) ->
         (current_timestamp / 120).to_be_bytes().as_slice(),
         peer_ip_as_bytes.as_slice(),
         remote_address.port().to_be_bytes().as_slice(),
-        SALT.as_bytes()
+        SERVER_SECRET.as_bytes()
     ].concat();
 
     let hash = blake3::hash(&input);
@@ -45,7 +57,7 @@ mod tests {
     use std::{net::{SocketAddr, IpAddr, Ipv4Addr}};
 
     #[test]
-    fn connection_id_is_generated_by_hashing_the_client_ip_and_port_with_a_salt() {
+    fn connection_id_is_generated_by_hashing_the_client_ip_and_port_with_a_server_secret() {
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
 
         let now_as_timestamp = 946684800u64; // GMT/UTC date and time is: 01-01-2000 00:00:00
