@@ -72,7 +72,8 @@ pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: 
 }
 
 pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    let connection_id = get_connection_id(&remote_addr, current_timestamp());
+    let server_secret = [0;32]; // todo: server_secret should be randomly generated on startup
+    let connection_id = get_connection_id(&server_secret, &remote_addr, current_timestamp());
 
     let response = Response::from(ConnectResponse {
         transaction_id: request.transaction_id,

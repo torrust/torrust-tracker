@@ -24,11 +24,12 @@ pub fn benchmark_generate_id_with_time_and_port(bench: &mut Criterion) {
 pub fn benchmark_generate_id_with_hashed_time_and_ip_and_port_and_salt(bench: &mut Criterion) {
     let remote_address = SocketAddr::from(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 117));
     let current_time = current_timestamp();
+    let server_secret = [0;32];
 
     bench.bench_function("generate_id_with_hashed_time_and_ip_and_port_and_salt", |b| {
         b.iter(|| {
             // Inner closure, the actual test
-            let _ = get_connection_id(&remote_address, current_time);
+            let _ = get_connection_id(&server_secret, &remote_address, current_time);
         })
     });
 }

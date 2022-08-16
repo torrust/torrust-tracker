@@ -2,11 +2,8 @@ use std::{net::SocketAddr};
 use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
 
-// todo: SERVER_SECRET should be randomly generated on startup
-const SERVER_SECRET: [u8; 32] = [0;32];
-
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
-pub fn get_connection_id(remote_address: &SocketAddr, current_timestamp: u64) -> ConnectionId {
+pub fn get_connection_id(server_secret: &[u8; 32], remote_address: &SocketAddr, current_timestamp: u64) -> ConnectionId {
 
     /* WIP: New proposal by @da2ce7
 
@@ -28,7 +25,7 @@ pub fn get_connection_id(remote_address: &SocketAddr, current_timestamp: u64) ->
         (current_timestamp / 120).to_be_bytes().as_slice(),
         peer_ip_as_bytes.as_slice(),
         remote_address.port().to_be_bytes().as_slice(),
-        SERVER_SECRET.as_slice()
+        server_secret.as_slice()
     ].concat();
 
     let hash = blake3::hash(&input);
@@ -43,10 +40,10 @@ pub fn get_connection_id(remote_address: &SocketAddr, current_timestamp: u64) ->
 }
 
 /// Verifies whether a connection id is valid at this time for a given remote address (ip + port)
-pub fn verify_connection_id(connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: u64) -> Result<(), ()> {
+pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &[u8; 32], remote_address: &SocketAddr, current_timestamp: u64) -> Result<(), ()> {
     match connection_id {
-        cid if cid == get_connection_id(remote_address, current_timestamp) => Ok(()),
-        cid if cid == get_connection_id(remote_address, current_timestamp - 120) => Ok(()),
+        cid if cid == get_connection_id(server_secret, remote_address, current_timestamp) => Ok(()),
+        cid if cid == get_connection_id(server_secret, remote_address, current_timestamp - 120) => Ok(()),
         _ => Err(())
     }
 }
@@ -56,13 +53,15 @@ mod tests {
     use super::*;
     use std::{net::{SocketAddr, IpAddr, Ipv4Addr}};
 
+    const SERVER_SECRET: [u8;32] = [0;32];
+
     #[test]
     fn connection_id_is_generated_by_hashing_the_client_ip_and_port_with_a_server_secret() {
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
 
         let now_as_timestamp = 946684800u64; // GMT/UTC date and time is: 01-01-2000 00:00:00
 
-        let connection_id = get_connection_id(&client_addr, now_as_timestamp);
+        let connection_id = get_connection_id(&SERVER_SECRET, &client_addr, now_as_timestamp);
 
         assert_eq!(connection_id, ConnectionId(-7545411207427689958));
 
@@ -74,11 +73,11 @@ mod tests {
 
         let now = 946684800u64;
 
-        let connection_id = get_connection_id(&client_addr, now);
+        let connection_id = get_connection_id(&SERVER_SECRET, &client_addr, now);
 
         let in_two_minutes = now + 120 - 1;
 
-        let connection_id_after_two_minutes = get_connection_id(&client_addr, in_two_minutes);
+        let connection_id_after_two_minutes = get_connection_id(&SERVER_SECRET, &client_addr, in_two_minutes);
 
         assert_eq!(connection_id, connection_id_after_two_minutes);
     }
@@ -89,11 +88,11 @@ mod tests {
 
         let now = 946684800u64;
 
-        let connection_id = get_connection_id(&client_addr, now);
+        let connection_id = get_connection_id(&SERVER_SECRET, &client_addr, now);
 
         let after_two_minutes = now + 120;
 
-        let connection_id_after_two_minutes = get_connection_id(&client_addr, after_two_minutes);
+        let connection_id_after_two_minutes = get_connection_id(&SERVER_SECRET, &client_addr, after_two_minutes);
 
         assert_ne!(connection_id, connection_id_after_two_minutes);
     }
@@ -105,8 +104,8 @@ mod tests {
 
         let now = 946684800u64;
 
-        let connection_id_for_client_1 = get_connection_id(&client_1_addr, now);
-        let connection_id_for_client_2 = get_connection_id(&client_2_addr, now);
+        let connection_id_for_client_1 = get_connection_id(&SERVER_SECRET, &client_1_addr, now);
+        let connection_id_for_client_2 = get_connection_id(&SERVER_SECRET, &client_2_addr, now);
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }
@@ -118,8 +117,8 @@ mod tests {
 
         let now = 946684800u64;
 
-        let connection_id_for_client_1 = get_connection_id(&client_1_addr, now);
-        let connection_id_for_client_2 = get_connection_id(&client_2_addr, now);
+        let connection_id_for_client_1 = get_connection_id(&SERVER_SECRET, &client_1_addr, now);
+        let connection_id_for_client_2 = get_connection_id(&SERVER_SECRET, &client_2_addr, now);
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }
@@ -150,14 +149,14 @@ mod tests {
 
         let unix_epoch = 0u64;
 
-        let connection_id = get_connection_id(&client_addr, unix_epoch);
+        let connection_id = get_connection_id(&SERVER_SECRET, &client_addr, unix_epoch);
 
-        assert_eq!(verify_connection_id(connection_id, &client_addr, unix_epoch), Ok(()));
+        assert_eq!(verify_connection_id(connection_id, &SERVER_SECRET, &client_addr, unix_epoch), Ok(()));
 
         // X = Y
-        assert_eq!(verify_connection_id(connection_id, &client_addr, unix_epoch + 120), Ok(()));
+        assert_eq!(verify_connection_id(connection_id, &SERVER_SECRET, &client_addr, unix_epoch + 120), Ok(()));
 
         // X != Z
-        assert_eq!(verify_connection_id(connection_id, &client_addr, unix_epoch + 240 + 1), Err(()));
+        assert_eq!(verify_connection_id(connection_id, &SERVER_SECRET, &client_addr, unix_epoch + 240 + 1), Err(()));
     }
 }
