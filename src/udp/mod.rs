@@ -9,6 +9,7 @@ pub use self::handlers::*;
 pub use self::request::*;
 pub use self::server::*;
 
+pub mod connection_id;
 pub mod errors;
 pub mod request;
 pub mod server;

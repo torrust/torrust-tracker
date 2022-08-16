@@ -10,8 +10,9 @@ use crate::udp::errors::ServerError;
 use crate::udp::request::AnnounceRequestWrapper;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::tracker::TorrentTracker;
-use crate::protocol::utils::get_connection_id;
 use crate::protocol::clock::current_timestamp;
+
+use super::connection_id::get_connection_id;
 
 pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
     match tracker.authenticate_request(info_hash, &None).await {

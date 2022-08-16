@@ -1,7 +1,7 @@
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use aquatic_udp_protocol::ConnectionId;
 use criterion::{Criterion, criterion_group, criterion_main};
-use torrust_tracker::protocol::utils::{current_time, get_connection_id};
+use torrust_tracker::{protocol::utils::{current_time}, udp::connection_id::get_connection_id};
 
 fn get_connection_id_old(current_time: u64, port: u16) -> ConnectionId {
     let time_i64 = (current_time / 3600) as i64;
