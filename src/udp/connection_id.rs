@@ -3,7 +3,7 @@ use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
 
 // todo: SERVER_SECRET should be randomly generated on startup
-const SERVER_SECRET: &str = "SALT";
+const SERVER_SECRET: [u8; 32] = [0;32];
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
 pub fn get_connection_id(remote_address: &SocketAddr, current_timestamp: u64) -> ConnectionId {
@@ -28,7 +28,7 @@ pub fn get_connection_id(remote_address: &SocketAddr, current_timestamp: u64) ->
         (current_timestamp / 120).to_be_bytes().as_slice(),
         peer_ip_as_bytes.as_slice(),
         remote_address.port().to_be_bytes().as_slice(),
-        SERVER_SECRET.as_bytes()
+        SERVER_SECRET.as_slice()
     ].concat();
 
     let hash = blake3::hash(&input);
@@ -64,7 +64,7 @@ mod tests {
 
         let connection_id = get_connection_id(&client_addr, now_as_timestamp);
 
-        assert_eq!(connection_id, ConnectionId(-6628342936351095906));
+        assert_eq!(connection_id, ConnectionId(-7545411207427689958));
 
     }
 
