@@ -68,35 +68,14 @@ mod tests {
     use crate::protocol::utils::{ConnectionId, get_connection_id};
 
     #[test]
-    fn connection_id_is_generated_based_on_remote_client_port_and_hours_passed_since_unix_epoch() {
-        let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
+    fn connection_id_is_generated_by_hashing_the_client_ip_and_port_with_a_salt() {
+        let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
 
-        let timestamp = 946684800u64; // GTM: Sat Jan 01 2000 00:00:00 GMT+0000
+        let now_as_timestamp = 946684800u64; // GMT/UTC date and time is: 01-01-2000 00:00:00
 
-        // Timestamp in hours 946684800u64 / 3600 = 262968 = 0x_0000_0000_0004_0338 = 262968
-        // Port 0001                                       = 0x_0000_0000_0000_0001 = 1
-        // Port 0001 << 36                                 = 0x_0000_0010_0000_0000 = 68719476736
-        //
-        // 0x_0000_0000_0004_0338 | 0x_0000_0010_0000_0000 = 0x_0000_0010_0004_0338 = 68719739704
-        //
-        // HEX                      BIN                                         DEC
-        // --------------------------------------------------------------------------------
-        // 0x_0000_0000_0004_0338 = ... 0000000000000000001000000001100111000 =      262968
-        //         OR
-        // 0x_0000_0010_0000_0000 = ... 1000000000000000000000000000000000000 = 68719476736
-        // -------------------------------------------------------------------
-        // 0x_0000_0010_0004_0338 = ... 1000000000000000001000000001100111000 = 68719739704
+        let connection_id = get_connection_id(&client_addr, now_as_timestamp);
 
-        // Assert intermediary values
-        assert_eq!(timestamp / 3600, 0x_0000_0000_0004_0338);
-        assert_eq!((client_addr.port() as u64), 1);
-        assert_eq!(((client_addr.port() as u64) << 36), 0x_0000_0010_0000_0000); // 68719476736
-        assert_eq!((0x_0000_0000_0004_0338u64 | 0x_0000_0010_0000_0000u64), 0x_0000_0010_0004_0338u64); // 68719739704
-        assert_eq!(0x_0000_0010_0004_0338u64 as i64, 68719739704); // 68719739704
-
-        let connection_id = get_connection_id(&client_addr, timestamp);
-
-        assert_eq!(connection_id, ConnectionId(68719739704));
+        assert_eq!(connection_id, ConnectionId(-6628342936351095906));
     }
 
     #[test]
