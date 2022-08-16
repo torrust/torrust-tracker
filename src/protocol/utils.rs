@@ -1,11 +1,3 @@
-use std::{time::SystemTime};
-
-pub fn current_time() -> u64 {
-    SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH).unwrap()
-        .as_secs()
-}
-
 /// Serializer for `std::time::Instant` type.
 /// Before serializing, it converts the instant to time elapse since that instant in milliseconds.
 ///
