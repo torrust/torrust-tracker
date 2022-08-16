@@ -76,6 +76,7 @@ mod tests {
         let connection_id = get_connection_id(&client_addr, now_as_timestamp);
 
         assert_eq!(connection_id, ConnectionId(-6628342936351095906));
+
     }
 
     #[test]
