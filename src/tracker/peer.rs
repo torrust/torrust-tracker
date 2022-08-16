@@ -5,9 +5,9 @@ use serde;
 use serde::{Serialize};
 
 use crate::protocol::common::{NumberOfBytesDef, AnnounceEventDef};
-use crate::protocol::utils::ser_instant;
 use crate::http::AnnounceRequest;
 use crate::PeerId;
+use crate::tracker::serializer::ser_instant;
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize)]
 pub struct TorrentPeer {
