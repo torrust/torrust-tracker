@@ -6,14 +6,14 @@ use aquatic_udp_protocol::ConnectionId;
 const SALT: &str = "SALT";
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
-pub fn get_connection_id(remote_address: &SocketAddr, time_as_seconds: u64) -> ConnectionId {
+pub fn get_connection_id(remote_address: &SocketAddr, current_timestamp: u64) -> ConnectionId {
     let peer_ip_as_bytes = match remote_address.ip() {
         IpAddr::V4(ip) => ip.octets().to_vec(),
         IpAddr::V6(ip) => ip.octets().to_vec(),
     };
 
     let input: Vec<u8> = [
-        (time_as_seconds / 120).to_be_bytes().as_slice(),
+        (current_timestamp / 120).to_be_bytes().as_slice(),
         peer_ip_as_bytes.as_slice(),
         remote_address.port().to_be_bytes().as_slice(),
         SALT.as_bytes()
@@ -31,12 +31,10 @@ pub fn get_connection_id(remote_address: &SocketAddr, time_as_seconds: u64) -> C
 }
 
 /// Verifies whether a connection id is valid at this time for a given remote address (ip + port)
-pub fn verify_connection_id(connection_id: ConnectionId, remote_address: &SocketAddr) -> Result<(), ()> {
-    let current_time = current_time();
-
+pub fn verify_connection_id(connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: u64) -> Result<(), ()> {
     match connection_id {
-        cid if cid == get_connection_id(remote_address, current_time) => Ok(()),
-        cid if cid == get_connection_id(remote_address, current_time - 120) => Ok(()),
+        cid if cid == get_connection_id(remote_address, current_timestamp) => Ok(()),
+        cid if cid == get_connection_id(remote_address, current_timestamp - 120) => Ok(()),
         _ => Err(())
     }
 }
@@ -65,7 +63,7 @@ pub fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> R
 mod tests {
     use std::{time::Instant, net::{SocketAddr, IpAddr, Ipv4Addr}};
     use serde::Serialize;
-    use crate::protocol::utils::{ConnectionId, get_connection_id};
+    use crate::protocol::utils::{ConnectionId, get_connection_id, verify_connection_id};
 
     #[test]
     fn connection_id_is_generated_by_hashing_the_client_ip_and_port_with_a_salt() {
@@ -134,6 +132,43 @@ mod tests {
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }
+
+    #[test]
+    fn connection_id_in_udp_tracker_should_be_valid_for_the_current_two_minute_window_since_unix_epoch_and_the_previous_window() {
+
+        // The implementation generates a different connection id for each client and port every two minutes.
+        // Connection should expire 2 minutes after the generation but we do not store the exact time 
+        // when it was generated. In order to implement a stateless connection ID generation, 
+        // we change it automatically and we approximate it to the 2-minute window.
+        //
+        // | Date                  | Timestamp | Unix Epoch in minutes | Connection IDs |
+        // |----------------------------------------------------------------------------|
+        // | 1/1/1970, 12:00:00 AM | 0         | minute 0              | X              |
+        // | 1/1/1970, 12:01:00 AM | 60        | minute 1              | X              |
+        // | 1/1/1970, 12:02:00 AM | 120       | minute 2              | Y = X          |
+        // | 1/1/1970, 12:03:00 AM | 180       | minute 3              | Y = X          |
+        // | 1/1/1970, 12:04:00 AM | 240       | minute 4              | Z != X         |
+        // | 1/1/1970, 12:05:00 AM | 300       | minute 5              | Z != X         |
+        //
+        // Because of the implementation, the have to verify the current connection id and the previous one.
+        // If the ID was generated at the end of a 2-minute slot I won't be valid just after some seconds.
+        // For the worse scenario if the ID was generated at the beginning of a 2-minute slot,
+        // It will be valid for almost 4 minutes.
+
+        let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
+
+        let unix_epoch = 0u64;
+
+        let connection_id = get_connection_id(&client_addr, unix_epoch);
+
+        assert_eq!(verify_connection_id(connection_id, &client_addr, unix_epoch), Ok(()));
+
+        // X = Y
+        assert_eq!(verify_connection_id(connection_id, &client_addr, unix_epoch + 120), Ok(()));
+
+        // X != Z
+        assert_eq!(verify_connection_id(connection_id, &client_addr, unix_epoch + 240 + 1), Err(()));
+    }    
 
     #[warn(unused_imports)]
     use super::ser_instant;
