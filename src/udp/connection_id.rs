@@ -1,10 +1,10 @@
-use std::ops::BitOr;
 use std::{net::SocketAddr};
 use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
-use arraytools::ArrayTools;
 
-fn generate_time_bound_pepper(server_secret: &[u8; 32], current_timestamp: u64) -> [u8; 32] {
+use super::byte_array_32::ByteArray32;
+
+fn generate_time_bound_pepper(server_secret: &ByteArray32, current_timestamp: u64) -> ByteArray32 {
 
     // todo: use a TimeBoundPepper struct as proposed by @da2ce7, storing also the current timestamp
     // used to generate the TimeBoundPepper
@@ -32,26 +32,17 @@ fn generate_time_bound_pepper(server_secret: &[u8; 32], current_timestamp: u64) 
 
     let unix_time_minutes: u64 = current_timestamp / 60;
 
-    let number_of_two_minute_slots_since_unix_time: u64 = unix_time_minutes / 2;
+    // Server Secret | Unix_Time_Minutes / 2
+    let server_secret_or_two_minute_counter = *server_secret | ByteArray32::from(unix_time_minutes / 2);
 
-    let or_right_part: Vec<u8> = [
-        [0u8; 24].as_slice(),
-        number_of_two_minute_slots_since_unix_time.to_be_bytes().as_slice(),
-    ].concat();
+    // Hash(Server Secret | Unix_Time_Minutes / 2)
+    let time_bound_pepper = blake3::hash(&server_secret_or_two_minute_counter.as_generic_byte_array());
 
-    //println!("OR left : {:?}", [0u8; 32]);
-    //println!("OR right: {:?}", &or_right_part);
-
-    // todo: extract function for OR operation for [u8; 32] arrays
-    let server_secret_or_two_minute_counter: [u8; 32] = server_secret.zip_with( or_right_part.try_into().unwrap(), BitOr::bitor);
-
-    let time_bound_pepper = blake3::hash(&server_secret_or_two_minute_counter);
-
-    *time_bound_pepper.as_bytes()
+    ByteArray32::new(*time_bound_pepper.as_bytes())
 }
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
-pub fn get_connection_id(server_secret: &[u8; 32], remote_address: &SocketAddr, current_timestamp: u64) -> ConnectionId {
+pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: u64) -> ConnectionId {
 
     /* WIP: New proposal by @da2ce7
 
@@ -76,7 +67,7 @@ pub fn get_connection_id(server_secret: &[u8; 32], remote_address: &SocketAddr, 
         (current_timestamp / 120).to_be_bytes().as_slice(),
         peer_ip_as_bytes.as_slice(),
         remote_address.port().to_be_bytes().as_slice(),
-        server_secret.as_slice()
+        server_secret.as_generic_byte_array().as_slice()
     ].concat();
 
     let hash = blake3::hash(&input);
@@ -91,7 +82,7 @@ pub fn get_connection_id(server_secret: &[u8; 32], remote_address: &SocketAddr, 
 }
 
 /// Verifies whether a connection id is valid at this time for a given remote address (ip + port)
-pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &[u8; 32], remote_address: &SocketAddr, current_timestamp: u64) -> Result<(), ()> {
+pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: u64) -> Result<(), ()> {
     match connection_id {
         cid if cid == get_connection_id(server_secret, remote_address, current_timestamp) => Ok(()),
         cid if cid == get_connection_id(server_secret, remote_address, current_timestamp - 120) => Ok(()),
@@ -104,10 +95,14 @@ mod tests {
     use super::*;
     use std::{net::{SocketAddr, IpAddr, Ipv4Addr}};
 
-    const SERVER_SECRET: [u8;32] = [0;32];
+    fn generate_server_secret_for_testing() -> ByteArray32 {
+        ByteArray32::new([0u8;32])
+    }
 
     #[test]
     fn time_bound_pepper_should_be_the_same_during_each_two_minute_window_since_unix_epoch() {
+
+        let server_secret = generate_server_secret_for_testing();
 
         // | Date                  | Timestamp | Unix Epoch in minutes | Connection IDs |
         // |----------------------------------------------------------------------------|
@@ -120,11 +115,11 @@ mod tests {
 
         let initial_timestamp = 0u64;
 
-        let time_bound_pepper = generate_time_bound_pepper(&SERVER_SECRET, initial_timestamp);
+        let time_bound_pepper = generate_time_bound_pepper(&server_secret, initial_timestamp);
 
-        assert_eq!(time_bound_pepper, [42, 218, 131, 193, 129, 154, 83, 114, 218, 225, 35, 143, 193, 222, 209, 35, 200, 16, 79, 218, 161, 88, 98, 170, 238, 105, 66, 138, 24, 32, 252, 218]);
+        assert_eq!(time_bound_pepper, ByteArray32::new([42, 218, 131, 193, 129, 154, 83, 114, 218, 225, 35, 143, 193, 222, 209, 35, 200, 16, 79, 218, 161, 88, 98, 170, 238, 105, 66, 138, 24, 32, 252, 218]));
 
-        let time_bound_pepper_after_two_minutes = generate_time_bound_pepper(&SERVER_SECRET, initial_timestamp + 120 - 1);
+        let time_bound_pepper_after_two_minutes = generate_time_bound_pepper(&server_secret, initial_timestamp + 120 - 1);
 
         assert_eq!(time_bound_pepper_after_two_minutes, time_bound_pepper);
     }
@@ -132,6 +127,8 @@ mod tests {
     #[test]
     fn time_bound_pepper_should_change_after_a_two_minute_window_starting_time_windows_at_unix_epoch() {
 
+        let server_secret = generate_server_secret_for_testing();
+
         // | Date                  | Timestamp | Unix Epoch in minutes | Connection IDs |
         // |----------------------------------------------------------------------------|
         // | 1/1/1970, 12:00:00 AM | 0         | minute 0              | X              |
@@ -143,22 +140,24 @@ mod tests {
 
         let initial_timestamp = 0u64;
 
-        let time_bound_pepper = generate_time_bound_pepper(&SERVER_SECRET, initial_timestamp);
+        let time_bound_pepper = generate_time_bound_pepper(&server_secret, initial_timestamp);
 
-        assert_eq!(time_bound_pepper, [42, 218, 131, 193, 129, 154, 83, 114, 218, 225, 35, 143, 193, 222, 209, 35, 200, 16, 79, 218, 161, 88, 98, 170, 238, 105, 66, 138, 24, 32, 252, 218]);
+        assert_eq!(time_bound_pepper, ByteArray32::new([42, 218, 131, 193, 129, 154, 83, 114, 218, 225, 35, 143, 193, 222, 209, 35, 200, 16, 79, 218, 161, 88, 98, 170, 238, 105, 66, 138, 24, 32, 252, 218]));
 
-        let time_bound_pepper_after_two_minutes = generate_time_bound_pepper(&SERVER_SECRET, initial_timestamp + 120 - 1);
+        let time_bound_pepper_after_two_minutes = generate_time_bound_pepper(&server_secret, initial_timestamp + 120 - 1);
 
         assert_eq!(time_bound_pepper_after_two_minutes, time_bound_pepper);
     }
 
     #[test]
     fn connection_id_is_generated_by_hashing_the_client_ip_and_port_with_a_server_secret() {
+        let server_secret = generate_server_secret_for_testing();
+
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
 
         let now_as_timestamp = 946684800u64; // GMT/UTC date and time is: 01-01-2000 00:00:00
 
-        let connection_id = get_connection_id(&SERVER_SECRET, &client_addr, now_as_timestamp);
+        let connection_id = get_connection_id(&server_secret, &client_addr, now_as_timestamp);
 
         assert_eq!(connection_id, ConnectionId(-7545411207427689958));
 
@@ -166,56 +165,64 @@ mod tests {
 
     #[test]
     fn connection_id_in_udp_tracker_should_be_the_same_for_one_client_during_two_minutes() {
+        let server_secret = generate_server_secret_for_testing();
+
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
 
         let now = 946684800u64;
 
-        let connection_id = get_connection_id(&SERVER_SECRET, &client_addr, now);
+        let connection_id = get_connection_id(&server_secret, &client_addr, now);
 
         let in_two_minutes = now + 120 - 1;
 
-        let connection_id_after_two_minutes = get_connection_id(&SERVER_SECRET, &client_addr, in_two_minutes);
+        let connection_id_after_two_minutes = get_connection_id(&server_secret, &client_addr, in_two_minutes);
 
         assert_eq!(connection_id, connection_id_after_two_minutes);
     }
 
     #[test]
     fn connection_id_in_udp_tracker_should_change_for_the_same_client_ip_and_port_after_two_minutes() {
+        let server_secret = generate_server_secret_for_testing();
+
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
 
         let now = 946684800u64;
 
-        let connection_id = get_connection_id(&SERVER_SECRET, &client_addr, now);
+        let connection_id = get_connection_id(&server_secret, &client_addr, now);
 
         let after_two_minutes = now + 120;
 
-        let connection_id_after_two_minutes = get_connection_id(&SERVER_SECRET, &client_addr, after_two_minutes);
+        let connection_id_after_two_minutes = get_connection_id(&server_secret, &client_addr, after_two_minutes);
 
         assert_ne!(connection_id, connection_id_after_two_minutes);
     }
 
     #[test]
     fn connection_id_in_udp_tracker_should_be_different_for_each_client_at_the_same_time_if_they_use_a_different_ip() {
+        let server_secret = generate_server_secret_for_testing();
+
         let client_1_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 0001);
         let client_2_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
 
         let now = 946684800u64;
 
-        let connection_id_for_client_1 = get_connection_id(&SERVER_SECRET, &client_1_addr, now);
-        let connection_id_for_client_2 = get_connection_id(&SERVER_SECRET, &client_2_addr, now);
+        let connection_id_for_client_1 = get_connection_id(&server_secret, &client_1_addr, now);
+        let connection_id_for_client_2 = get_connection_id(&server_secret, &client_2_addr, now);
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }
 
     #[test]
     fn connection_id_in_udp_tracker_should_be_different_for_each_client_at_the_same_time_if_they_use_a_different_port() {
+        let server_secret = generate_server_secret_for_testing();
+
         let client_1_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
         let client_2_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0002);
 
         let now = 946684800u64;
 
-        let connection_id_for_client_1 = get_connection_id(&SERVER_SECRET, &client_1_addr, now);
-        let connection_id_for_client_2 = get_connection_id(&SERVER_SECRET, &client_2_addr, now);
+        let connection_id_for_client_1 = get_connection_id(&server_secret, &client_1_addr, now);
+        let connection_id_for_client_2 = get_connection_id(&server_secret, &client_2_addr, now);
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }
@@ -242,18 +249,20 @@ mod tests {
         // For the worse scenario if the ID was generated at the beginning of a 2-minute slot,
         // It will be valid for almost 4 minutes.
 
+        let server_secret = generate_server_secret_for_testing();
+
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
 
         let unix_epoch = 0u64;
 
-        let connection_id = get_connection_id(&SERVER_SECRET, &client_addr, unix_epoch);
+        let connection_id = get_connection_id(&server_secret, &client_addr, unix_epoch);
 
-        assert_eq!(verify_connection_id(connection_id, &SERVER_SECRET, &client_addr, unix_epoch), Ok(()));
+        assert_eq!(verify_connection_id(connection_id, &server_secret, &client_addr, unix_epoch), Ok(()));
 
         // X = Y
-        assert_eq!(verify_connection_id(connection_id, &SERVER_SECRET, &client_addr, unix_epoch + 120), Ok(()));
+        assert_eq!(verify_connection_id(connection_id, &server_secret, &client_addr, unix_epoch + 120), Ok(()));
 
         // X != Z
-        assert_eq!(verify_connection_id(connection_id, &SERVER_SECRET, &client_addr, unix_epoch + 240 + 1), Err(()));
+        assert_eq!(verify_connection_id(connection_id, &server_secret, &client_addr, unix_epoch + 240 + 1), Err(()));
     }
 }
