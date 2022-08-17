@@ -6,31 +6,37 @@ use std::convert::From;
 use super::byte_array_32::ByteArray32;
 use super::time_bound_pepper::{TimeBoundPepper, Timestamp};
 
-/// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
+/// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
+/// time_bound_pepper = Hash(Server_Secret || Unix_Time_Minutes / 2)       (32 bytes, 256 bits)
+/// hash_input = Concat(time_bound_pepper, authentication_string)          (64 bytes, 512 bits)
+/// connection_id = Truncate(Hash(hash_input))                             ( 8 bytes,  64-bits)
 pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
 
     // authentication_string = IP_Address || Port
     // (32-bytes), unique for each client.
     let authentication_string = ByteArray32::from(remote_address.ip()) | ByteArray32::from(remote_address.port());
 
-    // time_bound_pepper = Hash(Static_Secret || Unix_Time_Minutes / 2) 
+    // time_bound_pepper = Hash(Static_Secret || Unix_Time_Minutes / 2)
     // (32-bytes), cached, expires every two minutes.
     let time_bound_pepper = TimeBoundPepper::new(&server_secret, current_timestamp);    
 
-    // connection_id = Hash(time_bound_pepper || authentication_string) (64-bit)
+    // Contact(time_bound_pepper, authentication_string) (64 bytes)
     let input: Vec<u8> = [
         time_bound_pepper.get_pepper().as_generic_byte_array(),
         authentication_string.as_generic_byte_array(),
     ].concat();
 
+    // Hash(Contact(...) (32 bytes)
     let hash = blake3::hash(&input);
 
+    // Truncate(Hash(...)) (8 bytes, 64-bits)
     let mut truncated_hash: [u8; 8] = [0u8; 8]; // 8 bytes = 64 bits
 
     truncated_hash.copy_from_slice(&hash.as_bytes()[..8]);
 
     let connection_id = i64::from_le_bytes(truncated_hash);
 
+    // connection_id = Hash(Contact(time_bound_pepper,authentication_string)) (64-bit)
     ConnectionId(connection_id)
 }
 
