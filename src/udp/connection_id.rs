@@ -8,35 +8,49 @@ use super::time_bound_pepper::{TimeBoundPepper, Timestamp};
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
 pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
 
-    /* WIP: New proposal by @da2ce7
-
-    Static_Sever_Secret = Random (32-bytes), generated on sever start.
-    
-    Time_Bound_Pepper = Hash(Static_Secret || Unix_Time_Minutes / 2) (32-bytes), cached, expires every two minutes.
-    
-    Authentication_String = IP_Address || Port || User Token || Etc. (32-bytes), unique for each client.
-    
-    ConnectionID = Hash(Time_Bound_Pepper || Authentication_String) (64-bit)
-    */
-
-    // todo: not used yet.
-    let _time_bound_pepper = TimeBoundPepper::new(&server_secret, current_timestamp);
-
     let peer_ip_as_bytes = match remote_address.ip() {
-        IpAddr::V4(ip) => ip.octets().to_vec(),
-        IpAddr::V6(ip) => ip.octets().to_vec(),
+        IpAddr::V4(ip) => [
+            [0u8; 28].as_slice(),
+            ip.octets().as_slice(),
+        ].concat(),
+        IpAddr::V6(ip) => [
+            [0u8; 16].as_slice(),
+            ip.octets().as_slice(),
+        ].concat(),
     };
 
+    let peer_ip_address_32_bytes: [u8; 32] = match peer_ip_as_bytes.try_into() {
+        Ok(bytes) => bytes,
+        Err(_) => panic!("Expected a Vec of length 32"),
+    };
+
+    let port = [
+        [0u8; 30].as_slice(),
+        remote_address.port().to_be_bytes().as_slice(),  // 2 bytes
+    ].concat();
+
+    let port_32_bytes: [u8; 32] = match port.try_into() {
+        Ok(bytes) => bytes,
+        Err(_) => panic!("Expected a Vec of length 32"),
+    };
+
+    // authentication_string = IP_Address || Port
+    // (32-bytes), unique for each client.
+    let authentication_string = ByteArray32::new(peer_ip_address_32_bytes) | ByteArray32::new(port_32_bytes);
+
+    // time_bound_pepper = Hash(Static_Secret || Unix_Time_Minutes / 2) 
+    // (32-bytes), cached, expires every two minutes.
+    let time_bound_pepper = TimeBoundPepper::new(&server_secret, current_timestamp);    
+
+    // connection_id = Hash(time_bound_pepper || authentication_string) (64-bit)
     let input: Vec<u8> = [
-        (current_timestamp / 120).to_be_bytes().as_slice(),
-        peer_ip_as_bytes.as_slice(),
-        remote_address.port().to_be_bytes().as_slice(),
-        server_secret.as_generic_byte_array().as_slice()
+        time_bound_pepper.get_pepper().as_generic_byte_array(),
+        authentication_string.as_generic_byte_array(),
     ].concat();
 
     let hash = blake3::hash(&input);
 
-    let mut truncated_hash: [u8; 8] = [0u8; 8];
+    let mut truncated_hash: [u8; 8] = [0u8; 8]; // 8 bytes = 64 bits
 
     truncated_hash.copy_from_slice(&hash.as_bytes()[..8]);
 
@@ -64,7 +78,7 @@ mod tests {
     }
 
     #[test]
-    fn connection_id_is_generated_by_hashing_the_client_ip_and_port_with_a_server_secret() {
+    fn test_pre_calculate_value() {
         let server_secret = generate_server_secret_for_testing();
 
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
@@ -73,12 +87,11 @@ mod tests {
 
         let connection_id = get_connection_id(&server_secret, &client_addr, now_as_timestamp);
 
-        assert_eq!(connection_id, ConnectionId(-7545411207427689958));
-
+        assert_eq!(connection_id, ConnectionId(6587457301375199145));
     }
 
     #[test]
-    fn connection_id_in_udp_tracker_should_be_the_same_for_one_client_during_two_minutes() {
+    fn it_should_be_the_same_for_one_client_during_two_minutes() {
         let server_secret = generate_server_secret_for_testing();
 
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
@@ -95,7 +108,7 @@ mod tests {
     }
 
     #[test]
-    fn connection_id_in_udp_tracker_should_change_for_the_same_client_ip_and_port_after_two_minutes() {
+    fn it_should_change_for_the_same_client_ip_and_port_after_two_minutes() {
         let server_secret = generate_server_secret_for_testing();
 
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
@@ -112,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn connection_id_in_udp_tracker_should_be_different_for_each_client_at_the_same_time_if_they_use_a_different_ip() {
+    fn it_should_be_different_for_each_client_at_the_same_time_if_they_use_a_different_ip() {
         let server_secret = generate_server_secret_for_testing();
 
         let client_1_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 0001);
@@ -127,7 +140,7 @@ mod tests {
     }
 
     #[test]
-    fn connection_id_in_udp_tracker_should_be_different_for_each_client_at_the_same_time_if_they_use_a_different_port() {
+    fn it_should_be_different_for_each_client_at_the_same_time_if_they_use_a_different_port() {
         let server_secret = generate_server_secret_for_testing();
 
         let client_1_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
@@ -142,7 +155,7 @@ mod tests {
     }
 
     #[test]
-    fn connection_id_in_udp_tracker_should_be_valid_for_the_current_two_minute_window_since_unix_epoch_and_the_previous_window() {
+    fn it_should_be_valid_for_the_current_two_minute_window_since_unix_epoch_and_the_previous_window() {
 
         // The implementation generates a different connection id for each client and port every two minutes.
         // Connection should expire 2 minutes after the generation but we do not store the exact time 
