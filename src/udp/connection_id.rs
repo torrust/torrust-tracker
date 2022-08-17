@@ -20,13 +20,13 @@ pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAdd
     // (32-bytes), cached, expires every two minutes.
     let time_bound_pepper = TimeBoundPepper::new(&server_secret, current_timestamp);    
 
-    // Contact(time_bound_pepper, authentication_string) (64 bytes)
+    // Concat(time_bound_pepper, authentication_string) (64 bytes)
     let input: Vec<u8> = [
         time_bound_pepper.get_pepper().as_generic_byte_array(),
         authentication_string.as_generic_byte_array(),
     ].concat();
 
-    // Hash(Contact(...) (32 bytes)
+    // Hash(Concat(...) (32 bytes)
     let hash = blake3::hash(&input);
 
     // Truncate(Hash(...)) (8 bytes, 64-bits)
@@ -36,7 +36,7 @@ pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAdd
 
     let connection_id = i64::from_le_bytes(truncated_hash);
 
-    // connection_id = Hash(Contact(time_bound_pepper,authentication_string)) (64-bit)
+    // connection_id = Hash(Concat(time_bound_pepper,authentication_string)) (64-bit)
     ConnectionId(connection_id)
 }
 
