@@ -102,6 +102,12 @@ mod tests {
     fn ip_address_should_be_converted_to_a_32_bytes_array() {
         let ip_address = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
         assert_eq!(ByteArray32::from(ip_address), ByteArray32::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]));
+    }
+
+    #[test]
+    fn socket_port_should_be_converted_to_a_32_bytes_array() {
+        let port = 0x1F_90u16; // 8080
+        assert_eq!(ByteArray32::from(port), ByteArray32::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x1F, 0x90]));
     }    
 
     #[test]
