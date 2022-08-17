@@ -3,10 +3,10 @@ use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
 
 use super::byte_array_32::ByteArray32;
-use super::time_bound_pepper::TimeBoundPepper;
+use super::time_bound_pepper::{TimeBoundPepper, Timestamp};
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
-pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: u64) -> ConnectionId {
+pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
 
     /* WIP: New proposal by @da2ce7
 
@@ -46,7 +46,7 @@ pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAdd
 }
 
 /// Verifies whether a connection id is valid at this time for a given remote address (ip + port)
-pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: u64) -> Result<(), ()> {
+pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> Result<(), ()> {
     match connection_id {
         cid if cid == get_connection_id(server_secret, remote_address, current_timestamp) => Ok(()),
         cid if cid == get_connection_id(server_secret, remote_address, current_timestamp - 120) => Ok(()),

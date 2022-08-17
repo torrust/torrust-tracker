@@ -12,20 +12,22 @@
 
 use super::byte_array_32::ByteArray32;
 
+pub type Timestamp = u64;
+
 #[derive(PartialEq, Debug)]
 pub struct TimeBoundPepper {
     pepper: ByteArray32,
 }
 
 impl TimeBoundPepper {
-    pub fn new(server_secret: &ByteArray32, current_timestamp: u64) -> Self {
+    pub fn new(server_secret: &ByteArray32, current_timestamp: Timestamp) -> Self {
         Self {
             pepper: Self::generate_pepper(server_secret, current_timestamp)
         }
     }
 
     /// Time_Bound_Pepper = Hash(Server_Secret || Unix_Time_Minutes / 2)
-    fn generate_pepper(server_secret: &ByteArray32, current_timestamp: u64) -> ByteArray32 {
+    fn generate_pepper(server_secret: &ByteArray32, current_timestamp: Timestamp) -> ByteArray32 {
 
         let unix_time_minutes: u64 = current_timestamp / 60;
 
