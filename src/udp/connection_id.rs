@@ -1,6 +1,7 @@
 use std::{net::SocketAddr};
 use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
+use std::convert::From;
 
 use super::byte_array_32::ByteArray32;
 use super::time_bound_pepper::{TimeBoundPepper, Timestamp};
@@ -8,35 +9,9 @@ use super::time_bound_pepper::{TimeBoundPepper, Timestamp};
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
 pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
 
-    let peer_ip_as_bytes = match remote_address.ip() {
-        IpAddr::V4(ip) => [
-            [0u8; 28].as_slice(),
-            ip.octets().as_slice(),
-        ].concat(),
-        IpAddr::V6(ip) => [
-            [0u8; 16].as_slice(),
-            ip.octets().as_slice(),
-        ].concat(),
-    };
-
-    let peer_ip_address_32_bytes: [u8; 32] = match peer_ip_as_bytes.try_into() {
-        Ok(bytes) => bytes,
-        Err(_) => panic!("Expected a Vec of length 32"),
-    };
-
-    let port = [
-        [0u8; 30].as_slice(),
-        remote_address.port().to_be_bytes().as_slice(),  // 2 bytes
-    ].concat();
-
-    let port_32_bytes: [u8; 32] = match port.try_into() {
-        Ok(bytes) => bytes,
-        Err(_) => panic!("Expected a Vec of length 32"),
-    };
-
     // authentication_string = IP_Address || Port
     // (32-bytes), unique for each client.
-    let authentication_string = ByteArray32::new(peer_ip_address_32_bytes) | ByteArray32::new(port_32_bytes);
+    let authentication_string = ByteArray32::from(remote_address.ip()) | ByteArray32::from(remote_address.port());
 
     // time_bound_pepper = Hash(Static_Secret || Unix_Time_Minutes / 2) 
     // (32-bytes), cached, expires every two minutes.
@@ -68,6 +43,46 @@ pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArr
     }
 }
 
+impl From<IpAddr> for ByteArray32 {
+    //// Converts an IpAddr to a ByteArray32
+    fn from(ip: IpAddr) -> Self {
+        let peer_ip_as_bytes = match ip {
+            IpAddr::V4(ip) => [
+                [0u8; 28].as_slice(),   // 28 bytes
+                ip.octets().as_slice(), //  4 bytes
+            ].concat(),
+            IpAddr::V6(ip) => [
+                [0u8; 16].as_slice(),   // 16 bytes
+                ip.octets().as_slice(), // 16 bytes
+            ].concat(),
+        };
+    
+        let peer_ip_address_32_bytes: [u8; 32] = match peer_ip_as_bytes.try_into() {
+            Ok(bytes) => bytes,
+            Err(_) => panic!("Expected a Vec of length 32"),
+        };
+
+        ByteArray32::new(peer_ip_address_32_bytes)
+    }
+}
+
+impl From<u16> for ByteArray32 {
+    /// Converts a u16 to a ByteArray32
+    fn from(port: u16) -> Self {
+        let port = [
+            [0u8; 30].as_slice(),          // 30 bytes
+            port.to_be_bytes().as_slice(), //  2 bytes
+        ].concat();
+    
+        let port_32_bytes: [u8; 32] = match port.try_into() {
+            Ok(bytes) => bytes,
+            Err(_) => panic!("Expected a Vec of length 32"),
+        };
+
+        ByteArray32::new(port_32_bytes)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -76,6 +91,12 @@ mod tests {
     fn generate_server_secret_for_testing() -> ByteArray32 {
         ByteArray32::new([0u8;32])
     }
+
+    #[test]
+    fn ip_address_should_be_converted_to_a_32_bytes_array() {
+        let ip_address = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+        assert_eq!(ByteArray32::from(ip_address), ByteArray32::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]));
+    }    
 
     #[test]
     fn test_pre_calculate_value() {
