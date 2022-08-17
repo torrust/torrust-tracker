@@ -46,7 +46,7 @@ mod tests {
     }
 
     #[test]
-    fn time_bound_pepper_should_be_the_same_during_each_two_minute_window_since_unix_epoch() {
+    fn it_should_be_the_same_during_each_two_minute_window_since_unix_epoch() {
 
         let server_secret = generate_server_secret_for_testing();
 
@@ -71,7 +71,7 @@ mod tests {
     }
 
     #[test]
-    fn time_bound_pepper_should_change_after_a_two_minute_window_starting_time_windows_at_unix_epoch() {
+    fn it_should_change_after_a_two_minute_window_starting_time_windows_at_unix_epoch() {
 
         let server_secret = generate_server_secret_for_testing();
 
