@@ -3,7 +3,7 @@ use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
 
 use super::byte_array_32::ByteArray32;
-use super::time_bound_pepper::generate_time_bound_pepper;
+use super::time_bound_pepper::TimeBoundPepper;
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol
 pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: u64) -> ConnectionId {
@@ -19,8 +19,8 @@ pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAdd
     ConnectionID = Hash(Time_Bound_Pepper || Authentication_String) (64-bit)
     */
 
-    // todo: not used yet. See `generate_time_bound_pepper` function above.
-    let _time_bound_pepper = generate_time_bound_pepper(server_secret, current_timestamp);
+    // todo: not used yet.
+    let _time_bound_pepper = TimeBoundPepper::new(&server_secret, current_timestamp);
 
     let peer_ip_as_bytes = match remote_address.ip() {
         IpAddr::V4(ip) => ip.octets().to_vec(),
