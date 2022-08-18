@@ -61,3 +61,8 @@ async-trait = "0.1.52"
 aquatic_udp_protocol = "0.2.0"
 uuid = { version = "1.1.2", features = ["v4"] }
 arraytools = "0.1.5"
+
+# Dependencies for memory consumption benchmark
+jemallocator = "0.5"
+jemalloc-sys = {version = "0.5", features = ["stats"]}
+libc = "0.2"
