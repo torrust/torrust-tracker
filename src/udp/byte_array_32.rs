@@ -1,3 +1,7 @@
+//! A struct wrapper for type `[u8; 32]`.
+//! 
+//! It adds some convenient methods to work with arrays of bytes.
+//! Specially constructors from other types.
 use std::ops::BitOr;
 use arraytools::ArrayTools;
 use std::convert::From;
@@ -7,10 +11,12 @@ pub struct ByteArray32([u8; 32]);
 
 impl ByteArray32 {
 
+    /// Constructs a new `ByteArray32` from a `[u8, 32]` array.
     pub fn new(bytes: [u8; 32]) -> Self {
         ByteArray32(bytes)
     }
 
+    /// Returns the underlying `[u8; 32]` array.
     pub fn as_generic_byte_array(self) -> [u8; 32] {
         self.0
     }
@@ -26,6 +32,7 @@ impl BitOr for ByteArray32 {
 }
 
 impl From<u64> for ByteArray32 {
+    /// Convert a u64 to a ByteArray32.
     fn from(item: u64) -> Self {
         let vec: Vec<u8> = [
             [0u8; 24].as_slice(),
