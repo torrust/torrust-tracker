@@ -19,6 +19,7 @@ fn mem_print() {
 
 /// Test function to locate the result in the output
 fn test_function() {
+    mem_print();
     let _heap = Vec::<u8>::with_capacity (1024 * 128); // 131072 bytes
     mem_print();
 }
@@ -27,6 +28,8 @@ const SALT: &str = "SALT";
 
 /// First implementation by @WarmBeer
 fn test_old_get_connection_id(remote_address: &SocketAddr, time_as_seconds: u64) -> i64 {
+    mem_print();
+
     let peer_ip_as_bytes = match remote_address.ip() {
         IpAddr::V4(ip) => ip.octets().to_vec(),
         IpAddr::V6(ip) => ip.octets().to_vec(),
@@ -54,6 +57,8 @@ fn test_old_get_connection_id(remote_address: &SocketAddr, time_as_seconds: u64)
 
 /// New implementation by @josecelano
 fn test_new_implementation() {
+    mem_print();
+
     let server_secret = ByteArray32::new([0u8;32]);
 
     let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
@@ -67,17 +72,13 @@ fn test_new_implementation() {
 
 /// cargo run --bin conn_id_benchmark -q
 fn main() {
-
-    // Total allocated: 99808 bytes
-    mem_print();
-    
-    // Total allocated: 230880 bytes
+    // Total allocated: 241120 - 99808 = 141312 bytes
     test_function();
 
-    // Total allocated: 103008 bytes
+    // Total allocated: 113248 - 99808 = 13440 bytes
     let address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
     test_old_get_connection_id(&address, 0);
 
-    // Total allocated: 107104 bytes
+    // Total allocated: 117344 - 99808 = 17536 bytes
     test_new_implementation()
 }
