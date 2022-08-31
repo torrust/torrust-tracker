@@ -27,12 +27,20 @@
 //! The client has to send the Connection ID in all subsequent requests.
 //! The tracker verifies the connection_id and ignores the request if it doesn't match.
 //!
-//! A Connection ID:
+//! From the BEP 15 specification a Connection ID:
 //!
 //! - Should not be guessable by the client.
 //! - Can be used for multiple requests.
 //! - Can be used by a client until one minute after it has received it.
 //! - Can be accepted by the tracker until two minutes after it has been send.
+//! 
+//! Additionally we define the Connection ID as a value that:
+//! 
+//! - That is unpredictable. The user should not be able to construct their own Connection ID.
+//! - That is unique to the the particular connection. Locked to a IP and Port.
+//! - That is time bound. It expires after certain time.
+//! - That is memoryless. The server doesn't remember what ID's it gave out.
+//! - That is stateless. The issuer and the verifier can work interdependently without a dynamic common state.
 //!
 //! # Why do we need a connection ID?
 //!
