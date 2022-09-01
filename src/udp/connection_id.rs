@@ -89,13 +89,15 @@
 use std::{net::SocketAddr};
 use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
+use crypto::blowfish::Blowfish;
+use crypto::symmetriccipher::{BlockEncryptor, BlockDecryptor};
 use std::convert::From;
 
 use super::byte_array_32::ByteArray32;
 use super::time_bound_pepper::Timestamp;
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
-pub fn get_connection_id(_server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
+pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
 
     // remote_id : [u8;4] = blake3(concat(remote_addr, remote_port));
     let remote_address_byte_array = ByteArray32::from(remote_address.ip());
@@ -116,6 +118,12 @@ pub fn get_connection_id(_server_secret: &ByteArray32, remote_address: &SocketAd
 
     let connection_as_array: [u8; 8] = _new_connection_id.try_into().expect("slice with incorrect length");
 
+    let blowfish = Blowfish::new(&server_secret.as_generic_byte_array());
+
+    let mut encrypted_connection_as_array = [0u8; 8];
+
+    blowfish.encrypt_block(&connection_as_array, &mut encrypted_connection_as_array);
+
     /*
     println!("generate: bytes {:?}", _new_connection_id);
     println!("generate: timestamp {:?}", current_timestamp);
@@ -123,13 +131,19 @@ pub fn get_connection_id(_server_secret: &ByteArray32, remote_address: &SocketAd
     println!("generate: i64 {:?}", i64::from_le_bytes(connection_as_array));
     */
 
-    ConnectionId(i64::from_le_bytes(connection_as_array))
+    ConnectionId(i64::from_le_bytes(encrypted_connection_as_array))
 }
 
 /// Verifies whether a connection id is valid at this time for a given remote address (ip + port)
-pub fn verify_connection_id(connection_id: ConnectionId, _server_secret: &ByteArray32, _remote_address: &SocketAddr, current_timestamp: Timestamp) -> Result<(), ()> {
+pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, _remote_address: &SocketAddr, current_timestamp: Timestamp) -> Result<(), ()> {
     
-    let id_as_byte_array: [u8; 8] = connection_id.0.to_le_bytes();
+    let blowfish = Blowfish::new(&server_secret.as_generic_byte_array());
+
+    let encrypted_id_as_byte_array: [u8; 8] = connection_id.0.to_le_bytes();
+
+    let mut id_as_byte_array = [0u8; 8];
+
+    blowfish.decrypt_block(&encrypted_id_as_byte_array, &mut id_as_byte_array);
 
     let timestamp_bytes = &id_as_byte_array[4..];
     let timestamp_array = [timestamp_bytes[0], timestamp_bytes[1], timestamp_bytes[2], timestamp_bytes[3], 0, 0, 0, 0]; // Little Endian

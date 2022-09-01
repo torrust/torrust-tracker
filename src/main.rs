@@ -5,6 +5,8 @@ use torrust_tracker::logging;
 use torrust_tracker::setup;
 use torrust_tracker::tracker::tracker::TorrentTracker;
 
+extern crate crypto;
+
 #[tokio::main]
 async fn main() {
     const CONFIG_PATH: &str = "config.toml";
