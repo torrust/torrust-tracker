@@ -89,6 +89,7 @@
 use std::{net::SocketAddr};
 use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
+use blake3::OUT_LEN;
 use crypto::blowfish::Blowfish;
 use crypto::symmetriccipher::{BlockEncryptor, BlockDecryptor};
 use std::convert::From;
@@ -99,42 +100,16 @@ use super::time_bound_pepper::Timestamp;
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
 pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
 
-    // remote_id : [u8;4] = blake3(concat(remote_addr, remote_port));
-    let remote_address_byte_array = ByteArray32::from(remote_address.ip());
-    let remote_port_byte_array = ByteArray32::from(remote_address.port());
-    let input2: Vec<u8> = [
-        remote_address_byte_array.as_generic_byte_array(),
-        remote_port_byte_array.as_generic_byte_array(),
-    ].concat();
-    let remote_id_full_hash = blake3::hash(&input2);
-    let mut truncated_remote_ip: [u8; 4] = [0u8; 4]; // 4 bytes = 32 bits
-    truncated_remote_ip.copy_from_slice(&remote_id_full_hash.as_bytes()[..4]);
+    let remote_id = generate_id_for_socket_address(remote_address);
 
-    // connection_id : [u8;8] = concat(remote_id, timestamp)
-    let _new_connection_id: Vec<u8> = [
-        truncated_remote_ip.as_slice(),
-        &current_timestamp.to_le_bytes()[..4]
-    ].concat();
+    let connection_id = concat(remote_id, timestamp_to_le_bytes(current_timestamp));
 
-    let connection_as_array: [u8; 8] = _new_connection_id.try_into().expect("slice with incorrect length");
+    let encrypted_connection_id = encrypt(&connection_id, server_secret);
 
-    let blowfish = Blowfish::new(&server_secret.as_generic_byte_array());
-
-    let mut encrypted_connection_as_array = [0u8; 8];
-
-    blowfish.encrypt_block(&connection_as_array, &mut encrypted_connection_as_array);
-
-    /*
-    println!("generate: bytes {:?}", _new_connection_id);
-    println!("generate: timestamp {:?}", current_timestamp);
-    println!("generate: timestamp bytes {:?}", &current_timestamp.to_le_bytes()[..4]);
-    println!("generate: i64 {:?}", i64::from_le_bytes(connection_as_array));
-    */
-
-    ConnectionId(i64::from_le_bytes(encrypted_connection_as_array))
+    ConnectionId(byte_array_to_i64(encrypted_connection_id))
 }
 
-/// Verifies whether a connection id is valid at this time for a given remote address (ip + port)
+/// Verifies whether a connection id is valid at this time for a given remote socket address (ip + port)
 pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, _remote_address: &SocketAddr, current_timestamp: Timestamp) -> Result<(), ()> {
     
     let blowfish = Blowfish::new(&server_secret.as_generic_byte_array());
@@ -163,6 +138,81 @@ pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArr
     }
 
     Ok(())
+}
+
+/// It generates an unique ID for a socket address (IP + port)
+fn generate_id_for_socket_address(remote_address: &SocketAddr) -> [u8; 4] {
+    let socket_addr_as_bytes: Vec<u8> = convert_socket_address_into_bytes(remote_address);
+
+    let hashed_socket_addr = hash(&socket_addr_as_bytes);
+
+    let remote_id = get_first_four_bytes_from(&hashed_socket_addr);
+
+    remote_id
+}
+
+fn convert_socket_address_into_bytes(socket_addr: &SocketAddr) -> Vec<u8> {
+    let bytes: Vec<u8> = [
+        convert_ip_into_bytes(socket_addr.ip()).as_slice(),
+        convert_port_into_bytes(socket_addr.port()).as_slice(),
+    ].concat();
+    bytes
+}
+
+fn convert_ip_into_bytes(ip_addr: IpAddr) -> Vec<u8> {
+    match ip_addr {
+        IpAddr::V4(ip) => ip.octets().to_vec(),
+        IpAddr::V6(ip) => ip.octets().to_vec(),
+    }
+}
+
+fn convert_port_into_bytes(port: u16) -> [u8; 2] {
+    port.to_be_bytes()
+}
+
+fn hash(bytes: &[u8]) -> [u8; OUT_LEN]{
+    let hash = blake3::hash(bytes);
+    let bytes = hash.as_bytes().clone();
+    bytes
+}
+
+fn get_first_four_bytes_from(bytes: &[u8; OUT_LEN]) -> [u8; 4] {
+    let mut first_four_bytes: [u8; 4] = [0u8; 4]; // 4 bytes = 32 bits
+    first_four_bytes.copy_from_slice(&bytes[..4]);
+    first_four_bytes
+}
+
+fn timestamp_to_le_bytes(current_timestamp: Timestamp) -> [u8; 4] {
+    let mut bytes: [u8; 4] = [0u8; 4];
+    bytes.copy_from_slice(&current_timestamp.to_le_bytes()[..4]);
+    bytes
+}
+
+/// Contact two 4-byte arrays
+fn concat(remote_id: [u8; 4], timestamp: [u8; 4]) -> [u8; 8] {
+    let connection_id: Vec<u8> = [
+        remote_id.as_slice(),
+        timestamp.as_slice(),
+    ].concat();
+
+    let connection_as_array: [u8; 8] = connection_id.try_into().unwrap();
+
+    connection_as_array
+}
+
+fn encrypt(connection_id: &[u8; 8], server_secret: &ByteArray32) -> [u8; 8] {
+    // TODO: pass as an argument. It's expensive.
+    let blowfish = Blowfish::new(&server_secret.as_generic_byte_array());
+
+    let mut encrypted_connection_id = [0u8; 8];
+
+    blowfish.encrypt_block(connection_id, &mut encrypted_connection_id);
+
+    encrypted_connection_id
+}
+
+fn byte_array_to_i64(connection_id: [u8;8]) -> i64 {
+    i64::from_le_bytes(connection_id)
 }
 
 impl From<IpAddr> for ByteArray32 {
@@ -208,7 +258,7 @@ impl From<u16> for ByteArray32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{net::{SocketAddr, IpAddr, Ipv4Addr}};
+    use std::{net::{SocketAddr, IpAddr, Ipv4Addr, Ipv6Addr}};
 
     fn generate_server_secret_for_testing() -> ByteArray32 {
         ByteArray32::new([0u8;32])
@@ -218,6 +268,20 @@ mod tests {
     fn ip_address_should_be_converted_to_a_32_bytes_array() {
         let ip_address = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
         assert_eq!(ByteArray32::from(ip_address), ByteArray32::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]));
+    }
+
+    #[test]
+    fn ipv4_address_should_be_converted_to_a_byte_vector() {
+        let ip_address = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+        let bytes = convert_ip_into_bytes(ip_address);
+        assert_eq!(bytes, vec![127, 0, 0, 1]); // 4 bytes
+    }
+
+    #[test]
+    fn ipv6_address_should_be_converted_to_a_byte_vector() {
+        let ip_address = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1));
+        let bytes = convert_ip_into_bytes(ip_address);
+        assert_eq!(bytes, vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]); // 16 bytes
     }
 
     #[test]
