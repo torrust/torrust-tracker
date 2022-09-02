@@ -9,13 +9,11 @@ pub use self::handlers::*;
 pub use self::request::*;
 pub use self::server::*;
 
-pub mod byte_array_32;
-pub mod connection_id;
+pub mod connection;
 pub mod errors;
 pub mod request;
 pub mod server;
 pub mod handlers;
-pub mod timestamp;
 
 pub type Bytes = u64;
 pub type Port = u16;

@@ -4,6 +4,8 @@ use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId};
 use log::debug;
 
+use crate::udp::connection::byte_array_32::ByteArray32;
+use crate::udp::connection::connection_id::get_connection_id;
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS};
 use crate::peer::TorrentPeer;
 use crate::tracker::torrent::{TorrentError};
@@ -12,9 +14,6 @@ use crate::udp::request::AnnounceRequestWrapper;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::tracker::TorrentTracker;
 use crate::protocol::clock::current_timestamp;
-
-use super::byte_array_32::ByteArray32;
-use super::connection_id::get_connection_id;
 
 pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
     match tracker.authenticate_request(info_hash, &None).await {
