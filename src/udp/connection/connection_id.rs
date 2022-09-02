@@ -67,7 +67,7 @@
 //! Some tracker implementations use a time bound connection ID to avoid storing the connection ID
 //! in memory or in the DB.
 //!
-//! ```ignore
+//! ```text
 //! static uint64_t _genCiD (uint32_t ip, uint16_t port)
 //! {
 //!   uint64_t x;
