@@ -102,7 +102,9 @@ pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAdd
 
     let client_id = generate_id_for_socket_address(remote_address);
 
-    let connection_id = concat(client_id, timestamp_to_le_bytes(current_timestamp));
+    let expiration_timestamp = current_timestamp + 120;
+
+    let connection_id = concat(client_id, timestamp_to_le_bytes(expiration_timestamp));
 
     let encrypted_connection_id = encrypt(&connection_id, server_secret);
 
@@ -116,13 +118,11 @@ pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArr
     
     let decrypted_connection_id = decrypt(&encrypted_connection_id, server_secret);
 
-    let timestamp_bytes = extract_timestamp(&decrypted_connection_id);
+    let expiration_timestamp_bytes = extract_timestamp(&decrypted_connection_id);
 
-    let created_at_timestamp = timestamp_from_le_bytes(timestamp_bytes);
+    let expiration_timestamp = timestamp_from_le_bytes(expiration_timestamp_bytes);
 
-    let expire_timestamp = created_at_timestamp + 120;
-
-    if expire_timestamp < current_timestamp {
+    if expiration_timestamp < current_timestamp {
         return Err(())
     }
 
