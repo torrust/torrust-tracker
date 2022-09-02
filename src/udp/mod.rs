@@ -15,7 +15,6 @@ pub mod errors;
 pub mod request;
 pub mod server;
 pub mod handlers;
-pub mod time_bound_pepper;
 pub mod timestamp;
 
 pub type Bytes = u64;
