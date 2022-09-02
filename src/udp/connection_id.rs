@@ -100,9 +100,9 @@ use super::time_bound_pepper::Timestamp;
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
 pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
 
-    let remote_id = generate_id_for_socket_address(remote_address);
+    let client_id = generate_id_for_socket_address(remote_address);
 
-    let connection_id = concat(remote_id, timestamp_to_le_bytes(current_timestamp));
+    let connection_id = concat(client_id, timestamp_to_le_bytes(current_timestamp));
 
     let encrypted_connection_id = encrypt(&connection_id, server_secret);
 
