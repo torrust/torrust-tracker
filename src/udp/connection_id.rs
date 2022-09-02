@@ -112,24 +112,11 @@ pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAdd
 /// Verifies whether a connection id is valid at this time for a given remote socket address (ip + port)
 pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, _remote_address: &SocketAddr, current_timestamp: Timestamp) -> Result<(), ()> {
     
-    let blowfish = Blowfish::new(&server_secret.as_generic_byte_array());
-
-    let encrypted_id_as_byte_array: [u8; 8] = connection_id.0.to_le_bytes();
-
-    let mut id_as_byte_array = [0u8; 8];
-
-    blowfish.decrypt_block(&encrypted_id_as_byte_array, &mut id_as_byte_array);
+    let id_as_byte_array = decrypt(&connection_id.0.to_le_bytes(), server_secret);
 
     let timestamp_bytes = &id_as_byte_array[4..];
     let timestamp_array = [timestamp_bytes[0], timestamp_bytes[1], timestamp_bytes[2], timestamp_bytes[3], 0, 0, 0, 0]; // Little Endian
     let created_at_timestamp = u64::from_le_bytes(timestamp_array);
-
-    /*
-    println!("verify:   i64 {:?}", &connection_id.0);
-    println!("verify:   bytes {:?}", &id_as_byte_array);
-    println!("verify:   timestamp bytes {:?}",  &id_as_byte_array[4..]);
-    println!("verify:   timestamp {:?}", created_at_timestamp);
-    */
 
     let expire_timestamp = created_at_timestamp + 120;
 
@@ -209,6 +196,17 @@ fn encrypt(connection_id: &[u8; 8], server_secret: &ByteArray32) -> [u8; 8] {
     blowfish.encrypt_block(connection_id, &mut encrypted_connection_id);
 
     encrypted_connection_id
+}
+
+fn decrypt(encrypted_connection_id: &[u8; 8], server_secret: &ByteArray32) -> [u8; 8] {
+    // TODO: pass as an argument. It's expensive.
+    let blowfish = Blowfish::new(&server_secret.as_generic_byte_array());
+
+    let mut connection_id = [0u8; 8];
+
+    blowfish.decrypt_block(encrypted_connection_id, &mut connection_id);
+
+    connection_id
 }
 
 fn byte_array_to_i64(connection_id: [u8;8]) -> i64 {
