@@ -89,18 +89,18 @@
 use std::{net::SocketAddr};
 use std::net::IpAddr;
 use aquatic_udp_protocol::ConnectionId;
-use blake3::OUT_LEN;
 use crypto::blowfish::Blowfish;
 use crypto::symmetriccipher::{BlockEncryptor, BlockDecryptor};
 use std::convert::From;
 
 use super::byte_array_32::ByteArray32;
+use super::client_id::ClientId;
 use super::timestamp::Timestamp;
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
 pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
 
-    let client_id = generate_id_for_socket_address(remote_address);
+    let client_id = ClientId::from_socket_address(remote_address).to_bytes();
 
     let expiration_timestamp = current_timestamp + 120;
 
@@ -127,48 +127,6 @@ pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArr
     }
 
     Ok(())
-}
-
-/// It generates an unique ID for a socket address (IP + port)
-fn generate_id_for_socket_address(remote_address: &SocketAddr) -> [u8; 4] {
-    let socket_addr_as_bytes: Vec<u8> = convert_socket_address_into_bytes(remote_address);
-
-    let hashed_socket_addr = hash(&socket_addr_as_bytes);
-
-    let remote_id = get_first_four_bytes_from(&hashed_socket_addr);
-
-    remote_id
-}
-
-fn convert_socket_address_into_bytes(socket_addr: &SocketAddr) -> Vec<u8> {
-    let bytes: Vec<u8> = [
-        convert_ip_into_bytes(socket_addr.ip()).as_slice(),
-        convert_port_into_bytes(socket_addr.port()).as_slice(),
-    ].concat();
-    bytes
-}
-
-fn convert_ip_into_bytes(ip_addr: IpAddr) -> Vec<u8> {
-    match ip_addr {
-        IpAddr::V4(ip) => ip.octets().to_vec(),
-        IpAddr::V6(ip) => ip.octets().to_vec(),
-    }
-}
-
-fn convert_port_into_bytes(port: u16) -> [u8; 2] {
-    port.to_be_bytes()
-}
-
-fn hash(bytes: &[u8]) -> [u8; OUT_LEN]{
-    let hash = blake3::hash(bytes);
-    let bytes = hash.as_bytes().clone();
-    bytes
-}
-
-fn get_first_four_bytes_from(bytes: &[u8; OUT_LEN]) -> [u8; 4] {
-    let mut first_four_bytes: [u8; 4] = [0u8; 4]; // 4 bytes = 32 bits
-    first_four_bytes.copy_from_slice(&bytes[..4]);
-    first_four_bytes
 }
 
 fn timestamp_to_le_bytes(current_timestamp: Timestamp) -> [u8; 4] {
@@ -270,7 +228,7 @@ impl From<u16> for ByteArray32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{net::{SocketAddr, IpAddr, Ipv4Addr, Ipv6Addr}};
+    use std::{net::{SocketAddr, IpAddr, Ipv4Addr}};
 
     fn generate_server_secret_for_testing() -> ByteArray32 {
         ByteArray32::new([0u8;32])
@@ -280,20 +238,6 @@ mod tests {
     fn ip_address_should_be_converted_to_a_32_bytes_array() {
         let ip_address = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
         assert_eq!(ByteArray32::from(ip_address), ByteArray32::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]));
-    }
-
-    #[test]
-    fn ipv4_address_should_be_converted_to_a_byte_vector() {
-        let ip_address = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
-        let bytes = convert_ip_into_bytes(ip_address);
-        assert_eq!(bytes, vec![127, 0, 0, 1]); // 4 bytes
-    }
-
-    #[test]
-    fn ipv6_address_should_be_converted_to_a_byte_vector() {
-        let ip_address = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1));
-        let bytes = convert_ip_into_bytes(ip_address);
-        assert_eq!(bytes, vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]); // 16 bytes
     }
 
     #[test]
