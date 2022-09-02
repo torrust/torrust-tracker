@@ -112,11 +112,13 @@ pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAdd
 /// Verifies whether a connection id is valid at this time for a given remote socket address (ip + port)
 pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, _remote_address: &SocketAddr, current_timestamp: Timestamp) -> Result<(), ()> {
     
-    let id_as_byte_array = decrypt(&connection_id.0.to_le_bytes(), server_secret);
+    let encrypted_connection_id = connection_id.0.to_le_bytes();
+    
+    let decrypted_connection_id = decrypt(&encrypted_connection_id, server_secret);
 
-    let timestamp_bytes = &id_as_byte_array[4..];
-    let timestamp_array = [timestamp_bytes[0], timestamp_bytes[1], timestamp_bytes[2], timestamp_bytes[3], 0, 0, 0, 0]; // Little Endian
-    let created_at_timestamp = u64::from_le_bytes(timestamp_array);
+    let timestamp_bytes = extract_timestamp(&decrypted_connection_id);
+
+    let created_at_timestamp = timestamp_from_le_bytes(timestamp_bytes);
 
     let expire_timestamp = created_at_timestamp + 120;
 
@@ -170,9 +172,16 @@ fn get_first_four_bytes_from(bytes: &[u8; OUT_LEN]) -> [u8; 4] {
 }
 
 fn timestamp_to_le_bytes(current_timestamp: Timestamp) -> [u8; 4] {
+    // Little Endian
     let mut bytes: [u8; 4] = [0u8; 4];
     bytes.copy_from_slice(&current_timestamp.to_le_bytes()[..4]);
     bytes
+}
+
+fn timestamp_from_le_bytes(timestamp_bytes: &[u8]) -> Timestamp {
+    // Little Endian
+    let timestamp = u64::from_le_bytes([timestamp_bytes[0], timestamp_bytes[1], timestamp_bytes[2], timestamp_bytes[3], 0, 0, 0, 0]);
+    timestamp
 }
 
 /// Contact two 4-byte arrays
@@ -185,6 +194,11 @@ fn concat(remote_id: [u8; 4], timestamp: [u8; 4]) -> [u8; 8] {
     let connection_as_array: [u8; 8] = connection_id.try_into().unwrap();
 
     connection_as_array
+}
+
+fn extract_timestamp(decrypted_connection_id: &[u8; 8]) -> &[u8] {
+    let timestamp_bytes = &decrypted_connection_id[4..];
+    timestamp_bytes
 }
 
 fn encrypt(connection_id: &[u8; 8], server_secret: &ByteArray32) -> [u8; 8] {
