@@ -95,7 +95,7 @@ use crypto::symmetriccipher::{BlockEncryptor, BlockDecryptor};
 use std::convert::From;
 
 use super::byte_array_32::ByteArray32;
-use super::time_bound_pepper::Timestamp;
+use super::timestamp::Timestamp;
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
 pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {

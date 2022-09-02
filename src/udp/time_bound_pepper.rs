@@ -10,9 +10,7 @@
 //! | 1/1/1970, 12:04:00 AM | 240       | minute 4              | Z != X          |
 //! | 1/1/1970, 12:05:00 AM | 300       | minute 5              | Z != X          |
 
-use super::byte_array_32::ByteArray32;
-
-pub type Timestamp = u64;
+use super::{byte_array_32::ByteArray32, timestamp::Timestamp};
 
 #[derive(PartialEq, Debug)]
 pub struct TimeBoundPepper {
