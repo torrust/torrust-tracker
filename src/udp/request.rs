@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use aquatic_udp_protocol::AnnounceRequest;
 
 use crate::InfoHash;
@@ -20,13 +21,15 @@ use crate::InfoHash;
 pub struct AnnounceRequestWrapper {
     pub announce_request: AnnounceRequest,
     pub info_hash: InfoHash,
+    pub peer_addr: SocketAddr
 }
 
 impl AnnounceRequestWrapper {
-    pub fn new(announce_request: AnnounceRequest) -> Self {
+    pub fn new(announce_request: AnnounceRequest, remote_addr: SocketAddr) -> Self {
         AnnounceRequestWrapper {
             announce_request: announce_request.clone(),
             info_hash: InfoHash(announce_request.info_hash.0),
+            peer_addr: remote_addr
         }
     }
 }

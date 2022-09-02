@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
-use std::net::IpAddr;
+use std::net::{IpAddr};
 use std::sync::Arc;
 
 use log::debug;
@@ -42,7 +42,8 @@ pub async fn handle_announce(announce_request: AnnounceRequest, auth_key: Option
 
     debug!("{:?}", announce_request);
 
-    let peer = TorrentPeer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
+    let peer = TorrentPeer::from_http_announce_request(&announce_request, &tracker.config);
+
     let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer).await;
 
     // get all torrent peers excluding the peer_addr
@@ -129,7 +130,7 @@ fn send_scrape_response(files: HashMap<InfoHash, ScrapeResponseEntry>) -> WebRes
 }
 
 /// Handle all server errors and send error reply
-pub async fn send_error(r: Rejection) -> std::result::Result<impl Reply, Infallible> {
+pub async fn send_error(r: Rejection) -> Result<impl Reply, Infallible> {
     let body = if let Some(server_error) = r.find::<ServerError>() {
         debug!("{:?}", server_error);
         ErrorResponse { failure_reason: server_error.to_string() }.write()

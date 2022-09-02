@@ -10,7 +10,7 @@ async fn main() {
     const CONFIG_PATH: &str = "config.toml";
 
     // Initialize Torrust config
-    let config = match Configuration::load_from_file(CONFIG_PATH) {
+    let config = match Configuration::load(CONFIG_PATH).await {
         Ok(config) => Arc::new(config),
         Err(error) => {
             panic!("{}", error)

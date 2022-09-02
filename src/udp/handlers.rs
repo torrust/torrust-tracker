@@ -87,20 +87,18 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
 }
 
 pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &AnnounceRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request.clone());
+    let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request.clone(), remote_addr);
 
     authenticate(&wrapped_announce_request.info_hash, tracker.clone()).await?;
 
-    let peer = TorrentPeer::from_udp_announce_request(&wrapped_announce_request.announce_request, remote_addr.ip(), tracker.config.get_ext_ip());
-
-    //let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
+    let peer = TorrentPeer::from_udp_announce_request(&wrapped_announce_request, &tracker.config);
 
     let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
 
     // get all peers excluding the client_addr
     let peers = tracker.get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr).await;
 
-    let announce_response = if remote_addr.is_ipv4() {
+    let announce_response = if wrapped_announce_request.peer_addr.is_ipv4() {
         Response::from(AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
             announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
@@ -137,7 +135,7 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
     };
 
     // send stats event
-    match remote_addr {
+    match wrapped_announce_request.peer_addr {
         SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Announce).await; }
         SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Announce).await; }
     }
