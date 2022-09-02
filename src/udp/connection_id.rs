@@ -302,23 +302,6 @@ mod tests {
         assert_eq!(ByteArray32::from(port), ByteArray32::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x1F, 0x90]));
     }    
 
-    /*#[test]
-    fn it_should_be_the_same_for_one_client_during_two_minutes() {
-        let server_secret = generate_server_secret_for_testing();
-
-        let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-
-        let now = 946684800u64;
-
-        let connection_id = get_connection_id(&server_secret, &client_addr, now);
-
-        let in_two_minutes = now + 120 - 1;
-
-        let connection_id_after_two_minutes = get_connection_id(&server_secret, &client_addr, in_two_minutes);
-
-        assert_eq!(connection_id, connection_id_after_two_minutes);
-    }*/
-
     #[test]
     fn it_should_be_valid_for_two_minutes_after_the_generation() {
         let server_secret = generate_server_secret_for_testing();
