@@ -112,18 +112,23 @@ pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAdd
 }
 
 /// Verifies whether a connection id is valid at this time for a given remote socket address (ip + port)
-pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, _remote_address: &SocketAddr, current_timestamp: Timestamp) -> Result<(), ()> {
+pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> Result<(), &'static str> {
     
     let encrypted_connection_id = connection_id.0.to_le_bytes();
-    
     let decrypted_connection_id = decrypt(&encrypted_connection_id, server_secret);
 
-    let expiration_timestamp_bytes = extract_timestamp(&decrypted_connection_id);
+    let client_id = extract_client_id(&decrypted_connection_id);
+    let expected_client_id = ClientId::from_socket_address(remote_address);
 
+    if client_id != expected_client_id {
+        return Err("Invalid client id")
+    }
+
+    let expiration_timestamp_bytes = extract_timestamp(&decrypted_connection_id);
     let expiration_timestamp = timestamp_from_le_bytes(expiration_timestamp_bytes);
 
     if expiration_timestamp < current_timestamp {
-        return Err(())
+        return Err("Expired connection id")
     }
 
     Ok(())
@@ -157,6 +162,10 @@ fn concat(remote_id: [u8; 4], timestamp: [u8; 4]) -> [u8; 8] {
 fn extract_timestamp(decrypted_connection_id: &[u8; 8]) -> &[u8] {
     let timestamp_bytes = &decrypted_connection_id[4..];
     timestamp_bytes
+}
+
+fn extract_client_id(decrypted_connection_id: &[u8; 8]) -> ClientId {
+    ClientId::from_slice(&decrypted_connection_id[..4])
 }
 
 fn encrypt(connection_id: &[u8; 8], server_secret: &ByteArray32) -> [u8; 8] {
@@ -254,11 +263,7 @@ mod tests {
 
         let connection_id = get_connection_id(&server_secret, &client_addr, now);
 
-        let ret = verify_connection_id(connection_id, &server_secret, &client_addr, now);
-
-        println!("ret: {:?}", ret);
-
-        assert_eq!(ret, Ok(()));
+        assert_eq!(verify_connection_id(connection_id, &server_secret, &client_addr, now), Ok(()));
 
         let after_two_minutes = now + (2*60) - 1;
 
@@ -273,13 +278,9 @@ mod tests {
 
         let connection_id = get_connection_id(&server_secret, &client_addr, now);
 
-        let ret = verify_connection_id(connection_id, &server_secret, &client_addr, now);
-
-        println!("ret: {:?}", ret);
-
         let after_more_than_two_minutes = now + (2*60) + 1;
 
-        assert_eq!(verify_connection_id(connection_id, &server_secret, &client_addr, after_more_than_two_minutes), Err(()));
+        assert_eq!(verify_connection_id(connection_id, &server_secret, &client_addr, after_more_than_two_minutes), Err("Expired connection id"));
     }    
 
     #[test]

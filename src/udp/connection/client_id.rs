@@ -18,6 +18,15 @@ impl ClientId {
         }
     }
 
+    /// It generates the ID with a previously generated value
+    pub fn from_slice(slice: &[u8]) -> Self {
+        let mut client_id = ClientId {
+            value: [0u8; 4]
+        };
+        client_id.value.copy_from_slice(slice);
+        client_id
+    }
+
     pub fn to_bytes(&self) -> [u8; 4] {
         self.value
     }
