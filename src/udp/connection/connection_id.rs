@@ -93,16 +93,17 @@ use crypto::symmetriccipher::{BlockEncryptor, BlockDecryptor};
 
 use super::byte_array_32::ByteArray32;
 use super::client_id::ClientId;
-use super::timestamp::{Timestamp, timestamp_from_le_bytes, timestamp_to_le_bytes};
+use super::timestamp_32::Timestamp32;
+use super::timestamp_64::{Timestamp64, timestamp_from_le_bytes};
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
-pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
+pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
 
     let client_id = ClientId::from_socket_address(remote_address).to_bytes();
 
-    let expiration_timestamp = current_timestamp + 120;
+    let expiration_timestamp = Timestamp32::from_timestamp_64(current_timestamp + 120).unwrap();
 
-    let connection_id = concat(client_id, timestamp_to_le_bytes(expiration_timestamp));
+    let connection_id = concat(client_id, expiration_timestamp.to_le_bytes());
 
     let encrypted_connection_id = encrypt(&connection_id, server_secret);
 
@@ -110,7 +111,7 @@ pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAdd
 }
 
 /// Verifies whether a connection id is valid at this time for a given remote socket address (ip + port)
-pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> Result<(), &'static str> {
+pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), &'static str> {
     
     let encrypted_connection_id = connection_id.0.to_le_bytes();
     let decrypted_connection_id = decrypt(&encrypted_connection_id, server_secret);
@@ -122,6 +123,7 @@ pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArr
         return Err("Invalid client id")
     }
 
+    // TODO: refactor in progress. Return a Timestamp32.
     let expiration_timestamp = extract_timestamp(&decrypted_connection_id);
 
     if expiration_timestamp < current_timestamp {
@@ -143,7 +145,7 @@ fn concat(remote_id: [u8; 4], timestamp: [u8; 4]) -> [u8; 8] {
     connection_as_array
 }
 
-fn extract_timestamp(decrypted_connection_id: &[u8; 8]) -> Timestamp {
+fn extract_timestamp(decrypted_connection_id: &[u8; 8]) -> Timestamp64 {
     let timestamp_bytes = &decrypted_connection_id[4..];
     let expiration_timestamp = timestamp_from_le_bytes(timestamp_bytes);
     expiration_timestamp
