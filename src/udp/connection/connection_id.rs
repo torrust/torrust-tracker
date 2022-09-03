@@ -93,7 +93,7 @@ use crypto::symmetriccipher::{BlockEncryptor, BlockDecryptor};
 
 use super::byte_array_32::ByteArray32;
 use super::client_id::ClientId;
-use super::timestamp::Timestamp;
+use super::timestamp::{Timestamp, timestamp_from_le_bytes, timestamp_to_le_bytes};
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
 pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp) -> ConnectionId {
@@ -122,27 +122,13 @@ pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArr
         return Err("Invalid client id")
     }
 
-    let expiration_timestamp_bytes = extract_timestamp(&decrypted_connection_id);
-    let expiration_timestamp = timestamp_from_le_bytes(expiration_timestamp_bytes);
+    let expiration_timestamp = extract_timestamp(&decrypted_connection_id);
 
     if expiration_timestamp < current_timestamp {
         return Err("Expired connection id")
     }
 
     Ok(())
-}
-
-fn timestamp_to_le_bytes(current_timestamp: Timestamp) -> [u8; 4] {
-    // Little Endian
-    let mut bytes: [u8; 4] = [0u8; 4];
-    bytes.copy_from_slice(&current_timestamp.to_le_bytes()[..4]);
-    bytes
-}
-
-fn timestamp_from_le_bytes(timestamp_bytes: &[u8]) -> Timestamp {
-    // Little Endian
-    let timestamp = u64::from_le_bytes([timestamp_bytes[0], timestamp_bytes[1], timestamp_bytes[2], timestamp_bytes[3], 0, 0, 0, 0]);
-    timestamp
 }
 
 /// Contact two 4-byte arrays
@@ -157,9 +143,10 @@ fn concat(remote_id: [u8; 4], timestamp: [u8; 4]) -> [u8; 8] {
     connection_as_array
 }
 
-fn extract_timestamp(decrypted_connection_id: &[u8; 8]) -> &[u8] {
+fn extract_timestamp(decrypted_connection_id: &[u8; 8]) -> Timestamp {
     let timestamp_bytes = &decrypted_connection_id[4..];
-    timestamp_bytes
+    let expiration_timestamp = timestamp_from_le_bytes(timestamp_bytes);
+    expiration_timestamp
 }
 
 fn extract_client_id(decrypted_connection_id: &[u8; 8]) -> ClientId {
