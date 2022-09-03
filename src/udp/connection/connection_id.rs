@@ -328,4 +328,17 @@ mod tests {
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }
+
+    #[test]
+    fn it_should_encrypt_and_decrypt_a_byte_array() {
+        let server_secret = generate_server_secret_for_testing();
+
+        let text = [0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8];
+
+        let encrypted_text = encrypt(&text, &server_secret);
+
+        let decrypted_text = decrypt(&encrypted_text, &server_secret);
+
+        assert_eq!(decrypted_text, text);
+    }
 }
