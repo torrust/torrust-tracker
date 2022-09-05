@@ -4,7 +4,7 @@ use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId};
 use log::debug;
 
-use crate::udp::connection::byte_array_32::ByteArray32;
+use crate::udp::connection::secret::Secret;
 use crate::udp::connection::connection_id::get_connection_id;
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS};
 use crate::peer::TorrentPeer;
@@ -73,7 +73,7 @@ pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: 
 }
 
 pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    let server_secret = ByteArray32::new([0;32]); // todo: server_secret should be randomly generated on startup
+    let server_secret = Secret::new([0;32]); // todo: server_secret should be randomly generated on startup
     let current_timestamp = current_timestamp();
     let connection_id = get_connection_id(&server_secret, &remote_addr, current_timestamp);
 

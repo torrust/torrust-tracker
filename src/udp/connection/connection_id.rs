@@ -91,13 +91,13 @@ use aquatic_udp_protocol::ConnectionId;
 use crypto::blowfish::Blowfish;
 use crypto::symmetriccipher::{BlockEncryptor, BlockDecryptor};
 
-use super::byte_array_32::ByteArray32;
+use super::secret::Secret;
 use super::client_id::ClientId;
 use super::timestamp_32::Timestamp32;
 use super::timestamp_64::{Timestamp64, timestamp_from_le_bytes};
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
-pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
+pub fn get_connection_id(server_secret: &Secret, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
 
     let client_id = ClientId::from_socket_address(remote_address).to_bytes();
 
@@ -111,7 +111,7 @@ pub fn get_connection_id(server_secret: &ByteArray32, remote_address: &SocketAdd
 }
 
 /// Verifies whether a connection id is valid at this time for a given remote socket address (ip + port)
-pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArray32, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), &'static str> {
+pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &Secret, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), &'static str> {
     
     let encrypted_connection_id = connection_id.0.to_le_bytes();
     let decrypted_connection_id = decrypt(&encrypted_connection_id, server_secret);
@@ -154,9 +154,9 @@ fn extract_client_id(decrypted_connection_id: &[u8; 8]) -> ClientId {
     ClientId::from_slice(&decrypted_connection_id[..4])
 }
 
-fn encrypt(connection_id: &[u8; 8], server_secret: &ByteArray32) -> [u8; 8] {
+fn encrypt(connection_id: &[u8; 8], server_secret: &Secret) -> [u8; 8] {
     // TODO: pass as an argument. It's expensive.
-    let blowfish = Blowfish::new(&server_secret.as_generic_byte_array());
+    let blowfish = Blowfish::new(&server_secret.to_bytes());
 
     let mut encrypted_connection_id = [0u8; 8];
 
@@ -165,9 +165,9 @@ fn encrypt(connection_id: &[u8; 8], server_secret: &ByteArray32) -> [u8; 8] {
     encrypted_connection_id
 }
 
-fn decrypt(encrypted_connection_id: &[u8; 8], server_secret: &ByteArray32) -> [u8; 8] {
+fn decrypt(encrypted_connection_id: &[u8; 8], server_secret: &Secret) -> [u8; 8] {
     // TODO: pass as an argument. It's expensive.
-    let blowfish = Blowfish::new(&server_secret.as_generic_byte_array());
+    let blowfish = Blowfish::new(&server_secret.to_bytes());
 
     let mut connection_id = [0u8; 8];
 
@@ -185,8 +185,8 @@ mod tests {
     use super::*;
     use std::{net::{SocketAddr, IpAddr, Ipv4Addr}};
 
-    fn generate_server_secret_for_testing() -> ByteArray32 {
-        ByteArray32::new([0u8;32])
+    fn generate_server_secret_for_testing() -> Secret {
+        Secret::new([0u8;32])
     }
 
     #[test]
