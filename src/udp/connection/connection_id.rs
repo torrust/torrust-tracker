@@ -94,14 +94,14 @@ use crypto::symmetriccipher::{BlockEncryptor, BlockDecryptor};
 use super::secret::Secret;
 use super::client_id::ClientId;
 use super::timestamp_32::Timestamp32;
-use super::timestamp_64::{Timestamp64, timestamp_from_le_bytes};
+use super::timestamp_64::Timestamp64;
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
 pub fn get_connection_id(server_secret: &Secret, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
 
     let client_id = ClientId::from_socket_address(remote_address).to_bytes();
 
-    let expiration_timestamp = Timestamp32::from_timestamp_64(current_timestamp + 120).unwrap();
+    let expiration_timestamp: Timestamp32 = (current_timestamp + 120).try_into().unwrap();
 
     let connection_id = concat(client_id, expiration_timestamp.to_le_bytes());
 
@@ -146,8 +146,8 @@ fn concat(remote_id: [u8; 4], timestamp: [u8; 4]) -> [u8; 8] {
 
 fn extract_timestamp(decrypted_connection_id: &[u8; 8]) -> Timestamp64 {
     let timestamp_bytes = &decrypted_connection_id[4..];
-    let expiration_timestamp = timestamp_from_le_bytes(timestamp_bytes);
-    expiration_timestamp
+    let timestamp = Timestamp32::from_le_bytes(timestamp_bytes);
+    timestamp.into()
 }
 
 fn extract_client_id(decrypted_connection_id: &[u8; 8]) -> ClientId {
