@@ -88,3 +88,4 @@ pub mod timestamp_64;
 pub mod cypher;
 pub mod connection_id_issuer;
 pub mod connection_id_data;
+pub mod encrypted_connection_id_data;

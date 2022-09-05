@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use aquatic_udp_protocol::ConnectionId;
 
-use super::{cypher::{BlowfishCypher, Cypher}, secret::Secret, timestamp_64::Timestamp64, client_id::ClientId, timestamp_32::Timestamp32, connection_id_data::ConnectionIdData};
+use super::{cypher::{BlowfishCypher, Cypher}, secret::Secret, timestamp_64::Timestamp64, client_id::ClientId, timestamp_32::Timestamp32, connection_id_data::ConnectionIdData, encrypted_connection_id_data::EncryptedConnectionIdData};
 
 pub trait ConnectionIdIssuer {
     type Error;
@@ -35,30 +35,34 @@ impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
 
         let expiration_timestamp: Timestamp32 = (current_timestamp + 120).try_into().unwrap();
     
-        let connection_id = ConnectionIdData {
+        let connection_id_data = ConnectionIdData {
             client_id,
             expiration_timestamp
-        }.to_bytes();
+        };
     
-        let encrypted_connection_id = self.cypher.encrypt(&connection_id);
+        let decrypted_raw_data = connection_id_data.to_bytes();
+
+        let encrypted_raw_data = self.cypher.encrypt(&decrypted_raw_data);
+
+        let encrypted_connection_id_data = EncryptedConnectionIdData::from_encrypted_bytes(&encrypted_raw_data);
     
-        ConnectionId(i64::from_le_bytes(encrypted_connection_id))
+        ConnectionId(encrypted_connection_id_data.into())
     }
 
     fn verify_connection_id(&self, connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error> {
-        let encrypted_connection_id = connection_id.0.to_le_bytes();
+        let encrypted_raw_data: EncryptedConnectionIdData = connection_id.0.into();
 
-        let decrypted_connection_id = self.cypher.decrypt(&encrypted_connection_id);
+        let decrypted_raw_data = self.cypher.decrypt(&encrypted_raw_data.bytes);
 
-        let connection_id_data = ConnectionIdData::from_bytes(&decrypted_connection_id);
+        let connection_id_data = ConnectionIdData::from_bytes(&decrypted_raw_data);
     
-        let client_id = connection_id_data.client_id;
-    
+        // guard that current client matches connection id client
         let expected_client_id = ClientId::from_socket_address(remote_address);
-        if client_id != expected_client_id {
+        if connection_id_data.client_id != expected_client_id {
             return Err("Invalid client id")
         }
     
+        // guard that connection id has not expired
         let expiration_timestamp = Timestamp64::try_from(connection_id_data.expiration_timestamp).unwrap();
             if expiration_timestamp < current_timestamp {
             return Err("Expired connection id")
