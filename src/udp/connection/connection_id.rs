@@ -123,7 +123,6 @@ pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &ByteArr
         return Err("Invalid client id")
     }
 
-    // TODO: refactor in progress. Return a Timestamp32.
     let expiration_timestamp = extract_timestamp(&decrypted_connection_id);
 
     if expiration_timestamp < current_timestamp {
