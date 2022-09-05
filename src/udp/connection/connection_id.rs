@@ -96,7 +96,7 @@ use super::timestamp_32::Timestamp32;
 use super::timestamp_64::Timestamp64;
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
-pub fn get_connection_id(cypher: &dyn Cypher, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
+pub fn new_connection_id(cypher: &dyn Cypher, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
 
     let client_id = ClientId::from_socket_address(remote_address).to_bytes();
 
@@ -181,7 +181,7 @@ mod tests {
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
         let now = 946684800u64; // 01-01-2000 00:00:00
 
-        let connection_id = get_connection_id(&cypher, &client_addr, now);
+        let connection_id = new_connection_id(&cypher, &client_addr, now);
 
         assert_eq!(verify_connection_id(connection_id, &cypher, &client_addr, now), Ok(()));
 
@@ -196,7 +196,7 @@ mod tests {
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
         let now = 946684800u64;
 
-        let connection_id = get_connection_id(&cypher, &client_addr, now);
+        let connection_id = new_connection_id(&cypher, &client_addr, now);
 
         let after_more_than_two_minutes = now + (2*60) + 1;
 
@@ -211,11 +211,11 @@ mod tests {
 
         let now = 946684800u64;
 
-        let connection_id = get_connection_id(&cypher, &client_addr, now);
+        let connection_id = new_connection_id(&cypher, &client_addr, now);
 
         let after_two_minutes = now + 120;
 
-        let connection_id_after_two_minutes = get_connection_id(&cypher, &client_addr, after_two_minutes);
+        let connection_id_after_two_minutes = new_connection_id(&cypher, &client_addr, after_two_minutes);
 
         assert_ne!(connection_id, connection_id_after_two_minutes);
     }
@@ -229,8 +229,8 @@ mod tests {
 
         let now = 946684800u64;
 
-        let connection_id_for_client_1 = get_connection_id(&cypher, &client_1_addr, now);
-        let connection_id_for_client_2 = get_connection_id(&cypher, &client_2_addr, now);
+        let connection_id_for_client_1 = new_connection_id(&cypher, &client_1_addr, now);
+        let connection_id_for_client_2 = new_connection_id(&cypher, &client_2_addr, now);
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }
@@ -244,8 +244,8 @@ mod tests {
 
         let now = 946684800u64;
 
-        let connection_id_for_client_1 = get_connection_id(&cypher, &client_1_addr, now);
-        let connection_id_for_client_2 = get_connection_id(&cypher, &client_2_addr, now);
+        let connection_id_for_client_1 = new_connection_id(&cypher, &client_1_addr, now);
+        let connection_id_for_client_2 = new_connection_id(&cypher, &client_2_addr, now);
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }

@@ -6,7 +6,7 @@ use log::debug;
 
 use crate::udp::connection::cypher::BlowfishCypher;
 use crate::udp::connection::secret::Secret;
-use crate::udp::connection::connection_id::get_connection_id;
+use crate::udp::connection::connection_id::new_connection_id;
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS};
 use crate::peer::TorrentPeer;
 use crate::tracker::torrent::{TorrentError};
@@ -99,7 +99,7 @@ pub fn generate_new_connection_id(remote_addr: &SocketAddr) -> ConnectionId {
 
     let current_timestamp = current_timestamp();
 
-    let connection_id = get_connection_id(&cypher, remote_addr, current_timestamp);
+    let connection_id = new_connection_id(&cypher, remote_addr, current_timestamp);
 
     debug!("new connection id: {:?}, current timestamp: {:?}", connection_id, current_timestamp);
 
