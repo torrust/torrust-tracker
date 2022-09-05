@@ -63,8 +63,7 @@ impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
         }
     
         // guard that connection id has not expired
-        let expiration_timestamp = Timestamp64::try_from(connection_id_data.expiration_timestamp).unwrap();
-            if expiration_timestamp < current_timestamp {
+        if current_timestamp > connection_id_data.expiration_timestamp.into() {
             return Err("Expired connection id")
         }
     
