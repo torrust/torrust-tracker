@@ -18,12 +18,36 @@ pub struct EncryptedConnectionIdIssuer {
 }
 
 impl EncryptedConnectionIdIssuer {
-
     pub fn new(secret: Secret) -> Self {
         let cypher = BlowfishCypher::new(secret);
         Self {
             cypher
         }
+    }
+
+    fn unpack_connection_id_data(&self, connection_id: &ConnectionId) -> ConnectionIdData {
+        let encrypted_raw_data: EncryptedConnectionIdData = connection_id.0.into();
+
+        let decrypted_raw_data = self.cypher.decrypt(&encrypted_raw_data.bytes);
+
+        let connection_id_data = ConnectionIdData::from_bytes(&decrypted_raw_data);
+
+        connection_id_data
+    }
+
+    fn guard_that_current_client_id_matches_client_id_in_connection_id(&self, connection_id_data: &ConnectionIdData, remote_address: &SocketAddr) -> Result<(), &'static str> {
+        let current_client_id = ClientId::from_socket_address(remote_address);
+        if connection_id_data.client_id != current_client_id {
+            return Err("Invalid client id: current client id does not match client in connection id");
+        }
+        Ok(())
+    }
+
+    fn guard_that_connection_id_has_not_expired(&self, connection_id_data: &ConnectionIdData, current_timestamp:Timestamp64) -> Result<(), &'static str> {
+        if current_timestamp > connection_id_data.expiration_timestamp.into() {
+            return Err("Expired connection id")
+        }
+        Ok(())
     }
 }
 
@@ -50,22 +74,11 @@ impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
     }
 
     fn verify_connection_id(&self, connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error> {
-        let encrypted_raw_data: EncryptedConnectionIdData = connection_id.0.into();
-
-        let decrypted_raw_data = self.cypher.decrypt(&encrypted_raw_data.bytes);
-
-        let connection_id_data = ConnectionIdData::from_bytes(&decrypted_raw_data);
+        let connection_id_data = self.unpack_connection_id_data(&connection_id);
     
-        // guard that current client matches connection id client
-        let expected_client_id = ClientId::from_socket_address(remote_address);
-        if connection_id_data.client_id != expected_client_id {
-            return Err("Invalid client id")
-        }
+        self.guard_that_current_client_id_matches_client_id_in_connection_id(&connection_id_data, &remote_address)?;
     
-        // guard that connection id has not expired
-        if current_timestamp > connection_id_data.expiration_timestamp.into() {
-            return Err("Expired connection id")
-        }
+        self.guard_that_connection_id_has_not_expired(&connection_id_data, current_timestamp)?;
     
         Ok(())
     }
@@ -162,4 +175,20 @@ mod tests {
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }
+
+    #[test]
+    fn it_should_fails_verifying_a_connection_id_when_the_client_id_in_the_connection_id_data_does_not_the_current_client_id() {
+        let issuer = new_issuer();
+
+        // Generate connection id for a given client
+        let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
+        let now = 946684800u64;
+        let connection_id = issuer.new_connection_id(&client_addr, now);
+
+        // Verify the connection id with a different client address
+        let different_client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 0002);
+        let result = issuer.verify_connection_id(connection_id, &different_client_addr, now);
+
+        assert!(result.is_err());
+    }    
 }
