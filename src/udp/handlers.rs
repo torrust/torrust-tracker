@@ -1,9 +1,10 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId};
+use aquatic_udp_protocol::{AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId, ConnectionId};
 use log::debug;
 
+use crate::udp::connection::cypher::BlowfishCypher;
 use crate::udp::connection::secret::Secret;
 use crate::udp::connection::connection_id::get_connection_id;
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS};
@@ -73,11 +74,7 @@ pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: 
 }
 
 pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    let server_secret = Secret::new([0;32]); // todo: server_secret should be randomly generated on startup
-    let current_timestamp = current_timestamp();
-    let connection_id = get_connection_id(&server_secret, &remote_addr, current_timestamp);
-
-    debug!("connection_id: {:?}, current timestamp: {:?}", connection_id, current_timestamp);
+    let connection_id = generate_new_connection_id(&remote_addr);
 
     let response = Response::from(ConnectResponse {
         transaction_id: request.transaction_id,
@@ -91,6 +88,22 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
     }
 
     Ok(response)
+}
+
+pub fn generate_new_connection_id(remote_addr: &SocketAddr) -> ConnectionId {
+    // todo: server_secret should be randomly generated on startup
+    let server_secret = Secret::new([0;32]);
+
+    // todo: this is expensive. It should be generated on startup
+    let cypher = BlowfishCypher::new(server_secret);
+
+    let current_timestamp = current_timestamp();
+
+    let connection_id = get_connection_id(&cypher, remote_addr, current_timestamp);
+
+    debug!("new connection id: {:?}, current timestamp: {:?}", connection_id, current_timestamp);
+
+    connection_id
 }
 
 pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &AnnounceRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {

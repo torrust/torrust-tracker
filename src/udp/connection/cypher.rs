@@ -2,13 +2,13 @@ use crypto::{blowfish::Blowfish, symmetriccipher::{BlockEncryptor, BlockDecrypto
 
 use super::secret::Secret;
 
-trait Cypher {
+pub trait Cypher {
     fn encrypt(&self, decrypted_bytes: &[u8; 8]) -> [u8; 8];
 
     fn decrypt(&self, encrypted_bytes: &[u8; 8]) -> [u8; 8];
 }
 
-struct BlowfishCypher {
+pub struct BlowfishCypher {
     blowfish: Blowfish
 }
 

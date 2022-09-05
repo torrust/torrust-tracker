@@ -88,16 +88,15 @@
 //!
 use std::{net::SocketAddr};
 use aquatic_udp_protocol::ConnectionId;
-use crypto::blowfish::Blowfish;
-use crypto::symmetriccipher::{BlockEncryptor, BlockDecryptor};
 
-use super::secret::Secret;
+use super::cypher::Cypher;
+
 use super::client_id::ClientId;
 use super::timestamp_32::Timestamp32;
 use super::timestamp_64::Timestamp64;
 
 /// It generates a connection id needed for the BitTorrent UDP Tracker Protocol.
-pub fn get_connection_id(server_secret: &Secret, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
+pub fn get_connection_id(cypher: &dyn Cypher, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
 
     let client_id = ClientId::from_socket_address(remote_address).to_bytes();
 
@@ -105,20 +104,21 @@ pub fn get_connection_id(server_secret: &Secret, remote_address: &SocketAddr, cu
 
     let connection_id = concat(client_id, expiration_timestamp.to_le_bytes());
 
-    let encrypted_connection_id = encrypt(&connection_id, server_secret);
+    let encrypted_connection_id = cypher.encrypt(&connection_id);
 
     ConnectionId(byte_array_to_i64(encrypted_connection_id))
 }
 
 /// Verifies whether a connection id is valid at this time for a given remote socket address (ip + port)
-pub fn verify_connection_id(connection_id: ConnectionId, server_secret: &Secret, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), &'static str> {
+pub fn verify_connection_id(connection_id: ConnectionId, cypher: &dyn Cypher, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), &'static str> {
     
     let encrypted_connection_id = connection_id.0.to_le_bytes();
-    let decrypted_connection_id = decrypt(&encrypted_connection_id, server_secret);
+
+    let decrypted_connection_id = cypher.decrypt(&encrypted_connection_id);
 
     let client_id = extract_client_id(&decrypted_connection_id);
-    let expected_client_id = ClientId::from_socket_address(remote_address);
 
+    let expected_client_id = ClientId::from_socket_address(remote_address);
     if client_id != expected_client_id {
         return Err("Invalid client id")
     }
@@ -154,126 +154,99 @@ fn extract_client_id(decrypted_connection_id: &[u8; 8]) -> ClientId {
     ClientId::from_slice(&decrypted_connection_id[..4])
 }
 
-fn encrypt(connection_id: &[u8; 8], server_secret: &Secret) -> [u8; 8] {
-    // TODO: pass as an argument. It's expensive.
-    let blowfish = Blowfish::new(&server_secret.to_bytes());
-
-    let mut encrypted_connection_id = [0u8; 8];
-
-    blowfish.encrypt_block(connection_id, &mut encrypted_connection_id);
-
-    encrypted_connection_id
-}
-
-fn decrypt(encrypted_connection_id: &[u8; 8], server_secret: &Secret) -> [u8; 8] {
-    // TODO: pass as an argument. It's expensive.
-    let blowfish = Blowfish::new(&server_secret.to_bytes());
-
-    let mut connection_id = [0u8; 8];
-
-    blowfish.decrypt_block(encrypted_connection_id, &mut connection_id);
-
-    connection_id
-}
-
 fn byte_array_to_i64(connection_id: [u8;8]) -> i64 {
     i64::from_le_bytes(connection_id)
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::udp::connection::{cypher::BlowfishCypher, secret::Secret};
+
     use super::*;
     use std::{net::{SocketAddr, IpAddr, Ipv4Addr}};
 
-    fn generate_server_secret_for_testing() -> Secret {
+    fn cypher_secret_for_testing() -> Secret {
         Secret::new([0u8;32])
+    }
+
+    fn new_cypher() -> BlowfishCypher {
+        let secret = cypher_secret_for_testing();
+        let blowfish = BlowfishCypher::new(secret);
+        blowfish
     }
 
     #[test]
     fn it_should_be_valid_for_two_minutes_after_the_generation() {
-        let server_secret = generate_server_secret_for_testing();
+        let cypher = new_cypher();
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
         let now = 946684800u64; // 01-01-2000 00:00:00
 
-        let connection_id = get_connection_id(&server_secret, &client_addr, now);
+        let connection_id = get_connection_id(&cypher, &client_addr, now);
 
-        assert_eq!(verify_connection_id(connection_id, &server_secret, &client_addr, now), Ok(()));
+        assert_eq!(verify_connection_id(connection_id, &cypher, &client_addr, now), Ok(()));
 
         let after_two_minutes = now + (2*60) - 1;
 
-        assert_eq!(verify_connection_id(connection_id, &server_secret, &client_addr, after_two_minutes), Ok(()));
+        assert_eq!(verify_connection_id(connection_id, &cypher, &client_addr, after_two_minutes), Ok(()));
     }
 
     #[test]
     fn it_should_expire_after_two_minutes_from_the_generation() {
-        let server_secret = generate_server_secret_for_testing();
+        let cypher = new_cypher();
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
         let now = 946684800u64;
 
-        let connection_id = get_connection_id(&server_secret, &client_addr, now);
+        let connection_id = get_connection_id(&cypher, &client_addr, now);
 
         let after_more_than_two_minutes = now + (2*60) + 1;
 
-        assert_eq!(verify_connection_id(connection_id, &server_secret, &client_addr, after_more_than_two_minutes), Err("Expired connection id"));
+        assert_eq!(verify_connection_id(connection_id, &cypher, &client_addr, after_more_than_two_minutes), Err("Expired connection id"));
     }    
 
     #[test]
     fn it_should_change_for_the_same_client_ip_and_port_after_two_minutes() {
-        let server_secret = generate_server_secret_for_testing();
+        let cypher = new_cypher();
 
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
 
         let now = 946684800u64;
 
-        let connection_id = get_connection_id(&server_secret, &client_addr, now);
+        let connection_id = get_connection_id(&cypher, &client_addr, now);
 
         let after_two_minutes = now + 120;
 
-        let connection_id_after_two_minutes = get_connection_id(&server_secret, &client_addr, after_two_minutes);
+        let connection_id_after_two_minutes = get_connection_id(&cypher, &client_addr, after_two_minutes);
 
         assert_ne!(connection_id, connection_id_after_two_minutes);
     }
 
     #[test]
     fn it_should_be_different_for_each_client_at_the_same_time_if_they_use_a_different_ip() {
-        let server_secret = generate_server_secret_for_testing();
+        let cypher = new_cypher();
 
         let client_1_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 0001);
         let client_2_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
 
         let now = 946684800u64;
 
-        let connection_id_for_client_1 = get_connection_id(&server_secret, &client_1_addr, now);
-        let connection_id_for_client_2 = get_connection_id(&server_secret, &client_2_addr, now);
+        let connection_id_for_client_1 = get_connection_id(&cypher, &client_1_addr, now);
+        let connection_id_for_client_2 = get_connection_id(&cypher, &client_2_addr, now);
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
     }
 
     #[test]
     fn it_should_be_different_for_each_client_at_the_same_time_if_they_use_a_different_port() {
-        let server_secret = generate_server_secret_for_testing();
+        let cypher = new_cypher();
 
         let client_1_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
         let client_2_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0002);
 
         let now = 946684800u64;
 
-        let connection_id_for_client_1 = get_connection_id(&server_secret, &client_1_addr, now);
-        let connection_id_for_client_2 = get_connection_id(&server_secret, &client_2_addr, now);
+        let connection_id_for_client_1 = get_connection_id(&cypher, &client_1_addr, now);
+        let connection_id_for_client_2 = get_connection_id(&cypher, &client_2_addr, now);
 
         assert_ne!(connection_id_for_client_1, connection_id_for_client_2);
-    }
-
-    #[test]
-    fn it_should_encrypt_and_decrypt_a_byte_array() {
-        let server_secret = generate_server_secret_for_testing();
-
-        let text = [0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8];
-
-        let encrypted_text = encrypt(&text, &server_secret);
-
-        let decrypted_text = decrypt(&encrypted_text, &server_secret);
-
-        assert_eq!(decrypted_text, text);
     }
 }
