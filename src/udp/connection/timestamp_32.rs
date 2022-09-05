@@ -6,7 +6,7 @@ use super::timestamp_64::Timestamp64;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub struct Timestamp32 {
-    value: u32
+    pub value: u32
 }
 
 impl Timestamp32 {
@@ -23,6 +23,12 @@ impl Timestamp32 {
         let mut bytes: [u8; 4] = [0u8; 4];
         bytes.copy_from_slice(&self.value.to_le_bytes()[..4]);
         bytes
+    }
+}
+
+impl From<u32> for Timestamp32 {
+    fn from(value: u32) -> Self {
+        Self { value }
     }
 }
 
@@ -91,6 +97,14 @@ mod tests {
     }
 
     #[test]
+    fn it_should_be_converted_from_a_u32() {
+
+        let timestamp32: Timestamp32 = u32::MIN.into();
+
+        assert_eq!(timestamp32, Timestamp32 { value: u32::MIN });
+    }
+
+    #[test]
     fn it_should_be_converted_to_a_timestamp_64() {
 
         let min_timestamp_32 = Timestamp32 { value: u32::MIN };
@@ -105,5 +119,5 @@ mod tests {
         let max_timestamp_64: Timestamp64 = max_timestamp_32.into();
 
         assert_eq!(max_timestamp_64, u32::MAX as u64);
-    }    
+    }
 }

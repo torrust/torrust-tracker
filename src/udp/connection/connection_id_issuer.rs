@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use aquatic_udp_protocol::ConnectionId;
 
-use super::{cypher::{BlowfishCypher, Cypher}, secret::Secret, timestamp_64::Timestamp64, client_id::ClientId, timestamp_32::Timestamp32};
+use super::{cypher::{BlowfishCypher, Cypher}, secret::Secret, timestamp_64::Timestamp64, client_id::ClientId, timestamp_32::Timestamp32, connection_id_data::ConnectionIdData};
 
 pub trait ConnectionIdIssuer {
     type Error;
@@ -31,63 +31,41 @@ impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
     type Error = &'static str;
 
     fn new_connection_id(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
-        let client_id = ClientId::from_socket_address(remote_address).to_bytes();
+        let client_id = ClientId::from_socket_address(remote_address);
 
         let expiration_timestamp: Timestamp32 = (current_timestamp + 120).try_into().unwrap();
     
-        let connection_id = concat(client_id, expiration_timestamp.to_le_bytes());
+        let connection_id = ConnectionIdData {
+            client_id,
+            expiration_timestamp
+        }.to_bytes();
     
         let encrypted_connection_id = self.cypher.encrypt(&connection_id);
     
-        ConnectionId(byte_array_to_i64(encrypted_connection_id))
+        ConnectionId(i64::from_le_bytes(encrypted_connection_id))
     }
 
     fn verify_connection_id(&self, connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error> {
         let encrypted_connection_id = connection_id.0.to_le_bytes();
 
         let decrypted_connection_id = self.cypher.decrypt(&encrypted_connection_id);
+
+        let connection_id_data = ConnectionIdData::from_bytes(&decrypted_connection_id);
     
-        let client_id = extract_client_id(&decrypted_connection_id);
+        let client_id = connection_id_data.client_id;
     
         let expected_client_id = ClientId::from_socket_address(remote_address);
         if client_id != expected_client_id {
             return Err("Invalid client id")
         }
     
-        let expiration_timestamp = extract_timestamp(&decrypted_connection_id);
-    
-        if expiration_timestamp < current_timestamp {
+        let expiration_timestamp = Timestamp64::try_from(connection_id_data.expiration_timestamp).unwrap();
+            if expiration_timestamp < current_timestamp {
             return Err("Expired connection id")
         }
     
         Ok(())
     }
-}
-
-/// Contact two 4-byte arrays
-fn concat(remote_id: [u8; 4], timestamp: [u8; 4]) -> [u8; 8] {
-    let connection_id: Vec<u8> = [
-        remote_id.as_slice(),
-        timestamp.as_slice(),
-    ].concat();
-
-    let connection_as_array: [u8; 8] = connection_id.try_into().unwrap();
-
-    connection_as_array
-}
-
-fn extract_timestamp(decrypted_connection_id: &[u8; 8]) -> Timestamp64 {
-    let timestamp_bytes = &decrypted_connection_id[4..];
-    let timestamp = Timestamp32::from_le_bytes(timestamp_bytes);
-    timestamp.into()
-}
-
-fn extract_client_id(decrypted_connection_id: &[u8; 8]) -> ClientId {
-    ClientId::from_slice(&decrypted_connection_id[..4])
-}
-
-fn byte_array_to_i64(connection_id: [u8;8]) -> i64 {
-    i64::from_le_bytes(connection_id)
 }
 
 #[cfg(test)]
