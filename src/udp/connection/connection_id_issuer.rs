@@ -12,9 +12,35 @@ pub trait ConnectionIdIssuer {
     fn verify_connection_id(&self, connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error>;
 }
 
-/// An implementation of a ConnectionIdIssuer by encrypting the connection id
+/// An implementation of a ConnectionIdIssuer which encrypts the connection id
 pub struct EncryptedConnectionIdIssuer {
     cypher: BlowfishCypher
+}
+
+impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
+    type Error = &'static str;
+
+    fn new_connection_id(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
+
+        let connection_id_data = self.generate_connection_id_data(&remote_address, current_timestamp);
+
+        let encrypted_connection_id_data = self.encrypt_connection_id_data(&connection_id_data);
+
+        ConnectionId(encrypted_connection_id_data.into())
+    }
+
+    fn verify_connection_id(&self, connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error> {
+
+        let encrypted_connection_id_data: EncryptedConnectionIdData = self.unpack_encrypted_connection_id_data(connection_id);
+
+        let connection_id_data = self.decrypt_connection_id_data(&encrypted_connection_id_data);
+
+        self.guard_that_current_client_id_matches_client_id_in_connection_id(&connection_id_data, &remote_address)?;
+
+        self.guard_that_connection_id_has_not_expired(&connection_id_data, current_timestamp)?;
+
+        Ok(())
+    }
 }
 
 impl EncryptedConnectionIdIssuer {
@@ -25,10 +51,26 @@ impl EncryptedConnectionIdIssuer {
         }
     }
 
-    fn unpack_connection_id_data(&self, connection_id: &ConnectionId) -> ConnectionIdData {
-        let encrypted_raw_data: EncryptedConnectionIdData = connection_id.0.into();
+    fn generate_connection_id_data(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionIdData {
+        let client_id = ClientId::from_socket_address(remote_address);
 
-        let decrypted_raw_data = self.cypher.decrypt(&encrypted_raw_data.bytes);
+        let expiration_timestamp: Timestamp32 = (current_timestamp + 120).try_into().unwrap();
+    
+        let connection_id_data = ConnectionIdData {
+            client_id,
+            expiration_timestamp
+        };
+
+        connection_id_data
+    }
+
+    fn unpack_encrypted_connection_id_data(&self, connection_id: ConnectionId) -> EncryptedConnectionIdData {
+        let encrypted_raw_data: EncryptedConnectionIdData = connection_id.0.into();
+        encrypted_raw_data
+    }    
+
+    fn decrypt_connection_id_data(&self, encrypted_connection_id_data: &EncryptedConnectionIdData) -> ConnectionIdData {
+        let decrypted_raw_data = self.cypher.decrypt(&encrypted_connection_id_data.bytes);
 
         let connection_id_data = ConnectionIdData::from_bytes(&decrypted_raw_data);
 
@@ -49,38 +91,15 @@ impl EncryptedConnectionIdIssuer {
         }
         Ok(())
     }
-}
 
-impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
-    type Error = &'static str;
-
-    fn new_connection_id(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
-        let client_id = ClientId::from_socket_address(remote_address);
-
-        let expiration_timestamp: Timestamp32 = (current_timestamp + 120).try_into().unwrap();
-    
-        let connection_id_data = ConnectionIdData {
-            client_id,
-            expiration_timestamp
-        };
-    
+    fn encrypt_connection_id_data(&self, connection_id_data: &ConnectionIdData) -> EncryptedConnectionIdData {
         let decrypted_raw_data = connection_id_data.to_bytes();
 
         let encrypted_raw_data = self.cypher.encrypt(&decrypted_raw_data);
 
         let encrypted_connection_id_data = EncryptedConnectionIdData::from_encrypted_bytes(&encrypted_raw_data);
-    
-        ConnectionId(encrypted_connection_id_data.into())
-    }
 
-    fn verify_connection_id(&self, connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error> {
-        let connection_id_data = self.unpack_connection_id_data(&connection_id);
-    
-        self.guard_that_current_client_id_matches_client_id_in_connection_id(&connection_id_data, &remote_address)?;
-    
-        self.guard_that_connection_id_has_not_expired(&connection_id_data, current_timestamp)?;
-    
-        Ok(())
+        encrypted_connection_id_data
     }
 }
 

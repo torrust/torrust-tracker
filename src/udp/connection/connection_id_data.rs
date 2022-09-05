@@ -1,5 +1,6 @@
 use super::{client_id::ClientId, timestamp_32::Timestamp32};
 
+/// The data stored inside the connection id
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub struct ConnectionIdData {
     pub client_id: ClientId,
