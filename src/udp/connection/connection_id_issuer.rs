@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use aquatic_udp_protocol::ConnectionId;
 
-use super::{cypher::{BlowfishCypher, Cypher}, secret::Secret, timestamp_64::Timestamp64, client_id::ClientId, timestamp_32::Timestamp32, connection_id_data::ConnectionIdData, encrypted_connection_id_data::EncryptedConnectionIdData};
+use super::{cypher::{BlowfishCypher, Cypher}, secret::Secret, timestamp_64::Timestamp64, client_id::{Make, Default}, timestamp_32::Timestamp32, connection_id_data::ConnectionIdData, encrypted_connection_id_data::EncryptedConnectionIdData};
 
 pub trait ConnectionIdIssuer {
     type Error;
@@ -52,7 +52,7 @@ impl EncryptedConnectionIdIssuer {
     }
 
     fn generate_connection_id_data(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionIdData {
-        let client_id = ClientId::from_socket_address(remote_address);
+        let client_id = Make::<Default>::new(remote_address);
 
         let expiration_timestamp: Timestamp32 = (current_timestamp + 120).try_into().unwrap();
     
@@ -82,7 +82,7 @@ impl EncryptedConnectionIdIssuer {
     }
 
     fn guard_that_current_client_id_matches_client_id_in_connection_id(&self, connection_id_data: &ConnectionIdData, remote_address: &SocketAddr) -> Result<(), &'static str> {
-        let current_client_id = ClientId::from_socket_address(remote_address);
+        let current_client_id = Make::<Default>::new(remote_address);
         if connection_id_data.client_id != current_client_id {
             return Err("Invalid client id: current client id does not match client in connection id");
         }

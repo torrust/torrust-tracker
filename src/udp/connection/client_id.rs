@@ -1,125 +1,108 @@
 //! ClientId is a unique ID for the UDP tracker client.
-//! Currently implemented with a hash of the IP and port.
-use std::net::{SocketAddr, IpAddr};
+//! Currently implemented with a hash of the socket, i.e the IP and port.
+use std::collections::hash_map::DefaultHasher;
+use std::hash::Hash;
+use std::hash::Hasher;
+use std::net::{SocketAddr};
 
-use blake3::OUT_LEN;
-
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct ClientId {
     value: [u8; 4],
 }
 
-impl ClientId {
-    /// It generates the ID from the socket address (IP + port)
-    pub fn from_socket_address(remote_address: &SocketAddr) -> Self {
-        let unique_socket_id = generate_id_for_socket_address(remote_address);
+pub struct Default;
+pub struct Blake;
+
+pub trait Make<T> {
+    fn new(remote_socket_address: &SocketAddr) -> Self;
+}
+
+impl Make<Default> for ClientId {
+    fn new(socket: &SocketAddr) -> Self {
+        let mut hasher = DefaultHasher::new();
+        socket.hash(&mut hasher);
+
+        let mut truncated_hash: [u8; 4] = [0u8; 4];
+        truncated_hash.copy_from_slice(&hasher.finish().to_le_bytes()[..4]);
+
         ClientId {
-            value: unique_socket_id
+            value: truncated_hash,
         }
     }
+}
 
+impl Make<Blake> for ClientId {
+    fn new(_remote_socket_address: &SocketAddr) -> Self {
+        unimplemented!("Todo using Blake Hasher");
+    }
+}
+
+impl ClientId {
     /// It generates the ID with a previously generated value
-    pub fn from_slice(slice: &[u8]) -> Self {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
         let mut client_id = ClientId {
             value: [0u8; 4]
         };
-        client_id.value.copy_from_slice(slice);
+        client_id.value.copy_from_slice(bytes);
         client_id
     }
 
     pub fn to_bytes(&self) -> [u8; 4] {
-        self.value
+        let bytes: [u8; 4] = self.value.clone().try_into().unwrap();
+        bytes
     }
 }
-
-/// It generates an unique ID for a socket address (IP + port)
-fn generate_id_for_socket_address(remote_address: &SocketAddr) -> [u8; 4] {
-    let socket_addr_as_bytes: Vec<u8> = convert_socket_address_into_bytes(remote_address);
-
-    let hashed_socket_addr = hash(&socket_addr_as_bytes);
-
-    let remote_id = get_first_four_bytes_from(&hashed_socket_addr);
-
-    remote_id
-}
-
-fn convert_socket_address_into_bytes(socket_addr: &SocketAddr) -> Vec<u8> {
-    let bytes: Vec<u8> = [
-        convert_ip_into_bytes(socket_addr.ip()).as_slice(),
-        convert_port_into_bytes(socket_addr.port()).as_slice(),
-    ].concat();
-    bytes
-}
-
-fn convert_ip_into_bytes(ip_addr: IpAddr) -> Vec<u8> {
-    match ip_addr {
-        IpAddr::V4(ip) => ip.octets().to_vec(),
-        IpAddr::V6(ip) => ip.octets().to_vec(),
-    }
-}
-
-fn convert_port_into_bytes(port: u16) -> [u8; 2] {
-    port.to_be_bytes()
-}
-
-fn hash(bytes: &[u8]) -> [u8; OUT_LEN]{
-    let hash = blake3::hash(bytes);
-    let bytes = hash.as_bytes().clone();
-    bytes
-}
-
-fn get_first_four_bytes_from(bytes: &[u8; OUT_LEN]) -> [u8; 4] {
-    let mut first_four_bytes: [u8; 4] = [0u8; 4]; // 4 bytes = 32 bits
-    first_four_bytes.copy_from_slice(&bytes[..4]);
-    first_four_bytes
-}
-
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr, SocketAddr, Ipv6Addr};
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use crate::udp::connection::client_id::convert_ip_into_bytes;
-
-    use super::ClientId;
+    use super::{ClientId, Default, Make};
 
     #[test]
-    fn client_id_should_generate_a_unique_four_byte_id_from_a_socket_address() {
-        let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-        let client_id = ClientId::from_socket_address(&client_addr);
+    fn it_should_be_a_hash_of_the_socket() {
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+        let id: ClientId = Make::<Default>::new(&socket);
 
-        assert_eq!(client_id.value, [58, 221, 231, 39]);
+        assert_eq!(id.value, [213, 195, 130, 185]);
     }
 
     #[test]
-    fn client_id_should_be_unique_for_clients_with_different_ip() {
-        let client_1_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-        let client_2_with_different_socket_ip = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080);
-        
-        assert_ne!(ClientId::from_socket_address(&client_1_socket_addr), ClientId::from_socket_address(&client_2_with_different_socket_ip));
+    fn id_should_be_converted_to_a_byte_array() {
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+        let id: ClientId = Make::<Default>::new(&socket);
+
+        assert_eq!(id.to_bytes(), [213, 195, 130, 185]);
     }
 
     #[test]
-    fn client_id_should_be_unique_for_clients_with_different_port() {
-        let client_1_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-        let client_2_with_different_socket_port = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8081);
-        
-        assert_ne!(ClientId::from_socket_address(&client_1_socket_addr), ClientId::from_socket_address(&client_2_with_different_socket_port));
+    fn id_should_be_instantiate_from_a_previously_generated_value() {
+        let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+        let id: ClientId = Make::<Default>::new(&socket);
+        let bytes = id.to_bytes();
+
+        assert_eq!(ClientId::from_bytes(&bytes), id);
     }
 
     #[test]
-    fn ipv4_address_should_be_converted_to_a_byte_vector() {
-        let ip_address = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
-        let bytes = convert_ip_into_bytes(ip_address);
+    fn it_should_be_unique_with_different_socket_ips() {
+        let socket_1 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+        let socket_2 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080);
 
-        assert_eq!(bytes, vec![127, 0, 0, 1]); // 4 bytes
+        assert_ne!(
+            <ClientId as Make::<Default>>::new(&socket_1),
+            <ClientId as Make::<Default>>::new(&socket_2)
+        );
     }
 
     #[test]
-    fn ipv6_address_should_be_converted_to_a_byte_vector() {
-        let ip_address = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1));
-        let bytes = convert_ip_into_bytes(ip_address);
+    fn it_should_be_unique_with_different_socket_ports() {
+        let socket_1 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+        let socket_2 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8081);
 
-        assert_eq!(bytes, vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]); // 16 bytes
-    }    
+        assert_ne!(
+            <ClientId as Make::<Default>>::new(&socket_1),
+            <ClientId as Make::<Default>>::new(&socket_2)
+        );
+    }
 }

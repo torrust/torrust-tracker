@@ -1,7 +1,7 @@
 use super::{client_id::ClientId, timestamp_32::Timestamp32};
 
 /// The data stored inside the connection id
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct ConnectionIdData {
     pub client_id: ClientId,
     pub expiration_timestamp: Timestamp32
@@ -35,7 +35,7 @@ impl ConnectionIdData {
     }
     
     fn extract_client_id(decrypted_connection_id: &[u8; 8]) -> ClientId {
-        ClientId::from_slice(&decrypted_connection_id[..4])
+        ClientId::from_bytes(&decrypted_connection_id[..4])
     }    
 }
 
@@ -48,18 +48,18 @@ mod tests {
     fn it_contains_a_client_id() {
 
         let connection_id = ConnectionIdData {
-            client_id: ClientId::from_slice(&[0u8; 4]),
+            client_id: ClientId::from_bytes(&[0u8; 4]),
             expiration_timestamp: 0u32.into(),
         };
 
-        assert_eq!(connection_id.client_id, ClientId::from_slice(&[0u8; 4]));
+        assert_eq!(connection_id.client_id, ClientId::from_bytes(&[0u8; 4]));
     }
 
     #[test]
     fn it_contains_an_expiration_timestamp() {
 
         let connection_id = ConnectionIdData {
-            client_id: ClientId::from_slice(&[0u8; 4]),
+            client_id: ClientId::from_bytes(&[0u8; 4]),
             expiration_timestamp: 0u32.into(),
         };
 
@@ -70,7 +70,7 @@ mod tests {
     fn it_should_be_converted_to_a_byte_array() {
 
         let connection_id = ConnectionIdData {
-            client_id: ClientId::from_slice(&[0u8; 4]),
+            client_id: ClientId::from_bytes(&[0u8; 4]),
             expiration_timestamp: (u32::MAX).into(),
         };
 
@@ -83,7 +83,7 @@ mod tests {
         let connection_id = ConnectionIdData::from_bytes(&[0, 0, 0, 0, 255, 255, 255, 255]);
 
         let expected_connection_id = ConnectionIdData {
-            client_id: ClientId::from_slice(&[0, 0, 0, 0]),
+            client_id: ClientId::from_bytes(&[0, 0, 0, 0]),
             expiration_timestamp: (u32::MAX).into(),
         };
 
