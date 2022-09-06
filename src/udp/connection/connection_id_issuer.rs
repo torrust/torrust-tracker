@@ -9,7 +9,7 @@ pub trait ConnectionIdIssuer {
 
     fn new_connection_id(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId;
     
-    fn verify_connection_id(&self, connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error>;
+    fn verify_connection_id(&self, connection_id: &ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error>;
 }
 
 /// An implementation of a ConnectionIdIssuer which encrypts the connection id
@@ -29,7 +29,7 @@ impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
         self.pack_connection_id(encrypted_connection_id_data)
     }
 
-    fn verify_connection_id(&self, connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error> {
+    fn verify_connection_id(&self, connection_id: &ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error> {
 
         let encrypted_connection_id_data: EncryptedConnectionIdData = self.unpack_connection_id(connection_id);
 
@@ -68,7 +68,7 @@ impl EncryptedConnectionIdIssuer {
         ConnectionId(encrypted_connection_id_data.into())
     }
 
-    fn unpack_connection_id(&self, connection_id: ConnectionId) -> EncryptedConnectionIdData {
+    fn unpack_connection_id(&self, connection_id: &ConnectionId) -> EncryptedConnectionIdData {
         let encrypted_raw_data: EncryptedConnectionIdData = connection_id.0.into();
         encrypted_raw_data
     }
@@ -131,11 +131,11 @@ mod tests {
 
         let connection_id = issuer.new_connection_id(&client_addr, now);
 
-        assert_eq!(issuer.verify_connection_id(connection_id, &client_addr, now), Ok(()));
+        assert_eq!(issuer.verify_connection_id(&connection_id, &client_addr, now), Ok(()));
 
         let after_two_minutes = now + (2*60) - 1;
 
-        assert_eq!(issuer.verify_connection_id(connection_id, &client_addr, after_two_minutes), Ok(()));
+        assert_eq!(issuer.verify_connection_id(&connection_id, &client_addr, after_two_minutes), Ok(()));
     }
 
     #[test]
@@ -149,7 +149,7 @@ mod tests {
 
         let after_more_than_two_minutes = now + (2*60) + 1;
 
-        assert_eq!(issuer.verify_connection_id(connection_id, &client_addr, after_more_than_two_minutes), Err("Expired connection id"));
+        assert_eq!(issuer.verify_connection_id(&connection_id, &client_addr, after_more_than_two_minutes), Err("Expired connection id"));
     }    
 
     #[test]
@@ -210,7 +210,7 @@ mod tests {
 
         // Verify the connection id with a different client address
         let different_client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 0002);
-        let result = issuer.verify_connection_id(connection_id, &different_client_addr, now);
+        let result = issuer.verify_connection_id(&connection_id, &different_client_addr, now);
 
         assert!(result.is_err());
     }    

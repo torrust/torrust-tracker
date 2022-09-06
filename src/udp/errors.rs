@@ -28,4 +28,7 @@ pub enum ServerError {
 
     #[error("bad request")]
     BadRequest,
+
+    #[error("invalid connection id")]
+    InvalidConnectionId,    
 }

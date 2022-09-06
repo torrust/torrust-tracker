@@ -90,24 +90,13 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
     Ok(response)
 }
 
-pub fn generate_new_connection_id(remote_addr: &SocketAddr) -> ConnectionId {
-    // todo: server_secret should be randomly generated on startup
-    let server_secret = Secret::new([0;32]);
-
-    // todo: this is expensive because of the blowfish cypher instantiation.
-    // It should be generated on startup.
-    let issuer = EncryptedConnectionIdIssuer::new(server_secret);
-
-    let current_timestamp = current_timestamp();
-
-    let connection_id = issuer.new_connection_id(remote_addr, current_timestamp);
-
-    debug!("new connection id: {:?}, current timestamp: {:?}", connection_id, current_timestamp);
-
-    connection_id
-}
-
 pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &AnnounceRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
+    // Verify connection id
+    let result = verify_connection_id(&announce_request.connection_id, &remote_addr);
+    if result.is_err() {
+        return Err(ServerError::InvalidConnectionId);
+    }
+
     let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request.clone());
 
     authenticate(&wrapped_announce_request.info_hash, tracker.clone()).await?;
@@ -168,6 +157,12 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
 
 // todo: refactor this, db lock can be a lot shorter
 pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
+    // Verify connection id
+    let result = verify_connection_id(&request.connection_id, &remote_addr);
+    if result.is_err() {
+        return Err(ServerError::InvalidConnectionId);
+    }
+
     let db = tracker.get_torrents().await;
 
     let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
@@ -222,4 +217,38 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
 fn handle_error(e: ServerError, transaction_id: TransactionId) -> Response {
     let message = e.to_string();
     Response::from(ErrorResponse { transaction_id, message: message.into() })
+}
+
+pub fn generate_new_connection_id(remote_addr: &SocketAddr) -> ConnectionId {
+    // todo: server_secret should be randomly generated on startup
+    let server_secret = Secret::new([0;32]);
+
+    // todo: this is expensive because of the blowfish cypher instantiation.
+    // It should be generated on startup.
+    let issuer = EncryptedConnectionIdIssuer::new(server_secret);
+
+    let current_timestamp = current_timestamp();
+
+    let connection_id = issuer.new_connection_id(remote_addr, current_timestamp);
+
+    debug!("new connection id: {:?}, current timestamp: {:?}", connection_id, current_timestamp);
+
+    connection_id
+}
+
+pub fn verify_connection_id(connection_id: &ConnectionId, remote_addr: &SocketAddr) -> Result<(), &'static str> {
+    // todo: server_secret should be randomly generated on startup
+    let server_secret = Secret::new([0;32]);
+
+    // todo: this is expensive because of the blowfish cypher instantiation.
+    // It should be generated on startup.
+    let issuer = EncryptedConnectionIdIssuer::new(server_secret);
+
+    let current_timestamp = current_timestamp();
+
+    let result = issuer.verify_connection_id(connection_id, remote_addr, current_timestamp);
+
+    debug!("verify connection id: {:?}, current timestamp: {:?}, result: {:?}", connection_id, current_timestamp, result);
+
+    result
 }
