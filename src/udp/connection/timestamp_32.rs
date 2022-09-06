@@ -65,7 +65,7 @@ mod tests {
     #[test]
     fn it_should_be_converted_from_a_64_bit_unix_timestamp() {
 
-        let timestamp32: Timestamp32 = 0u64.try_into().unwrap();
+        let timestamp32: Timestamp32 = 0u64.into();
 
         assert_eq!(timestamp32, Timestamp32(u32::MIN));
     }

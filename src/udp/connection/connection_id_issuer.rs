@@ -54,7 +54,7 @@ impl EncryptedConnectionIdIssuer {
     fn generate_connection_id_data(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionIdData {
         let client_id = ClientId::from_socket_address(remote_address);
 
-        let expiration_timestamp: Timestamp32 = (current_timestamp + 120).try_into().unwrap();
+        let expiration_timestamp: Timestamp32 = (current_timestamp + 120).into();
 
         ConnectionIdData::from_client_id_and_timestamp(client_id, expiration_timestamp)
     }

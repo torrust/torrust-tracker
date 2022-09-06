@@ -39,7 +39,23 @@ impl ConnectionIdData {
 
 #[cfg(test)]
 mod tests {
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use crate::protocol::clock::current_timestamp;
     use crate::udp::connection::{connection_id_data::ConnectionIdData};
+    use crate::udp::connection::client_id::ClientId;
+    use crate::udp::connection::timestamp_32::Timestamp32;
+
+    #[test]
+    fn it_should_be_instantiated_from_a_client_id_and_timestamp32() {
+        let client_id = ClientId::from_socket_address(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8081));
+
+        let expiration_timestamp: Timestamp32 = (current_timestamp() + 120).into();
+
+        let connection_id = ConnectionIdData::from_client_id_and_timestamp(client_id, expiration_timestamp);
+
+        assert_eq!(connection_id.client_id(), client_id.value.as_slice());
+        assert_eq!(connection_id.timestamp(), expiration_timestamp.0)
+    }
 
     #[test]
     fn it_should_be_instantiated_from_a_byte_array() {
