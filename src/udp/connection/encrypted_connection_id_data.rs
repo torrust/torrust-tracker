@@ -4,8 +4,8 @@ pub struct EncryptedConnectionIdData {
 }
 
 impl EncryptedConnectionIdData {
-    pub fn from_encrypted_bytes(encrypted_bytes: &[u8; 8]) -> Self {
-        Self { bytes: encrypted_bytes.clone() }
+    pub fn from_encrypted_bytes(encrypted_bytes: [u8; 8]) -> Self {
+        Self { bytes: encrypted_bytes }
     }
 }
 
@@ -29,7 +29,7 @@ mod tests {
     #[test]
     fn it_should_be_generated_from_the_encrypted_connection_id_data() {
 
-        let encrypted_data = EncryptedConnectionIdData::from_encrypted_bytes(&[0u8; 8]);
+        let encrypted_data = EncryptedConnectionIdData::from_encrypted_bytes([0u8; 8]);
 
         assert_eq!(encrypted_data, EncryptedConnectionIdData { bytes: [0u8; 8]});
     }
@@ -37,7 +37,7 @@ mod tests {
     #[test]
     fn it_should_be_converted_into_a_i64() {
 
-        let encrypted_data: i64 = EncryptedConnectionIdData::from_encrypted_bytes(&[0u8; 8]).into();
+        let encrypted_data: i64 = EncryptedConnectionIdData::from_encrypted_bytes([0u8; 8]).into();
 
         assert_eq!(encrypted_data, 0i64);
     }
@@ -50,3 +50,4 @@ mod tests {
         assert_eq!(encrypted_data, EncryptedConnectionIdData { bytes: [0u8; 8]});
     }
 }
+

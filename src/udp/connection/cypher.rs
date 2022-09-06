@@ -14,7 +14,7 @@ pub struct BlowfishCypher {
 
 impl BlowfishCypher {
     pub fn new(secret: Secret) -> Self {
-        let blowfish = Blowfish::new(&secret.to_bytes());
+        let blowfish = Blowfish::new(&secret.into_bytes());
         BlowfishCypher {
             blowfish
         }

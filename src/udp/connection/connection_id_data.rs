@@ -1,92 +1,61 @@
-use super::{client_id::ClientId, timestamp_32::Timestamp32};
+use crate::udp::connection::client_id::ClientId;
+use crate::udp::connection::timestamp_32::Timestamp32;
 
 /// The data stored inside the connection id
 #[derive(PartialEq, Debug, Copy, Clone)]
-pub struct ConnectionIdData {
-    pub client_id: ClientId,
-    pub expiration_timestamp: Timestamp32
-}
+pub struct ConnectionIdData(pub [u8; 8]);
 
 impl ConnectionIdData {
-    pub fn from_bytes(bytes: &[u8; 8]) -> Self {
-        let client_id = Self::extract_client_id(bytes);
-        let expiration_timestamp = Self::extract_timestamp(bytes);
-        Self {
-            client_id,
-            expiration_timestamp
-        }
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        let mut sized_bytes_arr = [0u8; 8];
+
+        sized_bytes_arr.copy_from_slice(&bytes[..8]);
+
+        Self(sized_bytes_arr)
     }
 
-    pub fn to_bytes(&self) -> [u8; 8] {
-        let connection_id: Vec<u8> = [
-            self.client_id.to_bytes().as_slice(),
-            self.expiration_timestamp.to_le_bytes().as_slice(),
-        ].concat();
-    
-        let connection_as_array: [u8; 8] = connection_id.try_into().unwrap();
-    
-        connection_as_array
+    pub fn from_client_id_and_timestamp(client_id: ClientId, timestamp: Timestamp32) -> Self {
+        let bytes_vec = [client_id.value, timestamp.0.to_le_bytes()].concat();
+
+        Self::from_bytes(&bytes_vec)
     }
 
-    fn extract_timestamp(decrypted_connection_id: &[u8; 8]) -> Timestamp32 {
-        let timestamp_bytes = &decrypted_connection_id[4..];
-        let timestamp = Timestamp32::from_le_bytes(timestamp_bytes);
-        timestamp
+    pub fn as_bytes(&self) -> &[u8; 8] {
+        &self.0
     }
-    
-    fn extract_client_id(decrypted_connection_id: &[u8; 8]) -> ClientId {
-        ClientId::from_slice(&decrypted_connection_id[..4])
-    }    
+
+    pub fn client_id(&self) -> &[u8] {
+        &self.0[..4]
+    }
+
+    pub fn timestamp(&self) -> u32 {
+        u32::from_le_bytes([self.0[4], self.0[5], self.0[6], self.0[7]])
+    }
+
+    pub fn timestamp_as_bytes(&self) -> &[u8] {
+        &self.0[4..]
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::udp::connection::{connection_id_data::ConnectionIdData, client_id::ClientId};
-
-
-    #[test]
-    fn it_contains_a_client_id() {
-
-        let connection_id = ConnectionIdData {
-            client_id: ClientId::from_slice(&[0u8; 4]),
-            expiration_timestamp: 0u32.into(),
-        };
-
-        assert_eq!(connection_id.client_id, ClientId::from_slice(&[0u8; 4]));
-    }
-
-    #[test]
-    fn it_contains_an_expiration_timestamp() {
-
-        let connection_id = ConnectionIdData {
-            client_id: ClientId::from_slice(&[0u8; 4]),
-            expiration_timestamp: 0u32.into(),
-        };
-
-        assert_eq!(connection_id.expiration_timestamp, 0u32.into());
-    }
-
-    #[test]
-    fn it_should_be_converted_to_a_byte_array() {
-
-        let connection_id = ConnectionIdData {
-            client_id: ClientId::from_slice(&[0u8; 4]),
-            expiration_timestamp: (u32::MAX).into(),
-        };
-
-        assert_eq!(connection_id.to_bytes(), [0, 0, 0, 0, 255, 255, 255, 255]);
-    }
+    use crate::udp::connection::{connection_id_data::ConnectionIdData};
 
     #[test]
     fn it_should_be_instantiated_from_a_byte_array() {
+        let bytes = [0, 0, 0, 0, 255, 255, 255, 255];
 
-        let connection_id = ConnectionIdData::from_bytes(&[0, 0, 0, 0, 255, 255, 255, 255]);
+        let connection_id = ConnectionIdData::from_bytes(&bytes);
 
-        let expected_connection_id = ConnectionIdData {
-            client_id: ClientId::from_slice(&[0, 0, 0, 0]),
-            expiration_timestamp: (u32::MAX).into(),
-        };
+        assert_eq!(connection_id.as_bytes(), &bytes);
+    }
 
-        assert_eq!(connection_id, expected_connection_id);
+    #[test]
+    fn it_should_have_a_timestamp_that_equals_u32max() {
+        let bytes = [0, 0, 0, 0, 255, 255, 255, 255];
+
+        let connection_id = ConnectionIdData::from_bytes(&bytes);
+
+        assert_eq!(connection_id.timestamp(), u32::MAX);
     }
 }

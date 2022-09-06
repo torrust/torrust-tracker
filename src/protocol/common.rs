@@ -1,3 +1,4 @@
+use std::hash::Hash;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde::{Deserialize, Serialize};
 
@@ -241,3 +242,27 @@ impl Serialize for PeerId {
         obj.serialize(serializer)
     }
 }
+
+pub trait ToBytesVec {
+    fn to_bytes_vec(&self) -> Vec<u8>;
+}
+
+impl ToBytesVec for std::net::IpAddr {
+    fn to_bytes_vec(&self) -> Vec<u8> {
+        match self {
+            std::net::IpAddr::V4(ip) => ip.octets().to_vec(),
+            std::net::IpAddr::V6(ip) => ip.octets().to_vec(),
+        }
+    }
+}
+
+impl ToBytesVec for std::net::SocketAddr {
+    fn to_bytes_vec(&self) -> Vec<u8> {
+        [
+            self.ip().to_bytes_vec().as_slice(),
+            self.port().to_be_bytes().as_slice()
+        ].concat()
+    }
+}
+
+

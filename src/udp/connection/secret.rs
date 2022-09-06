@@ -4,12 +4,11 @@
 pub struct Secret([u8; 32]);
 
 impl Secret {
-
     pub fn new(bytes: [u8; 32]) -> Self {
         Secret(bytes)
     }
 
-    pub fn to_bytes(self) -> [u8; 32] {
+    pub fn into_bytes(self) -> [u8; 32] {
         self.0
     }
 }
@@ -23,6 +22,6 @@ mod tests {
 
         let byte_array_32 = Secret::new([0; 32]);
 
-        assert_eq!(byte_array_32.to_bytes(), [0u8; 32]);
+        assert_eq!(byte_array_32.into_bytes(), [0u8; 32]);
     }
 }
