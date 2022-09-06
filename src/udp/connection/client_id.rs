@@ -1,39 +1,35 @@
 //! ClientId is a unique ID for the UDP tracker client.
 //! Currently implemented with a hash of the socket, i.e the IP and port.
-use std::collections::hash_map::DefaultHasher;
 use std::hash::Hash;
 use std::hash::Hasher;
-use std::net::{SocketAddr};
+use std::net::SocketAddr;
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct ClientId {
     value: [u8; 4],
 }
 
-pub struct Default;
-pub struct Blake;
+pub trait Make<T: Default + Hasher> {
+    fn new(socket: &SocketAddr) -> Self;
 
-pub trait Make<T> {
-    fn new(remote_socket_address: &SocketAddr) -> Self;
-}
-
-impl Make<Default> for ClientId {
-    fn new(socket: &SocketAddr) -> Self {
-        let mut hasher = DefaultHasher::new();
+    fn hash(socket: &SocketAddr) -> [u8;8] {
+        let mut hasher = T::default();
         socket.hash(&mut hasher);
 
+        hasher.finish().to_le_bytes()
+    }
+}
+
+impl<T: Default + Hasher> Make<T> for ClientId {
+    fn new(socket: &SocketAddr) -> Self {
+        let hash = <ClientId as Make<T>>::hash(socket);
+
         let mut truncated_hash: [u8; 4] = [0u8; 4];
-        truncated_hash.copy_from_slice(&hasher.finish().to_le_bytes()[..4]);
+        truncated_hash.copy_from_slice(&hash[..4]);
 
         ClientId {
             value: truncated_hash,
         }
-    }
-}
-
-impl Make<Blake> for ClientId {
-    fn new(_remote_socket_address: &SocketAddr) -> Self {
-        unimplemented!("Todo using Blake Hasher");
     }
 }
 
@@ -55,14 +51,14 @@ impl ClientId {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::{net::{IpAddr, Ipv4Addr, SocketAddr}, collections::hash_map::DefaultHasher};
 
-    use super::{ClientId, Default, Make};
+    use super::{ClientId, Make};
 
     #[test]
     fn it_should_be_a_hash_of_the_socket() {
         let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-        let id: ClientId = Make::<Default>::new(&socket);
+        let id: ClientId = Make::<DefaultHasher>::new(&socket);
 
         assert_eq!(id.value, [213, 195, 130, 185]);
     }
@@ -70,7 +66,7 @@ mod tests {
     #[test]
     fn id_should_be_converted_to_a_byte_array() {
         let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-        let id: ClientId = Make::<Default>::new(&socket);
+        let id: ClientId = Make::<DefaultHasher>::new(&socket);
 
         assert_eq!(id.to_bytes(), [213, 195, 130, 185]);
     }
@@ -78,7 +74,7 @@ mod tests {
     #[test]
     fn id_should_be_instantiate_from_a_previously_generated_value() {
         let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-        let id: ClientId = Make::<Default>::new(&socket);
+        let id: ClientId = Make::<DefaultHasher>::new(&socket);
         let bytes = id.to_bytes();
 
         assert_eq!(ClientId::from_bytes(&bytes), id);
@@ -90,8 +86,8 @@ mod tests {
         let socket_2 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080);
 
         assert_ne!(
-            <ClientId as Make::<Default>>::new(&socket_1),
-            <ClientId as Make::<Default>>::new(&socket_2)
+            <ClientId as Make::<DefaultHasher>>::new(&socket_1),
+            <ClientId as Make::<DefaultHasher>>::new(&socket_2)
         );
     }
 
@@ -101,8 +97,8 @@ mod tests {
         let socket_2 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8081);
 
         assert_ne!(
-            <ClientId as Make::<Default>>::new(&socket_1),
-            <ClientId as Make::<Default>>::new(&socket_2)
+            <ClientId as Make::<DefaultHasher>>::new(&socket_1),
+            <ClientId as Make::<DefaultHasher>>::new(&socket_2)
         );
     }
 }
