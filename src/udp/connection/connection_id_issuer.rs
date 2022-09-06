@@ -26,12 +26,12 @@ impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
 
         let encrypted_connection_id_data = self.encrypt_connection_id_data(&connection_id_data);
 
-        ConnectionId(encrypted_connection_id_data.into())
+        self.pack_connection_id(encrypted_connection_id_data)
     }
 
     fn verify_connection_id(&self, connection_id: ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error> {
 
-        let encrypted_connection_id_data: EncryptedConnectionIdData = self.unpack_encrypted_connection_id_data(connection_id);
+        let encrypted_connection_id_data: EncryptedConnectionIdData = self.unpack_connection_id(connection_id);
 
         let connection_id_data = self.decrypt_connection_id_data(&encrypted_connection_id_data);
 
@@ -64,10 +64,14 @@ impl EncryptedConnectionIdIssuer {
         connection_id_data
     }
 
-    fn unpack_encrypted_connection_id_data(&self, connection_id: ConnectionId) -> EncryptedConnectionIdData {
+    fn pack_connection_id(&self, encrypted_connection_id_data: EncryptedConnectionIdData) -> ConnectionId {
+        ConnectionId(encrypted_connection_id_data.into())
+    }
+
+    fn unpack_connection_id(&self, connection_id: ConnectionId) -> EncryptedConnectionIdData {
         let encrypted_raw_data: EncryptedConnectionIdData = connection_id.0.into();
         encrypted_raw_data
-    }    
+    }
 
     fn decrypt_connection_id_data(&self, encrypted_connection_id_data: &EncryptedConnectionIdData) -> ConnectionIdData {
         let decrypted_raw_data = self.cypher.decrypt(&encrypted_connection_id_data.bytes);
