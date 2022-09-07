@@ -14,6 +14,7 @@ pub mod errors;
 pub mod request;
 pub mod server;
 pub mod packet_handler;
+pub mod request_handler;
 
 pub type Bytes = u64;
 pub type Port = u16;
