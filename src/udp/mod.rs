@@ -5,7 +5,7 @@
 //! [BEP 15](https://www.bittorrent.org/beps/bep_0015.html)
 
 pub use self::errors::*;
-pub use self::handlers::*;
+pub use self::packet_handler::*;
 pub use self::request::*;
 pub use self::server::*;
 
@@ -13,7 +13,7 @@ pub mod connection;
 pub mod errors;
 pub mod request;
 pub mod server;
-pub mod handlers;
+pub mod packet_handler;
 
 pub type Bytes = u64;
 pub type Port = u16;
