@@ -9,7 +9,7 @@ pub trait ConnectionIdIssuer {
 
     fn new_connection_id(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId;
     
-    fn verify_connection_id(&self, connection_id: &ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error>;
+    fn is_connection_id_valid(&self, connection_id: &ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> bool;
 }
 
 /// An implementation of a ConnectionIdIssuer which encrypts the connection id
@@ -29,17 +29,22 @@ impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
         self.pack_connection_id(encrypted_connection_id_data)
     }
 
-    fn verify_connection_id(&self, connection_id: &ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> Result<(), Self::Error> {
+    fn is_connection_id_valid(&self, connection_id: &ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> bool {
 
         let encrypted_connection_id_data: EncryptedConnectionIdData = self.unpack_connection_id(connection_id);
 
         let connection_id_data = self.decrypt_connection_id_data(&encrypted_connection_id_data);
 
-        self.guard_that_current_client_id_matches_client_id_in_connection_id(&connection_id_data, &remote_address)?;
+        let current_client_id = Make::<DefaultHasher>::new(remote_address);
+        if connection_id_data.client_id != current_client_id {
+            return false;
+        }
 
-        self.guard_that_connection_id_has_not_expired(&connection_id_data, current_timestamp)?;
+        if current_timestamp > connection_id_data.expiration_timestamp.into() {
+            return false;
+        }
 
-        Ok(())
+        true
     }
 }
 
@@ -81,21 +86,6 @@ impl EncryptedConnectionIdIssuer {
         connection_id_data
     }
 
-    fn guard_that_current_client_id_matches_client_id_in_connection_id(&self, connection_id_data: &ConnectionIdData, remote_address: &SocketAddr) -> Result<(), &'static str> {
-        let current_client_id = Make::<DefaultHasher>::new(remote_address);
-        if connection_id_data.client_id != current_client_id {
-            return Err("Invalid client id: current client id does not match client in connection id");
-        }
-        Ok(())
-    }
-
-    fn guard_that_connection_id_has_not_expired(&self, connection_id_data: &ConnectionIdData, current_timestamp:Timestamp64) -> Result<(), &'static str> {
-        if current_timestamp > connection_id_data.expiration_timestamp.into() {
-            return Err("Expired connection id")
-        }
-        Ok(())
-    }
-
     fn encrypt_connection_id_data(&self, connection_id_data: &ConnectionIdData) -> EncryptedConnectionIdData {
         let decrypted_raw_data = connection_id_data.to_bytes();
 
@@ -131,11 +121,11 @@ mod tests {
 
         let connection_id = issuer.new_connection_id(&client_addr, now);
 
-        assert_eq!(issuer.verify_connection_id(&connection_id, &client_addr, now), Ok(()));
+        assert!(issuer.is_connection_id_valid(&connection_id, &client_addr, now));
 
         let after_two_minutes = now + (2*60) - 1;
 
-        assert_eq!(issuer.verify_connection_id(&connection_id, &client_addr, after_two_minutes), Ok(()));
+        assert!(issuer.is_connection_id_valid(&connection_id, &client_addr, after_two_minutes));
     }
 
     #[test]
@@ -149,7 +139,7 @@ mod tests {
 
         let after_more_than_two_minutes = now + (2*60) + 1;
 
-        assert_eq!(issuer.verify_connection_id(&connection_id, &client_addr, after_more_than_two_minutes), Err("Expired connection id"));
+        assert_eq!(issuer.is_connection_id_valid(&connection_id, &client_addr, after_more_than_two_minutes), false);
     }    
 
     #[test]
@@ -210,8 +200,7 @@ mod tests {
 
         // Verify the connection id with a different client address
         let different_client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 0002);
-        let result = issuer.verify_connection_id(&connection_id, &different_client_addr, now);
 
-        assert!(result.is_err());
+        assert_eq!(issuer.is_connection_id_valid(&connection_id, &different_client_addr, now), false);
     }    
 }

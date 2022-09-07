@@ -91,9 +91,8 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
 }
 
 pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &AnnounceRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    // Verify connection id
-    let result = verify_connection_id(&announce_request.connection_id, &remote_addr);
-    if result.is_err() {
+    let valid = is_connection_id_valid(&announce_request.connection_id, &remote_addr);
+    if !valid {
         return Err(ServerError::InvalidConnectionId);
     }
 
@@ -157,9 +156,8 @@ pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &Announc
 
 // todo: refactor this, db lock can be a lot shorter
 pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    // Verify connection id
-    let result = verify_connection_id(&request.connection_id, &remote_addr);
-    if result.is_err() {
+    let valid = is_connection_id_valid(&request.connection_id, &remote_addr);
+    if !valid {
         return Err(ServerError::InvalidConnectionId);
     }
 
@@ -236,7 +234,7 @@ pub fn generate_new_connection_id(remote_addr: &SocketAddr) -> ConnectionId {
     connection_id
 }
 
-pub fn verify_connection_id(connection_id: &ConnectionId, remote_addr: &SocketAddr) -> Result<(), &'static str> {
+pub fn is_connection_id_valid(connection_id: &ConnectionId, remote_addr: &SocketAddr) -> bool {
     // todo: server_secret should be randomly generated on startup
     let server_secret = Secret::new([0;32]);
 
@@ -246,9 +244,9 @@ pub fn verify_connection_id(connection_id: &ConnectionId, remote_addr: &SocketAd
 
     let current_timestamp = current_timestamp();
 
-    let result = issuer.verify_connection_id(connection_id, remote_addr, current_timestamp);
+    let valid = issuer.is_connection_id_valid(connection_id, remote_addr, current_timestamp);
 
-    debug!("verify connection id: {:?}, current timestamp: {:?}, result: {:?}", connection_id, current_timestamp, result);
+    debug!("verify connection id: {:?}, current timestamp: {:?}, valid: {:?}", connection_id, current_timestamp, valid);
 
-    result
+    valid
 }
