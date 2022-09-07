@@ -4,7 +4,8 @@ use aquatic_udp_protocol::{ErrorResponse, Request, Response, TransactionId};
 use crate::MAX_SCRAPE_TORRENTS;
 use crate::udp::errors::ServerError;
 use crate::tracker::tracker::TorrentTracker;
-use super::request_handler::handle_request;
+use super::connection::secret::Secret;
+use super::request_handler::RequestHandler;
 
 pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: Arc<TorrentTracker>) -> Option<Response> {
     match Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS).map_err(|_| ServerError::InternalServerError) {
@@ -21,7 +22,11 @@ pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: A
                 }
             };
 
-            match handle_request(request, remote_addr, tracker).await {
+            // todo: server_secret should be randomly generated on startup
+            let server_secret = Secret::new([0;32]);
+            let request_handler = RequestHandler::new(server_secret);
+
+            match request_handler.handle(request, remote_addr, tracker).await {
                 Ok(response) => Some(response),
                 Err(ServerError::InvalidConnectionId) => None,
                 Err(e) => Some(handle_error(e, transaction_id))

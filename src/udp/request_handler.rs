@@ -13,207 +13,205 @@ use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::tracker::TorrentTracker;
 use crate::protocol::clock::current_timestamp;
 
-pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    match request {
-        Request::Connect(connect_request) => {
-            handle_connect(remote_addr, &connect_request, tracker).await
-        }
-        Request::Announce(announce_request) => {
-            handle_announce(remote_addr, &announce_request, tracker).await
-        }
-        Request::Scrape(scrape_request) => {
-            handle_scrape(remote_addr, &scrape_request, tracker).await
-        }
-    }
+pub struct RequestHandler {
+    encrypted_connection_id_issuer: EncryptedConnectionIdIssuer,
+    // todo: inject also a crate::protocol::Clock in order to make it easier to test it.
 }
 
-pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    let connection_id = generate_new_connection_id(&remote_addr);
-
-    let response = Response::from(ConnectResponse {
-        transaction_id: request.transaction_id,
-        connection_id,
-    });
-
-    // send stats event
-    match remote_addr {
-        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Connect).await; }
-        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Connect).await; }
+impl RequestHandler {
+    pub fn new(secret: Secret) -> Self {
+        let encrypted_connection_id_issuer = EncryptedConnectionIdIssuer::new(secret);
+        Self { encrypted_connection_id_issuer }
     }
 
-    Ok(response)
-}
-
-pub async fn handle_announce(remote_addr: SocketAddr, announce_request: &AnnounceRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    let valid = is_connection_id_valid(&announce_request.connection_id, &remote_addr);
-    if !valid {
-        return Err(ServerError::InvalidConnectionId);
+    pub async fn handle(&self, request: Request, remote_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
+        match request {
+            Request::Connect(connect_request) => {
+                self.handle_connect(remote_addr, &connect_request, tracker).await
+            }
+            Request::Announce(announce_request) => {
+                self.handle_announce(remote_addr, &announce_request, tracker).await
+            }
+            Request::Scrape(scrape_request) => {
+                self.handle_scrape(remote_addr, &scrape_request, tracker).await
+            }
+        }
     }
 
-    let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request.clone());
+    pub async fn handle_connect(&self, remote_addr: SocketAddr, request: &ConnectRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
+        let connection_id = self.generate_new_connection_id(&remote_addr);
 
-    authenticate(&wrapped_announce_request.info_hash, tracker.clone()).await?;
+        let response = Response::from(ConnectResponse {
+            transaction_id: request.transaction_id,
+            connection_id,
+        });
 
-    let peer = TorrentPeer::from_udp_announce_request(&wrapped_announce_request.announce_request, remote_addr.ip(), tracker.config.get_ext_ip());
+        // send stats event
+        match remote_addr {
+            SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Connect).await; }
+            SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Connect).await; }
+        }
 
-    //let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
-
-    let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
-
-    // get all peers excluding the client_addr
-    let peers = tracker.get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr).await;
-
-    let announce_response = if remote_addr.is_ipv4() {
-        Response::from(AnnounceResponse {
-            transaction_id: wrapped_announce_request.announce_request.transaction_id,
-            announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
-            leechers: NumberOfPeers(torrent_stats.leechers as i32),
-            seeders: NumberOfPeers(torrent_stats.seeders as i32),
-            peers: peers.iter()
-                .filter_map(|peer| if let IpAddr::V4(ip) = peer.peer_addr.ip() {
-                    Some(ResponsePeer::<Ipv4Addr> {
-                        ip_address: ip,
-                        port: Port(peer.peer_addr.port()),
-                    })
-                } else {
-                    None
-                }
-                ).collect(),
-        })
-    } else {
-        Response::from(AnnounceResponse {
-            transaction_id: wrapped_announce_request.announce_request.transaction_id,
-            announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
-            leechers: NumberOfPeers(torrent_stats.leechers as i32),
-            seeders: NumberOfPeers(torrent_stats.seeders as i32),
-            peers: peers.iter()
-                .filter_map(|peer| if let IpAddr::V6(ip) = peer.peer_addr.ip() {
-                    Some(ResponsePeer::<Ipv6Addr> {
-                        ip_address: ip,
-                        port: Port(peer.peer_addr.port()),
-                    })
-                } else {
-                    None
-                }
-                ).collect(),
-        })
-    };
-
-    // send stats event
-    match remote_addr {
-        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Announce).await; }
-        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Announce).await; }
+        Ok(response)
     }
 
-    Ok(announce_response)
-}
+    pub async fn handle_announce(&self, remote_addr: SocketAddr, announce_request: &AnnounceRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
+        let valid = self.is_connection_id_valid(&announce_request.connection_id, &remote_addr);
+        if !valid {
+            return Err(ServerError::InvalidConnectionId);
+        }
 
-// todo: refactor this, db lock can be a lot shorter
-pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
-    let valid = is_connection_id_valid(&request.connection_id, &remote_addr);
-    if !valid {
-        return Err(ServerError::InvalidConnectionId);
-    }
+        let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request.clone());
 
-    let db = tracker.get_torrents().await;
+        self.authenticate(&wrapped_announce_request.info_hash, tracker.clone()).await?;
 
-    let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
+        let peer = TorrentPeer::from_udp_announce_request(&wrapped_announce_request.announce_request, remote_addr.ip(), tracker.config.get_ext_ip());
 
-    for info_hash in request.info_hashes.iter() {
-        let info_hash = InfoHash(info_hash.0);
+        //let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
 
-        let scrape_entry = match db.get(&info_hash) {
-            Some(torrent_info) => {
-                if authenticate(&info_hash, tracker.clone()).await.is_ok() {
-                    let (seeders, completed, leechers) = torrent_info.get_stats();
+        let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
 
-                    TorrentScrapeStatistics {
-                        seeders: NumberOfPeers(seeders as i32),
-                        completed: NumberOfDownloads(completed as i32),
-                        leechers: NumberOfPeers(leechers as i32),
+        // get all peers excluding the client_addr
+        let peers = tracker.get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr).await;
+
+        let announce_response = if remote_addr.is_ipv4() {
+            Response::from(AnnounceResponse {
+                transaction_id: wrapped_announce_request.announce_request.transaction_id,
+                announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
+                leechers: NumberOfPeers(torrent_stats.leechers as i32),
+                seeders: NumberOfPeers(torrent_stats.seeders as i32),
+                peers: peers.iter()
+                    .filter_map(|peer| if let IpAddr::V4(ip) = peer.peer_addr.ip() {
+                        Some(ResponsePeer::<Ipv4Addr> {
+                            ip_address: ip,
+                            port: Port(peer.peer_addr.port()),
+                        })
+                    } else {
+                        None
                     }
-                } else {
+                    ).collect(),
+            })
+        } else {
+            Response::from(AnnounceResponse {
+                transaction_id: wrapped_announce_request.announce_request.transaction_id,
+                announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
+                leechers: NumberOfPeers(torrent_stats.leechers as i32),
+                seeders: NumberOfPeers(torrent_stats.seeders as i32),
+                peers: peers.iter()
+                    .filter_map(|peer| if let IpAddr::V6(ip) = peer.peer_addr.ip() {
+                        Some(ResponsePeer::<Ipv6Addr> {
+                            ip_address: ip,
+                            port: Port(peer.peer_addr.port()),
+                        })
+                    } else {
+                        None
+                    }
+                    ).collect(),
+            })
+        };
+
+        // send stats event
+        match remote_addr {
+            SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Announce).await; }
+            SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Announce).await; }
+        }
+
+        Ok(announce_response)
+    }
+
+    // todo: refactor this, db lock can be a lot shorter
+    pub async fn handle_scrape(&self, remote_addr: SocketAddr, request: &ScrapeRequest, tracker: Arc<TorrentTracker>) -> Result<Response, ServerError> {
+        let valid = self.is_connection_id_valid(&request.connection_id, &remote_addr);
+        if !valid {
+            return Err(ServerError::InvalidConnectionId);
+        }
+
+        let db = tracker.get_torrents().await;
+
+        let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
+
+        for info_hash in request.info_hashes.iter() {
+            let info_hash = InfoHash(info_hash.0);
+
+            let scrape_entry = match db.get(&info_hash) {
+                Some(torrent_info) => {
+                    if self.authenticate(&info_hash, tracker.clone()).await.is_ok() {
+                        let (seeders, completed, leechers) = torrent_info.get_stats();
+
+                        TorrentScrapeStatistics {
+                            seeders: NumberOfPeers(seeders as i32),
+                            completed: NumberOfDownloads(completed as i32),
+                            leechers: NumberOfPeers(leechers as i32),
+                        }
+                    } else {
+                        TorrentScrapeStatistics {
+                            seeders: NumberOfPeers(0),
+                            completed: NumberOfDownloads(0),
+                            leechers: NumberOfPeers(0),
+                        }
+                    }
+                }
+                None => {
                     TorrentScrapeStatistics {
                         seeders: NumberOfPeers(0),
                         completed: NumberOfDownloads(0),
                         leechers: NumberOfPeers(0),
                     }
                 }
-            }
-            None => {
-                TorrentScrapeStatistics {
-                    seeders: NumberOfPeers(0),
-                    completed: NumberOfDownloads(0),
-                    leechers: NumberOfPeers(0),
-                }
-            }
-        };
-
-        torrent_stats.push(scrape_entry);
-    }
-
-    drop(db);
-
-    // send stats event
-    match remote_addr {
-        SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Scrape).await; }
-        SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Scrape).await; }
-    }
-
-    Ok(Response::from(ScrapeResponse {
-        transaction_id: request.transaction_id,
-        torrent_stats,
-    }))
-}
-
-pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
-    match tracker.authenticate_request(info_hash, &None).await {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            let err = match e {
-                TorrentError::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
-                TorrentError::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
-                TorrentError::PeerKeyNotValid => ServerError::PeerKeyNotValid,
-                TorrentError::NoPeersFound => ServerError::NoPeersFound,
-                TorrentError::CouldNotSendResponse => ServerError::InternalServerError,
-                TorrentError::InvalidInfoHash => ServerError::InvalidInfoHash,
             };
 
-            Err(err)
+            torrent_stats.push(scrape_entry);
+        }
+
+        drop(db);
+
+        // send stats event
+        match remote_addr {
+            SocketAddr::V4(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp4Scrape).await; }
+            SocketAddr::V6(_) => { tracker.send_stats_event(TrackerStatisticsEvent::Udp6Scrape).await; }
+        }
+
+        Ok(Response::from(ScrapeResponse {
+            transaction_id: request.transaction_id,
+            torrent_stats,
+        }))
+    }
+
+    pub async fn authenticate(&self, info_hash: &InfoHash, tracker: Arc<TorrentTracker>) -> Result<(), ServerError> {
+        match tracker.authenticate_request(info_hash, &None).await {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                let err = match e {
+                    TorrentError::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
+                    TorrentError::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
+                    TorrentError::PeerKeyNotValid => ServerError::PeerKeyNotValid,
+                    TorrentError::NoPeersFound => ServerError::NoPeersFound,
+                    TorrentError::CouldNotSendResponse => ServerError::InternalServerError,
+                    TorrentError::InvalidInfoHash => ServerError::InvalidInfoHash,
+                };
+
+                Err(err)
+            }
         }
     }
-}
 
-pub fn generate_new_connection_id(remote_addr: &SocketAddr) -> ConnectionId {
-    // todo: server_secret should be randomly generated on startup
-    let server_secret = Secret::new([0;32]);
+    pub fn generate_new_connection_id(&self, remote_addr: &SocketAddr) -> ConnectionId {
+        let current_timestamp = current_timestamp();
 
-    // todo: this is expensive because of the blowfish cypher instantiation.
-    // It should be generated on startup.
-    let issuer = EncryptedConnectionIdIssuer::new(server_secret);
+        let connection_id = self.encrypted_connection_id_issuer.new_connection_id(remote_addr, current_timestamp);
 
-    let current_timestamp = current_timestamp();
+        debug!("new connection id: {:?}, current timestamp: {:?}", connection_id, current_timestamp);
 
-    let connection_id = issuer.new_connection_id(remote_addr, current_timestamp);
+        connection_id
+    }
 
-    debug!("new connection id: {:?}, current timestamp: {:?}", connection_id, current_timestamp);
+    pub fn is_connection_id_valid(&self, connection_id: &ConnectionId, remote_addr: &SocketAddr) -> bool {
+        let current_timestamp = current_timestamp();
 
-    connection_id
-}
+        let valid = self.encrypted_connection_id_issuer.is_connection_id_valid(connection_id, remote_addr, current_timestamp);
 
-pub fn is_connection_id_valid(connection_id: &ConnectionId, remote_addr: &SocketAddr) -> bool {
-    // todo: server_secret should be randomly generated on startup
-    let server_secret = Secret::new([0;32]);
+        debug!("verify connection id: {:?}, current timestamp: {:?}, valid: {:?}", connection_id, current_timestamp, valid);
 
-    // todo: this is expensive because of the blowfish cypher instantiation.
-    // It should be generated on startup.
-    let issuer = EncryptedConnectionIdIssuer::new(server_secret);
-
-    let current_timestamp = current_timestamp();
-
-    let valid = issuer.is_connection_id_valid(connection_id, remote_addr, current_timestamp);
-
-    debug!("verify connection id: {:?}, current timestamp: {:?}, valid: {:?}", connection_id, current_timestamp, valid);
-
-    valid
+        valid
+    }
 }
