@@ -27,8 +27,9 @@ impl UdpServer {
     }
 
     pub async fn start(&self) {
-        let server_secret = Secret::new([0;32]);
-        let request_handler = Arc::new(PacketHandler::new(server_secret));
+        let encryption_key = Secret::new(rand::Rng::gen(&mut rand::rngs::ThreadRng::default()));
+
+        let request_handler = Arc::new(PacketHandler::new(encryption_key));
 
         loop {
             let mut data = [0; MAX_PACKET_SIZE];
