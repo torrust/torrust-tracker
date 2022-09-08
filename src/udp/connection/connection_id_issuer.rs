@@ -2,11 +2,9 @@ use std::{net::SocketAddr, collections::hash_map::DefaultHasher};
 
 use aquatic_udp_protocol::ConnectionId;
 
-use super::{cypher::{BlowfishCypher, Cypher}, secret::Secret, timestamp_64::Timestamp64, client_id::Make, timestamp_32::Timestamp32, connection_id_data::ConnectionIdData, encrypted_connection_id_data::EncryptedConnectionIdData};
+use super::{cypher::{BlowfishCypher, Cypher}, secret::Secret, timestamp_64::Timestamp64, client_id::Make, timestamp_32::Timestamp32, connection_id_data::{ConnectionIdData}, encrypted_connection_id_data::EncryptedConnectionIdData, encoded_connection_id_data::EncodedConnectionIdData};
 
 pub trait ConnectionIdIssuer {
-    type Error;
-
     fn new_connection_id(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId;
     
     fn is_connection_id_valid(&self, connection_id: &ConnectionId, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> bool;
@@ -18,13 +16,13 @@ pub struct EncryptedConnectionIdIssuer {
 }
 
 impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
-    type Error = &'static str;
-
     fn new_connection_id(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
 
         let connection_id_data = self.generate_connection_id_data(&remote_address, current_timestamp);
 
-        let encrypted_connection_id_data = self.encrypt_connection_id_data(&connection_id_data);
+        let encoded_connection_id_data: EncodedConnectionIdData = connection_id_data.into();
+
+        let encrypted_connection_id_data = self.encrypt_connection_id_data(&encoded_connection_id_data);
 
         self.pack_connection_id(encrypted_connection_id_data)
     }
@@ -81,15 +79,15 @@ impl EncryptedConnectionIdIssuer {
     fn decrypt_connection_id_data(&self, encrypted_connection_id_data: &EncryptedConnectionIdData) -> ConnectionIdData {
         let decrypted_raw_data = self.cypher.decrypt(&encrypted_connection_id_data.bytes);
 
-        let connection_id_data = ConnectionIdData::from_bytes(&decrypted_raw_data);
+        let encoded_connection_id_data = EncodedConnectionIdData::from_bytes(&decrypted_raw_data);
+
+        let connection_id_data: ConnectionIdData = encoded_connection_id_data.into();
 
         connection_id_data
     }
 
-    fn encrypt_connection_id_data(&self, connection_id_data: &ConnectionIdData) -> EncryptedConnectionIdData {
-        let decrypted_raw_data = connection_id_data.to_bytes();
-
-        let encrypted_raw_data = self.cypher.encrypt(&decrypted_raw_data);
+    fn encrypt_connection_id_data(&self, encoded_connection_id_data: &EncodedConnectionIdData) -> EncryptedConnectionIdData {
+        let encrypted_raw_data = self.cypher.encrypt(&encoded_connection_id_data.as_bytes());
 
         let encrypted_connection_id_data = EncryptedConnectionIdData::from_encrypted_bytes(&encrypted_raw_data);
 
