@@ -9,7 +9,7 @@ use tokio::net::UdpSocket;
 use crate::tracker::tracker::TorrentTracker;
 use crate::udp::{MAX_PACKET_SIZE};
 use crate::udp::connection::secret::Secret;
-use crate::udp::packet_handler::RequestHandler;
+use crate::udp::packet_handler::PacketHandler;
 
 pub struct UdpServer {
     socket: Arc<UdpSocket>,
@@ -28,13 +28,13 @@ impl UdpServer {
 
     pub async fn start(&self) {
         let server_secret = Secret::new([0;32]);
-        let request_handler = Arc::new(RequestHandler::new(server_secret));
+        let request_handler = Arc::new(PacketHandler::new(server_secret));
 
         loop {
             let mut data = [0; MAX_PACKET_SIZE];
             let socket = self.socket.clone();
             let tracker = self.tracker.clone();
-            let request_handler = request_handler.clone();
+            let packet_handler = request_handler.clone();
 
             // needed for graceful shutdown
             tokio::select! {
@@ -48,7 +48,7 @@ impl UdpServer {
                     debug!("Received {} bytes from {}", payload.len(), remote_addr);
                     debug!("{:?}", payload);
 
-                    if let Some(response) = request_handler.handle_packet(remote_addr, payload, tracker).await {
+                    if let Some(response) = packet_handler.handle_packet(remote_addr, payload, tracker).await {
                         UdpServer::send_response(socket, remote_addr, response).await;
                     }
                 }

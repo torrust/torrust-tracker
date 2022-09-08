@@ -13,12 +13,12 @@ use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::tracker::TorrentTracker;
 use crate::protocol::clock::current_timestamp;
 
-pub struct RequestHandler {
+pub struct PacketHandler {
     encrypted_connection_id_issuer: EncryptedConnectionIdIssuer,
     // todo: inject also a crate::protocol::Clock in order to make it easier to test it.
 }
 
-impl RequestHandler {
+impl PacketHandler {
     pub fn new(secret: Secret) -> Self {
         let encrypted_connection_id_issuer = EncryptedConnectionIdIssuer::new(secret);
         Self { encrypted_connection_id_issuer }
