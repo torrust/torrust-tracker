@@ -104,7 +104,7 @@ mod tests {
     use std::{net::{SocketAddr, IpAddr, Ipv4Addr}};
 
     fn cypher_secret_for_testing() -> Secret {
-        Secret::new([0u8;32])
+        Secret::from_bytes([0u8;32])
     }
 
     fn new_issuer() -> EncryptedConnectionIdIssuer {

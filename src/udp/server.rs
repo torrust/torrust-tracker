@@ -7,7 +7,7 @@ use log::{debug, info};
 use tokio::net::UdpSocket;
 
 use crate::tracker::tracker::TorrentTracker;
-use crate::udp::{MAX_PACKET_SIZE};
+use crate::udp::MAX_PACKET_SIZE;
 use crate::udp::connection::secret::Secret;
 use crate::udp::packet_handler::PacketHandler;
 
@@ -27,7 +27,7 @@ impl UdpServer {
     }
 
     pub async fn start(&self) {
-        let encryption_key = Secret::new(rand::Rng::gen(&mut rand::rngs::ThreadRng::default()));
+        let encryption_key = Secret::new();
 
         let request_handler = Arc::new(PacketHandler::new(encryption_key));
 

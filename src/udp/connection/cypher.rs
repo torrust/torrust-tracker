@@ -14,7 +14,7 @@ pub struct BlowfishCypher {
 
 impl BlowfishCypher {
     pub fn new(secret: Secret) -> Self {
-        let blowfish = Blowfish::new(&secret.to_bytes());
+        let blowfish = Blowfish::new(&secret.into_bytes());
         BlowfishCypher {
             blowfish
         }
@@ -46,7 +46,7 @@ mod tests {
 
     #[test]
     fn it_should_encrypt_and_decrypt_a_byte_array() {
-        let secret = Secret::new([0u8;32]);
+        let secret = Secret::from_bytes([0u8;32]);
 
         let cypher = BlowfishCypher::new(secret);
 
