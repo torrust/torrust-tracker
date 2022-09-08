@@ -14,22 +14,21 @@ impl EncodedConnectionIdData {
         &self.0
     }
 
-    fn extract_client_id(&self) -> ClientId {
+    fn to_client_id(&self) -> ClientId {
         ClientId::from_bytes(&self.0[..4])
     }
 
-    fn extract_expiration_timestamp(&self) -> Timestamp32 {
+    fn to_expiration_timestamp(&self) -> Timestamp32 {
         let timestamp_bytes = &self.0[4..];
-        let timestamp = Timestamp32::from_le_bytes(timestamp_bytes);
-        timestamp
+        Timestamp32::from_le_bytes(timestamp_bytes)
     }    
 }
 
 impl From<EncodedConnectionIdData> for ConnectionIdData {
     fn from(encoded_connection_id_data: EncodedConnectionIdData) -> Self {
         Self {
-            client_id: encoded_connection_id_data.extract_client_id(),
-            expiration_timestamp: encoded_connection_id_data.extract_expiration_timestamp()
+            client_id: encoded_connection_id_data.to_client_id(),
+            expiration_timestamp: encoded_connection_id_data.to_expiration_timestamp()
         }
     }
 }
