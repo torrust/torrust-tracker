@@ -14,14 +14,14 @@ use crate::tracker::tracker::TorrentTracker;
 use crate::protocol::clock::{SystemUnixClock, UnixClock};
 
 pub struct PacketHandler {
-    encrypted_connection_id_issuer: EncryptedConnectionIdIssuer,
+    connection_id_issuer: EncryptedConnectionIdIssuer,
     clock: SystemUnixClock
 }
 
 impl PacketHandler {
     pub fn new(secret: Secret) -> Self {
         Self { 
-            encrypted_connection_id_issuer: EncryptedConnectionIdIssuer::new(secret),
+            connection_id_issuer: EncryptedConnectionIdIssuer::new(secret),
             clock: SystemUnixClock,
         }
     }
@@ -232,7 +232,7 @@ impl PacketHandler {
     fn generate_new_connection_id(&self, remote_addr: &SocketAddr) -> ConnectionId {
         let current_timestamp = self.clock.now();
 
-        let connection_id = self.encrypted_connection_id_issuer.new_connection_id(remote_addr, current_timestamp);
+        let connection_id = self.connection_id_issuer.new_connection_id(remote_addr, current_timestamp);
 
         debug!("new connection id: {:?}, current timestamp: {:?}", connection_id, current_timestamp);
 
@@ -242,7 +242,7 @@ impl PacketHandler {
     fn is_connection_id_valid(&self, connection_id: &ConnectionId, remote_addr: &SocketAddr) -> bool {
         let current_timestamp = self.clock.now();
 
-        let valid = self.encrypted_connection_id_issuer.is_connection_id_valid(connection_id, remote_addr, current_timestamp);
+        let valid = self.connection_id_issuer.is_connection_id_valid(connection_id, remote_addr, current_timestamp);
 
         debug!("verify connection id: {:?}, current timestamp: {:?}, valid: {:?}", connection_id, current_timestamp, valid);
 
