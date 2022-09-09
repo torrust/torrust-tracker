@@ -11,17 +11,19 @@ use crate::udp::errors::ServerError;
 use crate::udp::request::AnnounceRequestWrapper;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::tracker::TorrentTracker;
-use crate::protocol::clock::current_timestamp;
+use crate::protocol::clock::{SystemUnixClock, UnixClock};
 
 pub struct PacketHandler {
     encrypted_connection_id_issuer: EncryptedConnectionIdIssuer,
-    // todo: inject also a crate::protocol::Clock in order to make it easier to test it.
+    clock: SystemUnixClock
 }
 
 impl PacketHandler {
     pub fn new(secret: Secret) -> Self {
-        let encrypted_connection_id_issuer = EncryptedConnectionIdIssuer::new(secret);
-        Self { encrypted_connection_id_issuer }
+        Self { 
+            encrypted_connection_id_issuer: EncryptedConnectionIdIssuer::new(secret),
+            clock: SystemUnixClock,
+        }
     }
 
     pub async fn handle_packet(&self, remote_addr: SocketAddr, payload: Vec<u8>, tracker: Arc<TorrentTracker>) -> Option<Response> {
@@ -228,7 +230,7 @@ impl PacketHandler {
     }
 
     fn generate_new_connection_id(&self, remote_addr: &SocketAddr) -> ConnectionId {
-        let current_timestamp = current_timestamp();
+        let current_timestamp = self.clock.now();
 
         let connection_id = self.encrypted_connection_id_issuer.new_connection_id(remote_addr, current_timestamp);
 
@@ -238,7 +240,7 @@ impl PacketHandler {
     }
 
     fn is_connection_id_valid(&self, connection_id: &ConnectionId, remote_addr: &SocketAddr) -> bool {
-        let current_timestamp = current_timestamp();
+        let current_timestamp = self.clock.now();
 
         let valid = self.encrypted_connection_id_issuer.is_connection_id_valid(connection_id, remote_addr, current_timestamp);
 
