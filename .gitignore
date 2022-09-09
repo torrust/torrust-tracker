@@ -5,3 +5,4 @@
 /.idea/
 /config.toml
 /data.db
+/.vscode/launch.json
