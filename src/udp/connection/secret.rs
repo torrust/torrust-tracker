@@ -24,9 +24,15 @@ impl Secret {
     }
 }
 
-impl Into<[u8; 32]> for Secret {
-    fn into(self) -> [u8; 32] {
-        self.0
+impl Default for Secret {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<Secret> for [u8; 32] {
+    fn from(secret: Secret) -> Self {
+        secret.0
     }
 }
 

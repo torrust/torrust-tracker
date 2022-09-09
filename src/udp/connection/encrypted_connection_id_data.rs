@@ -5,13 +5,13 @@ pub struct EncryptedConnectionIdData {
 
 impl EncryptedConnectionIdData {
     pub fn from_encrypted_bytes(encrypted_bytes: &[u8; 8]) -> Self {
-        Self { bytes: encrypted_bytes.clone() }
+        Self { bytes: *encrypted_bytes }
     }
 }
 
-impl Into<i64> for EncryptedConnectionIdData {
-    fn into(self) -> i64 {
-        i64::from_le_bytes(self.bytes)
+impl From<EncryptedConnectionIdData> for i64 {
+    fn from(value: EncryptedConnectionIdData) -> Self {
+        i64::from_le_bytes(value.bytes)
     }
 }
 

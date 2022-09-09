@@ -18,7 +18,7 @@ pub struct EncryptedConnectionIdIssuer {
 impl ConnectionIdIssuer for EncryptedConnectionIdIssuer {
     fn new_connection_id(&self, remote_address: &SocketAddr, current_timestamp: Timestamp64) -> ConnectionId {
 
-        let connection_id_data = self.generate_connection_id_data(&remote_address, current_timestamp);
+        let connection_id_data = self.generate_connection_id_data(remote_address, current_timestamp);
 
         let encoded_connection_id_data: EncodedConnectionIdData = connection_id_data.into();
 
@@ -59,12 +59,10 @@ impl EncryptedConnectionIdIssuer {
 
         let expiration_timestamp: Timestamp32 = (current_timestamp + 120).try_into().unwrap();
     
-        let connection_id_data = ConnectionIdData {
+        ConnectionIdData {
             client_id,
             expiration_timestamp
-        };
-
-        connection_id_data
+        }
     }
 
     fn pack_connection_id(&self, encrypted_connection_id_data: EncryptedConnectionIdData) -> ConnectionId {
@@ -87,11 +85,8 @@ impl EncryptedConnectionIdIssuer {
     }
 
     fn encrypt_connection_id_data(&self, encoded_connection_id_data: &EncodedConnectionIdData) -> EncryptedConnectionIdData {
-        let encrypted_raw_data = self.cypher.encrypt(&encoded_connection_id_data.as_bytes());
-
-        let encrypted_connection_id_data = EncryptedConnectionIdData::from_encrypted_bytes(&encrypted_raw_data);
-
-        encrypted_connection_id_data
+        let encrypted_raw_data = self.cypher.encrypt(encoded_connection_id_data.as_bytes());
+        EncryptedConnectionIdData::from_encrypted_bytes(&encrypted_raw_data)
     }
 }
 
@@ -106,8 +101,7 @@ mod tests {
     }
 
     fn new_issuer() -> EncryptedConnectionIdIssuer {
-        let issuer = EncryptedConnectionIdIssuer::new(cypher_secret_for_testing());
-        issuer
+        EncryptedConnectionIdIssuer::new(cypher_secret_for_testing())
     }
 
     #[test]
@@ -137,7 +131,7 @@ mod tests {
 
         let after_more_than_two_minutes = now + (2*60) + 1;
 
-        assert_eq!(issuer.is_connection_id_valid(&connection_id, &client_addr, after_more_than_two_minutes), false);
+        assert!(!issuer.is_connection_id_valid(&connection_id, &client_addr, after_more_than_two_minutes));
     }    
 
     #[test]
@@ -159,8 +153,8 @@ mod tests {
 
     #[test]
     fn it_should_be_different_for_each_client_at_the_same_time_if_they_use_a_different_ip() {
-        let client_1_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 0001);
-        let client_2_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
+        let client_1_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 1);
+        let client_2_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1);
 
         let now = 946684800u64;
 
@@ -174,8 +168,8 @@ mod tests {
 
     #[test]
     fn it_should_be_different_for_each_client_at_the_same_time_if_they_use_a_different_port() {
-        let client_1_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
-        let client_2_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0002);
+        let client_1_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1);
+        let client_2_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 2);
 
         let now = 946684800u64;
 
@@ -192,13 +186,13 @@ mod tests {
         let issuer = new_issuer();
 
         // Generate connection id for a given client
-        let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0001);
+        let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1);
         let now = 946684800u64;
         let connection_id = issuer.new_connection_id(&client_addr, now);
 
         // Verify the connection id with a different client address
-        let different_client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 0002);
+        let different_client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 2);
 
-        assert_eq!(issuer.is_connection_id_valid(&connection_id, &different_client_addr, now), false);
+        assert!(!issuer.is_connection_id_valid(&connection_id, &different_client_addr, now));
     }    
 }

@@ -14,7 +14,7 @@ impl Timestamp32 {
         Self(timestamp)
     }
 
-    pub fn to_le_bytes(self: Self) -> [u8; 4] {
+    pub fn to_le_bytes(self) -> [u8; 4] {
         // Little Endian
         let mut bytes: [u8; 4] = [0u8; 4];
         bytes.copy_from_slice(&self.0.to_le_bytes()[..4]);
@@ -37,9 +37,9 @@ impl TryFrom<Timestamp64> for Timestamp32 {
     }
 }
 
-impl Into<Timestamp64> for Timestamp32 {
-    fn into(self) -> Timestamp64 {
-        u64::from(self.0)
+impl From<Timestamp32> for Timestamp64 {
+    fn from(timestamp32: Timestamp32) -> Self {
+        u64::from(timestamp32.0)
     }
 }
 
@@ -86,7 +86,7 @@ mod tests {
 
         let timestamp32: Result<Timestamp32, _> = out_of_range_value.try_into();
 
-        assert_eq!(timestamp32.is_err(), true);
+        assert!(timestamp32.is_err());
     }
 
     #[test]

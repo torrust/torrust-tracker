@@ -44,7 +44,7 @@ impl ClientId {
     }
 
     pub fn to_bytes(&self) -> [u8; 4] {
-        let bytes: [u8; 4] = self.value.clone().try_into().unwrap();
+        let bytes: [u8; 4] = self.value;
         bytes
     }
 }
