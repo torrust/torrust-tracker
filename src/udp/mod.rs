@@ -4,9 +4,9 @@ pub use self::request::*;
 pub use self::server::*;
 
 pub mod errors;
+pub mod handlers;
 pub mod request;
 pub mod server;
-pub mod handlers;
 
 pub type Bytes = u64;
 pub type Port = u16;

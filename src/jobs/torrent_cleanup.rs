@@ -1,9 +1,11 @@
 use std::sync::Arc;
+
 use chrono::Utc;
 use log::info;
 use tokio::task::JoinHandle;
-use crate::{Configuration};
+
 use crate::tracker::tracker::TorrentTracker;
+use crate::Configuration;
 
 pub fn start_job(config: &Configuration, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let weak_tracker = std::sync::Arc::downgrade(&tracker);

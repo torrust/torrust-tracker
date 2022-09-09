@@ -1,11 +1,10 @@
 use derive_more::{Display, Error};
 use log::debug;
-use rand::{Rng, thread_rng};
 use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 use serde::Serialize;
 
 use crate::protocol::utils::current_time;
-
 use crate::AUTH_KEY_LENGTH;
 
 pub fn generate_auth_key(seconds_valid: u64) -> AuthKey {
@@ -25,8 +24,12 @@ pub fn generate_auth_key(seconds_valid: u64) -> AuthKey {
 
 pub fn verify_auth_key(auth_key: &AuthKey) -> Result<(), Error> {
     let current_time = current_time();
-    if auth_key.valid_until.is_none() { return Err(Error::KeyInvalid); }
-    if auth_key.valid_until.unwrap() < current_time { return Err(Error::KeyExpired); }
+    if auth_key.valid_until.is_none() {
+        return Err(Error::KeyInvalid);
+    }
+    if auth_key.valid_until.unwrap() < current_time {
+        return Err(Error::KeyExpired);
+    }
 
     Ok(())
 }
@@ -40,10 +43,7 @@ pub struct AuthKey {
 impl AuthKey {
     pub fn from_buffer(key_buffer: [u8; AUTH_KEY_LENGTH]) -> Option<AuthKey> {
         if let Ok(key) = String::from_utf8(Vec::from(key_buffer)) {
-            Some(AuthKey {
-                key,
-                valid_until: None,
-            })
+            Some(AuthKey { key, valid_until: None })
         } else {
             None
         }
@@ -85,17 +85,10 @@ mod tests {
 
     #[test]
     fn auth_key_from_buffer() {
-        let auth_key = key::AuthKey::from_buffer(
-            [
-                89, 90, 83, 108,
-                52, 108, 77, 90,
-                117, 112, 82, 117,
-                79, 112, 83, 82,
-                67, 51, 107, 114,
-                73, 75, 82, 53,
-                66, 80, 66, 49,
-                52, 110, 114, 74]
-        );
+        let auth_key = key::AuthKey::from_buffer([
+            89, 90, 83, 108, 52, 108, 77, 90, 117, 112, 82, 117, 79, 112, 83, 82, 67, 51, 107, 114, 73, 75, 82, 53, 66, 80, 66,
+            49, 52, 110, 114, 74,
+        ]);
 
         assert!(auth_key.is_some());
         assert_eq!(auth_key.unwrap().key, "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ");

@@ -62,7 +62,9 @@ impl UdpServer {
                 debug!("{:?}", &inner[..position]);
                 UdpServer::send_packet(socket, &remote_addr, &inner[..position]).await;
             }
-            Err(_) => { debug!("could not write response to bytes."); }
+            Err(_) => {
+                debug!("could not write response to bytes.");
+            }
         }
     }
 

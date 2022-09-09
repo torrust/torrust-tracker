@@ -6,13 +6,13 @@ pub use self::response::*;
 pub use self::routes::*;
 pub use self::server::*;
 
-pub mod server;
+pub mod errors;
+pub mod filters;
+pub mod handlers;
 pub mod request;
 pub mod response;
-pub mod errors;
 pub mod routes;
-pub mod handlers;
-pub mod filters;
+pub mod server;
 
 pub type Bytes = u64;
 pub type WebResult<T> = std::result::Result<T, warp::Rejection>;

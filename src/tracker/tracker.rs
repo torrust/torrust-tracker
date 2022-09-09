@@ -3,19 +3,19 @@ use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use tokio::sync::{RwLock, RwLockReadGuard};
 use tokio::sync::mpsc::error::SendError;
+use tokio::sync::{RwLock, RwLockReadGuard};
 
-use crate::Configuration;
-use crate::protocol::common::InfoHash;
-use crate::databases::database::Database;
 use crate::databases::database;
+use crate::databases::database::Database;
 use crate::mode::TrackerMode;
 use crate::peer::TorrentPeer;
-use crate::tracker::key::AuthKey;
+use crate::protocol::common::InfoHash;
 use crate::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsEvent};
 use crate::tracker::key;
+use crate::tracker::key::AuthKey;
 use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
+use crate::Configuration;
 
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
@@ -24,7 +24,7 @@ pub struct TorrentTracker {
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     stats_tracker: StatsTracker,
-    database: Box<dyn Database>
+    database: Box<dyn Database>,
 }
 
 impl TorrentTracker {
@@ -33,7 +33,9 @@ impl TorrentTracker {
         let mut stats_tracker = StatsTracker::new();
 
         // starts a thread for updating tracker stats
-        if config.tracker_usage_statistics { stats_tracker.run_worker(); }
+        if config.tracker_usage_statistics {
+            stats_tracker.run_worker();
+        }
 
         Ok(TorrentTracker {
             config: config.clone(),
@@ -42,7 +44,7 @@ impl TorrentTracker {
             whitelist: RwLock::new(std::collections::HashSet::new()),
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             stats_tracker,
-            database
+            database,
         })
     }
 
@@ -74,7 +76,7 @@ impl TorrentTracker {
     pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> Result<(), key::Error> {
         match self.keys.read().await.get(&auth_key.key) {
             None => Err(key::Error::KeyInvalid),
-            Some(key) => key::verify_auth_key(key)
+            Some(key) => key::verify_auth_key(key),
         }
     }
 
@@ -124,7 +126,9 @@ impl TorrentTracker {
 
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
         // no authentication needed in public mode
-        if self.is_public() { return Ok(()); }
+        if self.is_public() {
+            return Ok(());
+        }
 
         // check if auth_key is set and valid
         if self.is_private() {
@@ -157,7 +161,9 @@ impl TorrentTracker {
 
         for (info_hash, completed) in persistent_torrents {
             // Skip if torrent entry already exists
-            if torrents.contains_key(&info_hash) { continue; }
+            if torrents.contains_key(&info_hash) {
+                continue;
+            }
 
             let torrent_entry = TorrentEntry {
                 peers: Default::default(),
@@ -170,14 +176,12 @@ impl TorrentTracker {
         Ok(())
     }
 
-    pub async fn get_torrent_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr, ) -> Vec<TorrentPeer> {
+    pub async fn get_torrent_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr) -> Vec<TorrentPeer> {
         let read_lock = self.torrents.read().await;
 
         match read_lock.get(info_hash) {
             None => vec![],
-            Some(entry) => {
-                entry.get_peers(Some(client_addr)).into_iter().cloned().collect()
-            }
+            Some(entry) => entry.get_peers(Some(client_addr)).into_iter().cloned().collect(),
         }
     }
 
@@ -185,19 +189,18 @@ impl TorrentTracker {
         let mut torrents = self.torrents.write().await;
 
         let torrent_entry = match torrents.entry(info_hash.clone()) {
-            Entry::Vacant(vacant) => {
-                vacant.insert(TorrentEntry::new())
-            }
-            Entry::Occupied(entry) => {
-                entry.into_mut()
-            }
+            Entry::Vacant(vacant) => vacant.insert(TorrentEntry::new()),
+            Entry::Occupied(entry) => entry.into_mut(),
         };
 
         let stats_updated = torrent_entry.update_peer(peer);
 
         // todo: move this action to a separate worker
         if self.config.persistent_torrent_completed_stat && stats_updated {
-            let _ = self.database.save_persistent_torrent(&info_hash, torrent_entry.completed).await;
+            let _ = self
+                .database
+                .save_persistent_torrent(&info_hash, torrent_entry.completed)
+                .await;
         }
 
         let (seeders, completed, leechers) = torrent_entry.get_stats();
@@ -231,8 +234,8 @@ impl TorrentTracker {
                 torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
 
                 match self.config.persistent_torrent_completed_stat {
-                    true => { torrent_entry.completed > 0 || torrent_entry.peers.len() > 0 }
-                    false => { torrent_entry.peers.len() > 0 }
+                    true => torrent_entry.completed > 0 || torrent_entry.peers.len() > 0,
+                    false => torrent_entry.peers.len() > 0,
                 }
             });
         } else {

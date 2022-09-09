@@ -5,10 +5,10 @@ use log::debug;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 
-use crate::{InfoHash};
-use crate::databases::database::{Database, Error};
 use crate::databases::database;
+use crate::databases::database::{Database, Error};
 use crate::tracker::key::AuthKey;
+use crate::InfoHash;
 
 pub struct SqliteDatabase {
     pool: Pool<SqliteConnectionManager>,
@@ -18,9 +18,7 @@ impl SqliteDatabase {
     pub fn new(db_path: &str) -> Result<SqliteDatabase, r2d2::Error> {
         let cm = SqliteConnectionManager::file(db_path);
         let pool = Pool::new(cm).expect("Failed to create r2d2 SQLite connection pool.");
-        Ok(SqliteDatabase {
-            pool
-        })
+        Ok(SqliteDatabase { pool })
     }
 }
 
@@ -31,21 +29,24 @@ impl Database for SqliteDatabase {
         CREATE TABLE IF NOT EXISTS whitelist (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             info_hash TEXT NOT NULL UNIQUE
-        );".to_string();
+        );"
+        .to_string();
 
         let create_torrents_table = "
         CREATE TABLE IF NOT EXISTS torrents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             info_hash TEXT NOT NULL UNIQUE,
             completed INTEGER DEFAULT 0 NOT NULL
-        );".to_string();
+        );"
+        .to_string();
 
         let create_keys_table = "
         CREATE TABLE IF NOT EXISTS keys (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             key TEXT NOT NULL UNIQUE,
             valid_until INTEGER NOT NULL
-         );".to_string();
+         );"
+        .to_string();
 
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
@@ -84,7 +85,7 @@ impl Database for SqliteDatabase {
 
             Ok(AuthKey {
                 key,
-                valid_until: Some(valid_until as u64)
+                valid_until: Some(valid_until as u64),
             })
         })?;
 
@@ -112,9 +113,14 @@ impl Database for SqliteDatabase {
     async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), database::Error> {
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
-        match conn.execute("INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2", [info_hash.to_string(), completed.to_string()]) {
+        match conn.execute(
+            "INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2",
+            [info_hash.to_string(), completed.to_string()],
+        ) {
             Ok(updated) => {
-                if updated > 0 { return Ok(()); }
+                if updated > 0 {
+                    return Ok(());
+                }
                 Err(database::Error::QueryReturnedNoRows)
             }
             Err(e) => {
@@ -145,7 +151,9 @@ impl Database for SqliteDatabase {
 
         match conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", [info_hash.to_string()]) {
             Ok(updated) => {
-                if updated > 0 { return Ok(updated); }
+                if updated > 0 {
+                    return Ok(updated);
+                }
                 Err(database::Error::QueryReturnedNoRows)
             }
             Err(e) => {
@@ -160,7 +168,9 @@ impl Database for SqliteDatabase {
 
         match conn.execute("DELETE FROM whitelist WHERE info_hash = ?", [info_hash.to_string()]) {
             Ok(updated) => {
-                if updated > 0 { return Ok(updated); }
+                if updated > 0 {
+                    return Ok(updated);
+                }
                 Err(database::Error::QueryReturnedNoRows)
             }
             Err(e) => {
@@ -192,11 +202,14 @@ impl Database for SqliteDatabase {
     async fn add_key_to_keys(&self, auth_key: &AuthKey) -> Result<usize, database::Error> {
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
-        match conn.execute("INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
-                           [auth_key.key.to_string(), auth_key.valid_until.unwrap().to_string()],
+        match conn.execute(
+            "INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
+            [auth_key.key.to_string(), auth_key.valid_until.unwrap().to_string()],
         ) {
             Ok(updated) => {
-                if updated > 0 { return Ok(updated); }
+                if updated > 0 {
+                    return Ok(updated);
+                }
                 Err(database::Error::QueryReturnedNoRows)
             }
             Err(e) => {
@@ -211,7 +224,9 @@ impl Database for SqliteDatabase {
 
         match conn.execute("DELETE FROM keys WHERE key = ?", &[key]) {
             Ok(updated) => {
-                if updated > 0 { return Ok(updated); }
+                if updated > 0 {
+                    return Ok(updated);
+                }
                 Err(database::Error::QueryReturnedNoRows)
             }
             Err(e) => {

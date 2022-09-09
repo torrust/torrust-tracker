@@ -1,11 +1,13 @@
 use std::sync::Arc;
-use log::{warn};
+
+use log::warn;
 use tokio::task::JoinHandle;
-use crate::{Configuration};
+
 use crate::jobs::{http_tracker, torrent_cleanup, tracker_api, udp_tracker};
 use crate::tracker::tracker::TorrentTracker;
+use crate::Configuration;
 
-pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<JoinHandle<()>>{
+pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<JoinHandle<()>> {
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
     // Load peer keys
@@ -15,15 +17,23 @@ pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<
 
     // Load whitelisted torrents
     if tracker.is_whitelisted() {
-        tracker.load_whitelist().await.expect("Could not load whitelist from database.");
+        tracker
+            .load_whitelist()
+            .await
+            .expect("Could not load whitelist from database.");
     }
 
     // Start the UDP blocks
     for udp_tracker_config in &config.udp_trackers {
-        if !udp_tracker_config.enabled { continue; }
+        if !udp_tracker_config.enabled {
+            continue;
+        }
 
         if tracker.is_private() {
-            warn!("Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!", udp_tracker_config.bind_address, config.mode);
+            warn!(
+                "Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!",
+                udp_tracker_config.bind_address, config.mode
+            );
         } else {
             jobs.push(udp_tracker::start_job(&udp_tracker_config, tracker.clone()))
         }
@@ -31,7 +41,9 @@ pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<
 
     // Start the HTTP blocks
     for http_tracker_config in &config.http_trackers {
-        if !http_tracker_config.enabled { continue; }
+        if !http_tracker_config.enabled {
+            continue;
+        }
         jobs.push(http_tracker::start_job(&http_tracker_config, tracker.clone()));
     }
 

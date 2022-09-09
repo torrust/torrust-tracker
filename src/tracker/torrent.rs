@@ -1,10 +1,10 @@
 use std::net::{IpAddr, SocketAddr};
 
-use aquatic_udp_protocol::{AnnounceEvent};
+use aquatic_udp_protocol::AnnounceEvent;
 use serde::{Deserialize, Serialize};
 
-use crate::{MAX_SCRAPE_TORRENTS, PeerId};
 use crate::peer::TorrentPeer;
+use crate::{PeerId, MAX_SCRAPE_TORRENTS};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TorrentEntry {
@@ -54,11 +54,13 @@ impl TorrentEntry {
                 // Filter out different ip_version from remote_addr
                 Some(remote_addr) => {
                     // Skip ip address of client
-                    if peer.peer_addr.ip() == remote_addr.ip() { return false; }
+                    if peer.peer_addr.ip() == remote_addr.ip() {
+                        return false;
+                    }
 
                     match peer.peer_addr.ip() {
-                        IpAddr::V4(_) => { remote_addr.is_ipv4() }
-                        IpAddr::V6(_) => { remote_addr.is_ipv6() }
+                        IpAddr::V4(_) => remote_addr.is_ipv4(),
+                        IpAddr::V6(_) => remote_addr.is_ipv6(),
                     }
                 }
             })
@@ -73,9 +75,8 @@ impl TorrentEntry {
     }
 
     pub fn remove_inactive_peers(&mut self, max_peer_timeout: u32) {
-        self.peers.retain(|_, peer| {
-            peer.updated.elapsed() > std::time::Duration::from_secs(max_peer_timeout as u64)
-        });
+        self.peers
+            .retain(|_, peer| peer.updated.elapsed() > std::time::Duration::from_secs(max_peer_timeout as u64));
     }
 }
 

@@ -11,9 +11,7 @@ pub fn get_connection_id(remote_address: &SocketAddr) -> ConnectionId {
 }
 
 pub fn current_time() -> u64 {
-    SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH).unwrap()
-        .as_secs()
+    SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs()
 }
 
 pub fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Result<S::Ok, S::Error> {

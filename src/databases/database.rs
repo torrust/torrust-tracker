@@ -2,10 +2,10 @@ use async_trait::async_trait;
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
 
-use crate::InfoHash;
-use crate::tracker::key::AuthKey;
 use crate::databases::mysql::MysqlDatabase;
 use crate::databases::sqlite::SqliteDatabase;
+use crate::tracker::key::AuthKey;
+use crate::InfoHash;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub enum DatabaseDrivers {
@@ -70,7 +70,7 @@ impl From<r2d2_sqlite::rusqlite::Error> for Error {
     fn from(e: r2d2_sqlite::rusqlite::Error) -> Self {
         match e {
             r2d2_sqlite::rusqlite::Error::QueryReturnedNoRows => Error::QueryReturnedNoRows,
-            _ => Error::InvalidQuery
+            _ => Error::InvalidQuery,
         }
     }
 }
