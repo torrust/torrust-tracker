@@ -1,0 +1,17 @@
+{
+    "cSpell.words": [
+        "byteorder",
+        "hasher",
+        "leechers",
+        "nanos",
+        "rngs",
+        "Seedable",
+        "thiserror",
+        "torrust",
+        "typenum"
+    ],
+    "[rust]": {
+        "editor.defaultFormatter": "matklad.rust-analyzer",
+        "editor.formatOnSave": true
+    },
+}
