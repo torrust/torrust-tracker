@@ -5,6 +5,7 @@ use std::net::IpAddr;
 
 use serde;
 use serde::Serialize;
+
 use crate::InfoHash;
 
 #[derive(Serialize)]

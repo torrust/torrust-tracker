@@ -5,19 +5,17 @@ use crate::Configuration;
 pub fn setup_logging(cfg: &Configuration) {
     let log_level = match &cfg.log_level {
         None => log::LevelFilter::Info,
-        Some(level) => {
-            match level.as_str() {
-                "off" => log::LevelFilter::Off,
-                "trace" => log::LevelFilter::Trace,
-                "debug" => log::LevelFilter::Debug,
-                "info" => log::LevelFilter::Info,
-                "warn" => log::LevelFilter::Warn,
-                "error" => log::LevelFilter::Error,
-                _ => {
-                    panic!("Unknown log level encountered: '{}'", level.as_str());
-                }
+        Some(level) => match level.as_str() {
+            "off" => log::LevelFilter::Off,
+            "trace" => log::LevelFilter::Trace,
+            "debug" => log::LevelFilter::Debug,
+            "info" => log::LevelFilter::Info,
+            "warn" => log::LevelFilter::Warn,
+            "error" => log::LevelFilter::Error,
+            _ => {
+                panic!("Unknown log level encountered: '{}'", level.as_str());
             }
-        }
+        },
     };
 
     if let Err(_err) = fern::Dispatch::new()

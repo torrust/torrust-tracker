@@ -2,11 +2,11 @@ use std::net::{IpAddr, SocketAddr};
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde;
-use serde::{Serialize};
+use serde::Serialize;
 
-use crate::protocol::common::{NumberOfBytesDef, AnnounceEventDef};
-use crate::protocol::utils::ser_instant;
 use crate::http::AnnounceRequest;
+use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef};
+use crate::protocol::utils::ser_instant;
 use crate::PeerId;
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize)]
@@ -26,7 +26,11 @@ pub struct TorrentPeer {
 }
 
 impl TorrentPeer {
-    pub fn from_udp_announce_request(announce_request: &aquatic_udp_protocol::AnnounceRequest, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
+    pub fn from_udp_announce_request(
+        announce_request: &aquatic_udp_protocol::AnnounceRequest,
+        remote_ip: IpAddr,
+        host_opt_ip: Option<IpAddr>,
+    ) -> Self {
         let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port.0);
 
         TorrentPeer {
@@ -40,7 +44,11 @@ impl TorrentPeer {
         }
     }
 
-    pub fn from_http_announce_request(announce_request: &AnnounceRequest, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
+    pub fn from_http_announce_request(
+        announce_request: &AnnounceRequest,
+        remote_ip: IpAddr,
+        host_opt_ip: Option<IpAddr>,
+    ) -> Self {
         let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port);
 
         let event: AnnounceEvent = if let Some(event) = &announce_request.event {
@@ -48,7 +56,7 @@ impl TorrentPeer {
                 "started" => AnnounceEvent::Started,
                 "stopped" => AnnounceEvent::Stopped,
                 "completed" => AnnounceEvent::Completed,
-                _ => AnnounceEvent::None
+                _ => AnnounceEvent::None,
             }
         } else {
             AnnounceEvent::None
@@ -74,5 +82,7 @@ impl TorrentPeer {
         }
     }
 
-    pub fn is_seeder(&self) -> bool { self.left.0 <= 0 && self.event != AnnounceEvent::Stopped }
+    pub fn is_seeder(&self) -> bool {
+        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+    }
 }

@@ -221,8 +221,9 @@ impl PeerId {
 
 impl Serialize for PeerId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer, {
+    where
+        S: serde::Serializer,
+    {
         let buff_size = self.0.len() * 2;
         let mut tmp: Vec<u8> = vec![0; buff_size];
         binascii::bin2hex(&self.0, &mut tmp).unwrap();

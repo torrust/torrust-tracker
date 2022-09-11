@@ -4,7 +4,23 @@ name: CI
 on: [push, pull_request]
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v1
+      - name: Check Rust Formatting
+        run: cargo fmt --check
+
   test:
+    needs: format
     runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: always
@@ -18,7 +34,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - uses: taiki-e/install-action@cargo-llvm-cov
       - uses: taiki-e/install-action@nextest
-      - name: Run tests
+      - name: Run Tests
         run: cargo llvm-cov nextest
 
   build:
@@ -37,9 +53,9 @@ jobs:
           profile: minimal
           toolchain: stable
       - uses: Swatinem/rust-cache@v1
-      - name: Build torrust tracker
+      - name: Build Torrust Tracker
         run: cargo build --release
-      - name: Upload build artifact
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v2
         with:
           name: torrust-tracker
@@ -49,7 +65,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download build artifact
+      - name: Download Build Artifact
         uses: actions/download-artifact@v2
         with:
           name: torrust-tracker
