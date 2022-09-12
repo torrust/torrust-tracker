@@ -2,6 +2,7 @@ use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
@@ -60,8 +61,8 @@ impl TorrentTracker {
         self.mode == TrackerMode::Listed || self.mode == TrackerMode::PrivateListed
     }
 
-    pub async fn generate_auth_key(&self, seconds_valid: u64) -> Result<AuthKey, database::Error> {
-        let auth_key = key::generate_auth_key(seconds_valid);
+    pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<AuthKey, database::Error> {
+        let auth_key = key::generate_auth_key(lifetime);
         self.database.add_key_to_keys(&auth_key).await?;
         self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
         Ok(auth_key)

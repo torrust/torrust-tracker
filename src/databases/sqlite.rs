@@ -7,6 +7,7 @@ use r2d2_sqlite::SqliteConnectionManager;
 
 use crate::databases::database;
 use crate::databases::database::{Database, Error};
+use crate::protocol::clock::clock::SinceUnixEpoch;
 use crate::tracker::key::AuthKey;
 use crate::InfoHash;
 
@@ -85,7 +86,7 @@ impl Database for SqliteDatabase {
 
             Ok(AuthKey {
                 key,
-                valid_until: Some(valid_until as u64),
+                valid_until: Some(SinceUnixEpoch::from_secs(valid_until as u64)),
             })
         })?;
 
@@ -192,7 +193,7 @@ impl Database for SqliteDatabase {
 
             Ok(AuthKey {
                 key,
-                valid_until: Some(valid_until_i64 as u64),
+                valid_until: Some(SinceUnixEpoch::from_secs(valid_until_i64 as u64)),
             })
         } else {
             Err(database::Error::QueryReturnedNoRows)
@@ -204,7 +205,7 @@ impl Database for SqliteDatabase {
 
         match conn.execute(
             "INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
-            [auth_key.key.to_string(), auth_key.valid_until.unwrap().to_string()],
+            [auth_key.key.to_string(), auth_key.valid_until.unwrap().as_secs().to_string()],
         ) {
             Ok(updated) => {
                 if updated > 0 {

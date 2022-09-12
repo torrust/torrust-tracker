@@ -1,19 +1,17 @@
 use std::net::SocketAddr;
-use std::time::SystemTime;
 
 use aquatic_udp_protocol::ConnectionId;
 
+use super::clock::clock::{DefaultClock, SinceUnixEpoch, Time};
+
 pub fn get_connection_id(remote_address: &SocketAddr) -> ConnectionId {
-    match std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) {
-        Ok(duration) => ConnectionId(((duration.as_secs() / 3600) | ((remote_address.port() as u64) << 36)) as i64),
-        Err(_) => ConnectionId(0x7FFFFFFFFFFFFFFF),
-    }
+    ConnectionId(((current_time() / 3600) | ((remote_address.port() as u64) << 36)) as i64)
 }
 
 pub fn current_time() -> u64 {
-    SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs()
+    DefaultClock::now().as_secs()
 }
 
-pub fn ser_instant<S: serde::Serializer>(inst: &std::time::Instant, ser: S) -> Result<S::Ok, S::Error> {
-    ser.serialize_u64(inst.elapsed().as_millis() as u64)
+pub fn ser_unix_time_value<S: serde::Serializer>(unix_time_value: &SinceUnixEpoch, ser: S) -> Result<S::Ok, S::Error> {
+    ser.serialize_u64(unix_time_value.as_millis() as u64)
 }
