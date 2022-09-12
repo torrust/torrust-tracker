@@ -16,3 +16,14 @@ pub mod protocol;
 pub mod setup;
 pub mod tracker;
 pub mod udp;
+
+#[macro_use]
+extern crate lazy_static;
+
+pub mod static_time {
+    use std::time::SystemTime;
+
+    lazy_static! {
+        pub static ref TIME_AT_APP_START: SystemTime = SystemTime::now();
+    }
+}

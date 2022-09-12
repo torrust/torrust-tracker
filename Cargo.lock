@@ -2341,6 +2341,7 @@ dependencies = [
  "fern",
  "futures",
  "hex",
+ "lazy_static",
  "log",
  "openssl",
  "percent-encoding",
