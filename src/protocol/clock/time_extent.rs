@@ -133,6 +133,7 @@ where
             }
         }
     }
+
     fn now_before(increment: &TimeExtentBase, sub_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
         match Clock::sub(sub_time) {
             None => None,
