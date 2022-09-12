@@ -2,12 +2,13 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{
-    AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads,
-    NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
+    AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ConnectionId, ErrorResponse,
+    NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse,
+    TorrentScrapeStatistics, TransactionId,
 };
 
+use super::connection_cookie::{check_connection_cookie, make_connection_cookie};
 use crate::peer::TorrentPeer;
-use crate::protocol::utils::get_connection_id;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::torrent::TorrentError;
 use crate::tracker::tracker::TorrentTracker;
@@ -69,7 +70,8 @@ pub async fn handle_connect(
     request: &ConnectRequest,
     tracker: Arc<TorrentTracker>,
 ) -> Result<Response, ServerError> {
-    let connection_id = get_connection_id(&remote_addr);
+    let connection_cookie = make_connection_cookie(&remote_addr);
+    let connection_id = ConnectionId(i64::from_le_bytes(connection_cookie));
 
     let response = Response::from(ConnectResponse {
         transaction_id: request.transaction_id,
@@ -94,6 +96,13 @@ pub async fn handle_announce(
     announce_request: &AnnounceRequest,
     tracker: Arc<TorrentTracker>,
 ) -> Result<Response, ServerError> {
+    match check_connection_cookie(&remote_addr, &announce_request.connection_id.0.to_be_bytes()) {
+        Ok(_) => {}
+        Err(e) => {
+            return Err(e);
+        }
+    }
+
     let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request.clone());
 
     authenticate(&wrapped_announce_request.info_hash, tracker.clone()).await?;
