@@ -236,3 +236,153 @@ fn handle_error(e: ServerError, transaction_id: TransactionId) -> Response {
         message: message.into(),
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+        sync::Arc,
+    };
+
+    use tokio::sync::{mpsc::error::SendError, RwLock, RwLockReadGuard};
+
+    use crate::{
+        protocol::utils::get_connection_id,
+        statistics::{
+            StatsTracker, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender, TrackerStatisticsRepository,
+            TrackerStatsService,
+        },
+        tracker::tracker::TorrentTracker,
+        udp::handle_connect,
+        Configuration,
+    };
+    use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
+    use async_trait::async_trait;
+
+    fn default_tracker_config() -> Arc<Configuration> {
+        Arc::new(Configuration::default())
+    }
+
+    fn initialized_tracker() -> Arc<TorrentTracker> {
+        Arc::new(TorrentTracker::new(default_tracker_config(), Box::new(StatsTracker::new_running_instance())).unwrap())
+    }
+
+    fn sample_remote_addr() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
+    }
+
+    fn sample_connect_request() -> ConnectRequest {
+        ConnectRequest {
+            transaction_id: TransactionId(0i32),
+        }
+    }
+
+    fn sample_ipv4_socket_address() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
+    }
+
+    fn sample_ipv6_socket_address() -> SocketAddr {
+        SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 8080)
+    }
+
+    #[tokio::test]
+    async fn a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request() {
+        let request = ConnectRequest {
+            transaction_id: TransactionId(0i32),
+        };
+
+        let response = handle_connect(sample_remote_addr(), &request, initialized_tracker())
+            .await
+            .unwrap();
+
+        assert_eq!(
+            response,
+            Response::Connect(ConnectResponse {
+                connection_id: get_connection_id(&sample_remote_addr()),
+                transaction_id: request.transaction_id
+            })
+        );
+    }
+
+    #[tokio::test]
+    async fn a_connect_response_should_contain_a_new_connection_id() {
+        let request = ConnectRequest {
+            transaction_id: TransactionId(0i32),
+        };
+
+        let response = handle_connect(sample_remote_addr(), &request, initialized_tracker())
+            .await
+            .unwrap();
+
+        assert_eq!(
+            response,
+            Response::Connect(ConnectResponse {
+                connection_id: get_connection_id(&sample_remote_addr()),
+                transaction_id: request.transaction_id
+            })
+        );
+    }
+
+    struct TrackerStatsServiceMock {
+        stats: Arc<RwLock<TrackerStatistics>>,
+        expected_event: Option<TrackerStatisticsEvent>,
+    }
+
+    impl TrackerStatsServiceMock {
+        fn new() -> Self {
+            Self {
+                stats: Arc::new(RwLock::new(TrackerStatistics::new())),
+                expected_event: None,
+            }
+        }
+
+        fn should_throw_event(&mut self, expected_event: TrackerStatisticsEvent) {
+            self.expected_event = Some(expected_event);
+        }
+    }
+
+    #[async_trait]
+    impl TrackerStatisticsEventSender for TrackerStatsServiceMock {
+        async fn send_event(&self, _event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
+            if self.expected_event.is_some() {
+                assert_eq!(_event, *self.expected_event.as_ref().unwrap());
+            }
+            None
+        }
+    }
+
+    #[async_trait]
+    impl TrackerStatisticsRepository for TrackerStatsServiceMock {
+        async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
+            self.stats.read().await
+        }
+    }
+
+    impl TrackerStatsService for TrackerStatsServiceMock {}
+
+    #[tokio::test]
+    async fn it_should_send_the_upd4_connect_event_when_a_client_tries_to_connect_using_a_ip4_socket_address() {
+        let mut tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
+
+        let client_socket_address = sample_ipv4_socket_address();
+        tracker_stats_service.should_throw_event(TrackerStatisticsEvent::Udp4Connect);
+
+        let torrent_tracker = Arc::new(TorrentTracker::new(default_tracker_config(), tracker_stats_service).unwrap());
+        handle_connect(client_socket_address, &sample_connect_request(), torrent_tracker)
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn it_should_send_the_upd6_connect_event_when_a_client_tries_to_connect_using_a_ip6_socket_address() {
+        let mut tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
+
+        let client_socket_address = sample_ipv6_socket_address();
+        tracker_stats_service.should_throw_event(TrackerStatisticsEvent::Udp6Connect);
+
+        let torrent_tracker = Arc::new(TorrentTracker::new(default_tracker_config(), tracker_stats_service).unwrap());
+        handle_connect(client_socket_address, &sample_connect_request(), torrent_tracker)
+            .await
+            .unwrap();
+    }
+}

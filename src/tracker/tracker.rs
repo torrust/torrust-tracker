@@ -12,7 +12,7 @@ use crate::databases::database::Database;
 use crate::mode::TrackerMode;
 use crate::peer::TorrentPeer;
 use crate::protocol::common::InfoHash;
-use crate::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsEvent};
+use crate::statistics::{TrackerStatistics, TrackerStatisticsEvent, TrackerStatsService};
 use crate::tracker::key;
 use crate::tracker::key::AuthKey;
 use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
@@ -24,19 +24,13 @@ pub struct TorrentTracker {
     keys: RwLock<std::collections::HashMap<String, AuthKey>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
-    stats_tracker: StatsTracker,
+    stats_tracker: Box<dyn TrackerStatsService>,
     database: Box<dyn Database>,
 }
 
 impl TorrentTracker {
-    pub fn new(config: Arc<Configuration>) -> Result<TorrentTracker, r2d2::Error> {
+    pub fn new(config: Arc<Configuration>, stats_tracker: Box<dyn TrackerStatsService>) -> Result<TorrentTracker, r2d2::Error> {
         let database = database::connect_database(&config.db_driver, &config.db_path)?;
-        let mut stats_tracker = StatsTracker::new();
-
-        // starts a thread for updating tracker stats
-        if config.tracker_usage_statistics {
-            stats_tracker.run_worker();
-        }
 
         Ok(TorrentTracker {
             config: config.clone(),
