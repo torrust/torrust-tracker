@@ -1,7 +1,7 @@
 use std::num::IntErrorKind;
 pub use std::time::Duration;
 
-pub type SinceUnixEpoch = Duration;
+pub type DurationSinceUnixEpoch = Duration;
 
 #[derive(Debug)]
 pub enum ClockType {
@@ -22,14 +22,14 @@ pub type DefaultClock = WorkingClock;
 pub type DefaultClock = StoppedClock;
 
 pub trait Time: Sized {
-    fn now() -> SinceUnixEpoch;
+    fn now() -> DurationSinceUnixEpoch;
 }
 
 pub trait TimeNow: Time {
-    fn add(add_time: &Duration) -> Option<SinceUnixEpoch> {
+    fn add(add_time: &Duration) -> Option<DurationSinceUnixEpoch> {
         Self::now().checked_add(*add_time)
     }
-    fn sub(sub_time: &Duration) -> Option<SinceUnixEpoch> {
+    fn sub(sub_time: &Duration) -> Option<DurationSinceUnixEpoch> {
         Self::now().checked_sub(*sub_time)
     }
 }
@@ -57,10 +57,10 @@ mod tests {
 mod working_clock {
     use std::time::SystemTime;
 
-    use super::{SinceUnixEpoch, Time, TimeNow, WorkingClock};
+    use super::{DurationSinceUnixEpoch, Time, TimeNow, WorkingClock};
 
     impl Time for WorkingClock {
-        fn now() -> SinceUnixEpoch {
+        fn now() -> DurationSinceUnixEpoch {
             SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap()
         }
     }
@@ -69,9 +69,9 @@ mod working_clock {
 }
 
 pub trait StoppedTime: TimeNow {
-    fn local_set(unix_time: &SinceUnixEpoch);
+    fn local_set(unix_time: &DurationSinceUnixEpoch);
     fn local_set_to_unix_epoch() {
-        Self::local_set(&SinceUnixEpoch::ZERO)
+        Self::local_set(&DurationSinceUnixEpoch::ZERO)
     }
     fn local_set_to_app_start_time();
     fn local_set_to_system_time_now();
@@ -84,10 +84,10 @@ mod stopped_clock {
     use std::num::IntErrorKind;
     use std::time::Duration;
 
-    use super::{SinceUnixEpoch, StoppedClock, StoppedTime, Time, TimeNow};
+    use super::{DurationSinceUnixEpoch, StoppedClock, StoppedTime, Time, TimeNow};
 
     impl Time for StoppedClock {
-        fn now() -> SinceUnixEpoch {
+        fn now() -> DurationSinceUnixEpoch {
             detail::FIXED_TIME.with(|time| {
                 return *time.borrow();
             })
@@ -97,7 +97,7 @@ mod stopped_clock {
     impl TimeNow for StoppedClock {}
 
     impl StoppedTime for StoppedClock {
-        fn local_set(unix_time: &SinceUnixEpoch) {
+        fn local_set(unix_time: &DurationSinceUnixEpoch) {
             detail::FIXED_TIME.with(|time| {
                 *time.borrow_mut() = *unix_time;
             })
@@ -147,11 +147,11 @@ mod stopped_clock {
         use std::thread;
         use std::time::Duration;
 
-        use crate::protocol::clock::clock::{SinceUnixEpoch, StoppedClock, StoppedTime, Time, TimeNow, WorkingClock};
+        use crate::protocol::clock::clock::{DurationSinceUnixEpoch, StoppedClock, StoppedTime, Time, TimeNow, WorkingClock};
 
         #[test]
         fn it_should_default_to_zero_when_testing() {
-            assert_eq!(StoppedClock::now(), SinceUnixEpoch::ZERO)
+            assert_eq!(StoppedClock::now(), DurationSinceUnixEpoch::ZERO)
         }
 
         #[test]
@@ -206,26 +206,26 @@ mod stopped_clock {
         use std::cell::RefCell;
         use std::time::SystemTime;
 
-        use crate::protocol::clock::clock::SinceUnixEpoch;
+        use crate::protocol::clock::clock::DurationSinceUnixEpoch;
         use crate::static_time;
 
-        pub fn get_app_start_time() -> SinceUnixEpoch {
+        pub fn get_app_start_time() -> DurationSinceUnixEpoch {
             (*static_time::TIME_AT_APP_START)
                 .duration_since(SystemTime::UNIX_EPOCH)
                 .unwrap()
         }
 
         #[cfg(not(test))]
-        pub fn get_default_fixed_time() -> SinceUnixEpoch {
+        pub fn get_default_fixed_time() -> DurationSinceUnixEpoch {
             get_app_start_time()
         }
 
         #[cfg(test)]
-        pub fn get_default_fixed_time() -> SinceUnixEpoch {
-            SinceUnixEpoch::ZERO
+        pub fn get_default_fixed_time() -> DurationSinceUnixEpoch {
+            DurationSinceUnixEpoch::ZERO
         }
 
-        thread_local!(pub static FIXED_TIME: RefCell<SinceUnixEpoch>   = RefCell::new(get_default_fixed_time()));
+        thread_local!(pub static FIXED_TIME: RefCell<DurationSinceUnixEpoch>   = RefCell::new(get_default_fixed_time()));
 
         #[cfg(test)]
         mod tests {

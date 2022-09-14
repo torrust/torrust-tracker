@@ -6,7 +6,7 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde::Serialize;
 
-use crate::protocol::clock::clock::{DefaultClock, SinceUnixEpoch, Time, TimeNow};
+use crate::protocol::clock::clock::{DefaultClock, DurationSinceUnixEpoch, Time, TimeNow};
 use crate::AUTH_KEY_LENGTH;
 
 pub fn generate_auth_key(lifetime: Duration) -> AuthKey {
@@ -25,7 +25,7 @@ pub fn generate_auth_key(lifetime: Duration) -> AuthKey {
 }
 
 pub fn verify_auth_key(auth_key: &AuthKey) -> Result<(), Error> {
-    let current_time: SinceUnixEpoch = DefaultClock::now();
+    let current_time: DurationSinceUnixEpoch = DefaultClock::now();
     if auth_key.valid_until.is_none() {
         return Err(Error::KeyInvalid);
     }
@@ -39,7 +39,7 @@ pub fn verify_auth_key(auth_key: &AuthKey) -> Result<(), Error> {
 #[derive(Serialize, Debug, Eq, PartialEq, Clone)]
 pub struct AuthKey {
     pub key: String,
-    pub valid_until: Option<SinceUnixEpoch>,
+    pub valid_until: Option<DurationSinceUnixEpoch>,
 }
 
 impl AuthKey {

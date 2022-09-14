@@ -5,7 +5,7 @@ use serde;
 use serde::Serialize;
 
 use crate::http::AnnounceRequest;
-use crate::protocol::clock::clock::{DefaultClock, SinceUnixEpoch, Time};
+use crate::protocol::clock::clock::{DefaultClock, DurationSinceUnixEpoch, Time};
 use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef};
 use crate::protocol::utils::ser_unix_time_value;
 use crate::PeerId;
@@ -15,7 +15,7 @@ pub struct TorrentPeer {
     pub peer_id: PeerId,
     pub peer_addr: SocketAddr,
     #[serde(serialize_with = "ser_unix_time_value")]
-    pub updated: SinceUnixEpoch,
+    pub updated: DurationSinceUnixEpoch,
     #[serde(with = "NumberOfBytesDef")]
     pub uploaded: NumberOfBytes,
     #[serde(with = "NumberOfBytesDef")]
