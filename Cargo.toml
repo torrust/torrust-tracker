@@ -19,7 +19,13 @@ lto = "fat"
 strip = true
 
 [dependencies]
-tokio = { version = "1.7", features = ["rt-multi-thread", "net", "sync", "macros", "signal"] }
+tokio = { version = "1.7", features = [
+    "rt-multi-thread",
+    "net",
+    "sync",
+    "macros",
+    "signal",
+] }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_bencode = "^0.2.3"
@@ -28,6 +34,7 @@ serde_with = "2.0.0"
 hex = "0.4.3"
 percent-encoding = "2.1.0"
 binascii = "0.1"
+lazy_static = "1.4.0"
 
 openssl = { version = "0.10.41", features = ["vendored"] }
 

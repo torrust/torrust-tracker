@@ -8,6 +8,9 @@ pub enum ServerError {
     #[error("info_hash is either missing or invalid")]
     InvalidInfoHash,
 
+    #[error("connection id could not be verified")]
+    InvalidConnectionId,
+
     #[error("could not find remote address")]
     AddressNotFound,
 

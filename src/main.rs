@@ -2,11 +2,14 @@ use std::sync::Arc;
 
 use log::info;
 use torrust_tracker::tracker::tracker::TorrentTracker;
-use torrust_tracker::{logging, setup, Configuration};
+use torrust_tracker::{logging, setup, static_time, Configuration};
 
 #[tokio::main]
 async fn main() {
     const CONFIG_PATH: &str = "config.toml";
+
+    // Set the time of Torrust app starting
+    lazy_static::initialize(&static_time::TIME_AT_APP_START);
 
     // Initialize Torrust config
     let config = match Configuration::load_from_file(CONFIG_PATH) {

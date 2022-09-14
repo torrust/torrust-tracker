@@ -1,9 +1,11 @@
 use std::net::{IpAddr, SocketAddr};
+use std::time::Duration;
 
 use aquatic_udp_protocol::AnnounceEvent;
 use serde::{Deserialize, Serialize};
 
 use crate::peer::TorrentPeer;
+use crate::protocol::clock::clock::{DefaultClock, TimeNow};
 use crate::{PeerId, MAX_SCRAPE_TORRENTS};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -75,8 +77,8 @@ impl TorrentEntry {
     }
 
     pub fn remove_inactive_peers(&mut self, max_peer_timeout: u32) {
-        self.peers
-            .retain(|_, peer| peer.updated.elapsed() > std::time::Duration::from_secs(max_peer_timeout as u64));
+        let current_cutoff = DefaultClock::sub(&Duration::from_secs(max_peer_timeout as u64)).unwrap_or_default();
+        self.peers.retain(|_, peer| peer.updated > current_cutoff);
     }
 }
 

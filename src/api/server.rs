@@ -2,6 +2,7 @@ use std::cmp::min;
 use std::collections::{HashMap, HashSet};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use warp::{filters, reply, serve, Filter};
@@ -268,7 +269,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
             (seconds_valid, tracker)
         })
         .and_then(|(seconds_valid, tracker): (u64, Arc<TorrentTracker>)| async move {
-            match tracker.generate_auth_key(seconds_valid).await {
+            match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
                 Ok(auth_key) => Ok(warp::reply::json(&auth_key)),
                 Err(..) => Err(warp::reject::custom(ActionStatus::Err {
                     reason: "failed to generate key".into(),

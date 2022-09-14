@@ -5,16 +5,17 @@ use serde;
 use serde::Serialize;
 
 use crate::http::AnnounceRequest;
+use crate::protocol::clock::clock::{DefaultClock, SinceUnixEpoch, Time};
 use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef};
-use crate::protocol::utils::ser_instant;
+use crate::protocol::utils::ser_unix_time_value;
 use crate::PeerId;
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize)]
 pub struct TorrentPeer {
     pub peer_id: PeerId,
     pub peer_addr: SocketAddr,
-    #[serde(serialize_with = "ser_instant")]
-    pub updated: std::time::Instant,
+    #[serde(serialize_with = "ser_unix_time_value")]
+    pub updated: SinceUnixEpoch,
     #[serde(with = "NumberOfBytesDef")]
     pub uploaded: NumberOfBytes,
     #[serde(with = "NumberOfBytesDef")]
@@ -36,7 +37,7 @@ impl TorrentPeer {
         TorrentPeer {
             peer_id: PeerId(announce_request.peer_id.0),
             peer_addr,
-            updated: std::time::Instant::now(),
+            updated: DefaultClock::now(),
             uploaded: announce_request.bytes_uploaded,
             downloaded: announce_request.bytes_downloaded,
             left: announce_request.bytes_left,
@@ -65,7 +66,7 @@ impl TorrentPeer {
         TorrentPeer {
             peer_id: announce_request.peer_id.clone(),
             peer_addr,
-            updated: std::time::Instant::now(),
+            updated: DefaultClock::now(),
             uploaded: NumberOfBytes(announce_request.uploaded as i64),
             downloaded: NumberOfBytes(announce_request.downloaded as i64),
             left: NumberOfBytes(announce_request.left as i64),
