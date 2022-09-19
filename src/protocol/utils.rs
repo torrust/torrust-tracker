@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use aquatic_udp_protocol::ConnectionId;
 
-use super::clock::clock::{DefaultClock, DurationSinceUnixEpoch, Time};
+use super::clock::{DefaultClock, DurationSinceUnixEpoch, Time};
 
 pub fn get_connection_id(remote_address: &SocketAddr) -> ConnectionId {
     ConnectionId(((current_time() / 3600) | ((remote_address.port() as u64) << 36)) as i64)

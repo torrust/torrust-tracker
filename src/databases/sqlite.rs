@@ -7,7 +7,7 @@ use r2d2_sqlite::SqliteConnectionManager;
 
 use crate::databases::database;
 use crate::databases::database::{Database, Error};
-use crate::protocol::clock::clock::DurationSinceUnixEpoch;
+use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::tracker::key::AuthKey;
 use crate::InfoHash;
 

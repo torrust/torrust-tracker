@@ -5,7 +5,7 @@ use aquatic_udp_protocol::AnnounceEvent;
 use serde::{Deserialize, Serialize};
 
 use crate::peer::TorrentPeer;
-use crate::protocol::clock::clock::{DefaultClock, TimeNow};
+use crate::protocol::clock::{DefaultClock, TimeNow};
 use crate::{PeerId, MAX_SCRAPE_TORRENTS};
 
 #[derive(Serialize, Deserialize, Clone)]

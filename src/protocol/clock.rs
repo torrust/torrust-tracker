@@ -38,7 +38,7 @@ pub trait TimeNow: Time {
 mod tests {
     use std::any::TypeId;
 
-    use crate::protocol::clock::clock::{DefaultClock, StoppedClock, Time, WorkingClock};
+    use crate::protocol::clock::{DefaultClock, StoppedClock, Time, WorkingClock};
 
     #[test]
     fn it_should_be_the_stopped_clock_as_default_when_testing() {
@@ -147,7 +147,7 @@ mod stopped_clock {
         use std::thread;
         use std::time::Duration;
 
-        use crate::protocol::clock::clock::{DurationSinceUnixEpoch, StoppedClock, StoppedTime, Time, TimeNow, WorkingClock};
+        use crate::protocol::clock::{DurationSinceUnixEpoch, StoppedClock, StoppedTime, Time, TimeNow, WorkingClock};
 
         #[test]
         fn it_should_default_to_zero_when_testing() {
@@ -206,7 +206,7 @@ mod stopped_clock {
         use std::cell::RefCell;
         use std::time::SystemTime;
 
-        use crate::protocol::clock::clock::DurationSinceUnixEpoch;
+        use crate::protocol::clock::DurationSinceUnixEpoch;
         use crate::static_time;
 
         pub fn get_app_start_time() -> DurationSinceUnixEpoch {
@@ -231,7 +231,7 @@ mod stopped_clock {
         mod tests {
             use std::time::Duration;
 
-            use crate::protocol::clock::clock::stopped_clock::detail::{get_app_start_time, get_default_fixed_time};
+            use crate::protocol::clock::stopped_clock::detail::{get_app_start_time, get_default_fixed_time};
 
             #[test]
             fn it_should_get_the_zero_start_time_when_testing() {
