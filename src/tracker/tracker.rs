@@ -90,9 +90,18 @@ impl TorrentTracker {
 
     // Adding torrents is not relevant to public trackers.
     pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
-        self.database.add_info_hash_to_whitelist(info_hash.clone()).await?;
-        self.whitelist.write().await.insert(info_hash.clone());
+        self.add_torrent_to_database_whitelist(info_hash).await?;
+        self.add_torrent_to_memory_whitelist(info_hash).await;
         Ok(())
+    }
+
+    async fn add_torrent_to_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
+        self.database.add_info_hash_to_whitelist(*info_hash).await?;
+        Ok(())
+    }
+
+    pub async fn add_torrent_to_memory_whitelist(&self, info_hash: &InfoHash) -> bool {
+        self.whitelist.write().await.insert(*info_hash)
     }
 
     // Removing torrents is not relevant to public trackers.

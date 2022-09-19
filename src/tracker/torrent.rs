@@ -8,7 +8,7 @@ use crate::peer::TorrentPeer;
 use crate::protocol::clock::clock::{DefaultClock, TimeNow};
 use crate::{PeerId, MAX_SCRAPE_TORRENTS};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TorrentEntry {
     #[serde(skip)]
     pub peers: std::collections::BTreeMap<PeerId, TorrentPeer>,
