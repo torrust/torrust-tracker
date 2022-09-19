@@ -244,24 +244,39 @@ mod tests {
         sync::Arc,
     };
 
+    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use async_trait::async_trait;
     use tokio::sync::{mpsc::error::SendError, RwLock, RwLockReadGuard};
 
     use crate::{
+        mode::TrackerMode,
+        peer::TorrentPeer,
+        protocol::clock::clock::{DefaultClock, Time},
         statistics::{
             StatsTracker, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender, TrackerStatisticsRepository,
             TrackerStatsService,
         },
         tracker::tracker::TorrentTracker,
-        Configuration,
+        Configuration, PeerId,
     };
 
     fn default_tracker_config() -> Arc<Configuration> {
         Arc::new(Configuration::default())
     }
 
-    fn initialized_tracker() -> Arc<TorrentTracker> {
-        Arc::new(TorrentTracker::new(default_tracker_config(), Box::new(StatsTracker::new_running_instance())).unwrap())
+    fn initialized_public_tracker() -> Arc<TorrentTracker> {
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Public).into());
+        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_running_instance())).unwrap())
+    }
+
+    fn initialized_private_tracker() -> Arc<TorrentTracker> {
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Private).into());
+        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_running_instance())).unwrap())
+    }
+
+    fn initialized_whitelisted_tracker() -> Arc<TorrentTracker> {
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Listed).into());
+        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_running_instance())).unwrap())
     }
 
     fn sample_ipv4_remote_addr() -> SocketAddr {
@@ -278,6 +293,44 @@ mod tests {
 
     fn sample_ipv6_socket_address() -> SocketAddr {
         SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 8080)
+    }
+
+    struct TorrentPeerBuilder {
+        peer: TorrentPeer,
+    }
+
+    impl TorrentPeerBuilder {
+        pub fn default() -> TorrentPeerBuilder {
+            let default_peer = TorrentPeer {
+                peer_id: PeerId([255u8; 20]),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+                updated: DefaultClock::now(),
+                uploaded: NumberOfBytes(0),
+                downloaded: NumberOfBytes(0),
+                left: NumberOfBytes(0),
+                event: AnnounceEvent::Started,
+            };
+            TorrentPeerBuilder { peer: default_peer }
+        }
+
+        pub fn with_peer_id(mut self, peer_id: PeerId) -> Self {
+            self.peer.peer_id = peer_id;
+            self
+        }
+
+        pub fn with_peer_addr(mut self, peer_addr: SocketAddr) -> Self {
+            self.peer.peer_addr = peer_addr;
+            self
+        }
+
+        pub fn with_bytes_left(mut self, left: i64) -> Self {
+            self.peer.left = NumberOfBytes(left);
+            self
+        }
+
+        pub fn into(self) -> TorrentPeer {
+            self.peer
+        }
     }
 
     struct TrackerStatsServiceMock {
@@ -317,6 +370,33 @@ mod tests {
 
     impl TrackerStatsService for TrackerStatsServiceMock {}
 
+    struct TrackerConfigurationBuilder {
+        configuration: Configuration,
+    }
+
+    impl TrackerConfigurationBuilder {
+        pub fn default() -> TrackerConfigurationBuilder {
+            let default_configuration = Configuration::default();
+            TrackerConfigurationBuilder {
+                configuration: default_configuration,
+            }
+        }
+
+        pub fn with_external_ip(mut self, external_ip: &str) -> Self {
+            self.configuration.external_ip = Some(external_ip.to_owned());
+            self
+        }
+
+        pub fn with_mode(mut self, mode: TrackerMode) -> Self {
+            self.configuration.mode = mode;
+            self
+        }
+
+        pub fn into(self) -> Configuration {
+            self.configuration
+        }
+    }
+
     mod connect_request {
 
         use std::sync::Arc;
@@ -327,7 +407,7 @@ mod tests {
             tracker::tracker::TorrentTracker,
             udp::{
                 handle_connect,
-                handlers::tests::{initialized_tracker, sample_ipv4_remote_addr},
+                handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr},
             },
         };
         use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
@@ -346,7 +426,7 @@ mod tests {
                 transaction_id: TransactionId(0i32),
             };
 
-            let response = handle_connect(sample_ipv4_remote_addr(), &request, initialized_tracker())
+            let response = handle_connect(sample_ipv4_remote_addr(), &request, initialized_public_tracker())
                 .await
                 .unwrap();
 
@@ -365,7 +445,7 @@ mod tests {
                 transaction_id: TransactionId(0i32),
             };
 
-            let response = handle_connect(sample_ipv4_remote_addr(), &request, initialized_tracker())
+            let response = handle_connect(sample_ipv4_remote_addr(), &request, initialized_public_tracker())
                 .await
                 .unwrap();
 
@@ -406,21 +486,13 @@ mod tests {
 
     mod announce_request {
 
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+        use std::net::Ipv4Addr;
 
         use aquatic_udp_protocol::{
             AnnounceEvent, AnnounceRequest, NumberOfBytes, NumberOfPeers, PeerId as AquaticPeerId, PeerKey, Port, TransactionId,
         };
 
-        use crate::{
-            peer::TorrentPeer,
-            protocol::{
-                clock::clock::{DefaultClock, Time},
-                utils::get_connection_id,
-            },
-            udp::handlers::tests::sample_ipv4_remote_addr,
-            Configuration, PeerId,
-        };
+        use crate::{protocol::utils::get_connection_id, udp::handlers::tests::sample_ipv4_remote_addr};
 
         struct AnnounceRequestBuilder {
             request: AnnounceRequest,
@@ -476,61 +548,6 @@ mod tests {
             }
         }
 
-        struct TorrentPeerBuilder {
-            peer: TorrentPeer,
-        }
-
-        impl TorrentPeerBuilder {
-            pub fn default() -> TorrentPeerBuilder {
-                let default_peer = TorrentPeer {
-                    peer_id: PeerId([255u8; 20]),
-                    peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-                    updated: DefaultClock::now(),
-                    uploaded: NumberOfBytes(0),
-                    downloaded: NumberOfBytes(0),
-                    left: NumberOfBytes(0),
-                    event: AnnounceEvent::Started,
-                };
-                TorrentPeerBuilder { peer: default_peer }
-            }
-
-            pub fn with_peer_id(mut self, peer_id: PeerId) -> Self {
-                self.peer.peer_id = peer_id;
-                self
-            }
-
-            pub fn with_peer_addr(mut self, peer_addr: SocketAddr) -> Self {
-                self.peer.peer_addr = peer_addr;
-                self
-            }
-
-            pub fn into(self) -> TorrentPeer {
-                self.peer
-            }
-        }
-
-        struct TrackerConfigurationBuilder {
-            configuration: Configuration,
-        }
-
-        impl TrackerConfigurationBuilder {
-            pub fn default() -> TrackerConfigurationBuilder {
-                let default_configuration = Configuration::default();
-                TrackerConfigurationBuilder {
-                    configuration: default_configuration,
-                }
-            }
-
-            pub fn with_external_ip(mut self, external_ip: &str) -> Self {
-                self.configuration.external_ip = Some(external_ip.to_owned());
-                self
-            }
-
-            pub fn into(self) -> Configuration {
-                self.configuration
-            }
-        }
-
         mod using_ipv4 {
 
             use std::{
@@ -549,8 +566,8 @@ mod tests {
                 udp::{
                     handle_announce,
                     handlers::tests::{
-                        announce_request::{AnnounceRequestBuilder, TorrentPeerBuilder},
-                        default_tracker_config, initialized_tracker, sample_ipv4_socket_address, TrackerStatsServiceMock,
+                        announce_request::AnnounceRequestBuilder, default_tracker_config, initialized_public_tracker,
+                        sample_ipv4_socket_address, TorrentPeerBuilder, TrackerStatsServiceMock,
                     },
                 },
                 PeerId,
@@ -558,7 +575,7 @@ mod tests {
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
-                let tracker = initialized_tracker();
+                let tracker = initialized_public_tracker();
 
                 let client_ip = Ipv4Addr::new(126, 0, 0, 1);
                 let client_port = 8080;
@@ -590,7 +607,9 @@ mod tests {
                 let request = AnnounceRequestBuilder::default().into();
                 let remote_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
 
-                let response = handle_announce(remote_addr, &request, initialized_tracker()).await.unwrap();
+                let response = handle_announce(remote_addr, &request, initialized_public_tracker())
+                    .await
+                    .unwrap();
 
                 let empty_peer_vector: Vec<aquatic_udp_protocol::ResponsePeer<Ipv4Addr>> = vec![];
                 assert_eq!(
@@ -611,7 +630,7 @@ mod tests {
                 // From the BEP 15 (https://www.bittorrent.org/beps/bep_0015.html):
                 // "Do note that most trackers will only honor the IP address field under limited circumstances."
 
-                let tracker = initialized_tracker();
+                let tracker = initialized_public_tracker();
 
                 let info_hash = AquaticInfoHash([0u8; 20]);
                 let peer_id = AquaticPeerId([255u8; 20]);
@@ -663,7 +682,7 @@ mod tests {
 
             #[tokio::test]
             async fn when_the_announce_request_comes_from_a_client_using_ipv4_the_response_should_not_include_peers_using_ipv6() {
-                let tracker = initialized_tracker();
+                let tracker = initialized_public_tracker();
 
                 add_a_torrent_peer_using_ipv6(tracker.clone()).await;
 
@@ -703,8 +722,7 @@ mod tests {
                     udp::{
                         handle_announce,
                         handlers::tests::{
-                            announce_request::{AnnounceRequestBuilder, TorrentPeerBuilder},
-                            initialized_tracker,
+                            announce_request::AnnounceRequestBuilder, initialized_public_tracker, TorrentPeerBuilder,
                         },
                     },
                     PeerId,
@@ -712,7 +730,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration_if_defined() {
-                    let tracker = initialized_tracker();
+                    let tracker = initialized_public_tracker();
 
                     let client_ip = Ipv4Addr::new(127, 0, 0, 1);
                     let client_port = 8080;
@@ -762,8 +780,8 @@ mod tests {
                 udp::{
                     handle_announce,
                     handlers::tests::{
-                        announce_request::{AnnounceRequestBuilder, TorrentPeerBuilder},
-                        default_tracker_config, initialized_tracker, sample_ipv6_remote_addr, TrackerStatsServiceMock,
+                        announce_request::AnnounceRequestBuilder, default_tracker_config, initialized_public_tracker,
+                        sample_ipv6_remote_addr, TorrentPeerBuilder, TrackerStatsServiceMock,
                     },
                 },
                 PeerId,
@@ -771,7 +789,7 @@ mod tests {
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
-                let tracker = initialized_tracker();
+                let tracker = initialized_public_tracker();
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
@@ -806,7 +824,9 @@ mod tests {
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
                 let remote_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), 8080);
 
-                let response = handle_announce(remote_addr, &request, initialized_tracker()).await.unwrap();
+                let response = handle_announce(remote_addr, &request, initialized_public_tracker())
+                    .await
+                    .unwrap();
 
                 let empty_peer_vector: Vec<aquatic_udp_protocol::ResponsePeer<Ipv6Addr>> = vec![];
                 assert_eq!(
@@ -827,7 +847,7 @@ mod tests {
                 // From the BEP 15 (https://www.bittorrent.org/beps/bep_0015.html):
                 // "Do note that most trackers will only honor the IP address field under limited circumstances."
 
-                let tracker = initialized_tracker();
+                let tracker = initialized_public_tracker();
 
                 let info_hash = AquaticInfoHash([0u8; 20]);
                 let peer_id = AquaticPeerId([255u8; 20]);
@@ -882,7 +902,7 @@ mod tests {
 
             #[tokio::test]
             async fn when_the_announce_request_comes_from_a_client_using_ipv6_the_response_should_not_include_peers_using_ipv4() {
-                let tracker = initialized_tracker();
+                let tracker = initialized_public_tracker();
 
                 add_a_torrent_peer_using_ipv4(tracker.clone()).await;
 
@@ -926,7 +946,7 @@ mod tests {
                     tracker::tracker::TorrentTracker,
                     udp::{
                         handle_announce,
-                        handlers::tests::announce_request::{AnnounceRequestBuilder, TrackerConfigurationBuilder},
+                        handlers::tests::{announce_request::AnnounceRequestBuilder, TrackerConfigurationBuilder},
                     },
                 };
 
@@ -968,6 +988,298 @@ mod tests {
                     // ::127.0.0.1 is the IPV6 representation for the IPV4 address 127.0.0.1.
                     assert_eq!(Ok(peers[0].peer_addr.ip()), "::126.0.0.1".parse());
                 }
+            }
+        }
+    }
+
+    mod scrape_request {
+        use std::{net::SocketAddr, sync::Arc};
+
+        use aquatic_udp_protocol::{
+            InfoHash, NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
+            TransactionId,
+        };
+
+        use crate::{
+            protocol::utils::get_connection_id,
+            tracker::tracker::TorrentTracker,
+            udp::{
+                handle_scrape,
+                handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr},
+            },
+            PeerId,
+        };
+
+        use super::TorrentPeerBuilder;
+
+        fn zeroed_torrent_statistics() -> TorrentScrapeStatistics {
+            TorrentScrapeStatistics {
+                seeders: NumberOfPeers(0),
+                completed: NumberOfDownloads(0),
+                leechers: NumberOfPeers(0),
+            }
+        }
+
+        #[tokio::test]
+        async fn should_return_no_stats_when_the_tracker_does_not_have_any_torrent() {
+            let remote_addr = sample_ipv4_remote_addr();
+
+            let info_hash = InfoHash([0u8; 20]);
+            let info_hashes = vec![info_hash];
+
+            let request = ScrapeRequest {
+                connection_id: get_connection_id(&remote_addr),
+                transaction_id: TransactionId(0i32),
+                info_hashes,
+            };
+
+            let response = handle_scrape(remote_addr, &request, initialized_public_tracker())
+                .await
+                .unwrap();
+
+            let expected_torrent_stats = vec![zeroed_torrent_statistics()];
+
+            assert_eq!(
+                response,
+                Response::from(ScrapeResponse {
+                    transaction_id: request.transaction_id,
+                    torrent_stats: expected_torrent_stats
+                })
+            );
+        }
+
+        async fn add_a_seeder(tracker: Arc<TorrentTracker>, remote_addr: &SocketAddr, info_hash: &InfoHash) {
+            let peer_id = PeerId([255u8; 20]);
+
+            let peer = TorrentPeerBuilder::default()
+                .with_peer_id(PeerId(peer_id.0))
+                .with_peer_addr(*remote_addr)
+                .with_bytes_left(0)
+                .into();
+
+            tracker
+                .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer)
+                .await;
+        }
+
+        fn build_scrape_request(remote_addr: &SocketAddr, info_hash: &InfoHash) -> ScrapeRequest {
+            let info_hashes = vec![*info_hash];
+
+            ScrapeRequest {
+                connection_id: get_connection_id(remote_addr),
+                transaction_id: TransactionId(0i32),
+                info_hashes,
+            }
+        }
+
+        async fn add_a_sample_seeder_and_scrape(tracker: Arc<TorrentTracker>) -> Response {
+            let remote_addr = sample_ipv4_remote_addr();
+            let info_hash = InfoHash([0u8; 20]);
+
+            add_a_seeder(tracker.clone(), &remote_addr, &info_hash).await;
+
+            let request = build_scrape_request(&remote_addr, &info_hash);
+
+            handle_scrape(remote_addr, &request, tracker.clone()).await.unwrap()
+        }
+
+        fn match_scrape_response(response: Response) -> Option<ScrapeResponse> {
+            match response {
+                Response::Scrape(scrape_response) => Some(scrape_response),
+                _ => None,
+            }
+        }
+
+        mod with_a_public_tracker {
+            use aquatic_udp_protocol::{NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
+
+            use crate::udp::handlers::tests::{
+                initialized_public_tracker,
+                scrape_request::{add_a_sample_seeder_and_scrape, match_scrape_response},
+            };
+
+            #[tokio::test]
+            async fn should_return_torrent_statistics_when_the_tracker_has_the_requested_torrent() {
+                let tracker = initialized_public_tracker();
+
+                let torrent_stats = match_scrape_response(add_a_sample_seeder_and_scrape(tracker.clone()).await);
+
+                let expected_torrent_stats = vec![TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(1),
+                    completed: NumberOfDownloads(0),
+                    leechers: NumberOfPeers(0),
+                }];
+
+                assert_eq!(torrent_stats.unwrap().torrent_stats, expected_torrent_stats);
+            }
+        }
+
+        mod with_a_private_tracker {
+
+            use aquatic_udp_protocol::InfoHash;
+
+            use crate::udp::{
+                handle_scrape,
+                handlers::tests::{
+                    initialized_private_tracker, sample_ipv4_remote_addr,
+                    scrape_request::{
+                        add_a_sample_seeder_and_scrape, build_scrape_request, match_scrape_response, zeroed_torrent_statistics,
+                    },
+                },
+            };
+
+            #[tokio::test]
+            async fn should_return_zeroed_statistics_when_the_tracker_does_not_have_the_requested_torrent() {
+                let tracker = initialized_private_tracker();
+
+                let remote_addr = sample_ipv4_remote_addr();
+                let non_existing_info_hash = InfoHash([0u8; 20]);
+
+                let request = build_scrape_request(&remote_addr, &non_existing_info_hash);
+
+                let torrent_stats =
+                    match_scrape_response(handle_scrape(remote_addr, &request, tracker.clone()).await.unwrap()).unwrap();
+
+                let expected_torrent_stats = vec![zeroed_torrent_statistics()];
+
+                assert_eq!(torrent_stats.torrent_stats, expected_torrent_stats);
+            }
+
+            #[tokio::test]
+            async fn should_return_zeroed_statistics_when_the_tracker_has_the_requested_torrent_because_authenticated_requests_are_not_supported_in_udp_tracker(
+            ) {
+                let tracker = initialized_private_tracker();
+
+                let torrent_stats = match_scrape_response(add_a_sample_seeder_and_scrape(tracker.clone()).await).unwrap();
+
+                let expected_torrent_stats = vec![zeroed_torrent_statistics()];
+
+                assert_eq!(torrent_stats.torrent_stats, expected_torrent_stats);
+            }
+        }
+
+        mod with_a_whitelisted_tracker {
+            use aquatic_udp_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
+
+            use crate::udp::{
+                handle_scrape,
+                handlers::tests::{
+                    initialized_whitelisted_tracker, sample_ipv4_remote_addr,
+                    scrape_request::{add_a_seeder, build_scrape_request, match_scrape_response, zeroed_torrent_statistics},
+                },
+            };
+
+            #[tokio::test]
+            async fn should_return_the_torrent_statistics_when_the_requested_torrent_is_whitelisted() {
+                let tracker = initialized_whitelisted_tracker();
+
+                let remote_addr = sample_ipv4_remote_addr();
+                let info_hash = InfoHash([0u8; 20]);
+
+                add_a_seeder(tracker.clone(), &remote_addr, &info_hash).await;
+
+                tracker.add_torrent_to_memory_whitelist(&info_hash.0.into()).await;
+
+                let request = build_scrape_request(&remote_addr, &info_hash);
+
+                let torrent_stats =
+                    match_scrape_response(handle_scrape(remote_addr, &request, tracker.clone()).await.unwrap()).unwrap();
+
+                let expected_torrent_stats = vec![TorrentScrapeStatistics {
+                    seeders: NumberOfPeers(1),
+                    completed: NumberOfDownloads(0),
+                    leechers: NumberOfPeers(0),
+                }];
+
+                assert_eq!(torrent_stats.torrent_stats, expected_torrent_stats);
+            }
+
+            #[tokio::test]
+            async fn should_return_zeroed_statistics_when_the_requested_torrent_is_not_whitelisted() {
+                let tracker = initialized_whitelisted_tracker();
+
+                let remote_addr = sample_ipv4_remote_addr();
+                let info_hash = InfoHash([0u8; 20]);
+
+                add_a_seeder(tracker.clone(), &remote_addr, &info_hash).await;
+
+                let request = build_scrape_request(&remote_addr, &info_hash);
+
+                let torrent_stats =
+                    match_scrape_response(handle_scrape(remote_addr, &request, tracker.clone()).await.unwrap()).unwrap();
+
+                let expected_torrent_stats = vec![zeroed_torrent_statistics()];
+
+                assert_eq!(torrent_stats.torrent_stats, expected_torrent_stats);
+            }
+        }
+
+        fn sample_scrape_request(remote_addr: &SocketAddr) -> ScrapeRequest {
+            let info_hash = InfoHash([0u8; 20]);
+            let info_hashes = vec![info_hash];
+
+            ScrapeRequest {
+                connection_id: get_connection_id(remote_addr),
+                transaction_id: TransactionId(0i32),
+                info_hashes,
+            }
+        }
+
+        mod using_ipv4 {
+            use std::sync::Arc;
+
+            use crate::{
+                statistics::TrackerStatisticsEvent,
+                tracker::tracker::TorrentTracker,
+                udp::handlers::{
+                    handle_scrape,
+                    tests::{default_tracker_config, sample_ipv4_remote_addr, TrackerStatsServiceMock},
+                },
+            };
+
+            use super::sample_scrape_request;
+
+            #[tokio::test]
+            async fn should_send_the_upd4_scrape_event() {
+                let mut tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
+
+                tracker_stats_service.should_throw_event(TrackerStatisticsEvent::Udp4Scrape);
+
+                let remote_addr = sample_ipv4_remote_addr();
+                let tracker = Arc::new(TorrentTracker::new(default_tracker_config(), tracker_stats_service).unwrap());
+
+                handle_scrape(remote_addr, &sample_scrape_request(&remote_addr), tracker.clone())
+                    .await
+                    .unwrap();
+            }
+        }
+
+        mod using_ipv6 {
+            use std::sync::Arc;
+
+            use crate::{
+                statistics::TrackerStatisticsEvent,
+                tracker::tracker::TorrentTracker,
+                udp::handlers::{
+                    handle_scrape,
+                    tests::{default_tracker_config, sample_ipv6_remote_addr, TrackerStatsServiceMock},
+                },
+            };
+
+            use super::sample_scrape_request;
+
+            #[tokio::test]
+            async fn should_send_the_upd6_scrape_event() {
+                let mut tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
+
+                tracker_stats_service.should_throw_event(TrackerStatisticsEvent::Udp6Scrape);
+
+                let remote_addr = sample_ipv6_remote_addr();
+                let tracker = Arc::new(TorrentTracker::new(default_tracker_config(), tracker_stats_service).unwrap());
+
+                handle_scrape(remote_addr, &sample_scrape_request(&remote_addr), tracker.clone())
+                    .await
+                    .unwrap();
             }
         }
     }
