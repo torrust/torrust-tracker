@@ -5,10 +5,9 @@ use serde;
 use serde::Serialize;
 
 use crate::http::AnnounceRequest;
-use crate::protocol::clock::clock::{DefaultClock, DurationSinceUnixEpoch, Time};
-use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef};
+use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, Time};
+use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef, PeerId};
 use crate::protocol::utils::ser_unix_time_value;
-use crate::PeerId;
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize)]
 pub struct TorrentPeer {

@@ -6,7 +6,7 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde::Serialize;
 
-use crate::protocol::clock::clock::{DefaultClock, DurationSinceUnixEpoch, Time, TimeNow};
+use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, Time, TimeNow};
 use crate::AUTH_KEY_LENGTH;
 
 pub fn generate_auth_key(lifetime: Duration) -> AuthKey {
@@ -85,7 +85,7 @@ impl From<r2d2_sqlite::rusqlite::Error> for Error {
 mod tests {
     use std::time::Duration;
 
-    use crate::protocol::clock::clock::{DefaultClock, StoppedTime};
+    use crate::protocol::clock::{DefaultClock, StoppedTime};
     use crate::tracker::key;
 
     #[test]
