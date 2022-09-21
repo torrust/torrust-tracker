@@ -157,7 +157,7 @@ pub type DefaultTimeExtentMaker = StoppedTimeExtentMaker;
 #[cfg(test)]
 mod test {
 
-    use crate::protocol::clock::timeextent::{
+    use crate::protocol::clock::time_extent::{
         checked_duration_from_nanos, DefaultTimeExtentMaker, Extent, MakeTimeExtent, TimeExtent, TimeExtentBase,
         TimeExtentProduct,
     };

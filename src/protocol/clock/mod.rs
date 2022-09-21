@@ -247,4 +247,4 @@ mod stopped_clock {
     }
 }
 
-pub mod timeextent;
+pub mod time_extent;
