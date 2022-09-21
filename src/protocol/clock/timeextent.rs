@@ -142,23 +142,23 @@ where
 #[derive(Debug)]
 pub struct TimeExtentMaker<const CLOCK_TYPE: usize> {}
 
-pub type WorkingClockTimeExtentMaker = TimeExtentMaker<{ ClockType::WorkingClock as usize }>;
-pub type StoppedClockTimeExtentMaker = TimeExtentMaker<{ ClockType::StoppedClock as usize }>;
+pub type WorkingTimeExtentMaker = TimeExtentMaker<{ ClockType::WorkingClock as usize }>;
+pub type StoppedTimeExtentMaker = TimeExtentMaker<{ ClockType::StoppedClock as usize }>;
 
-impl MakeTimeExtent<WorkingClock> for WorkingClockTimeExtentMaker {}
-impl MakeTimeExtent<StoppedClock> for StoppedClockTimeExtentMaker {}
+impl MakeTimeExtent<WorkingClock> for WorkingTimeExtentMaker {}
+impl MakeTimeExtent<StoppedClock> for StoppedTimeExtentMaker {}
 
 #[cfg(not(test))]
-pub type DefaultClockTimeExtentMaker = WorkingClockTimeExtentMaker;
+pub type DefaultTimeExtentMaker = WorkingTimeExtentMaker;
 
 #[cfg(test)]
-pub type DefaultClockTimeExtentMaker = StoppedClockTimeExtentMaker;
+pub type DefaultTimeExtentMaker = StoppedTimeExtentMaker;
 
 #[cfg(test)]
 mod test {
 
     use crate::protocol::clock::timeextent::{
-        checked_duration_from_nanos, DefaultClockTimeExtentMaker, Extent, MakeTimeExtent, TimeExtent, TimeExtentBase,
+        checked_duration_from_nanos, DefaultTimeExtentMaker, Extent, MakeTimeExtent, TimeExtent, TimeExtentBase,
         TimeExtentProduct,
     };
     use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, StoppedTime};
@@ -389,7 +389,7 @@ mod test {
         #[test]
         fn it_should_return_a_time_extent() {
             assert_eq!(
-                DefaultClockTimeExtentMaker::now(&TIME_EXTENT_VAL.increment).unwrap().unwrap(),
+                DefaultTimeExtentMaker::now(&TIME_EXTENT_VAL.increment).unwrap().unwrap(),
                 TimeExtent {
                     increment: TIME_EXTENT_VAL.increment,
                     amount: 0
@@ -399,21 +399,21 @@ mod test {
             DefaultClock::local_set(&DurationSinceUnixEpoch::from_secs(TIME_EXTENT_VAL.amount * 2));
 
             assert_eq!(
-                DefaultClockTimeExtentMaker::now(&TIME_EXTENT_VAL.increment).unwrap().unwrap(),
+                DefaultTimeExtentMaker::now(&TIME_EXTENT_VAL.increment).unwrap().unwrap(),
                 TIME_EXTENT_VAL
             );
         }
 
         #[test]
         fn it_should_return_none() {
-            assert_eq!(DefaultClockTimeExtentMaker::now(&TimeExtentBase::ZERO), None);
+            assert_eq!(DefaultTimeExtentMaker::now(&TimeExtentBase::ZERO), None);
         }
 
         #[test]
         fn it_should_return_tryfrom_int_error() {
             DefaultClock::local_set(&DurationSinceUnixEpoch::MAX);
             assert_eq!(
-                DefaultClockTimeExtentMaker::now(&TimeExtentBase::from_millis(1))
+                DefaultTimeExtentMaker::now(&TimeExtentBase::from_millis(1))
                     .unwrap()
                     .unwrap_err(),
                 u64::try_from(u128::MAX).unwrap_err()
@@ -429,12 +429,9 @@ mod test {
         #[test]
         fn it_should_return_a_time_extent() {
             assert_eq!(
-                DefaultClockTimeExtentMaker::now_after(
-                    &TIME_EXTENT_VAL.increment,
-                    &Duration::from_secs(TIME_EXTENT_VAL.amount * 2)
-                )
-                .unwrap()
-                .unwrap(),
+                DefaultTimeExtentMaker::now_after(&TIME_EXTENT_VAL.increment, &Duration::from_secs(TIME_EXTENT_VAL.amount * 2))
+                    .unwrap()
+                    .unwrap(),
                 TIME_EXTENT_VAL
             );
         }
@@ -442,22 +439,19 @@ mod test {
         #[test]
         fn it_should_return_none() {
             assert_eq!(
-                DefaultClockTimeExtentMaker::now_after(&TimeExtentBase::ZERO, &Duration::ZERO),
+                DefaultTimeExtentMaker::now_after(&TimeExtentBase::ZERO, &Duration::ZERO),
                 None
             );
 
             DefaultClock::local_set(&DurationSinceUnixEpoch::MAX);
-            assert_eq!(
-                DefaultClockTimeExtentMaker::now_after(&TimeExtentBase::ZERO, &Duration::MAX),
-                None
-            );
+            assert_eq!(DefaultTimeExtentMaker::now_after(&TimeExtentBase::ZERO, &Duration::MAX), None);
         }
 
         #[test]
         fn it_should_return_tryfrom_int_error() {
             DefaultClock::local_set(&DurationSinceUnixEpoch::MAX);
             assert_eq!(
-                DefaultClockTimeExtentMaker::now_after(&TimeExtentBase::from_millis(1), &Duration::ZERO)
+                DefaultTimeExtentMaker::now_after(&TimeExtentBase::from_millis(1), &Duration::ZERO)
                     .unwrap()
                     .unwrap_err(),
                 u64::try_from(u128::MAX).unwrap_err()
@@ -474,7 +468,7 @@ mod test {
             DefaultClock::local_set(&DurationSinceUnixEpoch::MAX);
 
             assert_eq!(
-                DefaultClockTimeExtentMaker::now_before(
+                DefaultTimeExtentMaker::now_before(
                     &TimeExtentBase::from_secs(u32::MAX as u64),
                     &Duration::from_secs(u32::MAX as u64)
                 )
@@ -490,12 +484,12 @@ mod test {
         #[test]
         fn it_should_return_none() {
             assert_eq!(
-                DefaultClockTimeExtentMaker::now_before(&TimeExtentBase::ZERO, &Duration::ZERO),
+                DefaultTimeExtentMaker::now_before(&TimeExtentBase::ZERO, &Duration::ZERO),
                 None
             );
 
             assert_eq!(
-                DefaultClockTimeExtentMaker::now_before(&TimeExtentBase::ZERO, &Duration::MAX),
+                DefaultTimeExtentMaker::now_before(&TimeExtentBase::ZERO, &Duration::MAX),
                 None
             );
         }
@@ -504,7 +498,7 @@ mod test {
         fn it_should_return_tryfrom_int_error() {
             DefaultClock::local_set(&DurationSinceUnixEpoch::MAX);
             assert_eq!(
-                DefaultClockTimeExtentMaker::now_before(&TimeExtentBase::from_millis(1), &Duration::ZERO)
+                DefaultTimeExtentMaker::now_before(&TimeExtentBase::from_millis(1), &Duration::ZERO)
                     .unwrap()
                     .unwrap_err(),
                 u64::try_from(u128::MAX).unwrap_err()
