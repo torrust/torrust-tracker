@@ -1,5 +1,5 @@
 use std::num::IntErrorKind;
-pub use std::time::Duration;
+use std::time::Duration;
 
 pub type DurationSinceUnixEpoch = Duration;
 
@@ -240,9 +240,11 @@ mod stopped_clock {
 
             #[test]
             fn it_should_get_app_start_time() {
-                const TIME_AT_WRITING_THIS_TEST: Duration = Duration::new(1662983731, 000022312);
+                const TIME_AT_WRITING_THIS_TEST: Duration = Duration::new(1662983731, 22312);
                 assert!(get_app_start_time() > TIME_AT_WRITING_THIS_TEST);
             }
         }
     }
 }
+
+pub mod time_extent;
