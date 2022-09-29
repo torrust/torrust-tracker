@@ -1,12 +1,12 @@
+use async_trait::async_trait;
 use std::sync::Arc;
-
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::Sender;
 use tokio::sync::{mpsc, RwLock, RwLockReadGuard};
 
 const CHANNEL_BUFFER_SIZE: usize = 65_535;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TrackerStatisticsEvent {
     Tcp4Announce,
     Tcp4Scrape,
@@ -61,22 +61,16 @@ pub struct StatsTracker {
 }
 
 impl StatsTracker {
+    pub fn new_running_instance() -> Self {
+        let mut stats_tracker = Self::new();
+        stats_tracker.run_worker();
+        stats_tracker
+    }
+
     pub fn new() -> Self {
         Self {
             channel_sender: None,
             stats: Arc::new(RwLock::new(TrackerStatistics::new())),
-        }
-    }
-
-    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
-        self.stats.read().await
-    }
-
-    pub async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
-        if let Some(tx) = &self.channel_sender {
-            Some(tx.send(event).await)
-        } else {
-            None
         }
     }
 
@@ -134,3 +128,35 @@ impl StatsTracker {
         });
     }
 }
+
+#[async_trait]
+pub trait TrackerStatisticsEventSender: Sync + Send {
+    async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>>;
+}
+
+#[async_trait]
+impl TrackerStatisticsEventSender for StatsTracker {
+    async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
+        if let Some(tx) = &self.channel_sender {
+            Some(tx.send(event).await)
+        } else {
+            None
+        }
+    }
+}
+
+#[async_trait]
+pub trait TrackerStatisticsRepository: Sync + Send {
+    async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics>;
+}
+
+#[async_trait]
+impl TrackerStatisticsRepository for StatsTracker {
+    async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
+        self.stats.read().await
+    }
+}
+
+pub trait TrackerStatsService: TrackerStatisticsEventSender + TrackerStatisticsRepository {}
+
+impl TrackerStatsService for StatsTracker {}

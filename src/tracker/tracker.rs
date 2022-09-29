@@ -12,7 +12,7 @@ use crate::databases::database::Database;
 use crate::mode::TrackerMode;
 use crate::peer::TorrentPeer;
 use crate::protocol::common::InfoHash;
-use crate::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsEvent};
+use crate::statistics::{TrackerStatistics, TrackerStatisticsEvent, TrackerStatsService};
 use crate::tracker::key;
 use crate::tracker::key::AuthKey;
 use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
@@ -24,19 +24,13 @@ pub struct TorrentTracker {
     keys: RwLock<std::collections::HashMap<String, AuthKey>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
-    stats_tracker: StatsTracker,
+    stats_tracker: Box<dyn TrackerStatsService>,
     database: Box<dyn Database>,
 }
 
 impl TorrentTracker {
-    pub fn new(config: Arc<Configuration>) -> Result<TorrentTracker, r2d2::Error> {
+    pub fn new(config: Arc<Configuration>, stats_tracker: Box<dyn TrackerStatsService>) -> Result<TorrentTracker, r2d2::Error> {
         let database = database::connect_database(&config.db_driver, &config.db_path)?;
-        let mut stats_tracker = StatsTracker::new();
-
-        // starts a thread for updating tracker stats
-        if config.tracker_usage_statistics {
-            stats_tracker.run_worker();
-        }
 
         Ok(TorrentTracker {
             config: config.clone(),
@@ -96,9 +90,18 @@ impl TorrentTracker {
 
     // Adding torrents is not relevant to public trackers.
     pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
-        self.database.add_info_hash_to_whitelist(info_hash.clone()).await?;
-        self.whitelist.write().await.insert(info_hash.clone());
+        self.add_torrent_to_database_whitelist(info_hash).await?;
+        self.add_torrent_to_memory_whitelist(info_hash).await;
         Ok(())
+    }
+
+    async fn add_torrent_to_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
+        self.database.add_info_hash_to_whitelist(*info_hash).await?;
+        Ok(())
+    }
+
+    pub async fn add_torrent_to_memory_whitelist(&self, info_hash: &InfoHash) -> bool {
+        self.whitelist.write().await.insert(*info_hash)
     }
 
     // Removing torrents is not relevant to public trackers.
@@ -177,12 +180,23 @@ impl TorrentTracker {
         Ok(())
     }
 
+    /// Get all torrent peers for a given torrent filtering out the peer with the client address
     pub async fn get_torrent_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr) -> Vec<TorrentPeer> {
         let read_lock = self.torrents.read().await;
 
         match read_lock.get(info_hash) {
             None => vec![],
             Some(entry) => entry.get_peers(Some(client_addr)).into_iter().cloned().collect(),
+        }
+    }
+
+    /// Get all torrent peers for a given torrent
+    pub async fn get_all_torrent_peers(&self, info_hash: &InfoHash) -> Vec<TorrentPeer> {
+        let read_lock = self.torrents.read().await;
+
+        match read_lock.get(info_hash) {
+            None => vec![],
+            Some(entry) => entry.get_peers(None).into_iter().cloned().collect(),
         }
     }
 
