@@ -94,6 +94,101 @@ impl<'de> serde::de::Deserialize<'de> for InfoHash {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use serde::{Deserialize, Serialize};
+    use serde_json::json;
+
+    use crate::InfoHash;
+
+    #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+    struct ContainingInfoHash {
+        pub info_hash: InfoHash,
+    }
+
+    #[test]
+    fn an_info_hash_can_be_created_from_a_valid_40_utf8_char_string_representing_an_hexadecimal_value() {
+        let info_hash = InfoHash::from_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+        assert!(info_hash.is_ok());
+    }
+
+    #[test]
+    fn an_info_hash_can_not_be_created_from_a_utf8_string_representing_a_not_valid_hexadecimal_value() {
+        let info_hash = InfoHash::from_str("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
+        assert!(info_hash.is_err());
+    }
+
+    #[test]
+    fn an_info_hash_can_only_be_created_from_a_40_utf8_char_string() {
+        let info_hash = InfoHash::from_str(&"F".repeat(39));
+        assert!(info_hash.is_err());
+
+        let info_hash = InfoHash::from_str(&"F".repeat(41));
+        assert!(info_hash.is_err());
+    }
+
+    #[test]
+    fn an_info_hash_should_by_displayed_like_a_40_utf8_lowercased_char_hex_string() {
+        let info_hash = InfoHash::from_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF").unwrap();
+
+        let output = format!("{}", info_hash);
+
+        assert_eq!(output, "ffffffffffffffffffffffffffffffffffffffff");
+    }
+
+    #[test]
+    fn an_info_hash_can_be_created_from_a_valid_20_byte_array_slice() {
+        let info_hash: InfoHash = [255u8; 20].as_slice().into();
+
+        assert_eq!(
+            info_hash,
+            InfoHash::from_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF").unwrap()
+        );
+    }
+
+    #[test]
+    fn an_info_hash_can_be_created_from_a_valid_20_byte_array() {
+        let info_hash: InfoHash = [255u8; 20].into();
+
+        assert_eq!(
+            info_hash,
+            InfoHash::from_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF").unwrap()
+        );
+    }
+
+    #[test]
+    fn an_info_hash_can_be_serialized() {
+        let s = ContainingInfoHash {
+            info_hash: InfoHash::from_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF").unwrap(),
+        };
+
+        let json_serialized_value = serde_json::to_string(&s).unwrap();
+
+        assert_eq!(
+            json_serialized_value,
+            r#"{"info_hash":"ffffffffffffffffffffffffffffffffffffffff"}"#
+        );
+    }
+
+    #[test]
+    fn an_info_hash_can_be_deserialized() {
+        let json = json!({
+            "info_hash": "ffffffffffffffffffffffffffffffffffffffff",
+        });
+
+        let s: ContainingInfoHash = serde_json::from_value(json).unwrap();
+
+        assert_eq!(
+            s,
+            ContainingInfoHash {
+                info_hash: InfoHash::from_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF").unwrap()
+            }
+        );
+    }
+}
+
 struct InfoHashVisitor;
 
 impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
