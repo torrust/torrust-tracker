@@ -2,19 +2,14 @@
 ///
 /// cargo test udp_tracker_server -- --nocapture
 
-#[macro_use]
-extern crate lazy_static;
-
 extern crate rand;
 
 mod udp_tracker_server {
-
     use core::panic;
     use std::io::Cursor;
-    use std::net::IpAddr;
+    use std::net::{Ipv4Addr};
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
-    use std::sync::RwLock;
 
     use rand::{thread_rng, Rng};
 
@@ -34,19 +29,15 @@ mod udp_tracker_server {
 
     fn tracker_configuration() -> Arc<Configuration> {
         let mut config = Configuration::default();
-        //config.log_level = Some("debug".to_owned()); // Uncomment to enable logging
-        config.external_ip = Some("127.0.0.1".to_owned());
-        config.udp_trackers[0].bind_address = "127.0.0.1:6969".to_owned();
+        config.log_level = Some("off".to_owned()); // "off" is necessary when running multiple trackers
+        config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", ephemeral_random_port());
         Arc::new(config)
-    }
-
-    fn tracker_bind_address() -> String {
-        tracker_configuration().udp_trackers[0].bind_address.clone()
     }
 
     pub struct UdpServer {
         pub started: AtomicBool,
         pub job: Option<JoinHandle<()>>,
+        pub bind_address: Option<String>
     }
 
     impl UdpServer {
@@ -54,6 +45,7 @@ mod udp_tracker_server {
             Self {
                 started: AtomicBool::new(false),
                 job: None,
+                bind_address: None
             }
         }
 
@@ -76,20 +68,22 @@ mod udp_tracker_server {
                 // Initialize logging
                 logging::setup_logging(&configuration);
 
+                let udp_tracker_config = &configuration.udp_trackers[0];
+
                 // Start the UDP tracker job
-                self.job = Some(udp_tracker::start_job(&configuration.udp_trackers[0], tracker.clone()));
+                self.job = Some(udp_tracker::start_job(&udp_tracker_config, tracker.clone()));
+
+                self.bind_address = Some(udp_tracker_config.bind_address.clone());
 
                 self.started.store(true, Ordering::Relaxed);
             }
         }
     }
 
-    lazy_static! {
-        static ref SERVER: RwLock<UdpServer> = RwLock::new(UdpServer::new());
-    }
-
-    async fn start_udp_server(configuration: Arc<Configuration>) {
-        SERVER.write().unwrap().start(configuration.clone()).await;
+    async fn new_running_udp_server(configuration: Arc<Configuration>) -> UdpServer {
+        let mut udp_server = UdpServer::new();
+        udp_server.start(configuration).await;
+        udp_server
     }
 
     struct UdpClient {
@@ -207,43 +201,49 @@ mod udp_tracker_server {
         };
     }
 
-    // #[tokio::test]
-    // async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
-    //     start_udp_server(tracker_configuration().clone()).await;
+    #[tokio::test]
+    async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
+        let configuration = tracker_configuration();
 
-    //     let client = new_connected_udp_client(&tracker_bind_address()).await;
+        let udp_server = new_running_udp_server(configuration).await;
 
-    //     client.send(&empty_udp_request()).await;
+        let client = new_connected_udp_client(&udp_server.bind_address.unwrap()).await;
 
-    //     let mut buffer = empty_buffer();
-    //     client.receive(&mut buffer).await;
-    //     let response = Response::from_bytes(&buffer, true).unwrap();
+        client.send(&empty_udp_request()).await;
 
-    //     assert!(is_error_response(&response, "bad request"));
-    // }
+        let mut buffer = empty_buffer();
+        client.receive(&mut buffer).await;
+        let response = Response::from_bytes(&buffer, true).unwrap();
 
-    // #[tokio::test]
-    // async fn should_return_a_connect_response_when_the_client_sends_a_connection_request() {
-    //     start_udp_server(tracker_configuration().clone()).await;
+        assert!(is_error_response(&response, "bad request"));
+    }
 
-    //     let client = new_connected_udp_tracker_client(&tracker_bind_address()).await;
+    #[tokio::test]
+    async fn should_return_a_connect_response_when_the_client_sends_a_connection_request() {
+        let configuration = tracker_configuration();
 
-    //     let connect_request = ConnectRequest {
-    //         transaction_id: TransactionId(123),
-    //     };
+        let udp_server = new_running_udp_server(configuration).await;
 
-    //     client.send(connect_request.into()).await;
+        let client = new_connected_udp_tracker_client(&udp_server.bind_address.unwrap()).await;
 
-    //     let response = client.receive().await;
+        let connect_request = ConnectRequest {
+            transaction_id: TransactionId(123),
+        };
 
-    //     assert!(is_connect_response(&response, TransactionId(123)));
-    // }
+        client.send(connect_request.into()).await;
+
+        let response = client.receive().await;
+
+        assert!(is_connect_response(&response, TransactionId(123)));
+    }
 
     #[tokio::test]
     async fn should_return_an_announce_response_when_the_client_sends_an_announce_request() {
-        start_udp_server(tracker_configuration().clone()).await;
+        let configuration = tracker_configuration();
 
-        let client = new_connected_udp_tracker_client(&tracker_bind_address()).await;
+        let udp_server = new_running_udp_server(configuration).await;
+
+        let client = new_connected_udp_tracker_client(&udp_server.bind_address.unwrap()).await;
 
         // todo: extract client.connect() -> ConnectionId
 
@@ -264,13 +264,8 @@ mod udp_tracker_server {
 
         // Send announce request
 
-        let client_ip = match client.udp_client.socket.local_addr().unwrap().ip() {
-            IpAddr::V4(ip4) => ip4,
-            _ => panic!("error: IPV6 addresses cannot be used for the client ip in the announce request. Try to use IPV4."),
-        };
-
         let announce_request = AnnounceRequest {
-            connection_id: ConnectionId(8724592475294857),
+            connection_id: ConnectionId(connection_id.0),
             transaction_id: TransactionId(123i32),
             info_hash: InfoHash([0u8; 20]),
             peer_id: PeerId([255u8; 20]),
@@ -278,7 +273,7 @@ mod udp_tracker_server {
             bytes_uploaded: NumberOfBytes(0i64),
             bytes_left: NumberOfBytes(0i64),
             event: AnnounceEvent::Started,
-            ip_address: Some(client_ip),
+            ip_address: Some(Ipv4Addr::new(0, 0, 0, 0)),
             key: PeerKey(0u32),
             peers_wanted: NumberOfPeers(1i32),
             port: Port(client.udp_client.socket.local_addr().unwrap().port()),
