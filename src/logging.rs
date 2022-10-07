@@ -18,7 +18,9 @@ pub fn setup_logging(cfg: &Configuration) {
         },
     };
 
-    if log_level == log::LevelFilter::Off { return; }
+    if log_level == log::LevelFilter::Off {
+        return;
+    }
 
     if let Err(_err) = fern::Dispatch::new()
         .format(|out, message, record| {

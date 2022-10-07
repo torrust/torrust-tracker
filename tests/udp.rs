@@ -1,13 +1,12 @@
 /// Integration tests for UDP tracker server
 ///
 /// cargo test udp_tracker_server -- --nocapture
-
 extern crate rand;
 
 mod udp_tracker_server {
     use core::panic;
     use std::io::Cursor;
-    use std::net::{Ipv4Addr};
+    use std::net::Ipv4Addr;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
 
@@ -37,7 +36,7 @@ mod udp_tracker_server {
     pub struct UdpServer {
         pub started: AtomicBool,
         pub job: Option<JoinHandle<()>>,
-        pub bind_address: Option<String>
+        pub bind_address: Option<String>,
     }
 
     impl UdpServer {
@@ -45,7 +44,7 @@ mod udp_tracker_server {
             Self {
                 started: AtomicBool::new(false),
                 job: None,
-                bind_address: None
+                bind_address: None,
             }
         }
 
