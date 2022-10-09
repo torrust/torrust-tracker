@@ -11,7 +11,6 @@
         "typenum"
     ],
     "[rust]": {
-        "editor.defaultFormatter": "matklad.rust-analyzer",
         "editor.formatOnSave": true
     },
     "rust-analyzer.checkOnSave.command": "clippy",
