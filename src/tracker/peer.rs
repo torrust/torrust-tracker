@@ -131,7 +131,6 @@ mod test {
 
         use crate::peer::TorrentPeer;
         use crate::protocol::utils::get_connection_id;
-
         // todo: duplicate functions is PR 82. Remove duplication once both PR are merged.
 
         fn sample_ipv4_remote_addr() -> SocketAddr {
