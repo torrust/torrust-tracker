@@ -239,26 +239,23 @@ fn handle_error(e: ServerError, transaction_id: TransactionId) -> Response {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-        sync::Arc,
-    };
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+    use std::sync::Arc;
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use async_trait::async_trait;
-    use tokio::sync::{mpsc::error::SendError, RwLock, RwLockReadGuard};
+    use tokio::sync::mpsc::error::SendError;
+    use tokio::sync::{RwLock, RwLockReadGuard};
 
-    use crate::{
-        mode::TrackerMode,
-        peer::TorrentPeer,
-        protocol::clock::{DefaultClock, Time},
-        statistics::{
-            StatsTracker, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender, TrackerStatisticsRepository,
-            TrackerStatsService,
-        },
-        tracker::tracker::TorrentTracker,
-        Configuration, PeerId,
+    use crate::mode::TrackerMode;
+    use crate::peer::TorrentPeer;
+    use crate::protocol::clock::{DefaultClock, Time};
+    use crate::statistics::{
+        StatsTracker, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender, TrackerStatisticsRepository,
+        TrackerStatsService,
     };
+    use crate::tracker::tracker::TorrentTracker;
+    use crate::{Configuration, PeerId};
 
     fn default_tracker_config() -> Arc<Configuration> {
         Arc::new(Configuration::default())
@@ -401,18 +398,14 @@ mod tests {
 
         use std::sync::Arc;
 
-        use crate::{
-            protocol::utils::get_connection_id,
-            statistics::TrackerStatisticsEvent,
-            tracker::tracker::TorrentTracker,
-            udp::{
-                handle_connect,
-                handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr},
-            },
-        };
         use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
 
         use super::{default_tracker_config, sample_ipv4_socket_address, sample_ipv6_remote_addr, TrackerStatsServiceMock};
+        use crate::protocol::utils::get_connection_id;
+        use crate::statistics::TrackerStatisticsEvent;
+        use crate::tracker::tracker::TorrentTracker;
+        use crate::udp::handle_connect;
+        use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
 
         fn sample_connect_request() -> ConnectRequest {
             ConnectRequest {
@@ -492,7 +485,8 @@ mod tests {
             AnnounceEvent, AnnounceRequest, NumberOfBytes, NumberOfPeers, PeerId as AquaticPeerId, PeerKey, Port, TransactionId,
         };
 
-        use crate::{protocol::utils::get_connection_id, udp::handlers::tests::sample_ipv4_remote_addr};
+        use crate::protocol::utils::get_connection_id;
+        use crate::udp::handlers::tests::sample_ipv4_remote_addr;
 
         struct AnnounceRequestBuilder {
             request: AnnounceRequest,
@@ -550,28 +544,23 @@ mod tests {
 
         mod using_ipv4 {
 
-            use std::{
-                net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-                sync::Arc,
-            };
+            use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+            use std::sync::Arc;
 
             use aquatic_udp_protocol::{
                 AnnounceInterval, AnnounceResponse, InfoHash as AquaticInfoHash, NumberOfPeers, PeerId as AquaticPeerId,
                 Response, ResponsePeer,
             };
 
-            use crate::{
-                statistics::TrackerStatisticsEvent,
-                tracker::tracker::TorrentTracker,
-                udp::{
-                    handle_announce,
-                    handlers::tests::{
-                        announce_request::AnnounceRequestBuilder, default_tracker_config, initialized_public_tracker,
-                        sample_ipv4_socket_address, TorrentPeerBuilder, TrackerStatsServiceMock,
-                    },
-                },
-                PeerId,
+            use crate::statistics::TrackerStatisticsEvent;
+            use crate::tracker::tracker::TorrentTracker;
+            use crate::udp::handle_announce;
+            use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
+            use crate::udp::handlers::tests::{
+                default_tracker_config, initialized_public_tracker, sample_ipv4_socket_address, TorrentPeerBuilder,
+                TrackerStatsServiceMock,
             };
+            use crate::PeerId;
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
@@ -718,15 +707,10 @@ mod tests {
 
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
 
-                use crate::{
-                    udp::{
-                        handle_announce,
-                        handlers::tests::{
-                            announce_request::AnnounceRequestBuilder, initialized_public_tracker, TorrentPeerBuilder,
-                        },
-                    },
-                    PeerId,
-                };
+                use crate::udp::handle_announce;
+                use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
+                use crate::udp::handlers::tests::{initialized_public_tracker, TorrentPeerBuilder};
+                use crate::PeerId;
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration_if_defined() {
@@ -764,28 +748,23 @@ mod tests {
 
         mod using_ipv6 {
 
-            use std::{
-                net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-                sync::Arc,
-            };
+            use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+            use std::sync::Arc;
 
             use aquatic_udp_protocol::{
                 AnnounceInterval, AnnounceResponse, InfoHash as AquaticInfoHash, NumberOfPeers, PeerId as AquaticPeerId,
                 Response, ResponsePeer,
             };
 
-            use crate::{
-                statistics::TrackerStatisticsEvent,
-                tracker::tracker::TorrentTracker,
-                udp::{
-                    handle_announce,
-                    handlers::tests::{
-                        announce_request::AnnounceRequestBuilder, default_tracker_config, initialized_public_tracker,
-                        sample_ipv6_remote_addr, TorrentPeerBuilder, TrackerStatsServiceMock,
-                    },
-                },
-                PeerId,
+            use crate::statistics::TrackerStatisticsEvent;
+            use crate::tracker::tracker::TorrentTracker;
+            use crate::udp::handle_announce;
+            use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
+            use crate::udp::handlers::tests::{
+                default_tracker_config, initialized_public_tracker, sample_ipv6_remote_addr, TorrentPeerBuilder,
+                TrackerStatsServiceMock,
             };
+            use crate::PeerId;
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
@@ -934,21 +913,16 @@ mod tests {
             }
 
             mod from_a_loopback_ip {
-                use std::{
-                    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-                    sync::Arc,
-                };
+                use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+                use std::sync::Arc;
 
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
 
-                use crate::{
-                    statistics::StatsTracker,
-                    tracker::tracker::TorrentTracker,
-                    udp::{
-                        handle_announce,
-                        handlers::tests::{announce_request::AnnounceRequestBuilder, TrackerConfigurationBuilder},
-                    },
-                };
+                use crate::statistics::StatsTracker;
+                use crate::tracker::tracker::TorrentTracker;
+                use crate::udp::handle_announce;
+                use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
+                use crate::udp::handlers::tests::TrackerConfigurationBuilder;
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
@@ -993,24 +967,20 @@ mod tests {
     }
 
     mod scrape_request {
-        use std::{net::SocketAddr, sync::Arc};
+        use std::net::SocketAddr;
+        use std::sync::Arc;
 
         use aquatic_udp_protocol::{
             InfoHash, NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
             TransactionId,
         };
 
-        use crate::{
-            protocol::utils::get_connection_id,
-            tracker::tracker::TorrentTracker,
-            udp::{
-                handle_scrape,
-                handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr},
-            },
-            PeerId,
-        };
-
         use super::TorrentPeerBuilder;
+        use crate::protocol::utils::get_connection_id;
+        use crate::tracker::tracker::TorrentTracker;
+        use crate::udp::handle_scrape;
+        use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
+        use crate::PeerId;
 
         fn zeroed_torrent_statistics() -> TorrentScrapeStatistics {
             TorrentScrapeStatistics {
@@ -1093,10 +1063,8 @@ mod tests {
         mod with_a_public_tracker {
             use aquatic_udp_protocol::{NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
-            use crate::udp::handlers::tests::{
-                initialized_public_tracker,
-                scrape_request::{add_a_sample_seeder_and_scrape, match_scrape_response},
-            };
+            use crate::udp::handlers::tests::initialized_public_tracker;
+            use crate::udp::handlers::tests::scrape_request::{add_a_sample_seeder_and_scrape, match_scrape_response};
 
             #[tokio::test]
             async fn should_return_torrent_statistics_when_the_tracker_has_the_requested_torrent() {
@@ -1118,15 +1086,11 @@ mod tests {
 
             use aquatic_udp_protocol::InfoHash;
 
-            use crate::udp::{
-                handle_scrape,
-                handlers::tests::{
-                    initialized_private_tracker, sample_ipv4_remote_addr,
-                    scrape_request::{
-                        add_a_sample_seeder_and_scrape, build_scrape_request, match_scrape_response, zeroed_torrent_statistics,
-                    },
-                },
+            use crate::udp::handle_scrape;
+            use crate::udp::handlers::tests::scrape_request::{
+                add_a_sample_seeder_and_scrape, build_scrape_request, match_scrape_response, zeroed_torrent_statistics,
             };
+            use crate::udp::handlers::tests::{initialized_private_tracker, sample_ipv4_remote_addr};
 
             #[tokio::test]
             async fn should_return_zeroed_statistics_when_the_tracker_does_not_have_the_requested_torrent() {
@@ -1161,13 +1125,11 @@ mod tests {
         mod with_a_whitelisted_tracker {
             use aquatic_udp_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
-            use crate::udp::{
-                handle_scrape,
-                handlers::tests::{
-                    initialized_whitelisted_tracker, sample_ipv4_remote_addr,
-                    scrape_request::{add_a_seeder, build_scrape_request, match_scrape_response, zeroed_torrent_statistics},
-                },
+            use crate::udp::handle_scrape;
+            use crate::udp::handlers::tests::scrape_request::{
+                add_a_seeder, build_scrape_request, match_scrape_response, zeroed_torrent_statistics,
             };
+            use crate::udp::handlers::tests::{initialized_whitelisted_tracker, sample_ipv4_remote_addr};
 
             #[tokio::test]
             async fn should_return_the_torrent_statistics_when_the_requested_torrent_is_whitelisted() {
@@ -1228,16 +1190,11 @@ mod tests {
         mod using_ipv4 {
             use std::sync::Arc;
 
-            use crate::{
-                statistics::TrackerStatisticsEvent,
-                tracker::tracker::TorrentTracker,
-                udp::handlers::{
-                    handle_scrape,
-                    tests::{default_tracker_config, sample_ipv4_remote_addr, TrackerStatsServiceMock},
-                },
-            };
-
             use super::sample_scrape_request;
+            use crate::statistics::TrackerStatisticsEvent;
+            use crate::tracker::tracker::TorrentTracker;
+            use crate::udp::handlers::handle_scrape;
+            use crate::udp::handlers::tests::{default_tracker_config, sample_ipv4_remote_addr, TrackerStatsServiceMock};
 
             #[tokio::test]
             async fn should_send_the_upd4_scrape_event() {
@@ -1257,16 +1214,11 @@ mod tests {
         mod using_ipv6 {
             use std::sync::Arc;
 
-            use crate::{
-                statistics::TrackerStatisticsEvent,
-                tracker::tracker::TorrentTracker,
-                udp::handlers::{
-                    handle_scrape,
-                    tests::{default_tracker_config, sample_ipv6_remote_addr, TrackerStatsServiceMock},
-                },
-            };
-
             use super::sample_scrape_request;
+            use crate::statistics::TrackerStatisticsEvent;
+            use crate::tracker::tracker::TorrentTracker;
+            use crate::udp::handlers::handle_scrape;
+            use crate::udp::handlers::tests::{default_tracker_config, sample_ipv6_remote_addr, TrackerStatsServiceMock};
 
             #[tokio::test]
             async fn should_send_the_upd6_scrape_event() {

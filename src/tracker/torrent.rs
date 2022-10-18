@@ -101,20 +101,16 @@ pub enum TorrentError {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        net::{IpAddr, Ipv4Addr, SocketAddr},
-        ops::Sub,
-        time::Duration,
-    };
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::ops::Sub;
+    use std::time::Duration;
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
-    use crate::{
-        peer::TorrentPeer,
-        protocol::clock::{DefaultClock, DurationSinceUnixEpoch, StoppedClock, StoppedTime, Time, WorkingClock},
-        torrent::TorrentEntry,
-        PeerId,
-    };
+    use crate::peer::TorrentPeer;
+    use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, StoppedClock, StoppedTime, Time, WorkingClock};
+    use crate::torrent::TorrentEntry;
+    use crate::PeerId;
 
     struct TorrentPeerBuilder {
         peer: TorrentPeer,
