@@ -130,8 +130,7 @@ mod test {
         };
 
         use crate::peer::TorrentPeer;
-        use crate::protocol::utils::get_connection_id;
-
+        use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
         // todo: duplicate functions is PR 82. Remove duplication once both PR are merged.
 
         fn sample_ipv4_remote_addr() -> SocketAddr {
@@ -153,7 +152,7 @@ mod test {
                 let info_hash_aquatic = aquatic_udp_protocol::InfoHash([0u8; 20]);
 
                 let default_request = AnnounceRequest {
-                    connection_id: get_connection_id(&sample_ipv4_remote_addr()),
+                    connection_id: into_connection_id(&make_connection_cookie(&sample_ipv4_remote_addr())),
                     transaction_id: TransactionId(0i32),
                     info_hash: info_hash_aquatic,
                     peer_id: AquaticPeerId(*b"-qB00000000000000000"),

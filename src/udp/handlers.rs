@@ -2,12 +2,11 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{
-    AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ConnectionId, ErrorResponse,
-    NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse,
-    TorrentScrapeStatistics, TransactionId,
+    AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads,
+    NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
 
-use super::connection_cookie::{check_connection_cookie, make_connection_cookie};
+use super::connection_cookie::{check_connection_cookie, from_connection_id, into_connection_id, make_connection_cookie};
 use crate::peer::TorrentPeer;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::torrent::TorrentError;
@@ -71,7 +70,7 @@ pub async fn handle_connect(
     tracker: Arc<TorrentTracker>,
 ) -> Result<Response, ServerError> {
     let connection_cookie = make_connection_cookie(&remote_addr);
-    let connection_id = ConnectionId(i64::from_le_bytes(connection_cookie));
+    let connection_id = into_connection_id(&connection_cookie);
 
     let response = Response::from(ConnectResponse {
         transaction_id: request.transaction_id,
@@ -96,7 +95,7 @@ pub async fn handle_announce(
     announce_request: &AnnounceRequest,
     tracker: Arc<TorrentTracker>,
 ) -> Result<Response, ServerError> {
-    match check_connection_cookie(&remote_addr, &announce_request.connection_id.0.to_be_bytes()) {
+    match check_connection_cookie(&remote_addr, &from_connection_id(&announce_request.connection_id)) {
         Ok(_) => {}
         Err(e) => {
             return Err(e);
@@ -410,9 +409,9 @@ mod tests {
         use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
 
         use super::{default_tracker_config, sample_ipv4_socket_address, sample_ipv6_remote_addr, TrackerStatsServiceMock};
-        use crate::protocol::utils::get_connection_id;
         use crate::statistics::TrackerStatisticsEvent;
         use crate::tracker::tracker::TorrentTracker;
+        use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
         use crate::udp::handle_connect;
         use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
 
@@ -435,7 +434,7 @@ mod tests {
             assert_eq!(
                 response,
                 Response::Connect(ConnectResponse {
-                    connection_id: get_connection_id(&sample_ipv4_remote_addr()),
+                    connection_id: into_connection_id(&make_connection_cookie(&sample_ipv4_remote_addr())),
                     transaction_id: request.transaction_id
                 })
             );
@@ -454,7 +453,7 @@ mod tests {
             assert_eq!(
                 response,
                 Response::Connect(ConnectResponse {
-                    connection_id: get_connection_id(&sample_ipv4_remote_addr()),
+                    connection_id: into_connection_id(&make_connection_cookie(&sample_ipv4_remote_addr())),
                     transaction_id: request.transaction_id
                 })
             );
@@ -494,7 +493,7 @@ mod tests {
             AnnounceEvent, AnnounceRequest, NumberOfBytes, NumberOfPeers, PeerId as AquaticPeerId, PeerKey, Port, TransactionId,
         };
 
-        use crate::protocol::utils::get_connection_id;
+        use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
         use crate::udp::handlers::tests::sample_ipv4_remote_addr;
 
         struct AnnounceRequestBuilder {
@@ -508,7 +507,7 @@ mod tests {
                 let info_hash_aquatic = aquatic_udp_protocol::InfoHash([0u8; 20]);
 
                 let default_request = AnnounceRequest {
-                    connection_id: get_connection_id(&sample_ipv4_remote_addr()),
+                    connection_id: into_connection_id(&make_connection_cookie(&sample_ipv4_remote_addr())),
                     transaction_id: TransactionId(0i32),
                     info_hash: info_hash_aquatic,
                     peer_id: AquaticPeerId([255u8; 20]),
@@ -985,8 +984,8 @@ mod tests {
         };
 
         use super::TorrentPeerBuilder;
-        use crate::protocol::utils::get_connection_id;
         use crate::tracker::tracker::TorrentTracker;
+        use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
         use crate::udp::handle_scrape;
         use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
         use crate::PeerId;
@@ -1007,7 +1006,7 @@ mod tests {
             let info_hashes = vec![info_hash];
 
             let request = ScrapeRequest {
-                connection_id: get_connection_id(&remote_addr),
+                connection_id: into_connection_id(&make_connection_cookie(&remote_addr)),
                 transaction_id: TransactionId(0i32),
                 info_hashes,
             };
@@ -1045,7 +1044,7 @@ mod tests {
             let info_hashes = vec![*info_hash];
 
             ScrapeRequest {
-                connection_id: get_connection_id(remote_addr),
+                connection_id: into_connection_id(&make_connection_cookie(&remote_addr)),
                 transaction_id: TransactionId(0i32),
                 info_hashes,
             }
@@ -1190,7 +1189,7 @@ mod tests {
             let info_hashes = vec![info_hash];
 
             ScrapeRequest {
-                connection_id: get_connection_id(remote_addr),
+                connection_id: into_connection_id(&make_connection_cookie(&remote_addr)),
                 transaction_id: TransactionId(0i32),
                 info_hashes,
             }
