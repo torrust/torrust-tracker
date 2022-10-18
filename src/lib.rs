@@ -27,3 +27,14 @@ pub mod static_time {
         pub static ref TIME_AT_APP_START: SystemTime = SystemTime::now();
     }
 }
+
+pub mod ephemeral_instance_keys {
+    use rand::rngs::ThreadRng;
+    use rand::Rng;
+
+    pub type Seed = [u8; 32];
+
+    lazy_static! {
+        pub static ref RANDOM_SEED: Seed = Rng::gen(&mut ThreadRng::default());
+    }
+}
