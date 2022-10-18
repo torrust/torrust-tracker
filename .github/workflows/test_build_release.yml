@@ -13,11 +13,15 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
-          components: rustfmt
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v1
       - name: Check Rust Formatting
-        run: cargo fmt --check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --check
 
   test:
     needs: format
