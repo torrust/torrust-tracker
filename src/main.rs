@@ -24,11 +24,7 @@ async fn main() {
     };
 
     // Initialize stats tracker
-    let mut stats_tracker = StatsTracker::new();
-
-    if config.tracker_usage_statistics {
-        stats_tracker.run_worker();
-    }
+    let stats_tracker = StatsTracker::new_instance(config.tracker_usage_statistics);
 
     // Initialize Torrust tracker
     let tracker = match TorrentTracker::new(config.clone(), Box::new(stats_tracker)) {
