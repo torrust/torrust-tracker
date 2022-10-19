@@ -10,21 +10,18 @@ mod udp_tracker_server {
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
 
+    use aquatic_udp_protocol::{
+        AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey,
+        Port, Request, Response, TransactionId,
+    };
     use rand::{thread_rng, Rng};
-
     use tokio::net::UdpSocket;
     use tokio::task::JoinHandle;
-
     use torrust_tracker::jobs::udp_tracker;
     use torrust_tracker::tracker::statistics::StatsTracker;
     use torrust_tracker::tracker::tracker::TorrentTracker;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
     use torrust_tracker::{logging, static_time, Configuration};
-
-    use aquatic_udp_protocol::{
-        AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey,
-        Port, Request, Response, TransactionId,
-    };
 
     fn tracker_configuration() -> Arc<Configuration> {
         let mut config = Configuration::default();
