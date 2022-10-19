@@ -12,7 +12,7 @@ mod udp_tracker_server {
 
     use aquatic_udp_protocol::{
         AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey,
-        Port, Request, Response, TransactionId,
+        Port, Request, Response, ScrapeRequest, TransactionId,
     };
     use rand::{thread_rng, Rng};
     use tokio::net::UdpSocket;
@@ -164,7 +164,7 @@ mod udp_tracker_server {
 
     /// Generates a random ephemeral port for a client source address
     fn ephemeral_random_port() -> u16 {
-        // todo: this may produce random test failures because two test can try to bind the same port.
+        // todo: this may produce random test failures because two tests can try to bind the same port.
         // We could either use the same client for all tests (slower) or
         // create a pool of available ports (with read/write lock)
         let mut rng = thread_rng();
@@ -193,6 +193,13 @@ mod udp_tracker_server {
     fn is_ipv4_announce_response(response: &Response) -> bool {
         match response {
             Response::AnnounceIpv4(_) => return true,
+            _ => return false,
+        };
+    }
+
+    fn is_scrape_response(response: &Response) -> bool {
+        match response {
+            Response::Scrape(_) => return true,
             _ => return false,
         };
     }
@@ -280,5 +287,48 @@ mod udp_tracker_server {
         let response = client.receive().await;
 
         assert!(is_ipv4_announce_response(&response));
+    }
+
+    #[tokio::test]
+    async fn should_return_a_scrape_response_when_the_client_sends_a_scrape_request() {
+        let configuration = tracker_configuration();
+
+        let udp_server = new_running_udp_server(configuration).await;
+
+        let client = new_connected_udp_tracker_client(&udp_server.bind_address.unwrap()).await;
+
+        // todo: extract client.connect() -> ConnectionId
+
+        // Get connection id before sending the announce request
+
+        let connect_request = ConnectRequest {
+            transaction_id: TransactionId(123i32),
+        };
+
+        client.send(connect_request.into()).await;
+
+        let response = client.receive().await;
+
+        let connection_id = match response {
+            Response::Connect(connect_response) => connect_response.connection_id,
+            _ => panic!("error connecting to udp server {:?}", response),
+        };
+
+        // Send scrape request
+
+        // Full scrapes are not allowed so it will return "bad request" error with empty vector
+        let info_hashes = vec![InfoHash([0u8; 20])];
+
+        let scrape_request = ScrapeRequest {
+            connection_id: ConnectionId(connection_id.0),
+            transaction_id: TransactionId(123i32),
+            info_hashes,
+        };
+
+        client.send(scrape_request.into()).await;
+
+        let response = client.receive().await;
+
+        assert!(is_scrape_response(&response));
     }
 }
