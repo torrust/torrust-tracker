@@ -62,12 +62,6 @@ pub struct StatsTracker {
 }
 
 impl StatsTracker {
-    pub fn new_running_instance() -> Self {
-        let mut stats_tracker = Self::new();
-        stats_tracker.run_worker();
-        stats_tracker
-    }
-
     pub fn new() -> Self {
         Self {
             channel_sender: None,
