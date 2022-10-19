@@ -240,6 +240,19 @@ mod udp_tracker_server {
         assert!(is_connect_response(&response, TransactionId(123)));
     }
 
+    async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrackerClient) -> ConnectionId {
+        let connect_request = ConnectRequest { transaction_id };
+
+        client.send(connect_request.into()).await;
+
+        let response = client.receive().await;
+
+        match response {
+            Response::Connect(connect_response) => connect_response.connection_id,
+            _ => panic!("error connecting to udp server {:?}", response),
+        }
+    }
+
     #[tokio::test]
     async fn should_return_an_announce_response_when_the_client_sends_an_announce_request() {
         let configuration = tracker_configuration();
@@ -248,22 +261,7 @@ mod udp_tracker_server {
 
         let client = new_connected_udp_tracker_client(&udp_server.bind_address.unwrap()).await;
 
-        // todo: extract client.connect() -> ConnectionId
-
-        // Get connection id before sending the announce request
-
-        let connect_request = ConnectRequest {
-            transaction_id: TransactionId(123),
-        };
-
-        client.send(connect_request.into()).await;
-
-        let response = client.receive().await;
-
-        let connection_id = match response {
-            Response::Connect(connect_response) => connect_response.connection_id,
-            _ => panic!("error connecting to udp server {:?}", response),
-        };
+        let connection_id = send_connection_request(TransactionId(123), &client).await;
 
         // Send announce request
 
@@ -297,22 +295,7 @@ mod udp_tracker_server {
 
         let client = new_connected_udp_tracker_client(&udp_server.bind_address.unwrap()).await;
 
-        // todo: extract client.connect() -> ConnectionId
-
-        // Get connection id before sending the announce request
-
-        let connect_request = ConnectRequest {
-            transaction_id: TransactionId(123i32),
-        };
-
-        client.send(connect_request.into()).await;
-
-        let response = client.receive().await;
-
-        let connection_id = match response {
-            Response::Connect(connect_response) => connect_response.connection_id,
-            _ => panic!("error connecting to udp server {:?}", response),
-        };
+        let connection_id = send_connection_request(TransactionId(123), &client).await;
 
         // Send scrape request
 
