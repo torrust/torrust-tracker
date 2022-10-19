@@ -80,99 +80,166 @@ mod cookie_builder {
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-    use super::cookie_builder::get_last_time_extent;
-    use crate::protocol::clock::time_extent::Extent;
+    use super::cookie_builder::{self};
+    use crate::protocol::clock::time_extent::{self, Extent};
     use crate::protocol::clock::{StoppedClock, StoppedTime};
     use crate::udp::connection_cookie::{check_connection_cookie, make_connection_cookie, Cookie, COOKIE_LIFETIME};
 
-    fn make_test_socket_addr() -> SocketAddr {
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
-    }
-
-    fn make_test_cookie(remote_address: Option<&SocketAddr>) -> Cookie {
-        make_connection_cookie(remote_address.unwrap_or(&make_test_socket_addr()))
-    }
+    // #![feature(const_socketaddr)]
+    // const REMOTE_ADDRESS_IPV4_ZERO: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
     #[test]
     fn it_should_make_a_connection_cookie() {
-        // remote_address: 127.0.0.1:8080, time_extent: 60,
-        // seed: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        let cookie = make_connection_cookie(&SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0));
 
-        const ID_COOKIE: Cookie = [45, 59, 50, 101, 97, 203, 48, 19];
+        // Note: This constant may need to be updated in the future as the hash is not guaranteed to to be stable between versions.
+        const ID_COOKIE: Cookie = [23, 204, 198, 29, 48, 180, 62, 19];
 
-        let test_cookie = make_test_cookie(None);
-        //println!("{test_cookie:?}");
-
-        assert_eq!(test_cookie, ID_COOKIE)
+        assert_eq!(cookie, ID_COOKIE)
     }
 
     #[test]
-    fn it_should_make_different_connection_cookie_with_different_remote_addresses() {
-        let test_remote_address_1 = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 1);
-        let test_remote_address_2 = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 2);
-        let test_remote_address_3 = SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 1);
+    fn it_should_make_the_same_connection_cookie_for_the_same_input_data() {
+        let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+        let time_extent_zero = time_extent::ZERO;
 
-        assert_ne!(
-            make_test_cookie(Some(&test_remote_address_1)),
-            make_test_cookie(Some(&test_remote_address_2))
-        );
+        let cookie = cookie_builder::build(&remote_address, &time_extent_zero);
+        let cookie_2 = cookie_builder::build(&remote_address, &time_extent_zero);
 
-        assert_ne!(
-            make_test_cookie(Some(&test_remote_address_1)),
-            make_test_cookie(Some(&test_remote_address_3))
-        );
+        println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie:?}");
+        println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie_2:?}");
 
-        assert_ne!(
-            make_test_cookie(Some(&test_remote_address_2)),
-            make_test_cookie(Some(&test_remote_address_3))
-        )
+        //remote_address: 127.0.0.1:8080, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [212, 9, 204, 223, 176, 190, 150, 153]
+        //remote_address: 127.0.0.1:8080, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [212, 9, 204, 223, 176, 190, 150, 153]
+
+        assert_eq!(cookie, cookie_2)
+    }
+
+    #[test]
+    fn it_should_make_the_different_connection_cookie_for_different_ip() {
+        let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+        let remote_address_2 = SocketAddr::new(IpAddr::V4(Ipv4Addr::BROADCAST), 0);
+        let time_extent_zero = time_extent::ZERO;
+
+        let cookie = cookie_builder::build(&remote_address, &time_extent_zero);
+        let cookie_2 = cookie_builder::build(&remote_address_2, &time_extent_zero);
+
+        println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie:?}");
+        println!("remote_address: {remote_address_2:?}, time_extent: {time_extent_zero:?}, cookie: {cookie_2:?}");
+
+        //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
+        //remote_address: 255.255.255.255:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [217, 87, 239, 178, 182, 126, 66, 166]
+
+        assert_ne!(cookie, cookie_2)
+    }
+
+    #[test]
+    fn it_should_make_the_different_connection_cookie_for_different_ip_version() {
+        let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+        let remote_address_2 = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 0);
+        let time_extent_zero = time_extent::ZERO;
+
+        let cookie = cookie_builder::build(&remote_address, &time_extent_zero);
+        let cookie_2 = cookie_builder::build(&remote_address_2, &time_extent_zero);
+
+        println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie:?}");
+        println!("remote_address: {remote_address_2:?}, time_extent: {time_extent_zero:?}, cookie: {cookie_2:?}");
+
+        //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
+        //remote_address: [::]:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [99, 119, 230, 177, 20, 220, 163, 187]
+
+        assert_ne!(cookie, cookie_2)
+    }
+
+    #[test]
+    fn it_should_make_the_different_connection_cookie_for_different_socket() {
+        let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+        let remote_address_2 = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 1);
+        let time_extent_zero = time_extent::ZERO;
+
+        let cookie = cookie_builder::build(&remote_address, &time_extent_zero);
+        let cookie_2 = cookie_builder::build(&remote_address_2, &time_extent_zero);
+
+        println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie:?}");
+        println!("remote_address: {remote_address_2:?}, time_extent: {time_extent_zero:?}, cookie: {cookie_2:?}");
+
+        //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
+        //remote_address: 0.0.0.0:1, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [38, 8, 0, 102, 92, 170, 220, 11]
+
+        assert_ne!(cookie, cookie_2)
+    }
+
+    #[test]
+    fn it_should_make_the_different_connection_cookie_for_different_time_extents() {
+        let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+        let time_extent_zero = time_extent::ZERO;
+        let time_extent_max = time_extent::MAX;
+
+        let cookie = cookie_builder::build(&remote_address, &time_extent_zero);
+        let cookie_2 = cookie_builder::build(&remote_address, &time_extent_max);
+
+        println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie:?}");
+        println!("remote_address: {remote_address:?}, time_extent: {time_extent_max:?}, cookie: {cookie_2:?}");
+
+        //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
+        //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 18446744073709551615.999999999s, amount: 18446744073709551615 }, cookie: [87, 111, 109, 125, 182, 206, 3, 201]
+
+        assert_ne!(cookie, cookie_2)
     }
 
     #[test]
     fn it_should_make_different_cookies_for_the_next_time_extent() {
-        let cookie_now = make_test_cookie(None);
+        let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+
+        let cookie = make_connection_cookie(&remote_address);
 
         StoppedClock::local_add(&COOKIE_LIFETIME.increment).unwrap();
 
-        let cookie_next = make_test_cookie(None);
+        let cookie_next = make_connection_cookie(&remote_address);
 
-        assert_ne!(cookie_now, cookie_next)
+        assert_ne!(cookie, cookie_next)
     }
 
     #[test]
     fn it_should_be_valid_for_this_time_extent() {
-        let cookie_now = make_test_cookie(None);
+        let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
-        check_connection_cookie(&make_test_socket_addr(), &cookie_now).unwrap();
+        let cookie = make_connection_cookie(&remote_address);
+
+        check_connection_cookie(&remote_address, &cookie).unwrap();
     }
 
     #[test]
     fn it_should_be_valid_for_the_next_time_extent() {
-        let cookie_now = make_test_cookie(None);
+        let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+
+        let cookie = make_connection_cookie(&remote_address);
 
         StoppedClock::local_add(&COOKIE_LIFETIME.increment).unwrap();
 
-        check_connection_cookie(&make_test_socket_addr(), &cookie_now).unwrap();
+        check_connection_cookie(&remote_address, &cookie).unwrap();
     }
 
     #[test]
-    fn it_cookies_should_be_valid_for_the_last_time_extent() {
-        let cookie_now = make_test_cookie(None);
+    fn it_should_be_valid_for_the_last_time_extent() {
+        let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+
+        let cookie = make_connection_cookie(&remote_address);
 
         StoppedClock::local_set(&COOKIE_LIFETIME.total().unwrap().unwrap());
 
-        check_connection_cookie(&make_test_socket_addr(), &cookie_now).unwrap();
+        check_connection_cookie(&remote_address, &cookie).unwrap();
     }
 
     #[test]
     #[should_panic]
-    fn it_cookies_should_be_not_valid_after_their_last_time_extent() {
-        let cookie_now = make_test_cookie(None);
+    fn it_should_be_not_valid_after_their_last_time_extent() {
+        let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
-        let last_time_extent = get_last_time_extent().increase(COOKIE_LIFETIME.amount).unwrap();
+        let cookie = make_connection_cookie(&remote_address);
 
-        StoppedClock::local_set(&last_time_extent.total_next().unwrap().unwrap());
+        StoppedClock::local_set(&COOKIE_LIFETIME.total_next().unwrap().unwrap());
 
-        check_connection_cookie(&make_test_socket_addr(), &cookie_now).unwrap();
+        check_connection_cookie(&remote_address, &cookie).unwrap();
     }
 }
