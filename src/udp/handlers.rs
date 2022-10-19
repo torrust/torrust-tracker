@@ -6,7 +6,7 @@ use aquatic_udp_protocol::{
     NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
 
-use super::connection_cookie::{check_connection_cookie, from_connection_id, into_connection_id, make_connection_cookie};
+use super::connection_cookie::{from_connection_id, into_connection_id, ConnectionCookie, HashedConnectionCookie};
 use crate::peer::TorrentPeer;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::torrent::TorrentError;
@@ -69,7 +69,7 @@ pub async fn handle_connect(
     request: &ConnectRequest,
     tracker: Arc<TorrentTracker>,
 ) -> Result<Response, ServerError> {
-    let connection_cookie = make_connection_cookie(&remote_addr);
+    let connection_cookie = HashedConnectionCookie::make_connection_cookie(&remote_addr);
     let connection_id = into_connection_id(&connection_cookie);
 
     let response = Response::from(ConnectResponse {
@@ -95,7 +95,7 @@ pub async fn handle_announce(
     announce_request: &AnnounceRequest,
     tracker: Arc<TorrentTracker>,
 ) -> Result<Response, ServerError> {
-    match check_connection_cookie(&remote_addr, &from_connection_id(&announce_request.connection_id)) {
+    match HashedConnectionCookie::check_connection_cookie(&remote_addr, &from_connection_id(&announce_request.connection_id)) {
         Ok(_) => {}
         Err(e) => {
             return Err(e);
@@ -411,7 +411,7 @@ mod tests {
         use super::{default_tracker_config, sample_ipv4_socket_address, sample_ipv6_remote_addr, TrackerStatsServiceMock};
         use crate::statistics::TrackerStatisticsEvent;
         use crate::tracker::tracker::TorrentTracker;
-        use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
+        use crate::udp::connection_cookie::{into_connection_id, ConnectionCookie, HashedConnectionCookie};
         use crate::udp::handle_connect;
         use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
 
@@ -434,7 +434,9 @@ mod tests {
             assert_eq!(
                 response,
                 Response::Connect(ConnectResponse {
-                    connection_id: into_connection_id(&make_connection_cookie(&sample_ipv4_remote_addr())),
+                    connection_id: into_connection_id(
+                        &HashedConnectionCookie::make_connection_cookie(&sample_ipv4_remote_addr())
+                    ),
                     transaction_id: request.transaction_id
                 })
             );
@@ -453,7 +455,9 @@ mod tests {
             assert_eq!(
                 response,
                 Response::Connect(ConnectResponse {
-                    connection_id: into_connection_id(&make_connection_cookie(&sample_ipv4_remote_addr())),
+                    connection_id: into_connection_id(
+                        &HashedConnectionCookie::make_connection_cookie(&sample_ipv4_remote_addr())
+                    ),
                     transaction_id: request.transaction_id
                 })
             );
@@ -494,7 +498,7 @@ mod tests {
             TransactionId,
         };
 
-        use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
+        use crate::udp::connection_cookie::{into_connection_id, ConnectionCookie, HashedConnectionCookie};
         use crate::udp::handlers::tests::sample_ipv4_remote_addr;
 
         struct AnnounceRequestBuilder {
@@ -508,7 +512,9 @@ mod tests {
                 let info_hash_aquatic = aquatic_udp_protocol::InfoHash([0u8; 20]);
 
                 let default_request = AnnounceRequest {
-                    connection_id: into_connection_id(&make_connection_cookie(&sample_ipv4_remote_addr())),
+                    connection_id: into_connection_id(
+                        &HashedConnectionCookie::make_connection_cookie(&sample_ipv4_remote_addr()),
+                    ),
                     transaction_id: TransactionId(0i32),
                     info_hash: info_hash_aquatic,
                     peer_id: AquaticPeerId([255u8; 20]),
@@ -568,7 +574,7 @@ mod tests {
 
             use crate::statistics::TrackerStatisticsEvent;
             use crate::tracker::tracker::TorrentTracker;
-            use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
+            use crate::udp::connection_cookie::{into_connection_id, ConnectionCookie, HashedConnectionCookie};
             use crate::udp::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
             use crate::udp::handlers::tests::{
@@ -589,7 +595,9 @@ mod tests {
                 let remote_addr = SocketAddr::new(IpAddr::V4(client_ip), client_port);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                    .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                        &remote_addr,
+                    )))
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(client_ip)
@@ -613,7 +621,9 @@ mod tests {
                 let remote_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                    .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                        &remote_addr,
+                    )))
                     .into();
 
                 let response = handle_announce(remote_addr, &request, initialized_public_tracker())
@@ -652,7 +662,9 @@ mod tests {
                 let remote_addr = SocketAddr::new(IpAddr::V4(remote_client_ip), remote_client_port);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                    .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                        &remote_addr,
+                    )))
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(peer_address)
@@ -687,7 +699,9 @@ mod tests {
             async fn announce_a_new_peer_using_ipv4(tracker: Arc<TorrentTracker>) -> Response {
                 let remote_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                    .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                        &remote_addr,
+                    )))
                     .into();
                 let response = handle_announce(remote_addr, &request, tracker.clone()).await.unwrap();
                 response
@@ -731,7 +745,7 @@ mod tests {
 
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
 
-                use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
+                use crate::udp::connection_cookie::{into_connection_id, ConnectionCookie, HashedConnectionCookie};
                 use crate::udp::handle_announce;
                 use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
                 use crate::udp::handlers::tests::{initialized_public_tracker, TorrentPeerBuilder};
@@ -749,7 +763,9 @@ mod tests {
                     let remote_addr = SocketAddr::new(IpAddr::V4(client_ip), client_port);
 
                     let request = AnnounceRequestBuilder::default()
-                        .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                        .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                            &remote_addr,
+                        )))
                         .with_info_hash(info_hash)
                         .with_peer_id(peer_id)
                         .with_ip_address(client_ip)
@@ -785,7 +801,7 @@ mod tests {
 
             use crate::statistics::TrackerStatisticsEvent;
             use crate::tracker::tracker::TorrentTracker;
-            use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
+            use crate::udp::connection_cookie::{into_connection_id, ConnectionCookie, HashedConnectionCookie};
             use crate::udp::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
             use crate::udp::handlers::tests::{
@@ -807,7 +823,9 @@ mod tests {
                 let remote_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                    .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                        &remote_addr,
+                    )))
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(client_ip_v4)
@@ -834,7 +852,9 @@ mod tests {
                 let remote_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), 8080);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                    .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                        &remote_addr,
+                    )))
                     .into();
 
                 let response = handle_announce(remote_addr, &request, initialized_public_tracker())
@@ -873,7 +893,9 @@ mod tests {
                 let remote_addr = SocketAddr::new(IpAddr::V6(remote_client_ip), remote_client_port);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                    .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                        &remote_addr,
+                    )))
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(peer_address)
@@ -911,7 +933,9 @@ mod tests {
                 let client_port = 8080;
                 let remote_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                    .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                        &remote_addr,
+                    )))
                     .into();
                 let response = handle_announce(remote_addr, &request, tracker.clone()).await.unwrap();
                 response
@@ -945,7 +969,9 @@ mod tests {
                 let remote_addr = sample_ipv6_remote_addr();
 
                 let announce_request = AnnounceRequestBuilder::default()
-                    .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                    .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                        &remote_addr,
+                    )))
                     .into();
 
                 handle_announce(remote_addr, &announce_request, tracker.clone())
@@ -961,7 +987,7 @@ mod tests {
 
                 use crate::statistics::StatsTracker;
                 use crate::tracker::tracker::TorrentTracker;
-                use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
+                use crate::udp::connection_cookie::{into_connection_id, ConnectionCookie, HashedConnectionCookie};
                 use crate::udp::handle_announce;
                 use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
                 use crate::udp::handlers::tests::TrackerConfigurationBuilder;
@@ -985,7 +1011,9 @@ mod tests {
                     let remote_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
 
                     let request = AnnounceRequestBuilder::default()
-                        .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
+                        .with_connection_id(into_connection_id(&HashedConnectionCookie::make_connection_cookie(
+                            &remote_addr,
+                        )))
                         .with_info_hash(info_hash)
                         .with_peer_id(peer_id)
                         .with_ip_address(client_ip_v4)
@@ -1021,7 +1049,7 @@ mod tests {
 
         use super::TorrentPeerBuilder;
         use crate::tracker::tracker::TorrentTracker;
-        use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
+        use crate::udp::connection_cookie::{into_connection_id, ConnectionCookie, HashedConnectionCookie};
         use crate::udp::handle_scrape;
         use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
         use crate::PeerId;
@@ -1042,7 +1070,7 @@ mod tests {
             let info_hashes = vec![info_hash];
 
             let request = ScrapeRequest {
-                connection_id: into_connection_id(&make_connection_cookie(&remote_addr)),
+                connection_id: into_connection_id(&HashedConnectionCookie::make_connection_cookie(&remote_addr)),
                 transaction_id: TransactionId(0i32),
                 info_hashes,
             };
@@ -1080,7 +1108,7 @@ mod tests {
             let info_hashes = vec![*info_hash];
 
             ScrapeRequest {
-                connection_id: into_connection_id(&make_connection_cookie(&remote_addr)),
+                connection_id: into_connection_id(&HashedConnectionCookie::make_connection_cookie(&remote_addr)),
                 transaction_id: TransactionId(0i32),
                 info_hashes,
             }
@@ -1225,7 +1253,7 @@ mod tests {
             let info_hashes = vec![info_hash];
 
             ScrapeRequest {
-                connection_id: into_connection_id(&make_connection_cookie(&remote_addr)),
+                connection_id: into_connection_id(&HashedConnectionCookie::make_connection_cookie(&remote_addr)),
                 transaction_id: TransactionId(0i32),
                 info_hashes,
             }
