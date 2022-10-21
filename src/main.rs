@@ -23,7 +23,7 @@ async fn main() {
         }
     };
 
-    // Initialize statistics:wq
+    // Initialize statistics
     let (stats_tracker, stats_event_sender) = setup_statistics(config.tracker_usage_statistics);
 
     // Initialize Torrust tracker
