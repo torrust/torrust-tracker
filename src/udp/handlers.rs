@@ -345,29 +345,13 @@ mod tests {
 
     struct TrackerStatsServiceMock {
         stats: Arc<RwLock<TrackerStatistics>>,
-        expected_event: Option<TrackerStatisticsEvent>,
     }
 
     impl TrackerStatsServiceMock {
         fn new() -> Self {
             Self {
                 stats: Arc::new(RwLock::new(TrackerStatistics::new())),
-                expected_event: None,
             }
-        }
-
-        fn should_throw_event(&mut self, expected_event: TrackerStatisticsEvent) {
-            self.expected_event = Some(expected_event);
-        }
-    }
-
-    #[async_trait]
-    impl TrackerStatisticsEventSender for TrackerStatsServiceMock {
-        async fn send_event(&self, _event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
-            if self.expected_event.is_some() {
-                assert_eq!(_event, *self.expected_event.as_ref().unwrap());
-            }
-            None
         }
     }
 
@@ -387,9 +371,9 @@ mod tests {
 
     #[async_trait]
     impl TrackerStatisticsEventSender for StatsEventSenderMock {
-        async fn send_event(&self, _event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
+        async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
             if self.expected_event.is_some() {
-                assert_eq!(_event, *self.expected_event.as_ref().unwrap());
+                assert_eq!(event, *self.expected_event.as_ref().unwrap());
             }
             None
         }
@@ -493,11 +477,11 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_send_the_upd4_connect_event_when_a_client_tries_to_connect_using_a_ip4_socket_address() {
-            let mut tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
-            let stats_event_sender = Box::new(StatsEventSenderMock::new());
+            let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
+            let mut stats_event_sender = Box::new(StatsEventSenderMock::new());
 
             let client_socket_address = sample_ipv4_socket_address();
-            tracker_stats_service.should_throw_event(TrackerStatisticsEvent::Udp4Connect);
+            stats_event_sender.should_throw_event(TrackerStatisticsEvent::Udp4Connect);
 
             let torrent_tracker =
                 Arc::new(TorrentTracker::new(default_tracker_config(), tracker_stats_service, Some(stats_event_sender)).unwrap());
@@ -508,10 +492,10 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_send_the_upd6_connect_event_when_a_client_tries_to_connect_using_a_ip6_socket_address() {
-            let mut tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
-            let stats_event_sender = Box::new(StatsEventSenderMock::new());
+            let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
+            let mut stats_event_sender = Box::new(StatsEventSenderMock::new());
 
-            tracker_stats_service.should_throw_event(TrackerStatisticsEvent::Udp6Connect);
+            stats_event_sender.should_throw_event(TrackerStatisticsEvent::Udp6Connect);
 
             let torrent_tracker =
                 Arc::new(TorrentTracker::new(default_tracker_config(), tracker_stats_service, Some(stats_event_sender)).unwrap());
@@ -748,10 +732,10 @@ mod tests {
 
             #[tokio::test]
             async fn should_send_the_upd4_announce_event() {
-                let mut tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
-                let stats_event_sender = Box::new(StatsEventSenderMock::new());
+                let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
+                let mut stats_event_sender = Box::new(StatsEventSenderMock::new());
 
-                tracker_stats_service.should_throw_event(TrackerStatisticsEvent::Udp4Announce);
+                stats_event_sender.should_throw_event(TrackerStatisticsEvent::Udp4Announce);
 
                 let tracker = Arc::new(
                     TorrentTracker::new(default_tracker_config(), tracker_stats_service, Some(stats_event_sender)).unwrap(),
@@ -975,10 +959,10 @@ mod tests {
 
             #[tokio::test]
             async fn should_send_the_upd6_announce_event() {
-                let mut tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
-                let stats_event_sender = Box::new(StatsEventSenderMock::new());
+                let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
+                let mut stats_event_sender = Box::new(StatsEventSenderMock::new());
 
-                tracker_stats_service.should_throw_event(TrackerStatisticsEvent::Udp6Announce);
+                stats_event_sender.should_throw_event(TrackerStatisticsEvent::Udp6Announce);
 
                 let tracker = Arc::new(
                     TorrentTracker::new(default_tracker_config(), tracker_stats_service, Some(stats_event_sender)).unwrap(),
@@ -1287,10 +1271,10 @@ mod tests {
 
             #[tokio::test]
             async fn should_send_the_upd4_scrape_event() {
-                let mut tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
-                let stats_event_sender = Box::new(StatsEventSenderMock::new());
+                let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
+                let mut stats_event_sender = Box::new(StatsEventSenderMock::new());
 
-                tracker_stats_service.should_throw_event(TrackerStatisticsEvent::Udp4Scrape);
+                stats_event_sender.should_throw_event(TrackerStatisticsEvent::Udp4Scrape);
 
                 let remote_addr = sample_ipv4_remote_addr();
                 let tracker = Arc::new(
@@ -1316,10 +1300,10 @@ mod tests {
 
             #[tokio::test]
             async fn should_send_the_upd6_scrape_event() {
-                let mut tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
-                let stats_event_sender = Box::new(StatsEventSenderMock::new());
+                let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
+                let mut stats_event_sender = Box::new(StatsEventSenderMock::new());
 
-                tracker_stats_service.should_throw_event(TrackerStatisticsEvent::Udp6Scrape);
+                stats_event_sender.should_throw_event(TrackerStatisticsEvent::Udp6Scrape);
 
                 let remote_addr = sample_ipv6_remote_addr();
                 let tracker = Arc::new(
