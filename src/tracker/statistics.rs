@@ -57,14 +57,12 @@ impl TrackerStatistics {
 }
 
 pub struct StatsTracker {
-    channel_sender: Option<Sender<TrackerStatisticsEvent>>,
     pub stats: Arc<RwLock<TrackerStatistics>>,
 }
 
 impl StatsTracker {
     pub fn new_active_instance() -> (Self, Box<dyn TrackerStatisticsEventSender>) {
         let mut stats_tracker = Self {
-            channel_sender: None,
             stats: Arc::new(RwLock::new(TrackerStatistics::new())),
         };
 
@@ -75,7 +73,6 @@ impl StatsTracker {
 
     pub fn new_inactive_instance() -> Self {
         Self {
-            channel_sender: None,
             stats: Arc::new(RwLock::new(TrackerStatistics::new())),
         }
     }
@@ -92,16 +89,12 @@ impl StatsTracker {
 
     pub fn new() -> Self {
         Self {
-            channel_sender: None,
             stats: Arc::new(RwLock::new(TrackerStatistics::new())),
         }
     }
 
     pub fn run_worker(&mut self) -> Box<dyn TrackerStatisticsEventSender> {
         let (tx, mut rx) = mpsc::channel::<TrackerStatisticsEvent>(CHANNEL_BUFFER_SIZE);
-
-        // set send channel on stats_tracker
-        self.channel_sender = Some(tx.clone());
 
         let stats = self.stats.clone();
 
@@ -159,17 +152,6 @@ pub trait TrackerStatisticsEventSender: Sync + Send {
     async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>>;
 }
 
-#[async_trait]
-impl TrackerStatisticsEventSender for StatsTracker {
-    async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
-        if let Some(tx) = &self.channel_sender {
-            Some(tx.send(event).await)
-        } else {
-            None
-        }
-    }
-}
-
 pub struct StatsEventSender {
     sender: Sender<TrackerStatisticsEvent>,
 }
@@ -193,36 +175,6 @@ impl TrackerStatisticsRepository for StatsTracker {
     }
 }
 
-pub trait TrackerStatsService: TrackerStatisticsEventSender + TrackerStatisticsRepository {}
+pub trait TrackerStatsService: TrackerStatisticsRepository {}
 
 impl TrackerStatsService for StatsTracker {}
-
-#[cfg(test)]
-mod test {
-
-    mod event_sender {
-        use crate::statistics::{StatsTracker, TrackerStatisticsEvent, TrackerStatisticsEventSender};
-
-        #[tokio::test]
-        async fn should_not_send_any_event_when_statistics_are_disabled() {
-            let tracker_usage_statistics = false;
-
-            let inactive_stats_tracker = StatsTracker::new_instance(tracker_usage_statistics);
-
-            let result = inactive_stats_tracker.send_event(TrackerStatisticsEvent::Tcp4Announce).await;
-
-            assert!(result.is_none());
-        }
-
-        #[tokio::test]
-        async fn should_send_events_when_statistics_are_enabled() {
-            let tracker_usage_statistics = true;
-
-            let active_stats_tracker = StatsTracker::new_instance(tracker_usage_statistics);
-
-            let result = active_stats_tracker.send_event(TrackerStatisticsEvent::Tcp4Announce).await;
-
-            assert!(result.is_some());
-        }
-    }
-}
