@@ -271,18 +271,23 @@ mod tests {
 
     fn initialized_public_tracker() -> Arc<TorrentTracker> {
         let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Public).into());
-        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_active_instance())).unwrap())
+        initialized_tracker(configuration)
     }
 
     fn initialized_private_tracker() -> Arc<TorrentTracker> {
         let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Private).into());
-        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_active_instance())).unwrap())
+        initialized_tracker(configuration)
     }
 
     fn initialized_whitelisted_tracker() -> Arc<TorrentTracker> {
         let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Listed).into());
-        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_active_instance())).unwrap())
+        initialized_tracker(configuration)
     }
+
+    fn initialized_tracker(configuration: Arc<Configuration>) -> Arc<TorrentTracker> {
+        let (stats_tracker, _stats_event_sender) = StatsTracker::new_active_instance();
+        Arc::new(TorrentTracker::new(configuration, Box::new(stats_tracker)).unwrap())
+    }    
 
     fn sample_ipv4_remote_addr() -> SocketAddr {
         sample_ipv4_socket_address()
@@ -969,8 +974,8 @@ mod tests {
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
                     let configuration = Arc::new(TrackerConfigurationBuilder::default().with_external_ip("::126.0.0.1").into());
-                    let tracker =
-                        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_active_instance())).unwrap());
+                    let (stats_tracker, _stats_event_sender) = StatsTracker::new_active_instance();
+                    let tracker = Arc::new(TorrentTracker::new(configuration, Box::new(stats_tracker)).unwrap());
 
                     let loopback_ipv4 = Ipv4Addr::new(127, 0, 0, 1);
                     let loopback_ipv6 = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);

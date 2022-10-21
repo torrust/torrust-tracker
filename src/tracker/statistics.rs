@@ -62,23 +62,30 @@ pub struct StatsTracker {
 }
 
 impl StatsTracker {
-    pub fn new_active_instance() -> Self {
-        Self::new_instance(true)
-    }
-
-    pub fn new_inactive_instance() -> Self {
-        Self::new_instance(false)
-    }
-
-    pub fn new_instance(active: bool) -> Self {
+    pub fn new_active_instance() -> (Self, StatsEventSender) {
         let mut stats_tracker = Self {
             channel_sender: None,
             stats: Arc::new(RwLock::new(TrackerStatistics::new())),
         };
 
-        if active {
-            stats_tracker.run_worker();
+        let stats_event_sender = stats_tracker.run_worker();
+
+        (stats_tracker, stats_event_sender)
+    }
+
+    pub fn new_inactive_instance() -> Self {
+        Self {
+            channel_sender: None,
+            stats: Arc::new(RwLock::new(TrackerStatistics::new())),
         }
+    }
+
+    pub fn new_instance(active: bool) -> Self {
+        if !active {
+            return Self::new_inactive_instance();
+        }
+
+        let (stats_tracker, _stats_event_sender) = Self::new_active_instance();
 
         stats_tracker
     }
@@ -90,11 +97,11 @@ impl StatsTracker {
         }
     }
 
-    pub fn run_worker(&mut self) {
+    pub fn run_worker(&mut self) -> StatsEventSender {
         let (tx, mut rx) = mpsc::channel::<TrackerStatisticsEvent>(CHANNEL_BUFFER_SIZE);
 
         // set send channel on stats_tracker
-        self.channel_sender = Some(tx);
+        self.channel_sender = Some(tx.clone());
 
         let stats = self.stats.clone();
 
@@ -142,6 +149,8 @@ impl StatsTracker {
                 drop(stats_lock);
             }
         });
+
+        StatsEventSender { sender: tx }
     }
 }
 
@@ -158,6 +167,17 @@ impl TrackerStatisticsEventSender for StatsTracker {
         } else {
             None
         }
+    }
+}
+
+pub struct StatsEventSender {
+    sender: Sender<TrackerStatisticsEvent>,
+}
+
+#[async_trait]
+impl TrackerStatisticsEventSender for StatsEventSender {
+    async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
+        Some(self.sender.send(event).await)
     }
 }
 
