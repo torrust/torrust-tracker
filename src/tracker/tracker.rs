@@ -25,7 +25,7 @@ pub struct TorrentTracker {
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     stats_tracker: Box<dyn TrackerStatsService>,
-    _stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
+    stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
     database: Box<dyn Database>,
 }
 
@@ -33,7 +33,7 @@ impl TorrentTracker {
     pub fn new(
         config: Arc<Configuration>,
         stats_tracker: Box<dyn TrackerStatsService>,
-        _stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
+        stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
     ) -> Result<TorrentTracker, r2d2::Error> {
         let database = database::connect_database(&config.db_driver, &config.db_path)?;
 
@@ -44,7 +44,7 @@ impl TorrentTracker {
             whitelist: RwLock::new(std::collections::HashSet::new()),
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             stats_tracker,
-            _stats_event_sender,
+            stats_event_sender,
             database,
         })
     }
@@ -242,7 +242,10 @@ impl TorrentTracker {
     }
 
     pub async fn send_stats_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
-        self.stats_tracker.send_event(event).await
+        match &self.stats_event_sender {
+            None => None,
+            Some(stats_event_sender) => stats_event_sender.send_event(event).await,
+        }
     }
 
     // Remove inactive peers and (optionally) peerless torrents
