@@ -1,27 +1,32 @@
-use log::info;
+use std::str::FromStr;
+use std::sync::Once;
+
+use log::{info, LevelFilter};
 
 use crate::Configuration;
 
-pub fn setup_logging(cfg: &Configuration) {
-    let log_level = match &cfg.log_level {
-        None => log::LevelFilter::Info,
-        Some(level) => match level.as_str() {
-            "off" => log::LevelFilter::Off,
-            "trace" => log::LevelFilter::Trace,
-            "debug" => log::LevelFilter::Debug,
-            "info" => log::LevelFilter::Info,
-            "warn" => log::LevelFilter::Warn,
-            "error" => log::LevelFilter::Error,
-            _ => {
-                panic!("Unknown log level encountered: '{}'", level.as_str());
-            }
-        },
-    };
+static INIT: Once = Once::new();
 
-    if log_level == log::LevelFilter::Off {
+pub fn setup_logging(cfg: &Configuration) {
+    let level = config_level_or_default(&cfg.log_level);
+
+    if level == log::LevelFilter::Off {
         return;
     }
 
+    INIT.call_once(|| {
+        stdout_config(level);
+    });
+}
+
+fn config_level_or_default(log_level: &Option<String>) -> LevelFilter {
+    match log_level {
+        None => log::LevelFilter::Info,
+        Some(level) => LevelFilter::from_str(level).unwrap(),
+    }
+}
+
+fn stdout_config(level: LevelFilter) {
     if let Err(_err) = fern::Dispatch::new()
         .format(|out, message, record| {
             out.finish(format_args!(
@@ -32,11 +37,12 @@ pub fn setup_logging(cfg: &Configuration) {
                 message
             ))
         })
-        .level(log_level)
+        .level(level)
         .chain(std::io::stdout())
         .apply()
     {
         panic!("Failed to initialize logging.")
     }
+
     info!("logging initialized.");
 }

@@ -25,7 +25,7 @@ mod udp_tracker_server {
 
     fn tracker_configuration() -> Arc<Configuration> {
         let mut config = Configuration::default();
-        config.log_level = Some("off".to_owned()); // "off" is necessary when running multiple trackers
+        config.log_level = Some("off".to_owned());
         config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", ephemeral_random_port());
         Arc::new(config)
     }
