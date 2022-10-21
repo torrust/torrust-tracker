@@ -62,9 +62,24 @@ pub struct StatsTracker {
 }
 
 impl StatsTracker {
-    pub fn new_running_instance() -> Self {
-        let mut stats_tracker = Self::new();
-        stats_tracker.run_worker();
+    pub fn new_active_instance() -> Self {
+        Self::new_instance(true)
+    }
+
+    pub fn new_inactive_instance() -> Self {
+        Self::new_instance(false)
+    }
+
+    pub fn new_instance(active: bool) -> Self {
+        let mut stats_tracker = Self {
+            channel_sender: None,
+            stats: Arc::new(RwLock::new(TrackerStatistics::new())),
+        };
+
+        if active {
+            stats_tracker.run_worker();
+        }
+
         stats_tracker
     }
 
@@ -161,3 +176,33 @@ impl TrackerStatisticsRepository for StatsTracker {
 pub trait TrackerStatsService: TrackerStatisticsEventSender + TrackerStatisticsRepository {}
 
 impl TrackerStatsService for StatsTracker {}
+
+#[cfg(test)]
+mod test {
+
+    mod event_sender {
+        use crate::statistics::{StatsTracker, TrackerStatisticsEvent, TrackerStatisticsEventSender};
+
+        #[tokio::test]
+        async fn should_not_send_any_event_when_statistics_are_disabled() {
+            let tracker_usage_statistics = false;
+
+            let inactive_stats_tracker = StatsTracker::new_instance(tracker_usage_statistics);
+
+            let result = inactive_stats_tracker.send_event(TrackerStatisticsEvent::Tcp4Announce).await;
+
+            assert!(result.is_none());
+        }
+
+        #[tokio::test]
+        async fn should_send_events_when_statistics_are_enabled() {
+            let tracker_usage_statistics = true;
+
+            let active_stats_tracker = StatsTracker::new_instance(tracker_usage_statistics);
+
+            let result = active_stats_tracker.send_event(TrackerStatisticsEvent::Tcp4Announce).await;
+
+            assert!(result.is_some());
+        }
+    }
+}

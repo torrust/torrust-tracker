@@ -271,17 +271,17 @@ mod tests {
 
     fn initialized_public_tracker() -> Arc<TorrentTracker> {
         let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Public).into());
-        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_running_instance())).unwrap())
+        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_active_instance())).unwrap())
     }
 
     fn initialized_private_tracker() -> Arc<TorrentTracker> {
         let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Private).into());
-        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_running_instance())).unwrap())
+        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_active_instance())).unwrap())
     }
 
     fn initialized_whitelisted_tracker() -> Arc<TorrentTracker> {
         let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Listed).into());
-        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_running_instance())).unwrap())
+        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_active_instance())).unwrap())
     }
 
     fn sample_ipv4_remote_addr() -> SocketAddr {
@@ -970,7 +970,7 @@ mod tests {
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
                     let configuration = Arc::new(TrackerConfigurationBuilder::default().with_external_ip("::126.0.0.1").into());
                     let tracker =
-                        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_running_instance())).unwrap());
+                        Arc::new(TorrentTracker::new(configuration, Box::new(StatsTracker::new_active_instance())).unwrap());
 
                     let loopback_ipv4 = Ipv4Addr::new(127, 0, 0, 1);
                     let loopback_ipv6 = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
