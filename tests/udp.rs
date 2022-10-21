@@ -51,7 +51,7 @@ mod udp_tracker_server {
                 lazy_static::initialize(&static_time::TIME_AT_APP_START);
 
                 // Initialize stats tracker
-                let stats_tracker = StatsTracker::new_running_instance();
+                let stats_tracker = StatsTracker::new_active_instance();
 
                 // Initialize Torrust tracker
                 let tracker = match TorrentTracker::new(configuration.clone(), Box::new(stats_tracker)) {
