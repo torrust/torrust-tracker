@@ -62,7 +62,7 @@ pub struct StatsTracker {
 }
 
 impl StatsTracker {
-    pub fn new_active_instance() -> (Self, StatsEventSender) {
+    pub fn new_active_instance() -> (Self, Box<dyn TrackerStatisticsEventSender>) {
         let mut stats_tracker = Self {
             channel_sender: None,
             stats: Arc::new(RwLock::new(TrackerStatistics::new())),
@@ -97,7 +97,7 @@ impl StatsTracker {
         }
     }
 
-    pub fn run_worker(&mut self) -> StatsEventSender {
+    pub fn run_worker(&mut self) -> Box<dyn TrackerStatisticsEventSender> {
         let (tx, mut rx) = mpsc::channel::<TrackerStatisticsEvent>(CHANNEL_BUFFER_SIZE);
 
         // set send channel on stats_tracker
@@ -150,7 +150,7 @@ impl StatsTracker {
             }
         });
 
-        StatsEventSender { sender: tx }
+        Box::new(StatsEventSender { sender: tx })
     }
 }
 

@@ -12,7 +12,7 @@ use crate::databases::database::Database;
 use crate::mode::TrackerMode;
 use crate::peer::TorrentPeer;
 use crate::protocol::common::InfoHash;
-use crate::statistics::{TrackerStatistics, TrackerStatisticsEvent, TrackerStatsService};
+use crate::statistics::{TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender, TrackerStatsService};
 use crate::tracker::key;
 use crate::tracker::key::AuthKey;
 use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
@@ -25,11 +25,16 @@ pub struct TorrentTracker {
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     stats_tracker: Box<dyn TrackerStatsService>,
+    _stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
     database: Box<dyn Database>,
 }
 
 impl TorrentTracker {
-    pub fn new(config: Arc<Configuration>, stats_tracker: Box<dyn TrackerStatsService>) -> Result<TorrentTracker, r2d2::Error> {
+    pub fn new(
+        config: Arc<Configuration>,
+        stats_tracker: Box<dyn TrackerStatsService>,
+        _stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
+    ) -> Result<TorrentTracker, r2d2::Error> {
         let database = database::connect_database(&config.db_driver, &config.db_path)?;
 
         Ok(TorrentTracker {
@@ -39,6 +44,7 @@ impl TorrentTracker {
             whitelist: RwLock::new(std::collections::HashSet::new()),
             torrents: RwLock::new(std::collections::BTreeMap::new()),
             stats_tracker,
+            _stats_event_sender,
             database,
         })
     }
