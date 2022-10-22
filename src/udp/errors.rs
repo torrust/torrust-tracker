@@ -11,6 +11,12 @@ pub enum ServerError {
     #[error("connection id could not be verified")]
     InvalidConnectionId,
 
+    #[error("connection id expired")]
+    ExpiredConnectionId,
+
+    #[error("connection bad witness")]
+    BadWitnessConnectionId,
+
     #[error("could not find remote address")]
     AddressNotFound,
 
