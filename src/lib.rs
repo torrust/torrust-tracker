@@ -38,3 +38,34 @@ pub mod ephemeral_instance_keys {
         pub static ref RANDOM_SEED: Seed = Rng::gen(&mut ThreadRng::default());
     }
 }
+
+pub mod block_ciphers {
+
+    use blowfish::BlowfishLE;
+    use cipher::KeyInit;
+    use rand::rngs::StdRng;
+    use rand::SeedableRng;
+
+    pub type Cipher = BlowfishLE;
+
+    pub mod ephemeral_instance {
+        use super::*;
+        use crate::ephemeral_instance_keys::RANDOM_SEED;
+
+        lazy_static! {
+            pub static ref BLOCK_CIPHER_BLOWFISH: Cipher = <BlowfishLE as KeyInit>::new(&<BlowfishLE as KeyInit>::generate_key(
+                <StdRng as SeedableRng>::from_seed(*RANDOM_SEED)
+            ));
+        }
+    }
+
+    pub mod testing {
+        use super::*;
+
+        lazy_static! {
+            pub static ref TEST_BLOCK_CIPHER_BLOWFISH: Cipher = <BlowfishLE as KeyInit>::new(
+                &<BlowfishLE as KeyInit>::generate_key(<StdRng as SeedableRng>::from_seed([0u8; 32]))
+            );
+        }
+    }
+}

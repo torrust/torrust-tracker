@@ -35,6 +35,9 @@ hex = "0.4.3"
 percent-encoding = "2.1.0"
 binascii = "0.1"
 lazy_static = "1.4.0"
+blowfish = "0.9.1"
+cipher = "0.4.3"
+crypto-common = {version = "0.1.6", features = ["rand_core"] }
 
 openssl = { version = "0.10.41", features = ["vendored"] }
 

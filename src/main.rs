@@ -3,7 +3,7 @@ use std::sync::Arc;
 use log::info;
 use torrust_tracker::tracker::statistics::StatsTracker;
 use torrust_tracker::tracker::tracker::TorrentTracker;
-use torrust_tracker::{ephemeral_instance_keys, logging, setup, static_time, Configuration};
+use torrust_tracker::{block_ciphers, ephemeral_instance_keys, logging, setup, static_time, Configuration};
 
 #[tokio::main]
 async fn main() {
@@ -14,6 +14,11 @@ async fn main() {
 
     // Initialize the Ephemeral Instance Random Seed
     lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
+
+    // Initialize the Block Ciphers
+    lazy_static::initialize(&block_ciphers::ephemeral_instance::BLOCK_CIPHER_BLOWFISH);
+    #[cfg(test)]
+    lazy_static::initialize(&block_ciphers::testing::TEST_BLOCK_CIPHER_BLOWFISH);
 
     // Initialize Torrust config
     let config = match Configuration::load_from_file(CONFIG_PATH) {

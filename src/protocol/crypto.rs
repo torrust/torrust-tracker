@@ -95,4 +95,85 @@ pub mod keys {
             }
         }
     }
+
+    pub mod block_ciphers {
+        use cipher::generic_array::GenericArray;
+        use cipher::BlockSizeUser;
+
+        pub(super) use crate::block_ciphers::ephemeral_instance::BLOCK_CIPHER_BLOWFISH as INSTANCE_BLOCK_CIPHER;
+        #[allow(unused_imports)]
+        pub(super) use crate::block_ciphers::testing::TEST_BLOCK_CIPHER_BLOWFISH as TEST_BLOCK_CIPHER;
+        use crate::block_ciphers::Cipher;
+
+        pub trait BlockCipherKeeper {
+            type BlockCipher: cipher::BlockCipher;
+            fn get_block_cipher() -> &'static Self::BlockCipher;
+        }
+
+        pub type CipherArray = GenericArray<u8, <Cipher as BlockSizeUser>::BlockSize>;
+
+        pub struct DefaultBlockCipher;
+        pub struct InstanceBlockCipher;
+
+        impl BlockCipherKeeper for DefaultBlockCipher {
+            type BlockCipher = Cipher;
+            fn get_block_cipher() -> &'static Self::BlockCipher {
+                &self::detail::DEFAULT_BLOCK_CIPHER
+            }
+        }
+
+        impl BlockCipherKeeper for InstanceBlockCipher {
+            type BlockCipher = Cipher;
+            fn get_block_cipher() -> &'static Self::BlockCipher {
+                &INSTANCE_BLOCK_CIPHER
+            }
+        }
+
+        #[cfg(test)]
+        mod tests {
+            use cipher::BlockEncrypt;
+
+            use super::{BlockCipherKeeper, CipherArray, DefaultBlockCipher, InstanceBlockCipher, TEST_BLOCK_CIPHER};
+            use crate::block_ciphers::Cipher;
+
+            pub struct TestBlockCipher;
+
+            impl BlockCipherKeeper for TestBlockCipher {
+                type BlockCipher = Cipher;
+
+                fn get_block_cipher() -> &'static Self::BlockCipher {
+                    &TEST_BLOCK_CIPHER
+                }
+            }
+
+            #[test]
+            fn when_testing_the_default_and_test_block_ciphers_should_be_the_same() {
+                let mut array = CipherArray::from([0u8; 8]);
+                let mut array2 = CipherArray::from([0u8; 8]);
+
+                DefaultBlockCipher::get_block_cipher().encrypt_block(&mut array);
+                TestBlockCipher::get_block_cipher().encrypt_block(&mut array2);
+
+                assert_eq!(array, array2)
+            }
+
+            #[test]
+            fn when_testing_the_default_and_instance_block_ciphers_should_be_the_different() {
+                let mut array = CipherArray::from([0u8; 8]);
+                let mut array2 = CipherArray::from([0u8; 8]);
+
+                DefaultBlockCipher::get_block_cipher().encrypt_block(&mut array);
+                InstanceBlockCipher::get_block_cipher().encrypt_block(&mut array2);
+
+                assert_ne!(array, array2)
+            }
+        }
+
+        mod detail {
+            #[cfg(not(test))]
+            pub(super) use super::INSTANCE_BLOCK_CIPHER as DEFAULT_BLOCK_CIPHER;
+            #[cfg(test)]
+            pub(super) use super::TEST_BLOCK_CIPHER as DEFAULT_BLOCK_CIPHER;
+        }
+    }
 }
