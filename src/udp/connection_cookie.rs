@@ -33,6 +33,8 @@ pub trait ConnectionCookie {
     ) -> Result<SinceUnixEpochTimeExtent, ServerError>;
 }
 
+pub type DefaultConnectionCookie = EncryptedConnectionCookie;
+
 pub struct HashedConnectionCookie;
 
 impl ConnectionCookie for HashedConnectionCookie {
