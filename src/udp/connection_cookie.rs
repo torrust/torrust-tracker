@@ -3,9 +3,11 @@ use std::hash::{Hash, Hasher};
 use std::net::SocketAddr;
 
 use aquatic_udp_protocol::ConnectionId;
+use cipher::{BlockDecrypt, BlockEncrypt};
 
 use crate::protocol::clock::time_extent::{DefaultTimeExtentMaker, Extent, MakeTimeExtent, TimeExtent};
 use crate::protocol::clock::{DefaultClock, Time, TimeNow};
+use crate::protocol::crypto::keys::block_ciphers::{BlockCipherKeeper, CipherArray, DefaultBlockCipher};
 use crate::protocol::crypto::keys::seeds::{DefaultSeed, SeedKeeper};
 use crate::udp::ServerError;
 
@@ -133,6 +135,91 @@ impl WitnessConnectionCookie {
             witness[0], witness[1], witness[2], witness[3], expiry[0], expiry[1], expiry[2], expiry[3],
         ]
     }
+    fn extract_time(cookie: &Cookie) -> f32 {
+        f32::from_le_bytes([cookie[4], cookie[5], cookie[6], cookie[7]])
+    }
+}
+
+pub struct EncryptedConnectionCookie;
+
+impl ConnectionCookie for EncryptedConnectionCookie {
+    fn make_connection_cookie(remote_address: &SocketAddr) -> Cookie {
+        // get the time that the cookie will expire.
+        let expiry_time = DefaultClock::add(&COOKIE_LIFETIME.total().unwrap().unwrap())
+            .unwrap()
+            .as_secs_f32()
+            .to_le_bytes();
+
+        EncryptedConnectionCookie::build(&EncryptedConnectionCookie::get_remote_hash(remote_address), expiry_time)
+    }
+
+    fn check_connection_cookie(
+        remote_address: &SocketAddr,
+        connection_cookie: &Cookie,
+    ) -> Result<SinceUnixEpochTimeExtent, ServerError> {
+        let cookie = EncryptedConnectionCookie::decode_cookie(connection_cookie);
+        let expiry_time = EncryptedConnectionCookie::extract_time(&cookie);
+        let time_clock = DefaultClock::now().as_secs_f32();
+        let time_clock_expiry = DefaultClock::add(&COOKIE_LIFETIME.total().unwrap().unwrap())
+            .unwrap()
+            .as_secs_f32();
+        let remote_hash = EncryptedConnectionCookie::get_remote_hash(remote_address);
+
+        println!("expiry_time: {expiry_time:?}, time_clock: {time_clock:?}");
+
+        // cannot to be too old.
+        if expiry_time < time_clock {
+            return Err(ServerError::ExpiredConnectionId);
+        }
+
+        // or impossibly new.
+        if expiry_time > time_clock_expiry {
+            return Err(ServerError::BadWitnessConnectionId);
+        }
+
+        // and the remote hash should match
+        if cookie[0..4] != remote_hash[0..4] {
+            return Err(ServerError::BadWitnessConnectionId);
+        }
+
+        Ok(TimeExtent::from_sec(1, &(expiry_time.round() as u64)))
+    }
+}
+
+impl EncryptedConnectionCookie {
+    fn get_remote_hash(remote_address: &SocketAddr) -> [u8; 8] {
+        let mut hasher = DefaultHasher::new();
+
+        remote_address.hash(&mut hasher);
+
+        hasher.finish().to_le_bytes()
+    }
+
+    fn build(remote_hash: &[u8; 8], expiry: [u8; 4]) -> Cookie {
+        let mut array = CipherArray::from([
+            remote_hash[0],
+            remote_hash[1],
+            remote_hash[2],
+            remote_hash[3],
+            expiry[0],
+            expiry[1],
+            expiry[2],
+            expiry[3],
+        ]);
+
+        DefaultBlockCipher::get_block_cipher().encrypt_block(&mut array);
+
+        array.into()
+    }
+
+    fn decode_cookie(encoded_cookie: &Cookie) -> Cookie {
+        let mut array = CipherArray::from(*encoded_cookie);
+
+        DefaultBlockCipher::get_block_cipher().decrypt_block(&mut array);
+
+        array.into()
+    }
+
     fn extract_time(cookie: &Cookie) -> f32 {
         f32::from_le_bytes([cookie[4], cookie[5], cookie[6], cookie[7]])
     }
@@ -431,6 +518,82 @@ mod tests {
                 assert_ne!(cookie[0..4], cookie_2[0..4]);
                 assert_ne!(cookie[5..8], cookie_2[5..8]);
             }
+        }
+    }
+
+    mod encrypted_connection_cookie {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        use crate::protocol::clock::time_extent::Extent;
+        use crate::protocol::clock::{StoppedClock, StoppedTime};
+        use crate::udp::connection_cookie::{
+            ConnectionCookie, Cookie, EncryptedConnectionCookie as TestConnectionCookie, COOKIE_LIFETIME,
+        };
+
+        #[test]
+        fn it_should_make_a_connection_cookie() {
+            let cookie = TestConnectionCookie::make_connection_cookie(&SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0));
+
+            // Note: This constant may need to be updated in the future as the hash is not guaranteed to to be stable between versions.
+            const ID_COOKIE: Cookie = [234, 229, 134, 15, 217, 77, 208, 204];
+
+            assert_eq!(cookie, ID_COOKIE)
+        }
+
+        #[test]
+        fn it_should_make_different_cookies_for_the_next_time_extent() {
+            let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+
+            let cookie = TestConnectionCookie::make_connection_cookie(&remote_address);
+
+            StoppedClock::local_add(&COOKIE_LIFETIME.increment).unwrap();
+
+            let cookie_next = TestConnectionCookie::make_connection_cookie(&remote_address);
+
+            assert_ne!(cookie, cookie_next)
+        }
+
+        #[test]
+        fn it_should_be_valid_for_this_time_extent() {
+            let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+
+            let cookie = TestConnectionCookie::make_connection_cookie(&remote_address);
+
+            TestConnectionCookie::check_connection_cookie(&remote_address, &cookie).unwrap();
+        }
+
+        #[test]
+        fn it_should_be_valid_for_the_next_time_extent() {
+            let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+
+            let cookie = TestConnectionCookie::make_connection_cookie(&remote_address);
+
+            StoppedClock::local_add(&COOKIE_LIFETIME.increment).unwrap();
+
+            TestConnectionCookie::check_connection_cookie(&remote_address, &cookie).unwrap();
+        }
+
+        #[test]
+        fn it_should_be_valid_for_the_last_time_extent() {
+            let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+
+            let cookie = TestConnectionCookie::make_connection_cookie(&remote_address);
+
+            StoppedClock::local_set(&COOKIE_LIFETIME.total().unwrap().unwrap());
+
+            TestConnectionCookie::check_connection_cookie(&remote_address, &cookie).unwrap();
+        }
+
+        #[test]
+        #[should_panic]
+        fn it_should_be_not_valid_after_their_last_time_extent() {
+            let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+
+            let cookie = TestConnectionCookie::make_connection_cookie(&remote_address);
+
+            StoppedClock::local_set(&COOKIE_LIFETIME.total_next().unwrap().unwrap());
+
+            TestConnectionCookie::check_connection_cookie(&remote_address, &cookie).unwrap();
         }
     }
 }
