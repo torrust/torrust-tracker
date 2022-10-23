@@ -35,6 +35,32 @@ pub trait ConnectionCookie {
 
 pub struct HashedConnectionCookie;
 
+impl ConnectionCookie for HashedConnectionCookie {
+    fn make_connection_cookie(remote_address: &SocketAddr) -> Cookie {
+        let time_extent = HashedConnectionCookie::get_last_time_extent();
+
+        HashedConnectionCookie::build(remote_address, &time_extent)
+    }
+
+    fn check_connection_cookie(
+        remote_address: &SocketAddr,
+        connection_cookie: &Cookie,
+    ) -> Result<SinceUnixEpochTimeExtent, ServerError> {
+        // we loop backwards testing each time_extent until we find one that matches.
+        // (or the lifetime of time_extents is exhausted)
+        for offset in 0..=COOKIE_LIFETIME.amount {
+            let checking_time_extent = HashedConnectionCookie::get_last_time_extent().decrease(offset).unwrap();
+
+            let checking_cookie = HashedConnectionCookie::build(remote_address, &checking_time_extent);
+
+            if *connection_cookie == checking_cookie {
+                return Ok(checking_time_extent);
+            }
+        }
+        Err(ServerError::InvalidConnectionId)
+    }
+}
+
 impl HashedConnectionCookie {
     fn get_last_time_extent() -> SinceUnixEpochTimeExtent {
         DefaultTimeExtentMaker::now(&COOKIE_LIFETIME.increment)
@@ -54,33 +80,6 @@ impl HashedConnectionCookie {
         seed.hash(&mut hasher);
 
         hasher.finish().to_le_bytes()
-    }
-}
-
-impl ConnectionCookie for HashedConnectionCookie {
-    fn make_connection_cookie(remote_address: &SocketAddr) -> Cookie {
-        let time_extent = HashedConnectionCookie::get_last_time_extent();
-
-        HashedConnectionCookie::build(remote_address, &time_extent)
-    }
-
-    fn check_connection_cookie(
-        remote_address: &SocketAddr,
-        connection_cookie: &Cookie,
-    ) -> Result<SinceUnixEpochTimeExtent, ServerError> {
-        // we loop backwards testing each time_extent until we find one that matches.
-        // (or the lifetime of time_extents is exhausted)
-        for offset in 0..=COOKIE_LIFETIME.amount {
-            let checking_time_extent = HashedConnectionCookie::get_last_time_extent().decrease(offset).unwrap();
-
-            let checking_cookie = HashedConnectionCookie::build(remote_address, &checking_time_extent);
-            //println!("remote_address: {remote_address:?}, time_extent: {checking_time_extent:?}, cookie: {checking_cookie:?}");
-
-            if *connection_cookie == checking_cookie {
-                return Ok(checking_time_extent);
-            }
-        }
-        Err(ServerError::InvalidConnectionId)
     }
 }
 
@@ -104,7 +103,7 @@ impl ConnectionCookie for WitnessConnectionCookie {
         let expiry_time = WitnessConnectionCookie::extract_time(connection_cookie);
         let time_clock = DefaultClock::now().as_secs_f32();
 
-        println!("expiry_time: {expiry_time:?}, time_clock: {time_clock:?}");
+        //println!("expiry_time: {expiry_time:?}, time_clock: {time_clock:?}");
 
         // lets check if the cookie has expired.
         if expiry_time < time_clock {
@@ -165,7 +164,7 @@ impl ConnectionCookie for EncryptedConnectionCookie {
             .as_secs_f32();
         let remote_hash = EncryptedConnectionCookie::get_remote_hash(remote_address);
 
-        println!("expiry_time: {expiry_time:?}, time_clock: {time_clock:?}");
+        //println!("expiry_time: {expiry_time:?}, time_clock: {time_clock:?}");
 
         // cannot to be too old.
         if expiry_time < time_clock {
@@ -238,7 +237,8 @@ mod tests {
 
         #[test]
         fn it_should_make_a_connection_cookie() {
-            let cookie = TestConnectionCookie::make_connection_cookie(&SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0));
+            let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+            let cookie = TestConnectionCookie::make_connection_cookie(&remote_address);
 
             // Note: This constant may need to be updated in the future as the hash is not guaranteed to to be stable between versions.
             const ID_COOKIE: Cookie = [23, 204, 198, 29, 48, 180, 62, 19];
@@ -249,7 +249,6 @@ mod tests {
         #[test]
         fn it_should_make_different_cookies_for_the_next_time_extent() {
             let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
-
             let cookie = TestConnectionCookie::make_connection_cookie(&remote_address);
 
             StoppedClock::local_add(&COOKIE_LIFETIME.increment).unwrap();
@@ -316,12 +315,6 @@ mod tests {
                 let cookie = HashedConnectionCookie::build(&remote_address, &time_extent_zero);
                 let cookie_2 = HashedConnectionCookie::build(&remote_address, &time_extent_zero);
 
-                println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie:?}");
-                println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie_2:?}");
-
-                //remote_address: 127.0.0.1:8080, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [212, 9, 204, 223, 176, 190, 150, 153]
-                //remote_address: 127.0.0.1:8080, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [212, 9, 204, 223, 176, 190, 150, 153]
-
                 assert_eq!(cookie, cookie_2)
             }
 
@@ -333,12 +326,6 @@ mod tests {
 
                 let cookie = HashedConnectionCookie::build(&remote_address, &time_extent_zero);
                 let cookie_2 = HashedConnectionCookie::build(&remote_address_2, &time_extent_zero);
-
-                println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie:?}");
-                println!("remote_address: {remote_address_2:?}, time_extent: {time_extent_zero:?}, cookie: {cookie_2:?}");
-
-                //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
-                //remote_address: 255.255.255.255:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [217, 87, 239, 178, 182, 126, 66, 166]
 
                 assert_ne!(cookie, cookie_2)
             }
@@ -352,12 +339,6 @@ mod tests {
                 let cookie = HashedConnectionCookie::build(&remote_address, &time_extent_zero);
                 let cookie_2 = HashedConnectionCookie::build(&remote_address_2, &time_extent_zero);
 
-                println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie:?}");
-                println!("remote_address: {remote_address_2:?}, time_extent: {time_extent_zero:?}, cookie: {cookie_2:?}");
-
-                //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
-                //remote_address: [::]:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [99, 119, 230, 177, 20, 220, 163, 187]
-
                 assert_ne!(cookie, cookie_2)
             }
 
@@ -370,12 +351,6 @@ mod tests {
                 let cookie = HashedConnectionCookie::build(&remote_address, &time_extent_zero);
                 let cookie_2 = HashedConnectionCookie::build(&remote_address_2, &time_extent_zero);
 
-                println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie:?}");
-                println!("remote_address: {remote_address_2:?}, time_extent: {time_extent_zero:?}, cookie: {cookie_2:?}");
-
-                //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
-                //remote_address: 0.0.0.0:1, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [38, 8, 0, 102, 92, 170, 220, 11]
-
                 assert_ne!(cookie, cookie_2)
             }
 
@@ -387,12 +362,6 @@ mod tests {
 
                 let cookie = HashedConnectionCookie::build(&remote_address, &time_extent_zero);
                 let cookie_2 = HashedConnectionCookie::build(&remote_address, &time_extent_max);
-
-                println!("remote_address: {remote_address:?}, time_extent: {time_extent_zero:?}, cookie: {cookie:?}");
-                println!("remote_address: {remote_address:?}, time_extent: {time_extent_max:?}, cookie: {cookie_2:?}");
-
-                //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
-                //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 18446744073709551615.999999999s, amount: 18446744073709551615 }, cookie: [87, 111, 109, 125, 182, 206, 3, 201]
 
                 assert_ne!(cookie, cookie_2)
             }
@@ -409,7 +378,8 @@ mod tests {
 
         #[test]
         fn it_should_make_a_connection_cookie() {
-            let cookie = TestConnectionCookie::make_connection_cookie(&SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0));
+            let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+            let cookie = TestConnectionCookie::make_connection_cookie(&remote_address);
 
             // Note: This constant may need to be updated in the future as the hash is not guaranteed to to be stable between versions.
             const ID_COOKIE: Cookie = [72, 245, 201, 136, 0, 0, 240, 66];
@@ -532,7 +502,8 @@ mod tests {
 
         #[test]
         fn it_should_make_a_connection_cookie() {
-            let cookie = TestConnectionCookie::make_connection_cookie(&SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0));
+            let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+            let cookie = TestConnectionCookie::make_connection_cookie(&remote_address);
 
             // Note: This constant may need to be updated in the future as the hash is not guaranteed to to be stable between versions.
             const ID_COOKIE: Cookie = [234, 229, 134, 15, 217, 77, 208, 204];

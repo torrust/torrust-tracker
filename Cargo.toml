@@ -18,6 +18,13 @@ opt-level = 3
 lto = "fat"
 strip = true
 
+[dev-dependencies]
+criterion = "0.4"
+
+[[bench]]
+name = "bench_connection_cookie"
+harness = false
+
 [dependencies]
 tokio = { version = "1.7", features = [
     "rt-multi-thread",
