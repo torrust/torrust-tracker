@@ -19,7 +19,7 @@ lto = "fat"
 strip = true
 
 [dependencies]
-tokio = { version = "1.7", features = [
+tokio = { version = "1", features = [
     "rt-multi-thread",
     "net",
     "sync",
@@ -29,33 +29,33 @@ tokio = { version = "1.7", features = [
 
 serde = { version = "1.0", features = ["derive"] }
 serde_bencode = "^0.2.3"
-serde_json = "1.0.72"
-serde_with = "2.0.0"
+serde_json = "1.0"
+serde_with = "2.0"
 hex = "0.4.3"
-percent-encoding = "2.1.0"
+percent-encoding = "2"
 binascii = "0.1"
-lazy_static = "1.4.0"
+lazy_static = "1.4"
 
-openssl = { version = "0.10.41", features = ["vendored"] }
+openssl = { version = "0.10", features = ["vendored"] }
 
 warp = { version = "0.3", features = ["tls"] }
 
-config = "0.11"
+config = "0.13"
 toml = "0.5"
 
 log = { version = "0.4", features = ["release_max_level_info"] }
 fern = "0.6"
 chrono = "0.4"
 
-r2d2 = "0.8.8"
-r2d2_mysql = "21.0.0"
-r2d2_sqlite = { version = "0.21.0", features = ["bundled"] }
+r2d2 = "0.8"
+r2d2_mysql = "21"
+r2d2_sqlite = { version = "0.21", features = ["bundled"] }
 
-rand = "0.8.4"
+rand = "0.8"
 derive_more = "0.99"
 thiserror = "1.0"
-futures = "0.3.21"
-async-trait = "0.1.52"
+futures = "0.3"
+async-trait = "0.1"
 
-aquatic_udp_protocol = "0.2.0"
-uuid = { version = "1.1.2", features = ["v4"] }
+aquatic_udp_protocol = "0.2"
+uuid = { version = "1", features = ["v4"] }
