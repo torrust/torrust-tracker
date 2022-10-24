@@ -2,6 +2,8 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use log::debug;
+#[cfg(test)]
+use mockall::{automock, predicate::*};
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::{mpsc, RwLock, RwLockReadGuard};
@@ -153,6 +155,7 @@ async fn event_listener(mut rx: Receiver<TrackerStatisticsEvent>, stats: Arc<RwL
 }
 
 #[async_trait]
+#[cfg_attr(test, automock)]
 pub trait TrackerStatisticsEventSender: Sync + Send {
     async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>>;
 }
