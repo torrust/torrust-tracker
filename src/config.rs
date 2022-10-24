@@ -128,10 +128,13 @@ impl Configuration {
     }
 
     pub fn load_from_file(path: &str) -> Result<Configuration, ConfigError> {
-        let mut config = Config::new();
+        let config_builder = Config::builder();
+
+        #[allow(unused_assignments)]
+        let mut config = Config::default();
 
         if Path::new(path).exists() {
-            config.merge(File::with_name(path))?;
+            config = config_builder.add_source(File::with_name(path)).build()?;
         } else {
             eprintln!("No config file found.");
             eprintln!("Creating config file..");
@@ -143,7 +146,7 @@ impl Configuration {
         }
 
         let torrust_config: Configuration = config
-            .try_into()
+            .try_deserialize()
             .map_err(|e| ConfigError::Message(format!("Errors while processing config: {}.", e)))?;
 
         Ok(torrust_config)
