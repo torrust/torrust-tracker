@@ -40,6 +40,12 @@ pub struct TrackerStatistics {
     pub udp6_scrapes_handled: u64,
 }
 
+impl Default for TrackerStatistics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TrackerStatistics {
     pub fn new() -> Self {
         Self {
@@ -60,56 +66,44 @@ impl TrackerStatistics {
 }
 
 pub struct StatsTracker {
-    pub stats: Arc<RwLock<TrackerStatistics>>,
+    pub stats_repository: StatsRepository,
+}
+
+impl Default for StatsTracker {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StatsTracker {
-    pub fn new_active_instance() -> (Self, Box<dyn TrackerStatisticsEventSender>) {
-        let mut stats_tracker = Self {
-            stats: Arc::new(RwLock::new(TrackerStatistics::new())),
-        };
+    pub fn new_active_instance() -> (Box<dyn TrackerStatisticsEventSender>, StatsRepository) {
+        let mut stats_tracker = Self::new();
 
-        let stats_event_sender = stats_tracker.run_worker();
+        let stats_event_sender = stats_tracker.run_event_listener();
 
-        (stats_tracker, stats_event_sender)
-    }
-
-    pub fn new_inactive_instance() -> Self {
-        Self {
-            stats: Arc::new(RwLock::new(TrackerStatistics::new())),
-        }
-    }
-
-    pub fn new_instance(active: bool) -> Self {
-        if !active {
-            return Self::new_inactive_instance();
-        }
-
-        let (stats_tracker, _stats_event_sender) = Self::new_active_instance();
-
-        stats_tracker
+        (stats_event_sender, stats_tracker.stats_repository)
     }
 
     pub fn new() -> Self {
         Self {
-            stats: Arc::new(RwLock::new(TrackerStatistics::new())),
+            stats_repository: StatsRepository::new(),
         }
     }
 
-    pub fn run_worker(&mut self) -> Box<dyn TrackerStatisticsEventSender> {
-        let (tx, rx) = mpsc::channel::<TrackerStatisticsEvent>(CHANNEL_BUFFER_SIZE);
+    pub fn run_event_listener(&mut self) -> Box<dyn TrackerStatisticsEventSender> {
+        let (sender, receiver) = mpsc::channel::<TrackerStatisticsEvent>(CHANNEL_BUFFER_SIZE);
 
-        let stats = self.stats.clone();
+        let stats_repository = self.stats_repository.clone();
 
-        tokio::spawn(async move { event_listener(rx, stats).await });
+        tokio::spawn(async move { event_listener(receiver, stats_repository).await });
 
-        Box::new(StatsEventSender { sender: tx })
+        Box::new(StatsEventSender { sender })
     }
 }
 
-async fn event_listener(mut rx: Receiver<TrackerStatisticsEvent>, stats: Arc<RwLock<TrackerStatistics>>) {
-    while let Some(event) = rx.recv().await {
-        let mut stats_lock = stats.write().await;
+async fn event_listener(mut receiver: Receiver<TrackerStatisticsEvent>, stats_repository: StatsRepository) {
+    while let Some(event) = receiver.recv().await {
+        let mut stats_lock = stats_repository.stats.write().await;
 
         match event {
             TrackerStatisticsEvent::Tcp4Announce => {
@@ -171,18 +165,25 @@ impl TrackerStatisticsEventSender for StatsEventSender {
     }
 }
 
-#[async_trait]
-pub trait TrackerStatisticsRepository: Sync + Send {
-    async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics>;
+#[derive(Clone)]
+pub struct StatsRepository {
+    pub stats: Arc<RwLock<TrackerStatistics>>,
 }
 
-#[async_trait]
-impl TrackerStatisticsRepository for StatsTracker {
-    async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
-        self.stats.read().await
+impl Default for StatsRepository {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
-pub trait TrackerStatsService: TrackerStatisticsRepository {}
+impl StatsRepository {
+    pub fn new() -> Self {
+        Self {
+            stats: Arc::new(RwLock::new(TrackerStatistics::new())),
+        }
+    }
 
-impl TrackerStatsService for StatsTracker {}
+    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
+        self.stats.read().await
+    }
+}

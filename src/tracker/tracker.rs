@@ -12,7 +12,7 @@ use crate::databases::database::Database;
 use crate::mode::TrackerMode;
 use crate::peer::TorrentPeer;
 use crate::protocol::common::InfoHash;
-use crate::statistics::{TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender, TrackerStatsService};
+use crate::statistics::{StatsRepository, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender};
 use crate::tracker::key;
 use crate::tracker::key::AuthKey;
 use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
@@ -24,16 +24,16 @@ pub struct TorrentTracker {
     keys: RwLock<std::collections::HashMap<String, AuthKey>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
-    stats_tracker: Box<dyn TrackerStatsService>,
     stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
+    stats_repository: StatsRepository,
     database: Box<dyn Database>,
 }
 
 impl TorrentTracker {
     pub fn new(
         config: Arc<Configuration>,
-        stats_tracker: Box<dyn TrackerStatsService>,
         stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
+        stats_repository: StatsRepository,
     ) -> Result<TorrentTracker, r2d2::Error> {
         let database = database::connect_database(&config.db_driver, &config.db_path)?;
 
@@ -43,8 +43,8 @@ impl TorrentTracker {
             keys: RwLock::new(std::collections::HashMap::new()),
             whitelist: RwLock::new(std::collections::HashSet::new()),
             torrents: RwLock::new(std::collections::BTreeMap::new()),
-            stats_tracker,
             stats_event_sender,
+            stats_repository,
             database,
         })
     }
@@ -238,7 +238,7 @@ impl TorrentTracker {
     }
 
     pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
-        self.stats_tracker.get_stats().await
+        self.stats_repository.get_stats().await
     }
 
     pub async fn send_stats_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {

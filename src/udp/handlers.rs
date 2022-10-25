@@ -251,13 +251,11 @@ mod tests {
     use std::sync::Arc;
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-    use async_trait::async_trait;
-    use tokio::sync::{RwLock, RwLockReadGuard};
 
     use crate::mode::TrackerMode;
     use crate::peer::TorrentPeer;
     use crate::protocol::clock::{DefaultClock, Time};
-    use crate::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsRepository, TrackerStatsService};
+    use crate::statistics::StatsTracker;
     use crate::tracker::tracker::TorrentTracker;
     use crate::{Configuration, PeerId};
 
@@ -281,8 +279,8 @@ mod tests {
     }
 
     fn initialized_tracker(configuration: Arc<Configuration>) -> Arc<TorrentTracker> {
-        let (stats_tracker, stats_event_sender) = StatsTracker::new_active_instance();
-        Arc::new(TorrentTracker::new(configuration, Box::new(stats_tracker), Some(stats_event_sender)).unwrap())
+        let (stats_event_sender, stats_repository) = StatsTracker::new_active_instance();
+        Arc::new(TorrentTracker::new(configuration, Some(stats_event_sender), stats_repository).unwrap())
     }
 
     fn sample_ipv4_remote_addr() -> SocketAddr {
@@ -339,27 +337,6 @@ mod tests {
         }
     }
 
-    struct TrackerStatsServiceMock {
-        stats: Arc<RwLock<TrackerStatistics>>,
-    }
-
-    impl TrackerStatsServiceMock {
-        fn new() -> Self {
-            Self {
-                stats: Arc::new(RwLock::new(TrackerStatistics::new())),
-            }
-        }
-    }
-
-    #[async_trait]
-    impl TrackerStatisticsRepository for TrackerStatsServiceMock {
-        async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
-            self.stats.read().await
-        }
-    }
-
-    impl TrackerStatsService for TrackerStatsServiceMock {}
-
     struct TrackerConfigurationBuilder {
         configuration: Configuration,
     }
@@ -395,8 +372,8 @@ mod tests {
         use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
         use mockall::predicate::eq;
 
-        use super::{default_tracker_config, sample_ipv4_socket_address, sample_ipv6_remote_addr, TrackerStatsServiceMock};
-        use crate::statistics::{MockTrackerStatisticsEventSender, TrackerStatisticsEvent};
+        use super::{default_tracker_config, sample_ipv4_socket_address, sample_ipv6_remote_addr};
+        use crate::statistics::{MockTrackerStatisticsEventSender, StatsRepository, TrackerStatisticsEvent};
         use crate::tracker::tracker::TorrentTracker;
         use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
         use crate::udp::handle_connect;
@@ -448,7 +425,6 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_send_the_upd4_connect_event_when_a_client_tries_to_connect_using_a_ip4_socket_address() {
-            let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
             let mut stats_event_sender_mock = MockTrackerStatisticsEventSender::new();
             stats_event_sender_mock
                 .expect_send_event()
@@ -459,8 +435,9 @@ mod tests {
 
             let client_socket_address = sample_ipv4_socket_address();
 
-            let torrent_tracker =
-                Arc::new(TorrentTracker::new(default_tracker_config(), tracker_stats_service, Some(stats_event_sender)).unwrap());
+            let torrent_tracker = Arc::new(
+                TorrentTracker::new(default_tracker_config(), Some(stats_event_sender), StatsRepository::new()).unwrap(),
+            );
             handle_connect(client_socket_address, &sample_connect_request(), torrent_tracker)
                 .await
                 .unwrap();
@@ -468,7 +445,6 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_send_the_upd6_connect_event_when_a_client_tries_to_connect_using_a_ip6_socket_address() {
-            let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
             let mut stats_event_sender_mock = MockTrackerStatisticsEventSender::new();
             stats_event_sender_mock
                 .expect_send_event()
@@ -477,8 +453,9 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
-            let torrent_tracker =
-                Arc::new(TorrentTracker::new(default_tracker_config(), tracker_stats_service, Some(stats_event_sender)).unwrap());
+            let torrent_tracker = Arc::new(
+                TorrentTracker::new(default_tracker_config(), Some(stats_event_sender), StatsRepository::new()).unwrap(),
+            );
             handle_connect(sample_ipv6_remote_addr(), &sample_connect_request(), torrent_tracker)
                 .await
                 .unwrap();
@@ -568,14 +545,13 @@ mod tests {
             };
             use mockall::predicate::eq;
 
-            use crate::statistics::{MockTrackerStatisticsEventSender, TrackerStatisticsEvent};
+            use crate::statistics::{MockTrackerStatisticsEventSender, StatsRepository, TrackerStatisticsEvent};
             use crate::tracker::tracker::TorrentTracker;
             use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
             use crate::udp::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
             use crate::udp::handlers::tests::{
                 default_tracker_config, initialized_public_tracker, sample_ipv4_socket_address, TorrentPeerBuilder,
-                TrackerStatsServiceMock,
             };
             use crate::PeerId;
 
@@ -714,7 +690,6 @@ mod tests {
 
             #[tokio::test]
             async fn should_send_the_upd4_announce_event() {
-                let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
                 let mut stats_event_sender_mock = MockTrackerStatisticsEventSender::new();
                 stats_event_sender_mock
                     .expect_send_event()
@@ -724,7 +699,7 @@ mod tests {
                 let stats_event_sender = Box::new(stats_event_sender_mock);
 
                 let tracker = Arc::new(
-                    TorrentTracker::new(default_tracker_config(), tracker_stats_service, Some(stats_event_sender)).unwrap(),
+                    TorrentTracker::new(default_tracker_config(), Some(stats_event_sender), StatsRepository::new()).unwrap(),
                 );
 
                 handle_announce(
@@ -795,14 +770,13 @@ mod tests {
             };
             use mockall::predicate::eq;
 
-            use crate::statistics::{MockTrackerStatisticsEventSender, TrackerStatisticsEvent};
+            use crate::statistics::{MockTrackerStatisticsEventSender, StatsRepository, TrackerStatisticsEvent};
             use crate::tracker::tracker::TorrentTracker;
             use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
             use crate::udp::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
             use crate::udp::handlers::tests::{
                 default_tracker_config, initialized_public_tracker, sample_ipv6_remote_addr, TorrentPeerBuilder,
-                TrackerStatsServiceMock,
             };
             use crate::PeerId;
 
@@ -948,7 +922,6 @@ mod tests {
 
             #[tokio::test]
             async fn should_send_the_upd6_announce_event() {
-                let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
                 let mut stats_event_sender_mock = MockTrackerStatisticsEventSender::new();
                 stats_event_sender_mock
                     .expect_send_event()
@@ -958,7 +931,7 @@ mod tests {
                 let stats_event_sender = Box::new(stats_event_sender_mock);
 
                 let tracker = Arc::new(
-                    TorrentTracker::new(default_tracker_config(), tracker_stats_service, Some(stats_event_sender)).unwrap(),
+                    TorrentTracker::new(default_tracker_config(), Some(stats_event_sender), StatsRepository::new()).unwrap(),
                 );
 
                 let remote_addr = sample_ipv6_remote_addr();
@@ -988,9 +961,9 @@ mod tests {
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
                     let configuration = Arc::new(TrackerConfigurationBuilder::default().with_external_ip("::126.0.0.1").into());
-                    let (stats_tracker, stats_event_sender) = StatsTracker::new_active_instance();
+                    let (stats_event_sender, stats_repository) = StatsTracker::new_active_instance();
                     let tracker =
-                        Arc::new(TorrentTracker::new(configuration, Box::new(stats_tracker), Some(stats_event_sender)).unwrap());
+                        Arc::new(TorrentTracker::new(configuration, Some(stats_event_sender), stats_repository).unwrap());
 
                     let loopback_ipv4 = Ipv4Addr::new(127, 0, 0, 1);
                     let loopback_ipv6 = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
@@ -1258,14 +1231,13 @@ mod tests {
             use mockall::predicate::eq;
 
             use super::sample_scrape_request;
-            use crate::statistics::{MockTrackerStatisticsEventSender, TrackerStatisticsEvent};
+            use crate::statistics::{MockTrackerStatisticsEventSender, StatsRepository, TrackerStatisticsEvent};
             use crate::tracker::tracker::TorrentTracker;
             use crate::udp::handlers::handle_scrape;
-            use crate::udp::handlers::tests::{default_tracker_config, sample_ipv4_remote_addr, TrackerStatsServiceMock};
+            use crate::udp::handlers::tests::{default_tracker_config, sample_ipv4_remote_addr};
 
             #[tokio::test]
             async fn should_send_the_upd4_scrape_event() {
-                let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
                 let mut stats_event_sender_mock = MockTrackerStatisticsEventSender::new();
                 stats_event_sender_mock
                     .expect_send_event()
@@ -1276,7 +1248,7 @@ mod tests {
 
                 let remote_addr = sample_ipv4_remote_addr();
                 let tracker = Arc::new(
-                    TorrentTracker::new(default_tracker_config(), tracker_stats_service, Some(stats_event_sender)).unwrap(),
+                    TorrentTracker::new(default_tracker_config(), Some(stats_event_sender), StatsRepository::new()).unwrap(),
                 );
 
                 handle_scrape(remote_addr, &sample_scrape_request(&remote_addr), tracker.clone())
@@ -1292,14 +1264,13 @@ mod tests {
             use mockall::predicate::eq;
 
             use super::sample_scrape_request;
-            use crate::statistics::{MockTrackerStatisticsEventSender, TrackerStatisticsEvent};
+            use crate::statistics::{MockTrackerStatisticsEventSender, StatsRepository, TrackerStatisticsEvent};
             use crate::tracker::tracker::TorrentTracker;
             use crate::udp::handlers::handle_scrape;
-            use crate::udp::handlers::tests::{default_tracker_config, sample_ipv6_remote_addr, TrackerStatsServiceMock};
+            use crate::udp::handlers::tests::{default_tracker_config, sample_ipv6_remote_addr};
 
             #[tokio::test]
             async fn should_send_the_upd6_scrape_event() {
-                let tracker_stats_service = Box::new(TrackerStatsServiceMock::new());
                 let mut stats_event_sender_mock = MockTrackerStatisticsEventSender::new();
                 stats_event_sender_mock
                     .expect_send_event()
@@ -1310,7 +1281,7 @@ mod tests {
 
                 let remote_addr = sample_ipv6_remote_addr();
                 let tracker = Arc::new(
-                    TorrentTracker::new(default_tracker_config(), tracker_stats_service, Some(stats_event_sender)).unwrap(),
+                    TorrentTracker::new(default_tracker_config(), Some(stats_event_sender), StatsRepository::new()).unwrap(),
                 );
 
                 handle_scrape(remote_addr, &sample_scrape_request(&remote_addr), tracker.clone())

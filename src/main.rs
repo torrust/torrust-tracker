@@ -24,10 +24,10 @@ async fn main() {
     };
 
     // Initialize statistics
-    let (stats_tracker, stats_event_sender) = setup_statistics(config.tracker_usage_statistics);
+    let (stats_event_sender, stats_repository) = setup_statistics(config.tracker_usage_statistics);
 
     // Initialize Torrust tracker
-    let tracker = match TorrentTracker::new(config.clone(), Box::new(stats_tracker), stats_event_sender) {
+    let tracker = match TorrentTracker::new(config.clone(), stats_event_sender, stats_repository) {
         Ok(tracker) => Arc::new(tracker),
         Err(error) => {
             panic!("{}", error)
