@@ -270,6 +270,30 @@ impl StatsRepository {
 #[cfg(test)]
 mod tests {
 
+    mod stats_tracker {
+        use crate::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsEvent};
+
+        #[tokio::test]
+        async fn should_contain_the_tracker_statistics() {
+            let stats_tracker = StatsTracker::new();
+
+            let stats = stats_tracker.stats_repository.get_stats().await;
+
+            assert_eq!(stats.tcp4_announces_handled, TrackerStatistics::new().tcp4_announces_handled);
+        }
+
+        #[tokio::test]
+        async fn should_create_an_event_sender_to_send_statistical_events() {
+            let mut stats_tracker = StatsTracker::new();
+
+            let event_sender = stats_tracker.run_event_listener();
+
+            let result = event_sender.send_event(TrackerStatisticsEvent::Udp4Connect).await;
+
+            assert!(result.is_some());
+        }
+    }
+
     mod event_handler {
         use crate::statistics::{event_handler, StatsRepository, TrackerStatisticsEvent};
 
