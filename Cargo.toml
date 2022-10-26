@@ -61,4 +61,4 @@ aquatic_udp_protocol = "0.2"
 uuid = { version = "1", features = ["v4"] }
 
 [dev-dependencies]
-mockall = "0.11.3"
+mockall = "0.11"
