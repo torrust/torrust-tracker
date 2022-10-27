@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use log::info;
-use torrust_tracker::tracker::statistics::StatsTracker;
+use torrust_tracker::stats::setup_statistics;
 use torrust_tracker::tracker::tracker::TorrentTracker;
 use torrust_tracker::{ephemeral_instance_keys, logging, setup, static_time, Configuration};
 
@@ -23,11 +23,11 @@ async fn main() {
         }
     };
 
-    // Initialize stats tracker
-    let stats_tracker = StatsTracker::new_instance(config.tracker_usage_statistics);
+    // Initialize statistics
+    let (stats_event_sender, stats_repository) = setup_statistics(config.tracker_usage_statistics);
 
     // Initialize Torrust tracker
-    let tracker = match TorrentTracker::new(config.clone(), Box::new(stats_tracker)) {
+    let tracker = match TorrentTracker::new(config.clone(), stats_event_sender, stats_repository) {
         Ok(tracker) => Arc::new(tracker),
         Err(error) => {
             panic!("{}", error)
