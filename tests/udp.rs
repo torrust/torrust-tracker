@@ -3,6 +3,8 @@
 /// cargo test udp_tracker_server -- --nocapture
 extern crate rand;
 
+mod common;
+
 mod udp_tracker_server {
     use core::panic;
     use std::io::Cursor;
@@ -14,14 +16,15 @@ mod udp_tracker_server {
         AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey,
         Port, Request, Response, ScrapeRequest, TransactionId,
     };
-    use rand::{thread_rng, Rng};
     use tokio::net::UdpSocket;
     use tokio::task::JoinHandle;
     use torrust_tracker::jobs::udp_tracker;
     use torrust_tracker::tracker::statistics::StatsTracker;
     use torrust_tracker::tracker::TorrentTracker;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
-    use torrust_tracker::{logging, static_time, Configuration};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration};
+
+    use crate::common::ephemeral_random_port;
 
     fn tracker_configuration() -> Arc<Configuration> {
         let mut config = Configuration::default();
@@ -49,6 +52,9 @@ mod udp_tracker_server {
             if !self.started.load(Ordering::Relaxed) {
                 // Set the time of Torrust app starting
                 lazy_static::initialize(&static_time::TIME_AT_APP_START);
+
+                // Initialize the Ephemeral Instance Random Seed
+                lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
 
                 // Initialize stats tracker
                 let (stats_event_sender, stats_repository) = StatsTracker::new_active_instance();
@@ -160,15 +166,6 @@ mod udp_tracker_server {
 
     fn empty_buffer() -> [u8; MAX_PACKET_SIZE] {
         [0; MAX_PACKET_SIZE]
-    }
-
-    /// Generates a random ephemeral port for a client source address
-    fn ephemeral_random_port() -> u16 {
-        // todo: this may produce random test failures because two tests can try to bind the same port.
-        // We could either use the same client for all tests (slower) or
-        // create a pool of available ports (with read/write lock)
-        let mut rng = thread_rng();
-        rng.gen_range(49152..65535)
     }
 
     /// Generates the source address for the UDP client
