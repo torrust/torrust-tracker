@@ -6,7 +6,7 @@ use std::sync::Arc;
 use warp::{reject, Filter, Rejection};
 
 use super::errors::ServerError;
-use super::request::{AnnounceRequest, AnnounceRequestQuery, ScrapeRequest};
+use super::request::{Announce, AnnounceRequestQuery, Scrape};
 use super::WebResult;
 use crate::protocol::common::{InfoHash, PeerId, MAX_SCRAPE_TORRENTS};
 use crate::tracker::key::AuthKey;
@@ -47,7 +47,7 @@ pub fn with_peer_addr(on_reverse_proxy: bool) -> impl Filter<Extract = (IpAddr,)
 }
 
 /// Check for `AnnounceRequest`
-pub fn with_announce_request(on_reverse_proxy: bool) -> impl Filter<Extract = (AnnounceRequest,), Error = Rejection> + Clone {
+pub fn with_announce_request(on_reverse_proxy: bool) -> impl Filter<Extract = (Announce,), Error = Rejection> + Clone {
     warp::filters::query::query::<AnnounceRequestQuery>()
         .and(with_info_hash())
         .and(with_peer_id())
@@ -56,7 +56,7 @@ pub fn with_announce_request(on_reverse_proxy: bool) -> impl Filter<Extract = (A
 }
 
 /// Check for `ScrapeRequest`
-pub fn with_scrape_request(on_reverse_proxy: bool) -> impl Filter<Extract = (ScrapeRequest,), Error = Rejection> + Clone {
+pub fn with_scrape_request(on_reverse_proxy: bool) -> impl Filter<Extract = (Scrape,), Error = Rejection> + Clone {
     warp::any()
         .and(with_info_hash())
         .and(with_peer_addr(on_reverse_proxy))
@@ -159,8 +159,8 @@ async fn announce_request(
     info_hashes: Vec<InfoHash>,
     peer_id: PeerId,
     peer_addr: IpAddr,
-) -> WebResult<AnnounceRequest> {
-    Ok(AnnounceRequest {
+) -> WebResult<Announce> {
+    Ok(Announce {
         info_hash: info_hashes[0],
         peer_addr,
         downloaded: announce_request_query.downloaded.unwrap_or(0),
@@ -174,6 +174,6 @@ async fn announce_request(
 }
 
 /// Parse `ScrapeRequest` from `InfoHash`
-async fn scrape_request(info_hashes: Vec<InfoHash>, peer_addr: IpAddr) -> WebResult<ScrapeRequest> {
-    Ok(ScrapeRequest { info_hashes, peer_addr })
+async fn scrape_request(info_hashes: Vec<InfoHash>, peer_addr: IpAddr) -> WebResult<Scrape> {
+    Ok(Scrape { info_hashes, peer_addr })
 }

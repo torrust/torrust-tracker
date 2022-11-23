@@ -17,7 +17,7 @@ pub struct AnnounceRequestQuery {
 }
 
 #[derive(Debug)]
-pub struct AnnounceRequest {
+pub struct Announce {
     pub info_hash: InfoHash,
     pub peer_addr: IpAddr,
     pub downloaded: Bytes,
@@ -29,7 +29,7 @@ pub struct AnnounceRequest {
     pub compact: Option<u8>,
 }
 
-pub struct ScrapeRequest {
+pub struct Scrape {
     pub info_hashes: Vec<InfoHash>,
     pub peer_addr: IpAddr,
 }

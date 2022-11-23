@@ -4,7 +4,7 @@ use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde;
 use serde::Serialize;
 
-use crate::http::request::AnnounceRequest;
+use crate::http::request::Announce;
 use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, Time};
 use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef, PeerId};
 use crate::protocol::utils::ser_unix_time_value;
@@ -46,11 +46,7 @@ impl TorrentPeer {
     }
 
     #[must_use]
-    pub fn from_http_announce_request(
-        announce_request: &AnnounceRequest,
-        remote_ip: IpAddr,
-        host_opt_ip: Option<IpAddr>,
-    ) -> Self {
+    pub fn from_http_announce_request(announce_request: &Announce, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
         let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port);
 
         let event: AnnounceEvent = if let Some(event) = &announce_request.event {
@@ -285,12 +281,12 @@ mod test {
     mod torrent_peer_constructor_from_for_http_requests {
         use std::net::{IpAddr, Ipv4Addr};
 
-        use crate::http::request::AnnounceRequest;
+        use crate::http::request::Announce;
         use crate::protocol::common::{InfoHash, PeerId};
         use crate::tracker::peer::TorrentPeer;
 
-        fn sample_http_announce_request(peer_addr: IpAddr, port: u16) -> AnnounceRequest {
-            AnnounceRequest {
+        fn sample_http_announce_request(peer_addr: IpAddr, port: u16) -> Announce {
+            Announce {
                 info_hash: InfoHash([0u8; 20]),
                 peer_addr,
                 downloaded: 0u64,

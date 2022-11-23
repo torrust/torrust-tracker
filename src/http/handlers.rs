@@ -8,9 +8,8 @@ use warp::http::Response;
 use warp::{reject, Rejection, Reply};
 
 use super::errors::ServerError;
-use super::request::{AnnounceRequest, ScrapeRequest};
-use super::response::{Announce, Peer, Scrape, ScrapeResponseEntry};
-use super::WebResult;
+use super::response::{self, Peer, ScrapeResponseEntry};
+use super::{request, WebResult};
 use crate::http::response::Error;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::AuthKey;
@@ -44,7 +43,7 @@ pub async fn authenticate(
 
 /// Handle announce request
 pub async fn handle_announce(
-    announce_request: AnnounceRequest,
+    announce_request: request::Announce,
     auth_key: Option<AuthKey>,
     tracker: Arc<TorrentTracker>,
 ) -> WebResult<impl Reply> {
@@ -86,7 +85,7 @@ pub async fn handle_announce(
 
 /// Handle scrape request
 pub async fn handle_scrape(
-    scrape_request: ScrapeRequest,
+    scrape_request: request::Scrape,
     auth_key: Option<AuthKey>,
     tracker: Arc<TorrentTracker>,
 ) -> WebResult<impl Reply> {
@@ -136,7 +135,7 @@ pub async fn handle_scrape(
 
 /// Send announce response
 fn send_announce_response(
-    announce_request: &AnnounceRequest,
+    announce_request: &request::Announce,
     torrent_stats: TorrentStats,
     peers: Vec<TorrentPeer>,
     interval: u32,
@@ -151,7 +150,7 @@ fn send_announce_response(
         })
         .collect();
 
-    let res = Announce {
+    let res = response::Announce {
         interval,
         interval_min,
         complete: torrent_stats.seeders,
@@ -172,7 +171,7 @@ fn send_announce_response(
 
 /// Send scrape response
 fn send_scrape_response(files: HashMap<InfoHash, ScrapeResponseEntry>) -> WebResult<impl Reply> {
-    let res = Scrape { files };
+    let res = response::Scrape { files };
 
     match res.write() {
         Ok(body) => Ok(Response::new(body)),
