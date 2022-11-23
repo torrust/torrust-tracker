@@ -19,13 +19,15 @@ pub fn with_tracker(tracker: Arc<TorrentTracker>) -> impl Filter<Extract = (Arc<
 }
 
 /// Check for infoHash
+#[must_use]
 pub fn with_info_hash() -> impl Filter<Extract = (Vec<InfoHash>,), Error = Rejection> + Clone {
-    warp::filters::query::raw().and_then(info_hashes)
+    warp::filters::query::raw().and_then(|q| async move { info_hashes(&q) })
 }
 
 /// Check for `PeerId`
+#[must_use]
 pub fn with_peer_id() -> impl Filter<Extract = (PeerId,), Error = Rejection> + Clone {
-    warp::filters::query::raw().and_then(peer_id)
+    warp::filters::query::raw().and_then(|q| async move { peer_id(&q) })
 }
 
 /// Pass Arc<TorrentTracker> along
@@ -37,34 +39,38 @@ pub fn with_auth_key() -> impl Filter<Extract = (Option<AuthKey>,), Error = Infa
 }
 
 /// Check for `PeerAddress`
+#[must_use]
 pub fn with_peer_addr(on_reverse_proxy: bool) -> impl Filter<Extract = (IpAddr,), Error = Rejection> + Clone {
     warp::addr::remote()
         .and(warp::header::optional::<String>("X-Forwarded-For"))
         .map(move |remote_addr: Option<SocketAddr>, x_forwarded_for: Option<String>| {
             (on_reverse_proxy, remote_addr, x_forwarded_for)
         })
-        .and_then(peer_addr)
+        .and_then(|q| async move { peer_addr(q) })
 }
 
 /// Check for `AnnounceRequest`
+#[must_use]
 pub fn with_announce_request(on_reverse_proxy: bool) -> impl Filter<Extract = (Announce,), Error = Rejection> + Clone {
     warp::filters::query::query::<AnnounceRequestQuery>()
         .and(with_info_hash())
         .and(with_peer_id())
         .and(with_peer_addr(on_reverse_proxy))
-        .and_then(announce_request)
+        .and_then(|q, r, s, t| async move { announce_request(q, &r, s, t) })
 }
 
 /// Check for `ScrapeRequest`
+#[must_use]
 pub fn with_scrape_request(on_reverse_proxy: bool) -> impl Filter<Extract = (Scrape,), Error = Rejection> + Clone {
     warp::any()
         .and(with_info_hash())
         .and(with_peer_addr(on_reverse_proxy))
-        .and_then(scrape_request)
+        .and_then(|q, r| async move { scrape_request(q, r) })
 }
 
 /// Parse `InfoHash` from raw query string
-async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
+#[allow(clippy::ptr_arg)]
+fn info_hashes(raw_query: &String) -> WebResult<Vec<InfoHash>> {
     let split_raw_query: Vec<&str> = raw_query.split('&').collect();
     let mut info_hashes: Vec<InfoHash> = Vec::new();
 
@@ -89,7 +95,8 @@ async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
 }
 
 /// Parse `PeerId` from raw query string
-async fn peer_id(raw_query: String) -> WebResult<PeerId> {
+#[allow(clippy::ptr_arg)]
+fn peer_id(raw_query: &String) -> WebResult<PeerId> {
     // put all query params in a vec
     let split_raw_query: Vec<&str> = raw_query.split('&').collect();
 
@@ -118,17 +125,14 @@ async fn peer_id(raw_query: String) -> WebResult<PeerId> {
         }
     }
 
-    if peer_id.is_none() {
-        Err(reject::custom(ServerError::InvalidPeerId))
-    } else {
-        Ok(peer_id.unwrap())
+    match peer_id {
+        Some(id) => Ok(id),
+        None => Err(reject::custom(ServerError::InvalidPeerId)),
     }
 }
 
 /// Get `PeerAddress` from `RemoteAddress` or Forwarded
-async fn peer_addr(
-    (on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<SocketAddr>, Option<String>),
-) -> WebResult<IpAddr> {
+fn peer_addr((on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<SocketAddr>, Option<String>)) -> WebResult<IpAddr> {
     if !on_reverse_proxy && remote_addr.is_none() {
         return Err(reject::custom(ServerError::AddressNotFound));
     }
@@ -137,26 +141,27 @@ async fn peer_addr(
         return Err(reject::custom(ServerError::AddressNotFound));
     }
 
-    match on_reverse_proxy {
-        true => {
-            let mut x_forwarded_for_raw = x_forwarded_for.unwrap();
-            // remove whitespace chars
-            x_forwarded_for_raw.retain(|c| !c.is_whitespace());
-            // get all forwarded ip's in a vec
-            let x_forwarded_ips: Vec<&str> = x_forwarded_for_raw.split(',').collect();
-            // set client ip to last forwarded ip
-            let x_forwarded_ip = *x_forwarded_ips.last().unwrap();
+    if on_reverse_proxy {
+        let mut x_forwarded_for_raw = x_forwarded_for.unwrap();
+        // remove whitespace chars
+        x_forwarded_for_raw.retain(|c| !c.is_whitespace());
+        // get all forwarded ip's in a vec
+        let x_forwarded_ips: Vec<&str> = x_forwarded_for_raw.split(',').collect();
+        // set client ip to last forwarded ip
+        let x_forwarded_ip = *x_forwarded_ips.last().unwrap();
 
-            IpAddr::from_str(x_forwarded_ip).map_err(|_| reject::custom(ServerError::AddressNotFound))
-        }
-        false => Ok(remote_addr.unwrap().ip()),
+        IpAddr::from_str(x_forwarded_ip).map_err(|_| reject::custom(ServerError::AddressNotFound))
+    } else {
+        Ok(remote_addr.unwrap().ip())
     }
 }
 
 /// Parse `AnnounceRequest` from raw `AnnounceRequestQuery`, `InfoHash` and Option<SocketAddr>
-async fn announce_request(
+#[allow(clippy::unnecessary_wraps)]
+#[allow(clippy::ptr_arg)]
+fn announce_request(
     announce_request_query: AnnounceRequestQuery,
-    info_hashes: Vec<InfoHash>,
+    info_hashes: &Vec<InfoHash>,
     peer_id: PeerId,
     peer_addr: IpAddr,
 ) -> WebResult<Announce> {
@@ -174,6 +179,7 @@ async fn announce_request(
 }
 
 /// Parse `ScrapeRequest` from `InfoHash`
-async fn scrape_request(info_hashes: Vec<InfoHash>, peer_addr: IpAddr) -> WebResult<Scrape> {
+#[allow(clippy::unnecessary_wraps)]
+fn scrape_request(info_hashes: Vec<InfoHash>, peer_addr: IpAddr) -> WebResult<Scrape> {
     Ok(Scrape { info_hashes, peer_addr })
 }
