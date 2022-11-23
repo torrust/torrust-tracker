@@ -19,37 +19,38 @@ use crate::tracker::torrent::{TorrentError, TorrentStats};
 use crate::tracker::TorrentTracker;
 
 /// Authenticate `InfoHash` using optional `AuthKey`
+///
+/// # Errors
+///
+/// Will return `ServerError` that wraps the `TorrentError` if unable to `authenticate_request`.
 pub async fn authenticate(
     info_hash: &InfoHash,
     auth_key: &Option<AuthKey>,
     tracker: Arc<TorrentTracker>,
 ) -> Result<(), ServerError> {
-    match tracker.authenticate_request(info_hash, auth_key).await {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            let err = match e {
-                TorrentError::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
-                TorrentError::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
-                TorrentError::PeerKeyNotValid => ServerError::PeerKeyNotValid,
-                TorrentError::NoPeersFound => ServerError::NoPeersFound,
-                TorrentError::CouldNotSendResponse => ServerError::InternalServerError,
-                TorrentError::InvalidInfoHash => ServerError::InvalidInfoHash,
-            };
-
-            Err(err)
-        }
-    }
+    tracker.authenticate_request(info_hash, auth_key).await.map_err(|e| match e {
+        TorrentError::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
+        TorrentError::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
+        TorrentError::PeerKeyNotValid => ServerError::PeerKeyNotValid,
+        TorrentError::NoPeersFound => ServerError::NoPeersFound,
+        TorrentError::CouldNotSendResponse => ServerError::InternalServerError,
+        TorrentError::InvalidInfoHash => ServerError::InvalidInfoHash,
+    })
 }
 
 /// Handle announce request
+///
+/// # Errors
+///
+/// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_scrape_response`.
 pub async fn handle_announce(
     announce_request: request::Announce,
     auth_key: Option<AuthKey>,
     tracker: Arc<TorrentTracker>,
 ) -> WebResult<impl Reply> {
-    if let Err(e) = authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await {
-        return Err(reject::custom(e));
-    }
+    authenticate(&announce_request.info_hash, &auth_key, tracker.clone())
+        .await
+        .map_err(reject::custom)?;
 
     debug!("{:?}", announce_request);
 
@@ -76,14 +77,18 @@ pub async fn handle_announce(
 
     send_announce_response(
         &announce_request,
-        torrent_stats,
-        peers,
+        &torrent_stats,
+        &peers,
         announce_interval,
         tracker.config.min_announce_interval,
     )
 }
 
 /// Handle scrape request
+///
+/// # Errors
+///
+/// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_scrape_response`.
 pub async fn handle_scrape(
     scrape_request: request::Scrape,
     auth_key: Option<AuthKey>,
@@ -134,10 +139,11 @@ pub async fn handle_scrape(
 }
 
 /// Send announce response
+#[allow(clippy::ptr_arg)]
 fn send_announce_response(
     announce_request: &request::Announce,
-    torrent_stats: TorrentStats,
-    peers: Vec<TorrentPeer>,
+    torrent_stats: &TorrentStats,
+    peers: &Vec<TorrentPeer>,
     interval: u32,
     interval_min: u32,
 ) -> WebResult<impl Reply> {
@@ -180,7 +186,11 @@ fn send_scrape_response(files: HashMap<InfoHash, ScrapeResponseEntry>) -> WebRes
 }
 
 /// Handle all server errors and send error reply
-pub async fn send_error(r: Rejection) -> std::result::Result<impl Reply, Infallible> {
+///
+/// # Errors
+///
+/// Will not return a error, `Infallible`, but instead  convert the `ServerError` into a `Response`.
+pub fn send_error(r: &Rejection) -> std::result::Result<impl Reply, Infallible> {
     let body = if let Some(server_error) = r.find::<ServerError>() {
         debug!("{:?}", server_error);
         Error {

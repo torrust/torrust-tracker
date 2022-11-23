@@ -8,8 +8,11 @@ use super::handlers::{handle_announce, handle_scrape, send_error};
 use crate::tracker::TorrentTracker;
 
 /// All routes
+#[must_use]
 pub fn routes(tracker: Arc<TorrentTracker>) -> impl Filter<Extract = impl warp::Reply, Error = Infallible> + Clone {
-    announce(tracker.clone()).or(scrape(tracker)).recover(send_error)
+    announce(tracker.clone())
+        .or(scrape(tracker))
+        .recover(|q| async move { send_error(&q) })
 }
 
 /// GET /announce or /announce/<key>
