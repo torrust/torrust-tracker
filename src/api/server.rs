@@ -7,6 +7,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use warp::{filters, reply, serve, Filter};
 
+use super::resources::auth_key_resource::AuthKeyResource;
 use crate::peer::TorrentPeer;
 use crate::protocol::common::*;
 use crate::tracker::TorrentTracker;
@@ -267,7 +268,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
         })
         .and_then(|(seconds_valid, tracker): (u64, Arc<TorrentTracker>)| async move {
             match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
-                Ok(auth_key) => Ok(warp::reply::json(&auth_key)),
+                Ok(auth_key) => Ok(warp::reply::json(&AuthKeyResource::from(auth_key))),
                 Err(..) => Err(warp::reject::custom(ActionStatus::Err {
                     reason: "failed to generate key".into(),
                 })),
