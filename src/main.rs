@@ -36,7 +36,7 @@ async fn main() {
     };
 
     // Initialize logging
-    logging::setup_logging(&config);
+    logging::setup(&config);
 
     // Run jobs
     let jobs = setup::setup(&config, tracker.clone()).await;

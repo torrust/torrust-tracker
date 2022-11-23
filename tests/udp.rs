@@ -69,7 +69,7 @@ mod udp_tracker_server {
                 };
 
                 // Initialize logging
-                logging::setup_logging(&configuration);
+                logging::setup(&configuration);
 
                 let udp_tracker_config = &configuration.udp_trackers[0];
 

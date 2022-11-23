@@ -288,7 +288,7 @@ mod tracker_api {
                 self.tracker = Some(tracker.clone());
 
                 // Initialize logging
-                logging::setup_logging(&configuration);
+                logging::setup(&configuration);
 
                 // Start the HTTP API job
                 self.job = Some(tracker_api::start_job(&configuration, tracker).await);
