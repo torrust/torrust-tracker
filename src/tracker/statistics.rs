@@ -3,7 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use log::debug;
 #[cfg(test)]
-use mockall::{automock, predicate::*};
+use mockall::{automock, predicate::str};
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::{mpsc, RwLock, RwLockReadGuard};
@@ -47,6 +47,7 @@ impl Default for TrackerStatistics {
 }
 
 impl TrackerStatistics {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             tcp4_connections_handled: 0,
@@ -76,12 +77,14 @@ impl Default for StatsTracker {
 }
 
 impl StatsTracker {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             stats_repository: StatsRepository::new(),
         }
     }
 
+    #[must_use]
     pub fn new_active_instance() -> (Box<dyn TrackerStatisticsEventSender>, StatsRepository) {
         let mut stats_tracker = Self::new();
 
@@ -184,6 +187,7 @@ impl Default for StatsRepository {
 }
 
 impl StatsRepository {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             stats: Arc::new(RwLock::new(TrackerStatistics::new())),

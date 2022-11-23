@@ -77,6 +77,7 @@ impl std::fmt::Display for ConfigurationError {
 impl std::error::Error for ConfigurationError {}
 
 impl Configuration {
+    #[must_use]
     pub fn get_ext_ip(&self) -> Option<IpAddr> {
         match &self.external_ip {
             None => None,
@@ -87,6 +88,7 @@ impl Configuration {
         }
     }
 
+    #[must_use]
     pub fn default() -> Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
@@ -198,7 +200,7 @@ mod tests {
                                 admin = "MyAccessToken"
         "#
         .lines()
-        .map(|line| line.trim_start())
+        .map(str::trim_start)
         .collect::<Vec<&str>>()
         .join("\n");
         config

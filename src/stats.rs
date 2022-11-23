@@ -1,5 +1,6 @@
 use crate::tracker::statistics::{StatsRepository, StatsTracker, TrackerStatisticsEventSender};
 
+#[must_use]
 pub fn setup_statistics(tracker_usage_statistics: bool) -> (Option<Box<dyn TrackerStatisticsEventSender>>, StatsRepository) {
     let mut stats_event_sender = None;
 

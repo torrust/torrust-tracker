@@ -26,9 +26,11 @@ pub trait Time: Sized {
 }
 
 pub trait TimeNow: Time {
+    #[must_use]
     fn add(add_time: &Duration) -> Option<DurationSinceUnixEpoch> {
         Self::now().checked_add(*add_time)
     }
+    #[must_use]
     fn sub(sub_time: &Duration) -> Option<DurationSinceUnixEpoch> {
         Self::now().checked_sub(*sub_time)
     }
@@ -240,7 +242,7 @@ mod stopped_clock {
 
             #[test]
             fn it_should_get_app_start_time() {
-                const TIME_AT_WRITING_THIS_TEST: Duration = Duration::new(1662983731, 22312);
+                const TIME_AT_WRITING_THIS_TEST: Duration = Duration::new(1_662_983_731, 22312);
                 assert!(get_app_start_time() > TIME_AT_WRITING_THIS_TEST);
             }
         }

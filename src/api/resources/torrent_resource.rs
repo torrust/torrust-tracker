@@ -46,7 +46,7 @@ impl From<PeerId> for PeerIdResource {
     fn from(peer_id: PeerId) -> Self {
         PeerIdResource {
             id: peer_id.get_id(),
-            client: peer_id.get_client_name().map(|client_name| client_name.to_string()),
+            client: peer_id.get_client_name().map(std::string::ToString::to_string),
         }
     }
 }

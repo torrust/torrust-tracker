@@ -1,6 +1,6 @@
 /// Integration tests for UDP tracker server
 ///
-/// cargo test udp_tracker_server -- --nocapture
+/// cargo test `udp_tracker_server` -- --nocapture
 extern crate rand;
 
 mod common;
@@ -116,7 +116,7 @@ mod udp_tracker_server {
         }
     }
 
-    /// Creates a new UdpClient connected to a Udp server
+    /// Creates a new `UdpClient` connected to a Udp server
     async fn new_connected_udp_client(remote_address: &str) -> UdpClient {
         let client = UdpClient::bind(&source_address(ephemeral_random_port())).await;
         client.connect(remote_address).await;
@@ -155,7 +155,7 @@ mod udp_tracker_server {
         }
     }
 
-    /// Creates a new UdpTrackerClient connected to a Udp Tracker server
+    /// Creates a new `UdpTrackerClient` connected to a Udp Tracker server
     async fn new_connected_udp_tracker_client(remote_address: &str) -> UdpTrackerClient {
         let udp_client = new_connected_udp_client(remote_address).await;
         UdpTrackerClient { udp_client }

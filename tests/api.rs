@@ -1,6 +1,6 @@
 /// Integration tests for the tracker API
 ///
-/// cargo test tracker_api -- --nocapture
+/// cargo test `tracker_api` -- --nocapture
 extern crate rand;
 
 mod common;
@@ -192,7 +192,7 @@ mod tracker_api {
         let torrent_peer = TorrentPeer {
             peer_id: PeerId(*b"-qB00000000000000000"),
             peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-            updated: DurationSinceUnixEpoch::new(1669397478934, 0),
+            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
             uploaded: NumberOfBytes(0),
             downloaded: NumberOfBytes(0),
             left: NumberOfBytes(0),

@@ -37,6 +37,7 @@ pub const MAX: TimeExtent = TimeExtent {
 };
 
 impl TimeExtent {
+    #[must_use]
     pub const fn from_sec(seconds: u64, amount: &TimeExtentMultiplier) -> Self {
         Self {
             increment: TimeExtentBase::from_secs(seconds),
@@ -48,10 +49,10 @@ impl TimeExtent {
 fn checked_duration_from_nanos(time: u128) -> Result<Duration, TryFromIntError> {
     const NANOS_PER_SEC: u32 = 1_000_000_000;
 
-    let secs = time.div_euclid(NANOS_PER_SEC as u128);
-    let nanos = time.rem_euclid(NANOS_PER_SEC as u128);
+    let secs = time.div_euclid(u128::from(NANOS_PER_SEC));
+    let nanos = time.rem_euclid(u128::from(NANOS_PER_SEC));
 
-    assert!(nanos < NANOS_PER_SEC as u128);
+    assert!(nanos < u128::from(NANOS_PER_SEC));
 
     match u64::try_from(secs) {
         Err(error) => Err(error),
@@ -94,14 +95,14 @@ impl Extent for TimeExtent {
     fn total(&self) -> Option<Result<Self::Product, TryFromIntError>> {
         self.increment
             .as_nanos()
-            .checked_mul(self.amount as u128)
+            .checked_mul(u128::from(self.amount))
             .map(checked_duration_from_nanos)
     }
 
     fn total_next(&self) -> Option<Result<Self::Product, TryFromIntError>> {
         self.increment
             .as_nanos()
-            .checked_mul((self.amount as u128) + 1)
+            .checked_mul(u128::from(self.amount) + 1)
             .map(checked_duration_from_nanos)
     }
 }
@@ -110,6 +111,7 @@ pub trait MakeTimeExtent<Clock>: Sized
 where
     Clock: TimeNow,
 {
+    #[must_use]
     fn now(increment: &TimeExtentBase) -> Option<Result<TimeExtent, TryFromIntError>> {
         Clock::now()
             .as_nanos()
@@ -120,6 +122,7 @@ where
             })
     }
 
+    #[must_use]
     fn now_after(increment: &TimeExtentBase, add_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
         match Clock::add(add_time) {
             None => None,
@@ -134,6 +137,7 @@ where
         }
     }
 
+    #[must_use]
     fn now_before(increment: &TimeExtentBase, sub_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
         match Clock::sub(sub_time) {
             None => None,
@@ -173,7 +177,7 @@ mod test {
     };
     use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, StoppedTime};
 
-    const TIME_EXTENT_VAL: TimeExtent = TimeExtent::from_sec(2, &239812388723);
+    const TIME_EXTENT_VAL: TimeExtent = TimeExtent::from_sec(2, &239_812_388_723);
 
     mod fn_checked_duration_from_nanos {
         use std::time::Duration;
@@ -190,11 +194,11 @@ mod test {
         #[test]
         fn it_should_be_the_same_as_duration_implementation_for_u64_numbers() {
             assert_eq!(
-                checked_duration_from_nanos(1232143214343432).unwrap(),
-                Duration::from_nanos(1232143214343432)
+                checked_duration_from_nanos(1_232_143_214_343_432).unwrap(),
+                Duration::from_nanos(1_232_143_214_343_432)
             );
             assert_eq!(
-                checked_duration_from_nanos(u64::MAX as u128).unwrap(),
+                checked_duration_from_nanos(u128::from(u64::MAX)).unwrap(),
                 Duration::from_nanos(u64::MAX)
             );
         }
@@ -202,7 +206,7 @@ mod test {
         #[test]
         fn it_should_work_for_some_numbers_larger_than_u64() {
             assert_eq!(
-                checked_duration_from_nanos(TIME_EXTENT_VAL.amount as u128 * NANOS_PER_SEC as u128).unwrap(),
+                checked_duration_from_nanos(u128::from(TIME_EXTENT_VAL.amount) * u128::from(NANOS_PER_SEC)).unwrap(),
                 Duration::from_secs(TIME_EXTENT_VAL.amount)
             );
         }
@@ -515,14 +519,14 @@ mod test {
 
                 assert_eq!(
                     DefaultTimeExtentMaker::now_before(
-                        &TimeExtentBase::from_secs(u32::MAX as u64),
-                        &Duration::from_secs(u32::MAX as u64)
+                        &TimeExtentBase::from_secs(u64::from(u32::MAX)),
+                        &Duration::from_secs(u64::from(u32::MAX))
                     )
                     .unwrap()
                     .unwrap(),
                     TimeExtent {
-                        increment: TimeExtentBase::from_secs(u32::MAX as u64),
-                        amount: 4294967296
+                        increment: TimeExtentBase::from_secs(u64::from(u32::MAX)),
+                        amount: 4_294_967_296
                     }
                 );
             }

@@ -4,18 +4,19 @@ use std::sync::Arc;
 use super::routes;
 use crate::tracker::TorrentTracker;
 
-/// Server that listens on HTTP, needs a TorrentTracker
+/// Server that listens on HTTP, needs a `TorrentTracker`
 #[derive(Clone)]
 pub struct HttpServer {
     tracker: Arc<TorrentTracker>,
 }
 
 impl HttpServer {
+    #[must_use]
     pub fn new(tracker: Arc<TorrentTracker>) -> HttpServer {
         HttpServer { tracker }
     }
 
-    /// Start the HttpServer
+    /// Start the `HttpServer`
     pub fn start(&self, socket_addr: SocketAddr) -> impl warp::Future<Output = ()> {
         let (_addr, server) =
             warp::serve(routes::routes(self.tracker.clone())).bind_with_graceful_shutdown(socket_addr, async move {
@@ -25,7 +26,7 @@ impl HttpServer {
         server
     }
 
-    /// Start the HttpServer in TLS mode
+    /// Start the `HttpServer` in TLS mode
     pub fn start_tls(
         &self,
         socket_addr: SocketAddr,

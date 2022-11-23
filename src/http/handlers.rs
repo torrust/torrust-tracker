@@ -19,7 +19,7 @@ use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::torrent::{TorrentError, TorrentStats};
 use crate::tracker::TorrentTracker;
 
-/// Authenticate InfoHash using optional AuthKey
+/// Authenticate `InfoHash` using optional `AuthKey`
 pub async fn authenticate(
     info_hash: &InfoHash,
     auth_key: &Option<AuthKey>,
@@ -93,7 +93,7 @@ pub async fn handle_scrape(
     let mut files: HashMap<InfoHash, ScrapeResponseEntry> = HashMap::new();
     let db = tracker.get_torrents().await;
 
-    for info_hash in scrape_request.info_hashes.iter() {
+    for info_hash in &scrape_request.info_hashes {
         let scrape_entry = match db.get(info_hash) {
             Some(torrent_info) => {
                 if authenticate(info_hash, &auth_key, tracker.clone()).await.is_ok() {

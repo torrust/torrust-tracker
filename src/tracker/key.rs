@@ -9,6 +9,7 @@ use serde::Serialize;
 use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, Time, TimeNow};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 
+#[must_use]
 pub fn generate_auth_key(lifetime: Duration) -> AuthKey {
     let key: String = thread_rng()
         .sample_iter(&Alphanumeric)
@@ -43,6 +44,7 @@ pub struct AuthKey {
 }
 
 impl AuthKey {
+    #[must_use]
     pub fn from_buffer(key_buffer: [u8; AUTH_KEY_LENGTH]) -> Option<AuthKey> {
         if let Ok(key) = String::from_utf8(Vec::from(key_buffer)) {
             Some(AuthKey { key, valid_until: None })
@@ -51,6 +53,7 @@ impl AuthKey {
         }
     }
 
+    #[must_use]
     pub fn from_string(key: &str) -> Option<AuthKey> {
         if key.len() != AUTH_KEY_LENGTH {
             None

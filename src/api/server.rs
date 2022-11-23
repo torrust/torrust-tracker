@@ -10,7 +10,7 @@ use warp::{filters, reply, serve, Filter};
 use super::resources::auth_key_resource::AuthKeyResource;
 use super::resources::stats_resource::StatsResource;
 use super::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
-use crate::protocol::common::*;
+use crate::protocol::common::InfoHash;
 use crate::tracker::TorrentTracker;
 
 #[derive(Deserialize, Debug)]

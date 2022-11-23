@@ -7,6 +7,7 @@ use crate::config::UdpTrackerConfig;
 use crate::tracker::TorrentTracker;
 use crate::udp::server::UdpServer;
 
+#[must_use]
 pub fn start_job(config: &UdpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let bind_addr = config.bind_address.clone();
 

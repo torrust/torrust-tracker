@@ -26,9 +26,7 @@ pub async fn start_job(config: &Configuration, tracker: Arc<TorrentTracker>) -> 
     let join_handle = tokio::spawn(async move {
         let handel = server::start(bind_addr, tracker);
 
-        if tx.send(ApiServerJobStarted()).is_err() {
-            panic!("the start job dropped");
-        }
+        assert!(tx.send(ApiServerJobStarted()).is_ok(), "the start job dropped");
 
         handel.await;
     });

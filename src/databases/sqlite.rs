@@ -70,7 +70,7 @@ impl Database for SqliteDatabase {
             Ok((info_hash, completed))
         })?;
 
-        let torrents: Vec<(InfoHash, u32)> = torrent_iter.filter_map(|x| x.ok()).collect();
+        let torrents: Vec<(InfoHash, u32)> = torrent_iter.filter_map(std::result::Result::ok).collect();
 
         Ok(torrents)
     }
@@ -90,7 +90,7 @@ impl Database for SqliteDatabase {
             })
         })?;
 
-        let keys: Vec<AuthKey> = keys_iter.filter_map(|x| x.ok()).collect();
+        let keys: Vec<AuthKey> = keys_iter.filter_map(std::result::Result::ok).collect();
 
         Ok(keys)
     }
@@ -106,7 +106,7 @@ impl Database for SqliteDatabase {
             Ok(InfoHash::from_str(&info_hash).unwrap())
         })?;
 
-        let info_hashes: Vec<InfoHash> = info_hash_iter.filter_map(|x| x.ok()).collect();
+        let info_hashes: Vec<InfoHash> = info_hash_iter.filter_map(std::result::Result::ok).collect();
 
         Ok(info_hashes)
     }

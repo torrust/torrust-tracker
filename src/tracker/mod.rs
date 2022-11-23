@@ -201,7 +201,7 @@ impl TorrentTracker {
 
         match read_lock.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_peers(Some(client_addr)).into_iter().cloned().collect(),
+            Some(entry) => entry.get_peers(Some(client_addr)).into_iter().copied().collect(),
         }
     }
 
@@ -211,7 +211,7 @@ impl TorrentTracker {
 
         match read_lock.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_peers(None).into_iter().cloned().collect(),
+            Some(entry) => entry.get_peers(None).into_iter().copied().collect(),
         }
     }
 
@@ -236,9 +236,9 @@ impl TorrentTracker {
         let (seeders, completed, leechers) = torrent_entry.get_stats();
 
         TorrentStats {
+            completed,
             seeders,
             leechers,
-            completed,
         }
     }
 

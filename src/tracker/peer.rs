@@ -26,6 +26,7 @@ pub struct TorrentPeer {
 }
 
 impl TorrentPeer {
+    #[must_use]
     pub fn from_udp_announce_request(
         announce_request: &aquatic_udp_protocol::AnnounceRequest,
         remote_ip: IpAddr,
@@ -44,6 +45,7 @@ impl TorrentPeer {
         }
     }
 
+    #[must_use]
     pub fn from_http_announce_request(
         announce_request: &AnnounceRequest,
         remote_ip: IpAddr,
@@ -63,7 +65,7 @@ impl TorrentPeer {
         };
 
         TorrentPeer {
-            peer_id: announce_request.peer_id.clone(),
+            peer_id: announce_request.peer_id,
             peer_addr,
             updated: DefaultClock::now(),
             uploaded: NumberOfBytes(announce_request.uploaded as i64),
@@ -74,6 +76,7 @@ impl TorrentPeer {
     }
 
     // potentially substitute localhost ip with external ip
+    #[must_use]
     pub fn peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip: IpAddr, host_opt_ip: Option<IpAddr>, port: u16) -> SocketAddr {
         if let Some(host_ip) = host_opt_ip.filter(|_| remote_ip.is_loopback()) {
             SocketAddr::new(host_ip, port)
@@ -82,6 +85,7 @@ impl TorrentPeer {
         }
     }
 
+    #[must_use]
     pub fn is_seeder(&self) -> bool {
         self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
     }

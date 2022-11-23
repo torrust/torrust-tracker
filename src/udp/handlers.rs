@@ -188,7 +188,7 @@ pub async fn handle_scrape(
 
     let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
 
-    for info_hash in request.info_hashes.iter() {
+    for info_hash in &request.info_hashes {
         let info_hash = InfoHash(info_hash.0);
 
         let scrape_entry = match db.get(&info_hash) {

@@ -89,8 +89,8 @@ pub mod keys {
 
                 #[test]
                 fn it_should_have_a_large_random_seed() {
-                    assert!(u128::from_ne_bytes((*RANDOM_SEED)[..16].try_into().unwrap()) > u64::MAX as u128);
-                    assert!(u128::from_ne_bytes((*RANDOM_SEED)[16..].try_into().unwrap()) > u64::MAX as u128);
+                    assert!(u128::from_ne_bytes((*RANDOM_SEED)[..16].try_into().unwrap()) > u128::from(u64::MAX));
+                    assert!(u128::from_ne_bytes((*RANDOM_SEED)[16..].try_into().unwrap()) > u128::from(u64::MAX));
                 }
             }
         }

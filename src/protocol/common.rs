@@ -233,14 +233,16 @@ impl std::fmt::Display for PeerId {
 }
 
 impl PeerId {
+    #[must_use]
     pub fn get_id(&self) -> Option<String> {
         let buff_size = self.0.len() * 2;
         let mut tmp: Vec<u8> = vec![0; buff_size];
         binascii::bin2hex(&self.0, &mut tmp).unwrap();
 
-        std::str::from_utf8(&tmp).ok().map(|id| id.to_string())
+        std::str::from_utf8(&tmp).ok().map(std::string::ToString::to_string)
     }
 
+    #[must_use]
     pub fn get_client_name(&self) -> Option<&'static str> {
         if self.0[0] == b'M' {
             return Some("BitTorrent");

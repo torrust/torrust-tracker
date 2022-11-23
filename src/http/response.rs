@@ -27,6 +27,7 @@ pub struct AnnounceResponse {
 }
 
 impl AnnounceResponse {
+    #[must_use]
     pub fn write(&self) -> String {
         serde_bencode::to_string(&self).unwrap()
     }
@@ -89,7 +90,7 @@ impl ScrapeResponse {
 
         bytes.write_all(b"d5:filesd")?;
 
-        for (info_hash, scrape_response_entry) in self.files.iter() {
+        for (info_hash, scrape_response_entry) in &self.files {
             bytes.write_all(b"20:")?;
             bytes.write_all(&info_hash.0)?;
             bytes.write_all(b"d8:completei")?;
@@ -114,6 +115,7 @@ pub struct ErrorResponse {
 }
 
 impl ErrorResponse {
+    #[must_use]
     pub fn write(&self) -> String {
         serde_bencode::to_string(&self).unwrap()
     }

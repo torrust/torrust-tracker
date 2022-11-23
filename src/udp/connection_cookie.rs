@@ -11,14 +11,17 @@ pub type SinceUnixEpochTimeExtent = TimeExtent;
 
 pub const COOKIE_LIFETIME: TimeExtent = TimeExtent::from_sec(2, &60);
 
+#[must_use]
 pub fn from_connection_id(connection_id: &ConnectionId) -> Cookie {
     connection_id.0.to_le_bytes()
 }
 
+#[must_use]
 pub fn into_connection_id(connection_cookie: &Cookie) -> ConnectionId {
     ConnectionId(i64::from_le_bytes(*connection_cookie))
 }
 
+#[must_use]
 pub fn make_connection_cookie(remote_address: &SocketAddr) -> Cookie {
     let time_extent = cookie_builder::get_last_time_extent();
 

@@ -16,6 +16,7 @@ pub struct TorrentEntry {
 }
 
 impl TorrentEntry {
+    #[must_use]
     pub fn new() -> TorrentEntry {
         TorrentEntry {
             peers: std::collections::BTreeMap::new(),
@@ -47,6 +48,7 @@ impl TorrentEntry {
         did_torrent_stats_change
     }
 
+    #[must_use]
     pub fn get_peers(&self, client_addr: Option<&SocketAddr>) -> Vec<&TorrentPeer> {
         self.peers
             .values()
@@ -70,6 +72,7 @@ impl TorrentEntry {
             .collect()
     }
 
+    #[must_use]
     pub fn get_stats(&self) -> (u32, u32, u32) {
         let seeders: u32 = self.peers.values().filter(|peer| peer.is_seeder()).count() as u32;
         let leechers: u32 = self.peers.len() as u32 - seeders;
@@ -77,7 +80,7 @@ impl TorrentEntry {
     }
 
     pub fn remove_inactive_peers(&mut self, max_peer_timeout: u32) {
-        let current_cutoff = DefaultClock::sub(&Duration::from_secs(max_peer_timeout as u64)).unwrap_or_default();
+        let current_cutoff = DefaultClock::sub(&Duration::from_secs(u64::from(max_peer_timeout))).unwrap_or_default();
         self.peers.retain(|_, peer| peer.updated > current_cutoff);
     }
 }
@@ -358,7 +361,7 @@ mod tests {
         let now = WorkingClock::now();
         StoppedClock::local_set(&now);
 
-        let timeout_seconds_before_now = now.sub(Duration::from_secs(timeout as u64));
+        let timeout_seconds_before_now = now.sub(Duration::from_secs(u64::from(timeout)));
         let inactive_peer = TorrentPeerBuilder::default()
             .updated_at(timeout_seconds_before_now.sub(Duration::from_secs(1)))
             .into();
