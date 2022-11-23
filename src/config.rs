@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use {std, toml};
 
-use crate::databases::database::DatabaseDrivers;
+use crate::databases::database::Drivers;
 use crate::tracker::mode::TrackerMode;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -42,7 +42,7 @@ pub struct HttpApi {
 pub struct Configuration {
     pub log_level: Option<String>,
     pub mode: TrackerMode,
-    pub db_driver: DatabaseDrivers,
+    pub db_driver: Drivers,
     pub db_path: String,
     pub announce_interval: u32,
     pub min_announce_interval: u32,
@@ -98,7 +98,7 @@ impl Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             mode: TrackerMode::Public,
-            db_driver: DatabaseDrivers::Sqlite3,
+            db_driver: Drivers::Sqlite3,
             db_path: String::from("data.db"),
             announce_interval: 120,
             min_announce_interval: 120,

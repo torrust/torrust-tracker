@@ -40,7 +40,7 @@ impl TorrentTracker {
         stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
         stats_repository: StatsRepository,
     ) -> Result<TorrentTracker, r2d2::Error> {
-        let database = database::connect_database(&config.db_driver, &config.db_path)?;
+        let database = database::connect(&config.db_driver, &config.db_path)?;
 
         Ok(TorrentTracker {
             config: config.clone(),

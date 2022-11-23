@@ -8,18 +8,21 @@ use crate::protocol::common::InfoHash;
 use crate::tracker::key::AuthKey;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-pub enum DatabaseDrivers {
+pub enum Drivers {
     Sqlite3,
     MySQL,
 }
 
-pub fn connect_database(db_driver: &DatabaseDrivers, db_path: &str) -> Result<Box<dyn Database>, r2d2::Error> {
+/// # Errors
+///
+/// Will return `r2d2::Error` if `db_path` is not able to create a database.
+pub fn connect(db_driver: &Drivers, db_path: &str) -> Result<Box<dyn Database>, r2d2::Error> {
     let database: Box<dyn Database> = match db_driver {
-        DatabaseDrivers::Sqlite3 => {
+        Drivers::Sqlite3 => {
             let db = SqliteDatabase::new(db_path)?;
             Box::new(db)
         }
-        DatabaseDrivers::MySQL => {
+        Drivers::MySQL => {
             let db = MysqlDatabase::new(db_path)?;
             Box::new(db)
         }
@@ -32,6 +35,9 @@ pub fn connect_database(db_driver: &DatabaseDrivers, db_path: &str) -> Result<Bo
 
 #[async_trait]
 pub trait Database: Sync + Send {
+    /// # Errors
+    ///
+    /// Will return `Error` if unable to create own tables.
     fn create_database_tables(&self) -> Result<(), Error>;
 
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error>;
