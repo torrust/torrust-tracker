@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use crate::http::routes;
+use super::routes;
 use crate::tracker::TorrentTracker;
 
 /// Server that listens on HTTP, needs a TorrentTracker
@@ -17,9 +17,10 @@ impl HttpServer {
 
     /// Start the HttpServer
     pub fn start(&self, socket_addr: SocketAddr) -> impl warp::Future<Output = ()> {
-        let (_addr, server) = warp::serve(routes(self.tracker.clone())).bind_with_graceful_shutdown(socket_addr, async move {
-            tokio::signal::ctrl_c().await.expect("Failed to listen to shutdown signal.");
-        });
+        let (_addr, server) =
+            warp::serve(routes::routes(self.tracker.clone())).bind_with_graceful_shutdown(socket_addr, async move {
+                tokio::signal::ctrl_c().await.expect("Failed to listen to shutdown signal.");
+            });
 
         server
     }
@@ -31,7 +32,7 @@ impl HttpServer {
         ssl_cert_path: String,
         ssl_key_path: String,
     ) -> impl warp::Future<Output = ()> {
-        let (_addr, server) = warp::serve(routes(self.tracker.clone()))
+        let (_addr, server) = warp::serve(routes::routes(self.tracker.clone()))
             .tls()
             .cert_path(ssl_cert_path)
             .key_path(ssl_key_path)

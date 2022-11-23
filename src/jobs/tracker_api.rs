@@ -5,8 +5,8 @@ use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 
 use crate::api::server;
+use crate::config::Configuration;
 use crate::tracker::TorrentTracker;
-use crate::Configuration;
 
 #[derive(Debug)]
 pub struct ApiServerJobStarted();

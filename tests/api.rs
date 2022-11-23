@@ -19,13 +19,15 @@ mod tracker_api {
     use torrust_tracker::api::resources::auth_key_resource::AuthKeyResource;
     use torrust_tracker::api::resources::stats_resource::StatsResource;
     use torrust_tracker::api::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
+    use torrust_tracker::config::Configuration;
     use torrust_tracker::jobs::tracker_api;
-    use torrust_tracker::peer::TorrentPeer;
     use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
+    use torrust_tracker::protocol::common::{InfoHash, PeerId};
     use torrust_tracker::tracker::key::AuthKey;
+    use torrust_tracker::tracker::peer::TorrentPeer;
     use torrust_tracker::tracker::statistics::StatsTracker;
     use torrust_tracker::tracker::TorrentTracker;
-    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration, InfoHash, PeerId};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
 
     use crate::common::ephemeral_random_port;
 

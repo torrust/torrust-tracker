@@ -18,11 +18,12 @@ mod udp_tracker_server {
     };
     use tokio::net::UdpSocket;
     use tokio::task::JoinHandle;
+    use torrust_tracker::config::Configuration;
     use torrust_tracker::jobs::udp_tracker;
     use torrust_tracker::tracker::statistics::StatsTracker;
     use torrust_tracker::tracker::TorrentTracker;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
-    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
 
     use crate::common::ephemeral_random_port;
 

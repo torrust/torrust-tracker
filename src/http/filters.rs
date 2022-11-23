@@ -5,10 +5,12 @@ use std::sync::Arc;
 
 use warp::{reject, Filter, Rejection};
 
-use crate::http::{AnnounceRequest, AnnounceRequestQuery, ScrapeRequest, ServerError, WebResult};
+use super::errors::ServerError;
+use super::request::{AnnounceRequest, AnnounceRequestQuery, ScrapeRequest};
+use super::WebResult;
+use crate::protocol::common::{InfoHash, PeerId, MAX_SCRAPE_TORRENTS};
 use crate::tracker::key::AuthKey;
 use crate::tracker::TorrentTracker;
-use crate::{InfoHash, PeerId, MAX_SCRAPE_TORRENTS};
 
 /// Pass Arc<TorrentTracker> along
 pub fn with_tracker(tracker: Arc<TorrentTracker>) -> impl Filter<Extract = (Arc<TorrentTracker>,), Error = Infallible> + Clone {

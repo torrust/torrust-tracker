@@ -271,7 +271,7 @@ impl StatsRepository {
 mod tests {
 
     mod stats_tracker {
-        use crate::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsEvent};
+        use crate::tracker::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsEvent};
 
         #[tokio::test]
         async fn should_contain_the_tracker_statistics() {
@@ -295,7 +295,7 @@ mod tests {
     }
 
     mod event_handler {
-        use crate::statistics::{event_handler, StatsRepository, TrackerStatisticsEvent};
+        use crate::tracker::statistics::{event_handler, StatsRepository, TrackerStatisticsEvent};
 
         #[tokio::test]
         async fn should_increase_the_tcp4_announces_counter_when_it_receives_a_tcp4_announce_event() {

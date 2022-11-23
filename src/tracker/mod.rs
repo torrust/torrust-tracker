@@ -13,15 +13,15 @@ use std::time::Duration;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
+use self::mode::TrackerMode;
+use self::peer::TorrentPeer;
+use self::statistics::{StatsRepository, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender};
+use crate::config::Configuration;
 use crate::databases::database;
 use crate::databases::database::Database;
-use crate::mode::TrackerMode;
-use crate::peer::TorrentPeer;
 use crate::protocol::common::InfoHash;
-use crate::statistics::{StatsRepository, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender};
 use crate::tracker::key::AuthKey;
 use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
-use crate::Configuration;
 
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,

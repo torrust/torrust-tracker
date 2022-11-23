@@ -4,9 +4,9 @@ use std::time::Duration;
 use aquatic_udp_protocol::AnnounceEvent;
 use serde::{Deserialize, Serialize};
 
-use crate::peer::TorrentPeer;
+use super::peer::TorrentPeer;
 use crate::protocol::clock::{DefaultClock, TimeNow};
-use crate::{PeerId, MAX_SCRAPE_TORRENTS};
+use crate::protocol::common::{PeerId, MAX_SCRAPE_TORRENTS};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TorrentEntry {
@@ -113,10 +113,10 @@ mod tests {
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
-    use crate::peer::TorrentPeer;
     use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, StoppedClock, StoppedTime, Time, WorkingClock};
-    use crate::torrent::TorrentEntry;
-    use crate::PeerId;
+    use crate::protocol::common::PeerId;
+    use crate::tracker::peer::TorrentPeer;
+    use crate::tracker::torrent::TorrentEntry;
 
     struct TorrentPeerBuilder {
         peer: TorrentPeer,

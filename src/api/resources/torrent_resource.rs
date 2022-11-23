@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::peer::TorrentPeer;
-use crate::PeerId;
+use crate::protocol::common::PeerId;
+use crate::tracker::peer::TorrentPeer;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct TorrentResource {
     pub info_hash: String,
     pub seeders: u32,
@@ -13,7 +13,7 @@ pub struct TorrentResource {
     pub peers: Option<Vec<TorrentPeerResource>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct TorrentListItemResource {
     pub info_hash: String,
     pub seeders: u32,
@@ -23,7 +23,7 @@ pub struct TorrentListItemResource {
     pub peers: Option<Vec<TorrentPeerResource>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct TorrentPeerResource {
     pub peer_id: PeerIdResource,
     pub peer_addr: String,
@@ -36,7 +36,7 @@ pub struct TorrentPeerResource {
     pub event: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct PeerIdResource {
     pub id: Option<String>,
     pub client: Option<String>,
@@ -52,6 +52,7 @@ impl From<PeerId> for PeerIdResource {
 }
 
 impl From<TorrentPeer> for TorrentPeerResource {
+    #[allow(deprecated)]
     fn from(peer: TorrentPeer) -> Self {
         TorrentPeerResource {
             peer_id: PeerIdResource::from(peer.peer_id),
