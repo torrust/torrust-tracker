@@ -9,9 +9,9 @@ use warp::{reject, Rejection, Reply};
 
 use super::errors::ServerError;
 use super::request::{AnnounceRequest, ScrapeRequest};
-use super::response::{AnnounceResponse, Peer, ScrapeResponse, ScrapeResponseEntry};
-use crate::http::response::ErrorResponse;
-use crate::http::WebResult;
+use super::response::{Announce, Peer, Scrape, ScrapeResponseEntry};
+use super::WebResult;
+use crate::http::response::Error;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::AuthKey;
 use crate::tracker::peer::TorrentPeer;
@@ -151,7 +151,7 @@ fn send_announce_response(
         })
         .collect();
 
-    let res = AnnounceResponse {
+    let res = Announce {
         interval,
         interval_min,
         complete: torrent_stats.seeders,
@@ -172,7 +172,7 @@ fn send_announce_response(
 
 /// Send scrape response
 fn send_scrape_response(files: HashMap<InfoHash, ScrapeResponseEntry>) -> WebResult<impl Reply> {
-    let res = ScrapeResponse { files };
+    let res = Scrape { files };
 
     match res.write() {
         Ok(body) => Ok(Response::new(body)),
@@ -184,12 +184,12 @@ fn send_scrape_response(files: HashMap<InfoHash, ScrapeResponseEntry>) -> WebRes
 pub async fn send_error(r: Rejection) -> std::result::Result<impl Reply, Infallible> {
     let body = if let Some(server_error) = r.find::<ServerError>() {
         debug!("{:?}", server_error);
-        ErrorResponse {
+        Error {
             failure_reason: server_error.to_string(),
         }
         .write()
     } else {
-        ErrorResponse {
+        Error {
             failure_reason: ServerError::InternalServerError.to_string(),
         }
         .write()

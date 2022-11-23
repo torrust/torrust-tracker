@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::error::Error;
 use std::io::Write;
 use std::net::IpAddr;
 
@@ -16,7 +15,7 @@ pub struct Peer {
 }
 
 #[derive(Serialize)]
-pub struct AnnounceResponse {
+pub struct Announce {
     pub interval: u32,
     #[serde(rename = "min interval")]
     pub interval_min: u32,
@@ -26,13 +25,19 @@ pub struct AnnounceResponse {
     pub peers: Vec<Peer>,
 }
 
-impl AnnounceResponse {
+impl Announce {
+    /// # Panics
+    ///
+    /// It would panic if the `Announce` struct would contain an inappropriate type.
     #[must_use]
     pub fn write(&self) -> String {
         serde_bencode::to_string(&self).unwrap()
     }
 
-    pub fn write_compact(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+    /// # Errors
+    ///
+    /// Will return `Err` if internally interrupted.
+    pub fn write_compact(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let mut peers_v4: Vec<u8> = Vec::new();
         let mut peers_v6: Vec<u8> = Vec::new();
 
@@ -80,12 +85,15 @@ pub struct ScrapeResponseEntry {
 }
 
 #[derive(Serialize)]
-pub struct ScrapeResponse {
+pub struct Scrape {
     pub files: HashMap<InfoHash, ScrapeResponseEntry>,
 }
 
-impl ScrapeResponse {
-    pub fn write(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+impl Scrape {
+    /// # Errors
+    ///
+    /// Will return `Err` if internally interrupted.
+    pub fn write(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let mut bytes: Vec<u8> = Vec::new();
 
         bytes.write_all(b"d5:filesd")?;
@@ -109,12 +117,15 @@ impl ScrapeResponse {
 }
 
 #[derive(Serialize)]
-pub struct ErrorResponse {
+pub struct Error {
     #[serde(rename = "failure reason")]
     pub failure_reason: String,
 }
 
-impl ErrorResponse {
+impl Error {
+    /// # Panics
+    ///
+    /// It would panic if the `Error` struct would contain an inappropriate type.
     #[must_use]
     pub fn write(&self) -> String {
         serde_bencode::to_string(&self).unwrap()
