@@ -7,7 +7,7 @@ use crate::databases::sqlite::SqliteDatabase;
 use crate::tracker::key::AuthKey;
 use crate::InfoHash;
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub enum DatabaseDrivers {
     Sqlite3,
     MySQL,
@@ -55,7 +55,7 @@ pub trait Database: Sync + Send {
     async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error>;
 }
 
-#[derive(Debug, Display, PartialEq, Error)]
+#[derive(Debug, Display, PartialEq, Eq, Error)]
 #[allow(dead_code)]
 pub enum Error {
     #[display(fmt = "Query returned no rows.")]
