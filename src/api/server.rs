@@ -129,10 +129,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
     let view_stats_list = filters::method::get()
         .and(filters::path::path("stats"))
         .and(filters::path::end())
-        .map(move || {
-            let tracker = api_stats.clone();
-            tracker
-        })
+        .map(move || api_stats.clone())
         .and_then(|tracker: Arc<TorrentTracker>| async move {
             let mut results = Stats {
                 torrents: 0,
@@ -304,10 +301,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
         .and(filters::path::path("whitelist"))
         .and(filters::path::path("reload"))
         .and(filters::path::end())
-        .map(move || {
-            let tracker = t7.clone();
-            tracker
-        })
+        .map(move || t7.clone())
         .and_then(|tracker: Arc<TorrentTracker>| async move {
             match tracker.load_whitelist().await {
                 Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
@@ -324,10 +318,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
         .and(filters::path::path("keys"))
         .and(filters::path::path("reload"))
         .and(filters::path::end())
-        .map(move || {
-            let tracker = t8.clone();
-            tracker
-        })
+        .map(move || t8.clone())
         .and_then(|tracker: Arc<TorrentTracker>| async move {
             match tracker.load_keys().await {
                 Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
