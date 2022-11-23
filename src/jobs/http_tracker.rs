@@ -8,6 +8,9 @@ use crate::config::HttpTracker;
 use crate::http::server::Http;
 use crate::tracker::TorrentTracker;
 
+/// # Panics
+///
+/// It would panic if the `config::HttpTracker` struct would contain an inappropriate values.
 #[must_use]
 pub fn start_job(config: &HttpTracker, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let bind_addr = config.bind_address.parse::<SocketAddr>().unwrap();
