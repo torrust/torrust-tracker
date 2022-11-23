@@ -15,7 +15,7 @@ use crate::peer::TorrentPeer;
 use crate::tracker::key::AuthKey;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::torrent::{TorrentError, TorrentStats};
-use crate::tracker::tracker::TorrentTracker;
+use crate::tracker::TorrentTracker;
 use crate::InfoHash;
 
 /// Authenticate InfoHash using optional AuthKey

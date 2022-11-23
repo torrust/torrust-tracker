@@ -7,7 +7,7 @@ use warp::{reject, Filter, Rejection};
 
 use crate::http::{AnnounceRequest, AnnounceRequestQuery, ScrapeRequest, ServerError, WebResult};
 use crate::tracker::key::AuthKey;
-use crate::tracker::tracker::TorrentTracker;
+use crate::tracker::TorrentTracker;
 use crate::{InfoHash, PeerId, MAX_SCRAPE_TORRENTS};
 
 /// Pass Arc<TorrentTracker> along

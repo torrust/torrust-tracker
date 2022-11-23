@@ -4,7 +4,7 @@ use chrono::Utc;
 use log::info;
 use tokio::task::JoinHandle;
 
-use crate::tracker::tracker::TorrentTracker;
+use crate::tracker::TorrentTracker;
 use crate::Configuration;
 
 pub fn start_job(config: &Configuration, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {

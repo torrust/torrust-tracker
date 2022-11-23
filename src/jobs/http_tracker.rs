@@ -4,7 +4,7 @@ use std::sync::Arc;
 use log::{info, warn};
 use tokio::task::JoinHandle;
 
-use crate::tracker::tracker::TorrentTracker;
+use crate::tracker::TorrentTracker;
 use crate::{HttpServer, HttpTrackerConfig};
 
 pub fn start_job(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {

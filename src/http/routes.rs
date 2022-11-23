@@ -6,7 +6,7 @@ use warp::{Filter, Rejection};
 use crate::http::{
     handle_announce, handle_scrape, send_error, with_announce_request, with_auth_key, with_scrape_request, with_tracker,
 };
-use crate::tracker::tracker::TorrentTracker;
+use crate::tracker::TorrentTracker;
 
 /// All routes
 pub fn routes(tracker: Arc<TorrentTracker>) -> impl Filter<Extract = impl warp::Reply, Error = Infallible> + Clone {

@@ -19,7 +19,7 @@ mod udp_tracker_server {
     use tokio::task::JoinHandle;
     use torrust_tracker::jobs::udp_tracker;
     use torrust_tracker::tracker::statistics::StatsTracker;
-    use torrust_tracker::tracker::tracker::TorrentTracker;
+    use torrust_tracker::tracker::TorrentTracker;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
     use torrust_tracker::{logging, static_time, Configuration};
 

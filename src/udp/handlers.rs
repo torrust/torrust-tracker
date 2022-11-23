@@ -10,7 +10,7 @@ use super::connection_cookie::{check_connection_cookie, from_connection_id, into
 use crate::peer::TorrentPeer;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::torrent::TorrentError;
-use crate::tracker::tracker::TorrentTracker;
+use crate::tracker::TorrentTracker;
 use crate::udp::errors::ServerError;
 use crate::udp::request::AnnounceRequestWrapper;
 use crate::{InfoHash, MAX_SCRAPE_TORRENTS};
@@ -256,7 +256,7 @@ mod tests {
     use crate::peer::TorrentPeer;
     use crate::protocol::clock::{DefaultClock, Time};
     use crate::statistics::StatsTracker;
-    use crate::tracker::tracker::TorrentTracker;
+    use crate::tracker::TorrentTracker;
     use crate::{Configuration, PeerId};
 
     fn default_tracker_config() -> Arc<Configuration> {
@@ -374,7 +374,7 @@ mod tests {
 
         use super::{default_tracker_config, sample_ipv4_socket_address, sample_ipv6_remote_addr};
         use crate::statistics::{MockTrackerStatisticsEventSender, StatsRepository, TrackerStatisticsEvent};
-        use crate::tracker::tracker::TorrentTracker;
+        use crate::tracker::TorrentTracker;
         use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
         use crate::udp::handle_connect;
         use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
@@ -546,7 +546,7 @@ mod tests {
             use mockall::predicate::eq;
 
             use crate::statistics::{MockTrackerStatisticsEventSender, StatsRepository, TrackerStatisticsEvent};
-            use crate::tracker::tracker::TorrentTracker;
+            use crate::tracker::TorrentTracker;
             use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
             use crate::udp::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
@@ -771,7 +771,7 @@ mod tests {
             use mockall::predicate::eq;
 
             use crate::statistics::{MockTrackerStatisticsEventSender, StatsRepository, TrackerStatisticsEvent};
-            use crate::tracker::tracker::TorrentTracker;
+            use crate::tracker::TorrentTracker;
             use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
             use crate::udp::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
@@ -952,7 +952,7 @@ mod tests {
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
 
                 use crate::statistics::StatsTracker;
-                use crate::tracker::tracker::TorrentTracker;
+                use crate::tracker::TorrentTracker;
                 use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
                 use crate::udp::handle_announce;
                 use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
@@ -1013,7 +1013,7 @@ mod tests {
         };
 
         use super::TorrentPeerBuilder;
-        use crate::tracker::tracker::TorrentTracker;
+        use crate::tracker::TorrentTracker;
         use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
         use crate::udp::handle_scrape;
         use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
@@ -1232,7 +1232,7 @@ mod tests {
 
             use super::sample_scrape_request;
             use crate::statistics::{MockTrackerStatisticsEventSender, StatsRepository, TrackerStatisticsEvent};
-            use crate::tracker::tracker::TorrentTracker;
+            use crate::tracker::TorrentTracker;
             use crate::udp::handlers::handle_scrape;
             use crate::udp::handlers::tests::{default_tracker_config, sample_ipv4_remote_addr};
 
@@ -1265,7 +1265,7 @@ mod tests {
 
             use super::sample_scrape_request;
             use crate::statistics::{MockTrackerStatisticsEventSender, StatsRepository, TrackerStatisticsEvent};
-            use crate::tracker::tracker::TorrentTracker;
+            use crate::tracker::TorrentTracker;
             use crate::udp::handlers::handle_scrape;
             use crate::udp::handlers::tests::{default_tracker_config, sample_ipv6_remote_addr};
 

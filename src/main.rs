@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use log::info;
 use torrust_tracker::stats::setup_statistics;
-use torrust_tracker::tracker::tracker::TorrentTracker;
+use torrust_tracker::tracker::TorrentTracker;
 use torrust_tracker::{ephemeral_instance_keys, logging, setup, static_time, Configuration};
 
 #[tokio::main]

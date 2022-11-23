@@ -6,7 +6,7 @@ use aquatic_udp_protocol::Response;
 use log::{debug, info};
 use tokio::net::UdpSocket;
 
-use crate::tracker::tracker::TorrentTracker;
+use crate::tracker::TorrentTracker;
 use crate::udp::{handle_packet, MAX_PACKET_SIZE};
 
 pub struct UdpServer {

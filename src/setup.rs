@@ -4,7 +4,7 @@ use log::warn;
 use tokio::task::JoinHandle;
 
 use crate::jobs::{http_tracker, torrent_cleanup, tracker_api, udp_tracker};
-use crate::tracker::tracker::TorrentTracker;
+use crate::tracker::TorrentTracker;
 use crate::Configuration;
 
 pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<JoinHandle<()>> {

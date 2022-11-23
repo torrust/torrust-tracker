@@ -9,7 +9,7 @@ use warp::{filters, reply, serve, Filter};
 
 use crate::peer::TorrentPeer;
 use crate::protocol::common::*;
-use crate::tracker::tracker::TorrentTracker;
+use crate::tracker::TorrentTracker;
 
 #[derive(Deserialize, Debug)]
 struct TorrentInfoQuery {
