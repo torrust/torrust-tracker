@@ -19,7 +19,7 @@ pub struct MysqlDatabase {
 
 impl MysqlDatabase {
     pub fn new(db_path: &str) -> Result<Self, r2d2::Error> {
-        let opts = Opts::from_url(&db_path).expect("Failed to connect to MySQL database.");
+        let opts = Opts::from_url(db_path).expect("Failed to connect to MySQL database.");
         let builder = OptsBuilder::from_opts(opts);
         let manager = MysqlConnectionManager::new(builder);
         let pool = r2d2::Pool::builder()
