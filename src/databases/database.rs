@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
 
-use crate::databases::mysql::MysqlDatabase;
+use crate::databases::mysql::Mysql;
 use crate::databases::sqlite::SqliteDatabase;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::AuthKey;
@@ -23,7 +23,7 @@ pub fn connect(db_driver: &Drivers, db_path: &str) -> Result<Box<dyn Database>, 
             Box::new(db)
         }
         Drivers::MySQL => {
-            let db = MysqlDatabase::new(db_path)?;
+            let db = Mysql::new(db_path)?;
             Box::new(db)
         }
     };

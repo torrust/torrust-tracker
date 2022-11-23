@@ -13,11 +13,14 @@ use crate::databases::database::{Database, Error};
 use crate::protocol::common::{InfoHash, AUTH_KEY_LENGTH};
 use crate::tracker::key::AuthKey;
 
-pub struct MysqlDatabase {
+pub struct Mysql {
     pool: Pool<MysqlConnectionManager>,
 }
 
-impl MysqlDatabase {
+impl Mysql {
+    /// # Errors
+    ///
+    /// Will return `r2d2::Error` if `db_path` is not able to create `MySQL` database.
     pub fn new(db_path: &str) -> Result<Self, r2d2::Error> {
         let opts = Opts::from_url(db_path).expect("Failed to connect to MySQL database.");
         let builder = OptsBuilder::from_opts(opts);
@@ -31,7 +34,7 @@ impl MysqlDatabase {
 }
 
 #[async_trait]
-impl Database for MysqlDatabase {
+impl Database for Mysql {
     fn create_database_tables(&self) -> Result<(), database::Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
@@ -57,7 +60,7 @@ impl Database for MysqlDatabase {
           PRIMARY KEY (`id`),
           UNIQUE (`key`)
         );",
-            AUTH_KEY_LENGTH as i8
+            i8::try_from(AUTH_KEY_LENGTH).expect("Auth Key Length Should fit within a i8!")
         );
 
         let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
@@ -95,7 +98,7 @@ impl Database for MysqlDatabase {
                 "SELECT `key`, valid_until FROM `keys`",
                 |(key, valid_until): (String, i64)| AuthKey {
                     key,
-                    valid_until: Some(Duration::from_secs(valid_until as u64)),
+                    valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
                 },
             )
             .map_err(|_| database::Error::QueryReturnedNoRows)?;
@@ -188,7 +191,7 @@ impl Database for MysqlDatabase {
         {
             Some((key, valid_until)) => Ok(AuthKey {
                 key,
-                valid_until: Some(Duration::from_secs(valid_until as u64)),
+                valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
             }),
             None => Err(database::Error::InvalidQuery),
         }
