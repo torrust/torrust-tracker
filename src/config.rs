@@ -12,14 +12,14 @@ use {std, toml};
 use crate::databases::database::DatabaseDrivers;
 use crate::mode::TrackerMode;
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct UdpTrackerConfig {
     pub enabled: bool,
     pub bind_address: String,
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct HttpTrackerConfig {
     pub enabled: bool,
     pub bind_address: String,
@@ -30,14 +30,14 @@ pub struct HttpTrackerConfig {
     pub ssl_key_path: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct HttpApiConfig {
     pub enabled: bool,
     pub bind_address: String,
     pub access_tokens: HashMap<String, String>,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
     pub log_level: Option<String>,
     pub mode: TrackerMode,
@@ -140,9 +140,9 @@ impl Configuration {
             eprintln!("Creating config file..");
             let config = Configuration::default();
             let _ = config.save_to_file(path);
-            return Err(ConfigError::Message(format!(
-                "Please edit the config.TOML in the root folder and restart the tracker."
-            )));
+            return Err(ConfigError::Message(
+                "Please edit the config.TOML in the root folder and restart the tracker.".to_string(),
+            ));
         }
 
         let torrust_config: Configuration = config
@@ -152,7 +152,7 @@ impl Configuration {
         Ok(torrust_config)
     }
 
-    pub fn save_to_file(&self, path: &str) -> Result<(), ()> {
+    pub fn save_to_file(&self, path: &str) -> Result<(), ConfigurationError> {
         let toml_string = toml::to_string(self).expect("Could not encode TOML value");
         fs::write(path, toml_string).expect("Could not write to file!");
         Ok(())
@@ -236,7 +236,7 @@ mod tests {
         let temp_file = temp_directory.join(format!("test_config_{}.toml", Uuid::new_v4()));
 
         // Convert to argument type for Configuration::save_to_file
-        let config_file_path = temp_file.clone();
+        let config_file_path = temp_file;
         let path = config_file_path.to_string_lossy().to_string();
 
         let default_configuration = Configuration::default();
