@@ -13,10 +13,9 @@ use crate::mode::TrackerMode;
 use crate::peer::TorrentPeer;
 use crate::protocol::common::InfoHash;
 use crate::statistics::{StatsRepository, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender};
-use crate::tracker::key;
 use crate::tracker::key::AuthKey;
 use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
-use crate::Configuration;
+use crate::{key, Configuration};
 
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
@@ -69,7 +68,7 @@ impl TorrentTracker {
     }
 
     pub async fn remove_auth_key(&self, key: &str) -> Result<(), database::Error> {
-        self.database.remove_key_from_keys(&key).await?;
+        self.database.remove_key_from_keys(key).await?;
         self.keys.write().await.remove(key);
         Ok(())
     }
@@ -112,7 +111,7 @@ impl TorrentTracker {
 
     // Removing torrents is not relevant to public trackers.
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
-        self.database.remove_info_hash_from_whitelist(info_hash.clone()).await?;
+        self.database.remove_info_hash_from_whitelist(*info_hash).await?;
         self.whitelist.write().await.remove(info_hash);
         Ok(())
     }
@@ -155,10 +154,8 @@ impl TorrentTracker {
         }
 
         // check if info_hash is whitelisted
-        if self.is_whitelisted() {
-            if !self.is_info_hash_whitelisted(info_hash).await {
-                return Err(TorrentError::TorrentNotWhitelisted);
-            }
+        if self.is_whitelisted() && !self.is_info_hash_whitelisted(info_hash).await {
+            return Err(TorrentError::TorrentNotWhitelisted);
         }
 
         Ok(())
@@ -180,7 +177,7 @@ impl TorrentTracker {
                 completed,
             };
 
-            torrents.insert(info_hash.clone(), torrent_entry);
+            torrents.insert(info_hash, torrent_entry);
         }
 
         Ok(())
@@ -209,7 +206,7 @@ impl TorrentTracker {
     pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &TorrentPeer) -> TorrentStats {
         let mut torrents = self.torrents.write().await;
 
-        let torrent_entry = match torrents.entry(info_hash.clone()) {
+        let torrent_entry = match torrents.entry(*info_hash) {
             Entry::Vacant(vacant) => vacant.insert(TorrentEntry::new()),
             Entry::Occupied(entry) => entry.into_mut(),
         };
@@ -220,7 +217,7 @@ impl TorrentTracker {
         if self.config.persistent_torrent_completed_stat && stats_updated {
             let _ = self
                 .database
-                .save_persistent_torrent(&info_hash, torrent_entry.completed)
+                .save_persistent_torrent(info_hash, torrent_entry.completed)
                 .await;
         }
 
@@ -258,8 +255,8 @@ impl TorrentTracker {
                 torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
 
                 match self.config.persistent_torrent_completed_stat {
-                    true => torrent_entry.completed > 0 || torrent_entry.peers.len() > 0,
-                    false => torrent_entry.peers.len() > 0,
+                    true => torrent_entry.completed > 0 || !torrent_entry.peers.is_empty(),
+                    false => !torrent_entry.peers.is_empty(),
                 }
             });
         } else {
