@@ -22,9 +22,8 @@ pub fn into_connection_id(connection_cookie: &Cookie) -> ConnectionId {
 pub fn make_connection_cookie(remote_address: &SocketAddr) -> Cookie {
     let time_extent = cookie_builder::get_last_time_extent();
 
-    let cookie = cookie_builder::build(remote_address, &time_extent);
     //println!("remote_address: {remote_address:?}, time_extent: {time_extent:?}, cookie: {cookie:?}");
-    cookie
+    cookie_builder::build(remote_address, &time_extent)
 }
 
 pub fn check_connection_cookie(
