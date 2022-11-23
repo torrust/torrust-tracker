@@ -5,7 +5,7 @@ use log::{info, warn};
 use tokio::task::JoinHandle;
 
 use crate::config::HttpTracker;
-use crate::http::server::HttpServer;
+use crate::http::server::Http;
 use crate::tracker::TorrentTracker;
 
 #[must_use]
@@ -16,7 +16,7 @@ pub fn start_job(config: &HttpTracker, tracker: Arc<TorrentTracker>) -> JoinHand
     let ssl_key_path = config.ssl_key_path.clone();
 
     tokio::spawn(async move {
-        let http_tracker = HttpServer::new(tracker);
+        let http_tracker = Http::new(tracker);
 
         if !ssl_enabled {
             info!("Starting HTTP server on: {}", bind_addr);

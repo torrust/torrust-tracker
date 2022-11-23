@@ -6,14 +6,14 @@ use crate::tracker::TorrentTracker;
 
 /// Server that listens on HTTP, needs a `TorrentTracker`
 #[derive(Clone)]
-pub struct HttpServer {
+pub struct Http {
     tracker: Arc<TorrentTracker>,
 }
 
-impl HttpServer {
+impl Http {
     #[must_use]
-    pub fn new(tracker: Arc<TorrentTracker>) -> HttpServer {
-        HttpServer { tracker }
+    pub fn new(tracker: Arc<TorrentTracker>) -> Http {
+        Http { tracker }
     }
 
     /// Start the `HttpServer`
