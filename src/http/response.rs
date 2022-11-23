@@ -38,34 +38,34 @@ impl AnnounceResponse {
         for peer in &self.peers {
             match peer.ip {
                 IpAddr::V4(ip) => {
-                    peers_v4.write(&u32::from(ip).to_be_bytes())?;
-                    peers_v4.write(&peer.port.to_be_bytes())?;
+                    peers_v4.write_all(&u32::from(ip).to_be_bytes())?;
+                    peers_v4.write_all(&peer.port.to_be_bytes())?;
                 }
                 IpAddr::V6(ip) => {
-                    peers_v6.write(&u128::from(ip).to_be_bytes())?;
-                    peers_v6.write(&peer.port.to_be_bytes())?;
+                    peers_v6.write_all(&u128::from(ip).to_be_bytes())?;
+                    peers_v6.write_all(&peer.port.to_be_bytes())?;
                 }
             }
         }
 
         let mut bytes: Vec<u8> = Vec::new();
-        bytes.write(b"d8:intervali")?;
-        bytes.write(&self.interval.to_string().as_bytes())?;
-        bytes.write(b"e12:min intervali")?;
-        bytes.write(&self.interval_min.to_string().as_bytes())?;
-        bytes.write(b"e8:completei")?;
-        bytes.write(&self.complete.to_string().as_bytes())?;
-        bytes.write(b"e10:incompletei")?;
-        bytes.write(&self.incomplete.to_string().as_bytes())?;
-        bytes.write(b"e5:peers")?;
-        bytes.write(&peers_v4.len().to_string().as_bytes())?;
-        bytes.write(b":")?;
-        bytes.write(peers_v4.as_slice())?;
-        bytes.write(b"e6:peers6")?;
-        bytes.write(&peers_v6.len().to_string().as_bytes())?;
-        bytes.write(b":")?;
-        bytes.write(peers_v6.as_slice())?;
-        bytes.write(b"e")?;
+        bytes.write_all(b"d8:intervali")?;
+        bytes.write_all(self.interval.to_string().as_bytes())?;
+        bytes.write_all(b"e12:min intervali")?;
+        bytes.write_all(self.interval_min.to_string().as_bytes())?;
+        bytes.write_all(b"e8:completei")?;
+        bytes.write_all(self.complete.to_string().as_bytes())?;
+        bytes.write_all(b"e10:incompletei")?;
+        bytes.write_all(self.incomplete.to_string().as_bytes())?;
+        bytes.write_all(b"e5:peers")?;
+        bytes.write_all(peers_v4.len().to_string().as_bytes())?;
+        bytes.write_all(b":")?;
+        bytes.write_all(peers_v4.as_slice())?;
+        bytes.write_all(b"e6:peers6")?;
+        bytes.write_all(peers_v6.len().to_string().as_bytes())?;
+        bytes.write_all(b":")?;
+        bytes.write_all(peers_v6.as_slice())?;
+        bytes.write_all(b"e")?;
 
         Ok(bytes)
     }
@@ -87,21 +87,21 @@ impl ScrapeResponse {
     pub fn write(&self) -> Result<Vec<u8>, Box<dyn Error>> {
         let mut bytes: Vec<u8> = Vec::new();
 
-        bytes.write(b"d5:filesd")?;
+        bytes.write_all(b"d5:filesd")?;
 
         for (info_hash, scrape_response_entry) in self.files.iter() {
-            bytes.write(b"20:")?;
-            bytes.write(&info_hash.0)?;
-            bytes.write(b"d8:completei")?;
-            bytes.write(scrape_response_entry.complete.to_string().as_bytes())?;
-            bytes.write(b"e10:downloadedi")?;
-            bytes.write(scrape_response_entry.downloaded.to_string().as_bytes())?;
-            bytes.write(b"e10:incompletei")?;
-            bytes.write(scrape_response_entry.incomplete.to_string().as_bytes())?;
-            bytes.write(b"ee")?;
+            bytes.write_all(b"20:")?;
+            bytes.write_all(&info_hash.0)?;
+            bytes.write_all(b"d8:completei")?;
+            bytes.write_all(scrape_response_entry.complete.to_string().as_bytes())?;
+            bytes.write_all(b"e10:downloadedi")?;
+            bytes.write_all(scrape_response_entry.downloaded.to_string().as_bytes())?;
+            bytes.write_all(b"e10:incompletei")?;
+            bytes.write_all(scrape_response_entry.incomplete.to_string().as_bytes())?;
+            bytes.write_all(b"ee")?;
         }
 
-        bytes.write(b"ee")?;
+        bytes.write_all(b"ee")?;
 
         Ok(bytes)
     }

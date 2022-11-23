@@ -1,6 +1,6 @@
 {
     "recommendations": [
         "streetsidesoftware.code-spell-checker",
-        "matklad.rust-analyzer"
+        "rust-lang.rust-analyzer"
     ]
 }

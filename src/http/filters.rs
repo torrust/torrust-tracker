@@ -7,7 +7,7 @@ use warp::{reject, Filter, Rejection};
 
 use crate::http::{AnnounceRequest, AnnounceRequestQuery, ScrapeRequest, ServerError, WebResult};
 use crate::tracker::key::AuthKey;
-use crate::tracker::tracker::TorrentTracker;
+use crate::tracker::TorrentTracker;
 use crate::{InfoHash, PeerId, MAX_SCRAPE_TORRENTS};
 
 /// Pass Arc<TorrentTracker> along
@@ -61,12 +61,12 @@ pub fn with_scrape_request(on_reverse_proxy: bool) -> impl Filter<Extract = (Scr
 
 /// Parse InfoHash from raw query string
 async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
-    let split_raw_query: Vec<&str> = raw_query.split("&").collect();
+    let split_raw_query: Vec<&str> = raw_query.split('&').collect();
     let mut info_hashes: Vec<InfoHash> = Vec::new();
 
     for v in split_raw_query {
         if v.contains("info_hash") {
-            let raw_info_hash = v.split("=").collect::<Vec<&str>>()[1];
+            let raw_info_hash = v.split('=').collect::<Vec<&str>>()[1];
             let info_hash_bytes = percent_encoding::percent_decode_str(raw_info_hash).collect::<Vec<u8>>();
             let info_hash = InfoHash::from_str(&hex::encode(info_hash_bytes));
             if let Ok(ih) = info_hash {
@@ -77,7 +77,7 @@ async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
 
     if info_hashes.len() > MAX_SCRAPE_TORRENTS as usize {
         Err(reject::custom(ServerError::ExceededInfoHashLimit))
-    } else if info_hashes.len() < 1 {
+    } else if info_hashes.is_empty() {
         Err(reject::custom(ServerError::InvalidInfoHash))
     } else {
         Ok(info_hashes)
@@ -87,7 +87,7 @@ async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
 /// Parse PeerId from raw query string
 async fn peer_id(raw_query: String) -> WebResult<PeerId> {
     // put all query params in a vec
-    let split_raw_query: Vec<&str> = raw_query.split("&").collect();
+    let split_raw_query: Vec<&str> = raw_query.split('&').collect();
 
     let mut peer_id: Option<PeerId> = None;
 
@@ -95,7 +95,7 @@ async fn peer_id(raw_query: String) -> WebResult<PeerId> {
         // look for the peer_id param
         if v.contains("peer_id") {
             // get raw percent_encoded peer_id
-            let raw_peer_id = v.split("=").collect::<Vec<&str>>()[1];
+            let raw_peer_id = v.split('=').collect::<Vec<&str>>()[1];
 
             // decode peer_id
             let peer_id_bytes = percent_encoding::percent_decode_str(raw_peer_id).collect::<Vec<u8>>();
@@ -143,7 +143,7 @@ async fn peer_addr(
             // set client ip to last forwarded ip
             let x_forwarded_ip = *x_forwarded_ips.last().unwrap();
 
-            IpAddr::from_str(x_forwarded_ip).or_else(|_| Err(reject::custom(ServerError::AddressNotFound)))
+            IpAddr::from_str(x_forwarded_ip).map_err(|_| reject::custom(ServerError::AddressNotFound))
         }
         false => Ok(remote_addr.unwrap().ip()),
     }

@@ -10,7 +10,7 @@ use tokio::sync::{mpsc, RwLock, RwLockReadGuard};
 
 const CHANNEL_BUFFER_SIZE: usize = 65_535;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum TrackerStatisticsEvent {
     Tcp4Announce,
     Tcp4Scrape,

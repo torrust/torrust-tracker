@@ -63,7 +63,7 @@ impl AuthKey {
     }
 }
 
-#[derive(Debug, Display, PartialEq, Error)]
+#[derive(Debug, Display, PartialEq, Eq, Error)]
 #[allow(dead_code)]
 pub enum Error {
     #[display(fmt = "Key could not be verified.")]

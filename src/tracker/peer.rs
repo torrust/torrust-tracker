@@ -75,8 +75,8 @@ impl TorrentPeer {
 
     // potentially substitute localhost ip with external ip
     pub fn peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip: IpAddr, host_opt_ip: Option<IpAddr>, port: u16) -> SocketAddr {
-        if remote_ip.is_loopback() && host_opt_ip.is_some() {
-            SocketAddr::new(host_opt_ip.unwrap(), port)
+        if let Some(host_ip) = host_opt_ip.filter(|_| remote_ip.is_loopback()) {
+            SocketAddr::new(host_ip, port)
         } else {
             SocketAddr::new(remote_ip, port)
         }

@@ -1,15 +1,4 @@
 {
-    "cSpell.words": [
-        "byteorder",
-        "hasher",
-        "leechers",
-        "nanos",
-        "rngs",
-        "Seedable",
-        "thiserror",
-        "torrust",
-        "typenum"
-    ],
     "[rust]": {
         "editor.formatOnSave": true
     },

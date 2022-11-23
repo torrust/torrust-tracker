@@ -19,7 +19,7 @@ mod udp_tracker_server {
     use tokio::task::JoinHandle;
     use torrust_tracker::jobs::udp_tracker;
     use torrust_tracker::tracker::statistics::StatsTracker;
-    use torrust_tracker::tracker::tracker::TorrentTracker;
+    use torrust_tracker::tracker::TorrentTracker;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
     use torrust_tracker::{logging, static_time, Configuration};
 
@@ -67,7 +67,7 @@ mod udp_tracker_server {
                 let udp_tracker_config = &configuration.udp_trackers[0];
 
                 // Start the UDP tracker job
-                self.job = Some(udp_tracker::start_job(&udp_tracker_config, tracker.clone()));
+                self.job = Some(udp_tracker::start_job(udp_tracker_config, tracker));
 
                 self.bind_address = Some(udp_tracker_config.bind_address.clone());
 
@@ -136,7 +136,7 @@ mod udp_tracker_server {
                 Err(_) => panic!("could not write request to bytes."),
             };
 
-            self.udp_client.send(&request_data).await
+            self.udp_client.send(request_data).await
         }
 
         async fn receive(&self) -> Response {
@@ -178,30 +178,24 @@ mod udp_tracker_server {
 
     fn is_error_response(response: &Response, error_message: &str) -> bool {
         match response {
-            Response::Error(error_response) => return error_response.message.starts_with(error_message),
-            _ => return false,
-        };
+            Response::Error(error_response) => error_response.message.starts_with(error_message),
+            _ => false,
+        }
     }
 
     fn is_connect_response(response: &Response, transaction_id: TransactionId) -> bool {
         match response {
-            Response::Connect(connect_response) => return connect_response.transaction_id == transaction_id,
-            _ => return false,
-        };
+            Response::Connect(connect_response) => connect_response.transaction_id == transaction_id,
+            _ => false,
+        }
     }
 
     fn is_ipv4_announce_response(response: &Response) -> bool {
-        match response {
-            Response::AnnounceIpv4(_) => return true,
-            _ => return false,
-        };
+        matches!(response, Response::AnnounceIpv4(_))
     }
 
     fn is_scrape_response(response: &Response) -> bool {
-        match response {
-            Response::Scrape(_) => return true,
-            _ => return false,
-        };
+        matches!(response, Response::Scrape(_))
     }
 
     #[tokio::test]
