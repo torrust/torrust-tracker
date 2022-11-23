@@ -3,7 +3,7 @@ use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
 
 use crate::databases::mysql::Mysql;
-use crate::databases::sqlite::SqliteDatabase;
+use crate::databases::sqlite::Sqlite;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::AuthKey;
 
@@ -19,7 +19,7 @@ pub enum Drivers {
 pub fn connect(db_driver: &Drivers, db_path: &str) -> Result<Box<dyn Database>, r2d2::Error> {
     let database: Box<dyn Database> = match db_driver {
         Drivers::Sqlite3 => {
-            let db = SqliteDatabase::new(db_path)?;
+            let db = Sqlite::new(db_path)?;
             Box::new(db)
         }
         Drivers::MySQL => {

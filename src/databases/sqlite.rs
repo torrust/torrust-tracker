@@ -11,20 +11,23 @@ use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::AuthKey;
 
-pub struct SqliteDatabase {
+pub struct Sqlite {
     pool: Pool<SqliteConnectionManager>,
 }
 
-impl SqliteDatabase {
-    pub fn new(db_path: &str) -> Result<SqliteDatabase, r2d2::Error> {
+impl Sqlite {
+    /// # Errors
+    ///
+    /// Will return `r2d2::Error` if `db_path` is not able to create `SqLite` database.
+    pub fn new(db_path: &str) -> Result<Sqlite, r2d2::Error> {
         let cm = SqliteConnectionManager::file(db_path);
         let pool = Pool::new(cm).expect("Failed to create r2d2 SQLite connection pool.");
-        Ok(SqliteDatabase { pool })
+        Ok(Sqlite { pool })
     }
 }
 
 #[async_trait]
-impl Database for SqliteDatabase {
+impl Database for Sqlite {
     fn create_database_tables(&self) -> Result<(), database::Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
@@ -86,7 +89,7 @@ impl Database for SqliteDatabase {
 
             Ok(AuthKey {
                 key,
-                valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until as u64)),
+                valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs())),
             })
         })?;
 
@@ -191,11 +194,11 @@ impl Database for SqliteDatabase {
 
         if let Some(row) = rows.next()? {
             let key: String = row.get(0).unwrap();
-            let valid_until_i64: i64 = row.get(1).unwrap();
+            let valid_until: i64 = row.get(1).unwrap();
 
             Ok(AuthKey {
                 key,
-                valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until_i64 as u64)),
+                valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs())),
             })
         } else {
             Err(database::Error::QueryReturnedNoRows)
