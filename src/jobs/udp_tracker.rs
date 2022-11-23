@@ -3,8 +3,9 @@ use std::sync::Arc;
 use log::{error, info, warn};
 use tokio::task::JoinHandle;
 
+use crate::config::UdpTrackerConfig;
 use crate::tracker::TorrentTracker;
-use crate::{UdpServer, UdpTrackerConfig};
+use crate::udp::server::UdpServer;
 
 pub fn start_job(config: &UdpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let bind_addr = config.bind_address.clone();

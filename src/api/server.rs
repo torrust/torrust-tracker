@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 use warp::{filters, reply, serve, Filter};
 
 use super::resources::auth_key_resource::AuthKeyResource;
-use crate::peer::TorrentPeer;
 use crate::protocol::common::*;
+use crate::tracker::peer::TorrentPeer;
 use crate::tracker::TorrentTracker;
 
 #[derive(Deserialize, Debug)]

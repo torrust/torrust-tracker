@@ -7,16 +7,17 @@ use log::debug;
 use warp::http::Response;
 use warp::{reject, Rejection, Reply};
 
-use crate::http::{
-    AnnounceRequest, AnnounceResponse, ErrorResponse, Peer, ScrapeRequest, ScrapeResponse, ScrapeResponseEntry, ServerError,
-    WebResult,
-};
-use crate::peer::TorrentPeer;
+use super::errors::ServerError;
+use super::request::{AnnounceRequest, ScrapeRequest};
+use super::response::{AnnounceResponse, Peer, ScrapeResponse, ScrapeResponseEntry};
+use crate::http::response::ErrorResponse;
+use crate::http::WebResult;
+use crate::protocol::common::InfoHash;
 use crate::tracker::key::AuthKey;
+use crate::tracker::peer::TorrentPeer;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::torrent::{TorrentError, TorrentStats};
 use crate::tracker::TorrentTracker;
-use crate::InfoHash;
 
 /// Authenticate InfoHash using optional AuthKey
 pub async fn authenticate(

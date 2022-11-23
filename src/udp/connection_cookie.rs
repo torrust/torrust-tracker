@@ -2,8 +2,8 @@ use std::net::SocketAddr;
 
 use aquatic_udp_protocol::ConnectionId;
 
+use super::errors::ServerError;
 use crate::protocol::clock::time_extent::{Extent, TimeExtent};
-use crate::udp::ServerError;
 
 pub type Cookie = [u8; 8];
 

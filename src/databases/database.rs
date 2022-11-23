@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::databases::mysql::MysqlDatabase;
 use crate::databases::sqlite::SqliteDatabase;
+use crate::protocol::common::InfoHash;
 use crate::tracker::key::AuthKey;
-use crate::InfoHash;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub enum DatabaseDrivers {

@@ -1,4 +1,4 @@
-use crate::statistics::{StatsRepository, StatsTracker, TrackerStatisticsEventSender};
+use crate::tracker::statistics::{StatsRepository, StatsTracker, TrackerStatisticsEventSender};
 
 pub fn setup_statistics(tracker_usage_statistics: bool) -> (Option<Box<dyn TrackerStatisticsEventSender>>, StatsRepository) {
     let mut stats_event_sender = None;

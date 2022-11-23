@@ -10,7 +10,7 @@ use serde_with::{serde_as, NoneAsEmptyString};
 use {std, toml};
 
 use crate::databases::database::DatabaseDrivers;
-use crate::mode::TrackerMode;
+use crate::tracker::mode::TrackerMode;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct UdpTrackerConfig {
@@ -161,6 +161,7 @@ impl Configuration {
 
 #[cfg(test)]
 mod tests {
+    use crate::config::{Configuration, ConfigurationError};
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -205,8 +206,6 @@ mod tests {
 
     #[test]
     fn configuration_should_have_default_values() {
-        use crate::Configuration;
-
         let configuration = Configuration::default();
 
         let toml = toml::to_string(&configuration).expect("Could not encode TOML value");
@@ -216,8 +215,6 @@ mod tests {
 
     #[test]
     fn configuration_should_contain_the_external_ip() {
-        use crate::Configuration;
-
         let configuration = Configuration::default();
 
         assert_eq!(configuration.external_ip, Option::Some(String::from("0.0.0.0")));
@@ -228,8 +225,6 @@ mod tests {
         use std::{env, fs};
 
         use uuid::Uuid;
-
-        use crate::Configuration;
 
         // Build temp config file path
         let temp_directory = env::temp_dir();
@@ -275,8 +270,6 @@ mod tests {
 
     #[test]
     fn configuration_should_be_loaded_from_a_toml_config_file() {
-        use crate::Configuration;
-
         let config_file_path = create_temp_config_file_with_default_config();
 
         let configuration = Configuration::load_from_file(&config_file_path).expect("Could not load configuration from file");
@@ -286,8 +279,6 @@ mod tests {
 
     #[test]
     fn configuration_error_could_be_displayed() {
-        use crate::ConfigurationError;
-
         let error = ConfigurationError::TrackerModeIncompatible;
 
         assert_eq!(format!("{}", error), "TrackerModeIncompatible");

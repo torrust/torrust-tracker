@@ -3,9 +3,8 @@ use std::sync::Arc;
 
 use warp::{Filter, Rejection};
 
-use crate::http::{
-    handle_announce, handle_scrape, send_error, with_announce_request, with_auth_key, with_scrape_request, with_tracker,
-};
+use super::filters::{with_announce_request, with_auth_key, with_scrape_request, with_tracker};
+use super::handlers::{handle_announce, handle_scrape, send_error};
 use crate::tracker::TorrentTracker;
 
 /// All routes

@@ -1,6 +1,6 @@
 use aquatic_udp_protocol::AnnounceRequest;
 
-use crate::InfoHash;
+use crate::protocol::common::InfoHash;
 
 // struct AnnounceRequest {
 //     pub connection_id: i64,

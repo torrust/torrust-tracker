@@ -6,7 +6,7 @@ use std::net::IpAddr;
 use serde;
 use serde::Serialize;
 
-use crate::InfoHash;
+use crate::protocol::common::InfoHash;
 
 #[derive(Serialize)]
 pub struct Peer {

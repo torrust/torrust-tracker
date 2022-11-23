@@ -14,11 +14,12 @@ mod tracker_api {
     use tokio::task::JoinHandle;
     use tokio::time::{sleep, Duration};
     use torrust_tracker::api::resources::auth_key_resource::AuthKeyResource;
+    use torrust_tracker::config::Configuration;
     use torrust_tracker::jobs::tracker_api;
     use torrust_tracker::tracker::key::AuthKey;
     use torrust_tracker::tracker::statistics::StatsTracker;
     use torrust_tracker::tracker::TorrentTracker;
-    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
 
     use crate::common::ephemeral_random_port;
 

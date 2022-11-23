@@ -7,7 +7,7 @@ use rand::{thread_rng, Rng};
 use serde::Serialize;
 
 use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, Time, TimeNow};
-use crate::AUTH_KEY_LENGTH;
+use crate::protocol::common::AUTH_KEY_LENGTH;
 
 pub fn generate_auth_key(lifetime: Duration) -> AuthKey {
     let key: String = thread_rng()

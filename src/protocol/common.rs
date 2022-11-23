@@ -94,12 +94,13 @@ impl<'de> serde::de::Deserialize<'de> for InfoHash {
 
 #[cfg(test)]
 mod tests {
+
     use std::str::FromStr;
 
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 
-    use crate::InfoHash;
+    use super::InfoHash;
 
     #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
     struct ContainingInfoHash {

@@ -2,10 +2,10 @@ use std::convert::From;
 
 use serde::{Deserialize, Serialize};
 
-use crate::key::AuthKey;
 use crate::protocol::clock::DurationSinceUnixEpoch;
+use crate::tracker::key::AuthKey;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct AuthKeyResource {
     pub key: String,
     pub valid_until: Option<u64>,
@@ -36,8 +36,8 @@ mod tests {
     use std::time::Duration;
 
     use super::AuthKeyResource;
-    use crate::key::AuthKey;
     use crate::protocol::clock::{DefaultClock, TimeNow};
+    use crate::tracker::key::AuthKey;
 
     #[test]
     fn it_should_be_convertible_into_an_auth_key() {

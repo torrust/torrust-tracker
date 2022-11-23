@@ -4,7 +4,7 @@ use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde;
 use serde::Serialize;
 
-use crate::http::AnnounceRequest;
+use crate::http::request::AnnounceRequest;
 use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, Time};
 use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef, PeerId};
 use crate::protocol::utils::ser_unix_time_value;
@@ -95,9 +95,9 @@ mod test {
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
-        use crate::peer::TorrentPeer;
         use crate::protocol::clock::{DefaultClock, Time};
-        use crate::PeerId;
+        use crate::protocol::common::PeerId;
+        use crate::tracker::peer::TorrentPeer;
 
         #[test]
         fn it_should_be_serializable() {
@@ -129,7 +129,7 @@ mod test {
             AnnounceEvent, AnnounceRequest, NumberOfBytes, NumberOfPeers, PeerId as AquaticPeerId, PeerKey, Port, TransactionId,
         };
 
-        use crate::peer::TorrentPeer;
+        use crate::tracker::peer::TorrentPeer;
         use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
         // todo: duplicate functions is PR 82. Remove duplication once both PR are merged.
 
@@ -200,8 +200,8 @@ mod test {
             use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
             use std::str::FromStr;
 
-            use crate::peer::test::torrent_peer_constructor_from_udp_requests::AnnounceRequestBuilder;
-            use crate::peer::TorrentPeer;
+            use crate::tracker::peer::test::torrent_peer_constructor_from_udp_requests::AnnounceRequestBuilder;
+            use crate::tracker::peer::TorrentPeer;
 
             #[test]
             fn it_should_use_the_loopback_ip_if_the_server_does_not_have_the_external_ip_configuration() {
@@ -241,8 +241,8 @@ mod test {
             use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
             use std::str::FromStr;
 
-            use crate::peer::test::torrent_peer_constructor_from_udp_requests::AnnounceRequestBuilder;
-            use crate::peer::TorrentPeer;
+            use crate::tracker::peer::test::torrent_peer_constructor_from_udp_requests::AnnounceRequestBuilder;
+            use crate::tracker::peer::TorrentPeer;
 
             #[test]
             fn it_should_use_the_loopback_ip_if_the_server_does_not_have_the_external_ip_configuration() {
@@ -281,9 +281,9 @@ mod test {
     mod torrent_peer_constructor_from_for_http_requests {
         use std::net::{IpAddr, Ipv4Addr};
 
-        use crate::http::AnnounceRequest;
-        use crate::peer::TorrentPeer;
-        use crate::{InfoHash, PeerId};
+        use crate::http::request::AnnounceRequest;
+        use crate::protocol::common::{InfoHash, PeerId};
+        use crate::tracker::peer::TorrentPeer;
 
         fn sample_http_announce_request(peer_addr: IpAddr, port: u16) -> AnnounceRequest {
             AnnounceRequest {

@@ -4,8 +4,9 @@ use std::sync::Arc;
 use log::{info, warn};
 use tokio::task::JoinHandle;
 
+use crate::config::HttpTrackerConfig;
+use crate::http::server::HttpServer;
 use crate::tracker::TorrentTracker;
-use crate::{HttpServer, HttpTrackerConfig};
 
 pub fn start_job(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let bind_addr = config.bind_address.parse::<SocketAddr>().unwrap();
