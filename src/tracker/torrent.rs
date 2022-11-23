@@ -5,7 +5,7 @@ use aquatic_udp_protocol::AnnounceEvent;
 use serde::{Deserialize, Serialize};
 
 use super::peer::TorrentPeer;
-use crate::protocol::clock::{DefaultClock, TimeNow};
+use crate::protocol::clock::{Current, TimeNow};
 use crate::protocol::common::{PeerId, MAX_SCRAPE_TORRENTS};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -80,7 +80,7 @@ impl TorrentEntry {
     }
 
     pub fn remove_inactive_peers(&mut self, max_peer_timeout: u32) {
-        let current_cutoff = DefaultClock::sub(&Duration::from_secs(u64::from(max_peer_timeout))).unwrap_or_default();
+        let current_cutoff = Current::sub(&Duration::from_secs(u64::from(max_peer_timeout))).unwrap_or_default();
         self.peers.retain(|_, peer| peer.updated > current_cutoff);
     }
 }
@@ -116,7 +116,7 @@ mod tests {
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
-    use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, StoppedClock, StoppedTime, Time, WorkingClock};
+    use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Stopped, StoppedTime, Time, Working};
     use crate::protocol::common::PeerId;
     use crate::tracker::peer::TorrentPeer;
     use crate::tracker::torrent::TorrentEntry;
@@ -130,7 +130,7 @@ mod tests {
             let default_peer = TorrentPeer {
                 peer_id: PeerId([0u8; 20]),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
-                updated: DefaultClock::now(),
+                updated: Current::now(),
                 uploaded: NumberOfBytes(0),
                 downloaded: NumberOfBytes(0),
                 left: NumberOfBytes(0),
@@ -358,8 +358,8 @@ mod tests {
 
         let timeout = 120u32;
 
-        let now = WorkingClock::now();
-        StoppedClock::local_set(&now);
+        let now = Working::now();
+        Stopped::local_set(&now);
 
         let timeout_seconds_before_now = now.sub(Duration::from_secs(u64::from(timeout)));
         let inactive_peer = TorrentPeerBuilder::default()

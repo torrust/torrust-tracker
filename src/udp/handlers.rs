@@ -253,7 +253,7 @@ mod tests {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
     use crate::config::Configuration;
-    use crate::protocol::clock::{DefaultClock, Time};
+    use crate::protocol::clock::{Current, Time};
     use crate::protocol::common::PeerId;
     use crate::tracker::mode::TrackerMode;
     use crate::tracker::peer::TorrentPeer;
@@ -309,7 +309,7 @@ mod tests {
             let default_peer = TorrentPeer {
                 peer_id: PeerId([255u8; 20]),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-                updated: DefaultClock::now(),
+                updated: Current::now(),
                 uploaded: NumberOfBytes(0),
                 downloaded: NumberOfBytes(0),
                 left: NumberOfBytes(0),

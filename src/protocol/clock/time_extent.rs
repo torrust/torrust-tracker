@@ -1,7 +1,7 @@
 use std::num::{IntErrorKind, TryFromIntError};
 use std::time::Duration;
 
-use super::{ClockType, StoppedClock, TimeNow, WorkingClock};
+use super::{Stopped, TimeNow, Type, Working};
 
 pub trait Extent: Sized + Default {
     type Base;
@@ -156,11 +156,11 @@ where
 #[derive(Debug)]
 pub struct TimeExtentMaker<const CLOCK_TYPE: usize> {}
 
-pub type WorkingTimeExtentMaker = TimeExtentMaker<{ ClockType::WorkingClock as usize }>;
-pub type StoppedTimeExtentMaker = TimeExtentMaker<{ ClockType::StoppedClock as usize }>;
+pub type WorkingTimeExtentMaker = TimeExtentMaker<{ Type::WorkingClock as usize }>;
+pub type StoppedTimeExtentMaker = TimeExtentMaker<{ Type::StoppedClock as usize }>;
 
-impl MakeTimeExtent<WorkingClock> for WorkingTimeExtentMaker {}
-impl MakeTimeExtent<StoppedClock> for StoppedTimeExtentMaker {}
+impl MakeTimeExtent<Working> for WorkingTimeExtentMaker {}
+impl MakeTimeExtent<Stopped> for StoppedTimeExtentMaker {}
 
 #[cfg(not(test))]
 pub type DefaultTimeExtentMaker = WorkingTimeExtentMaker;
@@ -175,7 +175,7 @@ mod test {
         checked_duration_from_nanos, DefaultTimeExtentMaker, Extent, MakeTimeExtent, TimeExtent, TimeExtentBase,
         TimeExtentMultiplier, TimeExtentProduct, MAX, ZERO,
     };
-    use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, StoppedTime};
+    use crate::protocol::clock::{Current, DurationSinceUnixEpoch, StoppedTime};
 
     const TIME_EXTENT_VAL: TimeExtent = TimeExtent::from_sec(2, &239_812_388_723);
 
@@ -443,7 +443,7 @@ mod test {
                     }
                 );
 
-                DefaultClock::local_set(&DurationSinceUnixEpoch::from_secs(TIME_EXTENT_VAL.amount * 2));
+                Current::local_set(&DurationSinceUnixEpoch::from_secs(TIME_EXTENT_VAL.amount * 2));
 
                 assert_eq!(
                     DefaultTimeExtentMaker::now(&TIME_EXTENT_VAL.increment).unwrap().unwrap(),
@@ -458,7 +458,7 @@ mod test {
 
             #[test]
             fn it_should_fail_if_amount_exceeds_bounds() {
-                DefaultClock::local_set(&DurationSinceUnixEpoch::MAX);
+                Current::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(
                     DefaultTimeExtentMaker::now(&TimeExtentBase::from_millis(1))
                         .unwrap()
@@ -493,13 +493,13 @@ mod test {
                     None
                 );
 
-                DefaultClock::local_set(&DurationSinceUnixEpoch::MAX);
+                Current::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(DefaultTimeExtentMaker::now_after(&TimeExtentBase::ZERO, &Duration::MAX), None);
             }
 
             #[test]
             fn it_should_fail_if_amount_exceeds_bounds() {
-                DefaultClock::local_set(&DurationSinceUnixEpoch::MAX);
+                Current::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(
                     DefaultTimeExtentMaker::now_after(&TimeExtentBase::from_millis(1), &Duration::ZERO)
                         .unwrap()
@@ -515,7 +515,7 @@ mod test {
 
             #[test]
             fn it_should_give_a_time_extent() {
-                DefaultClock::local_set(&DurationSinceUnixEpoch::MAX);
+                Current::local_set(&DurationSinceUnixEpoch::MAX);
 
                 assert_eq!(
                     DefaultTimeExtentMaker::now_before(
@@ -546,7 +546,7 @@ mod test {
 
             #[test]
             fn it_should_fail_if_amount_exceeds_bounds() {
-                DefaultClock::local_set(&DurationSinceUnixEpoch::MAX);
+                Current::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(
                     DefaultTimeExtentMaker::now_before(&TimeExtentBase::from_millis(1), &Duration::ZERO)
                         .unwrap()

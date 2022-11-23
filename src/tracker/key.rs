@@ -6,7 +6,7 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde::Serialize;
 
-use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, Time, TimeNow};
+use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Time, TimeNow};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 
 #[must_use]
@@ -21,12 +21,12 @@ pub fn generate_auth_key(lifetime: Duration) -> AuthKey {
 
     AuthKey {
         key,
-        valid_until: Some(DefaultClock::add(&lifetime).unwrap()),
+        valid_until: Some(Current::add(&lifetime).unwrap()),
     }
 }
 
 pub fn verify_auth_key(auth_key: &AuthKey) -> Result<(), Error> {
-    let current_time: DurationSinceUnixEpoch = DefaultClock::now();
+    let current_time: DurationSinceUnixEpoch = Current::now();
     if auth_key.valid_until.is_none() {
         return Err(Error::KeyInvalid);
     }
@@ -88,7 +88,7 @@ impl From<r2d2_sqlite::rusqlite::Error> for Error {
 mod tests {
     use std::time::Duration;
 
-    use crate::protocol::clock::{DefaultClock, StoppedTime};
+    use crate::protocol::clock::{Current, StoppedTime};
     use crate::tracker::key;
 
     #[test]
@@ -121,18 +121,18 @@ mod tests {
     #[test]
     fn generate_and_check_expired_auth_key() {
         // Set the time to the current time.
-        DefaultClock::local_set_to_system_time_now();
+        Current::local_set_to_system_time_now();
 
         // Make key that is valid for 19 seconds.
         let auth_key = key::generate_auth_key(Duration::from_secs(19));
 
         // Mock the time has passed 10 sec.
-        DefaultClock::local_add(&Duration::from_secs(10)).unwrap();
+        Current::local_add(&Duration::from_secs(10)).unwrap();
 
         assert!(key::verify_auth_key(&auth_key).is_ok());
 
         // Mock the time has passed another 10 sec.
-        DefaultClock::local_add(&Duration::from_secs(10)).unwrap();
+        Current::local_add(&Duration::from_secs(10)).unwrap();
 
         assert!(key::verify_auth_key(&auth_key).is_err());
     }

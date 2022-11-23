@@ -5,7 +5,7 @@ use serde;
 use serde::Serialize;
 
 use crate::http::request::Announce;
-use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, Time};
+use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Time};
 use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef, PeerId};
 use crate::protocol::utils::ser_unix_time_value;
 
@@ -37,7 +37,7 @@ impl TorrentPeer {
         TorrentPeer {
             peer_id: PeerId(announce_request.peer_id.0),
             peer_addr,
-            updated: DefaultClock::now(),
+            updated: Current::now(),
             uploaded: announce_request.bytes_uploaded,
             downloaded: announce_request.bytes_downloaded,
             left: announce_request.bytes_left,
@@ -63,7 +63,7 @@ impl TorrentPeer {
         TorrentPeer {
             peer_id: announce_request.peer_id,
             peer_addr,
-            updated: DefaultClock::now(),
+            updated: Current::now(),
             uploaded: NumberOfBytes(announce_request.uploaded as i64),
             downloaded: NumberOfBytes(announce_request.downloaded as i64),
             left: NumberOfBytes(announce_request.left as i64),
@@ -95,7 +95,7 @@ mod test {
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
-        use crate::protocol::clock::{DefaultClock, Time};
+        use crate::protocol::clock::{Current, Time};
         use crate::protocol::common::PeerId;
         use crate::tracker::peer::TorrentPeer;
 
@@ -104,7 +104,7 @@ mod test {
             let torrent_peer = TorrentPeer {
                 peer_id: PeerId(*b"-qB00000000000000000"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-                updated: DefaultClock::now(),
+                updated: Current::now(),
                 uploaded: NumberOfBytes(0),
                 downloaded: NumberOfBytes(0),
                 left: NumberOfBytes(0),

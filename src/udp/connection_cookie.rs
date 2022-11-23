@@ -84,7 +84,7 @@ mod tests {
 
     use super::cookie_builder::{self};
     use crate::protocol::clock::time_extent::{self, Extent};
-    use crate::protocol::clock::{StoppedClock, StoppedTime};
+    use crate::protocol::clock::{Stopped, StoppedTime};
     use crate::udp::connection_cookie::{check_connection_cookie, make_connection_cookie, Cookie, COOKIE_LIFETIME};
 
     // #![feature(const_socketaddr)]
@@ -195,7 +195,7 @@ mod tests {
 
         let cookie = make_connection_cookie(&remote_address);
 
-        StoppedClock::local_add(&COOKIE_LIFETIME.increment).unwrap();
+        Stopped::local_add(&COOKIE_LIFETIME.increment).unwrap();
 
         let cookie_next = make_connection_cookie(&remote_address);
 
@@ -217,7 +217,7 @@ mod tests {
 
         let cookie = make_connection_cookie(&remote_address);
 
-        StoppedClock::local_add(&COOKIE_LIFETIME.increment).unwrap();
+        Stopped::local_add(&COOKIE_LIFETIME.increment).unwrap();
 
         check_connection_cookie(&remote_address, &cookie).unwrap();
     }
@@ -228,7 +228,7 @@ mod tests {
 
         let cookie = make_connection_cookie(&remote_address);
 
-        StoppedClock::local_set(&COOKIE_LIFETIME.total().unwrap().unwrap());
+        Stopped::local_set(&COOKIE_LIFETIME.total().unwrap().unwrap());
 
         check_connection_cookie(&remote_address, &cookie).unwrap();
     }
@@ -240,7 +240,7 @@ mod tests {
 
         let cookie = make_connection_cookie(&remote_address);
 
-        StoppedClock::local_set(&COOKIE_LIFETIME.total_next().unwrap().unwrap());
+        Stopped::local_set(&COOKIE_LIFETIME.total_next().unwrap().unwrap());
 
         check_connection_cookie(&remote_address, &cookie).unwrap();
     }

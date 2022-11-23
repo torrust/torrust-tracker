@@ -36,7 +36,7 @@ mod tests {
     use std::time::Duration;
 
     use super::AuthKeyResource;
-    use crate::protocol::clock::{DefaultClock, TimeNow};
+    use crate::protocol::clock::{Current, TimeNow};
     use crate::tracker::key::AuthKey;
 
     #[test]
@@ -52,7 +52,7 @@ mod tests {
             AuthKey::from(auth_key_resource),
             AuthKey {
                 key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".to_string(), // cspell:disable-line
-                valid_until: Some(DefaultClock::add(&Duration::new(duration_in_secs, 0)).unwrap())
+                valid_until: Some(Current::add(&Duration::new(duration_in_secs, 0)).unwrap())
             }
         );
     }
@@ -63,7 +63,7 @@ mod tests {
 
         let auth_key = AuthKey {
             key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".to_string(), // cspell:disable-line
-            valid_until: Some(DefaultClock::add(&Duration::new(duration_in_secs, 0)).unwrap()),
+            valid_until: Some(Current::add(&Duration::new(duration_in_secs, 0)).unwrap()),
         };
 
         assert_eq!(
