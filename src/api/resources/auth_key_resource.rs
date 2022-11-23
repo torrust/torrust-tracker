@@ -54,7 +54,7 @@ mod tests {
                 key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".to_string(), // cspell:disable-line
                 valid_until: Some(DefaultClock::add(&Duration::new(duration_in_secs, 0)).unwrap())
             }
-        )
+        );
     }
 
     #[test]
@@ -72,7 +72,7 @@ mod tests {
                 key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".to_string(), // cspell:disable-line
                 valid_until: Some(duration_in_secs)
             }
-        )
+        );
     }
 
     #[test]
