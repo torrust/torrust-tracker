@@ -82,6 +82,12 @@ impl TorrentEntry {
     }
 }
 
+impl Default for TorrentEntry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Debug)]
 pub struct TorrentStats {
     pub completed: u32,
