@@ -667,8 +667,8 @@ mod tests {
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
                     .into();
-                let response = handle_announce(remote_addr, &request, tracker.clone()).await.unwrap();
-                response
+
+                handle_announce(remote_addr, &request, tracker.clone()).await.unwrap()
             }
 
             #[tokio::test]
@@ -899,8 +899,8 @@ mod tests {
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(into_connection_id(&make_connection_cookie(&remote_addr)))
                     .into();
-                let response = handle_announce(remote_addr, &request, tracker.clone()).await.unwrap();
-                response
+
+                handle_announce(remote_addr, &request, tracker.clone()).await.unwrap()
             }
 
             #[tokio::test]
@@ -1073,7 +1073,7 @@ mod tests {
             let info_hashes = vec![*info_hash];
 
             ScrapeRequest {
-                connection_id: into_connection_id(&make_connection_cookie(&remote_addr)),
+                connection_id: into_connection_id(&make_connection_cookie(remote_addr)),
                 transaction_id: TransactionId(0i32),
                 info_hashes,
             }
