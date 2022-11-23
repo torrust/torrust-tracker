@@ -10,37 +10,44 @@ pub trait Extent: Sized + Default {
 
     fn new(unit: &Self::Base, count: &Self::Multiplier) -> Self;
 
+    /// # Errors
+    ///
+    /// Will return `IntErrorKind` if `add` would overflow the internal `Duration`.
     fn increase(&self, add: Self::Multiplier) -> Result<Self, IntErrorKind>;
+
+    /// # Errors
+    ///
+    /// Will return `IntErrorKind` if `sub` would underflow the internal `Duration`.
     fn decrease(&self, sub: Self::Multiplier) -> Result<Self, IntErrorKind>;
 
     fn total(&self) -> Option<Result<Self::Product, TryFromIntError>>;
     fn total_next(&self) -> Option<Result<Self::Product, TryFromIntError>>;
 }
 
-pub type TimeExtentBase = Duration;
-pub type TimeExtentMultiplier = u64;
-pub type TimeExtentProduct = TimeExtentBase;
+pub type Base = Duration;
+pub type Multiplier = u64;
+pub type Product = Base;
 
 #[derive(Debug, Default, Hash, PartialEq, Eq)]
 pub struct TimeExtent {
-    pub increment: TimeExtentBase,
-    pub amount: TimeExtentMultiplier,
+    pub increment: Base,
+    pub amount: Multiplier,
 }
 
 pub const ZERO: TimeExtent = TimeExtent {
-    increment: TimeExtentBase::ZERO,
-    amount: TimeExtentMultiplier::MIN,
+    increment: Base::ZERO,
+    amount: Multiplier::MIN,
 };
 pub const MAX: TimeExtent = TimeExtent {
-    increment: TimeExtentBase::MAX,
-    amount: TimeExtentMultiplier::MAX,
+    increment: Base::MAX,
+    amount: Multiplier::MAX,
 };
 
 impl TimeExtent {
     #[must_use]
-    pub const fn from_sec(seconds: u64, amount: &TimeExtentMultiplier) -> Self {
+    pub const fn from_sec(seconds: u64, amount: &Multiplier) -> Self {
         Self {
-            increment: TimeExtentBase::from_secs(seconds),
+            increment: Base::from_secs(seconds),
             amount: *amount,
         }
     }
@@ -61,9 +68,9 @@ fn checked_duration_from_nanos(time: u128) -> Result<Duration, TryFromIntError> 
 }
 
 impl Extent for TimeExtent {
-    type Base = TimeExtentBase;
-    type Multiplier = TimeExtentMultiplier;
-    type Product = TimeExtentProduct;
+    type Base = Base;
+    type Multiplier = Multiplier;
+    type Product = Product;
 
     fn new(increment: &Self::Base, amount: &Self::Multiplier) -> Self {
         Self {
@@ -107,60 +114,58 @@ impl Extent for TimeExtent {
     }
 }
 
-pub trait MakeTimeExtent<Clock>: Sized
+pub trait Make<Clock>: Sized
 where
     Clock: TimeNow,
 {
     #[must_use]
-    fn now(increment: &TimeExtentBase) -> Option<Result<TimeExtent, TryFromIntError>> {
+    fn now(increment: &Base) -> Option<Result<TimeExtent, TryFromIntError>> {
         Clock::now()
             .as_nanos()
             .checked_div((*increment).as_nanos())
-            .map(|amount| match TimeExtentMultiplier::try_from(amount) {
+            .map(|amount| match Multiplier::try_from(amount) {
                 Err(error) => Err(error),
                 Ok(amount) => Ok(TimeExtent::new(increment, &amount)),
             })
     }
 
     #[must_use]
-    fn now_after(increment: &TimeExtentBase, add_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
+    fn now_after(increment: &Base, add_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
         match Clock::add(add_time) {
             None => None,
-            Some(time) => {
-                time.as_nanos()
-                    .checked_div(increment.as_nanos())
-                    .map(|amount| match TimeExtentMultiplier::try_from(amount) {
-                        Err(error) => Err(error),
-                        Ok(amount) => Ok(TimeExtent::new(increment, &amount)),
-                    })
-            }
+            Some(time) => time
+                .as_nanos()
+                .checked_div(increment.as_nanos())
+                .map(|amount| match Multiplier::try_from(amount) {
+                    Err(error) => Err(error),
+                    Ok(amount) => Ok(TimeExtent::new(increment, &amount)),
+                }),
         }
     }
 
     #[must_use]
-    fn now_before(increment: &TimeExtentBase, sub_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
+    fn now_before(increment: &Base, sub_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
         match Clock::sub(sub_time) {
             None => None,
-            Some(time) => {
-                time.as_nanos()
-                    .checked_div(increment.as_nanos())
-                    .map(|amount| match TimeExtentMultiplier::try_from(amount) {
-                        Err(error) => Err(error),
-                        Ok(amount) => Ok(TimeExtent::new(increment, &amount)),
-                    })
-            }
+            Some(time) => time
+                .as_nanos()
+                .checked_div(increment.as_nanos())
+                .map(|amount| match Multiplier::try_from(amount) {
+                    Err(error) => Err(error),
+                    Ok(amount) => Ok(TimeExtent::new(increment, &amount)),
+                }),
         }
     }
 }
 
 #[derive(Debug)]
-pub struct TimeExtentMaker<const CLOCK_TYPE: usize> {}
+pub struct Maker<const CLOCK_TYPE: usize> {}
 
-pub type WorkingTimeExtentMaker = TimeExtentMaker<{ Type::WorkingClock as usize }>;
-pub type StoppedTimeExtentMaker = TimeExtentMaker<{ Type::StoppedClock as usize }>;
+pub type WorkingTimeExtentMaker = Maker<{ Type::WorkingClock as usize }>;
+pub type StoppedTimeExtentMaker = Maker<{ Type::StoppedClock as usize }>;
 
-impl MakeTimeExtent<Working> for WorkingTimeExtentMaker {}
-impl MakeTimeExtent<Stopped> for StoppedTimeExtentMaker {}
+impl Make<Working> for WorkingTimeExtentMaker {}
+impl Make<Stopped> for StoppedTimeExtentMaker {}
 
 #[cfg(not(test))]
 pub type DefaultTimeExtentMaker = WorkingTimeExtentMaker;
@@ -172,8 +177,7 @@ pub type DefaultTimeExtentMaker = StoppedTimeExtentMaker;
 mod test {
 
     use crate::protocol::clock::time_extent::{
-        checked_duration_from_nanos, DefaultTimeExtentMaker, Extent, MakeTimeExtent, TimeExtent, TimeExtentBase,
-        TimeExtentMultiplier, TimeExtentProduct, MAX, ZERO,
+        checked_duration_from_nanos, Base, DefaultTimeExtentMaker, Extent, Make, Multiplier, Product, TimeExtent, MAX, ZERO,
     };
     use crate::protocol::clock::{Current, DurationSinceUnixEpoch, StoppedTime};
 
@@ -238,7 +242,7 @@ mod test {
 
             #[test]
             fn it_should_make_empty_for_zero() {
-                assert_eq!(TimeExtent::from_sec(u64::MIN, &TimeExtentMultiplier::MIN), ZERO);
+                assert_eq!(TimeExtent::from_sec(u64::MIN, &Multiplier::MIN), ZERO);
             }
             #[test]
             fn it_should_make_from_seconds() {
@@ -254,15 +258,15 @@ mod test {
 
             #[test]
             fn it_should_make_empty_for_zero() {
-                assert_eq!(TimeExtent::new(&TimeExtentBase::ZERO, &TimeExtentMultiplier::MIN), ZERO);
+                assert_eq!(TimeExtent::new(&Base::ZERO, &Multiplier::MIN), ZERO);
             }
 
             #[test]
             fn it_should_make_new() {
                 assert_eq!(
-                    TimeExtent::new(&TimeExtentBase::from_millis(2), &TIME_EXTENT_VAL.amount),
+                    TimeExtent::new(&Base::from_millis(2), &TIME_EXTENT_VAL.amount),
                     TimeExtent {
-                        increment: TimeExtentBase::from_millis(2),
+                        increment: Base::from_millis(2),
                         amount: TIME_EXTENT_VAL.amount
                     }
                 );
@@ -328,30 +332,27 @@ mod test {
 
             #[test]
             fn it_should_be_zero_for_zero() {
-                assert_eq!(ZERO.total().unwrap().unwrap(), TimeExtentProduct::ZERO);
+                assert_eq!(ZERO.total().unwrap().unwrap(), Product::ZERO);
             }
 
             #[test]
             fn it_should_give_a_total() {
                 assert_eq!(
                     TIME_EXTENT_VAL.total().unwrap().unwrap(),
-                    TimeExtentProduct::from_secs(TIME_EXTENT_VAL.increment.as_secs() * TIME_EXTENT_VAL.amount)
+                    Product::from_secs(TIME_EXTENT_VAL.increment.as_secs() * TIME_EXTENT_VAL.amount)
                 );
 
                 assert_eq!(
-                    TimeExtent::new(&TimeExtentBase::from_millis(2), &(TIME_EXTENT_VAL.amount * 1000))
+                    TimeExtent::new(&Base::from_millis(2), &(TIME_EXTENT_VAL.amount * 1000))
                         .total()
                         .unwrap()
                         .unwrap(),
-                    TimeExtentProduct::from_secs(TIME_EXTENT_VAL.increment.as_secs() * TIME_EXTENT_VAL.amount)
+                    Product::from_secs(TIME_EXTENT_VAL.increment.as_secs() * TIME_EXTENT_VAL.amount)
                 );
 
                 assert_eq!(
-                    TimeExtent::new(&TimeExtentBase::from_secs(1), &(u64::MAX))
-                        .total()
-                        .unwrap()
-                        .unwrap(),
-                    TimeExtentProduct::from_secs(u64::MAX)
+                    TimeExtent::new(&Base::from_secs(1), &(u64::MAX)).total().unwrap().unwrap(),
+                    Product::from_secs(u64::MAX)
                 );
             }
 
@@ -378,33 +379,33 @@ mod test {
 
             #[test]
             fn it_should_be_zero_for_zero() {
-                assert_eq!(ZERO.total_next().unwrap().unwrap(), TimeExtentProduct::ZERO);
+                assert_eq!(ZERO.total_next().unwrap().unwrap(), Product::ZERO);
             }
 
             #[test]
             fn it_should_give_a_total() {
                 assert_eq!(
                     TIME_EXTENT_VAL.total_next().unwrap().unwrap(),
-                    TimeExtentProduct::from_secs(TIME_EXTENT_VAL.increment.as_secs() * (TIME_EXTENT_VAL.amount + 1))
+                    Product::from_secs(TIME_EXTENT_VAL.increment.as_secs() * (TIME_EXTENT_VAL.amount + 1))
                 );
 
                 assert_eq!(
-                    TimeExtent::new(&TimeExtentBase::from_millis(2), &(TIME_EXTENT_VAL.amount * 1000))
+                    TimeExtent::new(&Base::from_millis(2), &(TIME_EXTENT_VAL.amount * 1000))
                         .total_next()
                         .unwrap()
                         .unwrap(),
-                    TimeExtentProduct::new(
+                    Product::new(
                         TIME_EXTENT_VAL.increment.as_secs() * (TIME_EXTENT_VAL.amount),
-                        TimeExtentBase::from_millis(2).as_nanos().try_into().unwrap()
+                        Base::from_millis(2).as_nanos().try_into().unwrap()
                     )
                 );
 
                 assert_eq!(
-                    TimeExtent::new(&TimeExtentBase::from_secs(1), &(u64::MAX - 1))
+                    TimeExtent::new(&Base::from_secs(1), &(u64::MAX - 1))
                         .total_next()
                         .unwrap()
                         .unwrap(),
-                    TimeExtentProduct::from_secs(u64::MAX)
+                    Product::from_secs(u64::MAX)
                 );
             }
 
@@ -453,16 +454,14 @@ mod test {
 
             #[test]
             fn it_should_fail_for_zero() {
-                assert_eq!(DefaultTimeExtentMaker::now(&TimeExtentBase::ZERO), None);
+                assert_eq!(DefaultTimeExtentMaker::now(&Base::ZERO), None);
             }
 
             #[test]
             fn it_should_fail_if_amount_exceeds_bounds() {
                 Current::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(
-                    DefaultTimeExtentMaker::now(&TimeExtentBase::from_millis(1))
-                        .unwrap()
-                        .unwrap_err(),
+                    DefaultTimeExtentMaker::now(&Base::from_millis(1)).unwrap().unwrap_err(),
                     u64::try_from(u128::MAX).unwrap_err()
                 );
             }
@@ -488,20 +487,17 @@ mod test {
 
             #[test]
             fn it_should_fail_for_zero() {
-                assert_eq!(
-                    DefaultTimeExtentMaker::now_after(&TimeExtentBase::ZERO, &Duration::ZERO),
-                    None
-                );
+                assert_eq!(DefaultTimeExtentMaker::now_after(&Base::ZERO, &Duration::ZERO), None);
 
                 Current::local_set(&DurationSinceUnixEpoch::MAX);
-                assert_eq!(DefaultTimeExtentMaker::now_after(&TimeExtentBase::ZERO, &Duration::MAX), None);
+                assert_eq!(DefaultTimeExtentMaker::now_after(&Base::ZERO, &Duration::MAX), None);
             }
 
             #[test]
             fn it_should_fail_if_amount_exceeds_bounds() {
                 Current::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(
-                    DefaultTimeExtentMaker::now_after(&TimeExtentBase::from_millis(1), &Duration::ZERO)
+                    DefaultTimeExtentMaker::now_after(&Base::from_millis(1), &Duration::ZERO)
                         .unwrap()
                         .unwrap_err(),
                     u64::try_from(u128::MAX).unwrap_err()
@@ -519,13 +515,13 @@ mod test {
 
                 assert_eq!(
                     DefaultTimeExtentMaker::now_before(
-                        &TimeExtentBase::from_secs(u64::from(u32::MAX)),
+                        &Base::from_secs(u64::from(u32::MAX)),
                         &Duration::from_secs(u64::from(u32::MAX))
                     )
                     .unwrap()
                     .unwrap(),
                     TimeExtent {
-                        increment: TimeExtentBase::from_secs(u64::from(u32::MAX)),
+                        increment: Base::from_secs(u64::from(u32::MAX)),
                         amount: 4_294_967_296
                     }
                 );
@@ -533,22 +529,16 @@ mod test {
 
             #[test]
             fn it_should_fail_for_zero() {
-                assert_eq!(
-                    DefaultTimeExtentMaker::now_before(&TimeExtentBase::ZERO, &Duration::ZERO),
-                    None
-                );
+                assert_eq!(DefaultTimeExtentMaker::now_before(&Base::ZERO, &Duration::ZERO), None);
 
-                assert_eq!(
-                    DefaultTimeExtentMaker::now_before(&TimeExtentBase::ZERO, &Duration::MAX),
-                    None
-                );
+                assert_eq!(DefaultTimeExtentMaker::now_before(&Base::ZERO, &Duration::MAX), None);
             }
 
             #[test]
             fn it_should_fail_if_amount_exceeds_bounds() {
                 Current::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(
-                    DefaultTimeExtentMaker::now_before(&TimeExtentBase::from_millis(1), &Duration::ZERO)
+                    DefaultTimeExtentMaker::now_before(&Base::from_millis(1), &Duration::ZERO)
                         .unwrap()
                         .unwrap_err(),
                     u64::try_from(u128::MAX).unwrap_err()

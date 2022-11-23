@@ -54,7 +54,7 @@ mod cookie_builder {
     use std::net::SocketAddr;
 
     use super::{Cookie, SinceUnixEpochTimeExtent, COOKIE_LIFETIME};
-    use crate::protocol::clock::time_extent::{DefaultTimeExtentMaker, Extent, MakeTimeExtent, TimeExtent};
+    use crate::protocol::clock::time_extent::{DefaultTimeExtentMaker, Extent, Make, TimeExtent};
     use crate::protocol::crypto::keys::seeds::{DefaultSeed, SeedKeeper};
 
     pub(super) fn get_last_time_extent() -> SinceUnixEpochTimeExtent {
