@@ -4,12 +4,12 @@ use std::sync::Arc;
 use log::{info, warn};
 use tokio::task::JoinHandle;
 
-use crate::config::HttpTrackerConfig;
+use crate::config::HttpTracker;
 use crate::http::server::HttpServer;
 use crate::tracker::TorrentTracker;
 
 #[must_use]
-pub fn start_job(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
+pub fn start_job(config: &HttpTracker, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
     let bind_addr = config.bind_address.parse::<SocketAddr>().unwrap();
     let ssl_enabled = config.ssl_enabled;
     let ssl_cert_path = config.ssl_cert_path.clone();

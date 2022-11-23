@@ -13,14 +13,14 @@ use crate::databases::database::DatabaseDrivers;
 use crate::tracker::mode::TrackerMode;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-pub struct UdpTrackerConfig {
+pub struct UdpTracker {
     pub enabled: bool,
     pub bind_address: String,
 }
 
 #[serde_as]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-pub struct HttpTrackerConfig {
+pub struct HttpTracker {
     pub enabled: bool,
     pub bind_address: String,
     pub ssl_enabled: bool,
@@ -31,7 +31,7 @@ pub struct HttpTrackerConfig {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-pub struct HttpApiConfig {
+pub struct HttpApi {
     pub enabled: bool,
     pub bind_address: String,
     pub access_tokens: HashMap<String, String>,
@@ -53,13 +53,15 @@ pub struct Configuration {
     pub persistent_torrent_completed_stat: bool,
     pub inactive_peer_cleanup_interval: u64,
     pub remove_peerless_torrents: bool,
-    pub udp_trackers: Vec<UdpTrackerConfig>,
-    pub http_trackers: Vec<HttpTrackerConfig>,
-    pub http_api: HttpApiConfig,
+    pub udp_trackers: Vec<UdpTracker>,
+    pub http_trackers: Vec<HttpTracker>,
+    pub http_api: HttpApi,
 }
 
 #[derive(Debug)]
 pub enum ConfigurationError {
+    Message(String),
+    ConfigError(ConfigError),
     IOError(std::io::Error),
     ParseError(toml::de::Error),
     TrackerModeIncompatible,
@@ -68,9 +70,11 @@ pub enum ConfigurationError {
 impl std::fmt::Display for ConfigurationError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
+            ConfigurationError::Message(e) => e.fmt(f),
+            ConfigurationError::ConfigError(e) => e.fmt(f),
             ConfigurationError::IOError(e) => e.fmt(f),
             ConfigurationError::ParseError(e) => e.fmt(f),
-            _ => write!(f, "{:?}", self),
+            ConfigurationError::TrackerModeIncompatible => write!(f, "{:?}", self),
         }
     }
 }
@@ -107,7 +111,7 @@ impl Configuration {
             remove_peerless_torrents: true,
             udp_trackers: Vec::new(),
             http_trackers: Vec::new(),
-            http_api: HttpApiConfig {
+            http_api: HttpApi {
                 enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))]
@@ -116,11 +120,11 @@ impl Configuration {
                     .collect(),
             },
         };
-        configuration.udp_trackers.push(UdpTrackerConfig {
+        configuration.udp_trackers.push(UdpTracker {
             enabled: false,
             bind_address: String::from("0.0.0.0:6969"),
         });
-        configuration.http_trackers.push(HttpTrackerConfig {
+        configuration.http_trackers.push(HttpTracker {
             enabled: false,
             bind_address: String::from("0.0.0.0:6969"),
             ssl_enabled: false,
@@ -130,31 +134,39 @@ impl Configuration {
         configuration
     }
 
-    pub fn load_from_file(path: &str) -> Result<Configuration, ConfigError> {
+    /// # Errors
+    ///
+    /// Will return `Err` if `path` does not exist or has a bad configuration.
+    pub fn load_from_file(path: &str) -> Result<Configuration, ConfigurationError> {
         let config_builder = Config::builder();
 
         #[allow(unused_assignments)]
         let mut config = Config::default();
 
         if Path::new(path).exists() {
-            config = config_builder.add_source(File::with_name(path)).build()?;
+            config = config_builder
+                .add_source(File::with_name(path))
+                .build()
+                .map_err(ConfigurationError::ConfigError)?;
         } else {
             eprintln!("No config file found.");
             eprintln!("Creating config file..");
             let config = Configuration::default();
-            let _ = config.save_to_file(path);
-            return Err(ConfigError::Message(
+            config.save_to_file(path)?;
+            return Err(ConfigurationError::Message(
                 "Please edit the config.TOML in the root folder and restart the tracker.".to_string(),
             ));
         }
 
-        let torrust_config: Configuration = config
-            .try_deserialize()
-            .map_err(|e| ConfigError::Message(format!("Errors while processing config: {}.", e)))?;
+        let torrust_config: Configuration = config.try_deserialize().map_err(ConfigurationError::ConfigError)?;
 
         Ok(torrust_config)
     }
 
+    /// # Errors
+    ///
+    /// Will return `Err` if `filename` does not exist or the user does not have
+    /// permission to read it.
     pub fn save_to_file(&self, path: &str) -> Result<(), ConfigurationError> {
         let toml_string = toml::to_string(self).expect("Could not encode TOML value");
         fs::write(path, toml_string).expect("Could not write to file!");
