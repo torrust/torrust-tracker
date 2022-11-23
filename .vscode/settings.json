@@ -3,4 +3,6 @@
         "editor.formatOnSave": true
     },
     "rust-analyzer.checkOnSave.command": "clippy",
+    "rust-analyzer.checkOnSave.allTargets": true,
+    "rust-analyzer.checkOnSave.extraArgs": ["--","-D","clippy::all", "-W", "clippy::pedantic"],
 }
