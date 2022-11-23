@@ -37,6 +37,7 @@ pub struct HttpApiConfig {
     pub access_tokens: HashMap<String, String>,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
     pub log_level: Option<String>,
