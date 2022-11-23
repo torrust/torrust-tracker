@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::key::AuthKey;
 use crate::protocol::clock::DurationSinceUnixEpoch;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct AuthKeyResource {
     pub key: String,
     pub valid_until: Option<u64>,
