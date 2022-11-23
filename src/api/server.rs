@@ -59,7 +59,8 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
         .untuple_one()
 }
 
-pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp::Future<Output = ()> {
+#[allow(clippy::too_many_lines)]
+pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl warp::Future<Output = ()> {
     // GET /api/torrents?offset=:u32&limit=:u32
     // View torrent list
     let api_torrents = tracker.clone();
@@ -124,31 +125,31 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
 
             let db = tracker.get_torrents().await;
 
-            let _: Vec<_> = db
-                .iter()
-                .map(|(_info_hash, torrent_entry)| {
-                    let (seeders, completed, leechers) = torrent_entry.get_stats();
-                    results.seeders += seeders;
-                    results.completed += completed;
-                    results.leechers += leechers;
-                    results.torrents += 1;
-                })
-                .collect();
+            db.values().for_each(|torrent_entry| {
+                let (seeders, completed, leechers) = torrent_entry.get_stats();
+                results.seeders += seeders;
+                results.completed += completed;
+                results.leechers += leechers;
+                results.torrents += 1;
+            });
 
             let stats = tracker.get_stats().await;
 
-            results.tcp4_connections_handled = stats.tcp4_connections_handled as u32;
-            results.tcp4_announces_handled = stats.tcp4_announces_handled as u32;
-            results.tcp4_scrapes_handled = stats.tcp4_scrapes_handled as u32;
-            results.tcp6_connections_handled = stats.tcp6_connections_handled as u32;
-            results.tcp6_announces_handled = stats.tcp6_announces_handled as u32;
-            results.tcp6_scrapes_handled = stats.tcp6_scrapes_handled as u32;
-            results.udp4_connections_handled = stats.udp4_connections_handled as u32;
-            results.udp4_announces_handled = stats.udp4_announces_handled as u32;
-            results.udp4_scrapes_handled = stats.udp4_scrapes_handled as u32;
-            results.udp6_connections_handled = stats.udp6_connections_handled as u32;
-            results.udp6_announces_handled = stats.udp6_announces_handled as u32;
-            results.udp6_scrapes_handled = stats.udp6_scrapes_handled as u32;
+            #[allow(clippy::cast_possible_truncation)]
+            {
+                results.tcp4_connections_handled = stats.tcp4_connections_handled as u32;
+                results.tcp4_announces_handled = stats.tcp4_announces_handled as u32;
+                results.tcp4_scrapes_handled = stats.tcp4_scrapes_handled as u32;
+                results.tcp6_connections_handled = stats.tcp6_connections_handled as u32;
+                results.tcp6_announces_handled = stats.tcp6_announces_handled as u32;
+                results.tcp6_scrapes_handled = stats.tcp6_scrapes_handled as u32;
+                results.udp4_connections_handled = stats.udp4_connections_handled as u32;
+                results.udp4_announces_handled = stats.udp4_announces_handled as u32;
+                results.udp4_scrapes_handled = stats.udp4_scrapes_handled as u32;
+                results.udp6_connections_handled = stats.udp6_connections_handled as u32;
+                results.udp6_announces_handled = stats.udp6_announces_handled as u32;
+                results.udp6_scrapes_handled = stats.udp6_scrapes_handled as u32;
+            }
 
             Result::<_, warp::reject::Rejection>::Ok(reply::json(&results))
         });
@@ -168,11 +169,12 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
             let db = tracker.get_torrents().await;
             let torrent_entry_option = db.get(&info_hash);
 
-            if torrent_entry_option.is_none() {
-                return Result::<_, warp::reject::Rejection>::Ok(reply::json(&"torrent not known"));
-            }
-
-            let torrent_entry = torrent_entry_option.unwrap();
+            let torrent_entry = match torrent_entry_option {
+                Some(torrent_entry) => torrent_entry,
+                None => {
+                    return Result::<_, warp::reject::Rejection>::Ok(reply::json(&"torrent not known"));
+                }
+            };
             let (seeders, completed, leechers) = torrent_entry.get_stats();
 
             let peers = torrent_entry.get_peers(None);
