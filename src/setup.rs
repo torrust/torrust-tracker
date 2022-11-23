@@ -54,7 +54,7 @@ pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<
 
     // Remove torrents without peers, every interval
     if config.inactive_peer_cleanup_interval > 0 {
-        jobs.push(torrent_cleanup::start_job(config, tracker.clone()));
+        jobs.push(torrent_cleanup::start_job(config, &tracker));
     }
 
     jobs
