@@ -212,9 +212,8 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
                 serde::de::Unexpected::Str(v),
                 &"expected a hexadecimal string",
             ));
-        } else {
-            Ok(res)
-        }
+        };
+        Ok(res)
     }
 }
 
@@ -249,8 +248,7 @@ impl PeerId {
         }
         if self.0[0] == b'-' {
             let name = match &self.0[1..3] {
-                b"AG" => "Ares",
-                b"A~" => "Ares",
+                b"AG" | b"A~" => "Ares",
                 b"AR" => "Arctic",
                 b"AV" => "Avicora",
                 b"AX" => "BitPump",
@@ -332,6 +330,11 @@ impl Serialize for PeerId {
             id: Option<String>,
             client: Option<&'a str>,
         }
+
+        let buff_size = self.0.len() * 2;
+        let mut tmp: Vec<u8> = vec![0; buff_size];
+        binascii::bin2hex(&self.0, &mut tmp).unwrap();
+        let id = std::str::from_utf8(&tmp).ok();
 
         let obj = PeerIdInfo {
             id: self.get_id(),
