@@ -13,26 +13,25 @@ use super::{request, WebResult};
 use crate::http::response::Error;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::Auth;
-use crate::tracker::torrent::{TorrentError, TorrentStats};
-use crate::tracker::{peer, statistics, TorrentTracker};
+use crate::tracker::{peer, statistics, torrent, TorrentTracker};
 
 /// Authenticate `InfoHash` using optional `AuthKey`
 ///
 /// # Errors
 ///
-/// Will return `ServerError` that wraps the `TorrentError` if unable to `authenticate_request`.
+/// Will return `ServerError` that wraps the `Error` if unable to `authenticate_request`.
 pub async fn authenticate(
     info_hash: &InfoHash,
     auth_key: &Option<Auth>,
     tracker: Arc<TorrentTracker>,
 ) -> Result<(), ServerError> {
     tracker.authenticate_request(info_hash, auth_key).await.map_err(|e| match e {
-        TorrentError::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
-        TorrentError::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
-        TorrentError::PeerKeyNotValid => ServerError::PeerKeyNotValid,
-        TorrentError::NoPeersFound => ServerError::NoPeersFound,
-        TorrentError::CouldNotSendResponse => ServerError::InternalServerError,
-        TorrentError::InvalidInfoHash => ServerError::InvalidInfoHash,
+        torrent::Error::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
+        torrent::Error::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
+        torrent::Error::PeerKeyNotValid => ServerError::PeerKeyNotValid,
+        torrent::Error::NoPeersFound => ServerError::NoPeersFound,
+        torrent::Error::CouldNotSendResponse => ServerError::InternalServerError,
+        torrent::Error::InvalidInfoHash => ServerError::InvalidInfoHash,
     })
 }
 
@@ -140,7 +139,7 @@ pub async fn handle_scrape(
 #[allow(clippy::ptr_arg)]
 fn send_announce_response(
     announce_request: &request::Announce,
-    torrent_stats: &TorrentStats,
+    torrent_stats: &torrent::Stats,
     peers: &Vec<peer::TorrentPeer>,
     interval: u32,
     interval_min: u32,

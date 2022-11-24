@@ -18,14 +18,13 @@ use crate::databases::database;
 use crate::databases::database::Database;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::Auth;
-use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
 
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     mode: mode::Tracker,
     keys: RwLock<std::collections::HashMap<String, Auth>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
-    torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
+    torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
     database: Box<dyn Database>,
@@ -142,7 +141,7 @@ impl TorrentTracker {
         Ok(())
     }
 
-    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<Auth>) -> Result<(), TorrentError> {
+    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<Auth>) -> Result<(), torrent::Error> {
         // no authentication needed in public mode
         if self.is_public() {
             return Ok(());
@@ -153,18 +152,18 @@ impl TorrentTracker {
             match key {
                 Some(key) => {
                     if self.verify_auth_key(key).await.is_err() {
-                        return Err(TorrentError::PeerKeyNotValid);
+                        return Err(torrent::Error::PeerKeyNotValid);
                     }
                 }
                 None => {
-                    return Err(TorrentError::PeerNotAuthenticated);
+                    return Err(torrent::Error::PeerNotAuthenticated);
                 }
             }
         }
 
         // check if info_hash is whitelisted
         if self.is_whitelisted() && !self.is_info_hash_whitelisted(info_hash).await {
-            return Err(TorrentError::TorrentNotWhitelisted);
+            return Err(torrent::Error::TorrentNotWhitelisted);
         }
 
         Ok(())
@@ -181,7 +180,7 @@ impl TorrentTracker {
                 continue;
             }
 
-            let torrent_entry = TorrentEntry {
+            let torrent_entry = torrent::Entry {
                 peers: Default::default(),
                 completed,
             };
@@ -212,11 +211,11 @@ impl TorrentTracker {
         }
     }
 
-    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::TorrentPeer) -> TorrentStats {
+    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::TorrentPeer) -> torrent::Stats {
         let mut torrents = self.torrents.write().await;
 
         let torrent_entry = match torrents.entry(*info_hash) {
-            Entry::Vacant(vacant) => vacant.insert(TorrentEntry::new()),
+            Entry::Vacant(vacant) => vacant.insert(torrent::Entry::new()),
             Entry::Occupied(entry) => entry.into_mut(),
         };
 
@@ -232,14 +231,14 @@ impl TorrentTracker {
 
         let (seeders, completed, leechers) = torrent_entry.get_stats();
 
-        TorrentStats {
+        torrent::Stats {
             completed,
             seeders,
             leechers,
         }
     }
 
-    pub async fn get_torrents(&self) -> RwLockReadGuard<'_, BTreeMap<InfoHash, TorrentEntry>> {
+    pub async fn get_torrents(&self) -> RwLockReadGuard<'_, BTreeMap<InfoHash, torrent::Entry>> {
         self.torrents.read().await
     }
 

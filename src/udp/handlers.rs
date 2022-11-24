@@ -8,8 +8,7 @@ use aquatic_udp_protocol::{
 
 use super::connection_cookie::{check_connection_cookie, from_connection_id, into_connection_id, make_connection_cookie};
 use crate::protocol::common::{InfoHash, MAX_SCRAPE_TORRENTS};
-use crate::tracker::torrent::TorrentError;
-use crate::tracker::{peer, statistics, TorrentTracker};
+use crate::tracker::{peer, statistics, torrent, TorrentTracker};
 use crate::udp::errors::ServerError;
 use crate::udp::request::AnnounceRequestWrapper;
 
@@ -18,12 +17,12 @@ pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<TorrentTracker>) ->
         Ok(_) => Ok(()),
         Err(e) => {
             let err = match e {
-                TorrentError::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
-                TorrentError::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
-                TorrentError::PeerKeyNotValid => ServerError::PeerKeyNotValid,
-                TorrentError::NoPeersFound => ServerError::NoPeersFound,
-                TorrentError::CouldNotSendResponse => ServerError::InternalServerError,
-                TorrentError::InvalidInfoHash => ServerError::InvalidInfoHash,
+                torrent::Error::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
+                torrent::Error::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
+                torrent::Error::PeerKeyNotValid => ServerError::PeerKeyNotValid,
+                torrent::Error::NoPeersFound => ServerError::NoPeersFound,
+                torrent::Error::CouldNotSendResponse => ServerError::InternalServerError,
+                torrent::Error::InvalidInfoHash => ServerError::InvalidInfoHash,
             };
 
             Err(err)
