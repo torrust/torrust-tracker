@@ -13,7 +13,6 @@ use std::time::Duration;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
-use self::mode::TrackerMode;
 use self::peer::TorrentPeer;
 use self::statistics::{StatsRepository, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender};
 use crate::config::Configuration;
@@ -25,7 +24,7 @@ use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
 
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
-    mode: TrackerMode,
+    mode: mode::Tracker,
     keys: RwLock<std::collections::HashMap<String, Auth>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
@@ -55,15 +54,15 @@ impl TorrentTracker {
     }
 
     pub fn is_public(&self) -> bool {
-        self.mode == TrackerMode::Public
+        self.mode == mode::Tracker::Public
     }
 
     pub fn is_private(&self) -> bool {
-        self.mode == TrackerMode::Private || self.mode == TrackerMode::PrivateListed
+        self.mode == mode::Tracker::Private || self.mode == mode::Tracker::PrivateListed
     }
 
     pub fn is_whitelisted(&self) -> bool {
-        self.mode == TrackerMode::Listed || self.mode == TrackerMode::PrivateListed
+        self.mode == mode::Tracker::Listed || self.mode == mode::Tracker::PrivateListed
     }
 
     pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<Auth, database::Error> {

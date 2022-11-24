@@ -10,7 +10,7 @@ use serde_with::{serde_as, NoneAsEmptyString};
 use {std, toml};
 
 use crate::databases::database::Drivers;
-use crate::tracker::mode::TrackerMode;
+use crate::tracker::mode;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct UdpTracker {
@@ -41,7 +41,7 @@ pub struct HttpApi {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
     pub log_level: Option<String>,
-    pub mode: TrackerMode,
+    pub mode: mode::Tracker,
     pub db_driver: Drivers,
     pub db_path: String,
     pub announce_interval: u32,
@@ -97,7 +97,7 @@ impl Configuration {
     pub fn default() -> Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
-            mode: TrackerMode::Public,
+            mode: mode::Tracker::Public,
             db_driver: Drivers::Sqlite3,
             db_path: String::from("data.db"),
             announce_interval: 120,

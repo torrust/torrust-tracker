@@ -255,27 +255,30 @@ mod tests {
     use crate::config::Configuration;
     use crate::protocol::clock::{Current, Time};
     use crate::protocol::common::PeerId;
-    use crate::tracker::mode::TrackerMode;
     use crate::tracker::peer::TorrentPeer;
     use crate::tracker::statistics::StatsTracker;
-    use crate::tracker::TorrentTracker;
+    use crate::tracker::{mode, TorrentTracker};
 
     fn default_tracker_config() -> Arc<Configuration> {
         Arc::new(Configuration::default())
     }
 
     fn initialized_public_tracker() -> Arc<TorrentTracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Public).into());
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Tracker::Public).into());
         initialized_tracker(configuration)
     }
 
     fn initialized_private_tracker() -> Arc<TorrentTracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Private).into());
+        let configuration = Arc::new(
+            TrackerConfigurationBuilder::default()
+                .with_mode(mode::Tracker::Private)
+                .into(),
+        );
         initialized_tracker(configuration)
     }
 
     fn initialized_whitelisted_tracker() -> Arc<TorrentTracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Listed).into());
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Tracker::Listed).into());
         initialized_tracker(configuration)
     }
 
@@ -355,7 +358,7 @@ mod tests {
             self
         }
 
-        pub fn with_mode(mut self, mode: TrackerMode) -> Self {
+        pub fn with_mode(mut self, mode: mode::Tracker) -> Self {
             self.configuration.mode = mode;
             self
         }
