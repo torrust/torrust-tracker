@@ -35,7 +35,7 @@ pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<
                 udp_tracker_config.bind_address, config.mode
             );
         } else {
-            jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone()))
+            jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone()));
         }
     }
 
