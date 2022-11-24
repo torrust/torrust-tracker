@@ -21,9 +21,8 @@ mod udp_tracker_server {
     use torrust_tracker::config::Configuration;
     use torrust_tracker::jobs::udp_tracker;
     use torrust_tracker::tracker::statistics::Keeper;
-    use torrust_tracker::tracker::TorrentTracker;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
-    use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
     use crate::common::ephemeral_random_port;
 
@@ -61,7 +60,7 @@ mod udp_tracker_server {
                 let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
                 // Initialize Torrust tracker
-                let tracker = match TorrentTracker::new(configuration.clone(), Some(stats_event_sender), stats_repository) {
+                let tracker = match tracker::Tracker::new(&configuration.clone(), Some(stats_event_sender), stats_repository) {
                     Ok(tracker) => Arc::new(tracker),
                     Err(error) => {
                         panic!("{}", error)

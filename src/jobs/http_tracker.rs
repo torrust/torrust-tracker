@@ -6,13 +6,13 @@ use tokio::task::JoinHandle;
 
 use crate::config::HttpTracker;
 use crate::http::server::Http;
-use crate::tracker::TorrentTracker;
+use crate::tracker;
 
 /// # Panics
 ///
 /// It would panic if the `config::HttpTracker` struct would contain an inappropriate values.
 #[must_use]
-pub fn start_job(config: &HttpTracker, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
+pub fn start_job(config: &HttpTracker, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
     let bind_addr = config.bind_address.parse::<SocketAddr>().unwrap();
     let ssl_enabled = config.ssl_enabled;
     let ssl_cert_path = config.ssl_cert_path.clone();

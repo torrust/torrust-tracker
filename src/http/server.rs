@@ -2,17 +2,17 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use super::routes;
-use crate::tracker::TorrentTracker;
+use crate::tracker;
 
-/// Server that listens on HTTP, needs a `TorrentTracker`
+/// Server that listens on HTTP, needs a `tracker::TorrentTracker`
 #[derive(Clone)]
 pub struct Http {
-    tracker: Arc<TorrentTracker>,
+    tracker: Arc<tracker::Tracker>,
 }
 
 impl Http {
     #[must_use]
-    pub fn new(tracker: Arc<TorrentTracker>) -> Http {
+    pub fn new(tracker: Arc<tracker::Tracker>) -> Http {
         Http { tracker }
     }
 

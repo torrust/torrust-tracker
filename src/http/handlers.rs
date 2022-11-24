@@ -13,7 +13,7 @@ use super::{request, WebResult};
 use crate::http::response::Error;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::Auth;
-use crate::tracker::{peer, statistics, torrent, TorrentTracker};
+use crate::tracker::{self, peer, statistics, torrent};
 
 /// Authenticate `InfoHash` using optional `AuthKey`
 ///
@@ -23,7 +23,7 @@ use crate::tracker::{peer, statistics, torrent, TorrentTracker};
 pub async fn authenticate(
     info_hash: &InfoHash,
     auth_key: &Option<Auth>,
-    tracker: Arc<TorrentTracker>,
+    tracker: Arc<tracker::Tracker>,
 ) -> Result<(), ServerError> {
     tracker.authenticate_request(info_hash, auth_key).await.map_err(|e| match e {
         torrent::Error::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
@@ -43,7 +43,7 @@ pub async fn authenticate(
 pub async fn handle_announce(
     announce_request: request::Announce,
     auth_key: Option<Auth>,
-    tracker: Arc<TorrentTracker>,
+    tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
     authenticate(&announce_request.info_hash, &auth_key, tracker.clone())
         .await
@@ -89,7 +89,7 @@ pub async fn handle_announce(
 pub async fn handle_scrape(
     scrape_request: request::Scrape,
     auth_key: Option<Auth>,
-    tracker: Arc<TorrentTracker>,
+    tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
     let mut files: HashMap<InfoHash, ScrapeResponseEntry> = HashMap::new();
     let db = tracker.get_torrents().await;

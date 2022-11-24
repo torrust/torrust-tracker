@@ -5,9 +5,9 @@ use tokio::task::JoinHandle;
 
 use crate::config::Configuration;
 use crate::jobs::{http_tracker, torrent_cleanup, tracker_api, udp_tracker};
-use crate::tracker::TorrentTracker;
+use crate::tracker;
 
-pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<JoinHandle<()>> {
+pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Vec<JoinHandle<()>> {
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
     // Load peer keys

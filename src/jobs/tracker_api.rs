@@ -6,12 +6,12 @@ use tokio::task::JoinHandle;
 
 use crate::api::server;
 use crate::config::Configuration;
-use crate::tracker::TorrentTracker;
+use crate::tracker;
 
 #[derive(Debug)]
 pub struct ApiServerJobStarted();
 
-pub async fn start_job(config: &Configuration, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
+pub async fn start_job(config: &Configuration, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
     let bind_addr = config
         .http_api
         .bind_address

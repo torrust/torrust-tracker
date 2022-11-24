@@ -6,17 +6,17 @@ use aquatic_udp_protocol::Response;
 use log::{debug, info};
 use tokio::net::UdpSocket;
 
-use crate::tracker::TorrentTracker;
+use crate::tracker;
 use crate::udp::handlers::handle_packet;
 use crate::udp::MAX_PACKET_SIZE;
 
 pub struct UdpServer {
     socket: Arc<UdpSocket>,
-    tracker: Arc<TorrentTracker>,
+    tracker: Arc<tracker::Tracker>,
 }
 
 impl UdpServer {
-    pub async fn new(tracker: Arc<TorrentTracker>, bind_address: &str) -> tokio::io::Result<UdpServer> {
+    pub async fn new(tracker: Arc<tracker::Tracker>, bind_address: &str) -> tokio::io::Result<UdpServer> {
         let socket = UdpSocket::bind(bind_address).await?;
 
         Ok(UdpServer {

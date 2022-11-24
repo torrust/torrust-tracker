@@ -26,8 +26,7 @@ mod tracker_api {
     use torrust_tracker::tracker::key::Auth;
     use torrust_tracker::tracker::peer::TorrentPeer;
     use torrust_tracker::tracker::statistics::Keeper;
-    use torrust_tracker::tracker::TorrentTracker;
-    use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
     use crate::common::ephemeral_random_port;
 
@@ -237,7 +236,7 @@ mod tracker_api {
     struct ApiServer {
         pub started: AtomicBool,
         pub job: Option<JoinHandle<()>>,
-        pub tracker: Option<Arc<TorrentTracker>>,
+        pub tracker: Option<Arc<tracker::Tracker>>,
         pub connection_info: Option<ApiConnectionInfo>,
     }
 
@@ -279,7 +278,7 @@ mod tracker_api {
                 let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
                 // Initialize Torrust tracker
-                let tracker = match TorrentTracker::new(configuration.clone(), Some(stats_event_sender), stats_repository) {
+                let tracker = match tracker::Tracker::new(&configuration.clone(), Some(stats_event_sender), stats_repository) {
                     Ok(tracker) => Arc::new(tracker),
                     Err(error) => {
                         panic!("{}", error)

@@ -9,12 +9,14 @@ use super::errors::ServerError;
 use super::request::{Announce, AnnounceRequestQuery, Scrape};
 use super::WebResult;
 use crate::protocol::common::{InfoHash, PeerId, MAX_SCRAPE_TORRENTS};
+use crate::tracker;
 use crate::tracker::key::Auth;
-use crate::tracker::TorrentTracker;
 
-/// Pass Arc<TorrentTracker> along
+/// Pass Arc<tracker::TorrentTracker> along
 #[must_use]
-pub fn with_tracker(tracker: Arc<TorrentTracker>) -> impl Filter<Extract = (Arc<TorrentTracker>,), Error = Infallible> + Clone {
+pub fn with_tracker(
+    tracker: Arc<tracker::Tracker>,
+) -> impl Filter<Extract = (Arc<tracker::Tracker>,), Error = Infallible> + Clone {
     warp::any().map(move || tracker.clone())
 }
 
@@ -30,7 +32,7 @@ pub fn with_peer_id() -> impl Filter<Extract = (PeerId,), Error = Rejection> + C
     warp::filters::query::raw().and_then(|q| async move { peer_id(&q) })
 }
 
-/// Pass Arc<TorrentTracker> along
+/// Pass Arc<tracker::TorrentTracker> along
 #[must_use]
 pub fn with_auth_key() -> impl Filter<Extract = (Option<Auth>,), Error = Infallible> + Clone {
     warp::path::param::<String>()

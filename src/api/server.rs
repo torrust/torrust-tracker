@@ -11,7 +11,7 @@ use super::resources::auth_key_resource::AuthKeyResource;
 use super::resources::stats_resource::StatsResource;
 use super::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
 use crate::protocol::common::InfoHash;
-use crate::tracker::TorrentTracker;
+use crate::tracker;
 
 #[derive(Deserialize, Debug)]
 struct TorrentInfoQuery {
@@ -60,7 +60,7 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
 }
 
 #[allow(clippy::too_many_lines)]
-pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl warp::Future<Output = ()> {
+pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl warp::Future<Output = ()> {
     // GET /api/torrents?offset=:u32&limit=:u32
     // View torrent list
     let api_torrents = tracker.clone();
@@ -72,7 +72,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl war
             let tracker = api_torrents.clone();
             (limits, tracker)
         })
-        .and_then(|(limits, tracker): (TorrentInfoQuery, Arc<TorrentTracker>)| async move {
+        .and_then(|(limits, tracker): (TorrentInfoQuery, Arc<tracker::Tracker>)| async move {
             let offset = limits.offset.unwrap_or(0);
             let limit = min(limits.limit.unwrap_or(1000), 4000);
 
@@ -103,7 +103,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl war
         .and(filters::path::path("stats"))
         .and(filters::path::end())
         .map(move || api_stats.clone())
-        .and_then(|tracker: Arc<TorrentTracker>| async move {
+        .and_then(|tracker: Arc<tracker::Tracker>| async move {
             let mut results = StatsResource {
                 torrents: 0,
                 seeders: 0,
@@ -165,7 +165,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl war
             let tracker = t2.clone();
             (info_hash, tracker)
         })
-        .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| async move {
+        .and_then(|(info_hash, tracker): (InfoHash, Arc<tracker::Tracker>)| async move {
             let db = tracker.get_torrents().await;
             let torrent_entry_option = db.get(&info_hash);
 
@@ -201,7 +201,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl war
             let tracker = t3.clone();
             (info_hash, tracker)
         })
-        .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| async move {
+        .and_then(|(info_hash, tracker): (InfoHash, Arc<tracker::Tracker>)| async move {
             match tracker.remove_torrent_from_whitelist(&info_hash).await {
                 Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                 Err(_) => Err(warp::reject::custom(ActionStatus::Err {
@@ -221,7 +221,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl war
             let tracker = t4.clone();
             (info_hash, tracker)
         })
-        .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| async move {
+        .and_then(|(info_hash, tracker): (InfoHash, Arc<tracker::Tracker>)| async move {
             match tracker.add_torrent_to_whitelist(&info_hash).await {
                 Ok(..) => Ok(warp::reply::json(&ActionStatus::Ok)),
                 Err(..) => Err(warp::reject::custom(ActionStatus::Err {
@@ -241,7 +241,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl war
             let tracker = t5.clone();
             (seconds_valid, tracker)
         })
-        .and_then(|(seconds_valid, tracker): (u64, Arc<TorrentTracker>)| async move {
+        .and_then(|(seconds_valid, tracker): (u64, Arc<tracker::Tracker>)| async move {
             match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
                 Ok(auth_key) => Ok(warp::reply::json(&AuthKeyResource::from(auth_key))),
                 Err(..) => Err(warp::reject::custom(ActionStatus::Err {
@@ -261,7 +261,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl war
             let tracker = t6.clone();
             (key, tracker)
         })
-        .and_then(|(key, tracker): (String, Arc<TorrentTracker>)| async move {
+        .and_then(|(key, tracker): (String, Arc<tracker::Tracker>)| async move {
             match tracker.remove_auth_key(&key).await {
                 Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                 Err(_) => Err(warp::reject::custom(ActionStatus::Err {
@@ -278,7 +278,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl war
         .and(filters::path::path("reload"))
         .and(filters::path::end())
         .map(move || t7.clone())
-        .and_then(|tracker: Arc<TorrentTracker>| async move {
+        .and_then(|tracker: Arc<tracker::Tracker>| async move {
             match tracker.load_whitelist().await {
                 Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                 Err(_) => Err(warp::reject::custom(ActionStatus::Err {
@@ -295,7 +295,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<TorrentTracker>) -> impl war
         .and(filters::path::path("reload"))
         .and(filters::path::end())
         .map(move || t8.clone())
-        .and_then(|tracker: Arc<TorrentTracker>| async move {
+        .and_then(|tracker: Arc<tracker::Tracker>| async move {
             match tracker.load_keys().await {
                 Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                 Err(_) => Err(warp::reject::custom(ActionStatus::Err {

@@ -19,7 +19,7 @@ use crate::databases::database::Database;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::Auth;
 
-pub struct TorrentTracker {
+pub struct Tracker {
     pub config: Arc<Configuration>,
     mode: mode::Tracker,
     keys: RwLock<std::collections::HashMap<String, Auth>>,
@@ -30,15 +30,18 @@ pub struct TorrentTracker {
     database: Box<dyn Database>,
 }
 
-impl TorrentTracker {
+impl Tracker {
+    /// # Errors
+    ///
+    /// Will return a `r2d2::Error` if unable to connect to database.
     pub fn new(
-        config: Arc<Configuration>,
+        config: &Arc<Configuration>,
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
-    ) -> Result<TorrentTracker, r2d2::Error> {
+    ) -> Result<Tracker, r2d2::Error> {
         let database = database::connect(&config.db_driver, &config.db_path)?;
 
-        Ok(TorrentTracker {
+        Ok(Tracker {
             config: config.clone(),
             mode: config.mode,
             keys: RwLock::new(std::collections::HashMap::new()),
@@ -62,6 +65,9 @@ impl TorrentTracker {
         self.mode == mode::Tracker::Listed || self.mode == mode::Tracker::PrivateListed
     }
 
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to add the `auth_key` to the database.
     pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<Auth, database::Error> {
         let auth_key = key::generate(lifetime);
         self.database.add_key_to_keys(&auth_key).await?;
@@ -69,12 +75,18 @@ impl TorrentTracker {
         Ok(auth_key)
     }
 
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to remove the `key` to the database.
     pub async fn remove_auth_key(&self, key: &str) -> Result<(), database::Error> {
         self.database.remove_key_from_keys(key).await?;
         self.keys.write().await.remove(key);
         Ok(())
     }
 
+    /// # Errors
+    ///
+    /// Will return a `key::Error` if unable to get any `auth_key`.
     pub async fn verify_auth_key(&self, auth_key: &Auth) -> Result<(), key::Error> {
         match self.keys.read().await.get(&auth_key.key) {
             None => Err(key::Error::KeyInvalid),
@@ -82,6 +94,9 @@ impl TorrentTracker {
         }
     }
 
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to `load_keys` from the database.
     pub async fn load_keys(&self) -> Result<(), database::Error> {
         let keys_from_database = self.database.load_keys().await?;
         let mut keys = self.keys.write().await;
@@ -89,13 +104,17 @@ impl TorrentTracker {
         keys.clear();
 
         for key in keys_from_database {
-            let _ = keys.insert(key.key.clone(), key);
+            keys.insert(key.key.clone(), key);
         }
 
         Ok(())
     }
 
-    // Adding torrents is not relevant to public trackers.
+    /// Adding torrents is not relevant to public trackers.
+    ///
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to add the `info_hash` into the whitelist database.
     pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
         self.add_torrent_to_database_whitelist(info_hash).await?;
         self.add_torrent_to_memory_whitelist(info_hash).await;
@@ -117,7 +136,11 @@ impl TorrentTracker {
         self.whitelist.write().await.insert(*info_hash)
     }
 
-    // Removing torrents is not relevant to public trackers.
+    /// Removing torrents is not relevant to public trackers.
+    ///
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to remove the `info_hash` from the whitelist database.
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
         self.database.remove_info_hash_from_whitelist(*info_hash).await?;
         self.whitelist.write().await.remove(info_hash);
@@ -128,6 +151,9 @@ impl TorrentTracker {
         self.whitelist.read().await.contains(info_hash)
     }
 
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to load the list whitelisted `info_hash`s from the database.
     pub async fn load_whitelist(&self) -> Result<(), database::Error> {
         let whitelisted_torrents_from_database = self.database.load_whitelist().await?;
         let mut whitelist = self.whitelist.write().await;
@@ -141,6 +167,13 @@ impl TorrentTracker {
         Ok(())
     }
 
+    /// # Errors
+    ///
+    /// Will return a `torrent::Error::PeerKeyNotValid` if the `key` is not valid.
+    ///
+    /// Will return a `torrent::Error::PeerNotAuthenticated` if the `key` is `None`.
+    ///
+    /// Will return a `torrent::Error::TorrentNotWhitelisted` if the the Tracker is in listed mode and the `info_hash` is not whitelisted.
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<Auth>) -> Result<(), torrent::Error> {
         // no authentication needed in public mode
         if self.is_public() {
@@ -169,7 +202,11 @@ impl TorrentTracker {
         Ok(())
     }
 
-    // Loading the torrents from database into memory
+    /// Loading the torrents from database into memory
+    ///
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to load the list of `persistent_torrents` from the database.
     pub async fn load_persistent_torrents(&self) -> Result<(), database::Error> {
         let persistent_torrents = self.database.load_persistent_torrents().await?;
         let mut torrents = self.torrents.write().await;
@@ -181,7 +218,7 @@ impl TorrentTracker {
             }
 
             let torrent_entry = torrent::Entry {
-                peers: Default::default(),
+                peers: BTreeMap::default(),
                 completed,
             };
 
@@ -262,9 +299,10 @@ impl TorrentTracker {
             torrents_lock.retain(|_, torrent_entry| {
                 torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
 
-                match self.config.persistent_torrent_completed_stat {
-                    true => torrent_entry.completed > 0 || !torrent_entry.peers.is_empty(),
-                    false => !torrent_entry.peers.is_empty(),
+                if self.config.persistent_torrent_completed_stat {
+                    torrent_entry.completed > 0 || !torrent_entry.peers.is_empty()
+                } else {
+                    !torrent_entry.peers.is_empty()
                 }
             });
         } else {
