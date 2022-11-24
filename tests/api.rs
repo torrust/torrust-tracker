@@ -25,7 +25,7 @@ mod tracker_api {
     use torrust_tracker::protocol::common::{InfoHash, PeerId};
     use torrust_tracker::tracker::key::Auth;
     use torrust_tracker::tracker::peer::TorrentPeer;
-    use torrust_tracker::tracker::statistics::StatsTracker;
+    use torrust_tracker::tracker::statistics::Keeper;
     use torrust_tracker::tracker::TorrentTracker;
     use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
 
@@ -276,7 +276,7 @@ mod tracker_api {
                 lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
 
                 // Initialize stats tracker
-                let (stats_event_sender, stats_repository) = StatsTracker::new_active_instance();
+                let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
                 // Initialize Torrust tracker
                 let tracker = match TorrentTracker::new(configuration.clone(), Some(stats_event_sender), stats_repository) {

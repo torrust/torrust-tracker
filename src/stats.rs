@@ -1,16 +1,16 @@
-use crate::tracker::statistics::{StatsRepository, StatsTracker, TrackerStatisticsEventSender};
+use crate::tracker::statistics;
 
 #[must_use]
-pub fn setup_statistics(tracker_usage_statistics: bool) -> (Option<Box<dyn TrackerStatisticsEventSender>>, StatsRepository) {
+pub fn setup_statistics(tracker_usage_statistics: bool) -> (Option<Box<dyn statistics::EventSender>>, statistics::Repo) {
     let mut stats_event_sender = None;
 
-    let mut stats_tracker = StatsTracker::new();
+    let mut stats_tracker = statistics::Keeper::new();
 
     if tracker_usage_statistics {
         stats_event_sender = Some(stats_tracker.run_event_listener());
     }
 
-    (stats_event_sender, stats_tracker.stats_repository)
+    (stats_event_sender, stats_tracker.repository)
 }
 
 #[cfg(test)]

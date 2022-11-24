@@ -13,7 +13,6 @@ use std::time::Duration;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
-use self::statistics::{Metrics, StatsRepository, TrackerStatisticsEvent, TrackerStatisticsEventSender};
 use crate::config::Configuration;
 use crate::databases::database;
 use crate::databases::database::Database;
@@ -27,16 +26,16 @@ pub struct TorrentTracker {
     keys: RwLock<std::collections::HashMap<String, Auth>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
-    stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
-    stats_repository: StatsRepository,
+    stats_event_sender: Option<Box<dyn statistics::EventSender>>,
+    stats_repository: statistics::Repo,
     database: Box<dyn Database>,
 }
 
 impl TorrentTracker {
     pub fn new(
         config: Arc<Configuration>,
-        stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
-        stats_repository: StatsRepository,
+        stats_event_sender: Option<Box<dyn statistics::EventSender>>,
+        stats_repository: statistics::Repo,
     ) -> Result<TorrentTracker, r2d2::Error> {
         let database = database::connect(&config.db_driver, &config.db_path)?;
 
@@ -244,11 +243,11 @@ impl TorrentTracker {
         self.torrents.read().await
     }
 
-    pub async fn get_stats(&self) -> RwLockReadGuard<'_, Metrics> {
+    pub async fn get_stats(&self) -> RwLockReadGuard<'_, statistics::Metrics> {
         self.stats_repository.get_stats().await
     }
 
-    pub async fn send_stats_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
+    pub async fn send_stats_event(&self, event: statistics::Event) -> Option<Result<(), SendError<statistics::Event>>> {
         match &self.stats_event_sender {
             None => None,
             Some(stats_event_sender) => stats_event_sender.send_event(event).await,

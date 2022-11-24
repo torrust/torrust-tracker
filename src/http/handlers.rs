@@ -13,9 +13,8 @@ use super::{request, WebResult};
 use crate::http::response::Error;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::Auth;
-use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::torrent::{TorrentError, TorrentStats};
-use crate::tracker::{peer, TorrentTracker};
+use crate::tracker::{peer, statistics, TorrentTracker};
 
 /// Authenticate `InfoHash` using optional `AuthKey`
 ///
@@ -67,10 +66,10 @@ pub async fn handle_announce(
     // send stats event
     match announce_request.peer_addr {
         IpAddr::V4(_) => {
-            tracker.send_stats_event(TrackerStatisticsEvent::Tcp4Announce).await;
+            tracker.send_stats_event(statistics::Event::Tcp4Announce).await;
         }
         IpAddr::V6(_) => {
-            tracker.send_stats_event(TrackerStatisticsEvent::Tcp6Announce).await;
+            tracker.send_stats_event(statistics::Event::Tcp6Announce).await;
         }
     }
 
@@ -127,10 +126,10 @@ pub async fn handle_scrape(
     // send stats event
     match scrape_request.peer_addr {
         IpAddr::V4(_) => {
-            tracker.send_stats_event(TrackerStatisticsEvent::Tcp4Scrape).await;
+            tracker.send_stats_event(statistics::Event::Tcp4Scrape).await;
         }
         IpAddr::V6(_) => {
-            tracker.send_stats_event(TrackerStatisticsEvent::Tcp6Scrape).await;
+            tracker.send_stats_event(statistics::Event::Tcp6Scrape).await;
         }
     }
 
