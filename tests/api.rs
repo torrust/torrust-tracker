@@ -8,6 +8,7 @@ mod common;
 mod tracker_api {
     use core::panic;
     use std::env;
+    use std::str::FromStr;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
 
@@ -18,7 +19,7 @@ mod tracker_api {
     use torrust_tracker::tracker::key::AuthKey;
     use torrust_tracker::tracker::statistics::StatsTracker;
     use torrust_tracker::tracker::TorrentTracker;
-    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration, InfoHash};
 
     use crate::common::ephemeral_random_port;
 
@@ -58,6 +59,13 @@ mod tracker_api {
         let res = reqwest::Client::new().post(url.clone()).send().await.unwrap();
 
         assert_eq!(res.status(), 200);
+        assert!(
+            api_server
+                .tracker
+                .unwrap()
+                .is_info_hash_whitelisted(&InfoHash::from_str(&info_hash).unwrap())
+                .await
+        );
     }
 
     #[tokio::test]
