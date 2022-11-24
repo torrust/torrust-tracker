@@ -108,17 +108,19 @@ impl TorrentTracker {
 
     /// It adds a torrent to the whitelist if it has not been whitelisted previously
     async fn add_torrent_to_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
-        match self
+        if let Err(e) = self
             .database
             .get_info_hash_from_whitelist(&info_hash.to_owned().to_string())
             .await
         {
-            Ok(_preexisting_info_hash) => Ok(()),
-            _ => {
+            if let database::Error::QueryReturnedNoRows = e {
                 self.database.add_info_hash_to_whitelist(*info_hash).await?;
-                Ok(())
+            } else {
+                eprintln!("{e}");
+                return Err(e);
             }
         }
+        Ok(())
     }
 
     pub async fn add_torrent_to_memory_whitelist(&self, info_hash: &InfoHash) -> bool {
