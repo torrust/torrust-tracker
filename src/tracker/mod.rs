@@ -13,7 +13,7 @@ use std::time::Duration;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
-use self::statistics::{StatsRepository, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender};
+use self::statistics::{Metrics, StatsRepository, TrackerStatisticsEvent, TrackerStatisticsEventSender};
 use crate::config::Configuration;
 use crate::databases::database;
 use crate::databases::database::Database;
@@ -244,7 +244,7 @@ impl TorrentTracker {
         self.torrents.read().await
     }
 
-    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
+    pub async fn get_stats(&self) -> RwLockReadGuard<'_, Metrics> {
         self.stats_repository.get_stats().await
     }
 

@@ -25,7 +25,7 @@ pub enum TrackerStatisticsEvent {
 }
 
 #[derive(Debug)]
-pub struct TrackerStatistics {
+pub struct Metrics {
     pub tcp4_connections_handled: u64,
     pub tcp4_announces_handled: u64,
     pub tcp4_scrapes_handled: u64,
@@ -40,13 +40,13 @@ pub struct TrackerStatistics {
     pub udp6_scrapes_handled: u64,
 }
 
-impl Default for TrackerStatistics {
+impl Default for Metrics {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl TrackerStatistics {
+impl Metrics {
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -177,7 +177,7 @@ impl TrackerStatisticsEventSender for StatsEventSender {
 
 #[derive(Clone)]
 pub struct StatsRepository {
-    pub stats: Arc<RwLock<TrackerStatistics>>,
+    pub stats: Arc<RwLock<Metrics>>,
 }
 
 impl Default for StatsRepository {
@@ -190,11 +190,11 @@ impl StatsRepository {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            stats: Arc::new(RwLock::new(TrackerStatistics::new())),
+            stats: Arc::new(RwLock::new(Metrics::new())),
         }
     }
 
-    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
+    pub async fn get_stats(&self) -> RwLockReadGuard<'_, Metrics> {
         self.stats.read().await
     }
 
@@ -275,7 +275,7 @@ impl StatsRepository {
 mod tests {
 
     mod stats_tracker {
-        use crate::tracker::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsEvent};
+        use crate::tracker::statistics::{Metrics, StatsTracker, TrackerStatisticsEvent};
 
         #[tokio::test]
         async fn should_contain_the_tracker_statistics() {
@@ -283,7 +283,7 @@ mod tests {
 
             let stats = stats_tracker.stats_repository.get_stats().await;
 
-            assert_eq!(stats.tcp4_announces_handled, TrackerStatistics::new().tcp4_announces_handled);
+            assert_eq!(stats.tcp4_announces_handled, Metrics::new().tcp4_announces_handled);
         }
 
         #[tokio::test]
