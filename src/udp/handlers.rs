@@ -8,10 +8,9 @@ use aquatic_udp_protocol::{
 
 use super::connection_cookie::{check_connection_cookie, from_connection_id, into_connection_id, make_connection_cookie};
 use crate::protocol::common::{InfoHash, MAX_SCRAPE_TORRENTS};
-use crate::tracker::peer::TorrentPeer;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::torrent::TorrentError;
-use crate::tracker::TorrentTracker;
+use crate::tracker::{peer, TorrentTracker};
 use crate::udp::errors::ServerError;
 use crate::udp::request::AnnounceRequestWrapper;
 
@@ -106,7 +105,7 @@ pub async fn handle_announce(
 
     authenticate(&wrapped_announce_request.info_hash, tracker.clone()).await?;
 
-    let peer = TorrentPeer::from_udp_announce_request(
+    let peer = peer::TorrentPeer::from_udp_announce_request(
         &wrapped_announce_request.announce_request,
         remote_addr.ip(),
         tracker.config.get_ext_ip(),
@@ -255,9 +254,8 @@ mod tests {
     use crate::config::Configuration;
     use crate::protocol::clock::{Current, Time};
     use crate::protocol::common::PeerId;
-    use crate::tracker::peer::TorrentPeer;
     use crate::tracker::statistics::StatsTracker;
-    use crate::tracker::{mode, TorrentTracker};
+    use crate::tracker::{mode, peer, TorrentTracker};
 
     fn default_tracker_config() -> Arc<Configuration> {
         Arc::new(Configuration::default())
@@ -304,12 +302,12 @@ mod tests {
     }
 
     struct TorrentPeerBuilder {
-        peer: TorrentPeer,
+        peer: peer::TorrentPeer,
     }
 
     impl TorrentPeerBuilder {
         pub fn default() -> TorrentPeerBuilder {
-            let default_peer = TorrentPeer {
+            let default_peer = peer::TorrentPeer {
                 peer_id: PeerId([255u8; 20]),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
                 updated: Current::now(),
@@ -336,7 +334,7 @@ mod tests {
             self
         }
 
-        pub fn into(self) -> TorrentPeer {
+        pub fn into(self) -> peer::TorrentPeer {
             self.peer
         }
     }

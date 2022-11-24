@@ -13,10 +13,9 @@ use super::{request, WebResult};
 use crate::http::response::Error;
 use crate::protocol::common::InfoHash;
 use crate::tracker::key::Auth;
-use crate::tracker::peer::TorrentPeer;
 use crate::tracker::statistics::TrackerStatisticsEvent;
 use crate::tracker::torrent::{TorrentError, TorrentStats};
-use crate::tracker::TorrentTracker;
+use crate::tracker::{peer, TorrentTracker};
 
 /// Authenticate `InfoHash` using optional `AuthKey`
 ///
@@ -55,7 +54,7 @@ pub async fn handle_announce(
     debug!("{:?}", announce_request);
 
     let peer =
-        TorrentPeer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
+        peer::TorrentPeer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
     let torrent_stats = tracker
         .update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer)
         .await;
@@ -143,7 +142,7 @@ pub async fn handle_scrape(
 fn send_announce_response(
     announce_request: &request::Announce,
     torrent_stats: &TorrentStats,
-    peers: &Vec<TorrentPeer>,
+    peers: &Vec<peer::TorrentPeer>,
     interval: u32,
     interval_min: u32,
 ) -> WebResult<impl Reply> {

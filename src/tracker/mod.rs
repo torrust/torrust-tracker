@@ -13,7 +13,6 @@ use std::time::Duration;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
-use self::peer::TorrentPeer;
 use self::statistics::{StatsRepository, TrackerStatistics, TrackerStatisticsEvent, TrackerStatisticsEventSender};
 use crate::config::Configuration;
 use crate::databases::database;
@@ -195,7 +194,7 @@ impl TorrentTracker {
     }
 
     /// Get all torrent peers for a given torrent filtering out the peer with the client address
-    pub async fn get_torrent_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr) -> Vec<TorrentPeer> {
+    pub async fn get_torrent_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr) -> Vec<peer::TorrentPeer> {
         let read_lock = self.torrents.read().await;
 
         match read_lock.get(info_hash) {
@@ -205,7 +204,7 @@ impl TorrentTracker {
     }
 
     /// Get all torrent peers for a given torrent
-    pub async fn get_all_torrent_peers(&self, info_hash: &InfoHash) -> Vec<TorrentPeer> {
+    pub async fn get_all_torrent_peers(&self, info_hash: &InfoHash) -> Vec<peer::TorrentPeer> {
         let read_lock = self.torrents.read().await;
 
         match read_lock.get(info_hash) {
@@ -214,7 +213,7 @@ impl TorrentTracker {
         }
     }
 
-    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &TorrentPeer) -> TorrentStats {
+    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::TorrentPeer) -> TorrentStats {
         let mut torrents = self.torrents.write().await;
 
         let torrent_entry = match torrents.entry(*info_hash) {

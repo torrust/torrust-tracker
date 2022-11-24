@@ -60,13 +60,14 @@ impl TorrentPeer {
             AnnounceEvent::None
         };
 
+        #[allow(clippy::cast_possible_truncation)]
         TorrentPeer {
-            peer_id: announce_request.peer_id,
+            peer_id: announce_request.peer_id.clone(),
             peer_addr,
             updated: Current::now(),
-            uploaded: NumberOfBytes(announce_request.uploaded as i64),
-            downloaded: NumberOfBytes(announce_request.downloaded as i64),
-            left: NumberOfBytes(announce_request.left as i64),
+            uploaded: NumberOfBytes(i128::from(announce_request.uploaded) as i64),
+            downloaded: NumberOfBytes(i128::from(announce_request.downloaded) as i64),
+            left: NumberOfBytes(i128::from(announce_request.left) as i64),
             event,
         }
     }

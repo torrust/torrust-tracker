@@ -4,14 +4,14 @@ use std::time::Duration;
 use aquatic_udp_protocol::AnnounceEvent;
 use serde::{Deserialize, Serialize};
 
-use super::peer::TorrentPeer;
+use super::peer;
 use crate::protocol::clock::{Current, TimeNow};
 use crate::protocol::common::{PeerId, MAX_SCRAPE_TORRENTS};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TorrentEntry {
     #[serde(skip)]
-    pub peers: std::collections::BTreeMap<PeerId, TorrentPeer>,
+    pub peers: std::collections::BTreeMap<PeerId, peer::TorrentPeer>,
     pub completed: u32,
 }
 
@@ -25,7 +25,7 @@ impl TorrentEntry {
     }
 
     // Update peer and return completed (times torrent has been downloaded)
-    pub fn update_peer(&mut self, peer: &TorrentPeer) -> bool {
+    pub fn update_peer(&mut self, peer: &peer::TorrentPeer) -> bool {
         let mut did_torrent_stats_change: bool = false;
 
         match peer.event {
@@ -49,7 +49,7 @@ impl TorrentEntry {
     }
 
     #[must_use]
-    pub fn get_peers(&self, client_addr: Option<&SocketAddr>) -> Vec<&TorrentPeer> {
+    pub fn get_peers(&self, client_addr: Option<&SocketAddr>) -> Vec<&peer::TorrentPeer> {
         self.peers
             .values()
             .filter(|peer| match client_addr {
@@ -118,16 +118,16 @@ mod tests {
 
     use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Stopped, StoppedTime, Time, Working};
     use crate::protocol::common::PeerId;
-    use crate::tracker::peer::TorrentPeer;
+    use crate::tracker::peer;
     use crate::tracker::torrent::TorrentEntry;
 
     struct TorrentPeerBuilder {
-        peer: TorrentPeer,
+        peer: peer::TorrentPeer,
     }
 
     impl TorrentPeerBuilder {
         pub fn default() -> TorrentPeerBuilder {
-            let default_peer = TorrentPeer {
+            let default_peer = peer::TorrentPeer {
                 peer_id: PeerId([0u8; 20]),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
                 updated: Current::now(),
@@ -164,14 +164,14 @@ mod tests {
             self
         }
 
-        pub fn into(self) -> TorrentPeer {
+        pub fn into(self) -> peer::TorrentPeer {
             self.peer
         }
     }
 
     /// A torrent seeder is a peer with 0 bytes left to download which
     /// has not announced it has stopped
-    fn a_torrent_seeder() -> TorrentPeer {
+    fn a_torrent_seeder() -> peer::TorrentPeer {
         TorrentPeerBuilder::default()
             .with_number_of_bytes_left(0)
             .with_event_completed()
@@ -180,7 +180,7 @@ mod tests {
 
     /// A torrent leecher is a peer that is not a seeder.
     /// Leecher: left > 0 OR event = Stopped
-    fn a_torrent_leecher() -> TorrentPeer {
+    fn a_torrent_leecher() -> peer::TorrentPeer {
         TorrentPeerBuilder::default()
             .with_number_of_bytes_left(1)
             .with_event_completed()
