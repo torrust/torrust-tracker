@@ -23,7 +23,7 @@ mod tracker_api {
     use torrust_tracker::jobs::tracker_api;
     use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
     use torrust_tracker::protocol::common::{InfoHash, PeerId};
-    use torrust_tracker::tracker::key::AuthKey;
+    use torrust_tracker::tracker::key::Auth;
     use torrust_tracker::tracker::peer::TorrentPeer;
     use torrust_tracker::tracker::statistics::StatsTracker;
     use torrust_tracker::tracker::TorrentTracker;
@@ -45,7 +45,7 @@ mod tracker_api {
         assert!(api_server
             .tracker
             .unwrap()
-            .verify_auth_key(&AuthKey::from(auth_key))
+            .verify_auth_key(&Auth::from(auth_key))
             .await
             .is_ok());
     }

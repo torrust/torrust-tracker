@@ -3,7 +3,7 @@ use std::convert::From;
 use serde::{Deserialize, Serialize};
 
 use crate::protocol::clock::DurationSinceUnixEpoch;
-use crate::tracker::key::AuthKey;
+use crate::tracker::key::Auth;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct AuthKeyResource {
@@ -11,9 +11,9 @@ pub struct AuthKeyResource {
     pub valid_until: Option<u64>,
 }
 
-impl From<AuthKeyResource> for AuthKey {
+impl From<AuthKeyResource> for Auth {
     fn from(auth_key_resource: AuthKeyResource) -> Self {
-        AuthKey {
+        Auth {
             key: auth_key_resource.key,
             valid_until: auth_key_resource
                 .valid_until
@@ -22,8 +22,8 @@ impl From<AuthKeyResource> for AuthKey {
     }
 }
 
-impl From<AuthKey> for AuthKeyResource {
-    fn from(auth_key: AuthKey) -> Self {
+impl From<Auth> for AuthKeyResource {
+    fn from(auth_key: Auth) -> Self {
         AuthKeyResource {
             key: auth_key.key,
             valid_until: auth_key.valid_until.map(|valid_until| valid_until.as_secs()),
@@ -37,7 +37,7 @@ mod tests {
 
     use super::AuthKeyResource;
     use crate::protocol::clock::{Current, TimeNow};
-    use crate::tracker::key::AuthKey;
+    use crate::tracker::key::Auth;
 
     #[test]
     fn it_should_be_convertible_into_an_auth_key() {
@@ -49,8 +49,8 @@ mod tests {
         };
 
         assert_eq!(
-            AuthKey::from(auth_key_resource),
-            AuthKey {
+            Auth::from(auth_key_resource),
+            Auth {
                 key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".to_string(), // cspell:disable-line
                 valid_until: Some(Current::add(&Duration::new(duration_in_secs, 0)).unwrap())
             }
@@ -61,7 +61,7 @@ mod tests {
     fn it_should_be_convertible_from_an_auth_key() {
         let duration_in_secs = 60;
 
-        let auth_key = AuthKey {
+        let auth_key = Auth {
             key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".to_string(), // cspell:disable-line
             valid_until: Some(Current::add(&Duration::new(duration_in_secs, 0)).unwrap()),
         };

@@ -9,7 +9,7 @@ use crate::databases::database;
 use crate::databases::database::{Database, Error};
 use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::protocol::common::InfoHash;
-use crate::tracker::key::AuthKey;
+use crate::tracker::key::Auth;
 
 pub struct Sqlite {
     pool: Pool<SqliteConnectionManager>,
@@ -78,7 +78,7 @@ impl Database for Sqlite {
         Ok(torrents)
     }
 
-    async fn load_keys(&self) -> Result<Vec<AuthKey>, Error> {
+    async fn load_keys(&self) -> Result<Vec<Auth>, Error> {
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys")?;
@@ -87,13 +87,13 @@ impl Database for Sqlite {
             let key = row.get(0)?;
             let valid_until: i64 = row.get(1)?;
 
-            Ok(AuthKey {
+            Ok(Auth {
                 key,
                 valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs())),
             })
         })?;
 
-        let keys: Vec<AuthKey> = keys_iter.filter_map(std::result::Result::ok).collect();
+        let keys: Vec<Auth> = keys_iter.filter_map(std::result::Result::ok).collect();
 
         Ok(keys)
     }
@@ -186,7 +186,7 @@ impl Database for Sqlite {
         }
     }
 
-    async fn get_key_from_keys(&self, key: &str) -> Result<AuthKey, database::Error> {
+    async fn get_key_from_keys(&self, key: &str) -> Result<Auth, database::Error> {
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys WHERE key = ?")?;
@@ -196,7 +196,7 @@ impl Database for Sqlite {
             let key: String = row.get(0).unwrap();
             let valid_until: i64 = row.get(1).unwrap();
 
-            Ok(AuthKey {
+            Ok(Auth {
                 key,
                 valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs())),
             })
@@ -205,7 +205,7 @@ impl Database for Sqlite {
         }
     }
 
-    async fn add_key_to_keys(&self, auth_key: &AuthKey) -> Result<usize, database::Error> {
+    async fn add_key_to_keys(&self, auth_key: &Auth) -> Result<usize, database::Error> {
         let conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn.execute(

@@ -20,13 +20,13 @@ use crate::config::Configuration;
 use crate::databases::database;
 use crate::databases::database::Database;
 use crate::protocol::common::InfoHash;
-use crate::tracker::key::AuthKey;
+use crate::tracker::key::Auth;
 use crate::tracker::torrent::{TorrentEntry, TorrentError, TorrentStats};
 
 pub struct TorrentTracker {
     pub config: Arc<Configuration>,
     mode: TrackerMode,
-    keys: RwLock<std::collections::HashMap<String, AuthKey>>,
+    keys: RwLock<std::collections::HashMap<String, Auth>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, TorrentEntry>>,
     stats_event_sender: Option<Box<dyn TrackerStatisticsEventSender>>,
@@ -66,8 +66,8 @@ impl TorrentTracker {
         self.mode == TrackerMode::Listed || self.mode == TrackerMode::PrivateListed
     }
 
-    pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<AuthKey, database::Error> {
-        let auth_key = key::generate_auth_key(lifetime);
+    pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<Auth, database::Error> {
+        let auth_key = key::generate(lifetime);
         self.database.add_key_to_keys(&auth_key).await?;
         self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
         Ok(auth_key)
@@ -79,10 +79,10 @@ impl TorrentTracker {
         Ok(())
     }
 
-    pub async fn verify_auth_key(&self, auth_key: &AuthKey) -> Result<(), key::Error> {
+    pub async fn verify_auth_key(&self, auth_key: &Auth) -> Result<(), key::Error> {
         match self.keys.read().await.get(&auth_key.key) {
             None => Err(key::Error::KeyInvalid),
-            Some(key) => key::verify_auth_key(key),
+            Some(key) => key::verify(key),
         }
     }
 
@@ -145,7 +145,7 @@ impl TorrentTracker {
         Ok(())
     }
 
-    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<AuthKey>) -> Result<(), TorrentError> {
+    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<Auth>) -> Result<(), TorrentError> {
         // no authentication needed in public mode
         if self.is_public() {
             return Ok(());

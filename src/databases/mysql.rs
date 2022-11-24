@@ -11,7 +11,7 @@ use r2d2_mysql::MysqlConnectionManager;
 use crate::databases::database;
 use crate::databases::database::{Database, Error};
 use crate::protocol::common::{InfoHash, AUTH_KEY_LENGTH};
-use crate::tracker::key::AuthKey;
+use crate::tracker::key::Auth;
 
 pub struct Mysql {
     pool: Pool<MysqlConnectionManager>,
@@ -90,13 +90,13 @@ impl Database for Mysql {
         Ok(torrents)
     }
 
-    async fn load_keys(&self) -> Result<Vec<AuthKey>, Error> {
+    async fn load_keys(&self) -> Result<Vec<Auth>, Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
-        let keys: Vec<AuthKey> = conn
+        let keys: Vec<Auth> = conn
             .query_map(
                 "SELECT `key`, valid_until FROM `keys`",
-                |(key, valid_until): (String, i64)| AuthKey {
+                |(key, valid_until): (String, i64)| Auth {
                     key,
                     valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
                 },
@@ -182,14 +182,14 @@ impl Database for Mysql {
         }
     }
 
-    async fn get_key_from_keys(&self, key: &str) -> Result<AuthKey, database::Error> {
+    async fn get_key_from_keys(&self, key: &str) -> Result<Auth, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn
             .exec_first::<(String, i64), _, _>("SELECT `key`, valid_until FROM `keys` WHERE `key` = :key", params! { key })
             .map_err(|_| database::Error::QueryReturnedNoRows)?
         {
-            Some((key, valid_until)) => Ok(AuthKey {
+            Some((key, valid_until)) => Ok(Auth {
                 key,
                 valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
             }),
@@ -197,7 +197,7 @@ impl Database for Mysql {
         }
     }
 
-    async fn add_key_to_keys(&self, auth_key: &AuthKey) -> Result<usize, database::Error> {
+    async fn add_key_to_keys(&self, auth_key: &Auth) -> Result<usize, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let key = auth_key.key.to_string();

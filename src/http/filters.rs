@@ -9,7 +9,7 @@ use super::errors::ServerError;
 use super::request::{Announce, AnnounceRequestQuery, Scrape};
 use super::WebResult;
 use crate::protocol::common::{InfoHash, PeerId, MAX_SCRAPE_TORRENTS};
-use crate::tracker::key::AuthKey;
+use crate::tracker::key::Auth;
 use crate::tracker::TorrentTracker;
 
 /// Pass Arc<TorrentTracker> along
@@ -32,10 +32,10 @@ pub fn with_peer_id() -> impl Filter<Extract = (PeerId,), Error = Rejection> + C
 
 /// Pass Arc<TorrentTracker> along
 #[must_use]
-pub fn with_auth_key() -> impl Filter<Extract = (Option<AuthKey>,), Error = Infallible> + Clone {
+pub fn with_auth_key() -> impl Filter<Extract = (Option<Auth>,), Error = Infallible> + Clone {
     warp::path::param::<String>()
-        .map(|key: String| AuthKey::from_string(&key))
-        .or_else(|_| async { Ok::<(Option<AuthKey>,), Infallible>((None,)) })
+        .map(|key: String| Auth::from_string(&key))
+        .or_else(|_| async { Ok::<(Option<Auth>,), Infallible>((None,)) })
 }
 
 /// Check for `PeerAddress`
