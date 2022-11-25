@@ -24,7 +24,7 @@ pub struct AnnounceRequestWrapper {
 
 impl AnnounceRequestWrapper {
     #[must_use]
-    pub fn new(announce_request: AnnounceRequest) -> Self {
+    pub fn new(announce_request: &AnnounceRequest) -> Self {
         AnnounceRequestWrapper {
             announce_request: announce_request.clone(),
             info_hash: InfoHash(announce_request.info_hash.0),

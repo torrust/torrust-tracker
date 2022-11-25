@@ -85,7 +85,7 @@ pub async fn handle_announce(
 ) -> Result<Response, ServerError> {
     check(&remote_addr, &from_connection_id(&announce_request.connection_id))?;
 
-    let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request.clone());
+    let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request);
 
     tracker
         .authenticate_request(&wrapped_announce_request.info_hash, &None)
