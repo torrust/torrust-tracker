@@ -8,27 +8,9 @@ use aquatic_udp_protocol::{
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
 use crate::protocol::common::{InfoHash, MAX_SCRAPE_TORRENTS};
-use crate::tracker::{self, peer, statistics, torrent};
+use crate::tracker::{self, peer, statistics};
 use crate::udp::errors::ServerError;
 use crate::udp::request::AnnounceRequestWrapper;
-
-pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<tracker::Tracker>) -> Result<(), ServerError> {
-    match tracker.authenticate_request(info_hash, &None).await {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            let err = match e {
-                torrent::Error::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
-                torrent::Error::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
-                torrent::Error::PeerKeyNotValid => ServerError::PeerKeyNotValid,
-                torrent::Error::NoPeersFound => ServerError::NoPeersFound,
-                torrent::Error::CouldNotSendResponse => ServerError::InternalServerError,
-                torrent::Error::InvalidInfoHash => ServerError::InvalidInfoHash,
-            };
-
-            Err(err)
-        }
-    }
-}
 
 pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: Arc<tracker::Tracker>) -> Response {
     match Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS).map_err(|_| ServerError::InternalServerError) {
@@ -41,14 +23,17 @@ pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: A
 
             match handle_request(request, remote_addr, tracker).await {
                 Ok(response) => response,
-                Err(e) => handle_error(e, transaction_id),
+                Err(e) => handle_error(&e, transaction_id),
             }
         }
         // bad request
-        Err(_) => handle_error(ServerError::BadRequest, TransactionId(0)),
+        Err(_) => handle_error(&ServerError::BadRequest, TransactionId(0)),
     }
 }
 
+/// # Errors
+///
+/// If a error happens in the `handle_request` function, it will just return the  `ServerError`.
 pub async fn handle_request(
     request: Request,
     remote_addr: SocketAddr,
@@ -61,6 +46,9 @@ pub async fn handle_request(
     }
 }
 
+/// # Errors
+///
+/// This function dose not ever return an error.
 pub async fn handle_connect(
     remote_addr: SocketAddr,
     request: &ConnectRequest,
@@ -87,21 +75,21 @@ pub async fn handle_connect(
     Ok(response)
 }
 
+/// # Errors
+///
+/// If a error happens in the `handle_announce` function, it will just return the  `ServerError`.
 pub async fn handle_announce(
     remote_addr: SocketAddr,
     announce_request: &AnnounceRequest,
     tracker: Arc<tracker::Tracker>,
 ) -> Result<Response, ServerError> {
-    match check(&remote_addr, &from_connection_id(&announce_request.connection_id)) {
-        Ok(_) => {}
-        Err(e) => {
-            return Err(e);
-        }
-    }
+    check(&remote_addr, &from_connection_id(&announce_request.connection_id))?;
 
     let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request.clone());
 
-    authenticate(&wrapped_announce_request.info_hash, tracker.clone()).await?;
+    tracker
+        .authenticate_request(&wrapped_announce_request.info_hash, &None)
+        .await?;
 
     let peer = peer::TorrentPeer::from_udp_announce_request(
         &wrapped_announce_request.announce_request,
@@ -120,12 +108,13 @@ pub async fn handle_announce(
         .get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr)
         .await;
 
+    #[allow(clippy::cast_possible_truncation)]
     let announce_response = if remote_addr.is_ipv4() {
         Response::from(AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
-            announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
-            leechers: NumberOfPeers(torrent_stats.leechers as i32),
-            seeders: NumberOfPeers(torrent_stats.seeders as i32),
+            announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
+            leechers: NumberOfPeers(i64::from(torrent_stats.leechers) as i32),
+            seeders: NumberOfPeers(i64::from(torrent_stats.seeders) as i32),
             peers: peers
                 .iter()
                 .filter_map(|peer| {
@@ -143,9 +132,9 @@ pub async fn handle_announce(
     } else {
         Response::from(AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
-            announce_interval: AnnounceInterval(tracker.config.announce_interval as i32),
-            leechers: NumberOfPeers(torrent_stats.leechers as i32),
-            seeders: NumberOfPeers(torrent_stats.seeders as i32),
+            announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
+            leechers: NumberOfPeers(i64::from(torrent_stats.leechers) as i32),
+            seeders: NumberOfPeers(i64::from(torrent_stats.seeders) as i32),
             peers: peers
                 .iter()
                 .filter_map(|peer| {
@@ -175,7 +164,11 @@ pub async fn handle_announce(
     Ok(announce_response)
 }
 
-// todo: refactor this, db lock can be a lot shorter
+/// # Errors
+///
+/// This function dose not ever return an error.
+///
+/// TODO: refactor this, db lock can be a lot shorter
 pub async fn handle_scrape(
     remote_addr: SocketAddr,
     request: &ScrapeRequest,
@@ -190,13 +183,14 @@ pub async fn handle_scrape(
 
         let scrape_entry = match db.get(&info_hash) {
             Some(torrent_info) => {
-                if authenticate(&info_hash, tracker.clone()).await.is_ok() {
+                if tracker.authenticate_request(&info_hash, &None).await.is_ok() {
                     let (seeders, completed, leechers) = torrent_info.get_stats();
 
+                    #[allow(clippy::cast_possible_truncation)]
                     TorrentScrapeStatistics {
-                        seeders: NumberOfPeers(seeders as i32),
-                        completed: NumberOfDownloads(completed as i32),
-                        leechers: NumberOfPeers(leechers as i32),
+                        seeders: NumberOfPeers(i64::from(seeders) as i32),
+                        completed: NumberOfDownloads(i64::from(completed) as i32),
+                        leechers: NumberOfPeers(i64::from(leechers) as i32),
                     }
                 } else {
                     TorrentScrapeStatistics {
@@ -234,7 +228,7 @@ pub async fn handle_scrape(
     }))
 }
 
-fn handle_error(e: ServerError, transaction_id: TransactionId) -> Response {
+fn handle_error(e: &ServerError, transaction_id: TransactionId) -> Response {
     let message = e.to_string();
     Response::from(ErrorResponse {
         transaction_id,
@@ -260,7 +254,7 @@ mod tests {
 
     fn initialized_public_tracker() -> Arc<tracker::Tracker> {
         let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Tracker::Public).into());
-        initialized_tracker(configuration)
+        initialized_tracker(&configuration)
     }
 
     fn initialized_private_tracker() -> Arc<tracker::Tracker> {
@@ -269,17 +263,17 @@ mod tests {
                 .with_mode(mode::Tracker::Private)
                 .into(),
         );
-        initialized_tracker(configuration)
+        initialized_tracker(&configuration)
     }
 
     fn initialized_whitelisted_tracker() -> Arc<tracker::Tracker> {
         let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Tracker::Listed).into());
-        initialized_tracker(configuration)
+        initialized_tracker(&configuration)
     }
 
-    fn initialized_tracker(configuration: Arc<Configuration>) -> Arc<tracker::Tracker> {
+    fn initialized_tracker(configuration: &Arc<Configuration>) -> Arc<tracker::Tracker> {
         let (stats_event_sender, stats_repository) = statistics::Keeper::new_active_instance();
-        Arc::new(tracker::Tracker::new(&configuration, Some(stats_event_sender), stats_repository).unwrap())
+        Arc::new(tracker::Tracker::new(configuration, Some(stats_event_sender), stats_repository).unwrap())
     }
 
     fn sample_ipv4_remote_addr() -> SocketAddr {

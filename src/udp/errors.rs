@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::tracker::torrent;
+
 #[derive(Error, Debug)]
 pub enum ServerError {
     #[error("internal server error")]
@@ -31,4 +33,17 @@ pub enum ServerError {
 
     #[error("bad request")]
     BadRequest,
+}
+
+impl From<torrent::Error> for ServerError {
+    fn from(e: torrent::Error) -> Self {
+        match e {
+            torrent::Error::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
+            torrent::Error::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
+            torrent::Error::PeerKeyNotValid => ServerError::PeerKeyNotValid,
+            torrent::Error::NoPeersFound => ServerError::NoPeersFound,
+            torrent::Error::CouldNotSendResponse => ServerError::InternalServerError,
+            torrent::Error::InvalidInfoHash => ServerError::InvalidInfoHash,
+        }
+    }
 }
