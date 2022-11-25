@@ -30,6 +30,7 @@
         "nanos",
         "nextest",
         "nocapture",
+        "oneshot",
         "ostr",
         "Pando",
         "Rasterbar",

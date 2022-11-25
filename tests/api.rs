@@ -13,7 +13,6 @@ mod tracker_api {
     use std::sync::Arc;
 
     use tokio::task::JoinHandle;
-    use tokio::time::{sleep, Duration};
     use torrust_tracker::api::resources::auth_key_resource::AuthKeyResource;
     use torrust_tracker::jobs::tracker_api;
     use torrust_tracker::tracker::key::AuthKey;
@@ -153,12 +152,16 @@ mod tracker_api {
                 logging::setup_logging(&configuration);
 
                 // Start the HTTP API job
-                self.job = Some(tracker_api::start_job(&configuration, tracker.clone()));
+                let (join_handle, api_receiver) = tracker_api::start_job(&configuration, tracker.clone());
+                self.job = Some(join_handle);
 
                 self.started.store(true, Ordering::Relaxed);
 
-                // Wait to give time to the API server to be ready to accept requests
-                sleep(Duration::from_millis(100)).await;
+                // Wait until the API is ready
+                match api_receiver.await {
+                    Ok(msg) => println!("Message received from API server: {:?}", msg),
+                    Err(_) => panic!("the api server dropped"),
+                }
             }
         }
     }
