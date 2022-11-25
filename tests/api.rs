@@ -8,17 +8,22 @@ mod common;
 mod tracker_api {
     use core::panic;
     use std::env;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::str::FromStr;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
 
+    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use tokio::task::JoinHandle;
     use torrust_tracker::api::resources::auth_key_resource::AuthKeyResource;
+    use torrust_tracker::api::resources::torrent_resource::{PeerIdResource, TorrentPeerResource, TorrentResource};
     use torrust_tracker::jobs::tracker_api;
+    use torrust_tracker::peer::TorrentPeer;
+    use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
     use torrust_tracker::tracker::key::AuthKey;
     use torrust_tracker::tracker::statistics::StatsTracker;
     use torrust_tracker::tracker::TorrentTracker;
-    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration, InfoHash};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration, InfoHash, PeerId};
 
     use crate::common::ephemeral_random_port;
 
@@ -85,6 +90,74 @@ mod tracker_api {
         // Second whitelist request
         let res = reqwest::Client::new().post(url.clone()).send().await.unwrap();
         assert_eq!(res.status(), 200);
+    }
+
+    fn sample_torrent_peer() -> (TorrentPeer, TorrentPeerResource) {
+        (
+            TorrentPeer {
+                peer_id: PeerId(*b"-qB00000000000000000"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+                updated: DurationSinceUnixEpoch::new(1669397478934, 0),
+                uploaded: NumberOfBytes(0),
+                downloaded: NumberOfBytes(0),
+                left: NumberOfBytes(0),
+                event: AnnounceEvent::Started,
+            },
+            TorrentPeerResource {
+                peer_id: PeerIdResource {
+                    id: "2d71423030303030303030303030303030303030".to_string(),
+                    client: "qBittorrent".to_string(),
+                },
+                peer_addr: "126.0.0.1:8080".to_string(),
+                updated: 1669397478934000i64,
+                uploaded: 0i64,
+                downloaded: 0i64,
+                left: 0i64,
+                event: "Started".to_string(),
+            },
+        )
+    }
+
+    #[tokio::test]
+    async fn should_allow_getting_a_torrent_info() {
+        let configuration = tracker_configuration();
+        let api_server = new_running_api_server(configuration.clone()).await;
+
+        let bind_address = api_server.bind_address.unwrap().clone();
+        let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
+        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
+
+        let (peer, peer_resource) = sample_torrent_peer();
+
+        // Add the torrent to the tracker
+        api_server
+            .tracker
+            .unwrap()
+            .update_torrent_with_peer_and_get_stats(&info_hash, &peer)
+            .await;
+
+        let url = format!("http://{}/api/torrent/{}?token={}", &bind_address, &info_hash, &api_token);
+
+        let torrent_resource = reqwest::Client::builder()
+            .build()
+            .unwrap()
+            .get(url)
+            .send()
+            .await
+            .unwrap()
+            .json::<TorrentResource>()
+            .await
+            .unwrap();
+
+        assert_eq!(
+            torrent_resource,
+            TorrentResource {
+                info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
+                completed: 0,
+                leechers: 0,
+                peers: vec![peer_resource]
+            }
+        );
     }
 
     fn tracker_configuration() -> Arc<Configuration> {
