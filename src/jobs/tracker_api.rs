@@ -24,10 +24,13 @@ pub async fn start_job(config: &Configuration, tracker: Arc<TorrentTracker>) -> 
 
     // Run the API server
     let join_handle = tokio::spawn(async move {
+        let handel = server::start(bind_addr, tracker);
+
         if tx.send(ApiServerJobStarted()).is_err() {
             panic!("the start job dropped");
         }
-        server::start(bind_addr, tracker).await;
+
+        handel.await;
     });
 
     // Wait until the API server job is running
