@@ -22,17 +22,21 @@ pub fn into_connection_id(connection_cookie: &Cookie) -> ConnectionId {
 }
 
 #[must_use]
-pub fn make_connection_cookie(remote_address: &SocketAddr) -> Cookie {
+pub fn make(remote_address: &SocketAddr) -> Cookie {
     let time_extent = cookie_builder::get_last_time_extent();
 
     //println!("remote_address: {remote_address:?}, time_extent: {time_extent:?}, cookie: {cookie:?}");
     cookie_builder::build(remote_address, &time_extent)
 }
 
-pub fn check_connection_cookie(
-    remote_address: &SocketAddr,
-    connection_cookie: &Cookie,
-) -> Result<SinceUnixEpochTimeExtent, ServerError> {
+/// # Panics
+///
+/// It would panic if the `COOKIE_LIFETIME` constant would be an unreasonably large number.
+///
+/// # Errors
+///
+/// Will return a `ServerError::InvalidConnectionId` if the supplied `connection_cookie` fails to verify.
+pub fn check(remote_address: &SocketAddr, connection_cookie: &Cookie) -> Result<SinceUnixEpochTimeExtent, ServerError> {
     // we loop backwards testing each time_extent until we find one that matches.
     // (or the lifetime of time_extents is exhausted)
     for offset in 0..=COOKIE_LIFETIME.amount {
@@ -85,19 +89,19 @@ mod tests {
     use super::cookie_builder::{self};
     use crate::protocol::clock::time_extent::{self, Extent};
     use crate::protocol::clock::{Stopped, StoppedTime};
-    use crate::udp::connection_cookie::{check_connection_cookie, make_connection_cookie, Cookie, COOKIE_LIFETIME};
+    use crate::udp::connection_cookie::{check, make, Cookie, COOKIE_LIFETIME};
 
     // #![feature(const_socketaddr)]
     // const REMOTE_ADDRESS_IPV4_ZERO: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
     #[test]
     fn it_should_make_a_connection_cookie() {
-        let cookie = make_connection_cookie(&SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0));
-
         // Note: This constant may need to be updated in the future as the hash is not guaranteed to to be stable between versions.
         const ID_COOKIE: Cookie = [23, 204, 198, 29, 48, 180, 62, 19];
 
-        assert_eq!(cookie, ID_COOKIE)
+        let cookie = make(&SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0));
+
+        assert_eq!(cookie, ID_COOKIE);
     }
 
     #[test]
@@ -114,7 +118,7 @@ mod tests {
         //remote_address: 127.0.0.1:8080, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [212, 9, 204, 223, 176, 190, 150, 153]
         //remote_address: 127.0.0.1:8080, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [212, 9, 204, 223, 176, 190, 150, 153]
 
-        assert_eq!(cookie, cookie_2)
+        assert_eq!(cookie, cookie_2);
     }
 
     #[test]
@@ -132,7 +136,7 @@ mod tests {
         //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
         //remote_address: 255.255.255.255:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [217, 87, 239, 178, 182, 126, 66, 166]
 
-        assert_ne!(cookie, cookie_2)
+        assert_ne!(cookie, cookie_2);
     }
 
     #[test]
@@ -150,7 +154,7 @@ mod tests {
         //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
         //remote_address: [::]:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [99, 119, 230, 177, 20, 220, 163, 187]
 
-        assert_ne!(cookie, cookie_2)
+        assert_ne!(cookie, cookie_2);
     }
 
     #[test]
@@ -168,7 +172,7 @@ mod tests {
         //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
         //remote_address: 0.0.0.0:1, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [38, 8, 0, 102, 92, 170, 220, 11]
 
-        assert_ne!(cookie, cookie_2)
+        assert_ne!(cookie, cookie_2);
     }
 
     #[test]
@@ -186,51 +190,51 @@ mod tests {
         //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 0ns, amount: 0 }, cookie: [151, 130, 30, 157, 190, 41, 179, 135]
         //remote_address: 0.0.0.0:0, time_extent: TimeExtent { increment: 18446744073709551615.999999999s, amount: 18446744073709551615 }, cookie: [87, 111, 109, 125, 182, 206, 3, 201]
 
-        assert_ne!(cookie, cookie_2)
+        assert_ne!(cookie, cookie_2);
     }
 
     #[test]
     fn it_should_make_different_cookies_for_the_next_time_extent() {
         let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
-        let cookie = make_connection_cookie(&remote_address);
+        let cookie = make(&remote_address);
 
         Stopped::local_add(&COOKIE_LIFETIME.increment).unwrap();
 
-        let cookie_next = make_connection_cookie(&remote_address);
+        let cookie_next = make(&remote_address);
 
-        assert_ne!(cookie, cookie_next)
+        assert_ne!(cookie, cookie_next);
     }
 
     #[test]
     fn it_should_be_valid_for_this_time_extent() {
         let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
-        let cookie = make_connection_cookie(&remote_address);
+        let cookie = make(&remote_address);
 
-        check_connection_cookie(&remote_address, &cookie).unwrap();
+        check(&remote_address, &cookie).unwrap();
     }
 
     #[test]
     fn it_should_be_valid_for_the_next_time_extent() {
         let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
-        let cookie = make_connection_cookie(&remote_address);
+        let cookie = make(&remote_address);
 
         Stopped::local_add(&COOKIE_LIFETIME.increment).unwrap();
 
-        check_connection_cookie(&remote_address, &cookie).unwrap();
+        check(&remote_address, &cookie).unwrap();
     }
 
     #[test]
     fn it_should_be_valid_for_the_last_time_extent() {
         let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
-        let cookie = make_connection_cookie(&remote_address);
+        let cookie = make(&remote_address);
 
         Stopped::local_set(&COOKIE_LIFETIME.total().unwrap().unwrap());
 
-        check_connection_cookie(&remote_address, &cookie).unwrap();
+        check(&remote_address, &cookie).unwrap();
     }
 
     #[test]
@@ -238,10 +242,10 @@ mod tests {
     fn it_should_be_not_valid_after_their_last_time_extent() {
         let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
-        let cookie = make_connection_cookie(&remote_address);
+        let cookie = make(&remote_address);
 
         Stopped::local_set(&COOKIE_LIFETIME.total_next().unwrap().unwrap());
 
-        check_connection_cookie(&remote_address, &cookie).unwrap();
+        check(&remote_address, &cookie).unwrap();
     }
 }
