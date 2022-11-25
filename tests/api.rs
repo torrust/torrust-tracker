@@ -105,14 +105,14 @@ mod tracker_api {
             },
             TorrentPeerResource {
                 peer_id: PeerIdResource {
-                    id: "2d71423030303030303030303030303030303030".to_string(),
-                    client: "qBittorrent".to_string(),
+                    id: Some("2d71423030303030303030303030303030303030".to_string()),
+                    client: Some("qBittorrent".to_string()),
                 },
                 peer_addr: "126.0.0.1:8080".to_string(),
-                updated: 1669397478934000i64,
-                uploaded: 0i64,
-                downloaded: 0i64,
-                left: 0i64,
+                updated: 1669397478934000,
+                uploaded: 0,
+                downloaded: 0,
+                left: 0,
                 event: "Started".to_string(),
             },
         )
@@ -153,9 +153,10 @@ mod tracker_api {
             torrent_resource,
             TorrentResource {
                 info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
+                seeders: 1,
                 completed: 0,
                 leechers: 0,
-                peers: vec![peer_resource]
+                peers: Some(vec![peer_resource])
             }
         );
     }
