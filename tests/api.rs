@@ -8,22 +8,22 @@ mod common;
 mod tracker_api {
     use core::panic;
     use std::env;
+    use std::str::FromStr;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
 
     use tokio::task::JoinHandle;
-    use tokio::time::{sleep, Duration};
     use torrust_tracker::api::resources::auth_key_resource::AuthKeyResource;
     use torrust_tracker::jobs::tracker_api;
     use torrust_tracker::tracker::key::AuthKey;
     use torrust_tracker::tracker::statistics::StatsTracker;
     use torrust_tracker::tracker::TorrentTracker;
-    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration, InfoHash};
 
     use crate::common::ephemeral_random_port;
 
     #[tokio::test]
-    async fn should_generate_a_new_auth_key() {
+    async fn should_allow_generating_a_new_auth_key() {
         let configuration = tracker_configuration();
         let api_server = new_running_api_server(configuration.clone()).await;
 
@@ -44,15 +44,60 @@ mod tracker_api {
             .is_ok());
     }
 
+    #[tokio::test]
+    async fn should_allow_whitelisting_a_torrent() {
+        let configuration = tracker_configuration();
+        let api_server = new_running_api_server(configuration.clone()).await;
+
+        let bind_address = api_server.bind_address.unwrap().clone();
+        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
+        let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+
+        let url = format!("http://{}/api/whitelist/{}?token={}", &bind_address, &info_hash, &api_token);
+
+        let res = reqwest::Client::new().post(url.clone()).send().await.unwrap();
+
+        assert_eq!(res.status(), 200);
+        assert!(
+            api_server
+                .tracker
+                .unwrap()
+                .is_info_hash_whitelisted(&InfoHash::from_str(&info_hash).unwrap())
+                .await
+        );
+    }
+
+    #[tokio::test]
+    async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted() {
+        let configuration = tracker_configuration();
+        let api_server = new_running_api_server(configuration.clone()).await;
+
+        let bind_address = api_server.bind_address.unwrap().clone();
+        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
+        let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+
+        let url = format!("http://{}/api/whitelist/{}?token={}", &bind_address, &info_hash, &api_token);
+
+        // First whitelist request
+        let res = reqwest::Client::new().post(url.clone()).send().await.unwrap();
+        assert_eq!(res.status(), 200);
+
+        // Second whitelist request
+        let res = reqwest::Client::new().post(url.clone()).send().await.unwrap();
+        assert_eq!(res.status(), 200);
+    }
+
     fn tracker_configuration() -> Arc<Configuration> {
         let mut config = Configuration::default();
         config.log_level = Some("off".to_owned());
 
-        config.http_api.bind_address = format!("127.0.0.1:{}", ephemeral_random_port());
+        // Ephemeral socket address
+        let port = ephemeral_random_port();
+        config.http_api.bind_address = format!("127.0.0.1:{}", &port);
 
-        // Temp database
+        // Ephemeral database
         let temp_directory = env::temp_dir();
-        let temp_file = temp_directory.join("data.db");
+        let temp_file = temp_directory.join(format!("data_{}.db", &port));
         config.db_path = temp_file.to_str().unwrap().to_owned();
 
         Arc::new(config)
@@ -107,12 +152,9 @@ mod tracker_api {
                 logging::setup_logging(&configuration);
 
                 // Start the HTTP API job
-                self.job = Some(tracker_api::start_job(&configuration, tracker.clone()));
+                self.job = Some(tracker_api::start_job(&configuration, tracker).await);
 
                 self.started.store(true, Ordering::Relaxed);
-
-                // Wait to give time to the API server to be ready to accept requests
-                sleep(Duration::from_millis(100)).await;
             }
         }
     }

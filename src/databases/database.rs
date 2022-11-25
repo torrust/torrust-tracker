@@ -53,6 +53,17 @@ pub trait Database: Sync + Send {
     async fn add_key_to_keys(&self, auth_key: &AuthKey) -> Result<usize, Error>;
 
     async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error>;
+
+    async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> Result<bool, Error> {
+        if let Err(e) = self.get_info_hash_from_whitelist(&info_hash.to_owned().to_string()).await {
+            if let Error::QueryReturnedNoRows = e {
+                return Ok(false);
+            } else {
+                return Err(e);
+            }
+        }
+        Ok(true)
+    }
 }
 
 #[derive(Debug, Display, PartialEq, Eq, Error)]

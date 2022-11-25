@@ -49,7 +49,7 @@ pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<
 
     // Start HTTP API server
     if config.http_api.enabled {
-        jobs.push(tracker_api::start_job(config, tracker.clone()));
+        jobs.push(tracker_api::start_job(config, tracker.clone()).await);
     }
 
     // Remove torrents without peers, every interval

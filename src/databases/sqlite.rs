@@ -137,13 +137,15 @@ impl Database for SqliteDatabase {
         let mut stmt = conn.prepare("SELECT info_hash FROM whitelist WHERE info_hash = ?")?;
         let mut rows = stmt.query([info_hash])?;
 
-        if let Some(row) = rows.next()? {
-            let info_hash: String = row.get(0).unwrap();
-
-            // should never be able to fail
-            Ok(InfoHash::from_str(&info_hash).unwrap())
-        } else {
-            Err(database::Error::InvalidQuery)
+        match rows.next() {
+            Ok(row) => match row {
+                Some(row) => Ok(InfoHash::from_str(&row.get_unwrap::<_, String>(0)).unwrap()),
+                None => Err(database::Error::QueryReturnedNoRows),
+            },
+            Err(e) => {
+                debug!("{:?}", e);
+                Err(database::Error::InvalidQuery)
+            }
         }
     }
 

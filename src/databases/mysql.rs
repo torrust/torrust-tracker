@@ -141,10 +141,10 @@ impl Database for MysqlDatabase {
                 "SELECT info_hash FROM whitelist WHERE info_hash = :info_hash",
                 params! { info_hash },
             )
-            .map_err(|_| database::Error::QueryReturnedNoRows)?
+            .map_err(|_| database::Error::DatabaseError)?
         {
             Some(info_hash) => Ok(InfoHash::from_str(&info_hash).unwrap()),
-            None => Err(database::Error::InvalidQuery),
+            None => Err(database::Error::QueryReturnedNoRows),
         }
     }
 
