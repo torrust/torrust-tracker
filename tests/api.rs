@@ -152,16 +152,9 @@ mod tracker_api {
                 logging::setup_logging(&configuration);
 
                 // Start the HTTP API job
-                let (join_handle, api_receiver) = tracker_api::start_job(&configuration, tracker.clone());
-                self.job = Some(join_handle);
+                self.job = Some(tracker_api::start_job(&configuration, tracker).await);
 
                 self.started.store(true, Ordering::Relaxed);
-
-                // Wait until the API is ready
-                match api_receiver.await {
-                    Ok(msg) => println!("Message received from API server: {:?}", msg),
-                    Err(_) => panic!("the api server dropped"),
-                }
             }
         }
     }

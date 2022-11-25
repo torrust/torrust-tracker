@@ -5,11 +5,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
-use tokio::sync::oneshot::Sender;
 use warp::{filters, reply, serve, Filter};
 
 use super::resources::auth_key_resource::AuthKeyResource;
-use crate::jobs::tracker_api::ApiReady;
 use crate::peer::TorrentPeer;
 use crate::protocol::common::*;
 use crate::tracker::TorrentTracker;
@@ -90,11 +88,7 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
         .untuple_one()
 }
 
-pub fn start(
-    socket_addr: SocketAddr,
-    tracker: Arc<TorrentTracker>,
-    messenger_to_initiator: Sender<ApiReady>,
-) -> impl warp::Future<Output = ()> {
+pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp::Future<Output = ()> {
     // GET /api/torrents?offset=:u32&limit=:u32
     // View torrent list
     let api_torrents = tracker.clone();
@@ -348,11 +342,6 @@ pub fn start(
     );
 
     let server = api_routes.and(authenticate(tracker.config.http_api.access_tokens.clone()));
-
-    // Send a message to the initiator to notify the API is ready to accept requests
-    if messenger_to_initiator.send(ApiReady()).is_err() {
-        panic!("the receiver dropped");
-    }
 
     let (_addr, api_server) = serve(server).bind_with_graceful_shutdown(socket_addr, async move {
         tokio::signal::ctrl_c().await.expect("Failed to listen to shutdown signal.");
