@@ -11,6 +11,9 @@ use crate::tracker;
 #[derive(Debug)]
 pub struct ApiServerJobStarted();
 
+/// # Panics
+///
+/// It would panic if unable to send the  `ApiServerJobStarted` notice.
 pub async fn start_job(config: &Configuration, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
     let bind_addr = config
         .http_api
@@ -26,7 +29,7 @@ pub async fn start_job(config: &Configuration, tracker: Arc<tracker::Tracker>) -
     let join_handle = tokio::spawn(async move {
         let handel = server::start(bind_addr, &tracker);
 
-        assert!(tx.send(ApiServerJobStarted()).is_ok(), "the start job dropped");
+        tx.send(ApiServerJobStarted()).expect("the start job dropped");
 
         handel.await;
     });
@@ -34,7 +37,7 @@ pub async fn start_job(config: &Configuration, tracker: Arc<tracker::Tracker>) -
     // Wait until the API server job is running
     match rx.await {
         Ok(_msg) => info!("Torrust API server started"),
-        Err(_) => panic!("the api server dropped"),
+        Err(e) => panic!("the api server dropped: {e}"),
     }
 
     join_handle
