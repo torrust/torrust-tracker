@@ -5,14 +5,14 @@ use tokio::task::JoinHandle;
 
 use crate::config::UdpTracker;
 use crate::tracker;
-use crate::udp::server::UdpServer;
+use crate::udp::server::Udp;
 
 #[must_use]
 pub fn start_job(config: &UdpTracker, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
     let bind_addr = config.bind_address.clone();
 
     tokio::spawn(async move {
-        match UdpServer::new(tracker, &bind_addr).await {
+        match Udp::new(tracker, &bind_addr).await {
             Ok(udp_server) => {
                 info!("Starting UDP server on: {}", bind_addr);
                 udp_server.start().await;
