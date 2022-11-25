@@ -48,12 +48,12 @@ pub mod keys {
 
             #[test]
             fn the_default_seed_and_the_zeroed_seed_should_be_the_same_when_testing() {
-                assert_eq!(DefaultSeed::get_seed(), ZeroedTestSeed::get_seed())
+                assert_eq!(DefaultSeed::get_seed(), ZeroedTestSeed::get_seed());
             }
 
             #[test]
             fn the_default_seed_and_the_instance_seed_should_be_different_when_testing() {
-                assert_ne!(DefaultSeed::get_seed(), InstanceSeed::get_seed())
+                assert_ne!(DefaultSeed::get_seed(), InstanceSeed::get_seed());
             }
         }
 
@@ -79,12 +79,12 @@ pub mod keys {
 
                 #[test]
                 fn it_should_have_a_zero_test_seed() {
-                    assert_eq!(*ZEROED_TEST_SEED, [0u8; 32])
+                    assert_eq!(*ZEROED_TEST_SEED, [0u8; 32]);
                 }
 
                 #[test]
                 fn it_should_default_to_zeroed_seed_when_testing() {
-                    assert_eq!(*DEFAULT_SEED, *ZEROED_TEST_SEED)
+                    assert_eq!(*DEFAULT_SEED, *ZEROED_TEST_SEED);
                 }
 
                 #[test]
