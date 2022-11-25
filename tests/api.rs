@@ -24,7 +24,7 @@ mod tracker_api {
     use crate::common::ephemeral_random_port;
 
     #[tokio::test]
-    async fn should_generate_a_new_auth_key() {
+    async fn should_allow_generating_a_new_auth_key() {
         let configuration = tracker_configuration();
         let api_server = new_running_api_server(configuration.clone()).await;
 
@@ -46,7 +46,7 @@ mod tracker_api {
     }
 
     #[tokio::test]
-    async fn should_whitelist_a_torrent() {
+    async fn should_allow_whitelisting_a_torrent() {
         let configuration = tracker_configuration();
         let api_server = new_running_api_server(configuration.clone()).await;
 
@@ -69,7 +69,7 @@ mod tracker_api {
     }
 
     #[tokio::test]
-    async fn should_whitelist_a_torrent_that_has_been_already_whitelisted() {
+    async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted() {
         let configuration = tracker_configuration();
         let api_server = new_running_api_server(configuration.clone()).await;
 
