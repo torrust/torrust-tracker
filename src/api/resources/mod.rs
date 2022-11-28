@@ -7,4 +7,5 @@
 //! - [ ] StatsResource
 //! - [ ] ...
 pub mod auth_key_resource;
+pub mod stats_resource;
 pub mod torrent_resource;

@@ -16,6 +16,7 @@ mod tracker_api {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use tokio::task::JoinHandle;
     use torrust_tracker::api::resources::auth_key_resource::AuthKeyResource;
+    use torrust_tracker::api::resources::stats_resource::StatsResource;
     use torrust_tracker::api::resources::torrent_resource::{TorrentPeerResource, TorrentResource};
     use torrust_tracker::jobs::tracker_api;
     use torrust_tracker::peer::TorrentPeer;
@@ -118,7 +119,7 @@ mod tracker_api {
 
         let (peer, peer_resource) = sample_torrent_peer();
 
-        // Add the torrent to the tracker
+        // Add a torrent to the tracker
         api_server
             .tracker
             .unwrap()
@@ -161,7 +162,7 @@ mod tracker_api {
 
         let (peer, _peer_resource) = sample_torrent_peer();
 
-        // Add the torrent to the tracker
+        // Add a torrent to the tracker
         api_server
             .tracker
             .unwrap()
@@ -190,6 +191,60 @@ mod tracker_api {
                 leechers: 0,
                 peers: None // Torrent list does not include peer list
             }]
+        );
+    }
+
+    #[tokio::test]
+    async fn should_allow_getting_tracker_statistics() {
+        let configuration = tracker_configuration();
+        let api_server = new_running_api_server(configuration.clone()).await;
+
+        let bind_address = api_server.bind_address.unwrap().clone();
+        let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
+        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
+
+        let (peer, _peer_resource) = sample_torrent_peer();
+
+        // Add a torrent to the tracker
+        api_server
+            .tracker
+            .unwrap()
+            .update_torrent_with_peer_and_get_stats(&info_hash, &peer)
+            .await;
+
+        let url = format!("http://{}/api/stats?token={}", &bind_address, &api_token);
+
+        let stats = reqwest::Client::builder()
+            .build()
+            .unwrap()
+            .get(url)
+            .send()
+            .await
+            .unwrap()
+            .json::<StatsResource>()
+            .await
+            .unwrap();
+
+        assert_eq!(
+            stats,
+            StatsResource {
+                torrents: 1,
+                seeders: 1,
+                completed: 0,
+                leechers: 0,
+                tcp4_connections_handled: 0,
+                tcp4_announces_handled: 0,
+                tcp4_scrapes_handled: 0,
+                tcp6_connections_handled: 0,
+                tcp6_announces_handled: 0,
+                tcp6_scrapes_handled: 0,
+                udp4_connections_handled: 0,
+                udp4_announces_handled: 0,
+                udp4_scrapes_handled: 0,
+                udp6_connections_handled: 0,
+                udp6_announces_handled: 0,
+                udp6_scrapes_handled: 0,
+            }
         );
     }
 
