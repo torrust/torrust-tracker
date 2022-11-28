@@ -8,8 +8,7 @@ use warp::http::Response;
 use warp::{reject, Rejection, Reply};
 
 use super::error::Error;
-use super::response::{self, Peer, ScrapeEntry};
-use super::{request, WebResult};
+use super::{request, response, WebResult};
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::{self, auth, peer, statistics, torrent};
 
@@ -89,7 +88,7 @@ pub async fn handle_scrape(
     auth_key: Option<auth::Key>,
     tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
-    let mut files: HashMap<InfoHash, ScrapeEntry> = HashMap::new();
+    let mut files: HashMap<InfoHash, response::ScrapeEntry> = HashMap::new();
     let db = tracker.get_torrents().await;
 
     for info_hash in &scrape_request.info_hashes {
@@ -97,20 +96,20 @@ pub async fn handle_scrape(
             Some(torrent_info) => {
                 if authenticate(info_hash, &auth_key, tracker.clone()).await.is_ok() {
                     let (seeders, completed, leechers) = torrent_info.get_stats();
-                    ScrapeEntry {
+                    response::ScrapeEntry {
                         complete: seeders,
                         downloaded: completed,
                         incomplete: leechers,
                     }
                 } else {
-                    ScrapeEntry {
+                    response::ScrapeEntry {
                         complete: 0,
                         downloaded: 0,
                         incomplete: 0,
                     }
                 }
             }
-            None => ScrapeEntry {
+            None => response::ScrapeEntry {
                 complete: 0,
                 downloaded: 0,
                 incomplete: 0,
@@ -142,9 +141,9 @@ fn send_announce_response(
     interval: u32,
     interval_min: u32,
 ) -> WebResult<impl Reply> {
-    let http_peers: Vec<Peer> = peers
+    let http_peers: Vec<response::Peer> = peers
         .iter()
-        .map(|peer| Peer {
+        .map(|peer| response::Peer {
             peer_id: peer.peer_id.to_string(),
             ip: peer.peer_addr.ip(),
             port: peer.peer_addr.port(),
@@ -171,7 +170,7 @@ fn send_announce_response(
 }
 
 /// Send scrape response
-fn send_scrape_response(files: HashMap<InfoHash, ScrapeEntry>) -> WebResult<impl Reply> {
+fn send_scrape_response(files: HashMap<InfoHash, response::ScrapeEntry>) -> WebResult<impl Reply> {
     let res = response::Scrape { files };
 
     match res.write() {

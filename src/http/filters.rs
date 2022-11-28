@@ -6,8 +6,7 @@ use std::sync::Arc;
 use warp::{reject, Filter, Rejection};
 
 use super::error::Error;
-use super::request::{Announce, AnnounceQuery, Scrape};
-use super::WebResult;
+use super::{request, WebResult};
 use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::{self, auth, peer};
@@ -51,10 +50,10 @@ pub fn with_peer_addr(on_reverse_proxy: bool) -> impl Filter<Extract = (IpAddr,)
         .and_then(|q| async move { peer_addr(q) })
 }
 
-/// Check for `AnnounceRequest`
+/// Check for `request::Announce`
 #[must_use]
-pub fn with_announce_request(on_reverse_proxy: bool) -> impl Filter<Extract = (Announce,), Error = Rejection> + Clone {
-    warp::filters::query::query::<AnnounceQuery>()
+pub fn with_announce_request(on_reverse_proxy: bool) -> impl Filter<Extract = (request::Announce,), Error = Rejection> + Clone {
+    warp::filters::query::query::<request::AnnounceQuery>()
         .and(with_info_hash())
         .and(with_peer_id())
         .and(with_peer_addr(on_reverse_proxy))
@@ -63,7 +62,7 @@ pub fn with_announce_request(on_reverse_proxy: bool) -> impl Filter<Extract = (A
 
 /// Check for `ScrapeRequest`
 #[must_use]
-pub fn with_scrape_request(on_reverse_proxy: bool) -> impl Filter<Extract = (Scrape,), Error = Rejection> + Clone {
+pub fn with_scrape_request(on_reverse_proxy: bool) -> impl Filter<Extract = (request::Scrape,), Error = Rejection> + Clone {
     warp::any()
         .and(with_info_hash())
         .and(with_peer_addr(on_reverse_proxy))
@@ -162,12 +161,12 @@ fn peer_addr((on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<Soc
 #[allow(clippy::unnecessary_wraps)]
 #[allow(clippy::ptr_arg)]
 fn announce_request(
-    announce_request_query: AnnounceQuery,
+    announce_request_query: request::AnnounceQuery,
     info_hashes: &Vec<InfoHash>,
     peer_id: peer::Id,
     peer_addr: IpAddr,
-) -> WebResult<Announce> {
-    Ok(Announce {
+) -> WebResult<request::Announce> {
+    Ok(request::Announce {
         info_hash: info_hashes[0],
         peer_addr,
         downloaded: announce_request_query.downloaded.unwrap_or(0),
@@ -182,6 +181,6 @@ fn announce_request(
 
 /// Parse `ScrapeRequest` from `InfoHash`
 #[allow(clippy::unnecessary_wraps)]
-fn scrape_request(info_hashes: Vec<InfoHash>, peer_addr: IpAddr) -> WebResult<Scrape> {
-    Ok(Scrape { info_hashes, peer_addr })
+fn scrape_request(info_hashes: Vec<InfoHash>, peer_addr: IpAddr) -> WebResult<request::Scrape> {
+    Ok(request::Scrape { info_hashes, peer_addr })
 }
