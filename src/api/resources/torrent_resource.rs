@@ -14,6 +14,16 @@ pub struct TorrentResource {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct TorrentListItemResource {
+    pub info_hash: String,
+    pub seeders: u32,
+    pub completed: u32,
+    pub leechers: u32,
+    // todo: this is always None. Remove field from endpoint?
+    pub peers: Option<Vec<TorrentPeerResource>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct TorrentPeerResource {
     pub peer_id: PeerIdResource,
     pub peer_addr: String,

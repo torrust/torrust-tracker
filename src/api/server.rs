@@ -8,8 +8,7 @@ use serde::{Deserialize, Serialize};
 use warp::{filters, reply, serve, Filter};
 
 use super::resources::auth_key_resource::AuthKeyResource;
-use super::resources::torrent_resource::{TorrentPeerResource, TorrentResource};
-use crate::peer::TorrentPeer;
+use super::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
 use crate::protocol::common::*;
 use crate::tracker::TorrentTracker;
 
@@ -17,16 +16,6 @@ use crate::tracker::TorrentTracker;
 struct TorrentInfoQuery {
     offset: Option<u32>,
     limit: Option<u32>,
-}
-
-#[derive(Serialize)]
-struct Torrent<'a> {
-    info_hash: &'a InfoHash,
-    seeders: u32,
-    completed: u32,
-    leechers: u32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    peers: Option<Vec<&'a TorrentPeer>>,
 }
 
 #[derive(Serialize)]
@@ -110,9 +99,8 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
                 .iter()
                 .map(|(info_hash, torrent_entry)| {
                     let (seeders, completed, leechers) = torrent_entry.get_stats();
-                    // todo: use TorrentResource
-                    Torrent {
-                        info_hash,
+                    TorrentListItemResource {
+                        info_hash: info_hash.to_string(),
                         seeders,
                         completed,
                         leechers,
