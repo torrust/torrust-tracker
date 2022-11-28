@@ -16,15 +16,15 @@ mod tracker_api {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use reqwest::Response;
     use tokio::task::JoinHandle;
-    use torrust_tracker::api::resources::auth_key_resource::AuthKeyResource;
+    use torrust_tracker::api::resources::auth_key_resource::AuthKey;
     use torrust_tracker::api::resources::stats_resource::StatsResource;
     use torrust_tracker::api::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
     use torrust_tracker::config::Configuration;
     use torrust_tracker::jobs::tracker_api;
     use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
-    use torrust_tracker::protocol::common::{InfoHash, PeerId};
+    use torrust_tracker::protocol::info_hash::InfoHash;
     use torrust_tracker::tracker::key::Auth;
-    use torrust_tracker::tracker::peer::TorrentPeer;
+    use torrust_tracker::tracker::peer::{self, TorrentPeer};
     use torrust_tracker::tracker::statistics::Keeper;
     use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
@@ -189,7 +189,7 @@ mod tracker_api {
 
     fn sample_torrent_peer() -> (TorrentPeer, TorrentPeerResource) {
         let torrent_peer = TorrentPeer {
-            peer_id: PeerId(*b"-qB00000000000000000"),
+            peer_id: peer::Id(*b"-qB00000000000000000"),
             peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
             updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
             uploaded: NumberOfBytes(0),
@@ -310,7 +310,7 @@ mod tracker_api {
             Self { connection_info }
         }
 
-        pub async fn generate_auth_key(&self, seconds_valid: i32) -> AuthKeyResource {
+        pub async fn generate_auth_key(&self, seconds_valid: i32) -> AuthKey {
             let url = format!(
                 "http://{}/api/key/{}?token={}",
                 &self.connection_info.bind_address, &seconds_valid, &self.connection_info.api_token

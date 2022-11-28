@@ -41,7 +41,7 @@ pub struct HttpApi {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
     pub log_level: Option<String>,
-    pub mode: mode::Tracker,
+    pub mode: mode::Mode,
     pub db_driver: Drivers,
     pub db_path: String,
     pub announce_interval: u32,
@@ -59,7 +59,7 @@ pub struct Configuration {
 }
 
 #[derive(Debug)]
-pub enum ConfigurationError {
+pub enum Error {
     Message(String),
     ConfigError(ConfigError),
     IOError(std::io::Error),
@@ -67,19 +67,19 @@ pub enum ConfigurationError {
     TrackerModeIncompatible,
 }
 
-impl std::fmt::Display for ConfigurationError {
+impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            ConfigurationError::Message(e) => e.fmt(f),
-            ConfigurationError::ConfigError(e) => e.fmt(f),
-            ConfigurationError::IOError(e) => e.fmt(f),
-            ConfigurationError::ParseError(e) => e.fmt(f),
-            ConfigurationError::TrackerModeIncompatible => write!(f, "{:?}", self),
+            Error::Message(e) => e.fmt(f),
+            Error::ConfigError(e) => e.fmt(f),
+            Error::IOError(e) => e.fmt(f),
+            Error::ParseError(e) => e.fmt(f),
+            Error::TrackerModeIncompatible => write!(f, "{:?}", self),
         }
     }
 }
 
-impl std::error::Error for ConfigurationError {}
+impl std::error::Error for Error {}
 
 impl Configuration {
     #[must_use]
@@ -97,7 +97,7 @@ impl Configuration {
     pub fn default() -> Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
-            mode: mode::Tracker::Public,
+            mode: mode::Mode::Public,
             db_driver: Drivers::Sqlite3,
             db_path: String::from("data.db"),
             announce_interval: 120,
@@ -137,7 +137,7 @@ impl Configuration {
     /// # Errors
     ///
     /// Will return `Err` if `path` does not exist or has a bad configuration.
-    pub fn load_from_file(path: &str) -> Result<Configuration, ConfigurationError> {
+    pub fn load_from_file(path: &str) -> Result<Configuration, Error> {
         let config_builder = Config::builder();
 
         #[allow(unused_assignments)]
@@ -147,18 +147,18 @@ impl Configuration {
             config = config_builder
                 .add_source(File::with_name(path))
                 .build()
-                .map_err(ConfigurationError::ConfigError)?;
+                .map_err(Error::ConfigError)?;
         } else {
             eprintln!("No config file found.");
             eprintln!("Creating config file..");
             let config = Configuration::default();
             config.save_to_file(path)?;
-            return Err(ConfigurationError::Message(
+            return Err(Error::Message(
                 "Please edit the config.TOML in the root folder and restart the tracker.".to_string(),
             ));
         }
 
-        let torrust_config: Configuration = config.try_deserialize().map_err(ConfigurationError::ConfigError)?;
+        let torrust_config: Configuration = config.try_deserialize().map_err(Error::ConfigError)?;
 
         Ok(torrust_config)
     }
@@ -167,7 +167,7 @@ impl Configuration {
     ///
     /// Will return `Err` if `filename` does not exist or the user does not have
     /// permission to read it.
-    pub fn save_to_file(&self, path: &str) -> Result<(), ConfigurationError> {
+    pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
         let toml_string = toml::to_string(self).expect("Could not encode TOML value");
         fs::write(path, toml_string).expect("Could not write to file!");
         Ok(())
@@ -176,7 +176,7 @@ impl Configuration {
 
 #[cfg(test)]
 mod tests {
-    use crate::config::{Configuration, ConfigurationError};
+    use crate::config::{Configuration, Error};
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -294,7 +294,7 @@ mod tests {
 
     #[test]
     fn configuration_error_could_be_displayed() {
-        let error = ConfigurationError::TrackerModeIncompatible;
+        let error = Error::TrackerModeIncompatible;
 
         assert_eq!(format!("{}", error), "TrackerModeIncompatible");
     }

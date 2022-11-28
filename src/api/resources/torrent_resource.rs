@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::protocol::common::PeerId;
-use crate::tracker::peer::TorrentPeer;
+use crate::tracker::peer::{self, TorrentPeer};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct TorrentResource {
@@ -42,8 +41,8 @@ pub struct PeerIdResource {
     pub client: Option<String>,
 }
 
-impl From<PeerId> for PeerIdResource {
-    fn from(peer_id: PeerId) -> Self {
+impl From<peer::Id> for PeerIdResource {
+    fn from(peer_id: peer::Id) -> Self {
         PeerIdResource {
             id: peer_id.get_id(),
             client: peer_id.get_client_name().map(std::string::ToString::to_string),

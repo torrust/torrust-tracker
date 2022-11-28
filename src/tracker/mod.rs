@@ -16,12 +16,12 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 use crate::config::Configuration;
 use crate::databases::database;
 use crate::databases::database::Database;
-use crate::protocol::common::InfoHash;
+use crate::protocol::info_hash::InfoHash;
 use crate::tracker::key::Auth;
 
 pub struct Tracker {
     pub config: Arc<Configuration>,
-    mode: mode::Tracker,
+    mode: mode::Mode,
     keys: RwLock<std::collections::HashMap<String, Auth>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
@@ -54,15 +54,15 @@ impl Tracker {
     }
 
     pub fn is_public(&self) -> bool {
-        self.mode == mode::Tracker::Public
+        self.mode == mode::Mode::Public
     }
 
     pub fn is_private(&self) -> bool {
-        self.mode == mode::Tracker::Private || self.mode == mode::Tracker::PrivateListed
+        self.mode == mode::Mode::Private || self.mode == mode::Mode::PrivateListed
     }
 
     pub fn is_whitelisted(&self) -> bool {
-        self.mode == mode::Tracker::Listed || self.mode == mode::Tracker::PrivateListed
+        self.mode == mode::Mode::Listed || self.mode == mode::Mode::PrivateListed
     }
 
     /// # Errors

@@ -1,5 +1,5 @@
 pub mod connection_cookie;
-pub mod errors;
+pub mod error;
 pub mod handlers;
 pub mod request;
 pub mod server;

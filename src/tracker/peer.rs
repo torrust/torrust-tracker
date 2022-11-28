@@ -6,12 +6,12 @@ use serde::Serialize;
 
 use crate::http::request::Announce;
 use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Time};
-use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef, PeerId};
+use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef};
 use crate::protocol::utils::ser_unix_time_value;
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Copy)]
 pub struct TorrentPeer {
-    pub peer_id: PeerId,
+    pub peer_id: Id,
     pub peer_addr: SocketAddr,
     #[serde(serialize_with = "ser_unix_time_value")]
     pub updated: DurationSinceUnixEpoch,
@@ -35,7 +35,7 @@ impl TorrentPeer {
         let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port.0);
 
         TorrentPeer {
-            peer_id: PeerId(announce_request.peer_id.0),
+            peer_id: Id(announce_request.peer_id.0),
             peer_addr,
             updated: Current::now(),
             uploaded: announce_request.bytes_uploaded,
@@ -88,6 +88,133 @@ impl TorrentPeer {
     }
 }
 
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy)]
+pub struct Id(pub [u8; 20]);
+
+impl std::fmt::Display for Id {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut buffer = [0u8; 20];
+        let bytes_out = binascii::bin2hex(&self.0, &mut buffer).ok();
+        match bytes_out {
+            Some(bytes) => write!(f, "{}", std::str::from_utf8(bytes).unwrap()),
+            None => write!(f, ""),
+        }
+    }
+}
+
+impl Id {
+    #[must_use]
+    pub fn get_id(&self) -> Option<String> {
+        let buff_size = self.0.len() * 2;
+        let mut tmp: Vec<u8> = vec![0; buff_size];
+        binascii::bin2hex(&self.0, &mut tmp).unwrap();
+
+        std::str::from_utf8(&tmp).ok().map(std::string::ToString::to_string)
+    }
+
+    #[must_use]
+    pub fn get_client_name(&self) -> Option<&'static str> {
+        if self.0[0] == b'M' {
+            return Some("BitTorrent");
+        }
+        if self.0[0] == b'-' {
+            let name = match &self.0[1..3] {
+                b"AG" | b"A~" => "Ares",
+                b"AR" => "Arctic",
+                b"AV" => "Avicora",
+                b"AX" => "BitPump",
+                b"AZ" => "Azureus",
+                b"BB" => "BitBuddy",
+                b"BC" => "BitComet",
+                b"BF" => "Bitflu",
+                b"BG" => "BTG (uses Rasterbar libtorrent)",
+                b"BR" => "BitRocket",
+                b"BS" => "BTSlave",
+                b"BX" => "~Bittorrent X",
+                b"CD" => "Enhanced CTorrent",
+                b"CT" => "CTorrent",
+                b"DE" => "DelugeTorrent",
+                b"DP" => "Propagate Data Client",
+                b"EB" => "EBit",
+                b"ES" => "electric sheep",
+                b"FT" => "FoxTorrent",
+                b"FW" => "FrostWire",
+                b"FX" => "Freebox BitTorrent",
+                b"GS" => "GSTorrent",
+                b"HL" => "Halite",
+                b"HN" => "Hydranode",
+                b"KG" => "KGet",
+                b"KT" => "KTorrent",
+                b"LH" => "LH-ABC",
+                b"LP" => "Lphant",
+                b"LT" => "libtorrent",
+                b"lt" => "libTorrent",
+                b"LW" => "LimeWire",
+                b"MO" => "MonoTorrent",
+                b"MP" => "MooPolice",
+                b"MR" => "Miro",
+                b"MT" => "MoonlightTorrent",
+                b"NX" => "Net Transport",
+                b"PD" => "Pando",
+                b"qB" => "qBittorrent",
+                b"QD" => "QQDownload",
+                b"QT" => "Qt 4 Torrent example",
+                b"RT" => "Retriever",
+                b"S~" => "Shareaza alpha/beta",
+                b"SB" => "~Swiftbit",
+                b"SS" => "SwarmScope",
+                b"ST" => "SymTorrent",
+                b"st" => "sharktorrent",
+                b"SZ" => "Shareaza",
+                b"TN" => "TorrentDotNET",
+                b"TR" => "Transmission",
+                b"TS" => "Torrentstorm",
+                b"TT" => "TuoTu",
+                b"UL" => "uLeecher!",
+                b"UT" => "µTorrent",
+                b"UW" => "µTorrent Web",
+                b"VG" => "Vagaa",
+                b"WD" => "WebTorrent Desktop",
+                b"WT" => "BitLet",
+                b"WW" => "WebTorrent",
+                b"WY" => "FireTorrent",
+                b"XL" => "Xunlei",
+                b"XT" => "XanTorrent",
+                b"XX" => "Xtorrent",
+                b"ZT" => "ZipTorrent",
+                _ => return None,
+            };
+            Some(name)
+        } else {
+            None
+        }
+    }
+}
+
+impl Serialize for Id {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct PeerIdInfo<'a> {
+            id: Option<String>,
+            client: Option<&'a str>,
+        }
+
+        let buff_size = self.0.len() * 2;
+        let mut tmp: Vec<u8> = vec![0; buff_size];
+        binascii::bin2hex(&self.0, &mut tmp).unwrap();
+        let id = std::str::from_utf8(&tmp).ok();
+
+        let obj = PeerIdInfo {
+            id: self.get_id(),
+            client: self.get_client_name(),
+        };
+        obj.serialize(serializer)
+    }
+}
+
 #[cfg(test)]
 mod test {
     mod torrent_peer {
@@ -97,13 +224,12 @@ mod test {
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
         use crate::protocol::clock::{Current, Time};
-        use crate::protocol::common::PeerId;
-        use crate::tracker::peer::TorrentPeer;
+        use crate::tracker::peer::{self, TorrentPeer};
 
         #[test]
         fn it_should_be_serializable() {
             let torrent_peer = TorrentPeer {
-                peer_id: PeerId(*b"-qB00000000000000000"),
+                peer_id: peer::Id(*b"-qB00000000000000000"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
                 updated: Current::now(),
                 uploaded: NumberOfBytes(0),
@@ -284,8 +410,8 @@ mod test {
         use std::net::{IpAddr, Ipv4Addr};
 
         use crate::http::request::Announce;
-        use crate::protocol::common::{InfoHash, PeerId};
-        use crate::tracker::peer::TorrentPeer;
+        use crate::protocol::info_hash::InfoHash;
+        use crate::tracker::peer::{self, TorrentPeer};
 
         fn sample_http_announce_request(peer_addr: IpAddr, port: u16) -> Announce {
             Announce {
@@ -293,7 +419,7 @@ mod test {
                 peer_addr,
                 downloaded: 0u64,
                 uploaded: 0u64,
-                peer_id: PeerId(*b"-qB00000000000000000"),
+                peer_id: peer::Id(*b"-qB00000000000000000"),
                 port,
                 left: 0u64,
                 event: None,

@@ -7,11 +7,10 @@ use log::debug;
 use warp::http::Response;
 use warp::{reject, Rejection, Reply};
 
-use super::errors::ServerError;
-use super::response::{self, Peer, ScrapeResponseEntry};
+use super::error::Error;
+use super::response::{self, Peer, ScrapeEntry};
 use super::{request, WebResult};
-use crate::http::response::Error;
-use crate::protocol::common::InfoHash;
+use crate::protocol::info_hash::InfoHash;
 use crate::tracker::key::Auth;
 use crate::tracker::{self, peer, statistics, torrent};
 
@@ -20,18 +19,14 @@ use crate::tracker::{self, peer, statistics, torrent};
 /// # Errors
 ///
 /// Will return `ServerError` that wraps the `Error` if unable to `authenticate_request`.
-pub async fn authenticate(
-    info_hash: &InfoHash,
-    auth_key: &Option<Auth>,
-    tracker: Arc<tracker::Tracker>,
-) -> Result<(), ServerError> {
+pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<Auth>, tracker: Arc<tracker::Tracker>) -> Result<(), Error> {
     tracker.authenticate_request(info_hash, auth_key).await.map_err(|e| match e {
-        torrent::Error::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
-        torrent::Error::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
-        torrent::Error::PeerKeyNotValid => ServerError::PeerKeyNotValid,
-        torrent::Error::NoPeersFound => ServerError::NoPeersFound,
-        torrent::Error::CouldNotSendResponse => ServerError::InternalServerError,
-        torrent::Error::InvalidInfoHash => ServerError::InvalidInfoHash,
+        torrent::Error::TorrentNotWhitelisted => Error::TorrentNotWhitelisted,
+        torrent::Error::PeerNotAuthenticated => Error::PeerNotAuthenticated,
+        torrent::Error::PeerKeyNotValid => Error::PeerKeyNotValid,
+        torrent::Error::NoPeersFound => Error::NoPeersFound,
+        torrent::Error::CouldNotSendResponse => Error::InternalServer,
+        torrent::Error::InvalidInfoHash => Error::InvalidInfo,
     })
 }
 
@@ -91,7 +86,7 @@ pub async fn handle_scrape(
     auth_key: Option<Auth>,
     tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
-    let mut files: HashMap<InfoHash, ScrapeResponseEntry> = HashMap::new();
+    let mut files: HashMap<InfoHash, ScrapeEntry> = HashMap::new();
     let db = tracker.get_torrents().await;
 
     for info_hash in &scrape_request.info_hashes {
@@ -99,20 +94,20 @@ pub async fn handle_scrape(
             Some(torrent_info) => {
                 if authenticate(info_hash, &auth_key, tracker.clone()).await.is_ok() {
                     let (seeders, completed, leechers) = torrent_info.get_stats();
-                    ScrapeResponseEntry {
+                    ScrapeEntry {
                         complete: seeders,
                         downloaded: completed,
                         incomplete: leechers,
                     }
                 } else {
-                    ScrapeResponseEntry {
+                    ScrapeEntry {
                         complete: 0,
                         downloaded: 0,
                         incomplete: 0,
                     }
                 }
             }
-            None => ScrapeResponseEntry {
+            None => ScrapeEntry {
                 complete: 0,
                 downloaded: 0,
                 incomplete: 0,
@@ -165,7 +160,7 @@ fn send_announce_response(
     if let Some(1) = announce_request.compact {
         match res.write_compact() {
             Ok(body) => Ok(Response::new(body)),
-            Err(_) => Err(reject::custom(ServerError::InternalServerError)),
+            Err(_) => Err(reject::custom(Error::InternalServer)),
         }
     } else {
         Ok(Response::new(res.write().into()))
@@ -173,12 +168,12 @@ fn send_announce_response(
 }
 
 /// Send scrape response
-fn send_scrape_response(files: HashMap<InfoHash, ScrapeResponseEntry>) -> WebResult<impl Reply> {
+fn send_scrape_response(files: HashMap<InfoHash, ScrapeEntry>) -> WebResult<impl Reply> {
     let res = response::Scrape { files };
 
     match res.write() {
         Ok(body) => Ok(Response::new(body)),
-        Err(_) => Err(reject::custom(ServerError::InternalServerError)),
+        Err(_) => Err(reject::custom(Error::InternalServer)),
     }
 }
 
@@ -188,15 +183,15 @@ fn send_scrape_response(files: HashMap<InfoHash, ScrapeResponseEntry>) -> WebRes
 ///
 /// Will not return a error, `Infallible`, but instead  convert the `ServerError` into a `Response`.
 pub fn send_error(r: &Rejection) -> std::result::Result<impl Reply, Infallible> {
-    let body = if let Some(server_error) = r.find::<ServerError>() {
+    let body = if let Some(server_error) = r.find::<Error>() {
         debug!("{:?}", server_error);
-        Error {
+        response::Error {
             failure_reason: server_error.to_string(),
         }
         .write()
     } else {
-        Error {
-            failure_reason: ServerError::InternalServerError.to_string(),
+        response::Error {
+            failure_reason: Error::InternalServer.to_string(),
         }
         .write()
     };

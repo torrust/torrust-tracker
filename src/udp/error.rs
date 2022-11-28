@@ -3,9 +3,9 @@ use thiserror::Error;
 use crate::tracker::torrent;
 
 #[derive(Error, Debug)]
-pub enum ServerError {
+pub enum Error {
     #[error("internal server error")]
-    InternalServerError,
+    InternalServer,
 
     #[error("info_hash is either missing or invalid")]
     InvalidInfoHash,
@@ -35,15 +35,15 @@ pub enum ServerError {
     BadRequest,
 }
 
-impl From<torrent::Error> for ServerError {
+impl From<torrent::Error> for Error {
     fn from(e: torrent::Error) -> Self {
         match e {
-            torrent::Error::TorrentNotWhitelisted => ServerError::TorrentNotWhitelisted,
-            torrent::Error::PeerNotAuthenticated => ServerError::PeerNotAuthenticated,
-            torrent::Error::PeerKeyNotValid => ServerError::PeerKeyNotValid,
-            torrent::Error::NoPeersFound => ServerError::NoPeersFound,
-            torrent::Error::CouldNotSendResponse => ServerError::InternalServerError,
-            torrent::Error::InvalidInfoHash => ServerError::InvalidInfoHash,
+            torrent::Error::TorrentNotWhitelisted => Error::TorrentNotWhitelisted,
+            torrent::Error::PeerNotAuthenticated => Error::PeerNotAuthenticated,
+            torrent::Error::PeerKeyNotValid => Error::PeerKeyNotValid,
+            torrent::Error::NoPeersFound => Error::NoPeersFound,
+            torrent::Error::CouldNotSendResponse => Error::InternalServer,
+            torrent::Error::InvalidInfoHash => Error::InvalidInfoHash,
         }
     }
 }

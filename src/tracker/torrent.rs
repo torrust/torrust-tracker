@@ -6,12 +6,12 @@ use serde::{Deserialize, Serialize};
 
 use super::peer;
 use crate::protocol::clock::{Current, TimeNow};
-use crate::protocol::common::{PeerId, MAX_SCRAPE_TORRENTS};
+use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Entry {
     #[serde(skip)]
-    pub peers: std::collections::BTreeMap<PeerId, peer::TorrentPeer>,
+    pub peers: std::collections::BTreeMap<peer::Id, peer::TorrentPeer>,
     pub completed: u32,
 }
 
@@ -118,7 +118,6 @@ mod tests {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
     use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Stopped, StoppedTime, Time, Working};
-    use crate::protocol::common::PeerId;
     use crate::tracker::peer;
     use crate::tracker::torrent::Entry;
 
@@ -129,7 +128,7 @@ mod tests {
     impl TorrentPeerBuilder {
         pub fn default() -> TorrentPeerBuilder {
             let default_peer = peer::TorrentPeer {
-                peer_id: PeerId([0u8; 20]),
+                peer_id: peer::Id([0u8; 20]),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
                 updated: Current::now(),
                 uploaded: NumberOfBytes(0),
@@ -150,7 +149,7 @@ mod tests {
             self
         }
 
-        pub fn with_peer_id(mut self, peer_id: PeerId) -> Self {
+        pub fn with_peer_id(mut self, peer_id: peer::Id) -> Self {
             self.peer.peer_id = peer_id;
             self
         }
@@ -278,9 +277,9 @@ mod tests {
         assert_eq!(peers.len(), 0);
     }
 
-    fn peer_id_from_i32(number: i32) -> PeerId {
+    fn peer_id_from_i32(number: i32) -> peer::Id {
         let peer_id = number.to_le_bytes();
-        PeerId([
+        peer::Id([
             0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, peer_id[0], peer_id[1], peer_id[2],
             peer_id[3],
         ])

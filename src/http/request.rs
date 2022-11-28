@@ -3,10 +3,11 @@ use std::net::IpAddr;
 use serde::Deserialize;
 
 use crate::http::Bytes;
-use crate::protocol::common::{InfoHash, PeerId};
+use crate::protocol::info_hash::InfoHash;
+use crate::tracker::peer;
 
 #[derive(Deserialize)]
-pub struct AnnounceRequestQuery {
+pub struct AnnounceQuery {
     pub downloaded: Option<Bytes>,
     pub uploaded: Option<Bytes>,
     pub key: Option<String>,
@@ -22,7 +23,7 @@ pub struct Announce {
     pub peer_addr: IpAddr,
     pub downloaded: Bytes,
     pub uploaded: Bytes,
-    pub peer_id: PeerId,
+    pub peer_id: peer::Id,
     pub port: u16,
     pub left: Bytes,
     pub event: Option<String>,

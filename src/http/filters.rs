@@ -5,12 +5,13 @@ use std::sync::Arc;
 
 use warp::{reject, Filter, Rejection};
 
-use super::errors::ServerError;
-use super::request::{Announce, AnnounceRequestQuery, Scrape};
+use super::error::Error;
+use super::request::{Announce, AnnounceQuery, Scrape};
 use super::WebResult;
-use crate::protocol::common::{InfoHash, PeerId, MAX_SCRAPE_TORRENTS};
-use crate::tracker;
+use crate::protocol::common::MAX_SCRAPE_TORRENTS;
+use crate::protocol::info_hash::InfoHash;
 use crate::tracker::key::Auth;
+use crate::tracker::{self, peer};
 
 /// Pass Arc<tracker::TorrentTracker> along
 #[must_use]
@@ -28,7 +29,7 @@ pub fn with_info_hash() -> impl Filter<Extract = (Vec<InfoHash>,), Error = Rejec
 
 /// Check for `PeerId`
 #[must_use]
-pub fn with_peer_id() -> impl Filter<Extract = (PeerId,), Error = Rejection> + Clone {
+pub fn with_peer_id() -> impl Filter<Extract = (peer::Id,), Error = Rejection> + Clone {
     warp::filters::query::raw().and_then(|q| async move { peer_id(&q) })
 }
 
@@ -54,7 +55,7 @@ pub fn with_peer_addr(on_reverse_proxy: bool) -> impl Filter<Extract = (IpAddr,)
 /// Check for `AnnounceRequest`
 #[must_use]
 pub fn with_announce_request(on_reverse_proxy: bool) -> impl Filter<Extract = (Announce,), Error = Rejection> + Clone {
-    warp::filters::query::query::<AnnounceRequestQuery>()
+    warp::filters::query::query::<AnnounceQuery>()
         .and(with_info_hash())
         .and(with_peer_id())
         .and(with_peer_addr(on_reverse_proxy))
@@ -88,9 +89,9 @@ fn info_hashes(raw_query: &String) -> WebResult<Vec<InfoHash>> {
     }
 
     if info_hashes.len() > MAX_SCRAPE_TORRENTS as usize {
-        Err(reject::custom(ServerError::ExceededInfoHashLimit))
+        Err(reject::custom(Error::ExceededInfoHashLimit))
     } else if info_hashes.is_empty() {
-        Err(reject::custom(ServerError::InvalidInfoHash))
+        Err(reject::custom(Error::InvalidInfo))
     } else {
         Ok(info_hashes)
     }
@@ -98,11 +99,11 @@ fn info_hashes(raw_query: &String) -> WebResult<Vec<InfoHash>> {
 
 /// Parse `PeerId` from raw query string
 #[allow(clippy::ptr_arg)]
-fn peer_id(raw_query: &String) -> WebResult<PeerId> {
+fn peer_id(raw_query: &String) -> WebResult<peer::Id> {
     // put all query params in a vec
     let split_raw_query: Vec<&str> = raw_query.split('&').collect();
 
-    let mut peer_id: Option<PeerId> = None;
+    let mut peer_id: Option<peer::Id> = None;
 
     for v in split_raw_query {
         // look for the peer_id param
@@ -115,32 +116,32 @@ fn peer_id(raw_query: &String) -> WebResult<PeerId> {
 
             // peer_id must be 20 bytes
             if peer_id_bytes.len() != 20 {
-                return Err(reject::custom(ServerError::InvalidPeerId));
+                return Err(reject::custom(Error::InvalidPeerId));
             }
 
             // clone peer_id_bytes into fixed length array
             let mut byte_arr: [u8; 20] = Default::default();
             byte_arr.clone_from_slice(peer_id_bytes.as_slice());
 
-            peer_id = Some(PeerId(byte_arr));
+            peer_id = Some(peer::Id(byte_arr));
             break;
         }
     }
 
     match peer_id {
         Some(id) => Ok(id),
-        None => Err(reject::custom(ServerError::InvalidPeerId)),
+        None => Err(reject::custom(Error::InvalidPeerId)),
     }
 }
 
 /// Get `PeerAddress` from `RemoteAddress` or Forwarded
 fn peer_addr((on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<SocketAddr>, Option<String>)) -> WebResult<IpAddr> {
     if !on_reverse_proxy && remote_addr.is_none() {
-        return Err(reject::custom(ServerError::AddressNotFound));
+        return Err(reject::custom(Error::AddressNotFound));
     }
 
     if on_reverse_proxy && x_forwarded_for.is_none() {
-        return Err(reject::custom(ServerError::AddressNotFound));
+        return Err(reject::custom(Error::AddressNotFound));
     }
 
     if on_reverse_proxy {
@@ -152,7 +153,7 @@ fn peer_addr((on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<Soc
         // set client ip to last forwarded ip
         let x_forwarded_ip = *x_forwarded_ips.last().unwrap();
 
-        IpAddr::from_str(x_forwarded_ip).map_err(|_| reject::custom(ServerError::AddressNotFound))
+        IpAddr::from_str(x_forwarded_ip).map_err(|_| reject::custom(Error::AddressNotFound))
     } else {
         Ok(remote_addr.unwrap().ip())
     }
@@ -162,9 +163,9 @@ fn peer_addr((on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<Soc
 #[allow(clippy::unnecessary_wraps)]
 #[allow(clippy::ptr_arg)]
 fn announce_request(
-    announce_request_query: AnnounceRequestQuery,
+    announce_request_query: AnnounceQuery,
     info_hashes: &Vec<InfoHash>,
-    peer_id: PeerId,
+    peer_id: peer::Id,
     peer_addr: IpAddr,
 ) -> WebResult<Announce> {
     Ok(Announce {

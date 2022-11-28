@@ -5,7 +5,7 @@ use std::net::IpAddr;
 use serde;
 use serde::Serialize;
 
-use crate::protocol::common::InfoHash;
+use crate::protocol::info_hash::InfoHash;
 
 #[derive(Serialize)]
 pub struct Peer {
@@ -78,7 +78,7 @@ impl Announce {
 }
 
 #[derive(Serialize)]
-pub struct ScrapeResponseEntry {
+pub struct ScrapeEntry {
     pub complete: u32,
     pub downloaded: u32,
     pub incomplete: u32,
@@ -86,7 +86,7 @@ pub struct ScrapeResponseEntry {
 
 #[derive(Serialize)]
 pub struct Scrape {
-    pub files: HashMap<InfoHash, ScrapeResponseEntry>,
+    pub files: HashMap<InfoHash, ScrapeEntry>,
 }
 
 impl Scrape {

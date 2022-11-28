@@ -7,13 +7,14 @@ use aquatic_udp_protocol::{
 };
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
-use crate::protocol::common::{InfoHash, MAX_SCRAPE_TORRENTS};
+use crate::protocol::common::MAX_SCRAPE_TORRENTS;
+use crate::protocol::info_hash::InfoHash;
 use crate::tracker::{self, peer, statistics};
-use crate::udp::errors::ServerError;
-use crate::udp::request::AnnounceRequestWrapper;
+use crate::udp::error::Error;
+use crate::udp::request::AnnounceWrapper;
 
 pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: Arc<tracker::Tracker>) -> Response {
-    match Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS).map_err(|_| ServerError::InternalServerError) {
+    match Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS).map_err(|_| Error::InternalServer) {
         Ok(request) => {
             let transaction_id = match &request {
                 Request::Connect(connect_request) => connect_request.transaction_id,
@@ -27,7 +28,7 @@ pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: A
             }
         }
         // bad request
-        Err(_) => handle_error(&ServerError::BadRequest, TransactionId(0)),
+        Err(_) => handle_error(&Error::BadRequest, TransactionId(0)),
     }
 }
 
@@ -38,7 +39,7 @@ pub async fn handle_request(
     request: Request,
     remote_addr: SocketAddr,
     tracker: Arc<tracker::Tracker>,
-) -> Result<Response, ServerError> {
+) -> Result<Response, Error> {
     match request {
         Request::Connect(connect_request) => handle_connect(remote_addr, &connect_request, tracker).await,
         Request::Announce(announce_request) => handle_announce(remote_addr, &announce_request, tracker).await,
@@ -53,7 +54,7 @@ pub async fn handle_connect(
     remote_addr: SocketAddr,
     request: &ConnectRequest,
     tracker: Arc<tracker::Tracker>,
-) -> Result<Response, ServerError> {
+) -> Result<Response, Error> {
     let connection_cookie = make(&remote_addr);
     let connection_id = into_connection_id(&connection_cookie);
 
@@ -82,10 +83,10 @@ pub async fn handle_announce(
     remote_addr: SocketAddr,
     announce_request: &AnnounceRequest,
     tracker: Arc<tracker::Tracker>,
-) -> Result<Response, ServerError> {
+) -> Result<Response, Error> {
     check(&remote_addr, &from_connection_id(&announce_request.connection_id))?;
 
-    let wrapped_announce_request = AnnounceRequestWrapper::new(announce_request);
+    let wrapped_announce_request = AnnounceWrapper::new(announce_request);
 
     tracker
         .authenticate_request(&wrapped_announce_request.info_hash, &None)
@@ -173,7 +174,7 @@ pub async fn handle_scrape(
     remote_addr: SocketAddr,
     request: &ScrapeRequest,
     tracker: Arc<tracker::Tracker>,
-) -> Result<Response, ServerError> {
+) -> Result<Response, Error> {
     let db = tracker.get_torrents().await;
 
     let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
@@ -228,7 +229,7 @@ pub async fn handle_scrape(
     }))
 }
 
-fn handle_error(e: &ServerError, transaction_id: TransactionId) -> Response {
+fn handle_error(e: &Error, transaction_id: TransactionId) -> Response {
     let message = e.to_string();
     Response::from(ErrorResponse {
         transaction_id,
@@ -245,7 +246,6 @@ mod tests {
 
     use crate::config::Configuration;
     use crate::protocol::clock::{Current, Time};
-    use crate::protocol::common::PeerId;
     use crate::tracker::{self, mode, peer, statistics};
 
     fn default_tracker_config() -> Arc<Configuration> {
@@ -253,21 +253,17 @@ mod tests {
     }
 
     fn initialized_public_tracker() -> Arc<tracker::Tracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Tracker::Public).into());
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Mode::Public).into());
         initialized_tracker(&configuration)
     }
 
     fn initialized_private_tracker() -> Arc<tracker::Tracker> {
-        let configuration = Arc::new(
-            TrackerConfigurationBuilder::default()
-                .with_mode(mode::Tracker::Private)
-                .into(),
-        );
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Mode::Private).into());
         initialized_tracker(&configuration)
     }
 
     fn initialized_whitelisted_tracker() -> Arc<tracker::Tracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Tracker::Listed).into());
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Mode::Listed).into());
         initialized_tracker(&configuration)
     }
 
@@ -299,7 +295,7 @@ mod tests {
     impl TorrentPeerBuilder {
         pub fn default() -> TorrentPeerBuilder {
             let default_peer = peer::TorrentPeer {
-                peer_id: PeerId([255u8; 20]),
+                peer_id: peer::Id([255u8; 20]),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
                 updated: Current::now(),
                 uploaded: NumberOfBytes(0),
@@ -310,7 +306,7 @@ mod tests {
             TorrentPeerBuilder { peer: default_peer }
         }
 
-        pub fn with_peer_id(mut self, peer_id: PeerId) -> Self {
+        pub fn with_peer_id(mut self, peer_id: peer::Id) -> Self {
             self.peer.peer_id = peer_id;
             self
         }
@@ -347,7 +343,7 @@ mod tests {
             self
         }
 
-        pub fn with_mode(mut self, mode: mode::Tracker) -> Self {
+        pub fn with_mode(mut self, mode: mode::Mode) -> Self {
             self.configuration.mode = mode;
             self
         }
@@ -537,8 +533,7 @@ mod tests {
             };
             use mockall::predicate::eq;
 
-            use crate::protocol::common::PeerId;
-            use crate::tracker::{self, statistics};
+            use crate::tracker::{self, peer, statistics};
             use crate::udp::connection_cookie::{into_connection_id, make};
             use crate::udp::handlers::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
@@ -570,7 +565,7 @@ mod tests {
                 let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
 
                 let expected_peer = TorrentPeerBuilder::default()
-                    .with_peer_id(PeerId(peer_id.0))
+                    .with_peer_id(peer::Id(peer_id.0))
                     .with_peer_addr(SocketAddr::new(IpAddr::V4(client_ip), client_port))
                     .into();
 
@@ -644,7 +639,7 @@ mod tests {
                 let peer_id = AquaticPeerId([255u8; 20]);
 
                 let peer_using_ipv6 = TorrentPeerBuilder::default()
-                    .with_peer_id(PeerId(peer_id.0))
+                    .with_peer_id(peer::Id(peer_id.0))
                     .with_peer_addr(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
@@ -707,7 +702,7 @@ mod tests {
 
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
 
-                use crate::protocol::common::PeerId;
+                use crate::tracker::peer;
                 use crate::udp::connection_cookie::{into_connection_id, make};
                 use crate::udp::handlers::handle_announce;
                 use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
@@ -740,7 +735,7 @@ mod tests {
                         tracker.config.external_ip.clone().unwrap().parse::<Ipv4Addr>().unwrap();
 
                     let expected_peer = TorrentPeerBuilder::default()
-                        .with_peer_id(PeerId(peer_id.0))
+                        .with_peer_id(peer::Id(peer_id.0))
                         .with_peer_addr(SocketAddr::new(IpAddr::V4(external_ip_in_tracker_configuration), client_port))
                         .into();
 
@@ -761,8 +756,7 @@ mod tests {
             };
             use mockall::predicate::eq;
 
-            use crate::protocol::common::PeerId;
-            use crate::tracker::{self, statistics};
+            use crate::tracker::{self, peer, statistics};
             use crate::udp::connection_cookie::{into_connection_id, make};
             use crate::udp::handlers::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
@@ -795,7 +789,7 @@ mod tests {
                 let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
 
                 let expected_peer = TorrentPeerBuilder::default()
-                    .with_peer_id(PeerId(peer_id.0))
+                    .with_peer_id(peer::Id(peer_id.0))
                     .with_peer_addr(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
@@ -872,7 +866,7 @@ mod tests {
                 let peer_id = AquaticPeerId([255u8; 20]);
 
                 let peer_using_ipv4 = TorrentPeerBuilder::default()
-                    .with_peer_id(PeerId(peer_id.0))
+                    .with_peer_id(peer::Id(peer_id.0))
                     .with_peer_addr(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 
@@ -1003,8 +997,7 @@ mod tests {
         };
 
         use super::TorrentPeerBuilder;
-        use crate::protocol::common::PeerId;
-        use crate::tracker;
+        use crate::tracker::{self, peer};
         use crate::udp::connection_cookie::{into_connection_id, make};
         use crate::udp::handlers::handle_scrape;
         use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
@@ -1046,10 +1039,10 @@ mod tests {
         }
 
         async fn add_a_seeder(tracker: Arc<tracker::Tracker>, remote_addr: &SocketAddr, info_hash: &InfoHash) {
-            let peer_id = PeerId([255u8; 20]);
+            let peer_id = peer::Id([255u8; 20]);
 
             let peer = TorrentPeerBuilder::default()
-                .with_peer_id(PeerId(peer_id.0))
+                .with_peer_id(peer::Id(peer_id.0))
                 .with_peer_addr(*remote_addr)
                 .with_bytes_left(0)
                 .into();

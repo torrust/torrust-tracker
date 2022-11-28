@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::databases::mysql::Mysql;
 use crate::databases::sqlite::Sqlite;
-use crate::protocol::common::InfoHash;
+use crate::protocol::info_hash::InfoHash;
 use crate::tracker::key::Auth;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]

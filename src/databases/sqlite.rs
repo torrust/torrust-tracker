@@ -8,7 +8,7 @@ use r2d2_sqlite::SqliteConnectionManager;
 use crate::databases::database;
 use crate::databases::database::{Database, Error};
 use crate::protocol::clock::DurationSinceUnixEpoch;
-use crate::protocol::common::InfoHash;
+use crate::protocol::info_hash::InfoHash;
 use crate::tracker::key::Auth;
 
 pub struct Sqlite {

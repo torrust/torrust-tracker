@@ -2,7 +2,7 @@ use serde;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
-pub enum Tracker {
+pub enum Mode {
     // Will track every new info hash and serve every peer.
     #[serde(rename = "public")]
     Public,

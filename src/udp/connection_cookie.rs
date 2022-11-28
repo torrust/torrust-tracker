@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 
 use aquatic_udp_protocol::ConnectionId;
 
-use super::errors::ServerError;
+use super::error::Error;
 use crate::protocol::clock::time_extent::{Extent, TimeExtent};
 
 pub type Cookie = [u8; 8];
@@ -36,7 +36,7 @@ pub fn make(remote_address: &SocketAddr) -> Cookie {
 /// # Errors
 ///
 /// Will return a `ServerError::InvalidConnectionId` if the supplied `connection_cookie` fails to verify.
-pub fn check(remote_address: &SocketAddr, connection_cookie: &Cookie) -> Result<SinceUnixEpochTimeExtent, ServerError> {
+pub fn check(remote_address: &SocketAddr, connection_cookie: &Cookie) -> Result<SinceUnixEpochTimeExtent, Error> {
     // we loop backwards testing each time_extent until we find one that matches.
     // (or the lifetime of time_extents is exhausted)
     for offset in 0..=COOKIE_LIFETIME.amount {
@@ -49,7 +49,7 @@ pub fn check(remote_address: &SocketAddr, connection_cookie: &Cookie) -> Result<
             return Ok(checking_time_extent);
         }
     }
-    Err(ServerError::InvalidConnectionId)
+    Err(Error::InvalidConnectionId)
 }
 
 mod cookie_builder {
@@ -59,7 +59,7 @@ mod cookie_builder {
 
     use super::{Cookie, SinceUnixEpochTimeExtent, COOKIE_LIFETIME};
     use crate::protocol::clock::time_extent::{DefaultTimeExtentMaker, Extent, Make, TimeExtent};
-    use crate::protocol::crypto::keys::seeds::{DefaultSeed, SeedKeeper};
+    use crate::protocol::crypto::keys::seeds::{Current, Keeper};
 
     pub(super) fn get_last_time_extent() -> SinceUnixEpochTimeExtent {
         DefaultTimeExtentMaker::now(&COOKIE_LIFETIME.increment)
@@ -70,7 +70,7 @@ mod cookie_builder {
     }
 
     pub(super) fn build(remote_address: &SocketAddr, time_extent: &TimeExtent) -> Cookie {
-        let seed = DefaultSeed::get_seed();
+        let seed = Current::get_seed();
 
         let mut hasher = DefaultHasher::new();
 

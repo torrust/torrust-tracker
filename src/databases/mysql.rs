@@ -10,7 +10,8 @@ use r2d2_mysql::MysqlConnectionManager;
 
 use crate::databases::database;
 use crate::databases::database::{Database, Error};
-use crate::protocol::common::{InfoHash, AUTH_KEY_LENGTH};
+use crate::protocol::common::AUTH_KEY_LENGTH;
+use crate::protocol::info_hash::InfoHash;
 use crate::tracker::key::Auth;
 
 pub struct Mysql {

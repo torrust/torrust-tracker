@@ -1,4 +1,4 @@
-pub mod errors;
+pub mod error;
 pub mod filters;
 pub mod handlers;
 pub mod request;
