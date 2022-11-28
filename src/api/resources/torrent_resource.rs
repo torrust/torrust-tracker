@@ -27,7 +27,9 @@ pub struct TorrentListItemResource {
 pub struct TorrentPeerResource {
     pub peer_id: PeerIdResource,
     pub peer_addr: String,
+    #[deprecated(since = "2.0.0", note = "please use `updated_milliseconds_ago` instead")]
     pub updated: u128,
+    pub updated_milliseconds_ago: u128,
     pub uploaded: i64,
     pub downloaded: i64,
     pub left: i64,
@@ -55,6 +57,7 @@ impl From<TorrentPeer> for TorrentPeerResource {
             peer_id: PeerIdResource::from(peer.peer_id),
             peer_addr: peer.peer_addr.to_string(),
             updated: peer.updated.as_millis(),
+            updated_milliseconds_ago: peer.updated.as_millis(),
             uploaded: peer.uploaded.0,
             downloaded: peer.downloaded.0,
             left: peer.left.0,
