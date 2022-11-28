@@ -93,29 +93,18 @@ mod tracker_api {
     }
 
     fn sample_torrent_peer() -> (TorrentPeer, TorrentPeerResource) {
-        (
-            TorrentPeer {
-                peer_id: PeerId(*b"-qB00000000000000000"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-                updated: DurationSinceUnixEpoch::new(1669397478934, 0),
-                uploaded: NumberOfBytes(0),
-                downloaded: NumberOfBytes(0),
-                left: NumberOfBytes(0),
-                event: AnnounceEvent::Started,
-            },
-            TorrentPeerResource {
-                peer_id: PeerIdResource {
-                    id: Some("2d71423030303030303030303030303030303030".to_string()),
-                    client: Some("qBittorrent".to_string()),
-                },
-                peer_addr: "126.0.0.1:8080".to_string(),
-                updated: 1669397478934000,
-                uploaded: 0,
-                downloaded: 0,
-                left: 0,
-                event: "Started".to_string(),
-            },
-        )
+        let torrent_peer = TorrentPeer {
+            peer_id: PeerId(*b"-qB00000000000000000"),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            updated: DurationSinceUnixEpoch::new(1669397478934, 0),
+            uploaded: NumberOfBytes(0),
+            downloaded: NumberOfBytes(0),
+            left: NumberOfBytes(0),
+            event: AnnounceEvent::Started,
+        };
+        let torrent_peer_resource = TorrentPeerResource::from(torrent_peer);
+
+        (torrent_peer, torrent_peer_resource)
     }
 
     #[tokio::test]

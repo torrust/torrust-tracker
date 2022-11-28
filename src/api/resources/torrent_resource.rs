@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::peer::TorrentPeer;
 use crate::PeerId;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -34,6 +35,20 @@ impl From<PeerId> for PeerIdResource {
         PeerIdResource {
             id: peer_id.get_id(),
             client: peer_id.get_client_name().map(|client_name| client_name.to_string()),
+        }
+    }
+}
+
+impl From<TorrentPeer> for TorrentPeerResource {
+    fn from(peer: TorrentPeer) -> Self {
+        TorrentPeerResource {
+            peer_id: PeerIdResource::from(peer.peer_id),
+            peer_addr: peer.peer_addr.to_string(),
+            updated: peer.updated.as_millis(),
+            uploaded: peer.uploaded.0,
+            downloaded: peer.downloaded.0,
+            left: peer.left.0,
+            event: format!("{:?}", peer.event),
         }
     }
 }

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use warp::{filters, reply, serve, Filter};
 
 use super::resources::auth_key_resource::AuthKeyResource;
-use super::resources::torrent_resource::{PeerIdResource, TorrentPeerResource, TorrentResource};
+use super::resources::torrent_resource::{TorrentPeerResource, TorrentResource};
 use crate::peer::TorrentPeer;
 use crate::protocol::common::*;
 use crate::tracker::TorrentTracker;
@@ -208,18 +208,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
 
             let peers = torrent_entry.get_peers(None);
 
-            let peer_resources = peers
-                .iter()
-                .map(|peer| TorrentPeerResource {
-                    peer_id: PeerIdResource::from(peer.peer_id.clone()),
-                    peer_addr: peer.peer_addr.to_string(),
-                    updated: peer.updated.as_millis(),
-                    uploaded: peer.uploaded.0,
-                    downloaded: peer.downloaded.0,
-                    left: peer.left.0,
-                    event: format!("{:?}", peer.event),
-                })
-                .collect();
+            let peer_resources = peers.iter().map(|peer| TorrentPeerResource::from(**peer)).collect();
 
             Ok(reply::json(&TorrentResource {
                 info_hash: info_hash.to_string(),

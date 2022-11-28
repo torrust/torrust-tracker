@@ -217,7 +217,7 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy)]
 pub struct PeerId(pub [u8; 20]);
 
 impl std::fmt::Display for PeerId {
