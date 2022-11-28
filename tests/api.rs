@@ -14,10 +14,11 @@ mod tracker_api {
     use std::sync::Arc;
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use reqwest::Response;
     use tokio::task::JoinHandle;
     use torrust_tracker::api::resources::auth_key_resource::AuthKeyResource;
     use torrust_tracker::api::resources::stats_resource::StatsResource;
-    use torrust_tracker::api::resources::torrent_resource::{TorrentPeerResource, TorrentResource};
+    use torrust_tracker::api::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
     use torrust_tracker::jobs::tracker_api;
     use torrust_tracker::peer::TorrentPeer;
     use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
@@ -30,16 +31,13 @@ mod tracker_api {
 
     #[tokio::test]
     async fn should_allow_generating_a_new_auth_key() {
-        let configuration = tracker_configuration();
-        let api_server = new_running_api_server(configuration.clone()).await;
+        let api_server = ApiServer::new_running_instance().await;
 
-        let bind_address = api_server.bind_address.unwrap().clone();
         let seconds_valid = 60;
-        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
 
-        let url = format!("http://{}/api/key/{}?token={}", &bind_address, &seconds_valid, &api_token);
-
-        let auth_key: AuthKeyResource = reqwest::Client::new().post(url).send().await.unwrap().json().await.unwrap();
+        let auth_key = ApiClient::new(api_server.get_connection_info().unwrap())
+            .generate_auth_key(seconds_valid)
+            .await;
 
         // Verify the key with the tracker
         assert!(api_server
@@ -52,16 +50,13 @@ mod tracker_api {
 
     #[tokio::test]
     async fn should_allow_whitelisting_a_torrent() {
-        let configuration = tracker_configuration();
-        let api_server = new_running_api_server(configuration.clone()).await;
+        let api_server = ApiServer::new_running_instance().await;
 
-        let bind_address = api_server.bind_address.unwrap().clone();
-        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
         let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-        let url = format!("http://{}/api/whitelist/{}?token={}", &bind_address, &info_hash, &api_token);
-
-        let res = reqwest::Client::new().post(url.clone()).send().await.unwrap();
+        let res = ApiClient::new(api_server.get_connection_info().unwrap())
+            .whitelist_a_torrent(&info_hash)
+            .await;
 
         assert_eq!(res.status(), 200);
         assert!(
@@ -75,47 +70,25 @@ mod tracker_api {
 
     #[tokio::test]
     async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted() {
-        let configuration = tracker_configuration();
-        let api_server = new_running_api_server(configuration.clone()).await;
+        let api_server = ApiServer::new_running_instance().await;
 
-        let bind_address = api_server.bind_address.unwrap().clone();
-        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
         let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-        let url = format!("http://{}/api/whitelist/{}?token={}", &bind_address, &info_hash, &api_token);
+        let api_client = ApiClient::new(api_server.get_connection_info().unwrap());
 
-        // First whitelist request
-        let res = reqwest::Client::new().post(url.clone()).send().await.unwrap();
+        let res = api_client.whitelist_a_torrent(&info_hash).await;
         assert_eq!(res.status(), 200);
 
-        // Second whitelist request
-        let res = reqwest::Client::new().post(url.clone()).send().await.unwrap();
+        let res = api_client.whitelist_a_torrent(&info_hash).await;
         assert_eq!(res.status(), 200);
-    }
-
-    fn sample_torrent_peer() -> (TorrentPeer, TorrentPeerResource) {
-        let torrent_peer = TorrentPeer {
-            peer_id: PeerId(*b"-qB00000000000000000"),
-            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-            updated: DurationSinceUnixEpoch::new(1669397478934, 0),
-            uploaded: NumberOfBytes(0),
-            downloaded: NumberOfBytes(0),
-            left: NumberOfBytes(0),
-            event: AnnounceEvent::Started,
-        };
-        let torrent_peer_resource = TorrentPeerResource::from(torrent_peer);
-
-        (torrent_peer, torrent_peer_resource)
     }
 
     #[tokio::test]
     async fn should_allow_getting_a_torrent_info() {
-        let configuration = tracker_configuration();
-        let api_server = new_running_api_server(configuration.clone()).await;
+        let api_server = ApiServer::new_running_instance().await;
+        let api_connection_info = api_server.get_connection_info().unwrap();
 
-        let bind_address = api_server.bind_address.unwrap().clone();
         let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
-        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
 
         let (peer, peer_resource) = sample_torrent_peer();
 
@@ -126,18 +99,7 @@ mod tracker_api {
             .update_torrent_with_peer_and_get_stats(&info_hash, &peer)
             .await;
 
-        let url = format!("http://{}/api/torrent/{}?token={}", &bind_address, &info_hash, &api_token);
-
-        let torrent_resource = reqwest::Client::builder()
-            .build()
-            .unwrap()
-            .get(url)
-            .send()
-            .await
-            .unwrap()
-            .json::<TorrentResource>()
-            .await
-            .unwrap();
+        let torrent_resource = ApiClient::new(api_connection_info).get_torrent(&info_hash.to_string()).await;
 
         assert_eq!(
             torrent_resource,
@@ -153,14 +115,13 @@ mod tracker_api {
 
     #[tokio::test]
     async fn should_allow_getting_torrents() {
-        let configuration = tracker_configuration();
-        let api_server = new_running_api_server(configuration.clone()).await;
+        let api_server = ApiServer::new_running_instance().await;
 
-        let bind_address = api_server.bind_address.unwrap().clone();
         let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
-        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
 
         let (peer, _peer_resource) = sample_torrent_peer();
+
+        let api_connection_info = api_server.get_connection_info().unwrap();
 
         // Add a torrent to the tracker
         api_server
@@ -169,22 +130,11 @@ mod tracker_api {
             .update_torrent_with_peer_and_get_stats(&info_hash, &peer)
             .await;
 
-        let url = format!("http://{}/api/torrents?token={}", &bind_address, &api_token);
-
-        let torrent_resources = reqwest::Client::builder()
-            .build()
-            .unwrap()
-            .get(url)
-            .send()
-            .await
-            .unwrap()
-            .json::<Vec<TorrentResource>>()
-            .await
-            .unwrap();
+        let torrent_resources = ApiClient::new(api_connection_info).get_torrents().await;
 
         assert_eq!(
             torrent_resources,
-            vec![TorrentResource {
+            vec![TorrentListItemResource {
                 info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                 seeders: 1,
                 completed: 0,
@@ -196,14 +146,13 @@ mod tracker_api {
 
     #[tokio::test]
     async fn should_allow_getting_tracker_statistics() {
-        let configuration = tracker_configuration();
-        let api_server = new_running_api_server(configuration.clone()).await;
+        let api_server = ApiServer::new_running_instance().await;
 
-        let bind_address = api_server.bind_address.unwrap().clone();
         let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
-        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
 
         let (peer, _peer_resource) = sample_torrent_peer();
+
+        let api_connection_info = api_server.get_connection_info().unwrap();
 
         // Add a torrent to the tracker
         api_server
@@ -212,21 +161,10 @@ mod tracker_api {
             .update_torrent_with_peer_and_get_stats(&info_hash, &peer)
             .await;
 
-        let url = format!("http://{}/api/stats?token={}", &bind_address, &api_token);
-
-        let stats = reqwest::Client::builder()
-            .build()
-            .unwrap()
-            .get(url)
-            .send()
-            .await
-            .unwrap()
-            .json::<StatsResource>()
-            .await
-            .unwrap();
+        let stats_resource = ApiClient::new(api_connection_info).get_tracker_statistics().await;
 
         assert_eq!(
-            stats,
+            stats_resource,
             StatsResource {
                 torrents: 1,
                 seeders: 1,
@@ -248,6 +186,21 @@ mod tracker_api {
         );
     }
 
+    fn sample_torrent_peer() -> (TorrentPeer, TorrentPeerResource) {
+        let torrent_peer = TorrentPeer {
+            peer_id: PeerId(*b"-qB00000000000000000"),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            updated: DurationSinceUnixEpoch::new(1669397478934, 0),
+            uploaded: NumberOfBytes(0),
+            downloaded: NumberOfBytes(0),
+            left: NumberOfBytes(0),
+            event: AnnounceEvent::Started,
+        };
+        let torrent_peer_resource = TorrentPeerResource::from(torrent_peer);
+
+        (torrent_peer, torrent_peer_resource)
+    }
+
     fn tracker_configuration() -> Arc<Configuration> {
         let mut config = Configuration::default();
         config.log_level = Some("off".to_owned());
@@ -264,17 +217,26 @@ mod tracker_api {
         Arc::new(config)
     }
 
-    async fn new_running_api_server(configuration: Arc<Configuration>) -> ApiServer {
-        let mut api_server = ApiServer::new();
-        api_server.start(configuration).await;
-        api_server
+    #[derive(Clone)]
+    struct ApiConnectionInfo {
+        pub bind_address: String,
+        pub api_token: String,
     }
 
-    pub struct ApiServer {
+    impl ApiConnectionInfo {
+        pub fn new(bind_address: &str, api_token: &str) -> Self {
+            Self {
+                bind_address: bind_address.to_string(),
+                api_token: api_token.to_string(),
+            }
+        }
+    }
+
+    struct ApiServer {
         pub started: AtomicBool,
         pub job: Option<JoinHandle<()>>,
-        pub bind_address: Option<String>,
         pub tracker: Option<Arc<TorrentTracker>>,
+        pub connection_info: Option<ApiConnectionInfo>,
     }
 
     impl ApiServer {
@@ -282,14 +244,28 @@ mod tracker_api {
             Self {
                 started: AtomicBool::new(false),
                 job: None,
-                bind_address: None,
                 tracker: None,
+                connection_info: None,
             }
+        }
+
+        pub async fn new_running_instance() -> ApiServer {
+            let configuration = tracker_configuration();
+            ApiServer::new_running_custom_instance(configuration.clone()).await
+        }
+
+        async fn new_running_custom_instance(configuration: Arc<Configuration>) -> ApiServer {
+            let mut api_server = ApiServer::new();
+            api_server.start(configuration).await;
+            api_server
         }
 
         pub async fn start(&mut self, configuration: Arc<Configuration>) {
             if !self.started.load(Ordering::Relaxed) {
-                self.bind_address = Some(configuration.http_api.bind_address.clone());
+                self.connection_info = Some(ApiConnectionInfo::new(
+                    &configuration.http_api.bind_address.clone(),
+                    &configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone(),
+                ));
 
                 // Set the time of Torrust app starting
                 lazy_static::initialize(&static_time::TIME_AT_APP_START);
@@ -317,6 +293,87 @@ mod tracker_api {
 
                 self.started.store(true, Ordering::Relaxed);
             }
+        }
+
+        pub fn get_connection_info(&self) -> Option<ApiConnectionInfo> {
+            self.connection_info.clone()
+        }
+    }
+
+    struct ApiClient {
+        connection_info: ApiConnectionInfo,
+    }
+
+    impl ApiClient {
+        pub fn new(connection_info: ApiConnectionInfo) -> Self {
+            Self { connection_info }
+        }
+
+        pub async fn generate_auth_key(&self, seconds_valid: i32) -> AuthKeyResource {
+            let url = format!(
+                "http://{}/api/key/{}?token={}",
+                &self.connection_info.bind_address, &seconds_valid, &self.connection_info.api_token
+            );
+            reqwest::Client::new().post(url).send().await.unwrap().json().await.unwrap()
+        }
+
+        pub async fn whitelist_a_torrent(&self, info_hash: &str) -> Response {
+            let url = format!(
+                "http://{}/api/whitelist/{}?token={}",
+                &self.connection_info.bind_address, &info_hash, &self.connection_info.api_token
+            );
+            reqwest::Client::new().post(url.clone()).send().await.unwrap()
+        }
+
+        pub async fn get_torrent(&self, info_hash: &str) -> TorrentResource {
+            let url = format!(
+                "http://{}/api/torrent/{}?token={}",
+                &self.connection_info.bind_address, &info_hash, &self.connection_info.api_token
+            );
+            reqwest::Client::builder()
+                .build()
+                .unwrap()
+                .get(url)
+                .send()
+                .await
+                .unwrap()
+                .json::<TorrentResource>()
+                .await
+                .unwrap()
+        }
+
+        pub async fn get_torrents(&self) -> Vec<TorrentListItemResource> {
+            let url = format!(
+                "http://{}/api/torrents?token={}",
+                &self.connection_info.bind_address, &self.connection_info.api_token
+            );
+            reqwest::Client::builder()
+                .build()
+                .unwrap()
+                .get(url)
+                .send()
+                .await
+                .unwrap()
+                .json::<Vec<TorrentListItemResource>>()
+                .await
+                .unwrap()
+        }
+
+        pub async fn get_tracker_statistics(&self) -> StatsResource {
+            let url = format!(
+                "http://{}/api/stats?token={}",
+                &self.connection_info.bind_address, &self.connection_info.api_token
+            );
+            reqwest::Client::builder()
+                .build()
+                .unwrap()
+                .get(url)
+                .send()
+                .await
+                .unwrap()
+                .json::<StatsResource>()
+                .await
+                .unwrap()
         }
     }
 }
