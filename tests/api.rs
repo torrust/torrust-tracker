@@ -16,7 +16,7 @@ mod tracker_api {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use tokio::task::JoinHandle;
     use torrust_tracker::api::resources::auth_key_resource::AuthKeyResource;
-    use torrust_tracker::api::resources::torrent_resource::{PeerIdResource, TorrentPeerResource, TorrentResource};
+    use torrust_tracker::api::resources::torrent_resource::{TorrentPeerResource, TorrentResource};
     use torrust_tracker::jobs::tracker_api;
     use torrust_tracker::peer::TorrentPeer;
     use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
@@ -147,6 +147,49 @@ mod tracker_api {
                 leechers: 0,
                 peers: Some(vec![peer_resource])
             }
+        );
+    }
+
+    #[tokio::test]
+    async fn should_allow_getting_torrents() {
+        let configuration = tracker_configuration();
+        let api_server = new_running_api_server(configuration.clone()).await;
+
+        let bind_address = api_server.bind_address.unwrap().clone();
+        let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
+        let api_token = configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone();
+
+        let (peer, _peer_resource) = sample_torrent_peer();
+
+        // Add the torrent to the tracker
+        api_server
+            .tracker
+            .unwrap()
+            .update_torrent_with_peer_and_get_stats(&info_hash, &peer)
+            .await;
+
+        let url = format!("http://{}/api/torrents?token={}", &bind_address, &api_token);
+
+        let torrent_resources = reqwest::Client::builder()
+            .build()
+            .unwrap()
+            .get(url)
+            .send()
+            .await
+            .unwrap()
+            .json::<Vec<TorrentResource>>()
+            .await
+            .unwrap();
+
+        assert_eq!(
+            torrent_resources,
+            vec![TorrentResource {
+                info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
+                seeders: 1,
+                completed: 0,
+                leechers: 0,
+                peers: None // Torrent list does not include peer list
+            }]
         );
     }
 
