@@ -16,14 +16,14 @@ mod tracker_api {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use reqwest::Response;
     use tokio::task::JoinHandle;
-    use torrust_tracker::api::resources::auth_key_resource::AuthKey;
+    use torrust_tracker::api::resources::auth_key::AuthKey;
     use torrust_tracker::api::resources::stats_resource::StatsResource;
     use torrust_tracker::api::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
     use torrust_tracker::config::Configuration;
     use torrust_tracker::jobs::tracker_api;
     use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
     use torrust_tracker::protocol::info_hash::InfoHash;
-    use torrust_tracker::tracker::key::Auth;
+    use torrust_tracker::tracker::auth;
     use torrust_tracker::tracker::peer::{self, TorrentPeer};
     use torrust_tracker::tracker::statistics::Keeper;
     use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
@@ -44,7 +44,7 @@ mod tracker_api {
         assert!(api_server
             .tracker
             .unwrap()
-            .verify_auth_key(&Auth::from(auth_key))
+            .verify_auth_key(&auth::Key::from(auth_key))
             .await
             .is_ok());
     }

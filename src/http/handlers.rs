@@ -11,15 +11,18 @@ use super::error::Error;
 use super::response::{self, Peer, ScrapeEntry};
 use super::{request, WebResult};
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::key::Auth;
-use crate::tracker::{self, peer, statistics, torrent};
+use crate::tracker::{self, auth, peer, statistics, torrent};
 
-/// Authenticate `InfoHash` using optional `AuthKey`
+/// Authenticate `InfoHash` using optional `auth::Key`
 ///
 /// # Errors
 ///
 /// Will return `ServerError` that wraps the `Error` if unable to `authenticate_request`.
-pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<Auth>, tracker: Arc<tracker::Tracker>) -> Result<(), Error> {
+pub async fn authenticate(
+    info_hash: &InfoHash,
+    auth_key: &Option<auth::Key>,
+    tracker: Arc<tracker::Tracker>,
+) -> Result<(), Error> {
     tracker.authenticate_request(info_hash, auth_key).await.map_err(|e| match e {
         torrent::Error::TorrentNotWhitelisted => Error::TorrentNotWhitelisted,
         torrent::Error::PeerNotAuthenticated => Error::PeerNotAuthenticated,
@@ -37,7 +40,7 @@ pub async fn authenticate(info_hash: &InfoHash, auth_key: &Option<Auth>, tracker
 /// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_scrape_response`.
 pub async fn handle_announce(
     announce_request: request::Announce,
-    auth_key: Option<Auth>,
+    auth_key: Option<auth::Key>,
     tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
     authenticate(&announce_request.info_hash, &auth_key, tracker.clone())
@@ -83,7 +86,7 @@ pub async fn handle_announce(
 /// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_scrape_response`.
 pub async fn handle_scrape(
     scrape_request: request::Scrape,
-    auth_key: Option<Auth>,
+    auth_key: Option<auth::Key>,
     tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
     let mut files: HashMap<InfoHash, ScrapeEntry> = HashMap::new();

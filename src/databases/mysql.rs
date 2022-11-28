@@ -12,7 +12,7 @@ use crate::databases::database;
 use crate::databases::database::{Database, Error};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::key::Auth;
+use crate::tracker::auth;
 
 pub struct Mysql {
     pool: Pool<MysqlConnectionManager>,
@@ -61,7 +61,7 @@ impl Database for Mysql {
           PRIMARY KEY (`id`),
           UNIQUE (`key`)
         );",
-            i8::try_from(AUTH_KEY_LENGTH).expect("Auth Key Length Should fit within a i8!")
+            i8::try_from(AUTH_KEY_LENGTH).expect("auth::Auth Key Length Should fit within a i8!")
         );
 
         let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
@@ -91,13 +91,13 @@ impl Database for Mysql {
         Ok(torrents)
     }
 
-    async fn load_keys(&self) -> Result<Vec<Auth>, Error> {
+    async fn load_keys(&self) -> Result<Vec<auth::Key>, Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
-        let keys: Vec<Auth> = conn
+        let keys: Vec<auth::Key> = conn
             .query_map(
                 "SELECT `key`, valid_until FROM `keys`",
-                |(key, valid_until): (String, i64)| Auth {
+                |(key, valid_until): (String, i64)| auth::Key {
                     key,
                     valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
                 },
@@ -183,14 +183,14 @@ impl Database for Mysql {
         }
     }
 
-    async fn get_key_from_keys(&self, key: &str) -> Result<Auth, database::Error> {
+    async fn get_key_from_keys(&self, key: &str) -> Result<auth::Key, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         match conn
             .exec_first::<(String, i64), _, _>("SELECT `key`, valid_until FROM `keys` WHERE `key` = :key", params! { key })
             .map_err(|_| database::Error::QueryReturnedNoRows)?
         {
-            Some((key, valid_until)) => Ok(Auth {
+            Some((key, valid_until)) => Ok(auth::Key {
                 key,
                 valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
             }),
@@ -198,7 +198,7 @@ impl Database for Mysql {
         }
     }
 
-    async fn add_key_to_keys(&self, auth_key: &Auth) -> Result<usize, database::Error> {
+    async fn add_key_to_keys(&self, auth_key: &auth::Key) -> Result<usize, database::Error> {
         let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
 
         let key = auth_key.key.to_string();

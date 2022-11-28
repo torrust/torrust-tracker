@@ -6,6 +6,7 @@
 //! - [ ] `TorrentResource`, `TorrentListItemResource`, `TorrentPeerResource`, `PeerIdResource`
 //! - [ ] `StatsResource`
 //! - [ ] ...
-pub mod auth_key_resource;
+
+pub mod auth_key;
 pub mod stats_resource;
 pub mod torrent_resource;

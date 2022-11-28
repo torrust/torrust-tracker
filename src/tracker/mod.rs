@@ -1,4 +1,4 @@
-pub mod key;
+pub mod auth;
 pub mod mode;
 pub mod peer;
 pub mod statistics;
@@ -17,12 +17,11 @@ use crate::config::Configuration;
 use crate::databases::database;
 use crate::databases::database::Database;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::key::Auth;
 
 pub struct Tracker {
     pub config: Arc<Configuration>,
     mode: mode::Mode,
-    keys: RwLock<std::collections::HashMap<String, Auth>>,
+    keys: RwLock<std::collections::HashMap<String, auth::Key>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
@@ -68,8 +67,8 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to add the `auth_key` to the database.
-    pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<Auth, database::Error> {
-        let auth_key = key::generate(lifetime);
+    pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<auth::Key, database::Error> {
+        let auth_key = auth::generate(lifetime);
         self.database.add_key_to_keys(&auth_key).await?;
         self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
         Ok(auth_key)
@@ -87,10 +86,10 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `key::Error` if unable to get any `auth_key`.
-    pub async fn verify_auth_key(&self, auth_key: &Auth) -> Result<(), key::Error> {
+    pub async fn verify_auth_key(&self, auth_key: &auth::Key) -> Result<(), auth::Error> {
         match self.keys.read().await.get(&auth_key.key) {
-            None => Err(key::Error::KeyInvalid),
-            Some(key) => key::verify(key),
+            None => Err(auth::Error::KeyInvalid),
+            Some(key) => auth::verify(key),
         }
     }
 
@@ -174,7 +173,7 @@ impl Tracker {
     /// Will return a `torrent::Error::PeerNotAuthenticated` if the `key` is `None`.
     ///
     /// Will return a `torrent::Error::TorrentNotWhitelisted` if the the Tracker is in listed mode and the `info_hash` is not whitelisted.
-    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<Auth>) -> Result<(), torrent::Error> {
+    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<auth::Key>) -> Result<(), torrent::Error> {
         // no authentication needed in public mode
         if self.is_public() {
             return Ok(());

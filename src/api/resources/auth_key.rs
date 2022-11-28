@@ -3,7 +3,7 @@ use std::convert::From;
 use serde::{Deserialize, Serialize};
 
 use crate::protocol::clock::DurationSinceUnixEpoch;
-use crate::tracker::key::Auth;
+use crate::tracker::auth;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct AuthKey {
@@ -11,9 +11,9 @@ pub struct AuthKey {
     pub valid_until: Option<u64>,
 }
 
-impl From<AuthKey> for Auth {
+impl From<AuthKey> for auth::Key {
     fn from(auth_key_resource: AuthKey) -> Self {
-        Auth {
+        auth::Key {
             key: auth_key_resource.key,
             valid_until: auth_key_resource
                 .valid_until
@@ -22,8 +22,8 @@ impl From<AuthKey> for Auth {
     }
 }
 
-impl From<Auth> for AuthKey {
-    fn from(auth_key: Auth) -> Self {
+impl From<auth::Key> for AuthKey {
+    fn from(auth_key: auth::Key) -> Self {
         AuthKey {
             key: auth_key.key,
             valid_until: auth_key.valid_until.map(|valid_until| valid_until.as_secs()),
@@ -37,7 +37,7 @@ mod tests {
 
     use super::AuthKey;
     use crate::protocol::clock::{Current, TimeNow};
-    use crate::tracker::key::Auth;
+    use crate::tracker::auth;
 
     #[test]
     fn it_should_be_convertible_into_an_auth_key() {
@@ -49,8 +49,8 @@ mod tests {
         };
 
         assert_eq!(
-            Auth::from(auth_key_resource),
-            Auth {
+            auth::Key::from(auth_key_resource),
+            auth::Key {
                 key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".to_string(), // cspell:disable-line
                 valid_until: Some(Current::add(&Duration::new(duration_in_secs, 0)).unwrap())
             }
@@ -61,7 +61,7 @@ mod tests {
     fn it_should_be_convertible_from_an_auth_key() {
         let duration_in_secs = 60;
 
-        let auth_key = Auth {
+        let auth_key = auth::Key {
             key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".to_string(), // cspell:disable-line
             valid_until: Some(Current::add(&Duration::new(duration_in_secs, 0)).unwrap()),
         };

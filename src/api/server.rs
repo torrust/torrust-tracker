@@ -7,7 +7,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use warp::{filters, reply, serve, Filter};
 
-use super::resources::auth_key_resource::AuthKey;
+use super::resources::auth_key::AuthKey;
 use super::resources::stats_resource::StatsResource;
 use super::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
 use crate::protocol::info_hash::InfoHash;
