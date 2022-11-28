@@ -14,8 +14,7 @@ use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
 use crate::config::Configuration;
-use crate::databases::database;
-use crate::databases::database::Database;
+use crate::databases::{self, Database};
 use crate::protocol::info_hash::InfoHash;
 
 pub struct Tracker {
@@ -38,7 +37,7 @@ impl Tracker {
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, r2d2::Error> {
-        let database = database::connect(&config.db_driver, &config.db_path)?;
+        let database = databases::connect(&config.db_driver, &config.db_path)?;
 
         Ok(Tracker {
             config: config.clone(),
@@ -67,7 +66,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to add the `auth_key` to the database.
-    pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<auth::Key, database::Error> {
+    pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<auth::Key, databases::error::Error> {
         let auth_key = auth::generate(lifetime);
         self.database.add_key_to_keys(&auth_key).await?;
         self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
@@ -77,7 +76,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to remove the `key` to the database.
-    pub async fn remove_auth_key(&self, key: &str) -> Result<(), database::Error> {
+    pub async fn remove_auth_key(&self, key: &str) -> Result<(), databases::error::Error> {
         self.database.remove_key_from_keys(key).await?;
         self.keys.write().await.remove(key);
         Ok(())
@@ -96,7 +95,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to `load_keys` from the database.
-    pub async fn load_keys(&self) -> Result<(), database::Error> {
+    pub async fn load_keys(&self) -> Result<(), databases::error::Error> {
         let keys_from_database = self.database.load_keys().await?;
         let mut keys = self.keys.write().await;
 
@@ -114,14 +113,14 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to add the `info_hash` into the whitelist database.
-    pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
+    pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
         self.add_torrent_to_database_whitelist(info_hash).await?;
         self.add_torrent_to_memory_whitelist(info_hash).await;
         Ok(())
     }
 
     /// It adds a torrent to the whitelist if it has not been whitelisted previously
-    async fn add_torrent_to_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
+    async fn add_torrent_to_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
         if self.database.is_info_hash_whitelisted(info_hash).await.unwrap() {
             return Ok(());
         }
@@ -140,7 +139,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to remove the `info_hash` from the whitelist database.
-    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), database::Error> {
+    pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
         self.database.remove_info_hash_from_whitelist(*info_hash).await?;
         self.whitelist.write().await.remove(info_hash);
         Ok(())
@@ -153,7 +152,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to load the list whitelisted `info_hash`s from the database.
-    pub async fn load_whitelist(&self) -> Result<(), database::Error> {
+    pub async fn load_whitelist(&self) -> Result<(), databases::error::Error> {
         let whitelisted_torrents_from_database = self.database.load_whitelist().await?;
         let mut whitelist = self.whitelist.write().await;
 
@@ -206,7 +205,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to load the list of `persistent_torrents` from the database.
-    pub async fn load_persistent_torrents(&self) -> Result<(), database::Error> {
+    pub async fn load_persistent_torrents(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.database.load_persistent_torrents().await?;
         let mut torrents = self.torrents.write().await;
 

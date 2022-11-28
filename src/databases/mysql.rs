@@ -8,8 +8,7 @@ use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MysqlConnectionManager;
 
-use crate::databases::database;
-use crate::databases::database::{Database, Error};
+use crate::databases::{Database, Error};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth;
@@ -36,7 +35,7 @@ impl Mysql {
 
 #[async_trait]
 impl Database for Mysql {
-    fn create_database_tables(&self) -> Result<(), database::Error> {
+    fn create_database_tables(&self) -> Result<(), Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
             id integer PRIMARY KEY AUTO_INCREMENT,
@@ -64,7 +63,7 @@ impl Database for Mysql {
             i8::try_from(AUTH_KEY_LENGTH).expect("auth::Auth Key Length Should fit within a i8!")
         );
 
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         conn.query_drop(&create_torrents_table)
             .expect("Could not create torrents table.");
@@ -75,8 +74,8 @@ impl Database for Mysql {
         Ok(())
     }
 
-    async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+    async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error> {
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         let torrents: Vec<(InfoHash, u32)> = conn
             .query_map(
@@ -86,13 +85,13 @@ impl Database for Mysql {
                     (info_hash, completed)
                 },
             )
-            .map_err(|_| database::Error::QueryReturnedNoRows)?;
+            .map_err(|_| Error::QueryReturnedNoRows)?;
 
         Ok(torrents)
     }
 
     async fn load_keys(&self) -> Result<Vec<auth::Key>, Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         let keys: Vec<auth::Key> = conn
             .query_map(
@@ -102,25 +101,25 @@ impl Database for Mysql {
                     valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
                 },
             )
-            .map_err(|_| database::Error::QueryReturnedNoRows)?;
+            .map_err(|_| Error::QueryReturnedNoRows)?;
 
         Ok(keys)
     }
 
     async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         let info_hashes: Vec<InfoHash> = conn
             .query_map("SELECT info_hash FROM whitelist", |info_hash: String| {
                 InfoHash::from_str(&info_hash).unwrap()
             })
-            .map_err(|_| database::Error::QueryReturnedNoRows)?;
+            .map_err(|_| Error::QueryReturnedNoRows)?;
 
         Ok(info_hashes)
     }
 
-    async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+    async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         let info_hash_str = info_hash.to_string();
 
@@ -132,28 +131,28 @@ impl Database for Mysql {
             }
             Err(e) => {
                 debug!("{:?}", e);
-                Err(database::Error::InvalidQuery)
+                Err(Error::InvalidQuery)
             }
         }
     }
 
-    async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+    async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, Error> {
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         match conn
             .exec_first::<String, _, _>(
                 "SELECT info_hash FROM whitelist WHERE info_hash = :info_hash",
                 params! { info_hash },
             )
-            .map_err(|_| database::Error::DatabaseError)?
+            .map_err(|_| Error::DatabaseError)?
         {
             Some(info_hash) => Ok(InfoHash::from_str(&info_hash).unwrap()),
-            None => Err(database::Error::QueryReturnedNoRows),
+            None => Err(Error::QueryReturnedNoRows),
         }
     }
 
-    async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+    async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         let info_hash_str = info_hash.to_string();
 
@@ -164,13 +163,13 @@ impl Database for Mysql {
             Ok(_) => Ok(1),
             Err(e) => {
                 debug!("{:?}", e);
-                Err(database::Error::InvalidQuery)
+                Err(Error::InvalidQuery)
             }
         }
     }
 
-    async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+    async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         let info_hash = info_hash.to_string();
 
@@ -178,28 +177,28 @@ impl Database for Mysql {
             Ok(_) => Ok(1),
             Err(e) => {
                 debug!("{:?}", e);
-                Err(database::Error::InvalidQuery)
+                Err(Error::InvalidQuery)
             }
         }
     }
 
-    async fn get_key_from_keys(&self, key: &str) -> Result<auth::Key, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+    async fn get_key_from_keys(&self, key: &str) -> Result<auth::Key, Error> {
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         match conn
             .exec_first::<(String, i64), _, _>("SELECT `key`, valid_until FROM `keys` WHERE `key` = :key", params! { key })
-            .map_err(|_| database::Error::QueryReturnedNoRows)?
+            .map_err(|_| Error::QueryReturnedNoRows)?
         {
             Some((key, valid_until)) => Ok(auth::Key {
                 key,
                 valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
             }),
-            None => Err(database::Error::InvalidQuery),
+            None => Err(Error::InvalidQuery),
         }
     }
 
-    async fn add_key_to_keys(&self, auth_key: &auth::Key) -> Result<usize, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+    async fn add_key_to_keys(&self, auth_key: &auth::Key) -> Result<usize, Error> {
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         let key = auth_key.key.to_string();
         let valid_until = auth_key.valid_until.unwrap_or(Duration::ZERO).as_secs().to_string();
@@ -211,19 +210,19 @@ impl Database for Mysql {
             Ok(_) => Ok(1),
             Err(e) => {
                 debug!("{:?}", e);
-                Err(database::Error::InvalidQuery)
+                Err(Error::InvalidQuery)
             }
         }
     }
 
-    async fn remove_key_from_keys(&self, key: &str) -> Result<usize, database::Error> {
-        let mut conn = self.pool.get().map_err(|_| database::Error::DatabaseError)?;
+    async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error> {
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 
         match conn.exec_drop("DELETE FROM `keys` WHERE key = :key", params! { key }) {
             Ok(_) => Ok(1),
             Err(e) => {
                 debug!("{:?}", e);
-                Err(database::Error::InvalidQuery)
+                Err(Error::InvalidQuery)
             }
         }
     }
