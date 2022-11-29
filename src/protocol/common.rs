@@ -217,7 +217,7 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy)]
 pub struct PeerId(pub [u8; 20]);
 
 impl std::fmt::Display for PeerId {
@@ -232,6 +232,14 @@ impl std::fmt::Display for PeerId {
 }
 
 impl PeerId {
+    pub fn get_id(&self) -> Option<String> {
+        let buff_size = self.0.len() * 2;
+        let mut tmp: Vec<u8> = vec![0; buff_size];
+        binascii::bin2hex(&self.0, &mut tmp).unwrap();
+
+        std::str::from_utf8(&tmp).ok().map(|id| id.to_string())
+    }
+
     pub fn get_client_name(&self) -> Option<&'static str> {
         if self.0[0] == b'M' {
             return Some("BitTorrent");
@@ -316,19 +324,14 @@ impl Serialize for PeerId {
     where
         S: serde::Serializer,
     {
-        let buff_size = self.0.len() * 2;
-        let mut tmp: Vec<u8> = vec![0; buff_size];
-        binascii::bin2hex(&self.0, &mut tmp).unwrap();
-        let id = std::str::from_utf8(&tmp).ok();
-
         #[derive(Serialize)]
         struct PeerIdInfo<'a> {
-            id: Option<&'a str>,
+            id: Option<String>,
             client: Option<&'a str>,
         }
 
         let obj = PeerIdInfo {
-            id,
+            id: self.get_id(),
             client: self.get_client_name(),
         };
         obj.serialize(serializer)

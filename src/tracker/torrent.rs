@@ -32,7 +32,7 @@ impl TorrentEntry {
                 let _ = self.peers.remove(&peer.peer_id);
             }
             AnnounceEvent::Completed => {
-                let peer_old = self.peers.insert(peer.peer_id.clone(), peer.clone());
+                let peer_old = self.peers.insert(peer.peer_id, *peer);
                 // Don't count if peer was not previously known
                 if peer_old.is_some() {
                     self.completed += 1;
@@ -40,7 +40,7 @@ impl TorrentEntry {
                 }
             }
             _ => {
-                let _ = self.peers.insert(peer.peer_id.clone(), peer.clone());
+                let _ = self.peers.insert(peer.peer_id, *peer);
             }
         }
 

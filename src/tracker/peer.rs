@@ -9,7 +9,7 @@ use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, Time};
 use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef, PeerId};
 use crate::protocol::utils::ser_unix_time_value;
 
-#[derive(PartialEq, Eq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Copy)]
 pub struct TorrentPeer {
     pub peer_id: PeerId,
     pub peer_addr: SocketAddr,
