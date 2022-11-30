@@ -1,12 +1,4 @@
-pub use self::errors::*;
-pub use self::filters::*;
-pub use self::handlers::*;
-pub use self::request::*;
-pub use self::response::*;
-pub use self::routes::*;
-pub use self::server::*;
-
-pub mod errors;
+pub mod error;
 pub mod filters;
 pub mod handlers;
 pub mod request;

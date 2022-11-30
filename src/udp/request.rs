@@ -1,6 +1,6 @@
 use aquatic_udp_protocol::AnnounceRequest;
 
-use crate::InfoHash;
+use crate::protocol::info_hash::InfoHash;
 
 // struct AnnounceRequest {
 //     pub connection_id: i64,
@@ -17,14 +17,15 @@ use crate::InfoHash;
 //     pub port: Port
 // }
 
-pub struct AnnounceRequestWrapper {
+pub struct AnnounceWrapper {
     pub announce_request: AnnounceRequest,
     pub info_hash: InfoHash,
 }
 
-impl AnnounceRequestWrapper {
-    pub fn new(announce_request: AnnounceRequest) -> Self {
-        AnnounceRequestWrapper {
+impl AnnounceWrapper {
+    #[must_use]
+    pub fn new(announce_request: &AnnounceRequest) -> Self {
+        AnnounceWrapper {
             announce_request: announce_request.clone(),
             info_hash: InfoHash(announce_request.info_hash.0),
         }

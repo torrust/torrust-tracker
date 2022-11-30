@@ -4,14 +4,14 @@ use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde;
 use serde::Serialize;
 
-use crate::http::AnnounceRequest;
-use crate::protocol::clock::{DefaultClock, DurationSinceUnixEpoch, Time};
-use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef, PeerId};
+use crate::http::request::Announce;
+use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Time};
+use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef};
 use crate::protocol::utils::ser_unix_time_value;
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Copy)]
-pub struct TorrentPeer {
-    pub peer_id: PeerId,
+pub struct Peer {
+    pub peer_id: Id,
     pub peer_addr: SocketAddr,
     #[serde(serialize_with = "ser_unix_time_value")]
     pub updated: DurationSinceUnixEpoch,
@@ -25,18 +25,19 @@ pub struct TorrentPeer {
     pub event: AnnounceEvent,
 }
 
-impl TorrentPeer {
+impl Peer {
+    #[must_use]
     pub fn from_udp_announce_request(
         announce_request: &aquatic_udp_protocol::AnnounceRequest,
         remote_ip: IpAddr,
         host_opt_ip: Option<IpAddr>,
     ) -> Self {
-        let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port.0);
+        let peer_addr = Peer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port.0);
 
-        TorrentPeer {
-            peer_id: PeerId(announce_request.peer_id.0),
+        Peer {
+            peer_id: Id(announce_request.peer_id.0),
             peer_addr,
-            updated: DefaultClock::now(),
+            updated: Current::now(),
             uploaded: announce_request.bytes_uploaded,
             downloaded: announce_request.bytes_downloaded,
             left: announce_request.bytes_left,
@@ -44,12 +45,9 @@ impl TorrentPeer {
         }
     }
 
-    pub fn from_http_announce_request(
-        announce_request: &AnnounceRequest,
-        remote_ip: IpAddr,
-        host_opt_ip: Option<IpAddr>,
-    ) -> Self {
-        let peer_addr = TorrentPeer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port);
+    #[must_use]
+    pub fn from_http_announce_request(announce_request: &Announce, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
+        let peer_addr = Peer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port);
 
         let event: AnnounceEvent = if let Some(event) = &announce_request.event {
             match event.as_ref() {
@@ -62,18 +60,20 @@ impl TorrentPeer {
             AnnounceEvent::None
         };
 
-        TorrentPeer {
-            peer_id: announce_request.peer_id.clone(),
+        #[allow(clippy::cast_possible_truncation)]
+        Peer {
+            peer_id: announce_request.peer_id,
             peer_addr,
-            updated: DefaultClock::now(),
-            uploaded: NumberOfBytes(announce_request.uploaded as i64),
-            downloaded: NumberOfBytes(announce_request.downloaded as i64),
-            left: NumberOfBytes(announce_request.left as i64),
+            updated: Current::now(),
+            uploaded: NumberOfBytes(i128::from(announce_request.uploaded) as i64),
+            downloaded: NumberOfBytes(i128::from(announce_request.downloaded) as i64),
+            left: NumberOfBytes(i128::from(announce_request.left) as i64),
             event,
         }
     }
 
     // potentially substitute localhost ip with external ip
+    #[must_use]
     pub fn peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip: IpAddr, host_opt_ip: Option<IpAddr>, port: u16) -> SocketAddr {
         if let Some(host_ip) = host_opt_ip.filter(|_| remote_ip.is_loopback()) {
             SocketAddr::new(host_ip, port)
@@ -82,8 +82,134 @@ impl TorrentPeer {
         }
     }
 
+    #[must_use]
     pub fn is_seeder(&self) -> bool {
         self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+    }
+}
+
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy)]
+pub struct Id(pub [u8; 20]);
+
+impl std::fmt::Display for Id {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut buffer = [0u8; 20];
+        let bytes_out = binascii::bin2hex(&self.0, &mut buffer).ok();
+        match bytes_out {
+            Some(bytes) => write!(f, "{}", std::str::from_utf8(bytes).unwrap()),
+            None => write!(f, ""),
+        }
+    }
+}
+
+impl Id {
+    #[must_use]
+    /// # Panics
+    ///
+    /// It will panic if the `binascii::bin2hex` from a too-small output buffer.
+    pub fn get_id(&self) -> Option<String> {
+        let buff_size = self.0.len() * 2;
+        let mut tmp: Vec<u8> = vec![0; buff_size];
+        binascii::bin2hex(&self.0, &mut tmp).unwrap();
+
+        std::str::from_utf8(&tmp).ok().map(std::string::ToString::to_string)
+    }
+
+    #[must_use]
+    pub fn get_client_name(&self) -> Option<&'static str> {
+        if self.0[0] == b'M' {
+            return Some("BitTorrent");
+        }
+        if self.0[0] == b'-' {
+            let name = match &self.0[1..3] {
+                b"AG" | b"A~" => "Ares",
+                b"AR" => "Arctic",
+                b"AV" => "Avicora",
+                b"AX" => "BitPump",
+                b"AZ" => "Azureus",
+                b"BB" => "BitBuddy",
+                b"BC" => "BitComet",
+                b"BF" => "Bitflu",
+                b"BG" => "BTG (uses Rasterbar libtorrent)",
+                b"BR" => "BitRocket",
+                b"BS" => "BTSlave",
+                b"BX" => "~Bittorrent X",
+                b"CD" => "Enhanced CTorrent",
+                b"CT" => "CTorrent",
+                b"DE" => "DelugeTorrent",
+                b"DP" => "Propagate Data Client",
+                b"EB" => "EBit",
+                b"ES" => "electric sheep",
+                b"FT" => "FoxTorrent",
+                b"FW" => "FrostWire",
+                b"FX" => "Freebox BitTorrent",
+                b"GS" => "GSTorrent",
+                b"HL" => "Halite",
+                b"HN" => "Hydranode",
+                b"KG" => "KGet",
+                b"KT" => "KTorrent",
+                b"LH" => "LH-ABC",
+                b"LP" => "Lphant",
+                b"LT" => "libtorrent",
+                b"lt" => "libTorrent",
+                b"LW" => "LimeWire",
+                b"MO" => "MonoTorrent",
+                b"MP" => "MooPolice",
+                b"MR" => "Miro",
+                b"MT" => "MoonlightTorrent",
+                b"NX" => "Net Transport",
+                b"PD" => "Pando",
+                b"qB" => "qBittorrent",
+                b"QD" => "QQDownload",
+                b"QT" => "Qt 4 Torrent example",
+                b"RT" => "Retriever",
+                b"S~" => "Shareaza alpha/beta",
+                b"SB" => "~Swiftbit",
+                b"SS" => "SwarmScope",
+                b"ST" => "SymTorrent",
+                b"st" => "sharktorrent",
+                b"SZ" => "Shareaza",
+                b"TN" => "TorrentDotNET",
+                b"TR" => "Transmission",
+                b"TS" => "Torrentstorm",
+                b"TT" => "TuoTu",
+                b"UL" => "uLeecher!",
+                b"UT" => "µTorrent",
+                b"UW" => "µTorrent Web",
+                b"VG" => "Vagaa",
+                b"WD" => "WebTorrent Desktop",
+                b"WT" => "BitLet",
+                b"WW" => "WebTorrent",
+                b"WY" => "FireTorrent",
+                b"XL" => "Xunlei",
+                b"XT" => "XanTorrent",
+                b"XX" => "Xtorrent",
+                b"ZT" => "ZipTorrent",
+                _ => return None,
+            };
+            Some(name)
+        } else {
+            None
+        }
+    }
+}
+
+impl Serialize for Id {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct PeerIdInfo<'a> {
+            id: Option<String>,
+            client: Option<&'a str>,
+        }
+
+        let obj = PeerIdInfo {
+            id: self.get_id(),
+            client: self.get_client_name(),
+        };
+        obj.serialize(serializer)
     }
 }
 
@@ -95,16 +221,15 @@ mod test {
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
-        use crate::peer::TorrentPeer;
-        use crate::protocol::clock::{DefaultClock, Time};
-        use crate::PeerId;
+        use crate::protocol::clock::{Current, Time};
+        use crate::tracker::peer::{self, Peer};
 
         #[test]
         fn it_should_be_serializable() {
-            let torrent_peer = TorrentPeer {
-                peer_id: PeerId(*b"-qB00000000000000000"),
+            let torrent_peer = Peer {
+                peer_id: peer::Id(*b"-qB00000000000000000"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-                updated: DefaultClock::now(),
+                updated: Current::now(),
                 uploaded: NumberOfBytes(0),
                 downloaded: NumberOfBytes(0),
                 left: NumberOfBytes(0),
@@ -129,8 +254,9 @@ mod test {
             AnnounceEvent, AnnounceRequest, NumberOfBytes, NumberOfPeers, PeerId as AquaticPeerId, PeerKey, Port, TransactionId,
         };
 
-        use crate::peer::TorrentPeer;
-        use crate::udp::connection_cookie::{into_connection_id, make_connection_cookie};
+        use crate::tracker::peer::Peer;
+        use crate::udp::connection_cookie::{into_connection_id, make};
+
         // todo: duplicate functions is PR 82. Remove duplication once both PR are merged.
 
         fn sample_ipv4_remote_addr() -> SocketAddr {
@@ -152,7 +278,7 @@ mod test {
                 let info_hash_aquatic = aquatic_udp_protocol::InfoHash([0u8; 20]);
 
                 let default_request = AnnounceRequest {
-                    connection_id: into_connection_id(&make_connection_cookie(&sample_ipv4_remote_addr())),
+                    connection_id: into_connection_id(&make(&sample_ipv4_remote_addr())),
                     transaction_id: TransactionId(0i32),
                     info_hash: info_hash_aquatic,
                     peer_id: AquaticPeerId(*b"-qB00000000000000000"),
@@ -180,7 +306,7 @@ mod test {
             let remote_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2));
             let announce_request = AnnounceRequestBuilder::default().into();
 
-            let torrent_peer = TorrentPeer::from_udp_announce_request(&announce_request, remote_ip, None);
+            let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, None);
 
             assert_eq!(torrent_peer.peer_addr, SocketAddr::new(remote_ip, announce_request.port.0));
         }
@@ -190,7 +316,7 @@ mod test {
             let remote_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2));
             let announce_request = AnnounceRequestBuilder::default().into();
 
-            let torrent_peer = TorrentPeer::from_udp_announce_request(&announce_request, remote_ip, None);
+            let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, None);
 
             assert_eq!(torrent_peer.peer_addr, SocketAddr::new(remote_ip, announce_request.port.0));
         }
@@ -200,15 +326,15 @@ mod test {
             use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
             use std::str::FromStr;
 
-            use crate::peer::test::torrent_peer_constructor_from_udp_requests::AnnounceRequestBuilder;
-            use crate::peer::TorrentPeer;
+            use crate::tracker::peer::test::torrent_peer_constructor_from_udp_requests::AnnounceRequestBuilder;
+            use crate::tracker::peer::Peer;
 
             #[test]
             fn it_should_use_the_loopback_ip_if_the_server_does_not_have_the_external_ip_configuration() {
                 let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
                 let announce_request = AnnounceRequestBuilder::default().into();
 
-                let torrent_peer = TorrentPeer::from_udp_announce_request(&announce_request, remote_ip, None);
+                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, None);
 
                 assert_eq!(torrent_peer.peer_addr, SocketAddr::new(remote_ip, announce_request.port.0));
             }
@@ -219,7 +345,7 @@ mod test {
                 let announce_request = AnnounceRequestBuilder::default().into();
 
                 let host_opt_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
-                let torrent_peer = TorrentPeer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
+                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
 
                 assert_eq!(torrent_peer.peer_addr, SocketAddr::new(host_opt_ip, announce_request.port.0));
             }
@@ -230,7 +356,7 @@ mod test {
                 let announce_request = AnnounceRequestBuilder::default().into();
 
                 let host_opt_ip = IpAddr::V6(Ipv6Addr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
-                let torrent_peer = TorrentPeer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
+                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
 
                 assert_eq!(torrent_peer.peer_addr, SocketAddr::new(host_opt_ip, announce_request.port.0));
             }
@@ -241,15 +367,15 @@ mod test {
             use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
             use std::str::FromStr;
 
-            use crate::peer::test::torrent_peer_constructor_from_udp_requests::AnnounceRequestBuilder;
-            use crate::peer::TorrentPeer;
+            use crate::tracker::peer::test::torrent_peer_constructor_from_udp_requests::AnnounceRequestBuilder;
+            use crate::tracker::peer::Peer;
 
             #[test]
             fn it_should_use_the_loopback_ip_if_the_server_does_not_have_the_external_ip_configuration() {
                 let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
                 let announce_request = AnnounceRequestBuilder::default().into();
 
-                let torrent_peer = TorrentPeer::from_udp_announce_request(&announce_request, remote_ip, None);
+                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, None);
 
                 assert_eq!(torrent_peer.peer_addr, SocketAddr::new(remote_ip, announce_request.port.0));
             }
@@ -260,7 +386,7 @@ mod test {
                 let announce_request = AnnounceRequestBuilder::default().into();
 
                 let host_opt_ip = IpAddr::V6(Ipv6Addr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
-                let torrent_peer = TorrentPeer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
+                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
 
                 assert_eq!(torrent_peer.peer_addr, SocketAddr::new(host_opt_ip, announce_request.port.0));
             }
@@ -271,7 +397,7 @@ mod test {
                 let announce_request = AnnounceRequestBuilder::default().into();
 
                 let host_opt_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
-                let torrent_peer = TorrentPeer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
+                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
 
                 assert_eq!(torrent_peer.peer_addr, SocketAddr::new(host_opt_ip, announce_request.port.0));
             }
@@ -281,17 +407,17 @@ mod test {
     mod torrent_peer_constructor_from_for_http_requests {
         use std::net::{IpAddr, Ipv4Addr};
 
-        use crate::http::AnnounceRequest;
-        use crate::peer::TorrentPeer;
-        use crate::{InfoHash, PeerId};
+        use crate::http::request::Announce;
+        use crate::protocol::info_hash::InfoHash;
+        use crate::tracker::peer::{self, Peer};
 
-        fn sample_http_announce_request(peer_addr: IpAddr, port: u16) -> AnnounceRequest {
-            AnnounceRequest {
+        fn sample_http_announce_request(peer_addr: IpAddr, port: u16) -> Announce {
+            Announce {
                 info_hash: InfoHash([0u8; 20]),
                 peer_addr,
                 downloaded: 0u64,
                 uploaded: 0u64,
-                peer_id: PeerId(*b"-qB00000000000000000"),
+                peer_id: peer::Id(*b"-qB00000000000000000"),
                 port,
                 left: 0u64,
                 event: None,
@@ -306,7 +432,7 @@ mod test {
             let ip_in_announce_request = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
             let announce_request = sample_http_announce_request(ip_in_announce_request, 8080);
 
-            let torrent_peer = TorrentPeer::from_http_announce_request(&announce_request, remote_ip, None);
+            let torrent_peer = Peer::from_http_announce_request(&announce_request, remote_ip, None);
 
             assert_eq!(torrent_peer.peer_addr.ip(), remote_ip);
             assert_ne!(torrent_peer.peer_addr.ip(), ip_in_announce_request);
@@ -321,7 +447,7 @@ mod test {
             let announce_request =
                 sample_http_announce_request(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), port_in_announce_request);
 
-            let torrent_peer = TorrentPeer::from_http_announce_request(&announce_request, remote_ip, None);
+            let torrent_peer = Peer::from_http_announce_request(&announce_request, remote_ip, None);
 
             assert_eq!(torrent_peer.peer_addr.port(), announce_request.port);
             assert_ne!(torrent_peer.peer_addr.port(), remote_port);

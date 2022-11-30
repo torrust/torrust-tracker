@@ -1,6 +1,6 @@
 /// Integration tests for UDP tracker server
 ///
-/// cargo test udp_tracker_server -- --nocapture
+/// cargo test `udp_tracker_server` -- --nocapture
 extern crate rand;
 
 mod common;
@@ -18,11 +18,11 @@ mod udp_tracker_server {
     };
     use tokio::net::UdpSocket;
     use tokio::task::JoinHandle;
+    use torrust_tracker::config::Configuration;
     use torrust_tracker::jobs::udp_tracker;
-    use torrust_tracker::tracker::statistics::StatsTracker;
-    use torrust_tracker::tracker::TorrentTracker;
+    use torrust_tracker::tracker::statistics::Keeper;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
-    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
     use crate::common::ephemeral_random_port;
 
@@ -48,7 +48,7 @@ mod udp_tracker_server {
             }
         }
 
-        pub async fn start(&mut self, configuration: Arc<Configuration>) {
+        pub fn start(&mut self, configuration: &Arc<Configuration>) {
             if !self.started.load(Ordering::Relaxed) {
                 // Set the time of Torrust app starting
                 lazy_static::initialize(&static_time::TIME_AT_APP_START);
@@ -57,10 +57,10 @@ mod udp_tracker_server {
                 lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
 
                 // Initialize stats tracker
-                let (stats_event_sender, stats_repository) = StatsTracker::new_active_instance();
+                let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
                 // Initialize Torrust tracker
-                let tracker = match TorrentTracker::new(configuration.clone(), Some(stats_event_sender), stats_repository) {
+                let tracker = match tracker::Tracker::new(&configuration.clone(), Some(stats_event_sender), stats_repository) {
                     Ok(tracker) => Arc::new(tracker),
                     Err(error) => {
                         panic!("{}", error)
@@ -68,7 +68,7 @@ mod udp_tracker_server {
                 };
 
                 // Initialize logging
-                logging::setup_logging(&configuration);
+                logging::setup(configuration);
 
                 let udp_tracker_config = &configuration.udp_trackers[0];
 
@@ -82,9 +82,9 @@ mod udp_tracker_server {
         }
     }
 
-    async fn new_running_udp_server(configuration: Arc<Configuration>) -> UdpServer {
+    fn new_running_udp_server(configuration: &Arc<Configuration>) -> UdpServer {
         let mut udp_server = UdpServer::new();
-        udp_server.start(configuration).await;
+        udp_server.start(configuration);
         udp_server
     }
 
@@ -101,7 +101,7 @@ mod udp_tracker_server {
         }
 
         async fn connect(&self, remote_address: &str) {
-            self.socket.connect(remote_address).await.unwrap()
+            self.socket.connect(remote_address).await.unwrap();
         }
 
         async fn send(&self, bytes: &[u8]) -> usize {
@@ -115,7 +115,7 @@ mod udp_tracker_server {
         }
     }
 
-    /// Creates a new UdpClient connected to a Udp server
+    /// Creates a new `UdpClient` connected to a Udp server
     async fn new_connected_udp_client(remote_address: &str) -> UdpClient {
         let client = UdpClient::bind(&source_address(ephemeral_random_port())).await;
         client.connect(remote_address).await;
@@ -134,12 +134,13 @@ mod udp_tracker_server {
 
             let request_data = match request.write(&mut cursor) {
                 Ok(_) => {
+                    #[allow(clippy::cast_possible_truncation)]
                     let position = cursor.position() as usize;
                     let inner_request_buffer = cursor.get_ref();
                     // Return slice which contains written request data
                     &inner_request_buffer[..position]
                 }
-                Err(_) => panic!("could not write request to bytes."),
+                Err(e) => panic!("could not write request to bytes: {e}."),
             };
 
             self.udp_client.send(request_data).await
@@ -154,7 +155,7 @@ mod udp_tracker_server {
         }
     }
 
-    /// Creates a new UdpTrackerClient connected to a Udp Tracker server
+    /// Creates a new `UdpTrackerClient` connected to a Udp Tracker server
     async fn new_connected_udp_tracker_client(remote_address: &str) -> UdpTrackerClient {
         let udp_client = new_connected_udp_client(remote_address).await;
         UdpTrackerClient { udp_client }
@@ -199,7 +200,7 @@ mod udp_tracker_server {
     async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
         let configuration = tracker_configuration();
 
-        let udp_server = new_running_udp_server(configuration).await;
+        let udp_server = new_running_udp_server(&configuration);
 
         let client = new_connected_udp_client(&udp_server.bind_address.unwrap()).await;
 
@@ -216,7 +217,7 @@ mod udp_tracker_server {
     async fn should_return_a_connect_response_when_the_client_sends_a_connection_request() {
         let configuration = tracker_configuration();
 
-        let udp_server = new_running_udp_server(configuration).await;
+        let udp_server = new_running_udp_server(&configuration);
 
         let client = new_connected_udp_tracker_client(&udp_server.bind_address.unwrap()).await;
 
@@ -248,7 +249,7 @@ mod udp_tracker_server {
     async fn should_return_an_announce_response_when_the_client_sends_an_announce_request() {
         let configuration = tracker_configuration();
 
-        let udp_server = new_running_udp_server(configuration).await;
+        let udp_server = new_running_udp_server(&configuration);
 
         let client = new_connected_udp_tracker_client(&udp_server.bind_address.unwrap()).await;
 
@@ -282,7 +283,7 @@ mod udp_tracker_server {
     async fn should_return_a_scrape_response_when_the_client_sends_a_scrape_request() {
         let configuration = tracker_configuration();
 
-        let udp_server = new_running_udp_server(configuration).await;
+        let udp_server = new_running_udp_server(&configuration);
 
         let client = new_connected_udp_tracker_client(&udp_server.bind_address.unwrap()).await;
 

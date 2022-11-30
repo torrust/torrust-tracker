@@ -9,18 +9,18 @@ use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use {std, toml};
 
-use crate::databases::database::DatabaseDrivers;
-use crate::mode::TrackerMode;
+use crate::databases::driver::Driver;
+use crate::tracker::mode;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-pub struct UdpTrackerConfig {
+pub struct UdpTracker {
     pub enabled: bool,
     pub bind_address: String,
 }
 
 #[serde_as]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-pub struct HttpTrackerConfig {
+pub struct HttpTracker {
     pub enabled: bool,
     pub bind_address: String,
     pub ssl_enabled: bool,
@@ -31,17 +31,18 @@ pub struct HttpTrackerConfig {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-pub struct HttpApiConfig {
+pub struct HttpApi {
     pub enabled: bool,
     pub bind_address: String,
     pub access_tokens: HashMap<String, String>,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
     pub log_level: Option<String>,
-    pub mode: TrackerMode,
-    pub db_driver: DatabaseDrivers,
+    pub mode: mode::Mode,
+    pub db_driver: Driver,
     pub db_path: String,
     pub announce_interval: u32,
     pub min_announce_interval: u32,
@@ -52,31 +53,36 @@ pub struct Configuration {
     pub persistent_torrent_completed_stat: bool,
     pub inactive_peer_cleanup_interval: u64,
     pub remove_peerless_torrents: bool,
-    pub udp_trackers: Vec<UdpTrackerConfig>,
-    pub http_trackers: Vec<HttpTrackerConfig>,
-    pub http_api: HttpApiConfig,
+    pub udp_trackers: Vec<UdpTracker>,
+    pub http_trackers: Vec<HttpTracker>,
+    pub http_api: HttpApi,
 }
 
 #[derive(Debug)]
-pub enum ConfigurationError {
+pub enum Error {
+    Message(String),
+    ConfigError(ConfigError),
     IOError(std::io::Error),
     ParseError(toml::de::Error),
     TrackerModeIncompatible,
 }
 
-impl std::fmt::Display for ConfigurationError {
+impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            ConfigurationError::IOError(e) => e.fmt(f),
-            ConfigurationError::ParseError(e) => e.fmt(f),
-            _ => write!(f, "{:?}", self),
+            Error::Message(e) => e.fmt(f),
+            Error::ConfigError(e) => e.fmt(f),
+            Error::IOError(e) => e.fmt(f),
+            Error::ParseError(e) => e.fmt(f),
+            Error::TrackerModeIncompatible => write!(f, "{:?}", self),
         }
     }
 }
 
-impl std::error::Error for ConfigurationError {}
+impl std::error::Error for Error {}
 
 impl Configuration {
+    #[must_use]
     pub fn get_ext_ip(&self) -> Option<IpAddr> {
         match &self.external_ip {
             None => None,
@@ -87,11 +93,12 @@ impl Configuration {
         }
     }
 
+    #[must_use]
     pub fn default() -> Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
-            mode: TrackerMode::Public,
-            db_driver: DatabaseDrivers::Sqlite3,
+            mode: mode::Mode::Public,
+            db_driver: Driver::Sqlite3,
             db_path: String::from("data.db"),
             announce_interval: 120,
             min_announce_interval: 120,
@@ -104,7 +111,7 @@ impl Configuration {
             remove_peerless_torrents: true,
             udp_trackers: Vec::new(),
             http_trackers: Vec::new(),
-            http_api: HttpApiConfig {
+            http_api: HttpApi {
                 enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))]
@@ -113,11 +120,11 @@ impl Configuration {
                     .collect(),
             },
         };
-        configuration.udp_trackers.push(UdpTrackerConfig {
+        configuration.udp_trackers.push(UdpTracker {
             enabled: false,
             bind_address: String::from("0.0.0.0:6969"),
         });
-        configuration.http_trackers.push(HttpTrackerConfig {
+        configuration.http_trackers.push(HttpTracker {
             enabled: false,
             bind_address: String::from("0.0.0.0:6969"),
             ssl_enabled: false,
@@ -127,32 +134,40 @@ impl Configuration {
         configuration
     }
 
-    pub fn load_from_file(path: &str) -> Result<Configuration, ConfigError> {
+    /// # Errors
+    ///
+    /// Will return `Err` if `path` does not exist or has a bad configuration.
+    pub fn load_from_file(path: &str) -> Result<Configuration, Error> {
         let config_builder = Config::builder();
 
         #[allow(unused_assignments)]
         let mut config = Config::default();
 
         if Path::new(path).exists() {
-            config = config_builder.add_source(File::with_name(path)).build()?;
+            config = config_builder
+                .add_source(File::with_name(path))
+                .build()
+                .map_err(Error::ConfigError)?;
         } else {
             eprintln!("No config file found.");
             eprintln!("Creating config file..");
             let config = Configuration::default();
-            let _ = config.save_to_file(path);
-            return Err(ConfigError::Message(
+            config.save_to_file(path)?;
+            return Err(Error::Message(
                 "Please edit the config.TOML in the root folder and restart the tracker.".to_string(),
             ));
         }
 
-        let torrust_config: Configuration = config
-            .try_deserialize()
-            .map_err(|e| ConfigError::Message(format!("Errors while processing config: {}.", e)))?;
+        let torrust_config: Configuration = config.try_deserialize().map_err(Error::ConfigError)?;
 
         Ok(torrust_config)
     }
 
-    pub fn save_to_file(&self, path: &str) -> Result<(), ConfigurationError> {
+    /// # Errors
+    ///
+    /// Will return `Err` if `filename` does not exist or the user does not have
+    /// permission to read it.
+    pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
         let toml_string = toml::to_string(self).expect("Could not encode TOML value");
         fs::write(path, toml_string).expect("Could not write to file!");
         Ok(())
@@ -161,6 +176,7 @@ impl Configuration {
 
 #[cfg(test)]
 mod tests {
+    use crate::config::{Configuration, Error};
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -197,7 +213,7 @@ mod tests {
                                 admin = "MyAccessToken"
         "#
         .lines()
-        .map(|line| line.trim_start())
+        .map(str::trim_start)
         .collect::<Vec<&str>>()
         .join("\n");
         config
@@ -205,8 +221,6 @@ mod tests {
 
     #[test]
     fn configuration_should_have_default_values() {
-        use crate::Configuration;
-
         let configuration = Configuration::default();
 
         let toml = toml::to_string(&configuration).expect("Could not encode TOML value");
@@ -216,8 +230,6 @@ mod tests {
 
     #[test]
     fn configuration_should_contain_the_external_ip() {
-        use crate::Configuration;
-
         let configuration = Configuration::default();
 
         assert_eq!(configuration.external_ip, Option::Some(String::from("0.0.0.0")));
@@ -228,8 +240,6 @@ mod tests {
         use std::{env, fs};
 
         use uuid::Uuid;
-
-        use crate::Configuration;
 
         // Build temp config file path
         let temp_directory = env::temp_dir();
@@ -275,8 +285,6 @@ mod tests {
 
     #[test]
     fn configuration_should_be_loaded_from_a_toml_config_file() {
-        use crate::Configuration;
-
         let config_file_path = create_temp_config_file_with_default_config();
 
         let configuration = Configuration::load_from_file(&config_file_path).expect("Could not load configuration from file");
@@ -286,9 +294,7 @@ mod tests {
 
     #[test]
     fn configuration_error_could_be_displayed() {
-        use crate::ConfigurationError;
-
-        let error = ConfigurationError::TrackerModeIncompatible;
+        let error = Error::TrackerModeIncompatible;
 
         assert_eq!(format!("{}", error), "TrackerModeIncompatible");
     }

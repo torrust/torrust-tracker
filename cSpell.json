@@ -7,6 +7,7 @@
         "bencode",
         "binascii",
         "Bitflu",
+        "bools",
         "bufs",
         "byteorder",
         "canonicalize",

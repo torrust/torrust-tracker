@@ -3,15 +3,14 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use log::debug;
 #[cfg(test)]
-use mockall::{automock, predicate::*};
+use mockall::{automock, predicate::str};
 use tokio::sync::mpsc::error::SendError;
-use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::{mpsc, RwLock, RwLockReadGuard};
 
 const CHANNEL_BUFFER_SIZE: usize = 65_535;
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum TrackerStatisticsEvent {
+pub enum Event {
     Tcp4Announce,
     Tcp4Scrape,
     Tcp6Announce,
@@ -25,7 +24,7 @@ pub enum TrackerStatisticsEvent {
 }
 
 #[derive(Debug)]
-pub struct TrackerStatistics {
+pub struct Metrics {
     pub tcp4_connections_handled: u64,
     pub tcp4_announces_handled: u64,
     pub tcp4_scrapes_handled: u64,
@@ -40,13 +39,14 @@ pub struct TrackerStatistics {
     pub udp6_scrapes_handled: u64,
 }
 
-impl Default for TrackerStatistics {
+impl Default for Metrics {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl TrackerStatistics {
+impl Metrics {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             tcp4_connections_handled: 0,
@@ -65,89 +65,89 @@ impl TrackerStatistics {
     }
 }
 
-pub struct StatsTracker {
-    pub stats_repository: StatsRepository,
+pub struct Keeper {
+    pub repository: Repo,
 }
 
-impl Default for StatsTracker {
+impl Default for Keeper {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl StatsTracker {
+impl Keeper {
+    #[must_use]
     pub fn new() -> Self {
-        Self {
-            stats_repository: StatsRepository::new(),
-        }
+        Self { repository: Repo::new() }
     }
 
-    pub fn new_active_instance() -> (Box<dyn TrackerStatisticsEventSender>, StatsRepository) {
+    #[must_use]
+    pub fn new_active_instance() -> (Box<dyn EventSender>, Repo) {
         let mut stats_tracker = Self::new();
 
         let stats_event_sender = stats_tracker.run_event_listener();
 
-        (stats_event_sender, stats_tracker.stats_repository)
+        (stats_event_sender, stats_tracker.repository)
     }
 
-    pub fn run_event_listener(&mut self) -> Box<dyn TrackerStatisticsEventSender> {
-        let (sender, receiver) = mpsc::channel::<TrackerStatisticsEvent>(CHANNEL_BUFFER_SIZE);
+    pub fn run_event_listener(&mut self) -> Box<dyn EventSender> {
+        let (sender, receiver) = mpsc::channel::<Event>(CHANNEL_BUFFER_SIZE);
 
-        let stats_repository = self.stats_repository.clone();
+        let stats_repository = self.repository.clone();
 
         tokio::spawn(async move { event_listener(receiver, stats_repository).await });
 
-        Box::new(StatsEventSender { sender })
+        Box::new(Sender { sender })
     }
 }
 
-async fn event_listener(mut receiver: Receiver<TrackerStatisticsEvent>, stats_repository: StatsRepository) {
+async fn event_listener(mut receiver: mpsc::Receiver<Event>, stats_repository: Repo) {
     while let Some(event) = receiver.recv().await {
         event_handler(event, &stats_repository).await;
     }
 }
 
-async fn event_handler(event: TrackerStatisticsEvent, stats_repository: &StatsRepository) {
+async fn event_handler(event: Event, stats_repository: &Repo) {
     match event {
         // TCP4
-        TrackerStatisticsEvent::Tcp4Announce => {
+        Event::Tcp4Announce => {
             stats_repository.increase_tcp4_announces().await;
             stats_repository.increase_tcp4_connections().await;
         }
-        TrackerStatisticsEvent::Tcp4Scrape => {
+        Event::Tcp4Scrape => {
             stats_repository.increase_tcp4_scrapes().await;
             stats_repository.increase_tcp4_connections().await;
         }
 
         // TCP6
-        TrackerStatisticsEvent::Tcp6Announce => {
+        Event::Tcp6Announce => {
             stats_repository.increase_tcp6_announces().await;
             stats_repository.increase_tcp6_connections().await;
         }
-        TrackerStatisticsEvent::Tcp6Scrape => {
+        Event::Tcp6Scrape => {
             stats_repository.increase_tcp6_scrapes().await;
             stats_repository.increase_tcp6_connections().await;
         }
 
         // UDP4
-        TrackerStatisticsEvent::Udp4Connect => {
+        Event::Udp4Connect => {
             stats_repository.increase_udp4_connections().await;
         }
-        TrackerStatisticsEvent::Udp4Announce => {
+        Event::Udp4Announce => {
             stats_repository.increase_udp4_announces().await;
         }
-        TrackerStatisticsEvent::Udp4Scrape => {
+        Event::Udp4Scrape => {
             stats_repository.increase_udp4_scrapes().await;
         }
 
         // UDP6
-        TrackerStatisticsEvent::Udp6Connect => {
+        Event::Udp6Connect => {
             stats_repository.increase_udp6_connections().await;
         }
-        TrackerStatisticsEvent::Udp6Announce => {
+        Event::Udp6Announce => {
             stats_repository.increase_udp6_announces().await;
         }
-        TrackerStatisticsEvent::Udp6Scrape => {
+        Event::Udp6Scrape => {
             stats_repository.increase_udp6_scrapes().await;
         }
     }
@@ -157,40 +157,41 @@ async fn event_handler(event: TrackerStatisticsEvent, stats_repository: &StatsRe
 
 #[async_trait]
 #[cfg_attr(test, automock)]
-pub trait TrackerStatisticsEventSender: Sync + Send {
-    async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>>;
+pub trait EventSender: Sync + Send {
+    async fn send_event(&self, event: Event) -> Option<Result<(), SendError<Event>>>;
 }
 
-pub struct StatsEventSender {
-    sender: Sender<TrackerStatisticsEvent>,
+pub struct Sender {
+    sender: mpsc::Sender<Event>,
 }
 
 #[async_trait]
-impl TrackerStatisticsEventSender for StatsEventSender {
-    async fn send_event(&self, event: TrackerStatisticsEvent) -> Option<Result<(), SendError<TrackerStatisticsEvent>>> {
+impl EventSender for Sender {
+    async fn send_event(&self, event: Event) -> Option<Result<(), SendError<Event>>> {
         Some(self.sender.send(event).await)
     }
 }
 
 #[derive(Clone)]
-pub struct StatsRepository {
-    pub stats: Arc<RwLock<TrackerStatistics>>,
+pub struct Repo {
+    pub stats: Arc<RwLock<Metrics>>,
 }
 
-impl Default for StatsRepository {
+impl Default for Repo {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl StatsRepository {
+impl Repo {
+    #[must_use]
     pub fn new() -> Self {
         Self {
-            stats: Arc::new(RwLock::new(TrackerStatistics::new())),
+            stats: Arc::new(RwLock::new(Metrics::new())),
         }
     }
 
-    pub async fn get_stats(&self) -> RwLockReadGuard<'_, TrackerStatistics> {
+    pub async fn get_stats(&self) -> RwLockReadGuard<'_, Metrics> {
         self.stats.read().await
     }
 
@@ -271,37 +272,37 @@ impl StatsRepository {
 mod tests {
 
     mod stats_tracker {
-        use crate::statistics::{StatsTracker, TrackerStatistics, TrackerStatisticsEvent};
+        use crate::tracker::statistics::{Event, Keeper, Metrics};
 
         #[tokio::test]
         async fn should_contain_the_tracker_statistics() {
-            let stats_tracker = StatsTracker::new();
+            let stats_tracker = Keeper::new();
 
-            let stats = stats_tracker.stats_repository.get_stats().await;
+            let stats = stats_tracker.repository.get_stats().await;
 
-            assert_eq!(stats.tcp4_announces_handled, TrackerStatistics::new().tcp4_announces_handled);
+            assert_eq!(stats.tcp4_announces_handled, Metrics::new().tcp4_announces_handled);
         }
 
         #[tokio::test]
         async fn should_create_an_event_sender_to_send_statistical_events() {
-            let mut stats_tracker = StatsTracker::new();
+            let mut stats_tracker = Keeper::new();
 
             let event_sender = stats_tracker.run_event_listener();
 
-            let result = event_sender.send_event(TrackerStatisticsEvent::Udp4Connect).await;
+            let result = event_sender.send_event(Event::Udp4Connect).await;
 
             assert!(result.is_some());
         }
     }
 
     mod event_handler {
-        use crate::statistics::{event_handler, StatsRepository, TrackerStatisticsEvent};
+        use crate::tracker::statistics::{event_handler, Event, Repo};
 
         #[tokio::test]
         async fn should_increase_the_tcp4_announces_counter_when_it_receives_a_tcp4_announce_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Tcp4Announce, &stats_repository).await;
+            event_handler(Event::Tcp4Announce, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -310,9 +311,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_tcp4_connections_counter_when_it_receives_a_tcp4_announce_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Tcp4Announce, &stats_repository).await;
+            event_handler(Event::Tcp4Announce, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -321,9 +322,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_tcp4_scrapes_counter_when_it_receives_a_tcp4_scrape_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Tcp4Scrape, &stats_repository).await;
+            event_handler(Event::Tcp4Scrape, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -332,9 +333,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_tcp4_connections_counter_when_it_receives_a_tcp4_scrape_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Tcp4Scrape, &stats_repository).await;
+            event_handler(Event::Tcp4Scrape, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -343,9 +344,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_tcp6_announces_counter_when_it_receives_a_tcp6_announce_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Tcp6Announce, &stats_repository).await;
+            event_handler(Event::Tcp6Announce, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -354,9 +355,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_tcp6_connections_counter_when_it_receives_a_tcp6_announce_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Tcp6Announce, &stats_repository).await;
+            event_handler(Event::Tcp6Announce, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -365,9 +366,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_tcp6_scrapes_counter_when_it_receives_a_tcp6_scrape_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Tcp6Scrape, &stats_repository).await;
+            event_handler(Event::Tcp6Scrape, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -376,9 +377,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_tcp6_connections_counter_when_it_receives_a_tcp6_scrape_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Tcp6Scrape, &stats_repository).await;
+            event_handler(Event::Tcp6Scrape, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -387,9 +388,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_udp4_connections_counter_when_it_receives_a_udp4_connect_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Udp4Connect, &stats_repository).await;
+            event_handler(Event::Udp4Connect, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -398,9 +399,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_udp4_announces_counter_when_it_receives_a_udp4_announce_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Udp4Announce, &stats_repository).await;
+            event_handler(Event::Udp4Announce, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -409,9 +410,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_udp4_scrapes_counter_when_it_receives_a_udp4_scrape_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Udp4Scrape, &stats_repository).await;
+            event_handler(Event::Udp4Scrape, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -420,9 +421,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_udp6_connections_counter_when_it_receives_a_udp6_connect_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Udp6Connect, &stats_repository).await;
+            event_handler(Event::Udp6Connect, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -431,9 +432,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_udp6_announces_counter_when_it_receives_a_udp6_announce_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Udp6Announce, &stats_repository).await;
+            event_handler(Event::Udp6Announce, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 
@@ -442,9 +443,9 @@ mod tests {
 
         #[tokio::test]
         async fn should_increase_the_udp6_scrapes_counter_when_it_receives_a_udp6_scrape_event() {
-            let stats_repository = StatsRepository::new();
+            let stats_repository = Repo::new();
 
-            event_handler(TrackerStatisticsEvent::Udp6Scrape, &stats_repository).await;
+            event_handler(Event::Udp6Scrape, &stats_repository).await;
 
             let stats = stats_repository.get_stats().await;
 

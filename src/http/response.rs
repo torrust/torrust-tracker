@@ -1,12 +1,11 @@
 use std::collections::HashMap;
-use std::error::Error;
 use std::io::Write;
 use std::net::IpAddr;
 
 use serde;
 use serde::Serialize;
 
-use crate::InfoHash;
+use crate::protocol::info_hash::InfoHash;
 
 #[derive(Serialize)]
 pub struct Peer {
@@ -16,7 +15,7 @@ pub struct Peer {
 }
 
 #[derive(Serialize)]
-pub struct AnnounceResponse {
+pub struct Announce {
     pub interval: u32,
     #[serde(rename = "min interval")]
     pub interval_min: u32,
@@ -26,12 +25,19 @@ pub struct AnnounceResponse {
     pub peers: Vec<Peer>,
 }
 
-impl AnnounceResponse {
+impl Announce {
+    /// # Panics
+    ///
+    /// It would panic if the `Announce` struct would contain an inappropriate type.
+    #[must_use]
     pub fn write(&self) -> String {
         serde_bencode::to_string(&self).unwrap()
     }
 
-    pub fn write_compact(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+    /// # Errors
+    ///
+    /// Will return `Err` if internally interrupted.
+    pub fn write_compact(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let mut peers_v4: Vec<u8> = Vec::new();
         let mut peers_v6: Vec<u8> = Vec::new();
 
@@ -72,24 +78,27 @@ impl AnnounceResponse {
 }
 
 #[derive(Serialize)]
-pub struct ScrapeResponseEntry {
+pub struct ScrapeEntry {
     pub complete: u32,
     pub downloaded: u32,
     pub incomplete: u32,
 }
 
 #[derive(Serialize)]
-pub struct ScrapeResponse {
-    pub files: HashMap<InfoHash, ScrapeResponseEntry>,
+pub struct Scrape {
+    pub files: HashMap<InfoHash, ScrapeEntry>,
 }
 
-impl ScrapeResponse {
-    pub fn write(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+impl Scrape {
+    /// # Errors
+    ///
+    /// Will return `Err` if internally interrupted.
+    pub fn write(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let mut bytes: Vec<u8> = Vec::new();
 
         bytes.write_all(b"d5:filesd")?;
 
-        for (info_hash, scrape_response_entry) in self.files.iter() {
+        for (info_hash, scrape_response_entry) in &self.files {
             bytes.write_all(b"20:")?;
             bytes.write_all(&info_hash.0)?;
             bytes.write_all(b"d8:completei")?;
@@ -108,12 +117,16 @@ impl ScrapeResponse {
 }
 
 #[derive(Serialize)]
-pub struct ErrorResponse {
+pub struct Error {
     #[serde(rename = "failure reason")]
     pub failure_reason: String,
 }
 
-impl ErrorResponse {
+impl Error {
+    /// # Panics
+    ///
+    /// It would panic if the `Error` struct would contain an inappropriate type.
+    #[must_use]
     pub fn write(&self) -> String {
         serde_bencode::to_string(&self).unwrap()
     }

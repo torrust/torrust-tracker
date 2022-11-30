@@ -1,15 +1,16 @@
 use thiserror::Error;
+use warp::reject::Reject;
 
 #[derive(Error, Debug)]
-pub enum ServerError {
+pub enum Error {
     #[error("internal server error")]
-    InternalServerError,
+    InternalServer,
 
     #[error("info_hash is either missing or invalid")]
-    InvalidInfoHash,
+    InvalidInfo,
 
-    #[error("connection id could not be verified")]
-    InvalidConnectionId,
+    #[error("peer_id is either missing or invalid")]
+    InvalidPeerId,
 
     #[error("could not find remote address")]
     AddressNotFound,
@@ -28,7 +29,6 @@ pub enum ServerError {
 
     #[error("exceeded info_hash limit")]
     ExceededInfoHashLimit,
-
-    #[error("bad request")]
-    BadRequest,
 }
+
+impl Reject for Error {}

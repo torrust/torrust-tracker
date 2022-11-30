@@ -3,11 +3,11 @@ use std::sync::Once;
 
 use log::{info, LevelFilter};
 
-use crate::Configuration;
+use crate::config::Configuration;
 
 static INIT: Once = Once::new();
 
-pub fn setup_logging(cfg: &Configuration) {
+pub fn setup(cfg: &Configuration) {
     let level = config_level_or_default(&cfg.log_level);
 
     if level == log::LevelFilter::Off {
@@ -35,7 +35,7 @@ fn stdout_config(level: LevelFilter) {
                 record.target(),
                 record.level(),
                 message
-            ))
+            ));
         })
         .level(level)
         .chain(std::io::stdout())

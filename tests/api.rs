@@ -1,6 +1,6 @@
 /// Integration tests for the tracker API
 ///
-/// cargo test tracker_api -- --nocapture
+/// cargo test `tracker_api` -- --nocapture
 extern crate rand;
 
 mod common;
@@ -16,16 +16,17 @@ mod tracker_api {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use reqwest::Response;
     use tokio::task::JoinHandle;
-    use torrust_tracker::api::resources::auth_key_resource::AuthKeyResource;
-    use torrust_tracker::api::resources::stats_resource::StatsResource;
-    use torrust_tracker::api::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
+    use torrust_tracker::api::resource;
+    use torrust_tracker::api::resource::auth_key::AuthKey;
+    use torrust_tracker::api::resource::stats::Stats;
+    use torrust_tracker::api::resource::torrent::{self, Torrent};
+    use torrust_tracker::config::Configuration;
     use torrust_tracker::jobs::tracker_api;
-    use torrust_tracker::peer::TorrentPeer;
     use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
-    use torrust_tracker::tracker::key::AuthKey;
-    use torrust_tracker::tracker::statistics::StatsTracker;
-    use torrust_tracker::tracker::TorrentTracker;
-    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, Configuration, InfoHash, PeerId};
+    use torrust_tracker::protocol::info_hash::InfoHash;
+    use torrust_tracker::tracker::statistics::Keeper;
+    use torrust_tracker::tracker::{auth, peer};
+    use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
     use crate::common::ephemeral_random_port;
 
@@ -43,7 +44,7 @@ mod tracker_api {
         assert!(api_server
             .tracker
             .unwrap()
-            .verify_auth_key(&AuthKey::from(auth_key))
+            .verify_auth_key(&auth::Key::from(auth_key))
             .await
             .is_ok());
     }
@@ -103,7 +104,7 @@ mod tracker_api {
 
         assert_eq!(
             torrent_resource,
-            TorrentResource {
+            Torrent {
                 info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                 seeders: 1,
                 completed: 0,
@@ -134,7 +135,7 @@ mod tracker_api {
 
         assert_eq!(
             torrent_resources,
-            vec![TorrentListItemResource {
+            vec![torrent::ListItem {
                 info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                 seeders: 1,
                 completed: 0,
@@ -165,7 +166,7 @@ mod tracker_api {
 
         assert_eq!(
             stats_resource,
-            StatsResource {
+            Stats {
                 torrents: 1,
                 seeders: 1,
                 completed: 0,
@@ -186,17 +187,17 @@ mod tracker_api {
         );
     }
 
-    fn sample_torrent_peer() -> (TorrentPeer, TorrentPeerResource) {
-        let torrent_peer = TorrentPeer {
-            peer_id: PeerId(*b"-qB00000000000000000"),
+    fn sample_torrent_peer() -> (peer::Peer, resource::peer::Peer) {
+        let torrent_peer = peer::Peer {
+            peer_id: peer::Id(*b"-qB00000000000000000"),
             peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-            updated: DurationSinceUnixEpoch::new(1669397478934, 0),
+            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
             uploaded: NumberOfBytes(0),
             downloaded: NumberOfBytes(0),
             left: NumberOfBytes(0),
             event: AnnounceEvent::Started,
         };
-        let torrent_peer_resource = TorrentPeerResource::from(torrent_peer);
+        let torrent_peer_resource = resource::peer::Peer::from(torrent_peer);
 
         (torrent_peer, torrent_peer_resource)
     }
@@ -235,7 +236,7 @@ mod tracker_api {
     struct ApiServer {
         pub started: AtomicBool,
         pub job: Option<JoinHandle<()>>,
-        pub tracker: Option<Arc<TorrentTracker>>,
+        pub tracker: Option<Arc<tracker::Tracker>>,
         pub connection_info: Option<ApiConnectionInfo>,
     }
 
@@ -274,10 +275,10 @@ mod tracker_api {
                 lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
 
                 // Initialize stats tracker
-                let (stats_event_sender, stats_repository) = StatsTracker::new_active_instance();
+                let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
                 // Initialize Torrust tracker
-                let tracker = match TorrentTracker::new(configuration.clone(), Some(stats_event_sender), stats_repository) {
+                let tracker = match tracker::Tracker::new(&configuration.clone(), Some(stats_event_sender), stats_repository) {
                     Ok(tracker) => Arc::new(tracker),
                     Err(error) => {
                         panic!("{}", error)
@@ -286,7 +287,7 @@ mod tracker_api {
                 self.tracker = Some(tracker.clone());
 
                 // Initialize logging
-                logging::setup_logging(&configuration);
+                logging::setup(&configuration);
 
                 // Start the HTTP API job
                 self.job = Some(tracker_api::start_job(&configuration, tracker).await);
@@ -309,7 +310,7 @@ mod tracker_api {
             Self { connection_info }
         }
 
-        pub async fn generate_auth_key(&self, seconds_valid: i32) -> AuthKeyResource {
+        pub async fn generate_auth_key(&self, seconds_valid: i32) -> AuthKey {
             let url = format!(
                 "http://{}/api/key/{}?token={}",
                 &self.connection_info.bind_address, &seconds_valid, &self.connection_info.api_token
@@ -325,7 +326,7 @@ mod tracker_api {
             reqwest::Client::new().post(url.clone()).send().await.unwrap()
         }
 
-        pub async fn get_torrent(&self, info_hash: &str) -> TorrentResource {
+        pub async fn get_torrent(&self, info_hash: &str) -> Torrent {
             let url = format!(
                 "http://{}/api/torrent/{}?token={}",
                 &self.connection_info.bind_address, &info_hash, &self.connection_info.api_token
@@ -337,12 +338,12 @@ mod tracker_api {
                 .send()
                 .await
                 .unwrap()
-                .json::<TorrentResource>()
+                .json::<Torrent>()
                 .await
                 .unwrap()
         }
 
-        pub async fn get_torrents(&self) -> Vec<TorrentListItemResource> {
+        pub async fn get_torrents(&self) -> Vec<torrent::ListItem> {
             let url = format!(
                 "http://{}/api/torrents?token={}",
                 &self.connection_info.bind_address, &self.connection_info.api_token
@@ -354,12 +355,12 @@ mod tracker_api {
                 .send()
                 .await
                 .unwrap()
-                .json::<Vec<TorrentListItemResource>>()
+                .json::<Vec<torrent::ListItem>>()
                 .await
                 .unwrap()
         }
 
-        pub async fn get_tracker_statistics(&self) -> StatsResource {
+        pub async fn get_tracker_statistics(&self) -> Stats {
             let url = format!(
                 "http://{}/api/stats?token={}",
                 &self.connection_info.bind_address, &self.connection_info.api_token
@@ -371,7 +372,7 @@ mod tracker_api {
                 .send()
                 .await
                 .unwrap()
-                .json::<StatsResource>()
+                .json::<Stats>()
                 .await
                 .unwrap()
         }

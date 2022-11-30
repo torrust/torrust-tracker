@@ -7,11 +7,12 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use warp::{filters, reply, serve, Filter};
 
-use super::resources::auth_key_resource::AuthKeyResource;
-use super::resources::stats_resource::StatsResource;
-use super::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
-use crate::protocol::common::*;
-use crate::tracker::TorrentTracker;
+use super::resource::auth_key::AuthKey;
+use super::resource::peer;
+use super::resource::stats::Stats;
+use super::resource::torrent::{ListItem, Torrent};
+use crate::protocol::info_hash::InfoHash;
+use crate::tracker;
 
 #[derive(Deserialize, Debug)]
 struct TorrentInfoQuery {
@@ -59,7 +60,8 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
         .untuple_one()
 }
 
-pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp::Future<Output = ()> {
+#[allow(clippy::too_many_lines)]
+pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl warp::Future<Output = ()> {
     // GET /api/torrents?offset=:u32&limit=:u32
     // View torrent list
     let api_torrents = tracker.clone();
@@ -71,7 +73,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
             let tracker = api_torrents.clone();
             (limits, tracker)
         })
-        .and_then(|(limits, tracker): (TorrentInfoQuery, Arc<TorrentTracker>)| async move {
+        .and_then(|(limits, tracker): (TorrentInfoQuery, Arc<tracker::Tracker>)| async move {
             let offset = limits.offset.unwrap_or(0);
             let limit = min(limits.limit.unwrap_or(1000), 4000);
 
@@ -80,7 +82,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
                 .iter()
                 .map(|(info_hash, torrent_entry)| {
                     let (seeders, completed, leechers) = torrent_entry.get_stats();
-                    TorrentListItemResource {
+                    ListItem {
                         info_hash: info_hash.to_string(),
                         seeders,
                         completed,
@@ -102,8 +104,8 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
         .and(filters::path::path("stats"))
         .and(filters::path::end())
         .map(move || api_stats.clone())
-        .and_then(|tracker: Arc<TorrentTracker>| async move {
-            let mut results = StatsResource {
+        .and_then(|tracker: Arc<tracker::Tracker>| async move {
+            let mut results = Stats {
                 torrents: 0,
                 seeders: 0,
                 completed: 0,
@@ -124,31 +126,31 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
 
             let db = tracker.get_torrents().await;
 
-            let _: Vec<_> = db
-                .iter()
-                .map(|(_info_hash, torrent_entry)| {
-                    let (seeders, completed, leechers) = torrent_entry.get_stats();
-                    results.seeders += seeders;
-                    results.completed += completed;
-                    results.leechers += leechers;
-                    results.torrents += 1;
-                })
-                .collect();
+            db.values().for_each(|torrent_entry| {
+                let (seeders, completed, leechers) = torrent_entry.get_stats();
+                results.seeders += seeders;
+                results.completed += completed;
+                results.leechers += leechers;
+                results.torrents += 1;
+            });
 
             let stats = tracker.get_stats().await;
 
-            results.tcp4_connections_handled = stats.tcp4_connections_handled as u32;
-            results.tcp4_announces_handled = stats.tcp4_announces_handled as u32;
-            results.tcp4_scrapes_handled = stats.tcp4_scrapes_handled as u32;
-            results.tcp6_connections_handled = stats.tcp6_connections_handled as u32;
-            results.tcp6_announces_handled = stats.tcp6_announces_handled as u32;
-            results.tcp6_scrapes_handled = stats.tcp6_scrapes_handled as u32;
-            results.udp4_connections_handled = stats.udp4_connections_handled as u32;
-            results.udp4_announces_handled = stats.udp4_announces_handled as u32;
-            results.udp4_scrapes_handled = stats.udp4_scrapes_handled as u32;
-            results.udp6_connections_handled = stats.udp6_connections_handled as u32;
-            results.udp6_announces_handled = stats.udp6_announces_handled as u32;
-            results.udp6_scrapes_handled = stats.udp6_scrapes_handled as u32;
+            #[allow(clippy::cast_possible_truncation)]
+            {
+                results.tcp4_connections_handled = stats.tcp4_connections_handled as u32;
+                results.tcp4_announces_handled = stats.tcp4_announces_handled as u32;
+                results.tcp4_scrapes_handled = stats.tcp4_scrapes_handled as u32;
+                results.tcp6_connections_handled = stats.tcp6_connections_handled as u32;
+                results.tcp6_announces_handled = stats.tcp6_announces_handled as u32;
+                results.tcp6_scrapes_handled = stats.tcp6_scrapes_handled as u32;
+                results.udp4_connections_handled = stats.udp4_connections_handled as u32;
+                results.udp4_announces_handled = stats.udp4_announces_handled as u32;
+                results.udp4_scrapes_handled = stats.udp4_scrapes_handled as u32;
+                results.udp6_connections_handled = stats.udp6_connections_handled as u32;
+                results.udp6_announces_handled = stats.udp6_announces_handled as u32;
+                results.udp6_scrapes_handled = stats.udp6_scrapes_handled as u32;
+            }
 
             Result::<_, warp::reject::Rejection>::Ok(reply::json(&results))
         });
@@ -164,22 +166,23 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
             let tracker = t2.clone();
             (info_hash, tracker)
         })
-        .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| async move {
+        .and_then(|(info_hash, tracker): (InfoHash, Arc<tracker::Tracker>)| async move {
             let db = tracker.get_torrents().await;
             let torrent_entry_option = db.get(&info_hash);
 
-            if torrent_entry_option.is_none() {
-                return Result::<_, warp::reject::Rejection>::Ok(reply::json(&"torrent not known"));
-            }
-
-            let torrent_entry = torrent_entry_option.unwrap();
+            let torrent_entry = match torrent_entry_option {
+                Some(torrent_entry) => torrent_entry,
+                None => {
+                    return Result::<_, warp::reject::Rejection>::Ok(reply::json(&"torrent not known"));
+                }
+            };
             let (seeders, completed, leechers) = torrent_entry.get_stats();
 
             let peers = torrent_entry.get_peers(None);
 
-            let peer_resources = peers.iter().map(|peer| TorrentPeerResource::from(**peer)).collect();
+            let peer_resources = peers.iter().map(|peer| peer::Peer::from(**peer)).collect();
 
-            Ok(reply::json(&TorrentResource {
+            Ok(reply::json(&Torrent {
                 info_hash: info_hash.to_string(),
                 seeders,
                 completed,
@@ -199,7 +202,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
             let tracker = t3.clone();
             (info_hash, tracker)
         })
-        .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| async move {
+        .and_then(|(info_hash, tracker): (InfoHash, Arc<tracker::Tracker>)| async move {
             match tracker.remove_torrent_from_whitelist(&info_hash).await {
                 Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                 Err(_) => Err(warp::reject::custom(ActionStatus::Err {
@@ -219,7 +222,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
             let tracker = t4.clone();
             (info_hash, tracker)
         })
-        .and_then(|(info_hash, tracker): (InfoHash, Arc<TorrentTracker>)| async move {
+        .and_then(|(info_hash, tracker): (InfoHash, Arc<tracker::Tracker>)| async move {
             match tracker.add_torrent_to_whitelist(&info_hash).await {
                 Ok(..) => Ok(warp::reply::json(&ActionStatus::Ok)),
                 Err(..) => Err(warp::reject::custom(ActionStatus::Err {
@@ -239,9 +242,9 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
             let tracker = t5.clone();
             (seconds_valid, tracker)
         })
-        .and_then(|(seconds_valid, tracker): (u64, Arc<TorrentTracker>)| async move {
+        .and_then(|(seconds_valid, tracker): (u64, Arc<tracker::Tracker>)| async move {
             match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
-                Ok(auth_key) => Ok(warp::reply::json(&AuthKeyResource::from(auth_key))),
+                Ok(auth_key) => Ok(warp::reply::json(&AuthKey::from(auth_key))),
                 Err(..) => Err(warp::reject::custom(ActionStatus::Err {
                     reason: "failed to generate key".into(),
                 })),
@@ -259,7 +262,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
             let tracker = t6.clone();
             (key, tracker)
         })
-        .and_then(|(key, tracker): (String, Arc<TorrentTracker>)| async move {
+        .and_then(|(key, tracker): (String, Arc<tracker::Tracker>)| async move {
             match tracker.remove_auth_key(&key).await {
                 Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                 Err(_) => Err(warp::reject::custom(ActionStatus::Err {
@@ -276,7 +279,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
         .and(filters::path::path("reload"))
         .and(filters::path::end())
         .map(move || t7.clone())
-        .and_then(|tracker: Arc<TorrentTracker>| async move {
+        .and_then(|tracker: Arc<tracker::Tracker>| async move {
             match tracker.load_whitelist().await {
                 Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                 Err(_) => Err(warp::reject::custom(ActionStatus::Err {
@@ -293,7 +296,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<TorrentTracker>) -> impl warp
         .and(filters::path::path("reload"))
         .and(filters::path::end())
         .map(move || t8.clone())
-        .and_then(|tracker: Arc<TorrentTracker>| async move {
+        .and_then(|tracker: Arc<tracker::Tracker>| async move {
             match tracker.load_keys().await {
                 Ok(_) => Ok(warp::reply::json(&ActionStatus::Ok)),
                 Err(_) => Err(warp::reject::custom(ActionStatus::Err {

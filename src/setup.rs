@@ -3,11 +3,11 @@ use std::sync::Arc;
 use log::warn;
 use tokio::task::JoinHandle;
 
+use crate::config::Configuration;
 use crate::jobs::{http_tracker, torrent_cleanup, tracker_api, udp_tracker};
-use crate::tracker::TorrentTracker;
-use crate::Configuration;
+use crate::tracker;
 
-pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<JoinHandle<()>> {
+pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Vec<JoinHandle<()>> {
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
     // Load peer keys
@@ -35,7 +35,7 @@ pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<
                 udp_tracker_config.bind_address, config.mode
             );
         } else {
-            jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone()))
+            jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone()));
         }
     }
 
@@ -54,7 +54,7 @@ pub async fn setup(config: &Configuration, tracker: Arc<TorrentTracker>) -> Vec<
 
     // Remove torrents without peers, every interval
     if config.inactive_peer_cleanup_interval > 0 {
-        jobs.push(torrent_cleanup::start_job(config, tracker.clone()));
+        jobs.push(torrent_cleanup::start_job(config, &tracker));
     }
 
     jobs

@@ -5,13 +5,16 @@ use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 
 use crate::api::server;
-use crate::tracker::TorrentTracker;
-use crate::Configuration;
+use crate::config::Configuration;
+use crate::tracker;
 
 #[derive(Debug)]
 pub struct ApiServerJobStarted();
 
-pub async fn start_job(config: &Configuration, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
+/// # Panics
+///
+/// It would panic if unable to send the  `ApiServerJobStarted` notice.
+pub async fn start_job(config: &Configuration, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
     let bind_addr = config
         .http_api
         .bind_address
@@ -24,11 +27,9 @@ pub async fn start_job(config: &Configuration, tracker: Arc<TorrentTracker>) -> 
 
     // Run the API server
     let join_handle = tokio::spawn(async move {
-        let handel = server::start(bind_addr, tracker);
+        let handel = server::start(bind_addr, &tracker);
 
-        if tx.send(ApiServerJobStarted()).is_err() {
-            panic!("the start job dropped");
-        }
+        tx.send(ApiServerJobStarted()).expect("the start job dropped");
 
         handel.await;
     });
@@ -36,7 +37,7 @@ pub async fn start_job(config: &Configuration, tracker: Arc<TorrentTracker>) -> 
     // Wait until the API server job is running
     match rx.await {
         Ok(_msg) => info!("Torrust API server started"),
-        Err(_) => panic!("the api server dropped"),
+        Err(e) => panic!("the api server dropped: {e}"),
     }
 
     join_handle

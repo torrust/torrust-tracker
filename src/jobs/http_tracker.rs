@@ -4,17 +4,22 @@ use std::sync::Arc;
 use log::{info, warn};
 use tokio::task::JoinHandle;
 
-use crate::tracker::TorrentTracker;
-use crate::{HttpServer, HttpTrackerConfig};
+use crate::config::HttpTracker;
+use crate::http::server::Http;
+use crate::tracker;
 
-pub fn start_job(config: &HttpTrackerConfig, tracker: Arc<TorrentTracker>) -> JoinHandle<()> {
+/// # Panics
+///
+/// It would panic if the `config::HttpTracker` struct would contain an inappropriate values.
+#[must_use]
+pub fn start_job(config: &HttpTracker, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
     let bind_addr = config.bind_address.parse::<SocketAddr>().unwrap();
     let ssl_enabled = config.ssl_enabled;
     let ssl_cert_path = config.ssl_cert_path.clone();
     let ssl_key_path = config.ssl_key_path.clone();
 
     tokio::spawn(async move {
-        let http_tracker = HttpServer::new(tracker);
+        let http_tracker = Http::new(tracker);
 
         if !ssl_enabled {
             info!("Starting HTTP server on: {}", bind_addr);

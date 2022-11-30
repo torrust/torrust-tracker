@@ -5,62 +5,73 @@ use std::sync::Arc;
 
 use warp::{reject, Filter, Rejection};
 
-use crate::http::{AnnounceRequest, AnnounceRequestQuery, ScrapeRequest, ServerError, WebResult};
-use crate::tracker::key::AuthKey;
-use crate::tracker::TorrentTracker;
-use crate::{InfoHash, PeerId, MAX_SCRAPE_TORRENTS};
+use super::error::Error;
+use super::{request, WebResult};
+use crate::protocol::common::MAX_SCRAPE_TORRENTS;
+use crate::protocol::info_hash::InfoHash;
+use crate::tracker::{self, auth, peer};
 
-/// Pass Arc<TorrentTracker> along
-pub fn with_tracker(tracker: Arc<TorrentTracker>) -> impl Filter<Extract = (Arc<TorrentTracker>,), Error = Infallible> + Clone {
+/// Pass Arc<tracker::TorrentTracker> along
+#[must_use]
+pub fn with_tracker(
+    tracker: Arc<tracker::Tracker>,
+) -> impl Filter<Extract = (Arc<tracker::Tracker>,), Error = Infallible> + Clone {
     warp::any().map(move || tracker.clone())
 }
 
 /// Check for infoHash
+#[must_use]
 pub fn with_info_hash() -> impl Filter<Extract = (Vec<InfoHash>,), Error = Rejection> + Clone {
-    warp::filters::query::raw().and_then(info_hashes)
+    warp::filters::query::raw().and_then(|q| async move { info_hashes(&q) })
 }
 
-/// Check for PeerId
-pub fn with_peer_id() -> impl Filter<Extract = (PeerId,), Error = Rejection> + Clone {
-    warp::filters::query::raw().and_then(peer_id)
+/// Check for `PeerId`
+#[must_use]
+pub fn with_peer_id() -> impl Filter<Extract = (peer::Id,), Error = Rejection> + Clone {
+    warp::filters::query::raw().and_then(|q| async move { peer_id(&q) })
 }
 
-/// Pass Arc<TorrentTracker> along
-pub fn with_auth_key() -> impl Filter<Extract = (Option<AuthKey>,), Error = Infallible> + Clone {
+/// Pass Arc<tracker::TorrentTracker> along
+#[must_use]
+pub fn with_auth_key() -> impl Filter<Extract = (Option<auth::Key>,), Error = Infallible> + Clone {
     warp::path::param::<String>()
-        .map(|key: String| AuthKey::from_string(&key))
-        .or_else(|_| async { Ok::<(Option<AuthKey>,), Infallible>((None,)) })
+        .map(|key: String| auth::Key::from_string(&key))
+        .or_else(|_| async { Ok::<(Option<auth::Key>,), Infallible>((None,)) })
 }
 
-/// Check for PeerAddress
+/// Check for `PeerAddress`
+#[must_use]
 pub fn with_peer_addr(on_reverse_proxy: bool) -> impl Filter<Extract = (IpAddr,), Error = Rejection> + Clone {
     warp::addr::remote()
         .and(warp::header::optional::<String>("X-Forwarded-For"))
         .map(move |remote_addr: Option<SocketAddr>, x_forwarded_for: Option<String>| {
             (on_reverse_proxy, remote_addr, x_forwarded_for)
         })
-        .and_then(peer_addr)
+        .and_then(|q| async move { peer_addr(q) })
 }
 
-/// Check for AnnounceRequest
-pub fn with_announce_request(on_reverse_proxy: bool) -> impl Filter<Extract = (AnnounceRequest,), Error = Rejection> + Clone {
-    warp::filters::query::query::<AnnounceRequestQuery>()
+/// Check for `request::Announce`
+#[must_use]
+pub fn with_announce_request(on_reverse_proxy: bool) -> impl Filter<Extract = (request::Announce,), Error = Rejection> + Clone {
+    warp::filters::query::query::<request::AnnounceQuery>()
         .and(with_info_hash())
         .and(with_peer_id())
         .and(with_peer_addr(on_reverse_proxy))
-        .and_then(announce_request)
+        .and_then(|q, r, s, t| async move { announce_request(q, &r, s, t) })
 }
 
-/// Check for ScrapeRequest
-pub fn with_scrape_request(on_reverse_proxy: bool) -> impl Filter<Extract = (ScrapeRequest,), Error = Rejection> + Clone {
+/// Check for `ScrapeRequest`
+#[must_use]
+pub fn with_scrape_request(on_reverse_proxy: bool) -> impl Filter<Extract = (request::Scrape,), Error = Rejection> + Clone {
     warp::any()
         .and(with_info_hash())
         .and(with_peer_addr(on_reverse_proxy))
-        .and_then(scrape_request)
+        .and_then(|q, r| async move { scrape_request(q, r) })
 }
 
-/// Parse InfoHash from raw query string
-async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
+/// Parse `InfoHash` from raw query string
+#[allow(clippy::ptr_arg)]
+fn info_hashes(raw_query: &String) -> WebResult<Vec<InfoHash>> {
     let split_raw_query: Vec<&str> = raw_query.split('&').collect();
     let mut info_hashes: Vec<InfoHash> = Vec::new();
 
@@ -76,20 +87,21 @@ async fn info_hashes(raw_query: String) -> WebResult<Vec<InfoHash>> {
     }
 
     if info_hashes.len() > MAX_SCRAPE_TORRENTS as usize {
-        Err(reject::custom(ServerError::ExceededInfoHashLimit))
+        Err(reject::custom(Error::ExceededInfoHashLimit))
     } else if info_hashes.is_empty() {
-        Err(reject::custom(ServerError::InvalidInfoHash))
+        Err(reject::custom(Error::InvalidInfo))
     } else {
         Ok(info_hashes)
     }
 }
 
-/// Parse PeerId from raw query string
-async fn peer_id(raw_query: String) -> WebResult<PeerId> {
+/// Parse `PeerId` from raw query string
+#[allow(clippy::ptr_arg)]
+fn peer_id(raw_query: &String) -> WebResult<peer::Id> {
     // put all query params in a vec
     let split_raw_query: Vec<&str> = raw_query.split('&').collect();
 
-    let mut peer_id: Option<PeerId> = None;
+    let mut peer_id: Option<peer::Id> = None;
 
     for v in split_raw_query {
         // look for the peer_id param
@@ -102,61 +114,59 @@ async fn peer_id(raw_query: String) -> WebResult<PeerId> {
 
             // peer_id must be 20 bytes
             if peer_id_bytes.len() != 20 {
-                return Err(reject::custom(ServerError::InvalidPeerId));
+                return Err(reject::custom(Error::InvalidPeerId));
             }
 
             // clone peer_id_bytes into fixed length array
             let mut byte_arr: [u8; 20] = Default::default();
             byte_arr.clone_from_slice(peer_id_bytes.as_slice());
 
-            peer_id = Some(PeerId(byte_arr));
+            peer_id = Some(peer::Id(byte_arr));
             break;
         }
     }
 
-    if peer_id.is_none() {
-        Err(reject::custom(ServerError::InvalidPeerId))
-    } else {
-        Ok(peer_id.unwrap())
+    match peer_id {
+        Some(id) => Ok(id),
+        None => Err(reject::custom(Error::InvalidPeerId)),
     }
 }
 
-/// Get PeerAddress from RemoteAddress or Forwarded
-async fn peer_addr(
-    (on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<SocketAddr>, Option<String>),
-) -> WebResult<IpAddr> {
+/// Get `PeerAddress` from `RemoteAddress` or Forwarded
+fn peer_addr((on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<SocketAddr>, Option<String>)) -> WebResult<IpAddr> {
     if !on_reverse_proxy && remote_addr.is_none() {
-        return Err(reject::custom(ServerError::AddressNotFound));
+        return Err(reject::custom(Error::AddressNotFound));
     }
 
     if on_reverse_proxy && x_forwarded_for.is_none() {
-        return Err(reject::custom(ServerError::AddressNotFound));
+        return Err(reject::custom(Error::AddressNotFound));
     }
 
-    match on_reverse_proxy {
-        true => {
-            let mut x_forwarded_for_raw = x_forwarded_for.unwrap();
-            // remove whitespace chars
-            x_forwarded_for_raw.retain(|c| !c.is_whitespace());
-            // get all forwarded ip's in a vec
-            let x_forwarded_ips: Vec<&str> = x_forwarded_for_raw.split(',').collect();
-            // set client ip to last forwarded ip
-            let x_forwarded_ip = *x_forwarded_ips.last().unwrap();
+    if on_reverse_proxy {
+        let mut x_forwarded_for_raw = x_forwarded_for.unwrap();
+        // remove whitespace chars
+        x_forwarded_for_raw.retain(|c| !c.is_whitespace());
+        // get all forwarded ip's in a vec
+        let x_forwarded_ips: Vec<&str> = x_forwarded_for_raw.split(',').collect();
+        // set client ip to last forwarded ip
+        let x_forwarded_ip = *x_forwarded_ips.last().unwrap();
 
-            IpAddr::from_str(x_forwarded_ip).map_err(|_| reject::custom(ServerError::AddressNotFound))
-        }
-        false => Ok(remote_addr.unwrap().ip()),
+        IpAddr::from_str(x_forwarded_ip).map_err(|_| reject::custom(Error::AddressNotFound))
+    } else {
+        Ok(remote_addr.unwrap().ip())
     }
 }
 
-/// Parse AnnounceRequest from raw AnnounceRequestQuery, InfoHash and Option<SocketAddr>
-async fn announce_request(
-    announce_request_query: AnnounceRequestQuery,
-    info_hashes: Vec<InfoHash>,
-    peer_id: PeerId,
+/// Parse `AnnounceRequest` from raw `AnnounceRequestQuery`, `InfoHash` and Option<SocketAddr>
+#[allow(clippy::unnecessary_wraps)]
+#[allow(clippy::ptr_arg)]
+fn announce_request(
+    announce_request_query: request::AnnounceQuery,
+    info_hashes: &Vec<InfoHash>,
+    peer_id: peer::Id,
     peer_addr: IpAddr,
-) -> WebResult<AnnounceRequest> {
-    Ok(AnnounceRequest {
+) -> WebResult<request::Announce> {
+    Ok(request::Announce {
         info_hash: info_hashes[0],
         peer_addr,
         downloaded: announce_request_query.downloaded.unwrap_or(0),
@@ -169,7 +179,8 @@ async fn announce_request(
     })
 }
 
-/// Parse ScrapeRequest from InfoHash
-async fn scrape_request(info_hashes: Vec<InfoHash>, peer_addr: IpAddr) -> WebResult<ScrapeRequest> {
-    Ok(ScrapeRequest { info_hashes, peer_addr })
+/// Parse `ScrapeRequest` from `InfoHash`
+#[allow(clippy::unnecessary_wraps)]
+fn scrape_request(info_hashes: Vec<InfoHash>, peer_addr: IpAddr) -> WebResult<request::Scrape> {
+    Ok(request::Scrape { info_hashes, peer_addr })
 }
