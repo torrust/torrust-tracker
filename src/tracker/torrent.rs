@@ -11,7 +11,7 @@ use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Entry {
     #[serde(skip)]
-    pub peers: std::collections::BTreeMap<peer::Id, peer::TorrentPeer>,
+    pub peers: std::collections::BTreeMap<peer::Id, peer::Peer>,
     pub completed: u32,
 }
 
@@ -25,7 +25,7 @@ impl Entry {
     }
 
     // Update peer and return completed (times torrent has been downloaded)
-    pub fn update_peer(&mut self, peer: &peer::TorrentPeer) -> bool {
+    pub fn update_peer(&mut self, peer: &peer::Peer) -> bool {
         let mut did_torrent_stats_change: bool = false;
 
         match peer.event {
@@ -49,7 +49,7 @@ impl Entry {
     }
 
     #[must_use]
-    pub fn get_peers(&self, client_addr: Option<&SocketAddr>) -> Vec<&peer::TorrentPeer> {
+    pub fn get_peers(&self, client_addr: Option<&SocketAddr>) -> Vec<&peer::Peer> {
         self.peers
             .values()
             .filter(|peer| match client_addr {
@@ -122,12 +122,12 @@ mod tests {
     use crate::tracker::torrent::Entry;
 
     struct TorrentPeerBuilder {
-        peer: peer::TorrentPeer,
+        peer: peer::Peer,
     }
 
     impl TorrentPeerBuilder {
         pub fn default() -> TorrentPeerBuilder {
-            let default_peer = peer::TorrentPeer {
+            let default_peer = peer::Peer {
                 peer_id: peer::Id([0u8; 20]),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
                 updated: Current::now(),
@@ -164,14 +164,14 @@ mod tests {
             self
         }
 
-        pub fn into(self) -> peer::TorrentPeer {
+        pub fn into(self) -> peer::Peer {
             self.peer
         }
     }
 
     /// A torrent seeder is a peer with 0 bytes left to download which
     /// has not announced it has stopped
-    fn a_torrent_seeder() -> peer::TorrentPeer {
+    fn a_torrent_seeder() -> peer::Peer {
         TorrentPeerBuilder::default()
             .with_number_of_bytes_left(0)
             .with_event_completed()
@@ -180,7 +180,7 @@ mod tests {
 
     /// A torrent leecher is a peer that is not a seeder.
     /// Leecher: left > 0 OR event = Stopped
-    fn a_torrent_leecher() -> peer::TorrentPeer {
+    fn a_torrent_leecher() -> peer::Peer {
         TorrentPeerBuilder::default()
             .with_number_of_bytes_left(1)
             .with_event_completed()

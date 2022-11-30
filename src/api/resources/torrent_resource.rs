@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::tracker::peer::{self, TorrentPeer};
+use crate::tracker::peer::{self, Peer};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct TorrentResource {
@@ -50,9 +50,9 @@ impl From<peer::Id> for PeerIdResource {
     }
 }
 
-impl From<TorrentPeer> for TorrentPeerResource {
+impl From<Peer> for TorrentPeerResource {
     #[allow(deprecated)]
-    fn from(peer: TorrentPeer) -> Self {
+    fn from(peer: Peer) -> Self {
         TorrentPeerResource {
             peer_id: PeerIdResource::from(peer.peer_id),
             peer_addr: peer.peer_addr.to_string(),

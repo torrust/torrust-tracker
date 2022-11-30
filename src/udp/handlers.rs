@@ -92,7 +92,7 @@ pub async fn handle_announce(
         .authenticate_request(&wrapped_announce_request.info_hash, &None)
         .await?;
 
-    let peer = peer::TorrentPeer::from_udp_announce_request(
+    let peer = peer::Peer::from_udp_announce_request(
         &wrapped_announce_request.announce_request,
         remote_addr.ip(),
         tracker.config.get_ext_ip(),
@@ -289,12 +289,12 @@ mod tests {
     }
 
     struct TorrentPeerBuilder {
-        peer: peer::TorrentPeer,
+        peer: peer::Peer,
     }
 
     impl TorrentPeerBuilder {
         pub fn default() -> TorrentPeerBuilder {
-            let default_peer = peer::TorrentPeer {
+            let default_peer = peer::Peer {
                 peer_id: peer::Id([255u8; 20]),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
                 updated: Current::now(),
@@ -321,7 +321,7 @@ mod tests {
             self
         }
 
-        pub fn into(self) -> peer::TorrentPeer {
+        pub fn into(self) -> peer::Peer {
             self.peer
         }
     }

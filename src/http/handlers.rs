@@ -48,8 +48,7 @@ pub async fn handle_announce(
 
     debug!("{:?}", announce_request);
 
-    let peer =
-        peer::TorrentPeer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
+    let peer = peer::Peer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
     let torrent_stats = tracker
         .update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer)
         .await;
@@ -137,7 +136,7 @@ pub async fn handle_scrape(
 fn send_announce_response(
     announce_request: &request::Announce,
     torrent_stats: &torrent::Stats,
-    peers: &Vec<peer::TorrentPeer>,
+    peers: &Vec<peer::Peer>,
     interval: u32,
     interval_min: u32,
 ) -> WebResult<impl Reply> {

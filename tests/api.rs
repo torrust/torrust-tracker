@@ -24,7 +24,7 @@ mod tracker_api {
     use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
     use torrust_tracker::protocol::info_hash::InfoHash;
     use torrust_tracker::tracker::auth;
-    use torrust_tracker::tracker::peer::{self, TorrentPeer};
+    use torrust_tracker::tracker::peer::{self, Peer};
     use torrust_tracker::tracker::statistics::Keeper;
     use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
@@ -187,8 +187,8 @@ mod tracker_api {
         );
     }
 
-    fn sample_torrent_peer() -> (TorrentPeer, TorrentPeerResource) {
-        let torrent_peer = TorrentPeer {
+    fn sample_torrent_peer() -> (Peer, TorrentPeerResource) {
+        let torrent_peer = Peer {
             peer_id: peer::Id(*b"-qB00000000000000000"),
             peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
             updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),

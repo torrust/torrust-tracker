@@ -227,7 +227,7 @@ impl Tracker {
     }
 
     /// Get all torrent peers for a given torrent filtering out the peer with the client address
-    pub async fn get_torrent_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr) -> Vec<peer::TorrentPeer> {
+    pub async fn get_torrent_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr) -> Vec<peer::Peer> {
         let read_lock = self.torrents.read().await;
 
         match read_lock.get(info_hash) {
@@ -237,7 +237,7 @@ impl Tracker {
     }
 
     /// Get all torrent peers for a given torrent
-    pub async fn get_all_torrent_peers(&self, info_hash: &InfoHash) -> Vec<peer::TorrentPeer> {
+    pub async fn get_all_torrent_peers(&self, info_hash: &InfoHash) -> Vec<peer::Peer> {
         let read_lock = self.torrents.read().await;
 
         match read_lock.get(info_hash) {
@@ -246,7 +246,7 @@ impl Tracker {
         }
     }
 
-    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::TorrentPeer) -> torrent::Stats {
+    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::Stats {
         let mut torrents = self.torrents.write().await;
 
         let torrent_entry = match torrents.entry(*info_hash) {
