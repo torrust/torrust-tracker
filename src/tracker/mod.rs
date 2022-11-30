@@ -246,7 +246,7 @@ impl Tracker {
         }
     }
 
-    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::Stats {
+    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::SwamStats {
         let mut torrents = self.torrents.write().await;
 
         let torrent_entry = match torrents.entry(*info_hash) {
@@ -266,7 +266,7 @@ impl Tracker {
 
         let (seeders, completed, leechers) = torrent_entry.get_stats();
 
-        torrent::Stats {
+        torrent::SwamStats {
             completed,
             seeders,
             leechers,

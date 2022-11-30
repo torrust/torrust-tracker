@@ -16,16 +16,16 @@ mod tracker_api {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use reqwest::Response;
     use tokio::task::JoinHandle;
-    use torrust_tracker::api::resources::auth_key::AuthKey;
-    use torrust_tracker::api::resources::stats_resource::StatsResource;
-    use torrust_tracker::api::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
+    use torrust_tracker::api::resource;
+    use torrust_tracker::api::resource::auth_key::AuthKey;
+    use torrust_tracker::api::resource::stats::Stats;
+    use torrust_tracker::api::resource::torrent::{self, Torrent};
     use torrust_tracker::config::Configuration;
     use torrust_tracker::jobs::tracker_api;
     use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
     use torrust_tracker::protocol::info_hash::InfoHash;
-    use torrust_tracker::tracker::auth;
-    use torrust_tracker::tracker::peer::{self, Peer};
     use torrust_tracker::tracker::statistics::Keeper;
+    use torrust_tracker::tracker::{auth, peer};
     use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
     use crate::common::ephemeral_random_port;
@@ -104,7 +104,7 @@ mod tracker_api {
 
         assert_eq!(
             torrent_resource,
-            TorrentResource {
+            Torrent {
                 info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                 seeders: 1,
                 completed: 0,
@@ -135,7 +135,7 @@ mod tracker_api {
 
         assert_eq!(
             torrent_resources,
-            vec![TorrentListItemResource {
+            vec![torrent::ListItem {
                 info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                 seeders: 1,
                 completed: 0,
@@ -166,7 +166,7 @@ mod tracker_api {
 
         assert_eq!(
             stats_resource,
-            StatsResource {
+            Stats {
                 torrents: 1,
                 seeders: 1,
                 completed: 0,
@@ -187,8 +187,8 @@ mod tracker_api {
         );
     }
 
-    fn sample_torrent_peer() -> (Peer, TorrentPeerResource) {
-        let torrent_peer = Peer {
+    fn sample_torrent_peer() -> (peer::Peer, resource::peer::Peer) {
+        let torrent_peer = peer::Peer {
             peer_id: peer::Id(*b"-qB00000000000000000"),
             peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
             updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
@@ -197,7 +197,7 @@ mod tracker_api {
             left: NumberOfBytes(0),
             event: AnnounceEvent::Started,
         };
-        let torrent_peer_resource = TorrentPeerResource::from(torrent_peer);
+        let torrent_peer_resource = resource::peer::Peer::from(torrent_peer);
 
         (torrent_peer, torrent_peer_resource)
     }
@@ -326,7 +326,7 @@ mod tracker_api {
             reqwest::Client::new().post(url.clone()).send().await.unwrap()
         }
 
-        pub async fn get_torrent(&self, info_hash: &str) -> TorrentResource {
+        pub async fn get_torrent(&self, info_hash: &str) -> Torrent {
             let url = format!(
                 "http://{}/api/torrent/{}?token={}",
                 &self.connection_info.bind_address, &info_hash, &self.connection_info.api_token
@@ -338,12 +338,12 @@ mod tracker_api {
                 .send()
                 .await
                 .unwrap()
-                .json::<TorrentResource>()
+                .json::<Torrent>()
                 .await
                 .unwrap()
         }
 
-        pub async fn get_torrents(&self) -> Vec<TorrentListItemResource> {
+        pub async fn get_torrents(&self) -> Vec<torrent::ListItem> {
             let url = format!(
                 "http://{}/api/torrents?token={}",
                 &self.connection_info.bind_address, &self.connection_info.api_token
@@ -355,12 +355,12 @@ mod tracker_api {
                 .send()
                 .await
                 .unwrap()
-                .json::<Vec<TorrentListItemResource>>()
+                .json::<Vec<torrent::ListItem>>()
                 .await
                 .unwrap()
         }
 
-        pub async fn get_tracker_statistics(&self) -> StatsResource {
+        pub async fn get_tracker_statistics(&self) -> Stats {
             let url = format!(
                 "http://{}/api/stats?token={}",
                 &self.connection_info.bind_address, &self.connection_info.api_token
@@ -372,7 +372,7 @@ mod tracker_api {
                 .send()
                 .await
                 .unwrap()
-                .json::<StatsResource>()
+                .json::<Stats>()
                 .await
                 .unwrap()
         }

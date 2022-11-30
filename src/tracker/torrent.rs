@@ -93,7 +93,7 @@ impl Default for Entry {
 }
 
 #[derive(Debug)]
-pub struct Stats {
+pub struct SwamStats {
     pub completed: u32,
     pub seeders: u32,
     pub leechers: u32,

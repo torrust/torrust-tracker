@@ -3,10 +3,11 @@
 //! WIP. Not all endpoints have their resource structs.
 //!
 //! - [x] `AuthKeys`
-//! - [ ] `TorrentResource`, `TorrentListItemResource`, `TorrentPeerResource`, `PeerIdResource`
+//! - [ ] `Torrent`, `ListItem`, `Peer`, `PeerId`
 //! - [ ] `StatsResource`
 //! - [ ] ...
 
 pub mod auth_key;
-pub mod stats_resource;
-pub mod torrent_resource;
+pub mod peer;
+pub mod stats;
+pub mod torrent;

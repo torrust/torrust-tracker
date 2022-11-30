@@ -7,9 +7,10 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use warp::{filters, reply, serve, Filter};
 
-use super::resources::auth_key::AuthKey;
-use super::resources::stats_resource::StatsResource;
-use super::resources::torrent_resource::{TorrentListItemResource, TorrentPeerResource, TorrentResource};
+use super::resource::auth_key::AuthKey;
+use super::resource::peer;
+use super::resource::stats::Stats;
+use super::resource::torrent::{ListItem, Torrent};
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker;
 
@@ -81,7 +82,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl w
                 .iter()
                 .map(|(info_hash, torrent_entry)| {
                     let (seeders, completed, leechers) = torrent_entry.get_stats();
-                    TorrentListItemResource {
+                    ListItem {
                         info_hash: info_hash.to_string(),
                         seeders,
                         completed,
@@ -104,7 +105,7 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl w
         .and(filters::path::end())
         .map(move || api_stats.clone())
         .and_then(|tracker: Arc<tracker::Tracker>| async move {
-            let mut results = StatsResource {
+            let mut results = Stats {
                 torrents: 0,
                 seeders: 0,
                 completed: 0,
@@ -179,9 +180,9 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl w
 
             let peers = torrent_entry.get_peers(None);
 
-            let peer_resources = peers.iter().map(|peer| TorrentPeerResource::from(**peer)).collect();
+            let peer_resources = peers.iter().map(|peer| peer::Peer::from(**peer)).collect();
 
-            Ok(reply::json(&TorrentResource {
+            Ok(reply::json(&Torrent {
                 info_hash: info_hash.to_string(),
                 seeders,
                 completed,

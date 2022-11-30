@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct StatsResource {
+pub struct Stats {
     pub torrents: u32,
     pub seeders: u32,
     pub completed: u32,

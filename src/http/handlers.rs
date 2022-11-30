@@ -135,7 +135,7 @@ pub async fn handle_scrape(
 #[allow(clippy::ptr_arg)]
 fn send_announce_response(
     announce_request: &request::Announce,
-    torrent_stats: &torrent::Stats,
+    torrent_stats: &torrent::SwamStats,
     peers: &Vec<peer::Peer>,
     interval: u32,
     interval_min: u32,
