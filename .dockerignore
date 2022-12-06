@@ -1,0 +1,7 @@
+.git
+.github
+.vscode
+config.toml
+data.db
+docker/commands/
+target/

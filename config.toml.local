@@ -1,0 +1,31 @@
+log_level = "info"
+mode = "public"
+db_driver = "Sqlite3"
+db_path = "data.db"
+announce_interval = 120
+min_announce_interval = 120
+max_peer_timeout = 900
+on_reverse_proxy = false
+external_ip = "0.0.0.0"
+tracker_usage_statistics = true
+persistent_torrent_completed_stat = false
+inactive_peer_cleanup_interval = 600
+remove_peerless_torrents = true
+
+[[udp_trackers]]
+enabled = false
+bind_address = "0.0.0.0:6969"
+
+[[http_trackers]]
+enabled = false
+bind_address = "0.0.0.0:6969"
+ssl_enabled = false
+ssl_cert_path = ""
+ssl_key_path = ""
+
+[http_api]
+enabled = true
+bind_address = "127.0.0.1:1212"
+
+[http_api.access_tokens]
+admin = "MyAccessToken"
