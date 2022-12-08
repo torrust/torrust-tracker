@@ -45,7 +45,7 @@ docker run \
     --name torrust-tracker \
     --port 80:80 \
     --volume torrustracker/test-volume:/app/storage \
-    registry.hub.docker.com/josecelano/torrust-tracker:0.2.0
+    registry.hub.docker.com/josecelano/torrust-tracker:0.4.0
 ```
 
 Detach from container logs when container starts. By default, the command line stays attached and follows container logs.
@@ -55,7 +55,7 @@ docker run \
     --detach
     --port 80:80 \
     --volume torrustracker/test-volume:/app/storage \
-    registry.hub.docker.com/josecelano/torrust-tracker:0.2.0
+    registry.hub.docker.com/josecelano/torrust-tracker:0.4.0
 ```
 
 > NOTES:
