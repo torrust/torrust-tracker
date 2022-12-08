@@ -45,6 +45,6 @@ COPY --from=builder --chown=$RUN_AS_USER \
   /app/torrust-tracker
 RUN chown -R $RUN_AS_USER:$RUN_AS_USER /app
 USER $RUN_AS_USER:$RUN_AS_USER
-EXPOSE 6969
+EXPOSE 6969/udp
 EXPOSE 1212
 ENTRYPOINT ["/app/torrust-tracker"]
