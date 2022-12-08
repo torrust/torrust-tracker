@@ -34,15 +34,17 @@ RUN cargo build --release --target x86_64-unknown-linux-musl --bin torrust-track
 
 FROM alpine:latest
 WORKDIR /app
+ARG RUN_AS_USER=appuser
 RUN apk --no-cache add ca-certificates
-ENV TZ=Etc/UTC APP_USER=appuser
+ENV TZ=Etc/UTC
+ENV RUN_AS_USER=$RUN_AS_USER
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
-COPY --from=builder --chown=$APP_USER \
+COPY --from=builder --chown=$RUN_AS_USER \
   /app/target/x86_64-unknown-linux-musl/release/torrust-tracker \
   /app/torrust-tracker
-RUN chown -R $APP_USER:$APP_USER /app
-USER $APP_USER:$APP_USER
+RUN chown -R $RUN_AS_USER:$RUN_AS_USER /app
+USER $RUN_AS_USER:$RUN_AS_USER
 EXPOSE 6969
 EXPOSE 1212
 ENTRYPOINT ["/app/torrust-tracker"]

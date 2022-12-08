@@ -8,6 +8,9 @@ on:
 env:
   # todo: Replace with `torrust/torrust-tracker` in the final version
   DOCKER_IMAGE: josecelano/torrust-tracker
+  # Azure file share volume mount requires the Linux container run as root
+  # https://learn.microsoft.com/en-us/azure/container-instances/container-instances-volume-azure-files#limitations
+  TORRUST_TRACKER_RUN_AS_USER: root
 
 jobs:
   dockerhub:
