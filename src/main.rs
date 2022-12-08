@@ -7,7 +7,7 @@ use torrust_tracker::{ephemeral_instance_keys, logging, setup, static_time, trac
 
 #[tokio::main]
 async fn main() {
-    const CONFIG_PATH: &str = "config.toml";
+    const CONFIG_PATH: &str = "./storage/config/config.toml";
 
     // Set the time of Torrust app starting
     lazy_static::initialize(&static_time::TIME_AT_APP_START);

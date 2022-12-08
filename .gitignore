@@ -1,9 +1,9 @@
-/target
 **/*.rs.bk
-/database.json.bz2
-/database.db
 /.idea/
+/.vscode/launch.json
 /config.toml
 /data.db
-/.vscode/launch.json
-
+/database.db
+/database.json.bz2
+/storage
+/target

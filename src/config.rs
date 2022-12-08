@@ -99,7 +99,7 @@ impl Configuration {
             log_level: Option::from(String::from("info")),
             mode: mode::Mode::Public,
             db_driver: Driver::Sqlite3,
-            db_path: String::from("data.db"),
+            db_path: String::from("./storage/database/data.db"),
             announce_interval: 120,
             min_announce_interval: 120,
             max_peer_timeout: 900,
@@ -154,7 +154,7 @@ impl Configuration {
             let config = Configuration::default();
             config.save_to_file(path)?;
             return Err(Error::Message(
-                "Please edit the config.TOML in the root folder and restart the tracker.".to_string(),
+                "Please edit the config.TOML in ./storage/config folder and restart the tracker.".to_string(),
             ));
         }
 
@@ -183,7 +183,7 @@ mod tests {
         let config = r#"log_level = "info"
                                 mode = "public"
                                 db_driver = "Sqlite3"
-                                db_path = "data.db"
+                                db_path = "./storage/database/data.db"
                                 announce_interval = 120
                                 min_announce_interval = 120
                                 max_peer_timeout = 900
