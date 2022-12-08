@@ -2,17 +2,8 @@ name: Publish docker image
 
 on:
   push:
-    branches:
-      # todo: Replace with `main` in the final version
-      - "docker"
-      - "releases/v*"
     tags:
       - "v*"
-  pull_request:
-    branches:
-      # todo: Replace with `main` in the final version
-      - "docker"
-      - "releases/v*"
 
 env:
   # todo: Replace with `torrust/torrust-tracker` in the final version
