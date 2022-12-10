@@ -39,7 +39,7 @@ Deploy to Azure following [docker documentation](https://docs.docker.com/cloud/a
 
 You have to create the ACI context and the storage:
 
-```s
+```s0.6.0
 docker context create aci myacicontext
 docker context use myacicontext
 docker volume create test-volume --storage-account torrustracker
@@ -57,7 +57,7 @@ docker run \
     --publish 6969:6969/udp \
     --publish 1212:1212 \
     --volume torrustracker/test-volume:/app/storage \
-    registry.hub.docker.com/josecelano/torrust-tracker:0.5.0
+    registry.hub.docker.com/josecelano/torrust-tracker:0.6.0
 ```
 
 Detach from container logs when the container starts. By default, the command line stays attached and follows container logs.
@@ -68,7 +68,7 @@ docker run \
     --publish 6969:6969/udp \
     --publish 1212:1212 \
     --volume torrustracker/test-volume:/app/storage \
-    registry.hub.docker.com/josecelano/torrust-tracker:0.5.0
+    registry.hub.docker.com/josecelano/torrust-tracker:0.6.0
 ```
 
 You should see something like this:
@@ -78,7 +78,7 @@ $ docker run \ \
     --publish 6969:6969/udp \
     --publish 1212:1212 \
     --volume torrustracker/test-volume:/app/storage \
-    registry.hub.docker.com/josecelano/torrust-tracker:0.5.0
+    registry.hub.docker.com/josecelano/torrust-tracker:0.6.0
 [+] Running 2/2
  ⠿ Group intelligent-hawking  Created                                                                                                                                                                    5.0s
  ⠿ intelligent-hawking        Created                                                                                                                                                                   41.7s
@@ -93,7 +93,7 @@ You can see the container with:
 ```s
 $ docker ps
 CONTAINER ID          IMAGE                                                      COMMAND             STATUS              PORTS
-intelligent-hawking   registry.hub.docker.com/josecelano/torrust-tracker:0.5.0                       Running             4.236.213.57:6969->6969/udp, 4.236.213.57:1212->1212/tcp
+intelligent-hawking   registry.hub.docker.com/josecelano/torrust-tracker:0.6.0                       Running             4.236.213.57:6969->6969/udp, 4.236.213.57:1212->1212/tcp
 ```
 
 After a while, you can use the tracker API `http://4.236.213.57:1212/api/stats?token=MyAccessToken` and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969/announce`.
