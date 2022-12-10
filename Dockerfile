@@ -27,7 +27,6 @@ RUN adduser \
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
 # Build the application
-# todo: it seems the previous cache layer is not working. The dependencies are compiled always.
 COPY . .
 RUN cargo build --release --target x86_64-unknown-linux-musl --bin torrust-tracker
 
