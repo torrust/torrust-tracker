@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::Response;
-use log::{debug, info};
+use log::{debug, error, info};
 use tokio::net::UdpSocket;
 
 use crate::tracker;
@@ -45,8 +45,8 @@ impl Udp {
                 Ok((valid_bytes, remote_addr)) = socket.recv_from(&mut data) => {
                     let payload = data[..valid_bytes].to_vec();
 
-                    debug!("Received {} bytes from {}", payload.len(), remote_addr);
-                    debug!("{:?}", payload);
+                    info!("Received {} bytes from {}", payload.len(), remote_addr);
+                    info!("{:?}", payload);
 
                     let response = handle_packet(remote_addr, payload, tracker).await;
                     Udp::send_response(socket, remote_addr, response).await;
@@ -56,7 +56,7 @@ impl Udp {
     }
 
     async fn send_response(socket: Arc<UdpSocket>, remote_addr: SocketAddr, response: Response) {
-        debug!("sending response to: {:?}", &remote_addr);
+        info!("sending response to: {:?}", &remote_addr);
 
         let buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(buffer);
@@ -71,7 +71,7 @@ impl Udp {
                 Udp::send_packet(socket, &remote_addr, &inner[..position]).await;
             }
             Err(_) => {
-                debug!("could not write response to bytes.");
+                error!("could not write response to bytes.");
             }
         }
     }
