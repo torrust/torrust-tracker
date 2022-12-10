@@ -22,7 +22,9 @@ Run using the pre-built public docker image:
 export TORRUST_TRACKER_USER_UID=1000
 docker run -it \
     --user="$TORRUST_TRACKER_USER_UID" \
-    -p 6969:6969/udp -p 1212:1212 \
+    --publish 6969:6969/udp \
+    --publish 6969:6969/tcp \
+    --publish 1212:1212/tcp \
     --volume "$(pwd)/storage":"/app/storage" \
     josecelano/torrust-tracker
 ```
@@ -55,7 +57,8 @@ And finally, you can run the container:
 ```s
 docker run \
     --publish 6969:6969/udp \
-    --publish 1212:1212 \
+    --publish 6969:6969/tcp \
+    --publish 1212:1212/tcp \
     --volume torrustracker/test-volume:/app/storage \
     registry.hub.docker.com/josecelano/torrust-tracker:0.6.0
 ```
@@ -66,7 +69,8 @@ Detach from container logs when the container starts. By default, the command li
 docker run \
     --detach
     --publish 6969:6969/udp \
-    --publish 1212:1212 \
+    --publish 6969:6969/tcp \
+    --publish 1212:1212/tcp \
     --volume torrustracker/test-volume:/app/storage \
     registry.hub.docker.com/josecelano/torrust-tracker:0.6.0
 ```
@@ -76,7 +80,8 @@ You should see something like this:
 ```s
 $ docker run \ \
     --publish 6969:6969/udp \
-    --publish 1212:1212 \
+    --publish 6969:6969/tcp \
+    --publish 1212:1212/tcp \
     --volume torrustracker/test-volume:/app/storage \
     registry.hub.docker.com/josecelano/torrust-tracker:0.6.0
 [+] Running 2/2
