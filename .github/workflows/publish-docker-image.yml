@@ -17,7 +17,21 @@ env:
   TORRUST_TRACKER_RUN_AS_USER: root
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v1
+      - name: Run Tests
+        run: cargo test
+
   dockerhub:
+    needs: test
     runs-on: ubuntu-latest
     environment: dockerhub-josecelano
     steps:
