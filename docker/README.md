@@ -104,7 +104,7 @@ Deploy to Azure Container Instance following [docker documentation](https://docs
 
 You have to create the ACI context and the storage:
 
-```s0.7.0
+```slatest
 docker context create aci myacicontext
 docker context use myacicontext
 docker volume create test-volume --storage-account torrustracker
@@ -123,7 +123,7 @@ docker run \
     --publish 7070:7070/tcp \
     --publish 1212:1212/tcp \
     --volume torrustracker/test-volume:/app/storage \
-    registry.hub.docker.com/josecelano/torrust-tracker:0.7.0
+    registry.hub.docker.com/josecelano/torrust-tracker:latest
 ```
 
 Detach from container logs when the container starts. By default, the command line stays attached and follows container logs.
@@ -133,9 +133,9 @@ docker run \
     --detach
     --publish 6969:6969/udp \
     --publish 7070:7070/tcp \
-    --publish 1212:1212/tcp \0.7.0
+    --publish 1212:1212/tcp \latest
     --volume torrustracker/test-volume:/app/storage \
-    registry.hub.docker.com/josecelano/torrust-tracker:0.7.0
+    registry.hub.docker.com/josecelano/torrust-tracker:latest
 ```
 
 You should see something like this:
@@ -155,7 +155,7 @@ You can see the container with:
 ```s
 $ docker ps
 CONTAINER ID          IMAGE                                                      COMMAND             STATUS              PORTS
-intelligent-hawking   registry.hub.docker.com/josecelano/torrust-tracker:0.7.0                       Running             4.236.213.57:6969->6969/udp, 4.236.213.57:1212->1212/tcp
+intelligent-hawking   registry.hub.docker.com/josecelano/torrust-tracker:latest                       Running             4.236.213.57:6969->6969/udp, 4.236.213.57:1212->1212/tcp
 ```
 
 After a while, you can use the tracker API `http://4.236.213.57:1212/api/stats?token=MyAccessToken` and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969`.
