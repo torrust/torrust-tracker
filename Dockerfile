@@ -48,6 +48,6 @@ COPY --from=builder --chown=$RUN_AS_USER \
 RUN chown -R $RUN_AS_USER:$RUN_AS_USER /app
 USER $RUN_AS_USER:$RUN_AS_USER
 EXPOSE 6969/udp
-EXPOSE 6969/tcp
+EXPOSE 7070/tcp
 EXPOSE 1212/tcp
 ENTRYPOINT ["/app/torrust-tracker"]

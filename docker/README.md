@@ -38,7 +38,7 @@ export TORRUST_TRACKER_USER_UID=1000
 docker run -it \
     --user="$TORRUST_TRACKER_USER_UID" \
     --publish 6969:6969/udp \
-    --publish 6969:6969/tcp \
+    --publish 7070:7070/tcp \
     --publish 1212:1212/tcp \
     --volume "$(pwd)/storage":"/app/storage" \
     josecelano/torrust-tracker
@@ -74,7 +74,7 @@ You have not enabled it in your `config.toml` file:
 ...
 [[http_trackers]]
 enabled = true
-bind_address = "0.0.0.0:6969"
+bind_address = "0.0.0.0:7070"
 ssl_enabled = true
 ssl_cert_path = "./storage/ssl_certificates/localhost.crt"
 ssl_key_path = "./storage/ssl_certificates/localhost.key"
@@ -120,7 +120,7 @@ And finally, you can run the container:
 ```s
 docker run \
     --publish 6969:6969/udp \
-    --publish 6969:6969/tcp \
+    --publish 7070:7070/tcp \
     --publish 1212:1212/tcp \
     --volume torrustracker/test-volume:/app/storage \
     registry.hub.docker.com/josecelano/torrust-tracker:0.7.0
@@ -132,7 +132,7 @@ Detach from container logs when the container starts. By default, the command li
 docker run \
     --detach
     --publish 6969:6969/udp \
-    --publish 6969:6969/tcp \
+    --publish 7070:7070/tcp \
     --publish 1212:1212/tcp \0.7.0
     --volume torrustracker/test-volume:/app/storage \
     registry.hub.docker.com/josecelano/torrust-tracker:0.7.0
@@ -158,7 +158,7 @@ CONTAINER ID          IMAGE                                                     
 intelligent-hawking   registry.hub.docker.com/josecelano/torrust-tracker:0.7.0                       Running             4.236.213.57:6969->6969/udp, 4.236.213.57:1212->1212/tcp
 ```
 
-After a while, you can use the tracker API `http://4.236.213.57:1212/api/stats?token=MyAccessToken` and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969/announce`.
+After a while, you can use the tracker API `http://4.236.213.57:1212/api/stats?token=MyAccessToken` and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969`.
 
 > NOTES:
 >
