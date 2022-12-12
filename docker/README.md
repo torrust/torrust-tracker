@@ -141,12 +141,6 @@ docker run \
 You should see something like this:
 
 ```s
-$ docker run \ \
-    --publish 6969:6969/udp \
-    --publish 6969:6969/tcp \
-    --publish 1212:1212/tcp \
-    --volume torrustracker/test-volume:/app/storage \
-    registry.hub.docker.com/josecelano/torrust-tracker:0.7.0
 [+] Running 2/2
  ⠿ Group intelligent-hawking  Created                                                                                                                                                                    5.0s
  ⠿ intelligent-hawking        Created                                                                                                                                                                   41.7s
