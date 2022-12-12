@@ -87,20 +87,8 @@ impl std::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-impl Configuration {
-    #[must_use]
-    pub fn get_ext_ip(&self) -> Option<IpAddr> {
-        match &self.external_ip {
-            None => None,
-            Some(external_ip) => match IpAddr::from_str(external_ip) {
-                Ok(external_ip) => Some(external_ip),
-                Err(_) => None,
-            },
-        }
-    }
-
-    #[must_use]
-    pub fn default() -> Configuration {
+impl Default for Configuration {
+    fn default() -> Self {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             mode: mode::Mode::Public,
@@ -131,7 +119,7 @@ impl Configuration {
         };
         configuration.udp_trackers.push(UdpTracker {
             enabled: false,
-            bind_address: String::from("0.0.0.0:7070"),
+            bind_address: String::from("0.0.0.0:6969"),
         });
         configuration.http_trackers.push(HttpTracker {
             enabled: false,
@@ -141,6 +129,19 @@ impl Configuration {
             ssl_key_path: None,
         });
         configuration
+    }
+}
+
+impl Configuration {
+    #[must_use]
+    pub fn get_ext_ip(&self) -> Option<IpAddr> {
+        match &self.external_ip {
+            None => None,
+            Some(external_ip) => match IpAddr::from_str(external_ip) {
+                Ok(external_ip) => Some(external_ip),
+                Err(_) => None,
+            },
+        }
     }
 
     /// # Errors
