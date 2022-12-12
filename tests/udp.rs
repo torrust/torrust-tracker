@@ -7,6 +7,7 @@ mod common;
 
 mod udp_tracker_server {
     use core::panic;
+    use std::env;
     use std::io::Cursor;
     use std::net::Ipv4Addr;
     use std::sync::atomic::{AtomicBool, Ordering};
@@ -29,7 +30,16 @@ mod udp_tracker_server {
     fn tracker_configuration() -> Arc<Configuration> {
         let mut config = Configuration::default();
         config.log_level = Some("off".to_owned());
-        config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", ephemeral_random_port());
+
+        // Ephemeral socket address
+        let port = ephemeral_random_port();
+        config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", &port);
+
+        // Ephemeral database
+        let temp_directory = env::temp_dir();
+        let temp_file = temp_directory.join(format!("data_{}.db", &port));
+        config.db_path = temp_file.to_str().unwrap().to_owned();
+
         Arc::new(config)
     }
 
