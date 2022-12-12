@@ -3,7 +3,9 @@ name: Publish docker image
 on:
   push:
     branches:
-      - 'develop'  
+      - 'develop'
+      # todo: only during development of issue 11
+      - 'docker'
     tags:
       - "v*"
 
