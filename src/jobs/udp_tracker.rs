@@ -14,11 +14,11 @@ pub fn start_job(config: &UdpTracker, tracker: Arc<tracker::Tracker>) -> JoinHan
     tokio::spawn(async move {
         match Udp::new(tracker, &bind_addr).await {
             Ok(udp_server) => {
-                info!("Starting UDP server on: {}", bind_addr);
+                info!("Starting UDP server on: udp://{}", bind_addr);
                 udp_server.start().await;
             }
             Err(e) => {
-                warn!("Could not start UDP tracker on: {}", bind_addr);
+                warn!("Could not start UDP tracker on: udp://{}", bind_addr);
                 error!("{}", e);
             }
         }

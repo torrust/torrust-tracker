@@ -3,6 +3,21 @@
 ## Requirements
 
 - Docker version 20.10.21
+- You need to create the `storage` directory with this structure and files:
+
+```s
+$ tree storage/
+storage/
+├── config
+│   └── config.toml
+├── database
+│   └── data.db
+└── ssl_certificates
+    ├── localhost.crt
+    └── localhost.key
+```
+
+> NOTE: you only need the `ssl_certificates` directory and certificates in case you have enabled SSL for the one HTTP tracker or the API.
 
 ## Dev environment
 
@@ -34,6 +49,50 @@ docker run -it \
 > - You have to create the SQLite DB (`data.db`) and configuration (`config.toml`) before running the tracker. See `bin/install.sh`.
 > - You have to replace the user UID (`1000`) with yours.
 > - Remember to switch to your default docker context `docker context use default`.
+
+### SSL Certificates
+
+You can use a certificate for localhost. You can create your [localhost certificate](https://letsencrypt.org/docs/certificates-for-localhost/#making-and-trusting-your-own-certificates) and use it in the `storage` folder and the configuration file (`config.toml`). For example:
+
+The storage folder must contain your certificates:
+
+```s
+$ tree storage/
+storage/
+├── config
+│   └── config.toml
+├── database
+│   └── data.db
+└── ssl_certificates
+    ├── localhost.crt
+    └── localhost.key
+```
+
+You have not enabled it in your `config.toml` file:
+
+```toml
+...
+[[http_trackers]]
+enabled = true
+bind_address = "0.0.0.0:6969"
+ssl_enabled = true
+ssl_cert_path = "./storage/ssl_certificates/localhost.crt"
+ssl_key_path = "./storage/ssl_certificates/localhost.key"
+
+[http_api]
+enabled = true
+bind_address = "0.0.0.0:1212"
+ssl_enabled = true
+ssl_cert_path = "./storage/ssl_certificates/localhost.crt"
+ssl_key_path = "./storage/ssl_certificates/localhost.key"
+...
+```
+
+> NOTE: you can enable it independently for each HTTP tracker or the API.
+
+If you enable the SSL certificate for the API, for example, you can load the API with this URL:
+
+<https://localhost:1212/api/stats?token=MyAccessToken>
 
 ## Prod environment
 

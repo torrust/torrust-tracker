@@ -30,10 +30,16 @@ pub struct HttpTracker {
     pub ssl_key_path: Option<String>,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct HttpApi {
     pub enabled: bool,
     pub bind_address: String,
+    pub ssl_enabled: bool,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub ssl_cert_path: Option<String>,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub ssl_key_path: Option<String>,
     pub access_tokens: HashMap<String, String>,
 }
 
@@ -114,6 +120,9 @@ impl Configuration {
             http_api: HttpApi {
                 enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
+                ssl_enabled: false,
+                ssl_cert_path: None,
+                ssl_key_path: None,
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))]
                     .iter()
                     .cloned()
@@ -208,6 +217,9 @@ mod tests {
                                 [http_api]
                                 enabled = true
                                 bind_address = "127.0.0.1:1212"
+                                ssl_enabled = false
+                                ssl_cert_path = ""
+                                ssl_key_path = ""
 
                                 [http_api.access_tokens]
                                 admin = "MyAccessToken"

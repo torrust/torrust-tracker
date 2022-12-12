@@ -290,7 +290,7 @@ mod tracker_api {
                 logging::setup(&configuration);
 
                 // Start the HTTP API job
-                self.job = Some(tracker_api::start_job(&configuration, tracker).await);
+                self.job = Some(tracker_api::start_job(&configuration.http_api, tracker).await);
 
                 self.started.store(true, Ordering::Relaxed);
             }
