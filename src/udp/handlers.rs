@@ -239,17 +239,42 @@ fn handle_error(e: &Error, transaction_id: TransactionId) -> Response {
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use rand::{thread_rng, Rng};
 
     use crate::config::Configuration;
     use crate::protocol::clock::{Current, Time};
     use crate::tracker::{self, mode, peer, statistics};
 
-    fn default_tracker_config() -> Arc<Configuration> {
-        Arc::new(Configuration::default())
+    fn tracker_configuration() -> Arc<Configuration> {
+        Arc::new(default_testing_tracker_configuration())
+    }
+
+    fn default_testing_tracker_configuration() -> Configuration {
+        let mut config = Configuration::default();
+        config.log_level = Some("off".to_owned());
+
+        // Ephemeral socket address
+        let port = ephemeral_random_port();
+        config.http_api.bind_address = format!("127.0.0.1:{}", &port);
+
+        // Ephemeral database
+        let temp_directory = env::temp_dir();
+        let temp_file = temp_directory.join(format!("data_{}.db", &port));
+        config.db_path = temp_file.to_str().unwrap().to_owned();
+
+        config
+    }
+
+    fn ephemeral_random_port() -> u16 {
+        // todo: this may produce random test failures because two tests can try to bind the same port.
+        // We could create a pool of available ports (with read/write lock)
+        let mut rng = thread_rng();
+        rng.gen_range(49152..65535)
     }
 
     fn initialized_public_tracker() -> Arc<tracker::Tracker> {
@@ -332,7 +357,7 @@ mod tests {
 
     impl TrackerConfigurationBuilder {
         pub fn default() -> TrackerConfigurationBuilder {
-            let default_configuration = Configuration::default();
+            let default_configuration = default_testing_tracker_configuration();
             TrackerConfigurationBuilder {
                 configuration: default_configuration,
             }
@@ -361,7 +386,7 @@ mod tests {
         use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
         use mockall::predicate::eq;
 
-        use super::{default_tracker_config, sample_ipv4_socket_address, sample_ipv6_remote_addr};
+        use super::{sample_ipv4_socket_address, sample_ipv6_remote_addr, tracker_configuration};
         use crate::tracker::{self, statistics};
         use crate::udp::connection_cookie::{into_connection_id, make};
         use crate::udp::handlers::handle_connect;
@@ -424,7 +449,7 @@ mod tests {
             let client_socket_address = sample_ipv4_socket_address();
 
             let torrent_tracker = Arc::new(
-                tracker::Tracker::new(&default_tracker_config(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                tracker::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
             );
             handle_connect(client_socket_address, &sample_connect_request(), torrent_tracker)
                 .await
@@ -442,7 +467,7 @@ mod tests {
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
             let torrent_tracker = Arc::new(
-                tracker::Tracker::new(&default_tracker_config(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                tracker::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
             );
             handle_connect(sample_ipv6_remote_addr(), &sample_connect_request(), torrent_tracker)
                 .await
@@ -538,7 +563,7 @@ mod tests {
             use crate::udp::handlers::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
             use crate::udp::handlers::tests::{
-                default_tracker_config, initialized_public_tracker, sample_ipv4_socket_address, TorrentPeerBuilder,
+                initialized_public_tracker, sample_ipv4_socket_address, tracker_configuration, TorrentPeerBuilder,
             };
 
             #[tokio::test]
@@ -685,7 +710,7 @@ mod tests {
                 let stats_event_sender = Box::new(stats_event_sender_mock);
 
                 let tracker = Arc::new(
-                    tracker::Tracker::new(&default_tracker_config(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    tracker::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
                 );
 
                 handle_announce(
@@ -761,7 +786,7 @@ mod tests {
             use crate::udp::handlers::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
             use crate::udp::handlers::tests::{
-                default_tracker_config, initialized_public_tracker, sample_ipv6_remote_addr, TorrentPeerBuilder,
+                initialized_public_tracker, sample_ipv6_remote_addr, tracker_configuration, TorrentPeerBuilder,
             };
 
             #[tokio::test]
@@ -915,7 +940,7 @@ mod tests {
                 let stats_event_sender = Box::new(stats_event_sender_mock);
 
                 let tracker = Arc::new(
-                    tracker::Tracker::new(&default_tracker_config(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    tracker::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
                 );
 
                 let remote_addr = sample_ipv6_remote_addr();
@@ -1216,7 +1241,7 @@ mod tests {
             use super::sample_scrape_request;
             use crate::tracker::{self, statistics};
             use crate::udp::handlers::handle_scrape;
-            use crate::udp::handlers::tests::{default_tracker_config, sample_ipv4_remote_addr};
+            use crate::udp::handlers::tests::{sample_ipv4_remote_addr, tracker_configuration};
 
             #[tokio::test]
             async fn should_send_the_upd4_scrape_event() {
@@ -1230,7 +1255,7 @@ mod tests {
 
                 let remote_addr = sample_ipv4_remote_addr();
                 let tracker = Arc::new(
-                    tracker::Tracker::new(&default_tracker_config(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    tracker::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
                 );
 
                 handle_scrape(remote_addr, &sample_scrape_request(&remote_addr), tracker.clone())
@@ -1248,7 +1273,7 @@ mod tests {
             use super::sample_scrape_request;
             use crate::tracker::{self, statistics};
             use crate::udp::handlers::handle_scrape;
-            use crate::udp::handlers::tests::{default_tracker_config, sample_ipv6_remote_addr};
+            use crate::udp::handlers::tests::{sample_ipv6_remote_addr, tracker_configuration};
 
             #[tokio::test]
             async fn should_send_the_upd6_scrape_event() {
@@ -1262,7 +1287,7 @@ mod tests {
 
                 let remote_addr = sample_ipv6_remote_addr();
                 let tracker = Arc::new(
-                    tracker::Tracker::new(&default_tracker_config(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    tracker::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
                 );
 
                 handle_scrape(remote_addr, &sample_scrape_request(&remote_addr), tracker.clone())
