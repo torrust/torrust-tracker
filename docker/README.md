@@ -96,7 +96,11 @@ If you enable the SSL certificate for the API, for example, you can load the API
 
 ## Prod environment
 
-Deploy to Azure following [docker documentation](https://docs.docker.com/cloud/aci-integration/).
+In this section, you will learn how to deploy the tracker to a single docker container in Azure Container Instances.
+
+> NOTE: Azure Container Instances is a solution when you want to run an isolated container. If you need full container orchestration, including service discovery across multiple containers, automatic scaling, and coordinated application upgrades, we recommend [Kubernetes](https://kubernetes.io/).
+
+Deploy to Azure Container Instance following [docker documentation](https://docs.docker.com/cloud/aci-integration/).
 
 You have to create the ACI context and the storage:
 
