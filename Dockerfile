@@ -37,6 +37,9 @@ RUN strip /app/target/x86_64-unknown-linux-musl/release/torrust-tracker
 FROM alpine:latest
 WORKDIR /app
 ARG RUN_AS_USER=appuser
+ARG TRACKER_UDP_PORT=6969
+ARG TRACKER_HTTP_PORT=7070
+ARG TRACKER_API_PORT=1212
 RUN apk --no-cache add ca-certificates
 ENV TZ=Etc/UTC
 ENV RUN_AS_USER=$RUN_AS_USER
@@ -47,7 +50,7 @@ COPY --from=builder --chown=$RUN_AS_USER \
   /app/torrust-tracker
 RUN chown -R $RUN_AS_USER:$RUN_AS_USER /app
 USER $RUN_AS_USER:$RUN_AS_USER
-EXPOSE 6969/udp
-EXPOSE 7070/tcp
-EXPOSE 1212/tcp
+EXPOSE $TRACKER_UDP_PORT/udp
+EXPOSE $TRACKER_HTTP_PORT/tcp
+EXPOSE $TRACKER_API_PORT/tcp
 ENTRYPOINT ["/app/torrust-tracker"]
