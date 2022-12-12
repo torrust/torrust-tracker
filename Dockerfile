@@ -29,6 +29,9 @@ RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path r
 # Build the application
 COPY . .
 RUN cargo build --release --target x86_64-unknown-linux-musl --bin torrust-tracker
+# Strip the binary
+# More info: https://github.com/LukeMathWalker/cargo-chef/issues/149
+RUN strip /app/target/x86_64-unknown-linux-musl/release/torrust-tracker
 
 
 FROM alpine:latest
