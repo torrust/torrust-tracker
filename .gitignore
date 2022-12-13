@@ -1,3 +1,4 @@
+.env
 **/*.rs.bk
 /.idea/
 /.vscode/launch.json

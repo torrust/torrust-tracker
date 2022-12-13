@@ -1,0 +1,48 @@
+name: torrust
+services:
+
+  tracker:
+    build:
+      context: .
+      target: development
+    user: ${TORRUST_TRACKER_USER_UID:-1000}:${TORRUST_TRACKER_USER_UID:-1000}
+    tty: true
+    networks:
+      - server_side
+    ports:
+      - 6969:6969/udp
+      - 7070:7070
+      - 1212:1212
+    volumes:
+      - ./:/app
+      - ~/.cargo:/home/appuser/.cargo
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    command: '--default-authentication-plugin=mysql_native_password'
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 --password="$$(cat /run/secrets/db-password)" --silent']
+      interval: 3s
+      retries: 5
+      start_period: 30s    
+    environment:
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_ROOT_PASSWORD=root_secret_password
+      - MYSQL_DATABASE=torrust_tracker
+      - MYSQL_USER=db_user
+      - MYSQL_PASSWORD=db_user_secret_password
+    networks:
+      - server_side
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+networks:
+  server_side: {}
+
+volumes:
+  mysql_data: {}

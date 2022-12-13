@@ -9,10 +9,34 @@ COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 
+FROM chef as development
+WORKDIR /app
+ARG UID=1000
+ARG RUN_AS_USER=appuser
+ARG TRACKER_UDP_PORT=6969
+ARG TRACKER_HTTP_PORT=7070
+ARG TRACKER_API_PORT=1212
+# Add the app user for development
+ENV USER=appuser
+ENV UID=$UID
+RUN adduser --uid "${UID}" "${USER}"
+# Build dependencies
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --recipe-path recipe.json
+# Build the application
+COPY . .
+RUN cargo build --bin torrust-tracker
+USER $RUN_AS_USER:$RUN_AS_USER
+EXPOSE $TRACKER_UDP_PORT/udp
+EXPOSE $TRACKER_HTTP_PORT/tcp
+EXPOSE $TRACKER_API_PORT/tcp  
+CMD ["cargo", "run"]
+
+
 FROM chef AS builder
 WORKDIR /app
 ARG UID=1000
-# Create the app user
+# Add the app user for production
 ENV USER=appuser
 ENV UID=$UID
 RUN adduser \
@@ -22,7 +46,7 @@ RUN adduser \
   --shell "/sbin/nologin" \
   --no-create-home \
   --uid "${UID}" \
-  "${USER}"
+  "${USER}"  
 # Build dependencies
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
@@ -43,8 +67,8 @@ ARG TRACKER_API_PORT=1212
 RUN apk --no-cache add ca-certificates
 ENV TZ=Etc/UTC
 ENV RUN_AS_USER=$RUN_AS_USER
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /etc/group /etc/group
+COPY --from=base /etc/passwd /etc/passwd
+COPY --from=base /etc/group /etc/group
 COPY --from=builder --chown=$RUN_AS_USER \
   /app/target/x86_64-unknown-linux-musl/release/torrust-tracker \
   /app/torrust-tracker

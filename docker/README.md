@@ -21,6 +21,8 @@ storage/
 
 ## Dev environment
 
+### With docker
+
 Build and run locally:
 
 ```s
@@ -49,6 +51,83 @@ docker run -it \
 > - You have to create the SQLite DB (`data.db`) and configuration (`config.toml`) before running the tracker. See `bin/install.sh`.
 > - You have to replace the user UID (`1000`) with yours.
 > - Remember to switch to your default docker context `docker context use default`.
+
+### With docker-compose
+
+The docker-compose configuration includes the MySQL service configuration. If you want to use MySQL instead of SQLite you have to change your `config.toml` configuration:
+
+```toml
+db_driver = "MySQL"
+db_path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
+```
+
+Build and run it locally:
+
+```s
+docker compose up --build
+```
+
+After running the "up" command you will have two running containers:
+
+```s
+$ docker ps
+CONTAINER ID   IMAGE             COMMAND                  CREATED          STATUS                   PORTS                                                                                                                             NAMES
+06feacb91a9e   torrust-tracker   "cargo run"              18 minutes ago   Up 4 seconds             0.0.0.0:1212->1212/tcp, :::1212->1212/tcp, 0.0.0.0:7070->7070/tcp, :::7070->7070/tcp, 0.0.0.0:6969->6969/udp, :::6969->6969/udp   torrust-tracker-1
+34d29e792ee2   mysql:8.0         "docker-entrypoint.s…"   18 minutes ago   Up 5 seconds (healthy)   0.0.0.0:3306->3306/tcp, :::3306->3306/tcp, 33060/tcp                                                                              torrust-mysql-1
+```
+
+And you should be able to use the application, for example making a request to the API:
+
+<https://127.0.0.1:1212/api/stats?token=MyAccessToken>
+
+You can stop the containers with:
+
+```s
+docker compose down
+```
+
+Additionally, you can delete all resources (containers, volumes, networks) with:
+
+```s
+docker compose down -v
+```
+
+### Access Mysql with docker
+
+These are some useful commands for MySQL.
+
+Open a shell in the MySQL container using docker or docker-compose.
+
+```s
+docker exec -it torrust-mysql-1 /bin/bash 
+docker compose exec mysql /bin/bash
+```
+
+Connect to MySQL from inside the MySQL container or from the host:
+
+```s
+mysql -h127.0.0.1 -uroot -proot_secret_password
+```
+
+The when MySQL container is started the first time, it creates the database, user, and permissions needed.
+If you see the error "Host is not allowed to connect to this MySQL server" you can check that users have the right permissions in the database. Make sure the user `root` and `db_user` can connect from any host (`%`).
+
+```s
+mysql> SELECT host, user FROM mysql.user;
++-----------+------------------+
+| host      | user             |
++-----------+------------------+
+| %         | db_user          |
+| %         | root             |
+| localhost | mysql.infoschema |
+| localhost | mysql.session    |
+| localhost | mysql.sys        |
+| localhost | root             |
++-----------+------------------+
+6 rows in set (0.00 sec)
+```
+
+If the database, user or permissions are not created the reason could be the MySQL container volume can be corrupted. Delete it and start again the containers.
 
 ### SSL Certificates
 
@@ -104,7 +183,7 @@ Deploy to Azure Container Instance following [docker documentation](https://docs
 
 You have to create the ACI context and the storage:
 
-```slatest
+```s
 docker context create aci myacicontext
 docker context use myacicontext
 docker volume create test-volume --storage-account torrustracker
