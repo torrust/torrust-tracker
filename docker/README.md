@@ -61,6 +61,8 @@ db_driver = "MySQL"
 db_path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
 ```
 
+If you want to inject an environment variable into docker-compose you can use the file `.env`. There is a template `.env.local`.
+
 Build and run it locally:
 
 ```s
