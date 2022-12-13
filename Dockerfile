@@ -67,8 +67,8 @@ ARG TRACKER_API_PORT=1212
 RUN apk --no-cache add ca-certificates
 ENV TZ=Etc/UTC
 ENV RUN_AS_USER=$RUN_AS_USER
-COPY --from=base /etc/passwd /etc/passwd
-COPY --from=base /etc/group /etc/group
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
 COPY --from=builder --chown=$RUN_AS_USER \
   /app/target/x86_64-unknown-linux-musl/release/torrust-tracker \
   /app/torrust-tracker
