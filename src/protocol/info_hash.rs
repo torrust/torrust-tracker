@@ -133,7 +133,7 @@ mod tests {
     fn an_info_hash_should_by_displayed_like_a_40_utf8_lowercased_char_hex_string() {
         let info_hash = InfoHash::from_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF").unwrap();
 
-        let output = format!("{}", info_hash);
+        let output = format!("{info_hash}");
 
         assert_eq!(output, "ffffffffffffffffffffffffffffffffffffffff");
     }

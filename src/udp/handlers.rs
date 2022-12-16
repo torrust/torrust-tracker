@@ -255,8 +255,10 @@ mod tests {
     }
 
     fn default_testing_tracker_configuration() -> Configuration {
-        let mut config = Configuration::default();
-        config.log_level = Some("off".to_owned());
+        let mut config = Configuration {
+            log_level: Some("off".to_owned()),
+            ..Default::default()
+        };
 
         // Ephemeral socket address
         let port = ephemeral_random_port();

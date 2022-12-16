@@ -90,7 +90,7 @@ pub enum Error {
 
 impl From<r2d2_sqlite::rusqlite::Error> for Error {
     fn from(e: r2d2_sqlite::rusqlite::Error) -> Self {
-        eprintln!("{}", e);
+        eprintln!("{e}");
         Error::KeyVerificationError
     }
 }

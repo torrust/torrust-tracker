@@ -74,7 +74,7 @@ impl std::fmt::Display for Error {
             Error::ConfigError(e) => e.fmt(f),
             Error::IOError(e) => e.fmt(f),
             Error::ParseError(e) => e.fmt(f),
-            Error::TrackerModeIncompatible => write!(f, "{:?}", self),
+            Error::TrackerModeIncompatible => write!(f, "{self:?}"),
         }
     }
 }
@@ -296,6 +296,6 @@ mod tests {
     fn configuration_error_could_be_displayed() {
         let error = Error::TrackerModeIncompatible;
 
-        assert_eq!(format!("{}", error), "TrackerModeIncompatible");
+        assert_eq!(format!("{error}"), "TrackerModeIncompatible");
     }
 }
