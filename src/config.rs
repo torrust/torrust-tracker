@@ -93,7 +93,7 @@ impl Default for Configuration {
             log_level: Option::from(String::from("info")),
             mode: mode::Mode::Public,
             db_driver: Driver::Sqlite3,
-            db_path: String::from("data.db"),
+            db_path: String::from("./storage/database/data.db"),
             announce_interval: 120,
             min_announce_interval: 120,
             max_peer_timeout: 900,
@@ -193,7 +193,7 @@ mod tests {
         let config = r#"log_level = "info"
                                 mode = "public"
                                 db_driver = "Sqlite3"
-                                db_path = "data.db"
+                                db_path = "./storage/database/data.db"
                                 announce_interval = 120
                                 min_announce_interval = 120
                                 max_peer_timeout = 900
