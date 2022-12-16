@@ -3,10 +3,8 @@ name: Publish docker image
 on:
   push:
     branches:
+      - 'main'
       - 'develop'
-      # todo: only during development of issue 11
-      - 'docker'
-      - 'docker-reorganized-pr'
     tags:
       - "v*"
 
