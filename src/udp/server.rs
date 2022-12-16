@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::Response;
-use log::{debug, info};
+use log::{debug, error, info};
 use tokio::net::UdpSocket;
 
 use crate::tracker;
@@ -71,7 +71,7 @@ impl Udp {
                 Udp::send_packet(socket, &remote_addr, &inner[..position]).await;
             }
             Err(_) => {
-                debug!("could not write response to bytes.");
+                error!("could not write response to bytes.");
             }
         }
     }
