@@ -1,3 +1,4 @@
+.env
 /target
 **/*.rs.bk
 /database.json.bz2
