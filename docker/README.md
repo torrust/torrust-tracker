@@ -41,7 +41,7 @@ docker run -it \
     --publish 7070:7070/tcp \
     --publish 1212:1212/tcp \
     --volume "$(pwd)/storage":"/app/storage" \
-    torrust/torrust-tracker
+    torrust/tracker
 ```
 
 > NOTES:
@@ -197,7 +197,7 @@ docker run \
     --publish 7070:7070/tcp \
     --publish 1212:1212/tcp \
     --volume torrustracker/test-volume:/app/storage \
-    registry.hub.docker.com/torrust/torrust-tracker:latest
+    registry.hub.docker.com/torrust/tracker:latest
 ```
 
 Detach from container logs when the container starts. By default, the command line stays attached and follows container logs.
@@ -209,7 +209,7 @@ docker run \
     --publish 7070:7070/tcp \
     --publish 1212:1212/tcp \latest
     --volume torrustracker/test-volume:/app/storage \
-    registry.hub.docker.com/torrust/torrust-tracker:latest
+    registry.hub.docker.com/torrust/tracker:latest
 ```
 
 You should see something like this:
@@ -229,7 +229,7 @@ You can see the container with:
 ```s
 $ docker ps
 CONTAINER ID          IMAGE                                                      COMMAND             STATUS              PORTS
-intelligent-hawking   registry.hub.docker.com/torrust/torrust-tracker:latest                       Running             4.236.213.57:6969->6969/udp, 4.236.213.57:1212->1212/tcp
+intelligent-hawking   registry.hub.docker.com/torrust/tracker:latest                       Running             4.236.213.57:6969->6969/udp, 4.236.213.57:1212->1212/tcp
 ```
 
 After a while, you can use the tracker API `http://4.236.213.57:1212/api/stats?token=MyAccessToken` and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969`.
