@@ -30,10 +30,16 @@ pub struct HttpTracker {
     pub ssl_key_path: Option<String>,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct HttpApi {
     pub enabled: bool,
     pub bind_address: String,
+    pub ssl_enabled: bool,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub ssl_cert_path: Option<String>,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub ssl_key_path: Option<String>,
     pub access_tokens: HashMap<String, String>,
 }
 
@@ -81,20 +87,8 @@ impl std::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-impl Configuration {
-    #[must_use]
-    pub fn get_ext_ip(&self) -> Option<IpAddr> {
-        match &self.external_ip {
-            None => None,
-            Some(external_ip) => match IpAddr::from_str(external_ip) {
-                Ok(external_ip) => Some(external_ip),
-                Err(_) => None,
-            },
-        }
-    }
-
-    #[must_use]
-    pub fn default() -> Configuration {
+impl Default for Configuration {
+    fn default() -> Self {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             mode: mode::Mode::Public,
@@ -114,6 +108,9 @@ impl Configuration {
             http_api: HttpApi {
                 enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
+                ssl_enabled: false,
+                ssl_cert_path: None,
+                ssl_key_path: None,
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))]
                     .iter()
                     .cloned()
@@ -132,6 +129,19 @@ impl Configuration {
             ssl_key_path: None,
         });
         configuration
+    }
+}
+
+impl Configuration {
+    #[must_use]
+    pub fn get_ext_ip(&self) -> Option<IpAddr> {
+        match &self.external_ip {
+            None => None,
+            Some(external_ip) => match IpAddr::from_str(external_ip) {
+                Ok(external_ip) => Some(external_ip),
+                Err(_) => None,
+            },
+        }
     }
 
     /// # Errors
@@ -208,6 +218,9 @@ mod tests {
                                 [http_api]
                                 enabled = true
                                 bind_address = "127.0.0.1:1212"
+                                ssl_enabled = false
+                                ssl_cert_path = ""
+                                ssl_key_path = ""
 
                                 [http_api.access_tokens]
                                 admin = "MyAccessToken"

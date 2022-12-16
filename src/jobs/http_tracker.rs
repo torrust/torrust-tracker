@@ -22,10 +22,10 @@ pub fn start_job(config: &HttpTracker, tracker: Arc<tracker::Tracker>) -> JoinHa
         let http_tracker = Http::new(tracker);
 
         if !ssl_enabled {
-            info!("Starting HTTP server on: {}", bind_addr);
+            info!("Starting HTTP server on: http://{}", bind_addr);
             http_tracker.start(bind_addr).await;
         } else if ssl_enabled && ssl_cert_path.is_some() && ssl_key_path.is_some() {
-            info!("Starting HTTPS server on: {} (TLS)", bind_addr);
+            info!("Starting HTTPS server on: https://{} (TLS)", bind_addr);
             http_tracker
                 .start_tls(bind_addr, ssl_cert_path.unwrap(), ssl_key_path.unwrap())
                 .await;
