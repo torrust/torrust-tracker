@@ -1,10 +1,10 @@
 use std::collections::HashMap;
-use std::fs;
 use std::net::IpAddr;
 use std::path::Path;
 use std::str::FromStr;
+use std::{env, fs};
 
-use config::{Config, ConfigError, File};
+use config::{Config, ConfigError, File, FileFormat};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use {std, toml};
@@ -164,13 +164,33 @@ impl Configuration {
             let config = Configuration::default();
             config.save_to_file(path)?;
             return Err(Error::Message(
-                "Please edit the config.TOML in the root folder and restart the tracker.".to_string(),
+                "Please edit the config.TOML and restart the tracker.".to_string(),
             ));
         }
 
         let torrust_config: Configuration = config.try_deserialize().map_err(Error::ConfigError)?;
 
         Ok(torrust_config)
+    }
+
+    /// # Errors
+    ///
+    /// Will return `Err` if the environment variable does not exist or has a bad configuration.
+    pub fn load_from_env_var(config_env_var_name: &str) -> Result<Configuration, Error> {
+        match env::var(config_env_var_name) {
+            Ok(config_toml) => {
+                let config_builder = Config::builder()
+                    .add_source(File::from_str(&config_toml, FileFormat::Toml))
+                    .build()
+                    .map_err(Error::ConfigError)?;
+                let config = config_builder.try_deserialize().map_err(Error::ConfigError)?;
+                Ok(config)
+            }
+            Err(_) => Err(Error::Message(format!(
+                "No environment variable for configuration found: {}",
+                &config_env_var_name
+            ))),
+        }
     }
 
     /// # Errors
