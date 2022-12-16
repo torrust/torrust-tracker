@@ -123,7 +123,7 @@ impl Default for Configuration {
         });
         configuration.http_trackers.push(HttpTracker {
             enabled: false,
-            bind_address: String::from("0.0.0.0:6969"),
+            bind_address: String::from("0.0.0.0:7070"),
             ssl_enabled: false,
             ssl_cert_path: None,
             ssl_key_path: None,
@@ -210,7 +210,7 @@ mod tests {
 
                                 [[http_trackers]]
                                 enabled = false
-                                bind_address = "0.0.0.0:6969"
+                                bind_address = "0.0.0.0:7070"
                                 ssl_enabled = false
                                 ssl_cert_path = ""
                                 ssl_key_path = ""
