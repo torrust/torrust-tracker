@@ -4,8 +4,10 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
+use log::error;
 use serde::{Deserialize, Serialize};
-use warp::{filters, reply, serve, Filter};
+use warp::http::StatusCode;
+use warp::{filters, reject, reply, serve, Filter, Rejection, Reply};
 
 use super::resource::auth_key::AuthKey;
 use super::resource::peer;
@@ -26,6 +28,11 @@ enum ActionStatus<'a> {
     Ok,
     Err { reason: std::borrow::Cow<'a, str> },
 }
+
+#[derive(Debug)]
+struct Unauthorized;
+
+impl reject::Reject for Unauthorized {}
 
 impl warp::reject::Reject for ActionStatus<'static> {}
 
@@ -52,9 +59,7 @@ fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Er
 
                     Ok(())
                 }
-                None => Err(warp::reject::custom(ActionStatus::Err {
-                    reason: "unauthorized".into(),
-                })),
+                None => Err(warp::reject::custom(Unauthorized)),
             }
         })
         .untuple_one()
@@ -317,11 +322,58 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl w
             .or(reload_keys),
     );
 
-    let server = api_routes.and(authenticate(tracker.config.http_api.access_tokens.clone()));
+    let server = api_routes
+        .and(authenticate(tracker.config.http_api.access_tokens.clone()))
+        .recover(handle_rejection);
 
     let (_addr, api_server) = serve(server).bind_with_graceful_shutdown(socket_addr, async move {
         tokio::signal::ctrl_c().await.expect("Failed to listen to shutdown signal.");
     });
 
     api_server
+}
+
+#[allow(clippy::unused_async)]
+async fn handle_rejection(err: Rejection) -> Result<impl Reply, std::convert::Infallible> {
+    if let Some(_e) = err.find::<Unauthorized>() {
+        Ok(reply::with_status("unauthorized", StatusCode::UNAUTHORIZED))
+    } else if let Some(e) = err.find::<ActionStatus>() {
+        match e {
+            ActionStatus::Ok => Ok(reply::with_status("", StatusCode::OK)),
+            ActionStatus::Err { reason } => {
+                if reason == "token not valid" {
+                    Ok(reply::with_status("token not valid", StatusCode::INTERNAL_SERVER_ERROR))
+                } else if reason == "failed to remove torrent from whitelist" {
+                    Ok(reply::with_status(
+                        "failed to remove torrent from whitelist",
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                    ))
+                } else if reason == "failed to whitelist torrent" {
+                    Ok(reply::with_status(
+                        "failed to whitelist torrent",
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                    ))
+                } else if reason == "failed to generate key" {
+                    Ok(reply::with_status(
+                        "failed to generate key",
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                    ))
+                } else if reason == "failed to delete key" {
+                    Ok(reply::with_status("failed to delete key", StatusCode::INTERNAL_SERVER_ERROR))
+                } else if reason == "failed to reload whitelist" {
+                    Ok(reply::with_status(
+                        "failed to reload whitelist",
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                    ))
+                } else if reason == "failed to reload keys" {
+                    Ok(reply::with_status("failed to reload keys", StatusCode::INTERNAL_SERVER_ERROR))
+                } else {
+                    Ok(reply::with_status("internal server error", StatusCode::INTERNAL_SERVER_ERROR))
+                }
+            }
+        }
+    } else {
+        error!("unhandled rejection: {err:?}");
+        Ok(reply::with_status("internal server error", StatusCode::INTERNAL_SERVER_ERROR))
+    }
 }

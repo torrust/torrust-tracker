@@ -31,6 +31,27 @@ mod tracker_api {
     use crate::common::ephemeral_random_port;
 
     #[tokio::test]
+    async fn should_return_an_unauthorized_response_when_the_token_is_missing() {
+        let api_server = ApiServer::new_running_instance().await;
+
+        let url = format!("http://{}/api/torrents", api_server.connection_info.unwrap().bind_address);
+        let res = reqwest::Client::builder().build().unwrap().get(url).send().await.unwrap();
+
+        assert_eq!(res.status(), 401);
+    }
+
+    #[tokio::test]
+    async fn should_return_an_internal_error_server_when_the_token_is_invalid() {
+        let api_server = ApiServer::new_running_instance().await;
+
+        let res = ApiClient::new(api_server.get_connection_info().unwrap())
+            .request("api/torrents", "invalid token")
+            .await;
+
+        assert_eq!(res.status(), 500);
+    }
+
+    #[tokio::test]
     async fn should_allow_generating_a_new_auth_key() {
         let api_server = ApiServer::new_running_instance().await;
 
@@ -375,6 +396,11 @@ mod tracker_api {
                 .json::<Stats>()
                 .await
                 .unwrap()
+        }
+
+        pub async fn request(&self, path: &str, token: &str) -> Response {
+            let url = format!("http://{}/{}?token={}", &self.connection_info.bind_address, path, token);
+            reqwest::Client::builder().build().unwrap().get(url).send().await.unwrap()
         }
     }
 }
