@@ -3,15 +3,16 @@ name: Publish docker image
 on:
   push:
     branches:
-      - 'main'
-      - 'develop'
+      - "main"
+      - "develop"
     tags:
       - "v*"
 
 env:
   # Azure file share volume mount requires the Linux container run as root
   # https://learn.microsoft.com/en-us/azure/container-instances/container-instances-volume-azure-files#limitations
-  TORRUST_TRACKER_RUN_AS_USER: root
+  # TORRUST_TRACKER_RUN_AS_USER: root
+  TORRUST_TRACKER_RUN_AS_USER: appuser
 
 jobs:
   test:
