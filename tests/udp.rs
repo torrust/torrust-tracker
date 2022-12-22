@@ -28,8 +28,10 @@ mod udp_tracker_server {
     use crate::common::ephemeral_random_port;
 
     fn tracker_configuration() -> Arc<Configuration> {
-        let mut config = Configuration::default();
-        config.log_level = Some("off".to_owned());
+        let mut config = Configuration {
+            log_level: Some("off".to_owned()),
+            ..Default::default()
+        };
 
         // Ephemeral socket address
         let port = ephemeral_random_port();
@@ -181,7 +183,7 @@ mod udp_tracker_server {
 
     /// Generates the source address for the UDP client
     fn source_address(port: u16) -> String {
-        format!("127.0.0.1:{}", port)
+        format!("127.0.0.1:{port}")
     }
 
     fn is_error_response(response: &Response, error_message: &str) -> bool {

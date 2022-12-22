@@ -1,10 +1,10 @@
 use std::collections::HashMap;
-use std::fs;
 use std::net::IpAddr;
 use std::path::Path;
 use std::str::FromStr;
+use std::{env, fs};
 
-use config::{Config, ConfigError, File};
+use config::{Config, ConfigError, File, FileFormat};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use {std, toml};
@@ -30,10 +30,16 @@ pub struct HttpTracker {
     pub ssl_key_path: Option<String>,
 }
 
+#[serde_as]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct HttpApi {
     pub enabled: bool,
     pub bind_address: String,
+    pub ssl_enabled: bool,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub ssl_cert_path: Option<String>,
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub ssl_key_path: Option<String>,
     pub access_tokens: HashMap<String, String>,
 }
 
@@ -74,32 +80,20 @@ impl std::fmt::Display for Error {
             Error::ConfigError(e) => e.fmt(f),
             Error::IOError(e) => e.fmt(f),
             Error::ParseError(e) => e.fmt(f),
-            Error::TrackerModeIncompatible => write!(f, "{:?}", self),
+            Error::TrackerModeIncompatible => write!(f, "{self:?}"),
         }
     }
 }
 
 impl std::error::Error for Error {}
 
-impl Configuration {
-    #[must_use]
-    pub fn get_ext_ip(&self) -> Option<IpAddr> {
-        match &self.external_ip {
-            None => None,
-            Some(external_ip) => match IpAddr::from_str(external_ip) {
-                Ok(external_ip) => Some(external_ip),
-                Err(_) => None,
-            },
-        }
-    }
-
-    #[must_use]
-    pub fn default() -> Configuration {
+impl Default for Configuration {
+    fn default() -> Self {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             mode: mode::Mode::Public,
             db_driver: Driver::Sqlite3,
-            db_path: String::from("data.db"),
+            db_path: String::from("./storage/database/data.db"),
             announce_interval: 120,
             min_announce_interval: 120,
             max_peer_timeout: 900,
@@ -114,6 +108,9 @@ impl Configuration {
             http_api: HttpApi {
                 enabled: true,
                 bind_address: String::from("127.0.0.1:1212"),
+                ssl_enabled: false,
+                ssl_cert_path: None,
+                ssl_key_path: None,
                 access_tokens: [(String::from("admin"), String::from("MyAccessToken"))]
                     .iter()
                     .cloned()
@@ -126,12 +123,25 @@ impl Configuration {
         });
         configuration.http_trackers.push(HttpTracker {
             enabled: false,
-            bind_address: String::from("0.0.0.0:6969"),
+            bind_address: String::from("0.0.0.0:7070"),
             ssl_enabled: false,
             ssl_cert_path: None,
             ssl_key_path: None,
         });
         configuration
+    }
+}
+
+impl Configuration {
+    #[must_use]
+    pub fn get_ext_ip(&self) -> Option<IpAddr> {
+        match &self.external_ip {
+            None => None,
+            Some(external_ip) => match IpAddr::from_str(external_ip) {
+                Ok(external_ip) => Some(external_ip),
+                Err(_) => None,
+            },
+        }
     }
 
     /// # Errors
@@ -154,13 +164,33 @@ impl Configuration {
             let config = Configuration::default();
             config.save_to_file(path)?;
             return Err(Error::Message(
-                "Please edit the config.TOML in the root folder and restart the tracker.".to_string(),
+                "Please edit the config.TOML and restart the tracker.".to_string(),
             ));
         }
 
         let torrust_config: Configuration = config.try_deserialize().map_err(Error::ConfigError)?;
 
         Ok(torrust_config)
+    }
+
+    /// # Errors
+    ///
+    /// Will return `Err` if the environment variable does not exist or has a bad configuration.
+    pub fn load_from_env_var(config_env_var_name: &str) -> Result<Configuration, Error> {
+        match env::var(config_env_var_name) {
+            Ok(config_toml) => {
+                let config_builder = Config::builder()
+                    .add_source(File::from_str(&config_toml, FileFormat::Toml))
+                    .build()
+                    .map_err(Error::ConfigError)?;
+                let config = config_builder.try_deserialize().map_err(Error::ConfigError)?;
+                Ok(config)
+            }
+            Err(_) => Err(Error::Message(format!(
+                "No environment variable for configuration found: {}",
+                &config_env_var_name
+            ))),
+        }
     }
 
     /// # Errors
@@ -183,7 +213,7 @@ mod tests {
         let config = r#"log_level = "info"
                                 mode = "public"
                                 db_driver = "Sqlite3"
-                                db_path = "data.db"
+                                db_path = "./storage/database/data.db"
                                 announce_interval = 120
                                 min_announce_interval = 120
                                 max_peer_timeout = 900
@@ -200,7 +230,7 @@ mod tests {
 
                                 [[http_trackers]]
                                 enabled = false
-                                bind_address = "0.0.0.0:6969"
+                                bind_address = "0.0.0.0:7070"
                                 ssl_enabled = false
                                 ssl_cert_path = ""
                                 ssl_key_path = ""
@@ -208,6 +238,9 @@ mod tests {
                                 [http_api]
                                 enabled = true
                                 bind_address = "127.0.0.1:1212"
+                                ssl_enabled = false
+                                ssl_cert_path = ""
+                                ssl_key_path = ""
 
                                 [http_api.access_tokens]
                                 admin = "MyAccessToken"
@@ -296,6 +329,6 @@ mod tests {
     fn configuration_error_could_be_displayed() {
         let error = Error::TrackerModeIncompatible;
 
-        assert_eq!(format!("{}", error), "TrackerModeIncompatible");
+        assert_eq!(format!("{error}"), "TrackerModeIncompatible");
     }
 }

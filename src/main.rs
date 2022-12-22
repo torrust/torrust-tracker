@@ -1,3 +1,4 @@
+use std::env;
 use std::sync::Arc;
 
 use log::info;
@@ -7,7 +8,8 @@ use torrust_tracker::{ephemeral_instance_keys, logging, setup, static_time, trac
 
 #[tokio::main]
 async fn main() {
-    const CONFIG_PATH: &str = "config.toml";
+    const CONFIG_PATH: &str = "./config.toml";
+    const CONFIG_ENV_VAR_NAME: &str = "TORRUST_TRACKER_CONFIG";
 
     // Set the time of Torrust app starting
     lazy_static::initialize(&static_time::TIME_AT_APP_START);
@@ -16,11 +18,12 @@ async fn main() {
     lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
 
     // Initialize Torrust config
-    let config = match Configuration::load_from_file(CONFIG_PATH) {
-        Ok(config) => Arc::new(config),
-        Err(error) => {
-            panic!("{}", error)
-        }
+    let config = if env::var(CONFIG_ENV_VAR_NAME).is_ok() {
+        println!("Loading configuration from env var {CONFIG_ENV_VAR_NAME}");
+        Arc::new(Configuration::load_from_env_var(CONFIG_ENV_VAR_NAME).unwrap())
+    } else {
+        println!("Loading configuration from config file {CONFIG_PATH}");
+        Arc::new(Configuration::load_from_file(CONFIG_PATH).unwrap())
     };
 
     // Initialize statistics

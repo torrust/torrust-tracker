@@ -16,7 +16,6 @@ lto = "thin"
 debug = 1
 opt-level = 3
 lto = "fat"
-strip = true
 
 [dependencies]
 tokio = { version = "1", features = [

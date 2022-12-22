@@ -1,3 +1,4 @@
+.env
 /target
 **/*.rs.bk
 /database.json.bz2
@@ -6,4 +7,6 @@
 /config.toml
 /data.db
 /.vscode/launch.json
+/storage/
+
 

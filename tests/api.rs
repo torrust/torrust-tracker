@@ -203,8 +203,10 @@ mod tracker_api {
     }
 
     fn tracker_configuration() -> Arc<Configuration> {
-        let mut config = Configuration::default();
-        config.log_level = Some("off".to_owned());
+        let mut config = Configuration {
+            log_level: Some("off".to_owned()),
+            ..Default::default()
+        };
 
         // Ephemeral socket address
         let port = ephemeral_random_port();
@@ -290,7 +292,7 @@ mod tracker_api {
                 logging::setup(&configuration);
 
                 // Start the HTTP API job
-                self.job = Some(tracker_api::start_job(&configuration, tracker).await);
+                self.job = Some(tracker_api::start_job(&configuration.http_api, tracker).await);
 
                 self.started.store(true, Ordering::Relaxed);
             }

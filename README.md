@@ -70,7 +70,7 @@ bind_address = "0.0.0.0:6969"
 
 [[http_trackers]]
 enabled = true
-bind_address = "0.0.0.0:6969"
+bind_address = "0.0.0.0:7070"
 ssl_enabled = false
 ssl_cert_path = ""
 ssl_key_path = ""
