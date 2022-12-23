@@ -133,69 +133,47 @@ impl Client {
     }
 
     pub async fn generate_auth_key(&self, seconds_valid: i32) -> AuthKey {
-        let url = format!(
-            "http://{}/api/key/{}?token={}",
-            &self.connection_info.bind_address, &seconds_valid, &self.connection_info.api_token
-        );
-        reqwest::Client::new().post(url).send().await.unwrap().json().await.unwrap()
+        self.post(&format!("key/{}", &seconds_valid)).await.json().await.unwrap()
     }
 
     pub async fn whitelist_a_torrent(&self, info_hash: &str) -> Response {
-        let url = format!(
-            "http://{}/api/whitelist/{}?token={}",
-            &self.connection_info.bind_address, &info_hash, &self.connection_info.api_token
-        );
-        reqwest::Client::new().post(url.clone()).send().await.unwrap()
+        self.post(&format!("whitelist/{}", &info_hash)).await
     }
 
     pub async fn get_torrent(&self, info_hash: &str) -> Torrent {
-        let url = format!(
-            "http://{}/api/torrent/{}?token={}",
-            &self.connection_info.bind_address, &info_hash, &self.connection_info.api_token
-        );
-        reqwest::Client::builder()
-            .build()
-            .unwrap()
-            .get(url)
-            .send()
+        self.get(&format!("torrent/{}", &info_hash))
             .await
-            .unwrap()
             .json::<Torrent>()
             .await
             .unwrap()
     }
 
     pub async fn get_torrents(&self) -> Vec<torrent::ListItem> {
-        let url = format!(
-            "http://{}/api/torrents?token={}",
-            &self.connection_info.bind_address, &self.connection_info.api_token
-        );
+        self.get("torrents").await.json::<Vec<torrent::ListItem>>().await.unwrap()
+    }
+
+    pub async fn get_tracker_statistics(&self) -> Stats {
+        self.get("stats").await.json::<Stats>().await.unwrap()
+    }
+
+    async fn get(&self, path: &str) -> Response {
         reqwest::Client::builder()
             .build()
             .unwrap()
-            .get(url)
+            .get(self.url(path))
             .send()
-            .await
-            .unwrap()
-            .json::<Vec<torrent::ListItem>>()
             .await
             .unwrap()
     }
 
-    pub async fn get_tracker_statistics(&self) -> Stats {
-        let url = format!(
-            "http://{}/api/stats?token={}",
+    async fn post(&self, path: &str) -> Response {
+        reqwest::Client::new().post(self.url(path).clone()).send().await.unwrap()
+    }
+
+    fn url(&self, path: &str) -> String {
+        format!(
+            "http://{}/api/{path}?token={}",
             &self.connection_info.bind_address, &self.connection_info.api_token
-        );
-        reqwest::Client::builder()
-            .build()
-            .unwrap()
-            .get(url)
-            .send()
-            .await
-            .unwrap()
-            .json::<Stats>()
-            .await
-            .unwrap()
+        )
     }
 }
