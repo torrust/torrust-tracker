@@ -15,7 +15,21 @@ env:
   TORRUST_TRACKER_RUN_AS_USER: appuser
 
 jobs:
+  check-secret:
+    runs-on: ubuntu-latest
+    environment: dockerhub-torrust
+    outputs:
+      publish: ${{ steps.check.outputs.publish }}
+    steps:
+      - id: check
+        env:
+          DOCKER_HUB_USERNAME: "${{ secrets.DOCKER_HUB_USERNAME }}"
+        if: "${{ env.DOCKER_HUB_USERNAME != '' }}"
+        run: echo "publish=true" >> $GITHUB_OUTPUT
+
   test:
+    needs: check-secret
+    if: needs.check-secret.outputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -30,6 +44,7 @@ jobs:
 
   dockerhub:
     needs: test
+    if: needs.check-secret.outputs.publish == 'true'
     runs-on: ubuntu-latest
     environment: dockerhub-torrust
     steps:
