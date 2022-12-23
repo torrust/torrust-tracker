@@ -41,24 +41,19 @@ mod tracker_api {
         use torrust_tracker::api::resource::stats::Stats;
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::{sample_torrent_peer, Client, Server};
+        use crate::api::{sample_torrent_peer, start_default_api_server, Client};
 
         #[tokio::test]
         async fn should_allow_getting_tracker_statistics() {
-            let api_server = Server::new_running_instance().await;
+            let api_server = start_default_api_server().await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
             let (peer, _peer_resource) = sample_torrent_peer();
 
-            let api_connection_info = api_server.get_connection_info().unwrap();
+            let api_connection_info = api_server.get_connection_info();
 
-            // Add a torrent to the tracker
-            api_server
-                .tracker
-                .unwrap()
-                .update_torrent_with_peer_and_get_stats(&info_hash, &peer)
-                .await;
+            api_server.add_torrent(&info_hash, &peer).await;
 
             let stats_resource = Client::new(api_connection_info).get_tracker_statistics().await;
 
@@ -89,20 +84,15 @@ mod tracker_api {
     mod for_torrent_resources {
         #[tokio::test]
         async fn should_allow_getting_torrents() {
-            let api_server = Server::new_running_instance().await;
+            let api_server = start_default_api_server().await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
             let (peer, _peer_resource) = sample_torrent_peer();
 
-            let api_connection_info = api_server.get_connection_info().unwrap();
+            let api_connection_info = api_server.get_connection_info();
 
-            // Add a torrent to the tracker
-            api_server
-                .tracker
-                .unwrap()
-                .update_torrent_with_peer_and_get_stats(&info_hash, &peer)
-                .await;
+            api_server.add_torrent(&info_hash, &peer).await;
 
             let torrent_resources = Client::new(api_connection_info).get_torrents().await;
 
@@ -120,19 +110,14 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_getting_a_torrent_info() {
-            let api_server = Server::new_running_instance().await;
-            let api_connection_info = api_server.get_connection_info().unwrap();
+            let api_server = start_default_api_server().await;
+            let api_connection_info = api_server.get_connection_info();
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
             let (peer, peer_resource) = sample_torrent_peer();
 
-            // Add a torrent to the tracker
-            api_server
-                .tracker
-                .unwrap()
-                .update_torrent_with_peer_and_get_stats(&info_hash, &peer)
-                .await;
+            api_server.add_torrent(&info_hash, &peer).await;
 
             let torrent_resource = Client::new(api_connection_info).get_torrent(&info_hash.to_string()).await;
 
@@ -153,15 +138,15 @@ mod tracker_api {
         use torrust_tracker::api::resource::torrent::{self, Torrent};
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::{sample_torrent_peer, Client, Server};
+        use crate::api::{sample_torrent_peer, start_default_api_server, Client};
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent() {
-            let api_server = Server::new_running_instance().await;
+            let api_server = start_default_api_server().await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let res = Client::new(api_server.get_connection_info().unwrap())
+            let res = Client::new(api_server.get_connection_info())
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
@@ -169,7 +154,6 @@ mod tracker_api {
             assert!(
                 api_server
                     .tracker
-                    .unwrap()
                     .is_info_hash_whitelisted(&InfoHash::from_str(&info_hash).unwrap())
                     .await
             );
@@ -181,15 +165,15 @@ mod tracker_api {
 
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::{Client, Server};
+        use crate::api::{start_default_api_server, Client};
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent() {
-            let api_server = Server::new_running_instance().await;
+            let api_server = start_default_api_server().await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let res = Client::new(api_server.get_connection_info().unwrap())
+            let res = Client::new(api_server.get_connection_info())
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
@@ -197,7 +181,6 @@ mod tracker_api {
             assert!(
                 api_server
                     .tracker
-                    .unwrap()
                     .is_info_hash_whitelisted(&InfoHash::from_str(&info_hash).unwrap())
                     .await
             );
@@ -205,11 +188,11 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted() {
-            let api_server = Server::new_running_instance().await;
+            let api_server = start_default_api_server().await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let api_client = Client::new(api_server.get_connection_info().unwrap());
+            let api_client = Client::new(api_server.get_connection_info());
 
             let res = api_client.whitelist_a_torrent(&info_hash).await;
             assert_eq!(res.status(), 200);
@@ -222,25 +205,20 @@ mod tracker_api {
     mod for_key_resources {
         use torrust_tracker::tracker::auth;
 
-        use crate::api::{Client, Server};
+        use crate::api::{start_default_api_server, Client};
 
         #[tokio::test]
         async fn should_allow_generating_a_new_auth_key() {
-            let api_server = Server::new_running_instance().await;
+            let api_server = start_default_api_server().await;
 
             let seconds_valid = 60;
 
-            let auth_key = Client::new(api_server.get_connection_info().unwrap())
+            let auth_key = Client::new(api_server.get_connection_info())
                 .generate_auth_key(seconds_valid)
                 .await;
 
             // Verify the key with the tracker
-            assert!(api_server
-                .tracker
-                .unwrap()
-                .verify_auth_key(&auth::Key::from(auth_key))
-                .await
-                .is_ok());
+            assert!(api_server.tracker.verify_auth_key(&auth::Key::from(auth_key)).await.is_ok());
         }
     }
 }

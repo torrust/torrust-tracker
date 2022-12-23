@@ -1,12 +1,10 @@
 use core::panic;
 use std::env;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use reqwest::Response;
-use tokio::task::JoinHandle;
 use torrust_tracker::api::resource;
 use torrust_tracker::api::resource::auth_key::AuthKey;
 use torrust_tracker::api::resource::stats::Stats;
@@ -14,7 +12,8 @@ use torrust_tracker::api::resource::torrent::{self, Torrent};
 use torrust_tracker::config::Configuration;
 use torrust_tracker::jobs::tracker_api;
 use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
-use torrust_tracker::tracker::peer;
+use torrust_tracker::protocol::info_hash::InfoHash;
+use torrust_tracker::tracker::peer::{self, Peer};
 use torrust_tracker::tracker::statistics::Keeper;
 use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
@@ -68,71 +67,63 @@ impl ConnectionInfo {
     }
 }
 
+pub async fn start_default_api_server() -> Server {
+    let configuration = tracker_configuration();
+    start_custom_api_server(configuration.clone()).await
+}
+
+pub async fn start_custom_api_server(configuration: Arc<Configuration>) -> Server {
+    start(configuration).await
+}
+
+async fn start(configuration: Arc<Configuration>) -> Server {
+    let connection_info = ConnectionInfo::new(
+        &configuration.http_api.bind_address.clone(),
+        &configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone(),
+    );
+
+    // Set the time of Torrust app starting
+    lazy_static::initialize(&static_time::TIME_AT_APP_START);
+
+    // Initialize the Ephemeral Instance Random Seed
+    lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
+
+    // Initialize stats tracker
+    let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
+
+    // Initialize Torrust tracker
+    let tracker = match tracker::Tracker::new(&configuration.clone(), Some(stats_event_sender), stats_repository) {
+        Ok(tracker) => Arc::new(tracker),
+        Err(error) => {
+            panic!("{}", error)
+        }
+    };
+
+    // Initialize logging
+    logging::setup(&configuration);
+
+    // Start the HTTP API job
+    tracker_api::start_job(&configuration.http_api, tracker.clone()).await;
+
+    Server {
+        tracker,
+        connection_info,
+    }
+}
+
 pub struct Server {
-    pub started: AtomicBool,
-    pub job: Option<JoinHandle<()>>,
-    pub tracker: Option<Arc<tracker::Tracker>>,
-    pub connection_info: Option<ConnectionInfo>,
+    pub tracker: Arc<tracker::Tracker>,
+    pub connection_info: ConnectionInfo,
 }
 
 impl Server {
-    pub fn new() -> Self {
-        Self {
-            started: AtomicBool::new(false),
-            job: None,
-            tracker: None,
-            connection_info: None,
-        }
-    }
-
-    pub async fn new_running_instance() -> Self {
-        let configuration = tracker_configuration();
-        Self::new_running_custom_instance(configuration.clone()).await
-    }
-
-    async fn new_running_custom_instance(configuration: Arc<Configuration>) -> Self {
-        let mut api_server = Self::new();
-        api_server.start(configuration).await;
-        api_server
-    }
-
-    pub async fn start(&mut self, configuration: Arc<Configuration>) {
-        if !self.started.load(Ordering::Relaxed) {
-            self.connection_info = Some(ConnectionInfo::new(
-                &configuration.http_api.bind_address.clone(),
-                &configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone(),
-            ));
-
-            // Set the time of Torrust app starting
-            lazy_static::initialize(&static_time::TIME_AT_APP_START);
-
-            // Initialize the Ephemeral Instance Random Seed
-            lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
-
-            // Initialize stats tracker
-            let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
-
-            // Initialize Torrust tracker
-            let tracker = match tracker::Tracker::new(&configuration.clone(), Some(stats_event_sender), stats_repository) {
-                Ok(tracker) => Arc::new(tracker),
-                Err(error) => {
-                    panic!("{}", error)
-                }
-            };
-            self.tracker = Some(tracker.clone());
-
-            // Initialize logging
-            logging::setup(&configuration);
-
-            // Start the HTTP API job
-            self.job = Some(tracker_api::start_job(&configuration.http_api, tracker).await);
-
-            self.started.store(true, Ordering::Relaxed);
-        }
-    }
-
-    pub fn get_connection_info(&self) -> Option<ConnectionInfo> {
+    pub fn get_connection_info(&self) -> ConnectionInfo {
         self.connection_info.clone()
+    }
+
+    /// Add a torrent to the tracker
+    pub async fn add_torrent(&self, info_hash: &InfoHash, peer: &Peer) {
+        self.tracker.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
     }
 }
 
