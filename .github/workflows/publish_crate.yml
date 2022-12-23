@@ -1,0 +1,54 @@
+name: Publish crate
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  check-secret:
+    runs-on: ubuntu-latest
+    environment: crates-io-torrust
+    outputs:
+      publish: ${{ steps.check.outputs.publish }}
+    steps:
+      - id: check
+        env:
+          CRATES_TOKEN: "${{ secrets.CRATES_TOKEN }}"
+        if: "${{ env.CRATES_TOKEN != '' }}"
+        run: echo "publish=true" >> $GITHUB_OUTPUT
+
+  test:
+    needs: check-secret
+    if: needs.check-secret.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v1
+      - name: Run Tests
+        run: cargo test
+
+  publish:
+    needs: test
+    if: needs.check-secret.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    environment: crates-io-torrust
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_TOKEN }}
