@@ -41,21 +41,20 @@ mod tracker_api {
         use torrust_tracker::api::resource::stats::Stats;
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::{sample_torrent_peer, start_default_api_server, Client};
+        use crate::api::{sample_peer, start_default_api_server, Client};
 
         #[tokio::test]
         async fn should_allow_getting_tracker_statistics() {
             let api_server = start_default_api_server().await;
 
-            let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
+            api_server
+                .add_torrent(
+                    &InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(),
+                    &sample_peer(),
+                )
+                .await;
 
-            let (peer, _peer_resource) = sample_torrent_peer();
-
-            let api_connection_info = api_server.get_connection_info();
-
-            api_server.add_torrent(&info_hash, &peer).await;
-
-            let stats_resource = Client::new(api_connection_info).get_tracker_statistics().await;
+            let stats_resource = Client::new(api_server.get_connection_info()).get_tracker_statistics().await;
 
             assert_eq!(
                 stats_resource,
@@ -88,13 +87,9 @@ mod tracker_api {
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
-            let (peer, _peer_resource) = sample_torrent_peer();
+            api_server.add_torrent(&info_hash, &sample_peer()).await;
 
-            let api_connection_info = api_server.get_connection_info();
-
-            api_server.add_torrent(&info_hash, &peer).await;
-
-            let torrent_resources = Client::new(api_connection_info).get_torrents().await;
+            let torrent_resources = Client::new(api_server.get_connection_info()).get_torrents().await;
 
             assert_eq!(
                 torrent_resources,
@@ -103,7 +98,7 @@ mod tracker_api {
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: None // Torrent list does not include peer list
+                    peers: None // Torrent list does not include the peer list for each torrent
                 }]
             );
         }
@@ -111,15 +106,16 @@ mod tracker_api {
         #[tokio::test]
         async fn should_allow_getting_a_torrent_info() {
             let api_server = start_default_api_server().await;
-            let api_connection_info = api_server.get_connection_info();
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
-            let (peer, peer_resource) = sample_torrent_peer();
+            let peer = sample_peer();
 
             api_server.add_torrent(&info_hash, &peer).await;
 
-            let torrent_resource = Client::new(api_connection_info).get_torrent(&info_hash.to_string()).await;
+            let torrent_resource = Client::new(api_server.get_connection_info())
+                .get_torrent(&info_hash.to_string())
+                .await;
 
             assert_eq!(
                 torrent_resource,
@@ -128,17 +124,18 @@ mod tracker_api {
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: Some(vec![peer_resource])
+                    peers: Some(vec![resource::peer::Peer::from(peer)])
                 }
             );
         }
 
         use std::str::FromStr;
 
+        use torrust_tracker::api::resource;
         use torrust_tracker::api::resource::torrent::{self, Torrent};
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::{sample_torrent_peer, start_default_api_server, Client};
+        use crate::api::{sample_peer, start_default_api_server, Client};
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent() {

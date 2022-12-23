@@ -5,7 +5,6 @@ use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use reqwest::Response;
-use torrust_tracker::api::resource;
 use torrust_tracker::api::resource::auth_key::AuthKey;
 use torrust_tracker::api::resource::stats::Stats;
 use torrust_tracker::api::resource::torrent::{self, Torrent};
@@ -19,8 +18,8 @@ use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
 use crate::common::ephemeral_random_port;
 
-pub fn sample_torrent_peer() -> (peer::Peer, resource::peer::Peer) {
-    let torrent_peer = peer::Peer {
+pub fn sample_peer() -> peer::Peer {
+    peer::Peer {
         peer_id: peer::Id(*b"-qB00000000000000000"),
         peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
         updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
@@ -28,10 +27,7 @@ pub fn sample_torrent_peer() -> (peer::Peer, resource::peer::Peer) {
         downloaded: NumberOfBytes(0),
         left: NumberOfBytes(0),
         event: AnnounceEvent::Started,
-    };
-    let torrent_peer_resource = resource::peer::Peer::from(torrent_peer);
-
-    (torrent_peer, torrent_peer_resource)
+    }
 }
 
 pub fn tracker_configuration() -> Arc<Configuration> {
