@@ -4,7 +4,7 @@ use derive_more::{Display, Error};
 use log::debug;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Time, TimeNow};
 use crate::protocol::common::AUTH_KEY_LENGTH;
@@ -48,7 +48,7 @@ pub fn verify(auth_key: &Key) -> Result<(), Error> {
     }
 }
 
-#[derive(Serialize, Debug, Eq, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct Key {
     pub key: String,
     pub valid_until: Option<DurationSinceUnixEpoch>,

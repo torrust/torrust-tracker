@@ -5,9 +5,6 @@ use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use reqwest::Response;
-use torrust_tracker::api::resource::auth_key::AuthKey;
-use torrust_tracker::api::resource::stats::Stats;
-use torrust_tracker::api::resource::torrent::{self, Torrent};
 use torrust_tracker::config::Configuration;
 use torrust_tracker::jobs::tracker_api;
 use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
@@ -51,14 +48,21 @@ pub fn tracker_configuration() -> Arc<Configuration> {
 #[derive(Clone)]
 pub struct ConnectionInfo {
     pub bind_address: String,
-    pub api_token: String,
+    pub api_token: Option<String>,
 }
 
 impl ConnectionInfo {
-    pub fn new(bind_address: &str, api_token: &str) -> Self {
+    pub fn authenticated(bind_address: &str, api_token: &str) -> Self {
         Self {
             bind_address: bind_address.to_string(),
-            api_token: api_token.to_string(),
+            api_token: Some(api_token.to_string()),
+        }
+    }
+
+    pub fn anonymous(bind_address: &str) -> Self {
+        Self {
+            bind_address: bind_address.to_string(),
+            api_token: None,
         }
     }
 }
@@ -73,7 +77,7 @@ pub async fn start_custom_api_server(configuration: Arc<Configuration>) -> Serve
 }
 
 async fn start(configuration: Arc<Configuration>) -> Server {
-    let connection_info = ConnectionInfo::new(
+    let connection_info = ConnectionInfo::authenticated(
         &configuration.http_api.bind_address.clone(),
         &configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone(),
     );
@@ -117,6 +121,10 @@ impl Server {
         self.connection_info.clone()
     }
 
+    pub fn get_bind_address(&self) -> String {
+        self.connection_info.bind_address.clone()
+    }
+
     /// Add a torrent to the tracker
     pub async fn add_torrent(&self, info_hash: &InfoHash, peer: &Peer) {
         self.tracker.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
@@ -127,53 +135,149 @@ pub struct Client {
     connection_info: ConnectionInfo,
 }
 
+type ReqwestQuery = Vec<ReqwestQueryParam>;
+type ReqwestQueryParam = (String, String);
+
+#[derive(Default, Debug)]
+pub struct Query {
+    params: Vec<QueryParam>,
+}
+
+impl Query {
+    pub fn empty() -> Self {
+        Self { params: vec![] }
+    }
+
+    pub fn params(params: Vec<QueryParam>) -> Self {
+        Self { params }
+    }
+
+    pub fn add_param(&mut self, param: QueryParam) {
+        self.params.push(param);
+    }
+
+    fn with_token(token: &str) -> Self {
+        Self {
+            params: vec![QueryParam::new("token", token)],
+        }
+    }
+}
+
+impl From<Query> for ReqwestQuery {
+    fn from(url_search_params: Query) -> Self {
+        url_search_params
+            .params
+            .iter()
+            .map(|param| ReqwestQueryParam::from((*param).clone()))
+            .collect()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct QueryParam {
+    name: String,
+    value: String,
+}
+
+impl QueryParam {
+    pub fn new(name: &str, value: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            value: value.to_string(),
+        }
+    }
+}
+
+impl From<QueryParam> for ReqwestQueryParam {
+    fn from(param: QueryParam) -> Self {
+        (param.name, param.value)
+    }
+}
+
 impl Client {
     pub fn new(connection_info: ConnectionInfo) -> Self {
         Self { connection_info }
     }
 
-    pub async fn generate_auth_key(&self, seconds_valid: i32) -> AuthKey {
-        self.post(&format!("key/{}", &seconds_valid)).await.json().await.unwrap()
+    pub async fn generate_auth_key(&self, seconds_valid: i32) -> Response {
+        self.post(&format!("key/{}", &seconds_valid)).await
+    }
+
+    pub async fn delete_auth_key(&self, key: &str) -> Response {
+        self.delete(&format!("key/{}", &key)).await
+    }
+
+    pub async fn reload_keys(&self) -> Response {
+        self.get("keys/reload", Query::default()).await
     }
 
     pub async fn whitelist_a_torrent(&self, info_hash: &str) -> Response {
         self.post(&format!("whitelist/{}", &info_hash)).await
     }
 
-    pub async fn get_torrent(&self, info_hash: &str) -> Torrent {
-        self.get(&format!("torrent/{}", &info_hash))
-            .await
-            .json::<Torrent>()
-            .await
-            .unwrap()
+    pub async fn remove_torrent_from_whitelist(&self, info_hash: &str) -> Response {
+        self.delete(&format!("whitelist/{}", &info_hash)).await
     }
 
-    pub async fn get_torrents(&self) -> Vec<torrent::ListItem> {
-        self.get("torrents").await.json::<Vec<torrent::ListItem>>().await.unwrap()
+    pub async fn reload_whitelist(&self) -> Response {
+        self.get("whitelist/reload", Query::default()).await
     }
 
-    pub async fn get_tracker_statistics(&self) -> Stats {
-        self.get("stats").await.json::<Stats>().await.unwrap()
+    pub async fn get_torrent(&self, info_hash: &str) -> Response {
+        self.get(&format!("torrent/{}", &info_hash), Query::default()).await
     }
 
-    async fn get(&self, path: &str) -> Response {
+    pub async fn get_torrents(&self, params: Query) -> Response {
+        self.get("torrents", params).await
+    }
+
+    pub async fn get_tracker_statistics(&self) -> Response {
+        self.get("stats", Query::default()).await
+    }
+
+    async fn get(&self, path: &str, params: Query) -> Response {
+        let mut query: Query = params;
+
+        if let Some(token) = &self.connection_info.api_token {
+            query.add_param(QueryParam::new("token", token));
+        };
+
         reqwest::Client::builder()
             .build()
             .unwrap()
-            .get(self.url(path))
+            .get(self.base_url(path))
+            .query(&ReqwestQuery::from(query))
             .send()
             .await
             .unwrap()
     }
 
     async fn post(&self, path: &str) -> Response {
-        reqwest::Client::new().post(self.url(path).clone()).send().await.unwrap()
+        reqwest::Client::new()
+            .post(self.base_url(path).clone())
+            .query(&ReqwestQuery::from(self.query_with_token()))
+            .send()
+            .await
+            .unwrap()
     }
 
-    fn url(&self, path: &str) -> String {
-        format!(
-            "http://{}/api/{path}?token={}",
-            &self.connection_info.bind_address, &self.connection_info.api_token
-        )
+    async fn delete(&self, path: &str) -> Response {
+        reqwest::Client::new()
+            .delete(self.base_url(path).clone())
+            .query(&ReqwestQuery::from(self.query_with_token()))
+            .send()
+            .await
+            .unwrap()
+    }
+
+    fn base_url(&self, path: &str) -> String {
+        format!("http://{}/api/{path}", &self.connection_info.bind_address)
+    }
+
+    fn query_with_token(&self) -> Query {
+        match &self.connection_info.api_token {
+            Some(token) => Query::with_token(token),
+            None => Query::default(),
+        }
     }
 }
