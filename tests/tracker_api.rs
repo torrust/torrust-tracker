@@ -3,6 +3,14 @@
 /// ```text
 /// cargo test tracker_api -- --nocapture
 /// ```
+///
+/// WIP. We are implementing a new API replacing Warp with Axum.
+/// The new API runs in parallel until we finish all endpoints.
+/// You can test the new API with:
+///
+/// ```text
+/// cargo test tracker_apis -- --nocapture
+/// ```
 extern crate rand;
 
 mod api;
@@ -70,12 +78,12 @@ mod tracker_api {
         use torrust_tracker::protocol::info_hash::InfoHash;
 
         use super::{connection_with_invalid_token, connection_with_no_token};
-        use crate::api::{sample_peer, start_default_api_server, Client};
+        use crate::api::{sample_peer, start_default_api_server, Client, Version};
         use crate::tracker_api::{assert_token_not_valid, assert_unauthorized};
 
         #[tokio::test]
         async fn should_allow_getting_tracker_statistics() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             api_server
                 .add_torrent(
@@ -84,7 +92,9 @@ mod tracker_api {
                 )
                 .await;
 
-            let response = Client::new(api_server.get_connection_info()).get_tracker_statistics().await;
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+                .get_tracker_statistics()
+                .await;
 
             assert_eq!(response.status(), 200);
             assert_eq!(
@@ -112,15 +122,15 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_getting_tracker_statistics_for_unauthenticated_users() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
                 .get_tracker_statistics()
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
                 .get_tracker_statistics()
                 .await;
 
@@ -136,18 +146,18 @@ mod tracker_api {
         use torrust_tracker::protocol::info_hash::InfoHash;
 
         use super::{connection_with_invalid_token, connection_with_no_token};
-        use crate::api::{sample_peer, start_default_api_server, Client, Query, QueryParam};
+        use crate::api::{sample_peer, start_default_api_server, Client, Query, QueryParam, Version};
         use crate::tracker_api::{assert_token_not_valid, assert_unauthorized};
 
         #[tokio::test]
         async fn should_allow_getting_torrents() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
             api_server.add_torrent(&info_hash, &sample_peer()).await;
 
-            let response = Client::new(api_server.get_connection_info())
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
                 .get_torrents(Query::empty())
                 .await;
 
@@ -166,7 +176,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_limiting_the_torrents_in_the_result() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             // torrents are ordered alphabetically by infohashes
             let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
@@ -175,7 +185,7 @@ mod tracker_api {
             api_server.add_torrent(&info_hash_1, &sample_peer()).await;
             api_server.add_torrent(&info_hash_2, &sample_peer()).await;
 
-            let response = Client::new(api_server.get_connection_info())
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
                 .get_torrents(Query::params([QueryParam::new("limit", "1")].to_vec()))
                 .await;
 
@@ -194,7 +204,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_the_torrents_result_pagination() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             // torrents are ordered alphabetically by infohashes
             let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
@@ -203,7 +213,7 @@ mod tracker_api {
             api_server.add_torrent(&info_hash_1, &sample_peer()).await;
             api_server.add_torrent(&info_hash_2, &sample_peer()).await;
 
-            let response = Client::new(api_server.get_connection_info())
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
                 .get_torrents(Query::params([QueryParam::new("offset", "1")].to_vec()))
                 .await;
 
@@ -222,15 +232,15 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
                 .get_torrents(Query::empty())
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
                 .get_torrents(Query::default())
                 .await;
 
@@ -239,7 +249,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_getting_a_torrent_info() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
@@ -247,7 +257,7 @@ mod tracker_api {
 
             api_server.add_torrent(&info_hash, &peer).await;
 
-            let response = Client::new(api_server.get_connection_info())
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
                 .get_torrent(&info_hash.to_string())
                 .await;
 
@@ -266,19 +276,19 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
             api_server.add_torrent(&info_hash, &sample_peer()).await;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
                 .get_torrent(&info_hash.to_string())
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
                 .get_torrent(&info_hash.to_string())
                 .await;
 
@@ -292,16 +302,16 @@ mod tracker_api {
         use torrust_tracker::protocol::info_hash::InfoHash;
 
         use super::{assert_token_not_valid, connection_with_invalid_token, connection_with_no_token};
-        use crate::api::{start_default_api_server, Client};
+        use crate::api::{start_default_api_server, Client, Version};
         use crate::tracker_api::assert_unauthorized;
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let res = Client::new(api_server.get_connection_info())
+            let res = Client::new(api_server.get_connection_info(), &Version::Warp)
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
@@ -316,11 +326,11 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let api_client = Client::new(api_server.get_connection_info());
+            let api_client = Client::new(api_server.get_connection_info(), &Version::Warp);
 
             let res = api_client.whitelist_a_torrent(&info_hash).await;
             assert_eq!(res.status(), 200);
@@ -331,17 +341,17 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
@@ -350,13 +360,13 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_removing_a_torrent_from_the_whitelist() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
 
-            let response = Client::new(api_server.get_connection_info())
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
@@ -366,20 +376,20 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthenticated_users() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
 
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
             assert_token_not_valid(response).await;
 
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
@@ -388,13 +398,15 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_reload_the_whitelist_from_the_database() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
 
-            let response = Client::new(api_server.get_connection_info()).reload_whitelist().await;
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+                .reload_whitelist()
+                .await;
 
             assert_eq!(response.status(), 200);
             /* This assert fails because the whitelist has not been reloaded yet.
@@ -417,16 +429,16 @@ mod tracker_api {
         use torrust_tracker::tracker::auth::Key;
 
         use super::{connection_with_invalid_token, connection_with_no_token};
-        use crate::api::{start_default_api_server, Client};
+        use crate::api::{start_default_api_server, Client, Version};
         use crate::tracker_api::{assert_token_not_valid, assert_unauthorized};
 
         #[tokio::test]
         async fn should_allow_generating_a_new_auth_key() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let seconds_valid = 60;
 
-            let response = Client::new(api_server.get_connection_info())
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
                 .generate_auth_key(seconds_valid)
                 .await;
 
@@ -440,17 +452,17 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let seconds_valid = 60;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
                 .generate_auth_key(seconds_valid)
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
                 .generate_auth_key(seconds_valid)
                 .await;
 
@@ -459,7 +471,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_deleting_an_auth_key() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let seconds_valid = 60;
             let auth_key = api_server
@@ -468,7 +480,7 @@ mod tracker_api {
                 .await
                 .unwrap();
 
-            let response = Client::new(api_server.get_connection_info())
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -478,7 +490,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let seconds_valid = 60;
 
@@ -489,7 +501,7 @@ mod tracker_api {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -502,7 +514,7 @@ mod tracker_api {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -511,7 +523,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_reloading_keys() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let seconds_valid = 60;
             api_server
@@ -520,14 +532,16 @@ mod tracker_api {
                 .await
                 .unwrap();
 
-            let response = Client::new(api_server.get_connection_info()).reload_keys().await;
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+                .reload_keys()
+                .await;
 
             assert_eq!(response.status(), 200);
         }
 
         #[tokio::test]
         async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
-            let api_server = start_default_api_server().await;
+            let api_server = start_default_api_server(&Version::Warp).await;
 
             let seconds_valid = 60;
             api_server
@@ -536,17 +550,65 @@ mod tracker_api {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
                 .reload_keys()
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
                 .reload_keys()
                 .await;
 
             assert_unauthorized(response).await;
+        }
+    }
+}
+
+mod tracker_apis {
+
+    /*
+
+    Endpoints:
+
+    Root:
+    - [x] GET /
+
+    Stats:
+    - [ ] GET /api/stats
+
+    Torrents:
+    - [ ] GET /api/torrents?offset=:u32&limit=:u32
+    - [ ] GET /api/torrent/:info_hash
+
+    Whitelisted torrents:
+    - [ ] POST   /api/whitelist/:info_hash
+    - [ ] DELETE /api/whitelist/:info_hash
+
+    Whitelist commands:
+    - [ ] GET /api/whitelist/reload
+
+    Keys:
+    - [ ] POST   /api/key/:seconds_valid
+    - [ ] DELETE /api/key/:key
+
+    Key commands
+    - [ ] GET /api/keys/reload
+
+    */
+
+    mod for_entrypoint {
+        use crate::api::{start_default_api_server, Client, Query, Version};
+
+        #[tokio::test]
+        async fn test_entrypoint() {
+            let api_server = start_default_api_server(&Version::Axum).await;
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .get("/", Query::default())
+                .await;
+
+            assert_eq!(response.status(), 200);
         }
     }
 }

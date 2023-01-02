@@ -1,12 +1,16 @@
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use log::warn;
 use tokio::task::JoinHandle;
 
 use crate::config::Configuration;
-use crate::jobs::{http_tracker, torrent_cleanup, tracker_api, udp_tracker};
+use crate::jobs::{http_tracker, torrent_cleanup, tracker_api, tracker_apis, udp_tracker};
 use crate::tracker;
 
+/// # Panics
+///
+/// Will panic if the socket address for API can't be parsed.
 pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Vec<JoinHandle<()>> {
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
@@ -50,6 +54,19 @@ pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Ve
     // Start HTTP API server
     if config.http_api.enabled {
         jobs.push(tracker_api::start_job(&config.http_api, tracker.clone()).await);
+    }
+
+    // Start HTTP APIs server (multiple API versions)
+    if config.http_api.enabled {
+        // Temporarily running the new API in the 1313 port
+        let bind_address = config.http_api.bind_address.clone();
+        let mut bind_socket: SocketAddr = bind_address.parse().unwrap();
+        bind_socket.set_port(1313);
+
+        let mut http_apis_config = config.http_api.clone();
+        http_apis_config.bind_address = bind_socket.to_string();
+
+        jobs.push(tracker_apis::start_job(&http_apis_config, tracker.clone()).await);
     }
 
     // Remove torrents without peers, every interval

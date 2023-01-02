@@ -31,7 +31,7 @@ pub struct HttpTracker {
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct HttpApi {
     pub enabled: bool,
     pub bind_address: String,

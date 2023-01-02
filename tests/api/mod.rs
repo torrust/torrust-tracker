@@ -6,7 +6,7 @@ use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use reqwest::Response;
 use torrust_tracker::config::Configuration;
-use torrust_tracker::jobs::tracker_api;
+use torrust_tracker::jobs::{tracker_api, tracker_apis};
 use torrust_tracker::protocol::clock::DurationSinceUnixEpoch;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::{self, Peer};
@@ -67,16 +67,38 @@ impl ConnectionInfo {
     }
 }
 
-pub async fn start_default_api_server() -> Server {
+pub async fn start_default_api_server(version: &Version) -> Server {
     let configuration = tracker_configuration();
-    start_custom_api_server(configuration.clone()).await
+    start_custom_api_server(configuration.clone(), version).await
 }
 
-pub async fn start_custom_api_server(configuration: Arc<Configuration>) -> Server {
-    start(configuration).await
+pub async fn start_custom_api_server(configuration: Arc<Configuration>, version: &Version) -> Server {
+    match &version {
+        Version::Warp => start_warp_api(configuration).await,
+        Version::Axum => start_axum_api(configuration).await,
+    }
 }
 
-async fn start(configuration: Arc<Configuration>) -> Server {
+async fn start_warp_api(configuration: Arc<Configuration>) -> Server {
+    let server = start(&configuration);
+
+    // Start the HTTP API job
+    tracker_api::start_job(&configuration.http_api, server.tracker.clone()).await;
+
+    server
+}
+
+async fn start_axum_api(configuration: Arc<Configuration>) -> Server {
+    let server = start(&configuration);
+
+    // Start HTTP APIs server (multiple API versions)
+    // Temporarily run the new API on a port number after the current API port
+    tracker_apis::start_job(&configuration.http_api, server.tracker.clone()).await;
+
+    server
+}
+
+fn start(configuration: &Arc<Configuration>) -> Server {
     let connection_info = ConnectionInfo::authenticated(
         &configuration.http_api.bind_address.clone(),
         &configuration.http_api.access_tokens.get_key_value("admin").unwrap().1.clone(),
@@ -92,7 +114,7 @@ async fn start(configuration: Arc<Configuration>) -> Server {
     let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
     // Initialize Torrust tracker
-    let tracker = match tracker::Tracker::new(&configuration.clone(), Some(stats_event_sender), stats_repository) {
+    let tracker = match tracker::Tracker::new(configuration, Some(stats_event_sender), stats_repository) {
         Ok(tracker) => Arc::new(tracker),
         Err(error) => {
             panic!("{}", error)
@@ -100,10 +122,7 @@ async fn start(configuration: Arc<Configuration>) -> Server {
     };
 
     // Initialize logging
-    logging::setup(&configuration);
-
-    // Start the HTTP API job
-    tracker_api::start_job(&configuration.http_api, tracker.clone()).await;
+    logging::setup(configuration);
 
     Server {
         tracker,
@@ -133,6 +152,7 @@ impl Server {
 
 pub struct Client {
     connection_info: ConnectionInfo,
+    base_path: String,
 }
 
 type ReqwestQuery = Vec<ReqwestQueryParam>;
@@ -194,9 +214,20 @@ impl From<QueryParam> for ReqwestQueryParam {
     }
 }
 
+pub enum Version {
+    Warp,
+    Axum,
+}
+
 impl Client {
-    pub fn new(connection_info: ConnectionInfo) -> Self {
-        Self { connection_info }
+    pub fn new(connection_info: ConnectionInfo, version: &Version) -> Self {
+        Self {
+            connection_info,
+            base_path: match version {
+                Version::Warp => "/api/".to_string(),
+                Version::Axum => String::new(),
+            },
+        }
     }
 
     pub async fn generate_auth_key(&self, seconds_valid: i32) -> Response {
@@ -235,7 +266,7 @@ impl Client {
         self.get("stats", Query::default()).await
     }
 
-    async fn get(&self, path: &str, params: Query) -> Response {
+    pub async fn get(&self, path: &str, params: Query) -> Response {
         let mut query: Query = params;
 
         if let Some(token) = &self.connection_info.api_token {
@@ -271,7 +302,7 @@ impl Client {
     }
 
     fn base_url(&self, path: &str) -> String {
-        format!("http://{}/api/{path}", &self.connection_info.bind_address)
+        format!("http://{}{}{path}", &self.connection_info.bind_address, &self.base_path)
     }
 
     fn query_with_token(&self) -> Query {

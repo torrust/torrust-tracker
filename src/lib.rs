@@ -9,6 +9,7 @@ pub mod setup;
 pub mod stats;
 pub mod tracker;
 pub mod udp;
+pub mod apis;
 
 #[macro_use]
 extern crate lazy_static;
