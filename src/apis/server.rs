@@ -25,6 +25,8 @@ pub fn start_tls(
     _ssl_key_path: &str,
     _tracker: &Arc<tracker::Tracker>,
 ) -> impl Future<Output = hyper::Result<()>> {
+    // todo: for the time being, it's just a copy & paste from start(...).
+
     let app = Router::new().route("/", get(root));
 
     let server = axum::Server::bind(&socket_addr).serve(app.into_make_service());

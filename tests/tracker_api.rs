@@ -43,47 +43,22 @@ mod tracker_api {
 
     */
 
-    use reqwest::Response;
-
-    use crate::api::ConnectionInfo;
-
-    async fn assert_token_not_valid(response: Response) {
-        assert_eq!(response.status(), 500);
-        assert_eq!(
-            response.text().await.unwrap(),
-            "Unhandled rejection: Err { reason: \"token not valid\" }"
-        );
-    }
-
-    async fn assert_unauthorized(response: Response) {
-        assert_eq!(response.status(), 500);
-        assert_eq!(
-            response.text().await.unwrap(),
-            "Unhandled rejection: Err { reason: \"unauthorized\" }"
-        );
-    }
-
-    fn connection_with_invalid_token(bind_address: &str) -> ConnectionInfo {
-        ConnectionInfo::authenticated(bind_address, "invalid token")
-    }
-
-    fn connection_with_no_token(bind_address: &str) -> ConnectionInfo {
-        ConnectionInfo::anonymous(bind_address)
-    }
-
     mod for_stats_resources {
         use std::str::FromStr;
 
         use torrust_tracker::api::resource::stats::Stats;
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use super::{connection_with_invalid_token, connection_with_no_token};
-        use crate::api::{sample_peer, start_default_api_server, Client, Version};
-        use crate::tracker_api::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::client::Client;
+        use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
+        use crate::api::fixtures::sample_peer;
+        use crate::api::server::start_default_api;
+        use crate::api::Version;
 
         #[tokio::test]
         async fn should_allow_getting_tracker_statistics() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             api_server
                 .add_torrent(
@@ -122,7 +97,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_getting_tracker_statistics_for_unauthenticated_users() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
                 .get_tracker_statistics()
@@ -145,13 +120,16 @@ mod tracker_api {
         use torrust_tracker::api::resource::torrent::{self, Torrent};
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use super::{connection_with_invalid_token, connection_with_no_token};
-        use crate::api::{sample_peer, start_default_api_server, Client, Query, QueryParam, Version};
-        use crate::tracker_api::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::client::{Client, Query, QueryParam};
+        use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
+        use crate::api::fixtures::sample_peer;
+        use crate::api::server::start_default_api;
+        use crate::api::Version;
 
         #[tokio::test]
         async fn should_allow_getting_torrents() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
@@ -176,7 +154,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_limiting_the_torrents_in_the_result() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             // torrents are ordered alphabetically by infohashes
             let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
@@ -204,7 +182,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_the_torrents_result_pagination() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             // torrents are ordered alphabetically by infohashes
             let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
@@ -232,7 +210,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
                 .get_torrents(Query::empty())
@@ -249,7 +227,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_getting_a_torrent_info() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
@@ -276,7 +254,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
@@ -301,13 +279,15 @@ mod tracker_api {
 
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use super::{assert_token_not_valid, connection_with_invalid_token, connection_with_no_token};
-        use crate::api::{start_default_api_server, Client, Version};
-        use crate::tracker_api::assert_unauthorized;
+        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::client::Client;
+        use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
+        use crate::api::server::start_default_api;
+        use crate::api::Version;
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
@@ -326,7 +306,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
@@ -341,7 +321,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
@@ -360,7 +340,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_removing_a_torrent_from_the_whitelist() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -376,7 +356,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthenticated_users() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -398,7 +378,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_reload_the_whitelist_from_the_database() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -428,13 +408,15 @@ mod tracker_api {
         use torrust_tracker::api::resource::auth_key::AuthKey;
         use torrust_tracker::tracker::auth::Key;
 
-        use super::{connection_with_invalid_token, connection_with_no_token};
-        use crate::api::{start_default_api_server, Client, Version};
-        use crate::tracker_api::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::client::Client;
+        use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
+        use crate::api::server::start_default_api;
+        use crate::api::Version;
 
         #[tokio::test]
         async fn should_allow_generating_a_new_auth_key() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let seconds_valid = 60;
 
@@ -452,7 +434,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let seconds_valid = 60;
 
@@ -471,7 +453,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_deleting_an_auth_key() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let seconds_valid = 60;
             let auth_key = api_server
@@ -490,7 +472,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let seconds_valid = 60;
 
@@ -523,7 +505,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_allow_reloading_keys() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let seconds_valid = 60;
             api_server
@@ -541,7 +523,7 @@ mod tracker_api {
 
         #[tokio::test]
         async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
-            let api_server = start_default_api_server(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Warp).await;
 
             let seconds_valid = 60;
             api_server
@@ -565,13 +547,14 @@ mod tracker_api {
     }
 }
 
+/// The new API implementation using Axum
 mod tracker_apis {
 
     /*
 
     Endpoints:
 
-    Root:
+    Root (dummy endpoint to test Axum configuration. To be removed):
     - [x] GET /
 
     Stats:
@@ -598,7 +581,9 @@ mod tracker_apis {
     */
 
     mod for_entrypoint {
-        use crate::api::{start_default_api_server, Client, Query, Version};
+        use crate::api::client::{Client, Query};
+        use crate::api::server::start_default_api_server;
+        use crate::api::Version;
 
         #[tokio::test]
         async fn test_entrypoint() {

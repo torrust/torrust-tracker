@@ -1,4 +1,5 @@
 pub mod api;
+pub mod apis;
 pub mod config;
 pub mod databases;
 pub mod http;
@@ -9,7 +10,6 @@ pub mod setup;
 pub mod stats;
 pub mod tracker;
 pub mod udp;
-pub mod apis;
 
 #[macro_use]
 extern crate lazy_static;
