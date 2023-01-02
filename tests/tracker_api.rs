@@ -582,18 +582,69 @@ mod tracker_apis {
 
     mod for_entrypoint {
         use crate::api::client::{Client, Query};
-        use crate::api::server::start_default_api_server;
+        use crate::api::server::start_default_api;
         use crate::api::Version;
 
         #[tokio::test]
         async fn test_entrypoint() {
-            let api_server = start_default_api_server(&Version::Axum).await;
+            let api_server = start_default_api(&Version::Axum).await;
 
             let response = Client::new(api_server.get_connection_info(), &Version::Axum)
-                .get("/", Query::default())
+                .get("", Query::default())
                 .await;
 
             assert_eq!(response.status(), 200);
+        }
+    }
+
+    mod for_stats_resources {
+        use std::str::FromStr;
+
+        use torrust_tracker::api::resource::stats::Stats;
+        use torrust_tracker::protocol::info_hash::InfoHash;
+
+        use crate::api::client::Client;
+        use crate::api::fixtures::sample_peer;
+        use crate::api::server::start_default_api;
+        use crate::api::Version;
+
+        #[tokio::test]
+        async fn should_allow_getting_tracker_statistics() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            api_server
+                .add_torrent(
+                    &InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(),
+                    &sample_peer(),
+                )
+                .await;
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .get_tracker_statistics()
+                .await;
+
+            assert_eq!(response.status(), 200);
+            assert_eq!(
+                response.json::<Stats>().await.unwrap(),
+                Stats {
+                    torrents: 1,
+                    seeders: 1,
+                    completed: 0,
+                    leechers: 0,
+                    tcp4_connections_handled: 0,
+                    tcp4_announces_handled: 0,
+                    tcp4_scrapes_handled: 0,
+                    tcp6_connections_handled: 0,
+                    tcp6_announces_handled: 0,
+                    tcp6_scrapes_handled: 0,
+                    udp4_connections_handled: 0,
+                    udp4_announces_handled: 0,
+                    udp4_scrapes_handled: 0,
+                    udp6_connections_handled: 0,
+                    udp6_announces_handled: 0,
+                    udp6_scrapes_handled: 0,
+                }
+            );
         }
     }
 }

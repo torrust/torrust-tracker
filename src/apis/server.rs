@@ -6,11 +6,13 @@ use axum::Router;
 use futures::Future;
 use warp::hyper;
 
-use super::routes::root;
+use super::routes::{get_stats, root};
 use crate::tracker;
 
-pub fn start(socket_addr: SocketAddr, _tracker: &Arc<tracker::Tracker>) -> impl Future<Output = hyper::Result<()>> {
-    let app = Router::new().route("/", get(root));
+pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl Future<Output = hyper::Result<()>> {
+    let app = Router::new()
+        .route("/", get(root))
+        .route("/stats", get(get_stats).with_state(tracker.clone()));
 
     let server = axum::Server::bind(&socket_addr).serve(app.into_make_service());
 
