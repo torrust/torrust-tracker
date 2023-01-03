@@ -44,3 +44,57 @@ impl From<TrackerMetrics> for Stats {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Stats;
+    use crate::tracker::services::statistics::TrackerMetrics;
+    use crate::tracker::statistics::Metrics;
+    use crate::tracker::TorrentsMetrics;
+
+    #[test]
+    fn stats_resource_should_be_converted_from_tracker_metrics() {
+        assert_eq!(
+            Stats::from(TrackerMetrics {
+                torrents_metrics: TorrentsMetrics {
+                    seeders: 1,
+                    completed: 2,
+                    leechers: 3,
+                    torrents: 4
+                },
+                protocol_metrics: Metrics {
+                    tcp4_connections_handled: 5,
+                    tcp4_announces_handled: 6,
+                    tcp4_scrapes_handled: 7,
+                    tcp6_connections_handled: 8,
+                    tcp6_announces_handled: 9,
+                    tcp6_scrapes_handled: 10,
+                    udp4_connections_handled: 11,
+                    udp4_announces_handled: 12,
+                    udp4_scrapes_handled: 13,
+                    udp6_connections_handled: 14,
+                    udp6_announces_handled: 15,
+                    udp6_scrapes_handled: 16
+                }
+            }),
+            Stats {
+                torrents: 4,
+                seeders: 1,
+                completed: 2,
+                leechers: 3,
+                tcp4_connections_handled: 5,
+                tcp4_announces_handled: 6,
+                tcp4_scrapes_handled: 7,
+                tcp6_connections_handled: 8,
+                tcp6_announces_handled: 9,
+                tcp6_scrapes_handled: 10,
+                udp4_connections_handled: 11,
+                udp4_announces_handled: 12,
+                udp4_scrapes_handled: 13,
+                udp6_connections_handled: 14,
+                udp6_announces_handled: 15,
+                udp6_scrapes_handled: 16
+            }
+        );
+    }
+}
