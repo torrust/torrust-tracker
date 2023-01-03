@@ -23,7 +23,7 @@ pub enum Event {
     Udp6Scrape,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Default)]
 pub struct Metrics {
     pub tcp4_connections_handled: u64,
     pub tcp4_announces_handled: u64,
@@ -37,32 +37,6 @@ pub struct Metrics {
     pub udp6_connections_handled: u64,
     pub udp6_announces_handled: u64,
     pub udp6_scrapes_handled: u64,
-}
-
-impl Default for Metrics {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Metrics {
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            tcp4_connections_handled: 0,
-            tcp4_announces_handled: 0,
-            tcp4_scrapes_handled: 0,
-            tcp6_connections_handled: 0,
-            tcp6_announces_handled: 0,
-            tcp6_scrapes_handled: 0,
-            udp4_connections_handled: 0,
-            udp4_announces_handled: 0,
-            udp4_scrapes_handled: 0,
-            udp6_connections_handled: 0,
-            udp6_announces_handled: 0,
-            udp6_scrapes_handled: 0,
-        }
-    }
 }
 
 pub struct Keeper {
@@ -187,7 +161,7 @@ impl Repo {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            stats: Arc::new(RwLock::new(Metrics::new())),
+            stats: Arc::new(RwLock::new(Metrics::default())),
         }
     }
 
@@ -280,7 +254,7 @@ mod tests {
 
             let stats = stats_tracker.repository.get_stats().await;
 
-            assert_eq!(stats.tcp4_announces_handled, Metrics::new().tcp4_announces_handled);
+            assert_eq!(stats.tcp4_announces_handled, Metrics::default().tcp4_announces_handled);
         }
 
         #[tokio::test]

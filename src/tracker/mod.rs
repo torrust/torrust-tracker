@@ -29,6 +29,7 @@ pub struct Tracker {
     database: Box<dyn Database>,
 }
 
+#[derive(Debug, PartialEq, Default)]
 pub struct TorrentsMetrics {
     pub seeders: u64,
     pub completed: u64,

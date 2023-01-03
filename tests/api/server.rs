@@ -1,8 +1,7 @@
 use core::panic;
-use std::env;
 use std::sync::Arc;
 
-use torrust_tracker::config::Configuration;
+use torrust_tracker::config::{ephemeral_configuration, Configuration};
 use torrust_tracker::jobs::{tracker_api, tracker_apis};
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
@@ -11,24 +10,9 @@ use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
 use super::connection_info::ConnectionInfo;
 use super::Version;
-use crate::common::ephemeral_random_port;
 
 pub fn tracker_configuration() -> Arc<Configuration> {
-    let mut config = Configuration {
-        log_level: Some("off".to_owned()),
-        ..Default::default()
-    };
-
-    // Ephemeral socket address
-    let port = ephemeral_random_port();
-    config.http_api.bind_address = format!("127.0.0.1:{}", &port);
-
-    // Ephemeral database
-    let temp_directory = env::temp_dir();
-    let temp_file = temp_directory.join(format!("data_{}.db", &port));
-    config.db_path = temp_file.to_str().unwrap().to_owned();
-
-    Arc::new(config)
+    Arc::new(ephemeral_configuration())
 }
 
 pub async fn start_default_api(version: &Version) -> Server {

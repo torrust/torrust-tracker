@@ -239,14 +239,13 @@ fn handle_error(e: &Error, transaction_id: TransactionId) -> Response {
 
 #[cfg(test)]
 mod tests {
-    use std::env;
+
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-    use rand::{thread_rng, Rng};
 
-    use crate::config::Configuration;
+    use crate::config::{ephemeral_configuration, Configuration};
     use crate::protocol::clock::{Current, Time};
     use crate::tracker::{self, mode, peer, statistics};
 
@@ -255,28 +254,7 @@ mod tests {
     }
 
     fn default_testing_tracker_configuration() -> Configuration {
-        let mut config = Configuration {
-            log_level: Some("off".to_owned()),
-            ..Default::default()
-        };
-
-        // Ephemeral socket address
-        let port = ephemeral_random_port();
-        config.http_api.bind_address = format!("127.0.0.1:{}", &port);
-
-        // Ephemeral database
-        let temp_directory = env::temp_dir();
-        let temp_file = temp_directory.join(format!("data_{}.db", &port));
-        config.db_path = temp_file.to_str().unwrap().to_owned();
-
-        config
-    }
-
-    fn ephemeral_random_port() -> u16 {
-        // todo: this may produce random test failures because two tests can try to bind the same port.
-        // We could create a pool of available ports (with read/write lock)
-        let mut rng = thread_rng();
-        rng.gen_range(49152..65535)
+        ephemeral_configuration()
     }
 
     fn initialized_public_tracker() -> Arc<tracker::Tracker> {

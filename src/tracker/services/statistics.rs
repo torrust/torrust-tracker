@@ -3,6 +3,7 @@ use std::sync::Arc;
 use crate::tracker::statistics::Metrics;
 use crate::tracker::{TorrentsMetrics, Tracker};
 
+#[derive(Debug, PartialEq)]
 pub struct TrackerMetrics {
     pub torrents_metrics: TorrentsMetrics,
     pub protocol_metrics: Metrics,
