@@ -13,6 +13,7 @@ use super::resource::torrent::{ListItem, Torrent};
 use super::{ActionStatus, TorrentInfoQuery};
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker;
+use crate::tracker::services::statistics::get_metrics;
 
 fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Error = warp::reject::Rejection> + Clone {
     #[derive(Deserialize)]
@@ -91,54 +92,7 @@ pub fn routes(tracker: &Arc<tracker::Tracker>) -> impl Filter<Extract = impl war
         .and(filters::path::end())
         .map(move || api_stats.clone())
         .and_then(|tracker: Arc<tracker::Tracker>| async move {
-            let mut results = Stats {
-                torrents: 0,
-                seeders: 0,
-                completed: 0,
-                leechers: 0,
-                tcp4_connections_handled: 0,
-                tcp4_announces_handled: 0,
-                tcp4_scrapes_handled: 0,
-                tcp6_connections_handled: 0,
-                tcp6_announces_handled: 0,
-                tcp6_scrapes_handled: 0,
-                udp4_connections_handled: 0,
-                udp4_announces_handled: 0,
-                udp4_scrapes_handled: 0,
-                udp6_connections_handled: 0,
-                udp6_announces_handled: 0,
-                udp6_scrapes_handled: 0,
-            };
-
-            let db = tracker.get_torrents().await;
-
-            db.values().for_each(|torrent_entry| {
-                let (seeders, completed, leechers) = torrent_entry.get_stats();
-                results.seeders += seeders;
-                results.completed += completed;
-                results.leechers += leechers;
-                results.torrents += 1;
-            });
-
-            let stats = tracker.get_stats().await;
-
-            #[allow(clippy::cast_possible_truncation)]
-            {
-                results.tcp4_connections_handled = stats.tcp4_connections_handled as u32;
-                results.tcp4_announces_handled = stats.tcp4_announces_handled as u32;
-                results.tcp4_scrapes_handled = stats.tcp4_scrapes_handled as u32;
-                results.tcp6_connections_handled = stats.tcp6_connections_handled as u32;
-                results.tcp6_announces_handled = stats.tcp6_announces_handled as u32;
-                results.tcp6_scrapes_handled = stats.tcp6_scrapes_handled as u32;
-                results.udp4_connections_handled = stats.udp4_connections_handled as u32;
-                results.udp4_announces_handled = stats.udp4_announces_handled as u32;
-                results.udp4_scrapes_handled = stats.udp4_scrapes_handled as u32;
-                results.udp6_connections_handled = stats.udp6_connections_handled as u32;
-                results.udp6_announces_handled = stats.udp6_announces_handled as u32;
-                results.udp6_scrapes_handled = stats.udp6_scrapes_handled as u32;
-            }
-
-            Result::<_, warp::reject::Rejection>::Ok(reply::json(&results))
+            Result::<_, warp::reject::Rejection>::Ok(reply::json(&Stats::from(get_metrics(tracker.clone()).await)))
         });
 
     // GET /api/torrent/:info_hash

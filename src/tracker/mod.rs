@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod mode;
 pub mod peer;
+pub mod services;
 pub mod statistics;
 pub mod torrent;
 
@@ -26,6 +27,13 @@ pub struct Tracker {
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
     database: Box<dyn Database>,
+}
+
+pub struct TorrentsMetrics {
+    pub seeders: u64,
+    pub completed: u64,
+    pub leechers: u64,
+    pub torrents: u64,
 }
 
 impl Tracker {
@@ -275,6 +283,27 @@ impl Tracker {
 
     pub async fn get_torrents(&self) -> RwLockReadGuard<'_, BTreeMap<InfoHash, torrent::Entry>> {
         self.torrents.read().await
+    }
+
+    pub async fn get_torrents_metrics(&self) -> TorrentsMetrics {
+        let mut torrents_metrics = TorrentsMetrics {
+            seeders: 0,
+            completed: 0,
+            leechers: 0,
+            torrents: 0,
+        };
+
+        let db = self.get_torrents().await;
+
+        db.values().for_each(|torrent_entry| {
+            let (seeders, completed, leechers) = torrent_entry.get_stats();
+            torrents_metrics.seeders += u64::from(seeders);
+            torrents_metrics.completed += u64::from(completed);
+            torrents_metrics.leechers += u64::from(leechers);
+            torrents_metrics.torrents += 1;
+        });
+
+        torrents_metrics
     }
 
     pub async fn get_stats(&self) -> RwLockReadGuard<'_, statistics::Metrics> {
