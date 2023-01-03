@@ -60,7 +60,9 @@ pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Ve
     if config.http_api.enabled {
         // Temporarily running the new API in the 1313 port
         let bind_address = config.http_api.bind_address.clone();
-        let mut bind_socket: SocketAddr = bind_address.parse().unwrap();
+        let mut bind_socket: SocketAddr = bind_address
+            .parse()
+            .expect("bind address should be a valid socket address, for example 127.0.0.1:8080");
         bind_socket.set_port(1313);
 
         let mut http_apis_config = config.http_api.clone();
