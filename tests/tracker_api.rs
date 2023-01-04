@@ -602,7 +602,9 @@ mod tracker_apis {
         use torrust_tracker::api::resource::stats::Stats;
         use torrust_tracker::protocol::info_hash::InfoHash;
 
+        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
         use crate::api::client::Client;
+        use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::fixtures::sample_peer;
         use crate::api::server::start_default_api;
         use crate::api::Version;
@@ -644,6 +646,23 @@ mod tracker_apis {
                     udp6_scrapes_handled: 0,
                 }
             );
+        }
+
+        #[tokio::test]
+        async fn should_not_allow_getting_tracker_statistics_for_unauthenticated_users() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+                .get_tracker_statistics()
+                .await;
+
+            assert_token_not_valid(response).await;
+
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+                .get_tracker_statistics()
+                .await;
+
+            assert_unauthorized(response).await;
         }
     }
 }

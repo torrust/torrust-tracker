@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
 use std::path::Path;
 use std::str::FromStr;
@@ -42,6 +42,15 @@ pub struct HttpApi {
     #[serde_as(as = "NoneAsEmptyString")]
     pub ssl_key_path: Option<String>,
     pub access_tokens: HashMap<String, String>,
+}
+
+impl HttpApi {
+    #[must_use]
+    pub fn contains_token(&self, token: &str) -> bool {
+        let tokens: HashMap<String, String> = self.access_tokens.clone();
+        let tokens: HashSet<String> = tokens.into_values().collect();
+        tokens.contains(token)
+    }
 }
 
 #[allow(clippy::struct_excessive_bools)]
@@ -365,5 +374,13 @@ mod tests {
         let error = Error::TrackerModeIncompatible;
 
         assert_eq!(format!("{error}"), "TrackerModeIncompatible");
+    }
+
+    #[test]
+    fn http_api_configuration_should_check_if_it_contains_a_token() {
+        let configuration = Configuration::default();
+
+        assert!(configuration.http_api.contains_token("MyAccessToken"));
+        assert!(!configuration.http_api.contains_token("NonExistingToken"));
     }
 }
