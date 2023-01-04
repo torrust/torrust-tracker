@@ -7,12 +7,11 @@ use futures::Future;
 use warp::hyper;
 
 use super::middlewares::auth::auth;
-use super::routes::{get_stats, root};
+use super::routes::get_stats;
 use crate::tracker;
 
 pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl Future<Output = hyper::Result<()>> {
     let app = Router::new()
-        .route("/", get(root))
         .route("/stats", get(get_stats).with_state(tracker.clone()))
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
@@ -32,7 +31,6 @@ pub fn start_tls(
     // todo: for the time being, it's just a copy & paste from start(...).
 
     let app = Router::new()
-        .route("/", get(root))
         .route("/stats", get(get_stats).with_state(tracker.clone()))
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 

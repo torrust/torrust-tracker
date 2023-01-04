@@ -553,9 +553,6 @@ mod tracker_apis {
 
     Endpoints:
 
-    Root (dummy endpoint to test Axum configuration. To be removed):
-    - [x] GET /
-
     Stats:
     - [ ] GET /api/stats
 
@@ -578,23 +575,6 @@ mod tracker_apis {
     - [ ] GET /api/keys/reload
 
     */
-
-    mod for_entrypoint {
-        use crate::api::client::{Client, Query};
-        use crate::api::server::start_default_api;
-        use crate::api::Version;
-
-        #[tokio::test]
-        async fn test_entrypoint() {
-            let api_server = start_default_api(&Version::Axum).await;
-
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
-                .get("", Query::default())
-                .await;
-
-            assert_eq!(response.status(), 200);
-        }
-    }
 
     mod for_stats_resources {
         use std::str::FromStr;
