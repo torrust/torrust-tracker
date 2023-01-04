@@ -49,6 +49,7 @@
         "rngs",
         "rusqlite",
         "rustfmt",
+        "Rustls",
         "Seedable",
         "Shareaza",
         "sharktorrent",

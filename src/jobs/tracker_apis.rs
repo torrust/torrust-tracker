@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use axum_server::tls_rustls::RustlsConfig;
 use log::info;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
@@ -29,17 +30,27 @@ pub async fn start_job(config: &HttpApi, tracker: Arc<tracker::Tracker>) -> Join
     let join_handle = tokio::spawn(async move {
         if !ssl_enabled {
             info!("Starting Torrust APIs server on: http://{}", bind_addr);
+
             let handle = server::start(bind_addr, &tracker);
-            tx.send(ApiServerJobStarted()).expect("the start job dropped");
+
+            tx.send(ApiServerJobStarted()).expect("the API server should not be dropped");
+
             if let Ok(()) = handle.await {
-                info!("Stopping Torrust APIs server on {} ...", bind_addr);
+                info!("Torrust APIs server on http://{} stopped", bind_addr);
             }
         } else if ssl_enabled && ssl_cert_path.is_some() && ssl_key_path.is_some() {
             info!("Starting Torrust APIs server on: https://{}", bind_addr);
-            let handle = server::start_tls(bind_addr, &ssl_cert_path.unwrap(), &ssl_key_path.unwrap(), &tracker);
-            tx.send(ApiServerJobStarted()).expect("the start job dropped");
+
+            let ssl_config = RustlsConfig::from_pem_file(ssl_cert_path.unwrap(), ssl_key_path.unwrap())
+                .await
+                .unwrap();
+
+            let handle = server::start_tls(bind_addr, ssl_config, &tracker);
+
+            tx.send(ApiServerJobStarted()).expect("the API server should not be dropped");
+
             if let Ok(()) = handle.await {
-                info!("Stopping Torrust APIs server on {} ...", bind_addr);
+                info!("Torrust APIs server on https://{} stopped", bind_addr);
             }
         }
     });
@@ -47,7 +58,7 @@ pub async fn start_job(config: &HttpApi, tracker: Arc<tracker::Tracker>) -> Join
     // Wait until the APIs server job is running
     match rx.await {
         Ok(_msg) => info!("Torrust APIs server started"),
-        Err(e) => panic!("the apis server was dropped: {e}"),
+        Err(e) => panic!("the API server was dropped: {e}"),
     }
 
     join_handle
