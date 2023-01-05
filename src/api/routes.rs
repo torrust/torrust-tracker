@@ -124,9 +124,9 @@ pub fn routes(tracker: &Arc<tracker::Tracker>) -> impl Filter<Extract = impl war
 
             Ok(reply::json(&Torrent {
                 info_hash: info_hash.to_string(),
-                seeders,
-                completed,
-                leechers,
+                seeders: u64::from(seeders),
+                completed: u64::from(completed),
+                leechers: u64::from(leechers),
                 peers: Some(peer_resources),
             }))
         });

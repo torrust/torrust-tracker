@@ -10,12 +10,13 @@ use log::info;
 use warp::hyper;
 
 use super::middlewares::auth::auth;
-use super::routes::get_stats;
+use super::routes::{get_stats, get_torrent};
 use crate::tracker;
 
 pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl Future<Output = hyper::Result<()>> {
     let app = Router::new()
         .route("/stats", get(get_stats).with_state(tracker.clone()))
+        .route("/torrent/:info_hash", get(get_torrent).with_state(tracker.clone()))
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
     let server = axum::Server::bind(&socket_addr).serve(app.into_make_service());

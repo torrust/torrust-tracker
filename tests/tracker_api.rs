@@ -645,4 +645,67 @@ mod tracker_apis {
             assert_unauthorized(response).await;
         }
     }
+
+    mod for_torrent_resources {
+        use std::str::FromStr;
+
+        use torrust_tracker::api::resource;
+        use torrust_tracker::api::resource::torrent::Torrent;
+        use torrust_tracker::protocol::info_hash::InfoHash;
+
+        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::client::Client;
+        use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
+        use crate::api::fixtures::sample_peer;
+        use crate::api::server::start_default_api;
+        use crate::api::Version;
+
+        #[tokio::test]
+        async fn should_allow_getting_a_torrent_info() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
+
+            let peer = sample_peer();
+
+            api_server.add_torrent(&info_hash, &peer).await;
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .get_torrent(&info_hash.to_string())
+                .await;
+
+            assert_eq!(response.status(), 200);
+            assert_eq!(
+                response.json::<Torrent>().await.unwrap(),
+                Torrent {
+                    info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
+                    seeders: 1,
+                    completed: 0,
+                    leechers: 0,
+                    peers: Some(vec![resource::peer::Peer::from(peer)])
+                }
+            );
+        }
+
+        #[tokio::test]
+        async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
+
+            api_server.add_torrent(&info_hash, &sample_peer()).await;
+
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+                .get_torrent(&info_hash.to_string())
+                .await;
+
+            assert_token_not_valid(response).await;
+
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+                .get_torrent(&info_hash.to_string())
+                .await;
+
+            assert_unauthorized(response).await;
+        }
+    }
 }
