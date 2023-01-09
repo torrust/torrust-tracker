@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::peer;
-use crate::tracker::services::torrent::Info;
+use crate::tracker::services::torrent::{BasicInfo, Info};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Torrent {
@@ -16,11 +16,29 @@ pub struct Torrent {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct ListItem {
     pub info_hash: String,
-    pub seeders: u32,
-    pub completed: u32,
-    pub leechers: u32,
+    pub seeders: u64,
+    pub completed: u64,
+    pub leechers: u64,
     // todo: this is always None. Remove field from endpoint?
     pub peers: Option<Vec<super::peer::Peer>>,
+}
+
+impl ListItem {
+    #[must_use]
+    pub fn new_vec(basic_info_vec: &[BasicInfo]) -> Vec<Self> {
+        basic_info_vec
+            .iter()
+            .map(|basic_info| ListItem::from((*basic_info).clone()))
+            .collect()
+    }
+}
+
+#[must_use]
+pub fn to_resource(basic_info_vec: &[BasicInfo]) -> Vec<ListItem> {
+    basic_info_vec
+        .iter()
+        .map(|basic_info| ListItem::from((*basic_info).clone()))
+        .collect()
 }
 
 impl From<Info> for Torrent {
@@ -37,6 +55,18 @@ impl From<Info> for Torrent {
     }
 }
 
+impl From<BasicInfo> for ListItem {
+    fn from(basic_info: BasicInfo) -> Self {
+        Self {
+            info_hash: basic_info.info_hash.to_string(),
+            seeders: basic_info.seeders,
+            completed: basic_info.completed,
+            leechers: basic_info.leechers,
+            peers: None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -45,11 +75,11 @@ mod tests {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
     use crate::api::resource::peer::Peer;
-    use crate::api::resource::torrent::Torrent;
+    use crate::api::resource::torrent::{ListItem, Torrent};
     use crate::protocol::clock::DurationSinceUnixEpoch;
     use crate::protocol::info_hash::InfoHash;
     use crate::tracker::peer;
-    use crate::tracker::services::torrent::Info;
+    use crate::tracker::services::torrent::{BasicInfo, Info};
 
     fn sample_peer() -> peer::Peer {
         peer::Peer {
@@ -79,6 +109,25 @@ mod tests {
                 completed: 2,
                 leechers: 3,
                 peers: Some(vec![Peer::from(sample_peer())]),
+            }
+        );
+    }
+
+    #[test]
+    fn torrent_resource_list_item_should_be_converted_from_the_basic_torrent_info() {
+        assert_eq!(
+            ListItem::from(BasicInfo {
+                info_hash: InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(),
+                seeders: 1,
+                completed: 2,
+                leechers: 3,
+            }),
+            ListItem {
+                info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
+                seeders: 1,
+                completed: 2,
+                leechers: 3,
+                peers: None,
             }
         );
     }

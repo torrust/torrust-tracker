@@ -13,6 +13,14 @@ pub struct Info {
     pub peers: Option<Vec<Peer>>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct BasicInfo {
+    pub info_hash: InfoHash,
+    pub seeders: u64,
+    pub completed: u64,
+    pub leechers: u64,
+}
+
 pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Option<Info> {
     let db = tracker.get_torrents().await;
 
@@ -40,37 +48,58 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
     })
 }
 
+pub async fn get_torrents(tracker: Arc<Tracker>, offset: u32, limit: u32) -> Vec<BasicInfo> {
+    let db = tracker.get_torrents().await;
+
+    db.iter()
+        .map(|(info_hash, torrent_entry)| {
+            let (seeders, completed, leechers) = torrent_entry.get_stats();
+            BasicInfo {
+                info_hash: *info_hash,
+                seeders: u64::from(seeders),
+                completed: u64::from(completed),
+                leechers: u64::from(leechers),
+            }
+        })
+        .skip(offset as usize)
+        .take(limit as usize)
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+
+    use crate::protocol::clock::DurationSinceUnixEpoch;
+    use crate::tracker::peer;
+
+    fn sample_peer() -> peer::Peer {
+        peer::Peer {
+            peer_id: peer::Id(*b"-qB00000000000000000"),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+            uploaded: NumberOfBytes(0),
+            downloaded: NumberOfBytes(0),
+            left: NumberOfBytes(0),
+            event: AnnounceEvent::Started,
+        }
+    }
 
     mod getting_a_torrent_info {
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-
         use crate::config::{ephemeral_configuration, Configuration};
-        use crate::protocol::clock::DurationSinceUnixEpoch;
         use crate::protocol::info_hash::InfoHash;
-        use crate::tracker::peer;
         use crate::tracker::services::common::tracker_factory;
+        use crate::tracker::services::torrent::tests::sample_peer;
         use crate::tracker::services::torrent::{get_torrent_info, Info};
 
         pub fn tracker_configuration() -> Arc<Configuration> {
             Arc::new(ephemeral_configuration())
-        }
-
-        fn sample_peer() -> peer::Peer {
-            peer::Peer {
-                peer_id: peer::Id(*b"-qB00000000000000000"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-                updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
-                uploaded: NumberOfBytes(0),
-                downloaded: NumberOfBytes(0),
-                left: NumberOfBytes(0),
-                event: AnnounceEvent::Started,
-            }
         }
 
         #[tokio::test]
@@ -92,14 +121,11 @@ mod tests {
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
-
             tracker
                 .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer())
                 .await;
 
-            let torrent_info = get_torrent_info(tracker.clone(), &InfoHash::from_str(&hash).unwrap())
-                .await
-                .unwrap();
+            let torrent_info = get_torrent_info(tracker.clone(), &info_hash).await.unwrap();
 
             assert_eq!(
                 torrent_info,
@@ -110,6 +136,156 @@ mod tests {
                     leechers: 0,
                     peers: Some(vec![sample_peer()]),
                 }
+            );
+        }
+    }
+
+    mod searching_for_torrents {
+
+        use std::str::FromStr;
+        use std::sync::Arc;
+
+        use crate::config::{ephemeral_configuration, Configuration};
+        use crate::protocol::info_hash::InfoHash;
+        use crate::tracker::services::common::tracker_factory;
+        use crate::tracker::services::torrent::tests::sample_peer;
+        use crate::tracker::services::torrent::{get_torrents, BasicInfo};
+
+        pub fn tracker_configuration() -> Arc<Configuration> {
+            Arc::new(ephemeral_configuration())
+        }
+
+        #[tokio::test]
+        async fn should_return_an_empty_result_if_the_tracker_does_not_have_any_torrent() {
+            let tracker = Arc::new(tracker_factory(&tracker_configuration()));
+            let offset = 0;
+            let limit = 4000;
+
+            let torrents = get_torrents(tracker.clone(), offset, limit).await;
+
+            assert_eq!(torrents, vec![]);
+        }
+
+        #[tokio::test]
+        async fn should_return_a_summarized_info_for_all_torrents() {
+            let tracker = Arc::new(tracker_factory(&tracker_configuration()));
+            let offset = 0;
+            let limit = 4000;
+
+            let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash = InfoHash::from_str(&hash).unwrap();
+
+            tracker
+                .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer())
+                .await;
+
+            let torrents = get_torrents(tracker.clone(), offset, limit).await;
+
+            assert_eq!(
+                torrents,
+                vec![BasicInfo {
+                    info_hash: InfoHash::from_str(&hash).unwrap(),
+                    seeders: 1,
+                    completed: 0,
+                    leechers: 0,
+                }]
+            );
+        }
+
+        #[tokio::test]
+        async fn should_allow_limiting_the_number_of_torrents_in_the_result() {
+            let tracker = Arc::new(tracker_factory(&tracker_configuration()));
+
+            let hash1 = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash1 = InfoHash::from_str(&hash1).unwrap();
+            let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
+            let info_hash2 = InfoHash::from_str(&hash2).unwrap();
+
+            tracker
+                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
+                .await;
+            tracker
+                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
+                .await;
+
+            let offset = 0;
+            let limit = 1;
+
+            let torrents = get_torrents(tracker.clone(), offset, limit).await;
+
+            assert_eq!(torrents.len(), 1);
+        }
+
+        #[tokio::test]
+        async fn should_allow_using_pagination_in_the_result() {
+            let tracker = Arc::new(tracker_factory(&tracker_configuration()));
+
+            let hash1 = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash1 = InfoHash::from_str(&hash1).unwrap();
+            let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
+            let info_hash2 = InfoHash::from_str(&hash2).unwrap();
+
+            tracker
+                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
+                .await;
+            tracker
+                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
+                .await;
+
+            let offset = 1;
+            let limit = 4000;
+
+            let torrents = get_torrents(tracker.clone(), offset, limit).await;
+
+            assert_eq!(torrents.len(), 1);
+            assert_eq!(
+                torrents,
+                vec![BasicInfo {
+                    info_hash: InfoHash::from_str(&hash1).unwrap(),
+                    seeders: 1,
+                    completed: 0,
+                    leechers: 0,
+                }]
+            );
+        }
+
+        #[tokio::test]
+        async fn should_return_torrents_ordered_by_info_hash() {
+            let tracker = Arc::new(tracker_factory(&tracker_configuration()));
+
+            let hash1 = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash1 = InfoHash::from_str(&hash1).unwrap();
+            tracker
+                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
+                .await;
+
+            let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
+            let info_hash2 = InfoHash::from_str(&hash2).unwrap();
+            tracker
+                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
+                .await;
+
+            let offset = 0;
+            let limit = 4000;
+
+            let torrents = get_torrents(tracker.clone(), offset, limit).await;
+
+            assert_eq!(
+                torrents,
+                vec![
+                    BasicInfo {
+                        info_hash: InfoHash::from_str(&hash2).unwrap(),
+                        seeders: 1,
+                        completed: 0,
+                        leechers: 0,
+                    },
+                    BasicInfo {
+                        info_hash: InfoHash::from_str(&hash1).unwrap(),
+                        seeders: 1,
+                        completed: 0,
+                        leechers: 0,
+                    }
+                ]
             );
         }
     }

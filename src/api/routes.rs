@@ -13,7 +13,7 @@ use super::{ActionStatus, TorrentInfoQuery};
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker;
 use crate::tracker::services::statistics::get_metrics;
-use crate::tracker::services::torrent::get_torrent_info;
+use crate::tracker::services::torrent::{get_torrent_info, get_torrents};
 
 fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Error = warp::reject::Rejection> + Clone {
     #[derive(Deserialize)]
@@ -64,24 +64,9 @@ pub fn routes(tracker: &Arc<tracker::Tracker>) -> impl Filter<Extract = impl war
             let offset = limits.offset.unwrap_or(0);
             let limit = min(limits.limit.unwrap_or(1000), 4000);
 
-            let db = tracker.get_torrents().await;
-            let results: Vec<_> = db
-                .iter()
-                .map(|(info_hash, torrent_entry)| {
-                    let (seeders, completed, leechers) = torrent_entry.get_stats();
-                    ListItem {
-                        info_hash: info_hash.to_string(),
-                        seeders,
-                        completed,
-                        leechers,
-                        peers: None,
-                    }
-                })
-                .skip(offset as usize)
-                .take(limit as usize)
-                .collect();
-
-            Result::<_, warp::reject::Rejection>::Ok(reply::json(&results))
+            Result::<_, warp::reject::Rejection>::Ok(reply::json(&ListItem::new_vec(
+                &get_torrents(tracker.clone(), offset, limit).await,
+            )))
         });
 
     // GET /api/stats
