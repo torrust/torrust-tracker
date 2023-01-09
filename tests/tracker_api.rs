@@ -666,7 +666,7 @@ mod tracker_apis {
         use torrust_tracker::api::resource::torrent::Torrent;
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::asserts::{assert_token_not_valid, assert_torrent_not_known, assert_unauthorized};
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::fixtures::sample_peer;
@@ -698,6 +698,19 @@ mod tracker_apis {
                     peers: Some(vec![resource::peer::Peer::from(peer)])
                 }
             );
+        }
+
+        #[tokio::test]
+        async fn should_fail_while_getting_a_torrent_info_when_the_torrent_does_not_exist() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .get_torrent(&info_hash.to_string())
+                .await;
+
+            assert_torrent_not_known(response).await;
         }
 
         #[tokio::test]
