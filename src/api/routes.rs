@@ -7,13 +7,13 @@ use serde::Deserialize;
 use warp::{filters, reply, Filter};
 
 use super::resource::auth_key::AuthKey;
-use super::resource::peer;
 use super::resource::stats::Stats;
 use super::resource::torrent::{ListItem, Torrent};
 use super::{ActionStatus, TorrentInfoQuery};
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker;
 use crate::tracker::services::statistics::get_metrics;
+use crate::tracker::services::torrent::get_torrent_info;
 
 fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Error = warp::reject::Rejection> + Clone {
     #[derive(Deserialize)]
@@ -107,28 +107,12 @@ pub fn routes(tracker: &Arc<tracker::Tracker>) -> impl Filter<Extract = impl war
             (info_hash, tracker)
         })
         .and_then(|(info_hash, tracker): (InfoHash, Arc<tracker::Tracker>)| async move {
-            let db = tracker.get_torrents().await;
-            let torrent_entry_option = db.get(&info_hash);
+            let optional_torrent_info = get_torrent_info(tracker.clone(), &info_hash).await;
 
-            let torrent_entry = match torrent_entry_option {
-                Some(torrent_entry) => torrent_entry,
-                None => {
-                    return Result::<_, warp::reject::Rejection>::Ok(reply::json(&"torrent not known"));
-                }
-            };
-            let (seeders, completed, leechers) = torrent_entry.get_stats();
-
-            let peers = torrent_entry.get_peers(None);
-
-            let peer_resources = peers.iter().map(|peer| peer::Peer::from(**peer)).collect();
-
-            Ok(reply::json(&Torrent {
-                info_hash: info_hash.to_string(),
-                seeders: u64::from(seeders),
-                completed: u64::from(completed),
-                leechers: u64::from(leechers),
-                peers: Some(peer_resources),
-            }))
+            match optional_torrent_info {
+                Some(info) => Ok(reply::json(&Torrent::from(info))),
+                None => Result::<_, warp::reject::Rejection>::Ok(reply::json(&"torrent not known")),
+            }
         });
 
     // DELETE /api/whitelist/:info_hash
