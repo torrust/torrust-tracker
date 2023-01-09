@@ -50,7 +50,7 @@ impl IntoResponse for AuthError {
 
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            [(header::CONTENT_TYPE, "text/plain")],
+            [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
             body,
         )
             .into_response()
