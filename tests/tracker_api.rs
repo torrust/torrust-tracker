@@ -662,16 +662,114 @@ mod tracker_apis {
     mod for_torrent_resources {
         use std::str::FromStr;
 
-        use torrust_tracker::api::resource;
         use torrust_tracker::api::resource::torrent::Torrent;
+        use torrust_tracker::api::resource::{self, torrent};
         use torrust_tracker::protocol::info_hash::InfoHash;
 
         use crate::api::asserts::{assert_token_not_valid, assert_torrent_not_known, assert_unauthorized};
-        use crate::api::client::Client;
+        use crate::api::client::{Client, Query, QueryParam};
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::fixtures::sample_peer;
         use crate::api::server::start_default_api;
         use crate::api::Version;
+
+        #[tokio::test]
+        async fn should_allow_getting_torrents() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
+
+            api_server.add_torrent(&info_hash, &sample_peer()).await;
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .get_torrents(Query::empty())
+                .await;
+
+            assert_eq!(response.status(), 200);
+            assert_eq!(
+                response.json::<Vec<torrent::ListItem>>().await.unwrap(),
+                vec![torrent::ListItem {
+                    info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
+                    seeders: 1,
+                    completed: 0,
+                    leechers: 0,
+                    peers: None // Torrent list does not include the peer list for each torrent
+                }]
+            );
+        }
+
+        #[tokio::test]
+        async fn should_allow_limiting_the_torrents_in_the_result() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            // torrents are ordered alphabetically by infohashes
+            let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
+            let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap();
+
+            api_server.add_torrent(&info_hash_1, &sample_peer()).await;
+            api_server.add_torrent(&info_hash_2, &sample_peer()).await;
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .get_torrents(Query::params([QueryParam::new("limit", "1")].to_vec()))
+                .await;
+
+            assert_eq!(response.status(), 200);
+            assert_eq!(
+                response.json::<Vec<torrent::ListItem>>().await.unwrap(),
+                vec![torrent::ListItem {
+                    info_hash: "0b3aea4adc213ce32295be85d3883a63bca25446".to_string(),
+                    seeders: 1,
+                    completed: 0,
+                    leechers: 0,
+                    peers: None // Torrent list does not include the peer list for each torrent
+                }]
+            );
+        }
+
+        #[tokio::test]
+        async fn should_allow_the_torrents_result_pagination() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            // torrents are ordered alphabetically by infohashes
+            let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
+            let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap();
+
+            api_server.add_torrent(&info_hash_1, &sample_peer()).await;
+            api_server.add_torrent(&info_hash_2, &sample_peer()).await;
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .get_torrents(Query::params([QueryParam::new("offset", "1")].to_vec()))
+                .await;
+
+            assert_eq!(response.status(), 200);
+            assert_eq!(
+                response.json::<Vec<torrent::ListItem>>().await.unwrap(),
+                vec![torrent::ListItem {
+                    info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
+                    seeders: 1,
+                    completed: 0,
+                    leechers: 0,
+                    peers: None // Torrent list does not include the peer list for each torrent
+                }]
+            );
+        }
+
+        #[tokio::test]
+        async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+                .get_torrents(Query::empty())
+                .await;
+
+            assert_token_not_valid(response).await;
+
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+                .get_torrents(Query::default())
+                .await;
+
+            assert_unauthorized(response).await;
+        }
 
         #[tokio::test]
         async fn should_allow_getting_a_torrent_info() {

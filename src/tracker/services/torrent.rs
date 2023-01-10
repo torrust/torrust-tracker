@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use serde::Deserialize;
+
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::peer::Peer;
 use crate::tracker::Tracker;
@@ -19,6 +21,52 @@ pub struct BasicInfo {
     pub seeders: u64,
     pub completed: u64,
     pub leechers: u64,
+}
+
+#[derive(Deserialize)]
+pub struct Pagination {
+    pub offset: u32,
+    pub limit: u32,
+}
+
+impl Pagination {
+    #[must_use]
+    pub fn new(offset: u32, limit: u32) -> Self {
+        Self { offset, limit }
+    }
+
+    #[must_use]
+    pub fn new_with_options(offset_option: Option<u32>, limit_option: Option<u32>) -> Self {
+        let offset = match offset_option {
+            Some(offset) => offset,
+            None => Pagination::default_offset(),
+        };
+        let limit = match limit_option {
+            Some(offset) => offset,
+            None => Pagination::default_limit(),
+        };
+
+        Self { offset, limit }
+    }
+
+    #[must_use]
+    pub fn default_offset() -> u32 {
+        0
+    }
+
+    #[must_use]
+    pub fn default_limit() -> u32 {
+        4000
+    }
+}
+
+impl Default for Pagination {
+    fn default() -> Self {
+        Self {
+            offset: Self::default_offset(),
+            limit: Self::default_limit(),
+        }
+    }
 }
 
 pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Option<Info> {
@@ -48,7 +96,7 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
     })
 }
 
-pub async fn get_torrents(tracker: Arc<Tracker>, offset: u32, limit: u32) -> Vec<BasicInfo> {
+pub async fn get_torrents(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec<BasicInfo> {
     let db = tracker.get_torrents().await;
 
     db.iter()
@@ -61,8 +109,8 @@ pub async fn get_torrents(tracker: Arc<Tracker>, offset: u32, limit: u32) -> Vec
                 leechers: u64::from(leechers),
             }
         })
-        .skip(offset as usize)
-        .take(limit as usize)
+        .skip(pagination.offset as usize)
+        .take(pagination.limit as usize)
         .collect()
 }
 
@@ -149,7 +197,7 @@ mod tests {
         use crate::protocol::info_hash::InfoHash;
         use crate::tracker::services::common::tracker_factory;
         use crate::tracker::services::torrent::tests::sample_peer;
-        use crate::tracker::services::torrent::{get_torrents, BasicInfo};
+        use crate::tracker::services::torrent::{get_torrents, BasicInfo, Pagination};
 
         pub fn tracker_configuration() -> Arc<Configuration> {
             Arc::new(ephemeral_configuration())
@@ -158,10 +206,8 @@ mod tests {
         #[tokio::test]
         async fn should_return_an_empty_result_if_the_tracker_does_not_have_any_torrent() {
             let tracker = Arc::new(tracker_factory(&tracker_configuration()));
-            let offset = 0;
-            let limit = 4000;
 
-            let torrents = get_torrents(tracker.clone(), offset, limit).await;
+            let torrents = get_torrents(tracker.clone(), &Pagination::default()).await;
 
             assert_eq!(torrents, vec![]);
         }
@@ -169,8 +215,6 @@ mod tests {
         #[tokio::test]
         async fn should_return_a_summarized_info_for_all_torrents() {
             let tracker = Arc::new(tracker_factory(&tracker_configuration()));
-            let offset = 0;
-            let limit = 4000;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -179,7 +223,7 @@ mod tests {
                 .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer())
                 .await;
 
-            let torrents = get_torrents(tracker.clone(), offset, limit).await;
+            let torrents = get_torrents(tracker.clone(), &Pagination::default()).await;
 
             assert_eq!(
                 torrents,
@@ -211,7 +255,7 @@ mod tests {
             let offset = 0;
             let limit = 1;
 
-            let torrents = get_torrents(tracker.clone(), offset, limit).await;
+            let torrents = get_torrents(tracker.clone(), &Pagination::new(offset, limit)).await;
 
             assert_eq!(torrents.len(), 1);
         }
@@ -235,7 +279,7 @@ mod tests {
             let offset = 1;
             let limit = 4000;
 
-            let torrents = get_torrents(tracker.clone(), offset, limit).await;
+            let torrents = get_torrents(tracker.clone(), &Pagination::new(offset, limit)).await;
 
             assert_eq!(torrents.len(), 1);
             assert_eq!(
@@ -265,10 +309,7 @@ mod tests {
                 .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
                 .await;
 
-            let offset = 0;
-            let limit = 4000;
-
-            let torrents = get_torrents(tracker.clone(), offset, limit).await;
+            let torrents = get_torrents(tracker.clone(), &Pagination::default()).await;
 
             assert_eq!(
                 torrents,

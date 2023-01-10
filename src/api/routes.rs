@@ -13,7 +13,7 @@ use super::{ActionStatus, TorrentInfoQuery};
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker;
 use crate::tracker::services::statistics::get_metrics;
-use crate::tracker::services::torrent::{get_torrent_info, get_torrents};
+use crate::tracker::services::torrent::{get_torrent_info, get_torrents, Pagination};
 
 fn authenticate(tokens: HashMap<String, String>) -> impl Filter<Extract = (), Error = warp::reject::Rejection> + Clone {
     #[derive(Deserialize)]
@@ -65,7 +65,7 @@ pub fn routes(tracker: &Arc<tracker::Tracker>) -> impl Filter<Extract = impl war
             let limit = min(limits.limit.unwrap_or(1000), 4000);
 
             Result::<_, warp::reject::Rejection>::Ok(reply::json(&ListItem::new_vec(
-                &get_torrents(tracker.clone(), offset, limit).await,
+                &get_torrents(tracker.clone(), &Pagination::new(offset, limit)).await,
             )))
         });
 
