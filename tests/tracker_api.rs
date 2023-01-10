@@ -37,8 +37,10 @@ mod tracker_api {
 
     Keys:
     POST   /api/key/:seconds_valid
-    GET    /api/keys/reload
     DELETE /api/key/:key
+
+    Key command:
+    GET /api/keys/reload
 
     */
 
@@ -291,11 +293,14 @@ mod tracker_api {
 
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::asserts::{
+            assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist,
+            assert_failed_to_whitelist_torrent, assert_token_not_valid, assert_unauthorized,
+        };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::server::start_default_api;
-        use crate::api::Version;
+        use crate::api::{force_database_error, Version};
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent() {
@@ -348,6 +353,38 @@ mod tracker_api {
                 .await;
 
             assert_unauthorized(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_return_an_error_when_the_torrent_cannot_be_whitelisted() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+
+            force_database_error(&api_server.tracker);
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+                .whitelist_a_torrent(&info_hash)
+                .await;
+
+            assert_failed_to_whitelist_torrent(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_return_an_error_when_the_torrent_cannot_be_removed_from_the_whitelist() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash = InfoHash::from_str(&hash).unwrap();
+            api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+            force_database_error(&api_server.tracker);
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+                .remove_torrent_from_whitelist(&hash)
+                .await;
+
+            assert_failed_to_remove_torrent_from_whitelist(response).await;
         }
 
         #[tokio::test]
@@ -412,6 +449,23 @@ mod tracker_api {
             );
             */
         }
+
+        #[tokio::test]
+        async fn should_return_an_error_when_the_whitelist_cannot_be_reloaded_from_the_database() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash = InfoHash::from_str(&hash).unwrap();
+            api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+            force_database_error(&api_server.tracker);
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+                .reload_whitelist()
+                .await;
+
+            assert_failed_to_reload_whitelist(response).await;
+        }
     }
 
     mod for_key_resources {
@@ -420,11 +474,14 @@ mod tracker_api {
         use torrust_tracker::api::resource::auth_key::AuthKey;
         use torrust_tracker::tracker::auth::Key;
 
-        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::asserts::{
+            assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys, assert_token_not_valid,
+            assert_unauthorized,
+        };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::server::start_default_api;
-        use crate::api::Version;
+        use crate::api::{force_database_error, Version};
 
         #[tokio::test]
         async fn should_allow_generating_a_new_auth_key() {
@@ -464,6 +521,20 @@ mod tracker_api {
         }
 
         #[tokio::test]
+        async fn should_return_an_error_when_the_auth_key_cannot_be_generated() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            force_database_error(&api_server.tracker);
+
+            let seconds_valid = 60;
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+                .generate_auth_key(seconds_valid)
+                .await;
+
+            assert_failed_to_generate_key(response).await;
+        }
+
+        #[tokio::test]
         async fn should_allow_deleting_an_auth_key() {
             let api_server = start_default_api(&Version::Warp).await;
 
@@ -480,6 +551,26 @@ mod tracker_api {
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.text().await.unwrap(), "{\"status\":\"ok\"}");
+        }
+
+        #[tokio::test]
+        async fn should_return_an_error_when_the_auth_key_cannot_be_deleted() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let seconds_valid = 60;
+            let auth_key = api_server
+                .tracker
+                .generate_auth_key(Duration::from_secs(seconds_valid))
+                .await
+                .unwrap();
+
+            force_database_error(&api_server.tracker);
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+                .delete_auth_key(&auth_key.key)
+                .await;
+
+            assert_failed_to_delete_key(response).await;
         }
 
         #[tokio::test]
@@ -531,6 +622,26 @@ mod tracker_api {
                 .await;
 
             assert_eq!(response.status(), 200);
+        }
+
+        #[tokio::test]
+        async fn should_return_an_error_when_keys_cannot_be_reloaded() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let seconds_valid = 60;
+            api_server
+                .tracker
+                .generate_auth_key(Duration::from_secs(seconds_valid))
+                .await
+                .unwrap();
+
+            force_database_error(&api_server.tracker);
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+                .reload_keys()
+                .await;
+
+            assert_failed_to_reload_keys(response).await;
         }
 
         #[tokio::test]

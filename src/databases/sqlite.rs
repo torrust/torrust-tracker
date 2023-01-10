@@ -60,6 +60,28 @@ impl Database for Sqlite {
             .map(|_| ())
     }
 
+    fn drop_database_tables(&self) -> Result<(), Error> {
+        let drop_whitelist_table = "
+        DROP TABLE whitelist;"
+            .to_string();
+
+        let drop_torrents_table = "
+        DROP TABLE torrents;"
+            .to_string();
+
+        let drop_keys_table = "
+        DROP TABLE keys;"
+            .to_string();
+
+        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+
+        conn.execute(&drop_whitelist_table, [])
+            .and_then(|_| conn.execute(&drop_torrents_table, []))
+            .and_then(|_| conn.execute(&drop_keys_table, []))
+            .map_err(|_| Error::InvalidQuery)
+            .map(|_| ())
+    }
+
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error> {
         let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 

@@ -39,6 +39,11 @@ pub trait Database: Sync + Send {
     /// Will return `Error` if unable to create own tables.
     fn create_database_tables(&self) -> Result<(), Error>;
 
+    /// # Errors
+    ///
+    /// Will return `Err` if unable to drop tables.
+    fn drop_database_tables(&self) -> Result<(), Error>;
+
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error>;
 
     async fn load_keys(&self) -> Result<Vec<auth::Key>, Error>;

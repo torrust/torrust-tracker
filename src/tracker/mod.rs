@@ -26,7 +26,7 @@ pub struct Tracker {
     torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
-    database: Box<dyn Database>,
+    pub database: Box<dyn Database>,
 }
 
 #[derive(Debug, PartialEq, Default)]
@@ -130,7 +130,9 @@ impl Tracker {
 
     /// It adds a torrent to the whitelist if it has not been whitelisted previously
     async fn add_torrent_to_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        if self.database.is_info_hash_whitelisted(info_hash).await.unwrap() {
+        let is_whitelisted = self.database.is_info_hash_whitelisted(info_hash).await?;
+
+        if is_whitelisted {
             return Ok(());
         }
 
