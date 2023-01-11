@@ -123,10 +123,17 @@ pub async fn reload_whitelist_handler(State(tracker): State<Arc<Tracker>>) -> Re
     }
 }
 
-pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path(seconds_valid): Path<u64>) -> Response {
-    match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
+pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path(seconds_valid_or_key): Path<u64>) -> Response {
+    match tracker.generate_auth_key(Duration::from_secs(seconds_valid_or_key)).await {
         Ok(auth_key) => response_auth_key(&AuthKey::from(auth_key)),
         Err(_) => response_err("failed to generate key".to_string()),
+    }
+}
+
+pub async fn delete_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path(seconds_valid_or_key): Path<String>) -> Response {
+    match tracker.remove_auth_key(&seconds_valid_or_key).await {
+        Ok(_) => response_ok(),
+        Err(_) => response_err("failed to delete key".to_string()),
     }
 }
 

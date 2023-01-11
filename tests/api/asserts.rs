@@ -2,6 +2,12 @@
 
 use reqwest::Response;
 
+pub async fn assert_ok(response: Response) {
+    assert_eq!(response.status(), 200);
+    assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
+    assert_eq!(response.text().await.unwrap(), "Ok");
+}
+
 pub async fn assert_torrent_not_known(response: Response) {
     assert_eq!(response.status(), 200);
     assert_eq!(response.headers().get("content-type").unwrap(), "application/json");

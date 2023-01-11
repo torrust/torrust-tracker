@@ -1125,16 +1125,14 @@ mod tracker_apis {
     }
 
     mod for_key_resources {
-        //use std::time::Duration;
+        use std::time::Duration;
 
         use torrust_tracker::api::resource::auth_key::AuthKey;
         use torrust_tracker::tracker::auth::Key;
 
-        use crate::api::asserts::{assert_failed_to_generate_key, assert_token_not_valid, assert_unauthorized};
-        /*use crate::api::asserts::{
-            assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys, assert_token_not_valid,
-            assert_unauthorized,
-        };*/
+        use crate::api::asserts::{
+            assert_failed_to_delete_key, assert_failed_to_generate_key, assert_ok, assert_token_not_valid, assert_unauthorized,
+        };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::server::start_default_api;
@@ -1189,6 +1187,77 @@ mod tracker_apis {
                 .await;
 
             assert_failed_to_generate_key(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_allow_deleting_an_auth_key() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let seconds_valid = 60;
+            let auth_key = api_server
+                .tracker
+                .generate_auth_key(Duration::from_secs(seconds_valid))
+                .await
+                .unwrap();
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .delete_auth_key(&auth_key.key)
+                .await;
+
+            assert_ok(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_return_an_error_when_the_auth_key_cannot_be_deleted() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let seconds_valid = 60;
+            let auth_key = api_server
+                .tracker
+                .generate_auth_key(Duration::from_secs(seconds_valid))
+                .await
+                .unwrap();
+
+            force_database_error(&api_server.tracker);
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+                .delete_auth_key(&auth_key.key)
+                .await;
+
+            assert_failed_to_delete_key(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let seconds_valid = 60;
+
+            // Generate new auth key
+            let auth_key = api_server
+                .tracker
+                .generate_auth_key(Duration::from_secs(seconds_valid))
+                .await
+                .unwrap();
+
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
+                .delete_auth_key(&auth_key.key)
+                .await;
+
+            assert_token_not_valid(response).await;
+
+            // Generate new auth key
+            let auth_key = api_server
+                .tracker
+                .generate_auth_key(Duration::from_secs(seconds_valid))
+                .await
+                .unwrap();
+
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
+                .delete_auth_key(&auth_key.key)
+                .await;
+
+            assert_unauthorized(response).await;
         }
     }
 }
