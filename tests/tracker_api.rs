@@ -1123,4 +1123,72 @@ mod tracker_apis {
             assert_failed_to_reload_whitelist(response).await;
         }
     }
+
+    mod for_key_resources {
+        //use std::time::Duration;
+
+        use torrust_tracker::api::resource::auth_key::AuthKey;
+        use torrust_tracker::tracker::auth::Key;
+
+        use crate::api::asserts::{assert_failed_to_generate_key, assert_token_not_valid, assert_unauthorized};
+        /*use crate::api::asserts::{
+            assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys, assert_token_not_valid,
+            assert_unauthorized,
+        };*/
+        use crate::api::client::Client;
+        use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
+        use crate::api::server::start_default_api;
+        use crate::api::{force_database_error, Version};
+
+        #[tokio::test]
+        async fn should_allow_generating_a_new_auth_key() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let seconds_valid = 60;
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .generate_auth_key(seconds_valid)
+                .await;
+
+            // Verify the key with the tracker
+            assert!(api_server
+                .tracker
+                .verify_auth_key(&Key::from(response.json::<AuthKey>().await.unwrap()))
+                .await
+                .is_ok());
+        }
+
+        #[tokio::test]
+        async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let seconds_valid = 60;
+
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+                .generate_auth_key(seconds_valid)
+                .await;
+
+            assert_token_not_valid(response).await;
+
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+                .generate_auth_key(seconds_valid)
+                .await;
+
+            assert_unauthorized(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_return_an_error_when_the_auth_key_cannot_be_generated() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            force_database_error(&api_server.tracker);
+
+            let seconds_valid = 60;
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .generate_auth_key(seconds_valid)
+                .await;
+
+            assert_failed_to_generate_key(response).await;
+        }
+    }
 }

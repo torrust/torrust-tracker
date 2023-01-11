@@ -1,6 +1,7 @@
 use std::fmt;
 use std::str::FromStr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::extract::{Path, Query, State};
 use axum::http::{header, StatusCode};
@@ -8,6 +9,7 @@ use axum::response::{IntoResponse, Json, Response};
 use serde::{de, Deserialize, Deserializer, Serialize};
 use serde_json::json;
 
+use crate::api::resource::auth_key::AuthKey;
 use crate::api::resource::stats::Stats;
 use crate::api::resource::torrent::{ListItem, Torrent};
 use crate::protocol::info_hash::InfoHash;
@@ -36,6 +38,15 @@ fn response_err(reason: String) -> Response {
         StatusCode::INTERNAL_SERVER_ERROR,
         [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
         format!("Unhandled rejection: {:?}", ActionStatus::Err { reason: reason.into() }),
+    )
+        .into_response()
+}
+
+fn response_auth_key(auth_key: &AuthKey) -> Response {
+    (
+        StatusCode::OK,
+        [(header::CONTENT_TYPE, "application/json; charset=utf-8")],
+        serde_json::to_string(auth_key).unwrap(),
     )
         .into_response()
 }
@@ -109,6 +120,13 @@ pub async fn reload_whitelist_handler(State(tracker): State<Arc<Tracker>>) -> Re
     match tracker.load_whitelist().await {
         Ok(..) => response_ok(),
         Err(..) => response_err("failed to reload whitelist".to_string()),
+    }
+}
+
+pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path(seconds_valid): Path<u64>) -> Response {
+    match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
+        Ok(auth_key) => response_auth_key(&AuthKey::from(auth_key)),
+        Err(_) => response_err("failed to generate key".to_string()),
     }
 }
 
