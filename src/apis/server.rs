@@ -12,7 +12,7 @@ use warp::hyper;
 use super::middlewares::auth::auth;
 use super::routes::{
     add_torrent_to_whitelist_handler, delete_auth_key_handler, delete_torrent_from_whitelist_handler, generate_auth_key_handler,
-    get_stats_handler, get_torrent_handler, get_torrents_handler, reload_whitelist_handler,
+    get_stats_handler, get_torrent_handler, get_torrents_handler, reload_keys_handler, reload_whitelist_handler,
 };
 use crate::tracker;
 
@@ -46,6 +46,8 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl F
                 .delete(delete_auth_key_handler)
                 .with_state(tracker.clone()),
         )
+        // Key command
+        .route("/keys/reload", get(reload_keys_handler).with_state(tracker.clone()))
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
     let server = axum::Server::bind(&socket_addr).serve(app.into_make_service());
@@ -90,6 +92,8 @@ pub fn start_tls(
                 .delete(delete_auth_key_handler)
                 .with_state(tracker.clone()),
         )
+        // Key command
+        .route("/keys/reload", get(reload_keys_handler).with_state(tracker.clone()))
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
     let handle = Handle::new();

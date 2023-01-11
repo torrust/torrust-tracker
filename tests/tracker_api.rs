@@ -1131,7 +1131,8 @@ mod tracker_apis {
         use torrust_tracker::tracker::auth::Key;
 
         use crate::api::asserts::{
-            assert_failed_to_delete_key, assert_failed_to_generate_key, assert_ok, assert_token_not_valid, assert_unauthorized,
+            assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys, assert_ok,
+            assert_token_not_valid, assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -1209,7 +1210,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_return_an_error_when_the_auth_key_cannot_be_deleted() {
-            let api_server = start_default_api(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Axum).await;
 
             let seconds_valid = 60;
             let auth_key = api_server
@@ -1220,7 +1221,7 @@ mod tracker_apis {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -1229,7 +1230,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
-            let api_server = start_default_api(&Version::Warp).await;
+            let api_server = start_default_api(&Version::Axum).await;
 
             let seconds_valid = 60;
 
@@ -1240,7 +1241,7 @@ mod tracker_apis {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -1253,8 +1254,70 @@ mod tracker_apis {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
                 .delete_auth_key(&auth_key.key)
+                .await;
+
+            assert_unauthorized(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_allow_reloading_keys() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let seconds_valid = 60;
+            api_server
+                .tracker
+                .generate_auth_key(Duration::from_secs(seconds_valid))
+                .await
+                .unwrap();
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .reload_keys()
+                .await;
+
+            assert_eq!(response.status(), 200);
+        }
+
+        #[tokio::test]
+        async fn should_return_an_error_when_keys_cannot_be_reloaded() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let seconds_valid = 60;
+            api_server
+                .tracker
+                .generate_auth_key(Duration::from_secs(seconds_valid))
+                .await
+                .unwrap();
+
+            force_database_error(&api_server.tracker);
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .reload_keys()
+                .await;
+
+            assert_failed_to_reload_keys(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let seconds_valid = 60;
+            api_server
+                .tracker
+                .generate_auth_key(Duration::from_secs(seconds_valid))
+                .await
+                .unwrap();
+
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+                .reload_keys()
+                .await;
+
+            assert_token_not_valid(response).await;
+
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+                .reload_keys()
                 .await;
 
             assert_unauthorized(response).await;

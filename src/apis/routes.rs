@@ -137,6 +137,13 @@ pub async fn delete_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path(s
     }
 }
 
+pub async fn reload_keys_handler(State(tracker): State<Arc<Tracker>>) -> Response {
+    match tracker.load_keys().await {
+        Ok(..) => response_ok(),
+        Err(..) => response_err("failed to reload keys".to_string()),
+    }
+}
+
 /// Serde deserialization decorator to map empty Strings to None,
 fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
 where
