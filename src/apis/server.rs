@@ -1,57 +1,17 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum::routing::{delete, get, post};
-use axum::{middleware, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
 use futures::Future;
 use log::info;
 use warp::hyper;
 
-use super::middlewares::auth::auth;
-use super::routes::{
-    add_torrent_to_whitelist_handler, delete_auth_key_handler, delete_torrent_from_whitelist_handler, generate_auth_key_handler,
-    get_stats_handler, get_torrent_handler, get_torrents_handler, reload_keys_handler, reload_whitelist_handler,
-};
-use crate::tracker;
+use super::routes::router;
+use crate::tracker::Tracker;
 
-pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl Future<Output = hyper::Result<()>> {
-    // todo: duplicate routes definition. See `start_tls` function.
-    let app = Router::new()
-        // Stats
-        .route("/api/stats", get(get_stats_handler).with_state(tracker.clone()))
-        // Torrents
-        .route(
-            "/api/torrent/:info_hash",
-            get(get_torrent_handler).with_state(tracker.clone()),
-        )
-        .route("/api/torrents", get(get_torrents_handler).with_state(tracker.clone()))
-        // Whitelisted torrents
-        .route(
-            "/api/whitelist/:info_hash",
-            post(add_torrent_to_whitelist_handler).with_state(tracker.clone()),
-        )
-        .route(
-            "/api/whitelist/:info_hash",
-            delete(delete_torrent_from_whitelist_handler).with_state(tracker.clone()),
-        )
-        // Whitelist command
-        .route(
-            "/api/whitelist/:info_hash",
-            get(reload_whitelist_handler).with_state(tracker.clone()),
-        )
-        // Keys
-        .route(
-            "/api/key/:seconds_valid_or_key",
-            post(generate_auth_key_handler)
-                .with_state(tracker.clone())
-                .delete(delete_auth_key_handler)
-                .with_state(tracker.clone()),
-        )
-        // Keys command
-        .route("/api/keys/reload", get(reload_keys_handler).with_state(tracker.clone()))
-        .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
+pub fn start(socket_addr: SocketAddr, tracker: &Arc<Tracker>) -> impl Future<Output = hyper::Result<()>> {
+    let app = router(tracker);
 
     let server = axum::Server::bind(&socket_addr).serve(app.into_make_service());
 
@@ -64,43 +24,9 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl F
 pub fn start_tls(
     socket_addr: SocketAddr,
     ssl_config: RustlsConfig,
-    tracker: &Arc<tracker::Tracker>,
+    tracker: &Arc<Tracker>,
 ) -> impl Future<Output = Result<(), std::io::Error>> {
-    // todo: duplicate routes definition. See `start` function.
-    let app = Router::new()
-        // Stats
-        .route("/api/stats", get(get_stats_handler).with_state(tracker.clone()))
-        // Torrents
-        .route(
-            "/api/torrent/:info_hash",
-            get(get_torrent_handler).with_state(tracker.clone()),
-        )
-        .route("/api/torrents", get(get_torrents_handler).with_state(tracker.clone()))
-        // Whitelisted torrents
-        .route(
-            "/api/whitelist/:info_hash",
-            post(add_torrent_to_whitelist_handler).with_state(tracker.clone()),
-        )
-        .route(
-            "/api/whitelist/:info_hash",
-            delete(delete_torrent_from_whitelist_handler).with_state(tracker.clone()),
-        )
-        // Whitelist command
-        .route(
-            "/api/whitelist/:info_hash",
-            get(reload_whitelist_handler).with_state(tracker.clone()),
-        )
-        // Keys
-        .route(
-            "/api/key/:seconds_valid_or_key",
-            post(generate_auth_key_handler)
-                .with_state(tracker.clone())
-                .delete(delete_auth_key_handler)
-                .with_state(tracker.clone()),
-        )
-        // Keys command
-        .route("/api/keys/reload", get(reload_keys_handler).with_state(tracker.clone()))
-        .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
+    let app = router(tracker);
 
     let handle = Handle::new();
     let shutdown_handle = handle.clone();

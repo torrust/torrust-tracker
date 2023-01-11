@@ -6,9 +6,12 @@ use std::time::Duration;
 use axum::extract::{Path, Query, State};
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Json, Response};
+use axum::routing::{delete, get, post};
+use axum::{middleware, Router};
 use serde::{de, Deserialize, Deserializer, Serialize};
 use serde_json::json;
 
+use super::middlewares::auth::auth;
 use crate::api::resource::auth_key::AuthKey;
 use crate::api::resource::stats::Stats;
 use crate::api::resource::torrent::{ListItem, Torrent};
@@ -16,6 +19,47 @@ use crate::protocol::info_hash::InfoHash;
 use crate::tracker::services::statistics::get_metrics;
 use crate::tracker::services::torrent::{get_torrent_info, get_torrents, Pagination};
 use crate::tracker::Tracker;
+
+pub fn router(tracker: &Arc<Tracker>) -> Router {
+    Router::new()
+        // Stats
+        .route("/api/stats", get(get_stats_handler).with_state(tracker.clone()))
+        // Torrents
+        .route(
+            "/api/torrent/:info_hash",
+            get(get_torrent_handler).with_state(tracker.clone()),
+        )
+        .route("/api/torrents", get(get_torrents_handler).with_state(tracker.clone()))
+        // Whitelisted torrents
+        .route(
+            "/api/whitelist/:info_hash",
+            post(add_torrent_to_whitelist_handler).with_state(tracker.clone()),
+        )
+        .route(
+            "/api/whitelist/:info_hash",
+            delete(delete_torrent_from_whitelist_handler).with_state(tracker.clone()),
+        )
+        // Whitelist command
+        .route(
+            "/api/whitelist/:info_hash",
+            get(reload_whitelist_handler).with_state(tracker.clone()),
+        )
+        // Keys
+        .route(
+            // code-review: Axum does not allow two routes with the same path but different path variable name.
+            // In the new major API version, `seconds_valid` should be a POST form field so that we will have two paths:
+            // POST /api/key
+            // DELETE /api/key/:key
+            "/api/key/:seconds_valid_or_key",
+            post(generate_auth_key_handler)
+                .with_state(tracker.clone())
+                .delete(delete_auth_key_handler)
+                .with_state(tracker.clone()),
+        )
+        // Keys command
+        .route("/api/keys/reload", get(reload_keys_handler).with_state(tracker.clone()))
+        .layer(middleware::from_fn_with_state(tracker.config.clone(), auth))
+}
 
 #[derive(Serialize, Debug)]
 #[serde(tag = "status", rename_all = "snake_case")]
