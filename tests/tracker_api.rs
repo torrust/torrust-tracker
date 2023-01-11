@@ -39,7 +39,7 @@ mod tracker_api {
     POST   /api/key/:seconds_valid
     DELETE /api/key/:key
 
-    Key command:
+    Keys command:
     GET /api/keys/reload
 
     */
@@ -68,9 +68,7 @@ mod tracker_api {
                 )
                 .await;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
-                .get_tracker_statistics()
-                .await;
+            let response = Client::new(api_server.get_connection_info()).get_tracker_statistics().await;
 
             assert_stats(
                 response,
@@ -100,13 +98,13 @@ mod tracker_api {
         async fn should_not_allow_getting_tracker_statistics_for_unauthenticated_users() {
             let api_server = start_default_api(&Version::Warp).await;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .get_tracker_statistics()
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .get_tracker_statistics()
                 .await;
 
@@ -138,7 +136,7 @@ mod tracker_api {
 
             api_server.add_torrent(&info_hash, &sample_peer()).await;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .get_torrents(Query::empty())
                 .await;
 
@@ -166,7 +164,7 @@ mod tracker_api {
             api_server.add_torrent(&info_hash_1, &sample_peer()).await;
             api_server.add_torrent(&info_hash_2, &sample_peer()).await;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .get_torrents(Query::params([QueryParam::new("limit", "1")].to_vec()))
                 .await;
 
@@ -194,7 +192,7 @@ mod tracker_api {
             api_server.add_torrent(&info_hash_1, &sample_peer()).await;
             api_server.add_torrent(&info_hash_2, &sample_peer()).await;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .get_torrents(Query::params([QueryParam::new("offset", "1")].to_vec()))
                 .await;
 
@@ -215,13 +213,13 @@ mod tracker_api {
         async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
             let api_server = start_default_api(&Version::Warp).await;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .get_torrents(Query::empty())
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .get_torrents(Query::default())
                 .await;
 
@@ -238,7 +236,7 @@ mod tracker_api {
 
             api_server.add_torrent(&info_hash, &peer).await;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .get_torrent(&info_hash.to_string())
                 .await;
 
@@ -261,7 +259,7 @@ mod tracker_api {
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .get_torrent(&info_hash.to_string())
                 .await;
 
@@ -276,13 +274,13 @@ mod tracker_api {
 
             api_server.add_torrent(&info_hash, &sample_peer()).await;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .get_torrent(&info_hash.to_string())
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .get_torrent(&info_hash.to_string())
                 .await;
 
@@ -310,7 +308,7 @@ mod tracker_api {
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
@@ -329,7 +327,7 @@ mod tracker_api {
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let api_client = Client::new(api_server.get_connection_info(), &Version::Warp);
+            let api_client = Client::new(api_server.get_connection_info());
 
             let response = api_client.whitelist_a_torrent(&info_hash).await;
             assert_ok(response).await;
@@ -344,13 +342,13 @@ mod tracker_api {
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
@@ -365,7 +363,7 @@ mod tracker_api {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
@@ -380,7 +378,7 @@ mod tracker_api {
             let info_hash = InfoHash::from_str(&hash).unwrap();
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
@@ -398,7 +396,7 @@ mod tracker_api {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
@@ -413,14 +411,14 @@ mod tracker_api {
             let info_hash = InfoHash::from_str(&hash).unwrap();
 
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
             assert_token_not_valid(response).await;
 
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
@@ -435,9 +433,7 @@ mod tracker_api {
             let info_hash = InfoHash::from_str(&hash).unwrap();
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
-                .reload_whitelist()
-                .await;
+            let response = Client::new(api_server.get_connection_info()).reload_whitelist().await;
 
             assert_ok(response).await;
             /* todo: this assert fails because the whitelist has not been reloaded yet.
@@ -462,9 +458,7 @@ mod tracker_api {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
-                .reload_whitelist()
-                .await;
+            let response = Client::new(api_server.get_connection_info()).reload_whitelist().await;
 
             assert_failed_to_reload_whitelist(response).await;
         }
@@ -490,7 +484,7 @@ mod tracker_api {
 
             let seconds_valid = 60;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .generate_auth_key(seconds_valid)
                 .await;
 
@@ -510,13 +504,13 @@ mod tracker_api {
 
             let seconds_valid = 60;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .generate_auth_key(seconds_valid)
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .generate_auth_key(seconds_valid)
                 .await;
 
@@ -530,7 +524,7 @@ mod tracker_api {
             force_database_error(&api_server.tracker);
 
             let seconds_valid = 60;
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .generate_auth_key(seconds_valid)
                 .await;
 
@@ -548,7 +542,7 @@ mod tracker_api {
                 .await
                 .unwrap();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -568,7 +562,7 @@ mod tracker_api {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info())
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -588,7 +582,7 @@ mod tracker_api {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -601,7 +595,7 @@ mod tracker_api {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -619,9 +613,7 @@ mod tracker_api {
                 .await
                 .unwrap();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
-                .reload_keys()
-                .await;
+            let response = Client::new(api_server.get_connection_info()).reload_keys().await;
 
             assert_ok(response).await;
         }
@@ -639,9 +631,7 @@ mod tracker_api {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
-                .reload_keys()
-                .await;
+            let response = Client::new(api_server.get_connection_info()).reload_keys().await;
 
             assert_failed_to_reload_keys(response).await;
         }
@@ -657,13 +647,13 @@ mod tracker_api {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .reload_keys()
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Warp)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .reload_keys()
                 .await;
 
@@ -697,7 +687,7 @@ mod tracker_apis {
     - [ ] POST   /api/key/:seconds_valid
     - [ ] DELETE /api/key/:key
 
-    Key commands
+    Keys commands
     - [ ] GET /api/keys/reload
 
     */
@@ -726,9 +716,7 @@ mod tracker_apis {
                 )
                 .await;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
-                .get_tracker_statistics()
-                .await;
+            let response = Client::new(api_server.get_connection_info()).get_tracker_statistics().await;
 
             assert_stats(
                 response,
@@ -758,13 +746,13 @@ mod tracker_apis {
         async fn should_not_allow_getting_tracker_statistics_for_unauthenticated_users() {
             let api_server = start_default_api(&Version::Axum).await;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .get_tracker_statistics()
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .get_tracker_statistics()
                 .await;
 
@@ -796,7 +784,7 @@ mod tracker_apis {
 
             api_server.add_torrent(&info_hash, &sample_peer()).await;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .get_torrents(Query::empty())
                 .await;
 
@@ -824,7 +812,7 @@ mod tracker_apis {
             api_server.add_torrent(&info_hash_1, &sample_peer()).await;
             api_server.add_torrent(&info_hash_2, &sample_peer()).await;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .get_torrents(Query::params([QueryParam::new("limit", "1")].to_vec()))
                 .await;
 
@@ -852,7 +840,7 @@ mod tracker_apis {
             api_server.add_torrent(&info_hash_1, &sample_peer()).await;
             api_server.add_torrent(&info_hash_2, &sample_peer()).await;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .get_torrents(Query::params([QueryParam::new("offset", "1")].to_vec()))
                 .await;
 
@@ -873,13 +861,13 @@ mod tracker_apis {
         async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
             let api_server = start_default_api(&Version::Axum).await;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .get_torrents(Query::empty())
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .get_torrents(Query::default())
                 .await;
 
@@ -896,7 +884,7 @@ mod tracker_apis {
 
             api_server.add_torrent(&info_hash, &peer).await;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .get_torrent(&info_hash.to_string())
                 .await;
 
@@ -919,7 +907,7 @@ mod tracker_apis {
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .get_torrent(&info_hash.to_string())
                 .await;
 
@@ -934,13 +922,13 @@ mod tracker_apis {
 
             api_server.add_torrent(&info_hash, &sample_peer()).await;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .get_torrent(&info_hash.to_string())
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .get_torrent(&info_hash.to_string())
                 .await;
 
@@ -968,7 +956,7 @@ mod tracker_apis {
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
@@ -987,7 +975,7 @@ mod tracker_apis {
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let api_client = Client::new(api_server.get_connection_info(), &Version::Axum);
+            let api_client = Client::new(api_server.get_connection_info());
 
             let response = api_client.whitelist_a_torrent(&info_hash).await;
             assert_ok(response).await;
@@ -1002,13 +990,13 @@ mod tracker_apis {
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
@@ -1023,7 +1011,7 @@ mod tracker_apis {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
@@ -1038,7 +1026,7 @@ mod tracker_apis {
             let info_hash = InfoHash::from_str(&hash).unwrap();
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
@@ -1056,7 +1044,7 @@ mod tracker_apis {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
@@ -1071,14 +1059,14 @@ mod tracker_apis {
             let info_hash = InfoHash::from_str(&hash).unwrap();
 
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
             assert_token_not_valid(response).await;
 
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
@@ -1093,9 +1081,7 @@ mod tracker_apis {
             let info_hash = InfoHash::from_str(&hash).unwrap();
             api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
-                .reload_whitelist()
-                .await;
+            let response = Client::new(api_server.get_connection_info()).reload_whitelist().await;
 
             assert_ok(response).await;
             /* todo: this assert fails because the whitelist has not been reloaded yet.
@@ -1120,9 +1106,7 @@ mod tracker_apis {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
-                .reload_whitelist()
-                .await;
+            let response = Client::new(api_server.get_connection_info()).reload_whitelist().await;
 
             assert_failed_to_reload_whitelist(response).await;
         }
@@ -1148,7 +1132,7 @@ mod tracker_apis {
 
             let seconds_valid = 60;
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .generate_auth_key(seconds_valid)
                 .await;
 
@@ -1168,13 +1152,13 @@ mod tracker_apis {
 
             let seconds_valid = 60;
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .generate_auth_key(seconds_valid)
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .generate_auth_key(seconds_valid)
                 .await;
 
@@ -1188,7 +1172,7 @@ mod tracker_apis {
             force_database_error(&api_server.tracker);
 
             let seconds_valid = 60;
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .generate_auth_key(seconds_valid)
                 .await;
 
@@ -1206,7 +1190,7 @@ mod tracker_apis {
                 .await
                 .unwrap();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -1226,7 +1210,7 @@ mod tracker_apis {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info())
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -1246,7 +1230,7 @@ mod tracker_apis {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -1259,7 +1243,7 @@ mod tracker_apis {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .delete_auth_key(&auth_key.key)
                 .await;
 
@@ -1277,9 +1261,7 @@ mod tracker_apis {
                 .await
                 .unwrap();
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
-                .reload_keys()
-                .await;
+            let response = Client::new(api_server.get_connection_info()).reload_keys().await;
 
             assert_ok(response).await;
         }
@@ -1297,9 +1279,7 @@ mod tracker_apis {
 
             force_database_error(&api_server.tracker);
 
-            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
-                .reload_keys()
-                .await;
+            let response = Client::new(api_server.get_connection_info()).reload_keys().await;
 
             assert_failed_to_reload_keys(response).await;
         }
@@ -1315,13 +1295,13 @@ mod tracker_apis {
                 .await
                 .unwrap();
 
-            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .reload_keys()
                 .await;
 
             assert_token_not_valid(response).await;
 
-            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
                 .reload_keys()
                 .await;
 

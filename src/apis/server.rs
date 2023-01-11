@@ -20,34 +20,37 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl F
     // todo: duplicate routes definition. See `start_tls` function.
     let app = Router::new()
         // Stats
-        .route("/stats", get(get_stats_handler).with_state(tracker.clone()))
+        .route("/api/stats", get(get_stats_handler).with_state(tracker.clone()))
         // Torrents
-        .route("/torrent/:info_hash", get(get_torrent_handler).with_state(tracker.clone()))
-        .route("/torrents", get(get_torrents_handler).with_state(tracker.clone()))
+        .route(
+            "/api/torrent/:info_hash",
+            get(get_torrent_handler).with_state(tracker.clone()),
+        )
+        .route("/api/torrents", get(get_torrents_handler).with_state(tracker.clone()))
         // Whitelisted torrents
         .route(
-            "/whitelist/:info_hash",
+            "/api/whitelist/:info_hash",
             post(add_torrent_to_whitelist_handler).with_state(tracker.clone()),
         )
         .route(
-            "/whitelist/:info_hash",
+            "/api/whitelist/:info_hash",
             delete(delete_torrent_from_whitelist_handler).with_state(tracker.clone()),
         )
         // Whitelist command
         .route(
-            "/whitelist/:info_hash",
+            "/api/whitelist/:info_hash",
             get(reload_whitelist_handler).with_state(tracker.clone()),
         )
         // Keys
         .route(
-            "/key/:seconds_valid_or_key",
+            "/api/key/:seconds_valid_or_key",
             post(generate_auth_key_handler)
                 .with_state(tracker.clone())
                 .delete(delete_auth_key_handler)
                 .with_state(tracker.clone()),
         )
-        // Key command
-        .route("/keys/reload", get(reload_keys_handler).with_state(tracker.clone()))
+        // Keys command
+        .route("/api/keys/reload", get(reload_keys_handler).with_state(tracker.clone()))
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
     let server = axum::Server::bind(&socket_addr).serve(app.into_make_service());
@@ -66,34 +69,37 @@ pub fn start_tls(
     // todo: duplicate routes definition. See `start` function.
     let app = Router::new()
         // Stats
-        .route("/stats", get(get_stats_handler).with_state(tracker.clone()))
+        .route("/api/stats", get(get_stats_handler).with_state(tracker.clone()))
         // Torrents
-        .route("/torrent/:info_hash", get(get_torrent_handler).with_state(tracker.clone()))
-        .route("/torrents", get(get_torrents_handler).with_state(tracker.clone()))
+        .route(
+            "/api/torrent/:info_hash",
+            get(get_torrent_handler).with_state(tracker.clone()),
+        )
+        .route("/api/torrents", get(get_torrents_handler).with_state(tracker.clone()))
         // Whitelisted torrents
         .route(
-            "/whitelist/:info_hash",
+            "/api/whitelist/:info_hash",
             post(add_torrent_to_whitelist_handler).with_state(tracker.clone()),
         )
         .route(
-            "/whitelist/:info_hash",
+            "/api/whitelist/:info_hash",
             delete(delete_torrent_from_whitelist_handler).with_state(tracker.clone()),
         )
         // Whitelist command
         .route(
-            "/whitelist/:info_hash",
+            "/api/whitelist/:info_hash",
             get(reload_whitelist_handler).with_state(tracker.clone()),
         )
         // Keys
         .route(
-            "/key/:seconds_valid_or_key",
+            "/api/key/:seconds_valid_or_key",
             post(generate_auth_key_handler)
                 .with_state(tracker.clone())
                 .delete(delete_auth_key_handler)
                 .with_state(tracker.clone()),
         )
-        // Key command
-        .route("/keys/reload", get(reload_keys_handler).with_state(tracker.clone()))
+        // Keys command
+        .route("/api/keys/reload", get(reload_keys_handler).with_state(tracker.clone()))
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
     let handle = Handle::new();

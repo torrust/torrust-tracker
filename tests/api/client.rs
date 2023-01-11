@@ -1,7 +1,6 @@
 use reqwest::Response;
 
 use super::connection_info::ConnectionInfo;
-use super::Version;
 
 pub struct Client {
     connection_info: ConnectionInfo,
@@ -68,13 +67,10 @@ impl From<QueryParam> for ReqwestQueryParam {
 }
 
 impl Client {
-    pub fn new(connection_info: ConnectionInfo, version: &Version) -> Self {
+    pub fn new(connection_info: ConnectionInfo) -> Self {
         Self {
             connection_info,
-            base_path: match version {
-                Version::Warp => "/api/".to_string(),
-                Version::Axum => "/".to_string(),
-            },
+            base_path: "/api/".to_string(),
         }
     }
 
