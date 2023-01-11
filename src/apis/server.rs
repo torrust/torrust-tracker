@@ -12,11 +12,12 @@ use warp::hyper;
 use super::middlewares::auth::auth;
 use super::routes::{
     add_torrent_to_whitelist_handler, delete_torrent_from_whitelist_handler, get_stats_handler, get_torrent_handler,
-    get_torrents_handler,
+    get_torrents_handler, reload_whitelist_handler,
 };
 use crate::tracker;
 
 pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl Future<Output = hyper::Result<()>> {
+    // todo: duplicate routes definition. See `start_tls` function.
     let app = Router::new()
         // Stats
         .route("/stats", get(get_stats_handler).with_state(tracker.clone()))
@@ -31,6 +32,11 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl F
         .route(
             "/whitelist/:info_hash",
             delete(delete_torrent_from_whitelist_handler).with_state(tracker.clone()),
+        )
+        // Whitelist command
+        .route(
+            "/whitelist/:info_hash",
+            get(reload_whitelist_handler).with_state(tracker.clone()),
         )
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
@@ -47,6 +53,7 @@ pub fn start_tls(
     ssl_config: RustlsConfig,
     tracker: &Arc<tracker::Tracker>,
 ) -> impl Future<Output = Result<(), std::io::Error>> {
+    // todo: duplicate routes definition. See `start` function.
     let app = Router::new()
         // Stats
         .route("/stats", get(get_stats_handler).with_state(tracker.clone()))
@@ -61,6 +68,11 @@ pub fn start_tls(
         .route(
             "/whitelist/:info_hash",
             delete(delete_torrent_from_whitelist_handler).with_state(tracker.clone()),
+        )
+        // Whitelist command
+        .route(
+            "/whitelist/:info_hash",
+            get(reload_whitelist_handler).with_state(tracker.clone()),
         )
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 

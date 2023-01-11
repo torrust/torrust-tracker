@@ -105,6 +105,13 @@ pub async fn delete_torrent_from_whitelist_handler(
     }
 }
 
+pub async fn reload_whitelist_handler(State(tracker): State<Arc<Tracker>>) -> Response {
+    match tracker.load_whitelist().await {
+        Ok(..) => response_ok(),
+        Err(..) => response_err("failed to reload whitelist".to_string()),
+    }
+}
+
 /// Serde deserialization decorator to map empty Strings to None,
 fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
 where

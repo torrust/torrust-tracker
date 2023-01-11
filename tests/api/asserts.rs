@@ -1,3 +1,5 @@
+// code-review: should we use macros to return the exact line where the assert fails?
+
 use reqwest::Response;
 
 pub async fn assert_torrent_not_known(response: Response) {

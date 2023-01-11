@@ -950,8 +950,8 @@ mod tracker_apis {
         use torrust_tracker::protocol::info_hash::InfoHash;
 
         use crate::api::asserts::{
-            assert_failed_to_remove_torrent_from_whitelist, assert_failed_to_whitelist_torrent, assert_token_not_valid,
-            assert_unauthorized,
+            assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist,
+            assert_failed_to_whitelist_torrent, assert_token_not_valid, assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -1079,6 +1079,48 @@ mod tracker_apis {
                 .await;
 
             assert_unauthorized(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_allow_reload_the_whitelist_from_the_database() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash = InfoHash::from_str(&hash).unwrap();
+            api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .reload_whitelist()
+                .await;
+
+            assert_eq!(response.status(), 200);
+            /* This assert fails because the whitelist has not been reloaded yet.
+               We could add a new endpoint GET /api/whitelist/:info_hash to check if a torrent
+               is whitelisted and use that endpoint to check if the torrent is still there after reloading.
+            assert!(
+                !(api_server
+                    .tracker
+                    .is_info_hash_whitelisted(&InfoHash::from_str(&info_hash).unwrap())
+                    .await)
+            );
+            */
+        }
+
+        #[tokio::test]
+        async fn should_return_an_error_when_the_whitelist_cannot_be_reloaded_from_the_database() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash = InfoHash::from_str(&hash).unwrap();
+            api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+            force_database_error(&api_server.tracker);
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .reload_whitelist()
+                .await;
+
+            assert_failed_to_reload_whitelist(response).await;
         }
     }
 }
