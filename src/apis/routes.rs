@@ -3,8 +3,9 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use axum::extract::{Path, Query, State};
+use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Json, Response};
-use serde::{de, Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use serde_json::json;
 
 use crate::api::resource::stats::Stats;
@@ -13,6 +14,31 @@ use crate::protocol::info_hash::InfoHash;
 use crate::tracker::services::statistics::get_metrics;
 use crate::tracker::services::torrent::{get_torrent_info, get_torrents, Pagination};
 use crate::tracker::Tracker;
+
+#[derive(Serialize, Debug)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum ActionStatus<'a> {
+    Ok,
+    Err { reason: std::borrow::Cow<'a, str> },
+}
+
+fn response_ok() -> Response {
+    (
+        StatusCode::OK,
+        [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
+        format!("{:?}", ActionStatus::Ok),
+    )
+        .into_response()
+}
+
+fn response_err(reason: String) -> Response {
+    (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
+        format!("Unhandled rejection: {:?}", ActionStatus::Err { reason: reason.into() }),
+    )
+        .into_response()
+}
 
 pub async fn get_stats_handler(State(tracker): State<Arc<Tracker>>) -> Json<Stats> {
     Json(Stats::from(get_metrics(tracker.clone()).await))
@@ -48,6 +74,19 @@ pub async fn get_torrents_handler(
         )
         .await,
     ))
+}
+
+/// # Panics
+///
+/// Will panic if it can't parse the infohash in the request
+pub async fn add_torrent_to_whitelist_handler(State(tracker): State<Arc<Tracker>>, Path(info_hash): Path<String>) -> Response {
+    match tracker
+        .add_torrent_to_whitelist(&InfoHash::from_str(&info_hash).unwrap())
+        .await
+    {
+        Ok(..) => response_ok(),
+        Err(..) => response_err("failed to whitelist torrent".to_string()),
+    }
 }
 
 /// Serde deserialization decorator to map empty Strings to None,

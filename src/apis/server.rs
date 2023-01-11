@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::{middleware, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
@@ -10,14 +10,21 @@ use log::info;
 use warp::hyper;
 
 use super::middlewares::auth::auth;
-use super::routes::{get_stats_handler, get_torrent_handler, get_torrents_handler};
+use super::routes::{add_torrent_to_whitelist_handler, get_stats_handler, get_torrent_handler, get_torrents_handler};
 use crate::tracker;
 
 pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl Future<Output = hyper::Result<()>> {
     let app = Router::new()
+        // Stats
         .route("/stats", get(get_stats_handler).with_state(tracker.clone()))
+        // Torrents
         .route("/torrent/:info_hash", get(get_torrent_handler).with_state(tracker.clone()))
         .route("/torrents", get(get_torrents_handler).with_state(tracker.clone()))
+        // Whitelisted torrents
+        .route(
+            "/whitelist/:info_hash",
+            post(add_torrent_to_whitelist_handler).with_state(tracker.clone()),
+        )
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
     let server = axum::Server::bind(&socket_addr).serve(app.into_make_service());
@@ -34,9 +41,16 @@ pub fn start_tls(
     tracker: &Arc<tracker::Tracker>,
 ) -> impl Future<Output = Result<(), std::io::Error>> {
     let app = Router::new()
+        // Stats
         .route("/stats", get(get_stats_handler).with_state(tracker.clone()))
+        // Torrents
         .route("/torrent/:info_hash", get(get_torrent_handler).with_state(tracker.clone()))
         .route("/torrents", get(get_torrents_handler).with_state(tracker.clone()))
+        // Whitelisted torrents
+        .route(
+            "/whitelist/:info_hash",
+            post(add_torrent_to_whitelist_handler).with_state(tracker.clone()),
+        )
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
     let handle = Handle::new();
