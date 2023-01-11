@@ -50,7 +50,7 @@ mod tracker_api {
         use torrust_tracker::api::resource::stats::Stats;
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::asserts::{assert_stats, assert_token_not_valid, assert_unauthorized};
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::fixtures::sample_peer;
@@ -72,9 +72,8 @@ mod tracker_api {
                 .get_tracker_statistics()
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(
-                response.json::<Stats>().await.unwrap(),
+            assert_stats(
+                response,
                 Stats {
                     torrents: 1,
                     seeders: 1,
@@ -92,8 +91,9 @@ mod tracker_api {
                     udp6_connections_handled: 0,
                     udp6_announces_handled: 0,
                     udp6_scrapes_handled: 0,
-                }
-            );
+                },
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -121,7 +121,9 @@ mod tracker_api {
         use torrust_tracker::api::resource::torrent::{self, Torrent};
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::asserts::{assert_token_not_valid, assert_torrent_not_known, assert_unauthorized};
+        use crate::api::asserts::{
+            assert_token_not_valid, assert_torrent_info, assert_torrent_list, assert_torrent_not_known, assert_unauthorized,
+        };
         use crate::api::client::{Client, Query, QueryParam};
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::fixtures::sample_peer;
@@ -140,17 +142,17 @@ mod tracker_api {
                 .get_torrents(Query::empty())
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(
-                response.json::<Vec<torrent::ListItem>>().await.unwrap(),
+            assert_torrent_list(
+                response,
                 vec![torrent::ListItem {
                     info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: None // Torrent list does not include the peer list for each torrent
-                }]
-            );
+                    peers: None, // Torrent list does not include the peer list for each torrent
+                }],
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -168,17 +170,17 @@ mod tracker_api {
                 .get_torrents(Query::params([QueryParam::new("limit", "1")].to_vec()))
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(
-                response.json::<Vec<torrent::ListItem>>().await.unwrap(),
+            assert_torrent_list(
+                response,
                 vec![torrent::ListItem {
                     info_hash: "0b3aea4adc213ce32295be85d3883a63bca25446".to_string(),
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: None // Torrent list does not include the peer list for each torrent
-                }]
-            );
+                    peers: None, // Torrent list does not include the peer list for each torrent
+                }],
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -196,17 +198,17 @@ mod tracker_api {
                 .get_torrents(Query::params([QueryParam::new("offset", "1")].to_vec()))
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(
-                response.json::<Vec<torrent::ListItem>>().await.unwrap(),
+            assert_torrent_list(
+                response,
                 vec![torrent::ListItem {
                     info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: None // Torrent list does not include the peer list for each torrent
-                }]
-            );
+                    peers: None, // Torrent list does not include the peer list for each torrent
+                }],
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -240,17 +242,17 @@ mod tracker_api {
                 .get_torrent(&info_hash.to_string())
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(
-                response.json::<Torrent>().await.unwrap(),
+            assert_torrent_info(
+                response,
                 Torrent {
                     info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: Some(vec![resource::peer::Peer::from(peer)])
-                }
-            );
+                    peers: Some(vec![resource::peer::Peer::from(peer)]),
+                },
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -295,7 +297,7 @@ mod tracker_api {
 
         use crate::api::asserts::{
             assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist,
-            assert_failed_to_whitelist_torrent, assert_token_not_valid, assert_unauthorized,
+            assert_failed_to_whitelist_torrent, assert_ok, assert_token_not_valid, assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -308,11 +310,11 @@ mod tracker_api {
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let res = Client::new(api_server.get_connection_info(), &Version::Warp)
+            let response = Client::new(api_server.get_connection_info(), &Version::Warp)
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
-            assert_eq!(res.status(), 200);
+            assert_ok(response).await;
             assert!(
                 api_server
                     .tracker
@@ -329,11 +331,11 @@ mod tracker_api {
 
             let api_client = Client::new(api_server.get_connection_info(), &Version::Warp);
 
-            let res = api_client.whitelist_a_torrent(&info_hash).await;
-            assert_eq!(res.status(), 200);
+            let response = api_client.whitelist_a_torrent(&info_hash).await;
+            assert_ok(response).await;
 
-            let res = api_client.whitelist_a_torrent(&info_hash).await;
-            assert_eq!(res.status(), 200);
+            let response = api_client.whitelist_a_torrent(&info_hash).await;
+            assert_ok(response).await;
         }
 
         #[tokio::test]
@@ -382,7 +384,7 @@ mod tracker_api {
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
-            assert_eq!(response.status(), 200);
+            assert_ok(response).await;
             assert!(!api_server.tracker.is_info_hash_whitelisted(&info_hash).await);
         }
 
@@ -437,8 +439,8 @@ mod tracker_api {
                 .reload_whitelist()
                 .await;
 
-            assert_eq!(response.status(), 200);
-            /* This assert fails because the whitelist has not been reloaded yet.
+            assert_ok(response).await;
+            /* todo: this assert fails because the whitelist has not been reloaded yet.
                We could add a new endpoint GET /api/whitelist/:info_hash to check if a torrent
                is whitelisted and use that endpoint to check if the torrent is still there after reloading.
             assert!(
@@ -471,12 +473,11 @@ mod tracker_api {
     mod for_key_resources {
         use std::time::Duration;
 
-        use torrust_tracker::api::resource::auth_key::AuthKey;
         use torrust_tracker::tracker::auth::Key;
 
         use crate::api::asserts::{
-            assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys, assert_token_not_valid,
-            assert_unauthorized,
+            assert_auth_key, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys, assert_ok,
+            assert_token_not_valid, assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -493,10 +494,12 @@ mod tracker_api {
                 .generate_auth_key(seconds_valid)
                 .await;
 
+            let auth_key_resource = assert_auth_key(response).await;
+
             // Verify the key with the tracker
             assert!(api_server
                 .tracker
-                .verify_auth_key(&Key::from(response.json::<AuthKey>().await.unwrap()))
+                .verify_auth_key(&Key::from(auth_key_resource))
                 .await
                 .is_ok());
         }
@@ -549,8 +552,7 @@ mod tracker_api {
                 .delete_auth_key(&auth_key.key)
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(response.text().await.unwrap(), "{\"status\":\"ok\"}");
+            assert_ok(response).await;
         }
 
         #[tokio::test]
@@ -621,7 +623,7 @@ mod tracker_api {
                 .reload_keys()
                 .await;
 
-            assert_eq!(response.status(), 200);
+            assert_ok(response).await;
         }
 
         #[tokio::test]
@@ -706,7 +708,7 @@ mod tracker_apis {
         use torrust_tracker::api::resource::stats::Stats;
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::asserts::{assert_stats, assert_token_not_valid, assert_unauthorized};
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::fixtures::sample_peer;
@@ -728,9 +730,8 @@ mod tracker_apis {
                 .get_tracker_statistics()
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(
-                response.json::<Stats>().await.unwrap(),
+            assert_stats(
+                response,
                 Stats {
                     torrents: 1,
                     seeders: 1,
@@ -748,8 +749,9 @@ mod tracker_apis {
                     udp6_connections_handled: 0,
                     udp6_announces_handled: 0,
                     udp6_scrapes_handled: 0,
-                }
-            );
+                },
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -777,7 +779,9 @@ mod tracker_apis {
         use torrust_tracker::api::resource::{self, torrent};
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::asserts::{assert_token_not_valid, assert_torrent_not_known, assert_unauthorized};
+        use crate::api::asserts::{
+            assert_token_not_valid, assert_torrent_info, assert_torrent_list, assert_torrent_not_known, assert_unauthorized,
+        };
         use crate::api::client::{Client, Query, QueryParam};
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::fixtures::sample_peer;
@@ -796,17 +800,17 @@ mod tracker_apis {
                 .get_torrents(Query::empty())
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(
-                response.json::<Vec<torrent::ListItem>>().await.unwrap(),
+            assert_torrent_list(
+                response,
                 vec![torrent::ListItem {
                     info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: None // Torrent list does not include the peer list for each torrent
-                }]
-            );
+                    peers: None, // Torrent list does not include the peer list for each torrent
+                }],
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -824,17 +828,17 @@ mod tracker_apis {
                 .get_torrents(Query::params([QueryParam::new("limit", "1")].to_vec()))
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(
-                response.json::<Vec<torrent::ListItem>>().await.unwrap(),
+            assert_torrent_list(
+                response,
                 vec![torrent::ListItem {
                     info_hash: "0b3aea4adc213ce32295be85d3883a63bca25446".to_string(),
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: None // Torrent list does not include the peer list for each torrent
-                }]
-            );
+                    peers: None, // Torrent list does not include the peer list for each torrent
+                }],
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -852,17 +856,17 @@ mod tracker_apis {
                 .get_torrents(Query::params([QueryParam::new("offset", "1")].to_vec()))
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(
-                response.json::<Vec<torrent::ListItem>>().await.unwrap(),
+            assert_torrent_list(
+                response,
                 vec![torrent::ListItem {
                     info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: None // Torrent list does not include the peer list for each torrent
-                }]
-            );
+                    peers: None, // Torrent list does not include the peer list for each torrent
+                }],
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -896,17 +900,17 @@ mod tracker_apis {
                 .get_torrent(&info_hash.to_string())
                 .await;
 
-            assert_eq!(response.status(), 200);
-            assert_eq!(
-                response.json::<Torrent>().await.unwrap(),
+            assert_torrent_info(
+                response,
                 Torrent {
                     info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(),
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: Some(vec![resource::peer::Peer::from(peer)])
-                }
-            );
+                    peers: Some(vec![resource::peer::Peer::from(peer)]),
+                },
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -951,7 +955,7 @@ mod tracker_apis {
 
         use crate::api::asserts::{
             assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist,
-            assert_failed_to_whitelist_torrent, assert_token_not_valid, assert_unauthorized,
+            assert_failed_to_whitelist_torrent, assert_ok, assert_token_not_valid, assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -964,11 +968,11 @@ mod tracker_apis {
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
-            let res = Client::new(api_server.get_connection_info(), &Version::Axum)
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
                 .whitelist_a_torrent(&info_hash)
                 .await;
 
-            assert_eq!(res.status(), 200);
+            assert_ok(response).await;
             assert!(
                 api_server
                     .tracker
@@ -985,11 +989,11 @@ mod tracker_apis {
 
             let api_client = Client::new(api_server.get_connection_info(), &Version::Axum);
 
-            let res = api_client.whitelist_a_torrent(&info_hash).await;
-            assert_eq!(res.status(), 200);
+            let response = api_client.whitelist_a_torrent(&info_hash).await;
+            assert_ok(response).await;
 
-            let res = api_client.whitelist_a_torrent(&info_hash).await;
-            assert_eq!(res.status(), 200);
+            let response = api_client.whitelist_a_torrent(&info_hash).await;
+            assert_ok(response).await;
         }
 
         #[tokio::test]
@@ -1038,7 +1042,7 @@ mod tracker_apis {
                 .remove_torrent_from_whitelist(&hash)
                 .await;
 
-            assert_eq!(response.status(), 200);
+            assert_ok(response).await;
             assert!(!api_server.tracker.is_info_hash_whitelisted(&info_hash).await);
         }
 
@@ -1093,8 +1097,8 @@ mod tracker_apis {
                 .reload_whitelist()
                 .await;
 
-            assert_eq!(response.status(), 200);
-            /* This assert fails because the whitelist has not been reloaded yet.
+            assert_ok(response).await;
+            /* todo: this assert fails because the whitelist has not been reloaded yet.
                We could add a new endpoint GET /api/whitelist/:info_hash to check if a torrent
                is whitelisted and use that endpoint to check if the torrent is still there after reloading.
             assert!(
@@ -1127,12 +1131,11 @@ mod tracker_apis {
     mod for_key_resources {
         use std::time::Duration;
 
-        use torrust_tracker::api::resource::auth_key::AuthKey;
         use torrust_tracker::tracker::auth::Key;
 
         use crate::api::asserts::{
-            assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys, assert_ok,
-            assert_token_not_valid, assert_unauthorized,
+            assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
+            assert_ok, assert_token_not_valid, assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -1149,10 +1152,12 @@ mod tracker_apis {
                 .generate_auth_key(seconds_valid)
                 .await;
 
+            let auth_key_resource = assert_auth_key_utf8(response).await;
+
             // Verify the key with the tracker
             assert!(api_server
                 .tracker
-                .verify_auth_key(&Key::from(response.json::<AuthKey>().await.unwrap()))
+                .verify_auth_key(&Key::from(auth_key_resource))
                 .await
                 .is_ok());
         }
@@ -1276,7 +1281,7 @@ mod tracker_apis {
                 .reload_keys()
                 .await;
 
-            assert_eq!(response.status(), 200);
+            assert_ok(response).await;
         }
 
         #[tokio::test]

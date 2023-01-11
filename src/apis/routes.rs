@@ -27,8 +27,8 @@ pub enum ActionStatus<'a> {
 fn response_ok() -> Response {
     (
         StatusCode::OK,
-        [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
-        format!("{:?}", ActionStatus::Ok),
+        [(header::CONTENT_TYPE, "application/json")],
+        serde_json::to_string(&ActionStatus::Ok).unwrap(),
     )
         .into_response()
 }
