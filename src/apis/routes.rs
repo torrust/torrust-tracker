@@ -89,6 +89,22 @@ pub async fn add_torrent_to_whitelist_handler(State(tracker): State<Arc<Tracker>
     }
 }
 
+/// # Panics
+///
+/// Will panic if it can't parse the infohash in the request
+pub async fn delete_torrent_from_whitelist_handler(
+    State(tracker): State<Arc<Tracker>>,
+    Path(info_hash): Path<String>,
+) -> Response {
+    match tracker
+        .remove_torrent_from_whitelist(&InfoHash::from_str(&info_hash).unwrap())
+        .await
+    {
+        Ok(..) => response_ok(),
+        Err(..) => response_err("failed to remove torrent from whitelist".to_string()),
+    }
+}
+
 /// Serde deserialization decorator to map empty Strings to None,
 fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
 where

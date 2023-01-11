@@ -949,7 +949,10 @@ mod tracker_apis {
 
         use torrust_tracker::protocol::info_hash::InfoHash;
 
-        use crate::api::asserts::{assert_failed_to_whitelist_torrent, assert_token_not_valid, assert_unauthorized};
+        use crate::api::asserts::{
+            assert_failed_to_remove_torrent_from_whitelist, assert_failed_to_whitelist_torrent, assert_token_not_valid,
+            assert_unauthorized,
+        };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::server::start_default_api;
@@ -1021,6 +1024,61 @@ mod tracker_apis {
                 .await;
 
             assert_failed_to_whitelist_torrent(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_allow_removing_a_torrent_from_the_whitelist() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash = InfoHash::from_str(&hash).unwrap();
+            api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .remove_torrent_from_whitelist(&hash)
+                .await;
+
+            assert_eq!(response.status(), 200);
+            assert!(!api_server.tracker.is_info_hash_whitelisted(&info_hash).await);
+        }
+
+        #[tokio::test]
+        async fn should_return_an_error_when_the_torrent_cannot_be_removed_from_the_whitelist() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash = InfoHash::from_str(&hash).unwrap();
+            api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+            force_database_error(&api_server.tracker);
+
+            let response = Client::new(api_server.get_connection_info(), &Version::Axum)
+                .remove_torrent_from_whitelist(&hash)
+                .await;
+
+            assert_failed_to_remove_torrent_from_whitelist(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthenticated_users() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash = InfoHash::from_str(&hash).unwrap();
+
+            api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+            let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()), &Version::Axum)
+                .remove_torrent_from_whitelist(&hash)
+                .await;
+
+            assert_token_not_valid(response).await;
+
+            api_server.tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+            let response = Client::new(connection_with_no_token(&api_server.get_bind_address()), &Version::Axum)
+                .remove_torrent_from_whitelist(&hash)
+                .await;
+
+            assert_unauthorized(response).await;
         }
     }
 }

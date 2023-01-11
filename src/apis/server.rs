@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum::routing::{get, post};
+use axum::routing::{delete, get, post};
 use axum::{middleware, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
@@ -10,7 +10,10 @@ use log::info;
 use warp::hyper;
 
 use super::middlewares::auth::auth;
-use super::routes::{add_torrent_to_whitelist_handler, get_stats_handler, get_torrent_handler, get_torrents_handler};
+use super::routes::{
+    add_torrent_to_whitelist_handler, delete_torrent_from_whitelist_handler, get_stats_handler, get_torrent_handler,
+    get_torrents_handler,
+};
 use crate::tracker;
 
 pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl Future<Output = hyper::Result<()>> {
@@ -24,6 +27,10 @@ pub fn start(socket_addr: SocketAddr, tracker: &Arc<tracker::Tracker>) -> impl F
         .route(
             "/whitelist/:info_hash",
             post(add_torrent_to_whitelist_handler).with_state(tracker.clone()),
+        )
+        .route(
+            "/whitelist/:info_hash",
+            delete(delete_torrent_from_whitelist_handler).with_state(tracker.clone()),
         )
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
@@ -50,6 +57,10 @@ pub fn start_tls(
         .route(
             "/whitelist/:info_hash",
             post(add_torrent_to_whitelist_handler).with_state(tracker.clone()),
+        )
+        .route(
+            "/whitelist/:info_hash",
+            delete(delete_torrent_from_whitelist_handler).with_state(tracker.clone()),
         )
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth));
 
