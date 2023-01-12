@@ -42,7 +42,7 @@ pub fn router(tracker: &Arc<Tracker>) -> Router {
         )
         // Whitelist command
         .route(
-            "/api/whitelist/:info_hash",
+            "/api/whitelist/reload",
             get(reload_whitelist_handler).with_state(tracker.clone()),
         )
         // Keys
@@ -95,7 +95,7 @@ fn response_ok() -> Response {
 
 fn response_invalid_info_hash_param(info_hash: &str) -> Response {
     response_bad_request(&format!(
-        "Invalid URL: invalid infohash param: string \"{}\", expected expected a 40 character long string",
+        "Invalid URL: invalid infohash param: string \"{}\", expected a 40 character long string",
         info_hash
     ))
 }

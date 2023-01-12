@@ -766,6 +766,26 @@ mod tracker_apis {
 
     */
 
+    // When these infohashes are used in URL path params
+    // the response is a custom response returned in the handler
+    fn invalid_infohashes_returning_bad_request() -> Vec<String> {
+        [
+            "0".to_string(),
+            "-1".to_string(),
+            "1.1".to_string(),
+            "INVALID INFOHASH".to_string(),
+            "9c38422213e30bff212b30c360d26f9a0213642".to_string(), // 39-char length instead of 40
+            "9c38422213e30bff212b30c360d26f9a0213642&".to_string(), // Invalid char
+        ]
+        .to_vec()
+    }
+
+    // When these infohashes are used in URL path params
+    // the response is an Axum response returned in the handler
+    fn invalid_infohashes_returning_not_found() -> Vec<String> {
+        [String::new(), " ".to_string()].to_vec()
+    }
+
     mod authentication {
         use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
         use crate::api::client::{Client, Query, QueryParam};
@@ -915,9 +935,10 @@ mod tracker_apis {
         use torrust_tracker::api::resource::{self, torrent};
         use torrust_tracker::protocol::info_hash::InfoHash;
 
+        use super::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
         use crate::api::asserts::{
-            assert_bad_request, assert_token_not_valid, assert_torrent_info, assert_torrent_list, assert_torrent_not_known,
-            assert_unauthorized,
+            assert_bad_request, assert_invalid_infohash, assert_not_found, assert_token_not_valid, assert_torrent_info,
+            assert_torrent_list, assert_torrent_not_known, assert_unauthorized,
         };
         use crate::api::client::{Client, Query, QueryParam};
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -1007,24 +1028,33 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_fail_getting_torrents_when_query_parameters_cannot_be_parsed() {
+        async fn should_fail_getting_torrents_when_the_offset_query_parameter_cannot_be_parsed() {
             let api_server = start_default_api(&Version::Axum).await;
 
-            let invalid_offset = "INVALID OFFSET";
+            let invalid_offsets = [" ", "-1", "1.1", "INVALID OFFSET"];
 
-            let response = Client::new(api_server.get_connection_info())
-                .get_torrents(Query::params([QueryParam::new("offset", invalid_offset)].to_vec()))
-                .await;
+            for invalid_offset in &invalid_offsets {
+                let response = Client::new(api_server.get_connection_info())
+                    .get_torrents(Query::params([QueryParam::new("offset", invalid_offset)].to_vec()))
+                    .await;
 
-            assert_bad_request(response, "Failed to deserialize query string: invalid digit found in string").await;
+                assert_bad_request(response, "Failed to deserialize query string: invalid digit found in string").await;
+            }
+        }
 
-            let invalid_limit = "INVALID LIMIT";
+        #[tokio::test]
+        async fn should_fail_getting_torrents_when_the_limit_query_parameter_cannot_be_parsed() {
+            let api_server = start_default_api(&Version::Axum).await;
 
-            let response = Client::new(api_server.get_connection_info())
-                .get_torrents(Query::params([QueryParam::new("limit", invalid_limit)].to_vec()))
-                .await;
+            let invalid_limits = [" ", "-1", "1.1", "INVALID LIMIT"];
 
-            assert_bad_request(response, "Failed to deserialize query string: invalid digit found in string").await;
+            for invalid_limit in &invalid_limits {
+                let response = Client::new(api_server.get_connection_info())
+                    .get_torrents(Query::params([QueryParam::new("limit", invalid_limit)].to_vec()))
+                    .await;
+
+                assert_bad_request(response, "Failed to deserialize query string: invalid digit found in string").await;
+            }
         }
 
         #[tokio::test]
@@ -1085,20 +1115,24 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_cannot_be_parsed() {
+        async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_is_invalid() {
             let api_server = start_default_api(&Version::Axum).await;
 
-            let invalid_infohash = "INVALID INFOHASH";
+            for invalid_infohash in &invalid_infohashes_returning_bad_request() {
+                let response = Client::new(api_server.get_connection_info())
+                    .get_torrent(invalid_infohash)
+                    .await;
 
-            let response = Client::new(api_server.get_connection_info())
-                .get_torrent(invalid_infohash)
-                .await;
+                assert_invalid_infohash(response, invalid_infohash).await;
+            }
 
-            assert_bad_request(
-                response,
-                "Invalid URL: invalid infohash param: string \"INVALID INFOHASH\", expected expected a 40 character long string",
-            )
-            .await;
+            for invalid_infohash in &invalid_infohashes_returning_not_found() {
+                let response = Client::new(api_server.get_connection_info())
+                    .get_torrent(invalid_infohash)
+                    .await;
+
+                assert_not_found(response).await;
+            }
         }
 
         #[tokio::test]
@@ -1128,9 +1162,11 @@ mod tracker_apis {
 
         use torrust_tracker::protocol::info_hash::InfoHash;
 
+        use super::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
         use crate::api::asserts::{
             assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist,
-            assert_failed_to_whitelist_torrent, assert_ok, assert_token_not_valid, assert_unauthorized,
+            assert_failed_to_whitelist_torrent, assert_invalid_infohash, assert_not_found, assert_ok, assert_token_not_valid,
+            assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -1206,6 +1242,27 @@ mod tracker_apis {
         }
 
         #[tokio::test]
+        async fn should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invalid() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            for invalid_infohash in &invalid_infohashes_returning_bad_request() {
+                let response = Client::new(api_server.get_connection_info())
+                    .whitelist_a_torrent(invalid_infohash)
+                    .await;
+
+                assert_invalid_infohash(response, invalid_infohash).await;
+            }
+
+            for invalid_infohash in &invalid_infohashes_returning_not_found() {
+                let response = Client::new(api_server.get_connection_info())
+                    .whitelist_a_torrent(invalid_infohash)
+                    .await;
+
+                assert_not_found(response).await;
+            }
+        }
+
+        #[tokio::test]
         async fn should_allow_removing_a_torrent_from_the_whitelist() {
             let api_server = start_default_api(&Version::Axum).await;
 
@@ -1232,6 +1289,27 @@ mod tracker_apis {
                 .await;
 
             assert_ok(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_infohash_is_invalid() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            for invalid_infohash in &invalid_infohashes_returning_bad_request() {
+                let response = Client::new(api_server.get_connection_info())
+                    .remove_torrent_from_whitelist(invalid_infohash)
+                    .await;
+
+                assert_invalid_infohash(response, invalid_infohash).await;
+            }
+
+            for invalid_infohash in &invalid_infohashes_returning_not_found() {
+                let response = Client::new(api_server.get_connection_info())
+                    .remove_torrent_from_whitelist(invalid_infohash)
+                    .await;
+
+                assert_not_found(response).await;
+            }
         }
 
         #[tokio::test]

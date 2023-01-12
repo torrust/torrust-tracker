@@ -56,6 +56,13 @@ pub async fn assert_bad_request(response: Response, body: &str) {
     assert_eq!(response.text().await.unwrap(), body);
 }
 
+pub async fn assert_not_found(response: Response) {
+    assert_eq!(response.status(), 404);
+    // todo: missing header
+    //assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
+    assert_eq!(response.text().await.unwrap(), "");
+}
+
 pub async fn assert_method_not_allowed(response: Response) {
     assert_eq!(response.status(), 405);
     assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
@@ -66,6 +73,17 @@ pub async fn assert_torrent_not_known(response: Response) {
     assert_eq!(response.status(), 200);
     assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
     assert_eq!(response.text().await.unwrap(), "\"torrent not known\"");
+}
+
+pub async fn assert_invalid_infohash(response: Response, invalid_infohash: &str) {
+    assert_bad_request(
+        response,
+        &format!(
+            "Invalid URL: invalid infohash param: string \"{}\", expected a 40 character long string",
+            invalid_infohash
+        ),
+    )
+    .await;
 }
 
 pub async fn assert_token_not_valid(response: Response) {
