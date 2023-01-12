@@ -117,14 +117,7 @@ impl Client {
             query.add_param(QueryParam::new("token", token));
         };
 
-        reqwest::Client::builder()
-            .build()
-            .unwrap()
-            .get(self.base_url(path))
-            .query(&ReqwestQuery::from(query))
-            .send()
-            .await
-            .unwrap()
+        self.get_request_with_query(path, query).await
     }
 
     async fn post(&self, path: &str) -> Response {
@@ -147,6 +140,27 @@ impl Client {
 
     fn base_url(&self, path: &str) -> String {
         format!("http://{}{}{path}", &self.connection_info.bind_address, &self.base_path)
+    }
+
+    pub async fn get_request_with_query(&self, path: &str, params: Query) -> Response {
+        reqwest::Client::builder()
+            .build()
+            .unwrap()
+            .get(self.base_url(path))
+            .query(&ReqwestQuery::from(params))
+            .send()
+            .await
+            .unwrap()
+    }
+
+    pub async fn get_request(&self, path: &str) -> Response {
+        reqwest::Client::builder()
+            .build()
+            .unwrap()
+            .get(self.base_url(path))
+            .send()
+            .await
+            .unwrap()
     }
 
     fn query_with_token(&self) -> Query {

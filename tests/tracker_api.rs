@@ -753,6 +753,80 @@ mod tracker_apis {
 
     */
 
+    mod authentication {
+        use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
+        use crate::api::client::{Client, Query, QueryParam};
+        use crate::api::server::start_default_api;
+        use crate::api::Version;
+
+        #[tokio::test]
+        async fn should_authenticate_requests_by_using_a_token_query_param() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let token = api_server.get_connection_info().api_token.unwrap();
+
+            let response = Client::new(api_server.get_connection_info())
+                .get_request_with_query("stats", Query::params([QueryParam::new("token", &token)].to_vec()))
+                .await;
+
+            assert_eq!(response.status(), 200);
+        }
+
+        #[tokio::test]
+        async fn should_not_authenticate_requests_when_the_token_is_missing() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let response = Client::new(api_server.get_connection_info())
+                .get_request_with_query("stats", Query::default())
+                .await;
+
+            assert_unauthorized(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_not_authenticate_requests_when_the_token_is_empty() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let response = Client::new(api_server.get_connection_info())
+                .get_request_with_query("stats", Query::params([QueryParam::new("token", "")].to_vec()))
+                .await;
+
+            assert_token_not_valid(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_not_authenticate_requests_when_the_token_is_invalid() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let response = Client::new(api_server.get_connection_info())
+                .get_request_with_query("stats", Query::params([QueryParam::new("token", "INVALID TOKEN")].to_vec()))
+                .await;
+
+            assert_token_not_valid(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_allow_the_token_query_param_to_be_at_any_position_in_the_url_query() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let token = api_server.get_connection_info().api_token.unwrap();
+
+            // At the beginning of the query component
+            let response = Client::new(api_server.get_connection_info())
+                .get_request(&format!("torrents?token={}&limit=1", &token))
+                .await;
+
+            assert_eq!(response.status(), 200);
+
+            // At the end of the query component
+            let response = Client::new(api_server.get_connection_info())
+                .get_request(&format!("torrents?limit=1&token={}", &token))
+                .await;
+
+            assert_eq!(response.status(), 200);
+        }
+    }
+
     mod for_stats_resources {
         use std::str::FromStr;
 
