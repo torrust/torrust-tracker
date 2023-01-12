@@ -391,7 +391,7 @@ mod tracker_api {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_the_torrent_cannot_be_whitelisted() {
+        async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
             let api_server = start_default_api(&Version::Warp).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -422,7 +422,7 @@ mod tracker_api {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_the_torrent_cannot_be_removed_from_the_whitelist() {
+        async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
             let api_server = start_default_api(&Version::Warp).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -484,7 +484,7 @@ mod tracker_api {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_the_whitelist_cannot_be_reloaded_from_the_database() {
+        async fn should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database() {
             let api_server = start_default_api(&Version::Warp).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -566,7 +566,7 @@ mod tracker_api {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_the_auth_key_cannot_be_generated() {
+        async fn should_fail_when_the_auth_key_cannot_be_generated() {
             let api_server = start_default_api(&Version::Warp).await;
 
             force_database_error(&api_server.tracker);
@@ -611,7 +611,7 @@ mod tracker_api {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_the_auth_key_cannot_be_deleted() {
+        async fn should_fail_when_the_auth_key_cannot_be_deleted() {
             let api_server = start_default_api(&Version::Warp).await;
 
             let seconds_valid = 60;
@@ -680,7 +680,7 @@ mod tracker_api {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_keys_cannot_be_reloaded() {
+        async fn should_fail_when_keys_cannot_be_reloaded() {
             let api_server = start_default_api(&Version::Warp).await;
 
             let seconds_valid = 60;
@@ -1178,7 +1178,7 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_the_torrent_cannot_be_whitelisted() {
+        async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
             let api_server = start_default_api(&Version::Axum).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -1209,7 +1209,7 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_the_torrent_cannot_be_removed_from_the_whitelist() {
+        async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
             let api_server = start_default_api(&Version::Axum).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -1271,7 +1271,7 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_the_whitelist_cannot_be_reloaded_from_the_database() {
+        async fn should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database() {
             let api_server = start_default_api(&Version::Axum).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -1353,7 +1353,7 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_the_auth_key_cannot_be_generated() {
+        async fn should_fail_when_the_auth_key_cannot_be_generated() {
             let api_server = start_default_api(&Version::Axum).await;
 
             force_database_error(&api_server.tracker);
@@ -1398,7 +1398,7 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_the_auth_key_cannot_be_deleted() {
+        async fn should_fail_when_the_auth_key_cannot_be_deleted() {
             let api_server = start_default_api(&Version::Axum).await;
 
             let seconds_valid = 60;
@@ -1467,7 +1467,7 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_return_an_error_when_keys_cannot_be_reloaded() {
+        async fn should_fail_when_keys_cannot_be_reloaded() {
             let api_server = start_default_api(&Version::Axum).await;
 
             let seconds_valid = 60;
