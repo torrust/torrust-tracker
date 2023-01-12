@@ -422,6 +422,19 @@ mod tracker_api {
         }
 
         #[tokio::test]
+        async fn should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whitelist() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let non_whitelisted_torrent_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+
+            let response = Client::new(api_server.get_connection_info())
+                .remove_torrent_from_whitelist(&non_whitelisted_torrent_hash)
+                .await;
+
+            assert_ok(response).await;
+        }
+
+        #[tokio::test]
         async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
             let api_server = start_default_api(&Version::Warp).await;
 
@@ -1206,6 +1219,19 @@ mod tracker_apis {
 
             assert_ok(response).await;
             assert!(!api_server.tracker.is_info_hash_whitelisted(&info_hash).await);
+        }
+
+        #[tokio::test]
+        async fn should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whitelist() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let non_whitelisted_torrent_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+
+            let response = Client::new(api_server.get_connection_info())
+                .remove_torrent_from_whitelist(&non_whitelisted_torrent_hash)
+                .await;
+
+            assert_ok(response).await;
         }
 
         #[tokio::test]

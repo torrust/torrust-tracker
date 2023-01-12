@@ -152,9 +152,28 @@ impl Tracker {
     ///
     /// Will return a `database::Error` if unable to remove the `info_hash` from the whitelist database.
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        self.database.remove_info_hash_from_whitelist(*info_hash).await?;
-        self.whitelist.write().await.remove(info_hash);
+        self.remove_torrent_from_database_whitelist(info_hash).await?;
+        self.remove_torrent_from_memory_whitelist(info_hash).await;
         Ok(())
+    }
+
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to remove the `info_hash` from the whitelist database.
+    pub async fn remove_torrent_from_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
+        let is_whitelisted = self.database.is_info_hash_whitelisted(info_hash).await?;
+
+        if !is_whitelisted {
+            return Ok(());
+        }
+
+        self.database.remove_info_hash_from_whitelist(*info_hash).await?;
+
+        Ok(())
+    }
+
+    pub async fn remove_torrent_from_memory_whitelist(&self, info_hash: &InfoHash) -> bool {
+        self.whitelist.write().await.remove(info_hash)
     }
 
     pub async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> bool {
