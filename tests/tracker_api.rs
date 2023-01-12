@@ -120,7 +120,8 @@ mod tracker_api {
         use torrust_tracker::protocol::info_hash::InfoHash;
 
         use crate::api::asserts::{
-            assert_token_not_valid, assert_torrent_info, assert_torrent_list, assert_torrent_not_known, assert_unauthorized,
+            assert_bad_request, assert_method_not_allowed, assert_token_not_valid, assert_torrent_info, assert_torrent_list,
+            assert_torrent_not_known, assert_unauthorized,
         };
         use crate::api::client::{Client, Query, QueryParam};
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -210,6 +211,27 @@ mod tracker_api {
         }
 
         #[tokio::test]
+        async fn should_fail_getting_torrents_when_query_parameters_cannot_be_parsed() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let invalid_offset = "INVALID OFFSET";
+
+            let response = Client::new(api_server.get_connection_info())
+                .get_torrents(Query::params([QueryParam::new("offset", invalid_offset)].to_vec()))
+                .await;
+
+            assert_bad_request(response, "Invalid query string").await;
+
+            let invalid_limit = "INVALID LIMIT";
+
+            let response = Client::new(api_server.get_connection_info())
+                .get_torrents(Query::params([QueryParam::new("limit", invalid_limit)].to_vec()))
+                .await;
+
+            assert_bad_request(response, "Invalid query string").await;
+        }
+
+        #[tokio::test]
         async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
             let api_server = start_default_api(&Version::Warp).await;
 
@@ -264,6 +286,19 @@ mod tracker_api {
                 .await;
 
             assert_torrent_not_known(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_cannot_be_parsed() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let invalid_infohash = "INVALID INFOHASH";
+
+            let response = Client::new(api_server.get_connection_info())
+                .get_torrent(invalid_infohash)
+                .await;
+
+            assert_method_not_allowed(response).await;
         }
 
         #[tokio::test]
@@ -470,8 +505,8 @@ mod tracker_api {
         use torrust_tracker::tracker::auth::Key;
 
         use crate::api::asserts::{
-            assert_auth_key, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys, assert_ok,
-            assert_token_not_valid, assert_unauthorized,
+            assert_auth_key, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
+            assert_method_not_allowed, assert_ok, assert_token_not_valid, assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -518,6 +553,19 @@ mod tracker_api {
         }
 
         #[tokio::test]
+        async fn should_fail_generating_a_new_auth_key_when_the_key_duration_cannot_be_parsed() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let invalid_key_duration = -1;
+
+            let response = Client::new(api_server.get_connection_info())
+                .generate_auth_key(invalid_key_duration)
+                .await;
+
+            assert_method_not_allowed(response).await;
+        }
+
+        #[tokio::test]
         async fn should_return_an_error_when_the_auth_key_cannot_be_generated() {
             let api_server = start_default_api(&Version::Warp).await;
 
@@ -547,6 +595,19 @@ mod tracker_api {
                 .await;
 
             assert_ok(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_fail_deleting_an_auth_key_when_the_key_id_cannot_be_parsed() {
+            let api_server = start_default_api(&Version::Warp).await;
+
+            let invalid_auth_key_id = "INVALID AUTH KEY ID";
+
+            let response = Client::new(api_server.get_connection_info())
+                .delete_auth_key(invalid_auth_key_id)
+                .await;
+
+            assert_failed_to_delete_key(response).await;
         }
 
         #[tokio::test]
@@ -768,7 +829,8 @@ mod tracker_apis {
         use torrust_tracker::protocol::info_hash::InfoHash;
 
         use crate::api::asserts::{
-            assert_token_not_valid, assert_torrent_info, assert_torrent_list, assert_torrent_not_known, assert_unauthorized,
+            assert_bad_request, assert_token_not_valid, assert_torrent_info, assert_torrent_list, assert_torrent_not_known,
+            assert_unauthorized,
         };
         use crate::api::client::{Client, Query, QueryParam};
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -858,6 +920,27 @@ mod tracker_apis {
         }
 
         #[tokio::test]
+        async fn should_fail_getting_torrents_when_query_parameters_cannot_be_parsed() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let invalid_offset = "INVALID OFFSET";
+
+            let response = Client::new(api_server.get_connection_info())
+                .get_torrents(Query::params([QueryParam::new("offset", invalid_offset)].to_vec()))
+                .await;
+
+            assert_bad_request(response, "Failed to deserialize query string: invalid digit found in string").await;
+
+            let invalid_limit = "INVALID LIMIT";
+
+            let response = Client::new(api_server.get_connection_info())
+                .get_torrents(Query::params([QueryParam::new("limit", invalid_limit)].to_vec()))
+                .await;
+
+            assert_bad_request(response, "Failed to deserialize query string: invalid digit found in string").await;
+        }
+
+        #[tokio::test]
         async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
             let api_server = start_default_api(&Version::Axum).await;
 
@@ -912,6 +995,23 @@ mod tracker_apis {
                 .await;
 
             assert_torrent_not_known(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_cannot_be_parsed() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let invalid_infohash = "INVALID INFOHASH";
+
+            let response = Client::new(api_server.get_connection_info())
+                .get_torrent(invalid_infohash)
+                .await;
+
+            assert_bad_request(
+                response,
+                "Invalid URL: invalid infohash param: string \"INVALID INFOHASH\", expected expected a 40 character long string",
+            )
+            .await;
         }
 
         #[tokio::test]
@@ -1118,8 +1218,8 @@ mod tracker_apis {
         use torrust_tracker::tracker::auth::Key;
 
         use crate::api::asserts::{
-            assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
-            assert_ok, assert_token_not_valid, assert_unauthorized,
+            assert_auth_key_utf8, assert_bad_request, assert_failed_to_delete_key, assert_failed_to_generate_key,
+            assert_failed_to_reload_keys, assert_ok, assert_token_not_valid, assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -1166,6 +1266,19 @@ mod tracker_apis {
         }
 
         #[tokio::test]
+        async fn should_fail_generating_a_new_auth_key_when_the_key_duration_cannot_be_parsed() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let invalid_key_duration = -1;
+
+            let response = Client::new(api_server.get_connection_info())
+                .generate_auth_key(invalid_key_duration)
+                .await;
+
+            assert_bad_request(response, "Invalid URL: Cannot parse `\"-1\"` to a `u64`").await;
+        }
+
+        #[tokio::test]
         async fn should_return_an_error_when_the_auth_key_cannot_be_generated() {
             let api_server = start_default_api(&Version::Axum).await;
 
@@ -1195,6 +1308,19 @@ mod tracker_apis {
                 .await;
 
             assert_ok(response).await;
+        }
+
+        #[tokio::test]
+        async fn should_fail_deleting_an_auth_key_when_the_key_id_cannot_be_parsed() {
+            let api_server = start_default_api(&Version::Axum).await;
+
+            let invalid_auth_key_id = "INVALID AUTH KEY ID";
+
+            let response = Client::new(api_server.get_connection_info())
+                .delete_auth_key(invalid_auth_key_id)
+                .await;
+
+            assert_bad_request(response, "Invalid auth key id param \"INVALID AUTH KEY ID\"").await;
         }
 
         #[tokio::test]

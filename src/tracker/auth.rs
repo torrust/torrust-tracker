@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use std::time::Duration;
 
 use derive_more::{Display, Error};
@@ -50,6 +51,8 @@ pub fn verify(auth_key: &Key) -> Result<(), Error> {
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct Key {
+    // todo: replace key field definition with:
+    // pub key: KeyId,
     pub key: String,
     pub valid_until: Option<DurationSinceUnixEpoch>,
 }
@@ -77,6 +80,24 @@ impl Key {
     }
 }
 
+#[derive(Debug, Display, PartialEq, Clone)]
+pub struct KeyId(String);
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParseKeyIdError;
+
+impl FromStr for KeyId {
+    type Err = ParseKeyIdError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() != AUTH_KEY_LENGTH {
+            return Err(ParseKeyIdError);
+        }
+
+        Ok(Self(s.to_string()))
+    }
+}
+
 #[derive(Debug, Display, PartialEq, Eq, Error)]
 #[allow(dead_code)]
 pub enum Error {
@@ -97,6 +118,7 @@ impl From<r2d2_sqlite::rusqlite::Error> for Error {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
     use std::time::Duration;
 
     use crate::protocol::clock::{Current, StoppedTime};
@@ -120,6 +142,15 @@ mod tests {
 
         assert!(auth_key.is_some());
         assert_eq!(auth_key.unwrap().key, key_string);
+    }
+
+    #[test]
+    fn auth_key_id_from_string() {
+        let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+        let auth_key_id = auth::KeyId::from_str(key_string);
+
+        assert!(auth_key_id.is_ok());
+        assert_eq!(auth_key_id.unwrap().to_string(), key_string);
     }
 
     #[test]

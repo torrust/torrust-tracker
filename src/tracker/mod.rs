@@ -95,6 +95,7 @@ impl Tracker {
     ///
     /// Will return a `key::Error` if unable to get any `auth_key`.
     pub async fn verify_auth_key(&self, auth_key: &auth::Key) -> Result<(), auth::Error> {
+        // todo: use auth::KeyId for the function argument `auth_key`
         match self.keys.read().await.get(&auth_key.key) {
             None => Err(auth::Error::KeyInvalid),
             Some(key) => auth::verify(key),

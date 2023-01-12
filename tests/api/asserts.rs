@@ -50,6 +50,18 @@ pub async fn assert_ok(response: Response) {
 
 // Error responses
 
+pub async fn assert_bad_request(response: Response, body: &str) {
+    assert_eq!(response.status(), 400);
+    assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
+    assert_eq!(response.text().await.unwrap(), body);
+}
+
+pub async fn assert_method_not_allowed(response: Response) {
+    assert_eq!(response.status(), 405);
+    assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
+    assert_eq!(response.text().await.unwrap(), "HTTP method not allowed");
+}
+
 pub async fn assert_torrent_not_known(response: Response) {
     assert_eq!(response.status(), 200);
     assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
