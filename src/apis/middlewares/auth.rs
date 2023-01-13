@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
 use axum::extract::{Query, State};
-use axum::http::{header, Request, StatusCode};
+use axum::http::Request;
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 
+use crate::apis::responses::unhandled_rejection_response;
 use crate::config::{Configuration, HttpApi};
 
 #[derive(Deserialize, Debug)]
@@ -43,20 +44,23 @@ enum AuthError {
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
-        let body = match self {
-            AuthError::Unauthorized => "Unhandled rejection: Err { reason: \"unauthorized\" }",
-            AuthError::TokenNotValid => "Unhandled rejection: Err { reason: \"token not valid\" }",
-        };
-
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
-            body,
-        )
-            .into_response()
+        match self {
+            AuthError::Unauthorized => unauthorized_response(),
+            AuthError::TokenNotValid => token_not_valid_response(),
+        }
     }
 }
 
 fn authenticate(token: &str, http_api_config: &HttpApi) -> bool {
     http_api_config.contains_token(token)
+}
+
+#[must_use]
+pub fn unauthorized_response() -> Response {
+    unhandled_rejection_response("unauthorized".to_string())
+}
+
+#[must_use]
+pub fn token_not_valid_response() -> Response {
+    unhandled_rejection_response("token not valid".to_string())
 }

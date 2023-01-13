@@ -140,7 +140,10 @@ pub fn failed_to_reload_keys_response() -> Response {
     unhandled_rejection_response("failed to reload keys".to_string())
 }
 
-fn unhandled_rejection_response(reason: String) -> Response {
+/// This error response is to keep backward compatibility with the old Warp API.
+/// It should be a plain text or json.
+#[must_use]
+pub fn unhandled_rejection_response(reason: String) -> Response {
     (
         StatusCode::INTERNAL_SERVER_ERROR,
         [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
