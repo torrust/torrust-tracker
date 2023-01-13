@@ -10,26 +10,6 @@ use super::handlers::{
 use super::middlewares::auth::auth;
 use crate::tracker::Tracker;
 
-/* code-review:
-    When Axum cannot parse a path or query param it shows a message like this:
-
-    For the "seconds_valid_or_key" path param:
-
-    "Invalid URL: Cannot parse "-1" to a `u64`"
-
-    That message is not an informative message, specially if you have more than one param.
-    We should show a message similar to the one we use when we parse the value in the handler.
-    For example:
-
-    "Invalid URL: invalid infohash param: string \"INVALID VALUE\", expected a 40 character long string"
-
-    We can customize the error message by using a custom type with custom serde deserialization.
-    The same we are using for the "InfoHashVisitor".
-
-    Input data from HTTP requests should use struts with primitive types (first level of validation).
-    We can put the second level of validation in the application and domain services.
-*/
-
 pub fn router(tracker: &Arc<Tracker>) -> Router {
     Router::new()
         // Stats
