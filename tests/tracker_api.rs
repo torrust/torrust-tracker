@@ -9,33 +9,6 @@ mod api;
 
 mod tracker_apis {
 
-    /*
-
-    Endpoints:
-
-    Stats:
-    - [ ] GET /api/stats
-
-    Torrents:
-    - [ ] GET /api/torrents?offset=:u32&limit=:u32
-    - [ ] GET /api/torrent/:info_hash
-
-    Whitelisted torrents:
-    - [ ] POST   /api/whitelist/:info_hash
-    - [ ] DELETE /api/whitelist/:info_hash
-
-    Whitelist commands:
-    - [ ] GET /api/whitelist/reload
-
-    Keys:
-    - [ ] POST   /api/key/:seconds_valid
-    - [ ] DELETE /api/key/:key
-
-    Keys commands
-    - [ ] GET /api/keys/reload
-
-    */
-
     // When these infohashes are used in URL path params
     // the response is a custom response returned in the handler
     fn invalid_infohashes_returning_bad_request() -> Vec<String> {
