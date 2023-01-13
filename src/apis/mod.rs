@@ -1,3 +1,4 @@
+pub mod handlers;
 pub mod middlewares;
 pub mod resources;
 pub mod responses;
