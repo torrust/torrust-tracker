@@ -120,7 +120,7 @@ impl Client {
         self.get_request_with_query(path, query).await
     }
 
-    async fn post(&self, path: &str) -> Response {
+    pub async fn post(&self, path: &str) -> Response {
         reqwest::Client::new()
             .post(self.base_url(path).clone())
             .query(&ReqwestQuery::from(self.query_with_token()))
@@ -142,6 +142,7 @@ impl Client {
         format!("http://{}{}{path}", &self.connection_info.bind_address, &self.base_path)
     }
 
+    // Unauthenticated GET request with query component
     pub async fn get_request_with_query(&self, path: &str, params: Query) -> Response {
         reqwest::Client::builder()
             .build()
@@ -153,6 +154,7 @@ impl Client {
             .unwrap()
     }
 
+    // Unauthenticated GET request
     pub async fn get_request(&self, path: &str) -> Response {
         reqwest::Client::builder()
             .build()

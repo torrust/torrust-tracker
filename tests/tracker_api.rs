@@ -1444,16 +1444,26 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_fail_generating_a_new_auth_key_when_the_key_duration_cannot_be_parsed() {
+        async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid() {
             let api_server = start_default_api(&Version::Axum).await;
 
-            let invalid_key_duration = -1;
+            let invalid_key_durations = [
+                // "", it returns 404
+                // " ", it returns 404
+                "-1", "text",
+            ];
 
-            let response = Client::new(api_server.get_connection_info())
-                .generate_auth_key(invalid_key_duration)
+            for invalid_key_duration in &invalid_key_durations {
+                let response = Client::new(api_server.get_connection_info())
+                    .post(&format!("key/{}", &invalid_key_duration))
+                    .await;
+
+                assert_bad_request(
+                    response,
+                    &format!("Invalid URL: Cannot parse `\"{invalid_key_duration}\"` to a `u64`"),
+                )
                 .await;
-
-            assert_bad_request(response, "Invalid URL: Cannot parse `\"-1\"` to a `u64`").await;
+            }
         }
 
         #[tokio::test]
