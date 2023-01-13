@@ -937,7 +937,7 @@ mod tracker_apis {
 
         use super::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
         use crate::api::asserts::{
-            assert_bad_request, assert_invalid_infohash, assert_not_found, assert_token_not_valid, assert_torrent_info,
+            assert_bad_request, assert_invalid_infohash_param, assert_not_found, assert_token_not_valid, assert_torrent_info,
             assert_torrent_list, assert_torrent_not_known, assert_unauthorized,
         };
         use crate::api::client::{Client, Query, QueryParam};
@@ -1123,7 +1123,7 @@ mod tracker_apis {
                     .get_torrent(invalid_infohash)
                     .await;
 
-                assert_invalid_infohash(response, invalid_infohash).await;
+                assert_invalid_infohash_param(response, invalid_infohash).await;
             }
 
             for invalid_infohash in &invalid_infohashes_returning_not_found() {
@@ -1165,8 +1165,8 @@ mod tracker_apis {
         use super::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
         use crate::api::asserts::{
             assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist,
-            assert_failed_to_whitelist_torrent, assert_invalid_infohash, assert_not_found, assert_ok, assert_token_not_valid,
-            assert_unauthorized,
+            assert_failed_to_whitelist_torrent, assert_invalid_infohash_param, assert_not_found, assert_ok,
+            assert_token_not_valid, assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -1250,7 +1250,7 @@ mod tracker_apis {
                     .whitelist_a_torrent(invalid_infohash)
                     .await;
 
-                assert_invalid_infohash(response, invalid_infohash).await;
+                assert_invalid_infohash_param(response, invalid_infohash).await;
             }
 
             for invalid_infohash in &invalid_infohashes_returning_not_found() {
@@ -1300,7 +1300,7 @@ mod tracker_apis {
                     .remove_torrent_from_whitelist(invalid_infohash)
                     .await;
 
-                assert_invalid_infohash(response, invalid_infohash).await;
+                assert_invalid_infohash_param(response, invalid_infohash).await;
             }
 
             for invalid_infohash in &invalid_infohashes_returning_not_found() {
@@ -1396,8 +1396,9 @@ mod tracker_apis {
         use torrust_tracker::tracker::auth::Key;
 
         use crate::api::asserts::{
-            assert_auth_key_utf8, assert_bad_request, assert_failed_to_delete_key, assert_failed_to_generate_key,
-            assert_failed_to_reload_keys, assert_ok, assert_token_not_valid, assert_unauthorized,
+            assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
+            assert_invalid_auth_key_param, assert_invalid_key_duration_param, assert_ok, assert_token_not_valid,
+            assert_unauthorized,
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
@@ -1458,11 +1459,7 @@ mod tracker_apis {
                     .post(&format!("key/{}", &invalid_key_duration))
                     .await;
 
-                assert_bad_request(
-                    response,
-                    &format!("Invalid URL: Cannot parse `\"{invalid_key_duration}\"` to a `u64`"),
-                )
-                .await;
+                assert_invalid_key_duration_param(response, invalid_key_duration).await;
             }
         }
 
@@ -1517,7 +1514,7 @@ mod tracker_apis {
                     .delete_auth_key(invalid_auth_key_id)
                     .await;
 
-                assert_bad_request(response, &format!("Invalid auth key id param \"{}\"", &invalid_auth_key_id)).await;
+                assert_invalid_auth_key_param(response, invalid_auth_key_id).await;
             }
         }
 

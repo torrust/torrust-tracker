@@ -17,8 +17,8 @@ use crate::api::resource::stats::Stats;
 use crate::api::resource::torrent::{ListItem, Torrent};
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth::KeyId;
-use crate::tracker::services::statistics::get_metrics;
-use crate::tracker::services::torrent::{get_torrent_info, get_torrents, Pagination};
+use crate::tracker::services::statistics::{get_metrics, TrackerMetrics};
+use crate::tracker::services::torrent::{get_torrent_info, get_torrents, BasicInfo, Info, Pagination};
 use crate::tracker::Tracker;
 
 /* code-review:
@@ -91,6 +91,18 @@ pub enum ActionStatus<'a> {
 
 // Resource responses
 
+fn response_stats(tracker_metrics: TrackerMetrics) -> Json<Stats> {
+    Json(Stats::from(tracker_metrics))
+}
+
+fn response_torrent_list(basic_infos: &[BasicInfo]) -> Json<Vec<ListItem>> {
+    Json(ListItem::new_vec(basic_infos))
+}
+
+fn response_torrent_info(info: Info) -> Response {
+    Json(Torrent::from(info)).into_response()
+}
+
 fn response_auth_key(auth_key: &AuthKey) -> Response {
     (
         StatusCode::OK,
@@ -120,6 +132,10 @@ fn response_invalid_info_hash_param(info_hash: &str) -> Response {
     ))
 }
 
+fn response_invalid_auth_key_param(invalid_key: &str) -> Response {
+    response_bad_request(&format!("Invalid auth key id param \"{invalid_key}\""))
+}
+
 fn response_bad_request(body: &str) -> Response {
     (
         StatusCode::BAD_REQUEST,
@@ -129,7 +145,35 @@ fn response_bad_request(body: &str) -> Response {
         .into_response()
 }
 
-fn response_err(reason: String) -> Response {
+fn response_torrent_not_known() -> Response {
+    Json(json!("torrent not known")).into_response()
+}
+
+fn response_failed_to_remove_torrent_from_whitelist() -> Response {
+    response_unhandled_rejection("failed to remove torrent from whitelist".to_string())
+}
+
+fn response_failed_to_whitelist_torrent() -> Response {
+    response_unhandled_rejection("failed to whitelist torrent".to_string())
+}
+
+fn response_failed_to_reload_whitelist() -> Response {
+    response_unhandled_rejection("failed to reload whitelist".to_string())
+}
+
+fn response_failed_to_generate_key() -> Response {
+    response_unhandled_rejection("failed to generate key".to_string())
+}
+
+fn response_failed_to_delete_key() -> Response {
+    response_unhandled_rejection("failed to delete key".to_string())
+}
+
+fn response_failed_to_reload_keys() -> Response {
+    response_unhandled_rejection("failed to reload keys".to_string())
+}
+
+fn response_unhandled_rejection(reason: String) -> Response {
     (
         StatusCode::INTERNAL_SERVER_ERROR,
         [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
@@ -139,25 +183,19 @@ fn response_err(reason: String) -> Response {
 }
 
 pub async fn get_stats_handler(State(tracker): State<Arc<Tracker>>) -> Json<Stats> {
-    Json(Stats::from(get_metrics(tracker.clone()).await))
+    response_stats(get_metrics(tracker.clone()).await)
 }
 
 #[derive(Deserialize)]
 pub struct InfoHashParam(String);
 
 pub async fn get_torrent_handler(State(tracker): State<Arc<Tracker>>, Path(info_hash): Path<InfoHashParam>) -> Response {
-    let parsing_info_hash_result = InfoHash::from_str(&info_hash.0);
-
-    match parsing_info_hash_result {
+    match InfoHash::from_str(&info_hash.0) {
         Err(_) => response_invalid_info_hash_param(&info_hash.0),
-        Ok(info_hash) => {
-            let optional_torrent_info = get_torrent_info(tracker.clone(), &info_hash).await;
-
-            match optional_torrent_info {
-                Some(info) => Json(Torrent::from(info)).into_response(),
-                None => Json(json!("torrent not known")).into_response(),
-            }
-        }
+        Ok(info_hash) => match get_torrent_info(tracker.clone(), &info_hash).await {
+            Some(info) => response_torrent_info(info),
+            None => response_torrent_not_known(),
+        },
     }
 }
 
@@ -172,26 +210,24 @@ pub async fn get_torrents_handler(
     State(tracker): State<Arc<Tracker>>,
     pagination: Query<PaginationParams>,
 ) -> Json<Vec<ListItem>> {
-    Json(ListItem::new_vec(
+    response_torrent_list(
         &get_torrents(
             tracker.clone(),
             &Pagination::new_with_options(pagination.0.offset, pagination.0.limit),
         )
         .await,
-    ))
+    )
 }
 
 pub async fn add_torrent_to_whitelist_handler(
     State(tracker): State<Arc<Tracker>>,
     Path(info_hash): Path<InfoHashParam>,
 ) -> Response {
-    let parsing_info_hash_result = InfoHash::from_str(&info_hash.0);
-
-    match parsing_info_hash_result {
+    match InfoHash::from_str(&info_hash.0) {
         Err(_) => response_invalid_info_hash_param(&info_hash.0),
         Ok(info_hash) => match tracker.add_torrent_to_whitelist(&info_hash).await {
             Ok(..) => response_ok(),
-            Err(..) => response_err("failed to whitelist torrent".to_string()),
+            Err(..) => response_failed_to_whitelist_torrent(),
         },
     }
 }
@@ -200,13 +236,11 @@ pub async fn remove_torrent_from_whitelist_handler(
     State(tracker): State<Arc<Tracker>>,
     Path(info_hash): Path<InfoHashParam>,
 ) -> Response {
-    let parsing_info_hash_result = InfoHash::from_str(&info_hash.0);
-
-    match parsing_info_hash_result {
+    match InfoHash::from_str(&info_hash.0) {
         Err(_) => response_invalid_info_hash_param(&info_hash.0),
         Ok(info_hash) => match tracker.remove_torrent_from_whitelist(&info_hash).await {
             Ok(..) => response_ok(),
-            Err(..) => response_err("failed to remove torrent from whitelist".to_string()),
+            Err(..) => response_failed_to_remove_torrent_from_whitelist(),
         },
     }
 }
@@ -214,7 +248,7 @@ pub async fn remove_torrent_from_whitelist_handler(
 pub async fn reload_whitelist_handler(State(tracker): State<Arc<Tracker>>) -> Response {
     match tracker.load_whitelist().await {
         Ok(..) => response_ok(),
-        Err(..) => response_err("failed to reload whitelist".to_string()),
+        Err(..) => response_failed_to_reload_whitelist(),
     }
 }
 
@@ -222,7 +256,7 @@ pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path
     let seconds_valid = seconds_valid_or_key;
     match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
         Ok(auth_key) => response_auth_key(&AuthKey::from(auth_key)),
-        Err(_) => response_err("failed to generate key".to_string()),
+        Err(_) => response_failed_to_generate_key(),
     }
 }
 
@@ -233,13 +267,11 @@ pub async fn delete_auth_key_handler(
     State(tracker): State<Arc<Tracker>>,
     Path(seconds_valid_or_key): Path<KeyIdParam>,
 ) -> Response {
-    let key_id = KeyId::from_str(&seconds_valid_or_key.0);
-
-    match key_id {
-        Err(_) => response_bad_request(&format!("Invalid auth key id param \"{}\"", seconds_valid_or_key.0)),
+    match KeyId::from_str(&seconds_valid_or_key.0) {
+        Err(_) => response_invalid_auth_key_param(&seconds_valid_or_key.0),
         Ok(key_id) => match tracker.remove_auth_key(&key_id.to_string()).await {
             Ok(_) => response_ok(),
-            Err(_) => response_err("failed to delete key".to_string()),
+            Err(_) => response_failed_to_delete_key(),
         },
     }
 }
@@ -247,7 +279,7 @@ pub async fn delete_auth_key_handler(
 pub async fn reload_keys_handler(State(tracker): State<Arc<Tracker>>) -> Response {
     match tracker.load_keys().await {
         Ok(..) => response_ok(),
-        Err(..) => response_err("failed to reload keys".to_string()),
+        Err(..) => response_failed_to_reload_keys(),
     }
 }
 

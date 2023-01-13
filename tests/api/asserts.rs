@@ -75,13 +75,25 @@ pub async fn assert_torrent_not_known(response: Response) {
     assert_eq!(response.text().await.unwrap(), "\"torrent not known\"");
 }
 
-pub async fn assert_invalid_infohash(response: Response, invalid_infohash: &str) {
+pub async fn assert_invalid_infohash_param(response: Response, invalid_infohash: &str) {
     assert_bad_request(
         response,
         &format!(
             "Invalid URL: invalid infohash param: string \"{}\", expected a 40 character long string",
             invalid_infohash
         ),
+    )
+    .await;
+}
+
+pub async fn assert_invalid_auth_key_param(response: Response, invalid_auth_key: &str) {
+    assert_bad_request(response, &format!("Invalid auth key id param \"{}\"", &invalid_auth_key)).await;
+}
+
+pub async fn assert_invalid_key_duration_param(response: Response, invalid_key_duration: &str) {
+    assert_bad_request(
+        response,
+        &format!("Invalid URL: Cannot parse `\"{invalid_key_duration}\"` to a `u64`"),
     )
     .await;
 }
@@ -102,16 +114,16 @@ pub async fn assert_failed_to_whitelist_torrent(response: Response) {
     assert_unhandled_rejection(response, "failed to whitelist torrent").await;
 }
 
+pub async fn assert_failed_to_reload_whitelist(response: Response) {
+    assert_unhandled_rejection(response, "failed to reload whitelist").await;
+}
+
 pub async fn assert_failed_to_generate_key(response: Response) {
     assert_unhandled_rejection(response, "failed to generate key").await;
 }
 
 pub async fn assert_failed_to_delete_key(response: Response) {
     assert_unhandled_rejection(response, "failed to delete key").await;
-}
-
-pub async fn assert_failed_to_reload_whitelist(response: Response) {
-    assert_unhandled_rejection(response, "failed to reload whitelist").await;
 }
 
 pub async fn assert_failed_to_reload_keys(response: Response) {
