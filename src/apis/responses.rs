@@ -49,8 +49,8 @@ pub fn torrent_list_response(basic_infos: &[BasicInfo]) -> Json<Vec<ListItem>> {
 }
 
 #[must_use]
-pub fn torrent_info_response(info: Info) -> Response {
-    Json(Torrent::from(info)).into_response()
+pub fn torrent_info_response(info: Info) -> Json<Torrent> {
+    Json(Torrent::from(info))
 }
 
 /// # Panics

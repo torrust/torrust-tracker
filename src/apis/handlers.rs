@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use axum::extract::{Path, Query, State};
-use axum::response::{Json, Response};
+use axum::response::{IntoResponse, Json, Response};
 use serde::{de, Deserialize, Deserializer};
 
 use super::responses::{
@@ -33,7 +33,7 @@ pub async fn get_torrent_handler(State(tracker): State<Arc<Tracker>>, Path(info_
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
         Ok(info_hash) => match get_torrent_info(tracker.clone(), &info_hash).await {
-            Some(info) => torrent_info_response(info),
+            Some(info) => torrent_info_response(info).into_response(),
             None => torrent_not_known_response(),
         },
     }
