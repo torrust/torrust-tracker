@@ -1499,16 +1499,26 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_fail_deleting_an_auth_key_when_the_key_id_cannot_be_parsed() {
+        async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
             let api_server = start_default_api(&Version::Axum).await;
 
-            let invalid_auth_key_id = "INVALID AUTH KEY ID";
+            let invalid_auth_key_ids = [
+                // "", it returns a 404
+                // " ", it returns a 404
+                "0",
+                "-1",
+                "INVALID AUTH KEY ID",
+                "IrweYtVuQPGbG9Jzx1DihcPmJGGpVy8",   // 32 char key cspell:disable-line
+                "IrweYtVuQPGbG9Jzx1DihcPmJGGpVy8zs", // 34 char key cspell:disable-line
+            ];
 
-            let response = Client::new(api_server.get_connection_info())
-                .delete_auth_key(invalid_auth_key_id)
-                .await;
+            for invalid_auth_key_id in &invalid_auth_key_ids {
+                let response = Client::new(api_server.get_connection_info())
+                    .delete_auth_key(invalid_auth_key_id)
+                    .await;
 
-            assert_bad_request(response, "Invalid auth key id param \"INVALID AUTH KEY ID\"").await;
+                assert_bad_request(response, &format!("Invalid auth key id param \"{}\"", &invalid_auth_key_id)).await;
+            }
         }
 
         #[tokio::test]
