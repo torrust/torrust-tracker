@@ -8,10 +8,10 @@ use axum::response::{Json, Response};
 use serde::{de, Deserialize, Deserializer};
 
 use super::responses::{
-    response_auth_key, response_failed_to_delete_key, response_failed_to_generate_key, response_failed_to_reload_keys,
-    response_failed_to_reload_whitelist, response_failed_to_remove_torrent_from_whitelist, response_failed_to_whitelist_torrent,
-    response_invalid_auth_key_param, response_invalid_info_hash_param, response_ok, response_stats, response_torrent_info,
-    response_torrent_list, response_torrent_not_known,
+    auth_key_response, failed_to_delete_key_response, failed_to_generate_key_response, failed_to_reload_keys_response,
+    failed_to_reload_whitelist_response, failed_to_remove_torrent_from_whitelist_response, failed_to_whitelist_torrent_response,
+    invalid_auth_key_param_response, invalid_info_hash_param_response, ok_response, stats_response, torrent_info_response,
+    torrent_list_response, torrent_not_known_response,
 };
 use crate::apis::resources::auth_key::AuthKey;
 use crate::apis::resources::stats::Stats;
@@ -23,7 +23,7 @@ use crate::tracker::services::torrent::{get_torrent_info, get_torrents, Paginati
 use crate::tracker::Tracker;
 
 pub async fn get_stats_handler(State(tracker): State<Arc<Tracker>>) -> Json<Stats> {
-    response_stats(get_metrics(tracker.clone()).await)
+    stats_response(get_metrics(tracker.clone()).await)
 }
 
 #[derive(Deserialize)]
@@ -31,10 +31,10 @@ pub struct InfoHashParam(String);
 
 pub async fn get_torrent_handler(State(tracker): State<Arc<Tracker>>, Path(info_hash): Path<InfoHashParam>) -> Response {
     match InfoHash::from_str(&info_hash.0) {
-        Err(_) => response_invalid_info_hash_param(&info_hash.0),
+        Err(_) => invalid_info_hash_param_response(&info_hash.0),
         Ok(info_hash) => match get_torrent_info(tracker.clone(), &info_hash).await {
-            Some(info) => response_torrent_info(info),
-            None => response_torrent_not_known(),
+            Some(info) => torrent_info_response(info),
+            None => torrent_not_known_response(),
         },
     }
 }
@@ -50,7 +50,7 @@ pub async fn get_torrents_handler(
     State(tracker): State<Arc<Tracker>>,
     pagination: Query<PaginationParams>,
 ) -> Json<Vec<ListItem>> {
-    response_torrent_list(
+    torrent_list_response(
         &get_torrents(
             tracker.clone(),
             &Pagination::new_with_options(pagination.0.offset, pagination.0.limit),
@@ -64,10 +64,10 @@ pub async fn add_torrent_to_whitelist_handler(
     Path(info_hash): Path<InfoHashParam>,
 ) -> Response {
     match InfoHash::from_str(&info_hash.0) {
-        Err(_) => response_invalid_info_hash_param(&info_hash.0),
+        Err(_) => invalid_info_hash_param_response(&info_hash.0),
         Ok(info_hash) => match tracker.add_torrent_to_whitelist(&info_hash).await {
-            Ok(..) => response_ok(),
-            Err(..) => response_failed_to_whitelist_torrent(),
+            Ok(..) => ok_response(),
+            Err(..) => failed_to_whitelist_torrent_response(),
         },
     }
 }
@@ -77,26 +77,26 @@ pub async fn remove_torrent_from_whitelist_handler(
     Path(info_hash): Path<InfoHashParam>,
 ) -> Response {
     match InfoHash::from_str(&info_hash.0) {
-        Err(_) => response_invalid_info_hash_param(&info_hash.0),
+        Err(_) => invalid_info_hash_param_response(&info_hash.0),
         Ok(info_hash) => match tracker.remove_torrent_from_whitelist(&info_hash).await {
-            Ok(..) => response_ok(),
-            Err(..) => response_failed_to_remove_torrent_from_whitelist(),
+            Ok(..) => ok_response(),
+            Err(..) => failed_to_remove_torrent_from_whitelist_response(),
         },
     }
 }
 
 pub async fn reload_whitelist_handler(State(tracker): State<Arc<Tracker>>) -> Response {
     match tracker.load_whitelist().await {
-        Ok(..) => response_ok(),
-        Err(..) => response_failed_to_reload_whitelist(),
+        Ok(..) => ok_response(),
+        Err(..) => failed_to_reload_whitelist_response(),
     }
 }
 
 pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path(seconds_valid_or_key): Path<u64>) -> Response {
     let seconds_valid = seconds_valid_or_key;
     match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
-        Ok(auth_key) => response_auth_key(&AuthKey::from(auth_key)),
-        Err(_) => response_failed_to_generate_key(),
+        Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
+        Err(_) => failed_to_generate_key_response(),
     }
 }
 
@@ -108,18 +108,18 @@ pub async fn delete_auth_key_handler(
     Path(seconds_valid_or_key): Path<KeyIdParam>,
 ) -> Response {
     match KeyId::from_str(&seconds_valid_or_key.0) {
-        Err(_) => response_invalid_auth_key_param(&seconds_valid_or_key.0),
+        Err(_) => invalid_auth_key_param_response(&seconds_valid_or_key.0),
         Ok(key_id) => match tracker.remove_auth_key(&key_id.to_string()).await {
-            Ok(_) => response_ok(),
-            Err(_) => response_failed_to_delete_key(),
+            Ok(_) => ok_response(),
+            Err(_) => failed_to_delete_key_response(),
         },
     }
 }
 
 pub async fn reload_keys_handler(State(tracker): State<Arc<Tracker>>) -> Response {
     match tracker.load_keys().await {
-        Ok(..) => response_ok(),
-        Err(..) => response_failed_to_reload_keys(),
+        Ok(..) => ok_response(),
+        Err(..) => failed_to_reload_keys_response(),
     }
 }
 

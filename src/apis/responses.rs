@@ -39,17 +39,17 @@ pub enum ActionStatus<'a> {
 // Resource responses
 
 #[must_use]
-pub fn response_stats(tracker_metrics: TrackerMetrics) -> Json<Stats> {
+pub fn stats_response(tracker_metrics: TrackerMetrics) -> Json<Stats> {
     Json(Stats::from(tracker_metrics))
 }
 
 #[must_use]
-pub fn response_torrent_list(basic_infos: &[BasicInfo]) -> Json<Vec<ListItem>> {
+pub fn torrent_list_response(basic_infos: &[BasicInfo]) -> Json<Vec<ListItem>> {
     Json(ListItem::new_vec(basic_infos))
 }
 
 #[must_use]
-pub fn response_torrent_info(info: Info) -> Response {
+pub fn torrent_info_response(info: Info) -> Response {
     Json(Torrent::from(info)).into_response()
 }
 
@@ -57,7 +57,7 @@ pub fn response_torrent_info(info: Info) -> Response {
 ///
 /// Will panic if it can't convert the `AuthKey` resource to json
 #[must_use]
-pub fn response_auth_key(auth_key: &AuthKey) -> Response {
+pub fn auth_key_response(auth_key: &AuthKey) -> Response {
     (
         StatusCode::OK,
         [(header::CONTENT_TYPE, "application/json; charset=utf-8")],
@@ -72,7 +72,7 @@ pub fn response_auth_key(auth_key: &AuthKey) -> Response {
 ///
 /// Will panic if it can't convert the `ActionStatus` to json
 #[must_use]
-pub fn response_ok() -> Response {
+pub fn ok_response() -> Response {
     (
         StatusCode::OK,
         [(header::CONTENT_TYPE, "application/json")],
@@ -84,19 +84,19 @@ pub fn response_ok() -> Response {
 // Error responses
 
 #[must_use]
-pub fn response_invalid_info_hash_param(info_hash: &str) -> Response {
-    response_bad_request(&format!(
+pub fn invalid_info_hash_param_response(info_hash: &str) -> Response {
+    bad_request_response(&format!(
         "Invalid URL: invalid infohash param: string \"{}\", expected a 40 character long string",
         info_hash
     ))
 }
 
 #[must_use]
-pub fn response_invalid_auth_key_param(invalid_key: &str) -> Response {
-    response_bad_request(&format!("Invalid auth key id param \"{invalid_key}\""))
+pub fn invalid_auth_key_param_response(invalid_key: &str) -> Response {
+    bad_request_response(&format!("Invalid auth key id param \"{invalid_key}\""))
 }
 
-fn response_bad_request(body: &str) -> Response {
+fn bad_request_response(body: &str) -> Response {
     (
         StatusCode::BAD_REQUEST,
         [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
@@ -106,41 +106,41 @@ fn response_bad_request(body: &str) -> Response {
 }
 
 #[must_use]
-pub fn response_torrent_not_known() -> Response {
+pub fn torrent_not_known_response() -> Response {
     Json(json!("torrent not known")).into_response()
 }
 
 #[must_use]
-pub fn response_failed_to_remove_torrent_from_whitelist() -> Response {
-    response_unhandled_rejection("failed to remove torrent from whitelist".to_string())
+pub fn failed_to_remove_torrent_from_whitelist_response() -> Response {
+    unhandled_rejection_response("failed to remove torrent from whitelist".to_string())
 }
 
 #[must_use]
-pub fn response_failed_to_whitelist_torrent() -> Response {
-    response_unhandled_rejection("failed to whitelist torrent".to_string())
+pub fn failed_to_whitelist_torrent_response() -> Response {
+    unhandled_rejection_response("failed to whitelist torrent".to_string())
 }
 
 #[must_use]
-pub fn response_failed_to_reload_whitelist() -> Response {
-    response_unhandled_rejection("failed to reload whitelist".to_string())
+pub fn failed_to_reload_whitelist_response() -> Response {
+    unhandled_rejection_response("failed to reload whitelist".to_string())
 }
 
 #[must_use]
-pub fn response_failed_to_generate_key() -> Response {
-    response_unhandled_rejection("failed to generate key".to_string())
+pub fn failed_to_generate_key_response() -> Response {
+    unhandled_rejection_response("failed to generate key".to_string())
 }
 
 #[must_use]
-pub fn response_failed_to_delete_key() -> Response {
-    response_unhandled_rejection("failed to delete key".to_string())
+pub fn failed_to_delete_key_response() -> Response {
+    unhandled_rejection_response("failed to delete key".to_string())
 }
 
 #[must_use]
-pub fn response_failed_to_reload_keys() -> Response {
-    response_unhandled_rejection("failed to reload keys".to_string())
+pub fn failed_to_reload_keys_response() -> Response {
+    unhandled_rejection_response("failed to reload keys".to_string())
 }
 
-fn response_unhandled_rejection(reason: String) -> Response {
+fn unhandled_rejection_response(reason: String) -> Response {
     (
         StatusCode::INTERNAL_SERVER_ERROR,
         [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
