@@ -25,12 +25,6 @@ pub async fn assert_torrent_info(response: Response, torrent: Torrent) {
     assert_eq!(response.json::<Torrent>().await.unwrap(), torrent);
 }
 
-pub async fn assert_auth_key(response: Response) -> AuthKey {
-    assert_eq!(response.status(), 200);
-    assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
-    response.json::<AuthKey>().await.unwrap()
-}
-
 pub async fn assert_auth_key_utf8(response: Response) -> AuthKey {
     assert_eq!(response.status(), 200);
     assert_eq!(
@@ -58,15 +52,9 @@ pub async fn assert_bad_request(response: Response, body: &str) {
 
 pub async fn assert_not_found(response: Response) {
     assert_eq!(response.status(), 404);
-    // todo: missing header
+    // todo: missing header in the response
     //assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
     assert_eq!(response.text().await.unwrap(), "");
-}
-
-pub async fn assert_method_not_allowed(response: Response) {
-    assert_eq!(response.status(), 405);
-    assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
-    assert_eq!(response.text().await.unwrap(), "HTTP method not allowed");
 }
 
 pub async fn assert_torrent_not_known(response: Response) {

@@ -8,11 +8,6 @@ pub mod connection_info;
 pub mod fixtures;
 pub mod server;
 
-pub enum Version {
-    Warp,
-    Axum,
-}
-
 /// It forces a database error by dropping all tables.
 /// That makes any query fail.
 /// code-review: alternatively we could inject a database mock in the future.

@@ -2,47 +2,26 @@ use core::panic;
 use std::sync::Arc;
 
 use torrust_tracker::config::{ephemeral_configuration, Configuration};
-use torrust_tracker::jobs::{tracker_api, tracker_apis};
+use torrust_tracker::jobs::tracker_apis;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::statistics::Keeper;
 use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
 use super::connection_info::ConnectionInfo;
-use super::Version;
 
 pub fn tracker_configuration() -> Arc<Configuration> {
     Arc::new(ephemeral_configuration())
 }
 
-pub async fn start_default_api(version: &Version) -> Server {
+pub async fn start_default_api() -> Server {
     let configuration = tracker_configuration();
-    start_custom_api(configuration.clone(), version).await
+    start_custom_api(configuration.clone()).await
 }
 
-pub async fn start_custom_api(configuration: Arc<Configuration>, version: &Version) -> Server {
-    match &version {
-        Version::Warp => start_warp_api(configuration).await,
-        Version::Axum => start_axum_api(configuration).await,
-    }
-}
-
-async fn start_warp_api(configuration: Arc<Configuration>) -> Server {
+pub async fn start_custom_api(configuration: Arc<Configuration>) -> Server {
     let server = start(&configuration);
-
-    // Start the HTTP API job
-    tracker_api::start_job(&configuration.http_api, server.tracker.clone()).await;
-
-    server
-}
-
-async fn start_axum_api(configuration: Arc<Configuration>) -> Server {
-    let server = start(&configuration);
-
-    // Start HTTP APIs server (multiple API versions)
-    // Temporarily run the new API on a port number after the current API port
     tracker_apis::start_job(&configuration.http_api, server.tracker.clone()).await;
-
     server
 }
 
