@@ -4,21 +4,25 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use axum::extract::{Path, Query, State};
-use axum::http::{header, StatusCode};
-use axum::response::{IntoResponse, Json, Response};
+use axum::response::{Json, Response};
 use axum::routing::{delete, get, post};
 use axum::{middleware, Router};
-use serde::{de, Deserialize, Deserializer, Serialize};
-use serde_json::json;
+use serde::{de, Deserialize, Deserializer};
 
 use super::middlewares::auth::auth;
+use super::responses::{
+    response_auth_key, response_failed_to_delete_key, response_failed_to_generate_key, response_failed_to_reload_keys,
+    response_failed_to_reload_whitelist, response_failed_to_remove_torrent_from_whitelist, response_failed_to_whitelist_torrent,
+    response_invalid_auth_key_param, response_invalid_info_hash_param, response_ok, response_stats, response_torrent_info,
+    response_torrent_list, response_torrent_not_known,
+};
 use crate::apis::resources::auth_key::AuthKey;
 use crate::apis::resources::stats::Stats;
-use crate::apis::resources::torrent::{ListItem, Torrent};
+use crate::apis::resources::torrent::ListItem;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth::KeyId;
-use crate::tracker::services::statistics::{get_metrics, TrackerMetrics};
-use crate::tracker::services::torrent::{get_torrent_info, get_torrents, BasicInfo, Info, Pagination};
+use crate::tracker::services::statistics::get_metrics;
+use crate::tracker::services::torrent::{get_torrent_info, get_torrents, Pagination};
 use crate::tracker::Tracker;
 
 /* code-review:
@@ -80,106 +84,6 @@ pub fn router(tracker: &Arc<Tracker>) -> Router {
         // Keys command
         .route("/api/keys/reload", get(reload_keys_handler).with_state(tracker.clone()))
         .layer(middleware::from_fn_with_state(tracker.config.clone(), auth))
-}
-
-#[derive(Serialize, Debug)]
-#[serde(tag = "status", rename_all = "snake_case")]
-pub enum ActionStatus<'a> {
-    Ok,
-    Err { reason: std::borrow::Cow<'a, str> },
-}
-
-// Resource responses
-
-fn response_stats(tracker_metrics: TrackerMetrics) -> Json<Stats> {
-    Json(Stats::from(tracker_metrics))
-}
-
-fn response_torrent_list(basic_infos: &[BasicInfo]) -> Json<Vec<ListItem>> {
-    Json(ListItem::new_vec(basic_infos))
-}
-
-fn response_torrent_info(info: Info) -> Response {
-    Json(Torrent::from(info)).into_response()
-}
-
-fn response_auth_key(auth_key: &AuthKey) -> Response {
-    (
-        StatusCode::OK,
-        [(header::CONTENT_TYPE, "application/json; charset=utf-8")],
-        serde_json::to_string(auth_key).unwrap(),
-    )
-        .into_response()
-}
-
-// OK response
-
-fn response_ok() -> Response {
-    (
-        StatusCode::OK,
-        [(header::CONTENT_TYPE, "application/json")],
-        serde_json::to_string(&ActionStatus::Ok).unwrap(),
-    )
-        .into_response()
-}
-
-// Error responses
-
-fn response_invalid_info_hash_param(info_hash: &str) -> Response {
-    response_bad_request(&format!(
-        "Invalid URL: invalid infohash param: string \"{}\", expected a 40 character long string",
-        info_hash
-    ))
-}
-
-fn response_invalid_auth_key_param(invalid_key: &str) -> Response {
-    response_bad_request(&format!("Invalid auth key id param \"{invalid_key}\""))
-}
-
-fn response_bad_request(body: &str) -> Response {
-    (
-        StatusCode::BAD_REQUEST,
-        [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
-        body.to_owned(),
-    )
-        .into_response()
-}
-
-fn response_torrent_not_known() -> Response {
-    Json(json!("torrent not known")).into_response()
-}
-
-fn response_failed_to_remove_torrent_from_whitelist() -> Response {
-    response_unhandled_rejection("failed to remove torrent from whitelist".to_string())
-}
-
-fn response_failed_to_whitelist_torrent() -> Response {
-    response_unhandled_rejection("failed to whitelist torrent".to_string())
-}
-
-fn response_failed_to_reload_whitelist() -> Response {
-    response_unhandled_rejection("failed to reload whitelist".to_string())
-}
-
-fn response_failed_to_generate_key() -> Response {
-    response_unhandled_rejection("failed to generate key".to_string())
-}
-
-fn response_failed_to_delete_key() -> Response {
-    response_unhandled_rejection("failed to delete key".to_string())
-}
-
-fn response_failed_to_reload_keys() -> Response {
-    response_unhandled_rejection("failed to reload keys".to_string())
-}
-
-fn response_unhandled_rejection(reason: String) -> Response {
-    (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
-        format!("Unhandled rejection: {:?}", ActionStatus::Err { reason: reason.into() }),
-    )
-        .into_response()
 }
 
 pub async fn get_stats_handler(State(tracker): State<Arc<Tracker>>) -> Json<Stats> {
