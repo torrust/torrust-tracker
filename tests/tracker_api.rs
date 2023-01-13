@@ -132,7 +132,7 @@ mod tracker_apis {
     mod for_stats_resources {
         use std::str::FromStr;
 
-        use torrust_tracker::api::resource::stats::Stats;
+        use torrust_tracker::apis::resources::stats::Stats;
         use torrust_tracker::protocol::info_hash::InfoHash;
 
         use crate::api::asserts::{assert_stats, assert_token_not_valid, assert_unauthorized};
@@ -199,8 +199,8 @@ mod tracker_apis {
     mod for_torrent_resources {
         use std::str::FromStr;
 
-        use torrust_tracker::api::resource::torrent::Torrent;
-        use torrust_tracker::api::resource::{self, torrent};
+        use torrust_tracker::apis::resources::torrent::Torrent;
+        use torrust_tracker::apis::resources::{self, torrent};
         use torrust_tracker::protocol::info_hash::InfoHash;
 
         use super::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
@@ -362,7 +362,7 @@ mod tracker_apis {
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                    peers: Some(vec![resource::peer::Peer::from(peer)]),
+                    peers: Some(vec![resources::peer::Peer::from(peer)]),
                 },
             )
             .await;

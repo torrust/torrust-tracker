@@ -12,9 +12,9 @@ use serde::{de, Deserialize, Deserializer, Serialize};
 use serde_json::json;
 
 use super::middlewares::auth::auth;
-use crate::api::resource::auth_key::AuthKey;
-use crate::api::resource::stats::Stats;
-use crate::api::resource::torrent::{ListItem, Torrent};
+use crate::apis::resources::auth_key::AuthKey;
+use crate::apis::resources::stats::Stats;
+use crate::apis::resources::torrent::{ListItem, Torrent};
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth::KeyId;
 use crate::tracker::services::statistics::{get_metrics, TrackerMetrics};
