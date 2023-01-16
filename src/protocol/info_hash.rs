@@ -77,7 +77,7 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
         if v.len() != 40 {
             return Err(serde::de::Error::invalid_value(
                 serde::de::Unexpected::Str(v),
-                &"expected a 40 character long string",
+                &"a 40 character long string",
             ));
         }
 
@@ -86,7 +86,7 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
         if binascii::hex2bin(v.as_bytes(), &mut res.0).is_err() {
             return Err(serde::de::Error::invalid_value(
                 serde::de::Unexpected::Str(v),
-                &"expected a hexadecimal string",
+                &"a hexadecimal string",
             ));
         };
         Ok(res)

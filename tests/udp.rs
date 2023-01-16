@@ -3,11 +3,8 @@
 /// cargo test `udp_tracker_server` -- --nocapture
 extern crate rand;
 
-mod common;
-
 mod udp_tracker_server {
     use core::panic;
-    use std::env;
     use std::io::Cursor;
     use std::net::Ipv4Addr;
     use std::sync::atomic::{AtomicBool, Ordering};
@@ -17,32 +14,24 @@ mod udp_tracker_server {
         AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey,
         Port, Request, Response, ScrapeRequest, TransactionId,
     };
+    use rand::{thread_rng, Rng};
     use tokio::net::UdpSocket;
     use tokio::task::JoinHandle;
-    use torrust_tracker::config::Configuration;
+    use torrust_tracker::config::{ephemeral_configuration, Configuration};
     use torrust_tracker::jobs::udp_tracker;
     use torrust_tracker::tracker::statistics::Keeper;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
     use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
-    use crate::common::ephemeral_random_port;
-
     fn tracker_configuration() -> Arc<Configuration> {
-        let mut config = Configuration {
-            log_level: Some("off".to_owned()),
-            ..Default::default()
-        };
+        Arc::new(ephemeral_configuration())
+    }
 
-        // Ephemeral socket address
-        let port = ephemeral_random_port();
-        config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", &port);
-
-        // Ephemeral database
-        let temp_directory = env::temp_dir();
-        let temp_file = temp_directory.join(format!("data_{}.db", &port));
-        config.db_path = temp_file.to_str().unwrap().to_owned();
-
-        Arc::new(config)
+    pub fn ephemeral_random_client_port() -> u16 {
+        // todo: this may produce random test failures because two tests can try to bind the same port.
+        // We could create a pool of available ports (with read/write lock)
+        let mut rng = thread_rng();
+        rng.gen_range(49152..65535)
     }
 
     pub struct UdpServer {
@@ -129,7 +118,7 @@ mod udp_tracker_server {
 
     /// Creates a new `UdpClient` connected to a Udp server
     async fn new_connected_udp_client(remote_address: &str) -> UdpClient {
-        let client = UdpClient::bind(&source_address(ephemeral_random_port())).await;
+        let client = UdpClient::bind(&source_address(ephemeral_random_client_port())).await;
         client.connect(remote_address).await;
         client
     }

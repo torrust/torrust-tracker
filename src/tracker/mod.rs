@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod mode;
 pub mod peer;
+pub mod services;
 pub mod statistics;
 pub mod torrent;
 
@@ -25,7 +26,15 @@ pub struct Tracker {
     torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
-    database: Box<dyn Database>,
+    pub database: Box<dyn Database>,
+}
+
+#[derive(Debug, PartialEq, Default)]
+pub struct TorrentsMetrics {
+    pub seeders: u64,
+    pub completed: u64,
+    pub leechers: u64,
+    pub torrents: u64,
 }
 
 impl Tracker {
@@ -86,6 +95,7 @@ impl Tracker {
     ///
     /// Will return a `key::Error` if unable to get any `auth_key`.
     pub async fn verify_auth_key(&self, auth_key: &auth::Key) -> Result<(), auth::Error> {
+        // todo: use auth::KeyId for the function argument `auth_key`
         match self.keys.read().await.get(&auth_key.key) {
             None => Err(auth::Error::KeyInvalid),
             Some(key) => auth::verify(key),
@@ -121,7 +131,9 @@ impl Tracker {
 
     /// It adds a torrent to the whitelist if it has not been whitelisted previously
     async fn add_torrent_to_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        if self.database.is_info_hash_whitelisted(info_hash).await.unwrap() {
+        let is_whitelisted = self.database.is_info_hash_whitelisted(info_hash).await?;
+
+        if is_whitelisted {
             return Ok(());
         }
 
@@ -140,9 +152,28 @@ impl Tracker {
     ///
     /// Will return a `database::Error` if unable to remove the `info_hash` from the whitelist database.
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        self.database.remove_info_hash_from_whitelist(*info_hash).await?;
-        self.whitelist.write().await.remove(info_hash);
+        self.remove_torrent_from_database_whitelist(info_hash).await?;
+        self.remove_torrent_from_memory_whitelist(info_hash).await;
         Ok(())
+    }
+
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to remove the `info_hash` from the whitelist database.
+    pub async fn remove_torrent_from_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
+        let is_whitelisted = self.database.is_info_hash_whitelisted(info_hash).await?;
+
+        if !is_whitelisted {
+            return Ok(());
+        }
+
+        self.database.remove_info_hash_from_whitelist(*info_hash).await?;
+
+        Ok(())
+    }
+
+    pub async fn remove_torrent_from_memory_whitelist(&self, info_hash: &InfoHash) -> bool {
+        self.whitelist.write().await.remove(info_hash)
     }
 
     pub async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> bool {
@@ -277,6 +308,27 @@ impl Tracker {
         self.torrents.read().await
     }
 
+    pub async fn get_torrents_metrics(&self) -> TorrentsMetrics {
+        let mut torrents_metrics = TorrentsMetrics {
+            seeders: 0,
+            completed: 0,
+            leechers: 0,
+            torrents: 0,
+        };
+
+        let db = self.get_torrents().await;
+
+        db.values().for_each(|torrent_entry| {
+            let (seeders, completed, leechers) = torrent_entry.get_stats();
+            torrents_metrics.seeders += u64::from(seeders);
+            torrents_metrics.completed += u64::from(completed);
+            torrents_metrics.leechers += u64::from(leechers);
+            torrents_metrics.torrents += 1;
+        });
+
+        torrents_metrics
+    }
+
     pub async fn get_stats(&self) -> RwLockReadGuard<'_, statistics::Metrics> {
         self.stats_repository.get_stats().await
     }
@@ -308,5 +360,53 @@ impl Tracker {
                 torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use super::statistics::Keeper;
+    use super::{TorrentsMetrics, Tracker};
+    use crate::config::{ephemeral_configuration, Configuration};
+
+    pub fn tracker_configuration() -> Arc<Configuration> {
+        Arc::new(ephemeral_configuration())
+    }
+
+    pub fn tracker_factory() -> Tracker {
+        // code-review: the tracker initialization is duplicated in many places. Consider make this function public.
+
+        // Configuration
+        let configuration = tracker_configuration();
+
+        // Initialize stats tracker
+        let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
+
+        // Initialize Torrust tracker
+        match Tracker::new(&configuration, Some(stats_event_sender), stats_repository) {
+            Ok(tracker) => tracker,
+            Err(error) => {
+                panic!("{}", error)
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn the_tracker_should_collect_torrent_metrics() {
+        let tracker = tracker_factory();
+
+        let torrents_metrics = tracker.get_torrents_metrics().await;
+
+        assert_eq!(
+            torrents_metrics,
+            TorrentsMetrics {
+                seeders: 0,
+                completed: 0,
+                leechers: 0,
+                torrents: 0
+            }
+        );
     }
 }

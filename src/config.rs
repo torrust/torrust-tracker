@@ -1,10 +1,11 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
 use std::path::Path;
 use std::str::FromStr;
 use std::{env, fs};
 
 use config::{Config, ConfigError, File, FileFormat};
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use {std, toml};
@@ -31,7 +32,7 @@ pub struct HttpTracker {
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct HttpApi {
     pub enabled: bool,
     pub bind_address: String,
@@ -41,6 +42,15 @@ pub struct HttpApi {
     #[serde_as(as = "NoneAsEmptyString")]
     pub ssl_key_path: Option<String>,
     pub access_tokens: HashMap<String, String>,
+}
+
+impl HttpApi {
+    #[must_use]
+    pub fn contains_token(&self, token: &str) -> bool {
+        let tokens: HashMap<String, String> = self.access_tokens.clone();
+        let tokens: HashSet<String> = tokens.into_values().collect();
+        tokens.contains(token)
+    }
 }
 
 #[allow(clippy::struct_excessive_bools)]
@@ -71,6 +81,40 @@ pub enum Error {
     IOError(std::io::Error),
     ParseError(toml::de::Error),
     TrackerModeIncompatible,
+}
+
+/// This configuration is used for testing. It generates random config values so they do not collide
+/// if  you run more than one tracker at the same time.
+///
+/// # Panics
+///
+/// Will panic if it can't convert the temp file path to string
+#[must_use]
+pub fn ephemeral_configuration() -> Configuration {
+    let mut config = Configuration {
+        log_level: Some("off".to_owned()),
+        ..Default::default()
+    };
+
+    // Ephemeral socket addresses
+    let api_port = random_port();
+    config.http_api.bind_address = format!("127.0.0.1:{}", &api_port);
+    let upd_port = random_port();
+    config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", &upd_port);
+
+    // Ephemeral sqlite database
+    let temp_directory = env::temp_dir();
+    let temp_file = temp_directory.join(format!("data_{}_{}.db", &api_port, &upd_port));
+    config.db_path = temp_file.to_str().unwrap().to_owned();
+
+    config
+}
+
+fn random_port() -> u16 {
+    // todo: this may produce random test failures because two tests can try to bind the same port.
+    // We could create a pool of available ports (with read/write lock)
+    let mut rng = thread_rng();
+    rng.gen_range(49152..65535)
 }
 
 impl std::fmt::Display for Error {
@@ -330,5 +374,13 @@ mod tests {
         let error = Error::TrackerModeIncompatible;
 
         assert_eq!(format!("{error}"), "TrackerModeIncompatible");
+    }
+
+    #[test]
+    fn http_api_configuration_should_check_if_it_contains_a_token() {
+        let configuration = Configuration::default();
+
+        assert!(configuration.http_api.contains_token("MyAccessToken"));
+        assert!(!configuration.http_api.contains_token("NonExistingToken"));
     }
 }

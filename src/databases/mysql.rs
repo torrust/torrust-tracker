@@ -74,6 +74,30 @@ impl Database for Mysql {
         Ok(())
     }
 
+    fn drop_database_tables(&self) -> Result<(), Error> {
+        let drop_whitelist_table = "
+        DROP TABLE `whitelist`;"
+            .to_string();
+
+        let drop_torrents_table = "
+        DROP TABLE `torrents`;"
+            .to_string();
+
+        let drop_keys_table = "
+            DROP TABLE `keys`;"
+            .to_string();
+
+        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+
+        conn.query_drop(&drop_whitelist_table)
+            .expect("Could not drop `whitelist` table.");
+        conn.query_drop(&drop_torrents_table)
+            .expect("Could not drop `torrents` table.");
+        conn.query_drop(&drop_keys_table).expect("Could not drop `keys` table.");
+
+        Ok(())
+    }
+
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error> {
         let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
 

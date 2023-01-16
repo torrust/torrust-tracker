@@ -4,9 +4,12 @@ use log::warn;
 use tokio::task::JoinHandle;
 
 use crate::config::Configuration;
-use crate::jobs::{http_tracker, torrent_cleanup, tracker_api, udp_tracker};
+use crate::jobs::{http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
 use crate::tracker;
 
+/// # Panics
+///
+/// Will panic if the socket address for API can't be parsed.
 pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Vec<JoinHandle<()>> {
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
@@ -47,9 +50,9 @@ pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Ve
         jobs.push(http_tracker::start_job(http_tracker_config, tracker.clone()));
     }
 
-    // Start HTTP API server
+    // Start HTTP API
     if config.http_api.enabled {
-        jobs.push(tracker_api::start_job(&config.http_api, tracker.clone()).await);
+        jobs.push(tracker_apis::start_job(&config.http_api, tracker.clone()).await);
     }
 
     // Remove torrents without peers, every interval
