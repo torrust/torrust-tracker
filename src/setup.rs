@@ -47,7 +47,7 @@ pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Ve
         if !http_tracker_config.enabled {
             continue;
         }
-        jobs.push(http_tracker::start_job(http_tracker_config, tracker.clone()));
+        jobs.push(http_tracker::start_job(http_tracker_config, tracker.clone()).await);
     }
 
     // Start HTTP API
