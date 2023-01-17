@@ -6,6 +6,7 @@
 extern crate rand;
 
 mod api;
+mod common;
 
 mod tracker_apis {
 
@@ -31,8 +32,9 @@ mod tracker_apis {
 
     mod authentication {
         use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
-        use crate::api::client::{Client, Query, QueryParam};
+        use crate::api::client::Client;
         use crate::api::server::start_default_api;
+        use crate::common::http::{Query, QueryParam};
 
         #[tokio::test]
         async fn should_authenticate_requests_by_using_a_token_query_param() {
@@ -181,10 +183,11 @@ mod tracker_apis {
             assert_bad_request, assert_invalid_infohash_param, assert_not_found, assert_token_not_valid, assert_torrent_info,
             assert_torrent_list, assert_torrent_not_known, assert_unauthorized,
         };
-        use crate::api::client::{Client, Query, QueryParam};
+        use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
         use crate::api::fixtures::sample_peer;
         use crate::api::server::start_default_api;
+        use crate::common::http::{Query, QueryParam};
 
         #[tokio::test]
         async fn should_allow_getting_torrents() {
