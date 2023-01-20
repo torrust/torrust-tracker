@@ -1,21 +1,5 @@
-use reqwest::Response;
-
 pub type ReqwestQuery = Vec<ReqwestQueryParam>;
 pub type ReqwestQueryParam = (String, String);
-
-pub async fn get(path: &str, query: Option<Query>) -> Response {
-    match query {
-        Some(params) => reqwest::Client::builder()
-            .build()
-            .unwrap()
-            .get(path)
-            .query(&ReqwestQuery::from(params))
-            .send()
-            .await
-            .unwrap(),
-        None => reqwest::Client::builder().build().unwrap().get(path).send().await.unwrap(),
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct ConnectionInfo {

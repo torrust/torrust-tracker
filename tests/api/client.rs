@@ -1,7 +1,7 @@
 use reqwest::Response;
 
 use super::connection_info::ConnectionInfo;
-use crate::common::http::{get, Query, QueryParam, ReqwestQuery};
+use crate::common::http::{Query, QueryParam, ReqwestQuery};
 
 /// API Client
 pub struct Client {
@@ -98,5 +98,19 @@ impl Client {
 
     fn base_url(&self, path: &str) -> String {
         format!("http://{}{}{path}", &self.connection_info.bind_address, &self.base_path)
+    }
+}
+
+async fn get(path: &str, query: Option<Query>) -> Response {
+    match query {
+        Some(params) => reqwest::Client::builder()
+            .build()
+            .unwrap()
+            .get(path)
+            .query(&ReqwestQuery::from(params))
+            .send()
+            .await
+            .unwrap(),
+        None => reqwest::Client::builder().build().unwrap().get(path).send().await.unwrap(),
     }
 }

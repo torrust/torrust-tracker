@@ -113,8 +113,8 @@ mod tracker_apis {
         use crate::api::asserts::{assert_stats, assert_token_not_valid, assert_unauthorized};
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
-        use crate::api::fixtures::sample_peer;
         use crate::api::server::start_default_api;
+        use crate::common::fixtures::sample_peer;
 
         #[tokio::test]
         async fn should_allow_getting_tracker_statistics() {
@@ -185,8 +185,8 @@ mod tracker_apis {
         };
         use crate::api::client::Client;
         use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
-        use crate::api::fixtures::sample_peer;
         use crate::api::server::start_default_api;
+        use crate::common::fixtures::sample_peer;
         use crate::common::http::{Query, QueryParam};
 
         #[tokio::test]

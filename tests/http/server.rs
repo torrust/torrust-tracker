@@ -3,6 +3,8 @@ use std::sync::Arc;
 
 use torrust_tracker::config::{ephemeral_configuration, Configuration};
 use torrust_tracker::jobs::http_tracker;
+use torrust_tracker::protocol::info_hash::InfoHash;
+use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::statistics::Keeper;
 use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
@@ -60,5 +62,9 @@ pub struct Server {
 impl Server {
     pub fn get_connection_info(&self) -> ConnectionInfo {
         self.connection_info.clone()
+    }
+
+    pub async fn add_torrent(&self, info_hash: &InfoHash, peer: &Peer) {
+        self.tracker.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
     }
 }

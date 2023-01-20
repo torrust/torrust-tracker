@@ -2,19 +2,18 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::net::IpAddr;
 
-use serde;
-use serde::Serialize;
+use serde::{self, Deserialize, Serialize};
 
 use crate::protocol::info_hash::InfoHash;
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Peer {
     pub peer_id: String,
     pub ip: IpAddr,
     pub port: u16,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Announce {
     pub interval: u32,
     #[serde(rename = "min interval")]
