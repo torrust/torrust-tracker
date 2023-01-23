@@ -9,9 +9,28 @@ mod http_tracker_server {
     mod for_all_config_modes {
 
         mod receiving_an_announce_request {
-            use crate::http::asserts::assert_internal_server_error;
+            use crate::http::asserts::{
+                assert_internal_server_error_response, assert_invalid_info_hash_error_response,
+                assert_invalid_peer_id_error_response, assert_is_announce_response,
+            };
             use crate::http::client::Client;
+            use crate::http::requests::AnnounceQueryBuilder;
             use crate::http::server::start_default_http_tracker;
+
+            #[tokio::test]
+            async fn should_respond_when_only_the_mandatory_fields_are_provided() {
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                params.remove_optional_params();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{params}"))
+                    .await;
+
+                assert_is_announce_response(response).await;
+            }
 
             #[tokio::test]
             async fn should_fail_when_the_request_is_empty() {
@@ -19,12 +38,53 @@ mod http_tracker_server {
 
                 let response = Client::new(http_tracker_server.get_connection_info()).get("announce").await;
 
-                assert_internal_server_error(response).await;
+                assert_internal_server_error_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_fail_when_a_mandatory_field_is_missing() {
+                let http_tracker_server = start_default_http_tracker().await;
+
+                // Without `info_hash` param
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                params.info_hash = None;
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{params}"))
+                    .await;
+
+                assert_invalid_info_hash_error_response(response).await;
+
+                // Without `peer_id` param
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                params.peer_id = None;
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{params}"))
+                    .await;
+
+                assert_invalid_peer_id_error_response(response).await;
+
+                // Without `port` param
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                params.port = None;
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{params}"))
+                    .await;
+
+                assert_internal_server_error_response(response).await;
             }
         }
 
         mod receiving_an_scrape_request {
-            use crate::http::asserts::assert_internal_server_error;
+            use crate::http::asserts::assert_internal_server_error_response;
             use crate::http::client::Client;
             use crate::http::server::start_default_http_tracker;
 
@@ -34,7 +94,7 @@ mod http_tracker_server {
 
                 let response = Client::new(http_tracker_server.get_connection_info()).get("scrape").await;
 
-                assert_internal_server_error(response).await;
+                assert_internal_server_error_response(response).await;
             }
         }
     }
@@ -62,7 +122,7 @@ mod http_tracker_server {
                     .announce(
                         &AnnounceQueryBuilder::default()
                             .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap())
-                            .into(),
+                            .query(),
                     )
                     .await;
 
@@ -99,7 +159,7 @@ mod http_tracker_server {
                         &AnnounceQueryBuilder::default()
                             .with_info_hash(&info_hash)
                             .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
-                            .into(),
+                            .query(),
                     )
                     .await;
 
@@ -136,7 +196,7 @@ mod http_tracker_server {
                 let announce_query = AnnounceQueryBuilder::default()
                     .with_info_hash(&info_hash)
                     .with_peer_id(&peer.peer_id)
-                    .into();
+                    .query();
 
                 assert_ne!(peer.peer_addr.ip(), announce_query.peer_addr);
 

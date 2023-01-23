@@ -29,7 +29,7 @@ impl fmt::Display for AnnounceQuery {
 ///
 /// <https://wiki.theory.org/BitTorrentSpecification#Tracker_HTTP.2FHTTPS_Protocol>
 ///
-/// Some parameters are not implemented yet.
+/// Some parameters in the specification are not implemented in this tracker yet.
 impl AnnounceQuery {
     /// It builds the URL query component for the announce request.
     ///
@@ -38,35 +38,11 @@ impl AnnounceQuery {
     ///
     /// <https://github.com/seanmonstar/reqwest/issues/1613>
     pub fn build(&self) -> String {
-        let mut params = vec![
-            (
-                "info_hash",
-                percent_encoding::percent_encode(&self.info_hash, NON_ALPHANUMERIC).to_string(),
-            ),
-            ("peer_addr", self.peer_addr.to_string()),
-            ("downloaded", self.downloaded.to_string()),
-            ("uploaded", self.uploaded.to_string()),
-            (
-                "peer_id",
-                percent_encoding::percent_encode(&self.peer_id, NON_ALPHANUMERIC).to_string(),
-            ),
-            ("port", self.port.to_string()),
-            ("left", self.left.to_string()),
-        ];
+        self.params().to_string()
+    }
 
-        if let Some(event) = &self.event {
-            params.push(("event", event.to_string()));
-        }
-
-        if let Some(compact) = &self.compact {
-            params.push(("compact", compact.to_string()));
-        }
-
-        params
-            .iter()
-            .map(|param| format!("{}={}", param.0, param.1))
-            .collect::<Vec<String>>()
-            .join("&")
+    pub fn params(&self) -> AnnounceQueryParams {
+        AnnounceQueryParams::from(self)
     }
 }
 
@@ -138,7 +114,117 @@ impl AnnounceQueryBuilder {
         self
     }
 
-    pub fn into(self) -> AnnounceQuery {
+    pub fn query(self) -> AnnounceQuery {
         self.announce_query
+    }
+}
+
+/// It contains all the GET parameters that can be used in a HTTP Announce request.
+///
+/// Sample Announce URL with all the GET parameters (mandatory and optional):
+///
+/// ```text
+/// http://127.0.0.1:7070/announce?
+///     info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22 (mandatory)
+///     peer_addr=192.168.1.88
+///     downloaded=0
+///     uploaded=0
+///     peer_id=%2DqB00000000000000000 (mandatory)
+///     port=17548 (mandatory)
+///     left=0
+///     event=completed
+///     compact=0
+/// ```
+pub struct AnnounceQueryParams {
+    pub info_hash: Option<String>,
+    pub peer_addr: Option<String>,
+    pub downloaded: Option<String>,
+    pub uploaded: Option<String>,
+    pub peer_id: Option<String>,
+    pub port: Option<String>,
+    pub left: Option<String>,
+    pub event: Option<String>,
+    pub compact: Option<String>,
+}
+
+impl std::fmt::Display for AnnounceQueryParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let mut params = vec![];
+
+        if let Some(info_hash) = &self.info_hash {
+            params.push(("info_hash", info_hash));
+        }
+        if let Some(peer_addr) = &self.peer_addr {
+            params.push(("peer_addr", peer_addr));
+        }
+        if let Some(downloaded) = &self.downloaded {
+            params.push(("downloaded", downloaded));
+        }
+        if let Some(uploaded) = &self.uploaded {
+            params.push(("uploaded", uploaded));
+        }
+        if let Some(peer_id) = &self.peer_id {
+            params.push(("peer_id", peer_id));
+        }
+        if let Some(port) = &self.port {
+            params.push(("port", port));
+        }
+        if let Some(left) = &self.left {
+            params.push(("left", left));
+        }
+        if let Some(event) = &self.event {
+            params.push(("event", event));
+        }
+        if let Some(compact) = &self.compact {
+            params.push(("compact", compact));
+        }
+
+        let query = params
+            .iter()
+            .map(|param| format!("{}={}", param.0, param.1))
+            .collect::<Vec<String>>()
+            .join("&");
+
+        write!(f, "{query}")
+    }
+}
+
+impl AnnounceQueryParams {
+    pub fn from(announce_query: &AnnounceQuery) -> Self {
+        let event = announce_query.event.as_ref().map(std::string::ToString::to_string);
+        let compact = announce_query.compact.as_ref().map(std::string::ToString::to_string);
+
+        Self {
+            info_hash: Some(percent_encoding::percent_encode(&announce_query.info_hash, NON_ALPHANUMERIC).to_string()),
+            peer_addr: Some(announce_query.peer_addr.to_string()),
+            downloaded: Some(announce_query.downloaded.to_string()),
+            uploaded: Some(announce_query.uploaded.to_string()),
+            peer_id: Some(percent_encoding::percent_encode(&announce_query.peer_id, NON_ALPHANUMERIC).to_string()),
+            port: Some(announce_query.port.to_string()),
+            left: Some(announce_query.left.to_string()),
+            event,
+            compact,
+        }
+    }
+
+    pub fn remove_optional_params(&mut self) {
+        // todo: make them optional with the Option<...> in the AnnounceQuery struct
+        // if they are really optional. SO that we can crete a minimal AnnounceQuery
+        // instead of removing the optional params afterwards.
+        //
+        // The original specification on:
+        // <https://www.bittorrent.org/beps/bep_0003.html>
+        // says only `ip` and `event` are optional.
+        //
+        // On <https://wiki.theory.org/BitTorrentSpecification#Tracker_Request_Parameters>
+        // says only `ip`, `numwant`, `key` and `trackerid` are optional.
+        //
+        // but the server is responding if all these params are not included.
+        self.peer_addr = None;
+        self.downloaded = None;
+        self.uploaded = None;
+        self.left = None;
+        self.event = None;
+        self.compact = None;
     }
 }

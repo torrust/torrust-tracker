@@ -16,3 +16,9 @@ pub struct DictionaryPeer {
     pub peer_id: String,
     pub port: u16,
 }
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct Error {
+    #[serde(rename = "failure reason")]
+    pub failure_reason: String,
+}
