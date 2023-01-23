@@ -122,6 +122,30 @@ mod http_tracker_server {
                 )
                 .await;
             }
+
+            #[tokio::test]
+            async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_peer_id_even_if_the_ip_is_different() {
+                let http_tracker_server = start_public_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+                let peer = PeerBuilder::default().into();
+
+                // Add a peer
+                http_tracker_server.add_torrent(&info_hash, &peer).await;
+
+                let announce_query = AnnounceQueryBuilder::default()
+                    .with_info_hash(&info_hash)
+                    .with_peer_id(&peer.peer_id)
+                    .into();
+
+                assert_ne!(peer.peer_addr.ip(), announce_query.peer_addr);
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .announce(&announce_query)
+                    .await;
+
+                assert_empty_announce_response(response).await;
+            }
         }
     }
 }
