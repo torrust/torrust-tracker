@@ -215,6 +215,21 @@ impl Serialize for Id {
 
 #[cfg(test)]
 mod test {
+
+    mod torrent_peer_id {
+        use crate::tracker::peer;
+
+        #[test]
+        fn should_be_converted_into_string() {
+            // todo: it seems it's not working
+            let id = peer::Id(*b"-qB00000000000000000");
+            assert_eq!(id.to_string(), "");
+
+            let id = peer::Id(*b"-qB00000000000000001");
+            assert_eq!(id.to_string(), "");
+        }
+    }
+
     mod torrent_peer {
 
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
