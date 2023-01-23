@@ -1,6 +1,7 @@
 //! Tracker HTTP/HTTPS Protocol:
 //!
 //! <https://wiki.theory.org/BitTorrentSpecification#Tracker_HTTP.2FHTTPS_Protocol>
+//! <https://wiki.theory.org/BitTorrent_Tracker_Protocol>
 //!
 pub mod error;
 pub mod filters;

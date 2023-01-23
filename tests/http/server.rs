@@ -10,13 +10,17 @@ use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
 use super::connection_info::ConnectionInfo;
 
-pub fn tracker_configuration() -> Arc<Configuration> {
-    Arc::new(ephemeral_configuration())
+pub async fn start_public_http_tracker() -> Server {
+    start_default_http_tracker().await
 }
 
 pub async fn start_default_http_tracker() -> Server {
     let configuration = tracker_configuration();
     start_custom_http_tracker(configuration.clone()).await
+}
+
+pub fn tracker_configuration() -> Arc<Configuration> {
+    Arc::new(ephemeral_configuration())
 }
 
 pub async fn start_custom_http_tracker(configuration: Arc<Configuration>) -> Server {

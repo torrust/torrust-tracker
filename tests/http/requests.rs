@@ -1,8 +1,11 @@
 use std::fmt;
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr};
+use std::str::FromStr;
 
 use percent_encoding::NON_ALPHANUMERIC;
 use serde_repr::Serialize_repr;
+use torrust_tracker::protocol::info_hash::InfoHash;
+use torrust_tracker::tracker::peer::Id;
 
 pub struct AnnounceQuery {
     pub info_hash: ByteArray20,
@@ -100,5 +103,42 @@ impl fmt::Display for Compact {
             //Compact::Accepted => write!(f, "1"),
             Compact::NotAccepted => write!(f, "0"),
         }
+    }
+}
+
+pub struct AnnounceQueryBuilder {
+    announce_query: AnnounceQuery,
+}
+
+impl AnnounceQueryBuilder {
+    pub fn default() -> AnnounceQueryBuilder {
+        let default_announce_query = AnnounceQuery {
+            info_hash: InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap().0,
+            peer_addr: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 88)),
+            downloaded: 0,
+            uploaded: 0,
+            peer_id: Id(*b"-qB00000000000000001").0,
+            port: 17548,
+            left: 0,
+            event: Some(Event::Completed),
+            compact: Some(Compact::NotAccepted),
+        };
+        Self {
+            announce_query: default_announce_query,
+        }
+    }
+
+    pub fn with_info_hash(mut self, info_hash: &InfoHash) -> Self {
+        self.announce_query.info_hash = info_hash.0;
+        self
+    }
+
+    pub fn with_peer_id(mut self, peer_id: &Id) -> Self {
+        self.announce_query.peer_id = peer_id.0;
+        self
+    }
+
+    pub fn into(self) -> AnnounceQuery {
+        self.announce_query
     }
 }
