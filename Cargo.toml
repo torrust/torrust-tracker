@@ -67,3 +67,4 @@ mockall = "0.11"
 reqwest = { version = "0.11.13", features = ["json"] }
 serde_urlencoded = "0.7.1"
 serde_repr = "0.1.10"
+serde_bytes = "0.11.8"
