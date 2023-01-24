@@ -10,18 +10,12 @@ mod common;
 
 mod tracker_apis {
 
+    use crate::common::fixtures::invalid_info_hashes;
+
     // When these infohashes are used in URL path params
     // the response is a custom response returned in the handler
     fn invalid_infohashes_returning_bad_request() -> Vec<String> {
-        [
-            "0".to_string(),
-            "-1".to_string(),
-            "1.1".to_string(),
-            "INVALID INFOHASH".to_string(),
-            "9c38422213e30bff212b30c360d26f9a0213642".to_string(), // 39-char length instead of 40
-            "9c38422213e30bff212b30c360d26f9a0213642&".to_string(), // Invalid char
-        ]
-        .to_vec()
+        invalid_info_hashes()
     }
 
     // When these infohashes are used in URL path params

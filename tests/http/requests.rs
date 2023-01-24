@@ -51,7 +51,7 @@ pub type ByteArray20 = [u8; 20];
 pub type PortNumber = u16;
 
 pub enum Event {
-    //tarted,
+    //Started,
     //Stopped,
     Completed,
 }
@@ -226,5 +226,20 @@ impl AnnounceQueryParams {
         self.left = None;
         self.event = None;
         self.compact = None;
+    }
+
+    pub fn set(&mut self, param_name: &str, param_value: &str) {
+        match param_name {
+            "info_hash" => self.info_hash = Some(param_value.to_string()),
+            "peer_addr" => self.peer_addr = Some(param_value.to_string()),
+            "downloaded" => self.downloaded = Some(param_value.to_string()),
+            "uploaded" => self.uploaded = Some(param_value.to_string()),
+            "peer_id" => self.peer_id = Some(param_value.to_string()),
+            "port" => self.port = Some(param_value.to_string()),
+            "left" => self.left = Some(param_value.to_string()),
+            "event" => self.event = Some(param_value.to_string()),
+            "compact" => self.compact = Some(param_value.to_string()),
+            &_ => panic!("Invalid param name for announce query"),
+        }
     }
 }

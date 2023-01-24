@@ -9,6 +9,7 @@ mod http_tracker_server {
     mod for_all_config_modes {
 
         mod receiving_an_announce_request {
+            use crate::common::fixtures::invalid_info_hashes;
             use crate::http::asserts::{
                 assert_internal_server_error_response, assert_invalid_info_hash_error_response,
                 assert_invalid_peer_id_error_response, assert_is_announce_response,
@@ -80,6 +81,193 @@ mod http_tracker_server {
                     .await;
 
                 assert_internal_server_error_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_fail_when_the_info_hash_param_is_invalid() {
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                for invalid_value in &invalid_info_hashes() {
+                    params.set("info_hash", invalid_value);
+
+                    let response = Client::new(http_tracker_server.get_connection_info())
+                        .get(&format!("announce?{params}"))
+                        .await;
+
+                    assert_invalid_info_hash_error_response(response).await;
+                }
+            }
+
+            #[tokio::test]
+            async fn should_not_fail_when_the_peer_address_param_is_invalid() {
+                // AnnounceQuery does not even contain the `peer_addr`
+                // The peer IP is obtained in two ways:
+                // 1. If tracker is NOT running `on_reverse_proxy` from the remote client IP if there.
+                // 2. If tracker is     running `on_reverse_proxy` from `X-Forwarded-For` request header is tracker is running `on_reverse_proxy`.
+
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                params.peer_addr = Some("INVALID-IP-ADDRESS".to_string());
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{params}"))
+                    .await;
+
+                assert_is_announce_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_fail_when_the_downloaded_param_is_invalid() {
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                let invalid_values = ["-1", "1.1", "a"];
+
+                for invalid_value in invalid_values {
+                    params.set("downloaded", invalid_value);
+
+                    let response = Client::new(http_tracker_server.get_connection_info())
+                        .get(&format!("announce?{params}"))
+                        .await;
+
+                    assert_internal_server_error_response(response).await;
+                }
+            }
+
+            #[tokio::test]
+            async fn should_fail_when_the_uploaded_param_is_invalid() {
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                let invalid_values = ["-1", "1.1", "a"];
+
+                for invalid_value in invalid_values {
+                    params.set("uploaded", invalid_value);
+
+                    let response = Client::new(http_tracker_server.get_connection_info())
+                        .get(&format!("announce?{params}"))
+                        .await;
+
+                    assert_internal_server_error_response(response).await;
+                }
+            }
+
+            #[tokio::test]
+            async fn should_fail_when_the_peer_id_param_is_invalid() {
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                let invalid_values = [
+                    "0",
+                    "-1",
+                    "1.1",
+                    "a",
+                    "-qB0000000000000000",   // 19 bytes
+                    "-qB000000000000000000", // 21 bytes
+                ];
+
+                for invalid_value in invalid_values {
+                    params.set("peer_id", invalid_value);
+
+                    let response = Client::new(http_tracker_server.get_connection_info())
+                        .get(&format!("announce?{params}"))
+                        .await;
+
+                    assert_invalid_peer_id_error_response(response).await;
+                }
+            }
+
+            #[tokio::test]
+            async fn should_fail_when_the_port_param_is_invalid() {
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                let invalid_values = ["-1", "1.1", "a"];
+
+                for invalid_value in invalid_values {
+                    params.set("port", invalid_value);
+
+                    let response = Client::new(http_tracker_server.get_connection_info())
+                        .get(&format!("announce?{params}"))
+                        .await;
+
+                    assert_internal_server_error_response(response).await;
+                }
+            }
+
+            #[tokio::test]
+            async fn should_fail_when_the_left_param_is_invalid() {
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                let invalid_values = ["-1", "1.1", "a"];
+
+                for invalid_value in invalid_values {
+                    params.set("left", invalid_value);
+
+                    let response = Client::new(http_tracker_server.get_connection_info())
+                        .get(&format!("announce?{params}"))
+                        .await;
+
+                    assert_internal_server_error_response(response).await;
+                }
+            }
+
+            #[tokio::test]
+            async fn should_not_fail_when_the_event_param_is_invalid() {
+                // All invalid values are ignored as if the `event` param was empty
+
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                let invalid_values = [
+                    "0",
+                    "-1",
+                    "1.1",
+                    "a",
+                    "Started",   // It should be lowercase
+                    "Stopped",   // It should be lowercase
+                    "Completed", // It should be lowercase
+                ];
+
+                for invalid_value in invalid_values {
+                    params.set("event", invalid_value);
+
+                    let response = Client::new(http_tracker_server.get_connection_info())
+                        .get(&format!("announce?{params}"))
+                        .await;
+
+                    assert_is_announce_response(response).await;
+                }
+            }
+
+            #[tokio::test]
+            async fn should_not_fail_when_the_compact_param_is_invalid() {
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let mut params = AnnounceQueryBuilder::default().query().params();
+
+                let invalid_values = ["-1", "1.1", "a"];
+
+                for invalid_value in invalid_values {
+                    params.set("compact", invalid_value);
+
+                    let response = Client::new(http_tracker_server.get_connection_info())
+                        .get(&format!("announce?{params}"))
+                        .await;
+
+                    assert_internal_server_error_response(response).await;
+                }
             }
         }
 
