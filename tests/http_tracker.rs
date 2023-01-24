@@ -296,10 +296,12 @@ mod http_tracker_server {
             use torrust_tracker::tracker::peer;
 
             use crate::common::fixtures::PeerBuilder;
-            use crate::http::asserts::{assert_announce_response, assert_empty_announce_response};
+            use crate::http::asserts::{
+                assert_announce_response, assert_compact_announce_response, assert_empty_announce_response,
+            };
             use crate::http::client::Client;
-            use crate::http::requests::AnnounceQueryBuilder;
-            use crate::http::responses::{Announce, DictionaryPeer};
+            use crate::http::requests::{AnnounceQueryBuilder, Compact};
+            use crate::http::responses::{Announce, CompactPeer, CompactPeerList, DecodedCompactAnnounce, DictionaryPeer};
             use crate::http::server::start_public_http_tracker;
 
             #[tokio::test]
@@ -393,6 +395,45 @@ mod http_tracker_server {
                     .await;
 
                 assert_empty_announce_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_return_the_compact_response() {
+                // Tracker Returns Compact Peer Lists
+                // https://www.bittorrent.org/beps/bep_0023.html
+
+                let http_tracker_server = start_public_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                // Peer 1
+                let previously_announced_peer = PeerBuilder::default()
+                    .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                    .into();
+
+                // Add the Peer 1
+                http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
+
+                // Announce the new Peer 2 accepting compact responses
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .announce(
+                        &AnnounceQueryBuilder::default()
+                            .with_info_hash(&info_hash)
+                            .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
+                            .with_compact(Compact::Accepted)
+                            .query(),
+                    )
+                    .await;
+
+                let expected_response = DecodedCompactAnnounce {
+                    complete: 2,
+                    incomplete: 0,
+                    interval: 120,
+                    min_interval: 120,
+                    peers: CompactPeerList::new([CompactPeer::new(&previously_announced_peer.peer_addr)].to_vec()),
+                };
+
+                assert_compact_announce_response(response, &expected_response).await;
             }
         }
     }

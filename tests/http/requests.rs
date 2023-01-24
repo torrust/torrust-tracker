@@ -69,14 +69,14 @@ impl fmt::Display for Event {
 #[derive(Serialize_repr, PartialEq, Debug)]
 #[repr(u8)]
 pub enum Compact {
-    //Accepted = 1,
+    Accepted = 1,
     NotAccepted = 0,
 }
 
 impl fmt::Display for Compact {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            //Compact::Accepted => write!(f, "1"),
+            Compact::Accepted => write!(f, "1"),
             Compact::NotAccepted => write!(f, "0"),
         }
     }
@@ -111,6 +111,11 @@ impl AnnounceQueryBuilder {
 
     pub fn with_peer_id(mut self, peer_id: &Id) -> Self {
         self.announce_query.peer_id = peer_id.0;
+        self
+    }
+
+    pub fn with_compact(mut self, compact: Compact) -> Self {
+        self.announce_query.compact = Some(compact);
         self
     }
 

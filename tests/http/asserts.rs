@@ -1,7 +1,7 @@
 use reqwest::Response;
 
-use super::responses::Announce;
-use crate::http::responses::Error;
+use super::responses::{Announce, DecodedCompactAnnounce};
+use crate::http::responses::{CompactAnnounce, Error};
 
 pub async fn assert_empty_announce_response(response: Response) {
     assert_eq!(response.status(), 200);
@@ -11,8 +11,31 @@ pub async fn assert_empty_announce_response(response: Response) {
 
 pub async fn assert_announce_response(response: Response, expected_announce_response: &Announce) {
     assert_eq!(response.status(), 200);
-    let announce_response: Announce = serde_bencode::from_str(&response.text().await.unwrap()).unwrap();
+    let body = response.text().await.unwrap();
+    let announce_response: Announce = serde_bencode::from_str(&body)
+        .unwrap_or_else(|_| panic!("response body should be a valid announce response, got \"{}\"", &body));
     assert_eq!(announce_response, *expected_announce_response);
+}
+
+/// Sample bencoded response as byte array:
+///
+/// ```text
+/// b"d8:intervali120e12:min intervali120e8:completei2e10:incompletei0e5:peers6:~\0\0\x01\x1f\x90e6:peers60:e"
+/// ```
+pub async fn assert_compact_announce_response(response: Response, expected_response: &DecodedCompactAnnounce) {
+    assert_eq!(response.status(), 200);
+
+    let bytes = response.bytes().await.unwrap();
+
+    let compact_announce: CompactAnnounce = serde_bencode::from_bytes(&bytes).unwrap_or_else(|_| {
+        panic!(
+            "response body should be a valid compact announce response, got \"{:?}\"",
+            &bytes
+        )
+    });
+    let actual_response = DecodedCompactAnnounce::from(compact_announce);
+
+    assert_eq!(actual_response, *expected_response);
 }
 
 pub async fn assert_is_announce_response(response: Response) {
