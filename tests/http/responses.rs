@@ -1,6 +1,7 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use serde::{self, Deserialize, Serialize};
+use torrust_tracker::tracker::peer::Peer;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Announce {
@@ -17,6 +18,16 @@ pub struct DictionaryPeer {
     pub ip: String,
     pub peer_id: String,
     pub port: u16,
+}
+
+impl From<Peer> for DictionaryPeer {
+    fn from(peer: Peer) -> Self {
+        DictionaryPeer {
+            peer_id: peer.peer_id.to_string(),
+            ip: peer.peer_addr.ip().to_string(),
+            port: peer.peer_addr.port(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]

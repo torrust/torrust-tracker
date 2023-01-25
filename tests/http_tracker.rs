@@ -343,7 +343,7 @@ mod http_tracker_server {
                 // Add the Peer 1
                 http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
 
-                // Announce the new Peer 2
+                // Announce the new Peer 2. This new peer is non included on the response peer list
                 let response = Client::new(http_tracker_server.get_connection_info())
                     .announce(
                         &AnnounceQueryBuilder::default()
@@ -353,13 +353,7 @@ mod http_tracker_server {
                     )
                     .await;
 
-                let expected_peer = DictionaryPeer {
-                    peer_id: previously_announced_peer.peer_id.to_string(),
-                    ip: previously_announced_peer.peer_addr.ip().to_string(),
-                    port: previously_announced_peer.peer_addr.port(),
-                };
-
-                // This new peer is non included on the response peer list
+                // It should only contain teh previously announced peer
                 assert_announce_response(
                     response,
                     &Announce {
@@ -367,7 +361,7 @@ mod http_tracker_server {
                         incomplete: 0,
                         interval: http_tracker_server.tracker.config.announce_interval,
                         min_interval: http_tracker_server.tracker.config.min_announce_interval,
-                        peers: vec![expected_peer],
+                        peers: vec![DictionaryPeer::from(previously_announced_peer)],
                     },
                 )
                 .await;
