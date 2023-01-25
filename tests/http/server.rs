@@ -1,4 +1,5 @@
 use core::panic;
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use torrust_tracker::config::{ephemeral_configuration, Configuration};
@@ -10,8 +11,28 @@ use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
 use super::connection_info::ConnectionInfo;
 
+/// Starts a HTTP tracker with mode "public"
 pub async fn start_public_http_tracker() -> Server {
     start_default_http_tracker().await
+}
+
+/// Starts a HTTP tracker with a wildcard IPV6 address.
+/// The configuration in the `config.toml` file would be like this:
+///
+/// ```text
+/// [[http_trackers]]
+/// bind_address = "[::]:7070"
+/// ```
+pub async fn start_ipv6_http_tracker() -> Server {
+    let mut configuration = ephemeral_configuration();
+
+    // Change socket address to "wildcard address" (unspecified address which means any IP address)
+    // but keeping the random port generated with the ephemeral configuration.
+    let socket_addr: SocketAddr = configuration.http_trackers[0].bind_address.parse().unwrap();
+    let new_ipv6_socket_address = format!("[::]:{}", socket_addr.port());
+    configuration.http_trackers[0].bind_address = new_ipv6_socket_address;
+
+    start_custom_http_tracker(Arc::new(configuration)).await
 }
 
 pub async fn start_default_http_tracker() -> Server {

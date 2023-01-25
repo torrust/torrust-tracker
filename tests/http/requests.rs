@@ -119,6 +119,11 @@ impl AnnounceQueryBuilder {
         self
     }
 
+    pub fn with_peer_addr(mut self, peer_addr: &IpAddr) -> Self {
+        self.announce_query.peer_addr = *peer_addr;
+        self
+    }
+
     pub fn without_compact(mut self) -> Self {
         self.announce_query.compact = None;
         self

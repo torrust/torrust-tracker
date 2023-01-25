@@ -290,6 +290,7 @@ mod http_tracker_server {
     mod configured_as_public {
 
         mod receiving_an_announce_request {
+            use std::net::{IpAddr, Ipv6Addr};
             use std::str::FromStr;
 
             use reqwest::Response;
@@ -305,7 +306,7 @@ mod http_tracker_server {
             use crate::http::responses::{
                 Announce, CompactAnnounce, CompactPeer, CompactPeerList, DecodedCompactAnnounce, DictionaryPeer,
             };
-            use crate::http::server::start_public_http_tracker;
+            use crate::http::server::{start_ipv6_http_tracker, start_public_http_tracker};
 
             #[tokio::test]
             async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
@@ -470,6 +471,96 @@ mod http_tracker_server {
                 let bytes = response.bytes().await.unwrap();
                 let compact_announce = serde_bencode::from_bytes::<CompactAnnounce>(&bytes);
                 compact_announce.is_ok()
+            }
+
+            #[tokio::test]
+            async fn should_increase_the_number_of_tcp4_connections_handled_in_statistics() {
+                let http_tracker_server = start_public_http_tracker().await;
+
+                Client::new(http_tracker_server.get_connection_info())
+                    .announce(&AnnounceQueryBuilder::default().query())
+                    .await;
+
+                let stats = http_tracker_server.tracker.get_stats().await;
+
+                assert_eq!(stats.tcp4_connections_handled, 1);
+            }
+
+            #[tokio::test]
+            async fn should_increase_the_number_of_tcp6_connections_handled_in_statistics() {
+                let http_tracker_server = start_ipv6_http_tracker().await;
+
+                Client::bind(http_tracker_server.get_connection_info(), IpAddr::from_str("::1").unwrap())
+                    .announce(&AnnounceQueryBuilder::default().query())
+                    .await;
+
+                let stats = http_tracker_server.tracker.get_stats().await;
+
+                assert_eq!(stats.tcp6_connections_handled, 1);
+            }
+
+            #[tokio::test]
+            async fn should_not_increase_the_number_of_tcp6_connections_handled_if_the_client_is_not_using_an_ipv6_ip() {
+                // The tracker ignores the peer address in the request param. It uses the client remote ip address.
+
+                let http_tracker_server = start_public_http_tracker().await;
+
+                Client::new(http_tracker_server.get_connection_info())
+                    .announce(
+                        &AnnounceQueryBuilder::default()
+                            .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
+                            .query(),
+                    )
+                    .await;
+
+                let stats = http_tracker_server.tracker.get_stats().await;
+
+                assert_eq!(stats.tcp6_connections_handled, 0);
+            }
+
+            #[tokio::test]
+            async fn should_increase_the_number_of_tcp4_announce_requests_handled_in_statistics() {
+                let http_tracker_server = start_public_http_tracker().await;
+
+                Client::new(http_tracker_server.get_connection_info())
+                    .announce(&AnnounceQueryBuilder::default().query())
+                    .await;
+
+                let stats = http_tracker_server.tracker.get_stats().await;
+
+                assert_eq!(stats.tcp4_announces_handled, 1);
+            }
+
+            #[tokio::test]
+            async fn should_increase_the_number_of_tcp6_announce_requests_handled_in_statistics() {
+                let http_tracker_server = start_ipv6_http_tracker().await;
+
+                Client::bind(http_tracker_server.get_connection_info(), IpAddr::from_str("::1").unwrap())
+                    .announce(&AnnounceQueryBuilder::default().query())
+                    .await;
+
+                let stats = http_tracker_server.tracker.get_stats().await;
+
+                assert_eq!(stats.tcp6_announces_handled, 1);
+            }
+
+            #[tokio::test]
+            async fn should_not_increase_the_number_of_tcp6_announce_requests_handled_if_the_client_is_not_using_an_ipv6_ip() {
+                // The tracker ignores the peer address in the request param. It uses the client remote ip address.
+
+                let http_tracker_server = start_public_http_tracker().await;
+
+                Client::new(http_tracker_server.get_connection_info())
+                    .announce(
+                        &AnnounceQueryBuilder::default()
+                            .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
+                            .query(),
+                    )
+                    .await;
+
+                let stats = http_tracker_server.tracker.get_stats().await;
+
+                assert_eq!(stats.tcp6_announces_handled, 0);
             }
         }
     }
