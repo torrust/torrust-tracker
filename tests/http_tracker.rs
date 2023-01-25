@@ -292,6 +292,7 @@ mod http_tracker_server {
         mod receiving_an_announce_request {
             use std::str::FromStr;
 
+            use reqwest::Response;
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::peer;
 
@@ -301,7 +302,9 @@ mod http_tracker_server {
             };
             use crate::http::client::Client;
             use crate::http::requests::{AnnounceQueryBuilder, Compact};
-            use crate::http::responses::{Announce, CompactPeer, CompactPeerList, DecodedCompactAnnounce, DictionaryPeer};
+            use crate::http::responses::{
+                Announce, CompactAnnounce, CompactPeer, CompactPeerList, DecodedCompactAnnounce, DictionaryPeer,
+            };
             use crate::http::server::start_public_http_tracker;
 
             #[tokio::test]
@@ -428,6 +431,45 @@ mod http_tracker_server {
                 };
 
                 assert_compact_announce_response(response, &expected_response).await;
+            }
+
+            #[tokio::test]
+            async fn should_not_return_the_compact_response_by_default() {
+                // code-review: the HTTP tracker does not return the compact response by default if the "compact"
+                // param is not provided in the announce URL. The BEP 23 suggest to do so.
+
+                let http_tracker_server = start_public_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                // Peer 1
+                let previously_announced_peer = PeerBuilder::default()
+                    .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                    .into();
+
+                // Add the Peer 1
+                http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
+
+                // Announce the new Peer 2 without passing the "compact" param
+                // By default it should respond with the compact peer list
+                // https://www.bittorrent.org/beps/bep_0023.html
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .announce(
+                        &AnnounceQueryBuilder::default()
+                            .with_info_hash(&info_hash)
+                            .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
+                            .without_compact()
+                            .query(),
+                    )
+                    .await;
+
+                assert!(!is_a_compact_announce_response(response).await);
+            }
+
+            async fn is_a_compact_announce_response(response: Response) -> bool {
+                let bytes = response.bytes().await.unwrap();
+                let compact_announce = serde_bencode::from_bytes::<CompactAnnounce>(&bytes);
+                compact_announce.is_ok()
             }
         }
     }

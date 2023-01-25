@@ -119,6 +119,11 @@ impl AnnounceQueryBuilder {
         self
     }
 
+    pub fn without_compact(mut self) -> Self {
+        self.announce_query.compact = None;
+        self
+    }
+
     pub fn query(self) -> AnnounceQuery {
         self.announce_query
     }
