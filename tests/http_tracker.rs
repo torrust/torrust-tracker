@@ -726,7 +726,65 @@ mod http_tracker_server {
 
     mod configured_as_private {
 
-        mod and_receiving_an_announce_request {}
+        mod and_receiving_an_announce_request {
+            use std::str::FromStr;
+            use std::time::Duration;
+
+            use torrust_tracker::protocol::info_hash::InfoHash;
+            use torrust_tracker::tracker::auth::KeyId;
+
+            use crate::http::asserts::{
+                assert_invalid_authentication_key_error_response, assert_is_announce_response,
+                assert_peer_not_authenticated_error_response,
+            };
+            use crate::http::client::Client;
+            use crate::http::requests::AnnounceQueryBuilder;
+            use crate::http::server::start_private_http_tracker;
+
+            #[tokio::test]
+            async fn should_respond_to_peers_providing_a_valid_authentication_key() {
+                let http_tracker_server = start_private_http_tracker().await;
+
+                let key = http_tracker_server
+                    .tracker
+                    .generate_auth_key(Duration::from_secs(60))
+                    .await
+                    .unwrap();
+
+                let response = Client::authenticated(http_tracker_server.get_connection_info(), key.id())
+                    .announce(&AnnounceQueryBuilder::default().query())
+                    .await;
+
+                assert_is_announce_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_fail_if_the_peer_has_not_provided_the_authentication_key() {
+                let http_tracker_server = start_private_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .announce(&AnnounceQueryBuilder::default().with_info_hash(&info_hash).query())
+                    .await;
+
+                assert_peer_not_authenticated_error_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_fail_if_the_peer_authentication_key_is_not_valid() {
+                let http_tracker_server = start_private_http_tracker().await;
+
+                // The tracker does not have this key
+                let unregistered_key_id = KeyId::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+
+                let response = Client::authenticated(http_tracker_server.get_connection_info(), unregistered_key_id)
+                    .announce(&AnnounceQueryBuilder::default().query())
+                    .await;
+
+                assert_invalid_authentication_key_error_response(response).await;
+            }
+        }
 
         mod receiving_an_scrape_request {}
     }

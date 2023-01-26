@@ -106,3 +106,33 @@ pub async fn assert_torrent_not_in_whitelist_error_response(response: Response) 
     };
     assert_eq!(error_response, expected_error_response);
 }
+
+pub async fn assert_peer_not_authenticated_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+    let body = response.text().await.unwrap();
+    let error_response: Error = serde_bencode::from_str(&body).unwrap_or_else(|_| {
+        panic!(
+            "response body should be a valid bencoded string for the 'peer not authenticated' error, got \"{}\"",
+            &body
+        )
+    });
+    let expected_error_response = Error {
+        failure_reason: "peer not authenticated".to_string(),
+    };
+    assert_eq!(error_response, expected_error_response);
+}
+
+pub async fn assert_invalid_authentication_key_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+    let body = response.text().await.unwrap();
+    let error_response: Error = serde_bencode::from_str(&body).unwrap_or_else(|_| {
+        panic!(
+            "response body should be a valid bencoded string for the 'invalid authentication key' error, got \"{}\"",
+            &body
+        )
+    });
+    let expected_error_response = Error {
+        failure_reason: "invalid authentication key".to_string(),
+    };
+    assert_eq!(error_response, expected_error_response);
+}

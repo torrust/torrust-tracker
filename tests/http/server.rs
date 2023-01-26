@@ -26,6 +26,13 @@ pub async fn start_whitelisted_http_tracker() -> Server {
     start_custom_http_tracker(Arc::new(configuration)).await
 }
 
+/// Starts a HTTP tracker with mode "listed"
+pub async fn start_private_http_tracker() -> Server {
+    let mut configuration = ephemeral_configuration();
+    configuration.mode = Mode::Private;
+    start_custom_http_tracker(Arc::new(configuration)).await
+}
+
 /// Starts a HTTP tracker with a wildcard IPV6 address.
 /// The configuration in the `config.toml` file would be like this:
 ///
