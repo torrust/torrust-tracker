@@ -678,7 +678,48 @@ mod http_tracker_server {
 
     mod configured_as_whitelisted {
 
-        mod and_receiving_an_announce_request {}
+        mod and_receiving_an_announce_request {
+            use std::str::FromStr;
+
+            use torrust_tracker::protocol::info_hash::InfoHash;
+
+            use crate::http::asserts::{assert_is_announce_response, assert_torrent_not_in_whitelist_error_response};
+            use crate::http::client::Client;
+            use crate::http::requests::AnnounceQueryBuilder;
+            use crate::http::server::start_whitelisted_http_tracker;
+
+            #[tokio::test]
+            async fn should_fail_if_the_torrent_is_not_in_the_whitelist() {
+                let http_tracker_server = start_whitelisted_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .announce(&AnnounceQueryBuilder::default().with_info_hash(&info_hash).query())
+                    .await;
+
+                assert_torrent_not_in_whitelist_error_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_allow_announcing_a_whitelisted_torrent() {
+                let http_tracker_server = start_whitelisted_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                http_tracker_server
+                    .tracker
+                    .add_torrent_to_whitelist(&info_hash)
+                    .await
+                    .expect("should add the torrent to the whitelist");
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .announce(&AnnounceQueryBuilder::default().with_info_hash(&info_hash).query())
+                    .await;
+
+                assert_is_announce_response(response).await;
+            }
+        }
 
         mod receiving_an_scrape_request {}
     }

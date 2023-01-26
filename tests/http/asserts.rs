@@ -91,3 +91,18 @@ pub async fn assert_invalid_peer_id_error_response(response: Response) {
     };
     assert_eq!(error_response, expected_error_response);
 }
+
+pub async fn assert_torrent_not_in_whitelist_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+    let body = response.text().await.unwrap();
+    let error_response: Error = serde_bencode::from_str(&body).unwrap_or_else(|_| {
+        panic!(
+            "response body should be a valid bencoded string for the 'torrent not on whitelist' error, got \"{}\"",
+            &body
+        )
+    });
+    let expected_error_response = Error {
+        failure_reason: "torrent not on whitelist".to_string(),
+    };
+    assert_eq!(error_response, expected_error_response);
+}

@@ -5,6 +5,7 @@ use std::sync::Arc;
 use torrust_tracker::config::{ephemeral_configuration, Configuration};
 use torrust_tracker::jobs::http_tracker;
 use torrust_tracker::protocol::info_hash::InfoHash;
+use torrust_tracker::tracker::mode::Mode;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::statistics::Keeper;
 use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
@@ -13,7 +14,16 @@ use super::connection_info::ConnectionInfo;
 
 /// Starts a HTTP tracker with mode "public"
 pub async fn start_public_http_tracker() -> Server {
-    start_default_http_tracker().await
+    let mut configuration = ephemeral_configuration();
+    configuration.mode = Mode::Public;
+    start_custom_http_tracker(Arc::new(configuration)).await
+}
+
+/// Starts a HTTP tracker with mode "listed"
+pub async fn start_whitelisted_http_tracker() -> Server {
+    let mut configuration = ephemeral_configuration();
+    configuration.mode = Mode::Listed;
+    start_custom_http_tracker(Arc::new(configuration)).await
 }
 
 /// Starts a HTTP tracker with a wildcard IPV6 address.
