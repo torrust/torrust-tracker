@@ -31,8 +31,21 @@ impl Client {
         self.get(&format!("announce?{query}")).await
     }
 
+    pub async fn announce_with_header(&self, query: &AnnounceQuery, key: &str, value: &str) -> Response {
+        self.get_with_header(&format!("announce?{query}"), key, value).await
+    }
+
     pub async fn get(&self, path: &str) -> Response {
         self.reqwest_client.get(self.base_url(path)).send().await.unwrap()
+    }
+
+    pub async fn get_with_header(&self, path: &str, key: &str, value: &str) -> Response {
+        self.reqwest_client
+            .get(self.base_url(path))
+            .header(key, value)
+            .send()
+            .await
+            .unwrap()
     }
 
     fn base_url(&self, path: &str) -> String {

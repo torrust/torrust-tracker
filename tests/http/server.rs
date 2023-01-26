@@ -1,5 +1,5 @@
 use core::panic;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 
 use torrust_tracker::config::{ephemeral_configuration, Configuration};
@@ -32,6 +32,30 @@ pub async fn start_ipv6_http_tracker() -> Server {
     let new_ipv6_socket_address = format!("[::]:{}", socket_addr.port());
     configuration.http_trackers[0].bind_address = new_ipv6_socket_address;
 
+    start_custom_http_tracker(Arc::new(configuration)).await
+}
+
+/// Starts a HTTP tracker with an specific `external_ip`.
+/// The configuration in the `config.toml` file would be like this:
+///
+/// ```text
+/// external_ip = "2.137.87.41"
+/// ```
+pub async fn start_http_tracker_with_external_ip(external_ip: &IpAddr) -> Server {
+    let mut configuration = ephemeral_configuration();
+    configuration.external_ip = Some(external_ip.to_string());
+    start_custom_http_tracker(Arc::new(configuration)).await
+}
+
+/// Starts a HTTP tracker `on_reverse_proxy`.
+/// The configuration in the `config.toml` file would be like this:
+///
+/// ```text
+/// on_reverse_proxy = true
+/// ```
+pub async fn start_http_tracker_on_reverse_proxy() -> Server {
+    let mut configuration = ephemeral_configuration();
+    configuration.on_reverse_proxy = true;
     start_custom_http_tracker(Arc::new(configuration)).await
 }
 

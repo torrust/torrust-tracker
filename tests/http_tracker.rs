@@ -9,14 +9,29 @@ mod http_tracker_server {
     mod for_all_config_modes {
 
         mod receiving_an_announce_request {
-            use crate::common::fixtures::invalid_info_hashes;
+            use std::net::{IpAddr, Ipv6Addr};
+            use std::str::FromStr;
+
+            use local_ip_address::local_ip;
+            use reqwest::Response;
+            use torrust_tracker::protocol::info_hash::InfoHash;
+            use torrust_tracker::tracker::peer;
+
+            use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
             use crate::http::asserts::{
+                assert_announce_response, assert_compact_announce_response, assert_empty_announce_response,
                 assert_internal_server_error_response, assert_invalid_info_hash_error_response,
                 assert_invalid_peer_id_error_response, assert_is_announce_response,
             };
             use crate::http::client::Client;
-            use crate::http::requests::AnnounceQueryBuilder;
-            use crate::http::server::start_default_http_tracker;
+            use crate::http::requests::{AnnounceQueryBuilder, Compact};
+            use crate::http::responses::{
+                Announce, CompactAnnounce, CompactPeer, CompactPeerList, DecodedCompactAnnounce, DictionaryPeer,
+            };
+            use crate::http::server::{
+                start_default_http_tracker, start_http_tracker_on_reverse_proxy, start_http_tracker_with_external_ip,
+                start_ipv6_http_tracker, start_public_http_tracker,
+            };
 
             #[tokio::test]
             async fn should_respond_when_only_the_mandatory_fields_are_provided() {
@@ -269,44 +284,6 @@ mod http_tracker_server {
                     assert_internal_server_error_response(response).await;
                 }
             }
-        }
-
-        mod receiving_an_scrape_request {
-            use crate::http::asserts::assert_internal_server_error_response;
-            use crate::http::client::Client;
-            use crate::http::server::start_default_http_tracker;
-
-            #[tokio::test]
-            async fn should_fail_when_the_request_is_empty() {
-                let http_tracker_server = start_default_http_tracker().await;
-
-                let response = Client::new(http_tracker_server.get_connection_info()).get("scrape").await;
-
-                assert_internal_server_error_response(response).await;
-            }
-        }
-    }
-
-    mod configured_as_public {
-
-        mod receiving_an_announce_request {
-            use std::net::{IpAddr, Ipv6Addr};
-            use std::str::FromStr;
-
-            use reqwest::Response;
-            use torrust_tracker::protocol::info_hash::InfoHash;
-            use torrust_tracker::tracker::peer;
-
-            use crate::common::fixtures::PeerBuilder;
-            use crate::http::asserts::{
-                assert_announce_response, assert_compact_announce_response, assert_empty_announce_response,
-            };
-            use crate::http::client::Client;
-            use crate::http::requests::{AnnounceQueryBuilder, Compact};
-            use crate::http::responses::{
-                Announce, CompactAnnounce, CompactPeer, CompactPeerList, DecodedCompactAnnounce, DictionaryPeer,
-            };
-            use crate::http::server::{start_ipv6_http_tracker, start_public_http_tracker};
 
             #[tokio::test]
             async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
@@ -562,6 +539,163 @@ mod http_tracker_server {
 
                 assert_eq!(stats.tcp6_announces_handled, 0);
             }
+
+            #[tokio::test]
+            async fn should_assign_to_the_peer_ip_the_remote_client_ip_instead_of_the_peer_address_in_the_request_param() {
+                let http_tracker_server = start_public_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+                let client_ip = local_ip().unwrap();
+
+                let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
+
+                let announce_query = AnnounceQueryBuilder::default()
+                    .with_info_hash(&info_hash)
+                    .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
+                    .query();
+
+                client.announce(&announce_query).await;
+
+                let peers = http_tracker_server.tracker.get_all_torrent_peers(&info_hash).await;
+                let peer_addr = peers[0].peer_addr;
+
+                assert_eq!(peer_addr.ip(), client_ip);
+                assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+            }
+
+            #[tokio::test]
+            async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration(
+            ) {
+                /*  We assume that both the client and tracker share the same public IP.
+
+                    client     <-> tracker                      <-> Internet
+                    127.0.0.1      external_ip = "2.137.87.41"
+                */
+
+                let http_tracker_server = start_http_tracker_with_external_ip(&IpAddr::from_str("2.137.87.41").unwrap()).await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+                let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
+                let client_ip = loopback_ip;
+
+                let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
+
+                let announce_query = AnnounceQueryBuilder::default()
+                    .with_info_hash(&info_hash)
+                    .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
+                    .query();
+
+                client.announce(&announce_query).await;
+
+                let peers = http_tracker_server.tracker.get_all_torrent_peers(&info_hash).await;
+                let peer_addr = peers[0].peer_addr;
+
+                assert_eq!(peer_addr.ip(), http_tracker_server.tracker.config.get_ext_ip().unwrap());
+                assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+            }
+
+            #[tokio::test]
+            async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration(
+            ) {
+                /* We assume that both the client and tracker share the same public IP.
+
+                   client     <-> tracker                                                  <-> Internet
+                   ::1            external_ip = "2345:0425:2CA1:0000:0000:0567:5673:23b5"
+                */
+
+                let http_tracker_server =
+                    start_http_tracker_with_external_ip(&IpAddr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap())
+                        .await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+                let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
+                let client_ip = loopback_ip;
+
+                let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
+
+                let announce_query = AnnounceQueryBuilder::default()
+                    .with_info_hash(&info_hash)
+                    .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
+                    .query();
+
+                client.announce(&announce_query).await;
+
+                let peers = http_tracker_server.tracker.get_all_torrent_peers(&info_hash).await;
+                let peer_addr = peers[0].peer_addr;
+
+                assert_eq!(peer_addr.ip(), http_tracker_server.tracker.config.get_ext_ip().unwrap());
+                assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+            }
+
+            #[tokio::test]
+            async fn when_the_tracker_is_behind_a_reverse_proxy_it_should_assign_to_the_peer_ip_the_ip_in_the_x_forwarded_for_http_header(
+            ) {
+                /*
+                client          <-> http proxy                       <-> tracker                   <-> Internet
+                ip:                 header:                              config:                       peer addr:
+                145.254.214.256     X-Forwarded-For = 145.254.214.256    on_reverse_proxy = true       145.254.214.256
+                */
+
+                let http_tracker_server = start_http_tracker_on_reverse_proxy().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                let client = Client::new(http_tracker_server.get_connection_info());
+
+                let announce_query = AnnounceQueryBuilder::default().with_info_hash(&info_hash).query();
+
+                // todo: shouldn't be the the leftmost IP address?
+                // THe application is taken the the rightmost IP address. See function http::filters::peer_addr
+                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
+                client
+                    .announce_with_header(
+                        &announce_query,
+                        "X-Forwarded-For",
+                        "203.0.113.195,2001:db8:85a3:8d3:1319:8a2e:370:7348,150.172.238.178",
+                    )
+                    .await;
+
+                let peers = http_tracker_server.tracker.get_all_torrent_peers(&info_hash).await;
+                let peer_addr = peers[0].peer_addr;
+
+                assert_eq!(peer_addr.ip(), IpAddr::from_str("150.172.238.178").unwrap());
+            }
         }
+
+        mod receiving_an_scrape_request {
+            use crate::http::asserts::assert_internal_server_error_response;
+            use crate::http::client::Client;
+            use crate::http::server::start_default_http_tracker;
+
+            #[tokio::test]
+            async fn should_fail_when_the_request_is_empty() {
+                let http_tracker_server = start_default_http_tracker().await;
+
+                let response = Client::new(http_tracker_server.get_connection_info()).get("scrape").await;
+
+                assert_internal_server_error_response(response).await;
+            }
+        }
+    }
+
+    mod configured_as_whitelisted {
+
+        mod and_receiving_an_announce_request {}
+
+        mod receiving_an_scrape_request {}
+    }
+
+    mod configured_as_private {
+
+        mod and_receiving_an_announce_request {}
+
+        mod receiving_an_scrape_request {}
+    }
+
+    mod configured_as_private_and_whitelisted {
+
+        mod and_receiving_an_announce_request {}
+
+        mod receiving_an_scrape_request {}
     }
 }
