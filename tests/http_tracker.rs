@@ -25,9 +25,7 @@ mod http_tracker_server {
             };
             use crate::http::client::Client;
             use crate::http::requests::{AnnounceQueryBuilder, Compact};
-            use crate::http::responses::{
-                Announce, CompactAnnounce, CompactPeer, CompactPeerList, DecodedCompactAnnounce, DictionaryPeer,
-            };
+            use crate::http::responses::{self, Announce, CompactAnnounce, CompactPeer, CompactPeerList, DictionaryPeer};
             use crate::http::server::{
                 start_default_http_tracker, start_http_tracker_on_reverse_proxy, start_http_tracker_with_external_ip,
                 start_ipv6_http_tracker, start_public_http_tracker,
@@ -400,7 +398,7 @@ mod http_tracker_server {
                     )
                     .await;
 
-                let expected_response = DecodedCompactAnnounce {
+                let expected_response = responses::DecodedCompactAnnounce {
                     complete: 2,
                     incomplete: 0,
                     interval: 120,
