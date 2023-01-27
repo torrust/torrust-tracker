@@ -66,10 +66,7 @@ pub async fn assert_torrent_not_known(response: Response) {
 pub async fn assert_invalid_infohash_param(response: Response, invalid_infohash: &str) {
     assert_bad_request(
         response,
-        &format!(
-            "Invalid URL: invalid infohash param: string \"{}\", expected a 40 character long string",
-            invalid_infohash
-        ),
+        &format!("Invalid URL: invalid infohash param: string \"{invalid_infohash}\", expected a 40 character long string"),
     )
     .await;
 }

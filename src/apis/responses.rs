@@ -86,8 +86,7 @@ pub fn ok_response() -> Response {
 #[must_use]
 pub fn invalid_info_hash_param_response(info_hash: &str) -> Response {
     bad_request_response(&format!(
-        "Invalid URL: invalid infohash param: string \"{}\", expected a 40 character long string",
-        info_hash
+        "Invalid URL: invalid infohash param: string \"{info_hash}\", expected a 40 character long string"
     ))
 }
 
