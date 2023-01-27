@@ -24,7 +24,7 @@ pub struct Id {
 impl From<tracker::peer::Id> for Id {
     fn from(peer_id: tracker::peer::Id) -> Self {
         Id {
-            id: peer_id.get_id(),
+            id: peer_id.to_hex_string(),
             client: peer_id.get_client_name().map(std::string::ToString::to_string),
         }
     }
