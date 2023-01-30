@@ -674,14 +674,22 @@ mod http_tracker_server {
         }
 
         mod receiving_an_scrape_request {
+
+            // Scrape specification:
+            //
+            // BEP 48. Tracker Protocol Extension: Scrape
+            // https://www.bittorrent.org/beps/bep_0048.html
+            //
+            // Vuze (bittorrent client) docs:
+            // https://wiki.vuze.com/w/Scrape
+
             use crate::http::asserts::assert_internal_server_error_response;
             use crate::http::client::Client;
-            use crate::http::server::start_default_http_tracker;
+            use crate::http::server::start_public_http_tracker;
 
             #[tokio::test]
             async fn should_fail_when_the_request_is_empty() {
-                let http_tracker_server = start_default_http_tracker().await;
-
+                let http_tracker_server = start_public_http_tracker().await;
                 let response = Client::new(http_tracker_server.get_connection_info()).get("scrape").await;
 
                 assert_internal_server_error_response(response).await;
