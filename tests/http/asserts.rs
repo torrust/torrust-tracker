@@ -1,6 +1,7 @@
 use reqwest::Response;
 
-use super::responses::announce::{Announce, Compact, DecodedCompact, Error};
+use super::responses::announce::{Announce, Compact, DecodedCompact};
+use crate::http::responses::error::Error;
 
 pub async fn assert_empty_announce_response(response: Response) {
     assert_eq!(response.status(), 200);

@@ -676,7 +676,7 @@ mod http_tracker_server {
 
         mod receiving_an_scrape_request {
 
-            // Scrape specification:
+            // Scrape documentation:
             //
             // BEP 48. Tracker Protocol Extension: Scrape
             // https://www.bittorrent.org/beps/bep_0048.html
@@ -684,8 +684,17 @@ mod http_tracker_server {
             // Vuze (bittorrent client) docs:
             // https://wiki.vuze.com/w/Scrape
 
+            use std::collections::HashMap;
+            use std::str::FromStr;
+
+            use torrust_tracker::protocol::info_hash::InfoHash;
+            use torrust_tracker::tracker::peer;
+
+            use crate::common::fixtures::PeerBuilder;
             use crate::http::asserts::assert_internal_server_error_response;
             use crate::http::client::Client;
+            use crate::http::requests;
+            use crate::http::responses::scrape::{File, Response};
             use crate::http::server::start_public_http_tracker;
 
             #[tokio::test]
@@ -694,6 +703,49 @@ mod http_tracker_server {
                 let response = Client::new(http_tracker_server.get_connection_info()).get("scrape").await;
 
                 assert_internal_server_error_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_return_the_scrape_response() {
+                let http_tracker_server = start_public_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                // Peer
+                let previously_announced_peer = PeerBuilder::default()
+                    .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                    .into();
+
+                // Add the Peer
+                http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
+
+                // Scrape the tracker
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .with_one_info_hash(&info_hash)
+                            .query(),
+                    )
+                    .await;
+
+                // todo: extract scrape response builder or named constructor.
+                // A builder with an "add_file(info_hash_bytes: &[u8], file: File)" method could be a good solution.
+                let mut files = HashMap::new();
+                files.insert(
+                    info_hash.0,
+                    File {
+                        complete: 1,
+                        downloaded: 0,
+                        incomplete: 0,
+                    },
+                );
+                let expected_scrape_response = Response { files };
+
+                // todo: extract assert
+                assert_eq!(response.status(), 200);
+                let bytes = response.bytes().await.unwrap();
+                let scrape_response = Response::from_bytes(&bytes);
+                assert_eq!(scrape_response, expected_scrape_response);
             }
         }
     }

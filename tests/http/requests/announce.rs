@@ -7,6 +7,8 @@ use serde_repr::Serialize_repr;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Id;
 
+use crate::http::bencode::ByteArray20;
+
 pub struct Query {
     pub info_hash: ByteArray20,
     pub peer_addr: IpAddr,
@@ -47,7 +49,6 @@ impl Query {
 }
 
 pub type BaseTenASCII = u64;
-pub type ByteArray20 = [u8; 20];
 pub type PortNumber = u16;
 
 pub enum Event {
