@@ -46,7 +46,7 @@ mod http_tracker_server {
             };
 
             #[tokio::test]
-            async fn should_respond_when_only_the_mandatory_fields_are_provided() {
+            async fn should_respond_if_only_the_mandatory_fields_are_provided() {
                 let http_tracker_server = start_default_http_tracker().await;
 
                 let mut params = QueryBuilder::default().query().params();
@@ -251,7 +251,7 @@ mod http_tracker_server {
 
             #[tokio::test]
             async fn should_not_fail_when_the_event_param_is_invalid() {
-                // All invalid values are ignored as if the `event` param was empty
+                // All invalid values are ignored as if the `event` param were empty
 
                 let http_tracker_server = start_default_http_tracker().await;
 

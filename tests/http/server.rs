@@ -12,21 +12,21 @@ use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
 
 use super::connection_info::ConnectionInfo;
 
-/// Starts a HTTP tracker with mode "public"
+/// Starts a HTTP tracker with mode "public" in settings
 pub async fn start_public_http_tracker() -> Server {
     let mut configuration = ephemeral_configuration();
     configuration.mode = Mode::Public;
     start_custom_http_tracker(Arc::new(configuration)).await
 }
 
-/// Starts a HTTP tracker with mode "listed"
+/// Starts a HTTP tracker with mode "listed" in settings
 pub async fn start_whitelisted_http_tracker() -> Server {
     let mut configuration = ephemeral_configuration();
     configuration.mode = Mode::Listed;
     start_custom_http_tracker(Arc::new(configuration)).await
 }
 
-/// Starts a HTTP tracker with mode "listed"
+/// Starts a HTTP tracker with mode "private" in settings
 pub async fn start_private_http_tracker() -> Server {
     let mut configuration = ephemeral_configuration();
     configuration.mode = Mode::Private;

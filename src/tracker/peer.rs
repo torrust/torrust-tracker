@@ -104,7 +104,7 @@ impl Id {
     #[must_use]
     /// Converts to hex string.
     ///
-    /// For the Id `-qB00000000000000000` ti returns `2d71423030303030303030303030303030303030`
+    /// For the Id `-qB00000000000000000` it returns `2d71423030303030303030303030303030303030`
     ///
     /// For example:
     ///
