@@ -37,8 +37,9 @@ mod http_tracker_server {
                 assert_invalid_peer_id_error_response, assert_is_announce_response,
             };
             use crate::http::client::Client;
-            use crate::http::requests::{AnnounceQueryBuilder, Compact};
-            use crate::http::responses::{self, Announce, CompactAnnounce, CompactPeer, CompactPeerList, DictionaryPeer};
+            use crate::http::requests::announce::{Compact, QueryBuilder};
+            use crate::http::responses;
+            use crate::http::responses::announce::{Announce, CompactPeer, CompactPeerList, DictionaryPeer};
             use crate::http::server::{
                 start_default_http_tracker, start_http_tracker_on_reverse_proxy, start_http_tracker_with_external_ip,
                 start_ipv6_http_tracker, start_public_http_tracker,
@@ -48,7 +49,7 @@ mod http_tracker_server {
             async fn should_respond_when_only_the_mandatory_fields_are_provided() {
                 let http_tracker_server = start_default_http_tracker().await;
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 params.remove_optional_params();
 
@@ -74,7 +75,7 @@ mod http_tracker_server {
 
                 // Without `info_hash` param
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 params.info_hash = None;
 
@@ -86,7 +87,7 @@ mod http_tracker_server {
 
                 // Without `peer_id` param
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 params.peer_id = None;
 
@@ -98,7 +99,7 @@ mod http_tracker_server {
 
                 // Without `port` param
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 params.port = None;
 
@@ -113,7 +114,7 @@ mod http_tracker_server {
             async fn should_fail_when_the_info_hash_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker().await;
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 for invalid_value in &invalid_info_hashes() {
                     params.set("info_hash", invalid_value);
@@ -135,7 +136,7 @@ mod http_tracker_server {
 
                 let http_tracker_server = start_default_http_tracker().await;
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 params.peer_addr = Some("INVALID-IP-ADDRESS".to_string());
 
@@ -150,7 +151,7 @@ mod http_tracker_server {
             async fn should_fail_when_the_downloaded_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker().await;
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 let invalid_values = ["-1", "1.1", "a"];
 
@@ -169,7 +170,7 @@ mod http_tracker_server {
             async fn should_fail_when_the_uploaded_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker().await;
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 let invalid_values = ["-1", "1.1", "a"];
 
@@ -188,7 +189,7 @@ mod http_tracker_server {
             async fn should_fail_when_the_peer_id_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker().await;
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 let invalid_values = [
                     "0",
@@ -214,7 +215,7 @@ mod http_tracker_server {
             async fn should_fail_when_the_port_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker().await;
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 let invalid_values = ["-1", "1.1", "a"];
 
@@ -233,7 +234,7 @@ mod http_tracker_server {
             async fn should_fail_when_the_left_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker().await;
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 let invalid_values = ["-1", "1.1", "a"];
 
@@ -254,7 +255,7 @@ mod http_tracker_server {
 
                 let http_tracker_server = start_default_http_tracker().await;
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 let invalid_values = [
                     "0",
@@ -281,7 +282,7 @@ mod http_tracker_server {
             async fn should_not_fail_when_the_compact_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker().await;
 
-                let mut params = AnnounceQueryBuilder::default().query().params();
+                let mut params = QueryBuilder::default().query().params();
 
                 let invalid_values = ["-1", "1.1", "a"];
 
@@ -302,7 +303,7 @@ mod http_tracker_server {
 
                 let response = Client::new(http_tracker_server.get_connection_info())
                     .announce(
-                        &AnnounceQueryBuilder::default()
+                        &QueryBuilder::default()
                             .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap())
                             .query(),
                     )
@@ -338,7 +339,7 @@ mod http_tracker_server {
                 // Announce the new Peer 2. This new peer is non included on the response peer list
                 let response = Client::new(http_tracker_server.get_connection_info())
                     .announce(
-                        &AnnounceQueryBuilder::default()
+                        &QueryBuilder::default()
                             .with_info_hash(&info_hash)
                             .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
                             .query(),
@@ -369,7 +370,7 @@ mod http_tracker_server {
                 // Add a peer
                 http_tracker_server.add_torrent(&info_hash, &peer).await;
 
-                let announce_query = AnnounceQueryBuilder::default()
+                let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
                     .with_peer_id(&peer.peer_id)
                     .query();
@@ -403,7 +404,7 @@ mod http_tracker_server {
                 // Announce the new Peer 2 accepting compact responses
                 let response = Client::new(http_tracker_server.get_connection_info())
                     .announce(
-                        &AnnounceQueryBuilder::default()
+                        &QueryBuilder::default()
                             .with_info_hash(&info_hash)
                             .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
                             .with_compact(Compact::Accepted)
@@ -411,7 +412,7 @@ mod http_tracker_server {
                     )
                     .await;
 
-                let expected_response = responses::DecodedCompactAnnounce {
+                let expected_response = responses::announce::DecodedCompact {
                     complete: 2,
                     incomplete: 0,
                     interval: 120,
@@ -444,7 +445,7 @@ mod http_tracker_server {
                 // https://www.bittorrent.org/beps/bep_0023.html
                 let response = Client::new(http_tracker_server.get_connection_info())
                     .announce(
-                        &AnnounceQueryBuilder::default()
+                        &QueryBuilder::default()
                             .with_info_hash(&info_hash)
                             .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
                             .without_compact()
@@ -457,7 +458,7 @@ mod http_tracker_server {
 
             async fn is_a_compact_announce_response(response: Response) -> bool {
                 let bytes = response.bytes().await.unwrap();
-                let compact_announce = serde_bencode::from_bytes::<CompactAnnounce>(&bytes);
+                let compact_announce = serde_bencode::from_bytes::<responses::announce::Compact>(&bytes);
                 compact_announce.is_ok()
             }
 
@@ -466,7 +467,7 @@ mod http_tracker_server {
                 let http_tracker_server = start_public_http_tracker().await;
 
                 Client::new(http_tracker_server.get_connection_info())
-                    .announce(&AnnounceQueryBuilder::default().query())
+                    .announce(&QueryBuilder::default().query())
                     .await;
 
                 let stats = http_tracker_server.tracker.get_stats().await;
@@ -479,7 +480,7 @@ mod http_tracker_server {
                 let http_tracker_server = start_ipv6_http_tracker().await;
 
                 Client::bind(http_tracker_server.get_connection_info(), IpAddr::from_str("::1").unwrap())
-                    .announce(&AnnounceQueryBuilder::default().query())
+                    .announce(&QueryBuilder::default().query())
                     .await;
 
                 let stats = http_tracker_server.tracker.get_stats().await;
@@ -495,7 +496,7 @@ mod http_tracker_server {
 
                 Client::new(http_tracker_server.get_connection_info())
                     .announce(
-                        &AnnounceQueryBuilder::default()
+                        &QueryBuilder::default()
                             .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
                             .query(),
                     )
@@ -511,7 +512,7 @@ mod http_tracker_server {
                 let http_tracker_server = start_public_http_tracker().await;
 
                 Client::new(http_tracker_server.get_connection_info())
-                    .announce(&AnnounceQueryBuilder::default().query())
+                    .announce(&QueryBuilder::default().query())
                     .await;
 
                 let stats = http_tracker_server.tracker.get_stats().await;
@@ -524,7 +525,7 @@ mod http_tracker_server {
                 let http_tracker_server = start_ipv6_http_tracker().await;
 
                 Client::bind(http_tracker_server.get_connection_info(), IpAddr::from_str("::1").unwrap())
-                    .announce(&AnnounceQueryBuilder::default().query())
+                    .announce(&QueryBuilder::default().query())
                     .await;
 
                 let stats = http_tracker_server.tracker.get_stats().await;
@@ -540,7 +541,7 @@ mod http_tracker_server {
 
                 Client::new(http_tracker_server.get_connection_info())
                     .announce(
-                        &AnnounceQueryBuilder::default()
+                        &QueryBuilder::default()
                             .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
                             .query(),
                     )
@@ -560,7 +561,7 @@ mod http_tracker_server {
 
                 let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
 
-                let announce_query = AnnounceQueryBuilder::default()
+                let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
                     .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
                     .query();
@@ -591,7 +592,7 @@ mod http_tracker_server {
 
                 let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
 
-                let announce_query = AnnounceQueryBuilder::default()
+                let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
                     .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
                     .query();
@@ -624,7 +625,7 @@ mod http_tracker_server {
 
                 let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
 
-                let announce_query = AnnounceQueryBuilder::default()
+                let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
                     .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
                     .query();
@@ -653,7 +654,7 @@ mod http_tracker_server {
 
                 let client = Client::new(http_tracker_server.get_connection_info());
 
-                let announce_query = AnnounceQueryBuilder::default().with_info_hash(&info_hash).query();
+                let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
 
                 // todo: shouldn't be the the leftmost IP address?
                 // THe application is taken the the rightmost IP address. See function http::filters::peer_addr
@@ -706,7 +707,7 @@ mod http_tracker_server {
 
             use crate::http::asserts::{assert_is_announce_response, assert_torrent_not_in_whitelist_error_response};
             use crate::http::client::Client;
-            use crate::http::requests::AnnounceQueryBuilder;
+            use crate::http::requests::announce::QueryBuilder;
             use crate::http::server::start_whitelisted_http_tracker;
 
             #[tokio::test]
@@ -716,7 +717,7 @@ mod http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 let response = Client::new(http_tracker_server.get_connection_info())
-                    .announce(&AnnounceQueryBuilder::default().with_info_hash(&info_hash).query())
+                    .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
                 assert_torrent_not_in_whitelist_error_response(response).await;
@@ -735,7 +736,7 @@ mod http_tracker_server {
                     .expect("should add the torrent to the whitelist");
 
                 let response = Client::new(http_tracker_server.get_connection_info())
-                    .announce(&AnnounceQueryBuilder::default().with_info_hash(&info_hash).query())
+                    .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
                 assert_is_announce_response(response).await;
@@ -759,7 +760,7 @@ mod http_tracker_server {
                 assert_peer_not_authenticated_error_response,
             };
             use crate::http::client::Client;
-            use crate::http::requests::AnnounceQueryBuilder;
+            use crate::http::requests::announce::QueryBuilder;
             use crate::http::server::start_private_http_tracker;
 
             #[tokio::test]
@@ -773,7 +774,7 @@ mod http_tracker_server {
                     .unwrap();
 
                 let response = Client::authenticated(http_tracker_server.get_connection_info(), key.id())
-                    .announce(&AnnounceQueryBuilder::default().query())
+                    .announce(&QueryBuilder::default().query())
                     .await;
 
                 assert_is_announce_response(response).await;
@@ -786,7 +787,7 @@ mod http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 let response = Client::new(http_tracker_server.get_connection_info())
-                    .announce(&AnnounceQueryBuilder::default().with_info_hash(&info_hash).query())
+                    .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
                 assert_peer_not_authenticated_error_response(response).await;
@@ -800,7 +801,7 @@ mod http_tracker_server {
                 let unregistered_key_id = KeyId::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
                 let response = Client::authenticated(http_tracker_server.get_connection_info(), unregistered_key_id)
-                    .announce(&AnnounceQueryBuilder::default().query())
+                    .announce(&QueryBuilder::default().query())
                     .await;
 
                 assert_invalid_authentication_key_error_response(response).await;

@@ -7,7 +7,7 @@ use serde_repr::Serialize_repr;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Id;
 
-pub struct AnnounceQuery {
+pub struct Query {
     pub info_hash: ByteArray20,
     pub peer_addr: IpAddr,
     pub downloaded: BaseTenASCII,
@@ -19,7 +19,7 @@ pub struct AnnounceQuery {
     pub compact: Option<Compact>,
 }
 
-impl fmt::Display for AnnounceQuery {
+impl fmt::Display for Query {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.build())
     }
@@ -30,7 +30,7 @@ impl fmt::Display for AnnounceQuery {
 /// <https://wiki.theory.org/BitTorrentSpecification#Tracker_HTTP.2FHTTPS_Protocol>
 ///
 /// Some parameters in the specification are not implemented in this tracker yet.
-impl AnnounceQuery {
+impl Query {
     /// It builds the URL query component for the announce request.
     ///
     /// This custom URL query params encoding is needed because `reqwest` does not allow
@@ -41,8 +41,8 @@ impl AnnounceQuery {
         self.params().to_string()
     }
 
-    pub fn params(&self) -> AnnounceQueryParams {
-        AnnounceQueryParams::from(self)
+    pub fn params(&self) -> QueryParams {
+        QueryParams::from(self)
     }
 }
 
@@ -82,13 +82,13 @@ impl fmt::Display for Compact {
     }
 }
 
-pub struct AnnounceQueryBuilder {
-    announce_query: AnnounceQuery,
+pub struct QueryBuilder {
+    announce_query: Query,
 }
 
-impl AnnounceQueryBuilder {
-    pub fn default() -> AnnounceQueryBuilder {
-        let default_announce_query = AnnounceQuery {
+impl QueryBuilder {
+    pub fn default() -> QueryBuilder {
+        let default_announce_query = Query {
             info_hash: InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap().0,
             peer_addr: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 88)),
             downloaded: 0,
@@ -129,7 +129,7 @@ impl AnnounceQueryBuilder {
         self
     }
 
-    pub fn query(self) -> AnnounceQuery {
+    pub fn query(self) -> Query {
         self.announce_query
     }
 }
@@ -150,7 +150,7 @@ impl AnnounceQueryBuilder {
 ///     event=completed
 ///     compact=0
 /// ```
-pub struct AnnounceQueryParams {
+pub struct QueryParams {
     pub info_hash: Option<String>,
     pub peer_addr: Option<String>,
     pub downloaded: Option<String>,
@@ -162,7 +162,7 @@ pub struct AnnounceQueryParams {
     pub compact: Option<String>,
 }
 
-impl std::fmt::Display for AnnounceQueryParams {
+impl std::fmt::Display for QueryParams {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let mut params = vec![];
 
@@ -204,8 +204,8 @@ impl std::fmt::Display for AnnounceQueryParams {
     }
 }
 
-impl AnnounceQueryParams {
-    pub fn from(announce_query: &AnnounceQuery) -> Self {
+impl QueryParams {
+    pub fn from(announce_query: &Query) -> Self {
         let event = announce_query.event.as_ref().map(std::string::ToString::to_string);
         let compact = announce_query.compact.as_ref().map(std::string::ToString::to_string);
 

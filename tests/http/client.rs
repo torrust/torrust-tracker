@@ -4,7 +4,7 @@ use reqwest::{Client as ReqwestClient, Response};
 use torrust_tracker::tracker::auth::KeyId;
 
 use super::connection_info::ConnectionInfo;
-use super::requests::AnnounceQuery;
+use super::requests::announce::Query;
 
 /// HTTP Tracker Client
 pub struct Client {
@@ -47,11 +47,11 @@ impl Client {
         }
     }
 
-    pub async fn announce(&self, query: &AnnounceQuery) -> Response {
+    pub async fn announce(&self, query: &Query) -> Response {
         self.get(&self.build_announce_path_and_query(query)).await
     }
 
-    pub async fn announce_with_header(&self, query: &AnnounceQuery, key_id: &str, value: &str) -> Response {
+    pub async fn announce_with_header(&self, query: &Query, key_id: &str, value: &str) -> Response {
         self.get_with_header(&self.build_announce_path_and_query(query), key_id, value)
             .await
     }
@@ -69,7 +69,7 @@ impl Client {
             .unwrap()
     }
 
-    fn build_announce_path_and_query(&self, query: &AnnounceQuery) -> String {
+    fn build_announce_path_and_query(&self, query: &Query) -> String {
         format!("{}?{query}", self.build_path("announce"))
     }
 
