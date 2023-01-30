@@ -31,7 +31,7 @@ impl From<Peer> for DictionaryPeer {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Compact {
+pub struct DeserializedCompact {
     pub complete: u32,
     pub incomplete: u32,
     pub interval: u32,
@@ -42,7 +42,7 @@ pub struct Compact {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct DecodedCompact {
+pub struct Compact {
     // code-review: there could be a way to deserialize this struct directly
     // by using serde instead of doing it manually. Or at least using a custom deserializer.
     pub complete: u32,
@@ -88,8 +88,8 @@ impl CompactPeer {
     }
 }
 
-impl From<Compact> for DecodedCompact {
-    fn from(compact_announce: Compact) -> Self {
+impl From<DeserializedCompact> for Compact {
+    fn from(compact_announce: DeserializedCompact) -> Self {
         let mut peers = vec![];
 
         for peer_bytes in compact_announce.peers.chunks_exact(6) {

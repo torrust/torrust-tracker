@@ -1,6 +1,6 @@
 use reqwest::Response;
 
-use super::responses::announce::{Announce, Compact, DecodedCompact};
+use super::responses::announce::{Announce, Compact, DeserializedCompact};
 use crate::http::responses::error::Error;
 
 pub async fn assert_empty_announce_response(response: Response) {
@@ -22,18 +22,20 @@ pub async fn assert_announce_response(response: Response, expected_announce_resp
 /// ```text
 /// b"d8:intervali120e12:min intervali120e8:completei2e10:incompletei0e5:peers6:~\0\0\x01\x1f\x90e6:peers60:e"
 /// ```
-pub async fn assert_compact_announce_response(response: Response, expected_response: &DecodedCompact) {
+pub async fn assert_compact_announce_response(response: Response, expected_response: &Compact) {
     assert_eq!(response.status(), 200);
 
     let bytes = response.bytes().await.unwrap();
 
-    let compact_announce: Compact = serde_bencode::from_bytes(&bytes).unwrap_or_else(|_| {
+    // todo: move to DeserializedCompact constructor and make DeserializedCompact struct private
+    let compact_announce: DeserializedCompact = serde_bencode::from_bytes(&bytes).unwrap_or_else(|_| {
         panic!(
             "response body should be a valid compact announce response, got \"{:?}\"",
             &bytes
         )
     });
-    let actual_response = DecodedCompact::from(compact_announce);
+
+    let actual_response = Compact::from(compact_announce);
 
     assert_eq!(actual_response, *expected_response);
 }

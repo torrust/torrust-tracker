@@ -412,7 +412,7 @@ mod http_tracker_server {
                     )
                     .await;
 
-                let expected_response = responses::announce::DecodedCompact {
+                let expected_response = responses::announce::Compact {
                     complete: 2,
                     incomplete: 0,
                     interval: 120,
@@ -458,7 +458,7 @@ mod http_tracker_server {
 
             async fn is_a_compact_announce_response(response: Response) -> bool {
                 let bytes = response.bytes().await.unwrap();
-                let compact_announce = serde_bencode::from_bytes::<responses::announce::Compact>(&bytes);
+                let compact_announce = serde_bencode::from_bytes::<responses::announce::DeserializedCompact>(&bytes);
                 compact_announce.is_ok()
             }
 
@@ -732,7 +732,7 @@ mod http_tracker_server {
                 // A builder with an "add_file(info_hash_bytes: &[u8], file: File)" method could be a good solution.
                 let mut files = HashMap::new();
                 files.insert(
-                    info_hash.0,
+                    info_hash.bytes(),
                     File {
                         complete: 1,
                         downloaded: 0,
