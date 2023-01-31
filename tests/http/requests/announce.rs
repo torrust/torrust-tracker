@@ -225,7 +225,7 @@ impl QueryParams {
 
     pub fn remove_optional_params(&mut self) {
         // todo: make them optional with the Option<...> in the AnnounceQuery struct
-        // if they are really optional. SO that we can crete a minimal AnnounceQuery
+        // if they are really optional. So that we can crete a minimal AnnounceQuery
         // instead of removing the optional params afterwards.
         //
         // The original specification on:

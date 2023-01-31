@@ -5,19 +5,6 @@ mod common;
 mod http;
 
 mod http_tracker_server {
-    use std::str::FromStr;
-
-    use percent_encoding::NON_ALPHANUMERIC;
-    use torrust_tracker::protocol::info_hash::InfoHash;
-
-    #[test]
-    fn calculate_info_hash_param() {
-        let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
-
-        let param = percent_encoding::percent_encode(&info_hash.0, NON_ALPHANUMERIC).to_string();
-
-        assert_eq!(param, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0");
-    }
 
     mod for_all_config_modes {
 
@@ -331,7 +318,7 @@ mod http_tracker_server {
                 // Peer 1
                 let previously_announced_peer = PeerBuilder::default()
                     .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
-                    .into();
+                    .build();
 
                 // Add the Peer 1
                 http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
@@ -365,7 +352,7 @@ mod http_tracker_server {
                 let http_tracker_server = start_public_http_tracker().await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
-                let peer = PeerBuilder::default().into();
+                let peer = PeerBuilder::default().build();
 
                 // Add a peer
                 http_tracker_server.add_torrent(&info_hash, &peer).await;
@@ -396,7 +383,7 @@ mod http_tracker_server {
                 // Peer 1
                 let previously_announced_peer = PeerBuilder::default()
                     .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
-                    .into();
+                    .build();
 
                 // Add the Peer 1
                 http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
@@ -435,7 +422,7 @@ mod http_tracker_server {
                 // Peer 1
                 let previously_announced_peer = PeerBuilder::default()
                     .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
-                    .into();
+                    .build();
 
                 // Add the Peer 1
                 http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
@@ -684,17 +671,16 @@ mod http_tracker_server {
             // Vuze (bittorrent client) docs:
             // https://wiki.vuze.com/w/Scrape
 
-            use std::collections::HashMap;
             use std::str::FromStr;
 
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::peer;
 
             use crate::common::fixtures::PeerBuilder;
-            use crate::http::asserts::assert_internal_server_error_response;
+            use crate::http::asserts::{assert_internal_server_error_response, assert_scrape_response};
             use crate::http::client::Client;
             use crate::http::requests;
-            use crate::http::responses::scrape::{File, Response};
+            use crate::http::responses::scrape::{File, ResponseBuilder};
             use crate::http::server::start_public_http_tracker;
 
             #[tokio::test]
@@ -707,20 +693,21 @@ mod http_tracker_server {
 
             #[tokio::test]
             async fn should_return_the_scrape_response() {
-                let http_tracker_server = start_public_http_tracker().await;
+                let http_tracker = start_public_http_tracker().await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                // Peer
-                let previously_announced_peer = PeerBuilder::default()
-                    .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
-                    .into();
+                http_tracker
+                    .add_torrent(
+                        &info_hash,
+                        &PeerBuilder::default()
+                            .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                            .with_bytes_pending_to_download(1)
+                            .build(),
+                    )
+                    .await;
 
-                // Add the Peer
-                http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
-
-                // Scrape the tracker
-                let response = Client::new(http_tracker_server.get_connection_info())
+                let response = Client::new(http_tracker.get_connection_info())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -728,24 +715,18 @@ mod http_tracker_server {
                     )
                     .await;
 
-                // todo: extract scrape response builder or named constructor.
-                // A builder with an "add_file(info_hash_bytes: &[u8], file: File)" method could be a good solution.
-                let mut files = HashMap::new();
-                files.insert(
-                    info_hash.bytes(),
-                    File {
-                        complete: 1,
-                        downloaded: 0,
-                        incomplete: 0,
-                    },
-                );
-                let expected_scrape_response = Response { files };
+                let expected_scrape_response = ResponseBuilder::default()
+                    .add_file(
+                        info_hash.bytes(),
+                        File {
+                            complete: 0,
+                            downloaded: 0,
+                            incomplete: 1,
+                        },
+                    )
+                    .build();
 
-                // todo: extract assert
-                assert_eq!(response.status(), 200);
-                let bytes = response.bytes().await.unwrap();
-                let scrape_response = Response::from_bytes(&bytes);
-                assert_eq!(scrape_response, expected_scrape_response);
+                assert_scrape_response(response, &expected_scrape_response).await;
             }
         }
     }
@@ -776,6 +757,7 @@ mod http_tracker_server {
             }
 
             #[tokio::test]
+
             async fn should_allow_announcing_a_whitelisted_torrent() {
                 let http_tracker_server = start_whitelisted_http_tracker().await;
 

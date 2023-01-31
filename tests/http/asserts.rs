@@ -1,6 +1,7 @@
 use reqwest::Response;
 
 use super::responses::announce::{Announce, Compact, DeserializedCompact};
+use super::responses::scrape;
 use crate::http::responses::error::Error;
 
 pub async fn assert_empty_announce_response(response: Response) {
@@ -17,7 +18,7 @@ pub async fn assert_announce_response(response: Response, expected_announce_resp
     assert_eq!(announce_response, *expected_announce_response);
 }
 
-/// Sample bencoded response as byte array:
+/// Sample bencoded announce response as byte array:
 ///
 /// ```text
 /// b"d8:intervali120e12:min intervali120e8:completei2e10:incompletei0e5:peers6:~\0\0\x01\x1f\x90e6:peers60:e"
@@ -38,6 +39,19 @@ pub async fn assert_compact_announce_response(response: Response, expected_respo
     let actual_response = Compact::from(compact_announce);
 
     assert_eq!(actual_response, *expected_response);
+}
+
+/// Sample bencoded scrape response as byte array:
+///
+/// ```text
+/// b"d5:filesd20:\x9c8B\"\x13\xe3\x0b\xff!+0\xc3`\xd2o\x9a\x02\x13d\"d8:completei1e10:downloadedi0e10:incompletei0eeee"
+/// ```
+pub async fn assert_scrape_response(response: Response, expected_response: &scrape::Response) {
+    assert_eq!(response.status(), 200);
+
+    let scrape_response = scrape::Response::try_from_bytes(&response.bytes().await.unwrap()).unwrap();
+
+    assert_eq!(scrape_response, *expected_response);
 }
 
 pub async fn assert_is_announce_response(response: Response) {

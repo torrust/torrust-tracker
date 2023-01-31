@@ -20,7 +20,7 @@ pub struct Peer {
     #[serde(with = "NumberOfBytesDef")]
     pub downloaded: NumberOfBytes,
     #[serde(with = "NumberOfBytesDef")]
-    pub left: NumberOfBytes,
+    pub left: NumberOfBytes, // The number of bytes this peer still has to download
     #[serde(with = "AnnounceEventDef")]
     pub event: AnnounceEvent,
 }

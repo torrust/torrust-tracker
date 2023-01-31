@@ -21,6 +21,18 @@ impl PeerBuilder {
         self
     }
 
+    #[allow(dead_code)]
+    pub fn with_bytes_pending_to_download(mut self, left: i64) -> Self {
+        self.peer.left = NumberOfBytes(left);
+        self
+    }
+
+    #[allow(dead_code)]
+    pub fn build(self) -> Peer {
+        self.into()
+    }
+
+    #[allow(dead_code)]
     pub fn into(self) -> Peer {
         self.peer
     }
