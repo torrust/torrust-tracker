@@ -28,8 +28,7 @@ pub async fn assert_compact_announce_response(response: Response, expected_respo
 
     let bytes = response.bytes().await.unwrap();
 
-    // todo: move to DeserializedCompact constructor and make DeserializedCompact struct private
-    let compact_announce: DeserializedCompact = serde_bencode::from_bytes(&bytes).unwrap_or_else(|_| {
+    let compact_announce = DeserializedCompact::from_bytes(&bytes).unwrap_or_else(|_| {
         panic!(
             "response body should be a valid compact announce response, got \"{:?}\"",
             &bytes

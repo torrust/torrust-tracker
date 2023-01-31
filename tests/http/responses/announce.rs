@@ -41,6 +41,12 @@ pub struct DeserializedCompact {
     pub peers: Vec<u8>,
 }
 
+impl DeserializedCompact {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, serde_bencode::Error> {
+        serde_bencode::from_bytes::<DeserializedCompact>(bytes)
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Compact {
     // code-review: there could be a way to deserialize this struct directly
