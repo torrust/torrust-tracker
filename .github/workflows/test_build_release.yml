@@ -16,10 +16,7 @@ jobs:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
       - name: Check Rust Formatting
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --check
+        run: cargo fmt --check
 
   test:
     needs: format
@@ -34,15 +31,9 @@ jobs:
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
       - name: Check Rust Code
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --all-targets
+        run: cargo check --all-targets
       - name: Clippy Rust Code
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets -- -D clippy::pedantic
+        run: cargo clippy --all-targets -- -D clippy::pedantic
       - uses: taiki-e/install-action@cargo-llvm-cov
       - uses: taiki-e/install-action@nextest
       - name: Run Tests
