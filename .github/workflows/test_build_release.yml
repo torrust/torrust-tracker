@@ -16,7 +16,7 @@ jobs:
           toolchain: nightly
           override: true
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Check Rust Formatting
         uses: actions-rs/cargo@v1
         with:
@@ -35,7 +35,7 @@ jobs:
           profile: minimal
           toolchain: stable
           components: llvm-tools-preview
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Check Rust Code
         uses: actions-rs/cargo@v1
         with:
@@ -66,7 +66,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Build Torrust Tracker
         run: cargo build --release
       - name: Upload Build Artifact
