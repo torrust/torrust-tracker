@@ -6,6 +6,7 @@
         "Avicora",
         "Azureus",
         "bencode",
+        "bencoded",
         "binascii",
         "Bitflu",
         "bools",
@@ -39,6 +40,7 @@
         "nanos",
         "nextest",
         "nocapture",
+        "numwant",
         "oneshot",
         "ostr",
         "Pando",
@@ -62,12 +64,16 @@
         "Torrentstorm",
         "torrust",
         "torrustracker",
+        "trackerid",
         "typenum",
         "Unamed",
         "untuple",
         "uroot",
         "Vagaa",
+        "Vuze",
         "Xtorrent",
-        "Xunlei"
+        "Xunlei",
+        "xxxxxxxxxxxxxxxxxxxxd",
+        "yyyyyyyyyyyyyyyyyyyyd"
     ]
 }

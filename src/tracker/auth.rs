@@ -78,6 +78,16 @@ impl Key {
             None
         }
     }
+
+    /// # Panics
+    ///
+    /// Will fail if the key id is not a valid key id.
+    #[must_use]
+    pub fn id(&self) -> KeyId {
+        // todo: replace the type of field `key` with type `KeyId`.
+        // The constructor should fail if an invalid KeyId is provided.
+        KeyId::from_str(&self.key).unwrap()
+    }
 }
 
 #[derive(Debug, Display, PartialEq, Clone)]

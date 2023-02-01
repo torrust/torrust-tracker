@@ -5,7 +5,6 @@ use torrust_tracker::tracker::Tracker;
 pub mod asserts;
 pub mod client;
 pub mod connection_info;
-pub mod fixtures;
 pub mod server;
 
 /// It forces a database error by dropping all tables.

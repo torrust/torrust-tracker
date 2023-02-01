@@ -1,69 +1,12 @@
 use reqwest::Response;
 
 use super::connection_info::ConnectionInfo;
+use crate::common::http::{Query, QueryParam, ReqwestQuery};
 
+/// API Client
 pub struct Client {
     connection_info: ConnectionInfo,
     base_path: String,
-}
-
-type ReqwestQuery = Vec<ReqwestQueryParam>;
-type ReqwestQueryParam = (String, String);
-
-#[derive(Default, Debug)]
-pub struct Query {
-    params: Vec<QueryParam>,
-}
-
-impl Query {
-    pub fn empty() -> Self {
-        Self { params: vec![] }
-    }
-
-    pub fn params(params: Vec<QueryParam>) -> Self {
-        Self { params }
-    }
-
-    pub fn add_param(&mut self, param: QueryParam) {
-        self.params.push(param);
-    }
-
-    fn with_token(token: &str) -> Self {
-        Self {
-            params: vec![QueryParam::new("token", token)],
-        }
-    }
-}
-
-impl From<Query> for ReqwestQuery {
-    fn from(url_search_params: Query) -> Self {
-        url_search_params
-            .params
-            .iter()
-            .map(|param| ReqwestQueryParam::from((*param).clone()))
-            .collect()
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct QueryParam {
-    name: String,
-    value: String,
-}
-
-impl QueryParam {
-    pub fn new(name: &str, value: &str) -> Self {
-        Self {
-            name: name.to_string(),
-            value: value.to_string(),
-        }
-    }
-}
-
-impl From<QueryParam> for ReqwestQueryParam {
-    fn from(param: QueryParam) -> Self {
-        (param.name, param.value)
-    }
 }
 
 impl Client {
@@ -138,37 +81,36 @@ impl Client {
             .unwrap()
     }
 
-    fn base_url(&self, path: &str) -> String {
-        format!("http://{}{}{path}", &self.connection_info.bind_address, &self.base_path)
-    }
-
-    // Unauthenticated GET request with query component
     pub async fn get_request_with_query(&self, path: &str, params: Query) -> Response {
-        reqwest::Client::builder()
-            .build()
-            .unwrap()
-            .get(self.base_url(path))
-            .query(&ReqwestQuery::from(params))
-            .send()
-            .await
-            .unwrap()
+        get(&self.base_url(path), Some(params)).await
     }
 
-    // Unauthenticated GET request
     pub async fn get_request(&self, path: &str) -> Response {
-        reqwest::Client::builder()
-            .build()
-            .unwrap()
-            .get(self.base_url(path))
-            .send()
-            .await
-            .unwrap()
+        get(&self.base_url(path), None).await
     }
 
     fn query_with_token(&self) -> Query {
         match &self.connection_info.api_token {
-            Some(token) => Query::with_token(token),
+            Some(token) => Query::params([QueryParam::new("token", token)].to_vec()),
             None => Query::default(),
         }
+    }
+
+    fn base_url(&self, path: &str) -> String {
+        format!("http://{}{}{path}", &self.connection_info.bind_address, &self.base_path)
+    }
+}
+
+async fn get(path: &str, query: Option<Query>) -> Response {
+    match query {
+        Some(params) => reqwest::Client::builder()
+            .build()
+            .unwrap()
+            .get(path)
+            .query(&ReqwestQuery::from(params))
+            .send()
+            .await
+            .unwrap(),
+        None => reqwest::Client::builder().build().unwrap().get(path).send().await.unwrap(),
     }
 }

@@ -20,7 +20,7 @@ pub struct Peer {
     #[serde(with = "NumberOfBytesDef")]
     pub downloaded: NumberOfBytes,
     #[serde(with = "NumberOfBytesDef")]
-    pub left: NumberOfBytes,
+    pub left: NumberOfBytes, // The number of bytes this peer still has to download
     #[serde(with = "AnnounceEventDef")]
     pub event: AnnounceEvent,
 }
@@ -93,10 +93,8 @@ pub struct Id(pub [u8; 20]);
 
 impl std::fmt::Display for Id {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut buffer = [0u8; 20];
-        let bytes_out = binascii::bin2hex(&self.0, &mut buffer).ok();
-        match bytes_out {
-            Some(bytes) => write!(f, "{}", std::str::from_utf8(bytes).unwrap()),
+        match self.to_hex_string() {
+            Some(hex) => write!(f, "{hex}"),
             None => write!(f, ""),
         }
     }
@@ -104,14 +102,36 @@ impl std::fmt::Display for Id {
 
 impl Id {
     #[must_use]
+    /// Converts to hex string.
+    ///
+    /// For the Id `-qB00000000000000000` it returns `2d71423030303030303030303030303030303030`
+    ///
+    /// For example:
+    ///
+    ///```text
+    /// Bytes                = Hex
+    /// -qB00000000000000000 = 2d71423030303030303030303030303030303030
+    /// -qB00000000000000000 = 2d 71 42 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30
+    ///
+    /// -------------
+    /// |Char | Hex |
+    /// -------------
+    /// | -   | 2D  |
+    /// | q   | 71  |
+    /// | B   | 42  |
+    /// | 0   | 30  |
+    /// -------------
+    /// ```
+    ///
+    /// Return `None` is some of the bytes are invalid UTF8 values.
+    ///
     /// # Panics
     ///
     /// It will panic if the `binascii::bin2hex` from a too-small output buffer.
-    pub fn get_id(&self) -> Option<String> {
+    pub fn to_hex_string(&self) -> Option<String> {
         let buff_size = self.0.len() * 2;
         let mut tmp: Vec<u8> = vec![0; buff_size];
         binascii::bin2hex(&self.0, &mut tmp).unwrap();
-
         std::str::from_utf8(&tmp).ok().map(std::string::ToString::to_string)
     }
 
@@ -206,7 +226,7 @@ impl Serialize for Id {
         }
 
         let obj = PeerIdInfo {
-            id: self.get_id(),
+            id: self.to_hex_string(),
             client: self.get_client_name(),
         };
         obj.serialize(serializer)
@@ -215,6 +235,33 @@ impl Serialize for Id {
 
 #[cfg(test)]
 mod test {
+
+    mod torrent_peer_id {
+        use crate::tracker::peer;
+
+        #[test]
+        fn should_be_converted_to_hex_string() {
+            let id = peer::Id(*b"-qB00000000000000000");
+            assert_eq!(id.to_hex_string().unwrap(), "2d71423030303030303030303030303030303030");
+
+            let id = peer::Id([
+                0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
+            ]);
+            assert_eq!(id.to_hex_string().unwrap(), "009f9296009f9296009f9296009f9296009f9296");
+        }
+
+        #[test]
+        fn should_be_converted_into_string_type_using_the_hex_string_format() {
+            let id = peer::Id(*b"-qB00000000000000000");
+            assert_eq!(id.to_string(), "2d71423030303030303030303030303030303030");
+
+            let id = peer::Id([
+                0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
+            ]);
+            assert_eq!(id.to_string(), "009f9296009f9296009f9296009f9296009f9296");
+        }
+    }
+
     mod torrent_peer {
 
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};

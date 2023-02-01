@@ -25,10 +25,7 @@ pub async fn auth<B>(
 where
     B: Send,
 {
-    let token = match params.token {
-        None => return AuthError::Unauthorized.into_response(),
-        Some(token) => token,
-    };
+    let Some(token) = params.token else { return AuthError::Unauthorized.into_response() };
 
     if !authenticate(&token, &config.http_api) {
         return AuthError::TokenNotValid.into_response();

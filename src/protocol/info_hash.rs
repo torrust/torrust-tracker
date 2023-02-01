@@ -1,6 +1,14 @@
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct InfoHash(pub [u8; 20]);
 
+impl InfoHash {
+    /// For readability, when accessing the bytes array
+    #[must_use]
+    pub fn bytes(&self) -> [u8; 20] {
+        self.0
+    }
+}
+
 impl std::fmt::Display for InfoHash {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let mut chars = [0u8; 40];
