@@ -12,21 +12,29 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn try_from_bytes(bytes: &[u8]) -> Result<Self, BencodeParseError> {
+    pub fn with_one_file(info_hash_bytes: ByteArray20, file: File) -> Self {
+        let mut files: HashMap<ByteArray20, File> = HashMap::new();
+        files.insert(info_hash_bytes, file);
+        Self { files }
+    }
+
+    pub fn try_from_bencoded(bytes: &[u8]) -> Result<Self, BencodeParseError> {
         let scrape_response: DeserializedResponse = serde_bencode::from_bytes(bytes).unwrap();
         Self::try_from(scrape_response)
     }
-
-    pub fn empty() -> Self {
-        Self::default()
-    }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Default)]
 pub struct File {
     pub complete: i64,   // The number of active peers that have completed downloading
     pub downloaded: i64, // The number of peers that have ever completed downloading
     pub incomplete: i64, // The number of active peers that have not completed downloading
+}
+
+impl File {
+    pub fn zeroed() -> Self {
+        Self::default()
+    }
 }
 
 impl TryFrom<DeserializedResponse> for Response {
@@ -49,7 +57,7 @@ pub struct ResponseBuilder {
 impl ResponseBuilder {
     pub fn default() -> Self {
         Self {
-            response: Response::empty(),
+            response: Response::default(),
         }
     }
 

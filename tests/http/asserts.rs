@@ -48,7 +48,7 @@ pub async fn assert_compact_announce_response(response: Response, expected_respo
 pub async fn assert_scrape_response(response: Response, expected_response: &scrape::Response) {
     assert_eq!(response.status(), 200);
 
-    let scrape_response = scrape::Response::try_from_bytes(&response.bytes().await.unwrap()).unwrap();
+    let scrape_response = scrape::Response::try_from_bencoded(&response.bytes().await.unwrap()).unwrap();
 
     assert_eq!(scrape_response, *expected_response);
 }

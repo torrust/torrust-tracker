@@ -9,6 +9,18 @@ mod http_tracker_server {
     mod for_all_config_modes {
 
         mod receiving_an_announce_request {
+
+            // Announce request documentation:
+            //
+            // BEP 03. The BitTorrent Protocol Specification
+            // https://www.bittorrent.org/beps/bep_0003.html
+            //
+            // BEP 23. Tracker Returns Compact Peer Lists
+            // https://www.bittorrent.org/beps/bep_0023.html
+            //
+            // Vuze (bittorrent client) docs:
+            // https://wiki.vuze.com/w/Announce
+
             use std::net::{IpAddr, Ipv6Addr};
             use std::str::FromStr;
 
@@ -671,17 +683,19 @@ mod http_tracker_server {
             // Vuze (bittorrent client) docs:
             // https://wiki.vuze.com/w/Scrape
 
+            use std::net::IpAddr;
             use std::str::FromStr;
 
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::peer;
 
-            use crate::common::fixtures::PeerBuilder;
+            use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
             use crate::http::asserts::{assert_internal_server_error_response, assert_scrape_response};
             use crate::http::client::Client;
             use crate::http::requests;
-            use crate::http::responses::scrape::{File, ResponseBuilder};
-            use crate::http::server::start_public_http_tracker;
+            use crate::http::requests::scrape::QueryBuilder;
+            use crate::http::responses::scrape::{self, File, ResponseBuilder};
+            use crate::http::server::{start_ipv6_http_tracker, start_public_http_tracker};
 
             #[tokio::test]
             async fn should_fail_when_the_request_is_empty() {
@@ -692,7 +706,25 @@ mod http_tracker_server {
             }
 
             #[tokio::test]
-            async fn should_return_the_scrape_response() {
+            async fn should_fail_when_the_info_hash_param_is_invalid() {
+                let http_tracker_server = start_public_http_tracker().await;
+
+                let mut params = QueryBuilder::default().query().params();
+
+                for invalid_value in &invalid_info_hashes() {
+                    params.set_one_info_hash_param(invalid_value);
+
+                    let response = Client::new(http_tracker_server.get_connection_info())
+                        .get(&format!("announce?{params}"))
+                        .await;
+
+                    // code-review: it's not returning the invalid info hash error
+                    assert_internal_server_error_response(response).await;
+                }
+            }
+
+            #[tokio::test]
+            async fn should_return_the_file_with_the_incomplete_peer_when_there_is_one_peer_with_bytes_pending_to_download() {
                 let http_tracker = start_public_http_tracker().await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
@@ -727,6 +759,123 @@ mod http_tracker_server {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+            }
+
+            #[tokio::test]
+            async fn should_return_the_file_with_the_complete_peer_when_there_is_one_peer_with_no_bytes_pending_to_download() {
+                let http_tracker = start_public_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                http_tracker
+                    .add_torrent(
+                        &info_hash,
+                        &PeerBuilder::default()
+                            .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                            .with_no_bytes_pending_to_download()
+                            .build(),
+                    )
+                    .await;
+
+                let response = Client::new(http_tracker.get_connection_info())
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .with_one_info_hash(&info_hash)
+                            .query(),
+                    )
+                    .await;
+
+                let expected_scrape_response = ResponseBuilder::default()
+                    .add_file(
+                        info_hash.bytes(),
+                        File {
+                            complete: 1,
+                            downloaded: 0,
+                            incomplete: 0,
+                        },
+                    )
+                    .build();
+
+                assert_scrape_response(response, &expected_scrape_response).await;
+            }
+
+            #[tokio::test]
+            async fn should_return_a_file_with_zeroed_values_when_there_are_no_peers() {
+                let http_tracker = start_public_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                let response = Client::new(http_tracker.get_connection_info())
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .with_one_info_hash(&info_hash)
+                            .query(),
+                    )
+                    .await;
+
+                assert_scrape_response(response, &scrape::Response::with_one_file(info_hash.bytes(), File::zeroed())).await;
+            }
+
+            #[tokio::test]
+            async fn should_accept_multiple_infohashes() {
+                let http_tracker = start_public_http_tracker().await;
+
+                let info_hash1 = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+                let info_hash2 = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
+
+                let response = Client::new(http_tracker.get_connection_info())
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .add_info_hash(&info_hash1)
+                            .add_info_hash(&info_hash2)
+                            .query(),
+                    )
+                    .await;
+
+                let expected_scrape_response = ResponseBuilder::default()
+                    .add_file(info_hash1.bytes(), File::zeroed())
+                    .add_file(info_hash2.bytes(), File::zeroed())
+                    .build();
+
+                assert_scrape_response(response, &expected_scrape_response).await;
+            }
+
+            #[tokio::test]
+            async fn should_increase_the_number_ot_tcp4_scrape_requests_handled_in_statistics() {
+                let http_tracker = start_public_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                Client::new(http_tracker.get_connection_info())
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .with_one_info_hash(&info_hash)
+                            .query(),
+                    )
+                    .await;
+
+                let stats = http_tracker.tracker.get_stats().await;
+
+                assert_eq!(stats.tcp4_scrapes_handled, 1);
+            }
+
+            #[tokio::test]
+            async fn should_increase_the_number_ot_tcp6_scrape_requests_handled_in_statistics() {
+                let http_tracker = start_ipv6_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                Client::bind(http_tracker.get_connection_info(), IpAddr::from_str("::1").unwrap())
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .with_one_info_hash(&info_hash)
+                            .query(),
+                    )
+                    .await;
+
+                let stats = http_tracker.tracker.get_stats().await;
+
+                assert_eq!(stats.tcp6_scrapes_handled, 1);
             }
         }
     }
@@ -777,7 +926,92 @@ mod http_tracker_server {
             }
         }
 
-        mod receiving_an_scrape_request {}
+        mod receiving_an_scrape_request {
+            use std::str::FromStr;
+
+            use torrust_tracker::protocol::info_hash::InfoHash;
+            use torrust_tracker::tracker::peer;
+
+            use crate::common::fixtures::PeerBuilder;
+            use crate::http::asserts::assert_scrape_response;
+            use crate::http::client::Client;
+            use crate::http::requests;
+            use crate::http::responses::scrape::{File, ResponseBuilder};
+            use crate::http::server::start_whitelisted_http_tracker;
+
+            #[tokio::test]
+            async fn should_return_the_zeroed_file_when_the_requested_file_is_not_whitelisted() {
+                let http_tracker = start_whitelisted_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                http_tracker
+                    .add_torrent(
+                        &info_hash,
+                        &PeerBuilder::default()
+                            .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                            .with_bytes_pending_to_download(1)
+                            .build(),
+                    )
+                    .await;
+
+                let response = Client::new(http_tracker.get_connection_info())
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .with_one_info_hash(&info_hash)
+                            .query(),
+                    )
+                    .await;
+
+                let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
+
+                assert_scrape_response(response, &expected_scrape_response).await;
+            }
+
+            #[tokio::test]
+            async fn should_return_the_file_stats_when_the_requested_file_is_whitelisted() {
+                let http_tracker = start_whitelisted_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                http_tracker
+                    .add_torrent(
+                        &info_hash,
+                        &PeerBuilder::default()
+                            .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                            .with_bytes_pending_to_download(1)
+                            .build(),
+                    )
+                    .await;
+
+                http_tracker
+                    .tracker
+                    .add_torrent_to_whitelist(&info_hash)
+                    .await
+                    .expect("should add the torrent to the whitelist");
+
+                let response = Client::new(http_tracker.get_connection_info())
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .with_one_info_hash(&info_hash)
+                            .query(),
+                    )
+                    .await;
+
+                let expected_scrape_response = ResponseBuilder::default()
+                    .add_file(
+                        info_hash.bytes(),
+                        File {
+                            complete: 0,
+                            downloaded: 0,
+                            incomplete: 1,
+                        },
+                    )
+                    .build();
+
+                assert_scrape_response(response, &expected_scrape_response).await;
+            }
+        }
     }
 
     mod configured_as_private {
@@ -798,7 +1032,7 @@ mod http_tracker_server {
             use crate::http::server::start_private_http_tracker;
 
             #[tokio::test]
-            async fn should_respond_to_peers_providing_a_valid_authentication_key() {
+            async fn should_respond_to_authenticated_peers() {
                 let http_tracker_server = start_private_http_tracker().await;
 
                 let key = http_tracker_server
@@ -842,7 +1076,124 @@ mod http_tracker_server {
             }
         }
 
-        mod receiving_an_scrape_request {}
+        mod receiving_an_scrape_request {
+
+            use std::str::FromStr;
+            use std::time::Duration;
+
+            use torrust_tracker::protocol::info_hash::InfoHash;
+            use torrust_tracker::tracker::auth::KeyId;
+            use torrust_tracker::tracker::peer;
+
+            use crate::common::fixtures::PeerBuilder;
+            use crate::http::asserts::assert_scrape_response;
+            use crate::http::client::Client;
+            use crate::http::requests;
+            use crate::http::responses::scrape::{File, ResponseBuilder};
+            use crate::http::server::start_private_http_tracker;
+
+            #[tokio::test]
+            async fn should_return_the_zeroed_file_when_the_client_is_not_authenticated() {
+                let http_tracker = start_private_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                http_tracker
+                    .add_torrent(
+                        &info_hash,
+                        &PeerBuilder::default()
+                            .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                            .with_bytes_pending_to_download(1)
+                            .build(),
+                    )
+                    .await;
+
+                let response = Client::new(http_tracker.get_connection_info())
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .with_one_info_hash(&info_hash)
+                            .query(),
+                    )
+                    .await;
+
+                let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
+
+                assert_scrape_response(response, &expected_scrape_response).await;
+            }
+
+            #[tokio::test]
+            async fn should_return_the_real_file_stats_when_the_client_is_authenticated() {
+                let http_tracker = start_private_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                http_tracker
+                    .add_torrent(
+                        &info_hash,
+                        &PeerBuilder::default()
+                            .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                            .with_bytes_pending_to_download(1)
+                            .build(),
+                    )
+                    .await;
+
+                let key = http_tracker.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
+
+                let response = Client::authenticated(http_tracker.get_connection_info(), key.id())
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .with_one_info_hash(&info_hash)
+                            .query(),
+                    )
+                    .await;
+
+                let expected_scrape_response = ResponseBuilder::default()
+                    .add_file(
+                        info_hash.bytes(),
+                        File {
+                            complete: 0,
+                            downloaded: 0,
+                            incomplete: 1,
+                        },
+                    )
+                    .build();
+
+                assert_scrape_response(response, &expected_scrape_response).await;
+            }
+
+            #[tokio::test]
+            async fn should_return_the_zeroed_file_when_the_authentication_key_provided_by_the_client_is_invalid() {
+                // There is not authentication error
+
+                let http_tracker = start_private_http_tracker().await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                http_tracker
+                    .add_torrent(
+                        &info_hash,
+                        &PeerBuilder::default()
+                            .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                            .with_bytes_pending_to_download(1)
+                            .build(),
+                    )
+                    .await;
+
+                let false_key_id: KeyId = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
+
+                let response = Client::authenticated(http_tracker.get_connection_info(), false_key_id)
+                    .scrape(
+                        &requests::scrape::QueryBuilder::default()
+                            .with_one_info_hash(&info_hash)
+                            .query(),
+                    )
+                    .await;
+
+                let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
+
+                assert_scrape_response(response, &expected_scrape_response).await;
+            }
+        }
     }
 
     mod configured_as_private_and_whitelisted {

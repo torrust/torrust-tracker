@@ -54,6 +54,11 @@ impl QueryBuilder {
         self
     }
 
+    pub fn add_info_hash(mut self, info_hash: &InfoHash) -> Self {
+        self.scrape_query.info_hash.push(info_hash.0);
+        self
+    }
+
     pub fn query(self) -> Query {
         self.scrape_query
     }
@@ -80,6 +85,12 @@ impl QueryBuilder {
 /// You can add as many info hashes as you want, just adding the same param again.
 pub struct QueryParams {
     pub info_hash: Vec<String>,
+}
+
+impl QueryParams {
+    pub fn set_one_info_hash_param(&mut self, info_hash: &str) {
+        self.info_hash = vec![info_hash.to_string()];
+    }
 }
 
 impl std::fmt::Display for QueryParams {
