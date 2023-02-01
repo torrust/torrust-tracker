@@ -10,11 +10,9 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           toolchain: nightly
-          override: true
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
       - name: Check Rust Formatting
@@ -30,9 +28,8 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           toolchain: stable
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
@@ -62,9 +59,8 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           toolchain: stable
       - uses: Swatinem/rust-cache@v2
       - name: Build Torrust Tracker
