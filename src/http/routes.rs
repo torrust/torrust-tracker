@@ -9,14 +9,18 @@ use crate::tracker;
 
 /// All routes
 #[must_use]
-pub fn routes(tracker: Arc<tracker::Tracker>) -> impl Filter<Extract = impl warp::Reply, Error = Infallible> + Clone {
+pub fn routes(
+    tracker: Arc<tracker::Tracker>,
+) -> impl Filter<Extract = impl warp::Reply + warp::generic::Tuple, Error = Infallible> + Clone {
     announce(tracker.clone())
         .or(scrape(tracker))
         .recover(|q| async move { send_error(&q) })
 }
 
 /// GET /announce or /announce/<key>
-fn announce(tracker: Arc<tracker::Tracker>) -> impl Filter<Extract = impl warp::Reply, Error = Rejection> + Clone {
+fn announce(
+    tracker: Arc<tracker::Tracker>,
+) -> impl Filter<Extract = impl warp::Reply + warp::generic::Tuple, Error = Rejection> + Clone {
     warp::path::path("announce")
         .and(warp::filters::method::get())
         .and(with_announce_request(tracker.config.on_reverse_proxy))
@@ -26,7 +30,9 @@ fn announce(tracker: Arc<tracker::Tracker>) -> impl Filter<Extract = impl warp::
 }
 
 /// GET /scrape/<key>
-fn scrape(tracker: Arc<tracker::Tracker>) -> impl Filter<Extract = impl warp::Reply, Error = Rejection> + Clone {
+fn scrape(
+    tracker: Arc<tracker::Tracker>,
+) -> impl Filter<Extract = impl warp::Reply + warp::generic::Tuple, Error = Rejection> + Clone {
     warp::path::path("scrape")
         .and(warp::filters::method::get())
         .and(with_scrape_request(tracker.config.on_reverse_proxy))
