@@ -25,7 +25,7 @@ mod http_tracker_server {
             use std::str::FromStr;
 
             use local_ip_address::local_ip;
-            use reqwest::Response;
+            use reqwest::{Response, StatusCode};
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::peer;
 
@@ -321,6 +321,23 @@ mod http_tracker_server {
                 .await;
             }
 
+            /// A wrapper for the HTTP response with only the relevant attributes for the test
+            #[derive(Debug, PartialEq)]
+            struct HttpAnnounceResponse {
+                status: reqwest::StatusCode,
+                announce: Announce,
+            }
+
+            impl HttpAnnounceResponse {
+                pub async fn from(response: Response) -> Self {
+                    let status = response.status();
+                    let body = response.text().await.unwrap();
+                    let announce: Announce = serde_bencode::from_str(&body)
+                        .unwrap_or_else(|_| panic!("response body should be a valid announce response, got \"{}\"", &body));
+                    Self { status, announce }
+                }
+            }
+
             #[tokio::test]
             async fn should_return_the_list_of_previously_announced_peers() {
                 let http_tracker_server = start_public_http_tracker().await;
@@ -345,18 +362,20 @@ mod http_tracker_server {
                     )
                     .await;
 
-                // It should only contain teh previously announced peer
-                assert_announce_response(
-                    response,
-                    &Announce {
-                        complete: 2,
-                        incomplete: 0,
-                        interval: http_tracker_server.tracker.config.announce_interval,
-                        min_interval: http_tracker_server.tracker.config.min_announce_interval,
-                        peers: vec![DictionaryPeer::from(previously_announced_peer)],
-                    },
-                )
-                .await;
+                // It should only contain the previously announced peer
+                assert_eq!(
+                    HttpAnnounceResponse::from(response).await,
+                    HttpAnnounceResponse {
+                        status: StatusCode::OK,
+                        announce: Announce {
+                            complete: 2,
+                            incomplete: 0,
+                            interval: http_tracker_server.tracker.config.announce_interval,
+                            min_interval: http_tracker_server.tracker.config.min_announce_interval,
+                            peers: vec![DictionaryPeer::from(previously_announced_peer)],
+                        }
+                    }
+                );
             }
 
             #[tokio::test]
