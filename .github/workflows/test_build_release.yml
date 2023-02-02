@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: nightly
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
       - name: Check Rust Code
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: nightly
       - uses: Swatinem/rust-cache@v2
       - name: Build Torrust Tracker
         run: cargo build --release
