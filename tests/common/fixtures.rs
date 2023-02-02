@@ -9,6 +9,7 @@ pub struct PeerBuilder {
 }
 
 impl PeerBuilder {
+    #[allow(dead_code)]
     pub fn default() -> PeerBuilder {
         Self {
             peer: default_peer_for_testing(),
@@ -44,6 +45,7 @@ impl PeerBuilder {
     }
 }
 
+#[allow(dead_code)]
 fn default_peer_for_testing() -> Peer {
     Peer {
         peer_id: peer::Id(*b"-qB00000000000000000"),
@@ -56,6 +58,7 @@ fn default_peer_for_testing() -> Peer {
     }
 }
 
+#[allow(dead_code)]
 pub fn invalid_info_hashes() -> Vec<String> {
     [
         "0".to_string(),
