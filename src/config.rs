@@ -5,7 +5,6 @@ use std::str::FromStr;
 use std::{env, fs};
 
 use config::{Config, ConfigError, File, FileFormat};
-use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use {std, toml};
@@ -97,24 +96,17 @@ pub fn ephemeral_configuration() -> Configuration {
     };
 
     // Ephemeral socket addresses
-    let api_port = random_port();
+    let api_port = 65000u16;
     config.http_api.bind_address = format!("127.0.0.1:{}", &api_port);
-    let upd_port = random_port();
-    config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", &upd_port);
+    let udp_port = 65000u16;
+    config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", &udp_port);
 
     // Ephemeral sqlite database
     let temp_directory = env::temp_dir();
-    let temp_file = temp_directory.join(format!("data_{}_{}.db", &api_port, &upd_port));
+    let temp_file = temp_directory.join(format!("data_{}_{}.db", &api_port, &udp_port));
     config.db_path = temp_file.to_str().unwrap().to_owned();
 
     config
-}
-
-fn random_port() -> u16 {
-    // todo: this may produce random test failures because two tests can try to bind the same port.
-    // We could create a pool of available ports (with read/write lock)
-    let mut rng = thread_rng();
-    rng.gen_range(49152..65535)
 }
 
 impl std::fmt::Display for Error {
@@ -309,7 +301,7 @@ mod tests {
     fn configuration_should_contain_the_external_ip() {
         let configuration = Configuration::default();
 
-        assert_eq!(configuration.external_ip, Option::Some(String::from("0.0.0.0")));
+        assert_eq!(configuration.external_ip, Some(String::from("0.0.0.0")));
     }
 
     #[test]

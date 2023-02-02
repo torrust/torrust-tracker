@@ -2,6 +2,7 @@
 ///
 /// cargo test `udp_tracker_server` -- --nocapture
 extern crate rand;
+extern crate test_helpers;
 
 mod udp_tracker_server {
     use core::panic;
@@ -14,24 +15,17 @@ mod udp_tracker_server {
         AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey,
         Port, Request, Response, ScrapeRequest, TransactionId,
     };
-    use rand::{thread_rng, Rng};
     use tokio::net::UdpSocket;
     use tokio::task::JoinHandle;
-    use torrust_tracker::config::{ephemeral_configuration, Configuration};
+    use torrust_tracker::config::{Configuration, ephemeral_configuration};
     use torrust_tracker::jobs::udp_tracker;
     use torrust_tracker::tracker::statistics::Keeper;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
     use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
+    use test_helpers::port_pool;
 
     fn tracker_configuration() -> Arc<Configuration> {
         Arc::new(ephemeral_configuration())
-    }
-
-    pub fn ephemeral_random_client_port() -> u16 {
-        // todo: this may produce random test failures because two tests can try to bind the same port.
-        // We could create a pool of available ports (with read/write lock)
-        let mut rng = thread_rng();
-        rng.gen_range(49152..65535)
     }
 
     pub struct UdpServer {
@@ -118,7 +112,8 @@ mod udp_tracker_server {
 
     /// Creates a new `UdpClient` connected to a Udp server
     async fn new_connected_udp_client(remote_address: &str) -> UdpClient {
-        let client = UdpClient::bind(&source_address(ephemeral_random_client_port())).await;
+        let port = port_pool::acquire_udp().await;
+        let client = UdpClient::bind(&source_address(port)).await;
         client.connect(remote_address).await;
         client
     }

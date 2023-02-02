@@ -1,7 +1,7 @@
 use core::panic;
 use std::sync::Arc;
 
-use torrust_tracker::config::{ephemeral_configuration, Configuration};
+use torrust_tracker::config::{Configuration, ephemeral_configuration};
 use torrust_tracker::jobs::tracker_apis;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
