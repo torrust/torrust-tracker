@@ -8,11 +8,34 @@ lazy_static!{
 
 type Port = u16;
 
+/// A resource pool of ports.
+/// Can be used to avoid address already in use errors.
 pub struct PortPool {
     ports: Mutex<Vec<Port>>
 }
 
 impl PortPool {
+    /// Returns a new `PortPool`.
+    ///
+    /// # Arguments
+    ///
+    /// * `start` - u16 inclusive.
+    /// * `end` - u16 exclusive.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let port_pool = PortPool::new(0, 2);
+    ///
+    /// let x = port_pool.acquire(); // x = Some(1)
+    /// let y = port_pool.acquire(); // y = Some(0)
+    /// let z = port_pool.acquire(); // z = None
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Will panic if end is not higher than start.
+    #[must_use]
     pub fn new(start: u16, end: u16) -> Self {
         assert!(end > start);
 
