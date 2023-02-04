@@ -22,7 +22,6 @@ mod udp_tracker_server {
     use torrust_tracker::tracker::statistics::Keeper;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
     use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
-    use test_helpers::port_pool;
 
     fn tracker_configuration() -> Arc<Configuration> {
         Arc::new(ephemeral_configuration())
@@ -112,7 +111,7 @@ mod udp_tracker_server {
 
     /// Creates a new `UdpClient` connected to a Udp server
     async fn new_connected_udp_client(remote_address: &str) -> UdpClient {
-        let port = port_pool::acquire_udp().await;
+        let port = 0; // Let OS choose an unused port.
         let client = UdpClient::bind(&source_address(port)).await;
         client.connect(remote_address).await;
         client
