@@ -41,15 +41,19 @@ aquatic_udp_protocol = "0.2"
 uuid = { version = "1", features = ["v4"] }
 axum = "0.6.1"
 axum-server = { version = "0.4.4", features = ["tls-rustls"] }
+torrust-tracker-primitives = { path = "packages/primitives" }
+torrust-tracker-configuration = { path = "packages/configuration" }
 
 [dev-dependencies]
 mockall = "0.11"
 reqwest = { version = "0.11.13", features = ["json"] }
-test-helpers = { path = "test-helpers" }
+torrust-tracker-test-helpers = { path = "packages/test-helpers" }
 
 [workspace]
 members = [
-    "test-helpers"
+    "packages/configuration",
+    "packages/primitives",
+    "packages/test-helpers"
 ]
 
 [profile.dev]

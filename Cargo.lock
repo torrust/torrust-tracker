@@ -2574,14 +2574,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "507e9898683b6c43a9aa55b64259b721b52ba226e0f3779137e50ad114a4c90b"
 
 [[package]]
-name = "test-helpers"
-version = "2.3.0"
-dependencies = [
- "lazy_static",
- "tokio",
-]
-
-[[package]]
 name = "textwrap"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2829,12 +2821,40 @@ dependencies = [
  "serde_bencode",
  "serde_json",
  "serde_with",
- "test-helpers",
  "thiserror",
  "tokio",
  "toml",
+ "torrust-tracker-configuration",
+ "torrust-tracker-primitives",
+ "torrust-tracker-test-helpers",
  "uuid 1.2.1",
  "warp",
+]
+
+[[package]]
+name = "torrust-tracker-configuration"
+version = "2.3.0"
+dependencies = [
+ "config",
+ "serde",
+ "serde_with",
+ "toml",
+ "torrust-tracker-primitives",
+]
+
+[[package]]
+name = "torrust-tracker-primitives"
+version = "2.3.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "torrust-tracker-test-helpers"
+version = "2.3.0"
+dependencies = [
+ "lazy_static",
+ "tokio",
 ]
 
 [[package]]

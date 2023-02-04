@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use log::{info, warn};
 use tokio::task::JoinHandle;
+use torrust_tracker_configuration::HttpTracker;
 
-use crate::config::HttpTracker;
 use crate::http::server::Http;
 use crate::tracker;
 

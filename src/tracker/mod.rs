@@ -1,5 +1,4 @@
 pub mod auth;
-pub mod mode;
 pub mod peer;
 pub mod services;
 pub mod statistics;
@@ -13,14 +12,15 @@ use std::time::Duration;
 
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
+use torrust_tracker_configuration::Configuration;
+use torrust_tracker_primitives::TrackerMode;
 
-use crate::config::Configuration;
 use crate::databases::{self, Database};
 use crate::protocol::info_hash::InfoHash;
 
 pub struct Tracker {
     pub config: Arc<Configuration>,
-    mode: mode::Mode,
+    mode: TrackerMode,
     keys: RwLock<std::collections::HashMap<String, auth::Key>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
@@ -61,15 +61,15 @@ impl Tracker {
     }
 
     pub fn is_public(&self) -> bool {
-        self.mode == mode::Mode::Public
+        self.mode == TrackerMode::Public
     }
 
     pub fn is_private(&self) -> bool {
-        self.mode == mode::Mode::Private || self.mode == mode::Mode::PrivateListed
+        self.mode == TrackerMode::Private || self.mode == TrackerMode::PrivateListed
     }
 
     pub fn is_whitelisted(&self) -> bool {
-        self.mode == mode::Mode::Listed || self.mode == mode::Mode::PrivateListed
+        self.mode == TrackerMode::Listed || self.mode == TrackerMode::PrivateListed
     }
 
     /// # Errors
@@ -366,10 +366,10 @@ impl Tracker {
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
+    use torrust_tracker_configuration::{Configuration, ephemeral_configuration};
 
     use super::statistics::Keeper;
     use super::{TorrentsMetrics, Tracker};
-    use crate::config::{ephemeral_configuration, Configuration};
 
     pub fn tracker_configuration() -> Arc<Configuration> {
         Arc::new(ephemeral_configuration())

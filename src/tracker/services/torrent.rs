@@ -139,8 +139,8 @@ mod tests {
 
         use std::str::FromStr;
         use std::sync::Arc;
+        use torrust_tracker_configuration::{Configuration, ephemeral_configuration};
 
-        use crate::config::{ephemeral_configuration, Configuration};
         use crate::protocol::info_hash::InfoHash;
         use crate::tracker::services::common::tracker_factory;
         use crate::tracker::services::torrent::tests::sample_peer;
@@ -192,8 +192,8 @@ mod tests {
 
         use std::str::FromStr;
         use std::sync::Arc;
+        use torrust_tracker_configuration::{Configuration, ephemeral_configuration};
 
-        use crate::config::{ephemeral_configuration, Configuration};
         use crate::protocol::info_hash::InfoHash;
         use crate::tracker::services::common::tracker_factory;
         use crate::tracker::services::torrent::tests::sample_peer;

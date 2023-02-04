@@ -1,0 +1,12 @@
+[package]
+name = "torrust-tracker-configuration"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_with = "2.0"
+config = "0.13"
+toml = "0.5"
+torrust-tracker-primitives = { path = "../primitives" }

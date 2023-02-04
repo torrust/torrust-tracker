@@ -7,10 +7,7 @@ use std::{env, fs};
 use config::{Config, ConfigError, File, FileFormat};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
-use {std, toml};
-
-use crate::databases::driver::Driver;
-use crate::tracker::mode;
+use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct UdpTracker {
@@ -56,8 +53,8 @@ impl HttpApi {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
     pub log_level: Option<String>,
-    pub mode: mode::Mode,
-    pub db_driver: Driver,
+    pub mode: TrackerMode,
+    pub db_driver: DatabaseDriver,
     pub db_path: String,
     pub announce_interval: u32,
     pub min_announce_interval: u32,
@@ -127,8 +124,8 @@ impl Default for Configuration {
     fn default() -> Self {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
-            mode: mode::Mode::Public,
-            db_driver: Driver::Sqlite3,
+            mode: TrackerMode::Public,
+            db_driver: DatabaseDriver::Sqlite3,
             db_path: String::from("./storage/database/data.db"),
             announce_interval: 120,
             min_announce_interval: 120,
@@ -187,7 +184,7 @@ impl Configuration {
         let config_builder = Config::builder();
 
         #[allow(unused_assignments)]
-        let mut config = Config::default();
+            let mut config = Config::default();
 
         if Path::new(path).exists() {
             config = config_builder
@@ -242,7 +239,7 @@ impl Configuration {
 
 #[cfg(test)]
 mod tests {
-    use crate::config::{Configuration, Error};
+    use crate::{Configuration, Error};
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -281,10 +278,10 @@ mod tests {
                                 [http_api.access_tokens]
                                 admin = "MyAccessToken"
         "#
-        .lines()
-        .map(str::trim_start)
-        .collect::<Vec<&str>>()
-        .join("\n");
+            .lines()
+            .map(str::trim_start)
+            .collect::<Vec<&str>>()
+            .join("\n");
         config
     }
 

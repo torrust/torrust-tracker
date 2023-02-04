@@ -1,5 +1,5 @@
 [package]
-name = "test-helpers"
+name = "torrust-tracker-test-helpers"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true

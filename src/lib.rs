@@ -1,5 +1,4 @@
 pub mod apis;
-pub mod config;
 pub mod databases;
 pub mod http;
 pub mod jobs;

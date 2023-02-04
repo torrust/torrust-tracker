@@ -1,11 +1,10 @@
-pub mod driver;
 pub mod error;
 pub mod mysql;
 pub mod sqlite;
 
 use async_trait::async_trait;
+use torrust_tracker_primitives::DatabaseDriver;
 
-use self::driver::Driver;
 use self::error::Error;
 use crate::databases::mysql::Mysql;
 use crate::databases::sqlite::Sqlite;
@@ -15,13 +14,13 @@ use crate::tracker::auth;
 /// # Errors
 ///
 /// Will return `r2d2::Error` if `db_path` is not able to create a database.
-pub fn connect(db_driver: &Driver, db_path: &str) -> Result<Box<dyn Database>, r2d2::Error> {
+pub fn connect(db_driver: &DatabaseDriver, db_path: &str) -> Result<Box<dyn Database>, r2d2::Error> {
     let database: Box<dyn Database> = match db_driver {
-        Driver::Sqlite3 => {
+        DatabaseDriver::Sqlite3 => {
             let db = Sqlite::new(db_path)?;
             Box::new(db)
         }
-        Driver::MySQL => {
+        DatabaseDriver::MySQL => {
             let db = Mysql::new(db_path)?;
             Box::new(db)
         }

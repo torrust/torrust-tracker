@@ -2,7 +2,7 @@
 ///
 /// cargo test `udp_tracker_server` -- --nocapture
 extern crate rand;
-extern crate test_helpers;
+extern crate torrust_tracker_test_helpers;
 
 mod udp_tracker_server {
     use core::panic;
@@ -17,11 +17,11 @@ mod udp_tracker_server {
     };
     use tokio::net::UdpSocket;
     use tokio::task::JoinHandle;
-    use torrust_tracker::config::{Configuration, ephemeral_configuration};
     use torrust_tracker::jobs::udp_tracker;
     use torrust_tracker::tracker::statistics::Keeper;
     use torrust_tracker::udp::MAX_PACKET_SIZE;
     use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
+    use torrust_tracker_configuration::{Configuration, ephemeral_configuration};
 
     fn tracker_configuration() -> Arc<Configuration> {
         Arc::new(ephemeral_configuration())

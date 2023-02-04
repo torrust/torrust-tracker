@@ -35,8 +35,8 @@ pub async fn get_metrics(tracker: Arc<Tracker>) -> TrackerMetrics {
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
+    use torrust_tracker_configuration::{Configuration, ephemeral_configuration};
 
-    use crate::config::{ephemeral_configuration, Configuration};
     use crate::tracker;
     use crate::tracker::services::common::tracker_factory;
     use crate::tracker::services::statistics::{get_metrics, TrackerMetrics};
