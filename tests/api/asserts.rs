@@ -37,9 +37,20 @@ pub async fn assert_auth_key_utf8(response: Response) -> AuthKey {
 // OK response
 
 pub async fn assert_ok(response: Response) {
-    assert_eq!(response.status(), 200);
-    assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
-    assert_eq!(response.text().await.unwrap(), "{\"status\":\"ok\"}");
+    let response_status = response.status().clone();
+    let response_headers = response.headers().get("content-type").cloned().unwrap();
+    let response_text = response.text().await.unwrap();
+
+    let details = format!(
+        r#"
+   status: ´{response_status}´
+  headers: ´{response_headers:?}´
+     text: ´"{response_text}"´"#
+    );
+
+    assert_eq!(response_status, 200, "details:{details}.");
+    assert_eq!(response_headers, "application/json", "\ndetails:{details}.");
+    assert_eq!(response_text, "{\"status\":\"ok\"}", "\ndetails:{details}.");
 }
 
 // Error responses
