@@ -118,8 +118,11 @@ pub async fn assert_failed_to_reload_keys(response: Response) {
 async fn assert_unhandled_rejection(response: Response, reason: &str) {
     assert_eq!(response.status(), 500);
     assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
-    assert_eq!(
-        response.text().await.unwrap(),
-        format!("Unhandled rejection: Err {{ reason: \"{reason}\" }}")
+
+    let reason_text = format!("Unhandled rejection: Err {{ reason: \"{reason}");
+    let response_text = response.text().await.unwrap();
+    assert!(
+        response_text.contains(&reason_text),
+        ":\n  response: `\"{response_text}\"`\n  dose not contain: `\"{reason_text}\"`."
     );
 }
