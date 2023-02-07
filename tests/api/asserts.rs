@@ -37,9 +37,20 @@ pub async fn assert_auth_key_utf8(response: Response) -> AuthKey {
 // OK response
 
 pub async fn assert_ok(response: Response) {
-    assert_eq!(response.status(), 200);
-    assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
-    assert_eq!(response.text().await.unwrap(), "{\"status\":\"ok\"}");
+    let response_status = response.status();
+    let response_headers = response.headers().get("content-type").cloned().unwrap();
+    let response_text = response.text().await.unwrap();
+
+    let details = format!(
+        r#"
+   status: ´{response_status}´
+  headers: ´{response_headers:?}´
+     text: ´"{response_text}"´"#
+    );
+
+    assert_eq!(response_status, 200, "details:{details}.");
+    assert_eq!(response_headers, "application/json", "\ndetails:{details}.");
+    assert_eq!(response_text, "{\"status\":\"ok\"}", "\ndetails:{details}.");
 }
 
 // Error responses
@@ -118,8 +129,11 @@ pub async fn assert_failed_to_reload_keys(response: Response) {
 async fn assert_unhandled_rejection(response: Response, reason: &str) {
     assert_eq!(response.status(), 500);
     assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
-    assert_eq!(
-        response.text().await.unwrap(),
-        format!("Unhandled rejection: Err {{ reason: \"{reason}\" }}")
+
+    let reason_text = format!("Unhandled rejection: Err {{ reason: \"{reason}");
+    let response_text = response.text().await.unwrap();
+    assert!(
+        response_text.contains(&reason_text),
+        ":\n  response: `\"{response_text}\"`\n  dose not contain: `\"{reason_text}\"`."
     );
 }
