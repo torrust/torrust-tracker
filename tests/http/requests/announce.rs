@@ -2,12 +2,11 @@ use std::fmt;
 use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 
-use percent_encoding::NON_ALPHANUMERIC;
 use serde_repr::Serialize_repr;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Id;
 
-use crate::http::bencode::ByteArray20;
+use crate::http::{percent_encode_byte_array, ByteArray20};
 
 pub struct Query {
     pub info_hash: ByteArray20,
@@ -211,11 +210,11 @@ impl QueryParams {
         let compact = announce_query.compact.as_ref().map(std::string::ToString::to_string);
 
         Self {
-            info_hash: Some(percent_encoding::percent_encode(&announce_query.info_hash, NON_ALPHANUMERIC).to_string()),
+            info_hash: Some(percent_encode_byte_array(&announce_query.info_hash)),
             peer_addr: Some(announce_query.peer_addr.to_string()),
             downloaded: Some(announce_query.downloaded.to_string()),
             uploaded: Some(announce_query.uploaded.to_string()),
-            peer_id: Some(percent_encoding::percent_encode(&announce_query.peer_id, NON_ALPHANUMERIC).to_string()),
+            peer_id: Some(percent_encode_byte_array(&announce_query.peer_id)),
             port: Some(announce_query.port.to_string()),
             left: Some(announce_query.left.to_string()),
             event,

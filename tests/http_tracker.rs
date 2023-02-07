@@ -1,6 +1,14 @@
 /// Integration tests for HTTP tracker server
 ///
-/// cargo test `http_tracker_server` -- --nocapture
+/// Warp version:
+/// ```text
+/// cargo test `warp_http_tracker_server` -- --nocapture
+/// ```
+///
+/// Axum version ()WIP):
+/// ```text
+/// cargo test `warp_http_tracker_server` -- --nocapture
+/// ```
 mod common;
 mod http;
 
@@ -2481,62 +2489,5 @@ mod axum_http_tracker_server {
         mod and_receiving_an_announce_request {}
 
         mod receiving_an_scrape_request {}
-    }
-}
-
-mod percent_encoding {
-    // todo: these operations are used in the HTTP tracker but they have not been extracted into independent functions.
-    // These tests document the operations. This behavior could be move to some functions int he future if they are extracted.
-
-    use std::str::FromStr;
-
-    use percent_encoding::NON_ALPHANUMERIC;
-    use torrust_tracker::protocol::info_hash::InfoHash;
-    use torrust_tracker::tracker::peer;
-
-    #[test]
-    fn how_to_encode_an_info_hash() {
-        let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
-
-        let encoded_info_hash = percent_encoding::percent_encode(&info_hash.0, NON_ALPHANUMERIC).to_string();
-
-        assert_eq!(encoded_info_hash, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0");
-    }
-
-    #[test]
-    fn how_to_decode_an_info_hash() {
-        let encoded_infohash = "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0";
-
-        let info_hash_bytes = percent_encoding::percent_decode_str(encoded_infohash).collect::<Vec<u8>>();
-        let info_hash = InfoHash::from_str(&hex::encode(info_hash_bytes)).unwrap();
-
-        assert_eq!(
-            info_hash,
-            InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap()
-        );
-    }
-
-    #[test]
-    fn how_to_encode_a_peer_id() {
-        let peer_id = peer::Id(*b"-qB00000000000000000");
-
-        let encoded_peer_id = percent_encoding::percent_encode(&peer_id.0, NON_ALPHANUMERIC).to_string();
-
-        assert_eq!(encoded_peer_id, "%2DqB00000000000000000");
-    }
-
-    #[test]
-    fn how_to_decode_a_peer_id() {
-        let encoded_peer_id = "%2DqB00000000000000000";
-
-        let bytes_vec = percent_encoding::percent_decode_str(encoded_peer_id).collect::<Vec<u8>>();
-
-        // Clone peer_id_bytes into fixed length array
-        let mut peer_id_bytes: [u8; 20] = Default::default();
-        peer_id_bytes.clone_from_slice(bytes_vec.as_slice());
-
-        let peer_id = peer::Id(peer_id_bytes);
-
-        assert_eq!(peer_id, peer::Id(*b"-qB00000000000000000"));
     }
 }

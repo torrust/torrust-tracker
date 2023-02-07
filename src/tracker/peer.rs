@@ -1,8 +1,10 @@
 use std::net::{IpAddr, SocketAddr};
+use std::panic::Location;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde;
 use serde::Serialize;
+use thiserror::Error;
 
 use crate::http::request::Announce;
 use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Time};
@@ -90,6 +92,69 @@ impl Peer {
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy)]
 pub struct Id(pub [u8; 20]);
+
+const PEER_ID_BYTES_LEN: usize = 20;
+
+#[derive(Error, Debug)]
+pub enum IdConversionError {
+    #[error("not enough bytes for peer id: {message} {location}")]
+    NotEnoughBytes {
+        location: &'static Location<'static>,
+        message: String,
+    },
+    #[error("too many bytes for peer id: {message} {location}")]
+    TooManyBytes {
+        location: &'static Location<'static>,
+        message: String,
+    },
+}
+
+impl Id {
+    /// # Panics
+    ///
+    /// Will panic if byte slice does not contains the exact amount of bytes need for the `Id`.
+    #[must_use]
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        assert_eq!(bytes.len(), PEER_ID_BYTES_LEN);
+        let mut ret = Self([0u8; PEER_ID_BYTES_LEN]);
+        ret.0.clone_from_slice(bytes);
+        ret
+    }
+}
+
+impl From<[u8; 20]> for Id {
+    fn from(bytes: [u8; 20]) -> Self {
+        Id(bytes)
+    }
+}
+
+impl TryFrom<Vec<u8>> for Id {
+    type Error = IdConversionError;
+
+    fn try_from(bytes: Vec<u8>) -> Result<Self, Self::Error> {
+        if bytes.len() < PEER_ID_BYTES_LEN {
+            return Err(IdConversionError::NotEnoughBytes {
+                location: Location::caller(),
+                message: format! {"got {} bytes, expected {}", bytes.len(), PEER_ID_BYTES_LEN},
+            });
+        }
+        if bytes.len() > PEER_ID_BYTES_LEN {
+            return Err(IdConversionError::TooManyBytes {
+                location: Location::caller(),
+                message: format! {"got {} bytes, expected {}", bytes.len(), PEER_ID_BYTES_LEN},
+            });
+        }
+        Ok(Self::from_bytes(&bytes))
+    }
+}
+
+impl std::str::FromStr for Id {
+    type Err = IdConversionError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::try_from(s.as_bytes().to_vec())
+    }
+}
 
 impl std::fmt::Display for Id {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -238,6 +303,75 @@ mod test {
 
     mod torrent_peer_id {
         use crate::tracker::peer;
+
+        #[test]
+        fn should_be_instantiated_from_a_byte_slice() {
+            let id = peer::Id::from_bytes(&[
+                0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
+            ]);
+
+            let expected_id = peer::Id([
+                0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
+            ]);
+
+            assert_eq!(id, expected_id);
+        }
+
+        #[test]
+        #[should_panic]
+        fn should_fail_trying_to_instantiate_from_a_byte_slice_with_less_than_20_bytes() {
+            let less_than_20_bytes = [0; 19];
+            let _ = peer::Id::from_bytes(&less_than_20_bytes);
+        }
+
+        #[test]
+        #[should_panic]
+        fn should_fail_trying_to_instantiate_from_a_byte_slice_with_more_than_20_bytes() {
+            let more_than_20_bytes = [0; 21];
+            let _ = peer::Id::from_bytes(&more_than_20_bytes);
+        }
+
+        #[test]
+        fn should_be_converted_from_a_20_byte_array() {
+            let id = peer::Id::from([
+                0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
+            ]);
+
+            let expected_id = peer::Id([
+                0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
+            ]);
+
+            assert_eq!(id, expected_id);
+        }
+
+        #[test]
+        fn should_be_converted_from_a_byte_vector() {
+            let id = peer::Id::try_from(
+                [
+                    0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
+                ]
+                .to_vec(),
+            )
+            .unwrap();
+
+            let expected_id = peer::Id([
+                0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
+            ]);
+
+            assert_eq!(id, expected_id);
+        }
+
+        #[test]
+        #[should_panic]
+        fn should_fail_trying_to_convert_from_a_byte_vector_with_less_than_20_bytes() {
+            let _ = peer::Id::try_from([0; 19].to_vec()).unwrap();
+        }
+
+        #[test]
+        #[should_panic]
+        fn should_fail_trying_to_convert_from_a_byte_vector_with_more_than_20_bytes() {
+            let _ = peer::Id::try_from([0; 21].to_vec()).unwrap();
+        }
 
         #[test]
         fn should_be_converted_to_hex_string() {

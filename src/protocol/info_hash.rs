@@ -1,7 +1,24 @@
+use std::panic::Location;
+
+use thiserror::Error;
+
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct InfoHash(pub [u8; 20]);
 
+const INFO_HASH_BYTES_LEN: usize = 20;
+
 impl InfoHash {
+    /// # Panics
+    ///
+    /// Will panic if byte slice does not contains the exact amount of bytes need for the `InfoHash`.
+    #[must_use]
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        assert_eq!(bytes.len(), INFO_HASH_BYTES_LEN);
+        let mut ret = Self([0u8; INFO_HASH_BYTES_LEN]);
+        ret.0.clone_from_slice(bytes);
+        ret
+    }
+
     /// For readability, when accessing the bytes array
     #[must_use]
     pub fn bytes(&self) -> [u8; 20] {
@@ -54,6 +71,40 @@ impl std::convert::From<&[u8]> for InfoHash {
 impl std::convert::From<[u8; 20]> for InfoHash {
     fn from(val: [u8; 20]) -> Self {
         InfoHash(val)
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum ConversionError {
+    #[error("not enough bytes for infohash: {message} {location}")]
+    NotEnoughBytes {
+        location: &'static Location<'static>,
+        message: String,
+    },
+    #[error("too many bytes for infohash: {message} {location}")]
+    TooManyBytes {
+        location: &'static Location<'static>,
+        message: String,
+    },
+}
+
+impl TryFrom<Vec<u8>> for InfoHash {
+    type Error = ConversionError;
+
+    fn try_from(bytes: Vec<u8>) -> Result<Self, Self::Error> {
+        if bytes.len() < INFO_HASH_BYTES_LEN {
+            return Err(ConversionError::NotEnoughBytes {
+                location: Location::caller(),
+                message: format! {"got {} bytes, expected {}", bytes.len(), INFO_HASH_BYTES_LEN},
+            });
+        }
+        if bytes.len() > INFO_HASH_BYTES_LEN {
+            return Err(ConversionError::TooManyBytes {
+                location: Location::caller(),
+                message: format! {"got {} bytes, expected {}", bytes.len(), INFO_HASH_BYTES_LEN},
+            });
+        }
+        Ok(Self::from_bytes(&bytes))
     }
 }
 
@@ -164,6 +215,26 @@ mod tests {
             info_hash,
             InfoHash::from_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF").unwrap()
         );
+    }
+
+    #[test]
+    fn an_info_hash_can_be_created_from_a_byte_vector() {
+        let info_hash: InfoHash = [255u8; 20].to_vec().try_into().unwrap();
+
+        assert_eq!(
+            info_hash,
+            InfoHash::from_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF").unwrap()
+        );
+    }
+
+    #[test]
+    fn it_should_fail_trying_to_create_an_info_hash_from_a_byte_vector_with_less_than_20_bytes() {
+        assert!(InfoHash::try_from([255u8; 19].to_vec()).is_err());
+    }
+
+    #[test]
+    fn it_should_fail_trying_to_create_an_info_hash_from_a_byte_vector_with_more_than_20_bytes() {
+        assert!(InfoHash::try_from([255u8; 21].to_vec()).is_err());
     }
 
     #[test]

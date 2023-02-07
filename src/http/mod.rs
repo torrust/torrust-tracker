@@ -15,6 +15,7 @@ pub mod axum;
 pub mod error;
 pub mod filters;
 pub mod handlers;
+pub mod percent_encoding;
 pub mod request;
 pub mod response;
 pub mod routes;

@@ -1,10 +1,9 @@
 use std::fmt;
 use std::str::FromStr;
 
-use percent_encoding::NON_ALPHANUMERIC;
 use torrust_tracker::protocol::info_hash::InfoHash;
 
-use crate::http::bencode::ByteArray20;
+use crate::http::{percent_encode_byte_array, ByteArray20};
 
 pub struct Query {
     pub info_hash: Vec<ByteArray20>,
@@ -111,7 +110,7 @@ impl QueryParams {
         let info_hashes = scrape_query
             .info_hash
             .iter()
-            .map(|info_hash_bytes| percent_encoding::percent_encode(info_hash_bytes, NON_ALPHANUMERIC).to_string())
+            .map(percent_encode_byte_array)
             .collect::<Vec<String>>();
 
         Self { info_hash: info_hashes }
