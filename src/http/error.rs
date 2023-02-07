@@ -1,34 +1,40 @@
+use std::panic::Location;
+
 use thiserror::Error;
 use warp::reject::Reject;
 
+use crate::located_error::LocatedError;
+
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("internal server error")]
-    InternalServer,
+    #[error("tracker server error: {source}")]
+    TrackerError {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 
-    #[error("info_hash is either missing or invalid")]
-    InvalidInfo,
+    #[error("internal server error: {message}, {location}")]
+    InternalServer {
+        location: &'static Location<'static>,
+        message: String,
+    },
 
-    #[error("peer_id is either missing or invalid")]
-    InvalidPeerId,
+    #[error("no valid infohashes found, {location}")]
+    EmptyInfoHash { location: &'static Location<'static> },
 
-    #[error("could not find remote address")]
-    AddressNotFound,
+    #[error("peer_id is either missing or invalid, {location}")]
+    InvalidPeerId { location: &'static Location<'static> },
 
-    #[error("torrent has no peers")]
-    NoPeersFound,
+    #[error("could not find remote address: {message}, {location}")]
+    AddressNotFound {
+        location: &'static Location<'static>,
+        message: String,
+    },
 
-    #[error("torrent not on whitelist")]
-    TorrentNotWhitelisted,
-
-    #[error("peer not authenticated")]
-    PeerNotAuthenticated,
-
-    #[error("invalid authentication key")]
-    PeerKeyNotValid,
-
-    #[error("exceeded info_hash limit")]
-    ExceededInfoHashLimit,
+    #[error("too many infohashes: {message}, {location}")]
+    TwoManyInfoHashes {
+        location: &'static Location<'static>,
+        message: String,
+    },
 }
 
 impl Reject for Error {}

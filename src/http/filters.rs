@@ -1,5 +1,6 @@
 use std::convert::Infallible;
 use std::net::{IpAddr, SocketAddr};
+use std::panic::Location;
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -87,9 +88,14 @@ fn info_hashes(raw_query: &String) -> WebResult<Vec<InfoHash>> {
     }
 
     if info_hashes.len() > MAX_SCRAPE_TORRENTS as usize {
-        Err(reject::custom(Error::ExceededInfoHashLimit))
+        Err(reject::custom(Error::TwoManyInfoHashes {
+            location: Location::caller(),
+            message: format! {"found: {}, but limit is: {}",info_hashes.len(), MAX_SCRAPE_TORRENTS},
+        }))
     } else if info_hashes.is_empty() {
-        Err(reject::custom(Error::InvalidInfo))
+        Err(reject::custom(Error::EmptyInfoHash {
+            location: Location::caller(),
+        }))
     } else {
         Ok(info_hashes)
     }
@@ -114,7 +120,9 @@ fn peer_id(raw_query: &String) -> WebResult<peer::Id> {
 
             // peer_id must be 20 bytes
             if peer_id_bytes.len() != 20 {
-                return Err(reject::custom(Error::InvalidPeerId));
+                return Err(reject::custom(Error::InvalidPeerId {
+                    location: Location::caller(),
+                }));
             }
 
             // clone peer_id_bytes into fixed length array
@@ -128,18 +136,26 @@ fn peer_id(raw_query: &String) -> WebResult<peer::Id> {
 
     match peer_id {
         Some(id) => Ok(id),
-        None => Err(reject::custom(Error::InvalidPeerId)),
+        None => Err(reject::custom(Error::InvalidPeerId {
+            location: Location::caller(),
+        })),
     }
 }
 
 /// Get `PeerAddress` from `RemoteAddress` or Forwarded
 fn peer_addr((on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<SocketAddr>, Option<String>)) -> WebResult<IpAddr> {
     if !on_reverse_proxy && remote_addr.is_none() {
-        return Err(reject::custom(Error::AddressNotFound));
+        return Err(reject::custom(Error::AddressNotFound {
+            location: Location::caller(),
+            message: "neither on have remote address or on a reverse proxy".to_string(),
+        }));
     }
 
     if on_reverse_proxy && x_forwarded_for.is_none() {
-        return Err(reject::custom(Error::AddressNotFound));
+        return Err(reject::custom(Error::AddressNotFound {
+            location: Location::caller(),
+            message: "must have a x-forwarded-for when using a reverse proxy".to_string(),
+        }));
     }
 
     if on_reverse_proxy {
@@ -151,7 +167,14 @@ fn peer_addr((on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<Soc
         // set client ip to last forwarded ip
         let x_forwarded_ip = *x_forwarded_ips.last().unwrap();
 
-        IpAddr::from_str(x_forwarded_ip).map_err(|_| reject::custom(Error::AddressNotFound))
+        IpAddr::from_str(x_forwarded_ip).map_err(|e| {
+            reject::custom(Error::AddressNotFound {
+                location: Location::caller(),
+                message: format!(
+                    "on remote proxy and unable to parse the last x-forwarded-ip: `{e}`, from `{x_forwarded_for_raw}`"
+                ),
+            })
+        })
     } else {
         Ok(remote_addr.unwrap().ip())
     }

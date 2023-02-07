@@ -91,7 +91,7 @@ pub async fn assert_invalid_info_hash_error_response(response: Response) {
 
     assert_error_bencoded(
         &response.text().await.unwrap(),
-        "info_hash is either missing or invalid",
+        "no valid infohashes found",
         Location::caller(),
     );
 }
@@ -109,25 +109,21 @@ pub async fn assert_invalid_peer_id_error_response(response: Response) {
 pub async fn assert_torrent_not_in_whitelist_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(
-        &response.text().await.unwrap(),
-        "torrent not on whitelist",
-        Location::caller(),
-    );
+    assert_error_bencoded(&response.text().await.unwrap(), "is not whitelisted", Location::caller());
 }
 
 pub async fn assert_peer_not_authenticated_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(&response.text().await.unwrap(), "peer not authenticated", Location::caller());
+    assert_error_bencoded(
+        &response.text().await.unwrap(),
+        "The peer is not authenticated",
+        Location::caller(),
+    );
 }
 
 pub async fn assert_invalid_authentication_key_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(
-        &response.text().await.unwrap(),
-        "invalid authentication key",
-        Location::caller(),
-    );
+    assert_error_bencoded(&response.text().await.unwrap(), "is not valid", Location::caller());
 }
