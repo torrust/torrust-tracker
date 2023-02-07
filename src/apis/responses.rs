@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Json, Response};
 use serde::Serialize;
@@ -110,33 +112,33 @@ pub fn torrent_not_known_response() -> Response {
 }
 
 #[must_use]
-pub fn failed_to_remove_torrent_from_whitelist_response() -> Response {
-    unhandled_rejection_response("failed to remove torrent from whitelist".to_string())
+pub fn failed_to_remove_torrent_from_whitelist_response<E: Error>(e: E) -> Response {
+    unhandled_rejection_response(format!("failed to remove torrent from whitelist: {e}"))
 }
 
 #[must_use]
-pub fn failed_to_whitelist_torrent_response() -> Response {
-    unhandled_rejection_response("failed to whitelist torrent".to_string())
+pub fn failed_to_whitelist_torrent_response<E: Error>(e: E) -> Response {
+    unhandled_rejection_response(format!("failed to whitelist torrent: {e}"))
 }
 
 #[must_use]
-pub fn failed_to_reload_whitelist_response() -> Response {
-    unhandled_rejection_response("failed to reload whitelist".to_string())
+pub fn failed_to_reload_whitelist_response<E: Error>(e: E) -> Response {
+    unhandled_rejection_response(format!("failed to reload whitelist: {e}"))
 }
 
 #[must_use]
-pub fn failed_to_generate_key_response() -> Response {
-    unhandled_rejection_response("failed to generate key".to_string())
+pub fn failed_to_generate_key_response<E: Error>(e: E) -> Response {
+    unhandled_rejection_response(format!("failed to generate key: {e}"))
 }
 
 #[must_use]
-pub fn failed_to_delete_key_response() -> Response {
-    unhandled_rejection_response("failed to delete key".to_string())
+pub fn failed_to_delete_key_response<E: Error>(e: E) -> Response {
+    unhandled_rejection_response(format!("failed to delete key: {e}"))
 }
 
 #[must_use]
-pub fn failed_to_reload_keys_response() -> Response {
-    unhandled_rejection_response("failed to reload keys".to_string())
+pub fn failed_to_reload_keys_response<E: Error>(e: E) -> Response {
+    unhandled_rejection_response(format!("failed to reload keys: {e}"))
 }
 
 /// This error response is to keep backward compatibility with the old Warp API.
