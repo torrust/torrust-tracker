@@ -23,12 +23,9 @@ pub async fn authenticate(
     tracker: Arc<tracker::Tracker>,
 ) -> Result<(), Error> {
     tracker.authenticate_request(info_hash, auth_key).await.map_err(|e| match e {
-        torrent::Error::TorrentNotWhitelisted => Error::TorrentNotWhitelisted,
-        torrent::Error::PeerNotAuthenticated => Error::PeerNotAuthenticated,
-        torrent::Error::PeerKeyNotValid => Error::PeerKeyNotValid,
-        torrent::Error::NoPeersFound => Error::NoPeersFound,
-        torrent::Error::CouldNotSendResponse => Error::InternalServer,
-        torrent::Error::InvalidInfoHash => Error::InvalidInfo,
+        tracker::error::Error::TorrentNotWhitelisted { info_hash, location } => Error::TorrentNotWhitelisted,
+        tracker::error::Error::PeerNotAuthenticated { location } => Error::PeerNotAuthenticated,
+        tracker::error::Error::PeerKeyNotValid { key, source } => Error::PeerKeyNotValid,
     })
 }
 

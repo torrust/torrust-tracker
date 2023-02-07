@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod error;
 pub mod mode;
 pub mod peer;
 pub mod services;
@@ -8,12 +9,14 @@ pub mod torrent;
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::net::SocketAddr;
+use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
+use self::error::Error;
 use crate::config::Configuration;
 use crate::databases::driver::Driver;
 use crate::databases::{self, Database};
@@ -41,7 +44,7 @@ pub struct TorrentsMetrics {
 impl Tracker {
     /// # Errors
     ///
-    /// Will return a `r2d2::Error` if unable to connect to database.
+    /// Will return a `databases::error::Error` if unable to connect to database.
     pub fn new(
         config: &Arc<Configuration>,
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
@@ -98,7 +101,10 @@ impl Tracker {
     pub async fn verify_auth_key(&self, auth_key: &auth::Key) -> Result<(), auth::Error> {
         // todo: use auth::KeyId for the function argument `auth_key`
         match self.keys.read().await.get(&auth_key.key) {
-            None => Err(auth::Error::KeyInvalid),
+            None => Err(auth::Error::UnableToReadKey {
+                location: Location::caller(),
+                key: Box::new(auth_key.clone()),
+            }),
             Some(key) => auth::verify(key),
         }
     }
@@ -204,7 +210,7 @@ impl Tracker {
     /// Will return a `torrent::Error::PeerNotAuthenticated` if the `key` is `None`.
     ///
     /// Will return a `torrent::Error::TorrentNotWhitelisted` if the the Tracker is in listed mode and the `info_hash` is not whitelisted.
-    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<auth::Key>) -> Result<(), torrent::Error> {
+    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<auth::Key>) -> Result<(), Error> {
         // no authentication needed in public mode
         if self.is_public() {
             return Ok(());
@@ -214,19 +220,27 @@ impl Tracker {
         if self.is_private() {
             match key {
                 Some(key) => {
-                    if self.verify_auth_key(key).await.is_err() {
-                        return Err(torrent::Error::PeerKeyNotValid);
+                    if let Err(e) = self.verify_auth_key(key).await {
+                        return Err(Error::PeerKeyNotValid {
+                            key: key.clone(),
+                            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+                        });
                     }
                 }
                 None => {
-                    return Err(torrent::Error::PeerNotAuthenticated);
+                    return Err(Error::PeerNotAuthenticated {
+                        location: Location::caller(),
+                    });
                 }
             }
         }
 
         // check if info_hash is whitelisted
         if self.is_whitelisted() && !self.is_info_hash_whitelisted(info_hash).await {
-            return Err(torrent::Error::TorrentNotWhitelisted);
+            return Err(Error::TorrentNotWhitelisted {
+                info_hash: *info_hash,
+                location: Location::caller(),
+            });
         }
 
         Ok(())

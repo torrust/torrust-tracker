@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::tracker::torrent;
+use crate::tracker;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -35,15 +35,15 @@ pub enum Error {
     BadRequest,
 }
 
-impl From<torrent::Error> for Error {
-    fn from(e: torrent::Error) -> Self {
+impl From<tracker::error::Error> for Error {
+    fn from(e: tracker::error::Error) -> Self {
         match e {
-            torrent::Error::TorrentNotWhitelisted => Error::TorrentNotWhitelisted,
-            torrent::Error::PeerNotAuthenticated => Error::PeerNotAuthenticated,
-            torrent::Error::PeerKeyNotValid => Error::PeerKeyNotValid,
-            torrent::Error::NoPeersFound => Error::NoPeersFound,
-            torrent::Error::CouldNotSendResponse => Error::InternalServer,
-            torrent::Error::InvalidInfoHash => Error::InvalidInfoHash,
+            tracker::error::Error::TorrentNotWhitelisted {
+                info_hash: _,
+                location: _,
+            } => Error::TorrentNotWhitelisted,
+            tracker::error::Error::PeerNotAuthenticated { location: _ } => Error::PeerNotAuthenticated,
+            tracker::error::Error::PeerKeyNotValid { key: _, source: _ } => Error::PeerKeyNotValid,
         }
     }
 }

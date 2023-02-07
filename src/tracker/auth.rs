@@ -1,12 +1,17 @@
+use std::panic::Location;
 use std::str::FromStr;
+use std::sync::Arc;
 use std::time::Duration;
 
-use derive_more::{Display, Error};
+use chrono::{DateTime, NaiveDateTime, Utc};
+use derive_more::Display;
 use log::debug;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
+use crate::located_error::LocatedError;
 use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Time, TimeNow};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 
@@ -38,14 +43,19 @@ pub fn verify(auth_key: &Key) -> Result<(), Error> {
     let current_time: DurationSinceUnixEpoch = Current::now();
 
     match auth_key.valid_until {
-        Some(valid_untill) => {
-            if valid_untill < current_time {
-                Err(Error::KeyExpired)
+        Some(valid_until) => {
+            if valid_until < current_time {
+                Err(Error::KeyExpired {
+                    location: Location::caller(),
+                })
             } else {
                 Ok(())
             }
         }
-        None => Err(Error::KeyInvalid),
+        None => Err(Error::UnableToReadKey {
+            location: Location::caller(),
+            key: Box::new(auth_key.clone()),
+        }),
     }
 }
 
@@ -55,6 +65,29 @@ pub struct Key {
     // pub key: KeyId,
     pub key: String,
     pub valid_until: Option<DurationSinceUnixEpoch>,
+}
+
+impl std::fmt::Display for Key {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "key: `{}`, valid until `{}`",
+            self.key,
+            match self.valid_until {
+                Some(duration) => format!(
+                    "{}",
+                    DateTime::<Utc>::from_utc(
+                        NaiveDateTime::from_timestamp(
+                            i64::try_from(duration.as_secs()).expect("Overflow of i64 seconds, very future!"),
+                            duration.subsec_nanos(),
+                        ),
+                        Utc
+                    )
+                ),
+                None => "Empty!?".to_string(),
+            }
+        )
+    }
 }
 
 impl Key {
@@ -108,21 +141,27 @@ impl FromStr for KeyId {
     }
 }
 
-#[derive(Debug, Display, PartialEq, Eq, Error)]
+#[derive(Debug, Error)]
 #[allow(dead_code)]
 pub enum Error {
-    #[display(fmt = "Key could not be verified.")]
-    KeyVerificationError,
-    #[display(fmt = "Key is invalid.")]
-    KeyInvalid,
-    #[display(fmt = "Key has expired.")]
-    KeyExpired,
+    #[error("Key could not be verified: {source}")]
+    KeyVerificationError {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
+    #[error("Failed to read key: {key}, {location}")]
+    UnableToReadKey {
+        location: &'static Location<'static>,
+        key: Box<Key>,
+    },
+    #[error("Key has expired, {location}")]
+    KeyExpired { location: &'static Location<'static> },
 }
 
 impl From<r2d2_sqlite::rusqlite::Error> for Error {
     fn from(e: r2d2_sqlite::rusqlite::Error) -> Self {
-        eprintln!("{e}");
-        Error::KeyVerificationError
+        Error::KeyVerificationError {
+            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+        }
     }
 }
 
