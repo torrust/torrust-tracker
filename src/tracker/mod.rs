@@ -15,6 +15,7 @@ use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
 use crate::config::Configuration;
+use crate::databases::driver::Driver;
 use crate::databases::{self, Database};
 use crate::protocol::info_hash::InfoHash;
 
@@ -45,8 +46,8 @@ impl Tracker {
         config: &Arc<Configuration>,
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
-    ) -> Result<Tracker, r2d2::Error> {
-        let database = databases::connect(&config.db_driver, &config.db_path)?;
+    ) -> Result<Tracker, databases::error::Error> {
+        let database = Driver::build(&config.db_driver, &config.db_path)?;
 
         Ok(Tracker {
             config: config.clone(),

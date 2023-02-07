@@ -1,32 +1,32 @@
+use std::panic::Location;
 use std::str::FromStr;
 
 use async_trait::async_trait;
-use log::debug;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 
+use super::driver::Driver;
 use crate::databases::{Database, Error};
 use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth;
 
+const DRIVER: Driver = Driver::Sqlite3;
+
 pub struct Sqlite {
     pool: Pool<SqliteConnectionManager>,
 }
 
-impl Sqlite {
+#[async_trait]
+impl Database for Sqlite {
     /// # Errors
     ///
     /// Will return `r2d2::Error` if `db_path` is not able to create `SqLite` database.
-    pub fn new(db_path: &str) -> Result<Sqlite, r2d2::Error> {
+    fn new(db_path: &str) -> Result<Sqlite, Error> {
         let cm = SqliteConnectionManager::file(db_path);
-        let pool = Pool::new(cm).expect("Failed to create r2d2 SQLite connection pool.");
-        Ok(Sqlite { pool })
+        Pool::new(cm).map_or_else(|err| Err((err, Driver::Sqlite3).into()), |pool| Ok(Sqlite { pool }))
     }
-}
 
-#[async_trait]
-impl Database for Sqlite {
     fn create_database_tables(&self) -> Result<(), Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
@@ -51,13 +51,13 @@ impl Database for Sqlite {
          );"
         .to_string();
 
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        conn.execute(&create_whitelist_table, [])
-            .and_then(|_| conn.execute(&create_keys_table, []))
-            .and_then(|_| conn.execute(&create_torrents_table, []))
-            .map_err(|_| Error::InvalidQuery)
-            .map(|_| ())
+        conn.execute(&create_whitelist_table, [])?;
+        conn.execute(&create_keys_table, [])?;
+        conn.execute(&create_torrents_table, [])?;
+
+        Ok(())
     }
 
     fn drop_database_tables(&self) -> Result<(), Error> {
@@ -73,17 +73,17 @@ impl Database for Sqlite {
         DROP TABLE keys;"
             .to_string();
 
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         conn.execute(&drop_whitelist_table, [])
             .and_then(|_| conn.execute(&drop_torrents_table, []))
-            .and_then(|_| conn.execute(&drop_keys_table, []))
-            .map_err(|_| Error::InvalidQuery)
-            .map(|_| ())
+            .and_then(|_| conn.execute(&drop_keys_table, []))?;
+
+        Ok(())
     }
 
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error> {
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
 
@@ -94,13 +94,16 @@ impl Database for Sqlite {
             Ok((info_hash, completed))
         })?;
 
+        //torrent_iter?;
+        //let torrent_iter = torrent_iter.unwrap();
+
         let torrents: Vec<(InfoHash, u32)> = torrent_iter.filter_map(std::result::Result::ok).collect();
 
         Ok(torrents)
     }
 
     async fn load_keys(&self) -> Result<Vec<auth::Key>, Error> {
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys")?;
 
@@ -120,7 +123,7 @@ impl Database for Sqlite {
     }
 
     async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT info_hash FROM whitelist")?;
 
@@ -136,130 +139,117 @@ impl Database for Sqlite {
     }
 
     async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        match conn.execute(
+        let insert = conn.execute(
             "INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2",
             [info_hash.to_string(), completed.to_string()],
-        ) {
-            Ok(updated) => {
-                if updated > 0 {
-                    return Ok(());
-                }
-                Err(Error::QueryReturnedNoRows)
-            }
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
+        )?;
+
+        if insert == 0 {
+            Err(Error::InsertFailed {
+                location: Location::caller(),
+                driver: DRIVER,
+            })
+        } else {
+            Ok(())
         }
     }
 
-    async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, Error> {
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+    async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<Option<InfoHash>, Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT info_hash FROM whitelist WHERE info_hash = ?")?;
+
         let mut rows = stmt.query([info_hash])?;
 
-        match rows.next() {
-            Ok(row) => match row {
-                Some(row) => Ok(InfoHash::from_str(&row.get_unwrap::<_, String>(0)).unwrap()),
-                None => Err(Error::QueryReturnedNoRows),
-            },
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
-        }
+        let query = rows.next()?;
+
+        Ok(query.map(|f| InfoHash::from_str(&f.get_unwrap::<_, String>(0)).unwrap()))
     }
 
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        match conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", [info_hash.to_string()]) {
-            Ok(updated) => {
-                if updated > 0 {
-                    return Ok(updated);
-                }
-                Err(Error::QueryReturnedNoRows)
-            }
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
+        let insert = conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", [info_hash.to_string()])?;
+
+        if insert == 0 {
+            Err(Error::InsertFailed {
+                location: Location::caller(),
+                driver: DRIVER,
+            })
+        } else {
+            Ok(insert)
         }
     }
 
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        match conn.execute("DELETE FROM whitelist WHERE info_hash = ?", [info_hash.to_string()]) {
-            Ok(updated) => {
-                if updated > 0 {
-                    return Ok(updated);
-                }
-                Err(Error::QueryReturnedNoRows)
-            }
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
+        let deleted = conn.execute("DELETE FROM whitelist WHERE info_hash = ?", [info_hash.to_string()])?;
+
+        if deleted == 1 {
+            // should only remove a single record.
+            Ok(deleted)
+        } else {
+            Err(Error::DeleteFailed {
+                location: Location::caller(),
+                error_code: deleted,
+                driver: DRIVER,
+            })
         }
     }
 
-    async fn get_key_from_keys(&self, key: &str) -> Result<auth::Key, Error> {
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+    async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::Key>, Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys WHERE key = ?")?;
+
         let mut rows = stmt.query([key.to_string()])?;
 
-        if let Some(row) = rows.next()? {
-            let key: String = row.get(0).unwrap();
-            let valid_until: i64 = row.get(1).unwrap();
+        let key = rows.next()?;
 
-            Ok(auth::Key {
-                key,
-                valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs())),
-            })
-        } else {
-            Err(Error::QueryReturnedNoRows)
-        }
+        Ok(key.map(|f| {
+            let expiry: i64 = f.get(1).unwrap();
+            auth::Key {
+                key: f.get(0).unwrap(),
+                valid_until: Some(DurationSinceUnixEpoch::from_secs(expiry.unsigned_abs())),
+            }
+        }))
     }
 
     async fn add_key_to_keys(&self, auth_key: &auth::Key) -> Result<usize, Error> {
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        match conn.execute(
+        let insert = conn.execute(
             "INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
             [auth_key.key.to_string(), auth_key.valid_until.unwrap().as_secs().to_string()],
-        ) {
-            Ok(updated) => {
-                if updated > 0 {
-                    return Ok(updated);
-                }
-                Err(Error::QueryReturnedNoRows)
-            }
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
+        )?;
+
+        if insert == 0 {
+            Err(Error::InsertFailed {
+                location: Location::caller(),
+                driver: DRIVER,
+            })
+        } else {
+            Ok(insert)
         }
     }
 
     async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error> {
-        let conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        match conn.execute("DELETE FROM keys WHERE key = ?", [key]) {
-            Ok(updated) => {
-                if updated > 0 {
-                    return Ok(updated);
-                }
-                Err(Error::QueryReturnedNoRows)
-            }
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
+        let deleted = conn.execute("DELETE FROM keys WHERE key = ?", [key])?;
+
+        if deleted == 1 {
+            // should only remove a single record.
+            Ok(deleted)
+        } else {
+            Err(Error::DeleteFailed {
+                location: Location::caller(),
+                error_code: deleted,
+                driver: DRIVER,
+            })
         }
     }
 }
