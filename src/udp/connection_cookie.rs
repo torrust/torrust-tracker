@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::panic::Location;
 
 use aquatic_udp_protocol::ConnectionId;
 
@@ -49,7 +50,9 @@ pub fn check(remote_address: &SocketAddr, connection_cookie: &Cookie) -> Result<
             return Ok(checking_time_extent);
         }
     }
-    Err(Error::InvalidConnectionId)
+    Err(Error::InvalidConnectionId {
+        location: Location::caller(),
+    })
 }
 
 mod cookie_builder {

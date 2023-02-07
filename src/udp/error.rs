@@ -1,49 +1,27 @@
+use std::panic::Location;
+
 use thiserror::Error;
 
-use crate::tracker;
+use crate::located_error::LocatedError;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("internal server error")]
-    InternalServer,
+    #[error("tracker server error: {source}")]
+    TrackerError {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 
-    #[error("info_hash is either missing or invalid")]
-    InvalidInfoHash,
+    #[error("internal server error: {message}, {location}")]
+    InternalServer {
+        location: &'static Location<'static>,
+        message: String,
+    },
 
     #[error("connection id could not be verified")]
-    InvalidConnectionId,
+    InvalidConnectionId { location: &'static Location<'static> },
 
-    #[error("could not find remote address")]
-    AddressNotFound,
-
-    #[error("torrent has no peers")]
-    NoPeersFound,
-
-    #[error("torrent not on whitelist")]
-    TorrentNotWhitelisted,
-
-    #[error("peer not authenticated")]
-    PeerNotAuthenticated,
-
-    #[error("invalid authentication key")]
-    PeerKeyNotValid,
-
-    #[error("exceeded info_hash limit")]
-    ExceededInfoHashLimit,
-
-    #[error("bad request")]
-    BadRequest,
-}
-
-impl From<tracker::error::Error> for Error {
-    fn from(e: tracker::error::Error) -> Self {
-        match e {
-            tracker::error::Error::TorrentNotWhitelisted {
-                info_hash: _,
-                location: _,
-            } => Error::TorrentNotWhitelisted,
-            tracker::error::Error::PeerNotAuthenticated { location: _ } => Error::PeerNotAuthenticated,
-            tracker::error::Error::PeerKeyNotValid { key: _, source: _ } => Error::PeerKeyNotValid,
-        }
-    }
+    #[error("bad request: {source}")]
+    BadRequest {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 }
