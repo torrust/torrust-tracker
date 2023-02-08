@@ -66,8 +66,8 @@ pub async fn add_torrent_to_whitelist_handler(
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
         Ok(info_hash) => match tracker.add_torrent_to_whitelist(&info_hash).await {
-            Ok(..) => ok_response(),
-            Err(..) => failed_to_whitelist_torrent_response(),
+            Ok(_) => ok_response(),
+            Err(e) => failed_to_whitelist_torrent_response(e),
         },
     }
 }
@@ -79,16 +79,16 @@ pub async fn remove_torrent_from_whitelist_handler(
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
         Ok(info_hash) => match tracker.remove_torrent_from_whitelist(&info_hash).await {
-            Ok(..) => ok_response(),
-            Err(..) => failed_to_remove_torrent_from_whitelist_response(),
+            Ok(_) => ok_response(),
+            Err(e) => failed_to_remove_torrent_from_whitelist_response(e),
         },
     }
 }
 
 pub async fn reload_whitelist_handler(State(tracker): State<Arc<Tracker>>) -> Response {
     match tracker.load_whitelist().await {
-        Ok(..) => ok_response(),
-        Err(..) => failed_to_reload_whitelist_response(),
+        Ok(_) => ok_response(),
+        Err(e) => failed_to_reload_whitelist_response(e),
     }
 }
 
@@ -96,7 +96,7 @@ pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path
     let seconds_valid = seconds_valid_or_key;
     match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
         Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
-        Err(_) => failed_to_generate_key_response(),
+        Err(e) => failed_to_generate_key_response(e),
     }
 }
 
@@ -111,15 +111,15 @@ pub async fn delete_auth_key_handler(
         Err(_) => invalid_auth_key_param_response(&seconds_valid_or_key.0),
         Ok(key_id) => match tracker.remove_auth_key(&key_id.to_string()).await {
             Ok(_) => ok_response(),
-            Err(_) => failed_to_delete_key_response(),
+            Err(e) => failed_to_delete_key_response(e),
         },
     }
 }
 
 pub async fn reload_keys_handler(State(tracker): State<Arc<Tracker>>) -> Response {
     match tracker.load_keys().await {
-        Ok(..) => ok_response(),
-        Err(..) => failed_to_reload_keys_response(),
+        Ok(_) => ok_response(),
+        Err(e) => failed_to_reload_keys_response(e),
     }
 }
 

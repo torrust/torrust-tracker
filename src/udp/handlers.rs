@@ -1,4 +1,5 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::panic::Location;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{
@@ -14,7 +15,10 @@ use crate::udp::error::Error;
 use crate::udp::request::AnnounceWrapper;
 
 pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: Arc<tracker::Tracker>) -> Response {
-    match Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS).map_err(|_| Error::InternalServer) {
+    match Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS).map_err(|e| Error::InternalServer {
+        message: format!("{e:?}"),
+        location: Location::caller(),
+    }) {
         Ok(request) => {
             let transaction_id = match &request {
                 Request::Connect(connect_request) => connect_request.transaction_id,
@@ -28,7 +32,12 @@ pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: A
             }
         }
         // bad request
-        Err(_) => handle_error(&Error::BadRequest, TransactionId(0)),
+        Err(e) => handle_error(
+            &Error::BadRequest {
+                source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+            },
+            TransactionId(0),
+        ),
     }
 }
 
@@ -90,7 +99,10 @@ pub async fn handle_announce(
 
     tracker
         .authenticate_request(&wrapped_announce_request.info_hash, &None)
-        .await?;
+        .await
+        .map_err(|e| Error::TrackerError {
+            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+        })?;
 
     let peer = peer::Peer::from_udp_announce_request(
         &wrapped_announce_request.announce_request,

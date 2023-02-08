@@ -1,8 +1,26 @@
+use std::panic::Location;
+
 use reqwest::Response;
 
 use super::responses::announce::{Announce, Compact, DeserializedCompact};
 use super::responses::scrape;
 use crate::http::responses::error::Error;
+
+pub fn assert_error_bencoded(response_text: &String, expected_failure_reason: &str, location: &'static Location<'static>) {
+    let error_failure_reason = serde_bencode::from_str::<Error>(response_text)
+    .unwrap_or_else(|_| panic!(
+                "response body should be a valid bencoded string for the '{expected_failure_reason}' error, got \"{response_text}\""
+    )
+        )
+        .failure_reason;
+
+    assert!(
+        error_failure_reason.contains(expected_failure_reason),
+        r#":
+  response: `"{error_failure_reason}"`
+  dose not contain: `"{expected_failure_reason}"`, {location}"#
+    );
+}
 
 pub async fn assert_empty_announce_response(response: Response) {
     assert_eq!(response.status(), 200);
@@ -64,90 +82,48 @@ pub async fn assert_is_announce_response(response: Response) {
 
 pub async fn assert_internal_server_error_response(response: Response) {
     assert_eq!(response.status(), 200);
-    let body = response.text().await.unwrap();
-    let error_response: Error = serde_bencode::from_str(&body).unwrap_or_else(|_| {
-        panic!(
-            "response body should be a valid bencoded string for the 'internal server' error, got \"{}\"",
-            &body
-        )
-    });
-    let expected_error_response = Error {
-        failure_reason: "internal server error".to_string(),
-    };
-    assert_eq!(error_response, expected_error_response);
+
+    assert_error_bencoded(&response.text().await.unwrap(), "internal server", Location::caller());
 }
 
 pub async fn assert_invalid_info_hash_error_response(response: Response) {
     assert_eq!(response.status(), 200);
-    let body = response.text().await.unwrap();
-    let error_response: Error = serde_bencode::from_str(&body).unwrap_or_else(|_| {
-        panic!(
-            "response body should be a valid bencoded string for the 'invalid info_hash' error, got \"{}\"",
-            &body
-        )
-    });
-    let expected_error_response = Error {
-        failure_reason: "info_hash is either missing or invalid".to_string(),
-    };
-    assert_eq!(error_response, expected_error_response);
+
+    assert_error_bencoded(
+        &response.text().await.unwrap(),
+        "no valid infohashes found",
+        Location::caller(),
+    );
 }
 
 pub async fn assert_invalid_peer_id_error_response(response: Response) {
     assert_eq!(response.status(), 200);
-    let body = response.text().await.unwrap();
-    let error_response: Error = serde_bencode::from_str(&body).unwrap_or_else(|_| {
-        panic!(
-            "response body should be a valid bencoded string for the 'invalid peer id' error, got \"{}\"",
-            &body
-        )
-    });
-    let expected_error_response = Error {
-        failure_reason: "peer_id is either missing or invalid".to_string(),
-    };
-    assert_eq!(error_response, expected_error_response);
+
+    assert_error_bencoded(
+        &response.text().await.unwrap(),
+        "peer_id is either missing or invalid",
+        Location::caller(),
+    );
 }
 
 pub async fn assert_torrent_not_in_whitelist_error_response(response: Response) {
     assert_eq!(response.status(), 200);
-    let body = response.text().await.unwrap();
-    let error_response: Error = serde_bencode::from_str(&body).unwrap_or_else(|_| {
-        panic!(
-            "response body should be a valid bencoded string for the 'torrent not on whitelist' error, got \"{}\"",
-            &body
-        )
-    });
-    let expected_error_response = Error {
-        failure_reason: "torrent not on whitelist".to_string(),
-    };
-    assert_eq!(error_response, expected_error_response);
+
+    assert_error_bencoded(&response.text().await.unwrap(), "is not whitelisted", Location::caller());
 }
 
 pub async fn assert_peer_not_authenticated_error_response(response: Response) {
     assert_eq!(response.status(), 200);
-    let body = response.text().await.unwrap();
-    let error_response: Error = serde_bencode::from_str(&body).unwrap_or_else(|_| {
-        panic!(
-            "response body should be a valid bencoded string for the 'peer not authenticated' error, got \"{}\"",
-            &body
-        )
-    });
-    let expected_error_response = Error {
-        failure_reason: "peer not authenticated".to_string(),
-    };
-    assert_eq!(error_response, expected_error_response);
+
+    assert_error_bencoded(
+        &response.text().await.unwrap(),
+        "The peer is not authenticated",
+        Location::caller(),
+    );
 }
 
 pub async fn assert_invalid_authentication_key_error_response(response: Response) {
     assert_eq!(response.status(), 200);
-    let body = response.text().await.unwrap();
-    let error_response: Error = serde_bencode::from_str(&body).unwrap_or_else(|_| {
-        panic!(
-            "response body should be a valid bencoded string for the 'invalid authentication key' error, got \"{}\"",
-            &body
-        )
-    });
-    let expected_error_response = Error {
-        failure_reason: "invalid authentication key".to_string(),
-    };
-    assert_eq!(error_response, expected_error_response);
+
+    assert_error_bencoded(&response.text().await.unwrap(), "is not valid", Location::caller());
 }

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::IpAddr;
+use std::panic::Location;
 use std::sync::Arc;
 
 use log::debug;
@@ -16,20 +17,18 @@ use crate::tracker::{self, auth, peer, statistics, torrent};
 ///
 /// # Errors
 ///
-/// Will return `ServerError` that wraps the `Error` if unable to `authenticate_request`.
+/// Will return `ServerError` that wraps the `tracker::error::Error` if unable to `authenticate_request`.
 pub async fn authenticate(
     info_hash: &InfoHash,
     auth_key: &Option<auth::Key>,
     tracker: Arc<tracker::Tracker>,
 ) -> Result<(), Error> {
-    tracker.authenticate_request(info_hash, auth_key).await.map_err(|e| match e {
-        torrent::Error::TorrentNotWhitelisted => Error::TorrentNotWhitelisted,
-        torrent::Error::PeerNotAuthenticated => Error::PeerNotAuthenticated,
-        torrent::Error::PeerKeyNotValid => Error::PeerKeyNotValid,
-        torrent::Error::NoPeersFound => Error::NoPeersFound,
-        torrent::Error::CouldNotSendResponse => Error::InternalServer,
-        torrent::Error::InvalidInfoHash => Error::InvalidInfo,
-    })
+    tracker
+        .authenticate_request(info_hash, auth_key)
+        .await
+        .map_err(|e| Error::TrackerError {
+            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+        })
 }
 
 /// Handle announce request
@@ -42,9 +41,7 @@ pub async fn handle_announce(
     auth_key: Option<auth::Key>,
     tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
-    authenticate(&announce_request.info_hash, &auth_key, tracker.clone())
-        .await
-        .map_err(reject::custom)?;
+    authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await?;
 
     debug!("{:?}", announce_request);
 
@@ -161,7 +158,10 @@ fn send_announce_response(
     if let Some(1) = announce_request.compact {
         match res.write_compact() {
             Ok(body) => Ok(Response::new(body)),
-            Err(_) => Err(reject::custom(Error::InternalServer)),
+            Err(e) => Err(reject::custom(Error::InternalServer {
+                message: e.to_string(),
+                location: Location::caller(),
+            })),
         }
     } else {
         Ok(Response::new(res.write().into()))
@@ -174,7 +174,10 @@ fn send_scrape_response(files: HashMap<InfoHash, response::ScrapeEntry>) -> WebR
 
     match res.write() {
         Ok(body) => Ok(Response::new(body)),
-        Err(_) => Err(reject::custom(Error::InternalServer)),
+        Err(e) => Err(reject::custom(Error::InternalServer {
+            message: e.to_string(),
+            location: Location::caller(),
+        })),
     }
 }
 
@@ -184,15 +187,21 @@ fn send_scrape_response(files: HashMap<InfoHash, response::ScrapeEntry>) -> WebR
 ///
 /// Will not return a error, `Infallible`, but instead  convert the `ServerError` into a `Response`.
 pub fn send_error(r: &Rejection) -> std::result::Result<impl Reply, Infallible> {
-    let body = if let Some(server_error) = r.find::<Error>() {
-        debug!("{:?}", server_error);
+    let warp_reject_error = r.find::<Error>();
+
+    let body = if let Some(error) = warp_reject_error {
+        debug!("{:?}", error);
         response::Error {
-            failure_reason: server_error.to_string(),
+            failure_reason: error.to_string(),
         }
         .write()
     } else {
         response::Error {
-            failure_reason: Error::InternalServer.to_string(),
+            failure_reason: Error::InternalServer {
+                message: "Undefined".to_string(),
+                location: Location::caller(),
+            }
+            .to_string(),
         }
         .write()
     };

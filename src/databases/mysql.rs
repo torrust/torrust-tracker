@@ -8,33 +8,32 @@ use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MysqlConnectionManager;
 
+use super::driver::Driver;
 use crate::databases::{Database, Error};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth;
 
+const DRIVER: Driver = Driver::MySQL;
+
 pub struct Mysql {
     pool: Pool<MysqlConnectionManager>,
 }
 
-impl Mysql {
+#[async_trait]
+impl Database for Mysql {
     /// # Errors
     ///
     /// Will return `r2d2::Error` if `db_path` is not able to create `MySQL` database.
-    pub fn new(db_path: &str) -> Result<Self, r2d2::Error> {
-        let opts = Opts::from_url(db_path).expect("Failed to connect to MySQL database.");
+    fn new(db_path: &str) -> Result<Self, Error> {
+        let opts = Opts::from_url(db_path)?;
         let builder = OptsBuilder::from_opts(opts);
         let manager = MysqlConnectionManager::new(builder);
-        let pool = r2d2::Pool::builder()
-            .build(manager)
-            .expect("Failed to create r2d2 MySQL connection pool.");
+        let pool = r2d2::Pool::builder().build(manager).map_err(|e| (e, DRIVER))?;
 
         Ok(Self { pool })
     }
-}
 
-#[async_trait]
-impl Database for Mysql {
     fn create_database_tables(&self) -> Result<(), Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
@@ -63,7 +62,7 @@ impl Database for Mysql {
             i8::try_from(AUTH_KEY_LENGTH).expect("auth::Auth Key Length Should fit within a i8!")
         );
 
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         conn.query_drop(&create_torrents_table)
             .expect("Could not create torrents table.");
@@ -87,7 +86,7 @@ impl Database for Mysql {
             DROP TABLE `keys`;"
             .to_string();
 
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         conn.query_drop(&drop_whitelist_table)
             .expect("Could not drop `whitelist` table.");
@@ -99,155 +98,124 @@ impl Database for Mysql {
     }
 
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error> {
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let torrents: Vec<(InfoHash, u32)> = conn
-            .query_map(
-                "SELECT info_hash, completed FROM torrents",
-                |(info_hash_string, completed): (String, u32)| {
-                    let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
-                    (info_hash, completed)
-                },
-            )
-            .map_err(|_| Error::QueryReturnedNoRows)?;
+        let torrents = conn.query_map(
+            "SELECT info_hash, completed FROM torrents",
+            |(info_hash_string, completed): (String, u32)| {
+                let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
+                (info_hash, completed)
+            },
+        )?;
 
         Ok(torrents)
     }
 
     async fn load_keys(&self) -> Result<Vec<auth::Key>, Error> {
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let keys: Vec<auth::Key> = conn
-            .query_map(
-                "SELECT `key`, valid_until FROM `keys`",
-                |(key, valid_until): (String, i64)| auth::Key {
-                    key,
-                    valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
-                },
-            )
-            .map_err(|_| Error::QueryReturnedNoRows)?;
+        let keys = conn.query_map(
+            "SELECT `key`, valid_until FROM `keys`",
+            |(key, valid_until): (String, i64)| auth::Key {
+                key,
+                valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
+            },
+        )?;
 
         Ok(keys)
     }
 
     async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let info_hashes: Vec<InfoHash> = conn
-            .query_map("SELECT info_hash FROM whitelist", |info_hash: String| {
-                InfoHash::from_str(&info_hash).unwrap()
-            })
-            .map_err(|_| Error::QueryReturnedNoRows)?;
+        let info_hashes = conn.query_map("SELECT info_hash FROM whitelist", |info_hash: String| {
+            InfoHash::from_str(&info_hash).unwrap()
+        })?;
 
         Ok(info_hashes)
     }
 
     async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        const COMMAND : &str = "INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)";
+
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let info_hash_str = info_hash.to_string();
 
         debug!("{}", info_hash_str);
 
-        match conn.exec_drop("INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)", params! { info_hash_str, completed }) {
-            Ok(_) => {
-                Ok(())
-            }
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
-        }
+        Ok(conn.exec_drop(COMMAND, params! { info_hash_str, completed })?)
     }
 
-    async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<InfoHash, Error> {
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+    async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<Option<InfoHash>, Error> {
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        match conn
-            .exec_first::<String, _, _>(
-                "SELECT info_hash FROM whitelist WHERE info_hash = :info_hash",
-                params! { info_hash },
-            )
-            .map_err(|_| Error::DatabaseError)?
-        {
-            Some(info_hash) => Ok(InfoHash::from_str(&info_hash).unwrap()),
-            None => Err(Error::QueryReturnedNoRows),
-        }
+        let select = conn.exec_first::<String, _, _>(
+            "SELECT info_hash FROM whitelist WHERE info_hash = :info_hash",
+            params! { info_hash },
+        )?;
+
+        let info_hash = select.map(|f| InfoHash::from_str(&f).expect("Failed to decode InfoHash String from DB!"));
+
+        Ok(info_hash)
     }
 
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let info_hash_str = info_hash.to_string();
 
-        match conn.exec_drop(
+        conn.exec_drop(
             "INSERT INTO whitelist (info_hash) VALUES (:info_hash_str)",
             params! { info_hash_str },
-        ) {
-            Ok(_) => Ok(1),
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
-        }
+        )?;
+
+        Ok(1)
     }
 
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let info_hash = info_hash.to_string();
 
-        match conn.exec_drop("DELETE FROM whitelist WHERE info_hash = :info_hash", params! { info_hash }) {
-            Ok(_) => Ok(1),
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
-        }
+        conn.exec_drop("DELETE FROM whitelist WHERE info_hash = :info_hash", params! { info_hash })?;
+
+        Ok(1)
     }
 
-    async fn get_key_from_keys(&self, key: &str) -> Result<auth::Key, Error> {
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+    async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::Key>, Error> {
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        match conn
-            .exec_first::<(String, i64), _, _>("SELECT `key`, valid_until FROM `keys` WHERE `key` = :key", params! { key })
-            .map_err(|_| Error::QueryReturnedNoRows)?
-        {
-            Some((key, valid_until)) => Ok(auth::Key {
-                key,
-                valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
-            }),
-            None => Err(Error::InvalidQuery),
-        }
+        let query =
+            conn.exec_first::<(String, i64), _, _>("SELECT `key`, valid_until FROM `keys` WHERE `key` = :key", params! { key });
+
+        let key = query?;
+
+        Ok(key.map(|(key, expiry)| auth::Key {
+            key,
+            valid_until: Some(Duration::from_secs(expiry.unsigned_abs())),
+        }))
     }
 
     async fn add_key_to_keys(&self, auth_key: &auth::Key) -> Result<usize, Error> {
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let key = auth_key.key.to_string();
         let valid_until = auth_key.valid_until.unwrap_or(Duration::ZERO).as_secs().to_string();
 
-        match conn.exec_drop(
+        conn.exec_drop(
             "INSERT INTO `keys` (`key`, valid_until) VALUES (:key, :valid_until)",
             params! { key, valid_until },
-        ) {
-            Ok(_) => Ok(1),
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
-        }
+        )?;
+
+        Ok(1)
     }
 
     async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error> {
-        let mut conn = self.pool.get().map_err(|_| Error::DatabaseError)?;
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        match conn.exec_drop("DELETE FROM `keys` WHERE key = :key", params! { key }) {
-            Ok(_) => Ok(1),
-            Err(e) => {
-                debug!("{:?}", e);
-                Err(Error::InvalidQuery)
-            }
-        }
+        conn.exec_drop("DELETE FROM `keys` WHERE key = :key", params! { key })?;
+
+        Ok(1)
     }
 }

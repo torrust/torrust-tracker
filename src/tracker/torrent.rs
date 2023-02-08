@@ -99,16 +99,6 @@ pub struct SwamStats {
     pub leechers: u32,
 }
 
-#[derive(Debug)]
-pub enum Error {
-    TorrentNotWhitelisted,
-    PeerNotAuthenticated,
-    PeerKeyNotValid,
-    NoPeersFound,
-    CouldNotSendResponse,
-    InvalidInfoHash,
-}
-
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};

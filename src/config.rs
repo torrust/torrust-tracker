@@ -1,16 +1,21 @@
 use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
+use std::panic::Location;
 use std::path::Path;
 use std::str::FromStr;
+use std::sync::Arc;
 use std::{env, fs};
 
 use config::{Config, ConfigError, File, FileFormat};
+use log::warn;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
+use thiserror::Error;
 use {std, toml};
 
 use crate::databases::driver::Driver;
+use crate::located_error::{Located, LocatedError};
 use crate::tracker::mode;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -74,13 +79,30 @@ pub struct Configuration {
     pub http_api: HttpApi,
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum Error {
-    Message(String),
-    ConfigError(ConfigError),
-    IOError(std::io::Error),
-    ParseError(toml::de::Error),
-    TrackerModeIncompatible,
+    #[error("Unable to load from Environmental Variable: {source}")]
+    UnableToLoadFromEnvironmentVariable {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
+
+    #[error("Default configuration created at: `{path}`, please review and reload tracker, {location}")]
+    CreatedNewConfigHalt {
+        location: &'static Location<'static>,
+        path: String,
+    },
+
+    #[error("Failed processing the configuration: {source}")]
+    ConfigError { source: LocatedError<'static, ConfigError> },
+}
+
+impl From<ConfigError> for Error {
+    #[track_caller]
+    fn from(err: ConfigError) -> Self {
+        Self::ConfigError {
+            source: Located(err).into(),
+        }
+    }
 }
 
 /// This configuration is used for testing. It generates random config values so they do not collide
@@ -128,20 +150,6 @@ fn random_port() -> u16 {
     let mut rng = thread_rng();
     rng.gen_range(49152..65535)
 }
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Error::Message(e) => e.fmt(f),
-            Error::ConfigError(e) => e.fmt(f),
-            Error::IOError(e) => e.fmt(f),
-            Error::ParseError(e) => e.fmt(f),
-            Error::TrackerModeIncompatible => write!(f, "{self:?}"),
-        }
-    }
-}
-
-impl std::error::Error for Error {}
 
 impl Default for Configuration {
     fn default() -> Self {
@@ -210,21 +218,19 @@ impl Configuration {
         let mut config = Config::default();
 
         if Path::new(path).exists() {
-            config = config_builder
-                .add_source(File::with_name(path))
-                .build()
-                .map_err(Error::ConfigError)?;
+            config = config_builder.add_source(File::with_name(path)).build()?;
         } else {
-            eprintln!("No config file found.");
-            eprintln!("Creating config file..");
+            warn!("No config file found.");
+            warn!("Creating config file..");
             let config = Configuration::default();
             config.save_to_file(path)?;
-            return Err(Error::Message(
-                "Please edit the config.TOML and restart the tracker.".to_string(),
-            ));
+            return Err(Error::CreatedNewConfigHalt {
+                location: Location::caller(),
+                path: path.to_string(),
+            });
         }
 
-        let torrust_config: Configuration = config.try_deserialize().map_err(Error::ConfigError)?;
+        let torrust_config: Configuration = config.try_deserialize()?;
 
         Ok(torrust_config)
     }
@@ -237,15 +243,13 @@ impl Configuration {
             Ok(config_toml) => {
                 let config_builder = Config::builder()
                     .add_source(File::from_str(&config_toml, FileFormat::Toml))
-                    .build()
-                    .map_err(Error::ConfigError)?;
-                let config = config_builder.try_deserialize().map_err(Error::ConfigError)?;
+                    .build()?;
+                let config = config_builder.try_deserialize()?;
                 Ok(config)
             }
-            Err(_) => Err(Error::Message(format!(
-                "No environment variable for configuration found: {}",
-                &config_env_var_name
-            ))),
+            Err(e) => Err(Error::UnableToLoadFromEnvironmentVariable {
+                source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+            }),
         }
     }
 
@@ -262,7 +266,7 @@ impl Configuration {
 
 #[cfg(test)]
 mod tests {
-    use crate::config::{Configuration, Error};
+    use crate::config::Configuration;
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -379,13 +383,6 @@ mod tests {
         let configuration = Configuration::load_from_file(&config_file_path).expect("Could not load configuration from file");
 
         assert_eq!(configuration, Configuration::default());
-    }
-
-    #[test]
-    fn configuration_error_could_be_displayed() {
-        let error = Error::TrackerModeIncompatible;
-
-        assert_eq!(format!("{error}"), "TrackerModeIncompatible");
     }
 
     #[test]
