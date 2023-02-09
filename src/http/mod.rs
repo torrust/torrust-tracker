@@ -11,18 +11,10 @@
 //!
 
 use serde::{Deserialize, Serialize};
-pub mod axum;
-pub mod error;
-pub mod filters;
-pub mod handlers;
-pub mod percent_encoding;
-pub mod request;
-pub mod response;
-pub mod routes;
-pub mod server;
 
-pub type Bytes = u64;
-pub type WebResult<T> = std::result::Result<T, warp::Rejection>;
+pub mod axum_implementation;
+pub mod percent_encoding;
+pub mod warp_implementation;
 
 #[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Version {

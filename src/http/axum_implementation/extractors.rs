@@ -135,7 +135,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::AnnounceParams;
-    use crate::http::axum::query::Query;
+    use crate::http::axum_implementation::query::Query;
     use crate::protocol::info_hash::InfoHash;
     use crate::tracker::peer;
 

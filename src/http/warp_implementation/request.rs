@@ -2,7 +2,7 @@ use std::net::IpAddr;
 
 use serde::Deserialize;
 
-use crate::http::Bytes;
+use crate::http::warp_implementation::Bytes;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::peer;
 

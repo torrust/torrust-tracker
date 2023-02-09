@@ -6,7 +6,7 @@ use serde;
 use serde::Serialize;
 use thiserror::Error;
 
-use crate::http::request::Announce;
+use crate::http::warp_implementation::request::Announce;
 use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Time};
 use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef};
 use crate::protocol::utils::ser_unix_time_value;
@@ -599,7 +599,7 @@ mod test {
     mod torrent_peer_constructor_from_for_http_requests {
         use std::net::{IpAddr, Ipv4Addr};
 
-        use crate::http::request::Announce;
+        use crate::http::warp_implementation::request::Announce;
         use crate::protocol::info_hash::InfoHash;
         use crate::tracker::peer::{self, Peer};
 

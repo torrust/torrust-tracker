@@ -69,7 +69,7 @@ impl Query {
 #[cfg(test)]
 mod tests {
     use super::Query;
-    use crate::http::axum::query::Param;
+    use crate::http::axum_implementation::query::Param;
 
     #[test]
     fn it_should_parse_the_query_params_from_an_url_query_string() {
