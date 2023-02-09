@@ -4,6 +4,7 @@ use log::warn;
 use tokio::task::JoinHandle;
 
 use crate::config::Configuration;
+use crate::http::Version;
 use crate::jobs::{http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
 use crate::tracker;
 
@@ -47,7 +48,7 @@ pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Ve
         if !http_tracker_config.enabled {
             continue;
         }
-        jobs.push(http_tracker::start_job(http_tracker_config, tracker.clone()).await);
+        jobs.push(http_tracker::start_job(http_tracker_config, tracker.clone(), Version::Warp).await);
     }
 
     // Start HTTP API

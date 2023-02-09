@@ -9,13 +9,15 @@
 //! - <https://wiki.theory.org/BitTorrentSpecification#Tracker_HTTP.2FHTTPS_Protocol>
 //! - <https://wiki.theory.org/BitTorrent_Tracker_Protocol>
 //!
-pub mod error;
-pub mod filters;
-pub mod handlers;
-pub mod request;
-pub mod response;
-pub mod routes;
-pub mod server;
 
-pub type Bytes = u64;
-pub type WebResult<T> = std::result::Result<T, warp::Rejection>;
+use serde::{Deserialize, Serialize};
+
+pub mod axum_implementation;
+pub mod percent_encoding;
+pub mod warp_implementation;
+
+#[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
+pub enum Version {
+    Warp,
+    Axum,
+}

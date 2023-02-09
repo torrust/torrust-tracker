@@ -8,6 +8,7 @@ use warp::{reject, Filter, Rejection};
 
 use super::error::Error;
 use super::{request, WebResult};
+use crate::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::{self, auth, peer};
@@ -78,9 +79,11 @@ fn info_hashes(raw_query: &String) -> WebResult<Vec<InfoHash>> {
 
     for v in split_raw_query {
         if v.contains("info_hash") {
+            // get raw percent encoded infohash
             let raw_info_hash = v.split('=').collect::<Vec<&str>>()[1];
-            let info_hash_bytes = percent_encoding::percent_decode_str(raw_info_hash).collect::<Vec<u8>>();
-            let info_hash = InfoHash::from_str(&hex::encode(info_hash_bytes));
+
+            let info_hash = percent_decode_info_hash(raw_info_hash);
+
             if let Ok(ih) = info_hash {
                 info_hashes.push(ih);
             }
@@ -112,24 +115,17 @@ fn peer_id(raw_query: &String) -> WebResult<peer::Id> {
     for v in split_raw_query {
         // look for the peer_id param
         if v.contains("peer_id") {
-            // get raw percent_encoded peer_id
+            // get raw percent encoded peer id
             let raw_peer_id = v.split('=').collect::<Vec<&str>>()[1];
 
-            // decode peer_id
-            let peer_id_bytes = percent_encoding::percent_decode_str(raw_peer_id).collect::<Vec<u8>>();
-
-            // peer_id must be 20 bytes
-            if peer_id_bytes.len() != 20 {
+            if let Ok(id) = percent_decode_peer_id(raw_peer_id) {
+                peer_id = Some(id);
+            } else {
                 return Err(reject::custom(Error::InvalidPeerId {
                     location: Location::caller(),
                 }));
             }
 
-            // clone peer_id_bytes into fixed length array
-            let mut byte_arr: [u8; 20] = Default::default();
-            byte_arr.clone_from_slice(peer_id_bytes.as_slice());
-
-            peer_id = Some(peer::Id(byte_arr));
             break;
         }
     }
