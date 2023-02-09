@@ -332,6 +332,17 @@ mod test {
         }
 
         #[test]
+        fn should_be_instantiated_from_a_string() {
+            let id = "-qB00000000000000001".parse::<peer::Id>().unwrap();
+
+            let expected_id = peer::Id([
+                45, 113, 66, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 49,
+            ]);
+
+            assert_eq!(id, expected_id);
+        }
+
+        #[test]
         fn should_be_converted_from_a_20_byte_array() {
             let id = peer::Id::from([
                 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
