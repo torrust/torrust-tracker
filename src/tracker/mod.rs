@@ -85,7 +85,7 @@ impl Tracker {
 
     /// It handles an announce request
     pub async fn announce(&self, info_hash: &InfoHash, peer: &mut Peer, remote_client_ip: &IpAddr) -> AnnounceResponse {
-        peer.change_ip(&self.assign_ip_address_to_peer(remote_client_ip));
+        peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip()));
 
         let swam_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
@@ -93,12 +93,6 @@ impl Tracker {
         let peers = self.get_peers_excluding_peers_with_address(info_hash, &peer.peer_addr).await;
 
         AnnounceResponse { peers, swam_stats }
-    }
-
-    /// It assigns an IP address to the peer
-    #[must_use]
-    pub fn assign_ip_address_to_peer(&self, remote_client_ip: &IpAddr) -> IpAddr {
-        assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip())
     }
 
     /// # Errors
@@ -407,7 +401,7 @@ impl Tracker {
 }
 
 #[must_use]
-pub fn assign_ip_address_to_peer(remote_client_ip: &IpAddr, tracker_external_ip: Option<IpAddr>) -> IpAddr {
+fn assign_ip_address_to_peer(remote_client_ip: &IpAddr, tracker_external_ip: Option<IpAddr>) -> IpAddr {
     if let Some(host_ip) = tracker_external_ip.filter(|_| remote_client_ip.is_loopback()) {
         host_ip
     } else {
