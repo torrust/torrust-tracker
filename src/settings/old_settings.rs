@@ -76,8 +76,7 @@ impl From<UdpTrackerConfig> for (Service, String) {
                 socket: val
                     .bind_address
                     .as_ref()
-                    .map(|socket| SocketAddr::from_str(socket.as_str()).ok())
-                    .unwrap_or(None),
+                    .and_then(|socket| SocketAddr::from_str(socket.as_str()).ok()),
                 tls: None,
                 api_tokens: None,
             },
@@ -108,8 +107,7 @@ impl From<HttpTrackerConfig> for (Service, String) {
                     socket: val
                         .bind_address
                         .as_ref()
-                        .map(|socket| SocketAddr::from_str(socket.as_str()).ok())
-                        .unwrap_or(None),
+                        .and_then(|socket| SocketAddr::from_str(socket.as_str()).ok()),
                     tls: Some(TlsSettings {
                         certificate_file_path: { val.ssl_cert_path.as_ref().map(|path| Path::new(path).into()) },
                         key_file_path: { val.ssl_key_path.as_ref().map(|path| Path::new(path).into()) },
@@ -127,8 +125,7 @@ impl From<HttpTrackerConfig> for (Service, String) {
                     socket: val
                         .bind_address
                         .as_ref()
-                        .map(|socket| SocketAddr::from_str(socket.as_str()).ok())
-                        .unwrap_or(None),
+                        .and_then(|socket| SocketAddr::from_str(socket.as_str()).ok()),
                     tls: None,
                     api_tokens: None,
                 },
@@ -155,8 +152,7 @@ impl From<HttpApiConfig> for (Service, String) {
                 socket: val
                     .bind_address
                     .as_ref()
-                    .map(|socket| SocketAddr::from_str(socket.as_str()).ok())
-                    .unwrap_or(None),
+                    .and_then(|socket| SocketAddr::from_str(socket.as_str()).ok()),
                 tls: None,
                 api_tokens: val.access_tokens,
             },

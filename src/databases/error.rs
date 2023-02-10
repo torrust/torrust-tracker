@@ -4,6 +4,7 @@ use std::sync::Arc;
 use r2d2_mysql::mysql::UrlError;
 
 use super::driver::Driver;
+use super::settings::Settings;
 use crate::located_error::{Located, LocatedError};
 
 #[derive(thiserror::Error, Debug, Clone)]
@@ -43,6 +44,20 @@ pub enum Error {
     ConnectionPool {
         source: LocatedError<'static, r2d2::Error>,
         driver: Driver,
+    },
+
+    #[error("Failed to convert to driver settings, expected: {expected}, actual {actual}, settings: {settings:?}, {location}")]
+    WrongDriver {
+        location: &'static Location<'static>,
+        expected: Driver,
+        actual: Driver,
+        settings: Settings,
+    },
+
+    #[error("Failed to get required felid from settings: {felid}, {location}")]
+    MissingFelid {
+        location: &'static Location<'static>,
+        felid: String,
     },
 }
 

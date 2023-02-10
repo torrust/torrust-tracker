@@ -26,6 +26,7 @@ pub mod config_const {
 
 #[macro_use]
 extern crate lazy_static;
+extern crate derive_builder;
 
 pub mod static_time {
     use std::time::SystemTime;

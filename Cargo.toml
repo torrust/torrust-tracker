@@ -61,6 +61,8 @@ uuid = { version = "1", features = ["v4"] }
 axum = "0.6.1"
 axum-server = { version = "0.4.4", features = ["tls-rustls"] }
 
+derive_builder = "0.12"
+
 
 [dev-dependencies]
 mockall = "0.11"

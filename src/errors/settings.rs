@@ -2,9 +2,7 @@ use thiserror::Error;
 
 use super::FilePathError;
 use crate::databases;
-use crate::settings::{
-    CommonSettings, DatabaseSettings, GlobalSettings, ServiceNoSecrets, ServiceProtocol, TlsSettings, TrackerSettings,
-};
+use crate::settings::{CommonSettings, GlobalSettings, ServiceNoSecrets, ServiceProtocol, TlsSettings, TrackerSettings};
 
 #[derive(Error, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum SettingsError {
@@ -59,11 +57,12 @@ pub enum TrackerSettingsError {
 }
 
 impl TrackerSettingsError {
+    #[must_use]
     pub fn get_field(&self) -> String {
         match self {
             Self::MissingRequiredField { field, data: _ } => field,
         }
-        .to_owned()
+        .clone()
     }
 }
 
@@ -82,17 +81,18 @@ pub enum GlobalSettingsError {
 }
 
 impl GlobalSettingsError {
+    #[must_use]
     pub fn get_field(&self) -> String {
         match self {
-            Self::MissingRequiredField { field, data: _ } => field,
-            Self::ExternalIpBadSyntax {
+            Self::MissingRequiredField { field, data: _ }
+            | Self::ExternalIpBadSyntax {
                 field,
                 input: _,
                 message: _,
                 data: _,
             } => field,
         }
-        .to_owned()
+        .clone()
     }
 }
 
@@ -106,45 +106,52 @@ pub enum CommonSettingsError {
 }
 
 impl CommonSettingsError {
+    #[must_use]
     pub fn get_field(&self) -> String {
         match self {
-            Self::MissingRequiredField { field, data: _ } => field,
-            Self::EmptyRequiredField { field, data: _ } => field,
+            Self::MissingRequiredField { field, data: _ } | Self::EmptyRequiredField { field, data: _ } => field,
         }
-        .to_owned()
+        .clone()
     }
 }
 
 #[derive(Error, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum DatabaseSettingsError {
     #[error("Required Field is missing (null)!")]
-    MissingRequiredField { field: String, data: DatabaseSettings },
+    MissingRequiredField {
+        field: String,
+        data: databases::settings::Settings,
+    },
 
     #[error("Required Field is empty (0 or \"\")!")]
-    EmptyRequiredField { field: String, data: DatabaseSettings },
+    EmptyRequiredField {
+        field: String,
+        data: databases::settings::Settings,
+    },
 
     #[error("Want {expected}, but have {actual}!")]
     WrongDriver {
         field: String,
         expected: databases::driver::Driver,
         actual: databases::driver::Driver,
-        data: DatabaseSettings,
+        data: databases::settings::Settings,
     },
 }
 
 impl DatabaseSettingsError {
+    #[must_use]
     pub fn get_field(&self) -> String {
         match self {
-            Self::MissingRequiredField { field, data: _ } => field,
-            Self::EmptyRequiredField { field, data: _ } => field,
-            Self::WrongDriver {
+            Self::MissingRequiredField { field, data: _ }
+            | Self::EmptyRequiredField { field, data: _ }
+            | Self::WrongDriver {
                 field,
                 expected: _,
                 actual: _,
                 data: _,
             } => field,
         }
-        .to_owned()
+        .clone()
     }
 }
 
@@ -186,32 +193,32 @@ pub enum ServiceSettingsError {
 }
 
 impl ServiceSettingsError {
+    #[must_use]
     pub fn get_field(&self) -> String {
         match self {
-            Self::MissingRequiredField { field, data: _ } => field,
-            Self::EmptyRequiredField { field, data: _ } => field,
-            Self::ApiRequiresAccessToken { field, data: _ } => field,
-            Self::TlsRequiresTlsConfig { field, data: _ } => field,
-            Self::TlsSettingsError {
+            Self::MissingRequiredField { field, data: _ }
+            | Self::EmptyRequiredField { field, data: _ }
+            | Self::ApiRequiresAccessToken { field, data: _ }
+            | Self::TlsRequiresTlsConfig { field, data: _ }
+            | Self::TlsSettingsError {
                 field,
                 source: _,
                 data: _,
-            } => field,
-            Self::BindingAddressBadSyntax {
+            }
+            | Self::BindingAddressBadSyntax {
                 field,
                 input: _,
                 message: _,
                 data: _,
-            } => field,
-
-            Self::WrongService {
+            }
+            | Self::WrongService {
                 field,
                 expected: _,
                 found: _,
                 data: _,
             } => field,
         }
-        .to_owned()
+        .clone()
     }
 }
 
@@ -231,13 +238,14 @@ pub enum TlsSettingsError {
 }
 
 impl TlsSettingsError {
+    #[must_use]
     pub fn get_field(&self) -> String {
         match self {
-            Self::MissingRequiredField { field, data: _ } => field,
-            Self::EmptyRequiredField { field, data: _ } => field,
-            Self::BadCertificateFilePath { field, source: _ } => field,
-            Self::BadKeyFilePath { field, source: _ } => field,
+            Self::BadKeyFilePath { field, source: _ }
+            | Self::BadCertificateFilePath { field, source: _ }
+            | Self::EmptyRequiredField { field, data: _ }
+            | Self::MissingRequiredField { field, data: _ } => field,
         }
-        .to_owned()
+        .clone()
     }
 }

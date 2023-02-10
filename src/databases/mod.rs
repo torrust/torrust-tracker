@@ -1,6 +1,7 @@
 pub mod driver;
 pub mod error;
 pub mod mysql;
+pub mod settings;
 pub mod sqlite;
 
 use std::marker::PhantomData;
@@ -8,6 +9,7 @@ use std::marker::PhantomData;
 use async_trait::async_trait;
 
 use self::error::Error;
+use self::settings::Settings;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth;
 
@@ -27,8 +29,8 @@ where
     /// # Errors
     ///
     /// Will return `r2d2::Error` if `db_path` is not able to create a database.
-    pub(self) fn build(db_path: &str) -> Result<Box<dyn Database>, Error> {
-        Ok(Box::new(T::new(db_path)?))
+    pub(self) fn build(settings: &Settings) -> Result<Box<dyn Database>, Error> {
+        Ok(Box::new(T::new(settings)?))
     }
 }
 
@@ -39,7 +41,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `r2d2::Error` if `db_path` is not able to create a database.
-    fn new(db_path: &str) -> Result<Self, Error>
+    fn new(settings: &Settings) -> Result<Self, Error>
     where
         Self: std::marker::Sized;
 

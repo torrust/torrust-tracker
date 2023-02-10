@@ -2,7 +2,8 @@
     "[rust]": {
         "editor.formatOnSave": true
     },
-    "rust-analyzer.checkOnSave.command": "clippy",
-    "rust-analyzer.checkOnSave.allTargets": true,
-    "rust-analyzer.checkOnSave.extraArgs": ["--","-W","clippy::pedantic"],
+    "rust-analyzer.checkOnSave": true,
+    "rust-analyzer.check.allTargets": true,
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.check.extraArgs": ["--","-W","clippy::pedantic"],
 }

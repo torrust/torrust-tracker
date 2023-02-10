@@ -26,7 +26,7 @@ pub struct SettingsManager {
 impl Default for SettingsManager {
     fn default() -> Self {
         Self {
-            settings: Ok(Default::default()),
+            settings: Ok(Settings::default()),
         }
     }
 }
@@ -52,15 +52,17 @@ impl From<SettingsErrored> for SettingsManager {
 }
 
 impl SettingsManager {
+    #[must_use]
     pub fn empty() -> Self {
         Self {
             settings: Ok(Empty::empty()),
         }
     }
 
+    #[must_use]
     pub fn error(errored: &SettingsErrored) -> Self {
         Self {
-            settings: Err(errored.to_owned()),
+            settings: Err(errored.clone()),
         }
     }
 
@@ -107,7 +109,7 @@ impl SettingsManager {
         };
 
         // if nothing else, lets load the default.
-        Ok(Default::default())
+        Ok(SettingsManager::default())
     }
 
     pub fn save(&self, to: &Path, archive_folder: &Option<Box<Path>>) -> Result<(), SettingsManagerError> {
@@ -116,7 +118,7 @@ impl SettingsManager {
 
         if let Some(existing) = existing {
             if let Some(archive_folder) = archive_folder {
-                Self::archive(existing.0, &existing.1, archive_folder)?
+                Self::archive(existing.0, &existing.1, archive_folder)?;
             }
         }
 
@@ -148,7 +150,7 @@ impl SettingsManager {
     where
         R: Read,
     {
-        let data: &mut Vec<u8> = &mut Default::default();
+        let data: &mut Vec<u8> = &mut Vec::default();
 
         rdr.read_to_end(data)
             .map_err(|err| SettingsManagerError::FailedToReadFromBuffer {
@@ -205,7 +207,7 @@ impl SettingsManager {
     }
 
     fn backup(&self, to: &Path, folder: &Path) -> Result<(), SettingsManagerError> {
-        let ext = match to.extension().map(|f| f.to_os_string()) {
+        let ext = match to.extension().map(std::ffi::OsStr::to_os_string) {
             Some(mut ext) => {
                 ext.push(".json");
                 ext
@@ -213,7 +215,7 @@ impl SettingsManager {
             None => OsString::from("json"),
         };
 
-        let data: &mut Vec<u8> = &mut Default::default();
+        let data: &mut Vec<u8> = &mut Vec::default();
 
         self.write_json(data.by_ref())
             .map_err(|err| SettingsManagerError::FailedToWriteToFile {
@@ -237,8 +239,8 @@ impl SettingsManager {
                 source: IoError::from(err).into(),
             })?;
 
-        let mut hasher: DefaultHasher = Default::default();
-        let data: &mut Vec<u8> = &mut Default::default();
+        let mut hasher: DefaultHasher = DefaultHasher::default();
+        let data: &mut Vec<u8> = &mut Vec::default();
 
         // todo: lock and stream the file instead of loading the full file into memory.
         let _size = rdr
@@ -288,14 +290,13 @@ impl SettingsManager {
     pub fn import_old(from: &Path, backup_folder: &Path, error_folder: &Path) -> Result<Option<Self>, SettingsManagerError> {
         let import_error_folder = error_folder.join("import");
 
-        let mut file = match get_file_at(from, OpenOptions::new().read(true)) {
-            Ok(rdr) => rdr,
-            Err(_) => {
-                return Ok(None);
-            }
+        let mut file = if let Ok(rdr) = get_file_at(from, OpenOptions::new().read(true)) {
+            rdr
+        } else {
+            return Ok(None);
         };
 
-        let data: &mut Vec<u8> = &mut Default::default();
+        let data: &mut Vec<u8> = &mut Vec::default();
 
         let _ = file
             .0
@@ -303,7 +304,7 @@ impl SettingsManager {
             .map_err(|err| SettingsManagerError::FailedToProcessOldSettings {
                 source: SettingsManagerError::FailedToReadFromFile {
                     message: "(old_file)".to_string(),
-                    from: file.1.to_owned(),
+                    from: file.1.clone(),
                     source: SettingsManagerError::FailedToReadFromBuffer {
                         source: IoError::from(err).into(),
                     }
@@ -315,7 +316,7 @@ impl SettingsManager {
         let parsed = toml::de::from_slice(data.as_slice()).map_err(|err| SettingsManagerError::FailedToProcessOldSettings {
             source: SettingsManagerError::FailedToReadFromFile {
                 message: "(old settings toml)".to_string(),
-                from: file.1.to_owned(),
+                from: file.1.clone(),
                 source: SettingsManagerError::FailedToDeserializeFromToml { source: err.into() }.into(),
             }
             .into(),
@@ -324,9 +325,9 @@ impl SettingsManager {
         let mut builder = TrackerSettingsBuilder::empty();
 
         // Attempt One
-        let test_builder = builder.to_owned().import_old(&parsed);
+        let test_builder = builder.clone().import_old(&parsed);
         {
-            if let Err(err) = TryInto::<TrackerSettings>::try_into(test_builder.to_owned()) {
+            if let Err(err) = TryInto::<TrackerSettings>::try_into(test_builder.clone()) {
                 Self::make_folder(error_folder)?;
                 Self::make_folder(&import_error_folder)?;
                 let test = "First";
@@ -340,7 +341,7 @@ impl SettingsManager {
 
                 let broken = Self::error(&SettingsErrored::new(&test_builder.tracker_settings, &err));
 
-                let ext = match file.1.extension().map(|f| f.to_os_string()) {
+                let ext = match file.1.extension().map(std::ffi::OsStr::to_os_string) {
                     Some(mut ext) => {
                         ext.push(format!(".{}", test.to_lowercase()));
                         ext
@@ -357,9 +358,9 @@ impl SettingsManager {
         }
 
         // Attempt with Defaults
-        let test_builder = builder.to_owned().import_old(&parsed);
+        let test_builder = builder.clone().import_old(&parsed);
         {
-            if let Err(err) = TryInto::<TrackerSettings>::try_into(test_builder.to_owned()) {
+            if let Err(err) = TryInto::<TrackerSettings>::try_into(test_builder.clone()) {
                 Self::make_folder(error_folder)?;
                 Self::make_folder(&import_error_folder)?;
                 let test = "Second";
@@ -373,7 +374,7 @@ impl SettingsManager {
 
                 let broken = Self::error(&SettingsErrored::new(&test_builder.tracker_settings, &err));
 
-                let ext = match file.1.extension().map(|f| f.to_os_string()) {
+                let ext = match file.1.extension().map(std::ffi::OsStr::to_os_string) {
                     Some(mut ext) => {
                         ext.push(format!(".{}", test.to_lowercase()));
                         ext
@@ -388,7 +389,7 @@ impl SettingsManager {
         }
 
         // Final Attempt
-        let settings = match TryInto::<TrackerSettings>::try_into(builder.to_owned()) {
+        let settings = match TryInto::<TrackerSettings>::try_into(builder.clone()) {
             Ok(tracker) => Self {
                 settings: Ok(tracker.into()),
             },
@@ -407,7 +408,7 @@ impl SettingsManager {
 
                 let broken = Self::error(&SettingsErrored::new(&builder.tracker_settings, &err));
 
-                let ext = match file.1.extension().map(|f| f.to_os_string()) {
+                let ext = match file.1.extension().map(std::ffi::OsStr::to_os_string) {
                     Some(mut ext) => {
                         ext.push(format!(".{}", test.to_lowercase()));
                         ext
@@ -458,9 +459,8 @@ impl SettingsManager {
         if let Ok(path) = folder.canonicalize() {
             if path.is_dir() {
                 return Ok(());
-            } else {
-                return Err(SettingsManagerError::FailedToResolveDirectory { at: folder.into() });
             }
+            return Err(SettingsManagerError::FailedToResolveDirectory { at: folder.into() });
         }
         match fs::create_dir(folder) {
             Ok(_) => Ok(()),
@@ -517,7 +517,7 @@ mod tests {
 
         let manager = SettingsManager::read(&temp).unwrap();
 
-        assert_eq!(manager, Default::default())
+        assert_eq!(manager, SettingsManager::default());
     }
 
     #[test]
@@ -533,14 +533,14 @@ mod tests {
 
     #[test]
     fn it_should_write_and_read_errored_settings() {
-        let path = env::temp_dir().as_path().join(format!("test_errored.{}", Uuid::new_v4()));
-        let mut file_rw = get_file_at(&path, OpenOptions::new().write(true).read(true).create_new(true)).unwrap();
-
         #[derive(Error, Debug)]
         enum TestErrors {
             #[error("Test Error!")]
             Error,
         }
+
+        let path = env::temp_dir().as_path().join(format!("test_errored.{}", Uuid::new_v4()));
+        let mut file_rw = get_file_at(&path, OpenOptions::new().write(true).read(true).create_new(true)).unwrap();
 
         let errored: SettingsManager = SettingsErrored::new(&TrackerSettings::default(), &TestErrors::Error).into();
 
@@ -549,7 +549,7 @@ mod tests {
 
         let error_returned = SettingsManager::read_json(file_rw.0).unwrap();
 
-        assert_eq!(errored, error_returned)
+        assert_eq!(errored, error_returned);
     }
 
     #[test]
@@ -564,6 +564,6 @@ mod tests {
 
         let settings_returned = SettingsManager::read_json(file_rw.0).unwrap();
 
-        assert_eq!(settings, settings_returned)
+        assert_eq!(settings, settings_returned);
     }
 }

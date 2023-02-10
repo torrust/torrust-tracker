@@ -69,9 +69,9 @@ impl TryFrom<(&String, &Service)> for HttpServiceSettings {
                 display_name: String);
 
         Ok(Self {
-            id: value.0.to_owned(),
+            id: value.0.clone(),
             enabled: value.1.enabled.unwrap(),
-            display_name: value.1.display_name.to_owned().unwrap(),
+            display_name: value.1.display_name.clone().unwrap(),
             socket: value.1.get_socket()?,
         })
     }
@@ -119,18 +119,18 @@ impl TryFrom<(&String, &Service)> for TlsServiceSettings {
         check_field_is_not_empty!(value.1 => ServiceSettingsError;
                 display_name: String);
 
-        let tls = value.1.tls.to_owned().unwrap();
+        let tls = value.1.tls.clone().unwrap();
 
         Ok(Self {
-            id: value.0.to_owned(),
+            id: value.0.clone(),
             enabled: value.1.enabled.unwrap(),
-            display_name: value.1.display_name.to_owned().unwrap(),
+            display_name: value.1.display_name.clone().unwrap(),
             socket: value.1.get_socket()?,
 
             certificate_file_path: tls
                 .get_certificate_file_path()
                 .map_err(|err| ServiceSettingsError::TlsSettingsError {
-                    field: value.0.to_owned(),
+                    field: value.0.clone(),
                     source: err,
                     data: value.1.into(),
                 })?,
@@ -138,7 +138,7 @@ impl TryFrom<(&String, &Service)> for TlsServiceSettings {
             key_file_path: tls
                 .get_key_file_path()
                 .map_err(|err| ServiceSettingsError::TlsSettingsError {
-                    field: value.0.to_owned(),
+                    field: value.0.clone(),
                     source: err,
                     data: value.1.into(),
                 })?,

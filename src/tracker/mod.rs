@@ -19,6 +19,7 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 use self::error::Error;
 use crate::config::Configuration;
 use crate::databases::driver::Driver;
+use crate::databases::settings::OldConfig;
 use crate::databases::{self, Database};
 use crate::protocol::info_hash::InfoHash;
 
@@ -50,7 +51,11 @@ impl Tracker {
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
-        let database = Driver::build(&config.db_driver, &config.db_path)?;
+        let db_settings = databases::settings::Settings::try_from(&OldConfig {
+            db_driver: config.db_driver,
+            db_path: config.db_path.clone(),
+        })?;
+        let database = Driver::build(&db_settings)?;
 
         Ok(Tracker {
             config: config.clone(),

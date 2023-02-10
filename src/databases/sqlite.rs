@@ -7,35 +7,17 @@ use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 
 use super::driver::Driver;
+use super::settings;
 use crate::databases::{Database, Error};
-use crate::errors::settings::DatabaseSettingsError;
 use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::protocol::info_hash::InfoHash;
-use crate::settings::DatabaseSettings;
 use crate::tracker::auth;
 
 const DRIVER: Driver = Driver::Sqlite3;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct Sqlite3DatabaseSettings {
+pub struct Settings {
     pub database_file_path: Box<Path>,
-}
-impl TryFrom<&DatabaseSettings> for Sqlite3DatabaseSettings {
-    type Error = DatabaseSettingsError;
-
-    fn try_from(value: &DatabaseSettings) -> Result<Self, Self::Error> {
-        match value.get_driver()? {
-            Driver::Sqlite3 => Ok(Sqlite3DatabaseSettings {
-                database_file_path: value.get_slq_lite_3_file_path()?,
-            }),
-            driver => Err(DatabaseSettingsError::WrongDriver {
-                field: "driver".to_string(),
-                expected: Driver::Sqlite3,
-                actual: driver,
-                data: value.to_owned(),
-            }),
-        }
-    }
 }
 
 pub struct Sqlite {
@@ -47,8 +29,9 @@ impl Database for Sqlite {
     /// # Errors
     ///
     /// Will return `r2d2::Error` if `db_path` is not able to create `SqLite` database.
-    fn new(db_path: &str) -> Result<Sqlite, Error> {
-        let cm = SqliteConnectionManager::file(db_path);
+    fn new(settings: &settings::Settings) -> Result<Sqlite, Error> {
+        let sqlite_settings = settings.get_sqlite_settings()?;
+        let cm = SqliteConnectionManager::file(sqlite_settings.database_file_path);
         Pool::new(cm).map_or_else(|err| Err((err, Driver::Sqlite3).into()), |pool| Ok(Sqlite { pool }))
     }
 

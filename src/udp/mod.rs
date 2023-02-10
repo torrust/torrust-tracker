@@ -57,9 +57,9 @@ impl TryFrom<(&String, &Service)> for UdpServiceSettings {
                 display_name: String);
 
         Ok(Self {
-            id: value.0.to_owned(),
+            id: value.0.clone(),
             enabled: value.1.enabled.unwrap(),
-            display_name: value.1.display_name.to_owned().unwrap(),
+            display_name: value.1.display_name.clone().unwrap(),
             socket: value.1.get_socket()?,
         })
     }

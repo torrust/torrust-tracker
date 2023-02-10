@@ -2,11 +2,13 @@ use serde::{Deserialize, Serialize};
 
 use super::error::Error;
 use super::mysql::Mysql;
+use super::settings::Settings;
 use super::sqlite::Sqlite;
 use super::{Builder, Database};
 
-#[derive(Serialize, Deserialize, Hash, PartialEq, PartialOrd, Ord, Eq, Copy, Debug, Clone)]
+#[derive(Default, Serialize, Deserialize, Hash, PartialEq, PartialOrd, Ord, Eq, Copy, Debug, Clone)]
 pub enum Driver {
+    #[default]
     Sqlite3,
     MySQL,
 }
@@ -17,10 +19,10 @@ impl Driver {
     /// # Errors
     ///
     /// This function will return an error if unable to connect to the database.
-    pub fn build(&self, db_path: &str) -> Result<Box<dyn Database>, Error> {
-        let database = match self {
-            Driver::Sqlite3 => Builder::<Sqlite>::build(db_path),
-            Driver::MySQL => Builder::<Mysql>::build(db_path),
+    pub fn build(settings: &Settings) -> Result<Box<dyn Database>, Error> {
+        let database = match settings.driver {
+            Driver::Sqlite3 => Builder::<Sqlite>::build(settings),
+            Driver::MySQL => Builder::<Mysql>::build(settings),
         }?;
 
         database.create_database_tables().expect("Could not create database tables.");
@@ -35,11 +37,5 @@ impl std::fmt::Display for Driver {
             Self::Sqlite3 => write!(f, "sqllite3"),
             Self::MySQL => write!(f, "my_sql"),
         }
-    }
-}
-
-impl Default for Driver {
-    fn default() -> Self {
-        Driver::Sqlite3
     }
 }
