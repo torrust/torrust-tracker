@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
@@ -30,6 +30,10 @@ impl Peer {
     #[must_use]
     pub fn is_seeder(&self) -> bool {
         self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+    }
+
+    pub fn change_ip(&mut self, new_ip: &IpAddr) {
+        self.peer_addr = SocketAddr::new(*new_ip, self.peer_addr.port());
     }
 }
 

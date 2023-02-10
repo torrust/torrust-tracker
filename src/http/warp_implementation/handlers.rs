@@ -47,13 +47,9 @@ pub async fn handle_announce(
 
     authenticate(&info_hash, &auth_key, tracker.clone()).await?;
 
-    let peer_ip = tracker.assign_ip_address_to_peer(&remote_client_ip);
+    let mut peer = peer_builder::from_request(&announce_request, &remote_client_ip);
 
-    let peer = peer_builder::from_request(&announce_request, &peer_ip);
-
-    let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
-
-    let peers = tracker.get_other_peers(&info_hash, &peer.peer_addr).await;
+    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
 
     match remote_client_ip {
         IpAddr::V4(_) => {
@@ -66,8 +62,8 @@ pub async fn handle_announce(
 
     send_announce_response(
         &announce_request,
-        &torrent_stats,
-        &peers,
+        &response.swam_stats,
+        &response.peers,
         tracker.config.announce_interval,
         tracker.config.min_announce_interval,
     )

@@ -118,13 +118,9 @@ pub async fn handle_announce(
 
     authenticate(&info_hash, tracker.clone()).await?;
 
-    let peer_ip = tracker.assign_ip_address_to_peer(&remote_client_ip);
+    let mut peer = peer_builder::from_request(&wrapped_announce_request, &remote_client_ip);
 
-    let peer = peer_builder::from_request(&wrapped_announce_request, &peer_ip);
-
-    let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
-
-    let peers = tracker.get_other_peers(&info_hash, &peer.peer_addr).await;
+    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
 
     match remote_client_ip {
         IpAddr::V4(_) => {
@@ -140,9 +136,10 @@ pub async fn handle_announce(
         Response::from(AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
             announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
-            leechers: NumberOfPeers(i64::from(torrent_stats.leechers) as i32),
-            seeders: NumberOfPeers(i64::from(torrent_stats.seeders) as i32),
-            peers: peers
+            leechers: NumberOfPeers(i64::from(response.swam_stats.leechers) as i32),
+            seeders: NumberOfPeers(i64::from(response.swam_stats.seeders) as i32),
+            peers: response
+                .peers
                 .iter()
                 .filter_map(|peer| {
                     if let IpAddr::V4(ip) = peer.peer_addr.ip() {
@@ -160,9 +157,10 @@ pub async fn handle_announce(
         Response::from(AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
             announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
-            leechers: NumberOfPeers(i64::from(torrent_stats.leechers) as i32),
-            seeders: NumberOfPeers(i64::from(torrent_stats.seeders) as i32),
-            peers: peers
+            leechers: NumberOfPeers(i64::from(response.swam_stats.leechers) as i32),
+            seeders: NumberOfPeers(i64::from(response.swam_stats.seeders) as i32),
+            peers: response
+                .peers
                 .iter()
                 .filter_map(|peer| {
                     if let IpAddr::V6(ip) = peer.peer_addr.ip() {

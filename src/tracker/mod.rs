@@ -17,6 +17,8 @@ use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
 use self::error::Error;
+use self::peer::Peer;
+use self::torrent::SwamStats;
 use crate::config::Configuration;
 use crate::databases::driver::Driver;
 use crate::databases::{self, Database};
@@ -39,6 +41,11 @@ pub struct TorrentsMetrics {
     pub completed: u64,
     pub leechers: u64,
     pub torrents: u64,
+}
+
+pub struct AnnounceResponse {
+    pub peers: Vec<Peer>,
+    pub swam_stats: SwamStats,
 }
 
 impl Tracker {
@@ -76,7 +83,18 @@ impl Tracker {
         self.mode == mode::Mode::Listed || self.mode == mode::Mode::PrivateListed
     }
 
-    /// It assigns a socket address to the peer
+    /// It handles an announce request
+    pub async fn announce(&self, info_hash: &InfoHash, peer: &mut Peer, remote_client_ip: &IpAddr) -> AnnounceResponse {
+        peer.change_ip(&self.assign_ip_address_to_peer(remote_client_ip));
+
+        let swam_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
+
+        let peers = self.get_other_peers(info_hash, &peer.peer_addr).await;
+
+        AnnounceResponse { peers, swam_stats }
+    }
+
+    /// It assigns an IP address to the peer
     #[must_use]
     pub fn assign_ip_address_to_peer(&self, remote_client_ip: &IpAddr) -> IpAddr {
         assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip())
