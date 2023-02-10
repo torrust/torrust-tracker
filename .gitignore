@@ -8,5 +8,5 @@
 /data.db
 /.vscode/launch.json
 /storage/
-
-
+/config/
+/config.*/

@@ -10,11 +10,36 @@ use r2d2_mysql::MysqlConnectionManager;
 
 use super::driver::Driver;
 use crate::databases::{Database, Error};
+use crate::errors::settings::DatabaseSettingsError;
 use crate::protocol::common::AUTH_KEY_LENGTH;
 use crate::protocol::info_hash::InfoHash;
+use crate::settings::DatabaseSettings;
 use crate::tracker::auth;
 
 const DRIVER: Driver = Driver::MySQL;
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct MySqlDatabaseSettings {
+    pub connection_url: String,
+}
+
+impl TryFrom<&DatabaseSettings> for MySqlDatabaseSettings {
+    type Error = DatabaseSettingsError;
+
+    fn try_from(value: &DatabaseSettings) -> Result<Self, Self::Error> {
+        match value.get_driver()? {
+            Driver::MySQL => Ok(MySqlDatabaseSettings {
+                connection_url: value.get_my_sql_connection_url()?,
+            }),
+            driver => Err(DatabaseSettingsError::WrongDriver {
+                field: "driver".to_string(),
+                expected: Driver::MySQL,
+                actual: driver,
+                data: value.to_owned(),
+            }),
+        }
+    }
+}
 
 pub struct Mysql {
     pool: Pool<MysqlConnectionManager>,
