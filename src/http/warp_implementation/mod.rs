@@ -3,6 +3,7 @@ use warp::Rejection;
 pub mod error;
 pub mod filters;
 pub mod handlers;
+pub mod peer_builder;
 pub mod request;
 pub mod response;
 pub mod routes;

@@ -3,6 +3,7 @@ pub mod error;
 pub mod handlers;
 pub mod request;
 pub mod server;
+pub mod peer_builder;
 
 pub type Bytes = u64;
 pub type Port = u16;

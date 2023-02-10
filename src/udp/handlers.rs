@@ -11,8 +11,9 @@ use log::debug;
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
 use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::{self, peer, statistics};
+use crate::tracker::{self, statistics};
 use crate::udp::error::Error;
+use crate::udp::peer_builder;
 use crate::udp::request::AnnounceWrapper;
 
 pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: Arc<tracker::Tracker>) -> Response {
@@ -107,10 +108,9 @@ pub async fn handle_announce(
             source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
         })?;
 
-    // build the peer
     let peer_ip = tracker.assign_ip_address_to_peer(&remote_addr.ip());
-    let peer_socket_address = SocketAddr::new(peer_ip, announce_request.port.0);
-    let peer = peer::Peer::from_udp_announce_request(&wrapped_announce_request.announce_request, &peer_socket_address);
+
+    let peer = peer_builder::from_request(&wrapped_announce_request, &peer_ip);
 
     let torrent_stats = tracker
         .update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer)
@@ -164,7 +164,6 @@ pub async fn handle_announce(
         })
     };
 
-    // send stats event
     match remote_addr {
         SocketAddr::V4(_) => {
             tracker.send_stats_event(statistics::Event::Udp4Announce).await;

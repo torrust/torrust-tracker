@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
-use std::net::{IpAddr, SocketAddr};
+use std::net::IpAddr;
 use std::panic::Location;
 use std::sync::Arc;
 
@@ -10,6 +10,7 @@ use warp::{reject, Rejection, Reply};
 
 use super::error::Error;
 use super::{request, response, WebResult};
+use crate::http::warp_implementation::peer_builder;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::{self, auth, peer, statistics, torrent};
 
@@ -31,11 +32,9 @@ pub async fn authenticate(
         })
 }
 
-/// Handle announce request
-///
 /// # Errors
 ///
-/// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_scrape_response`.
+/// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_announce_response`.
 pub async fn handle_announce(
     announce_request: request::Announce,
     auth_key: Option<auth::Key>,
@@ -45,10 +44,9 @@ pub async fn handle_announce(
 
     authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await?;
 
-    // build the peer
     let peer_ip = tracker.assign_ip_address_to_peer(&announce_request.peer_addr);
-    let peer_socket_address = SocketAddr::new(peer_ip, announce_request.port);
-    let peer = peer::Peer::from_http_announce_request(&announce_request, &peer_socket_address);
+
+    let peer = peer_builder::from_request(&announce_request, &peer_ip);
 
     let torrent_stats = tracker
         .update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer)
@@ -57,9 +55,6 @@ pub async fn handle_announce(
     // get all torrent peers excluding the peer_addr
     let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;
 
-    let announce_interval = tracker.config.announce_interval;
-
-    // send stats event
     match announce_request.peer_addr {
         IpAddr::V4(_) => {
             tracker.send_stats_event(statistics::Event::Tcp4Announce).await;
@@ -73,13 +68,11 @@ pub async fn handle_announce(
         &announce_request,
         &torrent_stats,
         &peers,
-        announce_interval,
+        tracker.config.announce_interval,
         tracker.config.min_announce_interval,
     )
 }
 
-/// Handle scrape request
-///
 /// # Errors
 ///
 /// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_scrape_response`.
