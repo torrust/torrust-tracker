@@ -42,20 +42,20 @@ pub async fn handle_announce(
 ) -> WebResult<impl Reply> {
     debug!("http announce request: {:#?}", announce_request);
 
-    authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await?;
+    let info_hash = announce_request.info_hash;
+    let remote_client_ip = announce_request.peer_addr;
 
-    let peer_ip = tracker.assign_ip_address_to_peer(&announce_request.peer_addr);
+    authenticate(&info_hash, &auth_key, tracker.clone()).await?;
+
+    let peer_ip = tracker.assign_ip_address_to_peer(&remote_client_ip);
 
     let peer = peer_builder::from_request(&announce_request, &peer_ip);
 
-    let torrent_stats = tracker
-        .update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer)
-        .await;
+    let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
 
-    // get all torrent peers excluding the peer_addr
-    let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;
+    let peers = tracker.get_other_peers(&info_hash, &peer.peer_addr).await;
 
-    match announce_request.peer_addr {
+    match remote_client_ip {
         IpAddr::V4(_) => {
             tracker.send_stats_event(statistics::Event::Tcp4Announce).await;
         }

@@ -279,7 +279,7 @@ impl Tracker {
     }
 
     /// Get all torrent peers for a given torrent filtering out the peer with the client address
-    pub async fn get_torrent_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr) -> Vec<peer::Peer> {
+    pub async fn get_other_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr) -> Vec<peer::Peer> {
         let read_lock = self.torrents.read().await;
 
         match read_lock.get(info_hash) {

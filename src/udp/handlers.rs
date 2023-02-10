@@ -89,6 +89,18 @@ pub async fn handle_connect(
 
 /// # Errors
 ///
+/// Will return `Error` if unable to `authenticate_request`.
+pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<tracker::Tracker>) -> Result<(), Error> {
+    tracker
+        .authenticate_request(info_hash, &None)
+        .await
+        .map_err(|e| Error::TrackerError {
+            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+        })
+}
+
+/// # Errors
+///
 /// If a error happens in the `handle_announce` function, it will just return the  `ServerError`.
 pub async fn handle_announce(
     remote_addr: SocketAddr,
@@ -101,25 +113,27 @@ pub async fn handle_announce(
 
     let wrapped_announce_request = AnnounceWrapper::new(announce_request);
 
-    tracker
-        .authenticate_request(&wrapped_announce_request.info_hash, &None)
-        .await
-        .map_err(|e| Error::TrackerError {
-            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
-        })?;
+    let info_hash = wrapped_announce_request.info_hash;
+    let remote_client_ip = remote_addr.ip();
 
-    let peer_ip = tracker.assign_ip_address_to_peer(&remote_addr.ip());
+    authenticate(&info_hash, tracker.clone()).await?;
+
+    let peer_ip = tracker.assign_ip_address_to_peer(&remote_client_ip);
 
     let peer = peer_builder::from_request(&wrapped_announce_request, &peer_ip);
 
-    let torrent_stats = tracker
-        .update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer)
-        .await;
+    let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
 
-    // get all peers excluding the client_addr
-    let peers = tracker
-        .get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr)
-        .await;
+    let peers = tracker.get_other_peers(&info_hash, &peer.peer_addr).await;
+
+    match remote_client_ip {
+        IpAddr::V4(_) => {
+            tracker.send_stats_event(statistics::Event::Udp4Announce).await;
+        }
+        IpAddr::V6(_) => {
+            tracker.send_stats_event(statistics::Event::Udp6Announce).await;
+        }
+    }
 
     #[allow(clippy::cast_possible_truncation)]
     let announce_response = if remote_addr.is_ipv4() {
@@ -163,15 +177,6 @@ pub async fn handle_announce(
                 .collect(),
         })
     };
-
-    match remote_addr {
-        SocketAddr::V4(_) => {
-            tracker.send_stats_event(statistics::Event::Udp4Announce).await;
-        }
-        SocketAddr::V6(_) => {
-            tracker.send_stats_event(statistics::Event::Udp6Announce).await;
-        }
-    }
 
     Ok(announce_response)
 }
