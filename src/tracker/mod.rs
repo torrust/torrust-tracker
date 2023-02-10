@@ -89,7 +89,8 @@ impl Tracker {
 
         let swam_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
-        let peers = self.get_other_peers(info_hash, &peer.peer_addr).await;
+        // todo: remove peer by using its `Id` instead of its socket address: `get_peers_excluding_peer(peer_id: peer::Id)`
+        let peers = self.get_peers_excluding_peers_with_address(info_hash, &peer.peer_addr).await;
 
         AnnounceResponse { peers, swam_stats }
     }
@@ -296,13 +297,16 @@ impl Tracker {
         Ok(())
     }
 
-    /// Get all torrent peers for a given torrent filtering out the peer with the client address
-    pub async fn get_other_peers(&self, info_hash: &InfoHash, client_addr: &SocketAddr) -> Vec<peer::Peer> {
+    async fn get_peers_excluding_peers_with_address(
+        &self,
+        info_hash: &InfoHash,
+        excluded_address: &SocketAddr,
+    ) -> Vec<peer::Peer> {
         let read_lock = self.torrents.read().await;
 
         match read_lock.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_peers(Some(client_addr)).into_iter().copied().collect(),
+            Some(entry) => entry.get_peers(Some(excluded_address)).into_iter().copied().collect(),
         }
     }
 
