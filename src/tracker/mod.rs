@@ -8,7 +8,7 @@ pub mod torrent;
 
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
@@ -74,6 +74,12 @@ impl Tracker {
 
     pub fn is_whitelisted(&self) -> bool {
         self.mode == mode::Mode::Listed || self.mode == mode::Mode::PrivateListed
+    }
+
+    /// It assigns a socket address to the peer
+    #[must_use]
+    pub fn assign_ip_address_to_peer(&self, remote_client_ip: &IpAddr) -> IpAddr {
+        assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip())
     }
 
     /// # Errors
@@ -378,6 +384,15 @@ impl Tracker {
     }
 }
 
+#[must_use]
+pub fn assign_ip_address_to_peer(remote_client_ip: &IpAddr, tracker_external_ip: Option<IpAddr>) -> IpAddr {
+    if let Some(host_ip) = tracker_external_ip.filter(|_| remote_client_ip.is_loopback()) {
+        host_ip
+    } else {
+        *remote_client_ip
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
@@ -423,5 +438,101 @@ mod tests {
                 torrents: 0
             }
         );
+    }
+
+    mod the_tracker_assigning_the_ip_to_the_peer {
+
+        use std::net::{IpAddr, Ipv4Addr};
+
+        use crate::tracker::assign_ip_address_to_peer;
+
+        #[test]
+        fn should_use_the_source_ip_instead_of_the_ip_in_the_announce_request() {
+            let remote_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2));
+
+            let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+
+            assert_eq!(peer_ip, remote_ip);
+        }
+
+        mod when_the_client_ip_is_a_ipv4_loopback_ip {
+
+            use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+            use std::str::FromStr;
+
+            use crate::tracker::assign_ip_address_to_peer;
+
+            #[test]
+            fn it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration() {
+                let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
+                let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+
+                assert_eq!(peer_ip, remote_ip);
+            }
+
+            #[test]
+            fn it_should_use_the_external_tracker_ip_in_tracker_configuration_if_it_is_defined() {
+                let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
+                let tracker_external_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
+
+                let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
+
+                assert_eq!(peer_ip, tracker_external_ip);
+            }
+
+            #[test]
+            fn it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv6_ip()
+            {
+                let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
+                let tracker_external_ip = IpAddr::V6(Ipv6Addr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
+
+                let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
+
+                assert_eq!(peer_ip, tracker_external_ip);
+            }
+        }
+
+        mod when_client_ip_is_a_ipv6_loopback_ip {
+
+            use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+            use std::str::FromStr;
+
+            use crate::tracker::assign_ip_address_to_peer;
+
+            #[test]
+            fn it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration() {
+                let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
+
+                let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+
+                assert_eq!(peer_ip, remote_ip);
+            }
+
+            #[test]
+            fn it_should_use_the_external_ip_in_tracker_configuration_if_it_is_defined() {
+                let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
+
+                let tracker_external_ip = IpAddr::V6(Ipv6Addr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
+
+                let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
+
+                assert_eq!(peer_ip, tracker_external_ip);
+            }
+
+            #[test]
+            fn it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv4_ip()
+            {
+                let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
+
+                let tracker_external_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
+
+                let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
+
+                assert_eq!(peer_ip, tracker_external_ip);
+            }
+        }
     }
 }

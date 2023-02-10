@@ -1,4 +1,4 @@
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::panic::Location;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
@@ -29,16 +29,10 @@ pub struct Peer {
 
 impl Peer {
     #[must_use]
-    pub fn from_udp_announce_request(
-        announce_request: &aquatic_udp_protocol::AnnounceRequest,
-        remote_ip: IpAddr,
-        host_opt_ip: Option<IpAddr>,
-    ) -> Self {
-        let peer_addr = Peer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port.0);
-
+    pub fn from_udp_announce_request(announce_request: &aquatic_udp_protocol::AnnounceRequest, peer_addr: &SocketAddr) -> Self {
         Peer {
             peer_id: Id(announce_request.peer_id.0),
-            peer_addr,
+            peer_addr: *peer_addr,
             updated: Current::now(),
             uploaded: announce_request.bytes_uploaded,
             downloaded: announce_request.bytes_downloaded,
@@ -48,9 +42,7 @@ impl Peer {
     }
 
     #[must_use]
-    pub fn from_http_announce_request(announce_request: &Announce, remote_ip: IpAddr, host_opt_ip: Option<IpAddr>) -> Self {
-        let peer_addr = Peer::peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip, host_opt_ip, announce_request.port);
-
+    pub fn from_http_announce_request(announce_request: &Announce, peer_addr: &SocketAddr) -> Self {
         let event: AnnounceEvent = if let Some(event) = &announce_request.event {
             match event.as_ref() {
                 "started" => AnnounceEvent::Started,
@@ -65,22 +57,12 @@ impl Peer {
         #[allow(clippy::cast_possible_truncation)]
         Peer {
             peer_id: announce_request.peer_id,
-            peer_addr,
+            peer_addr: *peer_addr,
             updated: Current::now(),
             uploaded: NumberOfBytes(i128::from(announce_request.uploaded) as i64),
             downloaded: NumberOfBytes(i128::from(announce_request.downloaded) as i64),
             left: NumberOfBytes(i128::from(announce_request.left) as i64),
             event,
-        }
-    }
-
-    // potentially substitute localhost ip with external ip
-    #[must_use]
-    pub fn peer_addr_from_ip_and_port_and_opt_host_ip(remote_ip: IpAddr, host_opt_ip: Option<IpAddr>, port: u16) -> SocketAddr {
-        if let Some(host_ip) = host_opt_ip.filter(|_| remote_ip.is_loopback()) {
-            SocketAddr::new(host_ip, port)
-        } else {
-            SocketAddr::new(remote_ip, port)
         }
     }
 
@@ -446,6 +428,7 @@ mod test {
             AnnounceEvent, AnnounceRequest, NumberOfBytes, NumberOfPeers, PeerId as AquaticPeerId, PeerKey, Port, TransactionId,
         };
 
+        use crate::tracker::assign_ip_address_to_peer;
         use crate::tracker::peer::Peer;
         use crate::udp::connection_cookie::{into_connection_id, make};
 
@@ -498,7 +481,10 @@ mod test {
             let remote_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2));
             let announce_request = AnnounceRequestBuilder::default().into();
 
-            let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, None);
+            let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+            let peer_socket_address = SocketAddr::new(peer_ip, announce_request.port.0);
+
+            let torrent_peer = Peer::from_udp_announce_request(&announce_request, &peer_socket_address);
 
             assert_eq!(torrent_peer.peer_addr, SocketAddr::new(remote_ip, announce_request.port.0));
         }
@@ -508,99 +494,21 @@ mod test {
             let remote_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2));
             let announce_request = AnnounceRequestBuilder::default().into();
 
-            let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, None);
+            let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+            let peer_socket_address = SocketAddr::new(peer_ip, announce_request.port.0);
+
+            let torrent_peer = Peer::from_udp_announce_request(&announce_request, &peer_socket_address);
 
             assert_eq!(torrent_peer.peer_addr, SocketAddr::new(remote_ip, announce_request.port.0));
-        }
-
-        mod when_source_udp_ip_is_a_ipv_4_loopback_ip {
-
-            use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-            use std::str::FromStr;
-
-            use crate::tracker::peer::test::torrent_peer_constructor_from_udp_requests::AnnounceRequestBuilder;
-            use crate::tracker::peer::Peer;
-
-            #[test]
-            fn it_should_use_the_loopback_ip_if_the_server_does_not_have_the_external_ip_configuration() {
-                let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
-                let announce_request = AnnounceRequestBuilder::default().into();
-
-                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, None);
-
-                assert_eq!(torrent_peer.peer_addr, SocketAddr::new(remote_ip, announce_request.port.0));
-            }
-
-            #[test]
-            fn it_should_use_the_external_host_ip_in_tracker_configuration_if_defined() {
-                let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
-                let announce_request = AnnounceRequestBuilder::default().into();
-
-                let host_opt_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
-                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
-
-                assert_eq!(torrent_peer.peer_addr, SocketAddr::new(host_opt_ip, announce_request.port.0));
-            }
-
-            #[test]
-            fn it_should_use_the_external_ip_in_tracker_configuration_if_defined_even_if_the_external_ip_is_an_ipv6_ip() {
-                let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
-                let announce_request = AnnounceRequestBuilder::default().into();
-
-                let host_opt_ip = IpAddr::V6(Ipv6Addr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
-                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
-
-                assert_eq!(torrent_peer.peer_addr, SocketAddr::new(host_opt_ip, announce_request.port.0));
-            }
-        }
-
-        mod when_source_udp_ip_is_a_ipv6_loopback_ip {
-
-            use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-            use std::str::FromStr;
-
-            use crate::tracker::peer::test::torrent_peer_constructor_from_udp_requests::AnnounceRequestBuilder;
-            use crate::tracker::peer::Peer;
-
-            #[test]
-            fn it_should_use_the_loopback_ip_if_the_server_does_not_have_the_external_ip_configuration() {
-                let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
-                let announce_request = AnnounceRequestBuilder::default().into();
-
-                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, None);
-
-                assert_eq!(torrent_peer.peer_addr, SocketAddr::new(remote_ip, announce_request.port.0));
-            }
-
-            #[test]
-            fn it_should_use_the_external_host_ip_in_tracker_configuration_if_defined() {
-                let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
-                let announce_request = AnnounceRequestBuilder::default().into();
-
-                let host_opt_ip = IpAddr::V6(Ipv6Addr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
-                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
-
-                assert_eq!(torrent_peer.peer_addr, SocketAddr::new(host_opt_ip, announce_request.port.0));
-            }
-
-            #[test]
-            fn it_should_use_the_external_ip_in_tracker_configuration_if_defined_even_if_the_external_ip_is_an_ipv4_ip() {
-                let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
-                let announce_request = AnnounceRequestBuilder::default().into();
-
-                let host_opt_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
-                let torrent_peer = Peer::from_udp_announce_request(&announce_request, remote_ip, Some(host_opt_ip));
-
-                assert_eq!(torrent_peer.peer_addr, SocketAddr::new(host_opt_ip, announce_request.port.0));
-            }
         }
     }
 
     mod torrent_peer_constructor_from_for_http_requests {
-        use std::net::{IpAddr, Ipv4Addr};
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use crate::http::warp_implementation::request::Announce;
         use crate::protocol::info_hash::InfoHash;
+        use crate::tracker::assign_ip_address_to_peer;
         use crate::tracker::peer::{self, Peer};
 
         fn sample_http_announce_request(peer_addr: IpAddr, port: u16) -> Announce {
@@ -618,13 +526,16 @@ mod test {
         }
 
         #[test]
-        fn it_should_use_the_source_ip_in_the_udp_heder_as_the_peer_ip_address_ignoring_the_peer_ip_in_the_announce_request() {
+        fn it_should_use_the_source_ip_in_the_udp_header_as_the_peer_ip_address_ignoring_the_peer_ip_in_the_announce_request() {
             let remote_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2));
 
             let ip_in_announce_request = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
             let announce_request = sample_http_announce_request(ip_in_announce_request, 8080);
 
-            let torrent_peer = Peer::from_http_announce_request(&announce_request, remote_ip, None);
+            let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+            let peer_socket_address = SocketAddr::new(peer_ip, announce_request.port);
+
+            let torrent_peer = Peer::from_http_announce_request(&announce_request, &peer_socket_address);
 
             assert_eq!(torrent_peer.peer_addr.ip(), remote_ip);
             assert_ne!(torrent_peer.peer_addr.ip(), ip_in_announce_request);
@@ -639,18 +550,13 @@ mod test {
             let announce_request =
                 sample_http_announce_request(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), port_in_announce_request);
 
-            let torrent_peer = Peer::from_http_announce_request(&announce_request, remote_ip, None);
+            let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+            let peer_socket_address = SocketAddr::new(peer_ip, announce_request.port);
+
+            let torrent_peer = Peer::from_http_announce_request(&announce_request, &peer_socket_address);
 
             assert_eq!(torrent_peer.peer_addr.port(), announce_request.port);
             assert_ne!(torrent_peer.peer_addr.port(), remote_port);
         }
-
-        // todo: other cases are already covered by UDP cases.
-        // Code review:
-        // We should extract the method "peer_addr_from_ip_and_port_and_opt_host_ip" from TorrentPeer.
-        // It could be another service responsible for assigning the IP to the peer.
-        // So we can test that behavior independently from where you use it.
-        // We could also build the peer with the IP in the announce request and let the tracker decide
-        // wether it has to change it or not depending on tracker configuration.
     }
 }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
 
@@ -41,11 +41,15 @@ pub async fn handle_announce(
     auth_key: Option<auth::Key>,
     tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
+    debug!("http announce request: {:#?}", announce_request);
+
     authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await?;
 
-    debug!("{:?}", announce_request);
+    // build the peer
+    let peer_ip = tracker.assign_ip_address_to_peer(&announce_request.peer_addr);
+    let peer_socket_address = SocketAddr::new(peer_ip, announce_request.port);
+    let peer = peer::Peer::from_http_announce_request(&announce_request, &peer_socket_address);
 
-    let peer = peer::Peer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
     let torrent_stats = tracker
         .update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer)
         .await;

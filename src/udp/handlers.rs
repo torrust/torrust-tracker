@@ -6,6 +6,7 @@ use aquatic_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads,
     NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
+use log::debug;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
 use crate::protocol::common::MAX_SCRAPE_TORRENTS;
@@ -93,6 +94,8 @@ pub async fn handle_announce(
     announce_request: &AnnounceRequest,
     tracker: Arc<tracker::Tracker>,
 ) -> Result<Response, Error> {
+    debug!("udp announce request: {:#?}", announce_request);
+
     check(&remote_addr, &from_connection_id(&announce_request.connection_id))?;
 
     let wrapped_announce_request = AnnounceWrapper::new(announce_request);
@@ -104,13 +107,10 @@ pub async fn handle_announce(
             source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
         })?;
 
-    let peer = peer::Peer::from_udp_announce_request(
-        &wrapped_announce_request.announce_request,
-        remote_addr.ip(),
-        tracker.config.get_ext_ip(),
-    );
-
-    //let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
+    // build the peer
+    let peer_ip = tracker.assign_ip_address_to_peer(&remote_addr.ip());
+    let peer_socket_address = SocketAddr::new(peer_ip, announce_request.port.0);
+    let peer = peer::Peer::from_udp_announce_request(&wrapped_announce_request.announce_request, &peer_socket_address);
 
     let torrent_stats = tracker
         .update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer)
