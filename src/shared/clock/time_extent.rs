@@ -285,7 +285,6 @@ pub type DefaultTimeExtentMaker = StoppedTimeExtentMaker;
 
 #[cfg(test)]
 mod test {
-
     use crate::shared::clock::time_extent::{
         checked_duration_from_nanos, Base, DefaultTimeExtentMaker, Extent, Make, Multiplier, Product, TimeExtent, MAX, ZERO,
     };
@@ -296,7 +295,8 @@ mod test {
     mod fn_checked_duration_from_nanos {
         use std::time::Duration;
 
-        use super::*;
+        use crate::shared::clock::time_extent::checked_duration_from_nanos;
+        use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
 
         const NANOS_PER_SEC: u32 = 1_000_000_000;
 
@@ -335,11 +335,9 @@ mod test {
     }
 
     mod time_extent {
-        use super::*;
 
         mod fn_default {
-
-            use super::*;
+            use crate::shared::clock::time_extent::{TimeExtent, ZERO};
 
             #[test]
             fn it_should_default_initialize_to_zero() {
@@ -348,7 +346,8 @@ mod test {
         }
 
         mod fn_from_sec {
-            use super::*;
+            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
+            use crate::shared::clock::time_extent::{Multiplier, TimeExtent, ZERO};
 
             #[test]
             fn it_should_make_empty_for_zero() {
@@ -364,7 +363,8 @@ mod test {
         }
 
         mod fn_new {
-            use super::*;
+            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
+            use crate::shared::clock::time_extent::{Base, Extent, Multiplier, TimeExtent, ZERO};
 
             #[test]
             fn it_should_make_empty_for_zero() {
@@ -386,7 +386,8 @@ mod test {
         mod fn_increase {
             use std::num::IntErrorKind;
 
-            use super::*;
+            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
+            use crate::shared::clock::time_extent::{Extent, TimeExtent, ZERO};
 
             #[test]
             fn it_should_not_increase_for_zero() {
@@ -413,7 +414,8 @@ mod test {
         mod fn_decrease {
             use std::num::IntErrorKind;
 
-            use super::*;
+            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
+            use crate::shared::clock::time_extent::{Extent, TimeExtent, ZERO};
 
             #[test]
             fn it_should_not_decrease_for_zero() {
@@ -438,7 +440,8 @@ mod test {
         }
 
         mod fn_total {
-            use super::*;
+            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
+            use crate::shared::clock::time_extent::{Base, Extent, Product, TimeExtent, MAX, ZERO};
 
             #[test]
             fn it_should_be_zero_for_zero() {
@@ -485,7 +488,8 @@ mod test {
         }
 
         mod fn_total_next {
-            use super::*;
+            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
+            use crate::shared::clock::time_extent::{Base, Extent, Product, TimeExtent, MAX, ZERO};
 
             #[test]
             fn it_should_be_zero_for_zero() {
@@ -539,10 +543,11 @@ mod test {
     }
 
     mod make_time_extent {
-        use super::*;
 
         mod fn_now {
-            use super::*;
+            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
+            use crate::shared::clock::time_extent::{Base, DefaultTimeExtentMaker, Make, TimeExtent};
+            use crate::shared::clock::{Current, DurationSinceUnixEpoch, StoppedTime};
 
             #[test]
             fn it_should_give_a_time_extent() {
@@ -580,7 +585,9 @@ mod test {
         mod fn_now_after {
             use std::time::Duration;
 
-            use super::*;
+            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
+            use crate::shared::clock::time_extent::{Base, DefaultTimeExtentMaker, Make};
+            use crate::shared::clock::{Current, DurationSinceUnixEpoch, StoppedTime};
 
             #[test]
             fn it_should_give_a_time_extent() {
@@ -617,7 +624,8 @@ mod test {
         mod fn_now_before {
             use std::time::Duration;
 
-            use super::*;
+            use crate::shared::clock::time_extent::{Base, DefaultTimeExtentMaker, Make, TimeExtent};
+            use crate::shared::clock::{Current, DurationSinceUnixEpoch, StoppedTime};
 
             #[test]
             fn it_should_give_a_time_extent() {
