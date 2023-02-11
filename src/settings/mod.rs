@@ -11,15 +11,16 @@ use derive_more::{Deref, DerefMut, Display};
 use serde::{Deserialize, Serialize};
 
 use self::old_settings::DatabaseDriversOld;
-use crate::apis::resources::{ApiServiceSettings, ApiTokens};
+use crate::apis::settings::ApiTokens;
 use crate::errors::settings::{
     CommonSettingsError, GlobalSettingsError, ServiceSettingsError, SettingsError, TlsSettingsError, TrackerSettingsError,
 };
 use crate::helpers::get_file_at;
 use crate::http::{HttpServiceSettings, TlsServiceSettings};
 use crate::tracker::mode::Mode;
+use crate::tracker::services::common::{Tls, TlsBuilder};
 use crate::udp::UdpServiceSettings;
-use crate::{databases, Empty};
+use crate::{apis, databases, Empty};
 
 pub mod manager;
 pub mod old_settings;
@@ -164,28 +165,33 @@ impl From<Settings> for TrackerSettings {
 }
 
 impl Settings {
-    pub fn check(&self) -> Result<(), SettingsError> {
+    /// Returns the check of this [`Settings`].
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if .
+    pub fn check(&self) -> Result<(), Box<SettingsError>> {
         if self.namespace != *SETTINGS_NAMESPACE {
-            return Err(SettingsError::NamespaceError {
+            return Err(Box::new(SettingsError::NamespaceError {
                 message: format!("Actual: \"{}\", Expected: \"{}\"", self.namespace, SETTINGS_NAMESPACE),
                 field: "tracker".to_string(),
-            });
+            }));
         }
 
         // Todo: Make this Check use Semantic Versioning 2.0.0
         if self.version != *SETTINGS_VERSION {
-            return Err(SettingsError::VersionError {
+            return Err(Box::new(SettingsError::VersionError {
                 message: format!("Actual: \"{}\", Expected: \"{}\"", self.version, SETTINGS_NAMESPACE),
                 field: "version".to_string(),
-            });
+            }));
         }
 
-        if let Err(source) = self.tracker.check() {
-            return Err(SettingsError::TrackerSettingsError {
-                message: source.to_string(),
-                field: source.get_field(),
-                source,
-            });
+        if let Err(err) = self.tracker.check() {
+            return Err(Box::new(SettingsError::TrackerSettingsError {
+                message: err.to_string(),
+                field: err.get_field(),
+                source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
+            }));
         }
 
         Ok(())
@@ -296,7 +302,7 @@ impl Clean for TrackerSettings {
             global: self.global.filter(|p| p.check().is_ok()),
             common: self.common.filter(|p| p.check().is_ok()),
             database: self.database.filter(|p| p.check().is_ok()),
-            services: self.services.map(|p| p.clean()),
+            services: self.services.map(Clean::clean),
         }
     }
 }
@@ -305,11 +311,11 @@ impl TryInto<TrackerSettings> for TrackerSettingsBuilder {
     type Error = SettingsError;
 
     fn try_into(self) -> Result<TrackerSettings, Self::Error> {
-        if let Err(source) = self.tracker_settings.check() {
+        if let Err(err) = self.tracker_settings.check() {
             return Err(SettingsError::TrackerSettingsError {
-                message: source.to_string(),
-                field: source.get_field(),
-                source,
+                message: err.to_string(),
+                field: err.get_field(),
+                source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
             });
         }
 
@@ -376,6 +382,11 @@ impl TrackerSettingsBuilder {
         }
     }
 
+    /// .
+    ///
+    /// # Panics
+    ///
+    /// Panics if .
     #[must_use]
     pub fn import_old(mut self, old_settings: &old_settings::Settings) -> Self {
         // Global
@@ -482,6 +493,15 @@ impl GlobalSettings {
         self.external_ip
     }
 
+    /// Returns the is on reverse proxy of this [`GlobalSettings`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if .
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if .
     pub fn is_on_reverse_proxy(&self) -> Result<bool, GlobalSettingsError> {
         check_field_is_not_none!(self.clone() => GlobalSettingsError; on_reverse_proxy);
 
@@ -521,10 +541,10 @@ impl TryInto<GlobalSettings> for GlobalSettingsBuilder {
     fn try_into(self) -> Result<GlobalSettings, Self::Error> {
         match self.global_settings.check() {
             Ok(_) => Ok(self.global_settings),
-            Err(source) => Err(SettingsError::GlobalSettingsError {
-                message: source.to_string(),
-                field: source.get_field(),
-                source,
+            Err(err) => Err(SettingsError::GlobalSettingsError {
+                message: err.to_string(),
+                field: err.get_field(),
+                source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
             }),
         }
     }
@@ -674,10 +694,10 @@ impl TryInto<CommonSettings> for CommonSettingsBuilder {
     fn try_into(self) -> Result<CommonSettings, Self::Error> {
         match self.common_settings.check() {
             Ok(_) => Ok(self.common_settings),
-            Err(source) => Err(SettingsError::CommonSettingsError {
-                message: source.to_string(),
-                field: source.get_field(),
-                source,
+            Err(err) => Err(SettingsError::CommonSettingsError {
+                message: err.to_string(),
+                field: err.get_field(),
+                source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
             }),
         }
     }
@@ -752,15 +772,15 @@ impl Empty for Service {
     }
 }
 
-impl From<ApiServiceSettings> for Service {
-    fn from(service: ApiServiceSettings) -> Self {
+impl From<apis::settings::Settings> for Service {
+    fn from(service: apis::settings::Settings) -> Self {
         Self {
-            enabled: Some(service.enabled),
-            display_name: Some(service.display_name),
+            enabled: Some(*service.is_enabled()),
+            display_name: Some(service.get_display_name().clone()),
             service: Some(ServiceProtocol::Api),
-            socket: Some(service.socket),
+            socket: Some(service.get_socket().expect("socket should be here!")),
             tls: None,
-            api_tokens: Some(service.access_tokens),
+            api_tokens: Some(service.get_access_tokens().clone()),
         }
     }
 }
@@ -808,6 +828,15 @@ impl From<TlsServiceSettings> for Service {
 }
 
 impl Service {
+    /// .
+    ///
+    /// # Panics
+    ///
+    /// Panics if .
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if .
     pub fn check(&self, id: &String) -> Result<(), ServiceSettingsError> {
         check_field_is_not_none!(self => ServiceSettingsError;
         enabled, service, socket);
@@ -817,7 +846,7 @@ impl Service {
 
         match self.service.unwrap() {
             ServiceProtocol::Api => {
-                ApiServiceSettings::try_from((id, self))?;
+                apis::settings::Settings::try_from((id, self))?;
             }
             ServiceProtocol::Udp => {
                 UdpServiceSettings::try_from((id, self))?;
@@ -833,22 +862,62 @@ impl Service {
         Ok(())
     }
 
+    /// Returns the get socket of this [`Service`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if .
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if .
     pub fn get_socket(&self) -> Result<SocketAddr, ServiceSettingsError> {
         check_field_is_not_none!(self => ServiceSettingsError; socket);
 
         Ok(self.socket.unwrap())
     }
 
+    /// Returns the get api tokens of this [`Service`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if .
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if .
     pub fn get_api_tokens(&self) -> Result<ApiTokens, ServiceSettingsError> {
         check_field_is_not_empty!(self => ServiceSettingsError; api_tokens : ApiTokens);
 
         Ok(self.api_tokens.clone().unwrap())
     }
 
-    pub fn get_tls_settings(&self) -> Result<ApiTokens, ServiceSettingsError> {
-        check_field_is_not_empty!(self => ServiceSettingsError; api_tokens : ApiTokens);
+    /// Returns the get tls settings of this [`Service`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if .
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if .
+    pub fn get_tls_settings(&self) -> Result<TlsSettings, ServiceSettingsError> {
+        check_field_is_not_empty!(self => ServiceSettingsError; tls : TlsSettings);
 
-        Ok(self.api_tokens.clone().unwrap())
+        Ok(self.tls.clone().unwrap())
+    }
+
+    pub fn get_tls(&self) -> Result<Option<Tls>, ServiceSettingsError> {
+        Ok(self.tls.clone().map(|t| -> Tls {
+            TlsBuilder::default()
+                .certificate_file_path(
+                    t.certificate_file_path
+                        .expect("if we have a tls, then we should have the certificate"),
+                )
+                .key_file_path(t.key_file_path.expect("if we have a tls, then we should have the key"))
+                .build()
+                .expect("failed to build tls settings")
+        }))
     }
 }
 
@@ -857,14 +926,16 @@ pub struct Services(BTreeMap<String, Service>);
 
 impl Default for Services {
     fn default() -> Self {
-        let api = ApiServiceSettings::default();
+        let api = apis::settings::SettingsBuilder::default()
+            .build()
+            .expect("defaults should build");
         let udp = UdpServiceSettings::default();
         let http = HttpServiceSettings::default();
         let tls = TlsServiceSettings::default();
 
         let mut services = Services::empty();
 
-        services.insert(api.id.clone(), api.into());
+        services.insert(api.get_id().clone(), api.into());
         services.insert(udp.id.clone(), udp.into());
         services.insert(http.id.clone(), http.into());
         services.insert(tls.id.clone(), tls.into());
@@ -892,6 +963,11 @@ impl Clean for Services {
 }
 
 impl Services {
+    /// Returns the check of this [`Services`].
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if .
     pub fn check(&self) -> Result<(), ServiceSettingsError> {
         for service in self.iter() {
             service.1.check(service.0)?;
@@ -919,12 +995,12 @@ impl TryInto<Services> for ServicesBuilder {
 
     fn try_into(self) -> Result<Services, Self::Error> {
         for service in &self.services.0 {
-            if let Err(source) = service.1.check(service.0) {
+            if let Err(err) = service.1.check(service.0) {
                 return Err(SettingsError::ServiceSettingsError {
-                    id: service.0.into(),
-                    field: source.get_field(),
-                    message: source.to_string(),
-                    source,
+                    id: service.0.clone(),
+                    field: err.get_field(),
+                    message: err.to_string(),
+                    source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
                 });
             }
         }
@@ -979,7 +1055,7 @@ impl ServicesBuilder {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, PartialOrd, Ord, Eq, Debug, Clone, Hash)]
+#[derive(Serialize, Deserialize, Default, PartialEq, PartialOrd, Ord, Eq, Debug, Clone, Hash)]
 pub struct TlsSettings {
     pub certificate_file_path: Option<Box<Path>>,
     pub key_file_path: Option<Box<Path>>,
@@ -995,6 +1071,11 @@ impl Empty for TlsSettings {
 }
 
 impl TlsSettings {
+    /// Returns the check of this [`TlsSettings`].
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if .
     pub fn check(&self) -> Result<(), TlsSettingsError> {
         self.get_certificate_file_path()?;
         self.get_key_file_path()?;
@@ -1002,25 +1083,43 @@ impl TlsSettings {
         Ok(())
     }
 
+    /// Returns the get certificate file path of this [`TlsSettings`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if .
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if .
     pub fn get_certificate_file_path(&self) -> Result<Box<Path>, TlsSettingsError> {
         check_field_is_not_none!(self.clone() => TlsSettingsError; certificate_file_path);
 
         get_file_at(self.certificate_file_path.as_ref().unwrap(), OpenOptions::new().read(true))
             .map(|at| at.1)
-            .map_err(|source| TlsSettingsError::BadCertificateFilePath {
+            .map_err(|err| TlsSettingsError::BadCertificateFilePath {
                 field: "certificate_file_path".to_string(),
-                source,
+                source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
             })
     }
 
+    /// Returns the get key file path of this [`TlsSettings`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if .
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if .
     pub fn get_key_file_path(&self) -> Result<Box<Path>, TlsSettingsError> {
         check_field_is_not_none!(self.clone() => TlsSettingsError; key_file_path);
 
         get_file_at(self.key_file_path.as_ref().unwrap(), OpenOptions::new().read(true))
             .map(|at| at.1)
-            .map_err(|source| TlsSettingsError::BadKeyFilePath {
+            .map_err(|err| TlsSettingsError::BadKeyFilePath {
                 field: "key_file_path".to_string(),
-                source,
+                source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
             })
     }
 }

@@ -1,8 +1,22 @@
+use std::path::Path;
 use std::sync::Arc;
+
+use derive_builder::Builder;
+use derive_getters::Getters;
+use serde::{Deserialize, Serialize};
 
 use crate::config::Configuration;
 use crate::tracker::statistics::Keeper;
 use crate::tracker::Tracker;
+
+#[derive(Builder, Getters, Serialize, Deserialize, PartialEq, PartialOrd, Ord, Eq, Debug, Clone, Hash)]
+#[builder(pattern = "immutable")]
+pub struct Tls {
+    #[getter(rename = "get_certificate_file_path")]
+    certificate_file_path: Box<Path>,
+    #[getter(rename = "get_key_file_path")]
+    key_file_path: Box<Path>,
+}
 
 /// # Panics
 ///

@@ -6,7 +6,7 @@ use torrust_tracker::jobs::tracker_apis;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::statistics::Keeper;
-use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
+use torrust_tracker::{apis, ephemeral_instance_keys, logging, static_time, tracker};
 
 use super::connection_info::ConnectionInfo;
 
@@ -21,7 +21,11 @@ pub async fn start_default_api() -> Server {
 
 pub async fn start_custom_api(configuration: Arc<Configuration>) -> Server {
     let server = start(&configuration);
-    tracker_apis::start_job(&configuration.http_api, server.tracker.clone()).await;
+    tracker_apis::start_job(
+        &Arc::new(apis::settings::Settings::try_from(&configuration.http_api).expect("failed to make api settings")),
+        server.tracker.clone(),
+    )
+    .await;
     server
 }
 

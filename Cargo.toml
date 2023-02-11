@@ -62,6 +62,7 @@ axum = "0.6.1"
 axum-server = { version = "0.4.4", features = ["tls-rustls"] }
 
 derive_builder = "0.12"
+derive-getters = "0.2"
 
 
 [dev-dependencies]

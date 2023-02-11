@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use std::net::IpAddr;
 use std::panic::Location;
 use std::path::Path;
@@ -46,14 +46,14 @@ pub struct HttpApi {
     pub ssl_cert_path: Option<String>,
     #[serde_as(as = "NoneAsEmptyString")]
     pub ssl_key_path: Option<String>,
-    pub access_tokens: HashMap<String, String>,
+    pub access_tokens: BTreeMap<String, String>,
 }
 
 impl HttpApi {
     #[must_use]
     pub fn contains_token(&self, token: &str) -> bool {
-        let tokens: HashMap<String, String> = self.access_tokens.clone();
-        let tokens: HashSet<String> = tokens.into_values().collect();
+        let tokens: BTreeMap<String, String> = self.access_tokens.clone();
+        let tokens: BTreeSet<String> = tokens.into_values().collect();
         tokens.contains(token)
     }
 }

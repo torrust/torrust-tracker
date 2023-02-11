@@ -1,10 +1,9 @@
 use thiserror::Error;
 
-use super::FilePathError;
-use crate::databases;
+use crate::located_error::LocatedError;
 use crate::settings::{CommonSettings, GlobalSettings, ServiceNoSecrets, ServiceProtocol, TlsSettings, TrackerSettings};
 
-#[derive(Error, Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Error, Clone, Debug)]
 pub enum SettingsError {
     #[error("Bad Namespace: \".{field}\" {message}")]
     NamespaceError { message: String, field: String },
@@ -17,28 +16,21 @@ pub enum SettingsError {
     TrackerSettingsError {
         message: String,
         field: String,
-        source: TrackerSettingsError,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
     #[error("Global Settings Error: \".tracker.global.{field}\": {message}")]
     GlobalSettingsError {
         message: String,
         field: String,
-        source: GlobalSettingsError,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
     #[error("Common Settings Error: \".tracker.common.{field}\": {message}")]
     CommonSettingsError {
         message: String,
         field: String,
-        source: CommonSettingsError,
-    },
-
-    #[error("Database Settings Error: \".tracker.database.{field}\": {message}")]
-    DatabaseSettingsError {
-        message: String,
-        field: String,
-        source: DatabaseSettingsError,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
     #[error("Service Settings Error: \".tracker.service.{id}.{field}\": {message}")]
@@ -46,7 +38,7 @@ pub enum SettingsError {
         message: String,
         field: String,
         id: String,
-        source: ServiceSettingsError,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 }
 
@@ -115,47 +107,7 @@ impl CommonSettingsError {
     }
 }
 
-#[derive(Error, Clone, Debug, Eq, Hash, PartialEq)]
-pub enum DatabaseSettingsError {
-    #[error("Required Field is missing (null)!")]
-    MissingRequiredField {
-        field: String,
-        data: databases::settings::Settings,
-    },
-
-    #[error("Required Field is empty (0 or \"\")!")]
-    EmptyRequiredField {
-        field: String,
-        data: databases::settings::Settings,
-    },
-
-    #[error("Want {expected}, but have {actual}!")]
-    WrongDriver {
-        field: String,
-        expected: databases::driver::Driver,
-        actual: databases::driver::Driver,
-        data: databases::settings::Settings,
-    },
-}
-
-impl DatabaseSettingsError {
-    #[must_use]
-    pub fn get_field(&self) -> String {
-        match self {
-            Self::MissingRequiredField { field, data: _ }
-            | Self::EmptyRequiredField { field, data: _ }
-            | Self::WrongDriver {
-                field,
-                expected: _,
-                actual: _,
-                data: _,
-            } => field,
-        }
-        .clone()
-    }
-}
-
-#[derive(Error, Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Error, Clone, Debug)]
 pub enum ServiceSettingsError {
     #[error("Required Field is missing (null)!")]
     MissingRequiredField { field: String, data: ServiceNoSecrets },
@@ -172,7 +124,7 @@ pub enum ServiceSettingsError {
     #[error("Bad TLS Configuration: {source}.")]
     TlsSettingsError {
         field: String,
-        source: TlsSettingsError,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
         data: ServiceNoSecrets,
     },
 
@@ -222,7 +174,7 @@ impl ServiceSettingsError {
     }
 }
 
-#[derive(Error, Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Error, Clone, Debug)]
 pub enum TlsSettingsError {
     #[error("Required Field is missing (null)!")]
     MissingRequiredField { field: String, data: TlsSettings },
@@ -231,10 +183,16 @@ pub enum TlsSettingsError {
     EmptyRequiredField { field: String, data: TlsSettings },
 
     #[error("Unable to find TLS Certificate File: {source}")]
-    BadCertificateFilePath { field: String, source: FilePathError },
+    BadCertificateFilePath {
+        field: String,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 
     #[error("Unable to find TLS Key File: {source}")]
-    BadKeyFilePath { field: String, source: FilePathError },
+    BadKeyFilePath {
+        field: String,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 }
 
 impl TlsSettingsError {

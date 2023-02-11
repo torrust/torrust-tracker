@@ -1,25 +1,35 @@
 use std::path::Path;
-use std::sync::Arc;
 
 use thiserror::Error;
 
-use super::wrappers::{self, IoError, TomlDeError};
-use super::{settings, FilePathError};
+use crate::located_error::LocatedError;
 
-#[derive(Error, Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Error, Clone, Debug)]
 pub enum SettingsManagerError {
     #[error("Unable to open file for reading : \".{source}\"")]
-    FailedToOpenFileForReading { source: FilePathError },
+    FailedToOpenFileForReading {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
     #[error("Unable to open file for writing : \".{source}\"")]
-    FailedToOpenFileForWriting { source: FilePathError },
+    FailedToOpenFileForWriting {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
     #[error("Unable to open new file at:: {source}!")]
-    FailedToCreateNewFile { source: FilePathError },
+    FailedToCreateNewFile {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 
     #[error("Unable to resolve path at: \"{at}\"!")]
-    FailedToResolvePath { at: Box<Path>, source: Arc<wrappers::IoError> },
+    FailedToResolvePath {
+        at: Box<Path>,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 
     #[error("Unable to prepare directory at: \"{at}\" : {source}!")]
-    FailedToPrepareDirectory { at: Box<Path>, source: Arc<wrappers::IoError> },
+    FailedToPrepareDirectory {
+        at: Box<Path>,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 
     #[error("Unable to resolve a directory at: \"{at}\"!")]
     FailedToResolveDirectory { at: Box<Path> },
@@ -28,50 +38,58 @@ pub enum SettingsManagerError {
     FailedToReadFromFile {
         message: String,
         from: Box<Path>,
-        source: Box<Self>,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
     #[error("Unable to write file, {message}: \"{to}\": {source}.")]
     FailedToWriteToFile {
         message: String,
         to: Box<Path>,
-        source: Box<Self>,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
     #[error("Unable to read buffer: {source}")]
-    FailedToReadFromBuffer { source: Arc<IoError> },
+    FailedToReadFromBuffer {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
     #[error("Unable to write buffer: {source}")]
-    FailedToWriteIntoBuffer { source: Arc<IoError> },
+    FailedToWriteIntoBuffer {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 
     #[error("Unable to read json, {message}: {source}")]
     FailedToSerializeIntoJson {
         message: String,
-        source: Arc<wrappers::SerdeJsonError>,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
     #[error("Unable to write json, {message}: {source}")]
     FailedToDeserializeFromJson {
         message: String,
-        source: Arc<wrappers::SerdeJsonError>,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
     #[error("Unable to read toml: {source}")]
-    FailedToDeserializeFromToml { source: TomlDeError },
+    FailedToDeserializeFromToml {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 
     #[error("Decoded json with unknown namespace: \"{namespace}\"")]
     FailedToMatchNamespace { namespace: String },
 
     #[error("Unable to process old settings from : \"{source}\"")]
-    FailedToProcessOldSettings { source: Box<Self> },
+    FailedToProcessOldSettings {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 
     #[error("Unable to import old settings from: \"{from}\" : \"{source}\"")]
     FailedToImportOldSettings {
         from: Box<Path>,
-        source: Box<settings::SettingsError>,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
     #[error("Unable to successfully move file from: {from} to: {to} \"{source}\"")]
     FailedToMoveFile {
         from: Box<Path>,
         to: Box<Path>,
-        source: Arc<IoError>,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 }

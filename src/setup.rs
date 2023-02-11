@@ -6,7 +6,7 @@ use tokio::task::JoinHandle;
 use crate::config::Configuration;
 use crate::http::Version;
 use crate::jobs::{http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
-use crate::tracker;
+use crate::{apis, tracker};
 
 /// # Panics
 ///
@@ -53,7 +53,13 @@ pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Ve
 
     // Start HTTP API
     if config.http_api.enabled {
-        jobs.push(tracker_apis::start_job(&config.http_api, tracker.clone()).await);
+        jobs.push(
+            tracker_apis::start_job(
+                &Arc::new(apis::settings::Settings::try_from(&config.http_api).expect("failed to make api settings")),
+                tracker.clone(),
+            )
+            .await,
+        );
     }
 
     // Remove torrents without peers, every interval

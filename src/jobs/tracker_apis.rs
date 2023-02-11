@@ -5,7 +5,7 @@ use log::info;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 
-use crate::apis::server;
+use crate::apis::{self, server};
 use crate::config::HttpApi;
 use crate::tracker;
 
@@ -15,14 +15,14 @@ pub struct ApiServerJobStarted();
 /// # Panics
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
-pub async fn start_job(config: &HttpApi, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
-    let bind_addr = config
-        .bind_address
-        .parse::<std::net::SocketAddr>()
-        .expect("Tracker API bind_address invalid.");
-    let ssl_enabled = config.ssl_enabled;
-    let ssl_cert_path = config.ssl_cert_path.clone();
-    let ssl_key_path = config.ssl_key_path.clone();
+pub async fn start_job(config: &Arc<apis::settings::Settings>, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
+    let bind_addr = config.get_socket().expect("we need a socket...");
+    let ssl_enabled = config.get_tls_settings().is_some();
+    let ssl_cert_path = config
+        .get_tls_settings()
+        .as_ref()
+        .map(|t| t.get_certificate_file_path().clone());
+    let ssl_key_path = config.get_tls_settings().as_ref().map(|t| t.get_key_file_path().clone());
 
     let (tx, rx) = oneshot::channel::<ApiServerJobStarted>();
 

@@ -13,6 +13,7 @@
 use std::net::SocketAddr;
 use std::path::Path;
 use std::str::FromStr;
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
@@ -131,7 +132,7 @@ impl TryFrom<(&String, &Service)> for TlsServiceSettings {
                 .get_certificate_file_path()
                 .map_err(|err| ServiceSettingsError::TlsSettingsError {
                     field: value.0.clone(),
-                    source: err,
+                    source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
                     data: value.1.into(),
                 })?,
 
@@ -139,7 +140,7 @@ impl TryFrom<(&String, &Service)> for TlsServiceSettings {
                 .get_key_file_path()
                 .map_err(|err| ServiceSettingsError::TlsSettingsError {
                     field: value.0.clone(),
-                    source: err,
+                    source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
                     data: value.1.into(),
                 })?,
         })
