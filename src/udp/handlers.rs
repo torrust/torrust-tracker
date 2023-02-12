@@ -6,12 +6,14 @@ use aquatic_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads,
     NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
+use log::debug;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
 use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::{self, peer, statistics};
+use crate::tracker::{self, statistics};
 use crate::udp::error::Error;
+use crate::udp::peer_builder;
 use crate::udp::request::AnnounceWrapper;
 
 pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: Arc<tracker::Tracker>) -> Response {
@@ -87,48 +89,57 @@ pub async fn handle_connect(
 
 /// # Errors
 ///
+/// Will return `Error` if unable to `authenticate_request`.
+pub async fn authenticate(info_hash: &InfoHash, tracker: Arc<tracker::Tracker>) -> Result<(), Error> {
+    tracker
+        .authenticate_request(info_hash, &None)
+        .await
+        .map_err(|e| Error::TrackerError {
+            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+        })
+}
+
+/// # Errors
+///
 /// If a error happens in the `handle_announce` function, it will just return the  `ServerError`.
 pub async fn handle_announce(
     remote_addr: SocketAddr,
     announce_request: &AnnounceRequest,
     tracker: Arc<tracker::Tracker>,
 ) -> Result<Response, Error> {
+    debug!("udp announce request: {:#?}", announce_request);
+
     check(&remote_addr, &from_connection_id(&announce_request.connection_id))?;
 
     let wrapped_announce_request = AnnounceWrapper::new(announce_request);
 
-    tracker
-        .authenticate_request(&wrapped_announce_request.info_hash, &None)
-        .await
-        .map_err(|e| Error::TrackerError {
-            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
-        })?;
+    let info_hash = wrapped_announce_request.info_hash;
+    let remote_client_ip = remote_addr.ip();
 
-    let peer = peer::Peer::from_udp_announce_request(
-        &wrapped_announce_request.announce_request,
-        remote_addr.ip(),
-        tracker.config.get_ext_ip(),
-    );
+    authenticate(&info_hash, tracker.clone()).await?;
 
-    //let torrent_stats = tracker.update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer).await;
+    let mut peer = peer_builder::from_request(&wrapped_announce_request, &remote_client_ip);
 
-    let torrent_stats = tracker
-        .update_torrent_with_peer_and_get_stats(&wrapped_announce_request.info_hash, &peer)
-        .await;
+    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
 
-    // get all peers excluding the client_addr
-    let peers = tracker
-        .get_torrent_peers(&wrapped_announce_request.info_hash, &peer.peer_addr)
-        .await;
+    match remote_client_ip {
+        IpAddr::V4(_) => {
+            tracker.send_stats_event(statistics::Event::Udp4Announce).await;
+        }
+        IpAddr::V6(_) => {
+            tracker.send_stats_event(statistics::Event::Udp6Announce).await;
+        }
+    }
 
     #[allow(clippy::cast_possible_truncation)]
     let announce_response = if remote_addr.is_ipv4() {
         Response::from(AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
             announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
-            leechers: NumberOfPeers(i64::from(torrent_stats.leechers) as i32),
-            seeders: NumberOfPeers(i64::from(torrent_stats.seeders) as i32),
-            peers: peers
+            leechers: NumberOfPeers(i64::from(response.swam_stats.leechers) as i32),
+            seeders: NumberOfPeers(i64::from(response.swam_stats.seeders) as i32),
+            peers: response
+                .peers
                 .iter()
                 .filter_map(|peer| {
                     if let IpAddr::V4(ip) = peer.peer_addr.ip() {
@@ -146,9 +157,10 @@ pub async fn handle_announce(
         Response::from(AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
             announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
-            leechers: NumberOfPeers(i64::from(torrent_stats.leechers) as i32),
-            seeders: NumberOfPeers(i64::from(torrent_stats.seeders) as i32),
-            peers: peers
+            leechers: NumberOfPeers(i64::from(response.swam_stats.leechers) as i32),
+            seeders: NumberOfPeers(i64::from(response.swam_stats.seeders) as i32),
+            peers: response
+                .peers
                 .iter()
                 .filter_map(|peer| {
                     if let IpAddr::V6(ip) = peer.peer_addr.ip() {
@@ -163,16 +175,6 @@ pub async fn handle_announce(
                 .collect(),
         })
     };
-
-    // send stats event
-    match remote_addr {
-        SocketAddr::V4(_) => {
-            tracker.send_stats_event(statistics::Event::Udp4Announce).await;
-        }
-        SocketAddr::V6(_) => {
-            tracker.send_stats_event(statistics::Event::Udp6Announce).await;
-        }
-    }
 
     Ok(announce_response)
 }

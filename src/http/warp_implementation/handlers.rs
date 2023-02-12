@@ -10,6 +10,7 @@ use warp::{reject, Rejection, Reply};
 
 use super::error::Error;
 use super::{request, response, WebResult};
+use crate::http::warp_implementation::peer_builder;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::{self, auth, peer, statistics, torrent};
 
@@ -31,32 +32,26 @@ pub async fn authenticate(
         })
 }
 
-/// Handle announce request
-///
 /// # Errors
 ///
-/// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_scrape_response`.
+/// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_announce_response`.
 pub async fn handle_announce(
     announce_request: request::Announce,
     auth_key: Option<auth::Key>,
     tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
-    authenticate(&announce_request.info_hash, &auth_key, tracker.clone()).await?;
+    debug!("http announce request: {:#?}", announce_request);
 
-    debug!("{:?}", announce_request);
+    let info_hash = announce_request.info_hash;
+    let remote_client_ip = announce_request.peer_addr;
 
-    let peer = peer::Peer::from_http_announce_request(&announce_request, announce_request.peer_addr, tracker.config.get_ext_ip());
-    let torrent_stats = tracker
-        .update_torrent_with_peer_and_get_stats(&announce_request.info_hash, &peer)
-        .await;
+    authenticate(&info_hash, &auth_key, tracker.clone()).await?;
 
-    // get all torrent peers excluding the peer_addr
-    let peers = tracker.get_torrent_peers(&announce_request.info_hash, &peer.peer_addr).await;
+    let mut peer = peer_builder::from_request(&announce_request, &remote_client_ip);
 
-    let announce_interval = tracker.config.announce_interval;
+    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
 
-    // send stats event
-    match announce_request.peer_addr {
+    match remote_client_ip {
         IpAddr::V4(_) => {
             tracker.send_stats_event(statistics::Event::Tcp4Announce).await;
         }
@@ -67,15 +62,13 @@ pub async fn handle_announce(
 
     send_announce_response(
         &announce_request,
-        &torrent_stats,
-        &peers,
-        announce_interval,
+        &response.swam_stats,
+        &response.peers,
+        tracker.config.announce_interval,
         tracker.config.min_announce_interval,
     )
 }
 
-/// Handle scrape request
-///
 /// # Errors
 ///
 /// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_scrape_response`.

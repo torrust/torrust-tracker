@@ -49,22 +49,22 @@ impl Entry {
     }
 
     #[must_use]
-    pub fn get_peers(&self, client_addr: Option<&SocketAddr>) -> Vec<&peer::Peer> {
+    pub fn get_peers(&self, optional_excluded_address: Option<&SocketAddr>) -> Vec<&peer::Peer> {
         self.peers
             .values()
-            .filter(|peer| match client_addr {
+            .filter(|peer| match optional_excluded_address {
                 // Don't filter on ip_version
                 None => true,
                 // Filter out different ip_version from remote_addr
-                Some(remote_addr) => {
+                Some(excluded_address) => {
                     // Skip ip address of client
-                    if peer.peer_addr.ip() == remote_addr.ip() {
+                    if peer.peer_addr.ip() == excluded_address.ip() {
                         return false;
                     }
 
                     match peer.peer_addr.ip() {
-                        IpAddr::V4(_) => remote_addr.is_ipv4(),
-                        IpAddr::V6(_) => remote_addr.is_ipv6(),
+                        IpAddr::V4(_) => excluded_address.is_ipv4(),
+                        IpAddr::V6(_) => excluded_address.is_ipv6(),
                     }
                 }
             })

@@ -1,6 +1,7 @@
 pub mod connection_cookie;
 pub mod error;
 pub mod handlers;
+pub mod peer_builder;
 pub mod request;
 pub mod server;
 
