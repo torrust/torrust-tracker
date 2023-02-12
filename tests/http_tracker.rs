@@ -16,6 +16,47 @@ mod warp_http_tracker_server {
 
     mod for_all_config_modes {
 
+        mod running_on_reverse_proxy {
+            use torrust_tracker::http::Version;
+
+            use crate::http::asserts::{
+                assert_could_not_find_remote_address_on_xff_header_error_response,
+                assert_invalid_remote_address_on_xff_header_error_response,
+            };
+            use crate::http::client::Client;
+            use crate::http::requests::announce::QueryBuilder;
+            use crate::http::server::start_http_tracker_on_reverse_proxy;
+
+            #[tokio::test]
+            async fn should_fail_when_the_http_request_does_not_include_the_xff_http_request_header() {
+                // If the tracker is running behind a reverse proxy, the peer IP is the
+                // last IP in the `X-Forwarded-For` HTTP header, which is the IP of the proxy client.
+
+                let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Warp).await;
+
+                let params = QueryBuilder::default().query().params();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{params}"))
+                    .await;
+
+                assert_could_not_find_remote_address_on_xff_header_error_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_fail_when_the_xff_http_request_header_contains_an_invalid_ip() {
+                let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Warp).await;
+
+                let params = QueryBuilder::default().query().params();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
+                    .await;
+
+                assert_invalid_remote_address_on_xff_header_error_response(response).await;
+            }
+        }
+
         mod receiving_an_announce_request {
 
             // Announce request documentation:
@@ -1242,6 +1283,49 @@ mod axum_http_tracker_server {
     }
 
     mod for_all_config_modes {
+
+        mod and_running_on_reverse_proxy {
+            use torrust_tracker::http::Version;
+
+            use crate::http::asserts::{
+                assert_could_not_find_remote_address_on_xff_header_error_response,
+                assert_invalid_remote_address_on_xff_header_error_response,
+            };
+            use crate::http::client::Client;
+            use crate::http::requests::announce::QueryBuilder;
+            use crate::http::server::start_http_tracker_on_reverse_proxy;
+
+            //#[tokio::test]
+            #[allow(dead_code)]
+            async fn should_fail_when_the_http_request_does_not_include_the_xff_http_request_header() {
+                // If the tracker is running behind a reverse proxy, the peer IP is the
+                // last IP in the `X-Forwarded-For` HTTP header, which is the IP of the proxy client.
+
+                let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Axum).await;
+
+                let params = QueryBuilder::default().query().params();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{params}"))
+                    .await;
+
+                assert_could_not_find_remote_address_on_xff_header_error_response(response).await;
+            }
+
+            //#[tokio::test]
+            #[allow(dead_code)]
+            async fn should_fail_when_the_xff_http_request_header_contains_an_invalid_ip() {
+                let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Axum).await;
+
+                let params = QueryBuilder::default().query().params();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
+                    .await;
+
+                assert_invalid_remote_address_on_xff_header_error_response(response).await;
+            }
+        }
 
         mod receiving_an_announce_request {
 

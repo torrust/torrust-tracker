@@ -1,13 +1,13 @@
 use std::convert::Infallible;
 use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
-use std::str::FromStr;
 use std::sync::Arc;
 
 use warp::{reject, Filter, Rejection};
 
 use super::error::Error;
 use super::{request, WebResult};
+use crate::http::handlers::maybe_rightmost_forwarded_ip;
 use crate::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 use crate::protocol::info_hash::InfoHash;
@@ -138,41 +138,33 @@ fn peer_id(raw_query: &String) -> WebResult<peer::Id> {
     }
 }
 
-/// Get `PeerAddress` from `RemoteAddress` or Forwarded
-fn peer_addr((on_reverse_proxy, remote_addr, x_forwarded_for): (bool, Option<SocketAddr>, Option<String>)) -> WebResult<IpAddr> {
-    if !on_reverse_proxy && remote_addr.is_none() {
+/// Get peer IP from HTTP client IP  or X-Forwarded-For HTTP header
+fn peer_addr(
+    (on_reverse_proxy, remote_client_ip, maybe_x_forwarded_for): (bool, Option<SocketAddr>, Option<String>),
+) -> WebResult<IpAddr> {
+    if on_reverse_proxy {
+        if maybe_x_forwarded_for.is_none() {
+            return Err(reject::custom(Error::AddressNotFound {
+                location: Location::caller(),
+                message: "must have a x-forwarded-for when using a reverse proxy".to_string(),
+            }));
+        }
+
+        let x_forwarded_for = maybe_x_forwarded_for.unwrap();
+
+        maybe_rightmost_forwarded_ip(&x_forwarded_for).map_err(|e| {
+            reject::custom(Error::AddressNotFound {
+                location: Location::caller(),
+                message: format!("on remote proxy and unable to parse the last x-forwarded-ip: `{e}`, from `{x_forwarded_for}`"),
+            })
+        })
+    } else if remote_client_ip.is_none() {
         return Err(reject::custom(Error::AddressNotFound {
             location: Location::caller(),
             message: "neither on have remote address or on a reverse proxy".to_string(),
         }));
-    }
-
-    if on_reverse_proxy && x_forwarded_for.is_none() {
-        return Err(reject::custom(Error::AddressNotFound {
-            location: Location::caller(),
-            message: "must have a x-forwarded-for when using a reverse proxy".to_string(),
-        }));
-    }
-
-    if on_reverse_proxy {
-        let mut x_forwarded_for_raw = x_forwarded_for.unwrap();
-        // remove whitespace chars
-        x_forwarded_for_raw.retain(|c| !c.is_whitespace());
-        // get all forwarded ip's in a vec
-        let x_forwarded_ips: Vec<&str> = x_forwarded_for_raw.split(',').collect();
-        // set client ip to last forwarded ip
-        let x_forwarded_ip = *x_forwarded_ips.last().unwrap();
-
-        IpAddr::from_str(x_forwarded_ip).map_err(|e| {
-            reject::custom(Error::AddressNotFound {
-                location: Location::caller(),
-                message: format!(
-                    "on remote proxy and unable to parse the last x-forwarded-ip: `{e}`, from `{x_forwarded_for_raw}`"
-                ),
-            })
-        })
     } else {
-        Ok(remote_addr.unwrap().ip())
+        return Ok(remote_client_ip.unwrap().ip());
     }
 }
 

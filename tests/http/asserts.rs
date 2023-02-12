@@ -127,3 +127,23 @@ pub async fn assert_invalid_authentication_key_error_response(response: Response
 
     assert_error_bencoded(&response.text().await.unwrap(), "is not valid", Location::caller());
 }
+
+pub async fn assert_could_not_find_remote_address_on_xff_header_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+
+    assert_error_bencoded(
+        &response.text().await.unwrap(),
+        "could not find remote address: must have a x-forwarded-for when using a reverse proxy",
+        Location::caller(),
+    );
+}
+
+pub async fn assert_invalid_remote_address_on_xff_header_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+
+    assert_error_bencoded(
+        &response.text().await.unwrap(),
+        "could not find remote address: on remote proxy and unable to parse the last x-forwarded-ip",
+        Location::caller(),
+    );
+}

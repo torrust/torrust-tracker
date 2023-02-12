@@ -7,15 +7,15 @@ use axum::http::request::Parts;
 use axum::http::StatusCode;
 use thiserror::Error;
 
-use super::query::Query;
+use crate::http::axum_implementation::query::Query;
 use crate::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::protocol::info_hash::{ConversionError, InfoHash};
 use crate::tracker::peer::{self, IdConversionError};
 
-pub struct ExtractAnnounceParams(pub AnnounceParams);
+pub struct ExtractAnnounceRequest(pub Announce);
 
 #[derive(Debug, PartialEq)]
-pub struct AnnounceParams {
+pub struct Announce {
     pub info_hash: InfoHash,
     pub peer_id: peer::Id,
     pub port: u16,
@@ -55,7 +55,7 @@ impl From<ConversionError> for ParseAnnounceQueryError {
     }
 }
 
-impl TryFrom<Query> for AnnounceParams {
+impl TryFrom<Query> for Announce {
     type Error = ParseAnnounceQueryError;
 
     fn try_from(query: Query) -> Result<Self, Self::Error> {
@@ -103,13 +103,15 @@ fn extract_port(query: &Query) -> Result<u16, ParseAnnounceQueryError> {
 }
 
 #[async_trait]
-impl<S> FromRequestParts<S> for ExtractAnnounceParams
+impl<S> FromRequestParts<S> for ExtractAnnounceRequest
 where
     S: Send + Sync,
 {
     type Rejection = (StatusCode, &'static str);
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        // todo: error responses body should be bencoded
+
         let raw_query = parts.uri.query();
 
         if raw_query.is_none() {
@@ -122,34 +124,34 @@ where
             return Err((StatusCode::BAD_REQUEST, "can't parse query params"));
         }
 
-        let announce_params = AnnounceParams::try_from(query.unwrap());
+        let announce_request = Announce::try_from(query.unwrap());
 
-        if announce_params.is_err() {
+        if announce_request.is_err() {
             return Err((StatusCode::BAD_REQUEST, "can't parse query params for announce request"));
         }
 
-        Ok(ExtractAnnounceParams(announce_params.unwrap()))
+        Ok(ExtractAnnounceRequest(announce_request.unwrap()))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::AnnounceParams;
+    use super::Announce;
     use crate::http::axum_implementation::query::Query;
     use crate::protocol::info_hash::InfoHash;
     use crate::tracker::peer;
 
     #[test]
-    fn announce_request_params_should_be_extracted_from_url_query_params() {
+    fn announce_request_should_be_extracted_from_url_query_params() {
         let raw_query = "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548";
 
         let query = raw_query.parse::<Query>().unwrap();
 
-        let announce_params = AnnounceParams::try_from(query).unwrap();
+        let announce_request = Announce::try_from(query).unwrap();
 
         assert_eq!(
-            announce_params,
-            AnnounceParams {
+            announce_request,
+            Announce {
                 info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
                 peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
                 port: 17548,
