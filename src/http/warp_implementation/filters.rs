@@ -6,8 +6,8 @@ use std::sync::Arc;
 use warp::{reject, Filter, Rejection};
 
 use super::error::Error;
+use super::filter_helpers::maybe_rightmost_forwarded_ip;
 use super::{request, WebResult};
-use crate::http::handlers::maybe_rightmost_forwarded_ip;
 use crate::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 use crate::protocol::info_hash::InfoHash;

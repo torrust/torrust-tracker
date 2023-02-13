@@ -4,19 +4,14 @@ use axum::extract::State;
 use axum::response::Json;
 use log::debug;
 
-use super::requests::announce::ExtractAnnounceRequest;
-use super::resources::ok::Ok;
-use super::responses::ok_response;
+use crate::http::axum_implementation::requests::announce::ExtractAnnounceRequest;
+use crate::http::axum_implementation::resources::ok::Ok;
+use crate::http::axum_implementation::responses::ok;
 use crate::tracker::Tracker;
-
-#[allow(clippy::unused_async)]
-pub async fn get_status_handler() -> Json<Ok> {
-    ok_response()
-}
 
 /// WIP
 #[allow(clippy::unused_async)]
-pub async fn announce_handler(
+pub async fn handle(
     State(_tracker): State<Arc<Tracker>>,
     ExtractAnnounceRequest(announce_request): ExtractAnnounceRequest,
 ) -> Json<Ok> {
@@ -38,5 +33,5 @@ pub async fn announce_handler(
 
     debug!("info_hash: {:#?}", &info_hash);
 
-    ok_response()
+    ok::response()
 }

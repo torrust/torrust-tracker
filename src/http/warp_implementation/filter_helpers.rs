@@ -6,8 +6,6 @@ use thiserror::Error;
 
 use crate::located_error::{Located, LocatedError};
 
-pub mod announce;
-
 #[derive(Error, Debug)]
 pub enum XForwardedForParseError {
     #[error("Empty X-Forwarded-For header value, {location}")]
@@ -57,7 +55,7 @@ mod tests {
     use std::net::IpAddr;
     use std::str::FromStr;
 
-    use crate::http::handlers::maybe_rightmost_forwarded_ip;
+    use super::maybe_rightmost_forwarded_ip;
 
     #[test]
     fn the_last_forwarded_ip_can_be_parsed_from_the_the_corresponding_http_header() {

@@ -13,7 +13,6 @@
 use serde::{Deserialize, Serialize};
 
 pub mod axum_implementation;
-pub mod handlers;
 pub mod percent_encoding;
 pub mod warp_implementation;
 
