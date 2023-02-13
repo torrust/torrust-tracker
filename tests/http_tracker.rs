@@ -110,7 +110,7 @@ mod warp_http_tracker_server {
             }
 
             #[tokio::test]
-            async fn should_fail_when_the_request_is_empty() {
+            async fn should_fail_when_the_url_query_component_is_empty() {
                 let http_tracker_server = start_default_http_tracker(Version::Warp).await;
 
                 let response = Client::new(http_tracker_server.get_connection_info()).get("announce").await;
@@ -1351,9 +1351,10 @@ mod axum_http_tracker_server {
 
             use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
             use crate::http::asserts::{
-                assert_announce_response, assert_compact_announce_response, assert_empty_announce_response,
-                assert_internal_server_error_response, assert_invalid_info_hash_error_response,
-                assert_invalid_peer_id_error_response, assert_is_announce_response,
+                assert_announce_response, assert_bad_announce_request_error_response,
+                assert_cannot_parse_query_param_error_response, assert_cannot_parse_query_params_error_response,
+                assert_compact_announce_response, assert_empty_announce_response, assert_internal_server_error_response,
+                assert_is_announce_response, assert_missing_query_params_for_announce_request_error_response,
             };
             use crate::http::client::Client;
             use crate::http::requests::announce::{Compact, QueryBuilder};
@@ -1380,18 +1381,29 @@ mod axum_http_tracker_server {
                 assert_is_announce_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
-            async fn should_fail_when_the_request_is_empty() {
+            #[tokio::test]
+            async fn should_fail_when_the_url_query_component_is_empty() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
                 let response = Client::new(http_tracker_server.get_connection_info()).get("announce").await;
 
-                assert_internal_server_error_response(response).await;
+                assert_missing_query_params_for_announce_request_error_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
+            async fn should_fail_when_url_query_parameters_are_invalid() {
+                let http_tracker_server = start_default_http_tracker(Version::Axum).await;
+
+                let invalid_query_param = "a=b=c";
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{invalid_query_param}"))
+                    .await;
+
+                assert_cannot_parse_query_param_error_response(response, "invalid param a=b=c").await;
+            }
+
+            #[tokio::test]
             async fn should_fail_when_a_mandatory_field_is_missing() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1405,7 +1417,7 @@ mod axum_http_tracker_server {
                     .get(&format!("announce?{params}"))
                     .await;
 
-                assert_invalid_info_hash_error_response(response).await;
+                assert_bad_announce_request_error_response(response, "missing info_hash param").await;
 
                 // Without `peer_id` param
 
@@ -1417,7 +1429,7 @@ mod axum_http_tracker_server {
                     .get(&format!("announce?{params}"))
                     .await;
 
-                assert_invalid_peer_id_error_response(response).await;
+                assert_bad_announce_request_error_response(response, "missing peer_id param").await;
 
                 // Without `port` param
 
@@ -1429,11 +1441,10 @@ mod axum_http_tracker_server {
                     .get(&format!("announce?{params}"))
                     .await;
 
-                assert_internal_server_error_response(response).await;
+                assert_bad_announce_request_error_response(response, "missing port param").await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_info_hash_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1446,7 +1457,7 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_invalid_info_hash_error_response(response).await;
+                    assert_cannot_parse_query_params_error_response(response, "").await;
                 }
             }
 
@@ -1511,8 +1522,7 @@ mod axum_http_tracker_server {
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_peer_id_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1534,12 +1544,11 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_invalid_peer_id_error_response(response).await;
+                    assert_cannot_parse_query_params_error_response(response, "").await;
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_port_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1554,7 +1563,7 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_internal_server_error_response(response).await;
+                    assert_cannot_parse_query_params_error_response(response, "").await;
                 }
             }
 

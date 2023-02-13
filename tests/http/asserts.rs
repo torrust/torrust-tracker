@@ -6,7 +6,7 @@ use super::responses::announce::{Announce, Compact, DeserializedCompact};
 use super::responses::scrape;
 use crate::http::responses::error::Error;
 
-pub fn assert_error_bencoded(response_text: &String, expected_failure_reason: &str, location: &'static Location<'static>) {
+pub fn assert_bencoded_error(response_text: &String, expected_failure_reason: &str, location: &'static Location<'static>) {
     let error_failure_reason = serde_bencode::from_str::<Error>(response_text)
     .unwrap_or_else(|_| panic!(
                 "response body should be a valid bencoded string for the '{expected_failure_reason}' error, got \"{response_text}\""
@@ -18,7 +18,7 @@ pub fn assert_error_bencoded(response_text: &String, expected_failure_reason: &s
         error_failure_reason.contains(expected_failure_reason),
         r#":
   response: `"{error_failure_reason}"`
-  dose not contain: `"{expected_failure_reason}"`, {location}"#
+  does not contain: `"{expected_failure_reason}"`, {location}"#
     );
 }
 
@@ -83,13 +83,13 @@ pub async fn assert_is_announce_response(response: Response) {
 pub async fn assert_internal_server_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(&response.text().await.unwrap(), "internal server", Location::caller());
+    assert_bencoded_error(&response.text().await.unwrap(), "internal server", Location::caller());
 }
 
 pub async fn assert_invalid_info_hash_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(
+    assert_bencoded_error(
         &response.text().await.unwrap(),
         "no valid infohashes found",
         Location::caller(),
@@ -99,7 +99,7 @@ pub async fn assert_invalid_info_hash_error_response(response: Response) {
 pub async fn assert_invalid_peer_id_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(
+    assert_bencoded_error(
         &response.text().await.unwrap(),
         "peer_id is either missing or invalid",
         Location::caller(),
@@ -109,13 +109,13 @@ pub async fn assert_invalid_peer_id_error_response(response: Response) {
 pub async fn assert_torrent_not_in_whitelist_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(&response.text().await.unwrap(), "is not whitelisted", Location::caller());
+    assert_bencoded_error(&response.text().await.unwrap(), "is not whitelisted", Location::caller());
 }
 
 pub async fn assert_peer_not_authenticated_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(
+    assert_bencoded_error(
         &response.text().await.unwrap(),
         "The peer is not authenticated",
         Location::caller(),
@@ -125,13 +125,13 @@ pub async fn assert_peer_not_authenticated_error_response(response: Response) {
 pub async fn assert_invalid_authentication_key_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(&response.text().await.unwrap(), "is not valid", Location::caller());
+    assert_bencoded_error(&response.text().await.unwrap(), "is not valid", Location::caller());
 }
 
 pub async fn assert_could_not_find_remote_address_on_xff_header_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(
+    assert_bencoded_error(
         &response.text().await.unwrap(),
         "could not find remote address: must have a x-forwarded-for when using a reverse proxy",
         Location::caller(),
@@ -141,9 +141,39 @@ pub async fn assert_could_not_find_remote_address_on_xff_header_error_response(r
 pub async fn assert_invalid_remote_address_on_xff_header_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
-    assert_error_bencoded(
+    assert_bencoded_error(
         &response.text().await.unwrap(),
         "could not find remote address: on remote proxy and unable to parse the last x-forwarded-ip",
+        Location::caller(),
+    );
+}
+
+// Specific errors for announce request
+
+pub async fn assert_missing_query_params_for_announce_request_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+
+    assert_bencoded_error(
+        &response.text().await.unwrap(),
+        "missing query params for announce request",
+        Location::caller(),
+    );
+}
+
+pub async fn assert_bad_announce_request_error_response(response: Response, failure: &str) {
+    assert_cannot_parse_query_params_error_response(response, &format!(" for announce request: {failure}")).await;
+}
+
+pub async fn assert_cannot_parse_query_param_error_response(response: Response, failure: &str) {
+    assert_cannot_parse_query_params_error_response(response, &format!(": {failure}")).await;
+}
+
+pub async fn assert_cannot_parse_query_params_error_response(response: Response, failure: &str) {
+    assert_eq!(response.status(), 200);
+
+    assert_bencoded_error(
+        &response.text().await.unwrap(),
+        &format!("Cannot parse query params{failure}"),
         Location::caller(),
     );
 }

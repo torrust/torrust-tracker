@@ -4,10 +4,11 @@ use std::str::FromStr;
 use axum::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
-use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
 use thiserror::Error;
 
-use crate::http::axum_implementation::query::Query;
+use crate::http::axum_implementation::query::{ParseQueryError, Query};
+use crate::http::axum_implementation::responses;
 use crate::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::protocol::info_hash::{ConversionError, InfoHash};
 use crate::tracker::peer::{self, IdConversionError};
@@ -23,17 +24,17 @@ pub struct Announce {
 
 #[derive(Error, Debug)]
 pub enum ParseAnnounceQueryError {
-    #[error("missing infohash {location}")]
+    #[error("missing info_hash param: {location}")]
     MissingInfoHash { location: &'static Location<'static> },
-    #[error("invalid infohash {location}")]
+    #[error("invalid info_hash param: {location}")]
     InvalidInfoHash { location: &'static Location<'static> },
-    #[error("missing peer id {location}")]
+    #[error("missing peer_id param: {location}")]
     MissingPeerId { location: &'static Location<'static> },
-    #[error("invalid peer id {location}")]
+    #[error("invalid peer_id param: {location}")]
     InvalidPeerId { location: &'static Location<'static> },
-    #[error("missing port {location}")]
+    #[error("missing port param: {location}")]
     MissingPort { location: &'static Location<'static> },
-    #[error("invalid port {location}")]
+    #[error("invalid port param: {location}")]
     InvalidPort { location: &'static Location<'static> },
 }
 
@@ -49,8 +50,27 @@ impl From<IdConversionError> for ParseAnnounceQueryError {
 impl From<ConversionError> for ParseAnnounceQueryError {
     #[track_caller]
     fn from(_err: ConversionError) -> Self {
-        Self::InvalidPeerId {
+        Self::InvalidInfoHash {
             location: Location::caller(),
+        }
+    }
+}
+
+impl From<ParseQueryError> for responses::error::Error {
+    fn from(err: ParseQueryError) -> Self {
+        responses::error::Error {
+            // code-review: should we expose error location in public HTTP tracker API?
+            // Error message example: "Cannot parse query params: invalid param a=b=c in src/http/axum_implementation/query.rs:50:27"
+            failure_reason: format!("Cannot parse query params: {err}"),
+        }
+    }
+}
+
+impl From<ParseAnnounceQueryError> for responses::error::Error {
+    fn from(err: ParseAnnounceQueryError) -> Self {
+        responses::error::Error {
+            // code-review: should we expose error location in public HTTP tracker API?
+            failure_reason: format!("Cannot parse query params for announce request: {err}"),
         }
     }
 }
@@ -107,27 +127,28 @@ impl<S> FromRequestParts<S> for ExtractAnnounceRequest
 where
     S: Send + Sync,
 {
-    type Rejection = (StatusCode, &'static str);
+    type Rejection = Response;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        // todo: error responses body should be bencoded
-
         let raw_query = parts.uri.query();
 
         if raw_query.is_none() {
-            return Err((StatusCode::BAD_REQUEST, "missing query params"));
+            return Err(responses::error::Error {
+                failure_reason: "missing query params for announce request".to_string(),
+            }
+            .into_response());
         }
 
         let query = raw_query.unwrap().parse::<Query>();
 
-        if query.is_err() {
-            return Err((StatusCode::BAD_REQUEST, "can't parse query params"));
+        if let Err(error) = query {
+            return Err(responses::error::Error::from(error).into_response());
         }
 
         let announce_request = Announce::try_from(query.unwrap());
 
-        if announce_request.is_err() {
-            return Err((StatusCode::BAD_REQUEST, "can't parse query params for announce request"));
+        if let Err(error) = announce_request {
+            return Err(responses::error::Error::from(error).into_response());
         }
 
         Ok(ExtractAnnounceRequest(announce_request.unwrap()))

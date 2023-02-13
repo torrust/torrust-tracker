@@ -45,7 +45,7 @@ impl FromStr for Param {
     fn from_str(raw_param: &str) -> Result<Self, Self::Err> {
         let pair = raw_param.split('=').collect::<Vec<&str>>();
 
-        if pair.len() > 2 {
+        if pair.len() != 2 {
             return Err(ParseQueryError::InvalidParam {
                 location: Location::caller(),
                 raw_param: raw_param.to_owned(),
