@@ -708,9 +708,6 @@ mod warp_http_tracker_server {
 
                 let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
 
-                // todo: shouldn't be the the leftmost IP address?
-                // THe application is taken the the rightmost IP address. See function http::filters::peer_addr
-                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
                 client
                     .announce_with_header(
                         &announce_query,
@@ -1266,6 +1263,8 @@ mod axum_http_tracker_server {
 
     // WIP: migration HTTP from Warp to Axum
 
+    use local_ip_address::local_ip;
+    use torrust_tracker::http::axum_implementation::resources::ok::Ok;
     use torrust_tracker::http::Version;
 
     use crate::http::client::Client;
@@ -1274,12 +1273,118 @@ mod axum_http_tracker_server {
     #[tokio::test]
     async fn should_return_the_status() {
         // This is a temporary test to test the new Axum HTTP tracker server scaffolding
+
         let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
-        let response = Client::new(http_tracker_server.get_connection_info()).get("status").await;
+        let client_ip = local_ip().unwrap();
 
-        assert_eq!(response.status(), 200);
-        assert_eq!(response.text().await.unwrap(), "{}");
+        let response = Client::bind(http_tracker_server.get_connection_info(), client_ip)
+            .get("status")
+            .await;
+
+        let ok: Ok = serde_json::from_str(&response.text().await.unwrap()).unwrap();
+
+        assert_eq!(
+            ok,
+            Ok {
+                remote_client_insecure_ip: client_ip,
+                remote_client_secure_ip: client_ip
+            }
+        );
+    }
+
+    mod should_get_the_remote_client_ip_from_the_http_request {
+
+        // Temporary tests to test that the new Axum HTTP tracker gets the right remote client IP.
+        // Once the implementation is finished, test for announce request will cover these cases.
+
+        use std::net::IpAddr;
+        use std::str::FromStr;
+
+        use local_ip_address::local_ip;
+        use torrust_tracker::http::axum_implementation::resources::ok::Ok;
+        use torrust_tracker::http::Version;
+
+        use crate::http::client::Client;
+        use crate::http::server::{start_http_tracker_on_reverse_proxy, start_public_http_tracker};
+
+        #[tokio::test]
+        async fn when_the_client_ip_is_a_local_ip_it_should_assign_that_ip() {
+            let http_tracker_server = start_public_http_tracker(Version::Axum).await;
+
+            let client_ip = local_ip().unwrap();
+
+            let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
+
+            let response = client.get("status").await;
+
+            let ok: Ok = serde_json::from_str(&response.text().await.unwrap()).unwrap();
+
+            assert_eq!(
+                ok,
+                Ok {
+                    remote_client_insecure_ip: client_ip,
+                    remote_client_secure_ip: client_ip
+                }
+            );
+        }
+
+        #[tokio::test]
+        async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_that_ip() {
+            let http_tracker_server = start_public_http_tracker(Version::Axum).await;
+
+            let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
+            let client_ip = loopback_ip;
+
+            let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
+
+            let response = client.get("status").await;
+
+            let ok: Ok = serde_json::from_str(&response.text().await.unwrap()).unwrap();
+
+            assert_eq!(
+                ok,
+                Ok {
+                    remote_client_insecure_ip: client_ip,
+                    remote_client_secure_ip: client_ip
+                }
+            );
+        }
+
+        #[tokio::test]
+        async fn when_the_tracker_is_behind_a_reverse_proxy_it_should_assign_as_secure_ip_the_right_most_ip_in_the_x_forwarded_for_http_header(
+        ) {
+            /*
+            client          <-> http proxy                       <-> tracker                   <-> Internet
+            ip:                 header:                              config:                       remote client ip:
+            145.254.214.256     X-Forwarded-For = 145.254.214.256    on_reverse_proxy = true       145.254.214.256
+            */
+
+            let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Axum).await;
+
+            let client = Client::new(http_tracker_server.get_connection_info());
+
+            let left_most_ip = IpAddr::from_str("203.0.113.195").unwrap();
+            let right_most_ip = IpAddr::from_str("150.172.238.178").unwrap();
+
+            let response = client
+                .get_with_header(
+                    "status",
+                    "X-Forwarded-For",
+                    &format!("{left_most_ip},2001:db8:85a3:8d3:1319:8a2e:370:7348,{right_most_ip}"),
+                )
+                .await;
+
+            let ok: Ok = serde_json::from_str(&response.text().await.unwrap()).unwrap();
+
+            assert_eq!(
+                ok,
+                Ok {
+                    remote_client_insecure_ip: left_most_ip,
+                    remote_client_secure_ip: right_most_ip
+                }
+            );
+        }
     }
 
     mod for_all_config_modes {
@@ -2014,9 +2119,6 @@ mod axum_http_tracker_server {
 
                 let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
 
-                // todo: shouldn't be the the leftmost IP address?
-                // THe application is taken the the rightmost IP address. See function http::filters::peer_addr
-                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
                 client
                     .announce_with_header(
                         &announce_query,
