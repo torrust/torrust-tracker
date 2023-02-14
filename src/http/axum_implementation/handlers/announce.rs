@@ -1,41 +1,56 @@
+use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use axum::extract::State;
-use axum::response::Json;
-use axum_client_ip::{InsecureClientIp, SecureClientIp};
-use log::debug;
+use axum::response::{IntoResponse, Response};
+use axum_client_ip::SecureClientIp;
 
-use crate::http::axum_implementation::requests::announce::ExtractAnnounceRequest;
-use crate::http::axum_implementation::resources::ok::Ok;
-use crate::http::axum_implementation::responses::ok;
-use crate::tracker::Tracker;
+use crate::http::axum_implementation::requests::announce::{Announce, ExtractAnnounceRequest};
+use crate::http::axum_implementation::responses;
+use crate::protocol::clock::{Current, Time};
+use crate::tracker::peer::Peer;
+use crate::tracker::{statistics, Tracker};
 
 /// WIP
 #[allow(clippy::unused_async)]
 pub async fn handle(
-    State(_tracker): State<Arc<Tracker>>,
+    State(tracker): State<Arc<Tracker>>,
     ExtractAnnounceRequest(announce_request): ExtractAnnounceRequest,
-    insecure_ip: InsecureClientIp,
     secure_ip: SecureClientIp,
-) -> Json<Ok> {
-    /* todo:
-        - Extract remote client ip from request
-        - Build the `Peer`
-        - Call the `tracker.announce` method
-        - Send event for stats
-        - Move response from Warp to shared mod
-        - Send response
-    */
-
-    // Sample announce URL used for debugging:
-    // http://0.0.0.0:7070/announce?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548
+) -> Response {
+    // todo: compact response and optional params
 
     let info_hash = announce_request.info_hash;
+    let remote_client_ip = secure_ip.0;
 
-    debug!("http announce request: {:#?}", announce_request);
-    debug!("info_hash: {:#?}", &info_hash);
-    debug!("remote client ip, insecure_ip: {:#?}", &insecure_ip);
-    debug!("remote client ip, secure_ip: {:#?}", &secure_ip);
+    let mut peer = peer_from_request(&announce_request, &remote_client_ip);
 
-    ok::response(&insecure_ip.0, &secure_ip.0)
+    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
+
+    match remote_client_ip {
+        IpAddr::V4(_) => {
+            tracker.send_stats_event(statistics::Event::Tcp4Announce).await;
+        }
+        IpAddr::V6(_) => {
+            tracker.send_stats_event(statistics::Event::Tcp6Announce).await;
+        }
+    }
+
+    responses::announce::Announce::from(response).into_response()
+}
+
+#[must_use]
+fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> Peer {
+    #[allow(clippy::cast_possible_truncation)]
+    Peer {
+        peer_id: announce_request.peer_id,
+        peer_addr: SocketAddr::new(*peer_ip, announce_request.port),
+        updated: Current::now(),
+        // todo: optional parameters not included in the announce request yet
+        uploaded: NumberOfBytes(i128::from(0) as i64),
+        downloaded: NumberOfBytes(i128::from(0) as i64),
+        left: NumberOfBytes(i128::from(0) as i64),
+        event: AnnounceEvent::None,
+    }
 }

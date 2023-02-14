@@ -1470,8 +1470,7 @@ mod axum_http_tracker_server {
                 start_ipv6_http_tracker, start_public_http_tracker,
             };
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_respond_if_only_the_mandatory_fields_are_provided() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1742,8 +1741,7 @@ mod axum_http_tracker_server {
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1768,8 +1766,7 @@ mod axum_http_tracker_server {
                 .await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_the_list_of_previously_announced_peers() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1793,7 +1790,7 @@ mod axum_http_tracker_server {
                     )
                     .await;
 
-                // It should only contain teh previously announced peer
+                // It should only contain the previously announced peer
                 assert_announce_response(
                     response,
                     &Announce {
@@ -1807,8 +1804,7 @@ mod axum_http_tracker_server {
                 .await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_peer_id_even_if_the_ip_is_different() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1872,8 +1868,7 @@ mod axum_http_tracker_server {
                 assert_compact_announce_response(response, &expected_response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_not_return_the_compact_response_by_default() {
                 // code-review: the HTTP tracker does not return the compact response by default if the "compact"
                 // param is not provided in the announce URL. The BEP 23 suggest to do so.
@@ -1912,8 +1907,7 @@ mod axum_http_tracker_server {
                 compact_announce.is_ok()
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_increase_the_number_of_tcp4_connections_handled_in_statistics() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1926,8 +1920,7 @@ mod axum_http_tracker_server {
                 assert_eq!(stats.tcp4_connections_handled, 1);
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_increase_the_number_of_tcp6_connections_handled_in_statistics() {
                 let http_tracker_server = start_ipv6_http_tracker(Version::Axum).await;
 
@@ -1960,8 +1953,7 @@ mod axum_http_tracker_server {
                 assert_eq!(stats.tcp6_connections_handled, 0);
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_increase_the_number_of_tcp4_announce_requests_handled_in_statistics() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1974,8 +1966,7 @@ mod axum_http_tracker_server {
                 assert_eq!(stats.tcp4_announces_handled, 1);
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_increase_the_number_of_tcp6_announce_requests_handled_in_statistics() {
                 let http_tracker_server = start_ipv6_http_tracker(Version::Axum).await;
 
@@ -2032,8 +2023,7 @@ mod axum_http_tracker_server {
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration(
             ) {
                 /*  We assume that both the client and tracker share the same public IP.
@@ -2065,8 +2055,7 @@ mod axum_http_tracker_server {
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration(
             ) {
                 /* We assume that both the client and tracker share the same public IP.
@@ -2101,8 +2090,7 @@ mod axum_http_tracker_server {
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn when_the_tracker_is_behind_a_reverse_proxy_it_should_assign_to_the_peer_ip_the_ip_in_the_x_forwarded_for_http_header(
             ) {
                 /*
