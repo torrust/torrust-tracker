@@ -5,8 +5,9 @@ use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use axum_client_ip::SecureClientIp;
+use log::debug;
 
-use crate::http::axum_implementation::requests::announce::{Announce, ExtractAnnounceRequest};
+use crate::http::axum_implementation::requests::announce::{Announce, Event, ExtractAnnounceRequest};
 use crate::http::axum_implementation::responses;
 use crate::protocol::clock::{Current, Time};
 use crate::tracker::peer::Peer;
@@ -19,7 +20,7 @@ pub async fn handle(
     ExtractAnnounceRequest(announce_request): ExtractAnnounceRequest,
     secure_ip: SecureClientIp,
 ) -> Response {
-    // todo: compact response and optional params
+    debug!("http announce request: {:#?}", announce_request);
 
     let info_hash = announce_request.info_hash;
     let remote_client_ip = secure_ip.0;
@@ -42,15 +43,24 @@ pub async fn handle(
 
 #[must_use]
 fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> Peer {
-    #[allow(clippy::cast_possible_truncation)]
     Peer {
         peer_id: announce_request.peer_id,
         peer_addr: SocketAddr::new(*peer_ip, announce_request.port),
         updated: Current::now(),
-        // todo: optional parameters not included in the announce request yet
-        uploaded: NumberOfBytes(i128::from(0) as i64),
-        downloaded: NumberOfBytes(i128::from(0) as i64),
-        left: NumberOfBytes(i128::from(0) as i64),
-        event: AnnounceEvent::None,
+        uploaded: NumberOfBytes(announce_request.uploaded.unwrap_or(0)),
+        downloaded: NumberOfBytes(announce_request.downloaded.unwrap_or(0)),
+        left: NumberOfBytes(announce_request.left.unwrap_or(0)),
+        event: map_to_aquatic_event(&announce_request.event),
+    }
+}
+
+fn map_to_aquatic_event(event: &Option<Event>) -> AnnounceEvent {
+    match event {
+        Some(event) => match &event {
+            Event::Started => aquatic_udp_protocol::AnnounceEvent::Started,
+            Event::Stopped => aquatic_udp_protocol::AnnounceEvent::Stopped,
+            Event::Completed => aquatic_udp_protocol::AnnounceEvent::Completed,
+        },
+        None => aquatic_udp_protocol::AnnounceEvent::None,
     }
 }
