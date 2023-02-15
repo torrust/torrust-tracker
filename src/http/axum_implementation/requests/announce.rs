@@ -13,10 +13,13 @@ use crate::http::percent_encoding::{percent_decode_info_hash, percent_decode_pee
 use crate::protocol::info_hash::{ConversionError, InfoHash};
 use crate::tracker::peer::{self, IdConversionError};
 
+pub type Bytes = u64;
+
 pub struct ExtractAnnounceRequest(pub Announce);
 
 #[derive(Debug, PartialEq)]
 pub struct Announce {
+    // Mandatory params
     pub info_hash: InfoHash,
     pub peer_id: peer::Id,
     pub port: u16,
@@ -157,26 +160,51 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::Announce;
-    use crate::http::axum_implementation::query::Query;
-    use crate::protocol::info_hash::InfoHash;
-    use crate::tracker::peer;
 
-    #[test]
-    fn announce_request_should_be_extracted_from_url_query_params() {
-        let raw_query = "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548";
+    mod announce_request {
 
-        let query = raw_query.parse::<Query>().unwrap();
+        use crate::http::axum_implementation::query::Query;
+        use crate::http::axum_implementation::requests::announce::Announce;
+        use crate::protocol::info_hash::InfoHash;
+        use crate::tracker::peer;
 
-        let announce_request = Announce::try_from(query).unwrap();
+        #[test]
+        fn should_be_instantiated_from_url_query_params() {
+            let raw_query = Query::from(vec![
+                ("info_hash", "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
+                ("peer_id", "-qB00000000000000001"),
+                ("port", "17548"),
+            ])
+            .to_string();
 
-        assert_eq!(
-            announce_request,
-            Announce {
-                info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
-                peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
-                port: 17548,
-            }
-        );
+            let query = raw_query.parse::<Query>().unwrap();
+
+            let announce_request = Announce::try_from(query).unwrap();
+
+            assert_eq!(
+                announce_request,
+                Announce {
+                    info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
+                    peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
+                    port: 17548,
+                }
+            );
+        }
+
+        #[test]
+        fn should_fail_instantiating_from_url_query_params_if_the_query_does_not_include_all_the_mandatory_params() {
+            let raw_query_without_info_hash = "peer_id=-qB00000000000000001&port=17548";
+
+            assert!(Announce::try_from(raw_query_without_info_hash.parse::<Query>().unwrap()).is_err());
+
+            let raw_query_without_peer_id = "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&port=17548";
+
+            assert!(Announce::try_from(raw_query_without_peer_id.parse::<Query>().unwrap()).is_err());
+
+            let raw_query_without_port =
+                "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001";
+
+            assert!(Announce::try_from(raw_query_without_port.parse::<Query>().unwrap()).is_err());
+        }
     }
 }
