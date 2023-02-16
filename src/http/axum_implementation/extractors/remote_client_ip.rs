@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 /// This extractor extracts these values from the HTTP headers and connection info.
 ///
 /// `right_most_x_forwarded_for` = 126.0.0.2
-/// `connection_info_ip`         = 126.0.0.1
+/// `connection_info_ip`         = 126.0.0.3
 ///
 /// More info about inner extractors :<https://github.com/imbolc/axum-client-ip>
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
