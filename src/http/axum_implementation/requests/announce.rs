@@ -2,10 +2,6 @@ use std::fmt;
 use std::panic::Location;
 use std::str::FromStr;
 
-use axum::async_trait;
-use axum::extract::FromRequestParts;
-use axum::http::request::Parts;
-use axum::response::{IntoResponse, Response};
 use thiserror::Error;
 
 use crate::http::axum_implementation::query::{ParseQueryError, Query};
@@ -17,9 +13,7 @@ use crate::tracker::peer::{self, IdConversionError};
 
 pub type NumberOfBytes = i64;
 
-pub struct ExtractAnnounceRequest(pub Announce);
-
-// Param names in the URL query
+// Query param names
 const INFO_HASH: &str = "info_hash";
 const PEER_ID: &str = "peer_id";
 const PORT: &str = "port";
@@ -41,6 +35,41 @@ pub struct Announce {
     pub left: Option<NumberOfBytes>,
     pub event: Option<Event>,
     pub compact: Option<Compact>,
+}
+
+#[derive(Error, Debug)]
+pub enum ParseAnnounceQueryError {
+    #[error("missing query params for announce request in {location}")]
+    MissingParams { location: &'static Location<'static> },
+    #[error("missing param {param_name} in {location}")]
+    MissingParam {
+        location: &'static Location<'static>,
+        param_name: String,
+    },
+    #[error("invalid param value {param_value} for {param_name} in {location}")]
+    InvalidParam {
+        param_name: String,
+        param_value: String,
+        location: &'static Location<'static>,
+    },
+    #[error("param value overflow {param_value} for {param_name} in {location}")]
+    NumberOfBytesOverflow {
+        param_name: String,
+        param_value: String,
+        location: &'static Location<'static>,
+    },
+    #[error("invalid param value {param_value} for {param_name} in {source}")]
+    InvalidInfoHashParam {
+        param_name: String,
+        param_value: String,
+        source: LocatedError<'static, ConversionError>,
+    },
+    #[error("invalid param value {param_value} for {param_name} in {source}")]
+    InvalidPeerIdParam {
+        param_name: String,
+        param_value: String,
+        source: LocatedError<'static, IdConversionError>,
+    },
 }
 
 #[derive(PartialEq, Debug)]
@@ -106,41 +135,6 @@ impl FromStr for Compact {
             }),
         }
     }
-}
-
-#[derive(Error, Debug)]
-pub enum ParseAnnounceQueryError {
-    #[error("missing query params for announce request in {location}")]
-    MissingParams { location: &'static Location<'static> },
-    #[error("missing param {param_name} in {location}")]
-    MissingParam {
-        location: &'static Location<'static>,
-        param_name: String,
-    },
-    #[error("invalid param value {param_value} for {param_name} in {location}")]
-    InvalidParam {
-        param_name: String,
-        param_value: String,
-        location: &'static Location<'static>,
-    },
-    #[error("param value overflow {param_value} for {param_name} in {location}")]
-    NumberOfBytesOverflow {
-        param_name: String,
-        param_value: String,
-        location: &'static Location<'static>,
-    },
-    #[error("invalid param value {param_value} for {param_name} in {source}")]
-    InvalidInfoHashParam {
-        param_name: String,
-        param_value: String,
-        source: LocatedError<'static, ConversionError>,
-    },
-    #[error("invalid param value {param_value} for {param_name} in {source}")]
-    InvalidPeerIdParam {
-        param_name: String,
-        param_value: String,
-        source: LocatedError<'static, IdConversionError>,
-    },
 }
 
 impl From<ParseQueryError> for responses::error::Error {
@@ -278,39 +272,6 @@ fn extract_compact(query: &Query) -> Result<Option<Compact>, ParseAnnounceQueryE
     match query.get_param(COMPACT) {
         Some(raw_param) => Ok(Some(Compact::from_str(&raw_param)?)),
         None => Ok(None),
-    }
-}
-
-#[async_trait]
-impl<S> FromRequestParts<S> for ExtractAnnounceRequest
-where
-    S: Send + Sync,
-{
-    type Rejection = Response;
-
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let raw_query = parts.uri.query();
-
-        if raw_query.is_none() {
-            return Err(responses::error::Error::from(ParseAnnounceQueryError::MissingParams {
-                location: Location::caller(),
-            })
-            .into_response());
-        }
-
-        let query = raw_query.unwrap().parse::<Query>();
-
-        if let Err(error) = query {
-            return Err(responses::error::Error::from(error).into_response());
-        }
-
-        let announce_request = Announce::try_from(query.unwrap());
-
-        if let Err(error) = announce_request {
-            return Err(responses::error::Error::from(error).into_response());
-        }
-
-        Ok(ExtractAnnounceRequest(announce_request.unwrap()))
     }
 }
 

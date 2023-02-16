@@ -6,9 +6,10 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
+use crate::http::axum_implementation::extractors::announce_request::ExtractRequest;
 use crate::http::axum_implementation::extractors::peer_ip::assign_ip_address_to_peer;
 use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
-use crate::http::axum_implementation::requests::announce::{Announce, Event, ExtractAnnounceRequest};
+use crate::http::axum_implementation::requests::announce::{Announce, Event};
 use crate::http::axum_implementation::{responses, services};
 use crate::protocol::clock::{Current, Time};
 use crate::tracker::peer::Peer;
@@ -17,7 +18,7 @@ use crate::tracker::Tracker;
 #[allow(clippy::unused_async)]
 pub async fn handle(
     State(tracker): State<Arc<Tracker>>,
-    ExtractAnnounceRequest(announce_request): ExtractAnnounceRequest,
+    ExtractRequest(announce_request): ExtractRequest,
     remote_client_ip: RemoteClientIp,
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
