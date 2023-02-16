@@ -1,9 +1,8 @@
-use std::net::IpAddr;
-
 use serde::{Deserialize, Serialize};
+
+use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Ok {
-    pub remote_client_insecure_ip: IpAddr,
-    pub remote_client_secure_ip: IpAddr,
+    pub remote_client_ip: RemoteClientIp,
 }

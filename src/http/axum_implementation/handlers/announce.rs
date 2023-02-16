@@ -4,32 +4,38 @@ use std::sync::Arc;
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
-use axum_client_ip::SecureClientIp;
 use log::debug;
 
+use crate::http::axum_implementation::extractors::peer_ip::peer_ip;
+use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
 use crate::http::axum_implementation::requests::announce::{Announce, Event, ExtractAnnounceRequest};
 use crate::http::axum_implementation::responses;
 use crate::protocol::clock::{Current, Time};
 use crate::tracker::peer::Peer;
 use crate::tracker::{statistics, Tracker};
 
-/// WIP
 #[allow(clippy::unused_async)]
 pub async fn handle(
     State(tracker): State<Arc<Tracker>>,
     ExtractAnnounceRequest(announce_request): ExtractAnnounceRequest,
-    secure_ip: SecureClientIp,
+    remote_client_ip: RemoteClientIp,
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
 
     let info_hash = announce_request.info_hash;
-    let remote_client_ip = secure_ip.0;
 
-    let mut peer = peer_from_request(&announce_request, &remote_client_ip);
+    let peer_ip = peer_ip(tracker.config.on_reverse_proxy, &remote_client_ip);
 
-    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
+    let peer_ip = match peer_ip {
+        Ok(peer_ip) => peer_ip,
+        Err(err) => return err,
+    };
 
-    match remote_client_ip {
+    let mut peer = peer_from_request(&announce_request, &peer_ip);
+
+    let response = tracker.announce(&info_hash, &mut peer, &peer_ip).await;
+
+    match peer_ip {
         IpAddr::V4(_) => {
             tracker.send_stats_event(statistics::Event::Tcp4Announce).await;
         }

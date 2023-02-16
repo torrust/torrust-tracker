@@ -9,16 +9,10 @@ use super::handlers::status::get_status_handler;
 use crate::tracker::Tracker;
 
 pub fn router(tracker: &Arc<Tracker>) -> Router {
-    let secure_client_ip_source = if tracker.config.on_reverse_proxy {
-        SecureClientIpSource::RightmostXForwardedFor
-    } else {
-        SecureClientIpSource::ConnectInfo
-    };
-
     Router::new()
         // Status
         .route("/status", get(get_status_handler))
         // Announce request
         .route("/announce", get(handle).with_state(tracker.clone()))
-        .layer(secure_client_ip_source.into_extension())
+        .layer(SecureClientIpSource::ConnectInfo.into_extension())
 }

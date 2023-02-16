@@ -1264,6 +1264,7 @@ mod axum_http_tracker_server {
     // WIP: migration HTTP from Warp to Axum
 
     use local_ip_address::local_ip;
+    use torrust_tracker::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
     use torrust_tracker::http::axum_implementation::resources::ok::Ok;
     use torrust_tracker::http::Version;
 
@@ -1287,8 +1288,10 @@ mod axum_http_tracker_server {
         assert_eq!(
             ok,
             Ok {
-                remote_client_insecure_ip: client_ip,
-                remote_client_secure_ip: client_ip
+                remote_client_ip: RemoteClientIp {
+                    right_most_x_forwarded_for: None,
+                    connection_info_ip: Some(client_ip)
+                }
             }
         );
     }
@@ -1302,6 +1305,7 @@ mod axum_http_tracker_server {
         use std::str::FromStr;
 
         use local_ip_address::local_ip;
+        use torrust_tracker::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
         use torrust_tracker::http::axum_implementation::resources::ok::Ok;
         use torrust_tracker::http::Version;
 
@@ -1323,8 +1327,10 @@ mod axum_http_tracker_server {
             assert_eq!(
                 ok,
                 Ok {
-                    remote_client_insecure_ip: client_ip,
-                    remote_client_secure_ip: client_ip
+                    remote_client_ip: RemoteClientIp {
+                        right_most_x_forwarded_for: None,
+                        connection_info_ip: Some(client_ip)
+                    }
                 }
             );
         }
@@ -1345,8 +1351,10 @@ mod axum_http_tracker_server {
             assert_eq!(
                 ok,
                 Ok {
-                    remote_client_insecure_ip: client_ip,
-                    remote_client_secure_ip: client_ip
+                    remote_client_ip: RemoteClientIp {
+                        right_most_x_forwarded_for: None,
+                        connection_info_ip: Some(client_ip)
+                    }
                 }
             );
         }
@@ -1362,7 +1370,10 @@ mod axum_http_tracker_server {
 
             let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Axum).await;
 
-            let client = Client::new(http_tracker_server.get_connection_info());
+            let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
+            let client_ip = loopback_ip;
+
+            let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
 
             let left_most_ip = IpAddr::from_str("203.0.113.195").unwrap();
             let right_most_ip = IpAddr::from_str("150.172.238.178").unwrap();
@@ -1380,8 +1391,10 @@ mod axum_http_tracker_server {
             assert_eq!(
                 ok,
                 Ok {
-                    remote_client_insecure_ip: left_most_ip,
-                    remote_client_secure_ip: right_most_ip
+                    remote_client_ip: RemoteClientIp {
+                        right_most_x_forwarded_for: Some(right_most_ip),
+                        connection_info_ip: Some(client_ip)
+                    }
                 }
             );
         }

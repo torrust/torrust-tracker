@@ -110,6 +110,8 @@ impl FromStr for Compact {
 
 #[derive(Error, Debug)]
 pub enum ParseAnnounceQueryError {
+    #[error("missing query params for announce request in {location}")]
+    MissingParams { location: &'static Location<'static> },
     #[error("missing param {param_name} in {location}")]
     MissingParam {
         location: &'static Location<'static>,
@@ -290,9 +292,9 @@ where
         let raw_query = parts.uri.query();
 
         if raw_query.is_none() {
-            return Err(responses::error::Error {
-                failure_reason: "missing query params for announce request".to_string(),
-            }
+            return Err(responses::error::Error::from(ParseAnnounceQueryError::MissingParams {
+                location: Location::caller(),
+            })
             .into_response());
         }
 
