@@ -6,13 +6,13 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
-use crate::http::axum_implementation::extractors::peer_ip::peer_ip;
+use crate::http::axum_implementation::extractors::peer_ip::assign_ip_address_to_peer;
 use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
 use crate::http::axum_implementation::requests::announce::{Announce, Event, ExtractAnnounceRequest};
-use crate::http::axum_implementation::responses;
+use crate::http::axum_implementation::{responses, services};
 use crate::protocol::clock::{Current, Time};
 use crate::tracker::peer::Peer;
-use crate::tracker::{statistics, Tracker};
+use crate::tracker::Tracker;
 
 #[allow(clippy::unused_async)]
 pub async fn handle(
@@ -22,31 +22,19 @@ pub async fn handle(
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
 
-    let info_hash = announce_request.info_hash;
-
-    let peer_ip = peer_ip(tracker.config.on_reverse_proxy, &remote_client_ip);
-
-    let peer_ip = match peer_ip {
+    let peer_ip = match assign_ip_address_to_peer(tracker.config.on_reverse_proxy, &remote_client_ip) {
         Ok(peer_ip) => peer_ip,
         Err(err) => return err,
     };
 
     let mut peer = peer_from_request(&announce_request, &peer_ip);
 
-    let response = tracker.announce(&info_hash, &mut peer, &peer_ip).await;
-
-    match peer_ip {
-        IpAddr::V4(_) => {
-            tracker.send_stats_event(statistics::Event::Tcp4Announce).await;
-        }
-        IpAddr::V6(_) => {
-            tracker.send_stats_event(statistics::Event::Tcp6Announce).await;
-        }
-    }
+    let response = services::announce::invoke(tracker.clone(), announce_request.info_hash, &mut peer).await;
 
     responses::announce::Announce::from(response).into_response()
 }
 
+/// It ignores the peer address in the announce request params.
 #[must_use]
 fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> Peer {
     Peer {

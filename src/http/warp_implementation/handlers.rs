@@ -49,6 +49,9 @@ pub async fn handle_announce(
 
     let mut peer = peer_builder::from_request(&announce_request, &remote_client_ip);
 
+    // todo: we should be use the http::axum_implementation::services::announce::announce service,
+    // but this Warp implementation is going to be removed.
+
     let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
 
     match remote_client_ip {
