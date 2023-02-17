@@ -9,8 +9,9 @@ use log::debug;
 use crate::http::axum_implementation::extractors::announce_request::ExtractRequest;
 use crate::http::axum_implementation::extractors::peer_ip::assign_ip_address_to_peer;
 use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
-use crate::http::axum_implementation::requests::announce::{Announce, Event};
-use crate::http::axum_implementation::{responses, services};
+use crate::http::axum_implementation::requests::announce::{Announce, Compact, Event};
+use crate::http::axum_implementation::responses::announce;
+use crate::http::axum_implementation::services;
 use crate::protocol::clock::{Current, Time};
 use crate::tracker::peer::Peer;
 use crate::tracker::Tracker;
@@ -30,9 +31,16 @@ pub async fn handle(
 
     let mut peer = peer_from_request(&announce_request, &peer_ip);
 
-    let response = services::announce::invoke(tracker.clone(), announce_request.info_hash, &mut peer).await;
+    let announce_data = services::announce::invoke(tracker.clone(), announce_request.info_hash, &mut peer).await;
 
-    responses::announce::Announce::from(response).into_response()
+    match announce_request.compact {
+        Some(compact) => match compact {
+            Compact::Accepted => announce::Compact::from(announce_data).into_response(),
+            Compact::NotAccepted => announce::NonCompact::from(announce_data).into_response(),
+        },
+        // Default response format non compact
+        None => announce::NonCompact::from(announce_data).into_response(),
+    }
 }
 
 /// It ignores the peer address in the announce request params.

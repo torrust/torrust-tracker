@@ -1833,8 +1833,7 @@ mod axum_http_tracker_server {
                 assert_empty_announce_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_the_compact_response() {
                 // Tracker Returns Compact Peer Lists
                 // https://www.bittorrent.org/beps/bep_0023.html

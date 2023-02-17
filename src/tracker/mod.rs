@@ -43,7 +43,7 @@ pub struct TorrentsMetrics {
     pub torrents: u64,
 }
 
-pub struct AnnounceResponse {
+pub struct AnnounceData {
     pub peers: Vec<Peer>,
     pub swam_stats: SwamStats,
     pub interval: u32,
@@ -86,7 +86,7 @@ impl Tracker {
     }
 
     /// It handles an announce request
-    pub async fn announce(&self, info_hash: &InfoHash, peer: &mut Peer, remote_client_ip: &IpAddr) -> AnnounceResponse {
+    pub async fn announce(&self, info_hash: &InfoHash, peer: &mut Peer, remote_client_ip: &IpAddr) -> AnnounceData {
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip()));
 
         let swam_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
@@ -94,7 +94,7 @@ impl Tracker {
         // todo: remove peer by using its `Id` instead of its socket address: `get_peers_excluding_peer(peer_id: peer::Id)`
         let peers = self.get_peers_excluding_peers_with_address(info_hash, &peer.peer_addr).await;
 
-        AnnounceResponse {
+        AnnounceData {
             peers,
             swam_stats,
             interval: self.config.announce_interval,
