@@ -9,7 +9,9 @@ use crate::http::axum_implementation::responses;
 
 #[derive(Error, Debug)]
 pub enum ResolutionError {
-    #[error("missing the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration) in {location}")]
+    #[error(
+        "missing or invalid the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration) in {location}"
+    )]
     MissingRightMostXForwardedForIp { location: &'static Location<'static> },
     #[error("cannot get the client IP from the connection info in {location}")]
     MissingClientIp { location: &'static Location<'static> },

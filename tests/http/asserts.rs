@@ -138,6 +138,16 @@ pub async fn assert_could_not_find_remote_address_on_xff_header_error_response(r
     );
 }
 
+pub async fn assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+
+    assert_bencoded_error(
+        &response.text().await.unwrap(),
+        "missing or invalid the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration)",
+        Location::caller(),
+    );
+}
+
 pub async fn assert_invalid_remote_address_on_xff_header_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
