@@ -13,7 +13,7 @@ use crate::tracker::Tracker;
 pub fn start(socket_addr: SocketAddr, tracker: &Arc<Tracker>) -> impl Future<Output = hyper::Result<()>> {
     let app = router(tracker);
 
-    let server = axum::Server::bind(&socket_addr).serve(app.into_make_service());
+    let server = axum::Server::bind(&socket_addr).serve(app.into_make_service_with_connect_info::<SocketAddr>());
 
     server.with_graceful_shutdown(async move {
         tokio::signal::ctrl_c().await.expect("Failed to listen to shutdown signal.");
@@ -39,5 +39,5 @@ pub fn start_tls(
 
     axum_server::bind_rustls(socket_addr, ssl_config)
         .handle(handle)
-        .serve(app.into_make_service())
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
 }

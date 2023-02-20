@@ -16,6 +16,47 @@ mod warp_http_tracker_server {
 
     mod for_all_config_modes {
 
+        mod running_on_reverse_proxy {
+            use torrust_tracker::http::Version;
+
+            use crate::http::asserts::{
+                assert_could_not_find_remote_address_on_xff_header_error_response,
+                assert_invalid_remote_address_on_xff_header_error_response,
+            };
+            use crate::http::client::Client;
+            use crate::http::requests::announce::QueryBuilder;
+            use crate::http::server::start_http_tracker_on_reverse_proxy;
+
+            #[tokio::test]
+            async fn should_fail_when_the_http_request_does_not_include_the_xff_http_request_header() {
+                // If the tracker is running behind a reverse proxy, the peer IP is the
+                // last IP in the `X-Forwarded-For` HTTP header, which is the IP of the proxy client.
+
+                let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Warp).await;
+
+                let params = QueryBuilder::default().query().params();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{params}"))
+                    .await;
+
+                assert_could_not_find_remote_address_on_xff_header_error_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_fail_when_the_xff_http_request_header_contains_an_invalid_ip() {
+                let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Warp).await;
+
+                let params = QueryBuilder::default().query().params();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
+                    .await;
+
+                assert_invalid_remote_address_on_xff_header_error_response(response).await;
+            }
+        }
+
         mod receiving_an_announce_request {
 
             // Announce request documentation:
@@ -69,7 +110,7 @@ mod warp_http_tracker_server {
             }
 
             #[tokio::test]
-            async fn should_fail_when_the_request_is_empty() {
+            async fn should_fail_when_the_url_query_component_is_empty() {
                 let http_tracker_server = start_default_http_tracker(Version::Warp).await;
 
                 let response = Client::new(http_tracker_server.get_connection_info()).get("announce").await;
@@ -667,9 +708,6 @@ mod warp_http_tracker_server {
 
                 let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
 
-                // todo: shouldn't be the the leftmost IP address?
-                // THe application is taken the the rightmost IP address. See function http::filters::peer_addr
-                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
                 client
                     .announce_with_header(
                         &announce_query,
@@ -1225,6 +1263,9 @@ mod axum_http_tracker_server {
 
     // WIP: migration HTTP from Warp to Axum
 
+    use local_ip_address::local_ip;
+    use torrust_tracker::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
+    use torrust_tracker::http::axum_implementation::resources::ok::Ok;
     use torrust_tracker::http::Version;
 
     use crate::http::client::Client;
@@ -1233,15 +1274,176 @@ mod axum_http_tracker_server {
     #[tokio::test]
     async fn should_return_the_status() {
         // This is a temporary test to test the new Axum HTTP tracker server scaffolding
+
         let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
-        let response = Client::new(http_tracker_server.get_connection_info()).get("status").await;
+        let client_ip = local_ip().unwrap();
 
-        assert_eq!(response.status(), 200);
-        assert_eq!(response.text().await.unwrap(), "{}");
+        let response = Client::bind(http_tracker_server.get_connection_info(), client_ip)
+            .get("status")
+            .await;
+
+        let ok: Ok = serde_json::from_str(&response.text().await.unwrap()).unwrap();
+
+        assert_eq!(
+            ok,
+            Ok {
+                remote_client_ip: RemoteClientIp {
+                    right_most_x_forwarded_for: None,
+                    connection_info_ip: Some(client_ip)
+                }
+            }
+        );
+    }
+
+    mod should_get_the_remote_client_ip_from_the_http_request {
+
+        // Temporary tests to test that the new Axum HTTP tracker gets the right remote client IP.
+        // Once the implementation is finished, test for announce request will cover these cases.
+
+        use std::net::IpAddr;
+        use std::str::FromStr;
+
+        use local_ip_address::local_ip;
+        use torrust_tracker::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
+        use torrust_tracker::http::axum_implementation::resources::ok::Ok;
+        use torrust_tracker::http::Version;
+
+        use crate::http::client::Client;
+        use crate::http::server::{start_http_tracker_on_reverse_proxy, start_public_http_tracker};
+
+        #[tokio::test]
+        async fn when_the_client_ip_is_a_local_ip_it_should_assign_that_ip() {
+            let http_tracker_server = start_public_http_tracker(Version::Axum).await;
+
+            let client_ip = local_ip().unwrap();
+
+            let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
+
+            let response = client.get("status").await;
+
+            let ok: Ok = serde_json::from_str(&response.text().await.unwrap()).unwrap();
+
+            assert_eq!(
+                ok,
+                Ok {
+                    remote_client_ip: RemoteClientIp {
+                        right_most_x_forwarded_for: None,
+                        connection_info_ip: Some(client_ip)
+                    }
+                }
+            );
+        }
+
+        #[tokio::test]
+        async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_that_ip() {
+            let http_tracker_server = start_public_http_tracker(Version::Axum).await;
+
+            let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
+            let client_ip = loopback_ip;
+
+            let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
+
+            let response = client.get("status").await;
+
+            let ok: Ok = serde_json::from_str(&response.text().await.unwrap()).unwrap();
+
+            assert_eq!(
+                ok,
+                Ok {
+                    remote_client_ip: RemoteClientIp {
+                        right_most_x_forwarded_for: None,
+                        connection_info_ip: Some(client_ip)
+                    }
+                }
+            );
+        }
+
+        #[tokio::test]
+        async fn when_the_tracker_is_behind_a_reverse_proxy_it_should_assign_as_secure_ip_the_right_most_ip_in_the_x_forwarded_for_http_header(
+        ) {
+            /*
+            client          <-> http proxy                       <-> tracker                   <-> Internet
+            ip:                 header:                              config:                       remote client ip:
+            145.254.214.256     X-Forwarded-For = 145.254.214.256    on_reverse_proxy = true       145.254.214.256
+            */
+
+            let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Axum).await;
+
+            let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
+            let client_ip = loopback_ip;
+
+            let client = Client::bind(http_tracker_server.get_connection_info(), client_ip);
+
+            let left_most_ip = IpAddr::from_str("203.0.113.195").unwrap();
+            let right_most_ip = IpAddr::from_str("150.172.238.178").unwrap();
+
+            let response = client
+                .get_with_header(
+                    "status",
+                    "X-Forwarded-For",
+                    &format!("{left_most_ip},2001:db8:85a3:8d3:1319:8a2e:370:7348,{right_most_ip}"),
+                )
+                .await;
+
+            let ok: Ok = serde_json::from_str(&response.text().await.unwrap()).unwrap();
+
+            assert_eq!(
+                ok,
+                Ok {
+                    remote_client_ip: RemoteClientIp {
+                        right_most_x_forwarded_for: Some(right_most_ip),
+                        connection_info_ip: Some(client_ip)
+                    }
+                }
+            );
+        }
     }
 
     mod for_all_config_modes {
+
+        mod and_running_on_reverse_proxy {
+            use torrust_tracker::http::Version;
+
+            use crate::http::asserts::{
+                assert_could_not_find_remote_address_on_xff_header_error_response,
+                assert_invalid_remote_address_on_xff_header_error_response,
+            };
+            use crate::http::client::Client;
+            use crate::http::requests::announce::QueryBuilder;
+            use crate::http::server::start_http_tracker_on_reverse_proxy;
+
+            //#[tokio::test]
+            #[allow(dead_code)]
+            async fn should_fail_when_the_http_request_does_not_include_the_xff_http_request_header() {
+                // If the tracker is running behind a reverse proxy, the peer IP is the
+                // last IP in the `X-Forwarded-For` HTTP header, which is the IP of the proxy client.
+
+                let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Axum).await;
+
+                let params = QueryBuilder::default().query().params();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{params}"))
+                    .await;
+
+                assert_could_not_find_remote_address_on_xff_header_error_response(response).await;
+            }
+
+            //#[tokio::test]
+            #[allow(dead_code)]
+            async fn should_fail_when_the_xff_http_request_header_contains_an_invalid_ip() {
+                let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Axum).await;
+
+                let params = QueryBuilder::default().query().params();
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
+                    .await;
+
+                assert_invalid_remote_address_on_xff_header_error_response(response).await;
+            }
+        }
 
         mod receiving_an_announce_request {
 
@@ -1267,9 +1469,10 @@ mod axum_http_tracker_server {
 
             use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
             use crate::http::asserts::{
-                assert_announce_response, assert_compact_announce_response, assert_empty_announce_response,
-                assert_internal_server_error_response, assert_invalid_info_hash_error_response,
-                assert_invalid_peer_id_error_response, assert_is_announce_response,
+                assert_announce_response, assert_bad_announce_request_error_response,
+                assert_cannot_parse_query_param_error_response, assert_cannot_parse_query_params_error_response,
+                assert_compact_announce_response, assert_empty_announce_response, assert_is_announce_response,
+                assert_missing_query_params_for_announce_request_error_response,
             };
             use crate::http::client::Client;
             use crate::http::requests::announce::{Compact, QueryBuilder};
@@ -1280,8 +1483,7 @@ mod axum_http_tracker_server {
                 start_ipv6_http_tracker, start_public_http_tracker,
             };
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_respond_if_only_the_mandatory_fields_are_provided() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1296,18 +1498,29 @@ mod axum_http_tracker_server {
                 assert_is_announce_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
-            async fn should_fail_when_the_request_is_empty() {
+            #[tokio::test]
+            async fn should_fail_when_the_url_query_component_is_empty() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
                 let response = Client::new(http_tracker_server.get_connection_info()).get("announce").await;
 
-                assert_internal_server_error_response(response).await;
+                assert_missing_query_params_for_announce_request_error_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
+            async fn should_fail_when_url_query_parameters_are_invalid() {
+                let http_tracker_server = start_default_http_tracker(Version::Axum).await;
+
+                let invalid_query_param = "a=b=c";
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!("announce?{invalid_query_param}"))
+                    .await;
+
+                assert_cannot_parse_query_param_error_response(response, "invalid param a=b=c").await;
+            }
+
+            #[tokio::test]
             async fn should_fail_when_a_mandatory_field_is_missing() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1321,7 +1534,7 @@ mod axum_http_tracker_server {
                     .get(&format!("announce?{params}"))
                     .await;
 
-                assert_invalid_info_hash_error_response(response).await;
+                assert_bad_announce_request_error_response(response, "missing param info_hash").await;
 
                 // Without `peer_id` param
 
@@ -1333,7 +1546,7 @@ mod axum_http_tracker_server {
                     .get(&format!("announce?{params}"))
                     .await;
 
-                assert_invalid_peer_id_error_response(response).await;
+                assert_bad_announce_request_error_response(response, "missing param peer_id").await;
 
                 // Without `port` param
 
@@ -1345,11 +1558,10 @@ mod axum_http_tracker_server {
                     .get(&format!("announce?{params}"))
                     .await;
 
-                assert_internal_server_error_response(response).await;
+                assert_bad_announce_request_error_response(response, "missing param port").await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_info_hash_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1362,17 +1574,16 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_invalid_info_hash_error_response(response).await;
+                    assert_cannot_parse_query_params_error_response(response, "").await;
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_not_fail_when_the_peer_address_param_is_invalid() {
                 // AnnounceQuery does not even contain the `peer_addr`
                 // The peer IP is obtained in two ways:
-                // 1. If tracker is NOT running `on_reverse_proxy` from the remote client IP if there.
-                // 2. If tracker is     running `on_reverse_proxy` from `X-Forwarded-For` request header is tracker is running `on_reverse_proxy`.
+                // 1. If tracker is NOT running `on_reverse_proxy` from the remote client IP.
+                // 2. If tracker is     running `on_reverse_proxy` from `X-Forwarded-For` request HTTP header.
 
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1387,8 +1598,7 @@ mod axum_http_tracker_server {
                 assert_is_announce_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_downloaded_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1403,12 +1613,11 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_internal_server_error_response(response).await;
+                    assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_uploaded_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1423,12 +1632,11 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_internal_server_error_response(response).await;
+                    assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_peer_id_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1450,12 +1658,11 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_invalid_peer_id_error_response(response).await;
+                    assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_port_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1470,12 +1677,11 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_internal_server_error_response(response).await;
+                    assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_left_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
@@ -1490,15 +1696,12 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_internal_server_error_response(response).await;
+                    assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
-            async fn should_not_fail_when_the_event_param_is_invalid() {
-                // All invalid values are ignored as if the `event` param were empty
-
+            #[tokio::test]
+            async fn should_fail_when_the_event_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
                 let mut params = QueryBuilder::default().query().params();
@@ -1508,9 +1711,9 @@ mod axum_http_tracker_server {
                     "-1",
                     "1.1",
                     "a",
-                    "Started",   // It should be lowercase
-                    "Stopped",   // It should be lowercase
-                    "Completed", // It should be lowercase
+                    "Started",   // It should be lowercase to be valid: `started`
+                    "Stopped",   // It should be lowercase to be valid: `stopped`
+                    "Completed", // It should be lowercase to be valid: `completed`
                 ];
 
                 for invalid_value in invalid_values {
@@ -1520,13 +1723,12 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_is_announce_response(response).await;
+                    assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
-            async fn should_not_fail_when_the_compact_param_is_invalid() {
+            #[tokio::test]
+            async fn should_fail_when_the_compact_param_is_invalid() {
                 let http_tracker_server = start_default_http_tracker(Version::Axum).await;
 
                 let mut params = QueryBuilder::default().query().params();
@@ -1540,12 +1742,11 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    assert_internal_server_error_response(response).await;
+                    assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1570,8 +1771,7 @@ mod axum_http_tracker_server {
                 .await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_the_list_of_previously_announced_peers() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1595,7 +1795,7 @@ mod axum_http_tracker_server {
                     )
                     .await;
 
-                // It should only contain teh previously announced peer
+                // It should only contain the previously announced peer
                 assert_announce_response(
                     response,
                     &Announce {
@@ -1609,8 +1809,7 @@ mod axum_http_tracker_server {
                 .await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_peer_id_even_if_the_ip_is_different() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1674,8 +1873,7 @@ mod axum_http_tracker_server {
                 assert_compact_announce_response(response, &expected_response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_not_return_the_compact_response_by_default() {
                 // code-review: the HTTP tracker does not return the compact response by default if the "compact"
                 // param is not provided in the announce URL. The BEP 23 suggest to do so.
@@ -1714,8 +1912,7 @@ mod axum_http_tracker_server {
                 compact_announce.is_ok()
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_increase_the_number_of_tcp4_connections_handled_in_statistics() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1728,8 +1925,7 @@ mod axum_http_tracker_server {
                 assert_eq!(stats.tcp4_connections_handled, 1);
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_increase_the_number_of_tcp6_connections_handled_in_statistics() {
                 let http_tracker_server = start_ipv6_http_tracker(Version::Axum).await;
 
@@ -1742,8 +1938,7 @@ mod axum_http_tracker_server {
                 assert_eq!(stats.tcp6_connections_handled, 1);
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_not_increase_the_number_of_tcp6_connections_handled_if_the_client_is_not_using_an_ipv6_ip() {
                 // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
@@ -1762,8 +1957,7 @@ mod axum_http_tracker_server {
                 assert_eq!(stats.tcp6_connections_handled, 0);
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_increase_the_number_of_tcp4_announce_requests_handled_in_statistics() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1776,8 +1970,7 @@ mod axum_http_tracker_server {
                 assert_eq!(stats.tcp4_announces_handled, 1);
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_increase_the_number_of_tcp6_announce_requests_handled_in_statistics() {
                 let http_tracker_server = start_ipv6_http_tracker(Version::Axum).await;
 
@@ -1790,8 +1983,7 @@ mod axum_http_tracker_server {
                 assert_eq!(stats.tcp6_announces_handled, 1);
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_not_increase_the_number_of_tcp6_announce_requests_handled_if_the_client_is_not_using_an_ipv6_ip() {
                 // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
@@ -1810,8 +2002,7 @@ mod axum_http_tracker_server {
                 assert_eq!(stats.tcp6_announces_handled, 0);
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_assign_to_the_peer_ip_the_remote_client_ip_instead_of_the_peer_address_in_the_request_param() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1834,8 +2025,7 @@ mod axum_http_tracker_server {
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration(
             ) {
                 /*  We assume that both the client and tracker share the same public IP.
@@ -1867,8 +2057,7 @@ mod axum_http_tracker_server {
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration(
             ) {
                 /* We assume that both the client and tracker share the same public IP.
@@ -1903,8 +2092,7 @@ mod axum_http_tracker_server {
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn when_the_tracker_is_behind_a_reverse_proxy_it_should_assign_to_the_peer_ip_the_ip_in_the_x_forwarded_for_http_header(
             ) {
                 /*
@@ -1921,9 +2109,6 @@ mod axum_http_tracker_server {
 
                 let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
 
-                // todo: shouldn't be the the leftmost IP address?
-                // THe application is taken the the rightmost IP address. See function http::filters::peer_addr
-                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
                 client
                     .announce_with_header(
                         &announce_query,

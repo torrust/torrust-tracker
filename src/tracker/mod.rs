@@ -46,6 +46,8 @@ pub struct TorrentsMetrics {
 pub struct AnnounceResponse {
     pub peers: Vec<Peer>,
     pub swam_stats: SwamStats,
+    pub interval: u32,
+    pub interval_min: u32,
 }
 
 impl Tracker {
@@ -92,7 +94,12 @@ impl Tracker {
         // todo: remove peer by using its `Id` instead of its socket address: `get_peers_excluding_peer(peer_id: peer::Id)`
         let peers = self.get_peers_excluding_peers_with_address(info_hash, &peer.peer_addr).await;
 
-        AnnounceResponse { peers, swam_stats }
+        AnnounceResponse {
+            peers,
+            swam_stats,
+            interval: self.config.announce_interval,
+            interval_min: self.config.min_announce_interval,
+        }
     }
 
     /// # Errors

@@ -22,6 +22,8 @@ pub struct Peer {
     pub downloaded: NumberOfBytes,
     #[serde(with = "NumberOfBytesDef")]
     pub left: NumberOfBytes, // The number of bytes this peer still has to download
+    // code-review: aquatic_udp_protocol::request::AnnounceEvent is used also for the HTTP tracker.
+    // Maybe we should use our own enum and use the¡is one only for the UDP tracker.
     #[serde(with = "AnnounceEventDef")]
     pub event: AnnounceEvent,
 }
