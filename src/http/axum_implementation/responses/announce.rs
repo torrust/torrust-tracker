@@ -4,6 +4,7 @@ use std::panic::Location;
 
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
+use bip_bencode::{ben_bytes, ben_int, ben_map};
 use serde::{self, Deserialize, Serialize};
 use thiserror::Error;
 
@@ -129,48 +130,6 @@ impl Compact {
     ///
     /// Will return `Err` if internally interrupted.
     pub fn write(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        let mut bytes: Vec<u8> = Vec::new();
-
-        // Begin dictionary
-        bytes.write_all(b"d")?;
-
-        // Write `interval`
-        // Dictionary key
-        bytes.write_all(b"8:interval")?;
-        // Dictionary key value
-        bytes.write_all(b"i")?; // Begin integer
-        bytes.write_all(self.interval.to_string().as_bytes())?;
-        bytes.write_all(b"e")?; // End integer
-
-        // Write `interval_min`
-        // Dictionary key
-        bytes.write_all(b"12:min interval")?;
-        // Dictionary key value
-        bytes.write_all(b"i")?; // Begin integer
-        bytes.write_all(self.interval_min.to_string().as_bytes())?;
-        bytes.write_all(b"e")?; // End integer
-
-        // Write `complete`
-        // Dictionary key
-        bytes.write_all(b"8:complete")?;
-        // Dictionary key value
-        bytes.write_all(b"i")?; // Begin integer
-        bytes.write_all(self.complete.to_string().as_bytes())?;
-        bytes.write_all(b"e")?; // End integer
-
-        // Write `incomplete`
-        // Dictionary key
-        bytes.write_all(b"10:incomplete")?;
-        // Dictionary key value
-        bytes.write_all(b"i")?; // Begin integer
-        bytes.write_all(self.incomplete.to_string().as_bytes())?;
-        bytes.write_all(b"e")?; // End integer
-
-        // Write peers with IPV4 IPs (BEP 23)
-
-        // Dictionary key
-        bytes.write_all(b"5:peers")?;
-        // Dictionary key value
         let mut peers_v4: Vec<u8> = Vec::new();
         for compact_peer in &self.peers {
             match compact_peer.ip {
@@ -181,18 +140,7 @@ impl Compact {
                 IpAddr::V6(_) => {}
             }
         }
-        bytes.write_all(peers_v4.len().to_string().as_bytes())?; // Begin byte string
-        bytes.write_all(b":")?;
-        bytes.write_all(peers_v4.as_slice())?;
 
-        // todo: why is this `e` here?
-        bytes.write_all(b"e")?;
-
-        // Write peers with IPV6 IPs (BEP 07)
-
-        // Dictionary key
-        bytes.write_all(b"6:peers6")?;
-        // Dictionary key value
         let mut peers_v6: Vec<u8> = Vec::new();
         for compact_peer in &self.peers {
             match compact_peer.ip {
@@ -203,12 +151,16 @@ impl Compact {
                 IpAddr::V4(_) => {}
             }
         }
-        bytes.write_all(peers_v6.len().to_string().as_bytes())?; // Begin byte string
-        bytes.write_all(b":")?;
-        bytes.write_all(peers_v6.as_slice())?; // End byte string
 
-        // End dictionary
-        bytes.write_all(b"e")?;
+        let bytes = (ben_map! {
+            "complete" => ben_int!(i64::from(self.complete)),
+            "incomplete" => ben_int!(i64::from(self.incomplete)),
+            "interval" => ben_int!(i64::from(self.interval)),
+            "min interval" => ben_int!(i64::from(self.interval_min)),
+            "peers" => ben_bytes!(peers_v4),
+            "peers6" => ben_bytes!(peers_v6)
+        })
+        .encode();
 
         Ok(bytes)
     }
@@ -336,7 +288,7 @@ mod tests {
         assert_eq!(
             bytes,
             // cspell:disable-next-line
-            b"d8:intervali111e12:min intervali222e8:completei333e10:incompletei444e5:peers6:iiiippe6:peers618:iiiiiiiiiiiiiiiippe"
+            b"d8:completei333e10:incompletei444e8:intervali111e12:min intervali222e5:peers6:iiiipp6:peers618:iiiiiiiiiiiiiiiippe"
         );
     }
 }
