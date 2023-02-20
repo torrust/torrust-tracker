@@ -80,7 +80,7 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
 
     let (seeders, completed, leechers) = torrent_entry.get_stats();
 
-    let peers = torrent_entry.get_peers(None);
+    let peers = torrent_entry.get_all_peers();
 
     let peers = Some(peers.iter().map(|peer| (**peer)).collect());
 

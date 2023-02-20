@@ -10,6 +10,12 @@ use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef};
 use crate::protocol::utils::ser_unix_time_value;
 
+#[derive(PartialEq, Eq, Debug)]
+pub enum IPVersion {
+    IPv4,
+    IPv6,
+}
+
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Copy)]
 pub struct Peer {
     pub peer_id: Id,
@@ -36,6 +42,15 @@ impl Peer {
 
     pub fn change_ip(&mut self, new_ip: &IpAddr) {
         self.peer_addr = SocketAddr::new(*new_ip, self.peer_addr.port());
+    }
+
+    /// The IP version used by the peer: IPV4 or IPV6
+    #[must_use]
+    pub fn ip_version(&self) -> IPVersion {
+        if self.peer_addr.is_ipv4() {
+            return IPVersion::IPv4;
+        }
+        IPVersion::IPv6
     }
 }
 
