@@ -131,7 +131,7 @@ impl Server {
         self.connection_info.clone()
     }
 
-    pub async fn add_torrent(&self, info_hash: &InfoHash, peer: &Peer) {
+    pub async fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &Peer) {
         self.tracker.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
     }
 }

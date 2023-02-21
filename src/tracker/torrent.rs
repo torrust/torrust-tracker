@@ -53,17 +53,14 @@ impl Entry {
         self.peers.values().take(MAX_SCRAPE_TORRENTS as usize).collect()
     }
 
-    /// Returns the list of peers for a given client. The list filters out:
-    /// - The client peer that is making the request to the tracker
-    /// - Other peers that are not using the same IP version as the client peer.
+    /// Returns the list of peers for a given client.
+    /// It filters out the input peer.
     #[must_use]
     pub fn get_peers_for_peer(&self, client: &Peer) -> Vec<&peer::Peer> {
         self.peers
             .values()
             // Take peers which are not the client peer
             .filter(|peer| peer.peer_addr != client.peer_addr)
-            // Take only peers with the same IP version as the client peer
-            .filter(|peer| peer.ip_version() == client.ip_version())
             // Limit the number of peers on the result
             .take(MAX_SCRAPE_TORRENTS as usize)
             .collect()
@@ -101,7 +98,7 @@ mod tests {
 
     mod torrent_entry {
 
-        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::ops::Sub;
         use std::time::Duration;
 
@@ -265,28 +262,6 @@ mod tests {
             // Get peers excluding the one we have just added
             let peers = torrent_entry.get_peers_for_peer(&torrent_peer);
 
-            assert_eq!(peers.len(), 0);
-        }
-
-        #[test]
-        fn a_torrent_entry_should_return_the_list_of_peers_for_a_given_peer_filtering_out_peers_that_do_not_use_the_same_ip_version(
-        ) {
-            let mut torrent_entry = Entry::new();
-
-            // Add peer 1 using IPV4
-            let peer1_socket_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-            let torrent_peer_1 = TorrentPeerBuilder::default().with_peer_address(peer1_socket_address).into();
-            torrent_entry.update_peer(&torrent_peer_1);
-
-            // Add peer 2 using IPV6
-            let peer2_socket_address = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0xffff, 0xc00a, 0x2ff)), 8080);
-            let torrent_peer_2 = TorrentPeerBuilder::default().with_peer_address(peer2_socket_address).into();
-            torrent_entry.update_peer(&torrent_peer_2);
-
-            // Get peers for peer 1
-            let peers = torrent_entry.get_peers_for_peer(&torrent_peer_1);
-
-            // Peer using IPV6 should not be included
             assert_eq!(peers.len(), 0);
         }
 
