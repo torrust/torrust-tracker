@@ -84,6 +84,11 @@ impl Id {
         ret.0.clone_from_slice(bytes);
         ret
     }
+
+    #[must_use]
+    pub fn to_bytes(&self) -> [u8; 20] {
+        self.0
+    }
 }
 
 impl From<[u8; 20]> for Id {
@@ -368,6 +373,11 @@ mod test {
                 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
             ]);
             assert_eq!(id.to_string(), "009f9296009f9296009f9296009f9296009f9296");
+        }
+
+        #[test]
+        fn should_return_the_inner_bytes() {
+            assert_eq!(peer::Id(*b"-qB00000000000000000").to_bytes(), *b"-qB00000000000000000");
         }
     }
 

@@ -10,20 +10,22 @@ pub struct Announce {
     pub interval: u32,
     #[serde(rename = "min interval")]
     pub min_interval: u32,
-    pub peers: Vec<DictionaryPeer>, // Peers with IPV4
+    pub peers: Vec<DictionaryPeer>, // Peers using IPV4 and IPV6
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct DictionaryPeer {
     pub ip: String,
-    pub peer_id: String,
+    #[serde(rename = "peer id")]
+    #[serde(with = "serde_bytes")]
+    pub peer_id: Vec<u8>,
     pub port: u16,
 }
 
 impl From<Peer> for DictionaryPeer {
     fn from(peer: Peer) -> Self {
         DictionaryPeer {
-            peer_id: peer.peer_id.to_string(),
+            peer_id: peer.peer_id.to_bytes().to_vec(),
             ip: peer.peer_addr.ip().to_string(),
             port: peer.peer_addr.port(),
         }

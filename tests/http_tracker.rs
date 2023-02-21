@@ -85,10 +85,12 @@ mod warp_http_tracker_server {
                 assert_internal_server_error_response, assert_invalid_info_hash_error_response,
                 assert_invalid_peer_id_error_response, assert_is_announce_response,
             };
+            use crate::http::asserts_warp::assert_warp_announce_response;
             use crate::http::client::Client;
             use crate::http::requests::announce::{Compact, QueryBuilder};
             use crate::http::responses;
-            use crate::http::responses::announce::{Announce, CompactPeer, CompactPeerList, DictionaryPeer};
+            use crate::http::responses::announce::{Announce, CompactPeer, CompactPeerList};
+            use crate::http::responses::announce_warp::{WarpAnnounce, WarpDictionaryPeer};
             use crate::http::server::{
                 start_default_http_tracker, start_http_tracker_on_reverse_proxy, start_http_tracker_with_external_ip,
                 start_ipv6_http_tracker, start_public_http_tracker,
@@ -395,15 +397,15 @@ mod warp_http_tracker_server {
                     )
                     .await;
 
-                // It should only contain teh previously announced peer
-                assert_announce_response(
+                // It should only contain the previously announced peer
+                assert_warp_announce_response(
                     response,
-                    &Announce {
+                    &WarpAnnounce {
                         complete: 2,
                         incomplete: 0,
                         interval: http_tracker_server.tracker.config.announce_interval,
                         min_interval: http_tracker_server.tracker.config.min_announce_interval,
-                        peers: vec![DictionaryPeer::from(previously_announced_peer)],
+                        peers: vec![WarpDictionaryPeer::from(previously_announced_peer)],
                     },
                 )
                 .await;

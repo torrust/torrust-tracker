@@ -4,7 +4,7 @@ use std::panic::Location;
 
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use bip_bencode::{ben_bytes, ben_int, ben_map};
+use bip_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
 use serde::{self, Deserialize, Serialize};
 use thiserror::Error;
 
@@ -28,15 +28,26 @@ pub struct NonCompact {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Peer {
-    pub peer_id: String,
+    pub peer_id: [u8; 20],
     pub ip: IpAddr,
     pub port: u16,
+}
+
+impl Peer {
+    #[must_use]
+    pub fn ben_map(&self) -> BencodeMut {
+        ben_map! {
+            "peer id" => ben_bytes!(self.peer_id.clone().to_vec()),
+            "ip" => ben_bytes!(self.ip.to_string()),
+            "port" => ben_int!(i64::from(self.port))
+        }
+    }
 }
 
 impl From<tracker::peer::Peer> for Peer {
     fn from(peer: tracker::peer::Peer) -> Self {
         Peer {
-            peer_id: peer.peer_id.to_string(),
+            peer_id: peer.peer_id.to_bytes(),
             ip: peer.peer_addr.ip(),
             port: peer.peer_addr.port(),
         }
@@ -46,16 +57,29 @@ impl From<tracker::peer::Peer> for Peer {
 impl NonCompact {
     /// # Panics
     ///
-    /// It would panic if the `Announce` struct contained an inappropriate type.
+    /// Will return an error if it can't access the bencode as a mutable `BListAccess`.
     #[must_use]
-    pub fn write(&self) -> String {
-        serde_bencode::to_string(&self).unwrap()
+    pub fn body(&self) -> Vec<u8> {
+        let mut peers_list = ben_list!();
+        let peers_list_mut = peers_list.list_mut().unwrap();
+        for peer in &self.peers {
+            peers_list_mut.push(peer.ben_map());
+        }
+
+        (ben_map! {
+            "complete" => ben_int!(i64::from(self.complete)),
+            "incomplete" => ben_int!(i64::from(self.incomplete)),
+            "interval" => ben_int!(i64::from(self.interval)),
+            "min interval" => ben_int!(i64::from(self.interval_min)),
+            "peers" => peers_list.clone()
+        })
+        .encode()
     }
 }
 
 impl IntoResponse for NonCompact {
     fn into_response(self) -> Response {
-        (StatusCode::OK, self.write()).into_response()
+        (StatusCode::OK, self.body()).into_response()
     }
 }
 
@@ -101,7 +125,7 @@ impl CompactPeer {
     /// # Errors
     ///
     /// Will return `Err` if internally interrupted.
-    pub fn write(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    pub fn bytes(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let mut bytes: Vec<u8> = Vec::new();
         match self.ip {
             IpAddr::V4(ip) => {
@@ -129,39 +153,45 @@ impl Compact {
     /// # Errors
     ///
     /// Will return `Err` if internally interrupted.
-    pub fn write(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        let mut peers_v4: Vec<u8> = Vec::new();
-        for compact_peer in &self.peers {
-            match compact_peer.ip {
-                IpAddr::V4(_ip) => {
-                    let peer_bytes = compact_peer.write()?;
-                    peers_v4.write_all(&peer_bytes)?;
-                }
-                IpAddr::V6(_) => {}
-            }
-        }
-
-        let mut peers_v6: Vec<u8> = Vec::new();
-        for compact_peer in &self.peers {
-            match compact_peer.ip {
-                IpAddr::V6(_ip) => {
-                    let peer_bytes = compact_peer.write()?;
-                    peers_v6.write_all(&peer_bytes)?;
-                }
-                IpAddr::V4(_) => {}
-            }
-        }
-
+    pub fn body(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let bytes = (ben_map! {
             "complete" => ben_int!(i64::from(self.complete)),
             "incomplete" => ben_int!(i64::from(self.incomplete)),
             "interval" => ben_int!(i64::from(self.interval)),
             "min interval" => ben_int!(i64::from(self.interval_min)),
-            "peers" => ben_bytes!(peers_v4),
-            "peers6" => ben_bytes!(peers_v6)
+            "peers" => ben_bytes!(self.peers_v4_bytes()?),
+            "peers6" => ben_bytes!(self.peers_v6_bytes()?)
         })
         .encode();
 
+        Ok(bytes)
+    }
+
+    fn peers_v4_bytes(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        let mut bytes: Vec<u8> = Vec::new();
+        for compact_peer in &self.peers {
+            match compact_peer.ip {
+                IpAddr::V4(_ip) => {
+                    let peer_bytes = compact_peer.bytes()?;
+                    bytes.write_all(&peer_bytes)?;
+                }
+                IpAddr::V6(_) => {}
+            }
+        }
+        Ok(bytes)
+    }
+
+    fn peers_v6_bytes(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        let mut bytes: Vec<u8> = Vec::new();
+        for compact_peer in &self.peers {
+            match compact_peer.ip {
+                IpAddr::V6(_ip) => {
+                    let peer_bytes = compact_peer.bytes()?;
+                    bytes.write_all(&peer_bytes)?;
+                }
+                IpAddr::V4(_) => {}
+            }
+        }
         Ok(bytes)
     }
 }
@@ -185,7 +215,7 @@ impl From<CompactSerializationError> for responses::error::Error {
 
 impl IntoResponse for Compact {
     fn into_response(self) -> Response {
-        match self.write() {
+        match self.body() {
             Ok(bytes) => (StatusCode::OK, bytes).into_response(),
             Err(err) => responses::error::Error::from(CompactSerializationError::CannotWriteBytes {
                 location: Location::caller(),
@@ -244,21 +274,28 @@ mod tests {
             peers: vec![
                 // IPV4
                 Peer {
-                    peer_id: "-qB00000000000000001".to_string(),
+                    peer_id: *b"-qB00000000000000001",
                     ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
                     port: 0x7070,                                          // 28784
                 },
                 // IPV6
                 Peer {
-                    peer_id: "-qB00000000000000002".to_string(),
+                    peer_id: *b"-qB00000000000000002",
                     ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                     port: 0x7070, // 28784
                 },
             ],
         };
 
+        let bytes = response.body();
+
         // cspell:disable-next-line
-        assert_eq!(response.write(), "d8:completei333e10:incompletei444e8:intervali111e12:min intervali222e5:peersld2:ip15:105.105.105.1057:peer_id20:-qB000000000000000014:porti28784eed2:ip39:6969:6969:6969:6969:6969:6969:6969:69697:peer_id20:-qB000000000000000024:porti28784eeee");
+        let expected_bytes = b"d8:completei333e10:incompletei444e8:intervali111e12:min intervali222e5:peersld2:ip15:105.105.105.1057:peer id20:-qB000000000000000014:porti28784eed2:ip39:6969:6969:6969:6969:6969:6969:6969:69697:peer id20:-qB000000000000000024:porti28784eeee";
+
+        assert_eq!(
+            String::from_utf8(bytes).unwrap(),
+            String::from_utf8(expected_bytes.to_vec()).unwrap()
+        );
     }
 
     #[test]
@@ -282,13 +319,15 @@ mod tests {
             ],
         };
 
-        let bytes = response.write().unwrap();
+        let bytes = response.body().unwrap();
 
-        // cspell:disable-next-line
-        assert_eq!(
-            bytes,
+        let expected_bytes =
             // cspell:disable-next-line
-            b"d8:completei333e10:incompletei444e8:intervali111e12:min intervali222e5:peers6:iiiipp6:peers618:iiiiiiiiiiiiiiiippe"
+            b"d8:completei333e10:incompletei444e8:intervali111e12:min intervali222e5:peers6:iiiipp6:peers618:iiiiiiiiiiiiiiiippe";
+
+        assert_eq!(
+            String::from_utf8(bytes).unwrap(),
+            String::from_utf8(expected_bytes.to_vec()).unwrap()
         );
     }
 }
