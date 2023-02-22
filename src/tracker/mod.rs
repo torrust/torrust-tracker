@@ -1,6 +1,5 @@
 pub mod auth;
 pub mod error;
-pub mod mode;
 pub mod peer;
 pub mod services;
 pub mod statistics;
@@ -15,18 +14,18 @@ use std::time::Duration;
 
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
+use torrust_tracker_configuration::Configuration;
+use torrust_tracker_primitives::TrackerMode;
 
 use self::error::Error;
 use self::peer::Peer;
 use self::torrent::SwamStats;
-use crate::config::Configuration;
-use crate::databases::driver::Driver;
 use crate::databases::{self, Database};
 use crate::protocol::info_hash::InfoHash;
 
 pub struct Tracker {
     pub config: Arc<Configuration>,
-    mode: mode::Mode,
+    mode: TrackerMode,
     keys: RwLock<std::collections::HashMap<String, auth::Key>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
@@ -59,7 +58,7 @@ impl Tracker {
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
-        let database = Driver::build(&config.db_driver, &config.db_path)?;
+        let database = databases::driver::build(&config.db_driver, &config.db_path)?;
 
         Ok(Tracker {
             config: config.clone(),
@@ -74,15 +73,15 @@ impl Tracker {
     }
 
     pub fn is_public(&self) -> bool {
-        self.mode == mode::Mode::Public
+        self.mode == TrackerMode::Public
     }
 
     pub fn is_private(&self) -> bool {
-        self.mode == mode::Mode::Private || self.mode == mode::Mode::PrivateListed
+        self.mode == TrackerMode::Private || self.mode == TrackerMode::PrivateListed
     }
 
     pub fn is_whitelisted(&self) -> bool {
-        self.mode == mode::Mode::Listed || self.mode == mode::Mode::PrivateListed
+        self.mode == TrackerMode::Listed || self.mode == TrackerMode::PrivateListed
     }
 
     /// It handles an announce request
@@ -418,12 +417,14 @@ fn assign_ip_address_to_peer(remote_client_ip: &IpAddr, tracker_external_ip: Opt
 mod tests {
     use std::sync::Arc;
 
+    use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_test_helpers::configuration::ephemeral;
+
     use super::statistics::Keeper;
     use super::{TorrentsMetrics, Tracker};
-    use crate::config::{ephemeral_configuration, Configuration};
 
     pub fn tracker_configuration() -> Arc<Configuration> {
-        Arc::new(ephemeral_configuration())
+        Arc::new(ephemeral())
     }
 
     pub fn tracker_factory() -> Tracker {

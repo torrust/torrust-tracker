@@ -1,9 +1,8 @@
 use std::panic::Location;
 
 use thiserror::Error;
+use torrust_tracker_located_error::LocatedError;
 use warp::reject::Reject;
-
-use crate::located_error::LocatedError;
 
 #[derive(Error, Debug)]
 pub enum Error {

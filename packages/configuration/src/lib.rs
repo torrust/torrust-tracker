@@ -8,17 +8,13 @@ use std::{env, fs};
 
 use config::{Config, ConfigError, File, FileFormat};
 use log::warn;
-use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use thiserror::Error;
-use {std, toml};
+use torrust_tracker_located_error::{Located, LocatedError};
+use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
 
-use crate::databases::driver::Driver;
-use crate::located_error::{Located, LocatedError};
-use crate::tracker::mode;
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct UdpTracker {
     pub enabled: bool,
     pub bind_address: String,
@@ -62,8 +58,8 @@ impl HttpApi {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
     pub log_level: Option<String>,
-    pub mode: mode::Mode,
-    pub db_driver: Driver,
+    pub mode: TrackerMode,
+    pub db_driver: DatabaseDriver,
     pub db_path: String,
     pub announce_interval: u32,
     pub min_announce_interval: u32,
@@ -122,41 +118,34 @@ pub fn ephemeral_configuration() -> Configuration {
     };
 
     // Ephemeral socket address for API
-    let api_port = random_port();
+    let api_port = 0u16;
     config.http_api.enabled = true;
     config.http_api.bind_address = format!("127.0.0.1:{}", &api_port);
 
     // Ephemeral socket address for UDP tracker
-    let upd_port = random_port();
+    let udp_port = 0u16;
     config.udp_trackers[0].enabled = true;
-    config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", &upd_port);
+    config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", &udp_port);
 
     // Ephemeral socket address for HTTP tracker
-    let http_port = random_port();
+    let http_port = 0u16;
     config.http_trackers[0].enabled = true;
     config.http_trackers[0].bind_address = format!("127.0.0.1:{}", &http_port);
 
     // Ephemeral sqlite database
     let temp_directory = env::temp_dir();
-    let temp_file = temp_directory.join(format!("data_{}_{}_{}.db", &api_port, &upd_port, &http_port));
+    let temp_file = temp_directory.join(format!("data_{}_{}_{}.db", &api_port, &udp_port, &http_port));
     config.db_path = temp_file.to_str().unwrap().to_owned();
 
     config
-}
-
-fn random_port() -> u16 {
-    // todo: this may produce random test failures because two tests can try to bind the same port.
-    // We could create a pool of available ports (with read/write lock)
-    let mut rng = thread_rng();
-    rng.gen_range(49152..65535)
 }
 
 impl Default for Configuration {
     fn default() -> Self {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
-            mode: mode::Mode::Public,
-            db_driver: Driver::Sqlite3,
+            mode: TrackerMode::Public,
+            db_driver: DatabaseDriver::Sqlite3,
             db_path: String::from("./storage/database/data.db"),
             announce_interval: 120,
             min_announce_interval: 120,
@@ -266,7 +255,7 @@ impl Configuration {
 
 #[cfg(test)]
 mod tests {
-    use crate::config::Configuration;
+    use crate::Configuration;
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -325,7 +314,7 @@ mod tests {
     fn configuration_should_contain_the_external_ip() {
         let configuration = Configuration::default();
 
-        assert_eq!(configuration.external_ip, Option::Some(String::from("0.0.0.0")));
+        assert_eq!(configuration.external_ip, Some(String::from("0.0.0.0")));
     }
 
     #[test]

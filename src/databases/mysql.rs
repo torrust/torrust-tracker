@@ -7,14 +7,14 @@ use r2d2::Pool;
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MysqlConnectionManager;
+use torrust_tracker_primitives::DatabaseDriver;
 
-use super::driver::Driver;
 use crate::databases::{Database, Error};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth;
 
-const DRIVER: Driver = Driver::MySQL;
+const DRIVER: DatabaseDriver = DatabaseDriver::MySQL;
 
 pub struct Mysql {
     pool: Pool<MysqlConnectionManager>,

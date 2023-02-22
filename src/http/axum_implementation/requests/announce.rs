@@ -3,11 +3,11 @@ use std::panic::Location;
 use std::str::FromStr;
 
 use thiserror::Error;
+use torrust_tracker_located_error::{Located, LocatedError};
 
 use crate::http::axum_implementation::query::{ParseQueryError, Query};
 use crate::http::axum_implementation::responses;
 use crate::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
-use crate::located_error::{Located, LocatedError};
 use crate::protocol::info_hash::{ConversionError, InfoHash};
 use crate::tracker::peer::{self, IdConversionError};
 

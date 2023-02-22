@@ -10,8 +10,8 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use torrust_tracker_located_error::LocatedError;
 
-use crate::located_error::LocatedError;
 use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Time, TimeNow};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 

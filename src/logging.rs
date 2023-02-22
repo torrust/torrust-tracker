@@ -2,8 +2,7 @@ use std::str::FromStr;
 use std::sync::Once;
 
 use log::{info, LevelFilter};
-
-use crate::config::Configuration;
+use torrust_tracker_configuration::Configuration;
 
 static INIT: Once = Once::new();
 

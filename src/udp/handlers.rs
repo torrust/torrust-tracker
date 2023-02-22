@@ -258,31 +258,33 @@ mod tests {
     use std::sync::Arc;
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_primitives::TrackerMode;
+    use torrust_tracker_test_helpers::configuration::ephemeral;
 
-    use crate::config::{ephemeral_configuration, Configuration};
     use crate::protocol::clock::{Current, Time};
-    use crate::tracker::{self, mode, peer, statistics};
+    use crate::tracker::{self, peer, statistics};
 
     fn tracker_configuration() -> Arc<Configuration> {
         Arc::new(default_testing_tracker_configuration())
     }
 
     fn default_testing_tracker_configuration() -> Configuration {
-        ephemeral_configuration()
+        ephemeral()
     }
 
     fn initialized_public_tracker() -> Arc<tracker::Tracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Mode::Public).into());
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Public).into());
         initialized_tracker(&configuration)
     }
 
     fn initialized_private_tracker() -> Arc<tracker::Tracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Mode::Private).into());
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Private).into());
         initialized_tracker(&configuration)
     }
 
     fn initialized_whitelisted_tracker() -> Arc<tracker::Tracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(mode::Mode::Listed).into());
+        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Listed).into());
         initialized_tracker(&configuration)
     }
 
@@ -362,7 +364,7 @@ mod tests {
             self
         }
 
-        pub fn with_mode(mut self, mode: mode::Mode) -> Self {
+        pub fn with_mode(mut self, mode: TrackerMode) -> Self {
             self.configuration.mode = mode;
             self
         }

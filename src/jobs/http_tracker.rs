@@ -5,8 +5,8 @@ use axum_server::tls_rustls::RustlsConfig;
 use log::{info, warn};
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
+use torrust_tracker_configuration::HttpTracker;
 
-use crate::config::HttpTracker;
 use crate::http::axum_implementation::server;
 use crate::http::warp_implementation::server::Http;
 use crate::http::Version;

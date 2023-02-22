@@ -3,8 +3,7 @@ use std::panic::Location;
 use std::str::FromStr;
 
 use thiserror::Error;
-
-use crate::located_error::{Located, LocatedError};
+use torrust_tracker_located_error::{Located, LocatedError};
 
 #[derive(Error, Debug)]
 pub enum XForwardedForParseError {

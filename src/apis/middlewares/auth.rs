@@ -5,9 +5,9 @@ use axum::http::Request;
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
+use torrust_tracker_configuration::{Configuration, HttpApi};
 
 use crate::apis::responses::unhandled_rejection_response;
-use crate::config::{Configuration, HttpApi};
 
 #[derive(Deserialize, Debug)]
 pub struct QueryParams {

@@ -1,11 +1,68 @@
 [package]
-edition = "2021"
 name = "torrust-tracker"
-version = "2.3.0"
-license = "AGPL-3.0"
-authors = ["Mick van Dijke <mick@dutchbits.nl>"]
 description = "A feature rich BitTorrent tracker."
+license = "AGPL-3.0"
+authors.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[workspace.package]
+authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>"]
+edition = "2021"
 repository = "https://github.com/torrust/torrust-tracker"
+version = "2.3.0"
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "macros", "signal"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_bencode = "^0.2.3"
+serde_json = "1.0"
+serde_with = "2.0"
+hex = "0.4.3"
+percent-encoding = "2"
+binascii = "0.1"
+lazy_static = "1.4"
+openssl = { version = "0.10", features = ["vendored"] }
+warp = { version = "0.3", features = ["tls"] }
+config = "0.13"
+toml = "0.5"
+log = { version = "0.4", features = ["release_max_level_info"] }
+fern = "0.6"
+chrono = "0.4"
+r2d2 = "0.8"
+r2d2_mysql = "21"
+r2d2_sqlite = { version = "0.21", features = ["bundled"] }
+rand = "0.8"
+derive_more = "0.99"
+thiserror = "1.0"
+futures = "0.3"
+async-trait = "0.1"
+aquatic_udp_protocol = "0.2"
+uuid = { version = "1", features = ["v4"] }
+axum = "0.6.1"
+axum-server = { version = "0.4.4", features = ["tls-rustls"] }
+axum-client-ip = "0.4.0"
+bip_bencode = "0.4.4"
+torrust-tracker-primitives = { path = "packages/primitives" }
+torrust-tracker-configuration = { path = "packages/configuration" }
+torrust-tracker-located-error = { path = "packages/located-error" }
+
+[dev-dependencies]
+mockall = "0.11"
+reqwest = { version = "0.11.13", features = ["json"] }
+serde_urlencoded = "0.7.1"
+serde_repr = "0.1.10"
+serde_bytes = "0.11.8"
+local-ip-address = "0.5.1"
+torrust-tracker-test-helpers = { path = "packages/test-helpers" }
+
+[workspace]
+members = [
+    "packages/configuration",
+    "packages/primitives",
+    "packages/test-helpers",
+    "packages/located-error",
+]
 
 [profile.dev]
 debug = 1
@@ -16,58 +73,3 @@ lto = "thin"
 debug = 1
 opt-level = 3
 lto = "fat"
-
-[dependencies]
-tokio = { version = "1", features = [
-    "rt-multi-thread",
-    "net",
-    "sync",
-    "macros",
-    "signal",
-] }
-
-serde = { version = "1.0", features = ["derive"] }
-serde_bencode = "^0.2.3"
-serde_json = "1.0"
-serde_with = "2.0"
-hex = "0.4.3"
-percent-encoding = "2"
-binascii = "0.1"
-lazy_static = "1.4"
-
-openssl = { version = "0.10", features = ["vendored"] }
-
-warp = { version = "0.3", features = ["tls"] }
-
-config = "0.13"
-toml = "0.5"
-
-log = { version = "0.4", features = ["release_max_level_info"] }
-fern = "0.6"
-chrono = "0.4"
-
-r2d2 = "0.8"
-r2d2_mysql = "21"
-r2d2_sqlite = { version = "0.21", features = ["bundled"] }
-
-rand = "0.8"
-derive_more = "0.99"
-thiserror = "1.0"
-futures = "0.3"
-async-trait = "0.1"
-
-aquatic_udp_protocol = "0.2"
-uuid = { version = "1", features = ["v4"] }
-axum = "0.6.1"
-axum-server = { version = "0.4.4", features = ["tls-rustls"] }
-axum-client-ip = "0.4.0"
-bip_bencode = "0.4.4"
-
-
-[dev-dependencies]
-mockall = "0.11"
-reqwest = { version = "0.11.13", features = ["json"] }
-serde_urlencoded = "0.7.1"
-serde_repr = "0.1.10"
-serde_bytes = "0.11.8"
-local-ip-address = "0.5.1"

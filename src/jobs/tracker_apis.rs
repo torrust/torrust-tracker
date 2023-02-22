@@ -4,9 +4,9 @@ use axum_server::tls_rustls::RustlsConfig;
 use log::info;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
+use torrust_tracker_configuration::HttpApi;
 
 use crate::apis::server;
-use crate::config::HttpApi;
 use crate::tracker;
 
 #[derive(Debug)]
