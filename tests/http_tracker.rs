@@ -85,10 +85,12 @@ mod warp_http_tracker_server {
                 assert_internal_server_error_response, assert_invalid_info_hash_error_response,
                 assert_invalid_peer_id_error_response, assert_is_announce_response,
             };
+            use crate::http::asserts_warp::assert_warp_announce_response;
             use crate::http::client::Client;
             use crate::http::requests::announce::{Compact, QueryBuilder};
             use crate::http::responses;
-            use crate::http::responses::announce::{Announce, CompactPeer, CompactPeerList, DictionaryPeer};
+            use crate::http::responses::announce::{Announce, CompactPeer, CompactPeerList};
+            use crate::http::responses::announce_warp::{WarpAnnounce, WarpDictionaryPeer};
             use crate::http::server::{
                 start_default_http_tracker, start_http_tracker_on_reverse_proxy, start_http_tracker_with_external_ip,
                 start_ipv6_http_tracker, start_public_http_tracker,
@@ -383,7 +385,9 @@ mod warp_http_tracker_server {
                     .build();
 
                 // Add the Peer 1
-                http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
+                http_tracker_server
+                    .add_torrent_peer(&info_hash, &previously_announced_peer)
+                    .await;
 
                 // Announce the new Peer 2. This new peer is non included on the response peer list
                 let response = Client::new(http_tracker_server.get_connection_info())
@@ -395,15 +399,15 @@ mod warp_http_tracker_server {
                     )
                     .await;
 
-                // It should only contain teh previously announced peer
-                assert_announce_response(
+                // It should only contain the previously announced peer
+                assert_warp_announce_response(
                     response,
-                    &Announce {
+                    &WarpAnnounce {
                         complete: 2,
                         incomplete: 0,
                         interval: http_tracker_server.tracker.config.announce_interval,
                         min_interval: http_tracker_server.tracker.config.min_announce_interval,
-                        peers: vec![DictionaryPeer::from(previously_announced_peer)],
+                        peers: vec![WarpDictionaryPeer::from(previously_announced_peer)],
                     },
                 )
                 .await;
@@ -417,7 +421,7 @@ mod warp_http_tracker_server {
                 let peer = PeerBuilder::default().build();
 
                 // Add a peer
-                http_tracker_server.add_torrent(&info_hash, &peer).await;
+                http_tracker_server.add_torrent_peer(&info_hash, &peer).await;
 
                 let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
@@ -448,7 +452,9 @@ mod warp_http_tracker_server {
                     .build();
 
                 // Add the Peer 1
-                http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
+                http_tracker_server
+                    .add_torrent_peer(&info_hash, &previously_announced_peer)
+                    .await;
 
                 // Announce the new Peer 2 accepting compact responses
                 let response = Client::new(http_tracker_server.get_connection_info())
@@ -487,7 +493,9 @@ mod warp_http_tracker_server {
                     .build();
 
                 // Add the Peer 1
-                http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
+                http_tracker_server
+                    .add_torrent_peer(&info_hash, &previously_announced_peer)
+                    .await;
 
                 // Announce the new Peer 2 without passing the "compact" param
                 // By default it should respond with the compact peer list
@@ -781,7 +789,7 @@ mod warp_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -819,7 +827,7 @@ mod warp_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -999,7 +1007,7 @@ mod warp_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -1028,7 +1036,7 @@ mod warp_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -1154,7 +1162,7 @@ mod warp_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -1183,7 +1191,7 @@ mod warp_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -1225,7 +1233,7 @@ mod warp_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -1405,19 +1413,15 @@ mod axum_http_tracker_server {
         mod and_running_on_reverse_proxy {
             use torrust_tracker::http::Version;
 
-            use crate::http::asserts::{
-                assert_could_not_find_remote_address_on_xff_header_error_response,
-                assert_invalid_remote_address_on_xff_header_error_response,
-            };
+            use crate::http::asserts::assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response;
             use crate::http::client::Client;
             use crate::http::requests::announce::QueryBuilder;
             use crate::http::server::start_http_tracker_on_reverse_proxy;
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_http_request_does_not_include_the_xff_http_request_header() {
                 // If the tracker is running behind a reverse proxy, the peer IP is the
-                // last IP in the `X-Forwarded-For` HTTP header, which is the IP of the proxy client.
+                // right most IP in the `X-Forwarded-For` HTTP header, which is the IP of the proxy's client.
 
                 let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Axum).await;
 
@@ -1427,11 +1431,10 @@ mod axum_http_tracker_server {
                     .get(&format!("announce?{params}"))
                     .await;
 
-                assert_could_not_find_remote_address_on_xff_header_error_response(response).await;
+                assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_xff_http_request_header_contains_an_invalid_ip() {
                 let http_tracker_server = start_http_tracker_on_reverse_proxy(Version::Axum).await;
 
@@ -1441,7 +1444,7 @@ mod axum_http_tracker_server {
                     .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
                     .await;
 
-                assert_invalid_remote_address_on_xff_header_error_response(response).await;
+                assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response(response).await;
             }
         }
 
@@ -1458,7 +1461,7 @@ mod axum_http_tracker_server {
             // Vuze (bittorrent client) docs:
             // https://wiki.vuze.com/w/Announce
 
-            use std::net::{IpAddr, Ipv6Addr};
+            use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
             use std::str::FromStr;
 
             use local_ip_address::local_ip;
@@ -1783,7 +1786,9 @@ mod axum_http_tracker_server {
                     .build();
 
                 // Add the Peer 1
-                http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
+                http_tracker_server
+                    .add_torrent_peer(&info_hash, &previously_announced_peer)
+                    .await;
 
                 // Announce the new Peer 2. This new peer is non included on the response peer list
                 let response = Client::new(http_tracker_server.get_connection_info())
@@ -1810,6 +1815,54 @@ mod axum_http_tracker_server {
             }
 
             #[tokio::test]
+            async fn should_return_the_list_of_previously_announced_peers_including_peers_using_ipv4_and_ipv6() {
+                let http_tracker_server = start_public_http_tracker(Version::Axum).await;
+
+                let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+
+                // Announce a peer using IPV4
+                let peer_using_ipv4 = PeerBuilder::default()
+                    .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                    .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 8080))
+                    .build();
+                http_tracker_server.add_torrent_peer(&info_hash, &peer_using_ipv4).await;
+
+                // Announce a peer using IPV6
+                let peer_using_ipv6 = PeerBuilder::default()
+                    .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
+                    .with_peer_addr(&SocketAddr::new(
+                        IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                        8080,
+                    ))
+                    .build();
+                http_tracker_server.add_torrent_peer(&info_hash, &peer_using_ipv6).await;
+
+                // Announce the new Peer.
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .announce(
+                        &QueryBuilder::default()
+                            .with_info_hash(&info_hash)
+                            .with_peer_id(&peer::Id(*b"-qB00000000000000003"))
+                            .query(),
+                    )
+                    .await;
+
+                // The newly announced peer is not included on the response peer list,
+                // but all the previously announced peers should be included regardless the IP version they are using.
+                assert_announce_response(
+                    response,
+                    &Announce {
+                        complete: 3,
+                        incomplete: 0,
+                        interval: http_tracker_server.tracker.config.announce_interval,
+                        min_interval: http_tracker_server.tracker.config.min_announce_interval,
+                        peers: vec![DictionaryPeer::from(peer_using_ipv4), DictionaryPeer::from(peer_using_ipv6)],
+                    },
+                )
+                .await;
+            }
+
+            #[tokio::test]
             async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_peer_id_even_if_the_ip_is_different() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -1817,7 +1870,7 @@ mod axum_http_tracker_server {
                 let peer = PeerBuilder::default().build();
 
                 // Add a peer
-                http_tracker_server.add_torrent(&info_hash, &peer).await;
+                http_tracker_server.add_torrent_peer(&info_hash, &peer).await;
 
                 let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
@@ -1833,8 +1886,7 @@ mod axum_http_tracker_server {
                 assert_empty_announce_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_the_compact_response() {
                 // Tracker Returns Compact Peer Lists
                 // https://www.bittorrent.org/beps/bep_0023.html
@@ -1849,7 +1901,9 @@ mod axum_http_tracker_server {
                     .build();
 
                 // Add the Peer 1
-                http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
+                http_tracker_server
+                    .add_torrent_peer(&info_hash, &previously_announced_peer)
+                    .await;
 
                 // Announce the new Peer 2 accepting compact responses
                 let response = Client::new(http_tracker_server.get_connection_info())
@@ -1888,7 +1942,9 @@ mod axum_http_tracker_server {
                     .build();
 
                 // Add the Peer 1
-                http_tracker_server.add_torrent(&info_hash, &previously_announced_peer).await;
+                http_tracker_server
+                    .add_torrent_peer(&info_hash, &previously_announced_peer)
+                    .await;
 
                 // Announce the new Peer 2 without passing the "compact" param
                 // By default it should respond with the compact peer list
@@ -2185,7 +2241,7 @@ mod axum_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -2224,7 +2280,7 @@ mod axum_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -2410,7 +2466,7 @@ mod axum_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -2440,7 +2496,7 @@ mod axum_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -2570,7 +2626,7 @@ mod axum_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -2600,7 +2656,7 @@ mod axum_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
@@ -2643,7 +2699,7 @@ mod axum_http_tracker_server {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
                 http_tracker
-                    .add_torrent(
+                    .add_torrent_peer(
                         &info_hash,
                         &PeerBuilder::default()
                             .with_peer_id(&peer::Id(*b"-qB00000000000000001"))

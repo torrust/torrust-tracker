@@ -3,9 +3,9 @@ use std::sync::Arc;
 
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::peer::Peer;
-use crate::tracker::{statistics, AnnounceResponse, Tracker};
+use crate::tracker::{statistics, AnnounceData, Tracker};
 
-pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut Peer) -> AnnounceResponse {
+pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut Peer) -> AnnounceData {
     let original_peer_ip = peer.peer_addr.ip();
 
     // The tracker could change the original peer ip

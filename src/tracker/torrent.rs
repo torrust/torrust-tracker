@@ -1,10 +1,9 @@
-use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 
 use aquatic_udp_protocol::AnnounceEvent;
 use serde::{Deserialize, Serialize};
 
-use super::peer;
+use super::peer::{self, Peer};
 use crate::protocol::clock::{Current, TimeNow};
 use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 
@@ -48,26 +47,21 @@ impl Entry {
         did_torrent_stats_change
     }
 
+    /// Get all peers, limiting the result to the maximum number of scrape torrents.
     #[must_use]
-    pub fn get_peers(&self, optional_excluded_address: Option<&SocketAddr>) -> Vec<&peer::Peer> {
+    pub fn get_all_peers(&self) -> Vec<&peer::Peer> {
+        self.peers.values().take(MAX_SCRAPE_TORRENTS as usize).collect()
+    }
+
+    /// Returns the list of peers for a given client.
+    /// It filters out the input peer.
+    #[must_use]
+    pub fn get_peers_for_peer(&self, client: &Peer) -> Vec<&peer::Peer> {
         self.peers
             .values()
-            .filter(|peer| match optional_excluded_address {
-                // Don't filter on ip_version
-                None => true,
-                // Filter out different ip_version from remote_addr
-                Some(excluded_address) => {
-                    // Skip ip address of client
-                    if peer.peer_addr.ip() == excluded_address.ip() {
-                        return false;
-                    }
-
-                    match peer.peer_addr.ip() {
-                        IpAddr::V4(_) => excluded_address.is_ipv4(),
-                        IpAddr::V6(_) => excluded_address.is_ipv6(),
-                    }
-                }
-            })
+            // Take peers which are not the client peer
+            .filter(|peer| peer.peer_addr != client.peer_addr)
+            // Limit the number of peers on the result
             .take(MAX_SCRAPE_TORRENTS as usize)
             .collect()
     }
@@ -101,264 +95,295 @@ pub struct SwamStats {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-    use std::ops::Sub;
-    use std::time::Duration;
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    mod torrent_entry {
 
-    use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Stopped, StoppedTime, Time, Working};
-    use crate::tracker::peer;
-    use crate::tracker::torrent::Entry;
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+        use std::ops::Sub;
+        use std::time::Duration;
 
-    struct TorrentPeerBuilder {
-        peer: peer::Peer,
-    }
+        use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
-    impl TorrentPeerBuilder {
-        pub fn default() -> TorrentPeerBuilder {
-            let default_peer = peer::Peer {
-                peer_id: peer::Id([0u8; 20]),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
-                updated: Current::now(),
-                uploaded: NumberOfBytes(0),
-                downloaded: NumberOfBytes(0),
-                left: NumberOfBytes(0),
-                event: AnnounceEvent::Started,
-            };
-            TorrentPeerBuilder { peer: default_peer }
+        use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Stopped, StoppedTime, Time, Working};
+        use crate::tracker::peer;
+        use crate::tracker::torrent::Entry;
+
+        struct TorrentPeerBuilder {
+            peer: peer::Peer,
         }
 
-        pub fn with_event_completed(mut self) -> Self {
-            self.peer.event = AnnounceEvent::Completed;
-            self
+        impl TorrentPeerBuilder {
+            pub fn default() -> TorrentPeerBuilder {
+                let default_peer = peer::Peer {
+                    peer_id: peer::Id([0u8; 20]),
+                    peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
+                    updated: Current::now(),
+                    uploaded: NumberOfBytes(0),
+                    downloaded: NumberOfBytes(0),
+                    left: NumberOfBytes(0),
+                    event: AnnounceEvent::Started,
+                };
+                TorrentPeerBuilder { peer: default_peer }
+            }
+
+            pub fn with_event_completed(mut self) -> Self {
+                self.peer.event = AnnounceEvent::Completed;
+                self
+            }
+
+            pub fn with_peer_address(mut self, peer_addr: SocketAddr) -> Self {
+                self.peer.peer_addr = peer_addr;
+                self
+            }
+
+            pub fn with_peer_id(mut self, peer_id: peer::Id) -> Self {
+                self.peer.peer_id = peer_id;
+                self
+            }
+
+            pub fn with_number_of_bytes_left(mut self, left: i64) -> Self {
+                self.peer.left = NumberOfBytes(left);
+                self
+            }
+
+            pub fn updated_at(mut self, updated: DurationSinceUnixEpoch) -> Self {
+                self.peer.updated = updated;
+                self
+            }
+
+            pub fn into(self) -> peer::Peer {
+                self.peer
+            }
         }
 
-        pub fn with_peer_address(mut self, peer_addr: SocketAddr) -> Self {
-            self.peer.peer_addr = peer_addr;
-            self
+        /// A torrent seeder is a peer with 0 bytes left to download which
+        /// has not announced it has stopped
+        fn a_torrent_seeder() -> peer::Peer {
+            TorrentPeerBuilder::default()
+                .with_number_of_bytes_left(0)
+                .with_event_completed()
+                .into()
         }
 
-        pub fn with_peer_id(mut self, peer_id: peer::Id) -> Self {
-            self.peer.peer_id = peer_id;
-            self
+        /// A torrent leecher is a peer that is not a seeder.
+        /// Leecher: left > 0 OR event = Stopped
+        fn a_torrent_leecher() -> peer::Peer {
+            TorrentPeerBuilder::default()
+                .with_number_of_bytes_left(1)
+                .with_event_completed()
+                .into()
         }
 
-        pub fn with_number_of_bytes_left(mut self, left: i64) -> Self {
-            self.peer.left = NumberOfBytes(left);
-            self
+        #[test]
+        fn the_default_torrent_entry_should_contain_an_empty_list_of_peers() {
+            let torrent_entry = Entry::new();
+
+            assert_eq!(torrent_entry.get_all_peers().len(), 0);
         }
 
-        pub fn updated_at(mut self, updated: DurationSinceUnixEpoch) -> Self {
-            self.peer.updated = updated;
-            self
+        #[test]
+        fn a_new_peer_can_be_added_to_a_torrent_entry() {
+            let mut torrent_entry = Entry::new();
+            let torrent_peer = TorrentPeerBuilder::default().into();
+
+            torrent_entry.update_peer(&torrent_peer); // Add the peer
+
+            assert_eq!(*torrent_entry.get_all_peers()[0], torrent_peer);
+            assert_eq!(torrent_entry.get_all_peers().len(), 1);
         }
 
-        pub fn into(self) -> peer::Peer {
-            self.peer
+        #[test]
+        fn a_torrent_entry_should_contain_the_list_of_peers_that_were_added_to_the_torrent() {
+            let mut torrent_entry = Entry::new();
+            let torrent_peer = TorrentPeerBuilder::default().into();
+
+            torrent_entry.update_peer(&torrent_peer); // Add the peer
+
+            assert_eq!(torrent_entry.get_all_peers(), vec![&torrent_peer]);
         }
-    }
 
-    /// A torrent seeder is a peer with 0 bytes left to download which
-    /// has not announced it has stopped
-    fn a_torrent_seeder() -> peer::Peer {
-        TorrentPeerBuilder::default()
-            .with_number_of_bytes_left(0)
-            .with_event_completed()
-            .into()
-    }
+        #[test]
+        fn a_peer_can_be_updated_in_a_torrent_entry() {
+            let mut torrent_entry = Entry::new();
+            let mut torrent_peer = TorrentPeerBuilder::default().into();
+            torrent_entry.update_peer(&torrent_peer); // Add the peer
 
-    /// A torrent leecher is a peer that is not a seeder.
-    /// Leecher: left > 0 OR event = Stopped
-    fn a_torrent_leecher() -> peer::Peer {
-        TorrentPeerBuilder::default()
-            .with_number_of_bytes_left(1)
-            .with_event_completed()
-            .into()
-    }
+            torrent_peer.event = AnnounceEvent::Completed; // Update the peer
+            torrent_entry.update_peer(&torrent_peer); // Update the peer in the torrent entry
 
-    #[test]
-    fn the_default_torrent_entry_should_contain_an_empty_list_of_peers() {
-        let torrent_entry = Entry::new();
+            assert_eq!(torrent_entry.get_all_peers()[0].event, AnnounceEvent::Completed);
+        }
 
-        assert_eq!(torrent_entry.get_peers(None).len(), 0);
-    }
+        #[test]
+        fn a_peer_should_be_removed_from_a_torrent_entry_when_the_peer_announces_it_has_stopped() {
+            let mut torrent_entry = Entry::new();
+            let mut torrent_peer = TorrentPeerBuilder::default().into();
+            torrent_entry.update_peer(&torrent_peer); // Add the peer
 
-    #[test]
-    fn a_new_peer_can_be_added_to_a_torrent_entry() {
-        let mut torrent_entry = Entry::new();
-        let torrent_peer = TorrentPeerBuilder::default().into();
+            torrent_peer.event = AnnounceEvent::Stopped; // Update the peer
+            torrent_entry.update_peer(&torrent_peer); // Update the peer in the torrent entry
 
-        torrent_entry.update_peer(&torrent_peer); // Add the peer
+            assert_eq!(torrent_entry.get_all_peers().len(), 0);
+        }
 
-        assert_eq!(*torrent_entry.get_peers(None)[0], torrent_peer);
-        assert_eq!(torrent_entry.get_peers(None).len(), 1);
-    }
+        #[test]
+        fn torrent_stats_change_when_a_previously_known_peer_announces_it_has_completed_the_torrent() {
+            let mut torrent_entry = Entry::new();
+            let mut torrent_peer = TorrentPeerBuilder::default().into();
 
-    #[test]
-    fn a_torrent_entry_should_contain_the_list_of_peers_that_were_added_to_the_torrent() {
-        let mut torrent_entry = Entry::new();
-        let torrent_peer = TorrentPeerBuilder::default().into();
+            torrent_entry.update_peer(&torrent_peer); // Add the peer
 
-        torrent_entry.update_peer(&torrent_peer); // Add the peer
+            torrent_peer.event = AnnounceEvent::Completed; // Update the peer
+            let stats_have_changed = torrent_entry.update_peer(&torrent_peer); // Update the peer in the torrent entry
 
-        assert_eq!(torrent_entry.get_peers(None), vec![&torrent_peer]);
-    }
+            assert!(stats_have_changed);
+        }
 
-    #[test]
-    fn a_peer_can_be_updated_in_a_torrent_entry() {
-        let mut torrent_entry = Entry::new();
-        let mut torrent_peer = TorrentPeerBuilder::default().into();
-        torrent_entry.update_peer(&torrent_peer); // Add the peer
+        #[test]
+        fn torrent_stats_should_not_change_when_a_peer_announces_it_has_completed_the_torrent_if_it_is_the_first_announce_from_the_peer(
+        ) {
+            let mut torrent_entry = Entry::new();
+            let torrent_peer_announcing_complete_event = TorrentPeerBuilder::default().with_event_completed().into();
 
-        torrent_peer.event = AnnounceEvent::Completed; // Update the peer
-        torrent_entry.update_peer(&torrent_peer); // Update the peer in the torrent entry
+            // Add a peer that did not exist before in the entry
+            let torrent_stats_have_not_changed = !torrent_entry.update_peer(&torrent_peer_announcing_complete_event);
 
-        assert_eq!(torrent_entry.get_peers(None)[0].event, AnnounceEvent::Completed);
-    }
+            assert!(torrent_stats_have_not_changed);
+        }
 
-    #[test]
-    fn a_peer_should_be_removed_from_a_torrent_entry_when_the_peer_announces_it_has_stopped() {
-        let mut torrent_entry = Entry::new();
-        let mut torrent_peer = TorrentPeerBuilder::default().into();
-        torrent_entry.update_peer(&torrent_peer); // Add the peer
+        #[test]
+        fn a_torrent_entry_should_return_the_list_of_peers_for_a_given_peer_filtering_out_the_client_that_is_making_the_request()
+        {
+            let mut torrent_entry = Entry::new();
+            let peer_socket_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+            let torrent_peer = TorrentPeerBuilder::default().with_peer_address(peer_socket_address).into();
+            torrent_entry.update_peer(&torrent_peer); // Add peer
 
-        torrent_peer.event = AnnounceEvent::Stopped; // Update the peer
-        torrent_entry.update_peer(&torrent_peer); // Update the peer in the torrent entry
+            // Get peers excluding the one we have just added
+            let peers = torrent_entry.get_peers_for_peer(&torrent_peer);
 
-        assert_eq!(torrent_entry.get_peers(None).len(), 0);
-    }
+            assert_eq!(peers.len(), 0);
+        }
 
-    #[test]
-    fn torrent_stats_change_when_a_previously_known_peer_announces_it_has_completed_the_torrent() {
-        let mut torrent_entry = Entry::new();
-        let mut torrent_peer = TorrentPeerBuilder::default().into();
+        #[test]
+        fn two_peers_with_the_same_ip_but_different_port_should_be_considered_different_peers() {
+            let mut torrent_entry = Entry::new();
 
-        torrent_entry.update_peer(&torrent_peer); // Add the peer
+            let peer_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
 
-        torrent_peer.event = AnnounceEvent::Completed; // Update the peer
-        let stats_have_changed = torrent_entry.update_peer(&torrent_peer); // Update the peer in the torrent entry
-
-        assert!(stats_have_changed);
-    }
-
-    #[test]
-    fn torrent_stats_should_not_change_when_a_peer_announces_it_has_completed_the_torrent_if_it_is_the_first_announce_from_the_peer(
-    ) {
-        let mut torrent_entry = Entry::new();
-        let torrent_peer_announcing_complete_event = TorrentPeerBuilder::default().with_event_completed().into();
-
-        // Add a peer that did not exist before in the entry
-        let torrent_stats_have_not_changed = !torrent_entry.update_peer(&torrent_peer_announcing_complete_event);
-
-        assert!(torrent_stats_have_not_changed);
-    }
-
-    #[test]
-    fn a_torrent_entry_could_filter_out_peers_with_a_given_socket_address() {
-        let mut torrent_entry = Entry::new();
-        let peer_socket_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-        let torrent_peer = TorrentPeerBuilder::default().with_peer_address(peer_socket_address).into();
-        torrent_entry.update_peer(&torrent_peer); // Add peer
-
-        // Get peers excluding the one we have just added
-        let peers = torrent_entry.get_peers(Some(&peer_socket_address));
-
-        assert_eq!(peers.len(), 0);
-    }
-
-    fn peer_id_from_i32(number: i32) -> peer::Id {
-        let peer_id = number.to_le_bytes();
-        peer::Id([
-            0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, peer_id[0], peer_id[1], peer_id[2],
-            peer_id[3],
-        ])
-    }
-
-    #[test]
-    fn the_tracker_should_limit_the_list_of_peers_to_74_when_clients_scrape_torrents() {
-        let mut torrent_entry = Entry::new();
-
-        // We add one more peer than the scrape limit
-        for peer_number in 1..=74 + 1 {
-            let torrent_peer = TorrentPeerBuilder::default()
-                .with_peer_id(peer_id_from_i32(peer_number))
+            // Add peer 1
+            let torrent_peer_1 = TorrentPeerBuilder::default()
+                .with_peer_address(SocketAddr::new(peer_ip, 8080))
                 .into();
-            torrent_entry.update_peer(&torrent_peer);
+            torrent_entry.update_peer(&torrent_peer_1);
+
+            // Add peer 2
+            let torrent_peer_2 = TorrentPeerBuilder::default()
+                .with_peer_address(SocketAddr::new(peer_ip, 8081))
+                .into();
+            torrent_entry.update_peer(&torrent_peer_2);
+
+            // Get peers for peer 1
+            let peers = torrent_entry.get_peers_for_peer(&torrent_peer_1);
+
+            // The peer 2 using the same IP but different port should be included
+            assert_eq!(peers[0].peer_addr.ip(), Ipv4Addr::new(127, 0, 0, 1));
+            assert_eq!(peers[0].peer_addr.port(), 8081);
         }
 
-        let peers = torrent_entry.get_peers(None);
+        fn peer_id_from_i32(number: i32) -> peer::Id {
+            let peer_id = number.to_le_bytes();
+            peer::Id([
+                0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, peer_id[0], peer_id[1],
+                peer_id[2], peer_id[3],
+            ])
+        }
 
-        assert_eq!(peers.len(), 74);
-    }
+        #[test]
+        fn the_tracker_should_limit_the_list_of_peers_to_74_when_clients_scrape_torrents() {
+            let mut torrent_entry = Entry::new();
 
-    #[test]
-    fn torrent_stats_should_have_the_number_of_seeders_for_a_torrent() {
-        let mut torrent_entry = Entry::new();
-        let torrent_seeder = a_torrent_seeder();
+            // We add one more peer than the scrape limit
+            for peer_number in 1..=74 + 1 {
+                let torrent_peer = TorrentPeerBuilder::default()
+                    .with_peer_id(peer_id_from_i32(peer_number))
+                    .into();
+                torrent_entry.update_peer(&torrent_peer);
+            }
 
-        torrent_entry.update_peer(&torrent_seeder); // Add seeder
+            let peers = torrent_entry.get_all_peers();
 
-        assert_eq!(torrent_entry.get_stats().0, 1);
-    }
+            assert_eq!(peers.len(), 74);
+        }
 
-    #[test]
-    fn torrent_stats_should_have_the_number_of_leechers_for_a_torrent() {
-        let mut torrent_entry = Entry::new();
-        let torrent_leecher = a_torrent_leecher();
+        #[test]
+        fn torrent_stats_should_have_the_number_of_seeders_for_a_torrent() {
+            let mut torrent_entry = Entry::new();
+            let torrent_seeder = a_torrent_seeder();
 
-        torrent_entry.update_peer(&torrent_leecher); // Add leecher
+            torrent_entry.update_peer(&torrent_seeder); // Add seeder
 
-        assert_eq!(torrent_entry.get_stats().2, 1);
-    }
+            assert_eq!(torrent_entry.get_stats().0, 1);
+        }
 
-    #[test]
-    fn torrent_stats_should_have_the_number_of_peers_that_having_announced_at_least_two_events_the_latest_one_is_the_completed_event(
-    ) {
-        let mut torrent_entry = Entry::new();
-        let mut torrent_peer = TorrentPeerBuilder::default().into();
-        torrent_entry.update_peer(&torrent_peer); // Add the peer
+        #[test]
+        fn torrent_stats_should_have_the_number_of_leechers_for_a_torrent() {
+            let mut torrent_entry = Entry::new();
+            let torrent_leecher = a_torrent_leecher();
 
-        // Announce "Completed" torrent download event.
-        torrent_peer.event = AnnounceEvent::Completed;
-        torrent_entry.update_peer(&torrent_peer); // Update the peer
+            torrent_entry.update_peer(&torrent_leecher); // Add leecher
 
-        let number_of_previously_known_peers_with_completed_torrent = torrent_entry.get_stats().1;
+            assert_eq!(torrent_entry.get_stats().2, 1);
+        }
 
-        assert_eq!(number_of_previously_known_peers_with_completed_torrent, 1);
-    }
+        #[test]
+        fn torrent_stats_should_have_the_number_of_peers_that_having_announced_at_least_two_events_the_latest_one_is_the_completed_event(
+        ) {
+            let mut torrent_entry = Entry::new();
+            let mut torrent_peer = TorrentPeerBuilder::default().into();
+            torrent_entry.update_peer(&torrent_peer); // Add the peer
 
-    #[test]
-    fn torrent_stats_should_not_include_a_peer_in_the_completed_counter_if_the_peer_has_announced_only_one_event() {
-        let mut torrent_entry = Entry::new();
-        let torrent_peer_announcing_complete_event = TorrentPeerBuilder::default().with_event_completed().into();
+            // Announce "Completed" torrent download event.
+            torrent_peer.event = AnnounceEvent::Completed;
+            torrent_entry.update_peer(&torrent_peer); // Update the peer
 
-        // Announce "Completed" torrent download event.
-        // It's the first event announced from this peer.
-        torrent_entry.update_peer(&torrent_peer_announcing_complete_event); // Add the peer
+            let number_of_previously_known_peers_with_completed_torrent = torrent_entry.get_stats().1;
 
-        let number_of_peers_with_completed_torrent = torrent_entry.get_stats().1;
+            assert_eq!(number_of_previously_known_peers_with_completed_torrent, 1);
+        }
 
-        assert_eq!(number_of_peers_with_completed_torrent, 0);
-    }
+        #[test]
+        fn torrent_stats_should_not_include_a_peer_in_the_completed_counter_if_the_peer_has_announced_only_one_event() {
+            let mut torrent_entry = Entry::new();
+            let torrent_peer_announcing_complete_event = TorrentPeerBuilder::default().with_event_completed().into();
 
-    #[test]
-    fn a_torrent_entry_should_remove_a_peer_not_updated_after_a_timeout_in_seconds() {
-        let mut torrent_entry = Entry::new();
+            // Announce "Completed" torrent download event.
+            // It's the first event announced from this peer.
+            torrent_entry.update_peer(&torrent_peer_announcing_complete_event); // Add the peer
 
-        let timeout = 120u32;
+            let number_of_peers_with_completed_torrent = torrent_entry.get_stats().1;
 
-        let now = Working::now();
-        Stopped::local_set(&now);
+            assert_eq!(number_of_peers_with_completed_torrent, 0);
+        }
 
-        let timeout_seconds_before_now = now.sub(Duration::from_secs(u64::from(timeout)));
-        let inactive_peer = TorrentPeerBuilder::default()
-            .updated_at(timeout_seconds_before_now.sub(Duration::from_secs(1)))
-            .into();
-        torrent_entry.update_peer(&inactive_peer); // Add the peer
+        #[test]
+        fn a_torrent_entry_should_remove_a_peer_not_updated_after_a_timeout_in_seconds() {
+            let mut torrent_entry = Entry::new();
 
-        torrent_entry.remove_inactive_peers(timeout);
+            let timeout = 120u32;
 
-        assert_eq!(torrent_entry.peers.len(), 0);
+            let now = Working::now();
+            Stopped::local_set(&now);
+
+            let timeout_seconds_before_now = now.sub(Duration::from_secs(u64::from(timeout)));
+            let inactive_peer = TorrentPeerBuilder::default()
+                .updated_at(timeout_seconds_before_now.sub(Duration::from_secs(1)))
+                .into();
+            torrent_entry.update_peer(&inactive_peer); // Add the peer
+
+            torrent_entry.remove_inactive_peers(timeout);
+
+            assert_eq!(torrent_entry.peers.len(), 0);
+        }
     }
 }

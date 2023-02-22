@@ -8,7 +8,7 @@ pub mod torrent;
 
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
-use std::net::{IpAddr, SocketAddr};
+use std::net::IpAddr;
 use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
@@ -43,7 +43,7 @@ pub struct TorrentsMetrics {
     pub torrents: u64,
 }
 
-pub struct AnnounceResponse {
+pub struct AnnounceData {
     pub peers: Vec<Peer>,
     pub swam_stats: SwamStats,
     pub interval: u32,
@@ -86,15 +86,14 @@ impl Tracker {
     }
 
     /// It handles an announce request
-    pub async fn announce(&self, info_hash: &InfoHash, peer: &mut Peer, remote_client_ip: &IpAddr) -> AnnounceResponse {
+    pub async fn announce(&self, info_hash: &InfoHash, peer: &mut Peer, remote_client_ip: &IpAddr) -> AnnounceData {
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip()));
 
         let swam_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
-        // todo: remove peer by using its `Id` instead of its socket address: `get_peers_excluding_peer(peer_id: peer::Id)`
-        let peers = self.get_peers_excluding_peers_with_address(info_hash, &peer.peer_addr).await;
+        let peers = self.get_peers_for_peer(info_hash, peer).await;
 
-        AnnounceResponse {
+        AnnounceData {
             peers,
             swam_stats,
             interval: self.config.announce_interval,
@@ -298,16 +297,12 @@ impl Tracker {
         Ok(())
     }
 
-    async fn get_peers_excluding_peers_with_address(
-        &self,
-        info_hash: &InfoHash,
-        excluded_address: &SocketAddr,
-    ) -> Vec<peer::Peer> {
+    async fn get_peers_for_peer(&self, info_hash: &InfoHash, peer: &Peer) -> Vec<peer::Peer> {
         let read_lock = self.torrents.read().await;
 
         match read_lock.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_peers(Some(excluded_address)).into_iter().copied().collect(),
+            Some(entry) => entry.get_peers_for_peer(peer).into_iter().copied().collect(),
         }
     }
 
@@ -317,11 +312,14 @@ impl Tracker {
 
         match read_lock.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_peers(None).into_iter().copied().collect(),
+            Some(entry) => entry.get_all_peers().into_iter().copied().collect(),
         }
     }
 
     pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::SwamStats {
+        // code-review: consider splitting the function in two (command and query segregation).
+        // `update_torrent_with_peer` and `get_stats`
+
         let mut torrents = self.torrents.write().await;
 
         let torrent_entry = match torrents.entry(*info_hash) {

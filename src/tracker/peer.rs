@@ -10,6 +10,12 @@ use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef};
 use crate::protocol::utils::ser_unix_time_value;
 
+#[derive(PartialEq, Eq, Debug)]
+pub enum IPVersion {
+    IPv4,
+    IPv6,
+}
+
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Copy)]
 pub struct Peer {
     pub peer_id: Id,
@@ -36,6 +42,15 @@ impl Peer {
 
     pub fn change_ip(&mut self, new_ip: &IpAddr) {
         self.peer_addr = SocketAddr::new(*new_ip, self.peer_addr.port());
+    }
+
+    /// The IP version used by the peer: IPV4 or IPV6
+    #[must_use]
+    pub fn ip_version(&self) -> IPVersion {
+        if self.peer_addr.is_ipv4() {
+            return IPVersion::IPv4;
+        }
+        IPVersion::IPv6
     }
 }
 
@@ -68,6 +83,11 @@ impl Id {
         let mut ret = Self([0u8; PEER_ID_BYTES_LEN]);
         ret.0.clone_from_slice(bytes);
         ret
+    }
+
+    #[must_use]
+    pub fn to_bytes(&self) -> [u8; 20] {
+        self.0
     }
 }
 
@@ -353,6 +373,11 @@ mod test {
                 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
             ]);
             assert_eq!(id.to_string(), "009f9296009f9296009f9296009f9296009f9296");
+        }
+
+        #[test]
+        fn should_return_the_inner_bytes() {
+            assert_eq!(peer::Id(*b"-qB00000000000000000").to_bytes(), *b"-qB00000000000000000");
         }
     }
 

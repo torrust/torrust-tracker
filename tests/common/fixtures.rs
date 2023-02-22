@@ -23,6 +23,12 @@ impl PeerBuilder {
     }
 
     #[allow(dead_code)]
+    pub fn with_peer_addr(mut self, peer_addr: &SocketAddr) -> Self {
+        self.peer.peer_addr = *peer_addr;
+        self
+    }
+
+    #[allow(dead_code)]
     pub fn with_bytes_pending_to_download(mut self, left: i64) -> Self {
         self.peer.left = NumberOfBytes(left);
         self

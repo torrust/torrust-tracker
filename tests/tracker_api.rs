@@ -115,7 +115,7 @@ mod tracker_apis {
             let api_server = start_default_api().await;
 
             api_server
-                .add_torrent(
+                .add_torrent_peer(
                     &InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(),
                     &PeerBuilder::default().into(),
                 )
@@ -189,7 +189,7 @@ mod tracker_apis {
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
-            api_server.add_torrent(&info_hash, &PeerBuilder::default().into()).await;
+            api_server.add_torrent_peer(&info_hash, &PeerBuilder::default().into()).await;
 
             let response = Client::new(api_server.get_connection_info())
                 .get_torrents(Query::empty())
@@ -216,8 +216,12 @@ mod tracker_apis {
             let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
             let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap();
 
-            api_server.add_torrent(&info_hash_1, &PeerBuilder::default().into()).await;
-            api_server.add_torrent(&info_hash_2, &PeerBuilder::default().into()).await;
+            api_server
+                .add_torrent_peer(&info_hash_1, &PeerBuilder::default().into())
+                .await;
+            api_server
+                .add_torrent_peer(&info_hash_2, &PeerBuilder::default().into())
+                .await;
 
             let response = Client::new(api_server.get_connection_info())
                 .get_torrents(Query::params([QueryParam::new("limit", "1")].to_vec()))
@@ -244,8 +248,12 @@ mod tracker_apis {
             let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
             let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap();
 
-            api_server.add_torrent(&info_hash_1, &PeerBuilder::default().into()).await;
-            api_server.add_torrent(&info_hash_2, &PeerBuilder::default().into()).await;
+            api_server
+                .add_torrent_peer(&info_hash_1, &PeerBuilder::default().into())
+                .await;
+            api_server
+                .add_torrent_peer(&info_hash_2, &PeerBuilder::default().into())
+                .await;
 
             let response = Client::new(api_server.get_connection_info())
                 .get_torrents(Query::params([QueryParam::new("offset", "1")].to_vec()))
@@ -319,7 +327,7 @@ mod tracker_apis {
 
             let peer = PeerBuilder::default().into();
 
-            api_server.add_torrent(&info_hash, &peer).await;
+            api_server.add_torrent_peer(&info_hash, &peer).await;
 
             let response = Client::new(api_server.get_connection_info())
                 .get_torrent(&info_hash.to_string())
@@ -378,7 +386,7 @@ mod tracker_apis {
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
-            api_server.add_torrent(&info_hash, &PeerBuilder::default().into()).await;
+            api_server.add_torrent_peer(&info_hash, &PeerBuilder::default().into()).await;
 
             let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
                 .get_torrent(&info_hash.to_string())
