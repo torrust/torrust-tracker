@@ -5,7 +5,7 @@ use torrust_tracker::tracker::Tracker;
 pub mod asserts;
 pub mod client;
 pub mod connection_info;
-pub mod server;
+pub mod test_environment;
 
 /// It forces a database error by dropping all tables.
 /// That makes any query fail.

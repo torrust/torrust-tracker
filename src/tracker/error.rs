@@ -1,6 +1,6 @@
 use std::panic::Location;
 
-use crate::located_error::LocatedError;
+use torrust_tracker_located_error::LocatedError;
 
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {

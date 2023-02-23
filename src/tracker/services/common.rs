@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use crate::config::Configuration;
+use torrust_tracker_configuration::Configuration;
+
 use crate::tracker::statistics::Keeper;
 use crate::tracker::Tracker;
 

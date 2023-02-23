@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use log::{error, info, warn};
 use tokio::task::JoinHandle;
+use torrust_tracker_configuration::UdpTracker;
 
-use crate::config::UdpTracker;
 use crate::tracker;
 use crate::udp::server::Udp;
 

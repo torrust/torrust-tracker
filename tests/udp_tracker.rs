@@ -19,8 +19,8 @@ mod udp_tracker_server {
     use torrust_tracker::udp::MAX_PACKET_SIZE;
 
     use crate::udp::asserts::is_error_response;
-    use crate::udp::client::{new_udp_client_connected, Client};
-    use crate::udp::server::{start_udp_tracker, tracker_configuration};
+    use crate::udp::client::{new_udp_client_connected, UdpTrackerClient};
+    use crate::udp::test_environment::running_test_environment;
 
     fn empty_udp_request() -> [u8; MAX_PACKET_SIZE] {
         [0; MAX_PACKET_SIZE]
@@ -30,7 +30,7 @@ mod udp_tracker_server {
         [0; MAX_PACKET_SIZE]
     }
 
-    async fn send_connection_request(transaction_id: TransactionId, client: &Client) -> ConnectionId {
+    async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrackerClient) -> ConnectionId {
         let connect_request = ConnectRequest { transaction_id };
 
         client.send(connect_request.into()).await;
@@ -45,11 +45,9 @@ mod udp_tracker_server {
 
     #[tokio::test]
     async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
-        let configuration = tracker_configuration();
+        let test_env = running_test_environment().await;
 
-        let udp_server = start_udp_tracker(&configuration);
-
-        let client = new_udp_client_connected(&udp_server.bind_address.unwrap()).await;
+        let client = new_udp_client_connected(&test_env.bind_address().to_string()).await;
 
         client.send(&empty_udp_request()).await;
 
@@ -65,15 +63,13 @@ mod udp_tracker_server {
 
         use crate::udp::asserts::is_connect_response;
         use crate::udp::client::new_udp_tracker_client_connected;
-        use crate::udp::server::{start_udp_tracker, tracker_configuration};
+        use crate::udp::test_environment::running_test_environment;
 
         #[tokio::test]
         async fn should_return_a_connect_response() {
-            let configuration = tracker_configuration();
+            let test_env = running_test_environment().await;
 
-            let udp_server = start_udp_tracker(&configuration);
-
-            let client = new_udp_tracker_client_connected(&udp_server.bind_address.unwrap()).await;
+            let client = new_udp_tracker_client_connected(&test_env.bind_address().to_string()).await;
 
             let connect_request = ConnectRequest {
                 transaction_id: TransactionId(123),
@@ -97,16 +93,14 @@ mod udp_tracker_server {
 
         use crate::udp::asserts::is_ipv4_announce_response;
         use crate::udp::client::new_udp_tracker_client_connected;
-        use crate::udp::server::{start_udp_tracker, tracker_configuration};
+        use crate::udp::test_environment::running_test_environment;
         use crate::udp_tracker_server::send_connection_request;
 
         #[tokio::test]
         async fn should_return_an_announce_response() {
-            let configuration = tracker_configuration();
+            let test_env = running_test_environment().await;
 
-            let udp_server = start_udp_tracker(&configuration);
-
-            let client = new_udp_tracker_client_connected(&udp_server.bind_address.unwrap()).await;
+            let client = new_udp_tracker_client_connected(&test_env.bind_address().to_string()).await;
 
             let connection_id = send_connection_request(TransactionId(123), &client).await;
 
@@ -140,16 +134,14 @@ mod udp_tracker_server {
 
         use crate::udp::asserts::is_scrape_response;
         use crate::udp::client::new_udp_tracker_client_connected;
-        use crate::udp::server::{start_udp_tracker, tracker_configuration};
+        use crate::udp::test_environment::running_test_environment;
         use crate::udp_tracker_server::send_connection_request;
 
         #[tokio::test]
         async fn should_return_a_scrape_response() {
-            let configuration = tracker_configuration();
+            let test_env = running_test_environment().await;
 
-            let udp_server = start_udp_tracker(&configuration);
-
-            let client = new_udp_tracker_client_connected(&udp_server.bind_address.unwrap()).await;
+            let client = new_udp_tracker_client_connected(&test_env.bind_address().to_string()).await;
 
             let connection_id = send_connection_request(TransactionId(123), &client).await;
 

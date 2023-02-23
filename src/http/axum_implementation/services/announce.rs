@@ -29,17 +29,18 @@ mod tests {
     use std::sync::Arc;
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_primitives::TrackerMode;
+    use torrust_tracker_test_helpers::configuration;
 
-    use crate::config::{ephemeral_configuration, Configuration};
     use crate::protocol::clock::DurationSinceUnixEpoch;
     use crate::protocol::info_hash::InfoHash;
-    use crate::tracker::mode::Mode;
     use crate::tracker::statistics::Keeper;
     use crate::tracker::{peer, Tracker};
 
     fn public_tracker() -> Tracker {
-        let mut configuration = ephemeral_configuration();
-        configuration.mode = Mode::Public;
+        let mut configuration = configuration::ephemeral();
+        configuration.mode = TrackerMode::Public;
         tracker_factory(configuration)
     }
 
@@ -93,9 +94,9 @@ mod tests {
         use std::sync::Arc;
 
         use mockall::predicate::eq;
+        use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
-        use crate::config::ephemeral_configuration;
         use crate::http::axum_implementation::services::announce::invoke;
         use crate::http::axum_implementation::services::announce::tests::{public_tracker, sample_info_hash, sample_peer};
         use crate::tracker::peer::Peer;
@@ -136,7 +137,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    &Arc::new(ephemeral_configuration()),
+                    &Arc::new(configuration::ephemeral()),
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )
@@ -149,7 +150,7 @@ mod tests {
         }
 
         fn tracker_with_an_ipv6_external_ip(stats_event_sender: Box<dyn statistics::EventSender>) -> Tracker {
-            let mut configuration = ephemeral_configuration();
+            let mut configuration = configuration::ephemeral();
             configuration.external_ip =
                 Some(IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)).to_string());
 
@@ -200,7 +201,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    &Arc::new(ephemeral_configuration()),
+                    &Arc::new(configuration::ephemeral()),
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )
