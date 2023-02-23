@@ -3,7 +3,7 @@ use crate::tracker::peer::{self, IdConversionError};
 
 /// # Errors
 ///
-/// Will return `Err` if if the decoded bytes do not represent a valid `InfoHash`.
+/// Will return `Err` if the decoded bytes do not represent a valid `InfoHash`.
 pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, ConversionError> {
     let bytes = percent_encoding::percent_decode_str(raw_info_hash).collect::<Vec<u8>>();
     InfoHash::try_from(bytes)
