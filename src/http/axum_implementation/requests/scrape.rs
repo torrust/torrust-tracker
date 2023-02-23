@@ -60,19 +60,20 @@ impl TryFrom<Query> for Scrape {
 }
 
 fn extract_info_hashes(query: &Query) -> Result<Vec<InfoHash>, ParseScrapeQueryError> {
-    match query.get_param(INFO_HASH_SCRAPE_PARAM) {
-        Some(raw_param) => {
+    match query.get_param_vec(INFO_HASH_SCRAPE_PARAM) {
+        Some(raw_params) => {
             let mut info_hashes = vec![];
 
-            // todo: multiple infohashes
+            for raw_param in raw_params {
+                let info_hash =
+                    percent_decode_info_hash(&raw_param).map_err(|err| ParseScrapeQueryError::InvalidInfoHashParam {
+                        param_name: INFO_HASH_SCRAPE_PARAM.to_owned(),
+                        param_value: raw_param.clone(),
+                        source: Located(err).into(),
+                    })?;
 
-            let info_hash = percent_decode_info_hash(&raw_param).map_err(|err| ParseScrapeQueryError::InvalidInfoHashParam {
-                param_name: INFO_HASH_SCRAPE_PARAM.to_owned(),
-                param_value: raw_param.clone(),
-                source: Located(err).into(),
-            })?;
-
-            info_hashes.push(info_hash);
+                info_hashes.push(info_hash);
+            }
 
             Ok(info_hashes)
         }
