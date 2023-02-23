@@ -8,28 +8,29 @@ use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::statistics::Keeper;
 use torrust_tracker::{ephemeral_instance_keys, logging, static_time, tracker};
-use torrust_tracker_configuration::{ephemeral_configuration, Configuration};
+use torrust_tracker_configuration::Configuration;
 use torrust_tracker_primitives::TrackerMode;
+use torrust_tracker_test_helpers::configuration::ephemeral;
 
 use super::connection_info::ConnectionInfo;
 
 /// Starts a HTTP tracker with mode "public" in settings
 pub async fn start_public_http_tracker(version: Version) -> Server {
-    let mut configuration = ephemeral_configuration();
+    let mut configuration = ephemeral();
     configuration.mode = TrackerMode::Public;
     start_custom_http_tracker(Arc::new(configuration), version).await
 }
 
 /// Starts a HTTP tracker with mode "listed" in settings
 pub async fn start_whitelisted_http_tracker(version: Version) -> Server {
-    let mut configuration = ephemeral_configuration();
+    let mut configuration = ephemeral();
     configuration.mode = TrackerMode::Listed;
     start_custom_http_tracker(Arc::new(configuration), version).await
 }
 
 /// Starts a HTTP tracker with mode "private" in settings
 pub async fn start_private_http_tracker(version: Version) -> Server {
-    let mut configuration = ephemeral_configuration();
+    let mut configuration = ephemeral();
     configuration.mode = TrackerMode::Private;
     start_custom_http_tracker(Arc::new(configuration), version).await
 }
@@ -42,7 +43,7 @@ pub async fn start_private_http_tracker(version: Version) -> Server {
 /// bind_address = "[::]:7070"
 /// ```
 pub async fn start_ipv6_http_tracker(version: Version) -> Server {
-    let mut configuration = ephemeral_configuration();
+    let mut configuration = ephemeral();
 
     // Change socket address to "wildcard address" (unspecified address which means any IP address)
     // but keeping the random port generated with the ephemeral configuration.
@@ -60,7 +61,7 @@ pub async fn start_ipv6_http_tracker(version: Version) -> Server {
 /// external_ip = "2.137.87.41"
 /// ```
 pub async fn start_http_tracker_with_external_ip(external_ip: &IpAddr, version: Version) -> Server {
-    let mut configuration = ephemeral_configuration();
+    let mut configuration = ephemeral();
     configuration.external_ip = Some(external_ip.to_string());
     start_custom_http_tracker(Arc::new(configuration), version).await
 }
@@ -72,7 +73,7 @@ pub async fn start_http_tracker_with_external_ip(external_ip: &IpAddr, version: 
 /// on_reverse_proxy = true
 /// ```
 pub async fn start_http_tracker_on_reverse_proxy(version: Version) -> Server {
-    let mut configuration = ephemeral_configuration();
+    let mut configuration = ephemeral();
     configuration.on_reverse_proxy = true;
     start_custom_http_tracker(Arc::new(configuration), version).await
 }
@@ -83,7 +84,7 @@ pub async fn start_default_http_tracker(version: Version) -> Server {
 }
 
 pub fn tracker_configuration() -> Arc<Configuration> {
-    Arc::new(ephemeral_configuration())
+    Arc::new(ephemeral())
 }
 
 pub async fn start_custom_http_tracker(configuration: Arc<Configuration>, version: Version) -> Server {
