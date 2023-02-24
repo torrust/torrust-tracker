@@ -9,7 +9,7 @@ pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut Peer)
     let original_peer_ip = peer.peer_addr.ip();
 
     // The tracker could change the original peer ip
-    let response = tracker.announce(&info_hash, peer, &original_peer_ip).await;
+    let announce_data = tracker.announce(&info_hash, peer, &original_peer_ip).await;
 
     match original_peer_ip {
         IpAddr::V4(_) => {
@@ -20,5 +20,5 @@ pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut Peer)
         }
     }
 
-    response
+    announce_data
 }

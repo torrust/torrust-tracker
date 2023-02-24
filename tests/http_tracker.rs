@@ -2354,8 +2354,7 @@ mod axum_http_tracker_server {
                 assert_scrape_response(response, &expected_scrape_response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_increase_the_number_ot_tcp4_scrape_requests_handled_in_statistics() {
                 let http_tracker = start_public_http_tracker(Version::Axum).await;
 
@@ -2374,8 +2373,7 @@ mod axum_http_tracker_server {
                 assert_eq!(stats.tcp4_scrapes_handled, 1);
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_increase_the_number_ot_tcp6_scrape_requests_handled_in_statistics() {
                 let http_tracker = start_ipv6_http_tracker(Version::Axum).await;
 

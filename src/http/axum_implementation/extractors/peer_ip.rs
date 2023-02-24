@@ -31,7 +31,7 @@ impl From<ResolutionError> for responses::error::Error {
 ///
 /// Will return an error if the peer IP cannot be obtained according to the configuration.
 /// For example, if the IP is extracted from an HTTP header which is missing in the request.
-pub fn assign_ip_address_to_peer(on_reverse_proxy: bool, remote_client_ip: &RemoteClientIp) -> Result<IpAddr, Response> {
+pub fn resolve(on_reverse_proxy: bool, remote_client_ip: &RemoteClientIp) -> Result<IpAddr, Response> {
     if on_reverse_proxy {
         if let Some(ip) = remote_client_ip.right_most_x_forwarded_for {
             Ok(ip)

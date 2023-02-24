@@ -7,7 +7,7 @@ use axum::response::{IntoResponse, Response};
 use log::debug;
 
 use crate::http::axum_implementation::extractors::announce_request::ExtractRequest;
-use crate::http::axum_implementation::extractors::peer_ip::assign_ip_address_to_peer;
+use crate::http::axum_implementation::extractors::peer_ip;
 use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
 use crate::http::axum_implementation::requests::announce::{Announce, Compact, Event};
 use crate::http::axum_implementation::responses::announce;
@@ -24,7 +24,7 @@ pub async fn handle(
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
 
-    let peer_ip = match assign_ip_address_to_peer(tracker.config.on_reverse_proxy, &remote_client_ip) {
+    let peer_ip = match peer_ip::resolve(tracker.config.on_reverse_proxy, &remote_client_ip) {
         Ok(peer_ip) => peer_ip,
         Err(err) => return err,
     };
