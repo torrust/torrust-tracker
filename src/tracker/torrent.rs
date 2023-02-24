@@ -14,6 +14,13 @@ pub struct Entry {
     pub completed: u32,
 }
 
+#[derive(Debug, PartialEq, Default)]
+pub struct SwarmMetadata {
+    pub complete: u32,   // The number of active peers that have completed downloading
+    pub downloaded: u32, // The number of peers that have ever completed downloading
+    pub incomplete: u32, // The number of active peers that have not completed downloading
+}
+
 impl Entry {
     #[must_use]
     pub fn new() -> Entry {
@@ -72,6 +79,17 @@ impl Entry {
         let seeders: u32 = self.peers.values().filter(|peer| peer.is_seeder()).count() as u32;
         let leechers: u32 = self.peers.len() as u32 - seeders;
         (seeders, self.completed, leechers)
+    }
+
+    #[must_use]
+    pub fn get_swarm_metadata(&self) -> SwarmMetadata {
+        // code-review: consider using always this function instead of `get_stats`.
+        let (seeders, completed, leechers) = self.get_stats();
+        SwarmMetadata {
+            complete: seeders,
+            downloaded: completed,
+            incomplete: leechers,
+        }
     }
 
     pub fn remove_inactive_peers(&mut self, max_peer_timeout: u32) {
