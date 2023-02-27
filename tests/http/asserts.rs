@@ -78,6 +78,36 @@ pub async fn assert_is_announce_response(response: Response) {
 
 // Error responses
 
+// Specific errors for announce request
+
+pub async fn assert_missing_query_params_for_announce_request_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+
+    assert_bencoded_error(
+        &response.text().await.unwrap(),
+        "missing query params for announce request",
+        Location::caller(),
+    );
+}
+
+pub async fn assert_bad_announce_request_error_response(response: Response, failure: &str) {
+    assert_cannot_parse_query_params_error_response(response, &format!(" for announce request: {failure}")).await;
+}
+
+// Specific errors for scrape request
+
+pub async fn assert_missing_query_params_for_scrape_request_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+
+    assert_bencoded_error(
+        &response.text().await.unwrap(),
+        "missing query params for scrape request",
+        Location::caller(),
+    );
+}
+
+// Other errors
+
 pub async fn assert_internal_server_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
@@ -154,22 +184,6 @@ pub async fn assert_invalid_remote_address_on_xff_header_error_response(response
         "could not find remote address: on remote proxy and unable to parse the last x-forwarded-ip",
         Location::caller(),
     );
-}
-
-// Specific errors for announce request
-
-pub async fn assert_missing_query_params_for_announce_request_error_response(response: Response) {
-    assert_eq!(response.status(), 200);
-
-    assert_bencoded_error(
-        &response.text().await.unwrap(),
-        "missing query params for announce request",
-        Location::caller(),
-    );
-}
-
-pub async fn assert_bad_announce_request_error_response(response: Response, failure: &str) {
-    assert_cannot_parse_query_params_error_response(response, &format!(" for announce request: {failure}")).await;
 }
 
 pub async fn assert_cannot_parse_query_param_error_response(response: Response, failure: &str) {

@@ -2198,24 +2198,25 @@ mod axum_http_tracker_server {
             use torrust_tracker::tracker::peer;
 
             use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
-            use crate::http::asserts::{assert_internal_server_error_response, assert_scrape_response};
+            use crate::http::asserts::{
+                assert_cannot_parse_query_params_error_response, assert_missing_query_params_for_scrape_request_error_response,
+                assert_scrape_response,
+            };
             use crate::http::client::Client;
             use crate::http::requests;
             use crate::http::requests::scrape::QueryBuilder;
             use crate::http::responses::scrape::{self, File, ResponseBuilder};
             use crate::http::server::{start_ipv6_http_tracker, start_public_http_tracker};
 
-            //#[tokio::test]
-            #[allow(dead_code)]
-            async fn should_fail_when_the_request_is_empty() {
+            #[tokio::test]
+            async fn should_fail_when_the_url_query_component_is_empty() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
                 let response = Client::new(http_tracker_server.get_connection_info()).get("scrape").await;
 
-                assert_internal_server_error_response(response).await;
+                assert_missing_query_params_for_scrape_request_error_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_when_the_info_hash_param_is_invalid() {
                 let http_tracker_server = start_public_http_tracker(Version::Axum).await;
 
@@ -2228,13 +2229,11 @@ mod axum_http_tracker_server {
                         .get(&format!("announce?{params}"))
                         .await;
 
-                    // code-review: it's not returning the invalid info hash error
-                    assert_internal_server_error_response(response).await;
+                    assert_cannot_parse_query_params_error_response(response, "").await;
                 }
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_the_file_with_the_incomplete_peer_when_there_is_one_peer_with_bytes_pending_to_download() {
                 let http_tracker = start_public_http_tracker(Version::Axum).await;
 
@@ -2272,8 +2271,7 @@ mod axum_http_tracker_server {
                 assert_scrape_response(response, &expected_scrape_response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_the_file_with_the_complete_peer_when_there_is_one_peer_with_no_bytes_pending_to_download() {
                 let http_tracker = start_public_http_tracker(Version::Axum).await;
 
@@ -2311,8 +2309,7 @@ mod axum_http_tracker_server {
                 assert_scrape_response(response, &expected_scrape_response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_a_file_with_zeroed_values_when_there_are_no_peers() {
                 let http_tracker = start_public_http_tracker(Version::Axum).await;
 
@@ -2329,8 +2326,7 @@ mod axum_http_tracker_server {
                 assert_scrape_response(response, &scrape::Response::with_one_file(info_hash.bytes(), File::zeroed())).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_accept_multiple_infohashes() {
                 let http_tracker = start_public_http_tracker(Version::Axum).await;
 

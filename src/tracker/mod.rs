@@ -52,7 +52,7 @@ pub struct AnnounceData {
 
 #[derive(Debug, PartialEq, Default)]
 pub struct ScrapeData {
-    files: HashMap<InfoHash, SwarmMetadata>,
+    pub files: HashMap<InfoHash, SwarmMetadata>,
 }
 
 impl ScrapeData {

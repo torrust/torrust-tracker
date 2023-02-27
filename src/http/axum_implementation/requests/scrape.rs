@@ -10,8 +10,8 @@ use crate::protocol::info_hash::{ConversionError, InfoHash};
 
 pub type NumberOfBytes = i64;
 
-// Query param name
-const INFO_HASH_SCRAPE_PARAM: &str = "info_hash";
+// Query param names
+const INFO_HASH: &str = "info_hash";
 
 #[derive(Debug, PartialEq)]
 pub struct Scrape {
@@ -26,12 +26,6 @@ pub enum ParseScrapeQueryError {
     MissingParam {
         location: &'static Location<'static>,
         param_name: String,
-    },
-    #[error("invalid param value {param_value} for {param_name} in {location}")]
-    InvalidParam {
-        param_name: String,
-        param_value: String,
-        location: &'static Location<'static>,
     },
     #[error("invalid param value {param_value} for {param_name} in {source}")]
     InvalidInfoHashParam {
@@ -60,14 +54,14 @@ impl TryFrom<Query> for Scrape {
 }
 
 fn extract_info_hashes(query: &Query) -> Result<Vec<InfoHash>, ParseScrapeQueryError> {
-    match query.get_param_vec(INFO_HASH_SCRAPE_PARAM) {
+    match query.get_param_vec(INFO_HASH) {
         Some(raw_params) => {
             let mut info_hashes = vec![];
 
             for raw_param in raw_params {
                 let info_hash =
                     percent_decode_info_hash(&raw_param).map_err(|err| ParseScrapeQueryError::InvalidInfoHashParam {
-                        param_name: INFO_HASH_SCRAPE_PARAM.to_owned(),
+                        param_name: INFO_HASH.to_owned(),
                         param_value: raw_param.clone(),
                         source: Located(err).into(),
                     })?;
@@ -80,7 +74,7 @@ fn extract_info_hashes(query: &Query) -> Result<Vec<InfoHash>, ParseScrapeQueryE
         None => {
             return Err(ParseScrapeQueryError::MissingParam {
                 location: Location::caller(),
-                param_name: INFO_HASH_SCRAPE_PARAM.to_owned(),
+                param_name: INFO_HASH.to_owned(),
             })
         }
     }
@@ -92,16 +86,12 @@ mod tests {
     mod scrape_request {
 
         use crate::http::axum_implementation::query::Query;
-        use crate::http::axum_implementation::requests::scrape::{Scrape, INFO_HASH_SCRAPE_PARAM};
+        use crate::http::axum_implementation::requests::scrape::{Scrape, INFO_HASH};
         use crate::protocol::info_hash::InfoHash;
 
         #[test]
         fn should_be_instantiated_from_the_url_query_with_only_one_infohash() {
-            let raw_query = Query::from(vec![(
-                INFO_HASH_SCRAPE_PARAM,
-                "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0",
-            )])
-            .to_string();
+            let raw_query = Query::from(vec![(INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0")]).to_string();
 
             let query = raw_query.parse::<Query>().unwrap();
 
@@ -118,7 +108,7 @@ mod tests {
         mod when_it_is_instantiated_from_the_url_query_params {
 
             use crate::http::axum_implementation::query::Query;
-            use crate::http::axum_implementation::requests::scrape::{Scrape, INFO_HASH_SCRAPE_PARAM};
+            use crate::http::axum_implementation::requests::scrape::{Scrape, INFO_HASH};
 
             #[test]
             fn it_should_fail_if_the_query_does_not_include_the_info_hash_param() {
@@ -129,7 +119,7 @@ mod tests {
 
             #[test]
             fn it_should_fail_if_the_info_hash_param_is_invalid() {
-                let raw_query = Query::from(vec![(INFO_HASH_SCRAPE_PARAM, "INVALID_INFO_HASH_VALUE")]).to_string();
+                let raw_query = Query::from(vec![(INFO_HASH, "INVALID_INFO_HASH_VALUE")]).to_string();
 
                 assert!(Scrape::try_from(raw_query.parse::<Query>().unwrap()).is_err());
             }
