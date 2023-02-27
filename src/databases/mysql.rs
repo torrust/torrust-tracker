@@ -111,12 +111,12 @@ impl Database for Mysql {
         Ok(torrents)
     }
 
-    async fn load_keys(&self) -> Result<Vec<auth::Key>, Error> {
+    async fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let keys = conn.query_map(
             "SELECT `key`, valid_until FROM `keys`",
-            |(key, valid_until): (String, i64)| auth::Key {
+            |(key, valid_until): (String, i64)| auth::ExpiringKey {
                 id: key.parse::<KeyId>().unwrap(),
                 valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
             },
@@ -183,7 +183,7 @@ impl Database for Mysql {
         Ok(1)
     }
 
-    async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::Key>, Error> {
+    async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::ExpiringKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let query =
@@ -191,13 +191,13 @@ impl Database for Mysql {
 
         let key = query?;
 
-        Ok(key.map(|(key, expiry)| auth::Key {
+        Ok(key.map(|(key, expiry)| auth::ExpiringKey {
             id: key.parse::<KeyId>().unwrap(),
             valid_until: Some(Duration::from_secs(expiry.unsigned_abs())),
         }))
     }
 
-    async fn add_key_to_keys(&self, auth_key: &auth::Key) -> Result<usize, Error> {
+    async fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let key = auth_key.id.to_string();

@@ -28,7 +28,7 @@ use crate::protocol::info_hash::InfoHash;
 pub struct Tracker {
     pub config: Arc<Configuration>,
     mode: mode::Mode,
-    keys: RwLock<std::collections::HashMap<KeyId, auth::Key>>,
+    keys: RwLock<std::collections::HashMap<KeyId, auth::ExpiringKey>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
@@ -153,7 +153,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to add the `auth_key` to the database.
-    pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<auth::Key, databases::error::Error> {
+    pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<auth::ExpiringKey, databases::error::Error> {
         let auth_key = auth::generate(lifetime);
         self.database.add_key_to_keys(&auth_key).await?;
         self.keys.write().await.insert(auth_key.id.clone(), auth_key.clone());

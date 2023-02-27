@@ -19,7 +19,7 @@ use crate::protocol::common::AUTH_KEY_LENGTH;
 /// # Panics
 ///
 /// It would panic if the `lifetime: Duration` + Duration is more than `Duration::MAX`.
-pub fn generate(lifetime: Duration) -> Key {
+pub fn generate(lifetime: Duration) -> ExpiringKey {
     let random_id: String = thread_rng()
         .sample_iter(&Alphanumeric)
         .take(AUTH_KEY_LENGTH)
@@ -28,7 +28,7 @@ pub fn generate(lifetime: Duration) -> Key {
 
     debug!("Generated key: {}, valid for: {:?} seconds", random_id, lifetime);
 
-    Key {
+    ExpiringKey {
         id: random_id.parse::<KeyId>().unwrap(),
         valid_until: Some(Current::add(&lifetime).unwrap()),
     }
@@ -39,7 +39,7 @@ pub fn generate(lifetime: Duration) -> Key {
 /// Will return `Error::KeyExpired` if `auth_key.valid_until` is past the `current_time`.
 ///
 /// Will return `Error::KeyInvalid` if `auth_key.valid_until` is past the `None`.
-pub fn verify(auth_key: &Key) -> Result<(), Error> {
+pub fn verify(auth_key: &ExpiringKey) -> Result<(), Error> {
     let current_time: DurationSinceUnixEpoch = Current::now();
 
     match auth_key.valid_until {
@@ -60,12 +60,12 @@ pub fn verify(auth_key: &Key) -> Result<(), Error> {
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
-pub struct Key {
+pub struct ExpiringKey {
     pub id: KeyId,
     pub valid_until: Option<DurationSinceUnixEpoch>,
 }
 
-impl std::fmt::Display for Key {
+impl std::fmt::Display for ExpiringKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -88,14 +88,14 @@ impl std::fmt::Display for Key {
     }
 }
 
-impl Key {
+impl ExpiringKey {
     /// # Panics
     ///
     /// Will panic if bytes cannot be converted into a valid `KeyId`.
     #[must_use]
-    pub fn from_buffer(key_buffer: [u8; AUTH_KEY_LENGTH]) -> Option<Key> {
+    pub fn from_buffer(key_buffer: [u8; AUTH_KEY_LENGTH]) -> Option<ExpiringKey> {
         if let Ok(key) = String::from_utf8(Vec::from(key_buffer)) {
-            Some(Key {
+            Some(ExpiringKey {
                 id: key.parse::<KeyId>().unwrap(),
                 valid_until: None,
             })
@@ -108,9 +108,9 @@ impl Key {
     ///
     /// Will panic if string cannot be converted into a valid `KeyId`.
     #[must_use]
-    pub fn from_string(key: &str) -> Option<Key> {
+    pub fn from_string(key: &str) -> Option<ExpiringKey> {
         if key.len() == AUTH_KEY_LENGTH {
-            Some(Key {
+            Some(ExpiringKey {
                 id: key.parse::<KeyId>().unwrap(),
                 valid_until: None,
             })
@@ -177,7 +177,7 @@ mod tests {
 
     #[test]
     fn auth_key_from_buffer() {
-        let auth_key = auth::Key::from_buffer([
+        let auth_key = auth::ExpiringKey::from_buffer([
             89, 90, 83, 108, 52, 108, 77, 90, 117, 112, 82, 117, 79, 112, 83, 82, 67, 51, 107, 114, 73, 75, 82, 53, 66, 80, 66,
             49, 52, 110, 114, 74,
         ]);
@@ -192,7 +192,7 @@ mod tests {
     #[test]
     fn auth_key_from_string() {
         let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
-        let auth_key = auth::Key::from_string(key_string);
+        let auth_key = auth::ExpiringKey::from_string(key_string);
 
         assert!(auth_key.is_some());
         assert_eq!(auth_key.unwrap().id, key_string.parse::<KeyId>().unwrap());
