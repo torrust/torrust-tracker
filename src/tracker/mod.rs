@@ -16,6 +16,7 @@ use std::time::Duration;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
+use self::auth::KeyId;
 use self::error::Error;
 use self::peer::Peer;
 use self::torrent::{SwamStats, SwarmMetadata};
@@ -27,7 +28,7 @@ use crate::protocol::info_hash::InfoHash;
 pub struct Tracker {
     pub config: Arc<Configuration>,
     mode: mode::Mode,
-    keys: RwLock<std::collections::HashMap<String, auth::Key>>,
+    keys: RwLock<std::collections::HashMap<KeyId, auth::Key>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
@@ -155,28 +156,31 @@ impl Tracker {
     pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<auth::Key, databases::error::Error> {
         let auth_key = auth::generate(lifetime);
         self.database.add_key_to_keys(&auth_key).await?;
-        self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
+        self.keys.write().await.insert(auth_key.id.clone(), auth_key.clone());
         Ok(auth_key)
     }
 
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to remove the `key` to the database.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if key cannot be converted into a valid `KeyId`.
     pub async fn remove_auth_key(&self, key: &str) -> Result<(), databases::error::Error> {
         self.database.remove_key_from_keys(key).await?;
-        self.keys.write().await.remove(key);
+        self.keys.write().await.remove(&key.parse::<KeyId>().unwrap());
         Ok(())
     }
 
     /// # Errors
     ///
     /// Will return a `key::Error` if unable to get any `auth_key`.
-    pub async fn verify_auth_key(&self, auth_key: &auth::Key) -> Result<(), auth::Error> {
-        // todo: use auth::KeyId for the function argument `auth_key`
-        match self.keys.read().await.get(&auth_key.key) {
+    pub async fn verify_auth_key(&self, key_id: &KeyId) -> Result<(), auth::Error> {
+        match self.keys.read().await.get(key_id) {
             None => Err(auth::Error::UnableToReadKey {
                 location: Location::caller(),
-                key: Box::new(auth_key.clone()),
+                key_id: Box::new(key_id.clone()),
             }),
             Some(key) => auth::verify(key),
         }
@@ -192,7 +196,7 @@ impl Tracker {
         keys.clear();
 
         for key in keys_from_database {
-            keys.insert(key.key.clone(), key);
+            keys.insert(key.id.clone(), key);
         }
 
         Ok(())
@@ -283,7 +287,7 @@ impl Tracker {
     /// Will return a `torrent::Error::PeerNotAuthenticated` if the `key` is `None`.
     ///
     /// Will return a `torrent::Error::TorrentNotWhitelisted` if the the Tracker is in listed mode and the `info_hash` is not whitelisted.
-    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<auth::Key>) -> Result<(), Error> {
+    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<KeyId>) -> Result<(), Error> {
         // no authentication needed in public mode
         if self.is_public() {
             return Ok(());
@@ -295,7 +299,7 @@ impl Tracker {
                 Some(key) => {
                     if let Err(e) = self.verify_auth_key(key).await {
                         return Err(Error::PeerKeyNotValid {
-                            key: key.clone(),
+                            key_id: key.clone(),
                             source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
                         });
                     }

@@ -20,16 +20,16 @@ use crate::protocol::common::AUTH_KEY_LENGTH;
 ///
 /// It would panic if the `lifetime: Duration` + Duration is more than `Duration::MAX`.
 pub fn generate(lifetime: Duration) -> Key {
-    let key: String = thread_rng()
+    let random_id: String = thread_rng()
         .sample_iter(&Alphanumeric)
         .take(AUTH_KEY_LENGTH)
         .map(char::from)
         .collect();
 
-    debug!("Generated key: {}, valid for: {:?} seconds", key, lifetime);
+    debug!("Generated key: {}, valid for: {:?} seconds", random_id, lifetime);
 
     Key {
-        key,
+        id: random_id.parse::<KeyId>().unwrap(),
         valid_until: Some(Current::add(&lifetime).unwrap()),
     }
 }
@@ -54,16 +54,14 @@ pub fn verify(auth_key: &Key) -> Result<(), Error> {
         }
         None => Err(Error::UnableToReadKey {
             location: Location::caller(),
-            key: Box::new(auth_key.clone()),
+            key_id: Box::new(auth_key.id.clone()),
         }),
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct Key {
-    // todo: replace key field definition with:
-    // pub key: KeyId,
-    pub key: String,
+    pub id: KeyId,
     pub valid_until: Option<DurationSinceUnixEpoch>,
 }
 
@@ -72,7 +70,7 @@ impl std::fmt::Display for Key {
         write!(
             f,
             "key: `{}`, valid until `{}`",
-            self.key,
+            self.id,
             match self.valid_until {
                 Some(duration) => format!(
                     "{}",
@@ -91,20 +89,14 @@ impl std::fmt::Display for Key {
 }
 
 impl Key {
+    /// # Panics
+    ///
+    /// Will panic if bytes cannot be converted into a valid `KeyId`.
     #[must_use]
     pub fn from_buffer(key_buffer: [u8; AUTH_KEY_LENGTH]) -> Option<Key> {
         if let Ok(key) = String::from_utf8(Vec::from(key_buffer)) {
-            Some(Key { key, valid_until: None })
-        } else {
-            None
-        }
-    }
-
-    #[must_use]
-    pub fn from_string(key: &str) -> Option<Key> {
-        if key.len() == AUTH_KEY_LENGTH {
             Some(Key {
-                key: key.to_string(),
+                id: key.parse::<KeyId>().unwrap(),
                 valid_until: None,
             })
         } else {
@@ -114,16 +106,26 @@ impl Key {
 
     /// # Panics
     ///
-    /// Will fail if the key id is not a valid key id.
+    /// Will panic if string cannot be converted into a valid `KeyId`.
+    #[must_use]
+    pub fn from_string(key: &str) -> Option<Key> {
+        if key.len() == AUTH_KEY_LENGTH {
+            Some(Key {
+                id: key.parse::<KeyId>().unwrap(),
+                valid_until: None,
+            })
+        } else {
+            None
+        }
+    }
+
     #[must_use]
     pub fn id(&self) -> KeyId {
-        // todo: replace the type of field `key` with type `KeyId`.
-        // The constructor should fail if an invalid KeyId is provided.
-        KeyId::from_str(&self.key).unwrap()
+        self.id.clone()
     }
 }
 
-#[derive(Debug, Display, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Display, Hash)]
 pub struct KeyId(String);
 
 #[derive(Debug, PartialEq, Eq)]
@@ -148,10 +150,10 @@ pub enum Error {
     KeyVerificationError {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
-    #[error("Failed to read key: {key}, {location}")]
+    #[error("Failed to read key: {key_id}, {location}")]
     UnableToReadKey {
         location: &'static Location<'static>,
-        key: Box<Key>,
+        key_id: Box<KeyId>,
     },
     #[error("Key has expired, {location}")]
     KeyExpired { location: &'static Location<'static> },
@@ -171,7 +173,7 @@ mod tests {
     use std::time::Duration;
 
     use crate::protocol::clock::{Current, StoppedTime};
-    use crate::tracker::auth;
+    use crate::tracker::auth::{self, KeyId};
 
     #[test]
     fn auth_key_from_buffer() {
@@ -181,7 +183,10 @@ mod tests {
         ]);
 
         assert!(auth_key.is_some());
-        assert_eq!(auth_key.unwrap().key, "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ");
+        assert_eq!(
+            auth_key.unwrap().id,
+            "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse::<KeyId>().unwrap()
+        );
     }
 
     #[test]
@@ -190,7 +195,7 @@ mod tests {
         let auth_key = auth::Key::from_string(key_string);
 
         assert!(auth_key.is_some());
-        assert_eq!(auth_key.unwrap().key, key_string);
+        assert_eq!(auth_key.unwrap().id, key_string.parse::<KeyId>().unwrap());
     }
 
     #[test]

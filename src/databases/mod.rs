@@ -63,16 +63,19 @@ pub trait Database: Sync + Send {
 
     async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error>;
 
+    // todo: replace type `&str` with `&InfoHash`
     async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<Option<InfoHash>, Error>;
 
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
 
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
 
+    // todo: replace type `&str` with `&KeyId`
     async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::Key>, Error>;
 
     async fn add_key_to_keys(&self, auth_key: &auth::Key) -> Result<usize, Error>;
 
+    // todo: replace type `&str` with `&KeyId`
     async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error>;
 
     async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> Result<bool, Error> {

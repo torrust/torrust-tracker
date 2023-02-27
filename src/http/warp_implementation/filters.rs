@@ -1,6 +1,7 @@
 use std::convert::Infallible;
 use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use warp::{reject, Filter, Rejection};
@@ -11,7 +12,8 @@ use super::{request, WebResult};
 use crate::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::{self, auth, peer};
+use crate::tracker::auth::KeyId;
+use crate::tracker::{self, peer};
 
 /// Pass Arc<tracker::TorrentTracker> along
 #[must_use]
@@ -35,10 +37,16 @@ pub fn with_peer_id() -> impl Filter<Extract = (peer::Id,), Error = Rejection> +
 
 /// Pass Arc<tracker::TorrentTracker> along
 #[must_use]
-pub fn with_auth_key() -> impl Filter<Extract = (Option<auth::Key>,), Error = Infallible> + Clone {
+pub fn with_auth_key_id() -> impl Filter<Extract = (Option<KeyId>,), Error = Infallible> + Clone {
     warp::path::param::<String>()
-        .map(|key: String| auth::Key::from_string(&key))
-        .or_else(|_| async { Ok::<(Option<auth::Key>,), Infallible>((None,)) })
+        .map(|key: String| {
+            let key_id = KeyId::from_str(&key);
+            match key_id {
+                Ok(id) => Some(id),
+                Err(_) => None,
+            }
+        })
+        .or_else(|_| async { Ok::<(Option<KeyId>,), Infallible>((None,)) })
 }
 
 /// Check for `PeerAddress`

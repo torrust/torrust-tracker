@@ -9,7 +9,7 @@ use super::driver::Driver;
 use crate::databases::{Database, Error};
 use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::auth;
+use crate::tracker::auth::{self, KeyId};
 
 const DRIVER: Driver = Driver::Sqlite3;
 
@@ -108,11 +108,11 @@ impl Database for Sqlite {
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys")?;
 
         let keys_iter = stmt.query_map([], |row| {
-            let key = row.get(0)?;
+            let key: String = row.get(0)?;
             let valid_until: i64 = row.get(1)?;
 
             Ok(auth::Key {
-                key,
+                id: key.parse::<KeyId>().unwrap(),
                 valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs())),
             })
         })?;
@@ -211,8 +211,9 @@ impl Database for Sqlite {
 
         Ok(key.map(|f| {
             let expiry: i64 = f.get(1).unwrap();
+            let id: String = f.get(0).unwrap();
             auth::Key {
-                key: f.get(0).unwrap(),
+                id: id.parse::<KeyId>().unwrap(),
                 valid_until: Some(DurationSinceUnixEpoch::from_secs(expiry.unsigned_abs())),
             }
         }))
@@ -223,7 +224,7 @@ impl Database for Sqlite {
 
         let insert = conn.execute(
             "INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
-            [auth_key.key.to_string(), auth_key.valid_until.unwrap().as_secs().to_string()],
+            [auth_key.id.to_string(), auth_key.valid_until.unwrap().as_secs().to_string()],
         )?;
 
         if insert == 0 {
