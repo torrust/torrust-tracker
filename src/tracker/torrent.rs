@@ -16,9 +16,9 @@ pub struct Entry {
 
 #[derive(Debug, PartialEq, Default)]
 pub struct SwarmMetadata {
-    pub complete: u32,   // The number of active peers that have completed downloading
+    pub complete: u32,   // The number of active peers that have completed downloading (seeders)
     pub downloaded: u32, // The number of peers that have ever completed downloading
-    pub incomplete: u32, // The number of active peers that have not completed downloading
+    pub incomplete: u32, // The number of active peers that have not completed downloading (leechers)
 }
 
 impl Entry {

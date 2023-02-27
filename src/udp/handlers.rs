@@ -182,50 +182,42 @@ pub async fn handle_announce(
 /// # Errors
 ///
 /// This function dose not ever return an error.
-///
-/// TODO: refactor this, db lock can be a lot shorter
 pub async fn handle_scrape(
     remote_addr: SocketAddr,
     request: &ScrapeRequest,
     tracker: Arc<tracker::Tracker>,
 ) -> Result<Response, Error> {
-    let db = tracker.get_torrents().await;
+    // Convert from aquatic infohashes
+    let mut info_hashes = vec![];
+    for info_hash in &request.info_hashes {
+        info_hashes.push(InfoHash(info_hash.0));
+    }
+
+    let scrape_data = tracker.scrape(&info_hashes).await;
 
     let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
 
-    for info_hash in &request.info_hashes {
-        let info_hash = InfoHash(info_hash.0);
+    for file in &scrape_data.files {
+        let info_hash = file.0;
+        let swarm_metadata = file.1;
 
-        let scrape_entry = match db.get(&info_hash) {
-            Some(torrent_info) => {
-                if tracker.authenticate_request(&info_hash, &None).await.is_ok() {
-                    let (seeders, completed, leechers) = torrent_info.get_stats();
-
-                    #[allow(clippy::cast_possible_truncation)]
-                    TorrentScrapeStatistics {
-                        seeders: NumberOfPeers(i64::from(seeders) as i32),
-                        completed: NumberOfDownloads(i64::from(completed) as i32),
-                        leechers: NumberOfPeers(i64::from(leechers) as i32),
-                    }
-                } else {
-                    TorrentScrapeStatistics {
-                        seeders: NumberOfPeers(0),
-                        completed: NumberOfDownloads(0),
-                        leechers: NumberOfPeers(0),
-                    }
-                }
+        let scrape_entry = if tracker.authenticate_request(info_hash, &None).await.is_ok() {
+            #[allow(clippy::cast_possible_truncation)]
+            TorrentScrapeStatistics {
+                seeders: NumberOfPeers(i64::from(swarm_metadata.complete) as i32),
+                completed: NumberOfDownloads(i64::from(swarm_metadata.downloaded) as i32),
+                leechers: NumberOfPeers(i64::from(swarm_metadata.incomplete) as i32),
             }
-            None => TorrentScrapeStatistics {
+        } else {
+            TorrentScrapeStatistics {
                 seeders: NumberOfPeers(0),
                 completed: NumberOfDownloads(0),
                 leechers: NumberOfPeers(0),
-            },
+            }
         };
 
         torrent_stats.push(scrape_entry);
     }
-
-    drop(db);
 
     // send stats event
     match remote_addr {
