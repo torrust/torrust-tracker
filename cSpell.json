@@ -37,6 +37,7 @@
         "Lphant",
         "middlewares",
         "mockall",
+        "multimap",
         "myacicontext",
         "nanos",
         "nextest",

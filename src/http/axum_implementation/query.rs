@@ -1,19 +1,50 @@
-use std::collections::HashMap;
 use std::panic::Location;
 use std::str::FromStr;
 
+use multimap::MultiMap;
 use thiserror::Error;
 
-/// Represent a URL query component with some restrictions.
-/// It does not allow duplicate param names like this: `param1=value1&param1=value2`
-/// It would take the second value for `param1`.
+type ParamName = String;
+type ParamValue = String;
+
+/// Represent a URL query component:
+///
+/// ```text
+/// URI = scheme ":" ["//" authority] path ["?" query] ["#" fragment]
+/// ```
+#[derive(Debug)]
 pub struct Query {
     /* code-review:
-        - Consider using `HashMap<String, Param>`, because it does not allow you to add a second value for the same param name.
         - Consider using a third-party crate.
         - Conversion from/to string is not deterministic. Params can be in a different order in the query string.
     */
-    params: HashMap<String, String>,
+    params: MultiMap<ParamName, NameValuePair>,
+}
+
+impl Query {
+    /// Returns only the first param value even if it has multiple values like this:
+    ///
+    /// ```text
+    /// param1=value1&param1=value2
+    /// ```
+    ///
+    /// In that case `get_param("param1")` will return `value1`.
+    #[must_use]
+    pub fn get_param(&self, name: &str) -> Option<String> {
+        self.params.get(name).map(|pair| pair.value.clone())
+    }
+
+    /// Returns all the param values as a vector even if it has only one value.
+    #[must_use]
+    pub fn get_param_vec(&self, name: &str) -> Option<Vec<String>> {
+        self.params.get_vec(name).map(|pairs| {
+            let mut param_values = vec![];
+            for pair in pairs {
+                param_values.push(pair.value.to_string());
+            }
+            param_values
+        })
+    }
 }
 
 #[derive(Error, Debug)]
@@ -29,13 +60,14 @@ impl FromStr for Query {
     type Err = ParseQueryError;
 
     fn from_str(raw_query: &str) -> Result<Self, Self::Err> {
-        let mut params: HashMap<String, String> = HashMap::new();
+        let mut params: MultiMap<ParamName, NameValuePair> = MultiMap::new();
 
         let raw_params = raw_query.trim().trim_start_matches('?').split('&').collect::<Vec<&str>>();
 
         for raw_param in raw_params {
-            let param: Param = raw_param.parse()?;
-            params.insert(param.name, param.value);
+            let pair: NameValuePair = raw_param.parse()?;
+            let param_name = pair.name.clone();
+            params.insert(param_name, pair);
         }
 
         Ok(Self { params })
@@ -44,10 +76,10 @@ impl FromStr for Query {
 
 impl From<Vec<(&str, &str)>> for Query {
     fn from(raw_params: Vec<(&str, &str)>) -> Self {
-        let mut params: HashMap<String, String> = HashMap::new();
+        let mut params: MultiMap<ParamName, NameValuePair> = MultiMap::new();
 
         for raw_param in raw_params {
-            params.insert(raw_param.0.to_owned(), raw_param.1.to_owned());
+            params.insert(raw_param.0.to_owned(), NameValuePair::new(raw_param.0, raw_param.1));
         }
 
         Self { params }
@@ -58,8 +90,8 @@ impl std::fmt::Display for Query {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let query = self
             .params
-            .iter()
-            .map(|param| format!("{}", Param::new(param.0, param.1)))
+            .iter_all()
+            .map(|param| format!("{}", FieldValuePairSet::from_vec(param.1)))
             .collect::<Vec<String>>()
             .join("&");
 
@@ -67,20 +99,22 @@ impl std::fmt::Display for Query {
     }
 }
 
-impl Query {
-    #[must_use]
-    pub fn get_param(&self, name: &str) -> Option<String> {
-        self.params.get(name).map(std::string::ToString::to_string)
+#[derive(Debug, PartialEq, Clone)]
+struct NameValuePair {
+    name: ParamName,
+    value: ParamValue,
+}
+
+impl NameValuePair {
+    pub fn new(name: &str, value: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+            value: value.to_owned(),
+        }
     }
 }
 
-#[derive(Debug, PartialEq)]
-struct Param {
-    name: String,
-    value: String,
-}
-
-impl FromStr for Param {
+impl FromStr for NameValuePair {
     type Err = ParseQueryError;
 
     fn from_str(raw_param: &str) -> Result<Self, Self::Err> {
@@ -100,18 +134,39 @@ impl FromStr for Param {
     }
 }
 
-impl std::fmt::Display for Param {
+impl std::fmt::Display for NameValuePair {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}={}", self.name, self.value)
     }
 }
 
-impl Param {
-    pub fn new(name: &str, value: &str) -> Self {
-        Self {
-            name: name.to_owned(),
-            value: value.to_owned(),
+#[derive(Debug, PartialEq)]
+struct FieldValuePairSet {
+    pairs: Vec<NameValuePair>,
+}
+
+impl FieldValuePairSet {
+    fn from_vec(pair_vec: &Vec<NameValuePair>) -> Self {
+        let mut pairs: Vec<NameValuePair> = vec![];
+
+        for pair in pair_vec {
+            pairs.push(pair.clone());
         }
+
+        Self { pairs }
+    }
+}
+
+impl std::fmt::Display for FieldValuePairSet {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let query = self
+            .pairs
+            .iter()
+            .map(|pair| format!("{pair}"))
+            .collect::<Vec<String>>()
+            .join("&");
+
+        write!(f, "{query}")
     }
 }
 
@@ -137,6 +192,14 @@ mod tests {
         }
 
         #[test]
+        fn should_be_instantiated_from_a_string_pair_vector() {
+            let query = Query::from(vec![("param1", "value1"), ("param2", "value2")]);
+
+            assert_eq!(query.get_param("param1"), Some("value1".to_string()));
+            assert_eq!(query.get_param("param2"), Some("value2".to_string()));
+        }
+
+        #[test]
         fn should_fail_parsing_an_invalid_query_string() {
             let invalid_raw_query = "name=value=value";
 
@@ -151,7 +214,7 @@ mod tests {
 
             let query = raw_query.parse::<Query>().unwrap();
 
-            assert_eq!(query.get_param("name").unwrap(), "value");
+            assert_eq!(query.get_param("name"), Some("value".to_string()));
         }
 
         #[test]
@@ -160,61 +223,83 @@ mod tests {
 
             let query = raw_query.parse::<Query>().unwrap();
 
-            assert_eq!(query.get_param("name").unwrap(), "value");
+            assert_eq!(query.get_param("name"), Some("value".to_string()));
         }
 
-        #[test]
-        fn should_be_instantiated_from_a_string_pair_vector() {
-            let query = Query::from(vec![("param1", "value1"), ("param2", "value2")]).to_string();
+        mod should_allow_more_than_one_value_for_the_same_param {
+            use crate::http::axum_implementation::query::Query;
 
-            assert!(query == "param1=value1&param2=value2" || query == "param2=value2&param1=value1");
+            #[test]
+            fn instantiated_from_a_vector() {
+                let query1 = Query::from(vec![("param1", "value1"), ("param1", "value2")]);
+                assert_eq!(
+                    query1.get_param_vec("param1"),
+                    Some(vec!["value1".to_string(), "value2".to_string()])
+                );
+            }
+
+            #[test]
+            fn parsed_from_an_string() {
+                let query2 = "param1=value1&param1=value2".parse::<Query>().unwrap();
+                assert_eq!(
+                    query2.get_param_vec("param1"),
+                    Some(vec!["value1".to_string(), "value2".to_string()])
+                );
+            }
         }
 
-        #[test]
-        fn should_not_allow_more_than_one_value_for_the_same_param() {
-            let query = Query::from(vec![("param1", "value1"), ("param1", "value2"), ("param1", "value3")]).to_string();
+        mod should_be_displayed {
+            use crate::http::axum_implementation::query::Query;
 
-            assert_eq!(query, "param1=value3");
+            #[test]
+            fn with_one_param() {
+                assert_eq!("param1=value1".parse::<Query>().unwrap().to_string(), "param1=value1");
+            }
+
+            #[test]
+            fn with_multiple_params() {
+                let query = "param1=value1&param2=value2".parse::<Query>().unwrap().to_string();
+                assert!(query == "param1=value1&param2=value2" || query == "param2=value2&param1=value1");
+            }
+
+            #[test]
+            fn with_multiple_values_for_the_same_param() {
+                let query = "param1=value1&param1=value2".parse::<Query>().unwrap().to_string();
+                assert!(query == "param1=value1&param1=value2" || query == "param1=value2&param1=value1");
+            }
         }
 
-        #[test]
-        fn should_be_displayed() {
-            let query = "param1=value1&param2=value2".parse::<Query>().unwrap().to_string();
+        mod param_name_value_pair {
+            use crate::http::axum_implementation::query::NameValuePair;
 
-            assert!(query == "param1=value1&param2=value2" || query == "param2=value2&param1=value1");
-        }
-    }
+            #[test]
+            fn should_parse_a_single_query_param() {
+                let raw_param = "name=value";
 
-    mod url_query_param {
-        use crate::http::axum_implementation::query::Param;
+                let param = raw_param.parse::<NameValuePair>().unwrap();
 
-        #[test]
-        fn should_parse_a_single_query_param() {
-            let raw_param = "name=value";
+                assert_eq!(
+                    param,
+                    NameValuePair {
+                        name: "name".to_string(),
+                        value: "value".to_string(),
+                    }
+                );
+            }
 
-            let param = raw_param.parse::<Param>().unwrap();
+            #[test]
+            fn should_fail_parsing_an_invalid_query_param() {
+                let invalid_raw_param = "name=value=value";
 
-            assert_eq!(
-                param,
-                Param {
-                    name: "name".to_string(),
-                    value: "value".to_string(),
-                }
-            );
-        }
+                let query = invalid_raw_param.parse::<NameValuePair>();
 
-        #[test]
-        fn should_fail_parsing_an_invalid_query_param() {
-            let invalid_raw_param = "name=value=value";
+                assert!(query.is_err());
+            }
 
-            let query = invalid_raw_param.parse::<Param>();
-
-            assert!(query.is_err());
-        }
-
-        #[test]
-        fn should_be_displayed() {
-            assert_eq!("name=value".parse::<Param>().unwrap().to_string(), "name=value");
+            #[test]
+            fn should_be_displayed() {
+                assert_eq!("name=value".parse::<NameValuePair>().unwrap().to_string(), "name=value");
+            }
         }
     }
 }

@@ -7,6 +7,6 @@ use crate::http::axum_implementation::resources::ok::Ok;
 use crate::http::axum_implementation::responses::ok;
 
 #[allow(clippy::unused_async)]
-pub async fn get_status_handler(remote_client_ip: RemoteClientIp) -> Json<Ok> {
+pub async fn handle(remote_client_ip: RemoteClientIp) -> Json<Ok> {
     ok::response(&remote_client_ip)
 }
