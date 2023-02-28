@@ -4,9 +4,25 @@ use std::sync::Arc;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::{statistics, ScrapeData, Tracker};
 
-pub async fn invoke(tracker: Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
+pub async fn invoke(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
     let scrape_data = tracker.scrape(info_hashes).await;
 
+    send_scrape_event(original_peer_ip, tracker).await;
+
+    scrape_data
+}
+
+/// When the peer is not authenticated and the tracker is running in `private` mode,
+/// the tracker returns empty stats for all the torrents.
+pub async fn fake_invoke(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
+    let scrape_data = tracker.empty_scrape_for(info_hashes);
+
+    send_scrape_event(original_peer_ip, tracker).await;
+
+    scrape_data
+}
+
+async fn send_scrape_event(original_peer_ip: &IpAddr, tracker: &Arc<Tracker>) {
     match original_peer_ip {
         IpAddr::V4(_) => {
             tracker.send_stats_event(statistics::Event::Tcp4Scrape).await;
@@ -15,6 +31,4 @@ pub async fn invoke(tracker: Arc<Tracker>, info_hashes: &Vec<InfoHash>, original
             tracker.send_stats_event(statistics::Event::Tcp6Scrape).await;
         }
     }
-
-    scrape_data
 }

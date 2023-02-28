@@ -2606,8 +2606,7 @@ mod axum_http_tracker_server {
             use crate::http::responses::scrape::{File, ResponseBuilder};
             use crate::http::server::start_private_http_tracker;
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_the_zeroed_file_when_the_client_is_not_authenticated() {
                 let http_tracker = start_private_http_tracker(Version::Axum).await;
 
@@ -2636,8 +2635,7 @@ mod axum_http_tracker_server {
                 assert_scrape_response(response, &expected_scrape_response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_the_real_file_stats_when_the_client_is_authenticated() {
                 let http_tracker = start_private_http_tracker(Version::Axum).await;
 
@@ -2677,10 +2675,10 @@ mod axum_http_tracker_server {
                 assert_scrape_response(response, &expected_scrape_response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_return_the_zeroed_file_when_the_authentication_key_provided_by_the_client_is_invalid() {
                 // There is not authentication error
+                // code-review: should this really be this way?
 
                 let http_tracker = start_private_http_tracker(Version::Axum).await;
 

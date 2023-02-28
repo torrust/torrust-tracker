@@ -15,7 +15,8 @@ pub fn router(tracker: &Arc<Tracker>) -> Router {
         .route("/announce", get(announce::handle_without_key).with_state(tracker.clone()))
         .route("/announce/:key", get(announce::handle_with_key).with_state(tracker.clone()))
         // Scrape request
-        .route("/scrape", get(scrape::handle).with_state(tracker.clone()))
+        .route("/scrape", get(scrape::handle_without_key).with_state(tracker.clone()))
+        .route("/scrape/:key", get(scrape::handle_with_key).with_state(tracker.clone()))
         // Add extension to get the client IP from the connection info
         .layer(SecureClientIpSource::ConnectInfo.into_extension())
 }
