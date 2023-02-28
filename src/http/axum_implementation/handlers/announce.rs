@@ -1,39 +1,70 @@
 use std::net::{IpAddr, SocketAddr};
+use std::panic::Location;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
 use crate::http::axum_implementation::extractors::announce_request::ExtractRequest;
 use crate::http::axum_implementation::extractors::peer_ip;
 use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
+use crate::http::axum_implementation::handlers::auth;
 use crate::http::axum_implementation::requests::announce::{Announce, Compact, Event};
-use crate::http::axum_implementation::responses::announce;
+use crate::http::axum_implementation::responses::{self, announce};
 use crate::http::axum_implementation::services;
 use crate::protocol::clock::{Current, Time};
+use crate::tracker::auth::KeyId;
 use crate::tracker::peer::Peer;
 use crate::tracker::Tracker;
 
 #[allow(clippy::unused_async)]
-pub async fn handle(
+pub async fn handle_without_key(
     State(tracker): State<Arc<Tracker>>,
     ExtractRequest(announce_request): ExtractRequest,
     remote_client_ip: RemoteClientIp,
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
 
-    let peer_ip = match peer_ip::resolve(tracker.config.on_reverse_proxy, &remote_client_ip) {
+    if tracker.is_private() {
+        return responses::error::Error::from(auth::Error::MissingAuthKey {
+            location: Location::caller(),
+        })
+        .into_response();
+    }
+
+    handle(&tracker, &announce_request, &remote_client_ip).await
+}
+
+#[allow(clippy::unused_async)]
+pub async fn handle_with_key(
+    State(tracker): State<Arc<Tracker>>,
+    ExtractRequest(announce_request): ExtractRequest,
+    Path(key_id): Path<KeyId>,
+    remote_client_ip: RemoteClientIp,
+) -> Response {
+    debug!("http announce request: {:#?}", announce_request);
+
+    match auth::authenticate(&key_id, &tracker).await {
+        Ok(_) => (),
+        Err(error) => return responses::error::Error::from(error).into_response(),
+    }
+
+    handle(&tracker, &announce_request, &remote_client_ip).await
+}
+
+async fn handle(tracker: &Arc<Tracker>, announce_request: &Announce, remote_client_ip: &RemoteClientIp) -> Response {
+    let peer_ip = match peer_ip::resolve(tracker.config.on_reverse_proxy, remote_client_ip) {
         Ok(peer_ip) => peer_ip,
         Err(err) => return err,
     };
 
-    let mut peer = peer_from_request(&announce_request, &peer_ip);
+    let mut peer = peer_from_request(announce_request, &peer_ip);
 
     let announce_data = services::announce::invoke(tracker.clone(), announce_request.info_hash, &mut peer).await;
 
-    match announce_request.compact {
+    match &announce_request.compact {
         Some(compact) => match compact {
             Compact::Accepted => announce::Compact::from(announce_data).into_response(),
             Compact::NotAccepted => announce::NonCompact::from(announce_data).into_response(),

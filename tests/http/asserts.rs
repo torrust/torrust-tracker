@@ -140,22 +140,6 @@ pub async fn assert_torrent_not_in_whitelist_error_response(response: Response) 
     assert_bencoded_error(&response.text().await.unwrap(), "is not whitelisted", Location::caller());
 }
 
-pub async fn assert_peer_not_authenticated_error_response(response: Response) {
-    assert_eq!(response.status(), 200);
-
-    assert_bencoded_error(
-        &response.text().await.unwrap(),
-        "The peer is not authenticated",
-        Location::caller(),
-    );
-}
-
-pub async fn assert_invalid_authentication_key_error_response(response: Response) {
-    assert_eq!(response.status(), 200);
-
-    assert_bencoded_error(&response.text().await.unwrap(), "is not valid", Location::caller());
-}
-
 pub async fn assert_could_not_find_remote_address_on_xff_header_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
@@ -198,4 +182,10 @@ pub async fn assert_cannot_parse_query_params_error_response(response: Response,
         &format!("Cannot parse query params{failure}"),
         Location::caller(),
     );
+}
+
+pub async fn assert_authentication_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+
+    assert_bencoded_error(&response.text().await.unwrap(), "Authentication error", Location::caller());
 }

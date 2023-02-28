@@ -1085,9 +1085,9 @@ mod warp_http_tracker_server {
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::auth::KeyId;
 
-            use crate::http::asserts::{
-                assert_invalid_authentication_key_error_response, assert_is_announce_response,
-                assert_peer_not_authenticated_error_response,
+            use crate::http::asserts::assert_is_announce_response;
+            use crate::http::asserts_warp::{
+                assert_warp_invalid_authentication_key_error_response, assert_warp_peer_not_authenticated_error_response,
             };
             use crate::http::client::Client;
             use crate::http::requests::announce::QueryBuilder;
@@ -1120,7 +1120,7 @@ mod warp_http_tracker_server {
                     .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
-                assert_peer_not_authenticated_error_response(response).await;
+                assert_warp_peer_not_authenticated_error_response(response).await;
             }
 
             #[tokio::test]
@@ -1134,7 +1134,7 @@ mod warp_http_tracker_server {
                     .announce(&QueryBuilder::default().query())
                     .await;
 
-                assert_invalid_authentication_key_error_response(response).await;
+                assert_warp_invalid_authentication_key_error_response(response).await;
             }
         }
 
@@ -2539,16 +2539,12 @@ mod axum_http_tracker_server {
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::auth::KeyId;
 
-            use crate::http::asserts::{
-                assert_invalid_authentication_key_error_response, assert_is_announce_response,
-                assert_peer_not_authenticated_error_response,
-            };
+            use crate::http::asserts::{assert_authentication_error_response, assert_is_announce_response};
             use crate::http::client::Client;
             use crate::http::requests::announce::QueryBuilder;
             use crate::http::server::start_private_http_tracker;
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_respond_to_authenticated_peers() {
                 let http_tracker_server = start_private_http_tracker(Version::Axum).await;
 
@@ -2565,8 +2561,7 @@ mod axum_http_tracker_server {
                 assert_is_announce_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_if_the_peer_has_not_provided_the_authentication_key() {
                 let http_tracker_server = start_private_http_tracker(Version::Axum).await;
 
@@ -2576,11 +2571,10 @@ mod axum_http_tracker_server {
                     .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
-                assert_peer_not_authenticated_error_response(response).await;
+                assert_authentication_error_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_if_the_peer_authentication_key_is_not_valid() {
                 let http_tracker_server = start_private_http_tracker(Version::Axum).await;
 
@@ -2591,7 +2585,7 @@ mod axum_http_tracker_server {
                     .announce(&QueryBuilder::default().query())
                     .await;
 
-                assert_invalid_authentication_key_error_response(response).await;
+                assert_authentication_error_response(response).await;
             }
         }
 
