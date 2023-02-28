@@ -9,7 +9,7 @@ use super::driver::Driver;
 use crate::databases::{Database, Error};
 use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::auth;
+use crate::tracker::auth::{self, KeyId};
 
 const DRIVER: Driver = Driver::Sqlite3;
 
@@ -102,22 +102,22 @@ impl Database for Sqlite {
         Ok(torrents)
     }
 
-    async fn load_keys(&self) -> Result<Vec<auth::Key>, Error> {
+    async fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys")?;
 
         let keys_iter = stmt.query_map([], |row| {
-            let key = row.get(0)?;
+            let key: String = row.get(0)?;
             let valid_until: i64 = row.get(1)?;
 
-            Ok(auth::Key {
-                key,
+            Ok(auth::ExpiringKey {
+                id: key.parse::<KeyId>().unwrap(),
                 valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs())),
             })
         })?;
 
-        let keys: Vec<auth::Key> = keys_iter.filter_map(std::result::Result::ok).collect();
+        let keys: Vec<auth::ExpiringKey> = keys_iter.filter_map(std::result::Result::ok).collect();
 
         Ok(keys)
     }
@@ -200,7 +200,7 @@ impl Database for Sqlite {
         }
     }
 
-    async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::Key>, Error> {
+    async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::ExpiringKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys WHERE key = ?")?;
@@ -211,19 +211,20 @@ impl Database for Sqlite {
 
         Ok(key.map(|f| {
             let expiry: i64 = f.get(1).unwrap();
-            auth::Key {
-                key: f.get(0).unwrap(),
+            let id: String = f.get(0).unwrap();
+            auth::ExpiringKey {
+                id: id.parse::<KeyId>().unwrap(),
                 valid_until: Some(DurationSinceUnixEpoch::from_secs(expiry.unsigned_abs())),
             }
         }))
     }
 
-    async fn add_key_to_keys(&self, auth_key: &auth::Key) -> Result<usize, Error> {
+    async fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let insert = conn.execute(
             "INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
-            [auth_key.key.to_string(), auth_key.valid_until.unwrap().as_secs().to_string()],
+            [auth_key.id.to_string(), auth_key.valid_until.unwrap().as_secs().to_string()],
         )?;
 
         if insert == 0 {

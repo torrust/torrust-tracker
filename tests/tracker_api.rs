@@ -638,7 +638,7 @@ mod tracker_apis {
     mod for_key_resources {
         use std::time::Duration;
 
-        use torrust_tracker::tracker::auth::Key;
+        use torrust_tracker::tracker::auth::KeyId;
 
         use crate::api::asserts::{
             assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
@@ -665,7 +665,7 @@ mod tracker_apis {
             // Verify the key with the tracker
             assert!(api_server
                 .tracker
-                .verify_auth_key(&Key::from(auth_key_resource))
+                .verify_auth_key(&auth_key_resource.key.parse::<KeyId>().unwrap())
                 .await
                 .is_ok());
         }
@@ -734,7 +734,7 @@ mod tracker_apis {
                 .unwrap();
 
             let response = Client::new(api_server.get_connection_info())
-                .delete_auth_key(&auth_key.key)
+                .delete_auth_key(&auth_key.id.to_string())
                 .await;
 
             assert_ok(response).await;
@@ -777,7 +777,7 @@ mod tracker_apis {
             force_database_error(&api_server.tracker);
 
             let response = Client::new(api_server.get_connection_info())
-                .delete_auth_key(&auth_key.key)
+                .delete_auth_key(&auth_key.id.to_string())
                 .await;
 
             assert_failed_to_delete_key(response).await;
@@ -797,7 +797,7 @@ mod tracker_apis {
                 .unwrap();
 
             let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
-                .delete_auth_key(&auth_key.key)
+                .delete_auth_key(&auth_key.id.to_string())
                 .await;
 
             assert_token_not_valid(response).await;
@@ -810,7 +810,7 @@ mod tracker_apis {
                 .unwrap();
 
             let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
-                .delete_auth_key(&auth_key.key)
+                .delete_auth_key(&auth_key.id.to_string())
                 .await;
 
             assert_unauthorized(response).await;
