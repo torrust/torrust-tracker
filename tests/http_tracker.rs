@@ -2575,7 +2575,22 @@ mod axum_http_tracker_server {
             }
 
             #[tokio::test]
-            async fn should_fail_if_the_peer_authentication_key_is_not_valid() {
+            async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
+                let http_tracker_server = start_private_http_tracker(Version::Axum).await;
+
+                let invalid_key_id = "INVALID_KEY_ID";
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!(
+                        "announce/{invalid_key_id}?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0"
+                    ))
+                    .await;
+
+                assert_authentication_error_response(response).await;
+            }
+
+            #[tokio::test]
+            async fn should_fail_if_the_peer_cannot_be_authenticated_with_the_provided_key() {
                 let http_tracker_server = start_private_http_tracker(Version::Axum).await;
 
                 // The tracker does not have this key
@@ -2600,11 +2615,26 @@ mod axum_http_tracker_server {
             use torrust_tracker::tracker::peer;
 
             use crate::common::fixtures::PeerBuilder;
-            use crate::http::asserts::assert_scrape_response;
+            use crate::http::asserts::{assert_authentication_error_response, assert_scrape_response};
             use crate::http::client::Client;
             use crate::http::requests;
             use crate::http::responses::scrape::{File, ResponseBuilder};
             use crate::http::server::start_private_http_tracker;
+
+            #[tokio::test]
+            async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
+                let http_tracker_server = start_private_http_tracker(Version::Axum).await;
+
+                let invalid_key_id = "INVALID_KEY_ID";
+
+                let response = Client::new(http_tracker_server.get_connection_info())
+                    .get(&format!(
+                        "scrape/{invalid_key_id}?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"
+                    ))
+                    .await;
+
+                assert_authentication_error_response(response).await;
+            }
 
             #[tokio::test]
             async fn should_return_the_zeroed_file_when_the_client_is_not_authenticated() {

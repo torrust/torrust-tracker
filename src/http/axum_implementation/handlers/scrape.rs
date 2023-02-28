@@ -1,9 +1,11 @@
+use std::panic::Location;
 use std::sync::Arc;
 
 use axum::extract::{Path, State};
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
+use super::auth::KeyIdParam;
 use crate::http::axum_implementation::extractors::peer_ip;
 use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
 use crate::http::axum_implementation::extractors::scrape_request::ExtractRequest;
@@ -32,10 +34,18 @@ pub async fn handle_without_key(
 pub async fn handle_with_key(
     State(tracker): State<Arc<Tracker>>,
     ExtractRequest(scrape_request): ExtractRequest,
-    Path(key_id): Path<KeyId>,
+    Path(key_id_param): Path<KeyIdParam>,
     remote_client_ip: RemoteClientIp,
 ) -> Response {
     debug!("http scrape request: {:#?}", &scrape_request);
+
+    let Ok(key_id) = key_id_param.value().parse::<KeyId>() else {
+        return responses::error::Error::from(
+            auth::Error::InvalidKeyFormat {
+                location: Location::caller()
+            })
+        .into_response()
+    };
 
     match auth::authenticate(&key_id, &tracker).await {
         Ok(_) => (),

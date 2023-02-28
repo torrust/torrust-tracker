@@ -1,16 +1,29 @@
 use std::panic::Location;
 use std::sync::Arc;
 
+use serde::Deserialize;
 use thiserror::Error;
 
 use crate::http::axum_implementation::responses;
 use crate::tracker::auth::{self, KeyId};
 use crate::tracker::Tracker;
 
+#[derive(Deserialize)]
+pub struct KeyIdParam(String);
+
+impl KeyIdParam {
+    #[must_use]
+    pub fn value(&self) -> String {
+        self.0.clone()
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Missing authentication key for private tracker. Error in {location}")]
     MissingAuthKey { location: &'static Location<'static> },
+    #[error("Invalid format authentication key. Error in {location}")]
+    InvalidKeyFormat { location: &'static Location<'static> },
 }
 
 /// # Errors
