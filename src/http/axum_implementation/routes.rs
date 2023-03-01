@@ -4,13 +4,11 @@ use axum::routing::get;
 use axum::Router;
 use axum_client_ip::SecureClientIpSource;
 
-use super::handlers::{announce, scrape, status};
+use super::handlers::{announce, scrape};
 use crate::tracker::Tracker;
 
 pub fn router(tracker: &Arc<Tracker>) -> Router {
     Router::new()
-        // Status
-        .route("/status", get(status::handle))
         // Announce request
         .route("/announce", get(announce::handle_without_key).with_state(tracker.clone()))
         .route("/announce/:key", get(announce::handle_with_key).with_state(tracker.clone()))
