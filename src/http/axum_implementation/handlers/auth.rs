@@ -18,10 +18,12 @@ impl KeyIdParam {
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Missing authentication key for private tracker. Error in {location}")]
+    #[error("Missing authentication key param for private tracker. Error in {location}")]
     MissingAuthKey { location: &'static Location<'static> },
-    #[error("Invalid format authentication key. Error in {location}")]
+    #[error("Invalid format for authentication key param. Error in {location}")]
     InvalidKeyFormat { location: &'static Location<'static> },
+    #[error("Cannot extract authentication key param from URL path. Error in {location}")]
+    CannotExtractKeyParam { location: &'static Location<'static> },
 }
 
 impl From<Error> for responses::error::Error {
