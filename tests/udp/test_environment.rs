@@ -10,9 +10,7 @@ use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
 use torrust_tracker_configuration::Configuration;
 use torrust_tracker_test_helpers::configuration::ephemeral;
 
-fn tracker_configuration() -> Arc<Configuration> {
-    Arc::new(ephemeral())
-}
+use crate::common::tracker::{tracker_configuration, tracker_instance};
 
 #[allow(clippy::module_name_repetitions, dead_code)]
 pub type StoppedTestEnvironment = TestEnvironment<Stopped>;
@@ -26,11 +24,11 @@ pub struct TestEnvironment<S> {
 
 #[allow(dead_code)]
 pub struct Stopped {
-    api_server: StoppedUdpServer,
+    udp_server: StoppedUdpServer,
 }
 
 pub struct Running {
-    api_server: RunningUdpServer,
+    udp_server: RunningUdpServer,
 }
 
 impl<S> TestEnvironment<S> {
@@ -48,7 +46,7 @@ impl TestEnvironment<Stopped> {
 
         Self {
             tracker: udp_server.tracker.clone(),
-            state: Stopped { api_server: udp_server },
+            state: Stopped { udp_server: udp_server },
         }
     }
 
@@ -57,7 +55,7 @@ impl TestEnvironment<Stopped> {
         TestEnvironment {
             tracker: self.tracker,
             state: Running {
-                api_server: self.state.api_server.start().await.unwrap(),
+                udp_server: self.state.udp_server.start().await.unwrap(),
             },
         }
     }
@@ -69,7 +67,7 @@ impl TestEnvironment<Running> {
 
         Self {
             tracker: udp_server.tracker.clone(),
-            state: Running { api_server: udp_server },
+            state: Running { udp_server: udp_server },
         }
     }
 
@@ -78,44 +76,19 @@ impl TestEnvironment<Running> {
         TestEnvironment {
             tracker: self.tracker,
             state: Stopped {
-                api_server: self.state.api_server.stop().await.unwrap(),
+                udp_server: self.state.udp_server.stop().await.unwrap(),
             },
         }
     }
 
     pub fn bind_address(&self) -> SocketAddr {
-        self.state.api_server.state.bind_address
+        self.state.udp_server.state.bind_address
     }
 }
 
 #[allow(clippy::module_name_repetitions)]
 pub async fn running_test_environment() -> RunningTestEnvironment {
     TestEnvironment::new_running().await
-}
-
-// TODO: Move to test-helpers crate once `Tracker` is isolated.
-pub fn tracker_instance(configuration: &Arc<Configuration>) -> Arc<Tracker> {
-    // Set the time of Torrust app starting
-    lazy_static::initialize(&static_time::TIME_AT_APP_START);
-
-    // Initialize the Ephemeral Instance Random Seed
-    lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
-
-    // Initialize stats tracker
-    let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
-
-    // Initialize Torrust tracker
-    let tracker = match Tracker::new(configuration, Some(stats_event_sender), stats_repository) {
-        Ok(tracker) => Arc::new(tracker),
-        Err(error) => {
-            panic!("{}", error)
-        }
-    };
-
-    // Initialize logging
-    logging::setup(configuration);
-
-    tracker
 }
 
 pub fn udp_server() -> StoppedUdpServer {

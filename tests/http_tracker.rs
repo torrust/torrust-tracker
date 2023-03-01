@@ -12,6 +12,30 @@
 mod common;
 mod http;
 
+pub type Axum = torrust_tracker::http::axum_implementation::server::Server;
+pub type Warp = torrust_tracker::http::warp_implementation::server::Server;
+
+mod http_tracker_test_environment {
+    use torrust_tracker::http;
+
+    use crate::http::test_environment::running_test_environment;
+    use crate::{Axum, Warp};
+
+    #[tokio::test]
+    async fn should_be_able_to_start_and_stop_a_test_environment_using_axum() {
+        let test_env = running_test_environment::<Axum>().await;
+
+        test_env.stop().await;
+    }
+
+    #[tokio::test]
+    async fn should_be_able_to_start_and_stop_a_test_environment_using_warp() {
+        let test_env = running_test_environment::<Warp>().await;
+
+        test_env.stop().await;
+    }
+}
+
 mod warp_http_tracker_server {
 
     mod for_all_config_modes {

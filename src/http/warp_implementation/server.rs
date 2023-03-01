@@ -1,8 +1,78 @@
+use std::future::Future;
 use std::net::SocketAddr;
+use std::str::FromStr;
 use std::sync::Arc;
 
+use futures::future::BoxFuture;
+
 use super::routes;
+use crate::http::tracker_interface::TrackerInterfaceTrait;
 use crate::tracker;
+use crate::tracker::Tracker;
+
+#[derive(Debug)]
+pub enum Error {
+    Error(String),
+}
+
+pub struct Server;
+
+impl Server {
+    pub fn start_with_graceful_shutdown<F>(
+        addr: SocketAddr,
+        tracker: Arc<Tracker>,
+        shutdown_signal: F,
+    ) -> (SocketAddr, BoxFuture<'static, ()>)
+    where
+        F: Future<Output = ()> + Send + 'static,
+    {
+        let (bind_addr, server) = warp::serve(routes::routes(tracker)).bind_with_graceful_shutdown(addr, shutdown_signal);
+
+        (bind_addr, Box::pin(server))
+    }
+
+    pub fn start_tls_with_graceful_shutdown<F>(
+        addr: SocketAddr,
+        (ssl_cert_path, ssl_key_path): (&str, &str),
+        tracker: Arc<Tracker>,
+        shutdown_signal: F,
+    ) -> (SocketAddr, BoxFuture<'static, ()>)
+    where
+        F: Future<Output = ()> + Send + 'static,
+    {
+        let (bind_addr, server) = warp::serve(routes::routes(tracker))
+            .tls()
+            .cert_path(ssl_cert_path)
+            .key_path(ssl_key_path)
+            .bind_with_graceful_shutdown(addr, shutdown_signal);
+
+        (bind_addr, Box::pin(server))
+    }
+}
+
+impl TrackerInterfaceTrait for Server {
+    fn new() -> Self {
+        Self {}
+    }
+
+    fn start_with_graceful_shutdown<F>(
+        &self,
+        cfg: torrust_tracker_configuration::HttpTracker,
+        tracker: Arc<Tracker>,
+        shutdown_signal: F,
+    ) -> (SocketAddr, BoxFuture<'static, ()>)
+    where
+        F: Future<Output = ()> + Send + 'static,
+    {
+        let addr = SocketAddr::from_str(&cfg.bind_address).expect("bind_address is not a valid SocketAddr.");
+
+        if let (true, Some(ssl_cert_path), Some(ssl_key_path)) = (cfg.ssl_enabled, &cfg.ssl_cert_path, &cfg.ssl_key_path) {
+            Self::start_tls_with_graceful_shutdown(addr, (ssl_cert_path, ssl_key_path), tracker, shutdown_signal)
+        } else {
+            Self::start_with_graceful_shutdown(addr, tracker, shutdown_signal)
+        }
+    }
+}
 
 /// Server that listens on HTTP, needs a `tracker::TorrentTracker`
 #[derive(Clone)]

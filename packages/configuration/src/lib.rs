@@ -21,7 +21,7 @@ pub struct UdpTracker {
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct HttpTracker {
     pub enabled: bool,
     pub bind_address: String,

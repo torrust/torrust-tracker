@@ -11,6 +11,7 @@ use torrust_tracker_configuration::Configuration;
 use torrust_tracker_test_helpers::configuration::ephemeral;
 
 use super::connection_info::ConnectionInfo;
+use crate::common::tracker::{tracker_configuration, tracker_instance};
 
 #[allow(clippy::module_name_repetitions, dead_code)]
 pub type StoppedTestEnvironment = TestEnvironment<Stopped>;
@@ -90,35 +91,6 @@ impl TestEnvironment<Running> {
 #[allow(clippy::module_name_repetitions)]
 pub fn running_test_environment() -> RunningTestEnvironment {
     TestEnvironment::new_running()
-}
-
-pub fn tracker_configuration() -> Arc<Configuration> {
-    Arc::new(ephemeral())
-}
-
-// TODO: Move to test-helpers crate once `Tracker` is isolated.
-pub fn tracker_instance(configuration: &Arc<Configuration>) -> Arc<Tracker> {
-    // Set the time of Torrust app starting
-    lazy_static::initialize(&static_time::TIME_AT_APP_START);
-
-    // Initialize the Ephemeral Instance Random Seed
-    lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
-
-    // Initialize stats tracker
-    let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
-
-    // Initialize Torrust tracker
-    let tracker = match Tracker::new(configuration, Some(stats_event_sender), stats_repository) {
-        Ok(tracker) => Arc::new(tracker),
-        Err(error) => {
-            panic!("{}", error)
-        }
-    };
-
-    // Initialize logging
-    logging::setup(configuration);
-
-    tracker
 }
 
 pub fn api_server() -> StoppedApiServer {
