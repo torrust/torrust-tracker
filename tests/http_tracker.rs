@@ -16,8 +16,6 @@ pub type Axum = torrust_tracker::http::axum_implementation::server::Server;
 pub type Warp = torrust_tracker::http::warp_implementation::server::Server;
 
 mod http_tracker_test_environment {
-    use torrust_tracker::http;
-
     use crate::http::test_environment::running_test_environment;
     use crate::{Axum, Warp};
 

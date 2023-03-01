@@ -3,12 +3,8 @@ use std::sync::Arc;
 
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
-use torrust_tracker::tracker::statistics::Keeper;
 use torrust_tracker::tracker::Tracker;
 use torrust_tracker::udp::server::{RunningUdpServer, StoppedUdpServer, UdpServer};
-use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
-use torrust_tracker_configuration::Configuration;
-use torrust_tracker_test_helpers::configuration::ephemeral;
 
 use crate::common::tracker::{tracker_configuration, tracker_instance};
 

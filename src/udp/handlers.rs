@@ -252,7 +252,6 @@ mod tests {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_primitives::TrackerMode;
-    use torrust_tracker_test_helpers::configuration::ephemeral;
 
     use crate::protocol::clock::{Current, Time};
     use crate::tracker::{self, peer, statistics};
@@ -262,7 +261,7 @@ mod tests {
     }
 
     fn default_testing_tracker_configuration() -> Configuration {
-        ephemeral()
+        torrust_tracker_test_helpers::configuration::ephemeral()
     }
 
     fn initialized_public_tracker() -> Arc<tracker::Tracker> {
