@@ -21,6 +21,13 @@ pub struct SwarmMetadata {
     pub incomplete: u32, // The number of active peers that have not completed downloading (leechers)
 }
 
+impl SwarmMetadata {
+    #[must_use]
+    pub fn zeroed() -> Self {
+        Self::default()
+    }
+}
+
 impl Entry {
     #[must_use]
     pub fn new() -> Entry {

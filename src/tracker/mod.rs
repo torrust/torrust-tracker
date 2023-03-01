@@ -140,7 +140,11 @@ impl Tracker {
         let mut scrape_data = ScrapeData::empty();
 
         for info_hash in info_hashes {
-            scrape_data.add_file(info_hash, self.get_swarm_metadata(info_hash).await);
+            let swarm_metadata = match self.authorize(info_hash).await {
+                Ok(_) => self.get_swarm_metadata(info_hash).await,
+                Err(_) => SwarmMetadata::zeroed(),
+            };
+            scrape_data.add_file(info_hash, swarm_metadata);
         }
 
         scrape_data
