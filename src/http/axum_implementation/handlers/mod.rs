@@ -4,7 +4,6 @@ use crate::tracker::error::Error;
 pub mod announce;
 pub mod auth;
 pub mod scrape;
-pub mod status;
 
 impl From<Error> for responses::error::Error {
     fn from(err: Error) -> Self {
