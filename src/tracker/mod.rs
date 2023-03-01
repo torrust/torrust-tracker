@@ -142,6 +142,17 @@ impl Tracker {
         scrape_data
     }
 
+    // It return empty swarm metadata for all the infohashes.
+    pub fn empty_scrape_for(&self, info_hashes: &Vec<InfoHash>) -> ScrapeData {
+        let mut scrape_data = ScrapeData::empty();
+
+        for info_hash in info_hashes {
+            scrape_data.add_file(info_hash, SwarmMetadata::default());
+        }
+
+        scrape_data
+    }
+
     async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> SwarmMetadata {
         let torrents = self.get_torrents().await;
         match torrents.get(info_hash) {
