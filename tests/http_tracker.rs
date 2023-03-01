@@ -2403,8 +2403,7 @@ mod axum_http_tracker_server {
             use crate::http::requests::announce::QueryBuilder;
             use crate::http::server::start_whitelisted_http_tracker;
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_fail_if_the_torrent_is_not_in_the_whitelist() {
                 let http_tracker_server = start_whitelisted_http_tracker(Version::Axum).await;
 
@@ -2417,8 +2416,7 @@ mod axum_http_tracker_server {
                 assert_torrent_not_in_whitelist_error_response(response).await;
             }
 
-            //#[tokio::test]
-            #[allow(dead_code)]
+            #[tokio::test]
             async fn should_allow_announcing_a_whitelisted_torrent() {
                 let http_tracker_server = start_whitelisted_http_tracker(Version::Axum).await;
 
