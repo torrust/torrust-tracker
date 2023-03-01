@@ -23,7 +23,7 @@ pub async fn handle_without_key(
 ) -> Response {
     debug!("http scrape request: {:#?}", &scrape_request);
 
-    if tracker.is_private() {
+    if tracker.requires_authentication() {
         return handle_fake_scrape(&tracker, &scrape_request, &remote_client_ip).await;
     }
 
@@ -39,6 +39,7 @@ pub async fn handle_with_key(
 ) -> Response {
     debug!("http scrape request: {:#?}", &scrape_request);
 
+    // todo: extract to Axum extractor. Duplicate code in `announce` handler.
     let Ok(key_id) = key_id_param.value().parse::<KeyId>() else {
         return responses::error::Error::from(
             auth::Error::InvalidKeyFormat {
@@ -47,7 +48,7 @@ pub async fn handle_with_key(
         .into_response()
     };
 
-    match auth::authenticate(&key_id, &tracker).await {
+    match tracker.authenticate(&key_id).await {
         Ok(_) => (),
         Err(_) => return handle_fake_scrape(&tracker, &scrape_request, &remote_client_ip).await,
     }

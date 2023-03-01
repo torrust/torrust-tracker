@@ -28,7 +28,7 @@ pub async fn handle_without_key(
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
 
-    if tracker.is_private() {
+    if tracker.requires_authentication() {
         return responses::error::Error::from(auth::Error::MissingAuthKey {
             location: Location::caller(),
         })
@@ -47,6 +47,7 @@ pub async fn handle_with_key(
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
 
+    // todo: extract to Axum extractor. Duplicate code in `scrape` handler.
     let Ok(key_id) = key_id_param.value().parse::<KeyId>() else {
         return responses::error::Error::from(
             auth::Error::InvalidKeyFormat {
@@ -55,7 +56,7 @@ pub async fn handle_with_key(
         .into_response()
     };
 
-    match auth::authenticate(&key_id, &tracker).await {
+    match tracker.authenticate(&key_id).await {
         Ok(_) => (),
         Err(error) => return responses::error::Error::from(error).into_response(),
     }
@@ -64,6 +65,11 @@ pub async fn handle_with_key(
 }
 
 async fn handle(tracker: &Arc<Tracker>, announce_request: &Announce, remote_client_ip: &RemoteClientIp) -> Response {
+    match tracker.authorize(&announce_request.info_hash).await {
+        Ok(_) => (),
+        Err(error) => return responses::error::Error::from(error).into_response(),
+    }
+
     let peer_ip = match peer_ip::resolve(tracker.config.on_reverse_proxy, remote_client_ip) {
         Ok(peer_ip) => peer_ip,
         Err(err) => return err,

@@ -107,6 +107,10 @@ impl Tracker {
         self.mode == mode::Mode::Listed || self.mode == mode::Mode::PrivateListed
     }
 
+    pub fn requires_authentication(&self) -> bool {
+        self.is_private()
+    }
+
     /// It handles an announce request.
     ///
     /// BEP 03: [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html).
@@ -332,6 +336,38 @@ impl Tracker {
         }
 
         Ok(())
+    }
+
+    /// # Errors
+    ///
+    /// Will return an error if the the authentication key cannot be verified.
+    pub async fn authenticate(&self, key_id: &KeyId) -> Result<(), auth::Error> {
+        if self.is_private() {
+            self.verify_auth_key(key_id).await
+        } else {
+            Ok(())
+        }
+    }
+
+    /// The only authorization process is the whitelist.
+    ///
+    /// # Errors
+    ///
+    /// Will return an error if the tracker is running in `listed` mode
+    /// and the infohash is not whitelisted.
+    pub async fn authorize(&self, info_hash: &InfoHash) -> Result<(), Error> {
+        if !self.is_whitelisted() {
+            return Ok(());
+        }
+
+        if self.is_info_hash_whitelisted(info_hash).await {
+            return Ok(());
+        }
+
+        return Err(Error::TorrentNotWhitelisted {
+            info_hash: *info_hash,
+            location: Location::caller(),
+        });
     }
 
     /// Loading the torrents from database into memory
