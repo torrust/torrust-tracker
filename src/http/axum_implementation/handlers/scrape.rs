@@ -47,7 +47,7 @@ pub async fn handle_with_key(
         .into_response()
     };
 
-    match auth::authenticate(&key_id, &tracker).await {
+    match tracker.authenticate(&key_id).await {
         Ok(_) => (),
         Err(_) => return handle_fake_scrape(&tracker, &scrape_request, &remote_client_ip).await,
     }

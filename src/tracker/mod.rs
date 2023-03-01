@@ -334,6 +334,17 @@ impl Tracker {
         Ok(())
     }
 
+    /// # Errors
+    ///
+    /// Will return an error if the the authentication key cannot be verified.
+    pub async fn authenticate(&self, key_id: &KeyId) -> Result<(), auth::Error> {
+        if self.is_private() {
+            self.verify_auth_key(key_id).await
+        } else {
+            Ok(())
+        }
+    }
+
     /// Loading the torrents from database into memory
     ///
     /// # Errors

@@ -55,7 +55,7 @@ pub async fn handle_with_key(
         .into_response()
     };
 
-    match auth::authenticate(&key_id, &tracker).await {
+    match tracker.authenticate(&key_id).await {
         Ok(_) => (),
         Err(error) => return responses::error::Error::from(error).into_response(),
     }
