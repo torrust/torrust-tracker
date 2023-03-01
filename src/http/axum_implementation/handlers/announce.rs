@@ -3,12 +3,12 @@ use std::panic::Location;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use axum::extract::{Path, State};
+use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
-use super::auth::KeyIdParam;
 use crate::http::axum_implementation::extractors::announce_request::ExtractRequest;
+use crate::http::axum_implementation::extractors::key::ExtractKeyId;
 use crate::http::axum_implementation::extractors::peer_ip;
 use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
 use crate::http::axum_implementation::handlers::auth;
@@ -16,7 +16,6 @@ use crate::http::axum_implementation::requests::announce::{Announce, Compact, Ev
 use crate::http::axum_implementation::responses::{self, announce};
 use crate::http::axum_implementation::services;
 use crate::protocol::clock::{Current, Time};
-use crate::tracker::auth::KeyId;
 use crate::tracker::peer::Peer;
 use crate::tracker::Tracker;
 
@@ -42,19 +41,10 @@ pub async fn handle_without_key(
 pub async fn handle_with_key(
     State(tracker): State<Arc<Tracker>>,
     ExtractRequest(announce_request): ExtractRequest,
-    Path(key_id_param): Path<KeyIdParam>,
+    ExtractKeyId(key_id): ExtractKeyId,
     remote_client_ip: RemoteClientIp,
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
-
-    // todo: extract to Axum extractor. Duplicate code in `scrape` handler.
-    let Ok(key_id) = key_id_param.value().parse::<KeyId>() else {
-        return responses::error::Error::from(
-            auth::Error::InvalidKeyFormat {
-                location: Location::caller()
-            })
-        .into_response()
-    };
 
     match tracker.authenticate(&key_id).await {
         Ok(_) => (),
