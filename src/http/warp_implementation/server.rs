@@ -6,7 +6,7 @@ use std::sync::Arc;
 use futures::future::BoxFuture;
 
 use super::routes;
-use crate::http::tracker_interface::TrackerInterfaceTrait;
+use crate::http::tracker_interface::HttpServerLauncher;
 use crate::tracker;
 use crate::tracker::Tracker;
 
@@ -50,7 +50,7 @@ impl Server {
     }
 }
 
-impl TrackerInterfaceTrait for Server {
+impl HttpServerLauncher for Server {
     fn new() -> Self {
         Self {}
     }

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use torrust_tracker::http::tracker_interface::{RunningHttpServer, StoppedHttpServer, TrackerInterface, TrackerInterfaceTrait};
+use torrust_tracker::http::tracker_interface::{HttpServer, HttpServerLauncher, RunningHttpServer, StoppedHttpServer};
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
@@ -18,11 +18,11 @@ pub struct TestEnvironment<S> {
 }
 
 #[allow(dead_code)]
-pub struct Stopped<I: TrackerInterfaceTrait> {
+pub struct Stopped<I: HttpServerLauncher> {
     http_server: StoppedHttpServer<I>,
 }
 
-pub struct Running<I: TrackerInterfaceTrait> {
+pub struct Running<I: HttpServerLauncher> {
     http_server: RunningHttpServer<I>,
 }
 
@@ -33,7 +33,7 @@ impl<S> TestEnvironment<S> {
     }
 }
 
-impl<I: TrackerInterfaceTrait + 'static> TestEnvironment<Stopped<I>> {
+impl<I: HttpServerLauncher + 'static> TestEnvironment<Stopped<I>> {
     #[allow(dead_code)]
     pub fn new_stopped() -> Self {
         let cfg = tracker_configuration();
@@ -59,7 +59,7 @@ impl<I: TrackerInterfaceTrait + 'static> TestEnvironment<Stopped<I>> {
     }
 }
 
-impl<I: TrackerInterfaceTrait + 'static> TestEnvironment<Running<I>> {
+impl<I: HttpServerLauncher + 'static> TestEnvironment<Running<I>> {
     pub async fn new_running() -> Self {
         let test_env = StoppedTestEnvironment::new_stopped();
 
@@ -77,19 +77,24 @@ impl<I: TrackerInterfaceTrait + 'static> TestEnvironment<Running<I>> {
 }
 
 #[allow(clippy::module_name_repetitions)]
-pub async fn running_test_environment<I: TrackerInterfaceTrait + 'static>() -> RunningTestEnvironment<I> {
+pub async fn stopped_test_environment<I: HttpServerLauncher + 'static>() -> StoppedTestEnvironment<I> {
+    TestEnvironment::new_stopped().await
+}
+
+#[allow(clippy::module_name_repetitions)]
+pub async fn running_test_environment<I: HttpServerLauncher + 'static>() -> RunningTestEnvironment<I> {
     TestEnvironment::new_running().await
 }
 
-pub fn stopped_http_server<I: TrackerInterfaceTrait + 'static>(
+pub fn stopped_http_server<I: HttpServerLauncher + 'static>(
     cfg: torrust_tracker_configuration::HttpTracker,
 ) -> StoppedHttpServer<I> {
     let http_server = I::new();
 
-    TrackerInterface::new(cfg, http_server)
+    HttpServer::new(cfg, http_server)
 }
 
-pub async fn running_http_server<I: TrackerInterfaceTrait + 'static>(
+pub async fn running_http_server<I: HttpServerLauncher + 'static>(
     cfg: torrust_tracker_configuration::HttpTracker,
     tracker: Arc<Tracker>,
 ) -> RunningHttpServer<I> {

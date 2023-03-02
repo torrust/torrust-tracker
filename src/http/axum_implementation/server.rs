@@ -11,7 +11,7 @@ use log::info;
 use warp::hyper;
 
 use super::routes::router;
-use crate::http::tracker_interface::TrackerInterfaceTrait;
+use crate::http::tracker_interface::HttpServerLauncher;
 use crate::tracker::Tracker;
 
 #[derive(Debug)]
@@ -77,7 +77,7 @@ impl Server {
 }
 
 #[async_trait]
-impl TrackerInterfaceTrait for Server {
+impl HttpServerLauncher for Server {
     fn new() -> Self {
         Self {}
     }
