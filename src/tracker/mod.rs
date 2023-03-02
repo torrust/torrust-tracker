@@ -120,6 +120,17 @@ impl Tracker {
         // a tuple with the new peer and the announce data: (Peer, AnnounceData).
         // It could even be a different struct: `StoredPeer` or `PublicPeer`.
 
+        // code-review: in the `scrape` function we perform an authorization check.
+        // We check if the torrent is whitelisted. Should we also check authorization here?
+        // I think so because the `Tracker` has the responsibility for checking authentication and authorization.
+        // The `Tracker` has delegated that responsibility to the handlers
+        // (because we want to return a friendly error response) but that does not mean we should
+        // double-check authorization at this domain level too.
+        // I would propose to return a `Result<AnnounceData, Error>` here.
+        // Besides, regarding authentication the `Tracker` is also responsible for authentication but
+        // we are actually handling authentication at the handlers level. So I would extract that
+        // responsibility into another authentication service.
+
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip()));
 
         let swam_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
@@ -614,7 +625,9 @@ mod tests {
             complete_peer()
         }
 
-        /// A peer that has completed downloading.
+        /// A peer that counts as `complete` is swarm metadata
+        /// IMPORTANT!: it only counts if the it has been announce at least once before
+        /// announcing the `AnnounceEvent::Completed` event.
         fn complete_peer() -> Peer {
             Peer {
                 peer_id: peer::Id(*b"-qB00000000000000000"),
@@ -627,7 +640,7 @@ mod tests {
             }
         }
 
-        /// A peer that has NOT completed downloading.
+        /// A peer that counts as `incomplete` is swarm metadata
         fn incomplete_peer() -> Peer {
             Peer {
                 peer_id: peer::Id(*b"-qB00000000000000000"),
