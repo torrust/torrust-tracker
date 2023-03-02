@@ -31,7 +31,7 @@ impl SwarmMetadata {
 }
 
 /// Swarm statistics. Alternative struct for swarm metadata in scrape response.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Default)]
 pub struct SwamStats {
     pub completed: u32, // The number of peers that have ever completed downloading
     pub seeders: u32,   // The number of active peers that have completed downloading (seeders)
