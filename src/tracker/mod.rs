@@ -64,12 +64,23 @@ impl ScrapeData {
         Self { files }
     }
 
+    #[must_use]
+    pub fn zeroed(info_hashes: &Vec<InfoHash>) -> Self {
+        let mut scrape_data = Self::empty();
+
+        for info_hash in info_hashes {
+            scrape_data.add_file(info_hash, SwarmMetadata::zeroed());
+        }
+
+        scrape_data
+    }
+
     pub fn add_file(&mut self, info_hash: &InfoHash, swarm_metadata: SwarmMetadata) {
         self.files.insert(*info_hash, swarm_metadata);
     }
 
-    pub fn add_file_with_no_metadata(&mut self, info_hash: &InfoHash) {
-        self.files.insert(*info_hash, SwarmMetadata::default());
+    pub fn add_file_with_zeroed_metadata(&mut self, info_hash: &InfoHash) {
+        self.files.insert(*info_hash, SwarmMetadata::zeroed());
     }
 }
 
@@ -157,17 +168,6 @@ impl Tracker {
                 Err(_) => SwarmMetadata::zeroed(),
             };
             scrape_data.add_file(info_hash, swarm_metadata);
-        }
-
-        scrape_data
-    }
-
-    // It return empty swarm metadata for all the infohashes.
-    pub fn empty_scrape_for(&self, info_hashes: &Vec<InfoHash>) -> ScrapeData {
-        let mut scrape_data = ScrapeData::empty();
-
-        for info_hash in info_hashes {
-            scrape_data.add_file(info_hash, SwarmMetadata::default());
         }
 
         scrape_data
@@ -543,25 +543,31 @@ mod tests {
         use crate::config::{ephemeral_configuration, Configuration};
         use crate::protocol::clock::DurationSinceUnixEpoch;
         use crate::protocol::info_hash::InfoHash;
+        use crate::tracker::mode::Mode;
         use crate::tracker::peer::{self, Peer};
         use crate::tracker::statistics::Keeper;
         use crate::tracker::{TorrentsMetrics, Tracker};
 
-        pub fn tracker_configuration() -> Arc<Configuration> {
-            Arc::new(ephemeral_configuration())
+        pub fn public_tracker() -> Tracker {
+            let mut configuration = ephemeral_configuration();
+            configuration.mode = Mode::Public;
+            tracker_factory(configuration)
         }
 
-        pub fn tracker_factory() -> Tracker {
-            // code-review: the tracker initialization is duplicated in many places. Consider make this function public.
+        pub fn whitelisted_tracker() -> Tracker {
+            let mut configuration = ephemeral_configuration();
+            configuration.mode = Mode::Listed;
+            tracker_factory(configuration)
+        }
 
-            // Configuration
-            let configuration = tracker_configuration();
+        pub fn tracker_factory(configuration: Configuration) -> Tracker {
+            // code-review: the tracker initialization is duplicated in many places. Consider make this function public.
 
             // Initialize stats tracker
             let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
             // Initialize Torrust tracker
-            match Tracker::new(&configuration, Some(stats_event_sender), stats_repository) {
+            match Tracker::new(&Arc::new(configuration), Some(stats_event_sender), stats_repository) {
                 Ok(tracker) => tracker,
                 Err(error) => {
                     panic!("{}", error)
@@ -569,7 +575,7 @@ mod tests {
             }
         }
 
-        fn info_hash() -> InfoHash {
+        fn sample_info_hash() -> InfoHash {
             "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap()
         }
 
@@ -584,7 +590,7 @@ mod tests {
         }
 
         /// Sample peer when for tests that need more than one peer
-        fn peer1() -> Peer {
+        fn sample_peer_1() -> Peer {
             Peer {
                 peer_id: peer::Id(*b"-qB00000000000000001"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081),
@@ -597,7 +603,7 @@ mod tests {
         }
 
         /// Sample peer when for tests that need more than one peer
-        fn peer2() -> Peer {
+        fn sample_peer_2() -> Peer {
             Peer {
                 peer_id: peer::Id(*b"-qB00000000000000002"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2)), 8082),
@@ -655,7 +661,7 @@ mod tests {
 
         #[tokio::test]
         async fn should_collect_torrent_metrics() {
-            let tracker = tracker_factory();
+            let tracker = public_tracker();
 
             let torrents_metrics = tracker.get_torrents_metrics().await;
 
@@ -674,7 +680,9 @@ mod tests {
 
             mod handling_an_announce_request {
 
-                use crate::tracker::tests::the_tracker::{info_hash, peer1, peer2, peer_ip, sample_peer, tracker_factory};
+                use crate::tracker::tests::the_tracker::{
+                    peer_ip, public_tracker, sample_info_hash, sample_peer, sample_peer_1, sample_peer_2,
+                };
 
                 mod should_assign_the_ip_to_the_peer {
 
@@ -776,26 +784,26 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_announce_data_with_an_empty_peer_list_when_it_is_the_first_announced_peer() {
-                    let tracker = tracker_factory();
+                    let tracker = public_tracker();
 
                     let mut peer = sample_peer();
 
-                    let announce_data = tracker.announce(&info_hash(), &mut peer, &peer_ip()).await;
+                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
                     assert_eq!(announce_data.peers, vec![]);
                 }
 
                 #[tokio::test]
                 async fn it_should_return_the_announce_data_with_the_previously_announced_peers() {
-                    let tracker = tracker_factory();
+                    let tracker = public_tracker();
 
-                    let mut previously_announced_peer = peer1();
+                    let mut previously_announced_peer = sample_peer_1();
                     tracker
-                        .announce(&info_hash(), &mut previously_announced_peer, &peer_ip())
+                        .announce(&sample_info_hash(), &mut previously_announced_peer, &peer_ip())
                         .await;
 
-                    let mut peer = peer2();
-                    let announce_data = tracker.announce(&info_hash(), &mut peer, &peer_ip()).await;
+                    let mut peer = sample_peer_2();
+                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
                     assert_eq!(announce_data.peers, vec![previously_announced_peer]);
                 }
@@ -803,41 +811,41 @@ mod tests {
                 mod it_should_update_the_swarm_stats_for_the_torrent {
 
                     use crate::tracker::tests::the_tracker::{
-                        completed_peer, info_hash, leecher, peer_ip, seeder, started_peer, tracker_factory,
+                        completed_peer, leecher, peer_ip, public_tracker, sample_info_hash, seeder, started_peer,
                     };
 
                     #[tokio::test]
                     async fn when_the_peer_is_a_seeder() {
-                        let tracker = tracker_factory();
+                        let tracker = public_tracker();
 
                         let mut peer = seeder();
 
-                        let announce_data = tracker.announce(&info_hash(), &mut peer, &peer_ip()).await;
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
                         assert_eq!(announce_data.swam_stats.seeders, 1);
                     }
 
                     #[tokio::test]
                     async fn when_the_peer_is_a_leecher() {
-                        let tracker = tracker_factory();
+                        let tracker = public_tracker();
 
                         let mut peer = leecher();
 
-                        let announce_data = tracker.announce(&info_hash(), &mut peer, &peer_ip()).await;
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
                         assert_eq!(announce_data.swam_stats.leechers, 1);
                     }
 
                     #[tokio::test]
                     async fn when_a_previously_announced_started_peer_has_completed_downloading() {
-                        let tracker = tracker_factory();
+                        let tracker = public_tracker();
 
                         // We have to announce with "started" event because peer does not count if peer was not previously known
                         let mut started_peer = started_peer();
-                        tracker.announce(&info_hash(), &mut started_peer, &peer_ip()).await;
+                        tracker.announce(&sample_info_hash(), &mut started_peer, &peer_ip()).await;
 
                         let mut completed_peer = completed_peer();
-                        let announce_data = tracker.announce(&info_hash(), &mut completed_peer, &peer_ip()).await;
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut completed_peer, &peer_ip()).await;
 
                         assert_eq!(announce_data.swam_stats.completed, 1);
                     }
@@ -849,13 +857,13 @@ mod tests {
                 use std::net::{IpAddr, Ipv4Addr};
 
                 use crate::protocol::info_hash::InfoHash;
-                use crate::tracker::tests::the_tracker::{complete_peer, incomplete_peer, tracker_factory};
+                use crate::tracker::tests::the_tracker::{complete_peer, incomplete_peer, public_tracker};
                 use crate::tracker::{ScrapeData, SwarmMetadata};
 
                 #[tokio::test]
                 async fn it_should_return_a_zeroed_swarm_metadata_for_the_requested_file_if_the_tracker_does_not_have_that_torrent(
                 ) {
-                    let tracker = tracker_factory();
+                    let tracker = public_tracker();
 
                     let info_hashes = vec!["3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap()];
 
@@ -863,14 +871,14 @@ mod tests {
 
                     let mut expected_scrape_data = ScrapeData::empty();
 
-                    expected_scrape_data.add_file_with_no_metadata(&info_hashes[0]);
+                    expected_scrape_data.add_file_with_zeroed_metadata(&info_hashes[0]);
 
                     assert_eq!(scrape_data, expected_scrape_data);
                 }
 
                 #[tokio::test]
                 async fn it_should_return_the_swarm_metadata_for_the_requested_file_if_the_tracker_has_that_torrent() {
-                    let tracker = tracker_factory();
+                    let tracker = public_tracker();
 
                     let info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap();
 
@@ -905,7 +913,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_allow_scraping_for_multiple_torrents() {
-                    let tracker = tracker_factory();
+                    let tracker = public_tracker();
 
                     let info_hashes = vec![
                         "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
@@ -915,8 +923,8 @@ mod tests {
                     let scrape_data = tracker.scrape(&info_hashes).await;
 
                     let mut expected_scrape_data = ScrapeData::empty();
-                    expected_scrape_data.add_file_with_no_metadata(&info_hashes[0]);
-                    expected_scrape_data.add_file_with_no_metadata(&info_hashes[1]);
+                    expected_scrape_data.add_file_with_zeroed_metadata(&info_hashes[0]);
+                    expected_scrape_data.add_file_with_zeroed_metadata(&info_hashes[1]);
 
                     assert_eq!(scrape_data, expected_scrape_data);
                 }
@@ -927,7 +935,49 @@ mod tests {
 
             mod handling_an_announce_request {}
 
-            mod handling_an_scrape_request {}
+            mod handling_an_scrape_request {
+
+                use crate::protocol::info_hash::InfoHash;
+                use crate::tracker::tests::the_tracker::{
+                    complete_peer, incomplete_peer, peer_ip, sample_info_hash, whitelisted_tracker,
+                };
+                use crate::tracker::torrent::SwarmMetadata;
+                use crate::tracker::ScrapeData;
+
+                #[test]
+                fn it_should_be_able_to_build_a_zeroed_scrape_data_for_a_list_of_info_hashes() {
+                    // Zeroed scrape data is used when the authentication for the scrape request fails.
+
+                    let sample_info_hash = sample_info_hash();
+
+                    let mut expected_scrape_data = ScrapeData::empty();
+                    expected_scrape_data.add_file_with_zeroed_metadata(&sample_info_hash);
+
+                    assert_eq!(ScrapeData::zeroed(&vec![sample_info_hash]), expected_scrape_data);
+                }
+
+                #[tokio::test]
+                async fn it_should_return_the_zeroed_swarm_metadata_for_the_requested_file_if_it_is_not_whitelisted() {
+                    let tracker = whitelisted_tracker();
+
+                    let info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap();
+
+                    let mut peer = incomplete_peer();
+                    tracker.announce(&info_hash, &mut peer, &peer_ip()).await;
+
+                    // Announce twice to force non zeroed swarm metadata
+                    let mut peer = complete_peer();
+                    tracker.announce(&info_hash, &mut peer, &peer_ip()).await;
+
+                    let scrape_data = tracker.scrape(&vec![info_hash]).await;
+
+                    // The expected zeroed swarm metadata for the file
+                    let mut expected_scrape_data = ScrapeData::empty();
+                    expected_scrape_data.add_file(&info_hash, SwarmMetadata::zeroed());
+
+                    assert_eq!(scrape_data, expected_scrape_data);
+                }
+            }
         }
 
         mod configured_as_private {
