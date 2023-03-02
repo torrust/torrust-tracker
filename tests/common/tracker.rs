@@ -4,12 +4,8 @@ use torrust_tracker::tracker::statistics::Keeper;
 use torrust_tracker::tracker::Tracker;
 use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
 
-pub fn tracker_configuration() -> Arc<torrust_tracker_configuration::Configuration> {
-    Arc::new(torrust_tracker_test_helpers::configuration::ephemeral())
-}
-
 // TODO: Move to test-helpers crate once `Tracker` is isolated.
-pub fn tracker_instance(configuration: &Arc<torrust_tracker_configuration::Configuration>) -> Arc<Tracker> {
+pub fn new_tracker(configuration: Arc<torrust_tracker_configuration::Configuration>) -> Arc<Tracker> {
     // Set the time of Torrust app starting
     lazy_static::initialize(&static_time::TIME_AT_APP_START);
 
@@ -20,7 +16,7 @@ pub fn tracker_instance(configuration: &Arc<torrust_tracker_configuration::Confi
     let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
     // Initialize Torrust tracker
-    let tracker = match Tracker::new(configuration, Some(stats_event_sender), stats_repository) {
+    let tracker = match Tracker::new(&configuration, Some(stats_event_sender), stats_repository) {
         Ok(tracker) => Arc::new(tracker),
         Err(error) => {
             panic!("{}", error)
@@ -28,7 +24,7 @@ pub fn tracker_instance(configuration: &Arc<torrust_tracker_configuration::Confi
     };
 
     // Initialize logging
-    logging::setup(configuration);
+    logging::setup(&configuration);
 
     tracker
 }

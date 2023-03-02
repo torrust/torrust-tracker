@@ -33,8 +33,8 @@ pub type StoppedHttpServer<I> = HttpServer<Stopped<I>>;
 pub type RunningHttpServer<I> = HttpServer<Running<I>>;
 
 pub struct HttpServer<S> {
-    cfg: torrust_tracker_configuration::HttpTracker,
-    state: S,
+    pub cfg: torrust_tracker_configuration::HttpTracker,
+    pub state: S,
 }
 
 pub struct Stopped<I: HttpServerLauncher> {
@@ -42,7 +42,7 @@ pub struct Stopped<I: HttpServerLauncher> {
 }
 
 pub struct Running<I: HttpServerLauncher> {
-    bind_addr: SocketAddr,
+    pub bind_addr: SocketAddr,
     task_killer: tokio::sync::oneshot::Sender<u8>,
     task: tokio::task::JoinHandle<I>,
 }

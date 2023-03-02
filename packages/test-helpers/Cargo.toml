@@ -9,3 +9,4 @@ tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "macros",
 lazy_static = "1.4"
 rand = "0.8.5"
 torrust-tracker-configuration = {  path = "../configuration"}
+torrust-tracker-primitives = {  path = "../primitives"}

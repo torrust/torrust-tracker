@@ -6,7 +6,7 @@ use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
 use torrust_tracker::udp::server::{RunningUdpServer, StoppedUdpServer, UdpServer};
 
-use crate::common::tracker::{tracker_configuration, tracker_instance};
+use crate::common::tracker::new_tracker;
 
 #[allow(clippy::module_name_repetitions, dead_code)]
 pub type StoppedTestEnvironment = TestEnvironment<Stopped>;
@@ -88,9 +88,9 @@ pub async fn running_test_environment() -> RunningTestEnvironment {
 }
 
 pub fn udp_server() -> StoppedUdpServer {
-    let config = tracker_configuration();
+    let config = Arc::new(torrust_tracker_test_helpers::configuration::ephemeral());
 
-    let tracker = tracker_instance(&config);
+    let tracker = new_tracker(config.clone());
 
     UdpServer::new(config.udp_trackers[0].clone(), tracker)
 }

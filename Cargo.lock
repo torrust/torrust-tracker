@@ -3019,6 +3019,7 @@ dependencies = [
  "rand",
  "tokio",
  "torrust-tracker-configuration",
+ "torrust-tracker-primitives",
 ]
 
 [[package]]

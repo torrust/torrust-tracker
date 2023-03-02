@@ -1,6 +1,8 @@
 use std::env;
+use std::net::IpAddr;
 
 use torrust_tracker_configuration::Configuration;
+use torrust_tracker_primitives::TrackerMode;
 
 use crate::random;
 
@@ -42,4 +44,71 @@ pub fn ephemeral() -> Configuration {
     config.db_path = temp_file.to_str().unwrap().to_owned();
 
     config
+}
+
+#[must_use]
+pub fn ephemeral_with_reverse_proxy() -> Configuration {
+    let mut cfg = ephemeral();
+
+    cfg.on_reverse_proxy = true;
+
+    cfg
+}
+
+#[must_use]
+pub fn ephemeral_mode_public() -> Configuration {
+    let mut cfg = ephemeral();
+
+    cfg.mode = TrackerMode::Public;
+
+    cfg
+}
+
+#[must_use]
+pub fn ephemeral_mode_private() -> Configuration {
+    let mut cfg = ephemeral();
+
+    cfg.mode = TrackerMode::Private;
+
+    cfg
+}
+
+#[must_use]
+pub fn ephemeral_mode_whitelisted() -> Configuration {
+    let mut cfg = ephemeral();
+
+    cfg.mode = TrackerMode::Listed;
+
+    cfg
+}
+
+#[must_use]
+pub fn ephemeral_mode_private_whitelisted() -> Configuration {
+    let mut cfg = ephemeral();
+
+    cfg.mode = TrackerMode::PrivateListed;
+
+    cfg
+}
+
+#[must_use]
+pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
+    let mut cfg = ephemeral();
+
+    cfg.external_ip = Some(ip.to_string());
+
+    cfg
+}
+
+#[must_use]
+pub fn ephemeral_ipv6() -> Configuration {
+    let mut cfg = ephemeral();
+
+    let ipv6 = format!("[::]:{}", 0);
+
+    cfg.http_api.bind_address = ipv6.clone();
+    cfg.http_trackers[0].bind_address = ipv6.clone();
+    cfg.udp_trackers[0].bind_address = ipv6;
+
+    cfg
 }

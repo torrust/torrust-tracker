@@ -3,13 +3,12 @@ use std::net::IpAddr;
 use reqwest::{Client as ReqwestClient, Response};
 use torrust_tracker::tracker::auth::Key;
 
-use super::connection_info::ConnectionInfo;
 use super::requests::announce::{self, Query};
 use super::requests::scrape;
 
 /// HTTP Tracker Client
 pub struct Client {
-    connection_info: ConnectionInfo,
+    server_addr: std::net::SocketAddr,
     reqwest_client: ReqwestClient,
     key: Option<Key>,
 }
@@ -23,26 +22,26 @@ pub struct Client {
 ///         base url              path                                query
 /// ```
 impl Client {
-    pub fn new(connection_info: ConnectionInfo) -> Self {
+    pub fn new(server_addr: std::net::SocketAddr) -> Self {
         Self {
-            connection_info,
+            server_addr,
             reqwest_client: reqwest::Client::builder().build().unwrap(),
             key: None,
         }
     }
 
     /// Creates the new client binding it to an specific local address
-    pub fn bind(connection_info: ConnectionInfo, local_address: IpAddr) -> Self {
+    pub fn bind(server_addr: std::net::SocketAddr, local_address: IpAddr) -> Self {
         Self {
-            connection_info,
+            server_addr,
             reqwest_client: reqwest::Client::builder().local_address(local_address).build().unwrap(),
             key: None,
         }
     }
 
-    pub fn authenticated(connection_info: ConnectionInfo, key: Key) -> Self {
+    pub fn authenticated(server_addr: std::net::SocketAddr, key: Key) -> Self {
         Self {
-            connection_info,
+            server_addr,
             reqwest_client: reqwest::Client::builder().build().unwrap(),
             key: Some(key),
         }
@@ -95,6 +94,6 @@ impl Client {
     }
 
     fn base_url(&self) -> String {
-        format!("http://{}/", &self.connection_info.bind_address)
+        format!("http://{}/", &self.server_addr)
     }
 }
