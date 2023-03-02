@@ -14,6 +14,8 @@ pub struct Entry {
     pub completed: u32,
 }
 
+/// Swarm metadata dictionary in the scrape response.
+/// BEP 48: <https://www.bittorrent.org/beps/bep_0048.html>
 #[derive(Debug, PartialEq, Default)]
 pub struct SwarmMetadata {
     pub complete: u32,   // The number of active peers that have completed downloading (seeders)
@@ -26,6 +28,14 @@ impl SwarmMetadata {
     pub fn zeroed() -> Self {
         Self::default()
     }
+}
+
+/// Swarm statistics. Alternative struct for swarm metadata in scrape response.
+#[derive(Debug)]
+pub struct SwamStats {
+    pub completed: u32, // The number of peers that have ever completed downloading
+    pub seeders: u32,   // The number of active peers that have completed downloading (seeders)
+    pub leechers: u32,  // The number of active peers that have not completed downloading (leechers)
 }
 
 impl Entry {
@@ -109,13 +119,6 @@ impl Default for Entry {
     fn default() -> Self {
         Self::new()
     }
-}
-
-#[derive(Debug)]
-pub struct SwamStats {
-    pub completed: u32,
-    pub seeders: u32,
-    pub leechers: u32,
 }
 
 #[cfg(test)]
