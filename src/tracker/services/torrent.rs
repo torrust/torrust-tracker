@@ -138,6 +138,7 @@ mod tests {
         use std::sync::Arc;
 
         use torrust_tracker_configuration::Configuration;
+        use torrust_tracker_test_helpers::configuration;
 
         use crate::protocol::info_hash::InfoHash;
         use crate::tracker::services::common::tracker_factory;
@@ -145,7 +146,7 @@ mod tests {
         use crate::tracker::services::torrent::{get_torrent_info, Info};
 
         pub fn tracker_configuration() -> Arc<Configuration> {
-            Arc::new(torrust_tracker_test_helpers::configuration::ephemeral())
+            Arc::new(configuration::ephemeral())
         }
 
         #[tokio::test]
@@ -192,6 +193,7 @@ mod tests {
         use std::sync::Arc;
 
         use torrust_tracker_configuration::Configuration;
+        use torrust_tracker_test_helpers::configuration;
 
         use crate::protocol::info_hash::InfoHash;
         use crate::tracker::services::common::tracker_factory;
@@ -199,7 +201,7 @@ mod tests {
         use crate::tracker::services::torrent::{get_torrents, BasicInfo, Pagination};
 
         pub fn tracker_configuration() -> Arc<Configuration> {
-            Arc::new(torrust_tracker_test_helpers::configuration::ephemeral())
+            Arc::new(configuration::ephemeral())
         }
 
         #[tokio::test]

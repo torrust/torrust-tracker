@@ -16,19 +16,21 @@ pub type Axum = torrust_tracker::http::axum_implementation::launcher::Launcher;
 pub type Warp = torrust_tracker::http::warp_implementation::launcher::Launcher;
 
 mod test_env_test_environment {
+    use torrust_tracker_test_helpers::configuration;
+
     use crate::http::test_environment::running_test_environment;
     use crate::{Axum, Warp};
 
     #[tokio::test]
     async fn should_be_able_to_start_and_stop_a_test_environment_using_axum() {
-        let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+        let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
         test_env.stop().await;
     }
 
     #[tokio::test]
     async fn should_be_able_to_start_and_stop_a_test_environment_using_warp() {
-        let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+        let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
         test_env.stop().await;
     }
@@ -39,6 +41,7 @@ mod warp_test_env {
     mod for_all_config_modes {
 
         mod running_on_reverse_proxy {
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::http::asserts::{
                 assert_could_not_find_remote_address_on_xff_header_error_response,
@@ -54,9 +57,7 @@ mod warp_test_env {
                 // If the tracker is running behind a reverse proxy, the peer IP is the
                 // last IP in the `X-Forwarded-For` HTTP header, which is the IP of the proxy client.
 
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_with_reverse_proxy())
-                        .await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_with_reverse_proxy()).await;
 
                 let params = QueryBuilder::default().query().params();
 
@@ -71,9 +72,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_xff_http_request_header_contains_an_invalid_ip() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_with_reverse_proxy())
-                        .await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_with_reverse_proxy()).await;
 
                 let params = QueryBuilder::default().query().params();
 
@@ -107,6 +106,7 @@ mod warp_test_env {
             use reqwest::Response;
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::peer;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
             use crate::http::asserts::{
@@ -125,7 +125,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_respond_if_only_the_mandatory_fields_are_provided() {
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -142,7 +142,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_url_query_component_is_empty() {
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let response = Client::new(test_env.bind_address().clone()).get("announce").await;
 
@@ -151,7 +151,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_a_mandatory_field_is_missing() {
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 // Without `info_hash` param
 
@@ -194,7 +194,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_info_hash_param_is_invalid() {
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -218,7 +218,7 @@ mod warp_test_env {
                 // 1. If tracker is NOT running `on_reverse_proxy` from the remote client IP if there.
                 // 2. If tracker is     running `on_reverse_proxy` from `X-Forwarded-For` request header is tracker is running `on_reverse_proxy`.
 
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -235,7 +235,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_downloaded_param_is_invalid() {
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -256,7 +256,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_uploaded_param_is_invalid() {
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -277,7 +277,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_peer_id_param_is_invalid() {
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -305,7 +305,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_port_param_is_invalid() {
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -326,7 +326,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_left_param_is_invalid() {
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -349,7 +349,7 @@ mod warp_test_env {
             async fn should_not_fail_when_the_event_param_is_invalid() {
                 // All invalid values are ignored as if the `event` param were empty
 
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -378,7 +378,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_not_fail_when_the_compact_param_is_invalid() {
-                let test_env = running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -399,8 +399,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let response = Client::new(test_env.bind_address().clone())
                     .announce(
@@ -427,8 +426,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_return_the_list_of_previously_announced_peers() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -468,8 +466,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_peer_id_even_if_the_ip_is_different() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let peer = PeerBuilder::default().build();
@@ -496,8 +493,7 @@ mod warp_test_env {
                 // Tracker Returns Compact Peer Lists
                 // https://www.bittorrent.org/beps/bep_0023.html
 
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -538,8 +534,7 @@ mod warp_test_env {
                 // code-review: the HTTP tracker does not return the compact response by default if the "compact"
                 // param is not provided in the announce URL. The BEP 23 suggest to do so.
 
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -577,8 +572,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_of_tcp4_connections_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 Client::new(test_env.bind_address().clone())
                     .announce(&QueryBuilder::default().query())
@@ -595,8 +589,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_of_tcp6_connections_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_ipv6()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_ipv6()).await;
 
                 Client::bind(test_env.bind_address().clone(), IpAddr::from_str("::1").unwrap())
                     .announce(&QueryBuilder::default().query())
@@ -615,8 +608,7 @@ mod warp_test_env {
             async fn should_not_increase_the_number_of_tcp6_connections_handled_if_the_client_is_not_using_an_ipv6_ip() {
                 // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 Client::new(test_env.bind_address().clone())
                     .announce(
@@ -637,8 +629,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_of_tcp4_announce_requests_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 Client::new(test_env.bind_address().clone())
                     .announce(&QueryBuilder::default().query())
@@ -655,8 +646,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_of_tcp6_announce_requests_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_ipv6()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_ipv6()).await;
 
                 Client::bind(test_env.bind_address().clone(), IpAddr::from_str("::1").unwrap())
                     .announce(&QueryBuilder::default().query())
@@ -675,8 +665,7 @@ mod warp_test_env {
             async fn should_not_increase_the_number_of_tcp6_announce_requests_handled_if_the_client_is_not_using_an_ipv6_ip() {
                 // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 Client::new(test_env.bind_address().clone())
                     .announce(
@@ -697,8 +686,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_assign_to_the_peer_ip_the_remote_client_ip_instead_of_the_peer_address_in_the_request_param() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let client_ip = local_ip().unwrap();
@@ -730,11 +718,10 @@ mod warp_test_env {
                     127.0.0.1      external_ip = "2.137.87.41"
                 */
 
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_with_external_ip(
-                        IpAddr::from_str("2.137.87.41").unwrap(),
-                    ))
-                    .await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_with_external_ip(
+                    IpAddr::from_str("2.137.87.41").unwrap(),
+                ))
+                .await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
@@ -767,11 +754,10 @@ mod warp_test_env {
                    ::1            external_ip = "2345:0425:2CA1:0000:0000:0567:5673:23b5"
                 */
 
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_with_external_ip(
-                        IpAddr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap(),
-                    ))
-                    .await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_with_external_ip(
+                    IpAddr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap(),
+                ))
+                .await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
@@ -804,9 +790,7 @@ mod warp_test_env {
                 145.254.214.256     X-Forwarded-For = 145.254.214.256    on_reverse_proxy = true       145.254.214.256
                 */
 
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_with_reverse_proxy())
-                        .await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_with_reverse_proxy()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -846,6 +830,7 @@ mod warp_test_env {
 
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::peer;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
             use crate::http::asserts::{assert_internal_server_error_response, assert_scrape_response};
@@ -858,8 +843,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_request_is_empty() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
                 let response = Client::new(test_env.bind_address().clone()).get("scrape").await;
 
                 assert_internal_server_error_response(response).await;
@@ -869,8 +853,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_info_hash_param_is_invalid() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -890,8 +873,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_return_the_file_with_the_incomplete_peer_when_there_is_one_peer_with_bytes_pending_to_download() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -931,8 +913,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_return_the_file_with_the_complete_peer_when_there_is_one_peer_with_no_bytes_pending_to_download() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -972,8 +953,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_return_a_file_with_zeroed_values_when_there_are_no_peers() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -992,8 +972,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_accept_multiple_infohashes() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash1 = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let info_hash2 = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
@@ -1019,8 +998,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_ot_tcp4_scrape_requests_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1043,8 +1021,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_ot_tcp6_scrape_requests_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_ipv6()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_ipv6()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1073,6 +1050,7 @@ mod warp_test_env {
             use std::str::FromStr;
 
             use torrust_tracker::protocol::info_hash::InfoHash;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::http::asserts::{assert_is_announce_response, assert_torrent_not_in_whitelist_error_response};
             use crate::http::client::Client;
@@ -1082,9 +1060,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_if_the_torrent_is_not_in_the_whitelist() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_whitelisted())
-                        .await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_whitelisted()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1100,9 +1076,7 @@ mod warp_test_env {
             #[tokio::test]
 
             async fn should_allow_announcing_a_whitelisted_torrent() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_whitelisted())
-                        .await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_whitelisted()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1127,6 +1101,7 @@ mod warp_test_env {
 
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::peer;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::common::fixtures::PeerBuilder;
             use crate::http::asserts::assert_scrape_response;
@@ -1138,9 +1113,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_return_the_zeroed_file_when_the_requested_file_is_not_whitelisted() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_whitelisted())
-                        .await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_whitelisted()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1171,9 +1144,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_return_the_file_stats_when_the_requested_file_is_whitelisted() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_whitelisted())
-                        .await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_whitelisted()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1239,8 +1210,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_respond_to_authenticated_peers() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_private()).await;
 
                 let key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
@@ -1255,8 +1225,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_if_the_peer_has_not_provided_the_authentication_key() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_private()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1269,8 +1238,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_fail_if_the_peer_authentication_key_is_not_valid() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_private()).await;
 
                 // The tracker does not have this key
                 let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
@@ -1293,6 +1261,7 @@ mod warp_test_env {
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::auth::Key;
             use torrust_tracker::tracker::peer;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::common::fixtures::PeerBuilder;
             use crate::http::asserts::assert_scrape_response;
@@ -1304,8 +1273,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_return_the_zeroed_file_when_the_client_is_not_authenticated() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_private()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1336,8 +1304,7 @@ mod warp_test_env {
 
             #[tokio::test]
             async fn should_return_the_real_file_stats_when_the_client_is_authenticated() {
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_private()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1381,8 +1348,7 @@ mod warp_test_env {
             async fn should_return_the_zeroed_file_when_the_authentication_key_provided_by_the_client_is_invalid() {
                 // There is not authentication error
 
-                let test_env =
-                    running_test_environment::<Warp>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_private()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1430,6 +1396,7 @@ mod axum_test_env {
     mod for_all_config_modes {
 
         mod and_running_on_reverse_proxy {
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::http::asserts::assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response;
             use crate::http::client::Client;
@@ -1442,9 +1409,7 @@ mod axum_test_env {
                 // If the tracker is running behind a reverse proxy, the peer IP is the
                 // right most IP in the `X-Forwarded-For` HTTP header, which is the IP of the proxy's client.
 
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_with_reverse_proxy())
-                        .await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_with_reverse_proxy()).await;
 
                 let params = QueryBuilder::default().query().params();
 
@@ -1459,9 +1424,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_xff_http_request_header_contains_an_invalid_ip() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_with_reverse_proxy())
-                        .await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_with_reverse_proxy()).await;
 
                 let params = QueryBuilder::default().query().params();
 
@@ -1495,6 +1458,7 @@ mod axum_test_env {
             use reqwest::Response;
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::peer;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
             use crate::http::asserts::{
@@ -1512,7 +1476,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_respond_if_only_the_mandatory_fields_are_provided() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -1529,7 +1493,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_url_query_component_is_empty() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let response = Client::new(test_env.bind_address().clone()).get("announce").await;
 
@@ -1540,7 +1504,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_url_query_parameters_are_invalid() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let invalid_query_param = "a=b=c";
 
@@ -1555,7 +1519,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_a_mandatory_field_is_missing() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 // Without `info_hash` param
 
@@ -1598,7 +1562,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_info_hash_param_is_invalid() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -1622,7 +1586,7 @@ mod axum_test_env {
                 // 1. If tracker is NOT running `on_reverse_proxy` from the remote client IP.
                 // 2. If tracker is     running `on_reverse_proxy` from `X-Forwarded-For` request HTTP header.
 
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -1639,7 +1603,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_downloaded_param_is_invalid() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -1660,7 +1624,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_uploaded_param_is_invalid() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -1681,7 +1645,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_peer_id_param_is_invalid() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -1709,7 +1673,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_port_param_is_invalid() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -1730,7 +1694,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_left_param_is_invalid() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -1751,7 +1715,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_event_param_is_invalid() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -1780,7 +1744,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_compact_param_is_invalid() {
-                let test_env = running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -1801,8 +1765,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let response = Client::new(test_env.bind_address().clone())
                     .announce(
@@ -1829,8 +1792,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_return_the_list_of_previously_announced_peers() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1870,8 +1832,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_return_the_list_of_previously_announced_peers_including_peers_using_ipv4_and_ipv6() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1921,8 +1882,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_peer_id_even_if_the_ip_is_different() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let peer = PeerBuilder::default().build();
@@ -1949,8 +1909,7 @@ mod axum_test_env {
                 // Tracker Returns Compact Peer Lists
                 // https://www.bittorrent.org/beps/bep_0023.html
 
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1991,8 +1950,7 @@ mod axum_test_env {
                 // code-review: the HTTP tracker does not return the compact response by default if the "compact"
                 // param is not provided in the announce URL. The BEP 23 suggest to do so.
 
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2030,8 +1988,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_of_tcp4_connections_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 Client::new(test_env.bind_address().clone())
                     .announce(&QueryBuilder::default().query())
@@ -2048,8 +2005,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_of_tcp6_connections_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_ipv6()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_ipv6()).await;
 
                 Client::bind(test_env.bind_address().clone(), IpAddr::from_str("::1").unwrap())
                     .announce(&QueryBuilder::default().query())
@@ -2068,8 +2024,7 @@ mod axum_test_env {
             async fn should_not_increase_the_number_of_tcp6_connections_handled_if_the_client_is_not_using_an_ipv6_ip() {
                 // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 Client::new(test_env.bind_address().clone())
                     .announce(
@@ -2090,14 +2045,11 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_of_tcp4_announce_requests_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
-                let res = Client::new(test_env.bind_address().clone())
+                Client::new(test_env.bind_address().clone())
                     .announce(&QueryBuilder::default().query())
                     .await;
-
-                println!("{:?}", res.text().await.unwrap());
 
                 let stats = test_env.tracker.get_stats().await;
 
@@ -2110,8 +2062,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_of_tcp6_announce_requests_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_ipv6()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_ipv6()).await;
 
                 Client::bind(test_env.bind_address().clone(), IpAddr::from_str("::1").unwrap())
                     .announce(&QueryBuilder::default().query())
@@ -2130,8 +2081,7 @@ mod axum_test_env {
             async fn should_not_increase_the_number_of_tcp6_announce_requests_handled_if_the_client_is_not_using_an_ipv6_ip() {
                 // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 Client::new(test_env.bind_address().clone())
                     .announce(
@@ -2152,8 +2102,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_assign_to_the_peer_ip_the_remote_client_ip_instead_of_the_peer_address_in_the_request_param() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let client_ip = local_ip().unwrap();
@@ -2185,11 +2134,10 @@ mod axum_test_env {
                     127.0.0.1      external_ip = "2.137.87.41"
                 */
 
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_with_external_ip(
-                        IpAddr::from_str("2.137.87.41").unwrap(),
-                    ))
-                    .await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_with_external_ip(
+                    IpAddr::from_str("2.137.87.41").unwrap(),
+                ))
+                .await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
@@ -2222,11 +2170,10 @@ mod axum_test_env {
                    ::1            external_ip = "2345:0425:2CA1:0000:0000:0567:5673:23b5"
                 */
 
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_with_external_ip(
-                        IpAddr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap(),
-                    ))
-                    .await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_with_external_ip(
+                    IpAddr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap(),
+                ))
+                .await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
@@ -2259,9 +2206,7 @@ mod axum_test_env {
                 145.254.214.256     X-Forwarded-For = 145.254.214.256    on_reverse_proxy = true       145.254.214.256
                 */
 
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_with_reverse_proxy())
-                        .await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_with_reverse_proxy()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2301,6 +2246,7 @@ mod axum_test_env {
 
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::peer;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
             use crate::http::asserts::{
@@ -2317,8 +2263,7 @@ mod axum_test_env {
             //#[tokio::test]
             #[allow(dead_code)]
             async fn should_fail_when_the_request_is_empty() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
                 let response = Client::new(test_env.bind_address().clone()).get("scrape").await;
 
                 assert_missing_query_params_for_scrape_request_error_response(response).await;
@@ -2328,8 +2273,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_when_the_info_hash_param_is_invalid() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let mut params = QueryBuilder::default().query().params();
 
@@ -2348,8 +2292,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_return_the_file_with_the_incomplete_peer_when_there_is_one_peer_with_bytes_pending_to_download() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2389,8 +2332,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_return_the_file_with_the_complete_peer_when_there_is_one_peer_with_no_bytes_pending_to_download() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2430,8 +2372,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_return_a_file_with_zeroed_values_when_there_are_no_peers() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2450,8 +2391,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_accept_multiple_infohashes() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash1 = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let info_hash2 = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
@@ -2477,8 +2417,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_ot_tcp4_scrape_requests_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2501,8 +2440,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_increase_the_number_ot_tcp6_scrape_requests_handled_in_statistics() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_ipv6()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_ipv6()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2531,6 +2469,7 @@ mod axum_test_env {
             use std::str::FromStr;
 
             use torrust_tracker::protocol::info_hash::InfoHash;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::http::asserts::{assert_is_announce_response, assert_torrent_not_in_whitelist_error_response};
             use crate::http::client::Client;
@@ -2540,9 +2479,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_if_the_torrent_is_not_in_the_whitelist() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_whitelisted())
-                        .await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_whitelisted()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2557,9 +2494,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_allow_announcing_a_whitelisted_torrent() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_whitelisted())
-                        .await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_whitelisted()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2584,6 +2519,7 @@ mod axum_test_env {
 
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::peer;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::common::fixtures::PeerBuilder;
             use crate::http::asserts::assert_scrape_response;
@@ -2595,9 +2531,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_return_the_zeroed_file_when_the_requested_file_is_not_whitelisted() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_whitelisted())
-                        .await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_whitelisted()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2628,9 +2562,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_return_the_file_stats_when_the_requested_file_is_whitelisted() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_whitelisted())
-                        .await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_whitelisted()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2693,8 +2625,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_respond_to_authenticated_peers() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_private()).await;
 
                 let key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
@@ -2709,8 +2640,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_if_the_peer_has_not_provided_the_authentication_key() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_private()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2747,7 +2677,7 @@ mod axum_test_env {
                 // The tracker does not have this key
                 let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
-                let response = Client::authenticated(test_env.bind_address(), unregistered_key)
+                let response = Client::authenticated(test_env.bind_address().clone(), unregistered_key)
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -2765,6 +2695,7 @@ mod axum_test_env {
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::auth::Key;
             use torrust_tracker::tracker::peer;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::common::fixtures::PeerBuilder;
             use crate::http::asserts::{assert_authentication_error_response, assert_scrape_response};
@@ -2792,8 +2723,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_return_the_zeroed_file_when_the_client_is_not_authenticated() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_private()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2824,8 +2754,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_return_the_real_file_stats_when_the_client_is_authenticated() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_private()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -2870,8 +2799,7 @@ mod axum_test_env {
                 // There is not authentication error
                 // code-review: should this really be this way?
 
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_private()).await;
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 

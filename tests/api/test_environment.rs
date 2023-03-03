@@ -4,6 +4,7 @@ use torrust_tracker::apis::server::{ApiServer, RunningApiServer, StoppedApiServe
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
+use torrust_tracker_test_helpers::configuration;
 
 use super::connection_info::ConnectionInfo;
 use crate::common::tracker::new_tracker;
@@ -89,7 +90,7 @@ pub fn running_test_environment() -> RunningTestEnvironment {
 }
 
 pub fn api_server() -> StoppedApiServer {
-    let config = Arc::new(torrust_tracker_test_helpers::configuration::ephemeral());
+    let config = Arc::new(configuration::ephemeral());
 
     let tracker = new_tracker(config.clone());
 

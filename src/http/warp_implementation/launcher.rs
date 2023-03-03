@@ -6,7 +6,7 @@ use std::sync::Arc;
 use futures::future::BoxFuture;
 
 use super::routes;
-use crate::http::tracker_interface::HttpServerLauncher;
+use crate::http::server::HttpServerLauncher;
 use crate::tracker;
 use crate::tracker::Tracker;
 

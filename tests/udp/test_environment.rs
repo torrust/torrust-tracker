@@ -5,6 +5,7 @@ use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
 use torrust_tracker::udp::server::{RunningUdpServer, StoppedUdpServer, UdpServer};
+use torrust_tracker_test_helpers::configuration;
 
 use crate::common::tracker::new_tracker;
 
@@ -88,7 +89,7 @@ pub async fn running_test_environment() -> RunningTestEnvironment {
 }
 
 pub fn udp_server() -> StoppedUdpServer {
-    let config = Arc::new(torrust_tracker_test_helpers::configuration::ephemeral());
+    let config = Arc::new(configuration::ephemeral());
 
     let tracker = new_tracker(config.clone());
 

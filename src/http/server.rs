@@ -32,6 +32,7 @@ pub type StoppedHttpServer<I> = HttpServer<Stopped<I>>;
 #[allow(clippy::module_name_repetitions)]
 pub type RunningHttpServer<I> = HttpServer<Running<I>>;
 
+#[allow(clippy::module_name_repetitions)]
 pub struct HttpServer<S> {
     pub cfg: torrust_tracker_configuration::HttpTracker,
     pub state: S,

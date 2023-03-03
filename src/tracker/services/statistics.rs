@@ -37,13 +37,14 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_test_helpers::configuration;
 
     use crate::tracker;
     use crate::tracker::services::common::tracker_factory;
     use crate::tracker::services::statistics::{get_metrics, TrackerMetrics};
 
     pub fn tracker_configuration() -> Arc<Configuration> {
-        Arc::new(torrust_tracker_test_helpers::configuration::ephemeral())
+        Arc::new(configuration::ephemeral())
     }
 
     #[tokio::test]
