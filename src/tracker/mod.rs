@@ -199,6 +199,7 @@ impl Tracker {
     ///
     /// Will panic if key cannot be converted into a valid `KeyId`.
     pub async fn remove_auth_key(&self, key: &str) -> Result<(), databases::error::Error> {
+        // todo: change argument `key: &str` to `key_id: &KeyId`
         self.database.remove_key_from_keys(key).await?;
         self.keys.write().await.remove(&key.parse::<KeyId>().unwrap());
         Ok(())
@@ -208,6 +209,8 @@ impl Tracker {
     ///
     /// Will return a `key::Error` if unable to get any `auth_key`.
     pub async fn verify_auth_key(&self, key_id: &KeyId) -> Result<(), auth::Error> {
+        // code-review: this function is public only because it's used in a test.
+        // We should change the test and make it private.
         match self.keys.read().await.get(key_id) {
             None => Err(auth::Error::UnableToReadKey {
                 location: Location::caller(),
@@ -319,6 +322,12 @@ impl Tracker {
     ///
     /// Will return a `torrent::Error::TorrentNotWhitelisted` if the the Tracker is in listed mode and the `info_hash` is not whitelisted.
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<KeyId>) -> Result<(), Error> {
+        // todo: this is a deprecated method.
+        // We're splitting authentication and authorization responsibilities.
+        // Use `authenticate` and `authorize` instead.
+
+        // Authentication
+
         // no authentication needed in public mode
         if self.is_public() {
             return Ok(());
@@ -342,6 +351,8 @@ impl Tracker {
                 }
             }
         }
+
+        // Authorization
 
         // check if info_hash is whitelisted
         if self.is_whitelisted() && !self.is_info_hash_whitelisted(info_hash).await {
@@ -551,6 +562,12 @@ mod tests {
         pub fn public_tracker() -> Tracker {
             let mut configuration = ephemeral_configuration();
             configuration.mode = Mode::Public;
+            tracker_factory(configuration)
+        }
+
+        pub fn private_tracker() -> Tracker {
+            let mut configuration = ephemeral_configuration();
+            configuration.mode = Mode::Private;
             tracker_factory(configuration)
         }
 
@@ -981,6 +998,92 @@ mod tests {
         }
 
         mod configured_as_private {
+
+            mod handling_authentication {
+                use std::str::FromStr;
+                use std::time::Duration;
+
+                use crate::tracker::auth;
+                use crate::tracker::tests::the_tracker::private_tracker;
+
+                #[tokio::test]
+                async fn it_should_generate_the_expiring_authentication_keys() {
+                    let tracker = private_tracker();
+
+                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+
+                    assert_eq!(key.valid_until.unwrap(), Duration::from_secs(100));
+                }
+
+                #[tokio::test]
+                async fn it_should_authenticate_a_peer_by_using_a_key() {
+                    let tracker = private_tracker();
+
+                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+
+                    let result = tracker.authenticate(&key.id()).await;
+
+                    assert!(result.is_ok());
+                }
+
+                #[tokio::test]
+                async fn it_should_fail_authenticating_a_peer_when_it_uses_an_unregistered_key() {
+                    let tracker = private_tracker();
+
+                    let unregistered_key_id = auth::KeyId::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+
+                    let result = tracker.authenticate(&unregistered_key_id).await;
+
+                    assert!(result.is_err());
+                }
+
+                #[tokio::test]
+                async fn it_should_verify_a_valid_authentication_key() {
+                    // todo: this should not be tested directly because
+                    // `verify_auth_key` should be a private method.
+                    let tracker = private_tracker();
+
+                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+
+                    assert!(tracker.verify_auth_key(&key.id()).await.is_ok());
+                }
+
+                #[tokio::test]
+                async fn it_should_fail_verifying_an_unregistered_authentication_key() {
+                    let tracker = private_tracker();
+
+                    let unregistered_key_id = auth::KeyId::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+
+                    assert!(tracker.verify_auth_key(&unregistered_key_id).await.is_err());
+                }
+
+                #[tokio::test]
+                async fn it_should_remove_an_authentication_key() {
+                    let tracker = private_tracker();
+
+                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+
+                    let result = tracker.remove_auth_key(&key.id().to_string()).await;
+
+                    assert!(result.is_ok());
+                    assert!(tracker.verify_auth_key(&key.id()).await.is_err());
+                }
+
+                #[tokio::test]
+                async fn it_should_load_authentication_keys_from_the_database() {
+                    let tracker = private_tracker();
+
+                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+
+                    // Remove the newly generated key in memory
+                    tracker.keys.write().await.remove(&key.id());
+
+                    let result = tracker.load_keys().await;
+
+                    assert!(result.is_ok());
+                    assert!(tracker.verify_auth_key(&key.id()).await.is_ok());
+                }
+            }
 
             mod handling_an_announce_request {}
 
