@@ -90,8 +90,8 @@ impl From<AnnounceData> for NonCompact {
         Self {
             interval: domain_announce_response.interval,
             interval_min: domain_announce_response.interval_min,
-            complete: domain_announce_response.swam_stats.seeders,
-            incomplete: domain_announce_response.swam_stats.leechers,
+            complete: domain_announce_response.swarm_stats.seeders,
+            incomplete: domain_announce_response.swarm_stats.leechers,
             peers,
         }
     }
@@ -237,8 +237,8 @@ impl From<AnnounceData> for Compact {
         Self {
             interval: domain_announce_response.interval,
             interval_min: domain_announce_response.interval_min,
-            complete: domain_announce_response.swam_stats.seeders,
-            incomplete: domain_announce_response.swam_stats.leechers,
+            complete: domain_announce_response.swarm_stats.seeders,
+            incomplete: domain_announce_response.swarm_stats.leechers,
             peers,
         }
     }

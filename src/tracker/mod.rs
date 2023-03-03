@@ -19,7 +19,7 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 use self::auth::KeyId;
 use self::error::Error;
 use self::peer::Peer;
-use self::torrent::{SwamStats, SwarmMetadata};
+use self::torrent::{SwarmMetadata, SwarmStats};
 use crate::config::Configuration;
 use crate::databases::driver::Driver;
 use crate::databases::{self, Database};
@@ -38,9 +38,9 @@ pub struct Tracker {
 
 #[derive(Debug, PartialEq, Default)]
 pub struct TorrentsMetrics {
-    // code-review: consider using `SwamStats` for
+    // code-review: consider using `SwarmStats` for
     // `seeders`, `completed`, and `leechers` attributes.
-    // pub swam_stats: SwamStats;
+    // pub swarm_stats: SwarmStats;
     pub seeders: u64,
     pub completed: u64,
     pub leechers: u64,
@@ -50,7 +50,7 @@ pub struct TorrentsMetrics {
 #[derive(Debug, PartialEq, Default)]
 pub struct AnnounceData {
     pub peers: Vec<Peer>,
-    pub swam_stats: SwamStats,
+    pub swarm_stats: SwarmStats,
     pub interval: u32,
     pub interval_min: u32,
 }
@@ -147,13 +147,13 @@ impl Tracker {
 
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip()));
 
-        let swam_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
+        let swarm_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
         let peers = self.get_peers_for_peer(info_hash, peer).await;
 
         AnnounceData {
             peers,
-            swam_stats,
+            swarm_stats,
             interval: self.config.announce_interval,
             interval_min: self.config.min_announce_interval,
         }
@@ -446,7 +446,7 @@ impl Tracker {
         }
     }
 
-    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::SwamStats {
+    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::SwarmStats {
         // code-review: consider splitting the function in two (command and query segregation).
         // `update_torrent_with_peer` and `get_stats`
 
@@ -469,7 +469,7 @@ impl Tracker {
 
         let (seeders, completed, leechers) = torrent_entry.get_stats();
 
-        torrent::SwamStats {
+        torrent::SwarmStats {
             completed,
             seeders,
             leechers,
@@ -898,7 +898,7 @@ mod tests {
 
                         let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
-                        assert_eq!(announce_data.swam_stats.seeders, 1);
+                        assert_eq!(announce_data.swarm_stats.seeders, 1);
                     }
 
                     #[tokio::test]
@@ -909,7 +909,7 @@ mod tests {
 
                         let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
-                        assert_eq!(announce_data.swam_stats.leechers, 1);
+                        assert_eq!(announce_data.swarm_stats.leechers, 1);
                     }
 
                     #[tokio::test]
@@ -923,7 +923,7 @@ mod tests {
                         let mut completed_peer = completed_peer();
                         let announce_data = tracker.announce(&sample_info_hash(), &mut completed_peer, &peer_ip()).await;
 
-                        assert_eq!(announce_data.swam_stats.completed, 1);
+                        assert_eq!(announce_data.swarm_stats.completed, 1);
                     }
                 }
             }
