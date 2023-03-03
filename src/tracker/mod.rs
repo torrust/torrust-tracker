@@ -38,6 +38,9 @@ pub struct Tracker {
 
 #[derive(Debug, PartialEq, Default)]
 pub struct TorrentsMetrics {
+    // code-review: consider using `SwamStats` for
+    // `seeders`, `completed`, and `leechers` attributes.
+    // pub swam_stats: SwamStats;
     pub seeders: u64,
     pub completed: u64,
     pub leechers: u64,
@@ -223,7 +226,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to `load_keys` from the database.
-    pub async fn load_keys(&self) -> Result<(), databases::error::Error> {
+    pub async fn load_keys_from_database(&self) -> Result<(), databases::error::Error> {
         let keys_from_database = self.database.load_keys().await?;
         let mut keys = self.keys.write().await;
 
@@ -301,7 +304,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to load the list whitelisted `info_hash`s from the database.
-    pub async fn load_whitelist(&self) -> Result<(), databases::error::Error> {
+    pub async fn load_whitelist_from_database(&self) -> Result<(), databases::error::Error> {
         let whitelisted_torrents_from_database = self.database.load_whitelist().await?;
         let mut whitelist = self.whitelist.write().await;
 
@@ -402,7 +405,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to load the list of `persistent_torrents` from the database.
-    pub async fn load_persistent_torrents(&self) -> Result<(), databases::error::Error> {
+    pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.database.load_persistent_torrents().await?;
 
         let mut torrents = self.torrents.write().await;
@@ -700,6 +703,55 @@ mod tests {
             );
         }
 
+        #[tokio::test]
+        async fn it_should_return_all_the_peers_for_a_given_torrent() {
+            let tracker = public_tracker();
+
+            let info_hash = sample_info_hash();
+            let peer = sample_peer();
+
+            tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+
+            let peers = tracker.get_all_torrent_peers(&info_hash).await;
+
+            assert_eq!(peers, vec![peer]);
+        }
+
+        #[tokio::test]
+        async fn it_should_return_all_the_peers_for_a_given_torrent_excluding_a_given_peer() {
+            let tracker = public_tracker();
+
+            let info_hash = sample_info_hash();
+            let peer = sample_peer();
+
+            tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+
+            let peers = tracker.get_peers_for_peer(&info_hash, &peer).await;
+
+            assert_eq!(peers, vec![]);
+        }
+
+        #[tokio::test]
+        async fn it_should_return_the_torrent_metrics() {
+            let tracker = public_tracker();
+
+            tracker
+                .update_torrent_with_peer_and_get_stats(&sample_info_hash(), &leecher())
+                .await;
+
+            let torrent_metrics = tracker.get_torrents_metrics().await;
+
+            assert_eq!(
+                torrent_metrics,
+                TorrentsMetrics {
+                    seeders: 0,
+                    completed: 0,
+                    leechers: 1,
+                    torrents: 1,
+                }
+            );
+        }
+
         mod for_all_config_modes {
 
             mod handling_an_announce_request {
@@ -984,6 +1036,55 @@ mod tests {
                 }
             }
 
+            mod handling_the_torrent_whitelist {
+                use crate::tracker::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
+
+                #[tokio::test]
+                async fn it_should_add_a_torrent_to_the_whitelist() {
+                    let tracker = whitelisted_tracker();
+
+                    let info_hash = sample_info_hash();
+
+                    tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+                    assert!(tracker.is_info_hash_whitelisted(&info_hash).await);
+                }
+
+                #[tokio::test]
+                async fn it_should_remove_a_torrent_from_the_whitelist() {
+                    let tracker = whitelisted_tracker();
+
+                    let info_hash = sample_info_hash();
+
+                    tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+                    tracker.remove_torrent_from_whitelist(&info_hash).await.unwrap();
+
+                    assert!(!tracker.is_info_hash_whitelisted(&info_hash).await);
+                }
+
+                mod persistence {
+                    use crate::tracker::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
+
+                    #[tokio::test]
+                    async fn it_should_load_the_whitelist_from_the_database() {
+                        let tracker = whitelisted_tracker();
+
+                        let info_hash = sample_info_hash();
+
+                        tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+                        // Remove torrent from the in-memory whitelist
+                        tracker.whitelist.write().await.remove(&info_hash);
+                        assert!(!tracker.is_info_hash_whitelisted(&info_hash).await);
+
+                        tracker.load_whitelist_from_database().await.unwrap();
+
+                        assert!(tracker.is_info_hash_whitelisted(&info_hash).await);
+                    }
+                }
+            }
+
             mod handling_an_announce_request {}
 
             mod handling_an_scrape_request {
@@ -1112,7 +1213,7 @@ mod tests {
                     // Remove the newly generated key in memory
                     tracker.keys.write().await.remove(&key.id());
 
-                    let result = tracker.load_keys().await;
+                    let result = tracker.load_keys_from_database().await;
 
                     assert!(result.is_ok());
                     assert!(tracker.verify_auth_key(&key.id()).await.is_ok());
@@ -1152,13 +1253,10 @@ mod tests {
                 let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
                 assert_eq!(swarm_stats.completed, 1);
 
-                let torrents = tracker.get_all_torrent_peers(&info_hash).await;
-                assert_eq!(torrents.len(), 1);
-
                 // Remove the newly updated torrent from memory
                 tracker.torrents.write().await.remove(&info_hash);
 
-                tracker.load_persistent_torrents().await.unwrap();
+                tracker.load_torrents_from_database().await.unwrap();
 
                 let torrents = tracker.get_torrents().await;
                 assert!(torrents.contains_key(&info_hash));

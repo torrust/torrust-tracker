@@ -14,6 +14,7 @@ pub struct Entry {
     pub completed: u32,
 }
 
+/// Swarm statistics for one torrent.
 /// Swarm metadata dictionary in the scrape response.
 /// BEP 48: <https://www.bittorrent.org/beps/bep_0048.html>
 #[derive(Debug, PartialEq, Default)]
@@ -30,7 +31,8 @@ impl SwarmMetadata {
     }
 }
 
-/// Swarm statistics. Alternative struct for swarm metadata in scrape response.
+/// Swarm statistics for one torrent.
+/// Alternative struct for swarm metadata in scrape response.
 #[derive(Debug, PartialEq, Default)]
 pub struct SwamStats {
     pub completed: u32, // The number of peers that have ever completed downloading
