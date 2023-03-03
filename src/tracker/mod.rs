@@ -404,6 +404,7 @@ impl Tracker {
     /// Will return a `database::Error` if unable to load the list of `persistent_torrents` from the database.
     pub async fn load_persistent_torrents(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.database.load_persistent_torrents().await?;
+
         let mut torrents = self.torrents.write().await;
 
         for (info_hash, completed) in persistent_torrents {
@@ -574,6 +575,12 @@ mod tests {
         pub fn whitelisted_tracker() -> Tracker {
             let mut configuration = ephemeral_configuration();
             configuration.mode = Mode::Listed;
+            tracker_factory(configuration)
+        }
+
+        pub fn tracker_persisting_torrents_in_database() -> Tracker {
+            let mut configuration = ephemeral_configuration();
+            configuration.persistent_torrent_completed_stat = true;
             tracker_factory(configuration)
         }
 
@@ -1122,6 +1129,48 @@ mod tests {
             mod handling_an_announce_request {}
 
             mod handling_an_scrape_request {}
+        }
+
+        mod handling_torrent_persistence {
+            use aquatic_udp_protocol::AnnounceEvent;
+
+            use crate::tracker::tests::the_tracker::{sample_info_hash, sample_peer, tracker_persisting_torrents_in_database};
+
+            #[tokio::test]
+            async fn it_should_persist_the_number_of_completed_peers_for_all_torrents_into_the_database() {
+                let tracker = tracker_persisting_torrents_in_database();
+
+                let info_hash = sample_info_hash();
+
+                let mut peer = sample_peer();
+
+                peer.event = AnnounceEvent::Started;
+                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+                assert_eq!(swarm_stats.completed, 0);
+
+                peer.event = AnnounceEvent::Completed;
+                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+                assert_eq!(swarm_stats.completed, 1);
+
+                let torrents = tracker.get_all_torrent_peers(&info_hash).await;
+                assert_eq!(torrents.len(), 1);
+
+                // Remove the newly updated torrent from memory
+                tracker.torrents.write().await.remove(&info_hash);
+
+                tracker.load_persistent_torrents().await.unwrap();
+
+                let torrents = tracker.get_torrents().await;
+                assert!(torrents.contains_key(&info_hash));
+
+                let torrent_entry = torrents.get(&info_hash).unwrap();
+
+                // It persists the number of completed peers.
+                assert_eq!(torrent_entry.completed, 1);
+
+                // It does not persist the peers
+                assert!(torrent_entry.peers.is_empty());
+            }
         }
     }
 }
