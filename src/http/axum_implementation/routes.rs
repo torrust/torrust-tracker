@@ -7,7 +7,7 @@ use axum_client_ip::SecureClientIpSource;
 use super::handlers::{announce, scrape};
 use crate::tracker::Tracker;
 
-pub fn router(tracker: &Arc<Tracker>) -> Router {
+pub fn router(tracker: Arc<Tracker>) -> Router {
     Router::new()
         // Announce request
         .route("/announce", get(announce::handle_without_key).with_state(tracker.clone()))

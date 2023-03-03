@@ -19,9 +19,9 @@ pub enum Error {
     Error(String),
 }
 
-pub struct Server;
+pub struct Launcher;
 
-impl Server {
+impl Launcher {
     pub fn start_from_tcp_listener_with_graceful_shutdown<F>(
         tcp_listener: std::net::TcpListener,
         tracker: Arc<Tracker>,
@@ -30,12 +30,12 @@ impl Server {
     where
         F: Future<Output = ()> + Send + 'static,
     {
-        let app = router(&tracker);
+        let app = router(tracker);
 
         Box::pin(async {
             axum::Server::from_tcp(tcp_listener)
                 .expect("Could not bind to tcp listener.")
-                .serve(app.into_make_service())
+                .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
                 .with_graceful_shutdown(shutdown_signal)
                 .await
                 .expect("Axum server crashed.");
@@ -51,7 +51,7 @@ impl Server {
     where
         F: Future<Output = ()> + Send + 'static,
     {
-        let app = router(&tracker);
+        let app = router(tracker);
 
         let handle = Handle::new();
 
@@ -69,7 +69,7 @@ impl Server {
 
             axum_server::from_tcp_rustls(tcp_listener, tls_config)
                 .handle(handle)
-                .serve(app.into_make_service())
+                .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
                 .await
                 .expect("Axum server crashed.");
         })
@@ -77,7 +77,7 @@ impl Server {
 }
 
 #[async_trait]
-impl HttpServerLauncher for Server {
+impl HttpServerLauncher for Launcher {
     fn new() -> Self {
         Self {}
     }
@@ -114,7 +114,7 @@ impl HttpServerLauncher for Server {
     }
 }
 
-pub fn start(socket_addr: std::net::SocketAddr, tracker: &Arc<Tracker>) -> impl Future<Output = hyper::Result<()>> {
+pub fn start(socket_addr: std::net::SocketAddr, tracker: Arc<Tracker>) -> impl Future<Output = hyper::Result<()>> {
     let app = router(tracker);
 
     let server = axum::Server::bind(&socket_addr).serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>());
@@ -128,7 +128,7 @@ pub fn start(socket_addr: std::net::SocketAddr, tracker: &Arc<Tracker>) -> impl 
 pub fn start_tls(
     socket_addr: std::net::SocketAddr,
     ssl_config: RustlsConfig,
-    tracker: &Arc<Tracker>,
+    tracker: Arc<Tracker>,
 ) -> impl Future<Output = Result<(), std::io::Error>> {
     let app = router(tracker);
 

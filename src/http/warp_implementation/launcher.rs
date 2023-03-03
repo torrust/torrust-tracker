@@ -15,9 +15,9 @@ pub enum Error {
     Error(String),
 }
 
-pub struct Server;
+pub struct Launcher;
 
-impl Server {
+impl Launcher {
     pub fn start_with_graceful_shutdown<F>(
         addr: SocketAddr,
         tracker: Arc<Tracker>,
@@ -50,7 +50,7 @@ impl Server {
     }
 }
 
-impl HttpServerLauncher for Server {
+impl HttpServerLauncher for Launcher {
     fn new() -> Self {
         Self {}
     }

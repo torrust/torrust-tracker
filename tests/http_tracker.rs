@@ -12,8 +12,8 @@
 mod common;
 mod http;
 
-pub type Axum = torrust_tracker::http::axum_implementation::server::Server;
-pub type Warp = torrust_tracker::http::warp_implementation::server::Server;
+pub type Axum = torrust_tracker::http::axum_implementation::launcher::Launcher;
+pub type Warp = torrust_tracker::http::warp_implementation::launcher::Launcher;
 
 mod test_env_test_environment {
     use crate::http::test_environment::running_test_environment;
@@ -46,7 +46,7 @@ mod warp_test_env {
             };
             use crate::http::client::Client;
             use crate::http::requests::announce::QueryBuilder;
-            use crate::http::test_environment::{running_test_environment, stopped_test_environment};
+            use crate::http::test_environment::running_test_environment;
             use crate::Warp;
 
             #[tokio::test]
@@ -65,6 +65,8 @@ mod warp_test_env {
                     .await;
 
                 assert_could_not_find_remote_address_on_xff_header_error_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -80,6 +82,8 @@ mod warp_test_env {
                     .await;
 
                 assert_invalid_remote_address_on_xff_header_error_response(response).await;
+
+                test_env.stop().await;
             }
         }
 
@@ -132,6 +136,8 @@ mod warp_test_env {
                     .await;
 
                 assert_is_announce_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -182,6 +188,8 @@ mod warp_test_env {
                     .await;
 
                 assert_internal_server_error_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -199,6 +207,8 @@ mod warp_test_env {
 
                     assert_invalid_info_hash_error_response(response).await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -219,6 +229,8 @@ mod warp_test_env {
                     .await;
 
                 assert_is_announce_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -238,6 +250,8 @@ mod warp_test_env {
 
                     assert_internal_server_error_response(response).await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -257,6 +271,8 @@ mod warp_test_env {
 
                     assert_internal_server_error_response(response).await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -283,6 +299,8 @@ mod warp_test_env {
 
                     assert_invalid_peer_id_error_response(response).await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -302,6 +320,8 @@ mod warp_test_env {
 
                     assert_internal_server_error_response(response).await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -321,6 +341,8 @@ mod warp_test_env {
 
                     assert_internal_server_error_response(response).await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -350,6 +372,8 @@ mod warp_test_env {
 
                     assert_is_announce_response(response).await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -369,6 +393,8 @@ mod warp_test_env {
 
                     assert_internal_server_error_response(response).await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -395,6 +421,8 @@ mod warp_test_env {
                     },
                 )
                 .await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -434,6 +462,8 @@ mod warp_test_env {
                     },
                 )
                 .await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -457,6 +487,8 @@ mod warp_test_env {
                 let response = Client::new(test_env.bind_address().clone()).announce(&announce_query).await;
 
                 assert_empty_announce_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -497,6 +529,8 @@ mod warp_test_env {
                 };
 
                 assert_compact_announce_response(response, &expected_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -531,6 +565,8 @@ mod warp_test_env {
                     .await;
 
                 assert!(!is_a_compact_announce_response(response).await);
+
+                test_env.stop().await;
             }
 
             async fn is_a_compact_announce_response(response: Response) -> bool {
@@ -551,6 +587,10 @@ mod warp_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp4_connections_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -565,6 +605,10 @@ mod warp_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp6_connections_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -585,6 +629,10 @@ mod warp_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp6_connections_handled, 0);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -599,6 +647,10 @@ mod warp_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp4_announces_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -613,6 +665,10 @@ mod warp_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp6_announces_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -633,6 +689,10 @@ mod warp_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp6_announces_handled, 0);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -657,6 +717,8 @@ mod warp_test_env {
 
                 assert_eq!(peer_addr.ip(), client_ip);
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -692,6 +754,8 @@ mod warp_test_env {
 
                 assert_eq!(peer_addr.ip(), test_env.tracker.config.get_ext_ip().unwrap());
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -727,6 +791,8 @@ mod warp_test_env {
 
                 assert_eq!(peer_addr.ip(), test_env.tracker.config.get_ext_ip().unwrap());
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -760,6 +826,8 @@ mod warp_test_env {
                 let peer_addr = peers[0].peer_addr;
 
                 assert_eq!(peer_addr.ip(), IpAddr::from_str("150.172.238.178").unwrap());
+
+                test_env.stop().await;
             }
         }
 
@@ -795,6 +863,8 @@ mod warp_test_env {
                 let response = Client::new(test_env.bind_address().clone()).get("scrape").await;
 
                 assert_internal_server_error_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -814,6 +884,8 @@ mod warp_test_env {
                     // code-review: it's not returning the invalid info hash error
                     assert_internal_server_error_response(response).await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -853,6 +925,8 @@ mod warp_test_env {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -892,6 +966,8 @@ mod warp_test_env {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -910,6 +986,8 @@ mod warp_test_env {
                     .await;
 
                 assert_scrape_response(response, &scrape::Response::with_one_file(info_hash.bytes(), File::zeroed())).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -935,6 +1013,8 @@ mod warp_test_env {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -955,6 +1035,10 @@ mod warp_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp4_scrapes_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -975,6 +1059,10 @@ mod warp_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp6_scrapes_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
         }
     }
@@ -1005,6 +1093,8 @@ mod warp_test_env {
                     .await;
 
                 assert_torrent_not_in_whitelist_error_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1027,6 +1117,8 @@ mod warp_test_env {
                     .await;
 
                 assert_is_announce_response(response).await;
+
+                test_env.stop().await;
             }
         }
 
@@ -1073,6 +1165,8 @@ mod warp_test_env {
                 let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1119,6 +1213,8 @@ mod warp_test_env {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
         }
     }
@@ -1153,6 +1249,8 @@ mod warp_test_env {
                     .await;
 
                 assert_is_announce_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1182,6 +1280,8 @@ mod warp_test_env {
                     .await;
 
                 assert_warp_invalid_authentication_key_error_response(response).await;
+
+                test_env.stop().await;
             }
         }
 
@@ -1230,6 +1330,8 @@ mod warp_test_env {
                 let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1271,6 +1373,8 @@ mod warp_test_env {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1305,6 +1409,8 @@ mod warp_test_env {
                 let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
         }
     }
@@ -1347,6 +1453,8 @@ mod axum_test_env {
                     .await;
 
                 assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1362,6 +1470,8 @@ mod axum_test_env {
                     .await;
 
                 assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response(response).await;
+
+                test_env.stop().await;
             }
         }
 
@@ -1413,6 +1523,8 @@ mod axum_test_env {
                     .await;
 
                 assert_is_announce_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1422,6 +1534,8 @@ mod axum_test_env {
                 let response = Client::new(test_env.bind_address().clone()).get("announce").await;
 
                 assert_missing_query_params_for_announce_request_error_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1435,6 +1549,8 @@ mod axum_test_env {
                     .await;
 
                 assert_cannot_parse_query_param_error_response(response, "invalid param a=b=c").await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1476,6 +1592,8 @@ mod axum_test_env {
                     .await;
 
                 assert_bad_announce_request_error_response(response, "missing param port").await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1493,6 +1611,8 @@ mod axum_test_env {
 
                     assert_cannot_parse_query_params_error_response(response, "").await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1513,6 +1633,8 @@ mod axum_test_env {
                     .await;
 
                 assert_is_announce_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1532,6 +1654,8 @@ mod axum_test_env {
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1551,6 +1675,8 @@ mod axum_test_env {
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1577,6 +1703,8 @@ mod axum_test_env {
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1596,6 +1724,8 @@ mod axum_test_env {
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1615,6 +1745,8 @@ mod axum_test_env {
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1642,6 +1774,8 @@ mod axum_test_env {
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1661,6 +1795,8 @@ mod axum_test_env {
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1687,6 +1823,8 @@ mod axum_test_env {
                     },
                 )
                 .await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1726,6 +1864,8 @@ mod axum_test_env {
                     },
                 )
                 .await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1775,6 +1915,8 @@ mod axum_test_env {
                     },
                 )
                 .await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1798,6 +1940,8 @@ mod axum_test_env {
                 let response = Client::new(test_env.bind_address().clone()).announce(&announce_query).await;
 
                 assert_empty_announce_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1838,6 +1982,8 @@ mod axum_test_env {
                 };
 
                 assert_compact_announce_response(response, &expected_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1872,6 +2018,8 @@ mod axum_test_env {
                     .await;
 
                 assert!(!is_a_compact_announce_response(response).await);
+
+                test_env.stop().await;
             }
 
             async fn is_a_compact_announce_response(response: Response) -> bool {
@@ -1892,6 +2040,10 @@ mod axum_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp4_connections_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1906,6 +2058,10 @@ mod axum_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp6_connections_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1926,6 +2082,10 @@ mod axum_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp6_connections_handled, 0);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1933,13 +2093,19 @@ mod axum_test_env {
                 let test_env =
                     running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_public()).await;
 
-                Client::new(test_env.bind_address().clone())
+                let res = Client::new(test_env.bind_address().clone())
                     .announce(&QueryBuilder::default().query())
                     .await;
+
+                println!("{:?}", res.text().await.unwrap());
 
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp4_announces_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1954,6 +2120,10 @@ mod axum_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp6_announces_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1974,6 +2144,10 @@ mod axum_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp6_announces_handled, 0);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -1998,6 +2172,8 @@ mod axum_test_env {
 
                 assert_eq!(peer_addr.ip(), client_ip);
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2033,6 +2209,8 @@ mod axum_test_env {
 
                 assert_eq!(peer_addr.ip(), test_env.tracker.config.get_ext_ip().unwrap());
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2068,6 +2246,8 @@ mod axum_test_env {
 
                 assert_eq!(peer_addr.ip(), test_env.tracker.config.get_ext_ip().unwrap());
                 assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2101,6 +2281,8 @@ mod axum_test_env {
                 let peer_addr = peers[0].peer_addr;
 
                 assert_eq!(peer_addr.ip(), IpAddr::from_str("150.172.238.178").unwrap());
+
+                test_env.stop().await;
             }
         }
 
@@ -2140,6 +2322,8 @@ mod axum_test_env {
                 let response = Client::new(test_env.bind_address().clone()).get("scrape").await;
 
                 assert_missing_query_params_for_scrape_request_error_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2158,6 +2342,8 @@ mod axum_test_env {
 
                     assert_cannot_parse_query_params_error_response(response, "").await;
                 }
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2197,6 +2383,8 @@ mod axum_test_env {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2236,6 +2424,8 @@ mod axum_test_env {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2254,6 +2444,8 @@ mod axum_test_env {
                     .await;
 
                 assert_scrape_response(response, &scrape::Response::with_one_file(info_hash.bytes(), File::zeroed())).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2279,6 +2471,8 @@ mod axum_test_env {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2299,6 +2493,10 @@ mod axum_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp4_scrapes_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2319,6 +2517,10 @@ mod axum_test_env {
                 let stats = test_env.tracker.get_stats().await;
 
                 assert_eq!(stats.tcp6_scrapes_handled, 1);
+
+                drop(stats);
+
+                test_env.stop().await;
             }
         }
     }
@@ -2349,6 +2551,8 @@ mod axum_test_env {
                     .await;
 
                 assert_torrent_not_in_whitelist_error_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2370,6 +2574,8 @@ mod axum_test_env {
                     .await;
 
                 assert_is_announce_response(response).await;
+
+                test_env.stop().await;
             }
         }
 
@@ -2416,6 +2622,8 @@ mod axum_test_env {
                 let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2462,6 +2670,8 @@ mod axum_test_env {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
         }
     }
@@ -2493,6 +2703,8 @@ mod axum_test_env {
                     .await;
 
                 assert_is_announce_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2507,6 +2719,8 @@ mod axum_test_env {
                     .await;
 
                 assert_authentication_error_response(response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2533,11 +2747,13 @@ mod axum_test_env {
                 // The tracker does not have this key
                 let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
-                let response = Client::authenticated(test_env.bind_address().clone(), unregistered_key)
+                let response = Client::authenticated(test_env.bind_address(), unregistered_key)
                     .announce(&QueryBuilder::default().query())
                     .await;
 
                 assert_authentication_error_response(response).await;
+
+                test_env.stop().await;
             }
         }
 
@@ -2602,6 +2818,8 @@ mod axum_test_env {
                 let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2643,6 +2861,8 @@ mod axum_test_env {
                     .build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
 
             #[tokio::test]
@@ -2678,6 +2898,8 @@ mod axum_test_env {
                 let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
 
                 assert_scrape_response(response, &expected_scrape_response).await;
+
+                test_env.stop().await;
             }
         }
     }

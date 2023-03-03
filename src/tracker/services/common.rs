@@ -9,7 +9,7 @@ use crate::tracker::Tracker;
 ///
 /// Will panic if tracker cannot be instantiated.
 #[must_use]
-pub fn tracker_factory(configuration: &Arc<Configuration>) -> Tracker {
+pub fn tracker_factory(configuration: Arc<Configuration>) -> Tracker {
     // todo: the tracker initialization is duplicated in many places.
 
     // Initialize stats tracker

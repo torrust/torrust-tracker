@@ -7,8 +7,8 @@ use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpTracker;
 
-use crate::http::axum_implementation::server;
-use crate::http::warp_implementation::server::Http;
+use crate::http::axum_implementation::launcher;
+use crate::http::warp_implementation::launcher::Http;
 use crate::http::Version;
 use crate::tracker;
 
@@ -98,7 +98,7 @@ async fn start_axum(config: &HttpTracker, tracker: Arc<tracker::Tracker>) -> Joi
         if !ssl_enabled {
             info!("Starting Torrust HTTP tracker server on: http://{}", bind_addr);
 
-            let handle = server::start(bind_addr, &tracker);
+            let handle = launcher::start(bind_addr, tracker);
 
             tx.send(ServerJobStarted())
                 .expect("the HTTP tracker server should not be dropped");
@@ -113,7 +113,7 @@ async fn start_axum(config: &HttpTracker, tracker: Arc<tracker::Tracker>) -> Joi
                 .await
                 .unwrap();
 
-            let handle = server::start_tls(bind_addr, ssl_config, &tracker);
+            let handle = launcher::start_tls(bind_addr, ssl_config, tracker);
 
             tx.send(ServerJobStarted())
                 .expect("the HTTP tracker server should not be dropped");

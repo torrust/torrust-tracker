@@ -91,15 +91,17 @@ impl Tracker {
     ///
     /// Will return a `databases::error::Error` if unable to connect to database.
     pub fn new(
-        config: &Arc<Configuration>,
+        config: Arc<Configuration>,
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
         let database = databases::driver::build(&config.db_driver, &config.db_path)?;
 
+        let mode = config.mode;
+
         Ok(Tracker {
-            config: config.clone(),
-            mode: config.mode,
+            config,
+            mode,
             keys: RwLock::new(std::collections::HashMap::new()),
             whitelist: RwLock::new(std::collections::HashSet::new()),
             torrents: RwLock::new(std::collections::BTreeMap::new()),
@@ -550,17 +552,15 @@ mod tests {
 
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::str::FromStr;
-        use std::sync::Arc;
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-        use torrust_tracker_configuration::Configuration;
         use torrust_tracker_primitives::TrackerMode;
-        use torrust_tracker_test_helpers::configuration::{self};
+        use torrust_tracker_test_helpers::configuration;
 
         use crate::protocol::clock::DurationSinceUnixEpoch;
         use crate::protocol::info_hash::InfoHash;
         use crate::tracker::peer::{self, Peer};
-        use crate::tracker::statistics::Keeper;
+        use crate::tracker::services::common::tracker_factory;
         use crate::tracker::{TorrentsMetrics, Tracker};
 
         pub fn public_tracker() -> Tracker {
@@ -585,21 +585,6 @@ mod tests {
             let mut configuration = configuration::ephemeral();
             configuration.persistent_torrent_completed_stat = true;
             tracker_factory(configuration)
-        }
-
-        pub fn tracker_factory(configuration: Configuration) -> Tracker {
-            // code-review: the tracker initialization is duplicated in many places. Consider make this function public.
-
-            // Initialize stats tracker
-            let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
-
-            // Initialize Torrust tracker
-            match Tracker::new(&Arc::new(configuration), Some(stats_event_sender), stats_repository) {
-                Ok(tracker) => tracker,
-                Err(error) => {
-                    panic!("{}", error)
-                }
-            }
         }
 
         fn sample_info_hash() -> InfoHash {

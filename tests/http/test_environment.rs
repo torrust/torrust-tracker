@@ -41,7 +41,7 @@ impl<I: HttpServerLauncher + 'static> TestEnvironment<Stopped<I>> {
 
         let tracker = new_tracker(cfg.clone());
 
-        let http_server = stopped_http_server(cfg.http_trackers[0].clone());
+        let http_server = http_server(cfg.http_trackers[0].clone());
 
         Self {
             cfg,
@@ -61,10 +61,12 @@ impl<I: HttpServerLauncher + 'static> TestEnvironment<Stopped<I>> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn config(&self) -> &torrust_tracker_configuration::HttpTracker {
         &self.state.http_server.cfg
     }
 
+    #[allow(dead_code)]
     pub fn config_mut(&mut self) -> &mut torrust_tracker_configuration::HttpTracker {
         &mut self.state.http_server.cfg
     }
@@ -91,12 +93,13 @@ impl<I: HttpServerLauncher + 'static> TestEnvironment<Running<I>> {
         &self.state.http_server.state.bind_addr
     }
 
+    #[allow(dead_code)]
     pub fn config(&self) -> &torrust_tracker_configuration::HttpTracker {
         &self.state.http_server.cfg
     }
 }
 
-#[allow(clippy::module_name_repetitions)]
+#[allow(clippy::module_name_repetitions, dead_code)]
 pub fn stopped_test_environment<I: HttpServerLauncher + 'static>(
     cfg: torrust_tracker_configuration::Configuration,
 ) -> StoppedTestEnvironment<I> {
@@ -110,17 +113,8 @@ pub async fn running_test_environment<I: HttpServerLauncher + 'static>(
     TestEnvironment::new_running(cfg).await
 }
 
-pub fn stopped_http_server<I: HttpServerLauncher + 'static>(
-    cfg: torrust_tracker_configuration::HttpTracker,
-) -> StoppedHttpServer<I> {
+pub fn http_server<I: HttpServerLauncher + 'static>(cfg: torrust_tracker_configuration::HttpTracker) -> StoppedHttpServer<I> {
     let http_server = I::new();
 
     HttpServer::new(cfg, http_server)
-}
-
-pub async fn running_http_server<I: HttpServerLauncher + 'static>(
-    cfg: torrust_tracker_configuration::HttpTracker,
-    tracker: Arc<Tracker>,
-) -> RunningHttpServer<I> {
-    stopped_http_server(cfg).start(tracker).await.unwrap()
 }

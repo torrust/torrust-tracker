@@ -30,7 +30,7 @@ async fn main() {
     let (stats_event_sender, stats_repository) = setup_statistics(config.tracker_usage_statistics);
 
     // Initialize Torrust tracker
-    let tracker = match tracker::Tracker::new(&config.clone(), stats_event_sender, stats_repository) {
+    let tracker = match tracker::Tracker::new(config.clone(), stats_event_sender, stats_repository) {
         Ok(tracker) => Arc::new(tracker),
         Err(error) => {
             panic!("{}", error)
