@@ -86,7 +86,7 @@ pub async fn remove_torrent_from_whitelist_handler(
 }
 
 pub async fn reload_whitelist_handler(State(tracker): State<Arc<Tracker>>) -> Response {
-    match tracker.load_whitelist().await {
+    match tracker.load_whitelist_from_database().await {
         Ok(_) => ok_response(),
         Err(e) => failed_to_reload_whitelist_response(e),
     }
@@ -117,7 +117,7 @@ pub async fn delete_auth_key_handler(
 }
 
 pub async fn reload_keys_handler(State(tracker): State<Arc<Tracker>>) -> Response {
-    match tracker.load_keys().await {
+    match tracker.load_keys_from_database().await {
         Ok(_) => ok_response(),
         Err(e) => failed_to_reload_keys_response(e),
     }

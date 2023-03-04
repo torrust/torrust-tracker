@@ -16,13 +16,16 @@ pub async fn setup(config: &Configuration, tracker: Arc<tracker::Tracker>) -> Ve
 
     // Load peer keys
     if tracker.is_private() {
-        tracker.load_keys().await.expect("Could not retrieve keys from database.");
+        tracker
+            .load_keys_from_database()
+            .await
+            .expect("Could not retrieve keys from database.");
     }
 
     // Load whitelisted torrents
     if tracker.is_whitelisted() {
         tracker
-            .load_whitelist()
+            .load_whitelist_from_database()
             .await
             .expect("Could not load whitelist from database.");
     }

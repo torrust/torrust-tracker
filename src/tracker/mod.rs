@@ -19,7 +19,7 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 use self::auth::KeyId;
 use self::error::Error;
 use self::peer::Peer;
-use self::torrent::{SwamStats, SwarmMetadata};
+use self::torrent::{SwarmMetadata, SwarmStats};
 use crate::config::Configuration;
 use crate::databases::driver::Driver;
 use crate::databases::{self, Database};
@@ -38,15 +38,19 @@ pub struct Tracker {
 
 #[derive(Debug, PartialEq, Default)]
 pub struct TorrentsMetrics {
+    // code-review: consider using `SwarmStats` for
+    // `seeders`, `completed`, and `leechers` attributes.
+    // pub swarm_stats: SwarmStats;
     pub seeders: u64,
     pub completed: u64,
     pub leechers: u64,
     pub torrents: u64,
 }
 
+#[derive(Debug, PartialEq, Default)]
 pub struct AnnounceData {
     pub peers: Vec<Peer>,
-    pub swam_stats: SwamStats,
+    pub swarm_stats: SwarmStats,
     pub interval: u32,
     pub interval_min: u32,
 }
@@ -63,12 +67,23 @@ impl ScrapeData {
         Self { files }
     }
 
+    #[must_use]
+    pub fn zeroed(info_hashes: &Vec<InfoHash>) -> Self {
+        let mut scrape_data = Self::empty();
+
+        for info_hash in info_hashes {
+            scrape_data.add_file(info_hash, SwarmMetadata::zeroed());
+        }
+
+        scrape_data
+    }
+
     pub fn add_file(&mut self, info_hash: &InfoHash, swarm_metadata: SwarmMetadata) {
         self.files.insert(*info_hash, swarm_metadata);
     }
 
-    pub fn add_file_with_no_metadata(&mut self, info_hash: &InfoHash) {
-        self.files.insert(*info_hash, SwarmMetadata::default());
+    pub fn add_file_with_zeroed_metadata(&mut self, info_hash: &InfoHash) {
+        self.files.insert(*info_hash, SwarmMetadata::zeroed());
     }
 }
 
@@ -119,15 +134,26 @@ impl Tracker {
         // a tuple with the new peer and the announce data: (Peer, AnnounceData).
         // It could even be a different struct: `StoredPeer` or `PublicPeer`.
 
+        // code-review: in the `scrape` function we perform an authorization check.
+        // We check if the torrent is whitelisted. Should we also check authorization here?
+        // I think so because the `Tracker` has the responsibility for checking authentication and authorization.
+        // The `Tracker` has delegated that responsibility to the handlers
+        // (because we want to return a friendly error response) but that does not mean we should
+        // double-check authorization at this domain level too.
+        // I would propose to return a `Result<AnnounceData, Error>` here.
+        // Besides, regarding authentication the `Tracker` is also responsible for authentication but
+        // we are actually handling authentication at the handlers level. So I would extract that
+        // responsibility into another authentication service.
+
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip()));
 
-        let swam_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
+        let swarm_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
         let peers = self.get_peers_for_peer(info_hash, peer).await;
 
         AnnounceData {
             peers,
-            swam_stats,
+            swarm_stats,
             interval: self.config.announce_interval,
             interval_min: self.config.min_announce_interval,
         }
@@ -145,17 +171,6 @@ impl Tracker {
                 Err(_) => SwarmMetadata::zeroed(),
             };
             scrape_data.add_file(info_hash, swarm_metadata);
-        }
-
-        scrape_data
-    }
-
-    // It return empty swarm metadata for all the infohashes.
-    pub fn empty_scrape_for(&self, info_hashes: &Vec<InfoHash>) -> ScrapeData {
-        let mut scrape_data = ScrapeData::empty();
-
-        for info_hash in info_hashes {
-            scrape_data.add_file(info_hash, SwarmMetadata::default());
         }
 
         scrape_data
@@ -187,6 +202,7 @@ impl Tracker {
     ///
     /// Will panic if key cannot be converted into a valid `KeyId`.
     pub async fn remove_auth_key(&self, key: &str) -> Result<(), databases::error::Error> {
+        // todo: change argument `key: &str` to `key_id: &KeyId`
         self.database.remove_key_from_keys(key).await?;
         self.keys.write().await.remove(&key.parse::<KeyId>().unwrap());
         Ok(())
@@ -196,6 +212,8 @@ impl Tracker {
     ///
     /// Will return a `key::Error` if unable to get any `auth_key`.
     pub async fn verify_auth_key(&self, key_id: &KeyId) -> Result<(), auth::Error> {
+        // code-review: this function is public only because it's used in a test.
+        // We should change the test and make it private.
         match self.keys.read().await.get(key_id) {
             None => Err(auth::Error::UnableToReadKey {
                 location: Location::caller(),
@@ -208,7 +226,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to `load_keys` from the database.
-    pub async fn load_keys(&self) -> Result<(), databases::error::Error> {
+    pub async fn load_keys_from_database(&self) -> Result<(), databases::error::Error> {
         let keys_from_database = self.database.load_keys().await?;
         let mut keys = self.keys.write().await;
 
@@ -286,7 +304,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to load the list whitelisted `info_hash`s from the database.
-    pub async fn load_whitelist(&self) -> Result<(), databases::error::Error> {
+    pub async fn load_whitelist_from_database(&self) -> Result<(), databases::error::Error> {
         let whitelisted_torrents_from_database = self.database.load_whitelist().await?;
         let mut whitelist = self.whitelist.write().await;
 
@@ -307,6 +325,12 @@ impl Tracker {
     ///
     /// Will return a `torrent::Error::TorrentNotWhitelisted` if the the Tracker is in listed mode and the `info_hash` is not whitelisted.
     pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<KeyId>) -> Result<(), Error> {
+        // todo: this is a deprecated method.
+        // We're splitting authentication and authorization responsibilities.
+        // Use `authenticate` and `authorize` instead.
+
+        // Authentication
+
         // no authentication needed in public mode
         if self.is_public() {
             return Ok(());
@@ -330,6 +354,8 @@ impl Tracker {
                 }
             }
         }
+
+        // Authorization
 
         // check if info_hash is whitelisted
         if self.is_whitelisted() && !self.is_info_hash_whitelisted(info_hash).await {
@@ -379,8 +405,9 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to load the list of `persistent_torrents` from the database.
-    pub async fn load_persistent_torrents(&self) -> Result<(), databases::error::Error> {
+    pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.database.load_persistent_torrents().await?;
+
         let mut torrents = self.torrents.write().await;
 
         for (info_hash, completed) in persistent_torrents {
@@ -419,7 +446,7 @@ impl Tracker {
         }
     }
 
-    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::SwamStats {
+    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::SwarmStats {
         // code-review: consider splitting the function in two (command and query segregation).
         // `update_torrent_with_peer` and `get_stats`
 
@@ -442,7 +469,7 @@ impl Tracker {
 
         let (seeders, completed, leechers) = torrent_entry.get_stats();
 
-        torrent::SwamStats {
+        torrent::SwarmStats {
             completed,
             seeders,
             leechers,
@@ -523,31 +550,51 @@ mod tests {
     mod the_tracker {
 
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+        use std::str::FromStr;
         use std::sync::Arc;
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
         use crate::config::{ephemeral_configuration, Configuration};
         use crate::protocol::clock::DurationSinceUnixEpoch;
+        use crate::protocol::info_hash::InfoHash;
+        use crate::tracker::mode::Mode;
         use crate::tracker::peer::{self, Peer};
         use crate::tracker::statistics::Keeper;
         use crate::tracker::{TorrentsMetrics, Tracker};
 
-        pub fn tracker_configuration() -> Arc<Configuration> {
-            Arc::new(ephemeral_configuration())
+        pub fn public_tracker() -> Tracker {
+            let mut configuration = ephemeral_configuration();
+            configuration.mode = Mode::Public;
+            tracker_factory(configuration)
         }
 
-        pub fn tracker_factory() -> Tracker {
-            // code-review: the tracker initialization is duplicated in many places. Consider make this function public.
+        pub fn private_tracker() -> Tracker {
+            let mut configuration = ephemeral_configuration();
+            configuration.mode = Mode::Private;
+            tracker_factory(configuration)
+        }
 
-            // Configuration
-            let configuration = tracker_configuration();
+        pub fn whitelisted_tracker() -> Tracker {
+            let mut configuration = ephemeral_configuration();
+            configuration.mode = Mode::Listed;
+            tracker_factory(configuration)
+        }
+
+        pub fn tracker_persisting_torrents_in_database() -> Tracker {
+            let mut configuration = ephemeral_configuration();
+            configuration.persistent_torrent_completed_stat = true;
+            tracker_factory(configuration)
+        }
+
+        pub fn tracker_factory(configuration: Configuration) -> Tracker {
+            // code-review: the tracker initialization is duplicated in many places. Consider make this function public.
 
             // Initialize stats tracker
             let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
             // Initialize Torrust tracker
-            match Tracker::new(&configuration, Some(stats_event_sender), stats_repository) {
+            match Tracker::new(&Arc::new(configuration), Some(stats_event_sender), stats_repository) {
                 Ok(tracker) => tracker,
                 Err(error) => {
                     panic!("{}", error)
@@ -555,7 +602,65 @@ mod tests {
             }
         }
 
-        /// A peer that has completed downloading.
+        fn sample_info_hash() -> InfoHash {
+            "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap()
+        }
+
+        // The client peer IP
+        fn peer_ip() -> IpAddr {
+            IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap())
+        }
+
+        /// Sample peer whose state is not relevant for the tests
+        fn sample_peer() -> Peer {
+            complete_peer()
+        }
+
+        /// Sample peer when for tests that need more than one peer
+        fn sample_peer_1() -> Peer {
+            Peer {
+                peer_id: peer::Id(*b"-qB00000000000000001"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081),
+                updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+                uploaded: NumberOfBytes(0),
+                downloaded: NumberOfBytes(0),
+                left: NumberOfBytes(0),
+                event: AnnounceEvent::Completed,
+            }
+        }
+
+        /// Sample peer when for tests that need more than one peer
+        fn sample_peer_2() -> Peer {
+            Peer {
+                peer_id: peer::Id(*b"-qB00000000000000002"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2)), 8082),
+                updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+                uploaded: NumberOfBytes(0),
+                downloaded: NumberOfBytes(0),
+                left: NumberOfBytes(0),
+                event: AnnounceEvent::Completed,
+            }
+        }
+
+        fn seeder() -> Peer {
+            complete_peer()
+        }
+
+        fn leecher() -> Peer {
+            incomplete_peer()
+        }
+
+        fn started_peer() -> Peer {
+            incomplete_peer()
+        }
+
+        fn completed_peer() -> Peer {
+            complete_peer()
+        }
+
+        /// A peer that counts as `complete` is swarm metadata
+        /// IMPORTANT!: it only counts if the it has been announce at least once before
+        /// announcing the `AnnounceEvent::Completed` event.
         fn complete_peer() -> Peer {
             Peer {
                 peer_id: peer::Id(*b"-qB00000000000000000"),
@@ -568,7 +673,7 @@ mod tests {
             }
         }
 
-        /// A peer that has NOT completed downloading.
+        /// A peer that counts as `incomplete` is swarm metadata
         fn incomplete_peer() -> Peer {
             Peer {
                 peer_id: peer::Id(*b"-qB00000000000000000"),
@@ -583,7 +688,7 @@ mod tests {
 
         #[tokio::test]
         async fn should_collect_torrent_metrics() {
-            let tracker = tracker_factory();
+            let tracker = public_tracker();
 
             let torrents_metrics = tracker.get_torrents_metrics().await;
 
@@ -598,180 +703,571 @@ mod tests {
             );
         }
 
-        mod handling_an_announce_request {
-            mod should_assign_the_ip_to_the_peer {
+        #[tokio::test]
+        async fn it_should_return_all_the_peers_for_a_given_torrent() {
+            let tracker = public_tracker();
+
+            let info_hash = sample_info_hash();
+            let peer = sample_peer();
+
+            tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+
+            let peers = tracker.get_all_torrent_peers(&info_hash).await;
+
+            assert_eq!(peers, vec![peer]);
+        }
+
+        #[tokio::test]
+        async fn it_should_return_all_the_peers_for_a_given_torrent_excluding_a_given_peer() {
+            let tracker = public_tracker();
+
+            let info_hash = sample_info_hash();
+            let peer = sample_peer();
+
+            tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+
+            let peers = tracker.get_peers_for_peer(&info_hash, &peer).await;
+
+            assert_eq!(peers, vec![]);
+        }
+
+        #[tokio::test]
+        async fn it_should_return_the_torrent_metrics() {
+            let tracker = public_tracker();
+
+            tracker
+                .update_torrent_with_peer_and_get_stats(&sample_info_hash(), &leecher())
+                .await;
+
+            let torrent_metrics = tracker.get_torrents_metrics().await;
+
+            assert_eq!(
+                torrent_metrics,
+                TorrentsMetrics {
+                    seeders: 0,
+                    completed: 0,
+                    leechers: 1,
+                    torrents: 1,
+                }
+            );
+        }
+
+        mod for_all_config_modes {
+
+            mod handling_an_announce_request {
+
+                use crate::tracker::tests::the_tracker::{
+                    peer_ip, public_tracker, sample_info_hash, sample_peer, sample_peer_1, sample_peer_2,
+                };
+
+                mod should_assign_the_ip_to_the_peer {
+
+                    use std::net::{IpAddr, Ipv4Addr};
+
+                    use crate::tracker::assign_ip_address_to_peer;
+
+                    #[test]
+                    fn using_the_source_ip_instead_of_the_ip_in_the_announce_request() {
+                        let remote_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2));
+
+                        let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+
+                        assert_eq!(peer_ip, remote_ip);
+                    }
+
+                    mod and_when_the_client_ip_is_a_ipv4_loopback_ip {
+
+                        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+                        use std::str::FromStr;
+
+                        use crate::tracker::assign_ip_address_to_peer;
+
+                        #[test]
+                        fn it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration() {
+                            let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+
+                            assert_eq!(peer_ip, remote_ip);
+                        }
+
+                        #[test]
+                        fn it_should_use_the_external_tracker_ip_in_tracker_configuration_if_it_is_defined() {
+                            let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
+                            let tracker_external_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
+
+                            assert_eq!(peer_ip, tracker_external_ip);
+                        }
+
+                        #[test]
+                        fn it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv6_ip(
+                        ) {
+                            let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
+                            let tracker_external_ip =
+                                IpAddr::V6(Ipv6Addr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
+
+                            assert_eq!(peer_ip, tracker_external_ip);
+                        }
+                    }
+
+                    mod and_when_client_ip_is_a_ipv6_loopback_ip {
+
+                        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+                        use std::str::FromStr;
+
+                        use crate::tracker::assign_ip_address_to_peer;
+
+                        #[test]
+                        fn it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration() {
+                            let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+
+                            assert_eq!(peer_ip, remote_ip);
+                        }
+
+                        #[test]
+                        fn it_should_use_the_external_ip_in_tracker_configuration_if_it_is_defined() {
+                            let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
+
+                            let tracker_external_ip =
+                                IpAddr::V6(Ipv6Addr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
+
+                            assert_eq!(peer_ip, tracker_external_ip);
+                        }
+
+                        #[test]
+                        fn it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv4_ip(
+                        ) {
+                            let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
+
+                            let tracker_external_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
+
+                            assert_eq!(peer_ip, tracker_external_ip);
+                        }
+                    }
+                }
+
+                #[tokio::test]
+                async fn it_should_return_the_announce_data_with_an_empty_peer_list_when_it_is_the_first_announced_peer() {
+                    let tracker = public_tracker();
+
+                    let mut peer = sample_peer();
+
+                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
+
+                    assert_eq!(announce_data.peers, vec![]);
+                }
+
+                #[tokio::test]
+                async fn it_should_return_the_announce_data_with_the_previously_announced_peers() {
+                    let tracker = public_tracker();
+
+                    let mut previously_announced_peer = sample_peer_1();
+                    tracker
+                        .announce(&sample_info_hash(), &mut previously_announced_peer, &peer_ip())
+                        .await;
+
+                    let mut peer = sample_peer_2();
+                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
+
+                    assert_eq!(announce_data.peers, vec![previously_announced_peer]);
+                }
+
+                mod it_should_update_the_swarm_stats_for_the_torrent {
+
+                    use crate::tracker::tests::the_tracker::{
+                        completed_peer, leecher, peer_ip, public_tracker, sample_info_hash, seeder, started_peer,
+                    };
+
+                    #[tokio::test]
+                    async fn when_the_peer_is_a_seeder() {
+                        let tracker = public_tracker();
+
+                        let mut peer = seeder();
+
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
+
+                        assert_eq!(announce_data.swarm_stats.seeders, 1);
+                    }
+
+                    #[tokio::test]
+                    async fn when_the_peer_is_a_leecher() {
+                        let tracker = public_tracker();
+
+                        let mut peer = leecher();
+
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
+
+                        assert_eq!(announce_data.swarm_stats.leechers, 1);
+                    }
+
+                    #[tokio::test]
+                    async fn when_a_previously_announced_started_peer_has_completed_downloading() {
+                        let tracker = public_tracker();
+
+                        // We have to announce with "started" event because peer does not count if peer was not previously known
+                        let mut started_peer = started_peer();
+                        tracker.announce(&sample_info_hash(), &mut started_peer, &peer_ip()).await;
+
+                        let mut completed_peer = completed_peer();
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut completed_peer, &peer_ip()).await;
+
+                        assert_eq!(announce_data.swarm_stats.completed, 1);
+                    }
+                }
+            }
+
+            mod handling_a_scrape_request {
 
                 use std::net::{IpAddr, Ipv4Addr};
 
-                use crate::tracker::assign_ip_address_to_peer;
+                use crate::protocol::info_hash::InfoHash;
+                use crate::tracker::tests::the_tracker::{complete_peer, incomplete_peer, public_tracker};
+                use crate::tracker::{ScrapeData, SwarmMetadata};
 
-                #[test]
-                fn using_the_source_ip_instead_of_the_ip_in_the_announce_request() {
-                    let remote_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2));
+                #[tokio::test]
+                async fn it_should_return_a_zeroed_swarm_metadata_for_the_requested_file_if_the_tracker_does_not_have_that_torrent(
+                ) {
+                    let tracker = public_tracker();
 
-                    let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+                    let info_hashes = vec!["3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap()];
 
-                    assert_eq!(peer_ip, remote_ip);
+                    let scrape_data = tracker.scrape(&info_hashes).await;
+
+                    let mut expected_scrape_data = ScrapeData::empty();
+
+                    expected_scrape_data.add_file_with_zeroed_metadata(&info_hashes[0]);
+
+                    assert_eq!(scrape_data, expected_scrape_data);
                 }
 
-                mod and_when_the_client_ip_is_a_ipv4_loopback_ip {
+                #[tokio::test]
+                async fn it_should_return_the_swarm_metadata_for_the_requested_file_if_the_tracker_has_that_torrent() {
+                    let tracker = public_tracker();
 
-                    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-                    use std::str::FromStr;
+                    let info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap();
 
-                    use crate::tracker::assign_ip_address_to_peer;
+                    // Announce a "complete" peer for the torrent
+                    let mut complete_peer = complete_peer();
+                    tracker
+                        .announce(&info_hash, &mut complete_peer, &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 10)))
+                        .await;
 
-                    #[test]
-                    fn it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration() {
-                        let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+                    // Announce an "incomplete" peer for the torrent
+                    let mut incomplete_peer = incomplete_peer();
+                    tracker
+                        .announce(&info_hash, &mut incomplete_peer, &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 11)))
+                        .await;
 
-                        let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
+                    // Scrape
+                    let scrape_data = tracker.scrape(&vec![info_hash]).await;
 
-                        assert_eq!(peer_ip, remote_ip);
-                    }
+                    // The expected swarm metadata for the file
+                    let mut expected_scrape_data = ScrapeData::empty();
+                    expected_scrape_data.add_file(
+                        &info_hash,
+                        SwarmMetadata {
+                            complete: 0, // the "complete" peer does not count because it was not previously known
+                            downloaded: 0,
+                            incomplete: 1, // the "incomplete" peer we have just announced
+                        },
+                    );
 
-                    #[test]
-                    fn it_should_use_the_external_tracker_ip_in_tracker_configuration_if_it_is_defined() {
-                        let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
-
-                        let tracker_external_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
-
-                        let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
-
-                        assert_eq!(peer_ip, tracker_external_ip);
-                    }
-
-                    #[test]
-                    fn it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv6_ip(
-                    ) {
-                        let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
-
-                        let tracker_external_ip =
-                            IpAddr::V6(Ipv6Addr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
-
-                        let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
-
-                        assert_eq!(peer_ip, tracker_external_ip);
-                    }
+                    assert_eq!(scrape_data, expected_scrape_data);
                 }
 
-                mod and_when_client_ip_is_a_ipv6_loopback_ip {
+                #[tokio::test]
+                async fn it_should_allow_scraping_for_multiple_torrents() {
+                    let tracker = public_tracker();
 
-                    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-                    use std::str::FromStr;
+                    let info_hashes = vec![
+                        "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
+                        "99c82bb73505a3c0b453f9fa0e881d6e5a32a0c1".parse::<InfoHash>().unwrap(),
+                    ];
 
-                    use crate::tracker::assign_ip_address_to_peer;
+                    let scrape_data = tracker.scrape(&info_hashes).await;
 
-                    #[test]
-                    fn it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration() {
-                        let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
+                    let mut expected_scrape_data = ScrapeData::empty();
+                    expected_scrape_data.add_file_with_zeroed_metadata(&info_hashes[0]);
+                    expected_scrape_data.add_file_with_zeroed_metadata(&info_hashes[1]);
 
-                        let peer_ip = assign_ip_address_to_peer(&remote_ip, None);
-
-                        assert_eq!(peer_ip, remote_ip);
-                    }
-
-                    #[test]
-                    fn it_should_use_the_external_ip_in_tracker_configuration_if_it_is_defined() {
-                        let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
-
-                        let tracker_external_ip =
-                            IpAddr::V6(Ipv6Addr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
-
-                        let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
-
-                        assert_eq!(peer_ip, tracker_external_ip);
-                    }
-
-                    #[test]
-                    fn it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv4_ip(
-                    ) {
-                        let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
-
-                        let tracker_external_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
-
-                        let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
-
-                        assert_eq!(peer_ip, tracker_external_ip);
-                    }
+                    assert_eq!(scrape_data, expected_scrape_data);
                 }
             }
         }
 
-        mod handling_a_scrape_request {
+        mod configured_as_whitelisted {
 
-            use std::net::{IpAddr, Ipv4Addr};
+            mod handling_authorization {
+                use crate::tracker::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
 
-            use crate::protocol::info_hash::InfoHash;
-            use crate::tracker::tests::the_tracker::{complete_peer, incomplete_peer, tracker_factory};
-            use crate::tracker::{ScrapeData, SwarmMetadata};
+                #[tokio::test]
+                async fn it_should_authorize_the_announce_and_scrape_actions_on_whitelisted_torrents() {
+                    let tracker = whitelisted_tracker();
 
-            #[tokio::test]
-            async fn it_should_return_a_zeroed_swarm_metadata_for_the_requested_file_if_the_tracker_does_not_have_that_torrent() {
-                let tracker = tracker_factory();
+                    let info_hash = sample_info_hash();
 
-                let info_hashes = vec!["3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap()];
+                    let result = tracker.add_torrent_to_whitelist(&info_hash).await;
+                    assert!(result.is_ok());
 
-                let scrape_data = tracker.scrape(&info_hashes).await;
+                    let result = tracker.authorize(&info_hash).await;
+                    assert!(result.is_ok());
+                }
 
-                let mut expected_scrape_data = ScrapeData::empty();
+                #[tokio::test]
+                async fn it_should_not_authorize_the_announce_and_scrape_actions_on_not_whitelisted_torrents() {
+                    let tracker = whitelisted_tracker();
 
-                expected_scrape_data.add_file_with_no_metadata(&info_hashes[0]);
+                    let info_hash = sample_info_hash();
 
-                assert_eq!(scrape_data, expected_scrape_data);
+                    let result = tracker.authorize(&info_hash).await;
+                    assert!(result.is_err());
+                }
             }
 
-            #[tokio::test]
-            async fn it_should_return_the_swarm_metadata_for_the_requested_file_if_the_tracker_has_that_torrent() {
-                let tracker = tracker_factory();
+            mod handling_the_torrent_whitelist {
+                use crate::tracker::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
 
-                let info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap();
+                #[tokio::test]
+                async fn it_should_add_a_torrent_to_the_whitelist() {
+                    let tracker = whitelisted_tracker();
 
-                // Announce a "complete" peer for the torrent
-                let mut complete_peer = complete_peer();
-                tracker
-                    .announce(&info_hash, &mut complete_peer, &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 10)))
-                    .await;
+                    let info_hash = sample_info_hash();
 
-                // Announce an "incomplete" peer for the torrent
-                let mut incomplete_peer = incomplete_peer();
-                tracker
-                    .announce(&info_hash, &mut incomplete_peer, &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 11)))
-                    .await;
+                    tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
 
-                // Scrape
-                let scrape_data = tracker.scrape(&vec![info_hash]).await;
+                    assert!(tracker.is_info_hash_whitelisted(&info_hash).await);
+                }
 
-                // The expected swarm metadata for the file
-                let mut expected_scrape_data = ScrapeData::empty();
-                expected_scrape_data.add_file(
-                    &info_hash,
-                    SwarmMetadata {
-                        complete: 0, // the "complete" peer does not count because it was not previously known
-                        downloaded: 0,
-                        incomplete: 1, // the "incomplete" peer we have just announced
-                    },
-                );
+                #[tokio::test]
+                async fn it_should_remove_a_torrent_from_the_whitelist() {
+                    let tracker = whitelisted_tracker();
 
-                assert_eq!(scrape_data, expected_scrape_data);
+                    let info_hash = sample_info_hash();
+
+                    tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+                    tracker.remove_torrent_from_whitelist(&info_hash).await.unwrap();
+
+                    assert!(!tracker.is_info_hash_whitelisted(&info_hash).await);
+                }
+
+                mod persistence {
+                    use crate::tracker::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
+
+                    #[tokio::test]
+                    async fn it_should_load_the_whitelist_from_the_database() {
+                        let tracker = whitelisted_tracker();
+
+                        let info_hash = sample_info_hash();
+
+                        tracker.add_torrent_to_whitelist(&info_hash).await.unwrap();
+
+                        // Remove torrent from the in-memory whitelist
+                        tracker.whitelist.write().await.remove(&info_hash);
+                        assert!(!tracker.is_info_hash_whitelisted(&info_hash).await);
+
+                        tracker.load_whitelist_from_database().await.unwrap();
+
+                        assert!(tracker.is_info_hash_whitelisted(&info_hash).await);
+                    }
+                }
             }
 
+            mod handling_an_announce_request {}
+
+            mod handling_an_scrape_request {
+
+                use crate::protocol::info_hash::InfoHash;
+                use crate::tracker::tests::the_tracker::{
+                    complete_peer, incomplete_peer, peer_ip, sample_info_hash, whitelisted_tracker,
+                };
+                use crate::tracker::torrent::SwarmMetadata;
+                use crate::tracker::ScrapeData;
+
+                #[test]
+                fn it_should_be_able_to_build_a_zeroed_scrape_data_for_a_list_of_info_hashes() {
+                    // Zeroed scrape data is used when the authentication for the scrape request fails.
+
+                    let sample_info_hash = sample_info_hash();
+
+                    let mut expected_scrape_data = ScrapeData::empty();
+                    expected_scrape_data.add_file_with_zeroed_metadata(&sample_info_hash);
+
+                    assert_eq!(ScrapeData::zeroed(&vec![sample_info_hash]), expected_scrape_data);
+                }
+
+                #[tokio::test]
+                async fn it_should_return_the_zeroed_swarm_metadata_for_the_requested_file_if_it_is_not_whitelisted() {
+                    let tracker = whitelisted_tracker();
+
+                    let info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap();
+
+                    let mut peer = incomplete_peer();
+                    tracker.announce(&info_hash, &mut peer, &peer_ip()).await;
+
+                    // Announce twice to force non zeroed swarm metadata
+                    let mut peer = complete_peer();
+                    tracker.announce(&info_hash, &mut peer, &peer_ip()).await;
+
+                    let scrape_data = tracker.scrape(&vec![info_hash]).await;
+
+                    // The expected zeroed swarm metadata for the file
+                    let mut expected_scrape_data = ScrapeData::empty();
+                    expected_scrape_data.add_file(&info_hash, SwarmMetadata::zeroed());
+
+                    assert_eq!(scrape_data, expected_scrape_data);
+                }
+            }
+        }
+
+        mod configured_as_private {
+
+            mod handling_authentication {
+                use std::str::FromStr;
+                use std::time::Duration;
+
+                use crate::tracker::auth;
+                use crate::tracker::tests::the_tracker::private_tracker;
+
+                #[tokio::test]
+                async fn it_should_generate_the_expiring_authentication_keys() {
+                    let tracker = private_tracker();
+
+                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+
+                    assert_eq!(key.valid_until.unwrap(), Duration::from_secs(100));
+                }
+
+                #[tokio::test]
+                async fn it_should_authenticate_a_peer_by_using_a_key() {
+                    let tracker = private_tracker();
+
+                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+
+                    let result = tracker.authenticate(&key.id()).await;
+
+                    assert!(result.is_ok());
+                }
+
+                #[tokio::test]
+                async fn it_should_fail_authenticating_a_peer_when_it_uses_an_unregistered_key() {
+                    let tracker = private_tracker();
+
+                    let unregistered_key_id = auth::KeyId::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+
+                    let result = tracker.authenticate(&unregistered_key_id).await;
+
+                    assert!(result.is_err());
+                }
+
+                #[tokio::test]
+                async fn it_should_verify_a_valid_authentication_key() {
+                    // todo: this should not be tested directly because
+                    // `verify_auth_key` should be a private method.
+                    let tracker = private_tracker();
+
+                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+
+                    assert!(tracker.verify_auth_key(&key.id()).await.is_ok());
+                }
+
+                #[tokio::test]
+                async fn it_should_fail_verifying_an_unregistered_authentication_key() {
+                    let tracker = private_tracker();
+
+                    let unregistered_key_id = auth::KeyId::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+
+                    assert!(tracker.verify_auth_key(&unregistered_key_id).await.is_err());
+                }
+
+                #[tokio::test]
+                async fn it_should_remove_an_authentication_key() {
+                    let tracker = private_tracker();
+
+                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+
+                    let result = tracker.remove_auth_key(&key.id().to_string()).await;
+
+                    assert!(result.is_ok());
+                    assert!(tracker.verify_auth_key(&key.id()).await.is_err());
+                }
+
+                #[tokio::test]
+                async fn it_should_load_authentication_keys_from_the_database() {
+                    let tracker = private_tracker();
+
+                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+
+                    // Remove the newly generated key in memory
+                    tracker.keys.write().await.remove(&key.id());
+
+                    let result = tracker.load_keys_from_database().await;
+
+                    assert!(result.is_ok());
+                    assert!(tracker.verify_auth_key(&key.id()).await.is_ok());
+                }
+            }
+
+            mod handling_an_announce_request {}
+
+            mod handling_an_scrape_request {}
+        }
+
+        mod configured_as_private_and_whitelisted {
+
+            mod handling_an_announce_request {}
+
+            mod handling_an_scrape_request {}
+        }
+
+        mod handling_torrent_persistence {
+            use aquatic_udp_protocol::AnnounceEvent;
+
+            use crate::tracker::tests::the_tracker::{sample_info_hash, sample_peer, tracker_persisting_torrents_in_database};
+
             #[tokio::test]
-            async fn it_should_allow_scraping_for_multiple_torrents() {
-                let tracker = tracker_factory();
+            async fn it_should_persist_the_number_of_completed_peers_for_all_torrents_into_the_database() {
+                let tracker = tracker_persisting_torrents_in_database();
 
-                let info_hashes = vec![
-                    "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
-                    "99c82bb73505a3c0b453f9fa0e881d6e5a32a0c1".parse::<InfoHash>().unwrap(),
-                ];
+                let info_hash = sample_info_hash();
 
-                let scrape_data = tracker.scrape(&info_hashes).await;
+                let mut peer = sample_peer();
 
-                let mut expected_scrape_data = ScrapeData::empty();
-                expected_scrape_data.add_file_with_no_metadata(&info_hashes[0]);
-                expected_scrape_data.add_file_with_no_metadata(&info_hashes[1]);
+                peer.event = AnnounceEvent::Started;
+                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+                assert_eq!(swarm_stats.completed, 0);
 
-                assert_eq!(scrape_data, expected_scrape_data);
+                peer.event = AnnounceEvent::Completed;
+                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+                assert_eq!(swarm_stats.completed, 1);
+
+                // Remove the newly updated torrent from memory
+                tracker.torrents.write().await.remove(&info_hash);
+
+                tracker.load_torrents_from_database().await.unwrap();
+
+                let torrents = tracker.get_torrents().await;
+                assert!(torrents.contains_key(&info_hash));
+
+                let torrent_entry = torrents.get(&info_hash).unwrap();
+
+                // It persists the number of completed peers.
+                assert_eq!(torrent_entry.completed, 1);
+
+                // It does not persist the peers
+                assert!(torrent_entry.peers.is_empty());
             }
         }
     }

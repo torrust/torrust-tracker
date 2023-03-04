@@ -66,7 +66,7 @@ pub async fn handle_announce(
 
     send_announce_response(
         &announce_request,
-        &response.swam_stats,
+        &response.swarm_stats,
         &response.peers,
         tracker.config.announce_interval,
         tracker.config.min_announce_interval,
@@ -129,7 +129,7 @@ pub async fn handle_scrape(
 #[allow(clippy::ptr_arg)]
 fn send_announce_response(
     announce_request: &request::Announce,
-    torrent_stats: &torrent::SwamStats,
+    torrent_stats: &torrent::SwarmStats,
     peers: &Vec<peer::Peer>,
     interval: u32,
     interval_min: u32,

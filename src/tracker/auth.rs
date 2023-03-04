@@ -62,6 +62,9 @@ pub fn verify(auth_key: &ExpiringKey) -> Result<(), Error> {
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct ExpiringKey {
     pub id: KeyId,
+    // todo: we can remove the `Option`. An `ExpiringKey` that does not expire
+    // is a `KeyId`. In other words, all `ExpiringKeys` must have an
+    // expiration time.
     pub valid_until: Option<DurationSinceUnixEpoch>,
 }
 
