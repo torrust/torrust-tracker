@@ -118,7 +118,7 @@ impl Database for Mysql {
             "SELECT `key`, valid_until FROM `keys`",
             |(key, valid_until): (String, i64)| auth::ExpiringKey {
                 id: key.parse::<KeyId>().unwrap(),
-                valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
+                valid_until: Duration::from_secs(valid_until.unsigned_abs()),
             },
         )?;
 
@@ -193,7 +193,7 @@ impl Database for Mysql {
 
         Ok(key.map(|(key, expiry)| auth::ExpiringKey {
             id: key.parse::<KeyId>().unwrap(),
-            valid_until: Some(Duration::from_secs(expiry.unsigned_abs())),
+            valid_until: Duration::from_secs(expiry.unsigned_abs()),
         }))
     }
 
@@ -201,7 +201,7 @@ impl Database for Mysql {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let key = auth_key.id.to_string();
-        let valid_until = auth_key.valid_until.unwrap_or(Duration::ZERO).as_secs().to_string();
+        let valid_until = auth_key.valid_until.as_secs().to_string();
 
         conn.exec_drop(
             "INSERT INTO `keys` (`key`, valid_until) VALUES (:key, :valid_until)",

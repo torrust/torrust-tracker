@@ -1147,7 +1147,7 @@ mod tests {
 
                     let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
 
-                    assert_eq!(key.valid_until.unwrap(), Duration::from_secs(100));
+                    assert_eq!(key.valid_until, Duration::from_secs(100));
                 }
 
                 #[tokio::test]

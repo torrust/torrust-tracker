@@ -7,17 +7,20 @@ use crate::tracker::auth::{self, KeyId};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct AuthKey {
-    pub key: String, // todo: rename to `id`
-    pub valid_until: Option<u64>,
+    pub key: String, // todo: rename to `id` (API breaking change!)
+    pub valid_until: Option<u64>, // todo: `auth::ExpiringKey` has now always a value (API breaking change!)
 }
 
 impl From<AuthKey> for auth::ExpiringKey {
     fn from(auth_key_resource: AuthKey) -> Self {
+        let valid_until = match auth_key_resource.valid_until {
+            Some(valid_until) => DurationSinceUnixEpoch::from_secs(valid_until),
+            None => DurationSinceUnixEpoch::from_secs(0),
+        };
+
         auth::ExpiringKey {
             id: auth_key_resource.key.parse::<KeyId>().unwrap(),
-            valid_until: auth_key_resource
-                .valid_until
-                .map(|valid_until| DurationSinceUnixEpoch::new(valid_until, 0)),
+            valid_until,
         }
     }
 }
@@ -26,7 +29,7 @@ impl From<auth::ExpiringKey> for AuthKey {
     fn from(auth_key: auth::ExpiringKey) -> Self {
         AuthKey {
             key: auth_key.id.to_string(),
-            valid_until: auth_key.valid_until.map(|valid_until| valid_until.as_secs()),
+            valid_until: Some(auth_key.valid_until.as_secs()),
         }
     }
 }
@@ -52,7 +55,7 @@ mod tests {
             auth::ExpiringKey::from(auth_key_resource),
             auth::ExpiringKey {
                 id: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<KeyId>().unwrap(), // cspell:disable-line
-                valid_until: Some(Current::add(&Duration::new(duration_in_secs, 0)).unwrap())
+                valid_until: Current::add(&Duration::new(duration_in_secs, 0)).unwrap()
             }
         );
     }
@@ -63,7 +66,7 @@ mod tests {
 
         let auth_key = auth::ExpiringKey {
             id: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<KeyId>().unwrap(), // cspell:disable-line
-            valid_until: Some(Current::add(&Duration::new(duration_in_secs, 0)).unwrap()),
+            valid_until: Current::add(&Duration::new(duration_in_secs, 0)).unwrap(),
         };
 
         assert_eq!(
