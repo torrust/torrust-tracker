@@ -638,7 +638,7 @@ mod tracker_apis {
     mod for_key_resources {
         use std::time::Duration;
 
-        use torrust_tracker::tracker::auth::KeyId;
+        use torrust_tracker::tracker::auth::Key;
 
         use crate::api::asserts::{
             assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
@@ -665,7 +665,7 @@ mod tracker_apis {
             // Verify the key with the tracker
             assert!(api_server
                 .tracker
-                .verify_auth_key(&auth_key_resource.key.parse::<KeyId>().unwrap())
+                .verify_auth_key(&auth_key_resource.key.parse::<Key>().unwrap())
                 .await
                 .is_ok());
         }

@@ -16,7 +16,7 @@ use std::time::Duration;
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
-use self::auth::KeyId;
+use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
 use self::torrent::{SwarmMetadata, SwarmStats};
@@ -28,7 +28,7 @@ use crate::protocol::info_hash::InfoHash;
 pub struct Tracker {
     pub config: Arc<Configuration>,
     mode: mode::Mode,
-    keys: RwLock<std::collections::HashMap<KeyId, auth::ExpiringKey>>,
+    keys: RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
@@ -204,14 +204,14 @@ impl Tracker {
     pub async fn remove_auth_key(&self, key: &str) -> Result<(), databases::error::Error> {
         // todo: change argument `key: &str` to `key_id: &KeyId`
         self.database.remove_key_from_keys(key).await?;
-        self.keys.write().await.remove(&key.parse::<KeyId>().unwrap());
+        self.keys.write().await.remove(&key.parse::<Key>().unwrap());
         Ok(())
     }
 
     /// # Errors
     ///
     /// Will return a `key::Error` if unable to get any `auth_key`.
-    pub async fn verify_auth_key(&self, key_id: &KeyId) -> Result<(), auth::Error> {
+    pub async fn verify_auth_key(&self, key_id: &Key) -> Result<(), auth::Error> {
         // code-review: this function is public only because it's used in a test.
         // We should change the test and make it private.
         match self.keys.read().await.get(key_id) {
@@ -324,7 +324,7 @@ impl Tracker {
     /// Will return a `torrent::Error::PeerNotAuthenticated` if the `key` is `None`.
     ///
     /// Will return a `torrent::Error::TorrentNotWhitelisted` if the the Tracker is in listed mode and the `info_hash` is not whitelisted.
-    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<KeyId>) -> Result<(), Error> {
+    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<Key>) -> Result<(), Error> {
         // todo: this is a deprecated method.
         // We're splitting authentication and authorization responsibilities.
         // Use `authenticate` and `authorize` instead.
@@ -371,7 +371,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return an error if the the authentication key cannot be verified.
-    pub async fn authenticate(&self, key_id: &KeyId) -> Result<(), auth::Error> {
+    pub async fn authenticate(&self, key_id: &Key) -> Result<(), auth::Error> {
         if self.is_private() {
             self.verify_auth_key(key_id).await
         } else {
@@ -1165,7 +1165,7 @@ mod tests {
                 async fn it_should_fail_authenticating_a_peer_when_it_uses_an_unregistered_key() {
                     let tracker = private_tracker();
 
-                    let unregistered_key_id = auth::KeyId::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+                    let unregistered_key_id = auth::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
                     let result = tracker.authenticate(&unregistered_key_id).await;
 
@@ -1187,7 +1187,7 @@ mod tests {
                 async fn it_should_fail_verifying_an_unregistered_authentication_key() {
                     let tracker = private_tracker();
 
-                    let unregistered_key_id = auth::KeyId::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+                    let unregistered_key_id = auth::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
                     assert!(tracker.verify_auth_key(&unregistered_key_id).await.is_err());
                 }

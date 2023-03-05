@@ -1,7 +1,7 @@
 use std::net::IpAddr;
 
 use reqwest::{Client as ReqwestClient, Response};
-use torrust_tracker::tracker::auth::KeyId;
+use torrust_tracker::tracker::auth::Key;
 
 use super::connection_info::ConnectionInfo;
 use super::requests::announce::{self, Query};
@@ -11,7 +11,7 @@ use super::requests::scrape;
 pub struct Client {
     connection_info: ConnectionInfo,
     reqwest_client: ReqwestClient,
-    key_id: Option<KeyId>,
+    key_id: Option<Key>,
 }
 
 /// URL components in this context:
@@ -40,7 +40,7 @@ impl Client {
         }
     }
 
-    pub fn authenticated(connection_info: ConnectionInfo, key_id: KeyId) -> Self {
+    pub fn authenticated(connection_info: ConnectionInfo, key_id: Key) -> Self {
         Self {
             connection_info,
             reqwest_client: reqwest::Client::builder().build().unwrap(),

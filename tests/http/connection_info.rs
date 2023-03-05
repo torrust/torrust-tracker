@@ -1,9 +1,9 @@
-use torrust_tracker::tracker::auth::KeyId;
+use torrust_tracker::tracker::auth::Key;
 
 #[derive(Clone, Debug)]
 pub struct ConnectionInfo {
     pub bind_address: String,
-    pub key_id: Option<KeyId>,
+    pub key_id: Option<Key>,
 }
 
 impl ConnectionInfo {

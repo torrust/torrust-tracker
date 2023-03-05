@@ -3,11 +3,11 @@ use std::convert::From;
 use serde::{Deserialize, Serialize};
 
 use crate::protocol::clock::DurationSinceUnixEpoch;
-use crate::tracker::auth::{self, KeyId};
+use crate::tracker::auth::{self, Key};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct AuthKey {
-    pub key: String, // todo: rename to `id` (API breaking change!)
+    pub key: String,              // todo: rename to `id` (API breaking change!)
     pub valid_until: Option<u64>, // todo: `auth::ExpiringKey` has now always a value (API breaking change!)
 }
 
@@ -19,7 +19,7 @@ impl From<AuthKey> for auth::ExpiringKey {
         };
 
         auth::ExpiringKey {
-            id: auth_key_resource.key.parse::<KeyId>().unwrap(),
+            id: auth_key_resource.key.parse::<Key>().unwrap(),
             valid_until,
         }
     }
@@ -40,7 +40,7 @@ mod tests {
 
     use super::AuthKey;
     use crate::protocol::clock::{Current, TimeNow};
-    use crate::tracker::auth::{self, KeyId};
+    use crate::tracker::auth::{self, Key};
 
     #[test]
     fn it_should_be_convertible_into_an_auth_key() {
@@ -54,7 +54,7 @@ mod tests {
         assert_eq!(
             auth::ExpiringKey::from(auth_key_resource),
             auth::ExpiringKey {
-                id: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<KeyId>().unwrap(), // cspell:disable-line
+                id: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<Key>().unwrap(), // cspell:disable-line
                 valid_until: Current::add(&Duration::new(duration_in_secs, 0)).unwrap()
             }
         );
@@ -65,7 +65,7 @@ mod tests {
         let duration_in_secs = 60;
 
         let auth_key = auth::ExpiringKey {
-            id: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<KeyId>().unwrap(), // cspell:disable-line
+            id: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<Key>().unwrap(), // cspell:disable-line
             valid_until: Current::add(&Duration::new(duration_in_secs, 0)).unwrap(),
         };
 

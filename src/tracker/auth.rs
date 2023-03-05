@@ -29,7 +29,7 @@ pub fn generate(lifetime: Duration) -> ExpiringKey {
     debug!("Generated key: {}, valid for: {:?} seconds", random_id, lifetime);
 
     ExpiringKey {
-        id: random_id.parse::<KeyId>().unwrap(),
+        id: random_id.parse::<Key>().unwrap(),
         valid_until: Current::add(&lifetime).unwrap(),
     }
 }
@@ -53,7 +53,7 @@ pub fn verify(auth_key: &ExpiringKey) -> Result<(), Error> {
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct ExpiringKey {
-    pub id: KeyId,
+    pub id: Key,
     pub valid_until: DurationSinceUnixEpoch,
 }
 
@@ -76,18 +76,18 @@ impl std::fmt::Display for ExpiringKey {
 
 impl ExpiringKey {
     #[must_use]
-    pub fn id(&self) -> KeyId {
+    pub fn id(&self) -> Key {
         self.id.clone()
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Display, Hash)]
-pub struct KeyId(String);
+pub struct Key(String);
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct ParseKeyIdError;
 
-impl FromStr for KeyId {
+impl FromStr for Key {
     type Err = ParseKeyIdError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -109,7 +109,7 @@ pub enum Error {
     #[error("Failed to read key: {key_id}, {location}")]
     UnableToReadKey {
         location: &'static Location<'static>,
-        key_id: Box<KeyId>,
+        key_id: Box<Key>,
     },
     #[error("Key has expired, {location}")]
     KeyExpired { location: &'static Location<'static> },
@@ -134,7 +134,7 @@ mod tests {
     #[test]
     fn auth_key_id_from_string() {
         let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
-        let auth_key_id = auth::KeyId::from_str(key_string);
+        let auth_key_id = auth::Key::from_str(key_string);
 
         assert!(auth_key_id.is_ok());
         assert_eq!(auth_key_id.unwrap().to_string(), key_string);

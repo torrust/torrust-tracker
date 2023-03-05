@@ -7,9 +7,9 @@ use axum::response::{IntoResponse, Response};
 
 use crate::http::axum_implementation::handlers::auth::{self, KeyIdParam};
 use crate::http::axum_implementation::responses;
-use crate::tracker::auth::KeyId;
+use crate::tracker::auth::Key;
 
-pub struct ExtractKeyId(pub KeyId);
+pub struct ExtractKeyId(pub Key);
 
 #[async_trait]
 impl<S> FromRequestParts<S> for ExtractKeyId
@@ -21,7 +21,7 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         match Path::<KeyIdParam>::from_request_parts(parts, state).await {
             Ok(key_id_param) => {
-                let Ok(key_id) = key_id_param.0.value().parse::<KeyId>() else {
+                let Ok(key_id) = key_id_param.0.value().parse::<Key>() else {
                     return Err(responses::error::Error::from(
                         auth::Error::InvalidKeyFormat {
                             location: Location::caller()

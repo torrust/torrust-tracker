@@ -6,7 +6,7 @@ use crate::located_error::LocatedError;
 pub enum Error {
     #[error("The supplied key: {key_id:?}, is not valid: {source}")]
     PeerKeyNotValid {
-        key_id: super::auth::KeyId,
+        key_id: super::auth::Key,
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
     #[error("The peer is not authenticated, {location}")]

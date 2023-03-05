@@ -17,7 +17,7 @@ use crate::apis::resources::auth_key::AuthKey;
 use crate::apis::resources::stats::Stats;
 use crate::apis::resources::torrent::ListItem;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::auth::KeyId;
+use crate::tracker::auth::Key;
 use crate::tracker::services::statistics::get_metrics;
 use crate::tracker::services::torrent::{get_torrent_info, get_torrents, Pagination};
 use crate::tracker::Tracker;
@@ -107,7 +107,7 @@ pub async fn delete_auth_key_handler(
     State(tracker): State<Arc<Tracker>>,
     Path(seconds_valid_or_key): Path<KeyIdParam>,
 ) -> Response {
-    match KeyId::from_str(&seconds_valid_or_key.0) {
+    match Key::from_str(&seconds_valid_or_key.0) {
         Err(_) => invalid_auth_key_param_response(&seconds_valid_or_key.0),
         Ok(key_id) => match tracker.remove_auth_key(&key_id.to_string()).await {
             Ok(_) => ok_response(),

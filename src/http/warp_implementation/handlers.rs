@@ -12,7 +12,7 @@ use super::error::Error;
 use super::{request, response, WebResult};
 use crate::http::warp_implementation::peer_builder;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::auth::KeyId;
+use crate::tracker::auth::Key;
 use crate::tracker::{self, auth, peer, statistics, torrent};
 
 /// Authenticate `InfoHash` using optional `auth::Key`
@@ -22,7 +22,7 @@ use crate::tracker::{self, auth, peer, statistics, torrent};
 /// Will return `ServerError` that wraps the `tracker::error::Error` if unable to `authenticate_request`.
 pub async fn authenticate(
     info_hash: &InfoHash,
-    auth_key_id: &Option<auth::KeyId>,
+    auth_key_id: &Option<auth::Key>,
     tracker: Arc<tracker::Tracker>,
 ) -> Result<(), Error> {
     tracker
@@ -38,7 +38,7 @@ pub async fn authenticate(
 /// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_announce_response`.
 pub async fn handle_announce(
     announce_request: request::Announce,
-    auth_key_id: Option<KeyId>,
+    auth_key_id: Option<Key>,
     tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
     debug!("http announce request: {:#?}", announce_request);
@@ -78,7 +78,7 @@ pub async fn handle_announce(
 /// Will return `warp::Rejection` that wraps the `ServerError` if unable to `send_scrape_response`.
 pub async fn handle_scrape(
     scrape_request: request::Scrape,
-    auth_key_id: Option<KeyId>,
+    auth_key_id: Option<Key>,
     tracker: Arc<tracker::Tracker>,
 ) -> WebResult<impl Reply> {
     let mut files: HashMap<InfoHash, response::ScrapeEntry> = HashMap::new();

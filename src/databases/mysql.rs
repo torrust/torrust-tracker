@@ -12,7 +12,7 @@ use super::driver::Driver;
 use crate::databases::{Database, Error};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::auth::{self, KeyId};
+use crate::tracker::auth::{self, Key};
 
 const DRIVER: Driver = Driver::MySQL;
 
@@ -117,7 +117,7 @@ impl Database for Mysql {
         let keys = conn.query_map(
             "SELECT `key`, valid_until FROM `keys`",
             |(key, valid_until): (String, i64)| auth::ExpiringKey {
-                id: key.parse::<KeyId>().unwrap(),
+                id: key.parse::<Key>().unwrap(),
                 valid_until: Duration::from_secs(valid_until.unsigned_abs()),
             },
         )?;
@@ -192,7 +192,7 @@ impl Database for Mysql {
         let key = query?;
 
         Ok(key.map(|(key, expiry)| auth::ExpiringKey {
-            id: key.parse::<KeyId>().unwrap(),
+            id: key.parse::<Key>().unwrap(),
             valid_until: Duration::from_secs(expiry.unsigned_abs()),
         }))
     }

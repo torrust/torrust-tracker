@@ -12,7 +12,7 @@ use super::{request, WebResult};
 use crate::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::protocol::common::MAX_SCRAPE_TORRENTS;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::auth::KeyId;
+use crate::tracker::auth::Key;
 use crate::tracker::{self, peer};
 
 /// Pass Arc<tracker::TorrentTracker> along
@@ -37,16 +37,16 @@ pub fn with_peer_id() -> impl Filter<Extract = (peer::Id,), Error = Rejection> +
 
 /// Pass Arc<tracker::TorrentTracker> along
 #[must_use]
-pub fn with_auth_key_id() -> impl Filter<Extract = (Option<KeyId>,), Error = Infallible> + Clone {
+pub fn with_auth_key_id() -> impl Filter<Extract = (Option<Key>,), Error = Infallible> + Clone {
     warp::path::param::<String>()
         .map(|key: String| {
-            let key_id = KeyId::from_str(&key);
+            let key_id = Key::from_str(&key);
             match key_id {
                 Ok(id) => Some(id),
                 Err(_) => None,
             }
         })
-        .or_else(|_| async { Ok::<(Option<KeyId>,), Infallible>((None,)) })
+        .or_else(|_| async { Ok::<(Option<Key>,), Infallible>((None,)) })
 }
 
 /// Check for `PeerAddress`
