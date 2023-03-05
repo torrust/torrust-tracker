@@ -4,7 +4,7 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
-use crate::http::axum_implementation::extractors::key::ExtractKeyId;
+use crate::http::axum_implementation::extractors::key::Extract;
 use crate::http::axum_implementation::extractors::peer_ip;
 use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
 use crate::http::axum_implementation::extractors::scrape_request::ExtractRequest;
@@ -31,12 +31,12 @@ pub async fn handle_without_key(
 pub async fn handle_with_key(
     State(tracker): State<Arc<Tracker>>,
     ExtractRequest(scrape_request): ExtractRequest,
-    ExtractKeyId(key_id): ExtractKeyId,
+    Extract(key): Extract,
     remote_client_ip: RemoteClientIp,
 ) -> Response {
     debug!("http scrape request: {:#?}", &scrape_request);
 
-    match tracker.authenticate(&key_id).await {
+    match tracker.authenticate(&key).await {
         Ok(_) => (),
         Err(_) => return handle_fake_scrape(&tracker, &scrape_request, &remote_client_ip).await,
     }

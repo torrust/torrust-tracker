@@ -101,15 +101,15 @@ pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path
 }
 
 #[derive(Deserialize)]
-pub struct KeyIdParam(String);
+pub struct KeyParam(String);
 
 pub async fn delete_auth_key_handler(
     State(tracker): State<Arc<Tracker>>,
-    Path(seconds_valid_or_key): Path<KeyIdParam>,
+    Path(seconds_valid_or_key): Path<KeyParam>,
 ) -> Response {
     match Key::from_str(&seconds_valid_or_key.0) {
         Err(_) => invalid_auth_key_param_response(&seconds_valid_or_key.0),
-        Ok(key_id) => match tracker.remove_auth_key(&key_id.to_string()).await {
+        Ok(key) => match tracker.remove_auth_key(&key.to_string()).await {
             Ok(_) => ok_response(),
             Err(e) => failed_to_delete_key_response(e),
         },

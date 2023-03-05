@@ -85,14 +85,14 @@ impl ExpiringKey {
 pub struct Key(String);
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct ParseKeyIdError;
+pub struct ParseKeyError;
 
 impl FromStr for Key {
-    type Err = ParseKeyIdError;
+    type Err = ParseKeyError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() != AUTH_KEY_LENGTH {
-            return Err(ParseKeyIdError);
+            return Err(ParseKeyError);
         }
 
         Ok(Self(s.to_string()))
@@ -106,10 +106,10 @@ pub enum Error {
     KeyVerificationError {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
-    #[error("Failed to read key: {key_id}, {location}")]
+    #[error("Failed to read key: {key}, {location}")]
     UnableToReadKey {
         location: &'static Location<'static>,
-        key_id: Box<Key>,
+        key: Box<Key>,
     },
     #[error("Key has expired, {location}")]
     KeyExpired { location: &'static Location<'static> },
@@ -132,12 +132,12 @@ mod tests {
     use crate::tracker::auth;
 
     #[test]
-    fn auth_key_id_from_string() {
+    fn auth_key_from_string() {
         let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
-        let auth_key_id = auth::Key::from_str(key_string);
+        let auth_key = auth::Key::from_str(key_string);
 
-        assert!(auth_key_id.is_ok());
-        assert_eq!(auth_key_id.unwrap().to_string(), key_string);
+        assert!(auth_key.is_ok());
+        assert_eq!(auth_key.unwrap().to_string(), key_string);
     }
 
     #[test]

@@ -200,9 +200,9 @@ impl Tracker {
     ///
     /// # Panics
     ///
-    /// Will panic if key cannot be converted into a valid `KeyId`.
+    /// Will panic if key cannot be converted into a valid `Key`.
     pub async fn remove_auth_key(&self, key: &str) -> Result<(), databases::error::Error> {
-        // todo: change argument `key: &str` to `key_id: &KeyId`
+        // todo: change argument `key: &str` to `key: &Key`
         self.database.remove_key_from_keys(key).await?;
         self.keys.write().await.remove(&key.parse::<Key>().unwrap());
         Ok(())
@@ -211,13 +211,13 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `key::Error` if unable to get any `auth_key`.
-    pub async fn verify_auth_key(&self, key_id: &Key) -> Result<(), auth::Error> {
+    pub async fn verify_auth_key(&self, key: &Key) -> Result<(), auth::Error> {
         // code-review: this function is public only because it's used in a test.
         // We should change the test and make it private.
-        match self.keys.read().await.get(key_id) {
+        match self.keys.read().await.get(key) {
             None => Err(auth::Error::UnableToReadKey {
                 location: Location::caller(),
-                key_id: Box::new(key_id.clone()),
+                key: Box::new(key.clone()),
             }),
             Some(key) => auth::verify(key),
         }
@@ -342,7 +342,7 @@ impl Tracker {
                 Some(key) => {
                     if let Err(e) = self.verify_auth_key(key).await {
                         return Err(Error::PeerKeyNotValid {
-                            key_id: key.clone(),
+                            key: key.clone(),
                             source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
                         });
                     }
@@ -371,9 +371,9 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return an error if the the authentication key cannot be verified.
-    pub async fn authenticate(&self, key_id: &Key) -> Result<(), auth::Error> {
+    pub async fn authenticate(&self, key: &Key) -> Result<(), auth::Error> {
         if self.is_private() {
-            self.verify_auth_key(key_id).await
+            self.verify_auth_key(key).await
         } else {
             Ok(())
         }
@@ -1165,9 +1165,9 @@ mod tests {
                 async fn it_should_fail_authenticating_a_peer_when_it_uses_an_unregistered_key() {
                     let tracker = private_tracker();
 
-                    let unregistered_key_id = auth::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+                    let unregistered_key = auth::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
-                    let result = tracker.authenticate(&unregistered_key_id).await;
+                    let result = tracker.authenticate(&unregistered_key).await;
 
                     assert!(result.is_err());
                 }
@@ -1187,9 +1187,9 @@ mod tests {
                 async fn it_should_fail_verifying_an_unregistered_authentication_key() {
                     let tracker = private_tracker();
 
-                    let unregistered_key_id = auth::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+                    let unregistered_key = auth::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
-                    assert!(tracker.verify_auth_key(&unregistered_key_id).await.is_err());
+                    assert!(tracker.verify_auth_key(&unregistered_key).await.is_err());
                 }
 
                 #[tokio::test]

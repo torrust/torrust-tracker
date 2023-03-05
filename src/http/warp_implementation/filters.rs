@@ -37,11 +37,11 @@ pub fn with_peer_id() -> impl Filter<Extract = (peer::Id,), Error = Rejection> +
 
 /// Pass Arc<tracker::TorrentTracker> along
 #[must_use]
-pub fn with_auth_key_id() -> impl Filter<Extract = (Option<Key>,), Error = Infallible> + Clone {
+pub fn with_auth_key() -> impl Filter<Extract = (Option<Key>,), Error = Infallible> + Clone {
     warp::path::param::<String>()
         .map(|key: String| {
-            let key_id = Key::from_str(&key);
-            match key_id {
+            let key = Key::from_str(&key);
+            match key {
                 Ok(id) => Some(id),
                 Err(_) => None,
             }

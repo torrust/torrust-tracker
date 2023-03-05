@@ -11,7 +11,7 @@ use super::requests::scrape;
 pub struct Client {
     connection_info: ConnectionInfo,
     reqwest_client: ReqwestClient,
-    key_id: Option<Key>,
+    key: Option<Key>,
 }
 
 /// URL components in this context:
@@ -27,7 +27,7 @@ impl Client {
         Self {
             connection_info,
             reqwest_client: reqwest::Client::builder().build().unwrap(),
-            key_id: None,
+            key: None,
         }
     }
 
@@ -36,15 +36,15 @@ impl Client {
         Self {
             connection_info,
             reqwest_client: reqwest::Client::builder().local_address(local_address).build().unwrap(),
-            key_id: None,
+            key: None,
         }
     }
 
-    pub fn authenticated(connection_info: ConnectionInfo, key_id: Key) -> Self {
+    pub fn authenticated(connection_info: ConnectionInfo, key: Key) -> Self {
         Self {
             connection_info,
             reqwest_client: reqwest::Client::builder().build().unwrap(),
-            key_id: Some(key_id),
+            key: Some(key),
         }
     }
 
@@ -56,8 +56,8 @@ impl Client {
         self.get(&self.build_scrape_path_and_query(query)).await
     }
 
-    pub async fn announce_with_header(&self, query: &Query, key_id: &str, value: &str) -> Response {
-        self.get_with_header(&self.build_announce_path_and_query(query), key_id, value)
+    pub async fn announce_with_header(&self, query: &Query, key: &str, value: &str) -> Response {
+        self.get_with_header(&self.build_announce_path_and_query(query), key, value)
             .await
     }
 
@@ -83,8 +83,8 @@ impl Client {
     }
 
     fn build_path(&self, path: &str) -> String {
-        match &self.key_id {
-            Some(key_id) => format!("{path}/{key_id}"),
+        match &self.key {
+            Some(key) => format!("{path}/{key}"),
             None => path.to_string(),
         }
     }

@@ -70,12 +70,12 @@ pub trait Database: Sync + Send {
 
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
 
-    // todo: replace type `&str` with `&KeyId`
+    // todo: replace type `&str` with `&Key`
     async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::ExpiringKey>, Error>;
 
     async fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error>;
 
-    // todo: replace type `&str` with `&KeyId`
+    // todo: replace type `&str` with `&Key`
     async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error>;
 
     async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> Result<bool, Error> {

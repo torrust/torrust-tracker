@@ -741,10 +741,10 @@ mod tracker_apis {
         }
 
         #[tokio::test]
-        async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
+        async fn should_fail_deleting_an_auth_key_when_the_key_is_invalid() {
             let api_server = start_default_api().await;
 
-            let invalid_auth_key_ids = [
+            let invalid_auth_keys = [
                 // "", it returns a 404
                 // " ", it returns a 404
                 "0",
@@ -754,12 +754,12 @@ mod tracker_apis {
                 "IrweYtVuQPGbG9Jzx1DihcPmJGGpVy8zs", // 34 char key cspell:disable-line
             ];
 
-            for invalid_auth_key_id in &invalid_auth_key_ids {
+            for invalid_auth_key in &invalid_auth_keys {
                 let response = Client::new(api_server.get_connection_info())
-                    .delete_auth_key(invalid_auth_key_id)
+                    .delete_auth_key(invalid_auth_key)
                     .await;
 
-                assert_invalid_auth_key_param(response, invalid_auth_key_id).await;
+                assert_invalid_auth_key_param(response, invalid_auth_key).await;
             }
         }
 
