@@ -190,7 +190,7 @@ impl Tracker {
     pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<auth::ExpiringKey, databases::error::Error> {
         let auth_key = auth::generate(lifetime);
         self.database.add_key_to_keys(&auth_key).await?;
-        self.keys.write().await.insert(auth_key.id.clone(), auth_key.clone());
+        self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
         Ok(auth_key)
     }
 
@@ -233,7 +233,7 @@ impl Tracker {
         keys.clear();
 
         for key in keys_from_database {
-            keys.insert(key.id.clone(), key);
+            keys.insert(key.key.clone(), key);
         }
 
         Ok(())

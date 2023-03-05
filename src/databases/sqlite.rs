@@ -112,7 +112,7 @@ impl Database for Sqlite {
             let valid_until: i64 = row.get(1)?;
 
             Ok(auth::ExpiringKey {
-                id: key.parse::<Key>().unwrap(),
+                key: key.parse::<Key>().unwrap(),
                 valid_until: DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs()),
             })
         })?;
@@ -213,7 +213,7 @@ impl Database for Sqlite {
             let expiry: i64 = f.get(1).unwrap();
             let id: String = f.get(0).unwrap();
             auth::ExpiringKey {
-                id: id.parse::<Key>().unwrap(),
+                key: id.parse::<Key>().unwrap(),
                 valid_until: DurationSinceUnixEpoch::from_secs(expiry.unsigned_abs()),
             }
         }))
@@ -224,7 +224,7 @@ impl Database for Sqlite {
 
         let insert = conn.execute(
             "INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
-            [auth_key.id.to_string(), auth_key.valid_until.as_secs().to_string()],
+            [auth_key.key.to_string(), auth_key.valid_until.as_secs().to_string()],
         )?;
 
         if insert == 0 {

@@ -19,7 +19,7 @@ impl From<AuthKey> for auth::ExpiringKey {
         };
 
         auth::ExpiringKey {
-            id: auth_key_resource.key.parse::<Key>().unwrap(),
+            key: auth_key_resource.key.parse::<Key>().unwrap(),
             valid_until,
         }
     }
@@ -28,7 +28,7 @@ impl From<AuthKey> for auth::ExpiringKey {
 impl From<auth::ExpiringKey> for AuthKey {
     fn from(auth_key: auth::ExpiringKey) -> Self {
         AuthKey {
-            key: auth_key.id.to_string(),
+            key: auth_key.key.to_string(),
             valid_until: Some(auth_key.valid_until.as_secs()),
         }
     }
@@ -54,7 +54,7 @@ mod tests {
         assert_eq!(
             auth::ExpiringKey::from(auth_key_resource),
             auth::ExpiringKey {
-                id: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<Key>().unwrap(), // cspell:disable-line
+                key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<Key>().unwrap(), // cspell:disable-line
                 valid_until: Current::add(&Duration::new(duration_in_secs, 0)).unwrap()
             }
         );
@@ -65,7 +65,7 @@ mod tests {
         let duration_in_secs = 60;
 
         let auth_key = auth::ExpiringKey {
-            id: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<Key>().unwrap(), // cspell:disable-line
+            key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<Key>().unwrap(), // cspell:disable-line
             valid_until: Current::add(&Duration::new(duration_in_secs, 0)).unwrap(),
         };
 

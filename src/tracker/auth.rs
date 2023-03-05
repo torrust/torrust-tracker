@@ -29,7 +29,7 @@ pub fn generate(lifetime: Duration) -> ExpiringKey {
     debug!("Generated key: {}, valid for: {:?} seconds", random_id, lifetime);
 
     ExpiringKey {
-        id: random_id.parse::<Key>().unwrap(),
+        key: random_id.parse::<Key>().unwrap(),
         valid_until: Current::add(&lifetime).unwrap(),
     }
 }
@@ -53,7 +53,7 @@ pub fn verify(auth_key: &ExpiringKey) -> Result<(), Error> {
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct ExpiringKey {
-    pub id: Key,
+    pub key: Key,
     pub valid_until: DurationSinceUnixEpoch,
 }
 
@@ -62,7 +62,7 @@ impl std::fmt::Display for ExpiringKey {
         write!(
             f,
             "key: `{}`, valid until `{}`",
-            self.id,
+            self.key,
             DateTime::<Utc>::from_utc(
                 NaiveDateTime::from_timestamp(
                     i64::try_from(self.valid_until.as_secs()).expect("Overflow of i64 seconds, very future!"),
@@ -77,7 +77,7 @@ impl std::fmt::Display for ExpiringKey {
 impl ExpiringKey {
     #[must_use]
     pub fn id(&self) -> Key {
-        self.id.clone()
+        self.key.clone()
     }
 }
 

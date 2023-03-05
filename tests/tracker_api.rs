@@ -734,7 +734,7 @@ mod tracker_apis {
                 .unwrap();
 
             let response = Client::new(api_server.get_connection_info())
-                .delete_auth_key(&auth_key.id.to_string())
+                .delete_auth_key(&auth_key.key.to_string())
                 .await;
 
             assert_ok(response).await;
@@ -777,7 +777,7 @@ mod tracker_apis {
             force_database_error(&api_server.tracker);
 
             let response = Client::new(api_server.get_connection_info())
-                .delete_auth_key(&auth_key.id.to_string())
+                .delete_auth_key(&auth_key.key.to_string())
                 .await;
 
             assert_failed_to_delete_key(response).await;
@@ -797,7 +797,7 @@ mod tracker_apis {
                 .unwrap();
 
             let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
-                .delete_auth_key(&auth_key.id.to_string())
+                .delete_auth_key(&auth_key.key.to_string())
                 .await;
 
             assert_token_not_valid(response).await;
@@ -810,7 +810,7 @@ mod tracker_apis {
                 .unwrap();
 
             let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
-                .delete_auth_key(&auth_key.id.to_string())
+                .delete_auth_key(&auth_key.key.to_string())
                 .await;
 
             assert_unauthorized(response).await;
