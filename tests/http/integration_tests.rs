@@ -9,9 +9,6 @@
 /// ```text
 /// cargo test `warp_http_tracker_server` -- --nocapture
 /// ```
-mod common;
-mod http;
-
 mod warp_http_tracker_server {
 
     mod for_all_config_modes {

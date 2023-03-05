@@ -5,6 +5,7 @@ pub mod connection_info;
 pub mod requests;
 pub mod responses;
 pub mod server;
+pub mod integration_tests;
 
 use percent_encoding::NON_ALPHANUMERIC;
 

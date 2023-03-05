@@ -1,11 +1,6 @@
 /// Integration tests for UDP tracker server
 ///
 /// cargo test `udp_tracker_server` -- --nocapture
-extern crate rand;
-
-mod common;
-mod udp;
-
 mod udp_tracker_server {
 
     // UDP tracker documentation:
@@ -97,8 +92,8 @@ mod udp_tracker_server {
 
         use crate::udp::asserts::is_ipv4_announce_response;
         use crate::udp::client::new_udp_tracker_client_connected;
+        use crate::udp::integration_tests::udp_tracker_server::send_connection_request;
         use crate::udp::server::{start_udp_tracker, tracker_configuration};
-        use crate::udp_tracker_server::send_connection_request;
 
         #[tokio::test]
         async fn should_return_an_announce_response() {
@@ -140,8 +135,8 @@ mod udp_tracker_server {
 
         use crate::udp::asserts::is_scrape_response;
         use crate::udp::client::new_udp_tracker_client_connected;
+        use crate::udp::integration_tests::udp_tracker_server::send_connection_request;
         use crate::udp::server::{start_udp_tracker, tracker_configuration};
-        use crate::udp_tracker_server::send_connection_request;
 
         #[tokio::test]
         async fn should_return_a_scrape_response() {

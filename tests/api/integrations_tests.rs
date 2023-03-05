@@ -3,11 +3,6 @@
 /// ```text
 /// cargo test tracker_apis -- --nocapture
 /// ```
-extern crate rand;
-
-mod api;
-mod common;
-
 mod tracker_apis {
 
     use crate::common::fixtures::invalid_info_hashes;
