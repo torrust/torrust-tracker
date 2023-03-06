@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 /// `right_most_x_forwarded_for` = 126.0.0.2
 /// `connection_info_ip`         = 126.0.0.3
 ///
-/// More info about inner extractors :<https://github.com/imbolc/axum-client-ip>
+/// More info about inner extractors: <https://github.com/imbolc/axum-client-ip>
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct RemoteClientIp {
     pub right_most_x_forwarded_for: Option<IpAddr>,

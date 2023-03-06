@@ -7,9 +7,9 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
+use super::common::peer_ip;
 use crate::http::axum_implementation::extractors::announce_request::ExtractRequest;
 use crate::http::axum_implementation::extractors::key::Extract;
-use crate::http::axum_implementation::extractors::peer_ip;
 use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
 use crate::http::axum_implementation::handlers::auth;
 use crate::http::axum_implementation::requests::announce::{Announce, Compact, Event};

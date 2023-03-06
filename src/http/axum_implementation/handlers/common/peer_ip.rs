@@ -1,10 +1,11 @@
+//! Helper handler function to resolve the peer IP from the `RemoteClientIp` extractor.
 use std::net::IpAddr;
 use std::panic::Location;
 
 use axum::response::{IntoResponse, Response};
 use thiserror::Error;
 
-use super::remote_client_ip::RemoteClientIp;
+use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
 use crate::http::axum_implementation::responses;
 
 #[derive(Error, Debug)]
@@ -29,7 +30,7 @@ impl From<ResolutionError> for responses::error::Error {
 ///
 /// # Errors
 ///
-/// Will return an error if the peer IP cannot be obtained according to the configuration.
+/// Will return an error response if the peer IP cannot be obtained according to the configuration.
 /// For example, if the IP is extracted from an HTTP header which is missing in the request.
 pub fn resolve(on_reverse_proxy: bool, remote_client_ip: &RemoteClientIp) -> Result<IpAddr, Response> {
     match resolve_peer_ip(on_reverse_proxy, remote_client_ip) {
@@ -128,8 +129,8 @@ mod tests {
         use std::str::FromStr;
 
         use super::assert_error_response;
-        use crate::http::axum_implementation::extractors::peer_ip::resolve_peer_ip;
         use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
+        use crate::http::axum_implementation::handlers::common::peer_ip::resolve_peer_ip;
 
         #[test]
         fn it_should_get_the_peer_ip_from_the_right_most_ip_in_the_x_forwarded_for_header() {
