@@ -2,7 +2,7 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::{self, Serialize};
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug, PartialEq)]
 pub struct Error {
     #[serde(rename = "failure reason")]
     pub failure_reason: String,
