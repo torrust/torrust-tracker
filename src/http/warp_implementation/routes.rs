@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use warp::{Filter, Rejection};
 
-use super::filters::{with_announce_request, with_auth_key_id, with_scrape_request, with_tracker};
+use super::filters::{with_announce_request, with_auth_key, with_scrape_request, with_tracker};
 use super::handlers::{handle_announce, handle_scrape, send_error};
 use crate::tracker;
 
@@ -20,7 +20,7 @@ fn announce(tracker: Arc<tracker::Tracker>) -> impl Filter<Extract = impl warp::
     warp::path::path("announce")
         .and(warp::filters::method::get())
         .and(with_announce_request(tracker.config.on_reverse_proxy))
-        .and(with_auth_key_id())
+        .and(with_auth_key())
         .and(with_tracker(tracker))
         .and_then(handle_announce)
 }
@@ -30,7 +30,7 @@ fn scrape(tracker: Arc<tracker::Tracker>) -> impl Filter<Extract = impl warp::Re
     warp::path::path("scrape")
         .and(warp::filters::method::get())
         .and(with_scrape_request(tracker.config.on_reverse_proxy))
-        .and(with_auth_key_id())
+        .and(with_auth_key())
         .and(with_tracker(tracker))
         .and_then(handle_scrape)
 }

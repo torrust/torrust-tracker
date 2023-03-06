@@ -12,7 +12,7 @@ use super::driver::Driver;
 use crate::databases::{Database, Error};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::auth::{self, KeyId};
+use crate::tracker::auth::{self, Key};
 
 const DRIVER: Driver = Driver::MySQL;
 
@@ -117,8 +117,8 @@ impl Database for Mysql {
         let keys = conn.query_map(
             "SELECT `key`, valid_until FROM `keys`",
             |(key, valid_until): (String, i64)| auth::ExpiringKey {
-                id: key.parse::<KeyId>().unwrap(),
-                valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
+                key: key.parse::<Key>().unwrap(),
+                valid_until: Duration::from_secs(valid_until.unsigned_abs()),
             },
         )?;
 
@@ -192,16 +192,16 @@ impl Database for Mysql {
         let key = query?;
 
         Ok(key.map(|(key, expiry)| auth::ExpiringKey {
-            id: key.parse::<KeyId>().unwrap(),
-            valid_until: Some(Duration::from_secs(expiry.unsigned_abs())),
+            key: key.parse::<Key>().unwrap(),
+            valid_until: Duration::from_secs(expiry.unsigned_abs()),
         }))
     }
 
     async fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let key = auth_key.id.to_string();
-        let valid_until = auth_key.valid_until.unwrap_or(Duration::ZERO).as_secs().to_string();
+        let key = auth_key.key.to_string();
+        let valid_until = auth_key.valid_until.as_secs().to_string();
 
         conn.exec_drop(
             "INSERT INTO `keys` (`key`, valid_until) VALUES (:key, :valid_until)",

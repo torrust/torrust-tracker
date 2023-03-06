@@ -29,8 +29,8 @@ pub fn generate(lifetime: Duration) -> ExpiringKey {
     debug!("Generated key: {}, valid for: {:?} seconds", random_id, lifetime);
 
     ExpiringKey {
-        id: random_id.parse::<KeyId>().unwrap(),
-        valid_until: Some(Current::add(&lifetime).unwrap()),
+        key: random_id.parse::<Key>().unwrap(),
+        valid_until: Current::add(&lifetime).unwrap(),
     }
 }
 
@@ -42,30 +42,19 @@ pub fn generate(lifetime: Duration) -> ExpiringKey {
 pub fn verify(auth_key: &ExpiringKey) -> Result<(), Error> {
     let current_time: DurationSinceUnixEpoch = Current::now();
 
-    match auth_key.valid_until {
-        Some(valid_until) => {
-            if valid_until < current_time {
-                Err(Error::KeyExpired {
-                    location: Location::caller(),
-                })
-            } else {
-                Ok(())
-            }
-        }
-        None => Err(Error::UnableToReadKey {
+    if auth_key.valid_until < current_time {
+        Err(Error::KeyExpired {
             location: Location::caller(),
-            key_id: Box::new(auth_key.id.clone()),
-        }),
+        })
+    } else {
+        Ok(())
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct ExpiringKey {
-    pub id: KeyId,
-    // todo: we can remove the `Option`. An `ExpiringKey` that does not expire
-    // is a `KeyId`. In other words, all `ExpiringKeys` must have an
-    // expiration time.
-    pub valid_until: Option<DurationSinceUnixEpoch>,
+    pub key: Key,
+    pub valid_until: DurationSinceUnixEpoch,
 }
 
 impl std::fmt::Display for ExpiringKey {
@@ -73,73 +62,37 @@ impl std::fmt::Display for ExpiringKey {
         write!(
             f,
             "key: `{}`, valid until `{}`",
-            self.id,
-            match self.valid_until {
-                Some(duration) => format!(
-                    "{}",
-                    DateTime::<Utc>::from_utc(
-                        NaiveDateTime::from_timestamp(
-                            i64::try_from(duration.as_secs()).expect("Overflow of i64 seconds, very future!"),
-                            duration.subsec_nanos(),
-                        ),
-                        Utc
-                    )
+            self.key,
+            DateTime::<Utc>::from_utc(
+                NaiveDateTime::from_timestamp(
+                    i64::try_from(self.valid_until.as_secs()).expect("Overflow of i64 seconds, very future!"),
+                    self.valid_until.subsec_nanos(),
                 ),
-                None => "Empty!?".to_string(),
-            }
+                Utc
+            )
         )
     }
 }
 
 impl ExpiringKey {
-    /// # Panics
-    ///
-    /// Will panic if bytes cannot be converted into a valid `KeyId`.
     #[must_use]
-    pub fn from_buffer(key_buffer: [u8; AUTH_KEY_LENGTH]) -> Option<ExpiringKey> {
-        if let Ok(key) = String::from_utf8(Vec::from(key_buffer)) {
-            Some(ExpiringKey {
-                id: key.parse::<KeyId>().unwrap(),
-                valid_until: None,
-            })
-        } else {
-            None
-        }
-    }
-
-    /// # Panics
-    ///
-    /// Will panic if string cannot be converted into a valid `KeyId`.
-    #[must_use]
-    pub fn from_string(key: &str) -> Option<ExpiringKey> {
-        if key.len() == AUTH_KEY_LENGTH {
-            Some(ExpiringKey {
-                id: key.parse::<KeyId>().unwrap(),
-                valid_until: None,
-            })
-        } else {
-            None
-        }
-    }
-
-    #[must_use]
-    pub fn id(&self) -> KeyId {
-        self.id.clone()
+    pub fn id(&self) -> Key {
+        self.key.clone()
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Display, Hash)]
-pub struct KeyId(String);
+pub struct Key(String);
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct ParseKeyIdError;
+pub struct ParseKeyError;
 
-impl FromStr for KeyId {
-    type Err = ParseKeyIdError;
+impl FromStr for Key {
+    type Err = ParseKeyError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() != AUTH_KEY_LENGTH {
-            return Err(ParseKeyIdError);
+            return Err(ParseKeyError);
         }
 
         Ok(Self(s.to_string()))
@@ -153,10 +106,10 @@ pub enum Error {
     KeyVerificationError {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
-    #[error("Failed to read key: {key_id}, {location}")]
+    #[error("Failed to read key: {key}, {location}")]
     UnableToReadKey {
         location: &'static Location<'static>,
-        key_id: Box<KeyId>,
+        key: Box<Key>,
     },
     #[error("Key has expired, {location}")]
     KeyExpired { location: &'static Location<'static> },
@@ -176,38 +129,15 @@ mod tests {
     use std::time::Duration;
 
     use crate::protocol::clock::{Current, StoppedTime};
-    use crate::tracker::auth::{self, KeyId};
-
-    #[test]
-    fn auth_key_from_buffer() {
-        let auth_key = auth::ExpiringKey::from_buffer([
-            89, 90, 83, 108, 52, 108, 77, 90, 117, 112, 82, 117, 79, 112, 83, 82, 67, 51, 107, 114, 73, 75, 82, 53, 66, 80, 66,
-            49, 52, 110, 114, 74,
-        ]);
-
-        assert!(auth_key.is_some());
-        assert_eq!(
-            auth_key.unwrap().id,
-            "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse::<KeyId>().unwrap()
-        );
-    }
+    use crate::tracker::auth;
 
     #[test]
     fn auth_key_from_string() {
         let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
-        let auth_key = auth::ExpiringKey::from_string(key_string);
+        let auth_key = auth::Key::from_str(key_string);
 
-        assert!(auth_key.is_some());
-        assert_eq!(auth_key.unwrap().id, key_string.parse::<KeyId>().unwrap());
-    }
-
-    #[test]
-    fn auth_key_id_from_string() {
-        let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
-        let auth_key_id = auth::KeyId::from_str(key_string);
-
-        assert!(auth_key_id.is_ok());
-        assert_eq!(auth_key_id.unwrap().to_string(), key_string);
+        assert!(auth_key.is_ok());
+        assert_eq!(auth_key.unwrap().to_string(), key_string);
     }
 
     #[test]

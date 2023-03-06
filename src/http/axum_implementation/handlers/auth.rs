@@ -7,9 +7,9 @@ use crate::http::axum_implementation::responses;
 use crate::tracker::auth;
 
 #[derive(Deserialize)]
-pub struct KeyIdParam(String);
+pub struct KeyParam(String);
 
-impl KeyIdParam {
+impl KeyParam {
     #[must_use]
     pub fn value(&self) -> String {
         self.0.clone()

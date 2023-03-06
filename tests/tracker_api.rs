@@ -638,7 +638,7 @@ mod tracker_apis {
     mod for_key_resources {
         use std::time::Duration;
 
-        use torrust_tracker::tracker::auth::KeyId;
+        use torrust_tracker::tracker::auth::Key;
 
         use crate::api::asserts::{
             assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
@@ -665,7 +665,7 @@ mod tracker_apis {
             // Verify the key with the tracker
             assert!(api_server
                 .tracker
-                .verify_auth_key(&auth_key_resource.key.parse::<KeyId>().unwrap())
+                .verify_auth_key(&auth_key_resource.key.parse::<Key>().unwrap())
                 .await
                 .is_ok());
         }
@@ -734,17 +734,17 @@ mod tracker_apis {
                 .unwrap();
 
             let response = Client::new(api_server.get_connection_info())
-                .delete_auth_key(&auth_key.id.to_string())
+                .delete_auth_key(&auth_key.key.to_string())
                 .await;
 
             assert_ok(response).await;
         }
 
         #[tokio::test]
-        async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
+        async fn should_fail_deleting_an_auth_key_when_the_key_is_invalid() {
             let api_server = start_default_api().await;
 
-            let invalid_auth_key_ids = [
+            let invalid_auth_keys = [
                 // "", it returns a 404
                 // " ", it returns a 404
                 "0",
@@ -754,12 +754,12 @@ mod tracker_apis {
                 "IrweYtVuQPGbG9Jzx1DihcPmJGGpVy8zs", // 34 char key cspell:disable-line
             ];
 
-            for invalid_auth_key_id in &invalid_auth_key_ids {
+            for invalid_auth_key in &invalid_auth_keys {
                 let response = Client::new(api_server.get_connection_info())
-                    .delete_auth_key(invalid_auth_key_id)
+                    .delete_auth_key(invalid_auth_key)
                     .await;
 
-                assert_invalid_auth_key_param(response, invalid_auth_key_id).await;
+                assert_invalid_auth_key_param(response, invalid_auth_key).await;
             }
         }
 
@@ -777,7 +777,7 @@ mod tracker_apis {
             force_database_error(&api_server.tracker);
 
             let response = Client::new(api_server.get_connection_info())
-                .delete_auth_key(&auth_key.id.to_string())
+                .delete_auth_key(&auth_key.key.to_string())
                 .await;
 
             assert_failed_to_delete_key(response).await;
@@ -797,7 +797,7 @@ mod tracker_apis {
                 .unwrap();
 
             let response = Client::new(connection_with_invalid_token(&api_server.get_bind_address()))
-                .delete_auth_key(&auth_key.id.to_string())
+                .delete_auth_key(&auth_key.key.to_string())
                 .await;
 
             assert_token_not_valid(response).await;
@@ -810,7 +810,7 @@ mod tracker_apis {
                 .unwrap();
 
             let response = Client::new(connection_with_no_token(&api_server.get_bind_address()))
-                .delete_auth_key(&auth_key.id.to_string())
+                .delete_auth_key(&auth_key.key.to_string())
                 .await;
 
             assert_unauthorized(response).await;

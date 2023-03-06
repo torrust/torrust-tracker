@@ -1083,7 +1083,7 @@ mod warp_http_tracker_server {
 
             use torrust_tracker::http::Version;
             use torrust_tracker::protocol::info_hash::InfoHash;
-            use torrust_tracker::tracker::auth::KeyId;
+            use torrust_tracker::tracker::auth::Key;
 
             use crate::http::asserts::assert_is_announce_response;
             use crate::http::asserts_warp::{
@@ -1128,9 +1128,9 @@ mod warp_http_tracker_server {
                 let http_tracker_server = start_private_http_tracker(Version::Warp).await;
 
                 // The tracker does not have this key
-                let unregistered_key_id = KeyId::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+                let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
-                let response = Client::authenticated(http_tracker_server.get_connection_info(), unregistered_key_id)
+                let response = Client::authenticated(http_tracker_server.get_connection_info(), unregistered_key)
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -1145,7 +1145,7 @@ mod warp_http_tracker_server {
 
             use torrust_tracker::http::Version;
             use torrust_tracker::protocol::info_hash::InfoHash;
-            use torrust_tracker::tracker::auth::KeyId;
+            use torrust_tracker::tracker::auth::Key;
             use torrust_tracker::tracker::peer;
 
             use crate::common::fixtures::PeerBuilder;
@@ -1242,9 +1242,9 @@ mod warp_http_tracker_server {
                     )
                     .await;
 
-                let false_key_id: KeyId = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
+                let false_key: Key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
 
-                let response = Client::authenticated(http_tracker.get_connection_info(), false_key_id)
+                let response = Client::authenticated(http_tracker.get_connection_info(), false_key)
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -2396,7 +2396,7 @@ mod axum_http_tracker_server {
 
             use torrust_tracker::http::Version;
             use torrust_tracker::protocol::info_hash::InfoHash;
-            use torrust_tracker::tracker::auth::KeyId;
+            use torrust_tracker::tracker::auth::Key;
 
             use crate::http::asserts::{assert_authentication_error_response, assert_is_announce_response};
             use crate::http::client::Client;
@@ -2437,11 +2437,11 @@ mod axum_http_tracker_server {
             async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
                 let http_tracker_server = start_private_http_tracker(Version::Axum).await;
 
-                let invalid_key_id = "INVALID_KEY_ID";
+                let invalid_key = "INVALID_KEY";
 
                 let response = Client::new(http_tracker_server.get_connection_info())
                     .get(&format!(
-                        "announce/{invalid_key_id}?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0"
+                        "announce/{invalid_key}?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0"
                     ))
                     .await;
 
@@ -2453,9 +2453,9 @@ mod axum_http_tracker_server {
                 let http_tracker_server = start_private_http_tracker(Version::Axum).await;
 
                 // The tracker does not have this key
-                let unregistered_key_id = KeyId::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+                let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
-                let response = Client::authenticated(http_tracker_server.get_connection_info(), unregistered_key_id)
+                let response = Client::authenticated(http_tracker_server.get_connection_info(), unregistered_key)
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -2470,7 +2470,7 @@ mod axum_http_tracker_server {
 
             use torrust_tracker::http::Version;
             use torrust_tracker::protocol::info_hash::InfoHash;
-            use torrust_tracker::tracker::auth::KeyId;
+            use torrust_tracker::tracker::auth::Key;
             use torrust_tracker::tracker::peer;
 
             use crate::common::fixtures::PeerBuilder;
@@ -2484,11 +2484,11 @@ mod axum_http_tracker_server {
             async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
                 let http_tracker_server = start_private_http_tracker(Version::Axum).await;
 
-                let invalid_key_id = "INVALID_KEY_ID";
+                let invalid_key = "INVALID_KEY";
 
                 let response = Client::new(http_tracker_server.get_connection_info())
                     .get(&format!(
-                        "scrape/{invalid_key_id}?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"
+                        "scrape/{invalid_key}?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"
                     ))
                     .await;
 
@@ -2583,9 +2583,9 @@ mod axum_http_tracker_server {
                     )
                     .await;
 
-                let false_key_id: KeyId = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
+                let false_key: Key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
 
-                let response = Client::authenticated(http_tracker.get_connection_info(), false_key_id)
+                let response = Client::authenticated(http_tracker.get_connection_info(), false_key)
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)

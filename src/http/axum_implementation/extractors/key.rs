@@ -5,30 +5,30 @@ use axum::extract::{FromRequestParts, Path};
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
 
-use crate::http::axum_implementation::handlers::auth::{self, KeyIdParam};
+use crate::http::axum_implementation::handlers::auth::{self, KeyParam};
 use crate::http::axum_implementation::responses;
-use crate::tracker::auth::KeyId;
+use crate::tracker::auth::Key;
 
-pub struct ExtractKeyId(pub KeyId);
+pub struct Extract(pub Key);
 
 #[async_trait]
-impl<S> FromRequestParts<S> for ExtractKeyId
+impl<S> FromRequestParts<S> for Extract
 where
     S: Send + Sync,
 {
     type Rejection = Response;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        match Path::<KeyIdParam>::from_request_parts(parts, state).await {
-            Ok(key_id_param) => {
-                let Ok(key_id) = key_id_param.0.value().parse::<KeyId>() else {
+        match Path::<KeyParam>::from_request_parts(parts, state).await {
+            Ok(key_param) => {
+                let Ok(key) = key_param.0.value().parse::<Key>() else {
                     return Err(responses::error::Error::from(
                         auth::Error::InvalidKeyFormat {
                             location: Location::caller()
                         })
                     .into_response())
                 };
-                Ok(ExtractKeyId(key_id))
+                Ok(Extract(key))
             }
             Err(rejection) => match rejection {
                 axum::extract::rejection::PathRejection::FailedToDeserializePathParams(_) => {
