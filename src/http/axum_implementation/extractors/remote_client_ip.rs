@@ -1,3 +1,5 @@
+//! Wrapper for two Axum extractors to get the relevant information
+//! to resolve the remote client IP.
 use std::net::{IpAddr, SocketAddr};
 
 use axum::async_trait;
