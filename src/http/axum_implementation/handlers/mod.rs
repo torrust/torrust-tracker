@@ -3,6 +3,7 @@ use crate::tracker::error::Error;
 
 pub mod announce;
 pub mod auth;
+pub mod common;
 pub mod scrape;
 
 impl From<Error> for responses::error::Error {
