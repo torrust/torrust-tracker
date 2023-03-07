@@ -7,23 +7,28 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
-use super::common::peer_ip;
 use crate::http::axum_implementation::extractors::announce_request::ExtractRequest;
-use crate::http::axum_implementation::extractors::authentication_key::Extract;
-use crate::http::axum_implementation::extractors::remote_client_ip::RemoteClientIp;
+use crate::http::axum_implementation::extractors::authentication_key::Extract as ExtractKey;
+use crate::http::axum_implementation::extractors::client_ip_sources::Extract as ExtractClientIpSources;
 use crate::http::axum_implementation::handlers::common::auth;
 use crate::http::axum_implementation::requests::announce::{Announce, Compact, Event};
 use crate::http::axum_implementation::responses::{self, announce};
-use crate::http::axum_implementation::services;
+use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+use crate::http::axum_implementation::services::{self, peer_ip_resolver};
 use crate::protocol::clock::{Current, Time};
 use crate::tracker::peer::Peer;
 use crate::tracker::Tracker;
+
+/* code-review: authentication, authorization and peer IP resolution could be moved
+   from the handler (Axum) layer into the app layer `services::announce::invoke`.
+   That would make the handler even simpler and the code more reusable and decoupled from Axum.
+*/
 
 #[allow(clippy::unused_async)]
 pub async fn handle_without_key(
     State(tracker): State<Arc<Tracker>>,
     ExtractRequest(announce_request): ExtractRequest,
-    remote_client_ip: RemoteClientIp,
+    ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
 
@@ -34,15 +39,15 @@ pub async fn handle_without_key(
         .into_response();
     }
 
-    handle(&tracker, &announce_request, &remote_client_ip).await
+    handle(&tracker, &announce_request, &client_ip_sources).await
 }
 
 #[allow(clippy::unused_async)]
 pub async fn handle_with_key(
     State(tracker): State<Arc<Tracker>>,
     ExtractRequest(announce_request): ExtractRequest,
-    Extract(key): Extract,
-    remote_client_ip: RemoteClientIp,
+    ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
+    ExtractKey(key): ExtractKey,
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
 
@@ -51,18 +56,18 @@ pub async fn handle_with_key(
         Err(error) => return responses::error::Error::from(error).into_response(),
     }
 
-    handle(&tracker, &announce_request, &remote_client_ip).await
+    handle(&tracker, &announce_request, &client_ip_sources).await
 }
 
-async fn handle(tracker: &Arc<Tracker>, announce_request: &Announce, remote_client_ip: &RemoteClientIp) -> Response {
+async fn handle(tracker: &Arc<Tracker>, announce_request: &Announce, client_ip_sources: &ClientIpSources) -> Response {
     match tracker.authorize(&announce_request.info_hash).await {
         Ok(_) => (),
         Err(error) => return responses::error::Error::from(error).into_response(),
     }
 
-    let peer_ip = match peer_ip::resolve(tracker.config.on_reverse_proxy, remote_client_ip) {
+    let peer_ip = match peer_ip_resolver::invoke(tracker.config.on_reverse_proxy, client_ip_sources) {
         Ok(peer_ip) => peer_ip,
-        Err(err) => return err,
+        Err(error) => return responses::error::Error::from(error).into_response(),
     };
 
     let mut peer = peer_from_request(announce_request, &peer_ip);
