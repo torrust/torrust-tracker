@@ -4,7 +4,6 @@ use torrust_tracker::apis::server::{ApiServer, RunningApiServer, StoppedApiServe
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
-use torrust_tracker_test_helpers::configuration;
 
 use super::connection_info::ConnectionInfo;
 use crate::common::tracker::new_tracker;
@@ -15,6 +14,7 @@ pub type StoppedTestEnvironment = TestEnvironment<Stopped>;
 pub type RunningTestEnvironment = TestEnvironment<Running>;
 
 pub struct TestEnvironment<S> {
+    pub cfg: Arc<torrust_tracker_configuration::Configuration>,
     pub tracker: Arc<Tracker>,
     pub state: S,
 }
@@ -36,39 +36,45 @@ impl<S> TestEnvironment<S> {
 }
 
 impl TestEnvironment<Stopped> {
-    #[allow(dead_code)]
-    pub fn new_stopped() -> Self {
-        let api_server = api_server();
+    pub fn new_stopped(cfg: torrust_tracker_configuration::Configuration) -> Self {
+        let cfg = Arc::new(cfg);
+
+        let tracker = new_tracker(cfg.clone());
+
+        let api_server = api_server(cfg.http_api.clone());
 
         Self {
-            tracker: api_server.tracker.clone(),
+            cfg,
+            tracker,
             state: Stopped { api_server },
         }
     }
 
-    #[allow(dead_code)]
-    pub fn start(self) -> TestEnvironment<Running> {
+    pub async fn start(self) -> TestEnvironment<Running> {
         TestEnvironment {
-            tracker: self.tracker,
+            cfg: self.cfg,
+            tracker: self.tracker.clone(),
             state: Running {
-                api_server: self.state.api_server.start().unwrap(),
+                api_server: self.state.api_server.start(self.tracker).await.unwrap(),
             },
         }
+    }
+
+    pub fn config_mut(&mut self) -> &mut torrust_tracker_configuration::HttpApi {
+        &mut self.state.api_server.cfg
     }
 }
 
 impl TestEnvironment<Running> {
-    pub fn new_running() -> Self {
-        let api_server = running_api_server();
+    pub async fn new_running(cfg: torrust_tracker_configuration::Configuration) -> Self {
+        let test_env = StoppedTestEnvironment::new_stopped(cfg);
 
-        Self {
-            tracker: api_server.tracker.clone(),
-            state: Running { api_server },
-        }
+        test_env.start().await
     }
 
     pub async fn stop(self) -> TestEnvironment<Stopped> {
         TestEnvironment {
+            cfg: self.cfg,
             tracker: self.tracker,
             state: Stopped {
                 api_server: self.state.api_server.stop().await.unwrap(),
@@ -78,25 +84,22 @@ impl TestEnvironment<Running> {
 
     pub fn get_connection_info(&self) -> ConnectionInfo {
         ConnectionInfo {
-            bind_address: self.state.api_server.state.bind_address.to_string(),
+            bind_address: self.state.api_server.state.bind_addr.to_string(),
             api_token: self.state.api_server.cfg.access_tokens.get("admin").cloned(),
         }
     }
 }
 
 #[allow(clippy::module_name_repetitions)]
-pub fn running_test_environment() -> RunningTestEnvironment {
-    TestEnvironment::new_running()
+pub fn stopped_test_environment(cfg: torrust_tracker_configuration::Configuration) -> StoppedTestEnvironment {
+    TestEnvironment::new_stopped(cfg)
 }
 
-pub fn api_server() -> StoppedApiServer {
-    let config = Arc::new(configuration::ephemeral());
-
-    let tracker = new_tracker(config.clone());
-
-    ApiServer::new(config.http_api.clone(), tracker)
+#[allow(clippy::module_name_repetitions)]
+pub async fn running_test_environment(cfg: torrust_tracker_configuration::Configuration) -> RunningTestEnvironment {
+    TestEnvironment::new_running(cfg).await
 }
 
-pub fn running_api_server() -> RunningApiServer {
-    api_server().start().unwrap()
+pub fn api_server(cfg: torrust_tracker_configuration::HttpApi) -> StoppedApiServer {
+    ApiServer::new(cfg)
 }

@@ -31,7 +31,7 @@ pub async fn start_job(config: &HttpApi, tracker: Arc<tracker::Tracker>) -> Join
         if !ssl_enabled {
             info!("Starting Torrust APIs server on: http://{}", bind_addr);
 
-            let handle = server::start(bind_addr, &tracker);
+            let handle = server::start(bind_addr, tracker);
 
             tx.send(ApiServerJobStarted()).expect("the API server should not be dropped");
 
@@ -45,7 +45,7 @@ pub async fn start_job(config: &HttpApi, tracker: Arc<tracker::Tracker>) -> Join
                 .await
                 .unwrap();
 
-            let handle = server::start_tls(bind_addr, ssl_config, &tracker);
+            let handle = server::start_tls(bind_addr, ssl_config, tracker);
 
             tx.send(ApiServerJobStarted()).expect("the API server should not be dropped");
 

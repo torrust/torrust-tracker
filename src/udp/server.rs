@@ -27,7 +27,6 @@ pub type RunningUdpServer = UdpServer<Running>;
 #[allow(clippy::module_name_repetitions)]
 pub struct UdpServer<S> {
     pub cfg: torrust_tracker_configuration::UdpTracker,
-    pub tracker: Arc<Tracker>,
     pub state: S,
 }
 
@@ -40,19 +39,15 @@ pub struct Running {
 }
 
 impl UdpServer<Stopped> {
-    pub fn new(cfg: torrust_tracker_configuration::UdpTracker, tracker: Arc<Tracker>) -> Self {
-        Self {
-            cfg,
-            tracker,
-            state: Stopped {},
-        }
+    pub fn new(cfg: torrust_tracker_configuration::UdpTracker) -> Self {
+        Self { cfg, state: Stopped {} }
     }
 
     /// # Errors
     ///
     /// Will return `Err` if UDP can't bind to given bind address.
-    pub async fn start(self) -> Result<UdpServer<Running>, Error> {
-        let udp = Udp::new(self.tracker.clone(), &self.cfg.bind_address)
+    pub async fn start(self, tracker: Arc<Tracker>) -> Result<UdpServer<Running>, Error> {
+        let udp = Udp::new(&self.cfg.bind_address)
             .await
             .map_err(|e| Error::Error(e.to_string()))?;
 
@@ -61,12 +56,11 @@ impl UdpServer<Stopped> {
         let (sender, receiver) = tokio::sync::oneshot::channel::<u8>();
 
         let job = tokio::spawn(async move {
-            udp.start_with_graceful_shutdown(shutdown_signal(receiver)).await;
+            udp.start_with_graceful_shutdown(tracker, shutdown_signal(receiver)).await;
         });
 
         let running_udp_server: UdpServer<Running> = UdpServer {
             cfg: self.cfg,
-            tracker: self.tracker,
             state: Running {
                 bind_address,
                 stop_job_sender: sender,
@@ -90,7 +84,6 @@ impl UdpServer<Running> {
 
         let stopped_api_server: UdpServer<Stopped> = UdpServer {
             cfg: self.cfg,
-            tracker: self.tracker,
             state: Stopped {},
         };
 
@@ -100,30 +93,27 @@ impl UdpServer<Running> {
 
 pub struct Udp {
     socket: Arc<UdpSocket>,
-    tracker: Arc<Tracker>,
 }
 
 impl Udp {
     /// # Errors
     ///
     /// Will return `Err` unable to bind to the supplied `bind_address`.
-    pub async fn new(tracker: Arc<Tracker>, bind_address: &str) -> tokio::io::Result<Udp> {
+    pub async fn new(bind_address: &str) -> tokio::io::Result<Udp> {
         let socket = UdpSocket::bind(bind_address).await?;
 
         Ok(Udp {
             socket: Arc::new(socket),
-            tracker,
         })
     }
 
     /// # Panics
     ///
     /// It would panic if unable to resolve the `local_addr` from the supplied ´socket´.
-    pub async fn start(&self) {
+    pub async fn start(&self, tracker: Arc<Tracker>) {
         loop {
             let mut data = [0; MAX_PACKET_SIZE];
             let socket = self.socket.clone();
-            let tracker = self.tracker.clone();
 
             tokio::select! {
                 _ = tokio::signal::ctrl_c() => {
@@ -137,7 +127,7 @@ impl Udp {
                     debug!("From: {}", &remote_addr);
                     debug!("Payload: {:?}", payload);
 
-                    let response = handle_packet(remote_addr, payload, tracker).await;
+                    let response = handle_packet(remote_addr, payload, &tracker).await;
 
                     Udp::send_response(socket, remote_addr, response).await;
                 }
@@ -148,7 +138,7 @@ impl Udp {
     /// # Panics
     ///
     /// It would panic if unable to resolve the `local_addr` from the supplied ´socket´.
-    async fn start_with_graceful_shutdown<F>(&self, shutdown_signal: F)
+    async fn start_with_graceful_shutdown<F>(&self, tracker: Arc<Tracker>, shutdown_signal: F)
     where
         F: Future<Output = ()>,
     {
@@ -158,7 +148,6 @@ impl Udp {
         loop {
             let mut data = [0; MAX_PACKET_SIZE];
             let socket = self.socket.clone();
-            let tracker = self.tracker.clone();
 
             tokio::select! {
                 _ = &mut shutdown_signal => {
@@ -172,7 +161,7 @@ impl Udp {
                     debug!("From: {}", &remote_addr);
                     debug!("Payload: {:?}", payload);
 
-                    let response = handle_packet(remote_addr, payload, tracker).await;
+                    let response = handle_packet(remote_addr, payload, &tracker).await;
 
                     Udp::send_response(socket, remote_addr, response).await;
                 }

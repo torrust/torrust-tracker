@@ -9,7 +9,6 @@ mod api;
 mod common;
 
 mod tracker_apis {
-
     use crate::common::fixtures::invalid_info_hashes;
 
     // When these infohashes are used in URL path params
@@ -24,7 +23,29 @@ mod tracker_apis {
         [String::new(), " ".to_string()].to_vec()
     }
 
+    mod configuration {
+        use torrust_tracker_test_helpers::configuration;
+
+        use crate::api::test_environment::stopped_test_environment;
+
+        #[tokio::test]
+        #[should_panic]
+        async fn should_fail_with_ssl_enabled_and_bad_ssl_config() {
+            let mut test_env = stopped_test_environment(configuration::ephemeral());
+
+            let cfg = test_env.config_mut();
+
+            cfg.ssl_enabled = true;
+            cfg.ssl_key_path = Some("bad key path".to_string());
+            cfg.ssl_cert_path = Some("bad cert path".to_string());
+
+            test_env.start().await;
+        }
+    }
+
     mod authentication {
+        use torrust_tracker_test_helpers::configuration;
+
         use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
         use crate::api::client::Client;
         use crate::api::test_environment::running_test_environment;
@@ -32,7 +53,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_authenticate_requests_by_using_a_token_query_param() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let token = test_env.get_connection_info().api_token.unwrap();
 
@@ -47,7 +68,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_authenticate_requests_when_the_token_is_missing() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let response = Client::new(test_env.get_connection_info())
                 .get_request_with_query("stats", Query::default())
@@ -60,7 +81,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_authenticate_requests_when_the_token_is_empty() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let response = Client::new(test_env.get_connection_info())
                 .get_request_with_query("stats", Query::params([QueryParam::new("token", "")].to_vec()))
@@ -73,7 +94,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_authenticate_requests_when_the_token_is_invalid() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let response = Client::new(test_env.get_connection_info())
                 .get_request_with_query("stats", Query::params([QueryParam::new("token", "INVALID TOKEN")].to_vec()))
@@ -86,7 +107,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_the_token_query_param_to_be_at_any_position_in_the_url_query() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let token = test_env.get_connection_info().api_token.unwrap();
 
@@ -113,6 +134,7 @@ mod tracker_apis {
 
         use torrust_tracker::apis::resources::stats::Stats;
         use torrust_tracker::protocol::info_hash::InfoHash;
+        use torrust_tracker_test_helpers::configuration;
 
         use crate::api::asserts::{assert_stats, assert_token_not_valid, assert_unauthorized};
         use crate::api::client::Client;
@@ -122,7 +144,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_getting_tracker_statistics() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             test_env
                 .add_torrent_peer(
@@ -161,7 +183,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_allow_getting_tracker_statistics_for_unauthenticated_users() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let response = Client::new(connection_with_invalid_token(
                 test_env.get_connection_info().bind_address.as_str(),
@@ -187,6 +209,7 @@ mod tracker_apis {
         use torrust_tracker::apis::resources::torrent::Torrent;
         use torrust_tracker::apis::resources::{self, torrent};
         use torrust_tracker::protocol::info_hash::InfoHash;
+        use torrust_tracker_test_helpers::configuration;
 
         use super::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
         use crate::api::asserts::{
@@ -201,7 +224,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_getting_torrents() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
@@ -226,7 +249,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_limiting_the_torrents_in_the_result() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             // torrents are ordered alphabetically by infohashes
             let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
@@ -256,7 +279,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_the_torrents_result_pagination() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             // torrents are ordered alphabetically by infohashes
             let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
@@ -286,7 +309,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_getting_torrents_when_the_offset_query_parameter_cannot_be_parsed() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let invalid_offsets = [" ", "-1", "1.1", "INVALID OFFSET"];
 
@@ -303,7 +326,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_getting_torrents_when_the_limit_query_parameter_cannot_be_parsed() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let invalid_limits = [" ", "-1", "1.1", "INVALID LIMIT"];
 
@@ -320,7 +343,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let response = Client::new(connection_with_invalid_token(
                 test_env.get_connection_info().bind_address.as_str(),
@@ -341,7 +364,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_getting_a_torrent_info() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
@@ -370,7 +393,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_while_getting_a_torrent_info_when_the_torrent_does_not_exist() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
@@ -385,7 +408,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_is_invalid() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             for invalid_infohash in &invalid_infohashes_returning_bad_request() {
                 let response = Client::new(test_env.get_connection_info())
@@ -408,7 +431,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
@@ -436,6 +459,7 @@ mod tracker_apis {
         use std::str::FromStr;
 
         use torrust_tracker::protocol::info_hash::InfoHash;
+        use torrust_tracker_test_helpers::configuration;
 
         use super::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
         use crate::api::asserts::{
@@ -450,7 +474,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
@@ -471,7 +495,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
@@ -488,7 +512,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
@@ -511,7 +535,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
@@ -528,7 +552,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invalid() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             for invalid_infohash in &invalid_infohashes_returning_bad_request() {
                 let response = Client::new(test_env.get_connection_info())
@@ -551,7 +575,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_removing_a_torrent_from_the_whitelist() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -569,7 +593,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whitelist() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let non_whitelisted_torrent_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
 
@@ -584,7 +608,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_infohash_is_invalid() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             for invalid_infohash in &invalid_infohashes_returning_bad_request() {
                 let response = Client::new(test_env.get_connection_info())
@@ -607,7 +631,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -626,7 +650,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthenticated_users() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -652,7 +676,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_reload_the_whitelist_from_the_database() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -677,7 +701,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -697,6 +721,7 @@ mod tracker_apis {
         use std::time::Duration;
 
         use torrust_tracker::tracker::auth::Key;
+        use torrust_tracker_test_helpers::configuration;
 
         use crate::api::asserts::{
             assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
@@ -710,7 +735,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_generating_a_new_auth_key() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let seconds_valid = 60;
 
@@ -732,7 +757,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let seconds_valid = 60;
 
@@ -755,7 +780,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let invalid_key_durations = [
                 // "", it returns 404
@@ -763,9 +788,9 @@ mod tracker_apis {
                 "-1", "text",
             ];
 
-            for invalid_key_duration in &invalid_key_durations {
+            for invalid_key_duration in invalid_key_durations {
                 let response = Client::new(test_env.get_connection_info())
-                    .post(&format!("key/{}", &invalid_key_duration))
+                    .post(&format!("key/{}", invalid_key_duration))
                     .await;
 
                 assert_invalid_key_duration_param(response, invalid_key_duration).await;
@@ -776,7 +801,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_when_the_auth_key_cannot_be_generated() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             force_database_error(&test_env.tracker);
 
@@ -792,7 +817,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_deleting_an_auth_key() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let seconds_valid = 60;
             let auth_key = test_env
@@ -812,7 +837,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let invalid_auth_keys = [
                 // "", it returns a 404
@@ -837,7 +862,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_when_the_auth_key_cannot_be_deleted() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let seconds_valid = 60;
             let auth_key = test_env
@@ -859,7 +884,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let seconds_valid = 60;
 
@@ -896,7 +921,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_allow_reloading_keys() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let seconds_valid = 60;
             test_env
@@ -914,7 +939,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_fail_when_keys_cannot_be_reloaded() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let seconds_valid = 60;
             test_env
@@ -934,7 +959,7 @@ mod tracker_apis {
 
         #[tokio::test]
         async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
-            let test_env = running_test_environment();
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let seconds_valid = 60;
             test_env

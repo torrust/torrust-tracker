@@ -17,6 +17,7 @@ mod udp_tracker_server {
 
     use aquatic_udp_protocol::{ConnectRequest, ConnectionId, Response, TransactionId};
     use torrust_tracker::udp::MAX_PACKET_SIZE;
+    use torrust_tracker_test_helpers::configuration;
 
     use crate::udp::asserts::is_error_response;
     use crate::udp::client::{new_udp_client_connected, UdpTrackerClient};
@@ -45,7 +46,7 @@ mod udp_tracker_server {
 
     #[tokio::test]
     async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
-        let test_env = running_test_environment().await;
+        let test_env = running_test_environment(configuration::ephemeral()).await;
 
         let client = new_udp_client_connected(&test_env.bind_address().to_string()).await;
 
@@ -60,6 +61,7 @@ mod udp_tracker_server {
 
     mod receiving_a_connection_request {
         use aquatic_udp_protocol::{ConnectRequest, TransactionId};
+        use torrust_tracker_test_helpers::configuration;
 
         use crate::udp::asserts::is_connect_response;
         use crate::udp::client::new_udp_tracker_client_connected;
@@ -67,7 +69,7 @@ mod udp_tracker_server {
 
         #[tokio::test]
         async fn should_return_a_connect_response() {
-            let test_env = running_test_environment().await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let client = new_udp_tracker_client_connected(&test_env.bind_address().to_string()).await;
 
@@ -90,6 +92,7 @@ mod udp_tracker_server {
             AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port,
             TransactionId,
         };
+        use torrust_tracker_test_helpers::configuration;
 
         use crate::udp::asserts::is_ipv4_announce_response;
         use crate::udp::client::new_udp_tracker_client_connected;
@@ -98,7 +101,7 @@ mod udp_tracker_server {
 
         #[tokio::test]
         async fn should_return_an_announce_response() {
-            let test_env = running_test_environment().await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let client = new_udp_tracker_client_connected(&test_env.bind_address().to_string()).await;
 
@@ -131,6 +134,7 @@ mod udp_tracker_server {
 
     mod receiving_an_scrape_request {
         use aquatic_udp_protocol::{ConnectionId, InfoHash, ScrapeRequest, TransactionId};
+        use torrust_tracker_test_helpers::configuration;
 
         use crate::udp::asserts::is_scrape_response;
         use crate::udp::client::new_udp_tracker_client_connected;
@@ -139,7 +143,7 @@ mod udp_tracker_server {
 
         #[tokio::test]
         async fn should_return_a_scrape_response() {
-            let test_env = running_test_environment().await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let client = new_udp_tracker_client_connected(&test_env.bind_address().to_string()).await;
 

@@ -5,7 +5,6 @@ use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
 use torrust_tracker::udp::server::{RunningUdpServer, StoppedUdpServer, UdpServer};
-use torrust_tracker_test_helpers::configuration;
 
 use crate::common::tracker::new_tracker;
 
@@ -15,6 +14,7 @@ pub type StoppedTestEnvironment = TestEnvironment<Stopped>;
 pub type RunningTestEnvironment = TestEnvironment<Running>;
 
 pub struct TestEnvironment<S> {
+    pub cfg: Arc<torrust_tracker_configuration::Configuration>,
     pub tracker: Arc<Tracker>,
     pub state: S,
 }
@@ -38,39 +38,41 @@ impl<S> TestEnvironment<S> {
 
 impl TestEnvironment<Stopped> {
     #[allow(dead_code)]
-    pub fn new_stopped() -> Self {
-        let udp_server = udp_server();
+    pub fn new_stopped(cfg: torrust_tracker_configuration::Configuration) -> Self {
+        let cfg = Arc::new(cfg);
+
+        let tracker = new_tracker(cfg.clone());
+
+        let udp_server = udp_server(cfg.udp_trackers[0].clone());
 
         Self {
-            tracker: udp_server.tracker.clone(),
-            state: Stopped { udp_server: udp_server },
+            cfg,
+            tracker,
+            state: Stopped { udp_server },
         }
     }
 
     #[allow(dead_code)]
     pub async fn start(self) -> TestEnvironment<Running> {
         TestEnvironment {
-            tracker: self.tracker,
+            cfg: self.cfg,
+            tracker: self.tracker.clone(),
             state: Running {
-                udp_server: self.state.udp_server.start().await.unwrap(),
+                udp_server: self.state.udp_server.start(self.tracker).await.unwrap(),
             },
         }
     }
 }
 
 impl TestEnvironment<Running> {
-    pub async fn new_running() -> Self {
-        let udp_server = running_udp_server().await;
-
-        Self {
-            tracker: udp_server.tracker.clone(),
-            state: Running { udp_server: udp_server },
-        }
+    pub async fn new_running(cfg: torrust_tracker_configuration::Configuration) -> Self {
+        StoppedTestEnvironment::new_stopped(cfg).start().await
     }
 
     #[allow(dead_code)]
     pub async fn stop(self) -> TestEnvironment<Stopped> {
         TestEnvironment {
+            cfg: self.cfg,
             tracker: self.tracker,
             state: Stopped {
                 udp_server: self.state.udp_server.stop().await.unwrap(),
@@ -83,19 +85,16 @@ impl TestEnvironment<Running> {
     }
 }
 
+#[allow(clippy::module_name_repetitions, dead_code)]
+pub fn stopped_test_environment(cfg: torrust_tracker_configuration::Configuration) -> StoppedTestEnvironment {
+    TestEnvironment::new_stopped(cfg)
+}
+
 #[allow(clippy::module_name_repetitions)]
-pub async fn running_test_environment() -> RunningTestEnvironment {
-    TestEnvironment::new_running().await
+pub async fn running_test_environment(cfg: torrust_tracker_configuration::Configuration) -> RunningTestEnvironment {
+    TestEnvironment::new_running(cfg).await
 }
 
-pub fn udp_server() -> StoppedUdpServer {
-    let config = Arc::new(configuration::ephemeral());
-
-    let tracker = new_tracker(config.clone());
-
-    UdpServer::new(config.udp_trackers[0].clone(), tracker)
-}
-
-pub async fn running_udp_server() -> RunningUdpServer {
-    udp_server().start().await.unwrap()
+pub fn udp_server(cfg: torrust_tracker_configuration::UdpTracker) -> StoppedUdpServer {
+    UdpServer::new(cfg)
 }

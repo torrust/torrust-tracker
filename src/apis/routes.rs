@@ -10,7 +10,7 @@ use super::handlers::{
 use super::middlewares::auth::auth;
 use crate::tracker::Tracker;
 
-pub fn router(tracker: &Arc<Tracker>) -> Router {
+pub fn router(tracker: Arc<Tracker>) -> Router {
     Router::new()
         // Stats
         .route("/api/stats", get(get_stats_handler).with_state(tracker.clone()))
