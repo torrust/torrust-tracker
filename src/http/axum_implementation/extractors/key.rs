@@ -7,7 +7,7 @@ use axum::extract::{FromRequestParts, Path};
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
 
-use crate::http::axum_implementation::handlers::auth::{self, KeyParam};
+use crate::http::axum_implementation::handlers::common::auth::{self, KeyParam};
 use crate::http::axum_implementation::responses;
 use crate::tracker::auth::Key;
 
