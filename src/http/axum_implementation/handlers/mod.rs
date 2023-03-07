@@ -2,7 +2,6 @@ use super::responses;
 use crate::tracker::error::Error;
 
 pub mod announce;
-pub mod auth;
 pub mod common;
 pub mod scrape;
 

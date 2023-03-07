@@ -6,12 +6,23 @@ use axum::extract::rejection::PathRejection;
 use axum::extract::{FromRequestParts, Path};
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
+use serde::Deserialize;
 
-use crate::http::axum_implementation::handlers::auth::{self, KeyParam};
+use crate::http::axum_implementation::handlers::common::auth;
 use crate::http::axum_implementation::responses;
 use crate::tracker::auth::Key;
 
 pub struct Extract(pub Key);
+
+#[derive(Deserialize)]
+pub struct KeyParam(String);
+
+impl KeyParam {
+    #[must_use]
+    pub fn value(&self) -> String {
+        self.0.clone()
+    }
+}
 
 #[async_trait]
 impl<S> FromRequestParts<S> for Extract
