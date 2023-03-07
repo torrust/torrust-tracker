@@ -16,13 +16,9 @@ use crate::http::axum_implementation::responses::{self, announce};
 use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
 use crate::http::axum_implementation::services::{self, peer_ip_resolver};
 use crate::protocol::clock::{Current, Time};
+use crate::tracker::auth::Key;
 use crate::tracker::peer::Peer;
-use crate::tracker::Tracker;
-
-/* code-review: authentication, authorization and peer IP resolution could be moved
-   from the handler (Axum) layer into the app layer `services::announce::invoke`.
-   That would make the handler even simpler and the code more reusable and decoupled from Axum.
-*/
+use crate::tracker::{AnnounceData, Tracker};
 
 #[allow(clippy::unused_async)]
 pub async fn handle_without_key(
@@ -32,14 +28,7 @@ pub async fn handle_without_key(
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
 
-    if tracker.requires_authentication() {
-        return responses::error::Error::from(auth::Error::MissingAuthKey {
-            location: Location::caller(),
-        })
-        .into_response();
-    }
-
-    handle(&tracker, &announce_request, &client_ip_sources).await
+    handle(&tracker, &announce_request, &client_ip_sources, None).await
 }
 
 #[allow(clippy::unused_async)]
@@ -51,29 +40,67 @@ pub async fn handle_with_key(
 ) -> Response {
     debug!("http announce request: {:#?}", announce_request);
 
-    match tracker.authenticate(&key).await {
-        Ok(_) => (),
-        Err(error) => return responses::error::Error::from(error).into_response(),
-    }
-
-    handle(&tracker, &announce_request, &client_ip_sources).await
+    handle(&tracker, &announce_request, &client_ip_sources, Some(key)).await
 }
 
-async fn handle(tracker: &Arc<Tracker>, announce_request: &Announce, client_ip_sources: &ClientIpSources) -> Response {
+async fn handle(
+    tracker: &Arc<Tracker>,
+    announce_request: &Announce,
+    client_ip_sources: &ClientIpSources,
+    maybe_key: Option<Key>,
+) -> Response {
+    let announce_data = match handle_announce(tracker, announce_request, client_ip_sources, maybe_key).await {
+        Ok(announce_data) => announce_data,
+        Err(error) => return error.into_response(),
+    };
+    build_response(announce_request, announce_data)
+}
+
+/* code-review: authentication, authorization and peer IP resolution could be moved
+   from the handler (Axum) layer into the app layer `services::announce::invoke`.
+   That would make the handler even simpler and the code more reusable and decoupled from Axum.
+*/
+
+async fn handle_announce(
+    tracker: &Arc<Tracker>,
+    announce_request: &Announce,
+    client_ip_sources: &ClientIpSources,
+    maybe_key: Option<Key>,
+) -> Result<AnnounceData, responses::error::Error> {
+    // Authentication
+    if tracker.requires_authentication() {
+        match maybe_key {
+            Some(key) => match tracker.authenticate(&key).await {
+                Ok(_) => (),
+                Err(error) => return Err(responses::error::Error::from(error)),
+            },
+            None => {
+                return Err(responses::error::Error::from(auth::Error::MissingAuthKey {
+                    location: Location::caller(),
+                }))
+            }
+        }
+    }
+
+    // Authorization
     match tracker.authorize(&announce_request.info_hash).await {
         Ok(_) => (),
-        Err(error) => return responses::error::Error::from(error).into_response(),
+        Err(error) => return Err(responses::error::Error::from(error)),
     }
 
     let peer_ip = match peer_ip_resolver::invoke(tracker.config.on_reverse_proxy, client_ip_sources) {
         Ok(peer_ip) => peer_ip,
-        Err(error) => return responses::error::Error::from(error).into_response(),
+        Err(error) => return Err(responses::error::Error::from(error)),
     };
 
     let mut peer = peer_from_request(announce_request, &peer_ip);
 
     let announce_data = services::announce::invoke(tracker.clone(), announce_request.info_hash, &mut peer).await;
 
+    Ok(announce_data)
+}
+
+fn build_response(announce_request: &Announce, announce_data: AnnounceData) -> Response {
     match &announce_request.compact {
         Some(compact) => match compact {
             Compact::Accepted => announce::Compact::from(announce_data).into_response(),
@@ -106,5 +133,213 @@ fn map_to_aquatic_event(event: &Option<Event>) -> AnnounceEvent {
             Event::Completed => aquatic_udp_protocol::AnnounceEvent::Completed,
         },
         None => aquatic_udp_protocol::AnnounceEvent::None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use crate::config::{ephemeral_configuration, Configuration};
+    use crate::http::axum_implementation::requests::announce::Announce;
+    use crate::http::axum_implementation::responses;
+    use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+    use crate::protocol::info_hash::InfoHash;
+    use crate::tracker::mode::Mode;
+    use crate::tracker::statistics::Keeper;
+    use crate::tracker::{peer, Tracker};
+
+    fn private_tracker() -> Tracker {
+        let mut configuration = ephemeral_configuration();
+        configuration.mode = Mode::Private;
+        tracker_factory(configuration)
+    }
+
+    fn listed_tracker() -> Tracker {
+        let mut configuration = ephemeral_configuration();
+        configuration.mode = Mode::Listed;
+        tracker_factory(configuration)
+    }
+
+    fn tracker_on_reverse_proxy() -> Tracker {
+        let mut configuration = ephemeral_configuration();
+        configuration.on_reverse_proxy = true;
+        tracker_factory(configuration)
+    }
+
+    fn tracker_not_on_reverse_proxy() -> Tracker {
+        let mut configuration = ephemeral_configuration();
+        configuration.on_reverse_proxy = false;
+        tracker_factory(configuration)
+    }
+
+    fn tracker_factory(configuration: Configuration) -> Tracker {
+        // code-review: the tracker initialization is duplicated in many places. Consider make this function public.
+
+        // Initialize stats tracker
+        let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
+
+        // Initialize Torrust tracker
+        match Tracker::new(&Arc::new(configuration), Some(stats_event_sender), stats_repository) {
+            Ok(tracker) => tracker,
+            Err(error) => {
+                panic!("{}", error)
+            }
+        }
+    }
+
+    fn sample_announce_request() -> Announce {
+        Announce {
+            info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
+            peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
+            port: 17548,
+            downloaded: None,
+            uploaded: None,
+            left: None,
+            event: None,
+            compact: None,
+        }
+    }
+
+    fn sample_client_ip_sources() -> ClientIpSources {
+        ClientIpSources {
+            right_most_x_forwarded_for: None,
+            connection_info_ip: None,
+        }
+    }
+
+    fn assert_error_response(error: &responses::error::Error, error_message: &str) {
+        assert!(
+            error.failure_reason.contains(error_message),
+            "Error response does not contain message: '{error_message}'. Error: {error:?}"
+        );
+    }
+
+    mod with_tracker_in_private_mode {
+
+        use std::str::FromStr;
+        use std::sync::Arc;
+
+        use super::{private_tracker, sample_announce_request, sample_client_ip_sources};
+        use crate::http::axum_implementation::handlers::announce::handle_announce;
+        use crate::http::axum_implementation::handlers::announce::tests::assert_error_response;
+        use crate::tracker::auth;
+
+        #[tokio::test]
+        async fn it_should_fail_when_the_authentication_key_is_missing() {
+            let tracker = Arc::new(private_tracker());
+
+            let maybe_key = None;
+
+            let response = handle_announce(&tracker, &sample_announce_request(), &sample_client_ip_sources(), maybe_key)
+                .await
+                .unwrap_err();
+
+            assert_error_response(
+                &response,
+                "Authentication error: Missing authentication key param for private tracker",
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_fail_when_the_authentication_key_is_invalid() {
+            let tracker = Arc::new(private_tracker());
+
+            let unregistered_key = auth::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+
+            let maybe_key = Some(unregistered_key);
+
+            let response = handle_announce(&tracker, &sample_announce_request(), &sample_client_ip_sources(), maybe_key)
+                .await
+                .unwrap_err();
+
+            assert_error_response(&response, "Authentication error: Failed to read key");
+        }
+    }
+
+    mod with_tracker_in_listed_mode {
+
+        use std::sync::Arc;
+
+        use super::{listed_tracker, sample_announce_request, sample_client_ip_sources};
+        use crate::http::axum_implementation::handlers::announce::handle_announce;
+        use crate::http::axum_implementation::handlers::announce::tests::assert_error_response;
+
+        #[tokio::test]
+        async fn it_should_fail_when_the_announced_torrent_is_not_whitelisted() {
+            let tracker = Arc::new(listed_tracker());
+
+            let announce_request = sample_announce_request();
+
+            let response = handle_announce(&tracker, &announce_request, &sample_client_ip_sources(), None)
+                .await
+                .unwrap_err();
+
+            assert_error_response(
+                &response,
+                &format!(
+                    "Tracker error: The torrent: {}, is not whitelisted",
+                    announce_request.info_hash
+                ),
+            );
+        }
+    }
+
+    mod with_tracker_on_reverse_proxy {
+
+        use std::sync::Arc;
+
+        use super::{sample_announce_request, tracker_on_reverse_proxy};
+        use crate::http::axum_implementation::handlers::announce::handle_announce;
+        use crate::http::axum_implementation::handlers::announce::tests::assert_error_response;
+        use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+
+        #[tokio::test]
+        async fn it_should_fail_when_the_right_most_x_forwarded_for_header_ip_is_not_available() {
+            let tracker = Arc::new(tracker_on_reverse_proxy());
+
+            let client_ip_sources = ClientIpSources {
+                right_most_x_forwarded_for: None,
+                connection_info_ip: None,
+            };
+
+            let response = handle_announce(&tracker, &sample_announce_request(), &client_ip_sources, None)
+                .await
+                .unwrap_err();
+
+            assert_error_response(
+                &response,
+                "Error resolving peer IP: missing or invalid the right most X-Forwarded-For IP",
+            );
+        }
+    }
+
+    mod with_tracker_not_on_reverse_proxy {
+
+        use std::sync::Arc;
+
+        use super::{sample_announce_request, tracker_not_on_reverse_proxy};
+        use crate::http::axum_implementation::handlers::announce::handle_announce;
+        use crate::http::axum_implementation::handlers::announce::tests::assert_error_response;
+        use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+
+        #[tokio::test]
+        async fn it_should_fail_when_the_client_ip_from_the_connection_info_is_not_available() {
+            let tracker = Arc::new(tracker_not_on_reverse_proxy());
+
+            let client_ip_sources = ClientIpSources {
+                right_most_x_forwarded_for: None,
+                connection_info_ip: None,
+            };
+
+            let response = handle_announce(&tracker, &sample_announce_request(), &client_ip_sources, None)
+                .await
+                .unwrap_err();
+
+            assert_error_response(
+                &response,
+                "Error resolving peer IP: cannot get the client IP from the connection info",
+            );
+        }
     }
 }
