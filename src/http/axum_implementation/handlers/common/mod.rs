@@ -1,2 +1,2 @@
-pub mod peer_ip;
 pub mod auth;
+pub mod peer_ip;
