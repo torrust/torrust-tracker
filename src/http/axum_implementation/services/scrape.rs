@@ -14,7 +14,7 @@ pub async fn invoke(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, origina
 
 /// When the peer is not authenticated and the tracker is running in `private` mode,
 /// the tracker returns empty stats for all the torrents.
-pub async fn fake_invoke(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
+pub async fn fake(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
     send_scrape_event(original_peer_ip, tracker).await;
 
     ScrapeData::zeroed(info_hashes)
