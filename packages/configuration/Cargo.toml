@@ -1,0 +1,16 @@
+[package]
+name = "torrust-tracker-configuration"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_with = "2.0"
+config = "0.13"
+toml = "0.5"
+log = { version = "0.4", features = ["release_max_level_info"] }
+thiserror = "1.0"
+torrust-tracker-primitives = { path = "../primitives" }
+torrust-tracker-located-error = { path = "../located-error" }
+uuid = { version = "1", features = ["v4"] }

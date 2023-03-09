@@ -26,36 +26,17 @@ pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut Peer)
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-    use std::sync::Arc;
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use torrust_tracker_test_helpers::configuration;
 
-    use crate::config::{ephemeral_configuration, Configuration};
     use crate::protocol::clock::DurationSinceUnixEpoch;
     use crate::protocol::info_hash::InfoHash;
-    use crate::tracker::mode::Mode;
-    use crate::tracker::statistics::Keeper;
+    use crate::tracker::services::common::tracker_factory;
     use crate::tracker::{peer, Tracker};
 
     fn public_tracker() -> Tracker {
-        let mut configuration = ephemeral_configuration();
-        configuration.mode = Mode::Public;
-        tracker_factory(configuration)
-    }
-
-    fn tracker_factory(configuration: Configuration) -> Tracker {
-        // code-review: the tracker initialization is duplicated in many places. Consider make this function public.
-
-        // Initialize stats tracker
-        let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
-
-        // Initialize Torrust tracker
-        match Tracker::new(&Arc::new(configuration), Some(stats_event_sender), stats_repository) {
-            Ok(tracker) => tracker,
-            Err(error) => {
-                panic!("{}", error)
-            }
-        }
+        tracker_factory(configuration::ephemeral_mode_public().into())
     }
 
     fn sample_info_hash() -> InfoHash {
@@ -93,9 +74,9 @@ mod tests {
         use std::sync::Arc;
 
         use mockall::predicate::eq;
+        use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
-        use crate::config::ephemeral_configuration;
         use crate::http::axum_implementation::services::announce::invoke;
         use crate::http::axum_implementation::services::announce::tests::{public_tracker, sample_info_hash, sample_peer};
         use crate::tracker::peer::Peer;
@@ -136,7 +117,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    &Arc::new(ephemeral_configuration()),
+                    Arc::new(configuration::ephemeral()),
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )
@@ -149,11 +130,11 @@ mod tests {
         }
 
         fn tracker_with_an_ipv6_external_ip(stats_event_sender: Box<dyn statistics::EventSender>) -> Tracker {
-            let mut configuration = ephemeral_configuration();
+            let mut configuration = configuration::ephemeral();
             configuration.external_ip =
                 Some(IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)).to_string());
 
-            Tracker::new(&Arc::new(configuration), Some(stats_event_sender), statistics::Repo::new()).unwrap()
+            Tracker::new(Arc::new(configuration), Some(stats_event_sender), statistics::Repo::new()).unwrap()
         }
 
         fn peer_with_the_ipv4_loopback_ip() -> Peer {
@@ -200,7 +181,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    &Arc::new(ephemeral_configuration()),
+                    Arc::new(configuration::ephemeral()),
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )

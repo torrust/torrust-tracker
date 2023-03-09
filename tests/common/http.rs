@@ -1,11 +1,6 @@
 pub type ReqwestQuery = Vec<ReqwestQueryParam>;
 pub type ReqwestQueryParam = (String, String);
 
-#[derive(Clone, Debug)]
-pub struct ConnectionInfo {
-    pub bind_address: String,
-}
-
 /// URL Query component
 #[derive(Default, Debug)]
 pub struct Query {

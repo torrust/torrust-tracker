@@ -4,14 +4,14 @@ use std::str::FromStr;
 use async_trait::async_trait;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
+use torrust_tracker_primitives::DatabaseDriver;
 
-use super::driver::Driver;
 use crate::databases::{Database, Error};
 use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth::{self, Key};
 
-const DRIVER: Driver = Driver::Sqlite3;
+const DRIVER: DatabaseDriver = DatabaseDriver::Sqlite3;
 
 pub struct Sqlite {
     pool: Pool<SqliteConnectionManager>,
@@ -24,7 +24,7 @@ impl Database for Sqlite {
     /// Will return `r2d2::Error` if `db_path` is not able to create `SqLite` database.
     fn new(db_path: &str) -> Result<Sqlite, Error> {
         let cm = SqliteConnectionManager::file(db_path);
-        Pool::new(cm).map_or_else(|err| Err((err, Driver::Sqlite3).into()), |pool| Ok(Sqlite { pool }))
+        Pool::new(cm).map_or_else(|err| Err((err, DatabaseDriver::Sqlite3).into()), |pool| Ok(Sqlite { pool }))
     }
 
     fn create_database_tables(&self) -> Result<(), Error> {

@@ -1,41 +1,54 @@
 use std::io::Cursor;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::sync::Arc;
 
 use aquatic_udp_protocol::{Request, Response};
-use rand::{thread_rng, Rng};
+use tokio::net::UdpSocket;
 use torrust_tracker::udp::MAX_PACKET_SIZE;
 
-use crate::common::udp::Client as UdpClient;
+use crate::udp::source_address;
 
-/// Creates a new generic UDP client connected to a generic UDP server
-pub async fn new_udp_client_connected(remote_address: &SocketAddr) -> UdpClient {
-    let local_address = loopback_socket_address(ephemeral_random_client_port());
-    UdpClient::connected(remote_address, &local_address).await
+#[allow(clippy::module_name_repetitions)]
+pub struct UdpClient {
+    pub socket: Arc<UdpSocket>,
 }
 
-/// Creates a new UDP tracker client connected to a UDP tracker server
-pub async fn new_udp_tracker_client_connected(remote_address: &SocketAddr) -> Client {
-    let udp_client = new_udp_client_connected(remote_address).await;
-    Client { udp_client }
+impl UdpClient {
+    pub async fn bind(local_address: &str) -> Self {
+        let socket = UdpSocket::bind(local_address).await.unwrap();
+        Self {
+            socket: Arc::new(socket),
+        }
+    }
+
+    pub async fn connect(&self, remote_address: &str) {
+        self.socket.connect(remote_address).await.unwrap();
+    }
+
+    pub async fn send(&self, bytes: &[u8]) -> usize {
+        self.socket.writable().await.unwrap();
+        self.socket.send(bytes).await.unwrap()
+    }
+
+    pub async fn receive(&self, bytes: &mut [u8]) -> usize {
+        self.socket.readable().await.unwrap();
+        self.socket.recv(bytes).await.unwrap()
+    }
 }
 
-pub fn ephemeral_random_client_port() -> u16 {
-    // todo: this may produce random test failures because two tests can try to bind the same port.
-    // We could create a pool of available ports (with read/write lock)
-    let mut rng = thread_rng();
-    rng.gen_range(49152..65535)
+/// Creates a new `UdpClient` connected to a Udp server
+pub async fn new_udp_client_connected(remote_address: &str) -> UdpClient {
+    let port = 0; // Let OS choose an unused port.
+    let client = UdpClient::bind(&source_address(port)).await;
+    client.connect(remote_address).await;
+    client
 }
 
-fn loopback_socket_address(port: u16) -> SocketAddr {
-    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), port)
+#[allow(clippy::module_name_repetitions)]
+pub struct UdpTrackerClient {
+    pub udp_client: UdpClient,
 }
 
-/// A UDP tracker client
-pub struct Client {
-    pub udp_client: UdpClient, // A generic UDP client
-}
-
-impl Client {
+impl UdpTrackerClient {
     pub async fn send(&self, request: Request) -> usize {
         // Write request into a buffer
         let request_buffer = vec![0u8; MAX_PACKET_SIZE];
@@ -62,4 +75,10 @@ impl Client {
 
         Response::from_bytes(&response_buffer[..payload_size], true).unwrap()
     }
+}
+
+/// Creates a new `UdpTrackerClient` connected to a Udp Tracker server
+pub async fn new_udp_tracker_client_connected(remote_address: &str) -> UdpTrackerClient {
+    let udp_client = new_udp_client_connected(remote_address).await;
+    UdpTrackerClient { udp_client }
 }

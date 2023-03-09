@@ -3,8 +3,8 @@ use std::sync::Arc;
 use chrono::Utc;
 use log::info;
 use tokio::task::JoinHandle;
+use torrust_tracker_configuration::Configuration;
 
-use crate::config::Configuration;
 use crate::tracker;
 
 #[must_use]

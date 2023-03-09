@@ -138,54 +138,30 @@ fn map_to_aquatic_event(event: &Option<Event>) -> AnnounceEvent {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
 
-    use crate::config::{ephemeral_configuration, Configuration};
+    use torrust_tracker_test_helpers::configuration;
+
     use crate::http::axum_implementation::requests::announce::Announce;
     use crate::http::axum_implementation::responses;
     use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
     use crate::protocol::info_hash::InfoHash;
-    use crate::tracker::mode::Mode;
-    use crate::tracker::statistics::Keeper;
+    use crate::tracker::services::common::tracker_factory;
     use crate::tracker::{peer, Tracker};
 
     fn private_tracker() -> Tracker {
-        let mut configuration = ephemeral_configuration();
-        configuration.mode = Mode::Private;
-        tracker_factory(configuration)
+        tracker_factory(configuration::ephemeral_mode_private().into())
     }
 
-    fn listed_tracker() -> Tracker {
-        let mut configuration = ephemeral_configuration();
-        configuration.mode = Mode::Listed;
-        tracker_factory(configuration)
+    fn whitelisted_tracker() -> Tracker {
+        tracker_factory(configuration::ephemeral_mode_whitelisted().into())
     }
 
     fn tracker_on_reverse_proxy() -> Tracker {
-        let mut configuration = ephemeral_configuration();
-        configuration.on_reverse_proxy = true;
-        tracker_factory(configuration)
+        tracker_factory(configuration::ephemeral_with_reverse_proxy().into())
     }
 
     fn tracker_not_on_reverse_proxy() -> Tracker {
-        let mut configuration = ephemeral_configuration();
-        configuration.on_reverse_proxy = false;
-        tracker_factory(configuration)
-    }
-
-    fn tracker_factory(configuration: Configuration) -> Tracker {
-        // code-review: the tracker initialization is duplicated in many places. Consider make this function public.
-
-        // Initialize stats tracker
-        let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
-
-        // Initialize Torrust tracker
-        match Tracker::new(&Arc::new(configuration), Some(stats_event_sender), stats_repository) {
-            Ok(tracker) => tracker,
-            Err(error) => {
-                panic!("{}", error)
-            }
-        }
+        tracker_factory(configuration::ephemeral_without_reverse_proxy().into())
     }
 
     fn sample_announce_request() -> Announce {
@@ -261,13 +237,13 @@ mod tests {
 
         use std::sync::Arc;
 
-        use super::{listed_tracker, sample_announce_request, sample_client_ip_sources};
+        use super::{sample_announce_request, sample_client_ip_sources, whitelisted_tracker};
         use crate::http::axum_implementation::handlers::announce::handle_announce;
         use crate::http::axum_implementation::handlers::announce::tests::assert_error_response;
 
         #[tokio::test]
         async fn it_should_fail_when_the_announced_torrent_is_not_whitelisted() {
-            let tracker = Arc::new(listed_tracker());
+            let tracker = Arc::new(whitelisted_tracker());
 
             let announce_request = sample_announce_request();
 

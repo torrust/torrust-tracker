@@ -96,54 +96,30 @@ fn build_response(scrape_data: ScrapeData) -> Response {
 mod tests {
     use std::net::IpAddr;
     use std::str::FromStr;
-    use std::sync::Arc;
 
-    use crate::config::{ephemeral_configuration, Configuration};
+    use torrust_tracker_test_helpers::configuration;
+
     use crate::http::axum_implementation::requests::scrape::Scrape;
     use crate::http::axum_implementation::responses;
     use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
     use crate::protocol::info_hash::InfoHash;
-    use crate::tracker::mode::Mode;
-    use crate::tracker::statistics::Keeper;
+    use crate::tracker::services::common::tracker_factory;
     use crate::tracker::Tracker;
 
     fn private_tracker() -> Tracker {
-        let mut configuration = ephemeral_configuration();
-        configuration.mode = Mode::Private;
-        tracker_factory(configuration)
+        tracker_factory(configuration::ephemeral_mode_private().into())
     }
 
-    fn listed_tracker() -> Tracker {
-        let mut configuration = ephemeral_configuration();
-        configuration.mode = Mode::Listed;
-        tracker_factory(configuration)
+    fn whitelisted_tracker() -> Tracker {
+        tracker_factory(configuration::ephemeral_mode_whitelisted().into())
     }
 
     fn tracker_on_reverse_proxy() -> Tracker {
-        let mut configuration = ephemeral_configuration();
-        configuration.on_reverse_proxy = true;
-        tracker_factory(configuration)
+        tracker_factory(configuration::ephemeral_with_reverse_proxy().into())
     }
 
     fn tracker_not_on_reverse_proxy() -> Tracker {
-        let mut configuration = ephemeral_configuration();
-        configuration.on_reverse_proxy = false;
-        tracker_factory(configuration)
-    }
-
-    fn tracker_factory(configuration: Configuration) -> Tracker {
-        // code-review: the tracker initialization is duplicated in many places. Consider make this function public.
-
-        // Initialize stats tracker
-        let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
-
-        // Initialize Torrust tracker
-        match Tracker::new(&Arc::new(configuration), Some(stats_event_sender), stats_repository) {
-            Ok(tracker) => tracker,
-            Err(error) => {
-                panic!("{}", error)
-            }
-        }
+        tracker_factory(configuration::ephemeral_without_reverse_proxy().into())
     }
 
     fn sample_scrape_request() -> Scrape {
@@ -212,13 +188,13 @@ mod tests {
 
         use std::sync::Arc;
 
-        use super::{listed_tracker, sample_client_ip_sources, sample_scrape_request};
+        use super::{sample_client_ip_sources, sample_scrape_request, whitelisted_tracker};
         use crate::http::axum_implementation::handlers::scrape::handle_scrape;
         use crate::tracker::ScrapeData;
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_torrent_is_not_whitelisted() {
-            let tracker = Arc::new(listed_tracker());
+            let tracker = Arc::new(whitelisted_tracker());
 
             let scrape_request = sample_scrape_request();
 
