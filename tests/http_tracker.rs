@@ -61,9 +61,7 @@ mod warp_test_env {
 
                 let params = QueryBuilder::default().query().params();
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_could_not_find_remote_address_on_xff_header_error_response(response).await;
 
@@ -76,7 +74,7 @@ mod warp_test_env {
 
                 let params = QueryBuilder::default().query().params();
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
                     .await;
 
@@ -131,9 +129,7 @@ mod warp_test_env {
 
                 params.remove_optional_params();
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_is_announce_response(response).await;
 
@@ -144,7 +140,7 @@ mod warp_test_env {
             async fn should_fail_when_the_url_query_component_is_empty() {
                 let test_env = running_test_environment::<Warp>(configuration::ephemeral()).await;
 
-                let response = Client::new(test_env.bind_address().clone()).get("announce").await;
+                let response = Client::new(*test_env.bind_address()).get("announce").await;
 
                 assert_internal_server_error_response(response).await;
             }
@@ -159,9 +155,7 @@ mod warp_test_env {
 
                 params.info_hash = None;
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_invalid_info_hash_error_response(response).await;
 
@@ -171,9 +165,7 @@ mod warp_test_env {
 
                 params.peer_id = None;
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_invalid_peer_id_error_response(response).await;
 
@@ -183,9 +175,7 @@ mod warp_test_env {
 
                 params.port = None;
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_internal_server_error_response(response).await;
 
@@ -201,9 +191,7 @@ mod warp_test_env {
                 for invalid_value in &invalid_info_hashes() {
                     params.set("info_hash", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_invalid_info_hash_error_response(response).await;
                 }
@@ -224,9 +212,7 @@ mod warp_test_env {
 
                 params.peer_addr = Some("INVALID-IP-ADDRESS".to_string());
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_is_announce_response(response).await;
 
@@ -244,9 +230,7 @@ mod warp_test_env {
                 for invalid_value in invalid_values {
                     params.set("downloaded", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_internal_server_error_response(response).await;
                 }
@@ -265,9 +249,7 @@ mod warp_test_env {
                 for invalid_value in invalid_values {
                     params.set("uploaded", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_internal_server_error_response(response).await;
                 }
@@ -293,9 +275,7 @@ mod warp_test_env {
                 for invalid_value in invalid_values {
                     params.set("peer_id", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_invalid_peer_id_error_response(response).await;
                 }
@@ -314,9 +294,7 @@ mod warp_test_env {
                 for invalid_value in invalid_values {
                     params.set("port", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_internal_server_error_response(response).await;
                 }
@@ -335,9 +313,7 @@ mod warp_test_env {
                 for invalid_value in invalid_values {
                     params.set("left", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_internal_server_error_response(response).await;
                 }
@@ -366,9 +342,7 @@ mod warp_test_env {
                 for invalid_value in invalid_values {
                     params.set("event", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_is_announce_response(response).await;
                 }
@@ -387,9 +361,7 @@ mod warp_test_env {
                 for invalid_value in invalid_values {
                     params.set("compact", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_internal_server_error_response(response).await;
                 }
@@ -401,7 +373,7 @@ mod warp_test_env {
             async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
                 let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap())
@@ -439,7 +411,7 @@ mod warp_test_env {
                 test_env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
                 // Announce the new Peer 2. This new peer is non included on the response peer list
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_info_hash(&info_hash)
@@ -481,7 +453,7 @@ mod warp_test_env {
 
                 assert_ne!(peer.peer_addr.ip(), announce_query.peer_addr);
 
-                let response = Client::new(test_env.bind_address().clone()).announce(&announce_query).await;
+                let response = Client::new(*test_env.bind_address()).announce(&announce_query).await;
 
                 assert_empty_announce_response(response).await;
 
@@ -506,7 +478,7 @@ mod warp_test_env {
                 test_env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
                 // Announce the new Peer 2 accepting compact responses
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_info_hash(&info_hash)
@@ -549,7 +521,7 @@ mod warp_test_env {
                 // Announce the new Peer 2 without passing the "compact" param
                 // By default it should respond with the compact peer list
                 // https://www.bittorrent.org/beps/bep_0023.html
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_info_hash(&info_hash)
@@ -574,7 +546,7 @@ mod warp_test_env {
             async fn should_increase_the_number_of_tcp4_connections_handled_in_statistics() {
                 let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
-                Client::new(test_env.bind_address().clone())
+                Client::new(*test_env.bind_address())
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -591,7 +563,7 @@ mod warp_test_env {
             async fn should_increase_the_number_of_tcp6_connections_handled_in_statistics() {
                 let test_env = running_test_environment::<Warp>(configuration::ephemeral_ipv6()).await;
 
-                Client::bind(test_env.bind_address().clone(), IpAddr::from_str("::1").unwrap())
+                Client::bind(*test_env.bind_address(), IpAddr::from_str("::1").unwrap())
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -610,7 +582,7 @@ mod warp_test_env {
 
                 let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
-                Client::new(test_env.bind_address().clone())
+                Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
@@ -631,7 +603,7 @@ mod warp_test_env {
             async fn should_increase_the_number_of_tcp4_announce_requests_handled_in_statistics() {
                 let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
-                Client::new(test_env.bind_address().clone())
+                Client::new(*test_env.bind_address())
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -648,7 +620,7 @@ mod warp_test_env {
             async fn should_increase_the_number_of_tcp6_announce_requests_handled_in_statistics() {
                 let test_env = running_test_environment::<Warp>(configuration::ephemeral_ipv6()).await;
 
-                Client::bind(test_env.bind_address().clone(), IpAddr::from_str("::1").unwrap())
+                Client::bind(*test_env.bind_address(), IpAddr::from_str("::1").unwrap())
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -667,7 +639,7 @@ mod warp_test_env {
 
                 let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
 
-                Client::new(test_env.bind_address().clone())
+                Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
@@ -691,7 +663,7 @@ mod warp_test_env {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let client_ip = local_ip().unwrap();
 
-                let client = Client::bind(test_env.bind_address().clone(), client_ip);
+                let client = Client::bind(*test_env.bind_address(), client_ip);
 
                 let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
@@ -727,7 +699,7 @@ mod warp_test_env {
                 let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
                 let client_ip = loopback_ip;
 
-                let client = Client::bind(test_env.bind_address().clone(), client_ip);
+                let client = Client::bind(*test_env.bind_address(), client_ip);
 
                 let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
@@ -763,7 +735,7 @@ mod warp_test_env {
                 let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
                 let client_ip = loopback_ip;
 
-                let client = Client::bind(test_env.bind_address().clone(), client_ip);
+                let client = Client::bind(*test_env.bind_address(), client_ip);
 
                 let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
@@ -794,7 +766,7 @@ mod warp_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                let client = Client::new(test_env.bind_address().clone());
+                let client = Client::new(*test_env.bind_address());
 
                 let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
 
@@ -844,7 +816,7 @@ mod warp_test_env {
             #[tokio::test]
             async fn should_fail_when_the_request_is_empty() {
                 let test_env = running_test_environment::<Warp>(configuration::ephemeral_mode_public()).await;
-                let response = Client::new(test_env.bind_address().clone()).get("scrape").await;
+                let response = Client::new(*test_env.bind_address()).get("scrape").await;
 
                 assert_internal_server_error_response(response).await;
 
@@ -860,9 +832,7 @@ mod warp_test_env {
                 for invalid_value in &invalid_info_hashes() {
                     params.set_one_info_hash_param(invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     // code-review: it's not returning the invalid info hash error
                     assert_internal_server_error_response(response).await;
@@ -887,7 +857,7 @@ mod warp_test_env {
                     )
                     .await;
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -927,7 +897,7 @@ mod warp_test_env {
                     )
                     .await;
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -957,7 +927,7 @@ mod warp_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -977,7 +947,7 @@ mod warp_test_env {
                 let info_hash1 = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let info_hash2 = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .add_info_hash(&info_hash1)
@@ -1002,7 +972,7 @@ mod warp_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                Client::new(test_env.bind_address().clone())
+                Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -1025,7 +995,7 @@ mod warp_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                Client::bind(test_env.bind_address().clone(), IpAddr::from_str("::1").unwrap())
+                Client::bind(*test_env.bind_address(), IpAddr::from_str("::1").unwrap())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -1064,7 +1034,7 @@ mod warp_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
@@ -1086,7 +1056,7 @@ mod warp_test_env {
                     .await
                     .expect("should add the torrent to the whitelist");
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
@@ -1127,7 +1097,7 @@ mod warp_test_env {
                     )
                     .await;
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -1164,7 +1134,7 @@ mod warp_test_env {
                     .await
                     .expect("should add the torrent to the whitelist");
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -1215,7 +1185,7 @@ mod warp_test_env {
 
                 let key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
-                let response = Client::authenticated(test_env.bind_address().clone(), key.id())
+                let response = Client::authenticated(*test_env.bind_address(), key.id())
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -1230,7 +1200,7 @@ mod warp_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
@@ -1244,7 +1214,7 @@ mod warp_test_env {
                 // The tracker does not have this key
                 let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
-                let response = Client::authenticated(test_env.bind_address().clone(), unregistered_key)
+                let response = Client::authenticated(*test_env.bind_address(), unregistered_key)
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -1288,7 +1258,7 @@ mod warp_test_env {
                     )
                     .await;
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -1321,7 +1291,7 @@ mod warp_test_env {
 
                 let key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
-                let response = Client::authenticated(test_env.bind_address().clone(), key.id())
+                let response = Client::authenticated(*test_env.bind_address(), key.id())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -1365,7 +1335,7 @@ mod warp_test_env {
 
                 let false_key: Key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
 
-                let response = Client::authenticated(test_env.bind_address().clone(), false_key)
+                let response = Client::authenticated(*test_env.bind_address(), false_key)
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -1414,9 +1384,7 @@ mod axum_test_env {
 
                 let params = QueryBuilder::default().query().params();
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response(response).await;
 
@@ -1429,7 +1397,7 @@ mod axum_test_env {
 
                 let params = QueryBuilder::default().query().params();
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
                     .await;
 
@@ -1483,9 +1451,7 @@ mod axum_test_env {
 
                 params.remove_optional_params();
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_is_announce_response(response).await;
 
@@ -1496,7 +1462,7 @@ mod axum_test_env {
             async fn should_fail_when_the_url_query_component_is_empty() {
                 let test_env = running_test_environment::<Axum>(configuration::ephemeral()).await;
 
-                let response = Client::new(test_env.bind_address().clone()).get("announce").await;
+                let response = Client::new(*test_env.bind_address()).get("announce").await;
 
                 assert_missing_query_params_for_announce_request_error_response(response).await;
 
@@ -1509,7 +1475,7 @@ mod axum_test_env {
 
                 let invalid_query_param = "a=b=c";
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .get(&format!("announce?{invalid_query_param}"))
                     .await;
 
@@ -1528,9 +1494,7 @@ mod axum_test_env {
 
                 params.info_hash = None;
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_bad_announce_request_error_response(response, "missing param info_hash").await;
 
@@ -1540,9 +1504,7 @@ mod axum_test_env {
 
                 params.peer_id = None;
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_bad_announce_request_error_response(response, "missing param peer_id").await;
 
@@ -1552,9 +1514,7 @@ mod axum_test_env {
 
                 params.port = None;
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_bad_announce_request_error_response(response, "missing param port").await;
 
@@ -1570,9 +1530,7 @@ mod axum_test_env {
                 for invalid_value in &invalid_info_hashes() {
                     params.set("info_hash", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_cannot_parse_query_params_error_response(response, "").await;
                 }
@@ -1593,9 +1551,7 @@ mod axum_test_env {
 
                 params.peer_addr = Some("INVALID-IP-ADDRESS".to_string());
 
-                let response = Client::new(test_env.bind_address().clone())
-                    .get(&format!("announce?{params}"))
-                    .await;
+                let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                 assert_is_announce_response(response).await;
 
@@ -1613,9 +1569,7 @@ mod axum_test_env {
                 for invalid_value in invalid_values {
                     params.set("downloaded", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
@@ -1634,9 +1588,7 @@ mod axum_test_env {
                 for invalid_value in invalid_values {
                     params.set("uploaded", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
@@ -1662,9 +1614,7 @@ mod axum_test_env {
                 for invalid_value in invalid_values {
                     params.set("peer_id", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
@@ -1683,9 +1633,7 @@ mod axum_test_env {
                 for invalid_value in invalid_values {
                     params.set("port", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
@@ -1704,9 +1652,7 @@ mod axum_test_env {
                 for invalid_value in invalid_values {
                     params.set("left", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
@@ -1733,9 +1679,7 @@ mod axum_test_env {
                 for invalid_value in invalid_values {
                     params.set("event", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
@@ -1754,9 +1698,7 @@ mod axum_test_env {
                 for invalid_value in invalid_values {
                     params.set("compact", invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_bad_announce_request_error_response(response, "invalid param value").await;
                 }
@@ -1768,7 +1710,7 @@ mod axum_test_env {
             async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
                 let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap())
@@ -1806,7 +1748,7 @@ mod axum_test_env {
                 test_env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
                 // Announce the new Peer 2. This new peer is non included on the response peer list
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_info_hash(&info_hash)
@@ -1855,7 +1797,7 @@ mod axum_test_env {
                 test_env.add_torrent_peer(&info_hash, &peer_using_ipv6).await;
 
                 // Announce the new Peer.
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_info_hash(&info_hash)
@@ -1898,7 +1840,7 @@ mod axum_test_env {
 
                 assert_ne!(peer.peer_addr.ip(), announce_query.peer_addr);
 
-                let response = Client::new(test_env.bind_address().clone()).announce(&announce_query).await;
+                let response = Client::new(*test_env.bind_address()).announce(&announce_query).await;
 
                 assert_empty_announce_response(response).await;
 
@@ -1923,7 +1865,7 @@ mod axum_test_env {
                 test_env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
                 // Announce the new Peer 2 accepting compact responses
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_info_hash(&info_hash)
@@ -1966,7 +1908,7 @@ mod axum_test_env {
                 // Announce the new Peer 2 without passing the "compact" param
                 // By default it should respond with the compact peer list
                 // https://www.bittorrent.org/beps/bep_0023.html
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_info_hash(&info_hash)
@@ -1991,7 +1933,7 @@ mod axum_test_env {
             async fn should_increase_the_number_of_tcp4_connections_handled_in_statistics() {
                 let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
-                Client::new(test_env.bind_address().clone())
+                Client::new(*test_env.bind_address())
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -2008,7 +1950,7 @@ mod axum_test_env {
             async fn should_increase_the_number_of_tcp6_connections_handled_in_statistics() {
                 let test_env = running_test_environment::<Axum>(configuration::ephemeral_ipv6()).await;
 
-                Client::bind(test_env.bind_address().clone(), IpAddr::from_str("::1").unwrap())
+                Client::bind(*test_env.bind_address(), IpAddr::from_str("::1").unwrap())
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -2027,7 +1969,7 @@ mod axum_test_env {
 
                 let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
-                Client::new(test_env.bind_address().clone())
+                Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
@@ -2048,7 +1990,7 @@ mod axum_test_env {
             async fn should_increase_the_number_of_tcp4_announce_requests_handled_in_statistics() {
                 let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
-                Client::new(test_env.bind_address().clone())
+                Client::new(*test_env.bind_address())
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -2065,7 +2007,7 @@ mod axum_test_env {
             async fn should_increase_the_number_of_tcp6_announce_requests_handled_in_statistics() {
                 let test_env = running_test_environment::<Axum>(configuration::ephemeral_ipv6()).await;
 
-                Client::bind(test_env.bind_address().clone(), IpAddr::from_str("::1").unwrap())
+                Client::bind(*test_env.bind_address(), IpAddr::from_str("::1").unwrap())
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -2084,7 +2026,7 @@ mod axum_test_env {
 
                 let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
 
-                Client::new(test_env.bind_address().clone())
+                Client::new(*test_env.bind_address())
                     .announce(
                         &QueryBuilder::default()
                             .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
@@ -2108,7 +2050,7 @@ mod axum_test_env {
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let client_ip = local_ip().unwrap();
 
-                let client = Client::bind(test_env.bind_address().clone(), client_ip);
+                let client = Client::bind(*test_env.bind_address(), client_ip);
 
                 let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
@@ -2144,7 +2086,7 @@ mod axum_test_env {
                 let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
                 let client_ip = loopback_ip;
 
-                let client = Client::bind(test_env.bind_address().clone(), client_ip);
+                let client = Client::bind(*test_env.bind_address(), client_ip);
 
                 let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
@@ -2180,7 +2122,7 @@ mod axum_test_env {
                 let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
                 let client_ip = loopback_ip;
 
-                let client = Client::bind(test_env.bind_address().clone(), client_ip);
+                let client = Client::bind(*test_env.bind_address(), client_ip);
 
                 let announce_query = QueryBuilder::default()
                     .with_info_hash(&info_hash)
@@ -2211,7 +2153,7 @@ mod axum_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                let client = Client::new(test_env.bind_address().clone());
+                let client = Client::new(*test_env.bind_address());
 
                 let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
 
@@ -2265,7 +2207,7 @@ mod axum_test_env {
             #[allow(dead_code)]
             async fn should_fail_when_the_request_is_empty() {
                 let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_public()).await;
-                let response = Client::new(test_env.bind_address().clone()).get("scrape").await;
+                let response = Client::new(*test_env.bind_address()).get("scrape").await;
 
                 assert_missing_query_params_for_scrape_request_error_response(response).await;
 
@@ -2281,9 +2223,7 @@ mod axum_test_env {
                 for invalid_value in &invalid_info_hashes() {
                     params.set_one_info_hash_param(invalid_value);
 
-                    let response = Client::new(test_env.bind_address().clone())
-                        .get(&format!("announce?{params}"))
-                        .await;
+                    let response = Client::new(*test_env.bind_address()).get(&format!("announce?{params}")).await;
 
                     assert_cannot_parse_query_params_error_response(response, "").await;
                 }
@@ -2307,7 +2247,7 @@ mod axum_test_env {
                     )
                     .await;
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -2347,7 +2287,7 @@ mod axum_test_env {
                     )
                     .await;
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -2377,7 +2317,7 @@ mod axum_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -2397,7 +2337,7 @@ mod axum_test_env {
                 let info_hash1 = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
                 let info_hash2 = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .add_info_hash(&info_hash1)
@@ -2422,7 +2362,7 @@ mod axum_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                Client::new(test_env.bind_address().clone())
+                Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -2445,7 +2385,7 @@ mod axum_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                Client::bind(test_env.bind_address().clone(), IpAddr::from_str("::1").unwrap())
+                Client::bind(*test_env.bind_address(), IpAddr::from_str("::1").unwrap())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -2484,7 +2424,7 @@ mod axum_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
@@ -2505,7 +2445,7 @@ mod axum_test_env {
                     .await
                     .expect("should add the torrent to the whitelist");
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
@@ -2546,7 +2486,7 @@ mod axum_test_env {
                     )
                     .await;
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -2583,7 +2523,7 @@ mod axum_test_env {
                     .await
                     .expect("should add the torrent to the whitelist");
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -2631,7 +2571,7 @@ mod axum_test_env {
 
                 let key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
-                let response = Client::authenticated(test_env.bind_address().clone(), key.id())
+                let response = Client::authenticated(*test_env.bind_address(), key.id())
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -2646,7 +2586,7 @@ mod axum_test_env {
 
                 let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                     .await;
 
@@ -2662,7 +2602,7 @@ mod axum_test_env {
 
                 let invalid_key = "INVALID_KEY";
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .get(&format!(
                         "announce/{invalid_key}?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0"
                     ))
@@ -2679,7 +2619,7 @@ mod axum_test_env {
                 // The tracker does not have this key
                 let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
-                let response = Client::authenticated(test_env.bind_address().clone(), unregistered_key)
+                let response = Client::authenticated(*test_env.bind_address(), unregistered_key)
                     .announce(&QueryBuilder::default().query())
                     .await;
 
@@ -2714,7 +2654,7 @@ mod axum_test_env {
 
                 let invalid_key = "INVALID_KEY";
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .get(&format!(
                         "scrape/{invalid_key}?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"
                     ))
@@ -2739,7 +2679,7 @@ mod axum_test_env {
                     )
                     .await;
 
-                let response = Client::new(test_env.bind_address().clone())
+                let response = Client::new(*test_env.bind_address())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -2772,7 +2712,7 @@ mod axum_test_env {
 
                 let key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
-                let response = Client::authenticated(test_env.bind_address().clone(), key.id())
+                let response = Client::authenticated(*test_env.bind_address(), key.id())
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
@@ -2817,7 +2757,7 @@ mod axum_test_env {
 
                 let false_key: Key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
 
-                let response = Client::authenticated(test_env.bind_address().clone(), false_key)
+                let response = Client::authenticated(*test_env.bind_address(), false_key)
                     .scrape(
                         &requests::scrape::QueryBuilder::default()
                             .with_one_info_hash(&info_hash)
