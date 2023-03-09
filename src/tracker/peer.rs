@@ -40,6 +40,10 @@ impl Peer {
         self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
     }
 
+    pub fn ip(&mut self) -> IpAddr {
+        self.peer_addr.ip()
+    }
+
     pub fn change_ip(&mut self, new_ip: &IpAddr) {
         self.peer_addr = SocketAddr::new(*new_ip, self.peer_addr.port());
     }
