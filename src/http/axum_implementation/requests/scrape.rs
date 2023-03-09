@@ -1,11 +1,11 @@
 use std::panic::Location;
 
 use thiserror::Error;
+use torrust_tracker_located_error::{Located, LocatedError};
 
 use crate::http::axum_implementation::query::Query;
 use crate::http::axum_implementation::responses;
 use crate::http::percent_encoding::percent_decode_info_hash;
-use crate::located_error::{Located, LocatedError};
 use crate::protocol::info_hash::{ConversionError, InfoHash};
 
 pub type NumberOfBytes = i64;

@@ -1,8 +1,14 @@
-use serde;
 use serde::{Deserialize, Serialize};
 
+// TODO: Move to the database crate once that gets its own crate.
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, derive_more::Display, Clone)]
+pub enum DatabaseDriver {
+    Sqlite3,
+    MySQL,
+}
+
 #[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
-pub enum Mode {
+pub enum TrackerMode {
     // Will track every new info hash and serve every peer.
     #[serde(rename = "public")]
     Public,

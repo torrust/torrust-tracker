@@ -1,6 +1,5 @@
 pub mod auth;
 pub mod error;
-pub mod mode;
 pub mod peer;
 pub mod services;
 pub mod statistics;
@@ -15,19 +14,19 @@ use std::time::Duration;
 
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
+use torrust_tracker_configuration::Configuration;
+use torrust_tracker_primitives::TrackerMode;
 
 use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
 use self::torrent::{SwarmMetadata, SwarmStats};
-use crate::config::Configuration;
-use crate::databases::driver::Driver;
 use crate::databases::{self, Database};
 use crate::protocol::info_hash::InfoHash;
 
 pub struct Tracker {
     pub config: Arc<Configuration>,
-    mode: mode::Mode,
+    mode: TrackerMode,
     keys: RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
     whitelist: RwLock<std::collections::HashSet<InfoHash>>,
     torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
@@ -92,15 +91,17 @@ impl Tracker {
     ///
     /// Will return a `databases::error::Error` if unable to connect to database.
     pub fn new(
-        config: &Arc<Configuration>,
+        config: Arc<Configuration>,
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
-        let database = Driver::build(&config.db_driver, &config.db_path)?;
+        let database = databases::driver::build(&config.db_driver, &config.db_path)?;
+
+        let mode = config.mode;
 
         Ok(Tracker {
-            config: config.clone(),
-            mode: config.mode,
+            config,
+            mode,
             keys: RwLock::new(std::collections::HashMap::new()),
             whitelist: RwLock::new(std::collections::HashSet::new()),
             torrents: RwLock::new(std::collections::BTreeMap::new()),
@@ -111,15 +112,15 @@ impl Tracker {
     }
 
     pub fn is_public(&self) -> bool {
-        self.mode == mode::Mode::Public
+        self.mode == TrackerMode::Public
     }
 
     pub fn is_private(&self) -> bool {
-        self.mode == mode::Mode::Private || self.mode == mode::Mode::PrivateListed
+        self.mode == TrackerMode::Private || self.mode == TrackerMode::PrivateListed
     }
 
     pub fn is_whitelisted(&self) -> bool {
-        self.mode == mode::Mode::Listed || self.mode == mode::Mode::PrivateListed
+        self.mode == TrackerMode::Listed || self.mode == TrackerMode::PrivateListed
     }
 
     pub fn requires_authentication(&self) -> bool {
@@ -554,35 +555,36 @@ mod tests {
         use std::sync::Arc;
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+        use torrust_tracker_configuration::Configuration;
+        use torrust_tracker_primitives::TrackerMode;
+        use torrust_tracker_test_helpers::configuration;
 
-        use crate::config::{ephemeral_configuration, Configuration};
         use crate::protocol::clock::DurationSinceUnixEpoch;
         use crate::protocol::info_hash::InfoHash;
-        use crate::tracker::mode::Mode;
         use crate::tracker::peer::{self, Peer};
         use crate::tracker::statistics::Keeper;
         use crate::tracker::{TorrentsMetrics, Tracker};
 
         pub fn public_tracker() -> Tracker {
-            let mut configuration = ephemeral_configuration();
-            configuration.mode = Mode::Public;
+            let mut configuration = configuration::ephemeral();
+            configuration.mode = TrackerMode::Public;
             tracker_factory(configuration)
         }
 
         pub fn private_tracker() -> Tracker {
-            let mut configuration = ephemeral_configuration();
-            configuration.mode = Mode::Private;
+            let mut configuration = configuration::ephemeral();
+            configuration.mode = TrackerMode::Private;
             tracker_factory(configuration)
         }
 
         pub fn whitelisted_tracker() -> Tracker {
-            let mut configuration = ephemeral_configuration();
-            configuration.mode = Mode::Listed;
+            let mut configuration = configuration::ephemeral();
+            configuration.mode = TrackerMode::Listed;
             tracker_factory(configuration)
         }
 
         pub fn tracker_persisting_torrents_in_database() -> Tracker {
-            let mut configuration = ephemeral_configuration();
+            let mut configuration = configuration::ephemeral();
             configuration.persistent_torrent_completed_stat = true;
             tracker_factory(configuration)
         }
@@ -594,7 +596,7 @@ mod tests {
             let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
             // Initialize Torrust tracker
-            match Tracker::new(&Arc::new(configuration), Some(stats_event_sender), stats_repository) {
+            match Tracker::new(Arc::new(configuration), Some(stats_event_sender), stats_repository) {
                 Ok(tracker) => tracker,
                 Err(error) => {
                     panic!("{}", error)

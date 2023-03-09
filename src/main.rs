@@ -2,9 +2,9 @@ use std::env;
 use std::sync::Arc;
 
 use log::info;
-use torrust_tracker::config::Configuration;
 use torrust_tracker::stats::setup_statistics;
 use torrust_tracker::{ephemeral_instance_keys, logging, setup, static_time, tracker};
+use torrust_tracker_configuration::Configuration;
 
 #[tokio::main]
 async fn main() {
@@ -30,7 +30,7 @@ async fn main() {
     let (stats_event_sender, stats_repository) = setup_statistics(config.tracker_usage_statistics);
 
     // Initialize Torrust tracker
-    let tracker = match tracker::Tracker::new(&config.clone(), stats_event_sender, stats_repository) {
+    let tracker = match tracker::Tracker::new(config.clone(), stats_event_sender, stats_repository) {
         Ok(tracker) => Arc::new(tracker),
         Err(error) => {
             panic!("{}", error)
