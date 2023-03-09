@@ -39,6 +39,7 @@ pub struct Running {
 }
 
 impl UdpServer<Stopped> {
+    #[must_use]
     pub fn new(cfg: torrust_tracker_configuration::UdpTracker) -> Self {
         Self { cfg, state: Stopped {} }
     }

@@ -5,6 +5,7 @@ use torrust_tracker::tracker::Tracker;
 use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
 
 // TODO: Move to test-helpers crate once `Tracker` is isolated.
+#[allow(clippy::module_name_repetitions)]
 pub fn new_tracker(configuration: Arc<torrust_tracker_configuration::Configuration>) -> Arc<Tracker> {
     // Set the time of Torrust app starting
     lazy_static::initialize(&static_time::TIME_AT_APP_START);

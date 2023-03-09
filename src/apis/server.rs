@@ -38,10 +38,14 @@ pub struct Running {
 }
 
 impl ApiServer<Stopped> {
+    #[must_use]
     pub fn new(cfg: torrust_tracker_configuration::HttpApi) -> Self {
         Self { cfg, state: Stopped {} }
     }
 
+    /// # Errors
+    ///
+    /// It would return an error if no `SocketAddr` is returned after launching the server.
     pub async fn start(self, tracker: Arc<Tracker>) -> Result<ApiServer<Running>, Error> {
         let (shutdown_sender, shutdown_receiver) = tokio::sync::oneshot::channel::<u8>();
         let (addr_sender, addr_receiver) = tokio::sync::oneshot::channel::<SocketAddr>();
@@ -51,12 +55,14 @@ impl ApiServer<Stopped> {
         let task = tokio::spawn(async move {
             let (bind_addr, server) = Launcher::start(&configuration, tracker, shutdown_signal(shutdown_receiver));
 
-            addr_sender.send(bind_addr).unwrap();
+            addr_sender.send(bind_addr).expect("Could not return SocketAddr.");
 
             server.await;
         });
 
-        let bind_address = addr_receiver.await.expect("Could not receive bind_address.");
+        let bind_address = addr_receiver
+            .await
+            .map_err(|_| Error::Error("Could not receive bind_address.".to_string()))?;
 
         Ok(ApiServer {
             cfg: self.cfg,
@@ -70,8 +76,14 @@ impl ApiServer<Stopped> {
 }
 
 impl ApiServer<Running> {
+    /// # Errors
+    ///
+    /// It would return an error if the channel for the task killer signal was closed.
     pub async fn stop(self) -> Result<ApiServer<Stopped>, Error> {
-        self.state.task_killer.send(0).unwrap();
+        self.state
+            .task_killer
+            .send(0)
+            .map_err(|_| Error::Error("Task killer channel was closed.".to_string()))?;
 
         let _ = self.state.task.await;
 

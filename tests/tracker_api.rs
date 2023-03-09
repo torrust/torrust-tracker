@@ -790,7 +790,7 @@ mod tracker_apis {
 
             for invalid_key_duration in invalid_key_durations {
                 let response = Client::new(test_env.get_connection_info())
-                    .post(&format!("key/{}", invalid_key_duration))
+                    .post(&format!("key/{invalid_key_duration}"))
                     .await;
 
                 assert_invalid_key_duration_param(response, invalid_key_duration).await;

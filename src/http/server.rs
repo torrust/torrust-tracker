@@ -56,6 +56,9 @@ impl<I: HttpServerLauncher + 'static> HttpServer<Stopped<I>> {
         }
     }
 
+    /// # Errors
+    ///
+    /// It would return an error if no `SocketAddr` is returned after launching the server.
     pub async fn start(self, tracker: Arc<Tracker>) -> Result<HttpServer<Running<I>>, Error> {
         let (shutdown_sender, shutdown_receiver) = tokio::sync::oneshot::channel::<u8>();
         let (addr_sender, addr_receiver) = tokio::sync::oneshot::channel::<SocketAddr>();
@@ -67,14 +70,16 @@ impl<I: HttpServerLauncher + 'static> HttpServer<Stopped<I>> {
             let (bind_addr, server) =
                 launcher.start_with_graceful_shutdown(configuration, tracker, shutdown_signal(shutdown_receiver));
 
-            addr_sender.send(bind_addr).unwrap();
+            addr_sender.send(bind_addr).expect("Could not return SocketAddr.");
 
             server.await;
 
             launcher
         });
 
-        let bind_address = addr_receiver.await.expect("Could not receive bind_address.");
+        let bind_address = addr_receiver
+            .await
+            .map_err(|_| Error::Error("Could not receive bind_address.".to_string()))?;
 
         Ok(HttpServer {
             cfg: self.cfg,
@@ -88,8 +93,14 @@ impl<I: HttpServerLauncher + 'static> HttpServer<Stopped<I>> {
 }
 
 impl<I: HttpServerLauncher> HttpServer<Running<I>> {
+    /// # Errors
+    ///
+    /// It would return an error if the channel for the task killer signal was closed.
     pub async fn stop(self) -> Result<HttpServer<Stopped<I>>, Error> {
-        self.state.task_killer.send(0).unwrap();
+        self.state
+            .task_killer
+            .send(0)
+            .map_err(|_| Error::Error("Task killer channel was closed.".to_string()))?;
 
         let launcher = self.state.task.await.map_err(|e| Error::Error(e.to_string()))?;
 

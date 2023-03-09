@@ -10,6 +10,7 @@ use super::handlers::{
 use super::middlewares::auth::auth;
 use crate::tracker::Tracker;
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn router(tracker: Arc<Tracker>) -> Router {
     Router::new()
         // Stats

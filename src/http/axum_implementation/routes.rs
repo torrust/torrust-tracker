@@ -7,6 +7,7 @@ use axum_client_ip::SecureClientIpSource;
 use super::handlers::{announce, scrape};
 use crate::tracker::Tracker;
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn router(tracker: Arc<Tracker>) -> Router {
     Router::new()
         // Announce request
