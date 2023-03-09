@@ -1198,6 +1198,7 @@ mod warp_test_env {
 
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::auth::Key;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::http::asserts::assert_is_announce_response;
             use crate::http::asserts_warp::{
@@ -2616,6 +2617,7 @@ mod axum_test_env {
 
             use torrust_tracker::protocol::info_hash::InfoHash;
             use torrust_tracker::tracker::auth::Key;
+            use torrust_tracker_test_helpers::configuration;
 
             use crate::http::asserts::{assert_authentication_error_response, assert_is_announce_response};
             use crate::http::client::Client;

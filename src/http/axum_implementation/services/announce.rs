@@ -51,7 +51,7 @@ mod tests {
         let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
 
         // Initialize Torrust tracker
-        match Tracker::new(&Arc::new(configuration), Some(stats_event_sender), stats_repository) {
+        match Tracker::new(Arc::new(configuration), Some(stats_event_sender), stats_repository) {
             Ok(tracker) => tracker,
             Err(error) => {
                 panic!("{}", error)
@@ -137,7 +137,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    &Arc::new(configuration::ephemeral()),
+                    Arc::new(configuration::ephemeral()),
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )
@@ -154,7 +154,7 @@ mod tests {
             configuration.external_ip =
                 Some(IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)).to_string());
 
-            Tracker::new(&Arc::new(configuration), Some(stats_event_sender), statistics::Repo::new()).unwrap()
+            Tracker::new(Arc::new(configuration), Some(stats_event_sender), statistics::Repo::new()).unwrap()
         }
 
         fn peer_with_the_ipv4_loopback_ip() -> Peer {
@@ -201,7 +201,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    &Arc::new(configuration::ephemeral()),
+                    Arc::new(configuration::ephemeral()),
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )

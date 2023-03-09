@@ -552,6 +552,7 @@ mod tests {
 
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::str::FromStr;
+        use std::sync::Arc;
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
         use torrust_tracker_primitives::TrackerMode;
@@ -566,25 +567,25 @@ mod tests {
         pub fn public_tracker() -> Tracker {
             let mut configuration = configuration::ephemeral();
             configuration.mode = TrackerMode::Public;
-            tracker_factory(configuration)
+            tracker_factory(Arc::new(configuration))
         }
 
         pub fn private_tracker() -> Tracker {
             let mut configuration = configuration::ephemeral();
             configuration.mode = TrackerMode::Private;
-            tracker_factory(configuration)
+            tracker_factory(Arc::new(configuration))
         }
 
         pub fn whitelisted_tracker() -> Tracker {
             let mut configuration = configuration::ephemeral();
             configuration.mode = TrackerMode::Listed;
-            tracker_factory(configuration)
+            tracker_factory(Arc::new(configuration))
         }
 
         pub fn tracker_persisting_torrents_in_database() -> Tracker {
             let mut configuration = configuration::ephemeral();
             configuration.persistent_torrent_completed_stat = true;
-            tracker_factory(configuration)
+            tracker_factory(Arc::new(configuration))
         }
 
         fn sample_info_hash() -> InfoHash {
