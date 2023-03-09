@@ -239,11 +239,11 @@ mod tests {
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use torrust_tracker_configuration::Configuration;
-    use torrust_tracker_primitives::TrackerMode;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::protocol::clock::{Current, Time};
-    use crate::tracker::{self, peer, statistics};
+    use crate::tracker::services::common::tracker_factory;
+    use crate::tracker::{self, peer};
 
     fn tracker_configuration() -> Arc<Configuration> {
         Arc::new(default_testing_tracker_configuration())
@@ -253,24 +253,20 @@ mod tests {
         configuration::ephemeral()
     }
 
-    fn initialized_public_tracker() -> Arc<tracker::Tracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Public).into());
-        initialized_tracker(configuration)
+    fn public_tracker() -> Arc<tracker::Tracker> {
+        initialized_tracker(configuration::ephemeral_mode_public().into())
     }
 
-    fn initialized_private_tracker() -> Arc<tracker::Tracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Private).into());
-        initialized_tracker(configuration)
+    fn private_tracker() -> Arc<tracker::Tracker> {
+        initialized_tracker(configuration::ephemeral_mode_private().into())
     }
 
-    fn initialized_whitelisted_tracker() -> Arc<tracker::Tracker> {
-        let configuration = Arc::new(TrackerConfigurationBuilder::default().with_mode(TrackerMode::Listed).into());
-        initialized_tracker(configuration)
+    fn whitelisted_tracker() -> Arc<tracker::Tracker> {
+        initialized_tracker(configuration::ephemeral_mode_whitelisted().into())
     }
 
     fn initialized_tracker(configuration: Arc<Configuration>) -> Arc<tracker::Tracker> {
-        let (stats_event_sender, stats_repository) = statistics::Keeper::new_active_instance();
-        Arc::new(tracker::Tracker::new(configuration, Some(stats_event_sender), stats_repository).unwrap())
+        tracker_factory(configuration).into()
     }
 
     fn sample_ipv4_remote_addr() -> SocketAddr {
@@ -344,11 +340,6 @@ mod tests {
             self
         }
 
-        pub fn with_mode(mut self, mode: TrackerMode) -> Self {
-            self.configuration.mode = mode;
-            self
-        }
-
         pub fn into(self) -> Configuration {
             self.configuration
         }
@@ -366,7 +357,7 @@ mod tests {
         use crate::tracker::{self, statistics};
         use crate::udp::connection_cookie::{into_connection_id, make};
         use crate::udp::handlers::handle_connect;
-        use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
+        use crate::udp::handlers::tests::{public_tracker, sample_ipv4_remote_addr};
 
         fn sample_connect_request() -> ConnectRequest {
             ConnectRequest {
@@ -380,7 +371,7 @@ mod tests {
                 transaction_id: TransactionId(0i32),
             };
 
-            let response = handle_connect(sample_ipv4_remote_addr(), &request, &initialized_public_tracker())
+            let response = handle_connect(sample_ipv4_remote_addr(), &request, &public_tracker())
                 .await
                 .unwrap();
 
@@ -399,7 +390,7 @@ mod tests {
                 transaction_id: TransactionId(0i32),
             };
 
-            let response = handle_connect(sample_ipv4_remote_addr(), &request, &initialized_public_tracker())
+            let response = handle_connect(sample_ipv4_remote_addr(), &request, &public_tracker())
                 .await
                 .unwrap();
 
@@ -539,12 +530,12 @@ mod tests {
             use crate::udp::handlers::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
             use crate::udp::handlers::tests::{
-                initialized_public_tracker, sample_ipv4_socket_address, tracker_configuration, TorrentPeerBuilder,
+                public_tracker, sample_ipv4_socket_address, tracker_configuration, TorrentPeerBuilder,
             };
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
-                let tracker = initialized_public_tracker();
+                let tracker = public_tracker();
 
                 let client_ip = Ipv4Addr::new(126, 0, 0, 1);
                 let client_port = 8080;
@@ -581,9 +572,7 @@ mod tests {
                     .with_connection_id(into_connection_id(&make(&remote_addr)))
                     .into();
 
-                let response = handle_announce(remote_addr, &request, &initialized_public_tracker())
-                    .await
-                    .unwrap();
+                let response = handle_announce(remote_addr, &request, &public_tracker()).await.unwrap();
 
                 let empty_peer_vector: Vec<ResponsePeer<Ipv4Addr>> = vec![];
                 assert_eq!(
@@ -604,7 +593,7 @@ mod tests {
                 // From the BEP 15 (https://www.bittorrent.org/beps/bep_0015.html):
                 // "Do note that most trackers will only honor the IP address field under limited circumstances."
 
-                let tracker = initialized_public_tracker();
+                let tracker = public_tracker();
 
                 let info_hash = AquaticInfoHash([0u8; 20]);
                 let peer_id = AquaticPeerId([255u8; 20]);
@@ -660,7 +649,7 @@ mod tests {
 
             #[tokio::test]
             async fn when_the_announce_request_comes_from_a_client_using_ipv4_the_response_should_not_include_peers_using_ipv6() {
-                let tracker = initialized_public_tracker();
+                let tracker = public_tracker();
 
                 add_a_torrent_peer_using_ipv6(tracker.clone()).await;
 
@@ -707,11 +696,11 @@ mod tests {
                 use crate::udp::connection_cookie::{into_connection_id, make};
                 use crate::udp::handlers::handle_announce;
                 use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
-                use crate::udp::handlers::tests::{initialized_public_tracker, TorrentPeerBuilder};
+                use crate::udp::handlers::tests::{public_tracker, TorrentPeerBuilder};
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration_if_defined() {
-                    let tracker = initialized_public_tracker();
+                    let tracker = public_tracker();
 
                     let client_ip = Ipv4Addr::new(127, 0, 0, 1);
                     let client_port = 8080;
@@ -762,12 +751,12 @@ mod tests {
             use crate::udp::handlers::handle_announce;
             use crate::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
             use crate::udp::handlers::tests::{
-                initialized_public_tracker, sample_ipv6_remote_addr, tracker_configuration, TorrentPeerBuilder,
+                public_tracker, sample_ipv6_remote_addr, tracker_configuration, TorrentPeerBuilder,
             };
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
-                let tracker = initialized_public_tracker();
+                let tracker = public_tracker();
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
@@ -808,9 +797,7 @@ mod tests {
                     .with_connection_id(into_connection_id(&make(&remote_addr)))
                     .into();
 
-                let response = handle_announce(remote_addr, &request, &initialized_public_tracker())
-                    .await
-                    .unwrap();
+                let response = handle_announce(remote_addr, &request, &public_tracker()).await.unwrap();
 
                 let empty_peer_vector: Vec<ResponsePeer<Ipv6Addr>> = vec![];
                 assert_eq!(
@@ -831,7 +818,7 @@ mod tests {
                 // From the BEP 15 (https://www.bittorrent.org/beps/bep_0015.html):
                 // "Do note that most trackers will only honor the IP address field under limited circumstances."
 
-                let tracker = initialized_public_tracker();
+                let tracker = public_tracker();
 
                 let info_hash = AquaticInfoHash([0u8; 20]);
                 let peer_id = AquaticPeerId([255u8; 20]);
@@ -890,7 +877,7 @@ mod tests {
 
             #[tokio::test]
             async fn when_the_announce_request_comes_from_a_client_using_ipv6_the_response_should_not_include_peers_using_ipv4() {
-                let tracker = initialized_public_tracker();
+                let tracker = public_tracker();
 
                 add_a_torrent_peer_using_ipv4(tracker.clone()).await;
 
@@ -999,7 +986,7 @@ mod tests {
         use crate::tracker::{self, peer};
         use crate::udp::connection_cookie::{into_connection_id, make};
         use crate::udp::handlers::handle_scrape;
-        use crate::udp::handlers::tests::{initialized_public_tracker, sample_ipv4_remote_addr};
+        use crate::udp::handlers::tests::{public_tracker, sample_ipv4_remote_addr};
 
         fn zeroed_torrent_statistics() -> TorrentScrapeStatistics {
             TorrentScrapeStatistics {
@@ -1022,9 +1009,7 @@ mod tests {
                 info_hashes,
             };
 
-            let response = handle_scrape(remote_addr, &request, &initialized_public_tracker())
-                .await
-                .unwrap();
+            let response = handle_scrape(remote_addr, &request, &public_tracker()).await.unwrap();
 
             let expected_torrent_stats = vec![zeroed_torrent_statistics()];
 
@@ -1082,12 +1067,12 @@ mod tests {
         mod with_a_public_tracker {
             use aquatic_udp_protocol::{NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
-            use crate::udp::handlers::tests::initialized_public_tracker;
+            use crate::udp::handlers::tests::public_tracker;
             use crate::udp::handlers::tests::scrape_request::{add_a_sample_seeder_and_scrape, match_scrape_response};
 
             #[tokio::test]
             async fn should_return_torrent_statistics_when_the_tracker_has_the_requested_torrent() {
-                let tracker = initialized_public_tracker();
+                let tracker = public_tracker();
 
                 let torrent_stats = match_scrape_response(add_a_sample_seeder_and_scrape(tracker.clone()).await);
 
@@ -1109,11 +1094,11 @@ mod tests {
             use crate::udp::handlers::tests::scrape_request::{
                 add_a_sample_seeder_and_scrape, build_scrape_request, match_scrape_response, zeroed_torrent_statistics,
             };
-            use crate::udp::handlers::tests::{initialized_private_tracker, sample_ipv4_remote_addr};
+            use crate::udp::handlers::tests::{private_tracker, sample_ipv4_remote_addr};
 
             #[tokio::test]
             async fn should_return_zeroed_statistics_when_the_tracker_does_not_have_the_requested_torrent() {
-                let tracker = initialized_private_tracker();
+                let tracker = private_tracker();
 
                 let remote_addr = sample_ipv4_remote_addr();
                 let non_existing_info_hash = InfoHash([0u8; 20]);
@@ -1130,7 +1115,7 @@ mod tests {
             #[tokio::test]
             async fn should_return_zeroed_statistics_when_the_tracker_has_the_requested_torrent_because_authenticated_requests_are_not_supported_in_udp_tracker(
             ) {
-                let tracker = initialized_private_tracker();
+                let tracker = private_tracker();
 
                 let torrent_stats = match_scrape_response(add_a_sample_seeder_and_scrape(tracker.clone()).await).unwrap();
 
@@ -1147,11 +1132,11 @@ mod tests {
             use crate::udp::handlers::tests::scrape_request::{
                 add_a_seeder, build_scrape_request, match_scrape_response, zeroed_torrent_statistics,
             };
-            use crate::udp::handlers::tests::{initialized_whitelisted_tracker, sample_ipv4_remote_addr};
+            use crate::udp::handlers::tests::{sample_ipv4_remote_addr, whitelisted_tracker};
 
             #[tokio::test]
             async fn should_return_the_torrent_statistics_when_the_requested_torrent_is_whitelisted() {
-                let tracker = initialized_whitelisted_tracker();
+                let tracker = whitelisted_tracker();
 
                 let remote_addr = sample_ipv4_remote_addr();
                 let info_hash = InfoHash([0u8; 20]);
@@ -1175,7 +1160,7 @@ mod tests {
 
             #[tokio::test]
             async fn should_return_zeroed_statistics_when_the_requested_torrent_is_not_whitelisted() {
-                let tracker = initialized_whitelisted_tracker();
+                let tracker = whitelisted_tracker();
 
                 let remote_addr = sample_ipv4_remote_addr();
                 let info_hash = InfoHash([0u8; 20]);

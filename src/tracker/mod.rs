@@ -555,7 +555,6 @@ mod tests {
         use std::sync::Arc;
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-        use torrust_tracker_primitives::TrackerMode;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::protocol::clock::DurationSinceUnixEpoch;
@@ -564,22 +563,16 @@ mod tests {
         use crate::tracker::services::common::tracker_factory;
         use crate::tracker::{TorrentsMetrics, Tracker};
 
-        pub fn public_tracker() -> Tracker {
-            let mut configuration = configuration::ephemeral();
-            configuration.mode = TrackerMode::Public;
-            tracker_factory(Arc::new(configuration))
+        fn public_tracker() -> Tracker {
+            tracker_factory(configuration::ephemeral_mode_public().into())
         }
 
-        pub fn private_tracker() -> Tracker {
-            let mut configuration = configuration::ephemeral();
-            configuration.mode = TrackerMode::Private;
-            tracker_factory(Arc::new(configuration))
+        fn private_tracker() -> Tracker {
+            tracker_factory(configuration::ephemeral_mode_private().into())
         }
 
-        pub fn whitelisted_tracker() -> Tracker {
-            let mut configuration = configuration::ephemeral();
-            configuration.mode = TrackerMode::Listed;
-            tracker_factory(Arc::new(configuration))
+        fn whitelisted_tracker() -> Tracker {
+            tracker_factory(configuration::ephemeral_mode_whitelisted().into())
         }
 
         pub fn tracker_persisting_torrents_in_database() -> Tracker {

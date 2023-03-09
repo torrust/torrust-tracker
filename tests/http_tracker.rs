@@ -2597,8 +2597,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_private()).await;
 
                 let invalid_key = "INVALID_KEY";
 
@@ -2613,8 +2612,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_if_the_peer_cannot_be_authenticated_with_the_provided_key() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_private()).await;
 
                 // The tracker does not have this key
                 let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
@@ -2649,8 +2647,7 @@ mod axum_test_env {
 
             #[tokio::test]
             async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
-                let test_env =
-                    running_test_environment::<Axum>(torrust_tracker_test_helpers::configuration::ephemeral_mode_private()).await;
+                let test_env = running_test_environment::<Axum>(configuration::ephemeral_mode_private()).await;
 
                 let invalid_key = "INVALID_KEY";
 

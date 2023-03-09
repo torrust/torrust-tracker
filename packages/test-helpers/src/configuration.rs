@@ -56,6 +56,15 @@ pub fn ephemeral_with_reverse_proxy() -> Configuration {
 }
 
 #[must_use]
+pub fn ephemeral_without_reverse_proxy() -> Configuration {
+    let mut cfg = ephemeral();
+
+    cfg.on_reverse_proxy = false;
+
+    cfg
+}
+
+#[must_use]
 pub fn ephemeral_mode_public() -> Configuration {
     let mut cfg = ephemeral();
 
