@@ -141,7 +141,7 @@ pub fn failed_to_reload_keys_response<E: Error>(e: E) -> Response {
     unhandled_rejection_response(format!("failed to reload keys: {e}"))
 }
 
-/// This error response is to keep backward compatibility with the old Warp API.
+/// This error response is to keep backward compatibility with the old API.
 /// It should be a plain text or json.
 #[must_use]
 pub fn unhandled_rejection_response(reason: String) -> Response {

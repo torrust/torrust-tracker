@@ -77,8 +77,8 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
-        use crate::http::axum_implementation::services::announce::invoke;
-        use crate::http::axum_implementation::services::announce::tests::{public_tracker, sample_info_hash, sample_peer};
+        use crate::http::v1::services::announce::invoke;
+        use crate::http::v1::services::announce::tests::{public_tracker, sample_info_hash, sample_peer};
         use crate::tracker::peer::Peer;
         use crate::tracker::torrent::SwarmStats;
         use crate::tracker::{statistics, AnnounceData, Tracker};

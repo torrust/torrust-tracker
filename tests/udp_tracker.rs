@@ -1,6 +1,8 @@
 /// Integration tests for UDP tracker server
 ///
+/// ```text
 /// cargo test `udp_tracker_server` -- --nocapture
+/// ```
 extern crate rand;
 
 mod common;

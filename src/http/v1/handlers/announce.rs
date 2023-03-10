@@ -7,14 +7,14 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
-use crate::http::axum_implementation::extractors::announce_request::ExtractRequest;
-use crate::http::axum_implementation::extractors::authentication_key::Extract as ExtractKey;
-use crate::http::axum_implementation::extractors::client_ip_sources::Extract as ExtractClientIpSources;
-use crate::http::axum_implementation::handlers::common::auth;
-use crate::http::axum_implementation::requests::announce::{Announce, Compact, Event};
-use crate::http::axum_implementation::responses::{self, announce};
-use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
-use crate::http::axum_implementation::services::{self, peer_ip_resolver};
+use crate::http::v1::extractors::announce_request::ExtractRequest;
+use crate::http::v1::extractors::authentication_key::Extract as ExtractKey;
+use crate::http::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
+use crate::http::v1::handlers::common::auth;
+use crate::http::v1::requests::announce::{Announce, Compact, Event};
+use crate::http::v1::responses::{self, announce};
+use crate::http::v1::services::peer_ip_resolver::ClientIpSources;
+use crate::http::v1::services::{self, peer_ip_resolver};
 use crate::protocol::clock::{Current, Time};
 use crate::tracker::auth::Key;
 use crate::tracker::peer::Peer;
@@ -141,9 +141,9 @@ mod tests {
 
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::http::axum_implementation::requests::announce::Announce;
-    use crate::http::axum_implementation::responses;
-    use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+    use crate::http::v1::requests::announce::Announce;
+    use crate::http::v1::responses;
+    use crate::http::v1::services::peer_ip_resolver::ClientIpSources;
     use crate::protocol::info_hash::InfoHash;
     use crate::tracker::services::common::tracker_factory;
     use crate::tracker::{peer, Tracker};
@@ -197,8 +197,8 @@ mod tests {
         use std::sync::Arc;
 
         use super::{private_tracker, sample_announce_request, sample_client_ip_sources};
-        use crate::http::axum_implementation::handlers::announce::handle_announce;
-        use crate::http::axum_implementation::handlers::announce::tests::assert_error_response;
+        use crate::http::v1::handlers::announce::handle_announce;
+        use crate::http::v1::handlers::announce::tests::assert_error_response;
         use crate::tracker::auth;
 
         #[tokio::test]
@@ -238,8 +238,8 @@ mod tests {
         use std::sync::Arc;
 
         use super::{sample_announce_request, sample_client_ip_sources, whitelisted_tracker};
-        use crate::http::axum_implementation::handlers::announce::handle_announce;
-        use crate::http::axum_implementation::handlers::announce::tests::assert_error_response;
+        use crate::http::v1::handlers::announce::handle_announce;
+        use crate::http::v1::handlers::announce::tests::assert_error_response;
 
         #[tokio::test]
         async fn it_should_fail_when_the_announced_torrent_is_not_whitelisted() {
@@ -266,9 +266,9 @@ mod tests {
         use std::sync::Arc;
 
         use super::{sample_announce_request, tracker_on_reverse_proxy};
-        use crate::http::axum_implementation::handlers::announce::handle_announce;
-        use crate::http::axum_implementation::handlers::announce::tests::assert_error_response;
-        use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+        use crate::http::v1::handlers::announce::handle_announce;
+        use crate::http::v1::handlers::announce::tests::assert_error_response;
+        use crate::http::v1::services::peer_ip_resolver::ClientIpSources;
 
         #[tokio::test]
         async fn it_should_fail_when_the_right_most_x_forwarded_for_header_ip_is_not_available() {
@@ -295,9 +295,9 @@ mod tests {
         use std::sync::Arc;
 
         use super::{sample_announce_request, tracker_not_on_reverse_proxy};
-        use crate::http::axum_implementation::handlers::announce::handle_announce;
-        use crate::http::axum_implementation::handlers::announce::tests::assert_error_response;
-        use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+        use crate::http::v1::handlers::announce::handle_announce;
+        use crate::http::v1::handlers::announce::tests::assert_error_response;
+        use crate::http::v1::services::peer_ip_resolver::ClientIpSources;
 
         #[tokio::test]
         async fn it_should_fail_when_the_client_ip_from_the_connection_info_is_not_available() {

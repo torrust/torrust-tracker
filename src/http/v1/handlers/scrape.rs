@@ -4,12 +4,12 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
-use crate::http::axum_implementation::extractors::authentication_key::Extract as ExtractKey;
-use crate::http::axum_implementation::extractors::client_ip_sources::Extract as ExtractClientIpSources;
-use crate::http::axum_implementation::extractors::scrape_request::ExtractRequest;
-use crate::http::axum_implementation::requests::scrape::Scrape;
-use crate::http::axum_implementation::services::peer_ip_resolver::{self, ClientIpSources};
-use crate::http::axum_implementation::{responses, services};
+use crate::http::v1::extractors::authentication_key::Extract as ExtractKey;
+use crate::http::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
+use crate::http::v1::extractors::scrape_request::ExtractRequest;
+use crate::http::v1::requests::scrape::Scrape;
+use crate::http::v1::services::peer_ip_resolver::{self, ClientIpSources};
+use crate::http::v1::{responses, services};
 use crate::tracker::auth::Key;
 use crate::tracker::{ScrapeData, Tracker};
 
@@ -99,9 +99,9 @@ mod tests {
 
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::http::axum_implementation::requests::scrape::Scrape;
-    use crate::http::axum_implementation::responses;
-    use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+    use crate::http::v1::requests::scrape::Scrape;
+    use crate::http::v1::responses;
+    use crate::http::v1::services::peer_ip_resolver::ClientIpSources;
     use crate::protocol::info_hash::InfoHash;
     use crate::tracker::services::common::tracker_factory;
     use crate::tracker::Tracker;
@@ -147,7 +147,7 @@ mod tests {
         use std::sync::Arc;
 
         use super::{private_tracker, sample_client_ip_sources, sample_scrape_request};
-        use crate::http::axum_implementation::handlers::scrape::handle_scrape;
+        use crate::http::v1::handlers::scrape::handle_scrape;
         use crate::tracker::{auth, ScrapeData};
 
         #[tokio::test]
@@ -189,7 +189,7 @@ mod tests {
         use std::sync::Arc;
 
         use super::{sample_client_ip_sources, sample_scrape_request, whitelisted_tracker};
-        use crate::http::axum_implementation::handlers::scrape::handle_scrape;
+        use crate::http::v1::handlers::scrape::handle_scrape;
         use crate::tracker::ScrapeData;
 
         #[tokio::test]
@@ -212,9 +212,9 @@ mod tests {
         use std::sync::Arc;
 
         use super::{sample_scrape_request, tracker_on_reverse_proxy};
-        use crate::http::axum_implementation::handlers::scrape::handle_scrape;
-        use crate::http::axum_implementation::handlers::scrape::tests::assert_error_response;
-        use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+        use crate::http::v1::handlers::scrape::handle_scrape;
+        use crate::http::v1::handlers::scrape::tests::assert_error_response;
+        use crate::http::v1::services::peer_ip_resolver::ClientIpSources;
 
         #[tokio::test]
         async fn it_should_fail_when_the_right_most_x_forwarded_for_header_ip_is_not_available() {
@@ -240,9 +240,9 @@ mod tests {
         use std::sync::Arc;
 
         use super::{sample_scrape_request, tracker_not_on_reverse_proxy};
-        use crate::http::axum_implementation::handlers::scrape::handle_scrape;
-        use crate::http::axum_implementation::handlers::scrape::tests::assert_error_response;
-        use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+        use crate::http::v1::handlers::scrape::handle_scrape;
+        use crate::http::v1::handlers::scrape::tests::assert_error_response;
+        use crate::http::v1::services::peer_ip_resolver::ClientIpSources;
 
         #[tokio::test]
         async fn it_should_fail_when_the_client_ip_from_the_connection_info_is_not_available() {

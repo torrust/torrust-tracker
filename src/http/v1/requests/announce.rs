@@ -5,9 +5,9 @@ use std::str::FromStr;
 use thiserror::Error;
 use torrust_tracker_located_error::{Located, LocatedError};
 
-use crate::http::axum_implementation::query::{ParseQueryError, Query};
-use crate::http::axum_implementation::responses;
 use crate::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
+use crate::http::v1::query::{ParseQueryError, Query};
+use crate::http::v1::responses;
 use crate::protocol::info_hash::{ConversionError, InfoHash};
 use crate::tracker::peer::{self, IdConversionError};
 
@@ -280,8 +280,8 @@ mod tests {
 
     mod announce_request {
 
-        use crate::http::axum_implementation::query::Query;
-        use crate::http::axum_implementation::requests::announce::{
+        use crate::http::v1::query::Query;
+        use crate::http::v1::requests::announce::{
             Announce, Compact, Event, COMPACT, DOWNLOADED, EVENT, INFO_HASH, LEFT, PEER_ID, PORT, UPLOADED,
         };
         use crate::protocol::info_hash::InfoHash;
@@ -350,8 +350,8 @@ mod tests {
 
         mod when_it_is_instantiated_from_the_url_query_params {
 
-            use crate::http::axum_implementation::query::Query;
-            use crate::http::axum_implementation::requests::announce::{
+            use crate::http::v1::query::Query;
+            use crate::http::v1::requests::announce::{
                 Announce, COMPACT, DOWNLOADED, EVENT, INFO_HASH, LEFT, PEER_ID, PORT, UPLOADED,
             };
 
