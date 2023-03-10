@@ -7,7 +7,6 @@ use axum_server::Handle;
 use futures::future::BoxFuture;
 use futures::Future;
 use log::info;
-use warp::hyper;
 
 use super::routes::router;
 use crate::signals::shutdown_signal;

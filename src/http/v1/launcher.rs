@@ -8,7 +8,6 @@ use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
 use futures::future::BoxFuture;
 use log::info;
-use warp::hyper;
 
 use super::routes::router;
 use crate::http::server::HttpServerLauncher;
