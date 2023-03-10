@@ -24,7 +24,7 @@ binascii = "0.1"
 lazy_static = "1.4"
 openssl = { version = "0.10", features = ["vendored"] }
 config = "0.13"
-toml = "0.5"
+toml = "0.7"
 log = { version = "0.4", features = ["release_max_level_info"] }
 fern = "0.6"
 chrono = "0.4"
