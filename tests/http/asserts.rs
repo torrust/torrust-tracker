@@ -108,46 +108,10 @@ pub async fn assert_missing_query_params_for_scrape_request_error_response(respo
 
 // Other errors
 
-pub async fn assert_internal_server_error_response(response: Response) {
-    assert_eq!(response.status(), 200);
-
-    assert_bencoded_error(&response.text().await.unwrap(), "internal server", Location::caller());
-}
-
-pub async fn assert_invalid_info_hash_error_response(response: Response) {
-    assert_eq!(response.status(), 200);
-
-    assert_bencoded_error(
-        &response.text().await.unwrap(),
-        "no valid infohashes found",
-        Location::caller(),
-    );
-}
-
-pub async fn assert_invalid_peer_id_error_response(response: Response) {
-    assert_eq!(response.status(), 200);
-
-    assert_bencoded_error(
-        &response.text().await.unwrap(),
-        "peer_id is either missing or invalid",
-        Location::caller(),
-    );
-}
-
 pub async fn assert_torrent_not_in_whitelist_error_response(response: Response) {
     assert_eq!(response.status(), 200);
 
     assert_bencoded_error(&response.text().await.unwrap(), "is not whitelisted", Location::caller());
-}
-
-pub async fn assert_could_not_find_remote_address_on_xff_header_error_response(response: Response) {
-    assert_eq!(response.status(), 200);
-
-    assert_bencoded_error(
-        &response.text().await.unwrap(),
-        "could not find remote address: must have a x-forwarded-for when using a reverse proxy",
-        Location::caller(),
-    );
 }
 
 pub async fn assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response(response: Response) {
@@ -156,16 +120,6 @@ pub async fn assert_could_not_find_remote_address_on_x_forwarded_for_header_erro
     assert_bencoded_error(
         &response.text().await.unwrap(),
         "missing or invalid the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration)",
-        Location::caller(),
-    );
-}
-
-pub async fn assert_invalid_remote_address_on_xff_header_error_response(response: Response) {
-    assert_eq!(response.status(), 200);
-
-    assert_bencoded_error(
-        &response.text().await.unwrap(),
-        "could not find remote address: on remote proxy and unable to parse the last x-forwarded-ip",
         Location::caller(),
     );
 }

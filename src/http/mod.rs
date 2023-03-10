@@ -15,10 +15,8 @@ use serde::{Deserialize, Serialize};
 pub mod axum_implementation;
 pub mod percent_encoding;
 pub mod server;
-pub mod warp_implementation;
 
 #[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Version {
-    Warp,
     Axum,
 }

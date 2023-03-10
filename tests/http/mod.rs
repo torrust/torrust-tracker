@@ -1,5 +1,4 @@
 pub mod asserts;
-pub mod asserts_warp;
 pub mod client;
 pub mod requests;
 pub mod responses;
