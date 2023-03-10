@@ -1,9 +1,9 @@
 // code-review: should we use macros to return the exact line where the assert fails?
 
 use reqwest::Response;
-use torrust_tracker::apis::resources::auth_key::AuthKey;
-use torrust_tracker::apis::resources::stats::Stats;
-use torrust_tracker::apis::resources::torrent::{ListItem, Torrent};
+use torrust_tracker::apis::context::auth_key::resources::AuthKey;
+use torrust_tracker::apis::context::stats::resources::Stats;
+use torrust_tracker::apis::context::torrent::resources::torrent::{ListItem, Torrent};
 
 // Resource responses
 

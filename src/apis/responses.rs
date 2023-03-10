@@ -1,15 +1,6 @@
-use std::error::Error;
-
 use axum::http::{header, StatusCode};
-use axum::response::{IntoResponse, Json, Response};
+use axum::response::{IntoResponse, Response};
 use serde::Serialize;
-use serde_json::json;
-
-use crate::apis::resources::auth_key::AuthKey;
-use crate::apis::resources::stats::Stats;
-use crate::apis::resources::torrent::{ListItem, Torrent};
-use crate::tracker::services::statistics::TrackerMetrics;
-use crate::tracker::services::torrent::{BasicInfo, Info};
 
 /* code-review:
     When Axum cannot parse a path or query param it shows a message like this:
@@ -36,36 +27,6 @@ use crate::tracker::services::torrent::{BasicInfo, Info};
 pub enum ActionStatus<'a> {
     Ok,
     Err { reason: std::borrow::Cow<'a, str> },
-}
-
-// Resource responses
-
-#[must_use]
-pub fn stats_response(tracker_metrics: TrackerMetrics) -> Json<Stats> {
-    Json(Stats::from(tracker_metrics))
-}
-
-#[must_use]
-pub fn torrent_list_response(basic_infos: &[BasicInfo]) -> Json<Vec<ListItem>> {
-    Json(ListItem::new_vec(basic_infos))
-}
-
-#[must_use]
-pub fn torrent_info_response(info: Info) -> Json<Torrent> {
-    Json(Torrent::from(info))
-}
-
-/// # Panics
-///
-/// Will panic if it can't convert the `AuthKey` resource to json
-#[must_use]
-pub fn auth_key_response(auth_key: &AuthKey) -> Response {
-    (
-        StatusCode::OK,
-        [(header::CONTENT_TYPE, "application/json; charset=utf-8")],
-        serde_json::to_string(auth_key).unwrap(),
-    )
-        .into_response()
 }
 
 // OK response
@@ -104,41 +65,6 @@ fn bad_request_response(body: &str) -> Response {
         body.to_owned(),
     )
         .into_response()
-}
-
-#[must_use]
-pub fn torrent_not_known_response() -> Response {
-    Json(json!("torrent not known")).into_response()
-}
-
-#[must_use]
-pub fn failed_to_remove_torrent_from_whitelist_response<E: Error>(e: E) -> Response {
-    unhandled_rejection_response(format!("failed to remove torrent from whitelist: {e}"))
-}
-
-#[must_use]
-pub fn failed_to_whitelist_torrent_response<E: Error>(e: E) -> Response {
-    unhandled_rejection_response(format!("failed to whitelist torrent: {e}"))
-}
-
-#[must_use]
-pub fn failed_to_reload_whitelist_response<E: Error>(e: E) -> Response {
-    unhandled_rejection_response(format!("failed to reload whitelist: {e}"))
-}
-
-#[must_use]
-pub fn failed_to_generate_key_response<E: Error>(e: E) -> Response {
-    unhandled_rejection_response(format!("failed to generate key: {e}"))
-}
-
-#[must_use]
-pub fn failed_to_delete_key_response<E: Error>(e: E) -> Response {
-    unhandled_rejection_response(format!("failed to delete key: {e}"))
-}
-
-#[must_use]
-pub fn failed_to_reload_keys_response<E: Error>(e: E) -> Response {
-    unhandled_rejection_response(format!("failed to reload keys: {e}"))
 }
 
 /// This error response is to keep backward compatibility with the old API.
