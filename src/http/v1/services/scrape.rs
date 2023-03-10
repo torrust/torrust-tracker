@@ -77,10 +77,8 @@ mod tests {
         use mockall::predicate::eq;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::http::axum_implementation::services::scrape::invoke;
-        use crate::http::axum_implementation::services::scrape::tests::{
-            public_tracker, sample_info_hash, sample_info_hashes, sample_peer,
-        };
+        use crate::http::v1::services::scrape::invoke;
+        use crate::http::v1::services::scrape::tests::{public_tracker, sample_info_hash, sample_info_hashes, sample_peer};
         use crate::tracker::torrent::SwarmMetadata;
         use crate::tracker::{statistics, ScrapeData, Tracker};
 
@@ -169,10 +167,8 @@ mod tests {
         use mockall::predicate::eq;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::http::axum_implementation::services::scrape::fake;
-        use crate::http::axum_implementation::services::scrape::tests::{
-            public_tracker, sample_info_hash, sample_info_hashes, sample_peer,
-        };
+        use crate::http::v1::services::scrape::fake;
+        use crate::http::v1::services::scrape::tests::{public_tracker, sample_info_hash, sample_info_hashes, sample_peer};
         use crate::tracker::{statistics, ScrapeData, Tracker};
 
         #[tokio::test]

@@ -12,11 +12,11 @@
 
 use serde::{Deserialize, Serialize};
 
-pub mod axum_implementation;
 pub mod percent_encoding;
 pub mod server;
+pub mod v1;
 
 #[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Version {
-    Axum,
+    V1,
 }

@@ -3,9 +3,9 @@ use std::panic::Location;
 use thiserror::Error;
 use torrust_tracker_located_error::{Located, LocatedError};
 
-use crate::http::axum_implementation::query::Query;
-use crate::http::axum_implementation::responses;
 use crate::http::percent_encoding::percent_decode_info_hash;
+use crate::http::v1::query::Query;
+use crate::http::v1::responses;
 use crate::protocol::info_hash::{ConversionError, InfoHash};
 
 pub type NumberOfBytes = i64;
@@ -85,8 +85,8 @@ mod tests {
 
     mod scrape_request {
 
-        use crate::http::axum_implementation::query::Query;
-        use crate::http::axum_implementation::requests::scrape::{Scrape, INFO_HASH};
+        use crate::http::v1::query::Query;
+        use crate::http::v1::requests::scrape::{Scrape, INFO_HASH};
         use crate::protocol::info_hash::InfoHash;
 
         #[test]
@@ -107,8 +107,8 @@ mod tests {
 
         mod when_it_is_instantiated_from_the_url_query_params {
 
-            use crate::http::axum_implementation::query::Query;
-            use crate::http::axum_implementation::requests::scrape::{Scrape, INFO_HASH};
+            use crate::http::v1::query::Query;
+            use crate::http::v1::requests::scrape::{Scrape, INFO_HASH};
 
             #[test]
             fn it_should_fail_if_the_query_does_not_include_the_info_hash_param() {

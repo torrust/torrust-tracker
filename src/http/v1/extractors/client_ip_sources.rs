@@ -8,7 +8,7 @@ use axum::http::request::Parts;
 use axum::response::Response;
 use axum_client_ip::RightmostXForwardedFor;
 
-use crate::http::axum_implementation::services::peer_ip_resolver::ClientIpSources;
+use crate::http::v1::services::peer_ip_resolver::ClientIpSources;
 
 pub struct Extract(pub ClientIpSources);
 

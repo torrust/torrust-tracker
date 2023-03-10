@@ -6,7 +6,7 @@ use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpTracker;
 
-use crate::http::axum_implementation::launcher;
+use crate::http::v1::launcher;
 use crate::http::Version;
 use crate::tracker;
 
@@ -15,14 +15,14 @@ pub struct ServerJobStarted();
 
 pub async fn start_job(config: &HttpTracker, tracker: Arc<tracker::Tracker>, version: Version) -> JoinHandle<()> {
     match version {
-        Version::Axum => start_axum(config, tracker.clone()).await,
+        Version::V1 => start_v1(config, tracker.clone()).await,
     }
 }
 
 /// # Panics
 ///
 /// It would panic if the `config::HttpTracker` struct would contain inappropriate values.
-async fn start_axum(config: &HttpTracker, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
+async fn start_v1(config: &HttpTracker, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
     let bind_addr = config
         .bind_address
         .parse::<std::net::SocketAddr>()

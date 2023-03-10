@@ -1,5 +1,5 @@
-use crate::http::axum_implementation::responses;
-use crate::http::axum_implementation::services::peer_ip_resolver::PeerIpResolutionError;
+use crate::http::v1::responses;
+use crate::http::v1::services::peer_ip_resolver::PeerIpResolutionError;
 
 impl From<PeerIpResolutionError> for responses::error::Error {
     fn from(err: PeerIpResolutionError) -> Self {
@@ -13,8 +13,8 @@ impl From<PeerIpResolutionError> for responses::error::Error {
 mod tests {
     use std::panic::Location;
 
-    use crate::http::axum_implementation::responses;
-    use crate::http::axum_implementation::services::peer_ip_resolver::PeerIpResolutionError;
+    use crate::http::v1::responses;
+    use crate::http::v1::services::peer_ip_resolver::PeerIpResolutionError;
 
     fn assert_error_response(error: &responses::error::Error, error_message: &str) {
         assert!(

@@ -8,8 +8,8 @@ use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 
-use crate::http::axum_implementation::handlers::common::auth;
-use crate::http::axum_implementation::responses;
+use crate::http::v1::handlers::common::auth;
+use crate::http::v1::responses;
 use crate::tracker::auth::Key;
 
 pub struct Extract(pub Key);
@@ -85,7 +85,7 @@ fn custom_error(rejection: &PathRejection) -> responses::error::Error {
 mod tests {
 
     use super::parse_key;
-    use crate::http::axum_implementation::responses::error::Error;
+    use crate::http::v1::responses::error::Error;
 
     fn assert_error_response(error: &Error, error_message: &str) {
         assert!(

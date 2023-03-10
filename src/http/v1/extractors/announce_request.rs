@@ -5,9 +5,9 @@ use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
 
-use crate::http::axum_implementation::query::Query;
-use crate::http::axum_implementation::requests::announce::{Announce, ParseAnnounceQueryError};
-use crate::http::axum_implementation::responses;
+use crate::http::v1::query::Query;
+use crate::http::v1::requests::announce::{Announce, ParseAnnounceQueryError};
+use crate::http::v1::responses;
 
 pub struct ExtractRequest(pub Announce);
 
@@ -53,8 +53,8 @@ mod tests {
     use std::str::FromStr;
 
     use super::extract_announce_from;
-    use crate::http::axum_implementation::requests::announce::{Announce, Compact, Event};
-    use crate::http::axum_implementation::responses::error::Error;
+    use crate::http::v1::requests::announce::{Announce, Compact, Event};
+    use crate::http::v1::responses::error::Error;
     use crate::protocol::info_hash::InfoHash;
     use crate::tracker::peer;
 

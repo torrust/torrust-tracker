@@ -8,7 +8,7 @@ use bip_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut}
 use serde::{self, Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::http::axum_implementation::responses;
+use crate::http::v1::responses;
 use crate::tracker::{self, AnnounceData};
 
 /// Normal (non compact) "announce" response
@@ -250,7 +250,7 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
     use super::{NonCompact, Peer};
-    use crate::http::axum_implementation::responses::announce::{Compact, CompactPeer};
+    use crate::http::v1::responses::announce::{Compact, CompactPeer};
 
     // Some ascii values used in tests:
     //

@@ -73,7 +73,7 @@ mod tests {
         use std::str::FromStr;
 
         use super::invoke;
-        use crate::http::axum_implementation::services::peer_ip_resolver::{ClientIpSources, PeerIpResolutionError};
+        use crate::http::v1::services::peer_ip_resolver::{ClientIpSources, PeerIpResolutionError};
 
         #[test]
         fn it_should_get_the_peer_ip_from_the_connection_info() {
@@ -112,7 +112,7 @@ mod tests {
         use std::net::IpAddr;
         use std::str::FromStr;
 
-        use crate::http::axum_implementation::services::peer_ip_resolver::{invoke, ClientIpSources, PeerIpResolutionError};
+        use crate::http::v1::services::peer_ip_resolver::{invoke, ClientIpSources, PeerIpResolutionError};
 
         #[test]
         fn it_should_get_the_peer_ip_from_the_right_most_ip_in_the_x_forwarded_for_header() {
