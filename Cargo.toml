@@ -30,7 +30,7 @@ log = { version = "0.4", features = ["release_max_level_info"] }
 fern = "0.6"
 chrono = "0.4"
 r2d2 = "0.8"
-r2d2_mysql = "21"
+r2d2_mysql = "23"
 r2d2_sqlite = { version = "0.21", features = ["bundled"] }
 rand = "0.8"
 derive_more = "0.99"

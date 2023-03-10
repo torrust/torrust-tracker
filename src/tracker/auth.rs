@@ -64,10 +64,11 @@ impl std::fmt::Display for ExpiringKey {
             "key: `{}`, valid until `{}`",
             self.key,
             DateTime::<Utc>::from_utc(
-                NaiveDateTime::from_timestamp(
+                NaiveDateTime::from_timestamp_opt(
                     i64::try_from(self.valid_until.as_secs()).expect("Overflow of i64 seconds, very future!"),
                     self.valid_until.subsec_nanos(),
-                ),
+                )
+                .unwrap(),
                 Utc
             )
         )

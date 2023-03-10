@@ -6,7 +6,7 @@ use log::debug;
 use r2d2::Pool;
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
-use r2d2_mysql::MysqlConnectionManager;
+use r2d2_mysql::MySqlConnectionManager;
 use torrust_tracker_primitives::DatabaseDriver;
 
 use crate::databases::{Database, Error};
@@ -17,7 +17,7 @@ use crate::tracker::auth::{self, Key};
 const DRIVER: DatabaseDriver = DatabaseDriver::MySQL;
 
 pub struct Mysql {
-    pool: Pool<MysqlConnectionManager>,
+    pool: Pool<MySqlConnectionManager>,
 }
 
 #[async_trait]
@@ -28,7 +28,7 @@ impl Database for Mysql {
     fn new(db_path: &str) -> Result<Self, Error> {
         let opts = Opts::from_url(db_path)?;
         let builder = OptsBuilder::from_opts(opts);
-        let manager = MysqlConnectionManager::new(builder);
+        let manager = MySqlConnectionManager::new(builder);
         let pool = r2d2::Pool::builder().build(manager).map_err(|e| (e, DRIVER))?;
 
         Ok(Self { pool })
