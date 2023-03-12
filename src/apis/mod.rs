@@ -1,8 +1,6 @@
-pub mod context;
-pub mod middlewares;
-pub mod responses;
 pub mod routes;
 pub mod server;
+pub mod v1;
 
 use serde::Deserialize;
 
