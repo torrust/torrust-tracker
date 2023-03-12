@@ -74,8 +74,9 @@ mod tests {
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
-    use crate::apis::resources::peer::Peer;
-    use crate::apis::resources::torrent::{ListItem, Torrent};
+    use super::Torrent;
+    use crate::apis::context::torrent::resources::peer::Peer;
+    use crate::apis::context::torrent::resources::torrent::ListItem;
     use crate::protocol::clock::DurationSinceUnixEpoch;
     use crate::protocol::info_hash::InfoHash;
     use crate::tracker::peer;
