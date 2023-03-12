@@ -6,6 +6,7 @@ pub mod asserts;
 pub mod client;
 pub mod connection_info;
 pub mod test_environment;
+pub mod tests;
 
 /// It forces a database error by dropping all tables.
 /// That makes any query fail.
