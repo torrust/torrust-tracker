@@ -5,14 +5,14 @@ use torrust_tracker::apis::v1::context::torrent::resources::torrent::{self, Torr
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker_test_helpers::configuration;
 
-use crate::api::asserts::{
+use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
+use crate::api::test_environment::running_test_environment;
+use crate::api::v1::asserts::{
     assert_bad_request, assert_invalid_infohash_param, assert_not_found, assert_token_not_valid, assert_torrent_info,
     assert_torrent_list, assert_torrent_not_known, assert_unauthorized,
 };
-use crate::api::client::Client;
-use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
-use crate::api::test_environment::running_test_environment;
-use crate::api::tests::fixtures::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
+use crate::api::v1::client::Client;
+use crate::api::v1::tests::fixtures::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
 use crate::common::fixtures::PeerBuilder;
 use crate::common::http::{Query, QueryParam};
 

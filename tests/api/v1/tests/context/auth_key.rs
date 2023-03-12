@@ -3,14 +3,14 @@ use std::time::Duration;
 use torrust_tracker::tracker::auth::Key;
 use torrust_tracker_test_helpers::configuration;
 
-use crate::api::asserts::{
-    assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
-    assert_invalid_auth_key_param, assert_invalid_key_duration_param, assert_ok, assert_token_not_valid, assert_unauthorized,
-};
-use crate::api::client::Client;
 use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
 use crate::api::force_database_error;
 use crate::api::test_environment::running_test_environment;
+use crate::api::v1::asserts::{
+    assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
+    assert_invalid_auth_key_param, assert_invalid_key_duration_param, assert_ok, assert_token_not_valid, assert_unauthorized,
+};
+use crate::api::v1::client::Client;
 
 #[tokio::test]
 async fn should_allow_generating_a_new_auth_key() {

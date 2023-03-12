@@ -10,7 +10,9 @@ use crate::tracker::Tracker;
 pub fn router(tracker: Arc<Tracker>) -> Router {
     let router = Router::new();
 
-    let router = v1::routes::add(router, tracker.clone());
+    let prefix = "/api";
+
+    let router = v1::routes::add(prefix, router, tracker.clone());
 
     router.layer(middleware::from_fn_with_state(tracker.config.clone(), auth))
 }

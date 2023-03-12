@@ -1,8 +1,8 @@
 use torrust_tracker_test_helpers::configuration;
 
-use crate::api::asserts::{assert_token_not_valid, assert_unauthorized};
-use crate::api::client::Client;
 use crate::api::test_environment::running_test_environment;
+use crate::api::v1::asserts::{assert_token_not_valid, assert_unauthorized};
+use crate::api::v1::client::Client;
 use crate::common::http::{Query, QueryParam};
 
 #[tokio::test]

@@ -2,11 +2,9 @@ use std::sync::Arc;
 
 use torrust_tracker::tracker::Tracker;
 
-pub mod asserts;
-pub mod client;
 pub mod connection_info;
 pub mod test_environment;
-pub mod tests;
+pub mod v1;
 
 /// It forces a database error by dropping all tables.
 /// That makes any query fail.

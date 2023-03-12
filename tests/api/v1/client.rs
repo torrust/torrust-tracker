@@ -1,6 +1,6 @@
 use reqwest::Response;
 
-use super::connection_info::ConnectionInfo;
+use crate::api::connection_info::ConnectionInfo;
 use crate::common::http::{Query, QueryParam, ReqwestQuery};
 
 /// API Client
@@ -13,7 +13,7 @@ impl Client {
     pub fn new(connection_info: ConnectionInfo) -> Self {
         Self {
             connection_info,
-            base_path: "/api/".to_string(),
+            base_path: "/api/v1/".to_string(),
         }
     }
 
