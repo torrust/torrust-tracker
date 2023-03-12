@@ -8,7 +8,7 @@ use serde::{de, Deserialize, Deserializer};
 
 use super::resources::torrent::ListItem;
 use super::responses::{torrent_info_response, torrent_list_response, torrent_not_known_response};
-use crate::apis::responses::invalid_info_hash_param_response;
+use crate::apis::v1::responses::invalid_info_hash_param_response;
 use crate::apis::InfoHashParam;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::services::torrent::{get_torrent_info, get_torrents, Pagination};

@@ -2,7 +2,7 @@ use std::error::Error;
 
 use axum::response::Response;
 
-use crate::apis::responses::unhandled_rejection_response;
+use crate::apis::v1::responses::unhandled_rejection_response;
 
 #[must_use]
 pub fn failed_to_remove_torrent_from_whitelist_response<E: Error>(e: E) -> Response {

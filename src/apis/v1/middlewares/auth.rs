@@ -7,7 +7,7 @@ use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 use torrust_tracker_configuration::{Configuration, HttpApi};
 
-use crate::apis::responses::unhandled_rejection_response;
+use crate::apis::v1::responses::unhandled_rejection_response;
 
 #[derive(Deserialize, Debug)]
 pub struct QueryParams {

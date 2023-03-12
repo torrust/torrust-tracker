@@ -3,8 +3,8 @@ use std::error::Error;
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 
-use crate::apis::context::auth_key::resources::AuthKey;
-use crate::apis::responses::unhandled_rejection_response;
+use crate::apis::v1::context::auth_key::resources::AuthKey;
+use crate::apis::v1::responses::unhandled_rejection_response;
 
 /// # Panics
 ///

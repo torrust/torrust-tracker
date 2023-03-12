@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use torrust_tracker::apis::context::stats::resources::Stats;
+use torrust_tracker::apis::v1::context::stats::resources::Stats;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker_test_helpers::configuration;
 

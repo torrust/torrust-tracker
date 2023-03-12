@@ -7,7 +7,7 @@ use axum::response::Response;
 use super::responses::{
     failed_to_reload_whitelist_response, failed_to_remove_torrent_from_whitelist_response, failed_to_whitelist_torrent_response,
 };
-use crate::apis::responses::{invalid_info_hash_param_response, ok_response};
+use crate::apis::v1::responses::{invalid_info_hash_param_response, ok_response};
 use crate::apis::InfoHashParam;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::Tracker;
