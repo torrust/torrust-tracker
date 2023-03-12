@@ -3,6 +3,7 @@ pub mod client;
 pub mod requests;
 pub mod responses;
 pub mod test_environment;
+pub mod v1;
 
 use percent_encoding::NON_ALPHANUMERIC;
 

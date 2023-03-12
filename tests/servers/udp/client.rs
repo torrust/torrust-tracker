@@ -5,7 +5,7 @@ use aquatic_udp_protocol::{Request, Response};
 use tokio::net::UdpSocket;
 use torrust_tracker::udp::MAX_PACKET_SIZE;
 
-use crate::udp::source_address;
+use crate::servers::udp::source_address;
 
 #[allow(clippy::module_name_repetitions)]
 pub struct UdpClient {

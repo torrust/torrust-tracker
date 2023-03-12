@@ -1,7 +1,7 @@
 use reqwest::Response;
 
-use crate::api::connection_info::ConnectionInfo;
 use crate::common::http::{Query, QueryParam, ReqwestQuery};
+use crate::servers::api::connection_info::ConnectionInfo;
 
 /// API Client
 pub struct Client {

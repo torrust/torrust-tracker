@@ -4,7 +4,7 @@ use reqwest::Response;
 
 use super::responses::announce::{Announce, Compact, DeserializedCompact};
 use super::responses::scrape;
-use crate::http::responses::error::Error;
+use crate::servers::http::responses::error::Error;
 
 pub fn assert_bencoded_error(response_text: &String, expected_failure_reason: &str, location: &'static Location<'static>) {
     let error_failure_reason = serde_bencode::from_str::<Error>(response_text)

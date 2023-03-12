@@ -1,5 +1,6 @@
 pub mod asserts;
 pub mod client;
+pub mod contract;
 pub mod test_environment;
 
 /// Generates the source address for the UDP client

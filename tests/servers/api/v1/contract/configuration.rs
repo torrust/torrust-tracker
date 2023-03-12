@@ -1,6 +1,6 @@
 use torrust_tracker_test_helpers::configuration;
 
-use crate::api::test_environment::stopped_test_environment;
+use crate::servers::api::test_environment::stopped_test_environment;
 
 #[tokio::test]
 #[should_panic]

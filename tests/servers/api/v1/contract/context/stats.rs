@@ -4,11 +4,11 @@ use torrust_tracker::apis::v1::context::stats::resources::Stats;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker_test_helpers::configuration;
 
-use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
-use crate::api::test_environment::running_test_environment;
-use crate::api::v1::asserts::{assert_stats, assert_token_not_valid, assert_unauthorized};
-use crate::api::v1::client::Client;
 use crate::common::fixtures::PeerBuilder;
+use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
+use crate::servers::api::test_environment::running_test_environment;
+use crate::servers::api::v1::asserts::{assert_stats, assert_token_not_valid, assert_unauthorized};
+use crate::servers::api::v1::client::Client;
 
 #[tokio::test]
 async fn should_allow_getting_tracker_statistics() {

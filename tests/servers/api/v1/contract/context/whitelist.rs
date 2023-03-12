@@ -3,15 +3,17 @@ use std::str::FromStr;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker_test_helpers::configuration;
 
-use crate::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
-use crate::api::force_database_error;
-use crate::api::test_environment::running_test_environment;
-use crate::api::v1::asserts::{
+use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
+use crate::servers::api::force_database_error;
+use crate::servers::api::test_environment::running_test_environment;
+use crate::servers::api::v1::asserts::{
     assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist, assert_failed_to_whitelist_torrent,
     assert_invalid_infohash_param, assert_not_found, assert_ok, assert_token_not_valid, assert_unauthorized,
 };
-use crate::api::v1::client::Client;
-use crate::api::v1::tests::fixtures::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
+use crate::servers::api::v1::client::Client;
+use crate::servers::api::v1::contract::fixtures::{
+    invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found,
+};
 
 #[tokio::test]
 async fn should_allow_whitelisting_a_torrent() {

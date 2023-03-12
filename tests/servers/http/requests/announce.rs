@@ -6,7 +6,7 @@ use serde_repr::Serialize_repr;
 use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Id;
 
-use crate::http::{percent_encode_byte_array, ByteArray20};
+use crate::servers::http::{percent_encode_byte_array, ByteArray20};
 
 pub struct Query {
     pub info_hash: ByteArray20,

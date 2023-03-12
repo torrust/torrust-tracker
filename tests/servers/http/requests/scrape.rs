@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use torrust_tracker::protocol::info_hash::InfoHash;
 
-use crate::http::{percent_encode_byte_array, ByteArray20};
+use crate::servers::http::{percent_encode_byte_array, ByteArray20};
 
 pub struct Query {
     pub info_hash: Vec<ByteArray20>,
