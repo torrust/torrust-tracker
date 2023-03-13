@@ -31,7 +31,7 @@ pub async fn delete_auth_key_handler(
 ) -> Response {
     match Key::from_str(&seconds_valid_or_key.0) {
         Err(_) => invalid_auth_key_param_response(&seconds_valid_or_key.0),
-        Ok(key) => match tracker.remove_auth_key(&key.to_string()).await {
+        Ok(key) => match tracker.remove_auth_key(&key).await {
             Ok(_) => ok_response(),
             Err(e) => failed_to_delete_key_response(e),
         },

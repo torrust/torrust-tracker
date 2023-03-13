@@ -24,6 +24,11 @@ impl InfoHash {
     pub fn bytes(&self) -> [u8; 20] {
         self.0
     }
+
+    #[must_use]
+    pub fn to_hex_string(&self) -> String {
+        self.to_string()
+    }
 }
 
 impl std::fmt::Display for InfoHash {
@@ -195,6 +200,13 @@ mod tests {
         let output = format!("{info_hash}");
 
         assert_eq!(output, "ffffffffffffffffffffffffffffffffffffffff");
+    }
+
+    #[test]
+    fn an_info_hash_should_return_its_a_40_utf8_lowercased_char_hex_representations_as_string() {
+        let info_hash = InfoHash::from_str("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF").unwrap();
+
+        assert_eq!(info_hash.to_hex_string(), "ffffffffffffffffffffffffffffffffffffffff");
     }
 
     #[test]

@@ -9,7 +9,7 @@ use async_trait::async_trait;
 
 use self::error::Error;
 use crate::protocol::info_hash::InfoHash;
-use crate::tracker::auth;
+use crate::tracker::auth::{self, Key};
 
 pub(self) struct Builder<T>
 where
@@ -63,25 +63,19 @@ pub trait Database: Sync + Send {
 
     async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error>;
 
-    // todo: replace type `&str` with `&InfoHash`
-    async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<Option<InfoHash>, Error>;
+    async fn get_info_hash_from_whitelist(&self, info_hash: &InfoHash) -> Result<Option<InfoHash>, Error>;
 
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
 
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
 
-    // todo: replace type `&str` with `&Key`
-    async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::ExpiringKey>, Error>;
+    async fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error>;
 
     async fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error>;
 
-    // todo: replace type `&str` with `&Key`
-    async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error>;
+    async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error>;
 
     async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> Result<bool, Error> {
-        Ok(self
-            .get_info_hash_from_whitelist(&info_hash.clone().to_string())
-            .await?
-            .is_some())
+        Ok(self.get_info_hash_from_whitelist(info_hash).await?.is_some())
     }
 }
