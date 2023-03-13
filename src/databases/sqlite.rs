@@ -156,12 +156,12 @@ impl Database for Sqlite {
         }
     }
 
-    async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<Option<InfoHash>, Error> {
+    async fn get_info_hash_from_whitelist(&self, info_hash: &InfoHash) -> Result<Option<InfoHash>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT info_hash FROM whitelist WHERE info_hash = ?")?;
 
-        let mut rows = stmt.query([info_hash])?;
+        let mut rows = stmt.query([info_hash.to_hex_string()])?;
 
         let query = rows.next()?;
 
@@ -200,7 +200,7 @@ impl Database for Sqlite {
         }
     }
 
-    async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::ExpiringKey>, Error> {
+    async fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys WHERE key = ?")?;
@@ -211,9 +211,9 @@ impl Database for Sqlite {
 
         Ok(key.map(|f| {
             let expiry: i64 = f.get(1).unwrap();
-            let id: String = f.get(0).unwrap();
+            let key: String = f.get(0).unwrap();
             auth::ExpiringKey {
-                key: id.parse::<Key>().unwrap(),
+                key: key.parse::<Key>().unwrap(),
                 valid_until: DurationSinceUnixEpoch::from_secs(expiry.unsigned_abs()),
             }
         }))
@@ -237,10 +237,10 @@ impl Database for Sqlite {
         }
     }
 
-    async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error> {
+    async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let deleted = conn.execute("DELETE FROM keys WHERE key = ?", [key])?;
+        let deleted = conn.execute("DELETE FROM keys WHERE key = ?", [key.to_string()])?;
 
         if deleted == 1 {
             // should only remove a single record.

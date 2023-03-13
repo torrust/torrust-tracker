@@ -147,12 +147,12 @@ impl Database for Mysql {
         Ok(conn.exec_drop(COMMAND, params! { info_hash_str, completed })?)
     }
 
-    async fn get_info_hash_from_whitelist(&self, info_hash: &str) -> Result<Option<InfoHash>, Error> {
+    async fn get_info_hash_from_whitelist(&self, info_hash: &InfoHash) -> Result<Option<InfoHash>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let select = conn.exec_first::<String, _, _>(
             "SELECT info_hash FROM whitelist WHERE info_hash = :info_hash",
-            params! { info_hash },
+            params! { "info_hash" => info_hash.to_hex_string() },
         )?;
 
         let info_hash = select.map(|f| InfoHash::from_str(&f).expect("Failed to decode InfoHash String from DB!"));
@@ -183,11 +183,13 @@ impl Database for Mysql {
         Ok(1)
     }
 
-    async fn get_key_from_keys(&self, key: &str) -> Result<Option<auth::ExpiringKey>, Error> {
+    async fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let query =
-            conn.exec_first::<(String, i64), _, _>("SELECT `key`, valid_until FROM `keys` WHERE `key` = :key", params! { key });
+        let query = conn.exec_first::<(String, i64), _, _>(
+            "SELECT `key`, valid_until FROM `keys` WHERE `key` = :key",
+            params! { "key" => key.to_string() },
+        );
 
         let key = query?;
 
@@ -211,10 +213,10 @@ impl Database for Mysql {
         Ok(1)
     }
 
-    async fn remove_key_from_keys(&self, key: &str) -> Result<usize, Error> {
+    async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        conn.exec_drop("DELETE FROM `keys` WHERE key = :key", params! { key })?;
+        conn.exec_drop("DELETE FROM `keys` WHERE key = :key", params! { "key" => key.to_string() })?;
 
         Ok(1)
     }

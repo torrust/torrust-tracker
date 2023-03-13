@@ -202,10 +202,9 @@ impl Tracker {
     /// # Panics
     ///
     /// Will panic if key cannot be converted into a valid `Key`.
-    pub async fn remove_auth_key(&self, key: &str) -> Result<(), databases::error::Error> {
-        // todo: change argument `key: &str` to `key: &Key`
+    pub async fn remove_auth_key(&self, key: &Key) -> Result<(), databases::error::Error> {
         self.database.remove_key_from_keys(key).await?;
-        self.keys.write().await.remove(&key.parse::<Key>().unwrap());
+        self.keys.write().await.remove(key);
         Ok(())
     }
 
@@ -1175,12 +1174,12 @@ mod tests {
                 async fn it_should_remove_an_authentication_key() {
                     let tracker = private_tracker();
 
-                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+                    let expiring_key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
 
-                    let result = tracker.remove_auth_key(&key.id().to_string()).await;
+                    let result = tracker.remove_auth_key(&expiring_key.id()).await;
 
                     assert!(result.is_ok());
-                    assert!(tracker.verify_auth_key(&key.id()).await.is_err());
+                    assert!(tracker.verify_auth_key(&expiring_key.id()).await.is_err());
                 }
 
                 #[tokio::test]
