@@ -1215,9 +1215,9 @@ mod configured_as_private {
         async fn should_respond_to_authenticated_peers() {
             let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_private()).await;
 
-            let key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
+            let expiring_key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
-            let response = Client::authenticated(*test_env.bind_address(), key.id())
+            let response = Client::authenticated(*test_env.bind_address(), expiring_key.key())
                 .announce(&QueryBuilder::default().query())
                 .await;
 
@@ -1353,9 +1353,9 @@ mod configured_as_private {
                 )
                 .await;
 
-            let key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
+            let expiring_key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
-            let response = Client::authenticated(*test_env.bind_address(), key.id())
+            let response = Client::authenticated(*test_env.bind_address(), expiring_key.key())
                 .scrape(
                     &requests::scrape::QueryBuilder::default()
                         .with_one_info_hash(&info_hash)
