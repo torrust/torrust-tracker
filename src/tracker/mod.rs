@@ -1132,9 +1132,9 @@ mod tests {
                 async fn it_should_authenticate_a_peer_by_using_a_key() {
                     let tracker = private_tracker();
 
-                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+                    let expiring_key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
 
-                    let result = tracker.authenticate(&key.id()).await;
+                    let result = tracker.authenticate(&expiring_key.key()).await;
 
                     assert!(result.is_ok());
                 }
@@ -1156,9 +1156,9 @@ mod tests {
                     // `verify_auth_key` should be a private method.
                     let tracker = private_tracker();
 
-                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+                    let expiring_key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
 
-                    assert!(tracker.verify_auth_key(&key.id()).await.is_ok());
+                    assert!(tracker.verify_auth_key(&expiring_key.key()).await.is_ok());
                 }
 
                 #[tokio::test]
@@ -1176,25 +1176,25 @@ mod tests {
 
                     let expiring_key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
 
-                    let result = tracker.remove_auth_key(&expiring_key.id()).await;
+                    let result = tracker.remove_auth_key(&expiring_key.key()).await;
 
                     assert!(result.is_ok());
-                    assert!(tracker.verify_auth_key(&expiring_key.id()).await.is_err());
+                    assert!(tracker.verify_auth_key(&expiring_key.key()).await.is_err());
                 }
 
                 #[tokio::test]
                 async fn it_should_load_authentication_keys_from_the_database() {
                     let tracker = private_tracker();
 
-                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+                    let expiring_key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
 
                     // Remove the newly generated key in memory
-                    tracker.keys.write().await.remove(&key.id());
+                    tracker.keys.write().await.remove(&expiring_key.key());
 
                     let result = tracker.load_keys_from_database().await;
 
                     assert!(result.is_ok());
-                    assert!(tracker.verify_auth_key(&key.id()).await.is_ok());
+                    assert!(tracker.verify_auth_key(&expiring_key.key()).await.is_ok());
                 }
             }
 

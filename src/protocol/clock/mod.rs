@@ -1,5 +1,8 @@
 use std::num::IntErrorKind;
+use std::str::FromStr;
 use std::time::Duration;
+
+use chrono::{DateTime, NaiveDateTime, Utc};
 
 pub type DurationSinceUnixEpoch = Duration;
 
@@ -36,6 +39,40 @@ pub trait TimeNow: Time {
     }
 }
 
+/// # Panics
+///
+/// Will panic if the input time cannot be converted to `DateTime::<Utc>`.
+/// <https://en.wikipedia.org/wiki/Year_2038_problem>
+#[must_use]
+pub fn convert_from_iso_8601_to_timestamp(iso_8601: &str) -> DurationSinceUnixEpoch {
+    convert_from_datetime_utc_to_timestamp(&DateTime::<Utc>::from_str(iso_8601).unwrap())
+}
+
+/// # Panics
+///
+/// Will panic if the input time overflows the u64 type.
+/// <https://en.wikipedia.org/wiki/Year_2038_problem>
+#[must_use]
+pub fn convert_from_datetime_utc_to_timestamp(datetime_utc: &DateTime<Utc>) -> DurationSinceUnixEpoch {
+    DurationSinceUnixEpoch::from_secs(u64::try_from(datetime_utc.timestamp()).expect("Overflow of u64 seconds, very future!"))
+}
+
+/// # Panics
+///
+/// Will panic if the input time overflows the i64 type.
+/// <https://en.wikipedia.org/wiki/Year_2038_problem>
+#[must_use]
+pub fn convert_from_timestamp_to_datetime_utc(duration: DurationSinceUnixEpoch) -> DateTime<Utc> {
+    DateTime::<Utc>::from_utc(
+        NaiveDateTime::from_timestamp_opt(
+            i64::try_from(duration.as_secs()).expect("Overflow of i64 seconds, very future!"),
+            duration.subsec_nanos(),
+        )
+        .unwrap(),
+        Utc,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use std::any::TypeId;
@@ -53,6 +90,39 @@ mod tests {
     fn it_should_have_different_times() {
         assert_ne!(TypeId::of::<Stopped>(), TypeId::of::<Working>());
         assert_ne!(Stopped::now(), Working::now());
+    }
+
+    mod timestamp {
+        use chrono::{DateTime, NaiveDateTime, Utc};
+
+        use crate::protocol::clock::{
+            convert_from_datetime_utc_to_timestamp, convert_from_iso_8601_to_timestamp, convert_from_timestamp_to_datetime_utc,
+            DurationSinceUnixEpoch,
+        };
+
+        #[test]
+        fn should_be_converted_to_datetime_utc() {
+            let timestamp = DurationSinceUnixEpoch::ZERO;
+            assert_eq!(
+                convert_from_timestamp_to_datetime_utc(timestamp),
+                DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), Utc)
+            );
+        }
+
+        #[test]
+        fn should_be_converted_from_datetime_utc() {
+            let datetime = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), Utc);
+            assert_eq!(
+                convert_from_datetime_utc_to_timestamp(&datetime),
+                DurationSinceUnixEpoch::ZERO
+            );
+        }
+
+        #[test]
+        fn should_be_converted_from_datetime_utc_in_iso_8601() {
+            let iso_8601 = "1970-01-01T00:00:00.000Z".to_string();
+            assert_eq!(convert_from_iso_8601_to_timestamp(&iso_8601), DurationSinceUnixEpoch::ZERO);
+        }
     }
 }
 

@@ -3,7 +3,6 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use chrono::{DateTime, NaiveDateTime, Utc};
 use derive_more::Display;
 use log::debug;
 use rand::distributions::Alphanumeric;
@@ -12,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use torrust_tracker_located_error::LocatedError;
 
-use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Time, TimeNow};
+use crate::protocol::clock::{convert_from_timestamp_to_datetime_utc, Current, DurationSinceUnixEpoch, Time, TimeNow};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 
 #[must_use]
@@ -59,26 +58,27 @@ pub struct ExpiringKey {
 
 impl std::fmt::Display for ExpiringKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "key: `{}`, valid until `{}`",
-            self.key,
-            DateTime::<Utc>::from_utc(
-                NaiveDateTime::from_timestamp_opt(
-                    i64::try_from(self.valid_until.as_secs()).expect("Overflow of i64 seconds, very future!"),
-                    self.valid_until.subsec_nanos(),
-                )
-                .unwrap(),
-                Utc
-            )
-        )
+        write!(f, "key: `{}`, valid until `{}`", self.key, self.expiry_time())
     }
 }
 
 impl ExpiringKey {
     #[must_use]
-    pub fn id(&self) -> Key {
+    pub fn key(&self) -> Key {
         self.key.clone()
+    }
+
+    /// It returns the expiry time. For example, for the starting time for Unix Epoch
+    /// (timestamp 0) it will return a `DateTime` whose string representation is
+    /// `1970-01-01 00:00:00 UTC`.
+    ///
+    /// # Panics
+    ///
+    /// Will panic when the key timestamp overflows the ui64 type.
+    /// <https://en.wikipedia.org/wiki/Year_2038_problem>
+    #[must_use]
+    pub fn expiry_time(&self) -> chrono::DateTime<chrono::Utc> {
+        convert_from_timestamp_to_datetime_utc(self.valid_until)
     }
 }
 
@@ -126,44 +126,75 @@ impl From<r2d2_sqlite::rusqlite::Error> for Error {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-    use std::time::Duration;
 
-    use crate::protocol::clock::{Current, StoppedTime};
-    use crate::tracker::auth;
+    mod key {
+        use std::str::FromStr;
 
-    #[test]
-    fn auth_key_from_string() {
-        let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
-        let auth_key = auth::Key::from_str(key_string);
+        use crate::tracker::auth::Key;
 
-        assert!(auth_key.is_ok());
-        assert_eq!(auth_key.unwrap().to_string(), key_string);
+        #[test]
+        fn should_be_parsed_from_an_string() {
+            let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+            let key = Key::from_str(key_string);
+
+            assert!(key.is_ok());
+            assert_eq!(key.unwrap().to_string(), key_string);
+        }
     }
 
-    #[test]
-    fn generate_valid_auth_key() {
-        let auth_key = auth::generate(Duration::new(9999, 0));
+    mod expiring_auth_key {
+        use std::str::FromStr;
+        use std::time::Duration;
 
-        assert!(auth::verify(&auth_key).is_ok());
-    }
+        use crate::protocol::clock::{Current, StoppedTime};
+        use crate::tracker::auth;
 
-    #[test]
-    fn generate_and_check_expired_auth_key() {
-        // Set the time to the current time.
-        Current::local_set_to_system_time_now();
+        #[test]
+        fn should_be_parsed_from_an_string() {
+            let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+            let auth_key = auth::Key::from_str(key_string);
 
-        // Make key that is valid for 19 seconds.
-        let auth_key = auth::generate(Duration::from_secs(19));
+            assert!(auth_key.is_ok());
+            assert_eq!(auth_key.unwrap().to_string(), key_string);
+        }
 
-        // Mock the time has passed 10 sec.
-        Current::local_add(&Duration::from_secs(10)).unwrap();
+        #[test]
+        fn should_be_displayed() {
+            // Set the time to the current time.
+            Current::local_set_to_unix_epoch();
 
-        assert!(auth::verify(&auth_key).is_ok());
+            let expiring_key = auth::generate(Duration::from_secs(0));
 
-        // Mock the time has passed another 10 sec.
-        Current::local_add(&Duration::from_secs(10)).unwrap();
+            assert_eq!(
+                expiring_key.to_string(),
+                format!("key: `{}`, valid until `1970-01-01 00:00:00 UTC`", expiring_key.key) // cspell:disable-line
+            );
+        }
 
-        assert!(auth::verify(&auth_key).is_err());
+        #[test]
+        fn should_be_generated_with_a_expiration_time() {
+            let expiring_key = auth::generate(Duration::new(9999, 0));
+
+            assert!(auth::verify(&expiring_key).is_ok());
+        }
+
+        #[test]
+        fn should_be_generate_and_verified() {
+            // Set the time to the current time.
+            Current::local_set_to_system_time_now();
+
+            // Make key that is valid for 19 seconds.
+            let expiring_key = auth::generate(Duration::from_secs(19));
+
+            // Mock the time has passed 10 sec.
+            Current::local_add(&Duration::from_secs(10)).unwrap();
+
+            assert!(auth::verify(&expiring_key).is_ok());
+
+            // Mock the time has passed another 10 sec.
+            Current::local_add(&Duration::from_secs(10)).unwrap();
+
+            assert!(auth::verify(&expiring_key).is_err());
+        }
     }
 }
