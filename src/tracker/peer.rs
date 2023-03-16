@@ -169,8 +169,13 @@ impl Id {
     pub fn to_hex_string(&self) -> Option<String> {
         let buff_size = self.0.len() * 2;
         let mut tmp: Vec<u8> = vec![0; buff_size];
+
         binascii::bin2hex(&self.0, &mut tmp).unwrap();
-        std::str::from_utf8(&tmp).ok().map(std::string::ToString::to_string)
+
+        match std::str::from_utf8(&tmp) {
+            Ok(hex) => Some(format!("0x{hex}")),
+            Err(_) => None,
+        }
     }
 
     #[must_use]
@@ -360,23 +365,23 @@ mod test {
         #[test]
         fn should_be_converted_to_hex_string() {
             let id = peer::Id(*b"-qB00000000000000000");
-            assert_eq!(id.to_hex_string().unwrap(), "2d71423030303030303030303030303030303030");
+            assert_eq!(id.to_hex_string().unwrap(), "0x2d71423030303030303030303030303030303030");
 
             let id = peer::Id([
                 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
             ]);
-            assert_eq!(id.to_hex_string().unwrap(), "009f9296009f9296009f9296009f9296009f9296");
+            assert_eq!(id.to_hex_string().unwrap(), "0x009f9296009f9296009f9296009f9296009f9296");
         }
 
         #[test]
         fn should_be_converted_into_string_type_using_the_hex_string_format() {
             let id = peer::Id(*b"-qB00000000000000000");
-            assert_eq!(id.to_string(), "2d71423030303030303030303030303030303030");
+            assert_eq!(id.to_string(), "0x2d71423030303030303030303030303030303030");
 
             let id = peer::Id([
                 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150, 0, 159, 146, 150,
             ]);
-            assert_eq!(id.to_string(), "009f9296009f9296009f9296009f9296009f9296");
+            assert_eq!(id.to_string(), "0x009f9296009f9296009f9296009f9296009f9296");
         }
 
         #[test]
@@ -390,6 +395,7 @@ mod test {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+        use serde_json::Value;
 
         use crate::protocol::clock::{Current, Time};
         use crate::tracker::peer::{self, Peer};
@@ -406,12 +412,26 @@ mod test {
                 event: AnnounceEvent::Started,
             };
 
-            let json_serialized_value = serde_json::to_string(&torrent_peer).unwrap();
+            let raw_json = serde_json::to_string(&torrent_peer).unwrap();
+
+            let expected_raw_json = r#"
+                {
+                    "peer_id": {
+                        "id": "0x2d71423030303030303030303030303030303030",
+                        "client": "qBittorrent"
+                    },
+                    "peer_addr":"126.0.0.1:8080",
+                    "updated":0,
+                    "uploaded":0,
+                    "downloaded":0,
+                    "left":0,
+                    "event":"Started"
+                }
+            "#;
 
             assert_eq!(
-                json_serialized_value,
-                // todo: compare using pretty json format to improve readability
-                r#"{"peer_id":{"id":"2d71423030303030303030303030303030303030","client":"qBittorrent"},"peer_addr":"126.0.0.1:8080","updated":0,"uploaded":0,"downloaded":0,"left":0,"event":"Started"}"#
+                serde_json::from_str::<Value>(&raw_json).unwrap(),
+                serde_json::from_str::<Value>(expected_raw_json).unwrap()
             );
         }
     }
