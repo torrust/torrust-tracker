@@ -1,3 +1,5 @@
+pub mod setup;
+
 use std::sync::Arc;
 
 use crate::tracker::statistics::Metrics;

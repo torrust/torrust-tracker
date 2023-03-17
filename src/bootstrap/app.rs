@@ -3,11 +3,26 @@ use std::sync::Arc;
 
 use torrust_tracker_configuration::Configuration;
 
-use crate::bootstrap::stats;
+use crate::bootstrap;
 use crate::shared::clock::static_time;
 use crate::shared::crypto::ephemeral_instance_keys;
+use crate::tracker::services::tracker_factory;
 use crate::tracker::Tracker;
-use crate::{bootstrap, tracker};
+
+#[must_use]
+pub fn setup() -> (Arc<Configuration>, Arc<Tracker>) {
+    let configuration = Arc::new(initialize_configuration());
+    let tracker = initialize_with_configuration(&configuration);
+
+    (configuration, tracker)
+}
+
+#[must_use]
+pub fn initialize_with_configuration(configuration: &Arc<Configuration>) -> Arc<Tracker> {
+    initialize_static();
+    initialize_logging(configuration);
+    Arc::new(initialize_tracker(configuration))
+}
 
 pub fn initialize_static() {
     // Set the time of Torrust app starting
@@ -20,35 +35,26 @@ pub fn initialize_static() {
 /// # Panics
 ///
 /// Will panic if it can't load the configuration from either
-/// `./config.toml` file or env var `TORRUST_TRACKER_CONFIG`.
+/// `./config.toml` file or the env var `TORRUST_TRACKER_CONFIG`.
 #[must_use]
-pub fn setup() -> (Arc<Configuration>, Arc<Tracker>) {
+fn initialize_configuration() -> Configuration {
     const CONFIG_PATH: &str = "./config.toml";
     const CONFIG_ENV_VAR_NAME: &str = "TORRUST_TRACKER_CONFIG";
 
-    initialize_static();
-
-    // Initialize Torrust config
-    let config = if env::var(CONFIG_ENV_VAR_NAME).is_ok() {
+    if env::var(CONFIG_ENV_VAR_NAME).is_ok() {
         println!("Loading configuration from env var {CONFIG_ENV_VAR_NAME}");
-        Arc::new(Configuration::load_from_env_var(CONFIG_ENV_VAR_NAME).unwrap())
+        Configuration::load_from_env_var(CONFIG_ENV_VAR_NAME).unwrap()
     } else {
         println!("Loading configuration from config file {CONFIG_PATH}");
-        Arc::new(Configuration::load_from_file(CONFIG_PATH).unwrap())
-    };
+        Configuration::load_from_file(CONFIG_PATH).unwrap()
+    }
+}
 
-    // Initialize statistics
-    let (stats_event_sender, stats_repository) = stats::setup(config.tracker_usage_statistics);
+#[must_use]
+pub fn initialize_tracker(config: &Arc<Configuration>) -> Tracker {
+    tracker_factory(config.clone())
+}
 
-    // Initialize Torrust tracker
-    let tracker = match tracker::Tracker::new(config.clone(), stats_event_sender, stats_repository) {
-        Ok(tracker) => Arc::new(tracker),
-        Err(error) => {
-            panic!("{}", error)
-        }
-    };
-
-    bootstrap::logging::setup(&config);
-
-    (config, tracker)
+pub fn initialize_logging(config: &Arc<Configuration>) {
+    bootstrap::logging::setup(config);
 }

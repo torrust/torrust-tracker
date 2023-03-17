@@ -6,7 +6,7 @@ use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
 
 use super::connection_info::ConnectionInfo;
-use crate::common::app::setup_with_config;
+use crate::common::app::setup_with_configuration;
 
 #[allow(clippy::module_name_repetitions, dead_code)]
 pub type StoppedTestEnvironment = TestEnvironment<Stopped>;
@@ -39,7 +39,7 @@ impl TestEnvironment<Stopped> {
     pub fn new_stopped(cfg: torrust_tracker_configuration::Configuration) -> Self {
         let cfg = Arc::new(cfg);
 
-        let tracker = setup_with_config(cfg.clone());
+        let tracker = setup_with_configuration(&cfg);
 
         let api_server = api_server(cfg.http_api.clone());
 

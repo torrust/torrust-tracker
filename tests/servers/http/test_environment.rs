@@ -5,7 +5,7 @@ use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
 
-use crate::common::app::setup_with_config;
+use crate::common::app::setup_with_configuration;
 
 #[allow(clippy::module_name_repetitions, dead_code)]
 pub type StoppedTestEnvironment<I> = TestEnvironment<Stopped<I>>;
@@ -39,7 +39,7 @@ impl<I: HttpServerLauncher + 'static> TestEnvironment<Stopped<I>> {
     pub fn new_stopped(cfg: torrust_tracker_configuration::Configuration) -> Self {
         let cfg = Arc::new(cfg);
 
-        let tracker = setup_with_config(cfg.clone());
+        let tracker = setup_with_configuration(&cfg);
 
         let http_server = http_server(cfg.http_trackers[0].clone());
 
