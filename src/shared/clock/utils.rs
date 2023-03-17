@@ -1,4 +1,4 @@
-use super::clock::DurationSinceUnixEpoch;
+use super::DurationSinceUnixEpoch;
 
 /// # Errors
 ///

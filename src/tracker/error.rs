@@ -16,7 +16,7 @@ pub enum Error {
     // Authorization errors
     #[error("The torrent: {info_hash}, is not whitelisted, {location}")]
     TorrentNotWhitelisted {
-        info_hash: crate::protocol::info_hash::InfoHash,
+        info_hash: crate::shared::bit_torrent::info_hash::InfoHash,
         location: &'static Location<'static>,
     },
 }

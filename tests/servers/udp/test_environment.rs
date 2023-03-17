@@ -1,8 +1,8 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::servers::udp::server::{RunningUdpServer, StoppedUdpServer, UdpServer};
+use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
 

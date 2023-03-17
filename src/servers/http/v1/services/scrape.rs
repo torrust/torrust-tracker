@@ -1,7 +1,7 @@
 use std::net::IpAddr;
 use std::sync::Arc;
 
-use crate::protocol::info_hash::InfoHash;
+use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::tracker::{statistics, ScrapeData, Tracker};
 
 pub async fn invoke(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
@@ -39,8 +39,8 @@ mod tests {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::protocol::clock::DurationSinceUnixEpoch;
-    use crate::protocol::info_hash::InfoHash;
+    use crate::shared::bit_torrent::info_hash::InfoHash;
+    use crate::shared::clock::DurationSinceUnixEpoch;
     use crate::tracker::services::common::tracker_factory;
     use crate::tracker::{peer, Tracker};
 

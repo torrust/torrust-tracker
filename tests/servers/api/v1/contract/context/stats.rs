@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
-use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::servers::apis::v1::context::stats::resources::Stats;
+use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker_test_helpers::configuration;
 
 use crate::common::fixtures::PeerBuilder;

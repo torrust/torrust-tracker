@@ -1,7 +1,7 @@
 use std::net::{IpAddr, SocketAddr};
 
 use super::request::AnnounceWrapper;
-use crate::protocol::clock::{Current, Time};
+use crate::shared::clock::{Current, Time};
 use crate::tracker::peer::{Id, Peer};
 
 #[must_use]

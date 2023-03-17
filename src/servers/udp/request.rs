@@ -1,6 +1,6 @@
 use aquatic_udp_protocol::AnnounceRequest;
 
-use crate::protocol::info_hash::InfoHash;
+use crate::shared::bit_torrent::info_hash::InfoHash;
 
 pub struct AnnounceWrapper {
     pub announce_request: AnnounceRequest,

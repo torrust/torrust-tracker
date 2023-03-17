@@ -53,9 +53,9 @@ mod tests {
     use std::str::FromStr;
 
     use super::extract_announce_from;
-    use crate::protocol::info_hash::InfoHash;
     use crate::servers::http::v1::requests::announce::{Announce, Compact, Event};
     use crate::servers::http::v1::responses::error::Error;
+    use crate::shared::bit_torrent::info_hash::InfoHash;
     use crate::tracker::peer;
 
     fn assert_error_response(error: &Error, error_message: &str) {

@@ -9,11 +9,11 @@ use aquatic_udp_protocol::{
 use log::debug;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
-use crate::protocol::common::MAX_SCRAPE_TORRENTS;
-use crate::protocol::info_hash::InfoHash;
 use crate::servers::udp::error::Error;
 use crate::servers::udp::peer_builder;
 use crate::servers::udp::request::AnnounceWrapper;
+use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
+use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::tracker::{statistics, Tracker};
 
 pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: &Tracker) -> Response {
@@ -241,7 +241,7 @@ mod tests {
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::protocol::clock::{Current, Time};
+    use crate::shared::clock::{Current, Time};
     use crate::tracker::services::common::tracker_factory;
     use crate::tracker::{self, peer};
 

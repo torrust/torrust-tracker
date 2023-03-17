@@ -2,7 +2,7 @@ use std::convert::From;
 
 use serde::{Deserialize, Serialize};
 
-use crate::protocol::clock::convert_from_iso_8601_to_timestamp;
+use crate::shared::clock::convert_from_iso_8601_to_timestamp;
 use crate::tracker::auth::{self, Key};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -36,7 +36,7 @@ mod tests {
     use std::time::Duration;
 
     use super::AuthKey;
-    use crate::protocol::clock::{Current, TimeNow};
+    use crate::shared::clock::{Current, TimeNow};
     use crate::tracker::auth::{self, Key};
 
     struct TestTime {

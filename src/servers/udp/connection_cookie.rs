@@ -4,7 +4,7 @@ use std::panic::Location;
 use aquatic_udp_protocol::ConnectionId;
 
 use super::error::Error;
-use crate::protocol::clock::time_extent::{Extent, TimeExtent};
+use crate::shared::clock::time_extent::{Extent, TimeExtent};
 
 pub type Cookie = [u8; 8];
 
@@ -61,8 +61,8 @@ mod cookie_builder {
     use std::net::SocketAddr;
 
     use super::{Cookie, SinceUnixEpochTimeExtent, COOKIE_LIFETIME};
-    use crate::protocol::clock::time_extent::{DefaultTimeExtentMaker, Extent, Make, TimeExtent};
-    use crate::protocol::crypto::keys::seeds::{Current, Keeper};
+    use crate::shared::clock::time_extent::{DefaultTimeExtentMaker, Extent, Make, TimeExtent};
+    use crate::shared::crypto::keys::seeds::{Current, Keeper};
 
     pub(super) fn get_last_time_extent() -> SinceUnixEpochTimeExtent {
         DefaultTimeExtentMaker::now(&COOKIE_LIFETIME.increment)
@@ -90,9 +90,9 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
     use super::cookie_builder::{self};
-    use crate::protocol::clock::time_extent::{self, Extent};
-    use crate::protocol::clock::{Stopped, StoppedTime};
     use crate::servers::udp::connection_cookie::{check, make, Cookie, COOKIE_LIFETIME};
+    use crate::shared::clock::time_extent::{self, Extent};
+    use crate::shared::clock::{Stopped, StoppedTime};
 
     // #![feature(const_socketaddr)]
     // const REMOTE_ADDRESS_IPV4_ZERO: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);

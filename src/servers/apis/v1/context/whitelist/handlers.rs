@@ -7,9 +7,9 @@ use axum::response::Response;
 use super::responses::{
     failed_to_reload_whitelist_response, failed_to_remove_torrent_from_whitelist_response, failed_to_whitelist_torrent_response,
 };
-use crate::protocol::info_hash::InfoHash;
 use crate::servers::apis::v1::responses::{invalid_info_hash_param_response, ok_response};
 use crate::servers::apis::InfoHashParam;
+use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::tracker::Tracker;
 
 pub async fn add_torrent_to_whitelist_handler(

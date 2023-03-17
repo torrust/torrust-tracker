@@ -3,10 +3,10 @@ use std::panic::Location;
 use thiserror::Error;
 use torrust_tracker_located_error::{Located, LocatedError};
 
-use crate::protocol::info_hash::{ConversionError, InfoHash};
 use crate::servers::http::percent_encoding::percent_decode_info_hash;
 use crate::servers::http::v1::query::Query;
 use crate::servers::http::v1::responses;
+use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
 
 pub type NumberOfBytes = i64;
 
@@ -85,9 +85,9 @@ mod tests {
 
     mod scrape_request {
 
-        use crate::protocol::info_hash::InfoHash;
         use crate::servers::http::v1::query::Query;
         use crate::servers::http::v1::requests::scrape::{Scrape, INFO_HASH};
+        use crate::shared::bit_torrent::info_hash::InfoHash;
 
         #[test]
         fn should_be_instantiated_from_the_url_query_with_only_one_infohash() {

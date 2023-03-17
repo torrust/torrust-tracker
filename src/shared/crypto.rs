@@ -74,8 +74,8 @@ pub mod keys {
                 use std::convert::TryInto;
 
                 use crate::ephemeral_instance_keys::RANDOM_SEED;
-                use crate::protocol::crypto::keys::seeds::detail::ZEROED_TEST_SEED;
-                use crate::protocol::crypto::keys::seeds::CURRENT_SEED;
+                use crate::shared::crypto::keys::seeds::detail::ZEROED_TEST_SEED;
+                use crate::shared::crypto::keys::seeds::CURRENT_SEED;
 
                 #[test]
                 fn it_should_have_a_zero_test_seed() {

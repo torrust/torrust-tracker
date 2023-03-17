@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use torrust_tracker_located_error::LocatedError;
 
-use crate::protocol::clock::{convert_from_timestamp_to_datetime_utc, Current, DurationSinceUnixEpoch, Time, TimeNow};
-use crate::protocol::common::AUTH_KEY_LENGTH;
+use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
+use crate::shared::clock::{convert_from_timestamp_to_datetime_utc, Current, DurationSinceUnixEpoch, Time, TimeNow};
 
 #[must_use]
 /// # Panics
@@ -146,7 +146,7 @@ mod tests {
         use std::str::FromStr;
         use std::time::Duration;
 
-        use crate::protocol::clock::{Current, StoppedTime};
+        use crate::shared::clock::{Current, StoppedTime};
         use crate::tracker::auth;
 
         #[test]

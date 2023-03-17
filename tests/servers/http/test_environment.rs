@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use torrust_tracker::protocol::info_hash::InfoHash;
 use torrust_tracker::servers::http::server::{HttpServer, HttpServerLauncher, RunningHttpServer, StoppedHttpServer};
+use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
 

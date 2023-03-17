@@ -3,7 +3,7 @@ use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 
 use serde_repr::Serialize_repr;
-use torrust_tracker::protocol::info_hash::InfoHash;
+use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Id;
 
 use crate::servers::http::{percent_encode_byte_array, ByteArray20};

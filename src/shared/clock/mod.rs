@@ -1,3 +1,6 @@
+pub mod time_extent;
+pub mod utils;
+
 use std::num::IntErrorKind;
 use std::str::FromStr;
 use std::time::Duration;
@@ -77,7 +80,7 @@ pub fn convert_from_timestamp_to_datetime_utc(duration: DurationSinceUnixEpoch) 
 mod tests {
     use std::any::TypeId;
 
-    use crate::protocol::clock::{Current, Stopped, Time, Working};
+    use crate::shared::clock::{Current, Stopped, Time, Working};
 
     #[test]
     fn it_should_be_the_stopped_clock_as_default_when_testing() {
@@ -95,7 +98,7 @@ mod tests {
     mod timestamp {
         use chrono::{DateTime, NaiveDateTime, Utc};
 
-        use crate::protocol::clock::{
+        use crate::shared::clock::{
             convert_from_datetime_utc_to_timestamp, convert_from_iso_8601_to_timestamp, convert_from_timestamp_to_datetime_utc,
             DurationSinceUnixEpoch,
         };
@@ -227,7 +230,7 @@ mod stopped_clock {
         use std::thread;
         use std::time::Duration;
 
-        use crate::protocol::clock::{DurationSinceUnixEpoch, Stopped, StoppedTime, Time, TimeNow, Working};
+        use crate::shared::clock::{DurationSinceUnixEpoch, Stopped, StoppedTime, Time, TimeNow, Working};
 
         #[test]
         fn it_should_default_to_zero_when_testing() {
@@ -286,7 +289,7 @@ mod stopped_clock {
         use std::cell::RefCell;
         use std::time::SystemTime;
 
-        use crate::protocol::clock::DurationSinceUnixEpoch;
+        use crate::shared::clock::DurationSinceUnixEpoch;
         use crate::static_time;
 
         pub fn get_app_start_time() -> DurationSinceUnixEpoch {
@@ -311,7 +314,7 @@ mod stopped_clock {
         mod tests {
             use std::time::Duration;
 
-            use crate::protocol::clock::stopped_clock::detail::{get_app_start_time, get_default_fixed_time};
+            use crate::shared::clock::stopped_clock::detail::{get_app_start_time, get_default_fixed_time};
 
             #[test]
             fn it_should_get_the_zero_start_time_when_testing() {
@@ -326,5 +329,3 @@ mod stopped_clock {
         }
     }
 }
-
-pub mod time_extent;

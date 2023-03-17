@@ -7,8 +7,8 @@ use r2d2_sqlite::SqliteConnectionManager;
 use torrust_tracker_primitives::DatabaseDriver;
 
 use super::{Database, Error};
-use crate::protocol::clock::DurationSinceUnixEpoch;
-use crate::protocol::info_hash::InfoHash;
+use crate::shared::bit_torrent::info_hash::InfoHash;
+use crate::shared::clock::DurationSinceUnixEpoch;
 use crate::tracker::auth::{self, Key};
 
 const DRIVER: DatabaseDriver = DatabaseDriver::Sqlite3;

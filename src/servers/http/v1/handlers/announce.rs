@@ -7,7 +7,6 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
-use crate::protocol::clock::{Current, Time};
 use crate::servers::http::v1::extractors::announce_request::ExtractRequest;
 use crate::servers::http::v1::extractors::authentication_key::Extract as ExtractKey;
 use crate::servers::http::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
@@ -16,6 +15,7 @@ use crate::servers::http::v1::requests::announce::{Announce, Compact, Event};
 use crate::servers::http::v1::responses::{self, announce};
 use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
 use crate::servers::http::v1::services::{self, peer_ip_resolver};
+use crate::shared::clock::{Current, Time};
 use crate::tracker::auth::Key;
 use crate::tracker::peer::Peer;
 use crate::tracker::{AnnounceData, Tracker};
@@ -141,10 +141,10 @@ mod tests {
 
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::protocol::info_hash::InfoHash;
     use crate::servers::http::v1::requests::announce::Announce;
     use crate::servers::http::v1::responses;
     use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
+    use crate::shared::bit_torrent::info_hash::InfoHash;
     use crate::tracker::services::common::tracker_factory;
     use crate::tracker::{peer, Tracker};
 

@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 use async_trait::async_trait;
 
 use self::error::Error;
-use crate::protocol::info_hash::InfoHash;
+use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::tracker::auth::{self, Key};
 
 pub(self) struct Builder<T>

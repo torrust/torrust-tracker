@@ -55,8 +55,8 @@ impl IntoResponse for Bencoded {
 mod tests {
 
     mod scrape_response {
-        use crate::protocol::info_hash::InfoHash;
         use crate::servers::http::v1::responses::scrape::Bencoded;
+        use crate::shared::bit_torrent::info_hash::InfoHash;
         use crate::tracker::torrent::SwarmMetadata;
         use crate::tracker::ScrapeData;
 

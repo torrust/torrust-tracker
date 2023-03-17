@@ -5,10 +5,10 @@ use std::str::FromStr;
 use thiserror::Error;
 use torrust_tracker_located_error::{Located, LocatedError};
 
-use crate::protocol::info_hash::{ConversionError, InfoHash};
 use crate::servers::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::servers::http::v1::query::{ParseQueryError, Query};
 use crate::servers::http::v1::responses;
+use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
 use crate::tracker::peer::{self, IdConversionError};
 
 pub type NumberOfBytes = i64;
@@ -280,11 +280,11 @@ mod tests {
 
     mod announce_request {
 
-        use crate::protocol::info_hash::InfoHash;
         use crate::servers::http::v1::query::Query;
         use crate::servers::http::v1::requests::announce::{
             Announce, Compact, Event, COMPACT, DOWNLOADED, EVENT, INFO_HASH, LEFT, PEER_ID, PORT, UPLOADED,
         };
+        use crate::shared::bit_torrent::info_hash::InfoHash;
         use crate::tracker::peer;
 
         #[test]

@@ -4,8 +4,8 @@ use aquatic_udp_protocol::AnnounceEvent;
 use serde::{Deserialize, Serialize};
 
 use super::peer::{self, Peer};
-use crate::protocol::clock::{Current, TimeNow};
-use crate::protocol::common::MAX_SCRAPE_TORRENTS;
+use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
+use crate::shared::clock::{Current, TimeNow};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Entry {
@@ -134,7 +134,7 @@ mod tests {
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
-        use crate::protocol::clock::{Current, DurationSinceUnixEpoch, Stopped, StoppedTime, Time, Working};
+        use crate::shared::clock::{Current, DurationSinceUnixEpoch, Stopped, StoppedTime, Time, Working};
         use crate::tracker::peer;
         use crate::tracker::torrent::Entry;
 

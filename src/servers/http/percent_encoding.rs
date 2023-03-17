@@ -1,4 +1,4 @@
-use crate::protocol::info_hash::{ConversionError, InfoHash};
+use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
 use crate::tracker::peer::{self, IdConversionError};
 
 /// # Errors
@@ -21,8 +21,8 @@ pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<peer::Id, IdConversio
 mod tests {
     use std::str::FromStr;
 
-    use crate::protocol::info_hash::InfoHash;
     use crate::servers::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
+    use crate::shared::bit_torrent::info_hash::InfoHash;
     use crate::tracker::peer;
 
     #[test]

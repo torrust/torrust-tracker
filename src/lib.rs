@@ -1,7 +1,7 @@
 pub mod app;
 pub mod bootstrap;
-pub mod protocol;
 pub mod servers;
+pub mod shared;
 pub mod tracker;
 
 #[macro_use]

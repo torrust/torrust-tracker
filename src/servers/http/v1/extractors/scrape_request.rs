@@ -53,9 +53,9 @@ mod tests {
     use std::str::FromStr;
 
     use super::extract_scrape_from;
-    use crate::protocol::info_hash::InfoHash;
     use crate::servers::http::v1::requests::scrape::Scrape;
     use crate::servers::http::v1::responses::error::Error;
+    use crate::shared::bit_torrent::info_hash::InfoHash;
 
     struct TestInfoHash {
         pub bencoded: String,
