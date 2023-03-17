@@ -1,3 +1,4 @@
+pub mod app;
 pub mod bootstrap;
 pub mod protocol;
 pub mod servers;

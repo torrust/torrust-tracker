@@ -8,7 +8,7 @@ use torrust_tracker_configuration::Configuration;
 use crate::tracker;
 
 #[must_use]
-pub fn start_job(config: &Configuration, tracker: &Arc<tracker::Tracker>) -> JoinHandle<()> {
+pub fn start_job(config: &Arc<Configuration>, tracker: &Arc<tracker::Tracker>) -> JoinHandle<()> {
     let weak_tracker = std::sync::Arc::downgrade(tracker);
     let interval = config.inactive_peer_cleanup_interval;
 
