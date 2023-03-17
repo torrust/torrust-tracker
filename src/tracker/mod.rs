@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod databases;
 pub mod error;
 pub mod peer;
 pub mod services;
@@ -21,8 +22,8 @@ use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
 use self::torrent::{SwarmMetadata, SwarmStats};
-use crate::databases::{self, Database};
 use crate::protocol::info_hash::InfoHash;
+use crate::tracker::databases::Database;
 
 pub struct Tracker {
     pub config: Arc<Configuration>,

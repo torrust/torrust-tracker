@@ -9,7 +9,7 @@ use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MySqlConnectionManager;
 use torrust_tracker_primitives::DatabaseDriver;
 
-use crate::databases::{Database, Error};
+use super::{Database, Error};
 use crate::protocol::common::AUTH_KEY_LENGTH;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth::{self, Key};

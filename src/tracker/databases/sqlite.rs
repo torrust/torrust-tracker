@@ -6,7 +6,7 @@ use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use torrust_tracker_primitives::DatabaseDriver;
 
-use crate::databases::{Database, Error};
+use super::{Database, Error};
 use crate::protocol::clock::DurationSinceUnixEpoch;
 use crate::protocol::info_hash::InfoHash;
 use crate::tracker::auth::{self, Key};
