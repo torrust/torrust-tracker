@@ -145,7 +145,7 @@ mod tests {
     use crate::servers::http::v1::responses;
     use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
     use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::tracker::services::common::tracker_factory;
+    use crate::tracker::services::tracker_factory;
     use crate::tracker::{peer, Tracker};
 
     fn private_tracker() -> Tracker {

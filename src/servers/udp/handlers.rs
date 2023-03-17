@@ -242,8 +242,8 @@ mod tests {
     use torrust_tracker_test_helpers::configuration;
 
     use crate::shared::clock::{Current, Time};
-    use crate::tracker::services::common::tracker_factory;
-    use crate::tracker::{self, peer};
+    use crate::tracker::services::tracker_factory;
+    use crate::tracker::{peer, Tracker};
 
     fn tracker_configuration() -> Arc<Configuration> {
         Arc::new(default_testing_tracker_configuration())
@@ -253,19 +253,19 @@ mod tests {
         configuration::ephemeral()
     }
 
-    fn public_tracker() -> Arc<tracker::Tracker> {
+    fn public_tracker() -> Arc<Tracker> {
         initialized_tracker(configuration::ephemeral_mode_public().into())
     }
 
-    fn private_tracker() -> Arc<tracker::Tracker> {
+    fn private_tracker() -> Arc<Tracker> {
         initialized_tracker(configuration::ephemeral_mode_private().into())
     }
 
-    fn whitelisted_tracker() -> Arc<tracker::Tracker> {
+    fn whitelisted_tracker() -> Arc<Tracker> {
         initialized_tracker(configuration::ephemeral_mode_whitelisted().into())
     }
 
-    fn initialized_tracker(configuration: Arc<Configuration>) -> Arc<tracker::Tracker> {
+    fn initialized_tracker(configuration: Arc<Configuration>) -> Arc<Tracker> {
         tracker_factory(configuration).into()
     }
 

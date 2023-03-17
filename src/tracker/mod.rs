@@ -560,7 +560,7 @@ mod tests {
         use crate::shared::bit_torrent::info_hash::InfoHash;
         use crate::shared::clock::DurationSinceUnixEpoch;
         use crate::tracker::peer::{self, Peer};
-        use crate::tracker::services::common::tracker_factory;
+        use crate::tracker::services::tracker_factory;
         use crate::tracker::{TorrentsMetrics, Tracker};
 
         fn public_tracker() -> Tracker {

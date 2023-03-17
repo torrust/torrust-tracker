@@ -48,7 +48,6 @@ pub fn setup() -> (Arc<Configuration>, Arc<Tracker>) {
         }
     };
 
-    // Initialize logging
     bootstrap::logging::setup(&config);
 
     (config, tracker)
