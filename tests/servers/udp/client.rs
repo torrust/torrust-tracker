@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use aquatic_udp_protocol::{Request, Response};
 use tokio::net::UdpSocket;
-use torrust_tracker::udp::MAX_PACKET_SIZE;
+use torrust_tracker::servers::udp::MAX_PACKET_SIZE;
 
 use crate::servers::udp::source_address;
 

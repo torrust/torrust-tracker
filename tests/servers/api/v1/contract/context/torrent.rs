@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
-use torrust_tracker::apis::v1::context::torrent::resources::peer::Peer;
-use torrust_tracker::apis::v1::context::torrent::resources::torrent::{self, Torrent};
-use torrust_tracker::protocol::info_hash::InfoHash;
+use torrust_tracker::servers::apis::v1::context::torrent::resources::peer::Peer;
+use torrust_tracker::servers::apis::v1::context::torrent::resources::torrent::{self, Torrent};
+use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker_test_helpers::configuration;
 
 use crate::common::fixtures::PeerBuilder;

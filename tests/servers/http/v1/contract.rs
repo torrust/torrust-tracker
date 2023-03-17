@@ -2,7 +2,7 @@ use torrust_tracker_test_helpers::configuration;
 
 use crate::servers::http::test_environment::running_test_environment;
 
-pub type V1 = torrust_tracker::http::v1::launcher::Launcher;
+pub type V1 = torrust_tracker::servers::http::v1::launcher::Launcher;
 
 #[tokio::test]
 async fn test_environment_should_be_started_and_stopped() {
@@ -72,7 +72,7 @@ mod for_all_config_modes {
 
         use local_ip_address::local_ip;
         use reqwest::Response;
-        use torrust_tracker::protocol::info_hash::InfoHash;
+        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker::tracker::peer;
         use torrust_tracker_test_helpers::configuration;
 
@@ -833,7 +833,7 @@ mod for_all_config_modes {
         use std::net::IpAddr;
         use std::str::FromStr;
 
-        use torrust_tracker::protocol::info_hash::InfoHash;
+        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker::tracker::peer;
         use torrust_tracker_test_helpers::configuration;
 
@@ -1055,7 +1055,7 @@ mod configured_as_whitelisted {
     mod and_receiving_an_announce_request {
         use std::str::FromStr;
 
-        use torrust_tracker::protocol::info_hash::InfoHash;
+        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::servers::http::asserts::{assert_is_announce_response, assert_torrent_not_in_whitelist_error_response};
@@ -1104,7 +1104,7 @@ mod configured_as_whitelisted {
     mod receiving_an_scrape_request {
         use std::str::FromStr;
 
-        use torrust_tracker::protocol::info_hash::InfoHash;
+        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker::tracker::peer;
         use torrust_tracker_test_helpers::configuration;
 
@@ -1201,7 +1201,7 @@ mod configured_as_private {
         use std::str::FromStr;
         use std::time::Duration;
 
-        use torrust_tracker::protocol::info_hash::InfoHash;
+        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker::tracker::auth::Key;
         use torrust_tracker_test_helpers::configuration;
 
@@ -1278,7 +1278,7 @@ mod configured_as_private {
         use std::str::FromStr;
         use std::time::Duration;
 
-        use torrust_tracker::protocol::info_hash::InfoHash;
+        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker::tracker::auth::Key;
         use torrust_tracker::tracker::peer;
         use torrust_tracker_test_helpers::configuration;

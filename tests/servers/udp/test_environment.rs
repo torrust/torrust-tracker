@@ -1,12 +1,12 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use torrust_tracker::protocol::info_hash::InfoHash;
+use torrust_tracker::servers::udp::server::{RunningUdpServer, StoppedUdpServer, UdpServer};
+use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
-use torrust_tracker::udp::server::{RunningUdpServer, StoppedUdpServer, UdpServer};
 
-use crate::common::tracker::new_tracker;
+use crate::common::app::setup_with_configuration;
 
 #[allow(clippy::module_name_repetitions, dead_code)]
 pub type StoppedTestEnvironment = TestEnvironment<Stopped>;
@@ -41,7 +41,7 @@ impl TestEnvironment<Stopped> {
     pub fn new_stopped(cfg: torrust_tracker_configuration::Configuration) -> Self {
         let cfg = Arc::new(cfg);
 
-        let tracker = new_tracker(cfg.clone());
+        let tracker = setup_with_configuration(&cfg);
 
         let udp_server = udp_server(cfg.udp_trackers[0].clone());
 

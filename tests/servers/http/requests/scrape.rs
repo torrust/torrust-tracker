@@ -1,7 +1,7 @@
 use std::fmt;
 use std::str::FromStr;
 
-use torrust_tracker::protocol::info_hash::InfoHash;
+use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 
 use crate::servers::http::{percent_encode_byte_array, ByteArray20};
 

@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod databases;
 pub mod error;
 pub mod peer;
 pub mod services;
@@ -21,8 +22,8 @@ use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
 use self::torrent::{SwarmMetadata, SwarmStats};
-use crate::databases::{self, Database};
-use crate::protocol::info_hash::InfoHash;
+use crate::shared::bit_torrent::info_hash::InfoHash;
+use crate::tracker::databases::Database;
 
 pub struct Tracker {
     pub config: Arc<Configuration>,
@@ -556,10 +557,10 @@ mod tests {
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::protocol::clock::DurationSinceUnixEpoch;
-        use crate::protocol::info_hash::InfoHash;
+        use crate::shared::bit_torrent::info_hash::InfoHash;
+        use crate::shared::clock::DurationSinceUnixEpoch;
         use crate::tracker::peer::{self, Peer};
-        use crate::tracker::services::common::tracker_factory;
+        use crate::tracker::services::tracker_factory;
         use crate::tracker::{TorrentsMetrics, Tracker};
 
         fn public_tracker() -> Tracker {
@@ -910,7 +911,7 @@ mod tests {
 
                 use std::net::{IpAddr, Ipv4Addr};
 
-                use crate::protocol::info_hash::InfoHash;
+                use crate::shared::bit_torrent::info_hash::InfoHash;
                 use crate::tracker::tests::the_tracker::{complete_peer, incomplete_peer, public_tracker};
                 use crate::tracker::{ScrapeData, SwarmMetadata};
 
@@ -1067,7 +1068,7 @@ mod tests {
 
             mod handling_an_scrape_request {
 
-                use crate::protocol::info_hash::InfoHash;
+                use crate::shared::bit_torrent::info_hash::InfoHash;
                 use crate::tracker::tests::the_tracker::{
                     complete_peer, incomplete_peer, peer_ip, sample_info_hash, whitelisted_tracker,
                 };

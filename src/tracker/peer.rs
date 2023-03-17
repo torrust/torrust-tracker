@@ -6,9 +6,9 @@ use serde;
 use serde::Serialize;
 use thiserror::Error;
 
-use crate::protocol::clock::DurationSinceUnixEpoch;
-use crate::protocol::common::{AnnounceEventDef, NumberOfBytesDef};
-use crate::protocol::utils::ser_unix_time_value;
+use crate::shared::bit_torrent::common::{AnnounceEventDef, NumberOfBytesDef};
+use crate::shared::clock::utils::ser_unix_time_value;
+use crate::shared::clock::DurationSinceUnixEpoch;
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum IPVersion {
@@ -28,8 +28,6 @@ pub struct Peer {
     pub downloaded: NumberOfBytes,
     #[serde(with = "NumberOfBytesDef")]
     pub left: NumberOfBytes, // The number of bytes this peer still has to download
-    // code-review: aquatic_udp_protocol::request::AnnounceEvent is used also for the HTTP tracker.
-    // Maybe we should use our own enum and use the¡is one only for the UDP tracker.
     #[serde(with = "AnnounceEventDef")]
     pub event: AnnounceEvent,
 }
@@ -397,7 +395,7 @@ mod test {
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
         use serde_json::Value;
 
-        use crate::protocol::clock::{Current, Time};
+        use crate::shared::clock::{Current, Time};
         use crate::tracker::peer::{self, Peer};
 
         #[test]

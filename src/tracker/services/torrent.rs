@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::protocol::info_hash::InfoHash;
+use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::tracker::peer::Peer;
 use crate::tracker::Tracker;
 
@@ -117,7 +117,7 @@ mod tests {
 
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
-    use crate::protocol::clock::DurationSinceUnixEpoch;
+    use crate::shared::clock::DurationSinceUnixEpoch;
     use crate::tracker::peer;
 
     fn sample_peer() -> peer::Peer {
@@ -140,10 +140,10 @@ mod tests {
         use torrust_tracker_configuration::Configuration;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::protocol::info_hash::InfoHash;
-        use crate::tracker::services::common::tracker_factory;
+        use crate::shared::bit_torrent::info_hash::InfoHash;
         use crate::tracker::services::torrent::tests::sample_peer;
         use crate::tracker::services::torrent::{get_torrent_info, Info};
+        use crate::tracker::services::tracker_factory;
 
         pub fn tracker_configuration() -> Arc<Configuration> {
             Arc::new(configuration::ephemeral())
@@ -195,10 +195,10 @@ mod tests {
         use torrust_tracker_configuration::Configuration;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::protocol::info_hash::InfoHash;
-        use crate::tracker::services::common::tracker_factory;
+        use crate::shared::bit_torrent::info_hash::InfoHash;
         use crate::tracker::services::torrent::tests::sample_peer;
         use crate::tracker::services::torrent::{get_torrents, BasicInfo, Pagination};
+        use crate::tracker::services::tracker_factory;
 
         pub fn tracker_configuration() -> Arc<Configuration> {
             Arc::new(configuration::ephemeral())

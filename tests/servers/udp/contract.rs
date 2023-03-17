@@ -6,7 +6,7 @@
 use core::panic;
 
 use aquatic_udp_protocol::{ConnectRequest, ConnectionId, Response, TransactionId};
-use torrust_tracker::udp::MAX_PACKET_SIZE;
+use torrust_tracker::servers::udp::MAX_PACKET_SIZE;
 use torrust_tracker_test_helpers::configuration;
 
 use crate::servers::udp::asserts::is_error_response;
