@@ -9,6 +9,14 @@ use crate::shared::crypto::ephemeral_instance_keys;
 use crate::tracker::Tracker;
 use crate::{bootstrap, tracker};
 
+pub fn initialize_static() {
+    // Set the time of Torrust app starting
+    lazy_static::initialize(&static_time::TIME_AT_APP_START);
+
+    // Initialize the Ephemeral Instance Random Seed
+    lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
+}
+
 /// # Panics
 ///
 /// Will panic if it can't load the configuration from either
@@ -18,11 +26,7 @@ pub fn setup() -> (Arc<Configuration>, Arc<Tracker>) {
     const CONFIG_PATH: &str = "./config.toml";
     const CONFIG_ENV_VAR_NAME: &str = "TORRUST_TRACKER_CONFIG";
 
-    // Set the time of Torrust app starting
-    lazy_static::initialize(&static_time::TIME_AT_APP_START);
-
-    // Initialize the Ephemeral Instance Random Seed
-    lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
+    initialize_static();
 
     // Initialize Torrust config
     let config = if env::var(CONFIG_ENV_VAR_NAME).is_ok() {

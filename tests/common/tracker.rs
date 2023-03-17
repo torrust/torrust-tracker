@@ -1,19 +1,13 @@
 use std::sync::Arc;
 
 use torrust_tracker::bootstrap;
-use torrust_tracker::shared::clock::static_time;
-use torrust_tracker::shared::crypto::ephemeral_instance_keys;
 use torrust_tracker::tracker::services::common::tracker_factory;
 use torrust_tracker::tracker::Tracker;
 
 // TODO: Move to test-helpers crate once `Tracker` is isolated.
 #[allow(clippy::module_name_repetitions)]
 pub fn new_tracker(configuration: Arc<torrust_tracker_configuration::Configuration>) -> Arc<Tracker> {
-    // Set the time of Torrust app starting
-    lazy_static::initialize(&static_time::TIME_AT_APP_START);
-
-    // Initialize the Ephemeral Instance Random Seed
-    lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
+    bootstrap::app::initialize_static();
 
     // Initialize logging
     bootstrap::logging::setup(&configuration);
