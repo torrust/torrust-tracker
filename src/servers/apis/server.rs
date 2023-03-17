@@ -9,7 +9,7 @@ use futures::Future;
 use log::info;
 
 use super::routes::router;
-use crate::signals::shutdown_signal;
+use crate::servers::signals::shutdown_signal;
 use crate::tracker::Tracker;
 
 #[derive(Debug)]

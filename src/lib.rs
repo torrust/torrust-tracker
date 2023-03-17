@@ -3,7 +3,6 @@ pub mod logging;
 pub mod protocol;
 pub mod servers;
 pub mod setup;
-pub mod signals;
 pub mod stats;
 pub mod tracker;
 

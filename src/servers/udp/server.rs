@@ -9,9 +9,9 @@ use log::{debug, error, info};
 use tokio::net::UdpSocket;
 use tokio::task::JoinHandle;
 
+use crate::servers::signals::shutdown_signal;
 use crate::servers::udp::handlers::handle_packet;
 use crate::servers::udp::MAX_PACKET_SIZE;
-use crate::signals::shutdown_signal;
 use crate::tracker::Tracker;
 
 #[derive(Debug)]
