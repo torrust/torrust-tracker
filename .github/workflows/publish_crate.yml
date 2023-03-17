@@ -46,6 +46,22 @@ jobs:
         with:
           toolchain: stable
 
-      - run: cargo publish
+      - run: cargo publish -p torrust-tracker-located-error
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+      - run: cargo publish -p torrust-tracker-primitives
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+      - run: cargo publish -p torrust-tracker-configuration
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+      - run: cargo publish -p torrust-tracker-test-helpers
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+      - run: cargo publish -p torrust-tracker
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_TOKEN }}
