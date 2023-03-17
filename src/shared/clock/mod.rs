@@ -1,3 +1,4 @@
+pub mod static_time;
 pub mod time_extent;
 pub mod utils;
 
@@ -289,8 +290,7 @@ mod stopped_clock {
         use std::cell::RefCell;
         use std::time::SystemTime;
 
-        use crate::shared::clock::DurationSinceUnixEpoch;
-        use crate::static_time;
+        use crate::shared::clock::{static_time, DurationSinceUnixEpoch};
 
         pub fn get_app_start_time() -> DurationSinceUnixEpoch {
             (*static_time::TIME_AT_APP_START)

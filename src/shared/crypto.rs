@@ -1,8 +1,19 @@
+pub mod ephemeral_instance_keys {
+    use rand::rngs::ThreadRng;
+    use rand::Rng;
+
+    pub type Seed = [u8; 32];
+
+    lazy_static! {
+        pub static ref RANDOM_SEED: Seed = Rng::gen(&mut ThreadRng::default());
+    }
+}
+
 pub mod keys {
 
     pub mod seeds {
         use self::detail::CURRENT_SEED;
-        use crate::ephemeral_instance_keys::{Seed, RANDOM_SEED};
+        use crate::shared::crypto::ephemeral_instance_keys::{Seed, RANDOM_SEED};
 
         pub trait Keeper {
             type Seed: Sized + Default + AsMut<[u8]>;
@@ -33,7 +44,7 @@ pub mod keys {
         mod tests {
             use super::detail::ZEROED_TEST_SEED;
             use super::{Current, Instance, Keeper};
-            use crate::ephemeral_instance_keys::Seed;
+            use crate::shared::crypto::ephemeral_instance_keys::Seed;
 
             pub struct ZeroedTestSeed;
 
@@ -58,7 +69,7 @@ pub mod keys {
         }
 
         mod detail {
-            use crate::ephemeral_instance_keys::Seed;
+            use crate::shared::crypto::ephemeral_instance_keys::Seed;
 
             #[allow(dead_code)]
             pub const ZEROED_TEST_SEED: &Seed = &[0u8; 32];
@@ -67,13 +78,13 @@ pub mod keys {
             pub use ZEROED_TEST_SEED as CURRENT_SEED;
 
             #[cfg(not(test))]
-            pub use crate::ephemeral_instance_keys::RANDOM_SEED as CURRENT_SEED;
+            pub use crate::shared::crypto::ephemeral_instance_keys::RANDOM_SEED as CURRENT_SEED;
 
             #[cfg(test)]
             mod tests {
                 use std::convert::TryInto;
 
-                use crate::ephemeral_instance_keys::RANDOM_SEED;
+                use crate::shared::crypto::ephemeral_instance_keys::RANDOM_SEED;
                 use crate::shared::crypto::keys::seeds::detail::ZEROED_TEST_SEED;
                 use crate::shared::crypto::keys::seeds::CURRENT_SEED;
 

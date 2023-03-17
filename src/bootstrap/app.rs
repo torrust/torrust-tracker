@@ -4,8 +4,10 @@ use std::sync::Arc;
 use torrust_tracker_configuration::Configuration;
 
 use crate::bootstrap::stats;
+use crate::shared::clock::static_time;
+use crate::shared::crypto::ephemeral_instance_keys;
 use crate::tracker::Tracker;
-use crate::{bootstrap, ephemeral_instance_keys, static_time, tracker};
+use crate::{bootstrap, tracker};
 
 /// # Panics
 ///
