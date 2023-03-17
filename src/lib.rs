@@ -1,9 +1,6 @@
-pub mod jobs;
-pub mod logging;
+pub mod bootstrap;
 pub mod protocol;
 pub mod servers;
-pub mod setup;
-pub mod stats;
 pub mod tracker;
 
 #[macro_use]

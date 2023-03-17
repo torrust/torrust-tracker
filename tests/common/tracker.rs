@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use torrust_tracker::tracker::services::common::tracker_factory;
 use torrust_tracker::tracker::Tracker;
-use torrust_tracker::{ephemeral_instance_keys, logging, static_time};
+use torrust_tracker::{bootstrap, ephemeral_instance_keys, static_time};
 
 // TODO: Move to test-helpers crate once `Tracker` is isolated.
 #[allow(clippy::module_name_repetitions)]
@@ -14,7 +14,7 @@ pub fn new_tracker(configuration: Arc<torrust_tracker_configuration::Configurati
     lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
 
     // Initialize logging
-    logging::setup(&configuration);
+    bootstrap::logging::setup(&configuration);
 
     Arc::new(tracker_factory(configuration))
 }

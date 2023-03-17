@@ -1,7 +1,7 @@
 use crate::tracker::statistics;
 
 #[must_use]
-pub fn setup_statistics(tracker_usage_statistics: bool) -> (Option<Box<dyn statistics::EventSender>>, statistics::Repo) {
+pub fn setup(tracker_usage_statistics: bool) -> (Option<Box<dyn statistics::EventSender>>, statistics::Repo) {
     let mut stats_event_sender = None;
 
     let mut stats_tracker = statistics::Keeper::new();
@@ -15,13 +15,13 @@ pub fn setup_statistics(tracker_usage_statistics: bool) -> (Option<Box<dyn stati
 
 #[cfg(test)]
 mod test {
-    use crate::stats::setup_statistics;
+    use super::setup;
 
     #[tokio::test]
     async fn should_not_send_any_event_when_statistics_are_disabled() {
         let tracker_usage_statistics = false;
 
-        let (stats_event_sender, _stats_repository) = setup_statistics(tracker_usage_statistics);
+        let (stats_event_sender, _stats_repository) = setup(tracker_usage_statistics);
 
         assert!(stats_event_sender.is_none());
     }
@@ -30,7 +30,7 @@ mod test {
     async fn should_send_events_when_statistics_are_enabled() {
         let tracker_usage_statistics = true;
 
-        let (stats_event_sender, _stats_repository) = setup_statistics(tracker_usage_statistics);
+        let (stats_event_sender, _stats_repository) = setup(tracker_usage_statistics);
 
         assert!(stats_event_sender.is_some());
     }

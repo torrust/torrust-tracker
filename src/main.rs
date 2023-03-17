@@ -2,8 +2,8 @@ use std::env;
 use std::sync::Arc;
 
 use log::info;
-use torrust_tracker::stats::setup_statistics;
-use torrust_tracker::{ephemeral_instance_keys, logging, setup, static_time, tracker};
+use torrust_tracker::bootstrap::stats::setup;
+use torrust_tracker::{bootstrap, ephemeral_instance_keys, static_time, tracker};
 use torrust_tracker_configuration::Configuration;
 
 #[tokio::main]
@@ -27,7 +27,7 @@ async fn main() {
     };
 
     // Initialize statistics
-    let (stats_event_sender, stats_repository) = setup_statistics(config.tracker_usage_statistics);
+    let (stats_event_sender, stats_repository) = setup(config.tracker_usage_statistics);
 
     // Initialize Torrust tracker
     let tracker = match tracker::Tracker::new(config.clone(), stats_event_sender, stats_repository) {
@@ -38,10 +38,10 @@ async fn main() {
     };
 
     // Initialize logging
-    logging::setup(&config);
+    bootstrap::logging::setup(&config);
 
     // Run jobs
-    let jobs = setup::setup(&config, tracker.clone()).await;
+    let jobs = bootstrap::jobs::setup(&config, tracker.clone()).await;
 
     // handle the signals here
     tokio::select! {
