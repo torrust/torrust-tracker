@@ -10,7 +10,7 @@ version.workspace = true
 authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>"]
 edition = "2021"
 repository = "https://github.com/torrust/torrust-tracker"
-version = "2.3.0"
+version = "3.0.0-alpha.1"
 
 [dependencies]
 tokio = { version = "1.26", features = ["rt-multi-thread", "net", "sync", "macros", "signal"] }
