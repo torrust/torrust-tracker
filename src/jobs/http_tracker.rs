@@ -6,8 +6,8 @@ use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpTracker;
 
-use crate::http::v1::launcher;
-use crate::http::Version;
+use crate::servers::http::v1::launcher;
+use crate::servers::http::Version;
 use crate::tracker;
 
 #[derive(Debug)]

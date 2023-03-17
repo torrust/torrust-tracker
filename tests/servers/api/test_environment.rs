@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use torrust_tracker::apis::server::{ApiServer, RunningApiServer, StoppedApiServer};
 use torrust_tracker::protocol::info_hash::InfoHash;
+use torrust_tracker::servers::apis::server::{ApiServer, RunningApiServer, StoppedApiServer};
 use torrust_tracker::tracker::peer::Peer;
 use torrust_tracker::tracker::Tracker;
 

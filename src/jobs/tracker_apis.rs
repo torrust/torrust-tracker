@@ -6,7 +6,7 @@ use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpApi;
 
-use crate::apis::server;
+use crate::servers::apis::server;
 use crate::tracker;
 
 #[derive(Debug)]

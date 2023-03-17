@@ -4,8 +4,8 @@ use log::{error, info, warn};
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::UdpTracker;
 
+use crate::servers::udp::server::Udp;
 use crate::tracker;
-use crate::udp::server::Udp;
 
 #[must_use]
 pub fn start_job(config: &UdpTracker, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {

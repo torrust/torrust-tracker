@@ -2,7 +2,7 @@ use torrust_tracker_test_helpers::configuration;
 
 use crate::servers::http::test_environment::running_test_environment;
 
-pub type V1 = torrust_tracker::http::v1::launcher::Launcher;
+pub type V1 = torrust_tracker::servers::http::v1::launcher::Launcher;
 
 #[tokio::test]
 async fn test_environment_should_be_started_and_stopped() {

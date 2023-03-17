@@ -4,8 +4,8 @@ use log::warn;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
 
-use crate::http::Version;
 use crate::jobs::{http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
+use crate::servers::http::Version;
 use crate::tracker;
 
 /// # Panics
