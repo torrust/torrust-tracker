@@ -10,5 +10,5 @@ edition.workspace = true
 tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "macros", "signal"] }
 lazy_static = "1.4"
 rand = "0.8.5"
-torrust-tracker-configuration = {  path = "../configuration"}
-torrust-tracker-primitives = {  path = "../primitives"}
+torrust-tracker-configuration = { version = "3.0.0-alpha.1", path = "../configuration"}
+torrust-tracker-primitives = { version = "3.0.0-alpha.1", path = "../primitives"}

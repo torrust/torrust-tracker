@@ -42,9 +42,9 @@ axum = "0.6.10"
 axum-server = { version = "0.4", features = ["tls-rustls"] }
 axum-client-ip = "0.4"
 bip_bencode = "0.4"
-torrust-tracker-primitives = { path = "packages/primitives" }
-torrust-tracker-configuration = { path = "packages/configuration" }
-torrust-tracker-located-error = { path = "packages/located-error" }
+torrust-tracker-primitives = { version = "3.0.0-alpha.1", path = "packages/primitives" }
+torrust-tracker-configuration = { version = "3.0.0-alpha.1", path = "packages/configuration" }
+torrust-tracker-located-error = { version = "3.0.0-alpha.1", path = "packages/located-error" }
 multimap = "0.8"
 hyper = "0.14"
 
@@ -55,7 +55,7 @@ serde_urlencoded = "0.7"
 serde_repr = "0.1"
 serde_bytes = "0.11"
 local-ip-address = "0.5"
-torrust-tracker-test-helpers = { path = "packages/test-helpers" }
+torrust-tracker-test-helpers = { version = "3.0.0-alpha.1", path = "packages/test-helpers" }
 
 [workspace]
 members = [

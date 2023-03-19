@@ -2,7 +2,7 @@
 name = "torrust-tracker-located-error"
 description = "A library to provide error decorator with the location and the source of the original error."
 license = "AGPL-3.0"
-version.workspace = true
+version = "3.0.0-alpha.1"
 authors.workspace = true
 edition.workspace = true
 

@@ -13,6 +13,6 @@ config = "0.13"
 toml = "0.5"
 log = { version = "0.4", features = ["release_max_level_info"] }
 thiserror = "1.0"
-torrust-tracker-primitives = { path = "../primitives" }
-torrust-tracker-located-error = { path = "../located-error" }
+torrust-tracker-primitives = { version = "3.0.0-alpha.1", path = "../primitives" }
+torrust-tracker-located-error = { version = "3.0.0-alpha.1", path = "../located-error" }
 uuid = { version = "1", features = ["v4"] }
