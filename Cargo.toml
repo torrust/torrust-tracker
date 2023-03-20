@@ -1,12 +1,13 @@
 [package]
 name = "torrust-tracker"
 description = "A feature rich BitTorrent tracker."
-license = "AGPL-3.0"
+license.workspace = true
 authors.workspace = true
 edition.workspace = true
 version.workspace = true
 
 [workspace.package]
+license = "Apache-2.0"
 authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>"]
 edition = "2021"
 repository = "https://github.com/torrust/torrust-tracker"
