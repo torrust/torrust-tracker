@@ -1,3 +1,22 @@
+//! Torrust Tracker application.
+//!
+//! The tracker application has a global configuration for multiple jobs.
+//! It's basically a container for other services.
+//! It also check constraint and dependencies between services. For example:
+//! It's not safe to run a UDP tracker on top of a core public tracker, as UDP trackers
+//! do not allow private access to the tracker data.
+//!
+//! The application is responsible for:
+//!
+//! - Loading data from the database when it's needed.
+//! - Starting some jobs depending on the configuration.
+//!
+//! The started jobs may be:
+//!
+//! - Torrent cleaner: it removes inactive peers and (optionally) peerless torrents.
+//! - UDP trackers: the user can enable multiple UDP tracker on several ports.
+//! - HTTP trackers: the user can enable multiple HTTP tracker on several ports.
+//! - Tracker REST API: the tracker API can be enabled/disabled.
 use std::sync::Arc;
 
 use log::warn;
