@@ -1,3 +1,38 @@
+//! Tracker authentication services and structs.
+//!
+//! This module contains functions to handle tracker keys.
+//! Tracker keys are tokens used to authenticate the tracker clients when the tracker runs
+//! in `private` or `private_listed` modes.
+//!
+//! There are services to [`generate`](crate::tracker::auth::generate)  and [`verify`](crate::tracker::auth::verify)  authentication keys.
+//!
+//! Authentication keys are used only by [`HTTP`](crate::servers::http) trackers. All keys have an expiration time, that means
+//! they are only valid during a period of time. After that time the expiring key will no longer be valid.
+//!
+//! Keys are stored in this struct:
+//!
+//! ```rust,no_run
+//! pub struct ExpiringKey {
+//!     /// Random 32-char string. For example: `YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ`
+//!     pub key: Key,
+//!     /// Timestamp, the key will be no longer valid after this timestamp
+//!     pub valid_until: DurationSinceUnixEpoch,
+//! }
+//! ```
+//!
+//! You can generate a new key valid for `9999` seconds and `0` nanoseconds from the current time with the following:
+//!
+//! ```rust,no_run
+//! let expiring_key = auth::generate(Duration::new(9999, 0));
+//!
+//! assert!(auth::verify(&expiring_key).is_ok());
+//! ```
+//!
+//! And you can later verify it with:
+//!
+//! ```rust,no_run
+//! assert!(auth::verify(&expiring_key).is_ok());
+//! ```
 use std::panic::Location;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -15,6 +50,8 @@ use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
 use crate::shared::clock::{convert_from_timestamp_to_datetime_utc, Current, DurationSinceUnixEpoch, Time, TimeNow};
 
 #[must_use]
+/// It generates a new random 32-char authentication [`ExpiringKey`](crate::tracker::auth::ExpiringKey)
+///
 /// # Panics
 ///
 /// It would panic if the `lifetime: Duration` + Duration is more than `Duration::MAX`.
@@ -33,6 +70,8 @@ pub fn generate(lifetime: Duration) -> ExpiringKey {
     }
 }
 
+/// It verifies an [`ExpiringKey`](crate::tracker::auth::ExpiringKey). It checks if the expiration date has passed.
+///
 /// # Errors
 ///
 /// Will return `Error::KeyExpired` if `auth_key.valid_until` is past the `current_time`.
@@ -50,9 +89,13 @@ pub fn verify(auth_key: &ExpiringKey) -> Result<(), Error> {
     }
 }
 
+/// An authentication key which has an expiration time.
+/// After that time is will automatically become invalid.
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct ExpiringKey {
+    /// Random 32-char string. For example: `YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ`
     pub key: Key,
+    /// Timestamp, the key will be no longer valid after this timestamp
     pub valid_until: DurationSinceUnixEpoch,
 }
 
@@ -82,9 +125,24 @@ impl ExpiringKey {
     }
 }
 
+/// A randomly generated token used for authentication.
+///
+/// It contains lower and uppercase letters and numbers.
+/// It's a 32-char string.
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Display, Hash)]
 pub struct Key(String);
 
+/// Error returned when a key cannot be parsed from a string.
+///
+/// ```rust,no_run
+/// let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+/// let key = Key::from_str(key_string);
+///
+/// assert!(key.is_ok());
+/// assert_eq!(key.unwrap().to_string(), key_string);
+/// ```
+///
+/// If the string does not contains a valid key, the parser function will return this error.
 #[derive(Debug, PartialEq, Eq)]
 pub struct ParseKeyError;
 
@@ -100,6 +158,8 @@ impl FromStr for Key {
     }
 }
 
+/// Verification error. Error returned when an [`ExpiringKey`](crate::tracker::auth::ExpiringKey) cannot be verified with the [`verify(...)`](crate::tracker::auth::verify) function.
+///
 #[derive(Debug, Error)]
 #[allow(dead_code)]
 pub enum Error {

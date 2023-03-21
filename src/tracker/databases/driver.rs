@@ -1,3 +1,7 @@
+//! Database driver factory.
+//!
+//! See [`databases::driver::build`](crate::tracker::databases::driver::build)
+//! function for more information.
 use torrust_tracker_primitives::DatabaseDriver;
 
 use super::error::Error;
@@ -5,7 +9,28 @@ use super::mysql::Mysql;
 use super::sqlite::Sqlite;
 use super::{Builder, Database};
 
-/// .
+/// It builds a new database driver.
+///
+/// Example for `SQLite3`:
+///
+/// ```rust,no_run
+/// let db_driver = "Sqlite3".to_string();
+/// let db_path = "./storage/database/data.db".to_string();
+/// let database = databases::driver::build(&db_driver, &db_path)?;
+/// ```
+///
+/// Example for `MySQL`:
+///
+/// ```rust,no_run
+/// let db_driver = "MySQL".to_string();
+/// let db_path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker".to_string();
+/// let database = databases::driver::build(&db_driver, &db_path)?;
+/// ```
+///
+/// Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
+/// for more information about the database configuration.
+///
+/// > **WARNING**: The driver instantiation runs database migrations.
 ///
 /// # Errors
 ///

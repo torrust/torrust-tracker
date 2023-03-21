@@ -1,3 +1,15 @@
+//! Job that runs a task on intervals to clean up torrents.
+//!
+//! It removes inactive peers and (optionally) peerless torrents.
+//!
+//! **Inactive peers** are peers that have not been updated for more than `max_peer_timeout` seconds.
+//! `max_peer_timeout` is a customizable core tracker option.
+//!
+//! If the core tracker configuration option `remove_peerless_torrents` is true, the cleanup job will also
+//! remove **peerless torrents** which are torrents with an empty peer list.
+//!
+//! Refer to [`torrust-tracker-configuration documentation`](https://docs.rs/torrust-tracker-configuration) for more info about those options.
+
 use std::sync::Arc;
 
 use chrono::Utc;
@@ -7,6 +19,11 @@ use torrust_tracker_configuration::Configuration;
 
 use crate::tracker;
 
+/// It starts a jobs for cleaning up the torrent data in the tracker.
+///
+/// The cleaning task is executed on an `inactive_peer_cleanup_interval`.
+///
+/// Refer to [`torrust-tracker-configuration documentation`](https://docs.rs/torrust-tracker-configuration) for more info about that option.
 #[must_use]
 pub fn start_job(config: &Arc<Configuration>, tracker: &Arc<tracker::Tracker>) -> JoinHandle<()> {
     let weak_tracker = std::sync::Arc::downgrade(tracker);

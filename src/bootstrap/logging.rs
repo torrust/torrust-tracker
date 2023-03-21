@@ -1,3 +1,15 @@
+//! Setup for the application logging.
+//!
+//! It redirects the log info to the standard output with the log level defined in the configuration.
+//!
+//! - `Off`
+//! - `Error`
+//! - `Warn`
+//! - `Info`
+//! - `Debug`
+//! - `Trace`
+//!
+//! Refer to the [configuration crate documentation](https://docs.rs/torrust-tracker-configuration) to know how to change log settings.
 use std::str::FromStr;
 use std::sync::Once;
 
@@ -6,6 +18,7 @@ use torrust_tracker_configuration::Configuration;
 
 static INIT: Once = Once::new();
 
+/// It redirects the log info to the standard output with the log level defined in the configuration
 pub fn setup(cfg: &Configuration) {
     let level = config_level_or_default(&cfg.log_level);
 

@@ -1,3 +1,16 @@
+//! HTTP tracker job starter.
+//!
+//! The function [`http_tracker::start_job`](crate::bootstrap::jobs::http_tracker::start_job) starts a new HTTP tracker server.
+//!
+//! > **NOTICE**: the application can launch more than one HTTP tracker on different ports.
+//! Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration) for the configuration options.
+//!
+//! The [`http_tracker::start_job`](crate::bootstrap::jobs::http_tracker::start_job) function spawns a new asynchronous task,
+//! that tasks is the "**launcher**". The "**launcher**" starts the actual server and sends a message back to the main application.
+//! The main application waits until receives the message [`ServerJobStarted`](crate::bootstrap::jobs::http_tracker::ServerJobStarted) from the "**launcher**".
+//!
+//! The "**launcher**" is an intermediary thread that decouples the HTTP servers from the process that handles it. The HTTP could be used independently in the future.
+//! In that case it would not need to notify a parent process.
 use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
@@ -10,9 +23,16 @@ use crate::servers::http::v1::launcher;
 use crate::servers::http::Version;
 use crate::tracker;
 
+/// This is the message that the "**launcher**" spawned task sends to the main application process to notify that the HTTP server was successfully started.
+///
+/// > **NOTICE**: it does not mean the HTTP server is ready to receive requests. It only means the new server started. It might take some time to the server to be ready to accept request.
 #[derive(Debug)]
 pub struct ServerJobStarted();
 
+/// It starts a new HTTP server with the provided configuration and version.
+///
+/// Right now there is only one version but in the future we could support more than one HTTP tracker version at the same time.
+/// This feature allows supporting breaking changes on `BitTorrent` BEPs.
 pub async fn start_job(config: &HttpTracker, tracker: Arc<tracker::Tracker>, version: Version) -> JoinHandle<()> {
     match version {
         Version::V1 => start_v1(config, tracker.clone()).await,

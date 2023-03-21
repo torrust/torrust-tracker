@@ -1,3 +1,22 @@
+//! Structs to collect and keep tracker metrics.
+//!
+//! The tracker collects metrics such as:
+//!
+//! - Number of connections handled
+//! - Number of `announce` requests handled
+//! - Number of `scrape` request handled
+//!
+//! These metrics are collected for each connection type: UDP and HTTP and
+//! also for each IP version used by the peers: IPv4 and IPv6.
+//!
+//! > Notice: that UDP tracker have an specific `connection` request. For the HTTP metrics the counter counts one connection for each `announce` or `scrape` request.
+//!
+//! The data is collected by using an `event-sender -> event listener` model.
+//!
+//! The tracker uses an [`statistics::EventSender`](crate::tracker::statistics::EventSender) instance to send an event.
+//! The [`statistics::Keeper`](crate::tracker::statistics::Keeper) listens to new events and uses the [`statistics::Repo`](crate::tracker::statistics::Repo) to upgrade and store metrics.
+//!
+//! See the [`statistics::Event`](crate::tracker::statistics::Event) enum to check which events are available.
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -9,6 +28,14 @@ use tokio::sync::{mpsc, RwLock, RwLockReadGuard};
 
 const CHANNEL_BUFFER_SIZE: usize = 65_535;
 
+/// An statistics event. It is used to collect tracker metrics.
+///
+/// - `Tcp` prefix means the event was triggered by the HTTP tracker
+/// - `Udp` prefix means the event was triggered by the UDP tracker
+/// - `4` or `6` prefixes means the IP version used by the peer
+/// - Finally the event suffix is the type of request: `announce`, `scrape` or `connection`
+///
+/// > NOTE: HTTP trackers do not use `connection` requests.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Event {
     // code-review: consider one single event for request type with data: Event::Announce { scheme: HTTPorUDP, ip_version: V4orV6 }
@@ -25,6 +52,14 @@ pub enum Event {
     Udp6Scrape,
 }
 
+/// Metrics collected by the tracker.
+///
+/// - Number of connections handled
+/// - Number of `announce` requests handled
+/// - Number of `scrape` request handled
+///
+/// These metrics are collected for each connection type: UDP and HTTP
+/// and also for each IP version used by the peers: IPv4 and IPv6.
 #[derive(Debug, PartialEq, Default)]
 pub struct Metrics {
     pub tcp4_connections_handled: u64,
@@ -41,6 +76,10 @@ pub struct Metrics {
     pub udp6_scrapes_handled: u64,
 }
 
+/// The service responsible for keeping tracker metrics (listening to statistics events and handle them).
+///
+/// It actively listen to new statistics events. When it receives a new event
+/// it accordingly increases the counters.
 pub struct Keeper {
     pub repository: Repo,
 }
@@ -131,12 +170,17 @@ async fn event_handler(event: Event, stats_repository: &Repo) {
     debug!("stats: {:?}", stats_repository.get_stats().await);
 }
 
+/// A trait to allow sending statistics events
 #[async_trait]
 #[cfg_attr(test, automock)]
 pub trait EventSender: Sync + Send {
     async fn send_event(&self, event: Event) -> Option<Result<(), SendError<Event>>>;
 }
 
+/// An [`statistics::EventSender`](crate::tracker::statistics::EventSender) implementation.
+///
+/// It uses a channel sender to send the statistic events. The channel is created by a
+/// [`statistics::Keeper`](crate::tracker::statistics::Keeper)
 pub struct Sender {
     sender: mpsc::Sender<Event>,
 }
@@ -148,6 +192,7 @@ impl EventSender for Sender {
     }
 }
 
+/// A repository for the tracker metrics.
 #[derive(Clone)]
 pub struct Repo {
     pub stats: Arc<RwLock<Metrics>>,

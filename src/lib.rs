@@ -27,10 +27,15 @@
 //! - [Features](#features)
 //! - [Services](#services)
 //! - [Installation](#installation)
+//!     - [Minimum requirements](#minimum-requirements)
+//!     - [Prerequisites](#prerequisites)
+//!     - [Install from sources](#install-from-sources)
+//!     - [Run with docker](#run-with-docker)
 //! - [Configuration](#configuration)
 //! - [Usage](#usage)
 //! - [Components](#components)
 //! - [Implemented BEPs](#implemented-beps)
+//! - [Contributing](#contributing)
 //!
 //! # Features
 //!
@@ -356,7 +361,7 @@
 //! - The [`UDP`](crate::servers::udp) tracker
 //! - The [`HTTP`](crate::servers::http) tracker
 //!
-//! ![Torrust Tracker Components](https://github.com/torrust/torrust-tracker/blob/main/docs/media/torrust-tracker-components.png)
+//! ![Torrust Tracker Components](https://raw.githubusercontent.com/torrust/torrust-tracker/main/docs/media/torrust-tracker-components.png)
 //!
 //! ## Core tracker
 //!
@@ -421,6 +426,10 @@
 //! - [BEP 27](https://www.bittorrent.org/beps/bep_0027.html): Private Torrents
 //! - [BEP 41](https://www.bittorrent.org/beps/bep_0041.html): UDP Tracker Protocol Extensions
 //! - [BEP 48](https://www.bittorrent.org/beps/bep_0048.html): Tracker Protocol Extension: Scrape
+//!
+//! # Contributing
+//!
+//! If you want to contribute to this documentation you can [open a new pull request](https://github.com/torrust/torrust-tracker/pulls).
 pub mod app;
 pub mod bootstrap;
 pub mod servers;

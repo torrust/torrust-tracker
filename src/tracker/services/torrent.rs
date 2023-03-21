@@ -1,3 +1,9 @@
+//! Core tracker domain services.
+//!
+//! There are two services:
+//!
+//! - [`get_torrent_info`](crate::tracker::services::torrent::get_torrent_info): it returns all the data about one torrent.
+//! - [`get_torrents`](crate::tracker::services::torrent::get_torrents): it returns data about some torrent in bulk excluding the peer list.
 use std::sync::Arc;
 
 use serde::Deserialize;
@@ -6,26 +12,42 @@ use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::tracker::peer::Peer;
 use crate::tracker::Tracker;
 
+/// It contains all the information the tracker has about a torrent
 #[derive(Debug, PartialEq)]
 pub struct Info {
+    /// The infohash of the torrent this data is related to
     pub info_hash: InfoHash,
+    /// The total number of seeders for this torrent. Peer that actively serving a full copy of the torrent data
     pub seeders: u64,
+    /// The total number of peers that have ever complete downloading this torrent
     pub completed: u64,
+    /// The total number of leechers for this torrent. Peers that actively downloading this torrent
     pub leechers: u64,
+    /// The swarm: the list of peers that are actively trying to download or serving this torrent
     pub peers: Option<Vec<Peer>>,
 }
 
+/// It contains only part of the information the tracker has about a torrent
+///
+/// It contains the same data as [Info](crate::tracker::services::torrent::Info) but without the list of peers in the swarm.
 #[derive(Debug, PartialEq, Clone)]
 pub struct BasicInfo {
+    /// The infohash of the torrent this data is related to
     pub info_hash: InfoHash,
+    /// The total number of seeders for this torrent. Peer that actively serving a full copy of the torrent data
     pub seeders: u64,
+    /// The total number of peers that have ever complete downloading this torrent
     pub completed: u64,
+    /// The total number of leechers for this torrent. Peers that actively downloading this torrent
     pub leechers: u64,
 }
 
+/// A struct to keep information about the page when results are being paginated
 #[derive(Deserialize)]
 pub struct Pagination {
+    /// The page number, starting at 0
     pub offset: u32,
+    /// Page size. The number of results per page
     pub limit: u32,
 }
 
@@ -69,6 +91,7 @@ impl Default for Pagination {
     }
 }
 
+/// It returns all the information the tracker has about one torrent in a [Info](crate::tracker::services::torrent::Info) struct.
 pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Option<Info> {
     let db = tracker.get_torrents().await;
 
@@ -93,6 +116,7 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
     })
 }
 
+/// It returns all the information the tracker has about multiple torrents in a [`BasicInfo`](crate::tracker::services::torrent::BasicInfo) struct, excluding the peer list.
 pub async fn get_torrents(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec<BasicInfo> {
     let db = tracker.get_torrents().await;
 

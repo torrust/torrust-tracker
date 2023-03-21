@@ -1,3 +1,9 @@
+//! Tracker domain services. Core and statistics services.
+//!
+//! There are two types of service:
+//!
+//! - [Core tracker services](crate::tracker::services::torrent): related to the tracker main functionalities like getting info about torrents.
+//! - [Services for statistics](crate::tracker::services::statistics): related to tracker metrics. Aggregate data about the tracker server.
 pub mod statistics;
 pub mod torrent;
 
@@ -7,6 +13,8 @@ use torrust_tracker_configuration::Configuration;
 
 use crate::tracker::Tracker;
 
+/// It returns a new tracker building its dependencies.
+///
 /// # Panics
 ///
 /// Will panic if tracker cannot be instantiated.

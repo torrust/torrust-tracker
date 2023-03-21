@@ -1,3 +1,33 @@
+//! Structs to store the swarm data.
+//!
+//! There are to main data structures:
+//!
+//! - A torrent [`Entry`](crate::tracker::torrent::Entry): it contains all the information stored by the tracker for one torrent.
+//! - The [`SwarmMetadata`](crate::tracker::torrent::SwarmMetadata): it contains aggregate information that can me derived from the torrent entries.
+//!
+//! A "swarm" is a network of peers that are trying to download the same torrent.
+//!
+//! The torrent entry contains the "swarm" data, which is basically the list of peers in the swarm.
+//! That's the most valuable information the peer want to get from the tracker, because it allows them to
+//! start downloading torrent from those peers.
+//!
+//! > **NOTICE**: that both swarm data (torrent entries) and swarm metadata (aggregate counters) are related to only one torrent.
+//!
+//! The "swarm metadata" contains aggregate data derived from the torrent entries. There two types of data:
+//!
+//! - For **active peers**: metrics related to the current active peers in the swarm.
+//! - **Historical data**: since the tracker started running.
+//!
+//! The tracker collects metrics for:
+//!
+//! - The number of peers that have completed downloading the torrent since the tracker started collecting metrics.
+//! - The number of peers that have completed downloading the torrent and are still active, that means they are actively participating in the network,
+//! by announcing themselves periodically to the tracker. Since they have completed downloading they have a full copy of the torrent data. Peers with a
+//! full copy of the data are called "seeders".
+//! - The number of peers that have NOT completed downloading the torrent and are still active, that means they are actively participating in the network.
+//! Peer that don not have a full copy of the torrent data are called "leechers".
+//!
+//! > **NOTICE**: that both [`SwarmMetadata`](crate::tracker::torrent::SwarmMetadata) and [`SwarmStats`](crate::tracker::torrent::SwarmStats) contain the same information. [`SwarmMetadata`](crate::tracker::torrent::SwarmMetadata) is using the names used on [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html).
 use std::time::Duration;
 
 use aquatic_udp_protocol::AnnounceEvent;
@@ -7,21 +37,33 @@ use super::peer::{self, Peer};
 use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 use crate::shared::clock::{Current, TimeNow};
 
+/// A data structure containing all the information about a torrent in the tracker.
+///
+/// This is the tracker entry for a given torrent and contains the swarm data,
+/// that's the list of all the peers trying to download the same torrent.
+/// The tracker keeps one entry like this for every torrent.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Entry {
+    /// The swarm: a network of peers that are all trying to download the torrent associated to this entry
     #[serde(skip)]
     pub peers: std::collections::BTreeMap<peer::Id, peer::Peer>,
+    /// The number of peers that have ever completed downloading the torrent associated to this entry
     pub completed: u32,
 }
 
 /// Swarm statistics for one torrent.
 /// Swarm metadata dictionary in the scrape response.
-/// BEP 48: <https://www.bittorrent.org/beps/bep_0048.html>
+///
+/// See [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
 #[derive(Debug, PartialEq, Default)]
 pub struct SwarmMetadata {
-    pub complete: u32,   // The number of active peers that have completed downloading (seeders)
-    pub downloaded: u32, // The number of peers that have ever completed downloading
-    pub incomplete: u32, // The number of active peers that have not completed downloading (leechers)
+    /// The number of peers that have ever completed downloading
+    pub downloaded: u32,
+
+    /// The number of active peers that have completed downloading (seeders)
+    pub complete: u32,
+    /// The number of active peers that have not completed downloading (leechers)
+    pub incomplete: u32,
 }
 
 impl SwarmMetadata {
@@ -32,12 +74,17 @@ impl SwarmMetadata {
 }
 
 /// Swarm statistics for one torrent.
-/// Alternative struct for swarm metadata in scrape response.
+///
+/// See [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
 #[derive(Debug, PartialEq, Default)]
 pub struct SwarmStats {
-    pub completed: u32, // The number of peers that have ever completed downloading
-    pub seeders: u32,   // The number of active peers that have completed downloading (seeders)
-    pub leechers: u32,  // The number of active peers that have not completed downloading (leechers)
+    /// The number of peers that have ever completed downloading
+    pub completed: u32,
+
+    /// The number of active peers that have completed downloading (seeders)
+    pub seeders: u32,
+    /// The number of active peers that have not completed downloading (leechers)
+    pub leechers: u32,
 }
 
 impl Entry {
@@ -49,7 +96,10 @@ impl Entry {
         }
     }
 
-    // Update peer and return completed (times torrent has been downloaded)
+    /// It updates a peer and returns true if the number of complete downloads have increased.
+    ///
+    /// The number of peers that have complete downloading is synchronously updated when peers are updated.
+    /// That's the total torrent downloads counter.
     pub fn update_peer(&mut self, peer: &peer::Peer) -> bool {
         let mut did_torrent_stats_change: bool = false;
 
@@ -73,14 +123,15 @@ impl Entry {
         did_torrent_stats_change
     }
 
-    /// Get all peers, limiting the result to the maximum number of scrape torrents.
+    /// Get all swarm peers, limiting the result to the maximum number of scrape torrents.
     #[must_use]
     pub fn get_all_peers(&self) -> Vec<&peer::Peer> {
         self.peers.values().take(MAX_SCRAPE_TORRENTS as usize).collect()
     }
 
-    /// Returns the list of peers for a given client.
-    /// It filters out the input peer.
+    /// It returns the list of peers for a given peer client.
+    ///
+    /// It filters out the input peer, typically because we want to return this list of peers to that client peer.
     #[must_use]
     pub fn get_peers_for_peer(&self, client: &Peer) -> Vec<&peer::Peer> {
         self.peers
@@ -92,6 +143,7 @@ impl Entry {
             .collect()
     }
 
+    /// It returns the swarm metadata (statistics) as a tuple `(seeders, completed, leechers)`
     #[allow(clippy::cast_possible_truncation)]
     #[must_use]
     pub fn get_stats(&self) -> (u32, u32, u32) {
@@ -100,6 +152,7 @@ impl Entry {
         (seeders, self.completed, leechers)
     }
 
+    /// It returns the swarm metadata (statistics) as an struct
     #[must_use]
     pub fn get_swarm_metadata(&self) -> SwarmMetadata {
         // code-review: consider using always this function instead of `get_stats`.
@@ -111,6 +164,7 @@ impl Entry {
         }
     }
 
+    /// It removes peer from the swarm that have not been updated for more than `max_peer_timeout` seconds
     pub fn remove_inactive_peers(&mut self, max_peer_timeout: u32) {
         let current_cutoff = Current::sub(&Duration::from_secs(u64::from(max_peer_timeout))).unwrap_or_default();
         self.peers.retain(|_, peer| peer.updated > current_cutoff);
