@@ -1,7 +1,16 @@
+//! Error returned by the core `Tracker`.
+//!
+//! Error | Context | Description
+//! ---|---|---
+//! `PeerKeyNotValid` | Authentication | The supplied key is not valid. It may not be registered or expired.
+//! `PeerNotAuthenticated` | Authentication | The peer did not provide the authentication key.
+//! `TorrentNotWhitelisted` | Authorization | The action cannot be perform on a not-whitelisted torrent (it only applies for trackers running in `listed` or `private_listed` modes).
+//!
 use std::panic::Location;
 
 use torrust_tracker_located_error::LocatedError;
 
+/// Authentication or authorization error returned by the core `Tracker`
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {
     // Authentication errors

@@ -1,3 +1,25 @@
+//! Tracker API job starter.
+//!
+//! The [`tracker_apis::start_job`](crate::bootstrap::jobs::tracker_apis::start_job)
+//! function starts a the HTTP tracker REST API.
+//!
+//! > **NOTICE**: that even thought there is only one job the API has different
+//! versions. API consumers can choose which version to use. The API version is
+//! part of the URL, for example: `http://localhost:1212/api/v1/stats`.
+//!
+//! The [`tracker_apis::start_job`](crate::bootstrap::jobs::tracker_apis::start_job)  
+//! function spawns a new asynchronous task, that tasks is the "**launcher**".
+//! The "**launcher**" starts the actual server and sends a message back
+//! to the main application. The main application waits until receives
+//! the message [`ApiServerJobStarted`](crate::bootstrap::jobs::tracker_apis::ApiServerJobStarted)
+//! from the "**launcher**".
+//!
+//! The "**launcher**" is an intermediary thread that decouples the API server
+//! from the process that handles it. The API could be used independently
+//! in the future. In that case it would not need to notify a parent process.
+//!
+//! Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
+//! for the API configuration options.
 use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
@@ -9,9 +31,21 @@ use torrust_tracker_configuration::HttpApi;
 use crate::servers::apis::server;
 use crate::tracker;
 
+/// This is the message that the "launcher" spawned task sends to the main
+/// application process to notify the API server was successfully started.
+///
+/// > **NOTICE**: it does not mean the API server is ready to receive requests.
+/// It only means the new server started. It might take some time to the server
+/// to be ready to accept request.
 #[derive(Debug)]
 pub struct ApiServerJobStarted();
 
+/// This function starts a new API server with the provided configuration.
+///
+/// The functions starts a new concurrent task that will run the API server.
+/// This task will send a message to the main application process to notify
+/// that the API server was successfully started.
+///
 /// # Panics
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.

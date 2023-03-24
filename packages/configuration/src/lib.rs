@@ -59,17 +59,26 @@ impl HttpApi {
 pub struct Configuration {
     pub log_level: Option<String>,
     pub mode: TrackerMode,
+
+    // Database configuration
     pub db_driver: DatabaseDriver,
     pub db_path: String,
+
+    /// Interval in seconds that the client should wait between sending regular announce requests to the tracker
     pub announce_interval: u32,
+    /// Minimum announce interval. Clients must not reannounce more frequently than this
     pub min_announce_interval: u32,
-    pub max_peer_timeout: u32,
     pub on_reverse_proxy: bool,
     pub external_ip: Option<String>,
     pub tracker_usage_statistics: bool,
     pub persistent_torrent_completed_stat: bool,
+
+    // Cleanup job configuration
+    pub max_peer_timeout: u32,
     pub inactive_peer_cleanup_interval: u64,
     pub remove_peerless_torrents: bool,
+
+    // Server jobs configuration
     pub udp_trackers: Vec<UdpTracker>,
     pub http_trackers: Vec<HttpTracker>,
     pub http_api: HttpApi,

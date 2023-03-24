@@ -1,3 +1,18 @@
+//! Peer struct used by the core `Tracker`.
+//!
+//! A sample peer:
+//!
+//! ```rust,no_run
+//! peer::Peer {
+//!     peer_id: peer::Id(*b"-qB00000000000000000"),
+//!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+//!     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+//!     uploaded: NumberOfBytes(0),
+//!     downloaded: NumberOfBytes(0),
+//!     left: NumberOfBytes(0),
+//!     event: AnnounceEvent::Started,
+//! }
+//! ```
 use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 
@@ -10,24 +25,49 @@ use crate::shared::bit_torrent::common::{AnnounceEventDef, NumberOfBytesDef};
 use crate::shared::clock::utils::ser_unix_time_value;
 use crate::shared::clock::DurationSinceUnixEpoch;
 
+/// IP version used by the peer to connect to the tracker: IPv4 or IPv6
 #[derive(PartialEq, Eq, Debug)]
 pub enum IPVersion {
+    /// <https://en.wikipedia.org/wiki/Internet_Protocol_version_4>
     IPv4,
+    /// <https://en.wikipedia.org/wiki/IPv6>
     IPv6,
 }
 
+/// Peer struct used by the core `Tracker`.
+///
+/// A sample peer:
+///
+/// ```rust,no_run
+/// peer::Peer {
+///     peer_id: peer::Id(*b"-qB00000000000000000"),
+///     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+///     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+///     uploaded: NumberOfBytes(0),
+///     downloaded: NumberOfBytes(0),
+///     left: NumberOfBytes(0),
+///     event: AnnounceEvent::Started,
+/// }
+/// ```
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Copy)]
 pub struct Peer {
+    /// ID used by the downloader peer
     pub peer_id: Id,
+    /// The IP and port this peer is listening on
     pub peer_addr: SocketAddr,
+    /// The last time the the tracker receive an announce request from this peer (timestamp)
     #[serde(serialize_with = "ser_unix_time_value")]
     pub updated: DurationSinceUnixEpoch,
+    /// The total amount of bytes uploaded by this peer so far
     #[serde(with = "NumberOfBytesDef")]
     pub uploaded: NumberOfBytes,
+    /// The total amount of bytes downloaded by this peer so far
     #[serde(with = "NumberOfBytesDef")]
     pub downloaded: NumberOfBytes,
+    /// The number of bytes this peer still has to download
     #[serde(with = "NumberOfBytesDef")]
-    pub left: NumberOfBytes, // The number of bytes this peer still has to download
+    pub left: NumberOfBytes,
+    /// This is an optional key which maps to started, completed, or stopped (or empty, which is the same as not being present).
     #[serde(with = "AnnounceEventDef")]
     pub event: AnnounceEvent,
 }
@@ -56,11 +96,24 @@ impl Peer {
     }
 }
 
+/// Peer ID. A 20-byte array.
+///
+/// A string of length 20 which this downloader uses as its id.
+/// Each downloader generates its own id at random at the start of a new download.
+///
+/// A sample peer ID:
+///
+/// ```rust,no_run
+/// let peer_id = peer::Id(*b"-qB00000000000000000");
+/// ```
 #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy)]
 pub struct Id(pub [u8; 20]);
 
 const PEER_ID_BYTES_LEN: usize = 20;
 
+/// Error returned when trying to convert an invalid peer id from another type.
+///
+/// Usually because the source format does not contain 20 bytes.
 #[derive(Error, Debug)]
 pub enum IdConversionError {
     #[error("not enough bytes for peer id: {message} {location}")]
