@@ -1,3 +1,27 @@
+//! Time related functions and types.
+//!
+//! It's usually a good idea to control where the time comes from
+//! in an application so that it can be mocked for testing and it can be
+//! controlled in production so we get the intended behavior without
+//! relying on the specific time zone for the underlying system.
+//!
+//! Clocks use the type `DurationSinceUnixEpoch` which is a
+//! `std::time::Duration` since the Unix Epoch (timestamp).
+//!
+//! ```text
+//! Local time:     lun 2023-03-27 16:12:00 WEST
+//! Universal time: lun 2023-03-27 15:12:00 UTC
+//! Time zone:      Atlantic/Canary (WEST, +0100)
+//! Timestamp:      1679929914
+//! Duration:       1679929914.10167426
+//! ```
+//!
+//! > **NOTICE**: internally the `Duration` is stores it's main unit as seconds in a `u64` and it will
+//! overflow in 584.9 billion years.
+//!
+//! > **NOTICE**: the timestamp does not depend on the time zone. That gives you
+//! the ability to use the clock regardless of the underlying system time zone
+//! configuration. See [Unix time Wikipedia entry](https://en.wikipedia.org/wiki/Unix_time).
 pub mod static_time;
 pub mod time_extent;
 pub mod utils;
@@ -8,30 +32,47 @@ use std::time::Duration;
 
 use chrono::{DateTime, NaiveDateTime, Utc};
 
+/// Duration since the Unix Epoch.
 pub type DurationSinceUnixEpoch = Duration;
 
+/// Clock types.
 #[derive(Debug)]
 pub enum Type {
+    /// Clock that returns the current time.
     WorkingClock,
+    /// Clock that returns always the same fixed time.
     StoppedClock,
 }
 
+/// A generic structure that represents a clock.
+///
+/// It can be either the working clock (production) or the stopped clock
+/// (testing). It implements the `Time` trait, which gives you the current time.
 #[derive(Debug)]
 pub struct Clock<const T: usize>;
 
+/// The working clock. It returns the current time.
 pub type Working = Clock<{ Type::WorkingClock as usize }>;
+/// The stopped clock. It returns always the same fixed time.
 pub type Stopped = Clock<{ Type::StoppedClock as usize }>;
 
+/// The current clock. Defined at compilation time.
+/// It can be either the working clock (production) or the stopped clock (testing).
 #[cfg(not(test))]
 pub type Current = Working;
 
+/// The current clock. Defined at compilation time.
+/// It can be either the working clock (production) or the stopped clock (testing).
 #[cfg(test)]
 pub type Current = Stopped;
 
+/// Trait for types that can be used as a timestamp clock.
 pub trait Time: Sized {
     fn now() -> DurationSinceUnixEpoch;
 }
 
+/// Trait for types that can be manipulate the current time in order to
+/// get time in the future or in the past after or before a duration of time.
 pub trait TimeNow: Time {
     #[must_use]
     fn add(add_time: &Duration) -> Option<DurationSinceUnixEpoch> {
@@ -43,6 +84,10 @@ pub trait TimeNow: Time {
     }
 }
 
+/// It converts a string in ISO 8601 format to a timestamp.
+/// For example, the string `1970-01-01T00:00:00.000Z` which is the Unix Epoch
+/// will be converted to a timestamp of 0: `DurationSinceUnixEpoch::ZERO`.
+///
 /// # Panics
 ///
 /// Will panic if the input time cannot be converted to `DateTime::<Utc>`.
@@ -52,6 +97,10 @@ pub fn convert_from_iso_8601_to_timestamp(iso_8601: &str) -> DurationSinceUnixEp
     convert_from_datetime_utc_to_timestamp(&DateTime::<Utc>::from_str(iso_8601).unwrap())
 }
 
+/// It converts a `DateTime::<Utc>` to a timestamp.
+/// For example, the `DateTime::<Utc>` of the Unix Epoch will be converted to a
+/// timestamp of 0: `DurationSinceUnixEpoch::ZERO`.
+///
 /// # Panics
 ///
 /// Will panic if the input time overflows the u64 type.
@@ -61,6 +110,10 @@ pub fn convert_from_datetime_utc_to_timestamp(datetime_utc: &DateTime<Utc>) -> D
     DurationSinceUnixEpoch::from_secs(u64::try_from(datetime_utc.timestamp()).expect("Overflow of u64 seconds, very future!"))
 }
 
+/// It converts a timestamp to a `DateTime::<Utc>`.
+/// For example, the timestamp of 0: `DurationSinceUnixEpoch::ZERO` will be
+/// converted to the `DateTime::<Utc>` of the Unix Epoch.
+///
 /// # Panics
 ///
 /// Will panic if the input time overflows the i64 type.
@@ -144,23 +197,37 @@ mod working_clock {
     impl TimeNow for Working {}
 }
 
+/// Trait for types that can be used as a timestamp clock stopped
+/// at a given time.
 pub trait StoppedTime: TimeNow {
+    /// It sets the clock to a given time.
     fn local_set(unix_time: &DurationSinceUnixEpoch);
+
+    /// It sets the clock to the Unix Epoch.
     fn local_set_to_unix_epoch() {
         Self::local_set(&DurationSinceUnixEpoch::ZERO);
     }
+
+    /// It sets the clock to the time the application started.
     fn local_set_to_app_start_time();
+
+    /// It sets the clock to the current system time.
     fn local_set_to_system_time_now();
 
+    /// It adds a `Duration` to the clock.
+    ///
     /// # Errors
     ///
     /// Will return `IntErrorKind` if `duration` would overflow the internal `Duration`.
     fn local_add(duration: &Duration) -> Result<(), IntErrorKind>;
 
+    /// It subtracts a `Duration` from the clock.
     /// # Errors
     ///
     /// Will return `IntErrorKind` if `duration` would underflow the internal `Duration`.
     fn local_sub(duration: &Duration) -> Result<(), IntErrorKind>;
+
+    /// It resets the clock to default fixed time that is application start time (or the unix epoch when testing).
     fn local_reset();
 }
 

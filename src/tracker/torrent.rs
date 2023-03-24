@@ -123,15 +123,18 @@ impl Entry {
         did_torrent_stats_change
     }
 
-    /// Get all swarm peers, limiting the result to the maximum number of scrape torrents.
+    /// Get all swarm peers, limiting the result to the maximum number of scrape
+    /// torrents.
     #[must_use]
     pub fn get_all_peers(&self) -> Vec<&peer::Peer> {
         self.peers.values().take(MAX_SCRAPE_TORRENTS as usize).collect()
     }
 
-    /// It returns the list of peers for a given peer client.
+    /// It returns the list of peers for a given peer client, limiting the
+    /// result to the maximum number of scrape torrents.
     ///
-    /// It filters out the input peer, typically because we want to return this list of peers to that client peer.
+    /// It filters out the input peer, typically because we want to return this
+    /// list of peers to that client peer.
     #[must_use]
     pub fn get_peers_for_peer(&self, client: &Peer) -> Vec<&peer::Peer> {
         self.peers
@@ -143,7 +146,9 @@ impl Entry {
             .collect()
     }
 
-    /// It returns the swarm metadata (statistics) as a tuple `(seeders, completed, leechers)`
+    /// It returns the swarm metadata (statistics) as a tuple:
+    ///
+    /// `(seeders, completed, leechers)`
     #[allow(clippy::cast_possible_truncation)]
     #[must_use]
     pub fn get_stats(&self) -> (u32, u32, u32) {

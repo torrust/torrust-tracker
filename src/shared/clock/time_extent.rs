@@ -1,43 +1,124 @@
+//! It includes functionality to handle time extents.
+//!
+//! Time extents are used to represent a duration of time which contains
+//! N times intervals of the same duration.
+//!
+//! Given a duration of: 60 seconds.
+//!
+//! ```text
+//! |------------------------------------------------------------|
+//! ```
+//!
+//! If we define a **base** duration of `10` seconds, we would have `6` intervals.
+//!
+//! ```text
+//! |----------|----------|----------|----------|----------|----------|
+//!            ^--- 10 seconds
+//! ```
+//!
+//! Then, You can represent half of the duration (`30` seconds) as:
+//!
+//! ```text
+//! |----------|----------|----------|----------|----------|----------|
+//!                                  ^--- 30 seconds
+//! ```
+//!
+//! `3` times (**multiplier**) the **base** interval (3*10 = 30 seconds):
+//!
+//! ```text
+//! |----------|----------|----------|----------|----------|----------|
+//!                                  ^--- 30 seconds (3 units of 10 seconds)
+//! ```
+//!
+//! Time extents are a way to measure time duration using only one unit of time
+//! (**base** duration) repeated `N` times (**multiplier**).
+//!
+//! Time extents are not clocks in a sense that they do not have a start time.
+//! They are not synchronized with the real time. In order to measure time,
+//! you need to define a start time for the intervals.
+//!
+//! For example, we could measure time is "lustrums" (5 years) since the start
+//! of the 21st century. The time extent would contains a base 5-year duration
+//! and the multiplier. The current "lustrum" (2023) would be 5th one if we
+//! start counting "lustrums" at 1.
+//!
+//! ```text
+//! Lustrum 1: 2000-2004
+//! Lustrum 2: 2005-2009
+//! Lustrum 3: 2010-2014
+//! Lustrum 4: 2015-2019
+//! Lustrum 5: 2020-2024
+//! ```
+//!
+//! More practically time extents are used to represent number of time intervals
+//! since the Unix Epoch. Each interval is typically an amount of seconds.
+//! It's specially useful to check expiring dates. For example, you can have an
+//! authentication token that expires after 120 seconds. If you divide the
+//! current timestamp by 120 you get the number of 2-minute intervals since the
+//! Unix Epoch, you can hash that value with a secret key and send it to a
+//! client. The client can authenticate by sending the hashed value back to the
+//! server. The server can build the same hash and compare it with the one sent
+//! by the client. The hash would be the same during the 2-minute interval, but
+//! it would change after that. This method is one of the methods used by UDP
+//! trackers to generate and verify a connection ID, which a a token sent to
+//! the client to identify the connection.
 use std::num::{IntErrorKind, TryFromIntError};
 use std::time::Duration;
 
 use super::{Stopped, TimeNow, Type, Working};
 
+/// This trait defines the operations that can be performed on a `TimeExtent`.
 pub trait Extent: Sized + Default {
     type Base;
     type Multiplier;
     type Product;
 
+    /// It creates a new `TimeExtent`.
     fn new(unit: &Self::Base, count: &Self::Multiplier) -> Self;
 
+    /// It increases the `TimeExtent` by a multiplier.
+    ///
     /// # Errors
     ///
     /// Will return `IntErrorKind` if `add` would overflow the internal `Duration`.
     fn increase(&self, add: Self::Multiplier) -> Result<Self, IntErrorKind>;
 
+    /// It decreases the `TimeExtent` by a multiplier.
+    ///
     /// # Errors
     ///
     /// Will return `IntErrorKind` if `sub` would underflow the internal `Duration`.
     fn decrease(&self, sub: Self::Multiplier) -> Result<Self, IntErrorKind>;
 
+    /// It returns the total `Duration` of the `TimeExtent`.
     fn total(&self) -> Option<Result<Self::Product, TryFromIntError>>;
+
+    /// It returns the total `Duration` of the `TimeExtent` plus one increment.
     fn total_next(&self) -> Option<Result<Self::Product, TryFromIntError>>;
 }
 
+/// The `TimeExtent` base `Duration`, which is the duration of a single interval.
 pub type Base = Duration;
+/// The `TimeExtent` `Multiplier`, which is the number of `Base` duration intervals.
 pub type Multiplier = u64;
+/// The `TimeExtent` product, which is the total duration of the `TimeExtent`.
 pub type Product = Base;
 
+/// A `TimeExtent` is a duration of time which contains N times intervals
+/// of the same duration.
 #[derive(Debug, Default, Hash, PartialEq, Eq)]
 pub struct TimeExtent {
     pub increment: Base,
     pub amount: Multiplier,
 }
 
+/// A zero time extent. It's the additive identity for a `TimeExtent`.
 pub const ZERO: TimeExtent = TimeExtent {
     increment: Base::ZERO,
     amount: Multiplier::MIN,
 };
+
+/// The maximum value for a `TimeExtent`.
 pub const MAX: TimeExtent = TimeExtent {
     increment: Base::MAX,
     amount: Multiplier::MAX,
@@ -114,10 +195,23 @@ impl Extent for TimeExtent {
     }
 }
 
+/// A `TimeExtent` maker. It's a clock base on time extents.
+/// It gives you the time in time extents.
 pub trait Make<Clock>: Sized
 where
     Clock: TimeNow,
 {
+    /// It gives you the current time extent (with a certain increment) for
+    /// the current time. It gets the current timestamp front he `Clock`.
+    ///
+    /// For example:
+    ///
+    /// - If the base increment is `1` second, it will return a time extent
+    ///   whose duration is `1 second` and whose multiplier is the the number
+    ///   of seconds since the Unix Epoch (time extent).
+    /// - If the base increment is `1` minute, it will return a time extent
+    ///   whose duration is `60 seconds` and whose multiplier is the number of
+    ///   minutes since the Unix Epoch (time extent).
     #[must_use]
     fn now(increment: &Base) -> Option<Result<TimeExtent, TryFromIntError>> {
         Clock::now()
@@ -129,6 +223,9 @@ where
             })
     }
 
+    /// Same as [`now`](crate::shared::clock::time_extent::Make::now), but it
+    /// will add an extra duration to the current time before calculating the
+    /// time extent. It gives you a time extent for a time in the future.
     #[must_use]
     fn now_after(increment: &Base, add_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
         match Clock::add(add_time) {
@@ -143,6 +240,9 @@ where
         }
     }
 
+    /// Same as [`now`](crate::shared::clock::time_extent::Make::now), but it
+    /// will subtract a duration to the current time before calculating the
+    /// time extent. It gives you a time extent for a time in the past.
     #[must_use]
     fn now_before(increment: &Base, sub_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
         match Clock::sub(sub_time) {
@@ -158,18 +258,28 @@ where
     }
 }
 
+/// A `TimeExtent` maker which makes `TimeExtents`.
+///
+/// It's a clock which measures time in `TimeExtents`.
 #[derive(Debug)]
 pub struct Maker<const CLOCK_TYPE: usize> {}
 
+/// A `TimeExtent` maker which makes `TimeExtents` from the `Working` clock.
 pub type WorkingTimeExtentMaker = Maker<{ Type::WorkingClock as usize }>;
+
+/// A `TimeExtent` maker which makes `TimeExtents` from the `Stopped` clock.
 pub type StoppedTimeExtentMaker = Maker<{ Type::StoppedClock as usize }>;
 
 impl Make<Working> for WorkingTimeExtentMaker {}
 impl Make<Stopped> for StoppedTimeExtentMaker {}
 
+/// The default `TimeExtent` maker. It is `WorkingTimeExtentMaker` in production
+/// and `StoppedTimeExtentMaker` in tests.
 #[cfg(not(test))]
 pub type DefaultTimeExtentMaker = WorkingTimeExtentMaker;
 
+/// The default `TimeExtent` maker. It is `WorkingTimeExtentMaker` in production
+/// and `StoppedTimeExtentMaker` in tests.
 #[cfg(test)]
 pub type DefaultTimeExtentMaker = StoppedTimeExtentMaker;
 
