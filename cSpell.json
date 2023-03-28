@@ -16,6 +16,7 @@
         "byteorder",
         "canonicalize",
         "canonicalized",
+        "certbot",
         "chrono",
         "clippy",
         "completei",

@@ -1,3 +1,4 @@
+//! API resources for the [`auth_key`](crate::servers::apis::v1::context::auth_key) API context.
 use std::convert::From;
 
 use serde::{Deserialize, Serialize};
@@ -5,10 +6,15 @@ use serde::{Deserialize, Serialize};
 use crate::shared::clock::convert_from_iso_8601_to_timestamp;
 use crate::tracker::auth::{self, Key};
 
+/// A resource that represents an authentication key.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct AuthKey {
+    /// The authentication key.
     pub key: String,
+    /// The timestamp when the key will expire.
+    #[deprecated(since = "3.0.0", note = "please use `expiry_time` instead")]
     pub valid_until: u64, // todo: remove when the torrust-index-backend starts using the `expiry_time` attribute.
+    /// The ISO 8601 timestamp when the key will expire.
     pub expiry_time: String,
 }
 

@@ -1,26 +1,52 @@
+//! `Torrent` and `ListItem` API resources.
+//!
+//! - `Torrent` is the full torrent resource.
+//! - `ListItem` is a list item resource on a torrent list. `ListItem` does
+//! include a `peers` field but it is always `None` in the struct and `null` in
+//! the JSON response.
 use serde::{Deserialize, Serialize};
 
 use super::peer;
 use crate::tracker::services::torrent::{BasicInfo, Info};
 
+/// `Torrent` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Torrent {
+    /// The torrent's info hash v1.
     pub info_hash: String,
+    /// The torrent's seeders counter. Active peers with a full copy of the
+    /// torrent.
     pub seeders: u64,
+    /// The torrent's completed counter. Peers that have ever completed the
+    /// download.
     pub completed: u64,
+    /// The torrent's leechers counter. Active peers that are downloading the
+    /// torrent.
     pub leechers: u64,
+    /// The torrent's peers. See [`Peer`](crate::servers::apis::v1::context::torrent::resources::peer::Peer).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub peers: Option<Vec<super::peer::Peer>>,
 }
 
+/// `ListItem` API resource. A list item on a torrent list.
+/// `ListItem` does include a `peers` field but it is always `None` in the
+///  struct and `null` in the JSON response.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct ListItem {
+    /// The torrent's info hash v1.
     pub info_hash: String,
+    /// The torrent's seeders counter. Active peers with a full copy of the
+    /// torrent.
     pub seeders: u64,
+    /// The torrent's completed counter. Peers that have ever completed the
+    /// download.
     pub completed: u64,
+    /// The torrent's leechers counter. Active peers that are downloading the
+    /// torrent.
     pub leechers: u64,
-    // todo: this is always None. Remove field from endpoint?
-    pub peers: Option<Vec<super::peer::Peer>>,
+    /// The torrent's peers. It's always `None` in the struct and `null` in the
+    /// JSON response.
+    pub peers: Option<Vec<super::peer::Peer>>, // todo: this is always None. Remove field from endpoint?
 }
 
 impl ListItem {
@@ -33,6 +59,8 @@ impl ListItem {
     }
 }
 
+/// Maps an array of the domain type [`BasicInfo`](crate::tracker::services::torrent::BasicInfo)
+/// to the API resource type [`ListItem`](crate::servers::apis::v1::context::torrent::resources::torrent::ListItem).
 #[must_use]
 pub fn to_resource(basic_info_vec: &[BasicInfo]) -> Vec<ListItem> {
     basic_info_vec

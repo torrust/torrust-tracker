@@ -1,3 +1,4 @@
+//! Route initialization for the v1 API.
 use std::sync::Arc;
 
 use axum::Router;
@@ -5,6 +6,12 @@ use axum::Router;
 use super::context::{auth_key, stats, torrent, whitelist};
 use crate::tracker::Tracker;
 
+/// Add the routes for the v1 API.
+///
+/// > **NOTICE**: the old API endpoints without `v1` prefix are kept for
+/// backward compatibility. For example, the `GET /api/stats` endpoint is
+/// still available, but it is deprecated and will be removed in the future.
+/// You should use the `GET /api/v1/stats` endpoint instead.
 pub fn add(prefix: &str, router: Router, tracker: Arc<Tracker>) -> Router {
     // Without `v1` prefix.
     // We keep the old API endpoints without `v1` prefix for backward compatibility.
