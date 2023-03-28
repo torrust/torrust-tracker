@@ -12,7 +12,7 @@
 //! - An statistics [`EventSender`](crate::tracker::statistics::EventSender)
 //! - An statistics [`Repo`](crate::tracker::statistics::Repo)
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! let (stats_event_sender, stats_repository) = factory(tracker_usage_statistics);
 //! ```
 //!
@@ -23,7 +23,7 @@
 //!
 //! For example, if you send the event [`Event::Udp4Connect`](crate::tracker::statistics::Event::Udp4Connect):
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! let result = event_sender.send_event(Event::Udp4Connect).await;
 //! ```
 //!

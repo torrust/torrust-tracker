@@ -14,17 +14,23 @@ use super::{Builder, Database};
 /// Example for `SQLite3`:
 ///
 /// ```rust,no_run
-/// let db_driver = "Sqlite3".to_string();
+/// use torrust_tracker::tracker::databases;
+/// use torrust_tracker_primitives::DatabaseDriver;
+///
+/// let db_driver = DatabaseDriver::Sqlite3;
 /// let db_path = "./storage/database/data.db".to_string();
-/// let database = databases::driver::build(&db_driver, &db_path)?;
+/// let database = databases::driver::build(&db_driver, &db_path);
 /// ```
 ///
 /// Example for `MySQL`:
 ///
 /// ```rust,no_run
-/// let db_driver = "MySQL".to_string();
+/// use torrust_tracker::tracker::databases;
+/// use torrust_tracker_primitives::DatabaseDriver;
+///
+/// let db_driver = DatabaseDriver::MySQL;
 /// let db_path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker".to_string();
-/// let database = databases::driver::build(&db_driver, &db_path)?;
+/// let database = databases::driver::build(&db_driver, &db_path);
 /// ```
 ///
 /// Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)

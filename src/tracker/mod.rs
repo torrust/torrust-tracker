@@ -55,11 +55,19 @@
 //! Once you have instantiated the `Tracker` you can `announce` a new [`peer`](crate::tracker::peer::Peer) with:
 //!
 //! ```rust,no_run
-//! let info_hash = InfoHash {
-//!     "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap()
-//! };
+//! use torrust_tracker::tracker::peer;
+//! use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+//! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
+//! use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+//! use std::net::SocketAddr;
+//! use std::net::IpAddr;
+//! use std::net::Ipv4Addr;
+//! use std::str::FromStr;
 //!
-//! let peer = Peer {
+//!
+//! let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
+//!
+//! let peer = peer::Peer {
 //!     peer_id: peer::Id(*b"-qB00000000000000001"),
 //!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081),
 //!     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
@@ -67,10 +75,11 @@
 //!     downloaded: NumberOfBytes(0),
 //!     left: NumberOfBytes(0),
 //!     event: AnnounceEvent::Completed,
-//! }
+//! };
 //!
 //! let peer_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
-//!
+//! ```
+//! ```rust,ignore
 //! let announce_data = tracker.announce(&info_hash, &mut peer, &peer_ip).await;
 //! ```
 //!
@@ -87,6 +96,8 @@
 //! The returned struct is:
 //!
 //! ```rust,no_run
+//! use torrust_tracker::tracker::peer::Peer;
+//!
 //! pub struct AnnounceData {
 //!     pub peers: Vec<Peer>,
 //!     pub swarm_stats: SwarmStats,
@@ -124,6 +135,9 @@
 //! The returned struct is:
 //!
 //! ```rust,no_run
+//! use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+//! use std::collections::HashMap;
+//!
 //! pub struct ScrapeData {
 //!     pub files: HashMap<InfoHash, SwarmMetadata>,
 //! }
@@ -150,6 +164,9 @@
 //! There are two data structures for infohashes: byte arrays and hex strings:
 //!
 //! ```rust,no_run
+//! use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+//! use std::str::FromStr;
+//!
 //! let info_hash: InfoHash = [255u8; 20].into();
 //!
 //! assert_eq!(
@@ -233,6 +250,12 @@
 //! A `Peer` is the struct used by the `Tracker` to keep peers data:
 //!
 //! ```rust,no_run
+//! use torrust_tracker::tracker::peer::Id;
+//! use std::net::SocketAddr;
+//! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
+//! use aquatic_udp_protocol::NumberOfBytes;
+//! use aquatic_udp_protocol::AnnounceEvent;
+//!
 //! pub struct Peer {
 //!     pub peer_id: Id,                     // The peer ID
 //!     pub peer_addr: SocketAddr,           // Peer socket address
@@ -389,7 +412,7 @@
 //!
 //! For example, the HTTP tracker would send an event like the following when it handles an `announce` request received from a peer using IP version 4.
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! tracker.send_stats_event(statistics::Event::Tcp4Announce).await
 //! ```
 //!
