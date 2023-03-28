@@ -90,8 +90,8 @@ pub trait TimeNow: Time {
 ///
 /// # Panics
 ///
-/// Will panic if the input time cannot be converted to `DateTime::<Utc>`.
-/// <https://en.wikipedia.org/wiki/Year_2038_problem>
+/// Will panic if the input time cannot be converted to `DateTime::<Utc>`, internally using the `i64` type.
+/// (this will naturally happen in 292.5 billion years)
 #[must_use]
 pub fn convert_from_iso_8601_to_timestamp(iso_8601: &str) -> DurationSinceUnixEpoch {
     convert_from_datetime_utc_to_timestamp(&DateTime::<Utc>::from_str(iso_8601).unwrap())
@@ -103,8 +103,8 @@ pub fn convert_from_iso_8601_to_timestamp(iso_8601: &str) -> DurationSinceUnixEp
 ///
 /// # Panics
 ///
-/// Will panic if the input time overflows the u64 type.
-/// <https://en.wikipedia.org/wiki/Year_2038_problem>
+/// Will panic if the input time overflows the `u64` type.
+/// (this will naturally happen in 584.9 billion years)
 #[must_use]
 pub fn convert_from_datetime_utc_to_timestamp(datetime_utc: &DateTime<Utc>) -> DurationSinceUnixEpoch {
     DurationSinceUnixEpoch::from_secs(u64::try_from(datetime_utc.timestamp()).expect("Overflow of u64 seconds, very future!"))
@@ -116,8 +116,8 @@ pub fn convert_from_datetime_utc_to_timestamp(datetime_utc: &DateTime<Utc>) -> D
 ///
 /// # Panics
 ///
-/// Will panic if the input time overflows the i64 type.
-/// <https://en.wikipedia.org/wiki/Year_2038_problem>
+/// Will panic if the input time overflows the `u64` seconds overflows the `i64` type.
+/// (this will naturally happen in 292.5 billion years)
 #[must_use]
 pub fn convert_from_timestamp_to_datetime_utc(duration: DurationSinceUnixEpoch) -> DateTime<Utc> {
     DateTime::<Utc>::from_utc(
