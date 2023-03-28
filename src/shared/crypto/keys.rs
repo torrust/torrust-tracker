@@ -1,13 +1,30 @@
+//! This module contains logic related to cryptographic keys.
 pub mod seeds {
+    //! This module contains logic related to cryptographic seeds.
+    //!
+    //! Specifically, it contains the logic for storing the seed and providing
+    //! it to other modules.
+    //!
+    //! A **seed** is a pseudo-random number that is used as a secret key for
+    //! cryptographic operations.
     use self::detail::CURRENT_SEED;
     use crate::shared::crypto::ephemeral_instance_keys::{Seed, RANDOM_SEED};
 
+    /// This trait is for structures that can keep and provide a seed.
     pub trait Keeper {
         type Seed: Sized + Default + AsMut<[u8]>;
+
+        /// It returns a reference to the seed that is keeping.
         fn get_seed() -> &'static Self::Seed;
     }
 
+    /// The seed keeper for the instance. When the application is running
+    /// in production, this will be the seed keeper that is used.
     pub struct Instance;
+
+    /// The seed keeper for the current execution. It's a facade at compilation
+    /// time that will either be the instance seed keeper (with a randomly
+    /// generated key for production) or the zeroed seed keeper.
     pub struct Current;
 
     impl Keeper for Instance {

@@ -120,8 +120,8 @@ impl ExpiringKey {
     ///
     /// # Panics
     ///
-    /// Will panic when the key timestamp overflows the ui64 type.
-    /// <https://en.wikipedia.org/wiki/Year_2038_problem>
+    /// Will panic when the key timestamp overflows the internal i64 type.
+    /// (this will naturally happen in 292.5 billion years)
     #[must_use]
     pub fn expiry_time(&self) -> chrono::DateTime<chrono::Utc> {
         convert_from_timestamp_to_datetime_utc(self.valid_until)

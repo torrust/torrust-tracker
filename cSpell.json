@@ -37,6 +37,7 @@
         "leechers",
         "libtorrent",
         "Lphant",
+        "metainfo",
         "middlewares",
         "mockall",
         "multimap",
