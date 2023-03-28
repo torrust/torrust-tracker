@@ -12,6 +12,9 @@
 //! Keys are stored in this struct:
 //!
 //! ```rust,no_run
+//! use torrust_tracker::tracker::auth::Key;
+//! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
+//!
 //! pub struct ExpiringKey {
 //!     /// Random 32-char string. For example: `YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ`
 //!     pub key: Key,
@@ -23,16 +26,16 @@
 //! You can generate a new key valid for `9999` seconds and `0` nanoseconds from the current time with the following:
 //!
 //! ```rust,no_run
+//! use torrust_tracker::tracker::auth;
+//! use std::time::Duration;
+//!
 //! let expiring_key = auth::generate(Duration::new(9999, 0));
 //!
+//! // And you can later verify it with:
+//!
 //! assert!(auth::verify(&expiring_key).is_ok());
 //! ```
-//!
-//! And you can later verify it with:
-//!
-//! ```rust,no_run
-//! assert!(auth::verify(&expiring_key).is_ok());
-//! ```
+
 use std::panic::Location;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -135,6 +138,9 @@ pub struct Key(String);
 /// Error returned when a key cannot be parsed from a string.
 ///
 /// ```rust,no_run
+/// use torrust_tracker::tracker::auth::Key;
+/// use std::str::FromStr;
+///
 /// let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
 /// let key = Key::from_str(key_string);
 ///

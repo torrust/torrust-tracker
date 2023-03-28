@@ -3,6 +3,13 @@
 //! A sample peer:
 //!
 //! ```rust,no_run
+//! use torrust_tracker::tracker::peer;
+//! use std::net::SocketAddr;
+//! use std::net::IpAddr;
+//! use std::net::Ipv4Addr;
+//! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
+//! use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+//!
 //! peer::Peer {
 //!     peer_id: peer::Id(*b"-qB00000000000000000"),
 //!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
@@ -11,7 +18,7 @@
 //!     downloaded: NumberOfBytes(0),
 //!     left: NumberOfBytes(0),
 //!     event: AnnounceEvent::Started,
-//! }
+//! };
 //! ```
 use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
@@ -39,6 +46,13 @@ pub enum IPVersion {
 /// A sample peer:
 ///
 /// ```rust,no_run
+/// use torrust_tracker::tracker::peer;
+/// use std::net::SocketAddr;
+/// use std::net::IpAddr;
+/// use std::net::Ipv4Addr;
+/// use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
+/// use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+///
 /// peer::Peer {
 ///     peer_id: peer::Id(*b"-qB00000000000000000"),
 ///     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
@@ -47,7 +61,7 @@ pub enum IPVersion {
 ///     downloaded: NumberOfBytes(0),
 ///     left: NumberOfBytes(0),
 ///     event: AnnounceEvent::Started,
-/// }
+/// };
 /// ```
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Copy)]
 pub struct Peer {
@@ -104,6 +118,8 @@ impl Peer {
 /// A sample peer ID:
 ///
 /// ```rust,no_run
+/// use torrust_tracker::tracker::peer;
+///
 /// let peer_id = peer::Id(*b"-qB00000000000000000");
 /// ```
 #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy)]

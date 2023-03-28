@@ -34,6 +34,8 @@ jobs:
         run: cargo check --all-targets
       - name: Clippy Rust Code
         run: cargo clippy --all-targets -- -D clippy::pedantic
+      - name: Test Documentation
+        run: cargo test --doc
       - uses: taiki-e/install-action@cargo-llvm-cov
       - uses: taiki-e/install-action@nextest
       - name: Run Tests
