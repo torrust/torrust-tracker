@@ -1,3 +1,6 @@
+//! HTTP server authentication error and conversion to
+//! [`responses::error::Error`](crate::servers::http::v1::responses::error::Error)
+//! response.
 use std::panic::Location;
 
 use thiserror::Error;
@@ -5,6 +8,11 @@ use thiserror::Error;
 use crate::servers::http::v1::responses;
 use crate::tracker::auth;
 
+/// Authentication error.
+///
+/// When the tracker is private, the authentication key is required in the URL
+/// path. These are the possible errors that can occur when extracting the key
+/// from the URL path.
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Missing authentication key param for private tracker. Error in {location}")]

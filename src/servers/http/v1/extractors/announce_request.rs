@@ -1,3 +1,32 @@
+//! Axum [`extractor`](axum::extract) for the [`Announce`](crate::servers::http::v1::requests::announce::Announce)
+//! request.
+//!
+//! It parses the query parameters returning an [`Announce`](crate::servers::http::v1::requests::announce::Announce)
+//! request.
+//!
+//! Refer to [`Announce`](crate::servers::http::v1::requests::announce) for more
+//! information about the returned structure.
+//!
+//! It returns a bencoded [`Error`](crate::servers::http::v1::responses::error)
+//! response (`500`) if the query parameters are missing or invalid.
+//!
+//! **Sample announce request**
+//!
+//! <http://0.0.0.0:7070/announce?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0>
+//!
+//! **Sample error response**
+//!
+//! Missing query params for `announce` request: <http://0.0.0.0:7070/announce>
+//!
+//! ```text
+//! d14:failure reason149:Cannot parse query params for announce request: missing query params for announce request in src/servers/http/v1/extractors/announce_request.rs:54:23e
+//! ```
+//!
+//! Invalid query param (`info_hash`): <http://0.0.0.0:7070/announce?info_hash=invalid&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0>
+//!
+//! ```text
+//! d14:failure reason240:Cannot parse query params for announce request: invalid param value invalid for info_hash in not enough bytes for infohash: got 7 bytes, expected 20 src/shared/bit_torrent/info_hash.rs:240:27, src/servers/http/v1/requests/announce.rs:182:42e
+//! ```
 use std::panic::Location;
 
 use axum::async_trait;
@@ -9,6 +38,8 @@ use crate::servers::http::v1::query::Query;
 use crate::servers::http::v1::requests::announce::{Announce, ParseAnnounceQueryError};
 use crate::servers::http::v1::responses;
 
+/// Extractor for the [`Announce`](crate::servers::http::v1::requests::announce::Announce)
+/// request.
 pub struct ExtractRequest(pub Announce);
 
 #[async_trait]

@@ -1,3 +1,6 @@
+//! `Scrape` request for the HTTP tracker.
+//!
+//! Data structures and logic for parsing the `scrape` request.
 use std::panic::Location;
 
 use thiserror::Error;

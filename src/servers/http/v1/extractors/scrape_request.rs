@@ -1,3 +1,32 @@
+//! Axum [`extractor`](axum::extract) for the [`Scrape`](crate::servers::http::v1::requests::scrape::Scrape)
+//! request.
+//!
+//! It parses the query parameters returning an [`Scrape`](crate::servers::http::v1::requests::scrape::Scrape)
+//! request.
+//!
+//! Refer to [`Scrape`](crate::servers::http::v1::requests::scrape)  for more
+//! information about the returned structure.
+//!
+//! It returns a bencoded [`Error`](crate::servers::http::v1::responses::error)
+//! response (`500`) if the query parameters are missing or invalid.
+//!
+//! **Sample scrape request**
+//!
+//! <http://0.0.0.0:7070/scrape?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00>
+//!
+//! **Sample error response**
+//!
+//! Missing query params for scrape request: <http://0.0.0.0:7070/scrape>
+//!
+//! ```text
+//! d14:failure reason143:Cannot parse query params for scrape request: missing query params for scrape request in src/servers/http/v1/extractors/scrape_request.rs:52:23e
+//! ```
+//!
+//! Invalid query params for scrape request: <http://0.0.0.0:7070/scrape?info_hash=invalid>
+//!
+//! ```text
+//! d14:failure reason235:Cannot parse query params for scrape request: invalid param value invalid for info_hash in not enough bytes for infohash: got 7 bytes, expected 20 src/shared/bit_torrent/info_hash.rs:240:27, src/servers/http/v1/requests/scrape.rs:66:46e
+//! ```
 use std::panic::Location;
 
 use axum::async_trait;
@@ -9,6 +38,8 @@ use crate::servers::http::v1::query::Query;
 use crate::servers::http::v1::requests::scrape::{ParseScrapeQueryError, Scrape};
 use crate::servers::http::v1::responses;
 
+/// Extractor for the [`Scrape`](crate::servers::http::v1::requests::scrape::Scrape)
+/// request.
 pub struct ExtractRequest(pub Scrape);
 
 #[async_trait]

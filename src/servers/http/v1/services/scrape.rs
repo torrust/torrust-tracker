@@ -1,9 +1,29 @@
+//! The `scrape` service.
+//!
+//! The service is responsible for handling the `scrape` requests.
+//!
+//! It delegates the `scrape` logic to the [`Tracker`](crate::tracker::Tracker::scrape)
+//! and it returns the [`ScrapeData`](crate::tracker::ScrapeData) returned
+//! by the [`Tracker`](crate::tracker::Tracker).
+//!
+//! It also sends an [`statistics::Event`](crate::tracker::statistics::Event)
+//! because events are specific for the HTTP tracker.
 use std::net::IpAddr;
 use std::sync::Arc;
 
 use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::tracker::{statistics, ScrapeData, Tracker};
 
+/// The HTTP tracker `scrape` service.
+///
+/// The service sends an statistics event that increments:
+///
+/// - The number of TCP connections handled by the HTTP tracker.
+/// - The number of TCP `scrape` requests handled by the HTTP tracker.
+///
+/// > **NOTICE**: as the HTTP tracker does not requires a connection request
+/// like the UDP tracker, the number of TCP connections is incremented for
+/// each `scrape` request.
 pub async fn invoke(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
     let scrape_data = tracker.scrape(info_hashes).await;
 
@@ -12,8 +32,12 @@ pub async fn invoke(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, origina
     scrape_data
 }
 
+/// The HTTP tracker fake `scrape` service. It returns zeroed stats.
+///
 /// When the peer is not authenticated and the tracker is running in `private` mode,
 /// the tracker returns empty stats for all the torrents.
+///
+/// > **NOTICE**: tracker statistics are not updated in this case.
 pub async fn fake(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
     send_scrape_event(original_peer_ip, tracker).await;
 

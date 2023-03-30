@@ -1,5 +1,40 @@
-//! Wrapper for two Axum extractors to get the relevant information
-//! to resolve the remote client IP.
+//! Axum [`extractor`](axum::extract) to get the relevant information to resolve the remote
+//! client IP.
+//!
+//! It's a wrapper for two third-party Axum extractors.
+//!
+//! The first one is `RightmostXForwardedFor` from the `axum-client-ip` crate.
+//! This extractor is used to get the right-most IP address from the
+//! `X-Forwarded-For` header.
+//!
+//! The second one is `ConnectInfo` from the `axum` crate. This extractor is
+//! used to get the IP address of the client from the connection info.
+//!
+//! The `ClientIpSources` struct is a wrapper for the two extractors.
+//!
+//! The tracker can be configured to run behind a reverse proxy. In this case,
+//! the tracker will use the `X-Forwarded-For` header to get the client IP
+//! address.
+//!
+//! See [`torrust_tracker_configuration::Configuration::on_reverse_proxy`].
+//!
+//! The tracker can also be configured to run without a reverse proxy. In this
+//! case, the tracker will use the IP address from the connection info.
+//!
+//! Given the following scenario:
+//!
+//! ```text
+//! client          <-> http proxy 1                 <-> http proxy 2                          <-> server
+//! ip: 126.0.0.1       ip: 126.0.0.2                    ip: 126.0.0.3                             ip: 126.0.0.4
+//!                     X-Forwarded-For: 126.0.0.1       X-Forwarded-For: 126.0.0.1,126.0.0.2
+//! ```
+//!
+//! This extractor returns these values:
+//!
+//! ```text
+//! `right_most_x_forwarded_for` = 126.0.0.2
+//! `connection_info_ip`         = 126.0.0.3
+//! ```
 use std::net::SocketAddr;
 
 use axum::async_trait;
@@ -10,6 +45,8 @@ use axum_client_ip::RightmostXForwardedFor;
 
 use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
 
+/// Extractor for the [`ClientIpSources`](crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources)
+/// struct.
 pub struct Extract(pub ClientIpSources);
 
 #[async_trait]

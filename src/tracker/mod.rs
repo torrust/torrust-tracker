@@ -499,25 +499,36 @@ pub struct TorrentsMetrics {
 /// Structure that holds the data returned by the `announce` request.
 #[derive(Debug, PartialEq, Default)]
 pub struct AnnounceData {
+    /// The list of peers that are downloading the same torrent.
+    /// It excludes the peer that made the request.
     pub peers: Vec<Peer>,
+    /// Swarm statistics
     pub swarm_stats: SwarmStats,
+    /// The interval in seconds that the client should wait between sending
+    /// regular requests to the tracker.
+    /// Refer to [`announce_interval`](torrust_tracker_configuration::Configuration::announce_interval).
     pub interval: u32,
+    /// The minimum announce interval in seconds that the client should wait.
+    /// Refer to [`min_announce_interval`](torrust_tracker_configuration::Configuration::min_announce_interval).
     pub interval_min: u32,
 }
 
 /// Structure that holds the data returned by the `scrape` request.
 #[derive(Debug, PartialEq, Default)]
 pub struct ScrapeData {
+    /// A map of infohashes and swarm metadata for each torrent.
     pub files: HashMap<InfoHash, SwarmMetadata>,
 }
 
 impl ScrapeData {
+    /// Creates a new empty `ScrapeData` with no files (torrents).
     #[must_use]
     pub fn empty() -> Self {
         let files: HashMap<InfoHash, SwarmMetadata> = HashMap::new();
         Self { files }
     }
 
+    /// Creates a new `ScrapeData` with zeroed metadata for each torrent.
     #[must_use]
     pub fn zeroed(info_hashes: &Vec<InfoHash>) -> Self {
         let mut scrape_data = Self::empty();
@@ -529,10 +540,12 @@ impl ScrapeData {
         scrape_data
     }
 
+    /// Adds a torrent to the `ScrapeData`.
     pub fn add_file(&mut self, info_hash: &InfoHash, swarm_metadata: SwarmMetadata) {
         self.files.insert(*info_hash, swarm_metadata);
     }
 
+    /// Adds a torrent to the `ScrapeData` with zeroed metadata.
     pub fn add_file_with_zeroed_metadata(&mut self, info_hash: &InfoHash) {
         self.files.insert(*info_hash, SwarmMetadata::zeroed());
     }
@@ -565,18 +578,22 @@ impl Tracker {
         })
     }
 
+    /// Returns `true` is the tracker is in public mode.
     pub fn is_public(&self) -> bool {
         self.mode == TrackerMode::Public
     }
 
+    /// Returns `true` is the tracker is in private mode.
     pub fn is_private(&self) -> bool {
         self.mode == TrackerMode::Private || self.mode == TrackerMode::PrivateListed
     }
 
+    /// Returns `true` is the tracker is in whitelisted mode.
     pub fn is_whitelisted(&self) -> bool {
         self.mode == TrackerMode::Listed || self.mode == TrackerMode::PrivateListed
     }
 
+    /// Returns `true` if the tracker requires authentication.
     pub fn requires_authentication(&self) -> bool {
         self.is_private()
     }

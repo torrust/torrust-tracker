@@ -1,3 +1,6 @@
+//! `Announce` request for the HTTP tracker.
+//!
+//! Data structures and logic for parsing the `announce` request.
 use std::fmt;
 use std::panic::Location;
 use std::str::FromStr;
@@ -11,6 +14,8 @@ use crate::servers::http::v1::responses;
 use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
 use crate::tracker::peer::{self, IdConversionError};
 
+/// The number of bytes `downloaded`, `uploaded` or `left`. It's used in the
+/// `Announce` request for parameters that represent a number of bytes.
 pub type NumberOfBytes = i64;
 
 // Query param names
@@ -23,22 +28,71 @@ const LEFT: &str = "left";
 const EVENT: &str = "event";
 const COMPACT: &str = "compact";
 
+/// The `Announce` request. Fields use the domain types after parsing the
+/// query params of the request.
+///
+/// ```rust
+/// use torrust_tracker::servers::http::v1::requests::announce::{Announce, Compact, Event};
+/// use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+/// use torrust_tracker::tracker::peer;
+///
+/// let request = Announce {
+///     // Mandatory params
+///     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
+///     peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
+///     port: 17548,
+///     // Optional params
+///     downloaded: Some(1),
+///     uploaded: Some(2),
+///     left: Some(3),
+///     event: Some(Event::Started),
+///     compact: Some(Compact::NotAccepted)
+/// };
+/// ```
+///
+/// > **NOTICE**: The [BEP 03. The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
+/// specifies that only the peer `IP` and `event`are optional. However, the
+/// tracker defines default values for some of the mandatory params.
+///
+/// > **NOTICE**: The struct does not contain the `IP` of the peer. It's not
+/// mandatory and it's not used by the tracker. The `IP` is obtained from the
+/// request itself.
 #[derive(Debug, PartialEq)]
 pub struct Announce {
     // Mandatory params
+    /// The `InfoHash` of the torrent.
     pub info_hash: InfoHash,
+    /// The `peer::Id` of the peer.
     pub peer_id: peer::Id,
+    /// The port of the peer.
     pub port: u16,
+
     // Optional params
+    /// The number of bytes downloaded by the peer.
     pub downloaded: Option<NumberOfBytes>,
+
+    /// The number of bytes uploaded by the peer.
     pub uploaded: Option<NumberOfBytes>,
+
+    /// The number of bytes left to download by the peer.
     pub left: Option<NumberOfBytes>,
+
+    /// The event that the peer is reporting. It can be `Started`, `Stopped` or
+    /// `Completed`.
     pub event: Option<Event>,
+
+    /// Whether the response should be in compact mode or not.
     pub compact: Option<Compact>,
 }
 
+/// Errors that can occur when parsing the `Announce` request.
+///
+/// The `info_hash` and `peer_id` query params are special because they contain
+/// binary data. The `info_hash` is a 40-byte SHA1 hash and the `peer_id` is a
+/// 20-byte array.
 #[derive(Error, Debug)]
 pub enum ParseAnnounceQueryError {
+    /// A mandatory param is missing.
     #[error("missing query params for announce request in {location}")]
     MissingParams { location: &'static Location<'static> },
     #[error("missing param {param_name} in {location}")]
@@ -46,24 +100,28 @@ pub enum ParseAnnounceQueryError {
         location: &'static Location<'static>,
         param_name: String,
     },
+    /// The param cannot be parsed into the domain type.
     #[error("invalid param value {param_value} for {param_name} in {location}")]
     InvalidParam {
         param_name: String,
         param_value: String,
         location: &'static Location<'static>,
     },
+    /// The param value is out of range.
     #[error("param value overflow {param_value} for {param_name} in {location}")]
     NumberOfBytesOverflow {
         param_name: String,
         param_value: String,
         location: &'static Location<'static>,
     },
+    /// The `info_hash` is invalid.
     #[error("invalid param value {param_value} for {param_name} in {source}")]
     InvalidInfoHashParam {
         param_name: String,
         param_value: String,
         source: LocatedError<'static, ConversionError>,
     },
+    /// The `peer_id` is invalid.
     #[error("invalid param value {param_value} for {param_name} in {source}")]
     InvalidPeerIdParam {
         param_name: String,
@@ -72,10 +130,21 @@ pub enum ParseAnnounceQueryError {
     },
 }
 
+/// The event that the peer is reporting: `started`, `completed` or `stopped`.
+///
+/// If the event is not present or empty that means that the peer is just
+/// updating its status. It's one of the announcements done at regular intervals.
+///
+/// Refer to [BEP 03. The `BitTorrent Protocol` Specification](https://www.bittorrent.org/beps/bep_0003.html)
+/// for more information.
 #[derive(PartialEq, Debug)]
 pub enum Event {
+    /// Event sent when a download first begins.
     Started,
+    /// Event sent when the downloader cease downloading.
     Stopped,
+    /// Event sent when the download is complete.
+    /// No `completed` is sent if the file was complete when started
     Completed,
 }
 
@@ -106,9 +175,21 @@ impl fmt::Display for Event {
     }
 }
 
+/// Whether the `announce` response should be in compact mode or not.
+///
+/// Depending on the value of this param, the tracker will return a different
+/// response:
+///
+/// - [`NonCompact`](crate::servers::http::v1::responses::announce::NonCompact) response.
+/// - [`Compact`](crate::servers::http::v1::responses::announce::Compact) response.
+///
+/// Refer to [BEP 23. Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
 #[derive(PartialEq, Debug)]
 pub enum Compact {
+    /// The client advises the tracker that the client prefers compact format.
     Accepted = 1,
+    /// The client advises the tracker that is prefers the original format
+    /// described in [BEP 03. The BitTorrent Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
     NotAccepted = 0,
 }
 

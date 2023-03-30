@@ -1,3 +1,10 @@
+//! Axum [`handlers`](axum#handlers) for the `announce` requests.
+//!
+//! Refer to [HTTP server](crate::servers::http) for more information about the
+//! `scrape` request.
+//!
+//! The handlers perform the authentication and authorization of the request,
+//! and resolve the client IP address.
 use std::sync::Arc;
 
 use axum::extract::State;
@@ -13,6 +20,8 @@ use crate::servers::http::v1::{responses, services};
 use crate::tracker::auth::Key;
 use crate::tracker::{ScrapeData, Tracker};
 
+/// It handles the `scrape` request when the HTTP tracker is configured
+/// to run in `public` mode.
 #[allow(clippy::unused_async)]
 pub async fn handle_without_key(
     State(tracker): State<Arc<Tracker>>,
@@ -24,6 +33,10 @@ pub async fn handle_without_key(
     handle(&tracker, &scrape_request, &client_ip_sources, None).await
 }
 
+/// It handles the `scrape` request when the HTTP tracker is configured
+/// to run in `private` or `private_listed` mode.
+///
+/// In this case, the authentication `key` parameter is required.
 #[allow(clippy::unused_async)]
 pub async fn handle_with_key(
     State(tracker): State<Arc<Tracker>>,
@@ -52,6 +65,7 @@ async fn handle(
 /* code-review: authentication, authorization and peer IP resolution could be moved
    from the handler (Axum) layer into the app layer `services::announce::invoke`.
    That would make the handler even simpler and the code more reusable and decoupled from Axum.
+   See https://github.com/torrust/torrust-tracker/discussions/240.
 */
 
 async fn handle_scrape(

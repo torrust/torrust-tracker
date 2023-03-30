@@ -1,3 +1,10 @@
+//! Axum [`handlers`](axum#handlers) for the `announce` requests.
+//!
+//! Refer to [HTTP server](crate::servers::http) for more information about the
+//! `announce` request.
+//!
+//! The handlers perform the authentication and authorization of the request,
+//! and resolve the client IP address.
 use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
@@ -20,6 +27,8 @@ use crate::tracker::auth::Key;
 use crate::tracker::peer::Peer;
 use crate::tracker::{AnnounceData, Tracker};
 
+/// It handles the `announce` request when the HTTP tracker does not require
+/// authentication (no PATH `key` parameter required).
 #[allow(clippy::unused_async)]
 pub async fn handle_without_key(
     State(tracker): State<Arc<Tracker>>,
@@ -31,6 +40,8 @@ pub async fn handle_without_key(
     handle(&tracker, &announce_request, &client_ip_sources, None).await
 }
 
+/// It handles the `announce` request when the HTTP tracker requires
+/// authentication (PATH `key` parameter required).
 #[allow(clippy::unused_async)]
 pub async fn handle_with_key(
     State(tracker): State<Arc<Tracker>>,
@@ -43,6 +54,10 @@ pub async fn handle_with_key(
     handle(&tracker, &announce_request, &client_ip_sources, Some(key)).await
 }
 
+/// It handles the `announce` request.
+///
+/// Internal implementation that handles both the `authenticated` and
+/// `unauthenticated` modes.
 async fn handle(
     tracker: &Arc<Tracker>,
     announce_request: &Announce,
@@ -59,6 +74,7 @@ async fn handle(
 /* code-review: authentication, authorization and peer IP resolution could be moved
    from the handler (Axum) layer into the app layer `services::announce::invoke`.
    That would make the handler even simpler and the code more reusable and decoupled from Axum.
+   See https://github.com/torrust/torrust-tracker/discussions/240.
 */
 
 async fn handle_announce(
@@ -111,6 +127,8 @@ fn build_response(announce_request: &Announce, announce_data: AnnounceData) -> R
     }
 }
 
+/// It builds a `Peer` from the announce request.
+///
 /// It ignores the peer address in the announce request params.
 #[must_use]
 fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> Peer {

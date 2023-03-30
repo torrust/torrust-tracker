@@ -1,3 +1,4 @@
+//! Module to handle the HTTP server instances.
 use std::future::Future;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -7,7 +8,10 @@ use futures::future::BoxFuture;
 use crate::servers::signals::shutdown_signal;
 use crate::tracker::Tracker;
 
-/// Trait to be implemented by a http server launcher for the tracker.
+/// Trait to be implemented by a HTTP server launcher for the tracker.
+///
+/// A launcher is responsible for starting the server and returning the
+/// `SocketAddr` it is bound to.
 #[allow(clippy::module_name_repetitions)]
 pub trait HttpServerLauncher: Sync + Send {
     fn new() -> Self;
@@ -22,26 +26,62 @@ pub trait HttpServerLauncher: Sync + Send {
         F: Future<Output = ()> + Send + 'static;
 }
 
+/// Error that can occur when starting or stopping the HTTP server.
+///
+/// Some errors triggered while starting the server are:
+///
+/// - The spawned server cannot send its `SocketAddr` back to the main thread.
+/// - The launcher cannot receive the `SocketAddr` from the spawned server.
+///
+/// Some errors triggered while stopping the server are:
+///
+/// - The channel to send the shutdown signal to the server is closed.
+/// - The task to shutdown the server on the spawned server failed to execute to
+/// completion.
 #[derive(Debug)]
 pub enum Error {
-    Error(String),
+    /// Any kind of error starting or stopping the server.
+    Error(String), // todo: refactor to use thiserror and add more variants for specific errors.
 }
 
+/// A stopped HTTP server.
 #[allow(clippy::module_name_repetitions)]
 pub type StoppedHttpServer<I> = HttpServer<Stopped<I>>;
+
+/// A running HTTP server.
 #[allow(clippy::module_name_repetitions)]
 pub type RunningHttpServer<I> = HttpServer<Running<I>>;
 
+/// A HTTP running server controller.
+///
+/// It's responsible for:
+///
+/// - Keeping the initial configuration of the server.
+/// - Starting and stopping the server.
+/// - Keeping the state of the server: `running` or `stopped`.
+///
+/// It's an state machine. Configurations cannot be changed. This struct
+/// represents concrete configuration and state. It allows to start and stop the
+/// server but always keeping the same configuration.
+///
+/// > **NOTICE**: if the configurations changes after running the server it will
+/// reset to the initial value after stopping the server. This struct is not
+/// intended to persist configurations between runs.
 #[allow(clippy::module_name_repetitions)]
 pub struct HttpServer<S> {
+    /// The configuration of the server that will be used every time the server
+    /// is started.
     pub cfg: torrust_tracker_configuration::HttpTracker,
+    /// The state of the server: `running` or `stopped`.
     pub state: S,
 }
 
+/// A stopped HTTP server state.
 pub struct Stopped<I: HttpServerLauncher> {
     launcher: I,
 }
 
+/// A running HTTP server state.
 pub struct Running<I: HttpServerLauncher> {
     pub bind_addr: SocketAddr,
     task_killer: tokio::sync::oneshot::Sender<u8>,
@@ -56,6 +96,9 @@ impl<I: HttpServerLauncher + 'static> HttpServer<Stopped<I>> {
         }
     }
 
+    /// It starts the server and returns a `HttpServer` controller in `running`
+    /// state.
+    ///
     /// # Errors
     ///
     /// It would return an error if no `SocketAddr` is returned after launching the server.
@@ -93,6 +136,9 @@ impl<I: HttpServerLauncher + 'static> HttpServer<Stopped<I>> {
 }
 
 impl<I: HttpServerLauncher> HttpServer<Running<I>> {
+    /// It stops the server and returns a `HttpServer` controller in `stopped`
+    /// state.
+    ///
     /// # Errors
     ///
     /// It would return an error if the channel for the task killer signal was closed.
