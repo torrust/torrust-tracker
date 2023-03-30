@@ -1,3 +1,28 @@
+//! Logic to run the HTTP API server.
+//!
+//! It contains two main structs: `ApiServer` and `Launcher`,
+//! and two main functions: `start` and `start_tls`.
+//!
+//! The `ApiServer` struct is responsible for:
+//! - Starting and stopping the server.
+//! - Storing the configuration.
+//!
+//! `ApiServer` relies on a launcher to start the actual server.
+///
+/// 1. `ApiServer::start` -> spawns new asynchronous task.
+/// 2. `Launcher::start` -> starts the server on the spawned task.
+///
+/// The `Launcher` struct is responsible for:
+///
+/// - Knowing how to start the server with graceful shutdown.
+///
+/// For the time being the `ApiServer` and `Launcher` are only used in tests
+/// where we need to start and stop the server multiple times. In production
+/// code and the main application uses the `start` and `start_tls` functions
+/// to start the servers directly since we do not need to control the server
+/// when it's running. In the future we might need to control the server,
+/// for example, to restart it to apply new configuration changes, to remotely
+/// shutdown the server, etc.
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -12,24 +37,35 @@ use super::routes::router;
 use crate::servers::signals::shutdown_signal;
 use crate::tracker::Tracker;
 
+/// Errors that can occur when starting or stopping the API server.
 #[derive(Debug)]
 pub enum Error {
     Error(String),
 }
 
+/// An alias for the `ApiServer` struct with the `Stopped` state.
 #[allow(clippy::module_name_repetitions)]
 pub type StoppedApiServer = ApiServer<Stopped>;
+
+/// An alias for the `ApiServer` struct with the `Running` state.
 #[allow(clippy::module_name_repetitions)]
 pub type RunningApiServer = ApiServer<Running>;
 
+/// A struct responsible for starting and stopping an API server with a
+/// specific configuration and keeping track of the started server.
+///
+/// It's a state machine that can be in one of two
+/// states: `Stopped` or `Running`.
 #[allow(clippy::module_name_repetitions)]
 pub struct ApiServer<S> {
     pub cfg: torrust_tracker_configuration::HttpApi,
     pub state: S,
 }
 
+/// The `Stopped` state of the `ApiServer` struct.
 pub struct Stopped;
 
+/// The `Running` state of the `ApiServer` struct.
 pub struct Running {
     pub bind_addr: SocketAddr,
     task_killer: tokio::sync::oneshot::Sender<u8>,
@@ -42,6 +78,8 @@ impl ApiServer<Stopped> {
         Self { cfg, state: Stopped {} }
     }
 
+    /// Starts the API server with the given configuration.
+    ///
     /// # Errors
     ///
     /// It would return an error if no `SocketAddr` is returned after launching the server.
@@ -75,6 +113,8 @@ impl ApiServer<Stopped> {
 }
 
 impl ApiServer<Running> {
+    /// Stops the API server.
+    ///
     /// # Errors
     ///
     /// It would return an error if the channel for the task killer signal was closed.
@@ -93,9 +133,15 @@ impl ApiServer<Running> {
     }
 }
 
+/// A struct responsible for starting the API server.
 struct Launcher;
 
 impl Launcher {
+    /// Starts the API server with graceful shutdown.
+    ///
+    /// If TLS is enabled in the configuration, it will start the server with
+    /// TLS. See [torrust-tracker-configuration](https://docs.rs/torrust-tracker-configuration>)
+    /// for more  information about configuration.
     pub fn start<F>(
         cfg: &torrust_tracker_configuration::HttpApi,
         tracker: Arc<Tracker>,
@@ -126,6 +172,7 @@ impl Launcher {
         }
     }
 
+    /// Starts the API server with graceful shutdown.
     pub fn start_with_graceful_shutdown<F>(
         tcp_listener: std::net::TcpListener,
         tracker: Arc<Tracker>,
@@ -146,6 +193,7 @@ impl Launcher {
         })
     }
 
+    /// Starts the API server with graceful shutdown and TLS.
     pub fn start_tls_with_graceful_shutdown<F>(
         tcp_listener: std::net::TcpListener,
         (ssl_cert_path, ssl_key_path): (String, String),
@@ -180,6 +228,7 @@ impl Launcher {
     }
 }
 
+/// Starts the API server with graceful shutdown on the current thread.
 pub fn start(socket_addr: SocketAddr, tracker: Arc<Tracker>) -> impl Future<Output = hyper::Result<()>> {
     let app = router(tracker);
 
@@ -191,6 +240,7 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<Tracker>) -> impl Future<Outp
     })
 }
 
+/// Starts the API server with graceful shutdown and TLS on the current thread.
 pub fn start_tls(
     socket_addr: SocketAddr,
     ssl_config: RustlsConfig,

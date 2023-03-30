@@ -1,3 +1,4 @@
+//! Common responses for the API v1 shared by all the contexts.
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
@@ -22,6 +23,8 @@ use serde::Serialize;
     We can put the second level of validation in the application and domain services.
 */
 
+/// Response status used when requests have only two possible results
+/// `Ok` or `Error` and no data is returned.
 #[derive(Serialize, Debug)]
 #[serde(tag = "status", rename_all = "snake_case")]
 pub enum ActionStatus<'a> {

@@ -315,7 +315,7 @@
 //! Using `curl` you can create a 2-minute valid auth key:
 //!
 //! ```text
-//! $ curl -X POST http://127.0.0.1:1212/api/v1/key/120?token=MyAccessToken
+//! $ curl -X POST "http://127.0.0.1:1212/api/v1/key/120?token=MyAccessToken"
 //! ```
 //!
 //! Response:
@@ -329,7 +329,7 @@
 //! ```
 //!
 //! You can also use the Torrust Tracker together with the [Torrust Index](https://github.com/torrust/torrust-index). If that's the case,
-//! the Index will create the keys by using the API.
+//! the Index will create the keys by using the tracker [API](crate::servers::apis).
 //!
 //! ## UDP tracker usage
 //!

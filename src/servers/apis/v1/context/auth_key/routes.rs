@@ -1,3 +1,11 @@
+//! API routes for the [`auth_key`](crate::servers::apis::v1::context::auth_key)
+//! API context.
+//!
+//! - `POST /key/:seconds_valid`
+//! - `DELETE /key/:key`
+//! - `GET /keys/reload`
+//!
+//! Refer to the [API endpoint documentation](crate::servers::apis::v1::context::auth_key).
 use std::sync::Arc;
 
 use axum::routing::{get, post};
@@ -6,6 +14,7 @@ use axum::Router;
 use super::handlers::{delete_auth_key_handler, generate_auth_key_handler, reload_keys_handler};
 use crate::tracker::Tracker;
 
+/// It adds the routes to the router for the [`auth_key`](crate::servers::apis::v1::context::auth_key) API context.
 pub fn add(prefix: &str, router: Router, tracker: Arc<Tracker>) -> Router {
     // Keys
     router

@@ -1,4 +1,4 @@
-//! Tracker HTTP/HTTPS Protocol:
+//! Tracker HTTP/HTTPS Protocol.
 //!
 //! Original specification in BEP 3 (section "Trackers"):
 //!

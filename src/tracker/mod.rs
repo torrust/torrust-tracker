@@ -79,7 +79,8 @@
 //!
 //! let peer_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
 //! ```
-//! ```rust,ignore
+//!
+//! ```text
 //! let announce_data = tracker.announce(&info_hash, &mut peer, &peer_ip).await;
 //! ```
 //!
@@ -412,7 +413,7 @@
 //!
 //! For example, the HTTP tracker would send an event like the following when it handles an `announce` request received from a peer using IP version 4.
 //!
-//! ```rust,ignore
+//! ```text
 //! tracker.send_stats_event(statistics::Event::Tcp4Announce).await
 //! ```
 //!
