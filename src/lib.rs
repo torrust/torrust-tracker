@@ -33,9 +33,13 @@
 //!     - [Run with docker](#run-with-docker)
 //! - [Configuration](#configuration)
 //! - [Usage](#usage)
+//!     - [API](#api)
+//!     - [HTTP Tracker](#http-tracker)
+//!     - [UDP Tracker](#udp-tracker)
 //! - [Components](#components)
 //! - [Implemented BEPs](#implemented-beps)
 //! - [Contributing](#contributing)
+//! - [Documentation](#documentation)
 //!
 //! # Features
 //!
@@ -181,7 +185,7 @@
 //! - UDP tracker: <http://localhost:6969>
 //! - HTTP tracker: <http://localhost:7070>
 //!
-//! ## API usage
+//! ## API
 //!
 //! In order to use the tracker API you need to enable it in the configuration:
 //!
@@ -231,7 +235,7 @@
 //!
 //! Refer to the [`API`](crate::servers::apis) documentation for more information about the [`API`](crate::servers::apis) endpoints.
 //!
-//! ## HTTP tracker usage
+//! ## HTTP tracker
 //!
 //! The HTTP tracker implements two type of requests:
 //!
@@ -331,7 +335,7 @@
 //! You can also use the Torrust Tracker together with the [Torrust Index](https://github.com/torrust/torrust-index). If that's the case,
 //! the Index will create the keys by using the tracker [API](crate::servers::apis).
 //!
-//! ## UDP tracker usage
+//! ## UDP tracker
 //!
 //! The UDP tracker also implements two type of requests:
 //!
@@ -430,6 +434,15 @@
 //! # Contributing
 //!
 //! If you want to contribute to this documentation you can [open a new pull request](https://github.com/torrust/torrust-tracker/pulls).
+//!
+//! # Documentation
+//!
+//! You can find this documentation on [docs.rs](https://docs.rs/torrust-tracker/).
+//!
+//! If you want to contribute to this documentation you can [open a new pull request](https://github.com/torrust/torrust-tracker/pulls).
+//!
+//! In addition to the production code documentation you can find a lot of
+//! examples on the integration and unit tests.
 pub mod app;
 pub mod bootstrap;
 pub mod servers;

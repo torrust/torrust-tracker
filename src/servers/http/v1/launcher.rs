@@ -1,3 +1,4 @@
+//! Logic to start new HTTP server instances.
 use std::future::Future;
 use std::net::SocketAddr;
 use std::str::FromStr;

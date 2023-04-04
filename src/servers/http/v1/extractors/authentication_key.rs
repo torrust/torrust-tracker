@@ -1,4 +1,47 @@
-//! Wrapper for Axum `Path` extractor to return custom errors.
+//! Axum [`extractor`](axum::extract) to extract the authentication [`Key`](crate::tracker::auth::Key)
+//! from the URL path.
+//!
+//! It's only used when the tracker is running in private mode.
+//!
+//! Given the following URL route with a path param: `/announce/:key`,
+//! it extracts the `key` param from the URL path.
+//!
+//! It's a wrapper for Axum `Path` extractor in order to return custom
+//! authentication errors.
+//!
+//! It returns a bencoded [`Error`](crate::servers::http::v1::responses::error)
+//! response (`500`) if the `key` parameter are missing or invalid.
+//!
+//! **Sample authentication error responses**
+//!
+//! When the key param is **missing**:
+//!
+//! ```text
+//! d14:failure reason131:Authentication error: Missing authentication key param for private tracker. Error in src/servers/http/v1/handlers/announce.rs:79:31e
+//! ```
+//!
+//! When the key param has an **invalid format**:
+//!
+//! ```text
+//! d14:failure reason134:Authentication error: Invalid format for authentication key param. Error in src/servers/http/v1/extractors/authentication_key.rs:73:23e
+//! ```
+//!
+//! When the key is **not found** in the database:
+//!
+//! ```text
+//! d14:failure reason101:Authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ, src/tracker/mod.rs:848:27e
+//! ```
+//!
+//! When the key is found in the database but it's **expired**:
+//!
+//! ```text
+//! d14:failure reason64:Authentication error: Key has expired, src/tracker/auth.rs:88:23e
+//! ```
+//!
+//! > **NOTICE**: the returned HTTP status code is always `200` for authentication errors.
+//! Neither [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
+//! nor [The Private Torrents](https://www.bittorrent.org/beps/bep_0027.html)
+//! specifications specify any HTTP status code for authentication errors.
 use std::panic::Location;
 
 use axum::async_trait;
@@ -12,6 +55,7 @@ use crate::servers::http::v1::handlers::common::auth;
 use crate::servers::http::v1::responses;
 use crate::tracker::auth::Key;
 
+/// Extractor for the [`Key`](crate::tracker::auth::Key) struct.
 pub struct Extract(pub Key);
 
 #[derive(Deserialize)]

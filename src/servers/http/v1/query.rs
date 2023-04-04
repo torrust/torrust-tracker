@@ -1,3 +1,8 @@
+//! The `Query` struct used to parse and store the URL query parameters.
+//!
+/// ```text
+/// URI = scheme ":" ["//" authority] path ["?" query] ["#" fragment]
+/// ```
 use std::panic::Location;
 use std::str::FromStr;
 
@@ -7,7 +12,7 @@ use thiserror::Error;
 type ParamName = String;
 type ParamValue = String;
 
-/// Represent a URL query component:
+/// It represents a URL query component.
 ///
 /// ```text
 /// URI = scheme ":" ["//" authority] path ["?" query] ["#" fragment]
@@ -22,19 +27,60 @@ pub struct Query {
 }
 
 impl Query {
-    /// Returns only the first param value even if it has multiple values like this:
+    /// It return `Some(value)` for a URL query param if the param with the
+    /// input `name` exists. For example:
     ///
-    /// ```text
-    /// param1=value1&param1=value2
+    /// ```rust
+    /// use torrust_tracker::servers::http::v1::query::Query;
+    ///
+    /// let raw_query = "param1=value1&param2=value2";
+    ///
+    /// let query = raw_query.parse::<Query>().unwrap();
+    ///
+    /// assert_eq!(query.get_param("param1").unwrap(), "value1");
+    /// assert_eq!(query.get_param("param2").unwrap(), "value2");
     /// ```
     ///
-    /// In that case `get_param("param1")` will return `value1`.
+    /// It returns only the first param value even if it has multiple values:
+    ///
+    /// ```rust
+    /// use torrust_tracker::servers::http::v1::query::Query;
+    ///
+    /// let raw_query = "param1=value1&param1=value2";
+    ///
+    /// let query = raw_query.parse::<Query>().unwrap();
+    ///
+    /// assert_eq!(query.get_param("param1").unwrap(), "value1");
+    /// ```
     #[must_use]
     pub fn get_param(&self, name: &str) -> Option<String> {
         self.params.get(name).map(|pair| pair.value.clone())
     }
 
+    /// Returns all the param values as a vector.
+    ///
+    /// ```rust
+    /// use torrust_tracker::servers::http::v1::query::Query;
+    ///
+    /// let query = "param1=value1&param1=value2".parse::<Query>().unwrap();
+    ///
+    /// assert_eq!(
+    ///     query.get_param_vec("param1"),
+    ///     Some(vec!["value1".to_string(), "value2".to_string()])
+    /// );
+    /// ```
+    ///
     /// Returns all the param values as a vector even if it has only one value.
+    ///
+    /// ```rust
+    /// use torrust_tracker::servers::http::v1::query::Query;
+    ///
+    /// let query = "param1=value1".parse::<Query>().unwrap();
+    ///
+    /// assert_eq!(
+    ///     query.get_param_vec("param1"), Some(vec!["value1".to_string()])
+    /// );
+    /// ```
     #[must_use]
     pub fn get_param_vec(&self, name: &str) -> Option<Vec<String>> {
         self.params.get_vec(name).map(|pairs| {
@@ -47,8 +93,12 @@ impl Query {
     }
 }
 
+/// This error can be returned when parsing a [`Query`](crate::servers::http::v1::query::Query)
+/// from a string.
 #[derive(Error, Debug)]
 pub enum ParseQueryError {
+    /// Invalid URL query param. For example: `"name=value=value"`. It contains
+    /// an unescaped `=` character.
     #[error("invalid param {raw_param} in {location}")]
     InvalidParam {
         location: &'static Location<'static>,

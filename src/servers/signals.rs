@@ -1,3 +1,4 @@
+/// This module contains functions to handle signals.
 use log::info;
 
 /// Resolves on `ctrl_c` or the `terminate` signal.

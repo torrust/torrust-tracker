@@ -1,3 +1,4 @@
+//! HTTP server routes for version `v1`.
 use std::sync::Arc;
 
 use axum::routing::get;
@@ -7,6 +8,10 @@ use axum_client_ip::SecureClientIpSource;
 use super::handlers::{announce, scrape};
 use crate::tracker::Tracker;
 
+/// It adds the routes to the router.
+///
+/// > **NOTICE**: it's added a layer to get the client IP from the connection
+/// info. The tracker could use the connection info to get the client IP.
 #[allow(clippy::needless_pass_by_value)]
 pub fn router(tracker: Arc<Tracker>) -> Router {
     Router::new()

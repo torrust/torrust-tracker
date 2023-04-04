@@ -1,3 +1,6 @@
+//! `Scrape` response for the HTTP tracker [`scrape`](crate::servers::http::v1::requests::scrape::Scrape) request.
+//!
+//! Data structures and logic to build the `scrape` response.
 use std::borrow::Cow;
 
 use axum::http::StatusCode;
@@ -6,12 +9,46 @@ use bip_bencode::{ben_int, ben_map, BMutAccess};
 
 use crate::tracker::ScrapeData;
 
+/// The `Scrape` response for the HTTP tracker.
+///
+/// ```rust
+/// use torrust_tracker::servers::http::v1::responses::scrape::Bencoded;
+/// use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+/// use torrust_tracker::tracker::torrent::SwarmMetadata;
+/// use torrust_tracker::tracker::ScrapeData;
+///
+/// let info_hash = InfoHash([0x69; 20]);
+/// let mut scrape_data = ScrapeData::empty();
+/// scrape_data.add_file(
+///     &info_hash,
+///     SwarmMetadata {
+///         complete: 1,
+///         downloaded: 2,
+///         incomplete: 3,
+///     },
+/// );
+///
+/// let response = Bencoded::from(scrape_data);
+///
+/// let bytes = response.body();
+///
+/// // cspell:disable-next-line
+/// let expected_bytes = b"d5:filesd20:iiiiiiiiiiiiiiiiiiiid8:completei1e10:downloadedi2e10:incompletei3eeee";
+///
+/// assert_eq!(
+///     String::from_utf8(bytes).unwrap(),
+///     String::from_utf8(expected_bytes.to_vec()).unwrap()
+/// );
+/// ```
 #[derive(Debug, PartialEq, Default)]
 pub struct Bencoded {
+    /// The scrape data to be bencoded.
     scrape_data: ScrapeData,
 }
 
 impl Bencoded {
+    /// Returns the bencoded representation of the `Scrape` struct.
+    ///
     /// # Panics
     ///
     /// Will return an error if it can't access the bencode as a mutable `BDictAccess`.    

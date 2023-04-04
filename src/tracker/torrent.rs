@@ -59,7 +59,6 @@ pub struct Entry {
 pub struct SwarmMetadata {
     /// The number of peers that have ever completed downloading
     pub downloaded: u32,
-
     /// The number of active peers that have completed downloading (seeders)
     pub complete: u32,
     /// The number of active peers that have not completed downloading (leechers)
@@ -80,7 +79,6 @@ impl SwarmMetadata {
 pub struct SwarmStats {
     /// The number of peers that have ever completed downloading
     pub completed: u32,
-
     /// The number of active peers that have completed downloading (seeders)
     pub seeders: u32,
     /// The number of active peers that have not completed downloading (leechers)
