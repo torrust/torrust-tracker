@@ -88,7 +88,7 @@ pub struct Announce {
 /// Errors that can occur when parsing the `Announce` request.
 ///
 /// The `info_hash` and `peer_id` query params are special because they contain
-/// binary data. The `info_hash` is a 40-byte SHA1 hash and the `peer_id` is a
+/// binary data. The `info_hash` is a 20-byte SHA1 hash and the `peer_id` is a
 /// 20-byte array.
 #[derive(Error, Debug)]
 pub enum ParseAnnounceQueryError {

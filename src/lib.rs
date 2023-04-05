@@ -428,7 +428,6 @@
 //! - [BEP 15](https://www.bittorrent.org/beps/bep_0015.html): UDP Tracker Protocol for `BitTorrent`
 //! - [BEP 23](https://www.bittorrent.org/beps/bep_0023.html): Tracker Returns Compact Peer Lists
 //! - [BEP 27](https://www.bittorrent.org/beps/bep_0027.html): Private Torrents
-//! - [BEP 41](https://www.bittorrent.org/beps/bep_0041.html): UDP Tracker Protocol Extensions
 //! - [BEP 48](https://www.bittorrent.org/beps/bep_0048.html): Tracker Protocol Extension: Scrape
 //!
 //! # Contributing
