@@ -44,15 +44,15 @@ pub enum Error {
     Error(String), // todo: refactor to use thiserror and add more variants for specific errors.
 }
 
-/// A stopped HTTP server.
+/// A HTTP server instance controller with no HTTP instance running.
 #[allow(clippy::module_name_repetitions)]
 pub type StoppedHttpServer<I> = HttpServer<Stopped<I>>;
 
-/// A running HTTP server.
+/// A HTTP server instance controller with a running HTTP instance.
 #[allow(clippy::module_name_repetitions)]
 pub type RunningHttpServer<I> = HttpServer<Running<I>>;
 
-/// A HTTP running server controller.
+/// A HTTP server instance controller.
 ///
 /// It's responsible for:
 ///
@@ -83,12 +83,14 @@ pub struct Stopped<I: HttpServerLauncher> {
 
 /// A running HTTP server state.
 pub struct Running<I: HttpServerLauncher> {
+    /// The address where the server is bound.
     pub bind_addr: SocketAddr,
     task_killer: tokio::sync::oneshot::Sender<u8>,
     task: tokio::task::JoinHandle<I>,
 }
 
 impl<I: HttpServerLauncher + 'static> HttpServer<Stopped<I>> {
+    /// It creates a new `HttpServer` controller in `stopped` state.
     pub fn new(cfg: torrust_tracker_configuration::HttpTracker, launcher: I) -> Self {
         Self {
             cfg,

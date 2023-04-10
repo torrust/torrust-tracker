@@ -134,6 +134,6 @@ async fn assert_unhandled_rejection(response: Response, reason: &str) {
     let response_text = response.text().await.unwrap();
     assert!(
         response_text.contains(&reason_text),
-        ":\n  response: `\"{response_text}\"`\n  dose not contain: `\"{reason_text}\"`."
+        ":\n  response: `\"{response_text}\"`\n  does not contain: `\"{reason_text}\"`."
     );
 }

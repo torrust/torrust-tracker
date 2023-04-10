@@ -1,3 +1,4 @@
+//! Handlers for the UDP server.
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
@@ -16,6 +17,15 @@ use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::tracker::{statistics, Tracker};
 
+/// It handles the incoming UDP packets.
+///
+/// It's responsible for:
+///
+/// - Parsing the incoming packet.
+/// - Delegating the request to the correct handler depending on the request
+/// type.
+///
+/// It will return an `Error` response if the request is invalid.
 pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: &Tracker) -> Response {
     match Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS).map_err(|e| Error::InternalServer {
         message: format!("{e:?}"),
@@ -43,6 +53,8 @@ pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: &
     }
 }
 
+/// It dispatches the request to the correct handler.
+///
 /// # Errors
 ///
 /// If a error happens in the `handle_request` function, it will just return the  `ServerError`.
@@ -54,17 +66,24 @@ pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: 
     }
 }
 
+/// It handles the `Connect` request. Refer to [`Connect`](crate::servers::udp#connect)
+/// request for more information.
+///
 /// # Errors
 ///
-/// This function dose not ever return an error.
+/// This function does not ever return an error.
 pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, tracker: &Tracker) -> Result<Response, Error> {
+    debug!("udp connect request: {:#?}", request);
+
     let connection_cookie = make(&remote_addr);
     let connection_id = into_connection_id(&connection_cookie);
 
-    let response = Response::from(ConnectResponse {
+    let response = ConnectResponse {
         transaction_id: request.transaction_id,
         connection_id,
-    });
+    };
+
+    debug!("udp connect response: {:#?}", response);
 
     // send stats event
     match remote_addr {
@@ -76,9 +95,12 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
         }
     }
 
-    Ok(response)
+    Ok(Response::from(response))
 }
 
+/// It authenticates the request. It returns an error if the peer is not allowed
+/// to make the request.
+///
 /// # Errors
 ///
 /// Will return `Error` if unable to `authenticate_request`.
@@ -91,6 +113,9 @@ pub async fn authenticate(info_hash: &InfoHash, tracker: &Tracker) -> Result<(),
         })
 }
 
+/// It handles the `Announce` request. Refer to [`Announce`](crate::servers::udp#announce)
+/// request for more information.
+///
 /// # Errors
 ///
 /// If a error happens in the `handle_announce` function, it will just return the  `ServerError`.
@@ -124,8 +149,8 @@ pub async fn handle_announce(
     }
 
     #[allow(clippy::cast_possible_truncation)]
-    let announce_response = if remote_addr.is_ipv4() {
-        Response::from(AnnounceResponse {
+    if remote_addr.is_ipv4() {
+        let announce_response = AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
             announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
             leechers: NumberOfPeers(i64::from(response.swarm_stats.leechers) as i32),
@@ -144,9 +169,13 @@ pub async fn handle_announce(
                     }
                 })
                 .collect(),
-        })
+        };
+
+        debug!("udp announce response: {:#?}", announce_response);
+
+        Ok(Response::from(announce_response))
     } else {
-        Response::from(AnnounceResponse {
+        let announce_response = AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
             announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
             leechers: NumberOfPeers(i64::from(response.swarm_stats.leechers) as i32),
@@ -165,16 +194,23 @@ pub async fn handle_announce(
                     }
                 })
                 .collect(),
-        })
-    };
+        };
 
-    Ok(announce_response)
+        debug!("udp announce response: {:#?}", announce_response);
+
+        Ok(Response::from(announce_response))
+    }
 }
 
+/// It handles the `Scrape` request. Refer to [`Scrape`](crate::servers::udp#scrape)
+/// request for more information.
+///
 /// # Errors
 ///
-/// This function dose not ever return an error.
+/// This function does not ever return an error.
 pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tracker: &Tracker) -> Result<Response, Error> {
+    debug!("udp scrape request: {:#?}", request);
+
     // Convert from aquatic infohashes
     let mut info_hashes = vec![];
     for info_hash in &request.info_hashes {
@@ -217,10 +253,14 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
         }
     }
 
-    Ok(Response::from(ScrapeResponse {
+    let response = ScrapeResponse {
         transaction_id: request.transaction_id,
         torrent_stats,
-    }))
+    };
+
+    debug!("udp scrape response: {:#?}", response);
+
+    Ok(Response::from(response))
 }
 
 fn handle_error(e: &Error, transaction_id: TransactionId) -> Response {

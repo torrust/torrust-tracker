@@ -43,7 +43,7 @@
 //!
 //! Parameter | Type | Description | Required |  Default | Example
 //! ---|---|---|---|---|---
-//! [`info_hash`](crate::servers::http::v1::requests::announce::Announce::info_hash) | percent encoded of 40-byte array | The `Info Hash` of the torrent. | Yes | No | `%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00`
+//! [`info_hash`](crate::servers::http::v1::requests::announce::Announce::info_hash) | percent encoded of 20-byte array | The `Info Hash` of the torrent. | Yes | No | `%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00`
 //! `peer_addr` | string |The IP address of the peer. | No | No | `2.137.87.41`
 //! [`downloaded`](crate::servers::http::v1::requests::announce::Announce::downloaded) | positive integer |The number of bytes downloaded by the peer. | No | `0` | `0`
 //! [`uploaded`](crate::servers::http::v1::requests::announce::Announce::uploaded) | positive integer | The number of bytes uploaded by the peer. | No | `0` | `0`
@@ -220,7 +220,7 @@
 //!
 //! Parameter | Type | Description | Required |  Default | Example
 //! ---|---|---|---|---|---
-//! [`info_hash`](crate::servers::http::v1::requests::scrape::Scrape::info_hashes) | percent encoded of 40-byte array | The `Info Hash` of the torrent. | Yes | No | `%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00`
+//! [`info_hash`](crate::servers::http::v1::requests::scrape::Scrape::info_hashes) | percent encoded of 20-byte array | The `Info Hash` of the torrent. | Yes | No | `%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00`
 //!
 //! > **NOTICE**: you can scrape multiple torrents at the same time by passing
 //! multiple `info_hash` parameters.

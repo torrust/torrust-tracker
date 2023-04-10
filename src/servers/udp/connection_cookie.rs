@@ -1,3 +1,71 @@
+//! Logic for generating and verifying connection IDs.
+//!
+//! The UDP tracker requires the client to connect to the server before it can
+//! send any data. The server responds with a random 64-bit integer that the
+//! client must use to identify itself.
+//!
+//! This connection ID is used to avoid spoofing attacks. The client must send
+//! the connection ID in all requests to the server. The server will ignore any
+//! requests that do not contain the correct connection ID.
+//!
+//! The simplest way to implement this would be to generate a random number when
+//! the client connects and store it in a hash table. However, this would
+//! require the server to store a large number of connection IDs, which would be
+//! a waste of memory. Instead, the server generates a connection ID based on
+//! the client's IP address and the current time. This allows the server to
+//! verify the connection ID without storing it.
+//!
+//! This module implements this method of generating connection IDs. It's the
+//! most common way to generate connection IDs. The connection ID is generated
+//! using a time based algorithm and it is valid for a certain amount of time
+//! (usually two minutes). The connection ID is generated using the following:
+//!
+//! ```text
+//! connection ID = hash(client IP + current time slot + secret seed)
+//! ```
+//!
+//! Time slots are two minute intervals since the Unix epoch. The secret seed is
+//! a random number that is generated when the server starts. And the client IP
+//! is used in order generate a unique connection ID for each client.
+//!
+//! The BEP-15 recommends a two-minute time slot.
+//!
+//! ```text
+//! Timestamp (seconds from Unix epoch):
+//! |------------|------------|------------|------------|
+//! 0            120          240          360          480
+//! Time slots (two-minutes time extents from Unix epoch):
+//! |------------|------------|------------|------------|
+//! 0            1            2            3            4
+//! Peer connections:
+//! Peer A       |-------------------------|
+//! Peer B                    |-------------------------|
+//! Peer C              |------------------|
+//! Peer A connects at timestamp 120 slot 1 -> connection ID will be valid from timestamp 120 to 360
+//! Peer B connects at timestamp 240 slot 2 -> connection ID will be valid from timestamp 240 to 480
+//! Peer C connects at timestamp 180 slot 1 -> connection ID will be valid from timestamp 180 to 360
+//! ```
+//! > **NOTICE**: connection ID is always the same for a given peer
+//! (socket address) and time slot.
+//!
+//! > **NOTICE**: connection ID will be valid for two time extents, **not two
+//! minutes**. It'll be valid for the the current time extent and the next one.
+//!
+//! Refer to [`Connect`](crate::servers::udp#connect) for more information about
+//! the connection process.
+//!
+//! ## Advantages
+//!
+//! - It consumes less memory than storing a hash table of connection IDs.
+//! - It's easy to implement.
+//! - It's fast.
+//!
+//! ## Disadvantages
+//!
+//! - It's not very flexible. The connection ID is only valid for a certain
+//! amount of time.
+//! - It's not very accurate. The connection ID is valid for more than two
+//! minutes.
 use std::net::SocketAddr;
 use std::panic::Location;
 
@@ -12,16 +80,19 @@ pub type SinceUnixEpochTimeExtent = TimeExtent;
 
 pub const COOKIE_LIFETIME: TimeExtent = TimeExtent::from_sec(2, &60);
 
+/// Converts a connection ID into a connection cookie.
 #[must_use]
 pub fn from_connection_id(connection_id: &ConnectionId) -> Cookie {
     connection_id.0.to_le_bytes()
 }
 
+/// Converts a connection cookie into a connection ID.
 #[must_use]
 pub fn into_connection_id(connection_cookie: &Cookie) -> ConnectionId {
     ConnectionId(i64::from_le_bytes(*connection_cookie))
 }
 
+/// Generates a new connection cookie.
 #[must_use]
 pub fn make(remote_address: &SocketAddr) -> Cookie {
     let time_extent = cookie_builder::get_last_time_extent();
@@ -30,6 +101,8 @@ pub fn make(remote_address: &SocketAddr) -> Cookie {
     cookie_builder::build(remote_address, &time_extent)
 }
 
+/// Checks if the supplied `connection_cookie` is valid.
+///
 /// # Panics
 ///
 /// It would panic if the `COOKIE_LIFETIME` constant would be an unreasonably large number.

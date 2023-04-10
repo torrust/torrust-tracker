@@ -1,3 +1,22 @@
+//! Module to handle the UDP server instances.
+//!
+//! There are two main types in this module:
+//!
+//! - [`UdpServer`](crate::servers::udp::server::UdpServer): a controller to
+//! start and stop the server.
+//! - [`Udp`](crate::servers::udp::server::Udp): the server launcher.
+//!
+//! The `UdpServer` is an state machine for a given configuration. This struct
+//! represents concrete configuration and state. It allows to start and
+//! stop the server but always keeping the same configuration.
+//!
+//! The `Udp` is the server launcher. It's responsible for launching the UDP
+//! but without keeping any state.
+//!
+//! For the time being, the `UdpServer` is only used for testing purposes,
+//! because we want to be able to start and stop the server multiple times, and
+//! we want to know the bound address and the current state of the server.
+//! In production, the `Udp` launcher is used directly.
 use std::future::Future;
 use std::io::Cursor;
 use std::net::SocketAddr;
@@ -14,36 +33,76 @@ use crate::servers::udp::handlers::handle_packet;
 use crate::servers::udp::MAX_PACKET_SIZE;
 use crate::tracker::Tracker;
 
+/// Error that can occur when starting or stopping the UDP server.
+///
+/// Some errors triggered while starting the server are:
+///
+/// - The server cannot bind to the given address.
+/// - It cannot get the bound address.
+///
+/// Some errors triggered while stopping the server are:
+///
+/// - The [`UdpServer`](crate::servers::udp::server::UdpServer) cannot send the
+///  shutdown signal to the spawned UDP service thread.
 #[derive(Debug)]
 pub enum Error {
-    Error(String),
+    /// Any kind of error starting or stopping the server.
+    Error(String), // todo: refactor to use thiserror and add more variants for specific errors.
 }
 
+/// A UDP server instance controller with no UDP instance running.
 #[allow(clippy::module_name_repetitions)]
 pub type StoppedUdpServer = UdpServer<Stopped>;
+
+/// A UDP server instance controller with a running UDP instance.
 #[allow(clippy::module_name_repetitions)]
 pub type RunningUdpServer = UdpServer<Running>;
 
+/// A UDP server instance controller.
+///
+/// It's responsible for:
+///
+/// - Keeping the initial configuration of the server.
+/// - Starting and stopping the server.
+/// - Keeping the state of the server: `running` or `stopped`.
+///
+/// It's an state machine. Configurations cannot be changed. This struct
+/// represents concrete configuration and state. It allows to start and stop the
+/// server but always keeping the same configuration.
+///
+/// > **NOTICE**: if the configurations changes after running the server it will
+/// reset to the initial value after stopping the server. This struct is not
+/// intended to persist configurations between runs.
 #[allow(clippy::module_name_repetitions)]
 pub struct UdpServer<S> {
+    /// The configuration of the server that will be used every time the server
+    /// is started.    
     pub cfg: torrust_tracker_configuration::UdpTracker,
+    /// The state of the server: `running` or `stopped`.
     pub state: S,
 }
 
+/// A stopped UDP server state.
 pub struct Stopped;
 
+/// A running UDP server state.
 pub struct Running {
+    /// The address where the server is bound.
     pub bind_address: SocketAddr,
     stop_job_sender: tokio::sync::oneshot::Sender<u8>,
     job: JoinHandle<()>,
 }
 
 impl UdpServer<Stopped> {
+    /// Creates a new `UdpServer` instance in `stopped`state.
     #[must_use]
     pub fn new(cfg: torrust_tracker_configuration::UdpTracker) -> Self {
         Self { cfg, state: Stopped {} }
     }
 
+    /// It starts the server and returns a `UdpServer` controller in `running`
+    /// state.
+    ///
     /// # Errors
     ///
     /// Will return `Err` if UDP can't bind to given bind address.
@@ -74,6 +133,9 @@ impl UdpServer<Stopped> {
 }
 
 impl UdpServer<Running> {
+    /// It stops the server and returns a `UdpServer` controller in `stopped`
+    /// state.
+    ///     
     /// # Errors
     ///
     /// Will return `Err` if the oneshot channel to send the stop signal
@@ -92,11 +154,14 @@ impl UdpServer<Running> {
     }
 }
 
+/// A UDP server instance launcher.
 pub struct Udp {
     socket: Arc<UdpSocket>,
 }
 
 impl Udp {
+    /// Creates a new `Udp` instance.
+    ///
     /// # Errors
     ///
     /// Will return `Err` unable to bind to the supplied `bind_address`.
@@ -108,6 +173,8 @@ impl Udp {
         })
     }
 
+    /// It starts the UDP server instance.
+    ///
     /// # Panics
     ///
     /// It would panic if unable to resolve the `local_addr` from the supplied ´socket´.
@@ -136,6 +203,8 @@ impl Udp {
         }
     }
 
+    /// It starts the UDP server instance with graceful shutdown.
+    ///
     /// # Panics
     ///
     /// It would panic if unable to resolve the `local_addr` from the supplied ´socket´.

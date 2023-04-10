@@ -19,7 +19,7 @@ use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
 use crate::tracker::peer::{self, IdConversionError};
 
 /// Percent decodes a percent encoded infohash. Internally an
-/// [`InfoHash`](crate::shared::bit_torrent::info_hash::InfoHash) is a 40-byte array.
+/// [`InfoHash`](crate::shared::bit_torrent::info_hash::InfoHash) is a 20-byte array.
 ///
 /// For example, given the infohash `3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0`,
 /// it's percent encoded representation is `%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0`.
