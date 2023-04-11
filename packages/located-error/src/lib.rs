@@ -1,11 +1,44 @@
-// https://stackoverflow.com/questions/74336993/getting-line-numbers-with-when-using-boxdyn-stderrorerror
-
+//! This crate provides a wrapper around an error that includes the location of
+//! the error.
+//!
+//! ```rust
+//! use std::error::Error;
+//! use std::panic::Location;
+//! use std::sync::Arc;
+//! use torrust_tracker_located_error::{Located, LocatedError};
+//!
+//! #[derive(thiserror::Error, Debug)]
+//! enum TestError {
+//!     #[error("Test")]
+//!     Test,
+//! }
+//!
+//! #[track_caller]
+//! fn get_caller_location() -> Location<'static> {
+//!     *Location::caller()
+//! }
+//!
+//! let e = TestError::Test;
+//!
+//! let b: LocatedError<TestError> = Located(e).into();
+//! let l = get_caller_location();
+//!
+//! assert!(b.to_string().contains("Test, src/lib.rs"));
+//! ```
+//!
+//! # Credits
+//!
+//! <https://stackoverflow.com/questions/74336993/getting-line-numbers-with-when-using-boxdyn-stderrorerror>
 use std::error::Error;
 use std::panic::Location;
 use std::sync::Arc;
 
+/// A generic wrapper around an error.
+///
+/// Where `E` is the inner error (source error).
 pub struct Located<E>(pub E);
 
+/// A wrapper around an error that includes the location of the error.
 #[derive(Debug)]
 pub struct LocatedError<'a, E>
 where
@@ -78,7 +111,7 @@ mod tests {
     use std::panic::Location;
 
     use super::LocatedError;
-    use crate::located_error::Located;
+    use crate::Located;
 
     #[derive(thiserror::Error, Debug)]
     enum TestError {
