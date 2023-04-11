@@ -35,7 +35,7 @@
 //! admin = "MyAccessToken"
 //! ```
 //!
-//! Refer to [torrust-tracker-configuration](https://docs.rs/torrust-tracker-configuration>)
+//! Refer to [`torrust-tracker-configuration`](torrust_tracker_configuration)
 //! for more information about the API configuration.
 //!
 //! When you run the tracker with enabled API, you will see the following message:
@@ -99,7 +99,7 @@
 //! The token label is used to identify the token. All tokens have full access
 //! to the API.
 //!
-//! Refer to [torrust-tracker-configuration](https://docs.rs/torrust-tracker-configuration>)
+//! Refer to [`torrust-tracker-configuration`](torrust_tracker_configuration)
 //! for more information about the API configuration and to the
 //! [`auth`](crate::servers::apis::v1::middlewares::auth) middleware for more
 //! information about the authentication process.
