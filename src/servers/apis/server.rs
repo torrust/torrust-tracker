@@ -140,7 +140,7 @@ impl Launcher {
     /// Starts the API server with graceful shutdown.
     ///
     /// If TLS is enabled in the configuration, it will start the server with
-    /// TLS. See [torrust-tracker-configuration](https://docs.rs/torrust-tracker-configuration>)
+    /// TLS. See [`torrust-tracker-configuration`](torrust_tracker_configuration)
     /// for more  information about configuration.
     pub fn start<F>(
         cfg: &torrust_tracker_configuration::HttpApi,

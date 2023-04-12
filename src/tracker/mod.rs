@@ -468,7 +468,7 @@ use crate::tracker::databases::Database;
 /// Typically, the `Tracker` is used by a higher application service that handles
 /// the network layer.
 pub struct Tracker {
-    /// `Tracker` configuration. See <https://docs.rs/torrust-tracker-configuration>
+    /// `Tracker` configuration. See [`torrust-tracker-configuration`](torrust_tracker_configuration)
     pub config: Arc<Configuration>,
     /// A database driver implementation: [`Sqlite3`](crate::tracker::databases::sqlite)
     /// or [`MySQL`](crate::tracker::databases::mysql)
