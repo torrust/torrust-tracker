@@ -59,9 +59,9 @@ dependencies = [
 
 [[package]]
 name = "aquatic_udp_protocol"
-version = "0.2.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16149f27924d42b337a637cd90a8ee2a8973bbccf32aabebce2b3c66913f947f"
+checksum = "b2919b480121f7d20d247524da62bad1b6b7928bc3f50898f624b5c592727341"
 dependencies = [
  "byteorder",
  "either",
