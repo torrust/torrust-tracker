@@ -1,3 +1,4 @@
+//! Tracker configuration factories for testing.
 use std::env;
 use std::net::IpAddr;
 
@@ -6,8 +7,17 @@ use torrust_tracker_primitives::TrackerMode;
 
 use crate::random;
 
-/// This configuration is used for testing. It generates random config values so they do not collide
-/// if you run more than one tracker at the same time.
+/// This configuration is used for testing. It generates random config values
+/// so they do not collide if you run more than one tracker at the same time.
+///
+/// > **NOTICE**: This configuration is not meant to be used in production.
+///
+/// > **NOTICE**: Port 0 is used for ephemeral ports, which means that the OS
+/// will assign a random free port for the tracker to use.
+///
+/// > **NOTICE**: You can change the log level to `debug` to see the logs of the
+/// tracker while running the tests. That can be particularly useful when
+/// debugging tests.
 ///
 /// # Panics
 ///
@@ -46,6 +56,7 @@ pub fn ephemeral() -> Configuration {
     config
 }
 
+/// Ephemeral configuration with reverse proxy enabled.
 #[must_use]
 pub fn ephemeral_with_reverse_proxy() -> Configuration {
     let mut cfg = ephemeral();
@@ -55,6 +66,7 @@ pub fn ephemeral_with_reverse_proxy() -> Configuration {
     cfg
 }
 
+/// Ephemeral configuration with reverse proxy disabled.
 #[must_use]
 pub fn ephemeral_without_reverse_proxy() -> Configuration {
     let mut cfg = ephemeral();
@@ -64,6 +76,7 @@ pub fn ephemeral_without_reverse_proxy() -> Configuration {
     cfg
 }
 
+/// Ephemeral configuration with `public` mode.
 #[must_use]
 pub fn ephemeral_mode_public() -> Configuration {
     let mut cfg = ephemeral();
@@ -73,6 +86,7 @@ pub fn ephemeral_mode_public() -> Configuration {
     cfg
 }
 
+/// Ephemeral configuration with `private` mode.
 #[must_use]
 pub fn ephemeral_mode_private() -> Configuration {
     let mut cfg = ephemeral();
@@ -82,6 +96,7 @@ pub fn ephemeral_mode_private() -> Configuration {
     cfg
 }
 
+/// Ephemeral configuration with `listed` mode.
 #[must_use]
 pub fn ephemeral_mode_whitelisted() -> Configuration {
     let mut cfg = ephemeral();
@@ -91,6 +106,7 @@ pub fn ephemeral_mode_whitelisted() -> Configuration {
     cfg
 }
 
+/// Ephemeral configuration with `private_listed` mode.
 #[must_use]
 pub fn ephemeral_mode_private_whitelisted() -> Configuration {
     let mut cfg = ephemeral();
@@ -100,6 +116,7 @@ pub fn ephemeral_mode_private_whitelisted() -> Configuration {
     cfg
 }
 
+/// Ephemeral configuration with a custom external (public) IP for the tracker.
 #[must_use]
 pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
     let mut cfg = ephemeral();
@@ -109,6 +126,8 @@ pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
     cfg
 }
 
+/// Ephemeral configuration using a wildcard IPv6 for the UDP, HTTP and API
+/// services.
 #[must_use]
 pub fn ephemeral_ipv6() -> Configuration {
     let mut cfg = ephemeral();
