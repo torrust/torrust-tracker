@@ -45,7 +45,7 @@ bip_bencode = "0.4"
 torrust-tracker-primitives = { version = "3.0.0-alpha.1", path = "packages/primitives" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.1", path = "packages/configuration" }
 torrust-tracker-located-error = { version = "3.0.0-alpha.1", path = "packages/located-error" }
-multimap = "0.8"
+multimap = "0.9"
 hyper = "0.14"
 
 [dev-dependencies]
