@@ -110,7 +110,7 @@
 //!     --publish 7070:7070/tcp \
 //!     --publish 1212:1212/tcp \
 //!     --volume "$(pwd)/storage":"/app/storage" \
-//!     torrust/tracker:3.0.0-alpha.1
+//!     torrust/tracker:3.0.0-alpha.2
 //! ```
 //!
 //! For more information about using docker visit the [tracker docker documentation](https://github.com/torrust/torrust-tracker/tree/develop/docker).
@@ -162,7 +162,7 @@
 //!
 //! The default configuration includes one disabled UDP server, one disabled HTTP server and the enabled API.
 //!
-//! For more information about each service and options you can visit the documentation for the [torrust-tracker-configuration crate](https://docs.rs/torrust-tracker-configuration/3.0.0-alpha.1/torrust_tracker_configuration/).
+//! For more information about each service and options you can visit the documentation for the [torrust-tracker-configuration crate](https://docs.rs/torrust-tracker-configuration).
 //!
 //! Alternatively to the `config.toml` file you can use one environment variable `TORRUST_TRACKER_CONFIG` to pass the configuration to the tracker:
 //!
