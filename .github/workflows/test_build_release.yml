@@ -36,9 +36,11 @@ jobs:
         run: cargo clippy --all-targets -- -D clippy::pedantic
       - name: Test Documentation
         run: cargo test --doc
+      - name: Run Tests
+        run: cargo test --workspace        
       - uses: taiki-e/install-action@cargo-llvm-cov
       - uses: taiki-e/install-action@nextest
-      - name: Run Tests
+      - name: Show coverage
         run: cargo llvm-cov nextest
 
   build:
