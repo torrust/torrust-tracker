@@ -557,9 +557,13 @@ impl Configuration {
     /// permission to read it. Will also return `Err` if the configuration is
     /// not valid or cannot be encoded to TOML.
     pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
-        let toml_string = toml::to_string(self).expect("Could not encode TOML value");
-        fs::write(path, toml_string).expect("Could not write to file!");
+        fs::write(path, self.to_toml()).expect("Could not write to file!");
         Ok(())
+    }
+
+    /// Encodes the configuration to TOML.
+    fn to_toml(&self) -> String {
+        toml::to_string(self).expect("Could not encode TOML value")
     }
 }
 
@@ -575,11 +579,11 @@ mod tests {
                                 db_path = "./storage/database/data.db"
                                 announce_interval = 120
                                 min_announce_interval = 120
-                                max_peer_timeout = 900
                                 on_reverse_proxy = false
                                 external_ip = "0.0.0.0"
                                 tracker_usage_statistics = true
                                 persistent_torrent_completed_stat = false
+                                max_peer_timeout = 900
                                 inactive_peer_cleanup_interval = 600
                                 remove_peerless_torrents = true
 
