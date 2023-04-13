@@ -56,7 +56,9 @@ After running the tracker these services will be available:
 ## Documentation
 
 * [Crate documentation](https://docs.rs/torrust-tracker/).
-* [API documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/api/).
+* [API `v1`](https://docs.rs/torrust-tracker/3.0.0-alpha.1/torrust_tracker/servers/apis/v1).
+* [HTTP Tracker](https://docs.rs/torrust-tracker/3.0.0-alpha.1/torrust_tracker/servers/http).
+* [UDP Tracker](https://docs.rs/torrust-tracker/3.0.0-alpha.1/torrust_tracker/servers/udp).
 
 ## Contributing
 
@@ -66,7 +68,7 @@ How can you contribute?
 
 * Bug reports and feature requests.
 * Code contributions. You can start by looking at the issues labeled ["good first issues"](https://github.com/torrust/torrust-tracker/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
-* Documentation improvements. Check the [documentation](https://docs.rs/torrust-tracker/) and [API documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/api/) for typos, errors, or missing information.
+* Documentation improvements. Check the [documentation](https://docs.rs/torrust-tracker/) and [API documentation](https://docs.rs/torrust-tracker/3.0.0-alpha.1/torrust_tracker/servers/apis/v1) for typos, errors, or missing information.
 * Participation in the community. You can help by answering questions in the [discussions](https://github.com/torrust/torrust-tracker/discussions).
 
 ## License
