@@ -34,7 +34,7 @@ derive_more = "0.99"
 thiserror = "1.0"
 futures = "0.3"
 async-trait = "0.1"
-aquatic_udp_protocol = "0.2"
+aquatic_udp_protocol = "0.8"
 uuid = { version = "1", features = ["v4"] }
 axum = "0.6.10"
 axum-server = { version = "0.4", features = ["tls-rustls"] }
@@ -43,7 +43,7 @@ bip_bencode = "0.4"
 torrust-tracker-primitives = { version = "3.0.0-alpha.1", path = "packages/primitives" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.1", path = "packages/configuration" }
 torrust-tracker-located-error = { version = "3.0.0-alpha.1", path = "packages/located-error" }
-multimap = "0.8"
+multimap = "0.9"
 hyper = "0.14"
 
 [dev-dependencies]
