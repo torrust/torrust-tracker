@@ -19,6 +19,17 @@ storage/
 
 ## Dev environment
 
+When using docker you have to bind the exposed ports to the wildcard address `0.0.0.0`, so you can access the application from the host machine.
+
+The default API configuration uses `127.0.0.1`, so you have to change it to:
+
+```toml
+[http_api]
+bind_address = "0.0.0.0:1212"
+```
+
+Otherwise the API will be only accessible from inside the container.
+
 ### With docker
 
 Build and run locally:
@@ -78,7 +89,7 @@ CONTAINER ID   IMAGE             COMMAND                  CREATED          STATU
 
 And you should be able to use the application, for example making a request to the API:
 
-<https://127.0.0.1:1212/api/stats?token=MyAccessToken>
+<https://127.0.0.1:1212/api/v1/stats?token=MyAccessToken>
 
 You can stop the containers with:
 
@@ -169,7 +180,7 @@ ssl_key_path = "./storage/ssl_certificates/localhost.key"
 
 If you enable the SSL certificate for the API, for example, you can load the API with this URL:
 
-<https://localhost:1212/api/stats?token=MyAccessToken>
+<https://localhost:1212/api/v1/stats?token=MyAccessToken>
 
 ## Prod environment
 
@@ -232,7 +243,7 @@ CONTAINER ID          IMAGE                                                     
 intelligent-hawking   registry.hub.docker.com/torrust/tracker:latest                       Running             4.236.213.57:6969->6969/udp, 4.236.213.57:1212->1212/tcp
 ```
 
-After a while, you can use the tracker API `http://4.236.213.57:1212/api/stats?token=MyAccessToken` and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969`.
+After a while, you can use the tracker API `http://4.236.213.57:1212/api/v1/stats?token=MyAccessToken` and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969`.
 
 > NOTES:
 >
