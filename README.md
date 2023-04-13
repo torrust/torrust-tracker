@@ -1,102 +1,80 @@
 # Torrust Tracker
-![Test](https://github.com/torrust/torrust-tracker/actions/workflows/test_build_release.yml/badge.svg)
 
-## Project Description
-Torrust Tracker is a lightweight but incredibly powerful and feature-rich BitTorrent tracker made using Rust.
+[![Build & Release](https://github.com/torrust/torrust-tracker/actions/workflows/build_release.yml/badge.svg)](https://github.com/torrust/torrust-tracker/actions/workflows/build_release.yml) [![CI](https://github.com/torrust/torrust-tracker/actions/workflows/test_build_release.yml/badge.svg)](https://github.com/torrust/torrust-tracker/actions/workflows/test_build_release.yml) [![Publish crate](https://github.com/torrust/torrust-tracker/actions/workflows/publish_crate.yml/badge.svg)](https://github.com/torrust/torrust-tracker/actions/workflows/publish_crate.yml) [![Publish docker image](https://github.com/torrust/torrust-tracker/actions/workflows/publish_docker_image.yml/badge.svg)](https://github.com/torrust/torrust-tracker/actions/workflows/publish_docker_image.yml) [![Test](https://github.com/torrust/torrust-tracker/actions/workflows/test.yml/badge.svg)](https://github.com/torrust/torrust-tracker/actions/workflows/test.yml) [![Test docker build](https://github.com/torrust/torrust-tracker/actions/workflows/test_docker.yml/badge.svg)](https://github.com/torrust/torrust-tracker/actions/workflows/test_docker.yml) [![Upload code coverage](https://github.com/torrust/torrust-tracker/actions/workflows/codecov.yml/badge.svg)](https://github.com/torrust/torrust-tracker/actions/workflows/codecov.yml)
 
+Torrust Tracker is a lightweight but incredibly high-performance and feature-rich BitTorrent tracker written in [Rust](https://www.rust-lang.org/).
 
-### Features
-* [X] Multiple UDP server and HTTP(S) server blocks for socket binding possible
-* [X] Full IPv4 and IPv6 support for both UDP and HTTP(S)
-* [X] Private & Whitelisted mode
-* [X] Built-in API
-* [X] Torrent whitelisting
-* [X] Peer authentication using time-bound keys
-* [X] newTrackon check supported for both HTTP, UDP, where IPv4 and IPv6 is properly handled
-* [X] SQLite3 Persistent loading and saving of the torrent hashes and completed count
-* [X] MySQL support added as engine option
-* [X] Periodically saving added, interval can be configured
+It aims to provide a reliable and efficient solution for serving torrents to a vast number of peers while maintaining a high level of performance, robustness, extensibility, security, usability and with community-driven development.
 
-### Implemented BEPs
-* [BEP 3](https://www.bittorrent.org/beps/bep_0003.html): The BitTorrent Protocol
-* [BEP 7](https://www.bittorrent.org/beps/bep_0007.html): IPv6 Support
-* [BEP 15](http://www.bittorrent.org/beps/bep_0015.html): UDP Tracker Protocol for BitTorrent
-* [BEP 23](http://bittorrent.org/beps/bep_0023.html): Tracker Returns Compact Peer Lists
-* [BEP 27](http://bittorrent.org/beps/bep_0027.html): Private Torrents
-* [BEP 41](http://bittorrent.org/beps/bep_0041.html): UDP Tracker Protocol Extensions
-* [BEP 48](http://bittorrent.org/beps/bep_0048.html): Tracker Protocol Extension: Scrape
+## Key Features
+
+* [X] Multiple UDP server and HTTP(S) server blocks for socket binding are possible.
+* [X] Full IPv4 and IPv6 support for both UDP and HTTP(S).
+* [X] Private & Whitelisted mode.
+* [X] Built-in API.
+* [X] Torrent whitelisting.
+* [X] Peer authentication using time-bound keys.
+* [X] [newTrackon](https://newtrackon.com/) check is supported for both HTTP and UDP, where IPv4 and IPv6 are properly handled.
+* [X] SQLite3 and MySQL persistence, loading and saving of the torrent hashes and downloads completed count.
+* [X] Comprehensive documentation.
+* [X] A complete suite of tests. See [code coverage](https://app.codecov.io/gh/torrust/torrust-tracker) report.
+
+## Implemented BEPs
+
+* [BEP 3](https://www.bittorrent.org/beps/bep_0003.html): The BitTorrent Protocol.
+* [BEP 7](https://www.bittorrent.org/beps/bep_0007.html): IPv6 Support.
+* [BEP 15](http://www.bittorrent.org/beps/bep_0015.html): UDP Tracker Protocol for BitTorrent.
+* [BEP 23](http://bittorrent.org/beps/bep_0023.html): Tracker Returns Compact Peer Lists.
+* [BEP 27](http://bittorrent.org/beps/bep_0027.html): Private Torrents.
+* [BEP 48](http://bittorrent.org/beps/bep_0048.html): Tracker Protocol Extension: Scrape.
 
 ## Getting Started
-You can get the latest binaries from [releases](https://github.com/torrust/torrust-tracker/releases) or follow the install from scratch instructions below.
 
-### Install From Scratch
-1. Clone the repo.
-```bash
-git clone https://github.com/torrust/torrust-tracker.git
-cd torrust-tracker
+Requirements:
+
+* Rust Stable `1.68`
+* You might have problems compiling with a machine or docker container with low resources. It has been tested with docker containers with 6 CPUs, 7.5 GM of memory and 2GB of swap.
+
+You can follow the [documentation](https://docs.rs/torrust-tracker/) to install and use Torrust Tracker in different ways, but if you want to give it a quick try, you can use the following commands:
+
+```s
+git clone https://github.com/torrust/torrust-tracker.git \
+  && cd torrust-tracker \
+  && cargo build --release \
+  && mkdir -p ./storage/database \
+  && mkdir -p ./storage/ssl_certificates
 ```
 
-2. Build the source code.
-```bash
-cargo build --release
-```
+And then run `cargo run` twice. The first time to generate the `config.toml` file and the second time to run the tracker with the default configuration.
 
-### Usage
-* Run the torrust-tracker once to create the `config.toml` file:
-```bash
-./target/release/torrust-tracker
-```
+After running the tracker these services will be available:
 
+* UDP tracker: `udp://127.0.0.1:6969/announce`.
+* HTTP tracker: `http://127.0.0.1:6969/announce`.
+* API: `http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken`.
 
-* Edit the newly created config.toml file according to your liking, see [configuration documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/config/). Eg:
-```toml
-log_level = "info"
-mode = "public"
-db_driver = "Sqlite3"
-db_path = "data.db"
-announce_interval = 120
-min_announce_interval = 120
-max_peer_timeout = 900
-on_reverse_proxy = false
-external_ip = "0.0.0.0"
-tracker_usage_statistics = true
-persistent_torrent_completed_stat = false
-inactive_peer_cleanup_interval = 600
-remove_peerless_torrents = true
+## Documentation
 
-[[udp_trackers]]
-enabled = false
-bind_address = "0.0.0.0:6969"
+* [Crate documentation](https://docs.rs/torrust-tracker/).
+* [API documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/api/).
 
-[[http_trackers]]
-enabled = true
-bind_address = "0.0.0.0:7070"
-ssl_enabled = false
-ssl_cert_path = ""
-ssl_key_path = ""
+## Contributing
 
-[http_api]
-enabled = true
-bind_address = "127.0.0.1:1212"
+We welcome contributions from the community!
 
-[http_api.access_tokens]
-admin = "MyAccessToken"
-```
+How can you contribute?
 
+* Bug reports and feature requests.
+* Code contributions. You can start by looking at the issues labeled ["good first issues"](https://github.com/torrust/torrust-tracker/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+* Documentation improvements. Check the [documentation](https://docs.rs/torrust-tracker/) and [API documentation](https://torrust.github.io/torrust-documentation/torrust-tracker/api/) for typos, errors, or missing information.
+* Participation in the community. You can help by answering questions in the [discussions](https://github.com/torrust/torrust-tracker/discussions).
 
-* Run the torrust-tracker again:
-```bash
-./target/release/torrust-tracker
-```
+## License
 
-### Tracker URL
-Your tracker announce URL will be **udp://{tracker-ip:port}** and/or **http://{tracker-ip:port}/announce** and/or **https://{tracker-ip:port}/announce** depending on your bindings.
-In private & private_listed mode, tracker keys are added after the tracker URL like: **https://{tracker-ip:port}/announce/{key}**.
+The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE).
 
-### Built-in API
-Read the API documentation [here](https://torrust.github.io/torrust-documentation/torrust-tracker/api/).
+There is an ongoing discussion about the license of the project. You can follow the discussion [here](https://github.com/torrust/torrust-tracker/pull/251).
 
-### Credits
-This project was a joint effort by [Nautilus Cyberneering GmbH](https://nautilus-cyberneering.de/) and [Dutch Bits](https://dutchbits.nl).
-Also thanks to [Naim A.](https://github.com/naim94a/udpt) and [greatest-ape](https://github.com/greatest-ape/aquatic) for some parts of the code.
-Further added features and functions thanks to [Power2All](https://github.com/power2all).
+## Acknowledgments
+
+This project was a joint effort by [Nautilus Cyberneering GmbH](https://nautilus-cyberneering.de/) and [Dutch Bits](https://dutchbits.nl). Also thanks to [Naim A.](https://github.com/naim94a/udpt) and [greatest-ape](https://github.com/greatest-ape/aquatic) for some parts of the code. Further added features and functions thanks to [Power2All](https://github.com/power2all).
