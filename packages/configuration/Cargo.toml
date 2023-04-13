@@ -15,4 +15,6 @@ log = { version = "0.4", features = ["release_max_level_info"] }
 thiserror = "1.0"
 torrust-tracker-primitives = { version = "3.0.0-alpha.1", path = "../primitives" }
 torrust-tracker-located-error = { version = "3.0.0-alpha.1", path = "../located-error" }
+
+[dev-dependencies]
 uuid = { version = "1", features = ["v4"] }
