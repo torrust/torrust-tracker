@@ -61,7 +61,7 @@ jobs:
       - name: Build Torrust Tracker
         run: cargo build --release
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: torrust-tracker
           path: ./target/release/torrust-tracker
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download Build Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: torrust-tracker
       - name: Release

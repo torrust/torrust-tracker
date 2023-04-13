@@ -10,7 +10,7 @@ edition.workspace = true
 serde = { version = "1.0", features = ["derive"] }
 serde_with = "2.0"
 config = "0.13"
-toml = "0.5"
+toml = "0.7"
 log = { version = "0.4", features = ["release_max_level_info"] }
 thiserror = "1.0"
 torrust-tracker-primitives = { version = "3.0.0-alpha.1", path = "../primitives" }
