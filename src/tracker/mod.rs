@@ -732,7 +732,7 @@ impl Tracker {
 
         // todo: move this action to a separate worker
         if self.config.persistent_torrent_completed_stat && stats_updated {
-            let _ = self
+            let _: Result<(), databases::error::Error> = self
                 .database
                 .save_persistent_torrent(info_hash, torrent_entry.completed)
                 .await;
@@ -1064,7 +1064,7 @@ impl Tracker {
         whitelist.clear();
 
         for info_hash in whitelisted_torrents_from_database {
-            let _ = whitelist.insert(info_hash);
+            let _: bool = whitelist.insert(info_hash);
         }
 
         Ok(())

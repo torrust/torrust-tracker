@@ -103,7 +103,7 @@ impl Entry {
 
         match peer.event {
             AnnounceEvent::Stopped => {
-                let _ = self.peers.remove(&peer.peer_id);
+                let _: Option<Peer> = self.peers.remove(&peer.peer_id);
             }
             AnnounceEvent::Completed => {
                 let peer_old = self.peers.insert(peer.peer_id, *peer);
@@ -114,7 +114,7 @@ impl Entry {
                 }
             }
             _ => {
-                let _ = self.peers.insert(peer.peer_id, *peer);
+                let _: Option<Peer> = self.peers.insert(peer.peer_id, *peer);
             }
         }
 

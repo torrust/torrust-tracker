@@ -143,7 +143,7 @@ impl UdpServer<Running> {
     pub async fn stop(self) -> Result<UdpServer<Stopped>, Error> {
         self.state.stop_job_sender.send(1).map_err(|e| Error::Error(e.to_string()))?;
 
-        let _ = self.state.job.await;
+        let _: Result<(), tokio::task::JoinError> = self.state.job.await;
 
         let stopped_api_server: UdpServer<Stopped> = UdpServer {
             cfg: self.cfg,

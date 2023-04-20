@@ -366,14 +366,14 @@ mod test {
         #[should_panic]
         fn should_fail_trying_to_instantiate_from_a_byte_slice_with_less_than_20_bytes() {
             let less_than_20_bytes = [0; 19];
-            let _ = peer::Id::from_bytes(&less_than_20_bytes);
+            let _: peer::Id = peer::Id::from_bytes(&less_than_20_bytes);
         }
 
         #[test]
         #[should_panic]
         fn should_fail_trying_to_instantiate_from_a_byte_slice_with_more_than_20_bytes() {
             let more_than_20_bytes = [0; 21];
-            let _ = peer::Id::from_bytes(&more_than_20_bytes);
+            let _: peer::Id = peer::Id::from_bytes(&more_than_20_bytes);
         }
 
         #[test]
@@ -420,13 +420,13 @@ mod test {
         #[test]
         #[should_panic]
         fn should_fail_trying_to_convert_from_a_byte_vector_with_less_than_20_bytes() {
-            let _ = peer::Id::try_from([0; 19].to_vec()).unwrap();
+            let _: peer::Id = peer::Id::try_from([0; 19].to_vec()).unwrap();
         }
 
         #[test]
         #[should_panic]
         fn should_fail_trying_to_convert_from_a_byte_vector_with_more_than_20_bytes() {
-            let _ = peer::Id::try_from([0; 21].to_vec()).unwrap();
+            let _: peer::Id = peer::Id::try_from([0; 21].to_vec()).unwrap();
         }
 
         #[test]
