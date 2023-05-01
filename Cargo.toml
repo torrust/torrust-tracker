@@ -36,7 +36,7 @@ futures = "0.3"
 async-trait = "0.1"
 aquatic_udp_protocol = "0.8"
 uuid = { version = "1", features = ["v4"] }
-axum = "0.6.16"
+axum = "0.6.18"
 axum-server = { version = "0.4", features = ["tls-rustls"] }
 axum-client-ip = "0.4"
 bip_bencode = "0.4"
