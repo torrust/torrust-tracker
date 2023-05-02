@@ -68,6 +68,26 @@
 //!
 //! ## Prerequisites
 //!
+//! The tracker has some system dependencies:
+//!
+//! Since we are using the `openssl` crate with the [vendored feature](https://docs.rs/openssl/latest/openssl/#vendored),
+//! enabled, you will need to install the following dependencies:
+//!
+//! ```text
+//! sudo apt-get install pkg-config libssl-dev make
+//! ```
+//!
+//! If you are using `SQLite3` as database driver, you will need to install the
+//! following dependency:
+//!
+//! ```text
+//! sudo apt-get install libsqlite3-dev
+//! ```
+//!
+//! > **NOTICE**: those are the commands for `Ubuntu`. If you are using a
+//! different OS, you will need to install the equivalent packages. Please
+//! refer to the documentation of your OS.
+//!
 //! With the default configuration you will need to create the `storage` directory:
 //!
 //! ```text
