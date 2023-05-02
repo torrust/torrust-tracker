@@ -64,7 +64,25 @@
 //! ## Minimum requirements
 //!
 //! - Rust Stable `1.68`
-//! - You might have problems compiling with a machine with low resources. Or with low resources limits on docker containers. It has been tested with docker containers with 6 CPUs, 7.5 GM of memory and 2GB of swap.
+//! - You might have problems compiling with a machine with low resources.
+//!
+//! It has been tested with:
+//!
+//! Docker containers with:
+//!
+//! - 6 CPUs
+//! - 7.5G of ram
+//! - 2GB of swap
+//!
+//! [VM](https://github.com/torrust/torrust-tracker/issues/321) with:
+//!
+//! - 1 core of Intel Xeon Processor (Icelake)
+//! - 1G of ram
+//! - 25G of disk
+//! - Debian 11
+//! - no swap by default
+//!
+//! Adding swap may help with compilation. See issue [#321](https://github.com/torrust/torrust-tracker/issues/321).
 //!
 //! ## Prerequisites
 //!
