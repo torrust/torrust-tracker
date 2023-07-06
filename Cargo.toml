@@ -28,7 +28,7 @@ fern = "0.6"
 chrono = { version = "0.4.24", default-features = false, features = ["clock"] }
 r2d2 = "0.8"
 r2d2_mysql = "23.0"
-r2d2_sqlite = { version = "0.21", features = ["bundled"] }
+r2d2_sqlite = { version = "0.22", features = ["bundled"] }
 rand = "0.8"
 derive_more = "0.99"
 thiserror = "1.0"
