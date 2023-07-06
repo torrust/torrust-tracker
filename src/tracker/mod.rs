@@ -794,7 +794,7 @@ impl Tracker {
                 }
             });
         } else {
-            for (_, torrent_entry) in torrents_lock.iter_mut() {
+            for torrent_entry in (*torrents_lock).values_mut() {
                 torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
             }
         }

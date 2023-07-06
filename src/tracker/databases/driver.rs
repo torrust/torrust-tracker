@@ -41,6 +41,10 @@ use super::{Builder, Database};
 /// # Errors
 ///
 /// This function will return an error if unable to connect to the database.
+///
+/// # Panics
+///
+/// This function will panic if unable to create database tables.
 pub fn build(driver: &DatabaseDriver, db_path: &str) -> Result<Box<dyn Database>, Error> {
     let database = match driver {
         DatabaseDriver::Sqlite3 => Builder::<Sqlite>::build(db_path),

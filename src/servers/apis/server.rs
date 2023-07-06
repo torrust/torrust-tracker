@@ -83,6 +83,10 @@ impl ApiServer<Stopped> {
     /// # Errors
     ///
     /// It would return an error if no `SocketAddr` is returned after launching the server.
+    ///
+    /// # Panics
+    ///
+    /// It would panic if the bound socket address cannot be sent back to this starter.
     pub async fn start(self, tracker: Arc<Tracker>) -> Result<ApiServer<Running>, Error> {
         let (shutdown_sender, shutdown_receiver) = tokio::sync::oneshot::channel::<u8>();
         let (addr_sender, addr_receiver) = tokio::sync::oneshot::channel::<SocketAddr>();
@@ -229,6 +233,10 @@ impl Launcher {
 }
 
 /// Starts the API server with graceful shutdown on the current thread.
+///
+/// # Panics
+///
+/// It would panic if it fails to listen to shutdown signal.
 pub fn start(socket_addr: SocketAddr, tracker: Arc<Tracker>) -> impl Future<Output = hyper::Result<()>> {
     let app = router(tracker);
 
@@ -241,6 +249,10 @@ pub fn start(socket_addr: SocketAddr, tracker: Arc<Tracker>) -> impl Future<Outp
 }
 
 /// Starts the API server with graceful shutdown and TLS on the current thread.
+///
+/// # Panics
+///
+/// It would panic if it fails to listen to shutdown signal.
 pub fn start_tls(
     socket_addr: SocketAddr,
     ssl_config: RustlsConfig,

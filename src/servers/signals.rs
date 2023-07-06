@@ -2,6 +2,10 @@
 use log::info;
 
 /// Resolves on `ctrl_c` or the `terminate` signal.
+///
+/// # Panics
+///
+/// Will panic if the `ctrl_c` or `terminate` signal resolves with an error.
 pub async fn global_shutdown_signal() {
     let ctrl_c = async {
         tokio::signal::ctrl_c().await.expect("failed to install Ctrl+C handler");
@@ -25,6 +29,10 @@ pub async fn global_shutdown_signal() {
 }
 
 /// Resolves when the `stop_receiver` or the `global_shutdown_signal()` resolves.
+///
+/// # Panics
+///
+/// Will panic if the `stop_receiver` resolves with an error.
 pub async fn shutdown_signal(stop_receiver: tokio::sync::oneshot::Receiver<u8>) {
     let stop = async { stop_receiver.await.expect("Failed to install stop signal.") };
 

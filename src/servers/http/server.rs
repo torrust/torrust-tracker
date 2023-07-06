@@ -104,6 +104,11 @@ impl<I: HttpServerLauncher + 'static> HttpServer<Stopped<I>> {
     /// # Errors
     ///
     /// It would return an error if no `SocketAddr` is returned after launching the server.
+    ///
+    /// # Panics
+    ///
+    /// It would panic spawned HTTP server launcher cannot send the bound `SocketAddr`
+    /// back to the main thread.
     pub async fn start(self, tracker: Arc<Tracker>) -> Result<HttpServer<Running<I>>, Error> {
         let (shutdown_sender, shutdown_receiver) = tokio::sync::oneshot::channel::<u8>();
         let (addr_sender, addr_receiver) = tokio::sync::oneshot::channel::<SocketAddr>();
