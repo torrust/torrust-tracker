@@ -556,6 +556,10 @@ impl Configuration {
     /// Will return `Err` if `filename` does not exist or the user does not have
     /// permission to read it. Will also return `Err` if the configuration is
     /// not valid or cannot be encoded to TOML.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the configuration cannot be written into the file.
     pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
         fs::write(path, self.to_toml()).expect("Could not write to file!");
         Ok(())

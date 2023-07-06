@@ -56,7 +56,7 @@ use self::error::Error;
 use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::tracker::auth::{self, Key};
 
-pub(self) struct Builder<T>
+struct Builder<T>
 where
     T: Database,
 {

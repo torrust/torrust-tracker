@@ -22,6 +22,14 @@ pub enum Error {
 pub struct Launcher;
 
 impl Launcher {
+    /// It starts a new HTTP server instance from a TCP listener with graceful shutdown.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if:
+    ///
+    /// - The TCP listener could not be bound.
+    /// - The Axum server crashes.
     pub fn start_from_tcp_listener_with_graceful_shutdown<F>(
         tcp_listener: std::net::TcpListener,
         tracker: Arc<Tracker>,
@@ -42,6 +50,14 @@ impl Launcher {
         })
     }
 
+    /// It starts a new HTTPS server instance from a TCP listener with graceful shutdown.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if:
+    ///
+    /// - The SSL certificate could not be read from the provided path or is invalid.
+    /// - The Axum server crashes.
     pub fn start_tls_from_tcp_listener_with_graceful_shutdown<F>(
         tcp_listener: std::net::TcpListener,
         (ssl_cert_path, ssl_key_path): (String, String),
@@ -114,6 +130,11 @@ impl HttpServerLauncher for Launcher {
     }
 }
 
+/// Starts a new HTTP server instance.
+///
+/// # Panics
+///
+/// Panics if the server could not listen to shutdown (ctrl+c) signal.
 pub fn start(socket_addr: std::net::SocketAddr, tracker: Arc<Tracker>) -> impl Future<Output = hyper::Result<()>> {
     let app = router(tracker);
 
@@ -125,6 +146,11 @@ pub fn start(socket_addr: std::net::SocketAddr, tracker: Arc<Tracker>) -> impl F
     })
 }
 
+/// Starts a new HTTPS server instance.
+///
+/// # Panics
+///
+/// Panics if the server could not listen to shutdown (ctrl+c) signal.
 pub fn start_tls(
     socket_addr: std::net::SocketAddr,
     ssl_config: RustlsConfig,
