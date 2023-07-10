@@ -4,6 +4,7 @@ description = "A feature rich BitTorrent tracker."
 license-file.workspace = true
 authors.workspace = true
 edition.workspace = true
+repository.workspace = true
 version.workspace = true
 
 [workspace.package]

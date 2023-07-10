@@ -2,9 +2,10 @@
 name = "torrust-tracker-configuration"
 description = "A library to provide configuration to the Torrust Tracker."
 license-file.workspace = true
-version.workspace = true
 authors.workspace = true
 edition.workspace = true
+repository.workspace = true
+version.workspace = true
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

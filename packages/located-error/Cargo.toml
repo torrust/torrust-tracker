@@ -2,9 +2,10 @@
 name = "torrust-tracker-located-error"
 description = "A library to provide error decorator with the location and the source of the original error."
 license-file.workspace = true
-version.workspace = true
 authors.workspace = true
 edition.workspace = true
+repository.workspace = true
+version.workspace = true
 
 [dependencies]
 log = { version = "0.4", features = ["release_max_level_info"] }

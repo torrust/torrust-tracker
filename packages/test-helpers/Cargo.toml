@@ -2,9 +2,10 @@
 name = "torrust-tracker-test-helpers"
 description = "A library providing helpers for testing the Torrust tracker."
 license-file.workspace = true
-version.workspace = true
 authors.workspace = true
 edition.workspace = true
+repository.workspace = true
+version.workspace = true
 
 [dependencies]
 lazy_static = "1.4"
