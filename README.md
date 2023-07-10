@@ -73,9 +73,7 @@ How can you contribute?
 
 ## License
 
-The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE).
-
-There is an ongoing discussion about the license of the project. You can follow the discussion [here](https://github.com/torrust/torrust-tracker/pull/251).
+The project is licensed under a dual license. See [COPYRIGHT](./COPYRIGHT).
 
 ## Acknowledgments
 

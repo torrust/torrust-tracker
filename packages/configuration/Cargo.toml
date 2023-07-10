@@ -1,7 +1,7 @@
 [package]
 name = "torrust-tracker-configuration"
 description = "A library to provide configuration to the Torrust Tracker."
-license = "AGPL-3.0"
+license-file.workspace = true
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
