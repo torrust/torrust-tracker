@@ -148,7 +148,7 @@
 //!     --publish 7070:7070/tcp \
 //!     --publish 1212:1212/tcp \
 //!     --volume "$(pwd)/storage":"/app/storage" \
-//!     torrust/tracker:3.0.0-alpha.2
+//!     torrust/tracker:3.0.0-alpha.3
 //! ```
 //!
 //! For more information about using docker visit the [tracker docker documentation](https://github.com/torrust/torrust-tracker/tree/develop/docker).
