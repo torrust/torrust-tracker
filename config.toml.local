@@ -4,11 +4,11 @@ db_driver = "Sqlite3"
 db_path = "./storage/database/data.db"
 announce_interval = 120
 min_announce_interval = 120
-max_peer_timeout = 900
 on_reverse_proxy = false
 external_ip = "0.0.0.0"
 tracker_usage_statistics = true
 persistent_torrent_completed_stat = false
+max_peer_timeout = 900
 inactive_peer_cleanup_interval = 600
 remove_peerless_torrents = true
 
