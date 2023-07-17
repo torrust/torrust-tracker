@@ -9,7 +9,7 @@ version.workspace = true
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-serde_with = "3.0"
+serde_with = "3.1"
 config = "0.13"
 toml = "0.7"
 log = { version = "0.4", features = ["release_max_level_info"] }
