@@ -1,0 +1,54 @@
+name: Coverage
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  report:
+    name: Report
+    runs-on: ubuntu-latest
+    env:
+      CARGO_INCREMENTAL: "0"
+      RUSTFLAGS: "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests"
+      RUSTDOCFLAGS: "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests"
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
+          components: llvm-tools-preview
+
+      - id: cache
+        name: Enable Workflow Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: check
+        name: Run Build-Checks
+        run: cargo check --workspace --all-targets --all-features
+
+      - id: test
+        name: Run Unit Tests
+        run: cargo test --workspace --all-targets --all-features
+
+      - id: coverage
+        name: Generate Coverage Report
+        uses: alekitto/grcov@v0.2
+
+      - id: upload
+        name: Upload Coverage Report
+        uses: codecov/codecov-action@v3
+        with:
+          files: ${{ steps.coverage.outputs.report }}
+          flag: rust
+          verbose: true
+          fail_ci_if_error: true
