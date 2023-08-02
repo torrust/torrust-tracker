@@ -216,6 +216,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "604178f6c5c21f02dc555784810edfb88d34ac2c73b2eae109655649ee73ce3d"
 
 [[package]]
+name = "bencode"
+version = "1.0.0-alpha.1"
+source = "git+https://github.com/torrust/bittorrent-infrastructure-project.git#4cabc10bf86a0ad045cadabdf1912262b8992933"
+dependencies = [
+ "error-chain",
+]
+
+[[package]]
 name = "bigdecimal"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -249,15 +257,6 @@ dependencies = [
  "regex",
  "rustc-hash",
  "shlex",
-]
-
-[[package]]
-name = "bip_bencode"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6048cc5d9680544a5098a290d2845df7dae292c97687b9896b70365bad0ea416"
-dependencies = [
- "error-chain",
 ]
 
 [[package]]
@@ -705,11 +704,12 @@ dependencies = [
 
 [[package]]
 name = "error-chain"
-version = "0.11.0"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff511d5dc435d703f4971bc399647c9bc38e20cb41452e3b9feb4765419ed3f3"
+checksum = "2d2f06b9cac1506ece98fe3231e3cc9c4410ec3d5b1f24ae1c8946f0742cdefc"
 dependencies = [
  "backtrace",
+ "version_check",
 ]
 
 [[package]]
@@ -2839,8 +2839,8 @@ dependencies = [
  "axum",
  "axum-client-ip",
  "axum-server",
+ "bencode",
  "binascii",
- "bip_bencode",
  "chrono",
  "config",
  "derive_more",
