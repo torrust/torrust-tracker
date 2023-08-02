@@ -21,7 +21,7 @@ pub struct Query {
 }
 
 impl fmt::Display for Query {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.build())
     }
 }
@@ -57,7 +57,7 @@ pub enum Event {
 }
 
 impl fmt::Display for Event {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             //Event::Started => write!(f, "started"),
             //Event::Stopped => write!(f, "stopped"),
@@ -74,7 +74,7 @@ pub enum Compact {
 }
 
 impl fmt::Display for Compact {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Compact::Accepted => write!(f, "1"),
             Compact::NotAccepted => write!(f, "0"),
@@ -163,7 +163,7 @@ pub struct QueryParams {
 }
 
 impl std::fmt::Display for QueryParams {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut params = vec![];
 
         if let Some(info_hash) = &self.info_hash {

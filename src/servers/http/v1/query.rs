@@ -137,7 +137,7 @@ impl From<Vec<(&str, &str)>> for Query {
 }
 
 impl std::fmt::Display for Query {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let query = self
             .params
             .iter_all()
@@ -185,7 +185,7 @@ impl FromStr for NameValuePair {
 }
 
 impl std::fmt::Display for NameValuePair {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}={}", self.name, self.value)
     }
 }
@@ -208,7 +208,7 @@ impl FieldValuePairSet {
 }
 
 impl std::fmt::Display for FieldValuePairSet {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let query = self
             .pairs
             .iter()

@@ -116,7 +116,7 @@ pub struct Peer {
 
 impl Peer {
     #[must_use]
-    pub fn ben_map(&self) -> BencodeMut {
+    pub fn ben_map(&self) -> BencodeMut<'_> {
         ben_map! {
             "peer id" => ben_bytes!(self.peer_id.clone().to_vec()),
             "ip" => ben_bytes!(self.ip.to_string()),

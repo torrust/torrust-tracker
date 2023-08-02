@@ -104,6 +104,7 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
 /// # Errors
 ///
 /// Will return `Error` if unable to `authenticate_request`.
+#[allow(deprecated)]
 pub async fn authenticate(info_hash: &InfoHash, tracker: &Tracker) -> Result<(), Error> {
     tracker
         .authenticate_request(info_hash, &None)
@@ -225,6 +226,7 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
         let info_hash = file.0;
         let swarm_metadata = file.1;
 
+        #[allow(deprecated)]
         let scrape_entry = if tracker.authenticate_request(info_hash, &None).await.is_ok() {
             #[allow(clippy::cast_possible_truncation)]
             TorrentScrapeStatistics {

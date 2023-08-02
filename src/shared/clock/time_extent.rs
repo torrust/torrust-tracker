@@ -285,10 +285,7 @@ pub type DefaultTimeExtentMaker = StoppedTimeExtentMaker;
 
 #[cfg(test)]
 mod test {
-    use crate::shared::clock::time_extent::{
-        checked_duration_from_nanos, Base, DefaultTimeExtentMaker, Extent, Make, Multiplier, Product, TimeExtent, MAX, ZERO,
-    };
-    use crate::shared::clock::{Current, DurationSinceUnixEpoch, StoppedTime};
+    use crate::shared::clock::time_extent::TimeExtent;
 
     const TIME_EXTENT_VAL: TimeExtent = TimeExtent::from_sec(2, &239_812_388_723);
 

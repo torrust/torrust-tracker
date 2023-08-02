@@ -74,12 +74,10 @@ fn extract_info_hashes(query: &Query) -> Result<Vec<InfoHash>, ParseScrapeQueryE
 
             Ok(info_hashes)
         }
-        None => {
-            return Err(ParseScrapeQueryError::MissingParam {
-                location: Location::caller(),
-                param_name: INFO_HASH.to_owned(),
-            })
-        }
+        None => Err(ParseScrapeQueryError::MissingParam {
+            location: Location::caller(),
+            param_name: INFO_HASH.to_owned(),
+        }),
     }
 }
 

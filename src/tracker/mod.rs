@@ -732,10 +732,11 @@ impl Tracker {
 
         // todo: move this action to a separate worker
         if self.config.persistent_torrent_completed_stat && stats_updated {
-            let _: Result<(), databases::error::Error> = self
-                .database
-                .save_persistent_torrent(info_hash, torrent_entry.completed)
-                .await;
+            drop(
+                self.database
+                    .save_persistent_torrent(info_hash, torrent_entry.completed)
+                    .await,
+            );
         }
 
         let (seeders, completed, leechers) = torrent_entry.get_stats();
@@ -966,10 +967,10 @@ impl Tracker {
             return Ok(());
         }
 
-        return Err(Error::TorrentNotWhitelisted {
+        Err(Error::TorrentNotWhitelisted {
             info_hash: *info_hash,
             location: Location::caller(),
-        });
+        })
     }
 
     /// It adds a torrent to the whitelist.

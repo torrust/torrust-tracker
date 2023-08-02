@@ -27,6 +27,7 @@ impl From<AuthKey> for auth::ExpiringKey {
     }
 }
 
+#[allow(deprecated)]
 impl From<auth::ExpiringKey> for AuthKey {
     fn from(auth_key: auth::ExpiringKey) -> Self {
         AuthKey {
@@ -63,6 +64,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn it_should_be_convertible_into_an_auth_key() {
         let auth_key_resource = AuthKey {
             key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".to_string(), // cspell:disable-line
@@ -80,6 +82,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn it_should_be_convertible_from_an_auth_key() {
         let auth_key = auth::ExpiringKey {
             key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<Key>().unwrap(), // cspell:disable-line
@@ -97,6 +100,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn it_should_be_convertible_into_json() {
         assert_eq!(
             serde_json::to_string(&AuthKey {
