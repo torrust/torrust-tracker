@@ -32,8 +32,14 @@ jobs:
         name: Enable Workflow Cache
         uses: Swatinem/rust-cache@v2
 
+      - id: tools
+        name: Install Tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: grcov
+
       - id: check
-        name: Run Build-Checks
+        name: Run Build Checks
         run: cargo check --workspace --all-targets --all-features
 
       - id: test
@@ -49,6 +55,5 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           files: ${{ steps.coverage.outputs.report }}
-          flag: rust
           verbose: true
           fail_ci_if_error: true
