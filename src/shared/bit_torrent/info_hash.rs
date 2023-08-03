@@ -167,7 +167,7 @@ impl InfoHash {
 }
 
 impl std::fmt::Display for InfoHash {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut chars = [0u8; 40];
         binascii::bin2hex(&self.0, &mut chars).expect("failed to hexlify");
         write!(f, "{}", std::str::from_utf8(&chars).unwrap())
@@ -195,7 +195,7 @@ impl Ord for InfoHash {
 
 impl std::cmp::PartialOrd<InfoHash> for InfoHash {
     fn partial_cmp(&self, other: &InfoHash) -> Option<std::cmp::Ordering> {
-        self.0.partial_cmp(&other.0)
+        Some(self.cmp(other))
     }
 }
 
@@ -271,7 +271,7 @@ struct InfoHashVisitor;
 impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
     type Value = InfoHash;
 
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(formatter, "a 40 character long hash")
     }
 

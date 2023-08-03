@@ -128,7 +128,7 @@ mod tests {
     fn error_should_include_location() {
         let e = TestError::Test;
 
-        let b: LocatedError<TestError> = Located(e).into();
+        let b: LocatedError<'_, TestError> = Located(e).into();
         let l = get_caller_location();
 
         assert_eq!(b.location.file(), l.file());

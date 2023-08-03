@@ -2,7 +2,22 @@
     "[rust]": {
         "editor.formatOnSave": true
     },
-    "rust-analyzer.checkOnSave.command": "clippy",
-    "rust-analyzer.checkOnSave.allTargets": true,
-    "rust-analyzer.checkOnSave.extraArgs": ["--","-W","clippy::pedantic"],
+    "rust-analyzer.checkOnSave": true,
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.check.allTargets": true,
+    "rust-analyzer.check.extraArgs": [
+      "--",
+      "-D",
+      "clippy::correctness",
+      "-D",
+      "clippy::suspicious",
+      "-W",
+      "clippy::complexity",
+      "-W",
+      "clippy::perf",
+      "-W",
+      "clippy::style",
+      "-W",
+      "clippy::pedantic",
+    ],
 }

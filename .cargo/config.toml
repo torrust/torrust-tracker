@@ -3,3 +3,23 @@ cov = "llvm-cov"
 cov-lcov = "llvm-cov --lcov --output-path=./.coverage/lcov.info"
 cov-html = "llvm-cov --html"
 time = "build --timings --all-targets"
+
+[build]
+rustflags = [
+    "-D",
+    "warnings",
+    "-D",
+    "future-incompatible",
+    "-D",
+    "let-underscore",
+    "-D",
+    "nonstandard-style",
+    "-D",
+    "rust-2018-compatibility",
+    "-D",
+    "rust-2018-idioms",
+    "-D",
+    "rust-2021-compatibility",
+    "-D",
+    "unused",
+]

@@ -166,7 +166,7 @@ impl FromStr for Event {
 }
 
 impl fmt::Display for Event {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Event::Started => write!(f, "started"),
             Event::Stopped => write!(f, "stopped"),
@@ -194,7 +194,7 @@ pub enum Compact {
 }
 
 impl fmt::Display for Compact {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Compact::Accepted => write!(f, "1"),
             Compact::NotAccepted => write!(f, "0"),
@@ -264,12 +264,10 @@ fn extract_info_hash(query: &Query) -> Result<InfoHash, ParseAnnounceQueryError>
                 })?,
             )
         }
-        None => {
-            return Err(ParseAnnounceQueryError::MissingParam {
-                location: Location::caller(),
-                param_name: INFO_HASH.to_owned(),
-            })
-        }
+        None => Err(ParseAnnounceQueryError::MissingParam {
+            location: Location::caller(),
+            param_name: INFO_HASH.to_owned(),
+        }),
     }
 }
 
@@ -282,12 +280,10 @@ fn extract_peer_id(query: &Query) -> Result<peer::Id, ParseAnnounceQueryError> {
                 source: Located(err).into(),
             })?,
         ),
-        None => {
-            return Err(ParseAnnounceQueryError::MissingParam {
-                location: Location::caller(),
-                param_name: PEER_ID.to_owned(),
-            })
-        }
+        None => Err(ParseAnnounceQueryError::MissingParam {
+            location: Location::caller(),
+            param_name: PEER_ID.to_owned(),
+        }),
     }
 }
 
@@ -298,12 +294,10 @@ fn extract_port(query: &Query) -> Result<u16, ParseAnnounceQueryError> {
             param_value: raw_param.clone(),
             location: Location::caller(),
         })?),
-        None => {
-            return Err(ParseAnnounceQueryError::MissingParam {
-                location: Location::caller(),
-                param_name: PORT.to_owned(),
-            })
-        }
+        None => Err(ParseAnnounceQueryError::MissingParam {
+            location: Location::caller(),
+            param_name: PORT.to_owned(),
+        }),
     }
 }
 

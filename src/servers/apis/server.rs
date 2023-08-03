@@ -128,7 +128,7 @@ impl ApiServer<Running> {
             .send(0)
             .map_err(|_| Error::Error("Task killer channel was closed.".to_string()))?;
 
-        let _: Result<(), tokio::task::JoinError> = self.state.task.await;
+        drop(self.state.task.await);
 
         Ok(ApiServer {
             cfg: self.cfg,
