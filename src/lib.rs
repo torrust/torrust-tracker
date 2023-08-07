@@ -136,22 +136,8 @@
 //!
 //! ## Run with docker
 //!
-//! You can run the tracker with a pre-built docker image:
-//!
-//! ```text
-//! mkdir -p ./storage/database \
-//!   && mkdir -p ./storage/ssl_certificates \
-//!   && export TORRUST_TRACKER_USER_UID=1000 \
-//!   && docker run -it \
-//!     --user="$TORRUST_TRACKER_USER_UID" \
-//!     --publish 6969:6969/udp \
-//!     --publish 7070:7070/tcp \
-//!     --publish 1212:1212/tcp \
-//!     --volume "$(pwd)/storage":"/app/storage" \
-//!     torrust/tracker:3.0.0-alpha.3
-//! ```
-//!
-//! For more information about using docker visit the [tracker docker documentation](https://github.com/torrust/torrust-tracker/tree/develop/docker).
+//! You can run the tracker with a pre-built docker image. Please refer to the
+//! [tracker docker documentation](https://github.com/torrust/torrust-tracker/tree/develop/docker).
 //!
 //! # Configuration
 //!
