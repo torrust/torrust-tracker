@@ -1,0 +1,109 @@
+name: Testing
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  format:
+    name: Formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
+          components: rustfmt
+
+      - id: cache
+        name: Enable Workflow Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: format
+        name: Run Formatting-Checks
+        run: cargo fmt --check
+
+  check:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    needs: format
+
+    strategy:
+      matrix:
+        toolchain: [stable, nightly]
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
+          components: clippy
+
+      - id: cache
+        name: Enable Workflow Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: check
+        name: Run Build Checks
+        run: cargo check --tests --benches --examples --workspace --all-targets --all-features
+
+      - id: lint
+        name: Run Lint Checks
+        run: cargo clippy --tests --benches --examples --workspace --all-targets --all-features -- -D clippy::correctness -D clippy::suspicious -D clippy::complexity -D clippy::perf -D clippy::style -D clippy::pedantic
+
+      - id: doc
+        name: Run Documentation Checks
+        run: cargo test --doc
+
+  unit:
+    name: Units
+    runs-on: ubuntu-latest
+    needs: check
+
+    strategy:
+      matrix:
+        toolchain: [stable, nightly]
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: llvm-tools-preview
+
+      - id: cache
+        name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: tools
+        name: Install Tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov, cargo-nextest
+
+      - id: test
+        name: Run Unit Tests
+        run: cargo test --tests --benches --examples --workspace --all-targets --all-features
+
+      - id: coverage
+        name: Generate Coverage Report
+        run: cargo llvm-cov nextest --tests --benches --examples --workspace --all-targets --all-features
