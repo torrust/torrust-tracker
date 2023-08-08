@@ -13,7 +13,7 @@ use torrust_tracker_configuration::{Configuration, Error};
 const ENV_VAR_CONFIG: &str = "TORRUST_TRACKER_CONFIG";
 
 /// The `config.toml` file location.
-pub const ENV_VAR_CONFIG_PATH: &str = "TORRUST_IDX_BACK_CONFIG_PATH";
+pub const ENV_VAR_CONFIG_PATH: &str = "TORRUST_TRACKER_CONFIG_PATH";
 
 // Default values
 
