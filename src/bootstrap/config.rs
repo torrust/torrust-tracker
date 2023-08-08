@@ -2,6 +2,7 @@
 //!
 //! All environment variables are prefixed with `TORRUST_TRACKER_BACK_`.
 use std::env;
+use std::path::Path;
 
 use torrust_tracker_configuration::Configuration;
 
@@ -10,6 +11,9 @@ use torrust_tracker_configuration::Configuration;
 /// The whole `config.toml` file content. It has priority over the config file.
 /// Even if the file is not on the default path.
 const ENV_VAR_CONFIG: &str = "TORRUST_TRACKER_CONFIG";
+
+/// The `config.toml` file location.
+pub const ENV_VAR_CONFIG_PATH: &str = "TORRUST_IDX_BACK_CONFIG_PATH";
 
 // Default values
 
@@ -37,8 +41,14 @@ pub fn initialize_configuration() -> Configuration {
 
         Configuration::load_from_env_var(ENV_VAR_CONFIG).unwrap()
     } else {
-        println!("Loading configuration from config file {ENV_VAR_DEFAULT_CONFIG_PATH}");
+        let config_path = env::var(ENV_VAR_CONFIG_PATH).unwrap_or_else(|_| ENV_VAR_DEFAULT_CONFIG_PATH.to_string());
 
-        Configuration::load_from_file(ENV_VAR_DEFAULT_CONFIG_PATH).unwrap()
+        if Path::new(&config_path).is_file(){
+            println!("Loading configuration from config file: `{config_path}`");
+        } else {
+            println!("Creating default config file: `{config_path}`");
+        }
+
+        Configuration::load_from_file(&config_path).expect("Error loading configuration from file")
     }
 }

@@ -512,10 +512,11 @@ impl Configuration {
         if Path::new(path).exists() {
             config = config_builder.add_source(File::with_name(path)).build()?;
         } else {
-            warn!("No config file found.");
-            warn!("Creating config file..");
+            warn!("No config file found. Creating config file ...");
+
             let config = Configuration::default();
             config.save_to_file(path)?;
+
             return Err(Error::CreatedNewConfigHalt {
                 location: Location::caller(),
                 path: path.to_string(),
