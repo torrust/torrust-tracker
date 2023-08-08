@@ -4,7 +4,7 @@
 use std::env;
 use std::path::Path;
 
-use torrust_tracker_configuration::Configuration;
+use torrust_tracker_configuration::{Configuration, Error};
 
 // Environment variables
 
@@ -37,18 +37,33 @@ const ENV_VAR_DEFAULT_CONFIG_PATH: &str = "./config.toml";
 #[must_use]
 pub fn initialize_configuration() -> Configuration {
     if env::var(ENV_VAR_CONFIG).is_ok() {
-        println!("Loading configuration from env var {ENV_VAR_CONFIG}");
+        println!("Loading configuration from env var {ENV_VAR_CONFIG} ...");
 
         Configuration::load_from_env_var(ENV_VAR_CONFIG).unwrap()
     } else {
         let config_path = env::var(ENV_VAR_CONFIG_PATH).unwrap_or_else(|_| ENV_VAR_DEFAULT_CONFIG_PATH.to_string());
 
-        if Path::new(&config_path).is_file(){
-            println!("Loading configuration from config file: `{config_path}`");
-        } else {
-            println!("Creating default config file: `{config_path}`");
-        }
+        println!("Loading configuration from configuration file: `{config_path}` ...");
 
-        Configuration::load_from_file(&config_path).expect("Error loading configuration from file")
+        load_from_file_or_create_default(&config_path).unwrap()
+    }
+}
+
+/// Loads the configuration from the configuration file. If the file does
+/// not exist, it will create a default configuration file and return an
+/// error.
+///
+/// # Errors
+///
+/// Will return `Err` if `path` does not exist or has a bad configuration.
+fn load_from_file_or_create_default(path: &str) -> Result<Configuration, Error> {
+    if Path::new(&path).is_file() {
+        Configuration::load_from_file(path)
+    } else {
+        println!("Missing configuration file.");
+        println!("Creating a default configuration file: `{path}` ...");
+        let config = Configuration::create_default_configuration_file(path)?;
+        println!("Please review the config file: `{path}` and restart the tracker if needed.");
+        Ok(config)
     }
 }

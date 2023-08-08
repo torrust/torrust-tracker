@@ -228,14 +228,11 @@
 //!```
 use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
-use std::panic::Location;
-use std::path::Path;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::{env, fs};
 
 use config::{Config, ConfigError, File, FileFormat};
-use log::warn;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use thiserror::Error;
@@ -414,17 +411,6 @@ pub enum Error {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
-    /// If you run the tracker without providing the configuration (via the
-    /// `TORRUST_TRACKER_CONFIG` environment variable or configuration file),
-    /// the tracker will create a default configuration file but it will not
-    /// load it. It will return this error instead and you have to restart the
-    /// it.
-    #[error("Default configuration created at: `{path}`, please review and reload tracker, {location}")]
-    CreatedNewConfigHalt {
-        location: &'static Location<'static>,
-        path: String,
-    },
-
     /// Unable to load the configuration from the configuration file.
     #[error("Failed processing the configuration: {source}")]
     ConfigError { source: LocatedError<'static, ConfigError> },
@@ -502,30 +488,30 @@ impl Configuration {
     ///
     /// # Errors
     ///
-    /// Will return `Err` if `path` does not exist or has a bad configuration.
+    /// Will return `Err` if `path` does not exist or has a bad configuration.    
     pub fn load_from_file(path: &str) -> Result<Configuration, Error> {
         let config_builder = Config::builder();
 
         #[allow(unused_assignments)]
         let mut config = Config::default();
 
-        if Path::new(path).exists() {
-            config = config_builder.add_source(File::with_name(path)).build()?;
-        } else {
-            warn!("No config file found. Creating config file ...");
-
-            let config = Configuration::default();
-            config.save_to_file(path)?;
-
-            return Err(Error::CreatedNewConfigHalt {
-                location: Location::caller(),
-                path: path.to_string(),
-            });
-        }
+        config = config_builder.add_source(File::with_name(path)).build()?;
 
         let torrust_config: Configuration = config.try_deserialize()?;
 
         Ok(torrust_config)
+    }
+
+    /// Saves the default configuration at the given path.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if `path` is not a valid path or the configuration
+    /// file cannot be created.
+    pub fn create_default_configuration_file(path: &str) -> Result<Configuration, Error> {
+        let config = Configuration::default();
+        config.save_to_file(path)?;
+        Ok(config)
     }
 
     /// Loads the configuration from the environment variable. The whole
