@@ -41,7 +41,7 @@ uuid = { version = "1", features = ["v4"] }
 axum = "0.6.20"
 axum-server = { version = "0.5", features = ["tls-rustls"] }
 axum-client-ip = "0.4.1"
-bip_bencode = "0.4"
+bencode = { version = "1.0.0-alpha.1", path = "contrib/bencode" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.3", path = "packages/primitives" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.3", path = "packages/configuration" }
 torrust-tracker-located-error = { version = "3.0.0-alpha.3", path = "packages/located-error" }
@@ -59,6 +59,7 @@ torrust-tracker-test-helpers = { version = "3.0.0-alpha.3", path = "packages/tes
 
 [workspace]
 members = [
+    "contrib/bencode",
     "packages/configuration",
     "packages/primitives",
     "packages/test-helpers",
