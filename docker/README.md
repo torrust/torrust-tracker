@@ -17,6 +17,26 @@ storage/
 
 > NOTE: you only need the `ssl_certificates` directory and certificates in case you have enabled SSL for the one HTTP tracker or the API.
 
+## Demo environment
+
+You can run a single command to setup the tracker with the default
+configuration and run it using the pre-built public docker image:
+
+```s
+curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/torrust/torrust-tracker/v3.0.0-alpha.3/bin/install-demo.sh | bash
+export TORRUST_TRACKER_USER_UID=1000 \
+  && docker run -it \
+    --user="$TORRUST_TRACKER_USER_UID" \
+    --publish 6969:6969/udp \
+    --publish 7070:7070/tcp \
+    --publish 1212:1212/tcp \
+    --volume "$(pwd)/storage":"/app/storage" \
+    --volume "$(pwd)/config.toml":"/app/config.toml":ro \
+    torrust/tracker:3.0.0-alpha.3
+```
+
+This is intended to be used to run a quick demo of the application.
+
 ## Dev environment
 
 When using docker you have to bind the exposed ports to the wildcard address `0.0.0.0`, so you can access the application from the host machine.
@@ -28,38 +48,46 @@ The default API configuration uses `127.0.0.1`, so you have to change it to:
 bind_address = "0.0.0.0:1212"
 ```
 
-Otherwise the API will be only accessible from inside the container.
+Otherwise, the API will be only accessible from inside the container.
 
 ### With docker
 
-Build and run locally:
+Build and run locally. You can build the docker image locally:
 
 ```s
 docker context use default
 export TORRUST_TRACKER_USER_UID=1000
 ./docker/bin/build.sh $TORRUST_TRACKER_USER_UID
 ./bin/install.sh
-./docker/bin/run.sh $TORRUST_TRACKER_USER_UID
+./docker/bin/run-local-image.sh $TORRUST_TRACKER_USER_UID
 ```
 
-Run using the pre-built public docker image:
+Or you can run locally using the pre-built docker image:
 
 ```s
+docker context use default
 export TORRUST_TRACKER_USER_UID=1000
-docker run -it \
-    --user="$TORRUST_TRACKER_USER_UID" \
-    --publish 6969:6969/udp \
-    --publish 7070:7070/tcp \
-    --publish 1212:1212/tcp \
-    --volume "$(pwd)/storage":"/app/storage" \
-    torrust/tracker
+./bin/install.sh
+./docker/bin/run-public-image.sh $TORRUST_TRACKER_USER_UID
 ```
 
-> NOTES:
->
-> - You have to create the SQLite DB (`data.db`) and configuration (`config.toml`) before running the tracker. See `bin/install.sh`.
-> - You have to replace the user UID (`1000`) with yours.
-> - Remember to switch to your default docker context `docker context use default`.
+In both cases, you will need to:
+
+- Create the SQLite DB (`data.db`) if you are going to use SQLite.
+- Create the configuration file (`config.toml`) before running the tracker.
+- Replace the user UID (`1000`) with yours.
+
+> NOTICE: that the `./bin/install.sh` can setup the application for you. But it
+uses a predefined configuration.
+
+Remember to switch to your default docker context `docker context use default`
+and to change the API default configuration in `config.toml` to make it
+available from the host machine:
+
+```toml
+[http_api]
+bind_address = "0.0.0.0:1212"
+```
 
 ### With docker-compose
 

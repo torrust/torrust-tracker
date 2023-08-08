@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This script is only intended to be used for local development or testing environments.
+
 # Generate the default settings file if it does not exist
 if ! [ -f "./config.toml" ]; then
     cp ./config.toml.local ./config.toml
