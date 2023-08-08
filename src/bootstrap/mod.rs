@@ -6,5 +6,6 @@
 //! like cleaning torrents, and other jobs because they can be enabled/disabled depending on the configuration.
 //! For example, you can have more than one UDP and HTTP tracker, each server is executed like a independent job.
 pub mod app;
+pub mod config;
 pub mod jobs;
 pub mod logging;
