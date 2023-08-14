@@ -15,7 +15,7 @@ repository = "https://github.com/torrust/torrust-tracker"
 version = "3.0.0-alpha.3"
 
 [dependencies]
-tokio = { version = "1.29", features = ["rt-multi-thread", "net", "sync", "macros", "signal"] }
+tokio = { version = "1.31", features = ["rt-multi-thread", "net", "sync", "macros", "signal"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_bencode = "^0.2"
 serde_json = "1.0"
