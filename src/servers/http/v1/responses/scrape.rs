@@ -5,7 +5,7 @@ use std::borrow::Cow;
 
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use bip_bencode::{ben_int, ben_map, BMutAccess};
+use bencode::{ben_int, ben_map, BMutAccess};
 
 use crate::tracker::ScrapeData;
 

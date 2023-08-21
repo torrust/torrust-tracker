@@ -7,7 +7,7 @@ use std::panic::Location;
 
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use bip_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
+use bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
 use serde::{self, Deserialize, Serialize};
 use thiserror::Error;
 

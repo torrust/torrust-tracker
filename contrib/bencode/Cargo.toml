@@ -1,0 +1,34 @@
+[package]
+name = "bencode"
+description = "Efficient decoding and encoding for bencode."
+keywords = ["bencode"]
+readme = "README.md"
+
+
+authors = [
+    "Nautilus Cyberneering <info@nautilus-cyberneering.de>, Andrew <amiller4421@gmail.com>",
+]
+categories = ["network-programming", "web-programming"]
+documentation = "https://github.com/torrust/bittorrent-infrastructure-project"
+edition = "2021"
+homepage = "https://github.com/torrust/bittorrent-infrastructure-project"
+license = "Apache-2.0"
+publish = false # until we decide where to publish.
+repository = "https://github.com/torrust/bittorrent-infrastructure-project"
+rust-version = "1.71"
+version = "1.0.0-alpha.1"
+
+
+[dependencies]
+error-chain = "0.12"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[test]]
+name = "test"
+path = "test/mod.rs"
+
+[[bench]]
+name = "bencode_benchmark"
+harness = false
