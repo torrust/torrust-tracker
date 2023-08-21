@@ -220,7 +220,7 @@ impl Udp {
             let socket = self.socket.clone();
 
             tokio::select! {
-                _ = &mut shutdown_signal => {
+                () = &mut shutdown_signal => {
                     info!("Stopping UDP server: {}..", self.socket.local_addr().unwrap());
                     break;
                 }
@@ -244,7 +244,7 @@ impl Udp {
         let mut cursor = Cursor::new(buffer);
 
         match response.write(&mut cursor) {
-            Ok(_) => {
+            Ok(()) => {
                 #[allow(clippy::cast_possible_truncation)]
                 let position = cursor.position() as usize;
                 let inner = cursor.get_ref();

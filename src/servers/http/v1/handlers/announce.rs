@@ -87,7 +87,7 @@ async fn handle_announce(
     if tracker.requires_authentication() {
         match maybe_key {
             Some(key) => match tracker.authenticate(&key).await {
-                Ok(_) => (),
+                Ok(()) => (),
                 Err(error) => return Err(responses::error::Error::from(error)),
             },
             None => {
@@ -100,7 +100,7 @@ async fn handle_announce(
 
     // Authorization
     match tracker.authorize(&announce_request.info_hash).await {
-        Ok(_) => (),
+        Ok(()) => (),
         Err(error) => return Err(responses::error::Error::from(error)),
     }
 

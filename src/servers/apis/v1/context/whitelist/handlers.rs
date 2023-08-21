@@ -30,7 +30,7 @@ pub async fn add_torrent_to_whitelist_handler(
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
         Ok(info_hash) => match tracker.add_torrent_to_whitelist(&info_hash).await {
-            Ok(_) => ok_response(),
+            Ok(()) => ok_response(),
             Err(e) => failed_to_whitelist_torrent_response(e),
         },
     }
@@ -53,7 +53,7 @@ pub async fn remove_torrent_from_whitelist_handler(
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
         Ok(info_hash) => match tracker.remove_torrent_from_whitelist(&info_hash).await {
-            Ok(_) => ok_response(),
+            Ok(()) => ok_response(),
             Err(e) => failed_to_remove_torrent_from_whitelist_response(e),
         },
     }
@@ -71,7 +71,7 @@ pub async fn remove_torrent_from_whitelist_handler(
 /// for more information about this endpoint.
 pub async fn reload_whitelist_handler(State(tracker): State<Arc<Tracker>>) -> Response {
     match tracker.load_whitelist_from_database().await {
-        Ok(_) => ok_response(),
+        Ok(()) => ok_response(),
         Err(e) => failed_to_reload_whitelist_response(e),
     }
 }

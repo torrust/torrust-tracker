@@ -643,7 +643,7 @@ impl Tracker {
 
         for info_hash in info_hashes {
             let swarm_metadata = match self.authorize(info_hash).await {
-                Ok(_) => self.get_swarm_metadata(info_hash).await,
+                Ok(()) => self.get_swarm_metadata(info_hash).await,
                 Err(_) => SwarmMetadata::zeroed(),
             };
             scrape_data.add_file(info_hash, swarm_metadata);
