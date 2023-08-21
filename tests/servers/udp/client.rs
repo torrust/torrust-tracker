@@ -55,7 +55,7 @@ impl UdpTrackerClient {
         let mut cursor = Cursor::new(request_buffer);
 
         let request_data = match request.write(&mut cursor) {
-            Ok(_) => {
+            Ok(()) => {
                 #[allow(clippy::cast_possible_truncation)]
                 let position = cursor.position() as usize;
                 let inner_request_buffer = cursor.get_ref();

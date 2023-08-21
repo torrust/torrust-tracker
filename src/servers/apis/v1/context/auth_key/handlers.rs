@@ -70,7 +70,7 @@ pub async fn delete_auth_key_handler(
     match Key::from_str(&seconds_valid_or_key.0) {
         Err(_) => invalid_auth_key_param_response(&seconds_valid_or_key.0),
         Ok(key) => match tracker.remove_auth_key(&key).await {
-            Ok(_) => ok_response(),
+            Ok(()) => ok_response(),
             Err(e) => failed_to_delete_key_response(e),
         },
     }
@@ -90,7 +90,7 @@ pub async fn delete_auth_key_handler(
 /// for more information about this endpoint.
 pub async fn reload_keys_handler(State(tracker): State<Arc<Tracker>>) -> Response {
     match tracker.load_keys_from_database().await {
-        Ok(_) => ok_response(),
+        Ok(()) => ok_response(),
         Err(e) => failed_to_reload_keys_response(e),
     }
 }

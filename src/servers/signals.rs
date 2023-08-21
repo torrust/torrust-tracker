@@ -23,8 +23,8 @@ pub async fn global_shutdown_signal() {
     let terminate = std::future::pending::<()>();
 
     tokio::select! {
-        _ = ctrl_c => {},
-        _ = terminate => {}
+        () = ctrl_c => {},
+        () = terminate => {}
     }
 }
 
@@ -38,7 +38,7 @@ pub async fn shutdown_signal(stop_receiver: tokio::sync::oneshot::Receiver<u8>) 
 
     tokio::select! {
         _ = stop => {},
-        _ = global_shutdown_signal() => {}
+        () = global_shutdown_signal() => {}
     }
 }
 
