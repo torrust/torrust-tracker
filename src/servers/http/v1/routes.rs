@@ -4,6 +4,7 @@ use std::sync::Arc;
 use axum::routing::get;
 use axum::Router;
 use axum_client_ip::SecureClientIpSource;
+use tower_http::compression::CompressionLayer;
 
 use super::handlers::{announce, scrape};
 use crate::tracker::Tracker;
@@ -23,4 +24,5 @@ pub fn router(tracker: Arc<Tracker>) -> Router {
         .route("/scrape/:key", get(scrape::handle_with_key).with_state(tracker))
         // Add extension to get the client IP from the connection info
         .layer(SecureClientIpSource::ConnectInfo.into_extension())
+        .layer(CompressionLayer::new())
 }

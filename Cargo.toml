@@ -41,6 +41,7 @@ uuid = { version = "1", features = ["v4"] }
 axum = "0.6.20"
 axum-server = { version = "0.5", features = ["tls-rustls"] }
 axum-client-ip = "0.4.1"
+tower-http = { version= "0.4.3", features = ["compression-full"] }
 bencode = { version = "1.0.0-alpha.1", path = "contrib/bencode" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.3", path = "packages/primitives" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.3", path = "packages/configuration" }

@@ -8,6 +8,7 @@
 use std::sync::Arc;
 
 use axum::{middleware, Router};
+use tower_http::compression::CompressionLayer;
 
 use super::v1;
 use crate::tracker::Tracker;
@@ -21,8 +22,10 @@ pub fn router(tracker: Arc<Tracker>) -> Router {
 
     let router = v1::routes::add(prefix, router, tracker.clone());
 
-    router.layer(middleware::from_fn_with_state(
-        tracker.config.clone(),
-        v1::middlewares::auth::auth,
-    ))
+    router
+        .layer(middleware::from_fn_with_state(
+            tracker.config.clone(),
+            v1::middlewares::auth::auth,
+        ))
+        .layer(CompressionLayer::new())
 }
