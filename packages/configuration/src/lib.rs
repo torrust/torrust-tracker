@@ -4,7 +4,7 @@
 //! Torrust Tracker, which is a `BitTorrent` tracker server.
 //!
 //! The configuration is loaded from a [TOML](https://toml.io/en/) file
-//! `config.toml` in the project root folder or from an environment variable
+//! `tracker.toml` in the project root folder or from an environment variable
 //! with the same content as the file.
 //!
 //! When you run the tracker without a configuration file, a new one will be
@@ -67,7 +67,7 @@
 //! storage/
 //! ├── database
 //! │   └── data.db
-//! └── ssl_certificates
+//! └── tls
 //!     ├── localhost.crt
 //!     └── localhost.key
 //! ```
@@ -176,14 +176,14 @@
 //! [[http_trackers]]
 //! enabled = true
 //! ...
-//! ssl_cert_path = "./storage/ssl_certificates/localhost.crt"
-//! ssl_key_path = "./storage/ssl_certificates/localhost.key"
+//! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
+//! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!
 //! [http_api]
 //! enabled = true
 //! ...
-//! ssl_cert_path = "./storage/ssl_certificates/localhost.crt"
-//! ssl_key_path = "./storage/ssl_certificates/localhost.key"
+//! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
+//! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //! ```
 //!
 //! ## Default configuration
@@ -194,7 +194,7 @@
 //! log_level = "info"
 //! mode = "public"
 //! db_driver = "Sqlite3"
-//! db_path = "./storage/database/data.db"
+//! db_path = "./storage/tracker/lib/database/sqlite3.db"
 //! announce_interval = 120
 //! min_announce_interval = 120
 //! max_peer_timeout = 900
@@ -238,6 +238,67 @@ use serde_with::{serde_as, NoneAsEmptyString};
 use thiserror::Error;
 use torrust_tracker_located_error::{Located, LocatedError};
 use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
+
+/// Information required for loading config
+#[derive(Debug, Default, Clone)]
+pub struct Info {
+    tracker_toml: String,
+    api_admin_token: Option<String>,
+}
+
+impl Info {
+    /// Build Configuration Info
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use torrust_tracker_configuration::Info;
+    ///
+    /// let result = Info::new(env_var_config, env_var_path_config, default_path_config, env_var_api_admin_token);
+    /// assert_eq!(result, );
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if unable to obtain a configuration.
+    ///
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn new(
+        env_var_config: String,
+        env_var_path_config: String,
+        default_path_config: String,
+        env_var_api_admin_token: String,
+    ) -> Result<Self, Error> {
+        let tracker_toml = if let Ok(tracker_toml) = env::var(&env_var_config) {
+            println!("Loading configuration from env var {env_var_config} ...");
+
+            tracker_toml
+        } else {
+            let config_path = if let Ok(config_path) = env::var(env_var_path_config) {
+                println!("Loading configuration file: `{config_path}` ...");
+
+                config_path
+            } else {
+                println!("Loading default configuration file: `{default_path_config}` ...");
+
+                default_path_config
+            };
+
+            fs::read_to_string(config_path)
+                .map_err(|e| Error::UnableToLoadFromConfigFile {
+                    source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+                })?
+                .parse()
+                .map_err(|_e: std::convert::Infallible| Error::Infallible)?
+        };
+        let api_admin_token = env::var(env_var_api_admin_token).ok();
+
+        Ok(Self {
+            tracker_toml,
+            api_admin_token,
+        })
+    }
+}
 
 /// Configuration for each UDP tracker.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
@@ -299,6 +360,12 @@ pub struct HttpApi {
 }
 
 impl HttpApi {
+    fn override_admin_token(&mut self, api_admin_token: &str) {
+        self.access_tokens.insert("admin".to_string(), api_admin_token.to_string());
+    }
+}
+
+impl HttpApi {
     /// Checks if the given token is one of the token in the configuration.
     #[must_use]
     pub fn contains_token(&self, token: &str) -> bool {
@@ -323,7 +390,7 @@ pub struct Configuration {
     pub db_driver: DatabaseDriver,
     /// Database connection string. The format depends on the database driver.
     /// For `Sqlite3`, the format is `path/to/database.db`, for example:
-    /// `./storage/database/data.db`.
+    /// `./storage/tracker/lib/database/sqlite3.db`.
     /// For `Mysql`, the format is `mysql://db_user:db_user_password:port/db_name`, for
     /// example: `root:password@localhost:3306/torrust`.
     pub db_path: String,
@@ -411,9 +478,17 @@ pub enum Error {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
+    #[error("Unable to load from Config File: {source}")]
+    UnableToLoadFromConfigFile {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
+
     /// Unable to load the configuration from the configuration file.
     #[error("Failed processing the configuration: {source}")]
     ConfigError { source: LocatedError<'static, ConfigError> },
+
+    #[error("The error for errors that can never happen.")]
+    Infallible,
 }
 
 impl From<ConfigError> for Error {
@@ -431,7 +506,7 @@ impl Default for Configuration {
             log_level: Option::from(String::from("info")),
             mode: TrackerMode::Public,
             db_driver: DatabaseDriver::Sqlite3,
-            db_path: String::from("./storage/database/data.db"),
+            db_path: String::from("./storage/tracker/lib/database/sqlite3.db"),
             announce_interval: 120,
             min_announce_interval: 120,
             max_peer_timeout: 900,
@@ -471,6 +546,10 @@ impl Default for Configuration {
 }
 
 impl Configuration {
+    fn override_api_admin_token(&mut self, api_admin_token: &str) {
+        self.http_api.override_admin_token(api_admin_token);
+    }
+
     /// Returns the tracker public IP address id defined in the configuration,
     /// and `None` otherwise.
     #[must_use]
@@ -514,26 +593,25 @@ impl Configuration {
         Ok(config)
     }
 
-    /// Loads the configuration from the environment variable. The whole
-    /// configuration must be in the environment variable. It contains the same
-    /// configuration as the configuration file with the same format.
+    /// Loads the configuration from the `Info` struct. The whole
+    /// configuration in toml format is included in the `info.tracker_toml` string.
+    ///
+    /// Optionally will override the admin api token.
     ///
     /// # Errors
     ///
     /// Will return `Err` if the environment variable does not exist or has a bad configuration.
-    pub fn load_from_env_var(config_env_var_name: &str) -> Result<Configuration, Error> {
-        match env::var(config_env_var_name) {
-            Ok(config_toml) => {
-                let config_builder = Config::builder()
-                    .add_source(File::from_str(&config_toml, FileFormat::Toml))
-                    .build()?;
-                let config = config_builder.try_deserialize()?;
-                Ok(config)
-            }
-            Err(e) => Err(Error::UnableToLoadFromEnvironmentVariable {
-                source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
-            }),
-        }
+    pub fn load(info: &Info) -> Result<Configuration, Error> {
+        let config_builder = Config::builder()
+            .add_source(File::from_str(&info.tracker_toml, FileFormat::Toml))
+            .build()?;
+        let mut config: Configuration = config_builder.try_deserialize()?;
+
+        if let Some(ref token) = info.api_admin_token {
+            config.override_api_admin_token(token);
+        };
+
+        Ok(config)
     }
 
     /// Saves the configuration to the configuration file.
@@ -567,7 +645,7 @@ mod tests {
         let config = r#"log_level = "info"
                                 mode = "public"
                                 db_driver = "Sqlite3"
-                                db_path = "./storage/database/data.db"
+                                db_path = "./storage/tracker/lib/database/sqlite3.db"
                                 announce_interval = 120
                                 min_announce_interval = 120
                                 on_reverse_proxy = false

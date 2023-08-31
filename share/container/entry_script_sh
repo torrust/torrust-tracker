@@ -1,0 +1,81 @@
+#!/bin/sh
+set -x
+
+to_lc() { echo "$1" | tr '[:upper:]' '[:lower:]'; }
+clean() { echo "$1" | tr -d -c 'a-zA-Z0-9-' ; }
+cmp_lc() { [ "$(to_lc "$(clean "$1")")" = "$(to_lc "$(clean "$2")")" ]; }
+
+
+inst() {
+    if [ -n "$1" ] && [ -n "$2" ] && [ -e "$1" ] && [ ! -e "$2" ]; then
+        install -D -m 0640 -o torrust -g torrust "$1" "$2"; fi; }
+
+
+# Add torrust user, based upon supplied user-id.
+if [ -z "$USER_ID" ] && [ "$USER_ID" -lt 1000 ]; then
+    echo "ERROR: USER_ID is not set, or less than 1000"
+    exit 1
+fi
+
+adduser --disabled-password --shell "/bin/sh" --uid "$USER_ID" "torrust"
+
+# Configure Permissions for Torrust Folders
+mkdir -p /var/lib/torrust/tracker/database/ /etc/torrust/tracker/
+chown -R "${USER_ID}":"${USER_ID}" /var/lib/torrust /var/log/torrust /etc/torrust
+chmod -R 2770 /var/lib/torrust /var/log/torrust /etc/torrust
+
+
+# Install the database and config:
+if [ -n "$TORRUST_TRACKER_DATABASE" ]; then
+    if cmp_lc "$TORRUST_TRACKER_DATABASE" "sqlite3"; then
+
+        # Select sqlite3 empty database
+        default_database="/usr/share/torrust/default/database/tracker.sqlite3.db"
+
+        # Select sqlite3 default configuration
+        default_config="/usr/share/torrust/default/config/tracker.container.sqlite3.toml"
+
+    elif cmp_lc "$TORRUST_TRACKER_DATABASE" "mysql"; then
+
+        # (no database file needed for mysql)
+
+        # Select default mysql configuration
+        default_config="/usr/share/torrust/default/config/tracker.container.mysql.toml"
+
+    else 
+        echo "Error: Unsupported Database Type: \"$TORRUST_TRACKER_DATABASE\"."
+        echo "Please Note: Supported Database Types: \"sqlite3\", \"mysql\"."
+        exit 1
+    fi
+else
+    echo "Error: \"\$TORRUST_TRACKER_DATABASE\" was not set!"; exit 1;
+fi
+
+install_config="/etc/torrust/tracker/tracker.toml"
+install_database="/var/lib/torrust/tracker/database/sqlite3.db"
+
+inst "$default_config" "$install_config"
+inst "$default_database" "$install_database"
+
+# Make Minimal Message of the Day
+if cmp_lc "$RUNTIME" "runtime"; then
+    printf '\n in runtime \n' >> /etc/motd;
+elif cmp_lc "$RUNTIME" "debug"; then
+    printf '\n in debug mode \n' >> /etc/motd;
+elif cmp_lc "$RUNTIME" "release"; then
+    printf '\n in release mode \n' >> /etc/motd;
+else
+    echo "ERROR: running in unknown mode: \"$RUNTIME\""; exit 1
+fi
+
+if [ -e "/usr/share/torrust/container/message" ]; then
+    cat "/usr/share/torrust/container/message" >> /etc/motd; chmod 0644 /etc/motd
+fi
+
+# Load message of the day from Profile
+echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' >> /etc/profile
+
+cd /home/torrust || exit 1
+
+# Switch to torrust user
+exec /bin/su-exec torrust "$@"

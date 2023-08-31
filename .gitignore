@@ -3,9 +3,10 @@
 /.coverage/
 /.idea/
 /.vscode/launch.json
-/config.toml
+/tracker.toml
 /data.db
 /database.db
 /database.json.bz2
 /storage/
 /target
+/tracker.*

@@ -1,3 +1,5 @@
+#![allow(clippy::should_panic_without_expect)]
+
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::str::{self};

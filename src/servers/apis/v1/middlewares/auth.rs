@@ -11,7 +11,7 @@
 //! The token must be one of the `access_tokens` in the tracker
 //! [HTTP API configuration](torrust_tracker_configuration::HttpApi).
 //!
-//! The configuration file `config.toml` contains a list of tokens:
+//! The configuration file `tracker.toml` contains a list of tokens:
 //!
 //! ```toml
 //! [http_api.access_tokens]

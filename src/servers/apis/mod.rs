@@ -28,8 +28,8 @@
 //! enabled = true
 //! bind_address = "0.0.0.0:1212"
 //! ssl_enabled = false
-//! ssl_cert_path = "./storage/ssl_certificates/localhost.crt"
-//! ssl_key_path = "./storage/ssl_certificates/localhost.key"
+//! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
+//! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!
 //! [http_api.access_tokens]
 //! admin = "MyAccessToken"
@@ -41,7 +41,7 @@
 //! When you run the tracker with enabled API, you will see the following message:
 //!
 //! ```text
-//! Loading configuration from config file ./config.toml
+//! Loading configuration from config file ./tracker.toml
 //! 023-03-28T12:19:24.963054069+01:00 [torrust_tracker::bootstrap::logging][INFO] logging initialized.
 //! ...
 //! 023-03-28T12:19:24.964138723+01:00 [torrust_tracker::bootstrap::jobs::tracker_apis][INFO] Starting Torrust APIs server on: http://0.0.0.0:1212
@@ -116,8 +116,8 @@
 //! enabled = true
 //! bind_address = "0.0.0.0:1212"
 //! ssl_enabled = true
-//! ssl_cert_path = "./storage/ssl_certificates/localhost.crt"
-//! ssl_key_path = "./storage/ssl_certificates/localhost.key"
+//! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
+//! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!
 //! [http_api.access_tokens]
 //! admin = "MyAccessToken"

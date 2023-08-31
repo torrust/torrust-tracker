@@ -18,7 +18,7 @@ use super::{Builder, Database};
 /// use torrust_tracker_primitives::DatabaseDriver;
 ///
 /// let db_driver = DatabaseDriver::Sqlite3;
-/// let db_path = "./storage/database/data.db".to_string();
+/// let db_path = "./storage/tracker/lib/database/sqlite3.db".to_string();
 /// let database = databases::driver::build(&db_driver, &db_path);
 /// ```
 ///

@@ -9,13 +9,21 @@ version.workspace = true
 
 [workspace.package]
 license-file = "COPYRIGHT"
-authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>"]
+authors = [
+    "Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>",
+]
 edition = "2021"
 repository = "https://github.com/torrust/torrust-tracker"
-version = "3.0.0-alpha.3"
+version = "3.0.0-alpha.4"
 
 [dependencies]
-tokio = { version = "1.29", features = ["rt-multi-thread", "net", "sync", "macros", "signal"] }
+tokio = { version = "1.29", features = [
+    "rt-multi-thread",
+    "net",
+    "sync",
+    "macros",
+    "signal",
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_bencode = "^0.2"
 serde_json = "1.0"
@@ -41,11 +49,11 @@ uuid = { version = "1", features = ["v4"] }
 axum = "0.6.20"
 axum-server = { version = "0.5", features = ["tls-rustls"] }
 axum-client-ip = "0.4.1"
-tower-http = { version= "0.4.3", features = ["compression-full"] }
+tower-http = { version = "0.4.3", features = ["compression-full"] }
 bencode = { version = "1.0.0-alpha.1", path = "contrib/bencode" }
-torrust-tracker-primitives = { version = "3.0.0-alpha.3", path = "packages/primitives" }
-torrust-tracker-configuration = { version = "3.0.0-alpha.3", path = "packages/configuration" }
-torrust-tracker-located-error = { version = "3.0.0-alpha.3", path = "packages/located-error" }
+torrust-tracker-primitives = { version = "3.0.0-alpha.4", path = "packages/primitives" }
+torrust-tracker-configuration = { version = "3.0.0-alpha.4", path = "packages/configuration" }
+torrust-tracker-located-error = { version = "3.0.0-alpha.4", path = "packages/located-error" }
 multimap = "0.9"
 hyper = "0.14"
 
@@ -56,7 +64,7 @@ serde_urlencoded = "0.7"
 serde_repr = "0.1"
 serde_bytes = "0.11"
 local-ip-address = "0.5"
-torrust-tracker-test-helpers = { version = "3.0.0-alpha.3", path = "packages/test-helpers" }
+torrust-tracker-test-helpers = { version = "3.0.0-alpha.4", path = "packages/test-helpers" }
 
 [workspace]
 members = [

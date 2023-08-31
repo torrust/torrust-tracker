@@ -67,11 +67,12 @@ mod for_all_config_modes {
         // Vuze (bittorrent client) docs:
         // https://wiki.vuze.com/w/Announce
 
-        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV6};
         use std::str::FromStr;
 
         use local_ip_address::local_ip;
         use reqwest::Response;
+        use tokio::net::TcpListener;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker::tracker::peer;
         use torrust_tracker_test_helpers::configuration;
@@ -594,6 +595,13 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_increase_the_number_of_tcp6_connections_handled_in_statistics() {
+            if TcpListener::bind(SocketAddrV6::new(Ipv6Addr::LOCALHOST, 0, 0, 0))
+                .await
+                .is_err()
+            {
+                return; // we cannot bind to a ipv6 socket, so we will skip this test
+            }
+
             let test_env = running_test_environment::<V1>(configuration::ephemeral_ipv6()).await;
 
             Client::bind(*test_env.bind_address(), IpAddr::from_str("::1").unwrap())
@@ -651,6 +659,13 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_increase_the_number_of_tcp6_announce_requests_handled_in_statistics() {
+            if TcpListener::bind(SocketAddrV6::new(Ipv6Addr::LOCALHOST, 0, 0, 0))
+                .await
+                .is_err()
+            {
+                return; // we cannot bind to a ipv6 socket, so we will skip this test
+            }
+
             let test_env = running_test_environment::<V1>(configuration::ephemeral_ipv6()).await;
 
             Client::bind(*test_env.bind_address(), IpAddr::from_str("::1").unwrap())
@@ -830,9 +845,10 @@ mod for_all_config_modes {
         // Vuze (bittorrent client) docs:
         // https://wiki.vuze.com/w/Scrape
 
-        use std::net::IpAddr;
+        use std::net::{IpAddr, Ipv6Addr, SocketAddrV6};
         use std::str::FromStr;
 
+        use tokio::net::TcpListener;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker::tracker::peer;
         use torrust_tracker_test_helpers::configuration;
@@ -1027,6 +1043,13 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_increase_the_number_ot_tcp6_scrape_requests_handled_in_statistics() {
+            if TcpListener::bind(SocketAddrV6::new(Ipv6Addr::LOCALHOST, 0, 0, 0))
+                .await
+                .is_err()
+            {
+                return; // we cannot bind to a ipv6 socket, so we will skip this test
+            }
+
             let test_env = running_test_environment::<V1>(configuration::ephemeral_ipv6()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
