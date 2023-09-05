@@ -26,6 +26,7 @@
         "codegen",
         "completei",
         "connectionless",
+        "datetime",
         "dockerhub",
         "downloadedi",
         "dtolnay",
