@@ -329,69 +329,68 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "BencodeParseError(InvalidByte { pos: 0 }"]
     fn negative_decode_bytes_neg_len() {
         BencodeRef::decode(BYTES_NEG_LEN, BDecodeOpt::default()).unwrap();
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "BencodeParseError(BytesEmpty { pos: 20 }"]
     fn negative_decode_bytes_extra() {
         BencodeRef::decode(BYTES_EXTRA, BDecodeOpt::default()).unwrap();
     }
 
     #[test]
-    #[should_panic]
     fn negative_decode_bytes_not_utf8() {
         let bencode = BencodeRef::decode(BYTES_NOT_UTF8, BDecodeOpt::default()).unwrap();
 
-        bencode.str().unwrap();
+        assert!(bencode.str().is_none());
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "BencodeParseError(InvalidIntParseError { pos: 1 }"]
     fn negative_decode_int_nan() {
         super::decode_int(INT_NAN, 1, crate::BEN_END).unwrap();
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "BencodeParseError(InvalidIntZeroPadding { pos: 1 }"]
     fn negative_decode_int_leading_zero() {
         super::decode_int(INT_LEADING_ZERO, 1, crate::BEN_END).unwrap();
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "BencodeParseError(InvalidIntZeroPadding { pos: 1 }"]
     fn negative_decode_int_double_zero() {
         super::decode_int(INT_DOUBLE_ZERO, 1, crate::BEN_END).unwrap();
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "BencodeParseError(InvalidIntNegativeZero { pos: 1 }"]
     fn negative_decode_int_negative_zero() {
         super::decode_int(INT_NEGATIVE_ZERO, 1, crate::BEN_END).unwrap();
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = " BencodeParseError(InvalidIntParseError { pos: 1 }"]
     fn negative_decode_int_double_negative() {
         super::decode_int(INT_DOUBLE_NEGATIVE, 1, crate::BEN_END).unwrap();
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "BencodeParseError(InvalidKeyOrdering { pos: 15, key: [97, 95, 107, 101, 121] }"]
     fn negative_decode_dict_unordered_keys() {
         BencodeRef::decode(DICT_UNORDERED_KEYS, BDecodeOpt::new(5, true, true)).unwrap();
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "BencodeParseError(InvalidKeyDuplicates { pos: 18, key: [97, 95, 107, 101, 121] }"]
     fn negative_decode_dict_dup_keys_same_data() {
         BencodeRef::decode(DICT_DUP_KEYS_SAME_DATA, BDecodeOpt::default()).unwrap();
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "BencodeParseError(InvalidKeyDuplicates { pos: 18, key: [97, 95, 107, 101, 121] }"]
     fn negative_decode_dict_dup_keys_diff_data() {
         BencodeRef::decode(DICT_DUP_KEYS_DIFF_DATA, BDecodeOpt::default()).unwrap();
     }
