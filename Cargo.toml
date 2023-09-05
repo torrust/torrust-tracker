@@ -27,7 +27,7 @@ openssl = { version = "0.10", features = ["vendored"] }
 config = "0.13"
 log = { version = "0.4", features = ["release_max_level_info"] }
 fern = "0.6"
-chrono = { version = "0.4.24", default-features = false, features = ["clock"] }
+chrono = { version = "0.4.29", default-features = false, features = ["clock"] }
 r2d2 = "0.8"
 r2d2_mysql = "23.0"
 r2d2_sqlite = { version = "0.22", features = ["bundled"] }
