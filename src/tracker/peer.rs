@@ -150,7 +150,13 @@ impl Id {
     /// Will panic if byte slice does not contains the exact amount of bytes need for the `Id`.
     #[must_use]
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        assert_eq!(bytes.len(), PEER_ID_BYTES_LEN);
+        assert_eq!(
+            PEER_ID_BYTES_LEN,
+            bytes.len(),
+            "we are testing the equality of the constant: `PEER_ID_BYTES_LEN` ({}) and the supplied `bytes` length: {}",
+            PEER_ID_BYTES_LEN,
+            bytes.len(),
+        );
         let mut ret = Self([0u8; PEER_ID_BYTES_LEN]);
         ret.0.clone_from_slice(bytes);
         ret
@@ -363,14 +369,14 @@ mod test {
         }
 
         #[test]
-        #[should_panic]
+        #[should_panic = "we are testing the equality of the constant: `PEER_ID_BYTES_LEN` (20) and the supplied `bytes` length: 19"]
         fn should_fail_trying_to_instantiate_from_a_byte_slice_with_less_than_20_bytes() {
             let less_than_20_bytes = [0; 19];
             let _: peer::Id = peer::Id::from_bytes(&less_than_20_bytes);
         }
 
         #[test]
-        #[should_panic]
+        #[should_panic = "we are testing the equality of the constant: `PEER_ID_BYTES_LEN` (20) and the supplied `bytes` length: 21"]
         fn should_fail_trying_to_instantiate_from_a_byte_slice_with_more_than_20_bytes() {
             let more_than_20_bytes = [0; 21];
             let _: peer::Id = peer::Id::from_bytes(&more_than_20_bytes);
@@ -418,13 +424,13 @@ mod test {
         }
 
         #[test]
-        #[should_panic]
+        #[should_panic = "NotEnoughBytes"]
         fn should_fail_trying_to_convert_from_a_byte_vector_with_less_than_20_bytes() {
             let _: peer::Id = peer::Id::try_from([0; 19].to_vec()).unwrap();
         }
 
         #[test]
-        #[should_panic]
+        #[should_panic = "TooManyBytes"]
         fn should_fail_trying_to_convert_from_a_byte_vector_with_more_than_20_bytes() {
             let _: peer::Id = peer::Id::try_from([0; 21].to_vec()).unwrap();
         }
