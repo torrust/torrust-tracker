@@ -314,7 +314,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "InvalidConnectionId"]
     fn it_should_be_not_valid_after_their_last_time_extent() {
         let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
