@@ -1,14 +1,21 @@
 [package]
 name = "torrust-tracker-test-helpers"
 description = "A library providing helpers for testing the Torrust tracker."
-license-file.workspace = true
+keywords = ["library", "helper", "testing"]
+readme = "README.md"
+
 authors.workspace = true
+documentation.workspace = true
 edition.workspace = true
+homepage.workspace = true
+license-file.workspace = true
+publish.workspace = true
 repository.workspace = true
+rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
 lazy_static = "1.4"
 rand = "0.8.5"
-torrust-tracker-configuration = { version = "3.0.0-alpha.4", path = "../configuration"}
-torrust-tracker-primitives = { version = "3.0.0-alpha.4", path = "../primitives"}
+torrust-tracker-configuration = { version = "3.0.0-alpha.4", path = "../configuration" }
+torrust-tracker-primitives = { version = "3.0.0-alpha.4", path = "../primitives" }

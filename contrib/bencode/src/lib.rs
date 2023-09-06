@@ -85,8 +85,8 @@ const BYTE_LEN_END: u8 = b':';
 macro_rules! ben_map {
 ( $($key:expr => $val:expr),* ) => {
         {
-            use bencode::{BMutAccess, BencodeMut};
-            use bencode::inner::BCowConvert;
+            use $crate::{BMutAccess, BencodeMut};
+            use $crate::inner::BCowConvert;
 
             let mut bencode_map = BencodeMut::new_dict();
             {
@@ -106,7 +106,7 @@ macro_rules! ben_map {
 macro_rules! ben_list {
     ( $($ben:expr),* ) => {
         {
-            use bencode::{BencodeMut, BMutAccess};
+            use $crate::{BencodeMut, BMutAccess};
 
             let mut bencode_list = BencodeMut::new_list();
             {
@@ -125,8 +125,8 @@ macro_rules! ben_list {
 #[macro_export]
 macro_rules! ben_bytes {
     ( $ben:expr ) => {{
-        use bencode::inner::BCowConvert;
-        use bencode::BencodeMut;
+        use $crate::inner::BCowConvert;
+        use $crate::BencodeMut;
 
         BencodeMut::new_bytes(BCowConvert::convert($ben))
     }};
@@ -136,7 +136,7 @@ macro_rules! ben_bytes {
 #[macro_export]
 macro_rules! ben_int {
     ( $ben:expr ) => {{
-        use bencode::BencodeMut;
+        use $crate::BencodeMut;
 
         BencodeMut::new_int($ben)
     }};

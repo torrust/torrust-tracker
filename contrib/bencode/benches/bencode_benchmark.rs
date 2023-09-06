@@ -1,5 +1,5 @@
-use bencode::{BDecodeOpt, BencodeRef};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use torrust_tracker_contrib_bencode::{BDecodeOpt, BencodeRef};
 
 const B_NESTED_LISTS: &[u8; 100] =
     b"lllllllllllllllllllllllllllllllllllllllllllllllllleeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"; // cspell:disable-line

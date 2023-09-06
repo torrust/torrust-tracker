@@ -1,11 +1,19 @@
 [package]
 name = "torrust-tracker-primitives"
 description = "A library with the primitive types shared by the Torrust tracker packages."
-license-file.workspace = true
+keywords = ["library", "api", "primitives"]
+readme = "README.md"
+
 authors.workspace = true
+documentation.workspace = true
 edition.workspace = true
+homepage.workspace = true
+license-file.workspace = true
+publish.workspace = true
 repository.workspace = true
+rust-version.workspace = true
 version.workspace = true
+
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
