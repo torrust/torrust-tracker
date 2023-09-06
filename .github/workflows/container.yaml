@@ -2,8 +2,11 @@ name: Container
 
 on:
   push:
-    tags-ignore:
-      - "!v*"
+    branches:
+      - "develop"
+      - "main"
+    tags:
+      - "v*"
   pull_request:
     branches:
       - "develop"
@@ -17,6 +20,10 @@ jobs:
     name: Test (Docker)
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        target: [debug, release]
+
     steps:
       - id: setup
         name: Setup Toolchain
@@ -29,9 +36,10 @@ jobs:
           file: ./Containerfile
           push: false
           load: true
+          target: ${{ matrix.target }}
           tags: torrust-tracker:local
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha
 
       - id: inspect
         name: Inspect
@@ -122,4 +130,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha

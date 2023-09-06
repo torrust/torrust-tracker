@@ -1,0 +1,81 @@
+name: Deployment
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  secrets:
+    name: Secrets
+    needs: context
+    environment: dockerhub-torrust
+    if: needs.context.outputs.continue == 'true'
+    runs-on: ubuntu-latest
+
+    outputs:
+      continue: ${{ steps.check.outputs.continue }}
+
+    steps:
+      - id: check
+        name: Check
+        env:
+          CRATES_TOKEN: "${{ secrets.CRATES_TOKEN }}"
+        if: "${{ env.CRATES_TOKEN != '' }}"
+        run: echo "continue=true" >> $GITHUB_OUTPUT
+
+  test:
+    name: Test
+    needs: secrets
+    if: needs.secrets.outputs.continue == 'true'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        toolchain: [stable, nightly]
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+
+      - id: test
+        name: Run Unit Tests
+        run: cargo test --tests --benches --examples --workspace --all-targets --all-features
+
+  publish:
+    name: Publish
+    environment: crates-io-torrust
+    needs: test
+    if: needs.secrets.outputs.continue == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+      - id: publish
+        name: Publish Crates
+        run: |
+          cargo publish -p torrust-tracker-contrib-bencode
+          cargo publish -p torrust-tracker-located-error
+          cargo publish -p torrust-tracker-primitives
+          cargo publish -p torrust-tracker-configuration
+          cargo publish -p torrust-tracker-test-helpers
+          cargo publish -p torrust-tracker

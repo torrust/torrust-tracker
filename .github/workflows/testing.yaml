@@ -50,7 +50,7 @@ jobs:
         name: Setup Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: nightly
+          toolchain: ${{ matrix.toolchain }}
           components: clippy
 
       - id: cache
