@@ -1,4 +1,4 @@
-use bencode::{ben_bytes, ben_int, ben_list, ben_map};
+use torrust_tracker_contrib_bencode::{ben_bytes, ben_int, ben_list, ben_map};
 
 #[test]
 fn positive_ben_map_macro() {

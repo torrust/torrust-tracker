@@ -7,9 +7,9 @@ use std::panic::Location;
 
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
 use serde::{self, Deserialize, Serialize};
 use thiserror::Error;
+use torrust_tracker_contrib_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
 
 use crate::servers::http::v1::responses;
 use crate::tracker::{self, AnnounceData};

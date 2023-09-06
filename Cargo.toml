@@ -1,20 +1,36 @@
 [package]
 name = "torrust-tracker"
-description = "A feature rich BitTorrent tracker."
-license-file.workspace = true
+readme = "README.md"
+
 authors.workspace = true
+description.workspace = true
+documentation.workspace = true
 edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license-file.workspace = true
+publish.workspace = true
 repository.workspace = true
+rust-version.workspace = true
 version.workspace = true
 
+
 [workspace.package]
-license-file = "COPYRIGHT"
 authors = [
     "Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>",
 ]
+categories = ["network-programming", "web-programming"]
+description = "A feature rich BitTorrent tracker."
+documentation = "https://docs.rs/crate/torrust-tracker/"
 edition = "2021"
+homepage = "https://torrust.com/"
+keywords = ["bittorrent", "tracker", "file-sharing", "peer-to-peer", "torrent"]
+license-file = "COPYRIGHT"
+publish = true
 repository = "https://github.com/torrust/torrust-tracker"
+rust-version = "1.72"
 version = "3.0.0-alpha.4"
+
 
 [dependencies]
 tokio = { version = "1.29", features = [
@@ -50,7 +66,7 @@ axum = "0.6.20"
 axum-server = { version = "0.5", features = ["tls-rustls"] }
 axum-client-ip = "0.4.1"
 tower-http = { version = "0.4.3", features = ["compression-full"] }
-bencode = { version = "1.0.0-alpha.1", path = "contrib/bencode" }
+torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.4", path = "contrib/bencode"}
 torrust-tracker-primitives = { version = "3.0.0-alpha.4", path = "packages/primitives" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.4", path = "packages/configuration" }
 torrust-tracker-located-error = { version = "3.0.0-alpha.4", path = "packages/located-error" }

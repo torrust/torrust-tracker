@@ -259,14 +259,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "414dcefbc63d77c526a76b3afcf6fbb9b5e2791c19c3aa2297733208750c6e53"
 
 [[package]]
-name = "bencode"
-version = "1.0.0-alpha.1"
-dependencies = [
- "criterion",
- "error-chain",
-]
-
-[[package]]
 name = "bigdecimal"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3103,7 +3095,6 @@ dependencies = [
  "axum",
  "axum-client-ip",
  "axum-server",
- "bencode",
  "binascii",
  "chrono",
  "config",
@@ -3133,6 +3124,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "torrust-tracker-configuration",
+ "torrust-tracker-contrib-bencode",
  "torrust-tracker-located-error",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
@@ -3153,6 +3145,14 @@ dependencies = [
  "torrust-tracker-located-error",
  "torrust-tracker-primitives",
  "uuid",
+]
+
+[[package]]
+name = "torrust-tracker-contrib-bencode"
+version = "3.0.0-alpha.4"
+dependencies = [
+ "criterion",
+ "error-chain",
 ]
 
 [[package]]
