@@ -120,7 +120,7 @@ pub fn convert_from_datetime_utc_to_timestamp(datetime_utc: &DateTime<Utc>) -> D
 /// (this will naturally happen in 292.5 billion years)
 #[must_use]
 pub fn convert_from_timestamp_to_datetime_utc(duration: DurationSinceUnixEpoch) -> DateTime<Utc> {
-    DateTime::<Utc>::from_utc(
+    DateTime::<Utc>::from_naive_utc_and_offset(
         NaiveDateTime::from_timestamp_opt(
             i64::try_from(duration.as_secs()).expect("Overflow of i64 seconds, very future!"),
             duration.subsec_nanos(),
@@ -162,13 +162,13 @@ mod tests {
             let timestamp = DurationSinceUnixEpoch::ZERO;
             assert_eq!(
                 convert_from_timestamp_to_datetime_utc(timestamp),
-                DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), Utc)
+                DateTime::<Utc>::from_naive_utc_and_offset(NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), Utc)
             );
         }
 
         #[test]
         fn should_be_converted_from_datetime_utc() {
-            let datetime = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), Utc);
+            let datetime = DateTime::<Utc>::from_naive_utc_and_offset(NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), Utc);
             assert_eq!(
                 convert_from_datetime_utc_to_timestamp(&datetime),
                 DurationSinceUnixEpoch::ZERO
