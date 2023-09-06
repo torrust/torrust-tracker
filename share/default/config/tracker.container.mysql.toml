@@ -1,7 +1,7 @@
 log_level = "info"
 mode = "public"
-db_driver = "Sqlite3"
-db_path = "./storage/database/data.db"
+db_driver = "MySQL"
+db_path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
 announce_interval = 120
 min_announce_interval = 120
 on_reverse_proxy = false
@@ -20,15 +20,20 @@ bind_address = "0.0.0.0:6969"
 enabled = false
 bind_address = "0.0.0.0:7070"
 ssl_enabled = false
-ssl_cert_path = ""
-ssl_key_path = ""
+ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
+ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
 
 [http_api]
 enabled = true
-bind_address = "127.0.0.1:1212"
+bind_address = "0.0.0.0:1212"
 ssl_enabled = false
-ssl_cert_path = ""
-ssl_key_path = ""
+ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
+ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
+
+
+# Please override the admin token setting the
+#    `TORRUST_TRACKER_API_ADMIN_TOKEN`
+#                     environmental variable!
 
 [http_api.access_tokens]
 admin = "MyAccessToken"
