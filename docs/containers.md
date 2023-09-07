@@ -196,7 +196,7 @@ mkdir -p ./storage/tracker/lib/ ./storage/tracker/log/ ./storage/tracker/etc/
 ## Run Torrust Tracker Container Image
 docker run -it \
     --env TORRUST_TRACKER_API_ADMIN_TOKEN="MySecretToken" \
-    --env USER_ID"$(id -u)" \
+    --env USER_ID="$(id -u)" \
     --publish 0.0.0.0:7070:7070/tcp \
     --publish 0.0.0.0:6969:6969/udp \
     --publish 0.0.0.0:1212:1212/tcp \
@@ -218,7 +218,7 @@ mkdir -p ./storage/tracker/lib/ ./storage/tracker/log/ ./storage/tracker/etc/
 ## Run Torrust Tracker Container Image
 podman run -it \
     --env TORRUST_TRACKER_API_ADMIN_TOKEN="MySecretToken" \
-    --env USER_ID"$(id -u)" \
+    --env USER_ID="$(id -u)" \
     --publish 0.0.0.0:7070:7070/tcp \
     --publish 0.0.0.0:6969:6969/udp \
     --publish 0.0.0.0:1212:1212/tcp \
@@ -367,6 +367,7 @@ And finally, you can run the container:
 
 ```s
 docker run \
+    --env USER_ID="$(id -u)" \
     --publish 6969:6969/udp \
     --publish 7070:7070/tcp \
     --publish 1212:1212/tcp \
@@ -381,6 +382,7 @@ Detach from container logs when the container starts. By default, the command li
 ```s
 docker run \
     --detach
+    --env USER_ID="$(id -u)" \
     --publish 6969:6969/udp \
     --publish 7070:7070/tcp \
     --publish 1212:1212/tcp \latest
