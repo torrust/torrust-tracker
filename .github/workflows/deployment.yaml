@@ -8,9 +8,7 @@ on:
 jobs:
   secrets:
     name: Secrets
-    needs: context
     environment: dockerhub-torrust
-    if: needs.context.outputs.continue == 'true'
     runs-on: ubuntu-latest
 
     outputs:
