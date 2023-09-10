@@ -5,8 +5,7 @@ on:
     branches:
       - "develop"
       - "main"
-    tags:
-      - "v*"
+      - "releases/**/*"
   pull_request:
     branches:
       - "develop"
@@ -60,6 +59,8 @@ jobs:
 
     outputs:
       continue: ${{ steps.check.outputs.continue }}
+      type: ${{ steps.check.outputs.type }}
+      version: ${{ steps.check.outputs.version }}
 
     steps:
       - id: check
@@ -67,12 +68,25 @@ jobs:
         run: |
           if [[ "${{ github.repository }}" == "torrust/torrust-tracker" ]]; then
             if [[ "${{ github.event_name }}" == "push" ]]; then
-              if [[ "${{ github.ref }}" == "refs/heads/main" ||
-                    "${{ github.ref }}" == "refs/heads/develop" ||
-                    "${{ github.ref }}" =~ ^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$ ]]; then
+              if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
 
-                  echo "Context is torrust/torrust-tracker, and push is: main, develop, docker, or a tag with a semantic version"
-                  echo "continue=true" >> $GITHUB_OUTPUT
+                echo "type=development" >> $GITHUB_OUTPUT
+                echo "continue=true" >> $GITHUB_OUTPUT
+
+              fi
+              if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+
+                echo "type=development" >> $GITHUB_OUTPUT
+                echo "continue=true" >> $GITHUB_OUTPUT
+
+              fi
+              if [[ "${{ github.ref }}" =~ ^(refs\/heads\/releases\/)(v)(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$ ]]; then
+
+                version=$(echo "${{ github.ref }}" | sed -n -E 's/^(refs\/heads\/releases\/)//p')
+                echo "version=$version" >> $GITHUB_OUTPUT
+                echo "type=release" >> $GITHUB_OUTPUT
+                echo "continue=true" >> $GITHUB_OUTPUT
+
               fi
             fi
           fi
@@ -103,17 +117,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - id: meta
-        name: Docker meta
+      - id: meta_development
+        if: needs.secrets.check.type == 'development'
+        name: Docker Meta (development)
         uses: docker/metadata-action@v4
         with:
           images: |
             "${{ secrets.DOCKER_HUB_USERNAME }}/${{secrets.DOCKER_HUB_REPOSITORY_NAME }}"
           tags: |
             type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+
+      - id: meta_release
+        if: needs.secrets.check.type == 'release'
+        name: Docker Meta (release)
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            "${{ secrets.DOCKER_HUB_USERNAME }}/${{secrets.DOCKER_HUB_REPOSITORY_NAME }}"
+          tags: |
+            type=semver,value=${{ needs.secrets.check.version }},pattern={{raw}}
+            type=semver,value=${{ needs.secrets.check.version }},pattern={{version}}
+            type=semver,value=${{ needs.secrets.check.version }},pattern=v{{major}}
+            type=semver,value=${{ needs.secrets.check.version }},pattern={{major}}.{{minor}}
 
       - id: login
         name: Login to Docker Hub
