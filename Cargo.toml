@@ -29,7 +29,7 @@ license-file = "COPYRIGHT"
 publish = true
 repository = "https://github.com/torrust/torrust-tracker"
 rust-version = "1.72"
-version = "3.0.0-alpha.4"
+version = "3.0.0-alpha.5"
 
 
 [dependencies]
@@ -66,10 +66,10 @@ axum = "0.6.20"
 axum-server = { version = "0.5", features = ["tls-rustls"] }
 axum-client-ip = "0.4.1"
 tower-http = { version = "0.4.3", features = ["compression-full"] }
-torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.4", path = "contrib/bencode"}
-torrust-tracker-primitives = { version = "3.0.0-alpha.4", path = "packages/primitives" }
-torrust-tracker-configuration = { version = "3.0.0-alpha.4", path = "packages/configuration" }
-torrust-tracker-located-error = { version = "3.0.0-alpha.4", path = "packages/located-error" }
+torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.5", path = "contrib/bencode"}
+torrust-tracker-primitives = { version = "3.0.0-alpha.5", path = "packages/primitives" }
+torrust-tracker-configuration = { version = "3.0.0-alpha.5", path = "packages/configuration" }
+torrust-tracker-located-error = { version = "3.0.0-alpha.5", path = "packages/located-error" }
 multimap = "0.9"
 hyper = "0.14"
 
@@ -80,7 +80,7 @@ serde_urlencoded = "0.7"
 serde_repr = "0.1"
 serde_bytes = "0.11"
 local-ip-address = "0.5"
-torrust-tracker-test-helpers = { version = "3.0.0-alpha.4", path = "packages/test-helpers" }
+torrust-tracker-test-helpers = { version = "3.0.0-alpha.5", path = "packages/test-helpers" }
 
 [workspace]
 members = [
