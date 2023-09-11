@@ -118,7 +118,7 @@ jobs:
 
     steps:
       - id: meta_development
-        if: needs.secrets.check.type == 'development'
+        if: needs.context.check.type == 'development'
         name: Docker Meta (development)
         uses: docker/metadata-action@v4
         with:
@@ -128,17 +128,17 @@ jobs:
             type=ref,event=branch
 
       - id: meta_release
-        if: needs.secrets.check.type == 'release'
+        if: needs.context.check.type == 'release'
         name: Docker Meta (release)
         uses: docker/metadata-action@v4
         with:
           images: |
             "${{ secrets.DOCKER_HUB_USERNAME }}/${{secrets.DOCKER_HUB_REPOSITORY_NAME }}"
           tags: |
-            type=semver,value=${{ needs.secrets.check.version }},pattern={{raw}}
-            type=semver,value=${{ needs.secrets.check.version }},pattern={{version}}
-            type=semver,value=${{ needs.secrets.check.version }},pattern=v{{major}}
-            type=semver,value=${{ needs.secrets.check.version }},pattern={{major}}.{{minor}}
+            type=semver,value=${{ needs.context.check.version }},pattern={{raw}}
+            type=semver,value=${{ needs.context.check.version }},pattern={{version}}
+            type=semver,value=${{ needs.context.check.version }},pattern=v{{major}}
+            type=semver,value=${{ needs.context.check.version }},pattern={{major}}.{{minor}}
 
       - id: login
         name: Login to Docker Hub
