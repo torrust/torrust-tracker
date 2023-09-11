@@ -54,7 +54,6 @@ jobs:
 
   context:
     name: Context
-    needs: test
     runs-on: ubuntu-latest
 
     outputs:
@@ -72,28 +71,35 @@ jobs:
 
                 echo "type=development" >> $GITHUB_OUTPUT
                 echo "continue=true" >> $GITHUB_OUTPUT
+                echo "On \`main\` Branch, Type: \`development\`"
 
-              fi
-              if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+              elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
 
                 echo "type=development" >> $GITHUB_OUTPUT
                 echo "continue=true" >> $GITHUB_OUTPUT
+                echo "On \`develop\` Branch, Type: \`development\`"
 
-              fi
-              if [[ "${{ github.ref }}" =~ ^(refs\/heads\/releases\/)(v)(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$ ]]; then
+              elif [[ "${{ github.ref }}" =~ ^(refs\/heads\/releases\/)(v)(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$ ]]; then
 
                 version=$(echo "${{ github.ref }}" | sed -n -E 's/^(refs\/heads\/releases\/)//p')
                 echo "version=$version" >> $GITHUB_OUTPUT
                 echo "type=release" >> $GITHUB_OUTPUT
                 echo "continue=true" >> $GITHUB_OUTPUT
+                echo "In \`releases/$version\` Branch, Type: \`release\`"
 
+              else
+                echo "Not Correct Branch. Will Not Continue"
               fi
+            else
+              echo "Not a Push Event. Will Not Continue"
             fi
+          else
+            echo "On a Forked Repository. Will Not Continue"
           fi
 
   secrets:
     name: Secrets
-    needs: context
+    needs: [test, context]
     environment: dockerhub-torrust
     if: needs.context.outputs.continue == 'true'
     runs-on: ubuntu-latest
@@ -112,7 +118,7 @@ jobs:
   publish:
     name: Publish
     environment: dockerhub-torrust
-    needs: secrets
+    needs: [secrets, context]
     if: needs.secrets.outputs.continue == 'true'
     runs-on: ubuntu-latest
 
