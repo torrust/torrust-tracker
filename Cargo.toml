@@ -51,7 +51,7 @@ openssl = { version = "0.10", features = ["vendored"] }
 config = "0.13"
 log = { version = "0.4", features = ["release_max_level_info"] }
 fern = "0.6"
-chrono = { version = "0.4.24", default-features = false, features = ["clock"] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
 r2d2 = "0.8"
 r2d2_mysql = "24.0"
 r2d2_sqlite = { version = "0.22", features = ["bundled"] }
@@ -62,10 +62,10 @@ futures = "0.3"
 async-trait = "0.1"
 aquatic_udp_protocol = "0.8"
 uuid = { version = "1", features = ["v4"] }
-axum = "0.6.20"
+axum = "0.6"
 axum-server = { version = "0.5", features = ["tls-rustls"] }
-axum-client-ip = "0.4.1"
-tower-http = { version = "0.4.3", features = ["compression-full"] }
+axum-client-ip = "0.4"
+tower-http = { version = "0.4", features = ["compression-full"] }
 torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.5", path = "contrib/bencode"}
 torrust-tracker-primitives = { version = "3.0.0-alpha.5", path = "packages/primitives" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.5", path = "packages/configuration" }
