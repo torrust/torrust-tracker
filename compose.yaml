@@ -4,7 +4,7 @@ services:
     image: torrust-tracker:release
     tty: true
     environment:
-      - TORRUST_TRACKER_DATABASE=${TORRUST_TRACKER_DATABASE:-mysql}
+      - TORRUST_TRACKER_DATABASE_DRIVER=${TORRUST_TRACKER_DATABASE_DRIVER:-mysql}
       - TORRUST_TRACKER_API_ADMIN_TOKEN=${TORRUST_TRACKER_API_ADMIN_TOKEN:-MyAccessToken}
     networks:
       - server_side

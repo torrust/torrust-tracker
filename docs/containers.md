@@ -140,7 +140,7 @@ The following environmental variables can be set:
 
 - `TORRUST_TRACKER_PATH_CONFIG` - The in-container path to the tracker configuration file, (default: `"/etc/torrust/tracker/tracker.toml"`).
 - `TORRUST_TRACKER_API_ADMIN_TOKEN` - Override of the admin token. If set, this value overrides any value set in the config.
-- `TORRUST_TRACKER_DATABASE` - The database type used for the container, (options: `sqlite3`, `mysql`, default `sqlite3`). Please Note: This dose not override the database configuration within the `.toml` config file.
+- `TORRUST_TRACKER_DATABASE_DRIVER` - The database type used for the container, (options: `sqlite3`, `mysql`, default `sqlite3`). Please Note: This dose not override the database configuration within the `.toml` config file.
 - `TORRUST_TRACKER_CONFIG` - Load config from this environmental variable instead from a file, (i.e: `TORRUST_TRACKER_CONFIG=$(cat tracker-tracker.toml)`).
 - `USER_ID` - The user id for the runtime crated `torrust` user. Please Note: This user id should match the ownership of the host-mapped volumes, (default `1000`).
 - `UDP_PORT` - The port for the UDP tracker. This should match the port used in the configuration, (default `6969`).
