@@ -45,9 +45,9 @@ jobs:
         name: Checkout Repository (Push)
         uses: actions/checkout@v4
 
-      - id: checkout_pull_request
-        if: github.event_name  == 'pull_request'
-        name: Checkout Repository (Pull Request)
+      - id: checkout_pull_request_target
+        if: github.event_name  == 'pull_request_target'
+        name: Checkout Repository (Pull Request Target)
         uses: actions/checkout@v4
         with:
           ref: "refs/pull/${{ github.event.pull_request.number }}/head"
