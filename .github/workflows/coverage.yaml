@@ -2,7 +2,11 @@ name: Coverage
 
 on:
   push:
-  pull_request:
+    branches:
+      - develop
+  pull_request_target:
+    branches:
+      - develop
 
 env:
   CARGO_TERM_COLOR: always
@@ -36,9 +40,17 @@ jobs:
       RUSTDOCFLAGS: "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests"
 
     steps:
-      - id: checkout
-        name: Checkout Repository
+      - id: checkout_push
+        if: github.event_name  == 'push'
+        name: Checkout Repository (Push)
         uses: actions/checkout@v4
+
+      - id: checkout_pull_request
+        if: github.event_name  == 'pull_request'
+        name: Checkout Repository (Pull Request)
+        uses: actions/checkout@v4
+        with:
+          ref: "refs/pull/${{ github.event.pull_request.number }}/head"
 
       - id: setup
         name: Setup Toolchain
