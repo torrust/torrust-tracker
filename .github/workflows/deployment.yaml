@@ -8,7 +8,7 @@ on:
 jobs:
   secrets:
     name: Secrets
-    environment: dockerhub-torrust
+    environment: crates-io-torrust
     runs-on: ubuntu-latest
 
     outputs:
@@ -51,7 +51,6 @@ jobs:
     name: Publish
     environment: crates-io-torrust
     needs: test
-    if: needs.secrets.outputs.continue == 'true'
     runs-on: ubuntu-latest
 
     steps:
