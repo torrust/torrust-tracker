@@ -17,5 +17,5 @@ version.workspace = true
 [dependencies]
 lazy_static = "1.4"
 rand = "0.8.5"
-torrust-tracker-configuration = { version = "3.0.0-alpha.8-develop", path = "../configuration" }
-torrust-tracker-primitives = { version = "3.0.0-alpha.8-develop", path = "../primitives" }
+torrust-tracker-configuration = { version = "3.0.0-alpha.8", path = "../configuration" }
+torrust-tracker-primitives = { version = "3.0.0-alpha.8", path = "../primitives" }
