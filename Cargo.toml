@@ -14,89 +14,73 @@ repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 
-
 [workspace.package]
-authors = [
-    "Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>",
-]
+authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>"]
 categories = ["network-programming", "web-programming"]
 description = "A feature rich BitTorrent tracker."
 documentation = "https://docs.rs/crate/torrust-tracker/"
 edition = "2021"
 homepage = "https://torrust.com/"
-keywords = ["bittorrent", "tracker", "file-sharing", "peer-to-peer", "torrent"]
+keywords = ["bittorrent", "file-sharing", "peer-to-peer", "torrent", "tracker"]
 license-file = "COPYRIGHT"
 publish = true
 repository = "https://github.com/torrust/torrust-tracker"
 rust-version = "1.72"
-version = "3.0.0-alpha.6"
-
+version = "3.0.0-alpha.7"
 
 [dependencies]
-tokio = { version = "1.29", features = [
-    "rt-multi-thread",
-    "net",
-    "sync",
-    "macros",
-    "signal",
-] }
-serde = { version = "1.0", features = ["derive"] }
-serde_bencode = "^0.2"
-serde_json = "1.0"
-serde_with = "3.2"
-percent-encoding = "2.2"
+aquatic_udp_protocol = "0.8"
+async-trait = "0.1"
+axum = "0.6"
+axum-client-ip = "0.4"
+axum-server = { version = "0.5", features = ["tls-rustls"] }
 binascii = "0.1"
-lazy_static = "1.4"
-openssl = { version = "0.10", features = ["vendored"] }
-config = "0.13"
-log = { version = "0.4", features = ["release_max_level_info"] }
-fern = "0.6"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
+config = "0.13"
+derive_more = "0.99"
+fern = "0.6"
+futures = "0.3"
+hyper = "0.14"
+lazy_static = "1.4"
+log = { version = "0.4", features = ["release_max_level_info"] }
+multimap = "0.9"
+openssl = { version = "0.10", features = ["vendored"] }
+percent-encoding = "2.2"
 r2d2 = "0.8"
 r2d2_mysql = "24.0"
 r2d2_sqlite = { version = "0.22", features = ["bundled"] }
 rand = "0.8"
-derive_more = "0.99"
+serde = { version = "1.0", features = ["derive"] }
+serde_bencode = "^0.2"
+serde_json = "1.0"
+serde_with = "3.2"
 thiserror = "1.0"
-futures = "0.3"
-async-trait = "0.1"
-aquatic_udp_protocol = "0.8"
-uuid = { version = "1", features = ["v4"] }
-axum = "0.6"
-axum-server = { version = "0.5", features = ["tls-rustls"] }
-axum-client-ip = "0.4"
+tokio = { version = "1.29", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+torrust-tracker-configuration = { version = "3.0.0-alpha.7", path = "packages/configuration" }
+torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.7", path = "contrib/bencode" }
+torrust-tracker-located-error = { version = "3.0.0-alpha.7", path = "packages/located-error" }
+torrust-tracker-primitives = { version = "3.0.0-alpha.7", path = "packages/primitives" }
 tower-http = { version = "0.4", features = ["compression-full"] }
-torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.6", path = "contrib/bencode"}
-torrust-tracker-primitives = { version = "3.0.0-alpha.6", path = "packages/primitives" }
-torrust-tracker-configuration = { version = "3.0.0-alpha.6", path = "packages/configuration" }
-torrust-tracker-located-error = { version = "3.0.0-alpha.6", path = "packages/located-error" }
-multimap = "0.9"
-hyper = "0.14"
+uuid = { version = "1", features = ["v4"] }
 
 [dev-dependencies]
+local-ip-address = "0.5"
 mockall = "0.11"
 reqwest = { version = "0.11.18", features = ["json"] }
-serde_urlencoded = "0.7"
-serde_repr = "0.1"
 serde_bytes = "0.11"
-local-ip-address = "0.5"
-torrust-tracker-test-helpers = { version = "3.0.0-alpha.6", path = "packages/test-helpers" }
+serde_repr = "0.1"
+serde_urlencoded = "0.7"
+torrust-tracker-test-helpers = { version = "3.0.0-alpha.7", path = "packages/test-helpers" }
 
 [workspace]
-members = [
-    "contrib/bencode",
-    "packages/configuration",
-    "packages/primitives",
-    "packages/test-helpers",
-    "packages/located-error",
-]
+members = ["contrib/bencode", "packages/configuration", "packages/located-error", "packages/primitives", "packages/test-helpers"]
 
 [profile.dev]
 debug = 1
-opt-level = 1
 lto = "thin"
+opt-level = 1
 
 [profile.release]
 debug = 1
-opt-level = 3
 lto = "fat"
+opt-level = 3
