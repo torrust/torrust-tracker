@@ -1,24 +1,30 @@
-#  Torrust Tracker Release Process (draft)
+#  Torrust Tracker Release Process (draft 2)
 
 The purpose of this document is to describe the release process.
 
 ## Overview
 
-Torrust Tracker is published in this order:
+Torrust Tracker is published according to this protocol:
 
-1. `develop` branch is ready for publishing.
-2. create `release: version (semantic version)` commit.
-3. push release commit to `main` branch.
-4. check all status checks succeed for `main` branch.
-5. push `main` branch to `releases\v(semantic version)` branch.
-6. check all status checks success for `releases\v(semantic version)` branch.
-7. create signed `v(semantic version)` tag.
-8. create github release from `v(semantic version)` tag.
-9. merge `main` branch into `develop` branch.
+0. After release create new pull request into `develop` branch:
+
+- The `develop` branch has the (semantic version) suffix `-develop`.
+- The version is bumped according to releases, new features, and breaking changes.
+
+- [ ] `develop` is ready for branching for a release.
+- [ ] force-push develop to `staging` branch.
+- [ ] commit `release: version (semantic version)`, removing the `-develop` suffix.
+- [ ] create pull request to merge `staging` into `main` branch.
+- [ ] check all status checks succeed for `main` branch.
+- [ ] push `main` branch to `releases\v(semantic version)` branch.
+- [ ] check all status checks success for `releases\v(semantic version)` branch.
+- [ ] create signed `v(semantic version)` tag from `releases\v(semantic version) HEAD`.
+- [ ] create github release from `v(semantic version)` tag.
+- [ ] merge the `main` branch back into `develop` branch, assuring that the (semantic version) has the suffix `-develop`.
 
 - At step `1.`, `develop` is automatically published to `dockerhub`.
 - At step `3.`, `main` is automatically published to `dockerhub`.
-- At step `5.`, `releases\v(semantic version)` is automatically published to `dockerhub` and `crate.io`.
+- At step `6.`, `releases\v(semantic version)` is automatically published to `dockerhub` and `crate.io`.
 
 ## Development Branch
 
