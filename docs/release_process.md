@@ -13,12 +13,12 @@ Torrust Tracker is published according to this protocol:
 
 - [ ] `develop` is ready for branching for a release.
 - [ ] force-push develop to `staging` branch.
-- [ ] commit `release: version (semantic version)`, removing the `-develop` suffix.
+- [ ] commit `release: version (semantic version)`, that removes the `-develop` suffix.
 - [ ] create pull request to merge `staging` into `main` branch.
 - [ ] check all status checks succeed for `main` branch.
-- [ ] push `main` branch to `releases\v(semantic version)` branch.
-- [ ] check all status checks success for `releases\v(semantic version)` branch.
-- [ ] create signed `v(semantic version)` tag from `releases\v(semantic version) HEAD`.
+- [ ] push `main` branch to `releases/(semantic version)` branch.
+- [ ] check all status checks success for `releases/(semantic version)` branch.
+- [ ] create signed `v(semantic version)` tag from `releases/(semantic version) HEAD`.
 - [ ] create github release from `v(semantic version)` tag.
 - [ ] merge the `main` branch back into `develop` branch, assuring that the (semantic version) has the suffix `-develop`.
 

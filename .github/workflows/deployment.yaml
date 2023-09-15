@@ -64,11 +64,10 @@ jobs:
         with:
           toolchain: stable
 
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
       - id: publish
         name: Publish Crates
+        env:
+          CARGO_REGISTRY_TOKEN: "${{ secrets.CARGO_REGISTRY_TOKEN }}"
         run: |
           cargo publish -p torrust-tracker-contrib-bencode
           cargo publish -p torrust-tracker-located-error
