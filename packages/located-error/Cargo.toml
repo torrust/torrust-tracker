@@ -1,7 +1,7 @@
 [package]
-name = "torrust-tracker-located-error"
 description = "A library to provide error decorator with the location and the source of the original error."
-keywords = ["library", "helper", "errors"]
+keywords = ["errors", "helper", "library"]
+name = "torrust-tracker-located-error"
 readme = "README.md"
 
 authors.workspace = true
@@ -13,7 +13,6 @@ publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
-
 
 [dependencies]
 log = { version = "0.4", features = ["release_max_level_info"] }

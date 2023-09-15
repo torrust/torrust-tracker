@@ -20,4 +20,9 @@
     "-W",
     "clippy::pedantic",
   ],
+  "evenBetterToml.formatter.allowedBlankLines": 1,
+  "evenBetterToml.formatter.columnWidth": 130,
+  "evenBetterToml.formatter.trailingNewline": true,
+  "evenBetterToml.formatter.reorderKeys": true,
+  "evenBetterToml.formatter.reorderArrays": true,
 }
