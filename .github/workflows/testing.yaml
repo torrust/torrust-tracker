@@ -104,6 +104,7 @@ jobs:
         name: Run Unit Tests
         run: cargo test --tests --benches --examples --workspace --all-targets --all-features
 
-      - id: coverage
-        name: Generate Coverage Report
-        run: cargo llvm-cov nextest --tests --benches --examples --workspace --all-targets --all-features
+      # Temporary Disable https://github.com/time-rs/time/issues/618
+      # - id: coverage
+      #   name: Generate Coverage Report
+      #   run: cargo llvm-cov nextest --tests --benches --examples --workspace --all-targets --all-features
