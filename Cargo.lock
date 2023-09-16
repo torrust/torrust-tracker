@@ -3169,7 +3169,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker"
-version = "3.0.0-alpha.9"
+version = "3.0.0-alpha.10"
 dependencies = [
  "aquatic_udp_protocol",
  "async-trait",
@@ -3215,7 +3215,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-configuration"
-version = "3.0.0-alpha.9"
+version = "3.0.0-alpha.10"
 dependencies = [
  "config",
  "log",
@@ -3230,7 +3230,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-contrib-bencode"
-version = "3.0.0-alpha.9"
+version = "3.0.0-alpha.10"
 dependencies = [
  "criterion",
  "error-chain",
@@ -3238,7 +3238,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-located-error"
-version = "3.0.0-alpha.9"
+version = "3.0.0-alpha.10"
 dependencies = [
  "log",
  "thiserror",
@@ -3246,7 +3246,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-primitives"
-version = "3.0.0-alpha.9"
+version = "3.0.0-alpha.10"
 dependencies = [
  "derive_more",
  "serde",
@@ -3254,7 +3254,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-test-helpers"
-version = "3.0.0-alpha.9"
+version = "3.0.0-alpha.10"
 dependencies = [
  "lazy_static",
  "rand",
