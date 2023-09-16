@@ -6,26 +6,8 @@ on:
       - "releases/**/*"
 
 jobs:
-  secrets:
-    name: Secrets
-    environment: crates-io-torrust
-    runs-on: ubuntu-latest
-
-    outputs:
-      continue: ${{ steps.check.outputs.continue }}
-
-    steps:
-      - id: check
-        name: Check
-        env:
-          CARGO_REGISTRY_TOKEN: "${{ secrets.CARGO_REGISTRY_TOKEN }}"
-        if: "${{ env.CARGO_REGISTRY_TOKEN != '' }}"
-        run: echo "continue=true" >> $GITHUB_OUTPUT
-
   test:
     name: Test
-    needs: secrets
-    if: needs.secrets.outputs.continue == 'true'
     runs-on: ubuntu-latest
 
     strategy:
@@ -49,7 +31,7 @@ jobs:
 
   publish:
     name: Publish
-    environment: crates-io-torrust
+    environment: deployment
     needs: test
     runs-on: ubuntu-latest
 
@@ -67,7 +49,7 @@ jobs:
       - id: publish
         name: Publish Crates
         env:
-          CARGO_REGISTRY_TOKEN: "${{ secrets.CARGO_REGISTRY_TOKEN }}"
+          CARGO_REGISTRY_TOKEN: "${{ secrets.TORRUST_UPDATE_CARGO_REGISTRY_TOKEN }}"
         run: |
           cargo publish -p torrust-tracker-contrib-bencode
           cargo publish -p torrust-tracker-located-error

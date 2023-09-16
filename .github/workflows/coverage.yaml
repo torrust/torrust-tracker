@@ -12,27 +12,9 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  secrets:
-    name: Secrets
-    environment: coverage
-    runs-on: ubuntu-latest
-
-    outputs:
-      continue: ${{ steps.check.outputs.continue }}
-
-    steps:
-      - id: check
-        name: Check
-        env:
-          CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
-        if: "${{ env.CODECOV_TOKEN != '' }}"
-        run: echo "continue=true" >> $GITHUB_OUTPUT
-
   report:
     name: Report
     environment: coverage
-    needs: secrets
-    if: needs.secrets.outputs.continue == 'true'
     runs-on: ubuntu-latest
     env:
       CARGO_INCREMENTAL: "0"
