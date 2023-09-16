@@ -21,8 +21,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_with = "3.2"
 thiserror = "1.0"
 toml = "0.8"
-torrust-tracker-located-error = { version = "3.0.0-alpha.9-develop", path = "../located-error" }
-torrust-tracker-primitives = { version = "3.0.0-alpha.9-develop", path = "../primitives" }
+torrust-tracker-located-error = { version = "3.0.0-alpha.10-develop", path = "../located-error" }
+torrust-tracker-primitives = { version = "3.0.0-alpha.10-develop", path = "../primitives" }
 
 [dev-dependencies]
 uuid = { version = "1", features = ["v4"] }
