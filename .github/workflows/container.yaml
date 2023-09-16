@@ -80,7 +80,7 @@ jobs:
                 echo "continue=true" >> $GITHUB_OUTPUT
                 echo "On \`develop\` Branch, Type: \`development\`"
 
-              elif [[ "${{ github.ref }}" =~ ^(refs\/heads\/releases\/)(v)(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$ ]]; then
+              elif [[ $(echo "${{ github.ref }}" | grep -P '^(refs\/heads\/releases\/)(v)(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$') ]]; then
 
                 version=$(echo "${{ github.ref }}" | sed -n -E 's/^(refs\/heads\/releases\/)//p')
                 echo "version=$version" >> $GITHUB_OUTPUT
