@@ -54,6 +54,7 @@ jobs:
 
   context:
     name: Context
+    needs: test
     runs-on: ubuntu-latest
 
     outputs:
@@ -97,29 +98,11 @@ jobs:
             echo "On a Forked Repository. Will Not Continue"
           fi
 
-  secrets:
-    name: Secrets
-    needs: [test, context]
-    environment: dockerhub-torrust
-    if: needs.context.outputs.continue == 'true'
-    runs-on: ubuntu-latest
-
-    outputs:
-      continue: ${{ steps.check.outputs.continue }}
-
-    steps:
-      - id: check
-        name: Check
-        env:
-          DOCKER_HUB_ACCESS_TOKEN: "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}"
-        if: "${{ env.DOCKER_HUB_ACCESS_TOKEN != '' }}"
-        run: echo "continue=true" >> $GITHUB_OUTPUT
-
   publish_development:
     name: Publish (Development)
     environment: dockerhub-torrust
-    needs: [secrets, context]
-    if: needs.secrets.outputs.continue == 'true' && needs.context.outputs.type == 'development'
+    needs: context
+    if: needs.context.outputs.continue == 'true' && needs.context.outputs.type == 'development'
     runs-on: ubuntu-latest
 
     steps:
@@ -156,8 +139,8 @@ jobs:
   publish_release:
     name: Publish (Release)
     environment: dockerhub-torrust
-    needs: [secrets, context]
-    if: needs.secrets.outputs.continue == 'true' && needs.context.outputs.type == 'release'
+    needs: context
+    if: needs.context.outputs.continue == 'true' && needs.context.outputs.type == 'release'
     runs-on: ubuntu-latest
 
     steps:
