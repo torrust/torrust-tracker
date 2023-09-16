@@ -1,68 +1,75 @@
-#  Torrust Tracker Release Process (v2.1.0-draft)
+#  Torrust Tracker Release Process (v2.2.0)
 
-The purpose of this document is to describe the release process.
+## Version:
+> **The `[semantic version]` is bumped according to releases, new features, and breaking changes.**
+>
+> *The `develop` branch uses the (semantic version) suffix `-develop`.*
 
-## Overview
+## Process:
 
-Torrust Tracker is published according to this protocol:
+### 1. The `develop` branch is ready for a release.
+The `develop` branch should have the version `[semantic version]-develop` that is ready to be released.
 
-0. After release create new pull request into `develop` branch:
+### 2. Stage `develop` HEAD for merging into the `main` branch:
 
-- The `develop` branch has the (semantic version) suffix `-develop`.
-- The version is bumped according to releases, new features, and breaking changes.
+```sh
+git fetch --all
+git push --force torrust develop:staging/main
+```
 
-- [ ] `develop` is ready for branching for a release.
-- [ ] force-push `develop` to `staging/main` branch.
-- [ ] commit `release: version (semantic version)`, that removes the `-develop` suffix.
-- [ ] create pull request to merge `staging/main` into `main` branch.
-- [ ] push `main` branch to `releases/v(semantic version)` branch.
-- [ ] check all status checks success for `releases/(semantic version)` branch.
-- [ ] create signed `v(semantic version)` tag from `releases/(semantic version) HEAD`.
-- [ ] create github release from `v(semantic version)` tag.
-- [ ] force-push `main` to `staging/develop` branch.
-- [ ] commit `develop: bump version (semantic version)-develop`, that bumps the version and adds the `-develop` suffix.
-- [ ] create pull request to merge `staging/develop` into `develop` branch.
+### 3. Create Release Commit:
 
-- At step `1.`, `develop` is automatically published to `dockerhub`.
-- At step `3.`, `main` is automatically published to `dockerhub`.
-- At step `6.`, `releases/v(semantic version)` is automatically published to `dockerhub` and `crate.io`.
+```sh
+git stash
+git switch staging/main
+# change `[semantic version]-develop` to `[semantic version]`.
+git add -A
+git commit -m "release: version [semantic version]"
+git push torrust
+```
 
-## Development Branch
+### 4. Create and Merge Pull Request from `staging/main` into `main` branch.
+This pull request merges the new version into the `main` branch.
 
-The `develop` branch, the default branch for the repository is automatically published to dockerhub with the `develop` label. This process happens automatically when a pull request is merged in, and the `container.yaml` workflow is triggered.
+### 5. Push new version from `main` HEAD to `releases/v[semantic version]` branch:
 
-## Main Branch
+```sh
+git fetch --all
+git push torrust main:releases/v[semantic version]
+```
 
-The `main` branch is the staging branch for releases.
+> **Check that the deployment is successful!**
 
-A release commit needs to be made that prepares the repository for the release, this commit should include:
+### 6. Create Release Tag:
 
-- Changing the semantic version.
-- Finalizing the release notes and changelog.
+```sh
+git switch releases/v[semantic version]
+git tag --sign v[semantic version]
+git push --tags torrust
+```
 
-The title of the commit should be: `release: version (semantic version)`.
+### 7. Create Release on Github from Tag.
+This is for those who wish to download the source code.
 
-This commit should be committed upon the head of the development branch, and pushed to the `main` branch.
+### 8. Stage `main` HEAD for merging into the `develop` branch:
+Merge release back into the develop branch.
 
-Once the release has succeeded, the `main` branch should be merged back into the `develop` branch.
+```sh
+git fetch --all
+git push --force torrust main:staging/develop
+```
+### 9. Create Comment that bumps next development version:
 
-## Releases Branch
+```sh
+git stash
+git switch staging/main
+# change `[semantic version]` to `(next)[semantic version]-develop`.
+git add -A
+git commit -m "develop: bump to version (next)[semantic version]-develop"
+git push torrust
+```
 
-According to the patten `releases/v(semantic version)`, the `main` branch head is published to here to trigger the deployment workflows.
-
-The repository deployment environment for crates.io is only available for the `releases/**/*` patten of branches.
-
-Once the publishing workflows have succeeded; we can make the git-tag.
-
-## Release Tag
-
-Create a Signed Tag with a short message in the form `v(semantic version)` and push it to the repository.
-
-## Github Release
-
-From the newly published tag, create a Github Release using the web-interface.
+### 10. Create and Merge Pull Request from `staging/develop` into `develop` branch.
+This pull request merges the new release into the `develop` branch and bumps the version number.
 
 
-## Merge back into development branch
-
-After this is all successful, the `main` branch should be merged into the `develop` branch.
