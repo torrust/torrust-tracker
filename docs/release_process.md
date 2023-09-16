@@ -1,4 +1,4 @@
-#  Torrust Tracker Release Process (draft 2)
+#  Torrust Tracker Release Process (v2.1.0-draft)
 
 The purpose of this document is to describe the release process.
 
@@ -12,19 +12,20 @@ Torrust Tracker is published according to this protocol:
 - The version is bumped according to releases, new features, and breaking changes.
 
 - [ ] `develop` is ready for branching for a release.
-- [ ] force-push develop to `staging` branch.
+- [ ] force-push `develop` to `staging/main` branch.
 - [ ] commit `release: version (semantic version)`, that removes the `-develop` suffix.
-- [ ] create pull request to merge `staging` into `main` branch.
-- [ ] check all status checks succeed for `main` branch.
-- [ ] push `main` branch to `releases/(semantic version)` branch.
+- [ ] create pull request to merge `staging/main` into `main` branch.
+- [ ] push `main` branch to `releases/v(semantic version)` branch.
 - [ ] check all status checks success for `releases/(semantic version)` branch.
 - [ ] create signed `v(semantic version)` tag from `releases/(semantic version) HEAD`.
 - [ ] create github release from `v(semantic version)` tag.
-- [ ] merge the `main` branch back into `develop` branch, assuring that the (semantic version) has the suffix `-develop`.
+- [ ] force-push `main` to `staging/develop` branch.
+- [ ] commit `develop: bump version (semantic version)-develop`, that bumps the version and adds the `-develop` suffix.
+- [ ] create pull request to merge `staging/develop` into `develop` branch.
 
 - At step `1.`, `develop` is automatically published to `dockerhub`.
 - At step `3.`, `main` is automatically published to `dockerhub`.
-- At step `6.`, `releases\v(semantic version)` is automatically published to `dockerhub` and `crate.io`.
+- At step `6.`, `releases/v(semantic version)` is automatically published to `dockerhub` and `crate.io`.
 
 ## Development Branch
 
