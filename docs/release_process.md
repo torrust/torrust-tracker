@@ -1,4 +1,4 @@
-#  Torrust Tracker Release Process (v2.2.0)
+#  Torrust Tracker Release Process (v2.2.1)
 
 ## Version:
 > **The `[semantic version]` is bumped according to releases, new features, and breaking changes.**
@@ -29,6 +29,9 @@ git push torrust
 ```
 
 ### 4. Create and Merge Pull Request from `staging/main` into `main` branch.
+
+Pull request title format: "Release Version `[semantic version]`".
+
 This pull request merges the new version into the `main` branch.
 
 ### 5. Push new version from `main` HEAD to `releases/v[semantic version]` branch:
@@ -70,6 +73,7 @@ git push torrust
 ```
 
 ### 10. Create and Merge Pull Request from `staging/develop` into `develop` branch.
+
+Pull request title format: "Version `[semantic version]` was Released".
+
 This pull request merges the new release into the `develop` branch and bumps the version number.
-
-
