@@ -179,13 +179,13 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 
 [containers.md]: ./docs/containers.md
 
-[api]: https://docs.rs/torrust-tracker/3.0.0-alpha.12-develop/torrust_tracker/servers/apis/v1
-[http]: https://docs.rs/torrust-tracker/3.0.0-alpha.12-develop/torrust_tracker/servers/http
-[udp]: https://docs.rs/torrust-tracker/3.0.0-alpha.12-develop/torrust_tracker/servers/udp
+[api]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/apis/v1
+[http]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/http
+[udp]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/udp
 
 [good first issues]: https://github.com/torrust/torrust-tracker/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
 [documentation]: https://docs.rs/torrust-tracker/
-[API documentation]: https://docs.rs/torrust-tracker/3.0.0-alpha.12-develop/torrust_tracker/servers/apis/v1
+[API documentation]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/apis/v1
 [discussions]: https://github.com/torrust/torrust-tracker/discussions
 
 [COPYRIGHT]: ./COPYRIGHT
