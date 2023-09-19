@@ -31,7 +31,6 @@ __Torrust Tracker__, is a [BitTorrent][bittorrent] Tracker (a service that match
 - [BEP 27] : Private Torrents.
 - [BEP 48] : Tracker Protocol Extension: Scrape.
 
-
 ## Getting Started
 
 ### Container Version
@@ -120,7 +119,6 @@ The following services are provided by the default configuration:
 - API _(management)_
   - `http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken`.
 
-
 ## Documentation
 
 - [Management API (Version 1)][api]
@@ -141,7 +139,29 @@ __How can you contribute?__
 
 ## License
 
-The project is licensed under a dual license. See [COPYRIGHT].
+**Copyright (c) 2023 The Torrust Developers.**
+
+This program is free software: you can redistribute it and/or modify it under the terms of the [GNU Affero General Public License][AGPL_3_0] as published by the [Free Software Foundation][FSF], version 3.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU Affero General Public License][AGPL_3_0] for more details.
+
+You should have received a copy of the *GNU Affero General Public License* along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+Some files include explicit copyright notices and/or license notices.
+
+### Legacy Exception
+
+For prosperity, versions of Torrust Tracker that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [AGPL-3.0-only][AGPL_3_0] license.
+
+## Contributions
+
+The copyright of the Torrust Tracker is retained by the respective authors.
+
+**Contributors agree:**
+- That all their contributions be granted a license(s) **compatible** with the [Torrust Trackers License](#License).
+- That all contributors signal **clearly** and **explicitly** any other compilable licenses if they are not: *[AGPL-3.0-only with the legacy MIT-0 exception](#License)*.
+
+**The Torrust-Tracker project has no copyright assignment agreement.**
 
 ## Acknowledgments
 
@@ -189,6 +209,10 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 [discussions]: https://github.com/torrust/torrust-tracker/discussions
 
 [COPYRIGHT]: ./COPYRIGHT
+[AGPL_3_0]: ./docs/licenses/LICENSE-AGPL_3_0
+[MIT_0]: ./docs/licenses/LICENSE-MIT_0
+[FSF]: https://www.fsf.org/
+
 
 [nautilus]: https://github.com/orgs/Nautilus-Cyberneering/
 [Dutch Bits]: https://dutchbits.nl
