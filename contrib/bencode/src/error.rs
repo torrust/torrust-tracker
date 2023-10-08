@@ -1,3 +1,5 @@
+#![allow(unknown_lints)]
+#![allow(clippy::iter_without_into_iter)]
 use error_chain::error_chain;
 
 error_chain! {
