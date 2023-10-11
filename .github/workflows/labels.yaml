@@ -1,5 +1,5 @@
 name: Manage Labels
-on: 
+on:
   workflow_dispatch:
 
 jobs:
@@ -10,3 +10,11 @@ jobs:
       - id: export
         name: Export Labels to Workflow Artifacts
         uses: EndBug/export-label-config@v1
+
+      - id: sync
+        name: Apply Labels from File
+        uses: EndBug/label-sync@v2
+        with:
+          config-file: .github/labels.json
+          delete-other-labels: true
+          token: ${{ secrets.UPDATE_ISSUES }}
