@@ -1,15 +1,29 @@
 name: Manage Labels
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - develop
+    paths:
+      - "/.github/labels.json"
 
 jobs:
-  labels:
+  export:
     runs-on: ubuntu-latest
 
     steps:
-      - id: export
+      - id: backup
         name: Export Labels to Workflow Artifacts
         uses: EndBug/export-label-config@v1
+
+  sync:
+    needs: export
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v4
 
       - id: sync
         name: Apply Labels from File
