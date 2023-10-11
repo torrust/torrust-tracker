@@ -1,0 +1,12 @@
+name: Manage Labels
+on: 
+  workflow_dispatch:
+
+jobs:
+  labels:
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: export
+        name: Export Labels to Workflow Artifacts
+        uses: EndBug/export-label-config@v1
