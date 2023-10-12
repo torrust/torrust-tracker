@@ -51,7 +51,7 @@ pub struct PaginationParams {
 /// It handles the request to get a list of torrents.
 ///
 /// It returns a `200` response with a json array with
-/// [`ListItem`](crate::servers::apis::v1::context::torrent::resources::torrent::ListItem)
+/// [`ListItem`]
 /// resources.
 ///
 /// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::torrent#list-torrents)

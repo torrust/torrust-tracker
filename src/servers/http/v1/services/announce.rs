@@ -3,10 +3,10 @@
 //! The service is responsible for handling the `announce` requests.
 //!
 //! It delegates the `announce` logic to the [`Tracker`](crate::tracker::Tracker::announce)
-//! and it returns the [`AnnounceData`](crate::tracker::AnnounceData) returned
-//! by the [`Tracker`](crate::tracker::Tracker).
+//! and it returns the [`AnnounceData`] returned
+//! by the [`Tracker`].
 //!
-//! It also sends an [`statistics::Event`](crate::tracker::statistics::Event)
+//! It also sends an [`statistics::Event`]
 //! because events are specific for the HTTP tracker.
 use std::net::IpAddr;
 use std::sync::Arc;

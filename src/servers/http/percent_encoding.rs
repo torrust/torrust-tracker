@@ -19,7 +19,7 @@ use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
 use crate::tracker::peer::{self, IdConversionError};
 
 /// Percent decodes a percent encoded infohash. Internally an
-/// [`InfoHash`](crate::shared::bit_torrent::info_hash::InfoHash) is a 20-byte array.
+/// [`InfoHash`] is a 20-byte array.
 ///
 /// For example, given the infohash `3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0`,
 /// it's percent encoded representation is `%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0`.
@@ -43,7 +43,7 @@ use crate::tracker::peer::{self, IdConversionError};
 /// # Errors
 ///
 /// Will return `Err` if the decoded bytes do not represent a valid
-/// [`InfoHash`](crate::shared::bit_torrent::info_hash::InfoHash).
+/// [`InfoHash`].
 pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, ConversionError> {
     let bytes = percent_encoding::percent_decode_str(raw_info_hash).collect::<Vec<u8>>();
     InfoHash::try_from(bytes)
@@ -70,7 +70,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, Convers
 ///
 /// # Errors
 ///
-/// Will return `Err` if if the decoded bytes do not represent a valid [`peer::Id`](crate::tracker::peer::Id).
+/// Will return `Err` if if the decoded bytes do not represent a valid [`peer::Id`].
 pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<peer::Id, IdConversionError> {
     let bytes = percent_encoding::percent_decode_str(raw_peer_id).collect::<Vec<u8>>();
     peer::Id::try_from(bytes)

@@ -1,6 +1,6 @@
 //! Setup for the tracker statistics.
 //!
-//! The [`factory`](crate::tracker::services::statistics::setup::factory) function builds the structs needed for handling the tracker metrics.
+//! The [`factory`] function builds the structs needed for handling the tracker metrics.
 use crate::tracker::statistics;
 
 /// It builds the structs needed for handling the tracker metrics.

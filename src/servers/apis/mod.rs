@@ -3,7 +3,7 @@
 //! > **NOTICE**: This API should not be exposed directly to the internet, it is
 //! intended for internal use only.
 //!
-//! Endpoints for the latest API: [v1](crate::servers::apis::v1).
+//! Endpoints for the latest API: [v1].
 //!
 //! All endpoints require an authorization token which must be set in the
 //! configuration before running the tracker. The default configuration uses
@@ -139,13 +139,13 @@
 //!
 //! The API is versioned and each version has its own module.
 //! The API server runs all the API versions on the same server using
-//! the same port. Currently there is only one API version: [v1](crate::servers::apis::v1)
+//! the same port. Currently there is only one API version: [v1]
 //! but a version [`v2`](https://github.com/torrust/torrust-tracker/issues/144)
 //! is planned.
 //!
 //! # Endpoints
 //!
-//! Refer to the [v1](crate::servers::apis::v1) module for the list of available
+//! Refer to the [v1] module for the list of available
 //! API endpoints.
 //!
 //! # Documentation

@@ -19,7 +19,7 @@ use crate::tracker::Tracker;
 ///
 /// It returns two types of responses:
 ///
-/// - `200` with an json [`AuthKey`](crate::servers::apis::v1::context::auth_key::resources::AuthKey)
+/// - `200` with an json [`AuthKey`]
 ///    resource. If the key was generated successfully.
 /// - `500` with serialized error in debug format. If the key couldn't be
 ///    generated.

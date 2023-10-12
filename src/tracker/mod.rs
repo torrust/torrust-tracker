@@ -52,7 +52,7 @@
 //! The tracker responds to the peer with the list of other peers in the swarm so that
 //! the peer can contact them to start downloading pieces of the file from them.
 //!
-//! Once you have instantiated the `Tracker` you can `announce` a new [`peer`](crate::tracker::peer::Peer) with:
+//! Once you have instantiated the `Tracker` you can `announce` a new [`Peer`] with:
 //!
 //! ```rust,no_run
 //! use torrust_tracker::tracker::peer;
@@ -183,7 +183,7 @@
 //!
 //! ## Torrents
 //!
-//! The [`torrent`](crate::tracker::torrent) module contains all the data structures stored by the `Tracker` except for peers.
+//! The [`torrent`] module contains all the data structures stored by the `Tracker` except for peers.
 //!
 //! We can represent the data stored in memory internally by the `Tracker` with this JSON object:
 //!
@@ -222,7 +222,7 @@
 //!  they have a full version of the torrent data, and they can provide the full data to other peers. That's why they are also known as "seeders".
 //! - `peers`: an indexed and orderer list of peer for the torrent. Each peer contains the data received from the peer in the `announce` request.
 //!
-//! The [`torrent`](crate::tracker::torrent) module not only contains the original data obtained from peer via `announce` requests, it also contains
+//! The [`torrent`] module not only contains the original data obtained from peer via `announce` requests, it also contains
 //! aggregate data that can be derived from the original data. For example:
 //!
 //! ```rust,no_run
@@ -244,7 +244,7 @@
 //! `SwarmStats` struct follows name conventions for `scrape` responses. See [BEP 48](https://www.bittorrent.org/beps/bep_0048.html), while `SwarmStats`
 //! is used for the rest of cases.
 //!
-//! Refer to [`torrent`](crate::tracker::torrent) module for more details about these data structures.
+//! Refer to [`torrent`] module for more details about these data structures.
 //!
 //! ## Peers
 //!
@@ -310,7 +310,7 @@
 //! `c1277613db1d28709b034a017ab2cae4be07ae10` is the torrent infohash and `completed` contains the number of peers
 //! that have a full version of the torrent data, also known as seeders.
 //!
-//! Refer to [`peer`](crate::tracker::peer) module for more information about peers.
+//! Refer to [`peer`] module for more information about peers.
 //!
 //! # Configuration
 //!
@@ -348,7 +348,7 @@
 //!
 //! Services can include extra features like pagination, for example.
 //!
-//! Refer to [`services`](crate::tracker::services) module for more information about services.
+//! Refer to [`services`] module for more information about services.
 //!
 //! # Authentication
 //!
@@ -363,7 +363,7 @@
 //!
 //! To learn more about tracker authentication, refer to the following modules :
 //!
-//! - [`auth`](crate::tracker::auth) module.
+//! - [`auth`] module.
 //! - [`tracker`](crate::tracker) module.
 //! - [`http`](crate::servers::http) module.
 //!
@@ -417,7 +417,7 @@
 //! tracker.send_stats_event(statistics::Event::Tcp4Announce).await
 //! ```
 //!
-//! Refer to [`statistics`](crate::tracker::statistics) module for more information about statistics.
+//! Refer to [`statistics`] module for more information about statistics.
 //!
 //! # Persistence
 //!
@@ -430,7 +430,7 @@
 //! - Torrent whitelist
 //! - Torrent metrics
 //!
-//! Refer to [`databases`](crate::tracker::databases) module for more information about persistence.
+//! Refer to [`databases`] module for more information about persistence.
 pub mod auth;
 pub mod databases;
 pub mod error;
@@ -753,7 +753,7 @@ impl Tracker {
     }
 
     /// It calculates and returns the general `Tracker`
-    /// [`TorrentsMetrics`](crate::tracker::TorrentsMetrics)
+    /// [`TorrentsMetrics`]
     ///
     /// # Context: Tracker
     pub async fn get_torrents_metrics(&self) -> TorrentsMetrics {

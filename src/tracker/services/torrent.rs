@@ -2,8 +2,8 @@
 //!
 //! There are two services:
 //!
-//! - [`get_torrent_info`](crate::tracker::services::torrent::get_torrent_info): it returns all the data about one torrent.
-//! - [`get_torrents`](crate::tracker::services::torrent::get_torrents): it returns data about some torrent in bulk excluding the peer list.
+//! - [`get_torrent_info`]: it returns all the data about one torrent.
+//! - [`get_torrents`]: it returns data about some torrent in bulk excluding the peer list.
 use std::sync::Arc;
 
 use serde::Deserialize;
@@ -29,7 +29,7 @@ pub struct Info {
 
 /// It contains only part of the information the tracker has about a torrent
 ///
-/// It contains the same data as [Info](crate::tracker::services::torrent::Info) but without the list of peers in the swarm.
+/// It contains the same data as [Info] but without the list of peers in the swarm.
 #[derive(Debug, PartialEq, Clone)]
 pub struct BasicInfo {
     /// The infohash of the torrent this data is related to
@@ -91,7 +91,7 @@ impl Default for Pagination {
     }
 }
 
-/// It returns all the information the tracker has about one torrent in a [Info](crate::tracker::services::torrent::Info) struct.
+/// It returns all the information the tracker has about one torrent in a [Info] struct.
 pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Option<Info> {
     let db = tracker.get_torrents().await;
 
@@ -116,7 +116,7 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
     })
 }
 
-/// It returns all the information the tracker has about multiple torrents in a [`BasicInfo`](crate::tracker::services::torrent::BasicInfo) struct, excluding the peer list.
+/// It returns all the information the tracker has about multiple torrents in a [`BasicInfo`] struct, excluding the peer list.
 pub async fn get_torrents(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec<BasicInfo> {
     let db = tracker.get_torrents().await;
 

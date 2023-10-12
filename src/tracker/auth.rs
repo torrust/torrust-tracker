@@ -4,7 +4,7 @@
 //! Tracker keys are tokens used to authenticate the tracker clients when the tracker runs
 //! in `private` or `private_listed` modes.
 //!
-//! There are services to [`generate`](crate::tracker::auth::generate)  and [`verify`](crate::tracker::auth::verify)  authentication keys.
+//! There are services to [`generate`]  and [`verify`]  authentication keys.
 //!
 //! Authentication keys are used only by [`HTTP`](crate::servers::http) trackers. All keys have an expiration time, that means
 //! they are only valid during a period of time. After that time the expiring key will no longer be valid.
@@ -53,7 +53,7 @@ use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
 use crate::shared::clock::{convert_from_timestamp_to_datetime_utc, Current, DurationSinceUnixEpoch, Time, TimeNow};
 
 #[must_use]
-/// It generates a new random 32-char authentication [`ExpiringKey`](crate::tracker::auth::ExpiringKey)
+/// It generates a new random 32-char authentication [`ExpiringKey`]
 ///
 /// # Panics
 ///
@@ -73,7 +73,7 @@ pub fn generate(lifetime: Duration) -> ExpiringKey {
     }
 }
 
-/// It verifies an [`ExpiringKey`](crate::tracker::auth::ExpiringKey). It checks if the expiration date has passed.
+/// It verifies an [`ExpiringKey`]. It checks if the expiration date has passed.
 ///
 /// # Errors
 ///
@@ -164,7 +164,7 @@ impl FromStr for Key {
     }
 }
 
-/// Verification error. Error returned when an [`ExpiringKey`](crate::tracker::auth::ExpiringKey) cannot be verified with the [`verify(...)`](crate::tracker::auth::verify) function.
+/// Verification error. Error returned when an [`ExpiringKey`] cannot be verified with the [`verify(...)`](crate::tracker::auth::verify) function.
 ///
 #[derive(Debug, Error)]
 #[allow(dead_code)]

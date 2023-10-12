@@ -1,6 +1,6 @@
 //! Setup for the main tracker application.
 //!
-//! The [`setup`](bootstrap::app::setup) only builds the application and its dependencies but it does not start the application.
+//! The [`setup`] only builds the application and its dependencies but it does not start the application.
 //! In fact, there is no such thing as the main application process. When the application starts, the only thing it does is
 //! starting a bunch of independent jobs. If you are looking for how things are started you should read [`app::start`](crate::app::start)
 //! function documentation.
@@ -22,7 +22,7 @@ use crate::shared::crypto::ephemeral_instance_keys;
 use crate::tracker::services::tracker_factory;
 use crate::tracker::Tracker;
 
-/// It loads the configuration from the environment and builds the main domain [`tracker`](crate::tracker::Tracker) struct.
+/// It loads the configuration from the environment and builds the main domain [`Tracker`] struct.
 #[must_use]
 pub fn setup() -> (Arc<Configuration>, Arc<Tracker>) {
     let configuration = Arc::new(initialize_configuration());

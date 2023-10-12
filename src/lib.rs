@@ -384,7 +384,7 @@
 //!
 //! Torrust Tracker has four main components:
 //!
-//! - The core [`tracker`](crate::tracker)
+//! - The core [`tracker`]
 //! - The tracker REST [`API`](crate::servers::apis)
 //! - The [`UDP`](crate::servers::udp) tracker
 //! - The [`HTTP`](crate::servers::http) tracker
@@ -402,7 +402,7 @@
 //! - Statistics
 //! - Persistence
 //!
-//! See [`tracker`](crate::tracker) for more details on the  [`tracker`](crate::tracker) module.
+//! See [`tracker`] for more details on the  [`tracker`] module.
 //!
 //! ## Tracker API
 //!

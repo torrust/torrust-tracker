@@ -78,13 +78,13 @@
 //! > **NOTICE**: the `info_hash` parameter is NOT a `URL` encoded string param.
 //! It is percent encode of the raw `info_hash` bytes (40 bytes). URL `GET` params
 //! can contain any bytes, not only well-formed UTF-8. The `info_hash` is a
-//! 20-byte SHA1. Check the [`percent_encoding`](crate::servers::http::percent_encoding)
+//! 20-byte SHA1. Check the [`percent_encoding`]
 //! module to know more about the encoding.
 //!
 //! > **NOTICE**: the `peer_id` parameter is NOT a `URL` encoded string param.
 //! It is percent encode of the raw peer ID bytes (20 bytes). URL `GET` params
 //! can contain any bytes, not only well-formed UTF-8. The `info_hash` is a
-//! 20-byte SHA1. Check the [`percent_encoding`](crate::servers::http::percent_encoding)
+//! 20-byte SHA1. Check the [`percent_encoding`]
 //! module to know more about the encoding.
 //!
 //! > **NOTICE**: by default, the tracker returns the non-compact peer list when

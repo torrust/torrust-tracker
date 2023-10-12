@@ -2,7 +2,7 @@
 //!
 //! The HTTP tracker may fail to resolve the peer IP address. This module
 //! contains the logic to convert those
-//! [`PeerIpResolutionError`](crate::servers::http::v1::services::peer_ip_resolver::PeerIpResolutionError)
+//! [`PeerIpResolutionError`]
 //! errors into responses.
 use crate::servers::http::v1::responses;
 use crate::servers::http::v1::services::peer_ip_resolver::PeerIpResolutionError;
