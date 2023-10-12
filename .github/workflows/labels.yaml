@@ -1,4 +1,4 @@
-name: Manage Labels
+name: Labels
 on:
   workflow_dispatch:
   push:
@@ -9,14 +9,16 @@ on:
 
 jobs:
   export:
+    name: Export Existing Labels
     runs-on: ubuntu-latest
 
     steps:
       - id: backup
-        name: Export Labels to Workflow Artifacts
+        name: Export to Workflow Artifact
         uses: EndBug/export-label-config@v1
 
   sync:
+    name: Synchronize Labels from Repo
     needs: export
     runs-on: ubuntu-latest
 
