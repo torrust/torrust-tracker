@@ -39,7 +39,7 @@
     "name": "Build | Project System",
     "color": "99AAAA",
     "description": "Compiling and Packaging",
-    "aliases": []
+    "aliases": ["Rust"]
   },
   {
     "name": "Cannot Reproduce",
@@ -213,12 +213,6 @@
     "name": "Reviewed",
     "color": "f4f4ea",
     "description": "This Looks Good",
-    "aliases": []
-  },
-  {
-    "name": "Rust",
-    "color": "000000",
-    "description": "Pull requests that update Rust code",
     "aliases": []
   },
   {
