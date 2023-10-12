@@ -65,6 +65,13 @@ jobs:
         name: Run Lint Checks
         run: cargo clippy --tests --benches --examples --workspace --all-targets --all-features -- -D clippy::correctness -D clippy::suspicious -D clippy::complexity -D clippy::perf -D clippy::style -D clippy::pedantic
 
+      - id: docs
+        name: Lint Documentation
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+        run: cargo doc --no-deps --bins --examples --workspace --all-features
+
+
   unit:
     name: Units
     runs-on: ubuntu-latest
@@ -95,10 +102,6 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov, cargo-nextest
-
-      - id: docs
-        name: Build Documentation
-        run: cargo doc --no-deps --bins --examples --workspace --all-features
 
       - id: test-docs
         name: Run Documentation Tests
