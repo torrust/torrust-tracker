@@ -33,4 +33,4 @@ jobs:
         with:
           config-file: .github/labels.json
           delete-other-labels: true
-          token: ${{ secrets.UPDATE_ISSUES }}
+          token: ${{ secrets.UPDATE_LABELS }}
