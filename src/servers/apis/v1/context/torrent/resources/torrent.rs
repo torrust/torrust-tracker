@@ -59,8 +59,8 @@ impl ListItem {
     }
 }
 
-/// Maps an array of the domain type [`BasicInfo`](crate::tracker::services::torrent::BasicInfo)
-/// to the API resource type [`ListItem`](crate::servers::apis::v1::context::torrent::resources::torrent::ListItem).
+/// Maps an array of the domain type [`BasicInfo`]
+/// to the API resource type [`ListItem`].
 #[must_use]
 pub fn to_resource(basic_info_vec: &[BasicInfo]) -> Vec<ListItem> {
     basic_info_vec

@@ -2,8 +2,8 @@
 //!
 //! There are to main data structures:
 //!
-//! - A torrent [`Entry`](crate::tracker::torrent::Entry): it contains all the information stored by the tracker for one torrent.
-//! - The [`SwarmMetadata`](crate::tracker::torrent::SwarmMetadata): it contains aggregate information that can me derived from the torrent entries.
+//! - A torrent [`Entry`]: it contains all the information stored by the tracker for one torrent.
+//! - The [`SwarmMetadata`]: it contains aggregate information that can me derived from the torrent entries.
 //!
 //! A "swarm" is a network of peers that are trying to download the same torrent.
 //!
@@ -27,7 +27,7 @@
 //! - The number of peers that have NOT completed downloading the torrent and are still active, that means they are actively participating in the network.
 //! Peer that don not have a full copy of the torrent data are called "leechers".
 //!
-//! > **NOTICE**: that both [`SwarmMetadata`](crate::tracker::torrent::SwarmMetadata) and [`SwarmStats`](crate::tracker::torrent::SwarmStats) contain the same information. [`SwarmMetadata`](crate::tracker::torrent::SwarmMetadata) is using the names used on [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html).
+//! > **NOTICE**: that both [`SwarmMetadata`] and [`SwarmStats`] contain the same information. [`SwarmMetadata`] is using the names used on [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html).
 use std::time::Duration;
 
 use aquatic_udp_protocol::AnnounceEvent;

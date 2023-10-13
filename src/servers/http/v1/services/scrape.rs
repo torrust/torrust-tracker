@@ -3,10 +3,10 @@
 //! The service is responsible for handling the `scrape` requests.
 //!
 //! It delegates the `scrape` logic to the [`Tracker`](crate::tracker::Tracker::scrape)
-//! and it returns the [`ScrapeData`](crate::tracker::ScrapeData) returned
-//! by the [`Tracker`](crate::tracker::Tracker).
+//! and it returns the [`ScrapeData`] returned
+//! by the [`Tracker`].
 //!
-//! It also sends an [`statistics::Event`](crate::tracker::statistics::Event)
+//! It also sends an [`statistics::Event`]
 //! because events are specific for the HTTP tracker.
 use std::net::IpAddr;
 use std::sync::Arc;

@@ -93,7 +93,7 @@ impl Query {
     }
 }
 
-/// This error can be returned when parsing a [`Query`](crate::servers::http::v1::query::Query)
+/// This error can be returned when parsing a [`Query`]
 /// from a string.
 #[derive(Error, Debug)]
 pub enum ParseQueryError {

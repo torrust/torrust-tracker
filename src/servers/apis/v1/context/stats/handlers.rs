@@ -12,7 +12,7 @@ use crate::tracker::Tracker;
 
 /// It handles the request to get the tracker statistics.
 ///
-/// It returns a `200` response with a json [`Stats`](crate::servers::apis::v1::context::stats::resources::Stats)
+/// It returns a `200` response with a json [`Stats`]
 ///
 /// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::stats#get-tracker-statistics)
 /// for more information about this endpoint.

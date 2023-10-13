@@ -91,7 +91,7 @@ pub struct NonCompact {
     pub peers: Vec<Peer>,
 }
 
-/// Peer information in the [`NonCompact`](crate::servers::http::v1::responses::announce::NonCompact)
+/// Peer information in the [`NonCompact`]
 /// response.
 ///
 /// ```rust
@@ -261,7 +261,7 @@ pub struct Compact {
     pub peers: Vec<CompactPeer>,
 }
 
-/// Compact peer. It's used in the [`Compact`](crate::servers::http::v1::responses::announce::Compact)
+/// Compact peer. It's used in the [`Compact`]
 /// response.
 ///
 /// _"To reduce the size of tracker responses and to reduce memory and

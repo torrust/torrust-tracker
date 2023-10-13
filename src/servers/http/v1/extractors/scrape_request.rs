@@ -1,7 +1,7 @@
-//! Axum [`extractor`](axum::extract) for the [`Scrape`](crate::servers::http::v1::requests::scrape::Scrape)
+//! Axum [`extractor`](axum::extract) for the [`Scrape`]
 //! request.
 //!
-//! It parses the query parameters returning an [`Scrape`](crate::servers::http::v1::requests::scrape::Scrape)
+//! It parses the query parameters returning an [`Scrape`]
 //! request.
 //!
 //! Refer to [`Scrape`](crate::servers::http::v1::requests::scrape)  for more
@@ -38,7 +38,7 @@ use crate::servers::http::v1::query::Query;
 use crate::servers::http::v1::requests::scrape::{ParseScrapeQueryError, Scrape};
 use crate::servers::http::v1::responses;
 
-/// Extractor for the [`Scrape`](crate::servers::http::v1::requests::scrape::Scrape)
+/// Extractor for the [`Scrape`]
 /// request.
 pub struct ExtractRequest(pub Scrape);
 

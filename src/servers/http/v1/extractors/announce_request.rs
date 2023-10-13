@@ -1,7 +1,7 @@
-//! Axum [`extractor`](axum::extract) for the [`Announce`](crate::servers::http::v1::requests::announce::Announce)
+//! Axum [`extractor`](axum::extract) for the [`Announce`]
 //! request.
 //!
-//! It parses the query parameters returning an [`Announce`](crate::servers::http::v1::requests::announce::Announce)
+//! It parses the query parameters returning an [`Announce`]
 //! request.
 //!
 //! Refer to [`Announce`](crate::servers::http::v1::requests::announce) for more
@@ -38,7 +38,7 @@ use crate::servers::http::v1::query::Query;
 use crate::servers::http::v1::requests::announce::{Announce, ParseAnnounceQueryError};
 use crate::servers::http::v1::responses;
 
-/// Extractor for the [`Announce`](crate::servers::http::v1::requests::announce::Announce)
+/// Extractor for the [`Announce`]
 /// request.
 pub struct ExtractRequest(pub Announce);
 

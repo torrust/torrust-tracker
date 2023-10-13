@@ -1,6 +1,6 @@
 //! The persistence module.
 //!
-//! Persistence is currently implemented with one [`Database`](crate::tracker::databases::Database) trait.
+//! Persistence is currently implemented with one [`Database`] trait.
 //!
 //! There are two implementations of the trait (two drivers):
 //!
@@ -115,7 +115,7 @@ pub trait Database: Sync + Send {
     /// It loads the torrent metrics data from the database.
     ///
     /// It returns an array of tuples with the torrent
-    /// [`InfoHash`](crate::shared::bit_torrent::info_hash::InfoHash) and the
+    /// [`InfoHash`] and the
     /// [`completed`](crate::tracker::torrent::Entry::completed) counter
     /// which is the number of times the torrent has been downloaded.
     /// See [`Entry::completed`](crate::tracker::torrent::Entry::completed).

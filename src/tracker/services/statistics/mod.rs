@@ -3,7 +3,7 @@
 //! It includes:
 //!
 //! - A [`factory`](crate::tracker::services::statistics::setup::factory) function to build the structs needed to collect the tracker metrics.
-//! - A [`get_metrics`](crate::tracker::services::statistics::get_metrics) service to get the [`tracker metrics`](crate::tracker::statistics::Metrics).
+//! - A [`get_metrics`] service to get the [`tracker metrics`](crate::tracker::statistics::Metrics).
 //!
 //! Tracker metrics are collected using a Publisher-Subscribe pattern.
 //!
@@ -57,7 +57,7 @@ pub struct TrackerMetrics {
     pub protocol_metrics: Metrics,
 }
 
-/// It returns all the [`TrackerMetrics`](crate::tracker::services::statistics::TrackerMetrics)
+/// It returns all the [`TrackerMetrics`]
 pub async fn get_metrics(tracker: Arc<Tracker>) -> TrackerMetrics {
     let torrents_metrics = tracker.get_torrents_metrics().await;
     let stats = tracker.get_stats().await;

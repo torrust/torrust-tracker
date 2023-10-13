@@ -7,7 +7,7 @@
 //!
 //! The [`http_tracker::start_job`](crate::bootstrap::jobs::http_tracker::start_job) function spawns a new asynchronous task,
 //! that tasks is the "**launcher**". The "**launcher**" starts the actual server and sends a message back to the main application.
-//! The main application waits until receives the message [`ServerJobStarted`](crate::bootstrap::jobs::http_tracker::ServerJobStarted) from the "**launcher**".
+//! The main application waits until receives the message [`ServerJobStarted`] from the "**launcher**".
 //!
 //! The "**launcher**" is an intermediary thread that decouples the HTTP servers from the process that handles it. The HTTP could be used independently in the future.
 //! In that case it would not need to notify a parent process.

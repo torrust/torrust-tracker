@@ -2,9 +2,9 @@
 //!
 //! There are two main types in this module:
 //!
-//! - [`UdpServer`](crate::servers::udp::server::UdpServer): a controller to
+//! - [`UdpServer`]: a controller to
 //! start and stop the server.
-//! - [`Udp`](crate::servers::udp::server::Udp): the server launcher.
+//! - [`Udp`]: the server launcher.
 //!
 //! The `UdpServer` is an state machine for a given configuration. This struct
 //! represents concrete configuration and state. It allows to start and
@@ -42,7 +42,7 @@ use crate::tracker::Tracker;
 ///
 /// Some errors triggered while stopping the server are:
 ///
-/// - The [`UdpServer`](crate::servers::udp::server::UdpServer) cannot send the
+/// - The [`UdpServer`] cannot send the
 ///  shutdown signal to the spawned UDP service thread.
 #[derive(Debug)]
 pub enum Error {

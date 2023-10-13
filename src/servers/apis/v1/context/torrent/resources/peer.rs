@@ -6,7 +6,7 @@ use crate::tracker;
 /// `Peer` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Peer {
-    /// The peer's ID. See [`Id`](crate::servers::apis::v1::context::torrent::resources::peer::Id).
+    /// The peer's ID. See [`Id`].
     pub peer_id: Id,
     /// The peer's socket address. For example: `192.168.1.88:17548`.
     pub peer_addr: String,

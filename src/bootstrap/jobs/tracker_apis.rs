@@ -11,7 +11,7 @@
 //! function spawns a new asynchronous task, that tasks is the "**launcher**".
 //! The "**launcher**" starts the actual server and sends a message back
 //! to the main application. The main application waits until receives
-//! the message [`ApiServerJobStarted`](crate::bootstrap::jobs::tracker_apis::ApiServerJobStarted)
+//! the message [`ApiServerJobStarted`]
 //! from the "**launcher**".
 //!
 //! The "**launcher**" is an intermediary thread that decouples the API server

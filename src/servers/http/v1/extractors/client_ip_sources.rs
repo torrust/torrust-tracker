@@ -45,7 +45,7 @@ use axum_client_ip::RightmostXForwardedFor;
 
 use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
 
-/// Extractor for the [`ClientIpSources`](crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources)
+/// Extractor for the [`ClientIpSources`]
 /// struct.
 pub struct Extract(pub ClientIpSources);
 

@@ -9,9 +9,9 @@ use aquatic_udp_protocol::AnnounceRequest;
 
 use crate::shared::bit_torrent::info_hash::InfoHash;
 
-/// Wrapper around [`AnnounceRequest`](aquatic_udp_protocol::request::AnnounceRequest).
+/// Wrapper around [`AnnounceRequest`].
 pub struct AnnounceWrapper {
-    /// [`AnnounceRequest`](aquatic_udp_protocol::request::AnnounceRequest) to wrap.
+    /// [`AnnounceRequest`] to wrap.
     pub announce_request: AnnounceRequest,
     /// Info hash of the torrent.
     pub info_hash: InfoHash,

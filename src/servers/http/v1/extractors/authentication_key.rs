@@ -1,4 +1,4 @@
-//! Axum [`extractor`](axum::extract) to extract the authentication [`Key`](crate::tracker::auth::Key)
+//! Axum [`extractor`](axum::extract) to extract the authentication [`Key`]
 //! from the URL path.
 //!
 //! It's only used when the tracker is running in private mode.
@@ -55,7 +55,7 @@ use crate::servers::http::v1::handlers::common::auth;
 use crate::servers::http::v1::responses;
 use crate::tracker::auth::Key;
 
-/// Extractor for the [`Key`](crate::tracker::auth::Key) struct.
+/// Extractor for the [`Key`] struct.
 pub struct Extract(pub Key);
 
 #[derive(Deserialize)]
