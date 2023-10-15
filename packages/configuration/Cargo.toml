@@ -15,12 +15,12 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-config = "0.13"
-log = { version = "0.4", features = ["release_max_level_info"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_with = "3.2"
-thiserror = "1.0"
-toml = "0.8"
+config = "0"
+log = { version = "0", features = ["release_max_level_info"] }
+serde = { version = "1", features = ["derive"] }
+serde_with = "3"
+thiserror = "1"
+toml = "0"
 torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "../located-error" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "../primitives" }
 

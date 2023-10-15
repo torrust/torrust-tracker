@@ -29,47 +29,47 @@ rust-version = "1.72"
 version = "3.0.0-alpha.12-develop"
 
 [dependencies]
-aquatic_udp_protocol = "0.8"
-async-trait = "0.1"
-axum = "0.6"
-axum-client-ip = "0.4"
-axum-server = { version = "0.5", features = ["tls-rustls"] }
-binascii = "0.1"
-chrono = { version = "0.4", default-features = false, features = ["clock"] }
-config = "0.13"
-derive_more = "0.99"
-fern = "0.6"
-futures = "0.3"
-hyper = "0.14"
-lazy_static = "1.4"
-log = { version = "0.4", features = ["release_max_level_info"] }
-multimap = "0.9"
-openssl = { version = "0.10", features = ["vendored"] }
-percent-encoding = "2.2"
-r2d2 = "0.8"
-r2d2_mysql = "24.0"
-r2d2_sqlite = { version = "0.22", features = ["bundled"] }
-rand = "0.8"
-serde = { version = "1.0", features = ["derive"] }
-serde_bencode = "^0.2"
-serde_json = "1.0"
-serde_with = "3.2"
-thiserror = "1.0"
-tokio = { version = "1.29", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+aquatic_udp_protocol = "0"
+async-trait = "0"
+axum = "0"
+axum-client-ip = "0"
+axum-server = { version = "0", features = ["tls-rustls"] }
+binascii = "0"
+chrono = { version = "0", default-features = false, features = ["clock"] }
+config = "0"
+derive_more = "0"
+fern = "0"
+futures = "0"
+hyper = "0"
+lazy_static = "1"
+log = { version = "0", features = ["release_max_level_info"] }
+multimap = "0"
+openssl = { version = "0", features = ["vendored"] }
+percent-encoding = "2"
+r2d2 = "0"
+r2d2_mysql = "24"
+r2d2_sqlite = { version = "0", features = ["bundled"] }
+rand = "0"
+serde = { version = "1", features = ["derive"] }
+serde_bencode = "0"
+serde_json = "1"
+serde_with = "3"
+thiserror = "1"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "packages/configuration" }
 torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.12-develop", path = "contrib/bencode" }
 torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "packages/located-error" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "packages/primitives" }
-tower-http = { version = "0.4", features = ["compression-full"] }
+tower-http = { version = "0", features = ["compression-full"] }
 uuid = { version = "1", features = ["v4"] }
 
 [dev-dependencies]
-local-ip-address = "0.5"
-mockall = "0.11"
-reqwest = { version = "0.11.18", features = ["json"] }
-serde_bytes = "0.11"
-serde_repr = "0.1"
-serde_urlencoded = "0.7"
+local-ip-address = "0"
+mockall = "0"
+reqwest = { version = "0", features = ["json"] }
+serde_bytes = "0"
+serde_repr = "0"
+serde_urlencoded = "0"
 torrust-tracker-test-helpers = { version = "3.0.0-alpha.12-develop", path = "packages/test-helpers" }
 
 [workspace]

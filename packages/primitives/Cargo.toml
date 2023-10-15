@@ -15,5 +15,5 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-derive_more = "0.99"
-serde = { version = "1.0", features = ["derive"] }
+derive_more = "0"
+serde = { version = "1", features = ["derive"] }

@@ -2,16 +2,14 @@
 
 [![container_wf_b]][container_wf] [![coverage_wf_b]][coverage_wf] [![deployment_wf_b]][deployment_wf] [![testing_wf_b]][testing_wf]
 
-__Torrust Tracker__, is a [BitTorrent][bittorrent] Tracker (a service that matchmakes peers and collects statistics) written in [Rust Language][rust] and [axum] (a modern web application framework). ___This tracker aims to be respectful to established standards, (both [formal][BEP 00] and [otherwise][torrent_source_felid]).___
+__Torrust Tracker__, is a [BitTorrent][bittorrent] Tracker that matchmakes peers and collects statistics. Written in [Rust Language][rust] with the [axum] web framework. ___This tracker aims to be respectful to established standards, (both [formal][BEP 00] and [otherwise][torrent_source_felid]).___
 
 > This is a [Torrust][torrust] project and is in active development. It is community supported as well as sponsored by [Nautilus Cyberneering][nautilus].
-
-- _We have a [container guide][containers.md] for those who wish to get started with __Docker__ or __Podman___
 
 ## Key Features
 
 - [x] High Quality and Modern Rust Codebase.
-- [x] [Documentation] Generated from Code Comments.
+- [x] [Documentation][docs] Generated from Code Comments.
 - [x] [Comprehensive Suit][coverage] of Unit and Functional Tests.
 - [x] Good Performance in Busy Conditions.
 - [x] Support for `UDP`, `HTTP`, and `TLS` Sockets.
@@ -35,7 +33,7 @@ __Torrust Tracker__, is a [BitTorrent][bittorrent] Tracker (a service that match
 
 ### Container Version
 
-The Torrust Tracker is [deployed to DockerHub][dockerhub_torrust_tracker], you can run a demo immediately with the following commands:
+The Torrust Tracker is [deployed to DockerHub][dockerhub], you can run a demo immediately with the following commands:
 
 #### Docker:
 
@@ -126,15 +124,14 @@ The following services are provided by the default configuration:
 - [Tracker (UDP)][udp]
 
 ## Contributing
-
-This is an open-source community supported project.</br>
-We welcome contributions from the community!
+We are happy to support and welcome new people to our project. Please consider our [contributor guide][guide.md].</br>
+This is an open-source community supported project. We welcome contributions from the community!
 
 __How can you contribute?__
 
 - Bug reports and feature requests.
 - Code contributions. You can start by looking at the issues labeled "[good first issues]".
-- Documentation improvements. Check the [documentation] and [API documentation] for typos, errors, or missing information.
+- Documentation improvements. Check the [documentation][docs] and [API documentation][api] for typos, errors, or missing information.
 - Participation in the community. You can help by answering questions in the [discussions].
 
 ## License
@@ -153,8 +150,7 @@ Some files include explicit copyright notices and/or license notices.
 
 For prosperity, versions of Torrust Tracker that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [AGPL-3.0-only][AGPL_3_0] license.
 
-## Contributions
-
+## Contributor Agreement
 The copyright of the Torrust Tracker is retained by the respective authors.
 
 **Contributors agree:**
@@ -162,6 +158,8 @@ The copyright of the Torrust Tracker is retained by the respective authors.
 - That all contributors signal **clearly** and **explicitly** any other compilable licenses if they are not: *[AGPL-3.0-only with the legacy MIT-0 exception](#License)*.
 
 **The Torrust-Tracker project has no copyright assignment agreement.**
+
+_We kindly ask you to take time and consider The Torrust Project [Contributor Agreement][agreement.md] in full._
 
 ## Acknowledgments
 
@@ -185,7 +183,7 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 [coverage]: https://app.codecov.io/gh/torrust/torrust-tracker
 [torrust]: https://torrust.com/
 
-[dockerhub_torrust_tracker]: https://hub.docker.com/r/torrust/tracker/tags
+[dockerhub]: https://hub.docker.com/r/torrust/tracker/tags
 
 [torrent_source_felid]: https://github.com/qbittorrent/qBittorrent/discussions/19406
 
@@ -199,24 +197,23 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 
 [containers.md]: ./docs/containers.md
 
+[docs]: https://docs.rs/torrust-tracker/latest/
 [api]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/apis/v1
 [http]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/http
 [udp]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/udp
 
 [good first issues]: https://github.com/torrust/torrust-tracker/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
-[documentation]: https://docs.rs/torrust-tracker/
-[API documentation]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/apis/v1
 [discussions]: https://github.com/torrust/torrust-tracker/discussions
 
-[COPYRIGHT]: ./COPYRIGHT
+[guide.md]: https://github.com/torrust/.github/blob/main/info/contributing.md
+[agreement.md]: https://github.com/torrust/.github/blob/main/info/licensing/contributor_agreement_v01.md
+
 [AGPL_3_0]: ./docs/licenses/LICENSE-AGPL_3_0
 [MIT_0]: ./docs/licenses/LICENSE-MIT_0
 [FSF]: https://www.fsf.org/
-
 
 [nautilus]: https://github.com/orgs/Nautilus-Cyberneering/
 [Dutch Bits]: https://dutchbits.nl
 [Naim A.]: https://github.com/naim94a/udpt
 [greatest-ape]: https://github.com/greatest-ape/aquatic
 [Power2All]: https://github.com/power2all
-
