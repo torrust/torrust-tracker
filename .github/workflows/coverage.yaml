@@ -53,11 +53,11 @@ jobs:
 
       - id: check
         name: Run Build Checks
-        run: cargo check --workspace --all-targets --all-features
+        run: cargo check --tests --benches --examples --workspace --all-targets --all-features
 
       - id: test
         name: Run Unit Tests
-        run: cargo test --workspace --all-targets --all-features
+        run: cargo test --tests --benches --examples --workspace --all-targets --all-features
 
       - id: coverage
         name: Generate Coverage Report
