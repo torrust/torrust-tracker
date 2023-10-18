@@ -252,81 +252,9 @@ impl Id {
     }
 
     #[must_use]
-    pub fn get_client_name(&self) -> Option<&'static str> {
-        if self.0[0] == b'M' {
-            return Some("BitTorrent");
-        }
-        if self.0[0] == b'-' {
-            let name = match &self.0[1..3] {
-                b"AG" | b"A~" => "Ares",
-                b"AR" => "Arctic",
-                b"AV" => "Avicora",
-                b"AX" => "BitPump",
-                b"AZ" => "Azureus",
-                b"BB" => "BitBuddy",
-                b"BC" => "BitComet",
-                b"BF" => "Bitflu",
-                b"BG" => "BTG (uses Rasterbar libtorrent)",
-                b"BR" => "BitRocket",
-                b"BS" => "BTSlave",
-                b"BX" => "~Bittorrent X",
-                b"CD" => "Enhanced CTorrent",
-                b"CT" => "CTorrent",
-                b"DE" => "DelugeTorrent",
-                b"DP" => "Propagate Data Client",
-                b"EB" => "EBit",
-                b"ES" => "electric sheep",
-                b"FT" => "FoxTorrent",
-                b"FW" => "FrostWire",
-                b"FX" => "Freebox BitTorrent",
-                b"GS" => "GSTorrent",
-                b"HL" => "Halite",
-                b"HN" => "Hydranode",
-                b"KG" => "KGet",
-                b"KT" => "KTorrent",
-                b"LH" => "LH-ABC",
-                b"LP" => "Lphant",
-                b"LT" => "libtorrent",
-                b"lt" => "libTorrent",
-                b"LW" => "LimeWire",
-                b"MO" => "MonoTorrent",
-                b"MP" => "MooPolice",
-                b"MR" => "Miro",
-                b"MT" => "MoonlightTorrent",
-                b"NX" => "Net Transport",
-                b"PD" => "Pando",
-                b"qB" => "qBittorrent",
-                b"QD" => "QQDownload",
-                b"QT" => "Qt 4 Torrent example",
-                b"RT" => "Retriever",
-                b"S~" => "Shareaza alpha/beta",
-                b"SB" => "~Swiftbit",
-                b"SS" => "SwarmScope",
-                b"ST" => "SymTorrent",
-                b"st" => "sharktorrent",
-                b"SZ" => "Shareaza",
-                b"TN" => "TorrentDotNET",
-                b"TR" => "Transmission",
-                b"TS" => "Torrentstorm",
-                b"TT" => "TuoTu",
-                b"UL" => "uLeecher!",
-                b"UT" => "µTorrent",
-                b"UW" => "µTorrent Web",
-                b"VG" => "Vagaa",
-                b"WD" => "WebTorrent Desktop",
-                b"WT" => "BitLet",
-                b"WW" => "WebTorrent",
-                b"WY" => "FireTorrent",
-                b"XL" => "Xunlei",
-                b"XT" => "XanTorrent",
-                b"XX" => "Xtorrent",
-                b"ZT" => "ZipTorrent",
-                _ => return None,
-            };
-            Some(name)
-        } else {
-            None
-        }
+    pub fn get_client_name(&self) -> Option<String> {
+        let peer_id = tdyne_peer_id::PeerId::from(self.0);
+        tdyne_peer_id_registry::parse(peer_id).ok().map(|parsed| parsed.client)
     }
 }
 
@@ -336,9 +264,9 @@ impl Serialize for Id {
         S: serde::Serializer,
     {
         #[derive(Serialize)]
-        struct PeerIdInfo<'a> {
+        struct PeerIdInfo {
             id: Option<String>,
-            client: Option<&'a str>,
+            client: Option<String>,
         }
 
         let obj = PeerIdInfo {
@@ -476,7 +404,7 @@ mod test {
         #[test]
         fn it_should_be_serializable() {
             let torrent_peer = Peer {
-                peer_id: peer::Id(*b"-qB00000000000000000"),
+                peer_id: peer::Id(*b"-qB0000-000000000000"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
                 updated: Current::now(),
                 uploaded: NumberOfBytes(0),
@@ -490,7 +418,7 @@ mod test {
             let expected_raw_json = r#"
                 {
                     "peer_id": {
-                        "id": "0x2d71423030303030303030303030303030303030",
+                        "id": "0x2d7142303030302d303030303030303030303030",
                         "client": "qBittorrent"
                     },
                     "peer_addr":"126.0.0.1:8080",
