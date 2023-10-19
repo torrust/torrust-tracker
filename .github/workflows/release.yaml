@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - id: test
+        name: Run Unit Tests
+        run: cargo test --tests --benches --examples --workspace --all-targets --all-features
+
+  build:
+    name: Build
+    needs: test
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{matrix.os}}
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - id: build
+        name: Build Release Binary
+        run: cargo build --release --workspace --all-targets --all-features
+
+      - id: archive-bash
+        name: Archive Release Binary
+        run: |
+            cp target/release/torrust-tracker target/release/torrust-tracker-${{matrix.os}}
+            tar -czf target/release/torrust-tracker-${{matrix.os}}.tar.gz target/release/torrust-tracker-${{matrix.os}}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            target/release/torrust-tracker-${{matrix.os}}.tar.gz
