@@ -23,7 +23,7 @@ const PEER: Peer = Peer {
 
 // Define a vector of 20 different info hashes
 // Create an info hash with a different value for each byte
-static INFO_HASHES: Lazy<Vec<InfoHash>> = Lazy::new(|| (0..20).map(|i| InfoHash([i; 20])).collect());
+static INFO_HASHES: Lazy<Vec<InfoHash>> = Lazy::new(|| (0..100).map(|i| InfoHash([i; 20])).collect());
 
 #[allow(clippy::missing_panics_doc)]
 pub fn update_single_torrent_benchmark(c: &mut Criterion) {
