@@ -627,6 +627,7 @@ dependencies = [
  "ciborium",
  "clap",
  "criterion-plot",
+ "futures",
  "is-terminal",
  "itertools",
  "num-traits",
@@ -639,6 +640,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "tinytemplate",
+ "tokio",
  "walkdir",
 ]
 
@@ -3257,6 +3259,7 @@ dependencies = [
  "binascii",
  "chrono",
  "config",
+ "criterion",
  "derive_more",
  "fern",
  "futures",
@@ -3266,6 +3269,7 @@ dependencies = [
  "log",
  "mockall",
  "multimap",
+ "once_cell",
  "openssl",
  "percent-encoding",
  "r2d2",
