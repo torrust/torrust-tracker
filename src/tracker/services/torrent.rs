@@ -101,9 +101,11 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
         return None;
     };
 
-    let (seeders, completed, leechers) = torrent_entry.get_stats();
+    let torrent_entry_lock = torrent_entry.lock().await;
 
-    let peers = torrent_entry.get_all_peers();
+    let (seeders, completed, leechers) = torrent_entry_lock.get_stats();
+
+    let peers = torrent_entry_lock.get_all_peers();
 
     let peers = Some(peers.iter().map(|peer| (**peer)).collect());
 
@@ -120,19 +122,20 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
 pub async fn get_torrents(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec<BasicInfo> {
     let db = tracker.get_torrents().await;
 
-    db.iter()
-        .map(|(info_hash, torrent_entry)| {
-            let (seeders, completed, leechers) = torrent_entry.get_stats();
-            BasicInfo {
-                info_hash: *info_hash,
-                seeders: u64::from(seeders),
-                completed: u64::from(completed),
-                leechers: u64::from(leechers),
-            }
+    let mut basic_infos: Vec<BasicInfo> = vec![];
+
+    for (info_hash, torrent_entry) in db.iter().skip(pagination.offset as usize).take(pagination.limit as usize) {
+        let (seeders, completed, leechers) = torrent_entry.lock().await.get_stats();
+
+        basic_infos.push(BasicInfo {
+            info_hash: *info_hash,
+            seeders: u64::from(seeders),
+            completed: u64::from(completed),
+            leechers: u64::from(leechers),
         })
-        .skip(pagination.offset as usize)
-        .take(pagination.limit as usize)
-        .collect()
+    }
+
+    basic_infos
 }
 
 #[cfg(test)]
