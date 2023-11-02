@@ -439,7 +439,6 @@ pub mod services;
 pub mod statistics;
 pub mod torrent;
 
-use std::collections::btree_map::Entry;
 use std::collections::{BTreeMap, HashMap};
 use std::net::IpAddr;
 use std::panic::Location;
@@ -722,11 +721,16 @@ impl Tracker {
         // code-review: consider splitting the function in two (command and query segregation).
         // `update_torrent_with_peer` and `get_stats`
 
-        let mut torrents = self.torrents.write().await;
+        let maybe_existing_torrent_entry = self.torrents.read().await.get(info_hash).cloned();
 
-        let torrent_entry = match torrents.entry(*info_hash) {
-            Entry::Vacant(vacant) => vacant.insert(Arc::new(Mutex::new(torrent::Entry::new()))),
-            Entry::Occupied(entry) => entry.into_mut(),
+        let torrent_entry: Arc<Mutex<torrent::Entry>> = if let Some(existing_torrent_entry) = maybe_existing_torrent_entry {
+            existing_torrent_entry
+        } else {
+            let mut torrents_lock = self.torrents.write().await;
+            let entry = torrents_lock
+                .entry(*info_hash)
+                .or_insert(Arc::new(Mutex::new(torrent::Entry::new())));
+            entry.clone()
         };
 
         let mut torrent_entry_lock = torrent_entry.lock().await;
