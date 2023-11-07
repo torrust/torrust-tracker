@@ -18,4 +18,4 @@ version.workspace = true
 log = { version = "0", features = ["release_max_level_info"] }
 
 [dev-dependencies]
-thiserror = "1.0"
+thiserror = "1"
