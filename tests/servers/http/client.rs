@@ -9,7 +9,7 @@ use super::requests::scrape;
 /// HTTP Tracker Client
 pub struct Client {
     server_addr: std::net::SocketAddr,
-    reqwest_client: ReqwestClient,
+    reqwest: ReqwestClient,
     key: Option<Key>,
 }
 
@@ -25,7 +25,7 @@ impl Client {
     pub fn new(server_addr: std::net::SocketAddr) -> Self {
         Self {
             server_addr,
-            reqwest_client: reqwest::Client::builder().build().unwrap(),
+            reqwest: reqwest::Client::builder().build().unwrap(),
             key: None,
         }
     }
@@ -34,7 +34,7 @@ impl Client {
     pub fn bind(server_addr: std::net::SocketAddr, local_address: IpAddr) -> Self {
         Self {
             server_addr,
-            reqwest_client: reqwest::Client::builder().local_address(local_address).build().unwrap(),
+            reqwest: reqwest::Client::builder().local_address(local_address).build().unwrap(),
             key: None,
         }
     }
@@ -42,7 +42,7 @@ impl Client {
     pub fn authenticated(server_addr: std::net::SocketAddr, key: Key) -> Self {
         Self {
             server_addr,
-            reqwest_client: reqwest::Client::builder().build().unwrap(),
+            reqwest: reqwest::Client::builder().build().unwrap(),
             key: Some(key),
         }
     }
@@ -61,11 +61,11 @@ impl Client {
     }
 
     pub async fn get(&self, path: &str) -> Response {
-        self.reqwest_client.get(self.build_url(path)).send().await.unwrap()
+        self.reqwest.get(self.build_url(path)).send().await.unwrap()
     }
 
     pub async fn get_with_header(&self, path: &str, key: &str, value: &str) -> Response {
-        self.reqwest_client
+        self.reqwest
             .get(self.build_url(path))
             .header(key, value)
             .send()

@@ -173,11 +173,12 @@ mod tests {
     #[test]
     fn it_should_make_a_connection_cookie() {
         // Note: This constant may need to be updated in the future as the hash is not guaranteed to to be stable between versions.
-        const ID_COOKIE: Cookie = [23, 204, 198, 29, 48, 180, 62, 19];
+        const ID_COOKIE_OLD: Cookie = [23, 204, 198, 29, 48, 180, 62, 19];
+        const ID_COOKIE_NEW: Cookie = [41, 166, 45, 246, 249, 24, 108, 203];
 
         let cookie = make(&SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0));
 
-        assert_eq!(cookie, ID_COOKIE);
+        assert!(cookie == ID_COOKIE_OLD || cookie == ID_COOKIE_NEW);
     }
 
     #[test]

@@ -55,7 +55,7 @@ serde_bencode = "0"
 serde_json = "1"
 serde_with = "3"
 tdyne-peer-id = "1"
-tdyne-peer-id-registry = "0.1"
+tdyne-peer-id-registry = "0"
 thiserror = "1"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "packages/configuration" }
