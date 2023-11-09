@@ -1,0 +1,58 @@
+name: Contract
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  contract:
+    name: Contract
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        toolchain: [stable, nightly]
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: llvm-tools-preview
+
+      - id: cache
+        name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: tools
+        name: Install Tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov, cargo-nextest
+
+      - id: pretty-test
+        name: Install pretty-test
+        run: cargo install cargo-pretty-test
+
+      - id: contract
+        name: Run contract
+        run: |
+          cargo test --lib --bins
+          cargo pretty-test --lib --bins
+        
+      - id: summary
+        name: Generate contract Summary
+        run: |
+          echo "### Tracker Living Contract! :rocket:" >> $GITHUB_STEP_SUMMARY
+          cargo pretty-test --lib --bins --color=never >> $GITHUB_STEP_SUMMARY
+          echo '```console' >> $GITHUB_STEP_SUMMARY
+          echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
