@@ -10,8 +10,8 @@ use std::{env, process};
 async fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
-        eprintln!("Usage:   cargo run --bin health_check <HEALTH_URL>");
-        eprintln!("Example: cargo run --bin http_health_check http://localhost:1212/api/v1/stats?token=MyAccessToken");
+        eprintln!("Usage:   cargo run --bin http_health_check <HEALTH_URL>");
+        eprintln!("Example: cargo run --bin http_health_check http://127.0.0.1:1212/health_check");
         std::process::exit(1);
     }
 
