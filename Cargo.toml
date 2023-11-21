@@ -1,4 +1,5 @@
 [package]
+default-run = "torrust-tracker"
 name = "torrust-tracker"
 readme = "README.md"
 
