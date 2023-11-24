@@ -4,7 +4,7 @@ use std::sync::Arc;
 use aquatic_udp_protocol::{ConnectRequest, Response, TransactionId};
 use axum::extract::State;
 use axum::Json;
-use torrust_tracker_configuration::Configuration;
+use torrust_tracker_configuration::{Configuration, HttpApi, HttpTracker, UdpTracker};
 
 use super::resources::Report;
 use super::responses;
@@ -21,27 +21,49 @@ const UNKNOWN_PORT: u16 = 0;
 /// configuration. If port 0 is specified in the configuration the health check
 /// for that service is skipped.
 pub(crate) async fn health_check_handler(State(config): State<Arc<Configuration>>) -> Json<Report> {
+    if let Some(err_response) = api_health_check(&config.http_api).await {
+        return err_response;
+    }
+
+    if let Some(err_response) = http_trackers_health_check(&config.http_trackers).await {
+        return err_response;
+    }
+
+    if let Some(err_response) = udp_trackers_health_check(&config.udp_trackers).await {
+        return err_response;
+    }
+
+    responses::ok()
+}
+
+async fn api_health_check(config: &HttpApi) -> Option<Json<Report>> {
     // todo: when port 0 is specified in the configuration get the port from the
     // running service, after starting it as we do for testing with ephemeral
     // configurations.
 
-    // Health check for API
-
-    if config.http_api.enabled {
-        let addr: SocketAddr = config.http_api.bind_address.parse().expect("invalid socket address for API");
+    if config.enabled {
+        let addr: SocketAddr = config.bind_address.parse().expect("invalid socket address for API");
 
         if addr.port() != UNKNOWN_PORT {
             let health_check_url = format!("http://{addr}/health_check");
 
             if !get_req_is_ok(&health_check_url).await {
-                return responses::error(format!("API is not healthy. Health check endpoint: {health_check_url}"));
+                return Some(responses::error(format!(
+                    "API is not healthy. Health check endpoint: {health_check_url}"
+                )));
             }
         }
     }
 
-    // Health check for HTTP Trackers
+    None
+}
 
-    for http_tracker_config in &config.http_trackers {
+async fn http_trackers_health_check(http_trackers: &Vec<HttpTracker>) -> Option<Json<Report>> {
+    // todo: when port 0 is specified in the configuration get the port from the
+    // running service, after starting it as we do for testing with ephemeral
+    // configurations.
+
+    for http_tracker_config in http_trackers {
         if !http_tracker_config.enabled {
             continue;
         }
@@ -55,16 +77,22 @@ pub(crate) async fn health_check_handler(State(config): State<Arc<Configuration>
             let health_check_url = format!("http://{addr}/health_check");
 
             if !get_req_is_ok(&health_check_url).await {
-                return responses::error(format!(
+                return Some(responses::error(format!(
                     "HTTP Tracker is not healthy. Health check endpoint: {health_check_url}"
-                ));
+                )));
             }
         }
     }
 
-    // Health check for UDP Trackers
+    None
+}
 
-    for udp_tracker_config in &config.udp_trackers {
+async fn udp_trackers_health_check(udp_trackers: &Vec<UdpTracker>) -> Option<Json<Report>> {
+    // todo: when port 0 is specified in the configuration get the port from the
+    // running service, after starting it as we do for testing with ephemeral
+    // configurations.
+
+    for udp_tracker_config in udp_trackers {
         if !udp_tracker_config.enabled {
             continue;
         }
@@ -75,11 +103,13 @@ pub(crate) async fn health_check_handler(State(config): State<Arc<Configuration>
             .expect("invalid socket address for UDP tracker");
 
         if addr.port() != UNKNOWN_PORT && !can_connect_to_udp_tracker(&addr.to_string()).await {
-            return responses::error(format!("UDP Tracker is not healthy. Can't connect to: {addr}"));
+            return Some(responses::error(format!(
+                "UDP Tracker is not healthy. Can't connect to: {addr}"
+            )));
         }
     }
 
-    responses::ok()
+    None
 }
 
 async fn get_req_is_ok(url: &str) -> bool {
