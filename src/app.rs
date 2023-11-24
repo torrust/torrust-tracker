@@ -91,7 +91,7 @@ pub async fn start(config: Arc<Configuration>, tracker: Arc<tracker::Tracker>) -
     }
 
     // Start Health Check API
-    jobs.push(health_check_api::start_job(&config.health_check_api).await);
+    jobs.push(health_check_api::start_job(config).await);
 
     jobs
 }

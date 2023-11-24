@@ -144,3 +144,15 @@ pub fn ephemeral_ipv6() -> Configuration {
 
     cfg
 }
+
+/// Ephemeral without running any services.
+#[must_use]
+pub fn ephemeral_with_no_services() -> Configuration {
+    let mut cfg = ephemeral();
+
+    cfg.http_api.enabled = false;
+    cfg.http_trackers[0].enabled = false;
+    cfg.udp_trackers[0].enabled = false;
+
+    cfg
+}

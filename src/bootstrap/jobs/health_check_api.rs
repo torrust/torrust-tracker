@@ -16,11 +16,12 @@
 //! Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
 //! for the API configuration options.
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 use log::info;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
-use torrust_tracker_configuration::HealthCheckApi;
+use torrust_tracker_configuration::Configuration;
 
 use crate::servers::health_check_api::server;
 
@@ -45,8 +46,9 @@ pub struct ApiServerJobStarted {
 /// # Panics
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
-pub async fn start_job(config: &HealthCheckApi) -> JoinHandle<()> {
+pub async fn start_job(config: Arc<Configuration>) -> JoinHandle<()> {
     let bind_addr = config
+        .health_check_api
         .bind_address
         .parse::<std::net::SocketAddr>()
         .expect("Health Check API bind_address invalid.");
@@ -57,7 +59,7 @@ pub async fn start_job(config: &HealthCheckApi) -> JoinHandle<()> {
     let join_handle = tokio::spawn(async move {
         info!("Starting Health Check API server: http://{}", bind_addr);
 
-        let handle = server::start(bind_addr, tx);
+        let handle = server::start(bind_addr, tx, config.clone());
 
         if let Ok(()) = handle.await {
             info!("Health Check API server on http://{} stopped", bind_addr);

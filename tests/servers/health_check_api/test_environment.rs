@@ -1,15 +1,17 @@
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_tracker::bootstrap::jobs::health_check_api::ApiServerJobStarted;
 use torrust_tracker::servers::health_check_api::server;
-use torrust_tracker_configuration::HealthCheckApi;
+use torrust_tracker_configuration::Configuration;
 
 /// Start the test environment for the Health Check API.
 /// It runs the API server.
-pub async fn start(config: &HealthCheckApi) -> (SocketAddr, JoinHandle<()>) {
+pub async fn start(config: Arc<Configuration>) -> (SocketAddr, JoinHandle<()>) {
     let bind_addr = config
+        .health_check_api
         .bind_address
         .parse::<std::net::SocketAddr>()
         .expect("Health Check API bind_address invalid.");
@@ -17,7 +19,7 @@ pub async fn start(config: &HealthCheckApi) -> (SocketAddr, JoinHandle<()>) {
     let (tx, rx) = oneshot::channel::<ApiServerJobStarted>();
 
     let join_handle = tokio::spawn(async move {
-        let handle = server::start(bind_addr, tx);
+        let handle = server::start(bind_addr, tx, config.clone());
         if let Ok(()) = handle.await {
             panic!("Health Check API server on http://{bind_addr} stopped");
         }
