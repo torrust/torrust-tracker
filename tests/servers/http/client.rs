@@ -60,6 +60,10 @@ impl Client {
             .await
     }
 
+    pub async fn health_check(&self) -> Response {
+        self.get(&self.build_path("health_check")).await
+    }
+
     pub async fn get(&self, path: &str) -> Response {
         self.reqwest.get(self.build_url(path)).send().await.unwrap()
     }

@@ -7,6 +7,7 @@ use crate::tracker::error::Error;
 
 pub mod announce;
 pub mod common;
+pub mod health_check;
 pub mod scrape;
 
 impl From<Error> for responses::error::Error {
