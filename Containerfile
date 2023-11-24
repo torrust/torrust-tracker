@@ -101,6 +101,7 @@ ARG USER_ID=1000
 ARG UDP_PORT=6969
 ARG HTTP_PORT=7070
 ARG API_PORT=1212
+ARG HEALTH_CHECK_API_PORT=1313
 
 ENV TORRUST_TRACKER_PATH_CONFIG=${TORRUST_TRACKER_PATH_CONFIG}
 ENV TORRUST_TRACKER_DATABASE_DRIVER=${TORRUST_TRACKER_DATABASE_DRIVER}
@@ -108,11 +109,13 @@ ENV USER_ID=${USER_ID}
 ENV UDP_PORT=${UDP_PORT}
 ENV HTTP_PORT=${HTTP_PORT}
 ENV API_PORT=${API_PORT}
+ENV HEALTH_CHECK_API_PORT=${HEALTH_CHECK_API_PORT}
 ENV TZ=Etc/UTC
 
 EXPOSE ${UDP_PORT}/udp
 EXPOSE ${HTTP_PORT}/tcp
 EXPOSE ${API_PORT}/tcp
+EXPOSE ${HEALTH_CHECK_API_PORT}/tcp
 
 RUN mkdir -p /var/lib/torrust/tracker /var/log/torrust/tracker /etc/torrust/tracker
 
@@ -137,6 +140,6 @@ FROM runtime as release
 ENV RUNTIME="release"
 COPY --from=test /app/ /usr/
 HEALTHCHECK --interval=5s --timeout=5s --start-period=3s --retries=3 \  
-  CMD /usr/bin/http_health_check http://localhost:${API_PORT}/health_check \
+  CMD /usr/bin/http_health_check http://localhost:${HEALTH_CHECK_API_PORT}/health_check \
     || exit 1
 CMD ["/usr/bin/torrust-tracker"]

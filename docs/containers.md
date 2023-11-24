@@ -146,6 +146,7 @@ The following environmental variables can be set:
 - `UDP_PORT` - The port for the UDP tracker. This should match the port used in the configuration, (default `6969`).
 - `HTTP_PORT` - The port for the HTTP tracker. This should match the port used in the configuration, (default `7070`).
 - `API_PORT` - The port for the tracker API. This should match the port used in the configuration, (default `1212`).
+- `HEALTH_CHECK_API_PORT` - The port for the Health Check API. This should match the port used in the configuration, (default `1313`).
 
 
 ### Sockets

@@ -11,7 +11,11 @@
 //! - Loading data from the database when it's needed.
 //! - Starting some jobs depending on the configuration.
 //!
-//! The started jobs may be:
+//! Jobs executed always:
+//!
+//! - Health Check API
+//!
+//! Optional jobs:
 //!
 //! - Torrent cleaner: it removes inactive peers and (optionally) peerless torrents.
 //! - UDP trackers: the user can enable multiple UDP tracker on several ports.
@@ -23,13 +27,16 @@ use log::warn;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
 
-use crate::bootstrap::jobs::{http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
+use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
 use crate::servers::http::Version;
 use crate::tracker;
 
 /// # Panics
 ///
-/// Will panic if the socket address for API can't be parsed.
+/// Will panic if:
+///
+/// - Can't retrieve tracker keys from database.
+/// - Can't load whitelist from database.
 pub async fn start(config: Arc<Configuration>, tracker: Arc<tracker::Tracker>) -> Vec<JoinHandle<()>> {
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
@@ -78,10 +85,13 @@ pub async fn start(config: Arc<Configuration>, tracker: Arc<tracker::Tracker>) -
         jobs.push(tracker_apis::start_job(&config.http_api, tracker.clone()).await);
     }
 
-    // Remove torrents without peers, every interval
+    // Start runners to remove torrents without peers, every interval
     if config.inactive_peer_cleanup_interval > 0 {
         jobs.push(torrent_cleanup::start_job(&config, &tracker));
     }
+
+    // Start Health Check API
+    jobs.push(health_check_api::start_job(&config.health_check_api).await);
 
     jobs
 }

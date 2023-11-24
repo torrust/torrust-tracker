@@ -191,40 +191,43 @@
 //! The default configuration is:
 //!
 //! ```toml
-//! log_level = "info"
-//! mode = "public"
+//! announce_interval = 120
 //! db_driver = "Sqlite3"
 //! db_path = "./storage/tracker/lib/database/sqlite3.db"
-//! announce_interval = 120
-//! min_announce_interval = 120
-//! max_peer_timeout = 900
-//! on_reverse_proxy = false
 //! external_ip = "0.0.0.0"
-//! tracker_usage_statistics = true
-//! persistent_torrent_completed_stat = false
 //! inactive_peer_cleanup_interval = 600
+//! log_level = "info"
+//! max_peer_timeout = 900
+//! min_announce_interval = 120
+//! mode = "public"
+//! on_reverse_proxy = false
+//! persistent_torrent_completed_stat = false
 //! remove_peerless_torrents = true
+//! tracker_usage_statistics = true
 //!
 //! [[udp_trackers]]
-//! enabled = false
 //! bind_address = "0.0.0.0:6969"
+//! enabled = false
 //!
 //! [[http_trackers]]
-//! enabled = false
 //! bind_address = "0.0.0.0:7070"
-//! ssl_enabled = false
+//! enabled = false
 //! ssl_cert_path = ""
+//! ssl_enabled = false
 //! ssl_key_path = ""
 //!
 //! [http_api]
-//! enabled = true
 //! bind_address = "127.0.0.1:1212"
-//! ssl_enabled = false
+//! enabled = true
 //! ssl_cert_path = ""
+//! ssl_enabled = false
 //! ssl_key_path = ""
 //!
 //! [http_api.access_tokens]
 //! admin = "MyAccessToken"
+//!
+//! [health_check_api]
+//! bind_address = "127.0.0.1:1313"
 //!```
 use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
@@ -342,7 +345,7 @@ pub struct HttpApi {
     /// The address the tracker will bind to.
     /// The format is `ip:port`, for example `0.0.0.0:6969`. If you want to
     /// listen to all interfaces, use `0.0.0.0`. If you want the operating
-    /// system to choose a random port, use port `0`.    
+    /// system to choose a random port, use port `0`.
     pub bind_address: String,
     /// Weather the HTTP API will use SSL or not.
     pub ssl_enabled: bool,
@@ -363,9 +366,7 @@ impl HttpApi {
     fn override_admin_token(&mut self, api_admin_token: &str) {
         self.access_tokens.insert("admin".to_string(), api_admin_token.to_string());
     }
-}
 
-impl HttpApi {
     /// Checks if the given token is one of the token in the configuration.
     #[must_use]
     pub fn contains_token(&self, token: &str) -> bool {
@@ -373,6 +374,17 @@ impl HttpApi {
         let tokens: HashSet<String> = tokens.into_values().collect();
         tokens.contains(token)
     }
+}
+
+/// Configuration for the Health Check API.
+#[serde_as]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+pub struct HealthCheckApi {
+    /// The address the API will bind to.
+    /// The format is `ip:port`, for example `127.0.0.1:1313`. If you want to
+    /// listen to all interfaces, use `0.0.0.0`. If you want the operating
+    /// system to choose a random port, use port `0`.
+    pub bind_address: String,
 }
 
 /// Core configuration for the tracker.
@@ -465,6 +477,8 @@ pub struct Configuration {
     pub http_trackers: Vec<HttpTracker>,
     /// The HTTP API configuration.
     pub http_api: HttpApi,
+    /// The Health Check API configuration.
+    pub health_check_api: HealthCheckApi,
 }
 
 /// Errors that can occur when loading the configuration.
@@ -528,6 +542,9 @@ impl Default for Configuration {
                     .iter()
                     .cloned()
                     .collect(),
+            },
+            health_check_api: HealthCheckApi {
+                bind_address: String::from("127.0.0.1:1313"),
             },
         };
         configuration.udp_trackers.push(UdpTracker {
@@ -676,6 +693,9 @@ mod tests {
 
                                 [http_api.access_tokens]
                                 admin = "MyAccessToken"
+
+                                [health_check_api]
+                                bind_address = "127.0.0.1:1313"
         "#
         .lines()
         .map(str::trim_start)

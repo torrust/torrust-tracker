@@ -148,41 +148,44 @@
 //! The default configuration is:
 //!
 //! ```toml
-//! log_level = "info"
-//! mode = "public"
+//! announce_interval = 120
 //! db_driver = "Sqlite3"
 //! db_path = "./storage/tracker/lib/database/sqlite3.db"
-//! announce_interval = 120
-//! min_announce_interval = 120
-//! max_peer_timeout = 900
-//! on_reverse_proxy = false
 //! external_ip = "0.0.0.0"
-//! tracker_usage_statistics = true
-//! persistent_torrent_completed_stat = false
 //! inactive_peer_cleanup_interval = 600
+//! log_level = "info"
+//! max_peer_timeout = 900
+//! min_announce_interval = 120
+//! mode = "public"
+//! on_reverse_proxy = false
+//! persistent_torrent_completed_stat = false
 //! remove_peerless_torrents = true
+//! tracker_usage_statistics = true
 //!
 //! [[udp_trackers]]
-//! enabled = false
 //! bind_address = "0.0.0.0:6969"
+//! enabled = false
 //!
 //! [[http_trackers]]
-//! enabled = false
 //! bind_address = "0.0.0.0:7070"
-//! ssl_enabled = false
+//! enabled = false
 //! ssl_cert_path = ""
+//! ssl_enabled = false
 //! ssl_key_path = ""
 //!
 //! [http_api]
-//! enabled = true
 //! bind_address = "127.0.0.1:1212"
-//! ssl_enabled = false
+//! enabled = true
 //! ssl_cert_path = ""
+//! ssl_enabled = false
 //! ssl_key_path = ""
 //!
 //! [http_api.access_tokens]
 //! admin = "MyAccessToken"
-//! ```
+//!
+//! [health_check_api]
+//! bind_address = "127.0.0.1:1313"
+//!```
 //!
 //! The default configuration includes one disabled UDP server, one disabled HTTP server and the enabled API.
 //!
