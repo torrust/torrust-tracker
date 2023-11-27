@@ -37,6 +37,10 @@ pub fn ephemeral() -> Configuration {
     config.http_api.enabled = true;
     config.http_api.bind_address = format!("127.0.0.1:{}", &api_port);
 
+    // Ephemeral socket address for Health Check API
+    let health_check_api_port = 0u16;
+    config.health_check_api.bind_address = format!("127.0.0.1:{}", &health_check_api_port);
+
     // Ephemeral socket address for UDP tracker
     let udp_port = 0u16;
     config.udp_trackers[0].enabled = true;
@@ -137,6 +141,18 @@ pub fn ephemeral_ipv6() -> Configuration {
     cfg.http_api.bind_address = ipv6.clone();
     cfg.http_trackers[0].bind_address = ipv6.clone();
     cfg.udp_trackers[0].bind_address = ipv6;
+
+    cfg
+}
+
+/// Ephemeral without running any services.
+#[must_use]
+pub fn ephemeral_with_no_services() -> Configuration {
+    let mut cfg = ephemeral();
+
+    cfg.http_api.enabled = false;
+    cfg.http_trackers[0].enabled = false;
+    cfg.udp_trackers[0].enabled = false;
 
     cfg
 }

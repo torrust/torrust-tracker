@@ -3,9 +3,8 @@ use std::sync::Arc;
 
 use aquatic_udp_protocol::{Request, Response};
 use tokio::net::UdpSocket;
-use torrust_tracker::servers::udp::MAX_PACKET_SIZE;
 
-use crate::servers::udp::source_address;
+use crate::shared::bit_torrent::udp::{source_address, MAX_PACKET_SIZE};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct UdpClient {
@@ -13,6 +12,9 @@ pub struct UdpClient {
 }
 
 impl UdpClient {
+    /// # Panics
+    ///
+    /// Will panic if the local address can't be bound.
     pub async fn bind(local_address: &str) -> Self {
         let socket = UdpSocket::bind(local_address).await.unwrap();
         Self {
@@ -20,15 +22,30 @@ impl UdpClient {
         }
     }
 
+    /// # Panics
+    ///
+    /// Will panic if can't connect to the socket.
     pub async fn connect(&self, remote_address: &str) {
         self.socket.connect(remote_address).await.unwrap();
     }
 
+    /// # Panics
+    ///
+    /// Will panic if:
+    ///
+    /// - Can't write to the socket.
+    /// - Can't send data.
     pub async fn send(&self, bytes: &[u8]) -> usize {
         self.socket.writable().await.unwrap();
         self.socket.send(bytes).await.unwrap()
     }
 
+    /// # Panics
+    ///
+    /// Will panic if:
+    ///
+    /// - Can't read from the socket.
+    /// - Can't receive data.
     pub async fn receive(&self, bytes: &mut [u8]) -> usize {
         self.socket.readable().await.unwrap();
         self.socket.recv(bytes).await.unwrap()
@@ -49,6 +66,9 @@ pub struct UdpTrackerClient {
 }
 
 impl UdpTrackerClient {
+    /// # Panics
+    ///
+    /// Will panic if can't write request to bytes.
     pub async fn send(&self, request: Request) -> usize {
         // Write request into a buffer
         let request_buffer = vec![0u8; MAX_PACKET_SIZE];
@@ -68,6 +88,9 @@ impl UdpTrackerClient {
         self.udp_client.send(request_data).await
     }
 
+    /// # Panics
+    ///
+    /// Will panic if can't create response from the received payload (bytes buffer).
     pub async fn receive(&self) -> Response {
         let mut response_buffer = [0u8; MAX_PACKET_SIZE];
 

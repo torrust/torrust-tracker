@@ -30,7 +30,7 @@ use tokio::task::JoinHandle;
 
 use crate::servers::signals::shutdown_signal;
 use crate::servers::udp::handlers::handle_packet;
-use crate::servers::udp::MAX_PACKET_SIZE;
+use crate::shared::bit_torrent::udp::MAX_PACKET_SIZE;
 use crate::tracker::Tracker;
 
 /// Error that can occur when starting or stopping the UDP server.

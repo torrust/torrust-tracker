@@ -13,6 +13,26 @@ async fn test_environment_should_be_started_and_stopped() {
 
 mod for_all_config_modes {
 
+    use torrust_tracker::servers::http::v1::handlers::health_check::{Report, Status};
+    use torrust_tracker_test_helpers::configuration;
+
+    use crate::servers::http::client::Client;
+    use crate::servers::http::test_environment::running_test_environment;
+    use crate::servers::http::v1::contract::V1;
+
+    #[tokio::test]
+    async fn health_check_endpoint_should_return_ok_if_the_http_tracker_is_running() {
+        let test_env = running_test_environment::<V1>(configuration::ephemeral_with_reverse_proxy()).await;
+
+        let response = Client::new(*test_env.bind_address()).health_check().await;
+
+        assert_eq!(response.status(), 200);
+        assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
+        assert_eq!(response.json::<Report>().await.unwrap(), Report { status: Status::Ok });
+
+        test_env.stop().await;
+    }
+
     mod and_running_on_reverse_proxy {
         use torrust_tracker_test_helpers::configuration;
 

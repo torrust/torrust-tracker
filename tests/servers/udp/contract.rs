@@ -6,11 +6,11 @@
 use core::panic;
 
 use aquatic_udp_protocol::{ConnectRequest, ConnectionId, Response, TransactionId};
-use torrust_tracker::servers::udp::MAX_PACKET_SIZE;
+use torrust_tracker::shared::bit_torrent::udp::client::{new_udp_client_connected, UdpTrackerClient};
+use torrust_tracker::shared::bit_torrent::udp::MAX_PACKET_SIZE;
 use torrust_tracker_test_helpers::configuration;
 
 use crate::servers::udp::asserts::is_error_response;
-use crate::servers::udp::client::{new_udp_client_connected, UdpTrackerClient};
 use crate::servers::udp::test_environment::running_test_environment;
 
 fn empty_udp_request() -> [u8; MAX_PACKET_SIZE] {
@@ -51,10 +51,10 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
 
 mod receiving_a_connection_request {
     use aquatic_udp_protocol::{ConnectRequest, TransactionId};
+    use torrust_tracker::shared::bit_torrent::udp::client::new_udp_tracker_client_connected;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::servers::udp::asserts::is_connect_response;
-    use crate::servers::udp::client::new_udp_tracker_client_connected;
     use crate::servers::udp::test_environment::running_test_environment;
 
     #[tokio::test]
@@ -82,10 +82,10 @@ mod receiving_an_announce_request {
         AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port,
         TransactionId,
     };
+    use torrust_tracker::shared::bit_torrent::udp::client::new_udp_tracker_client_connected;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::servers::udp::asserts::is_ipv4_announce_response;
-    use crate::servers::udp::client::new_udp_tracker_client_connected;
     use crate::servers::udp::contract::send_connection_request;
     use crate::servers::udp::test_environment::running_test_environment;
 
@@ -124,10 +124,10 @@ mod receiving_an_announce_request {
 
 mod receiving_an_scrape_request {
     use aquatic_udp_protocol::{ConnectionId, InfoHash, ScrapeRequest, TransactionId};
+    use torrust_tracker::shared::bit_torrent::udp::client::new_udp_tracker_client_connected;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::servers::udp::asserts::is_scrape_response;
-    use crate::servers::udp::client::new_udp_tracker_client_connected;
     use crate::servers::udp::contract::send_connection_request;
     use crate::servers::udp::test_environment::running_test_environment;
 

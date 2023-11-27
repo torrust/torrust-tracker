@@ -32,3 +32,6 @@ ssl_key_path = ""
 
 [http_api.access_tokens]
 admin = "MyAccessToken"
+
+[health_check_api]
+bind_address = "127.0.0.1:1313"

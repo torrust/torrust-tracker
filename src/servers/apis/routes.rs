@@ -7,10 +7,12 @@
 //! first path segment. For example: `/api/v1/torrents`.
 use std::sync::Arc;
 
+use axum::routing::get;
 use axum::{middleware, Router};
 use tower_http::compression::CompressionLayer;
 
 use super::v1;
+use super::v1::context::health_check::handlers::health_check_handler;
 use crate::tracker::Tracker;
 
 /// Add all API routes to the router.
@@ -18,14 +20,15 @@ use crate::tracker::Tracker;
 pub fn router(tracker: Arc<Tracker>) -> Router {
     let router = Router::new();
 
-    let prefix = "/api";
+    let api_url_prefix = "/api";
 
-    let router = v1::routes::add(prefix, router, tracker.clone());
+    let router = v1::routes::add(api_url_prefix, router, tracker.clone());
 
     router
         .layer(middleware::from_fn_with_state(
             tracker.config.clone(),
             v1::middlewares::auth::auth,
         ))
+        .route("/health_check", get(health_check_handler))
         .layer(CompressionLayer::new())
 }
