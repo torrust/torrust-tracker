@@ -34,8 +34,8 @@ use futures::Future;
 use log::info;
 
 use super::routes::router;
+use crate::core::Tracker;
 use crate::servers::signals::shutdown_signal;
-use crate::tracker::Tracker;
 
 /// Errors that can occur when starting or stopping the API server.
 #[derive(Debug)]
@@ -281,9 +281,9 @@ mod tests {
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::core;
+    use crate::core::statistics;
     use crate::servers::apis::server::ApiServer;
-    use crate::tracker;
-    use crate::tracker::statistics;
 
     fn tracker_configuration() -> Arc<Configuration> {
         Arc::new(configuration::ephemeral())
@@ -293,7 +293,7 @@ mod tests {
     async fn it_should_be_able_to_start_from_stopped_state_and_then_stop_again() {
         let cfg = tracker_configuration();
 
-        let tracker = Arc::new(tracker::Tracker::new(cfg.clone(), None, statistics::Repo::new()).unwrap());
+        let tracker = Arc::new(core::Tracker::new(cfg.clone(), None, statistics::Repo::new()).unwrap());
 
         let stopped_api_server = ApiServer::new(cfg.http_api.clone());
 

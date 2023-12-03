@@ -7,7 +7,7 @@ use axum_client_ip::SecureClientIpSource;
 use tower_http::compression::CompressionLayer;
 
 use super::handlers::{announce, health_check, scrape};
-use crate::tracker::Tracker;
+use crate::core::Tracker;
 
 /// It adds the routes to the router.
 ///

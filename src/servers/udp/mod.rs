@@ -53,7 +53,7 @@
 //! supports only three types of requests: `Connect`, `Announce` and `Scrape`.
 //!
 //! Request are parsed from UDP packets using the [`aquatic_udp_protocol`](https://crates.io/crates/aquatic_udp_protocol)
-//! crate and then handled by the [`Tracker`](crate::tracker::Tracker) struct.
+//! crate and then handled by the [`Tracker`](crate::core::Tracker) struct.
 //! And then the response is also build using the [`aquatic_udp_protocol`](https://crates.io/crates/aquatic_udp_protocol)
 //! and converted to a UDP packet.
 //!
@@ -467,15 +467,15 @@
 //!
 //! ### Scrape
 //!
-//! The `scrape` request allows a peer to get [swarm metadata](crate::tracker::torrent::SwarmMetadata)
+//! The `scrape` request allows a peer to get [swarm metadata](crate::core::torrent::SwarmMetadata)
 //! for multiple torrents at the same time.
 //!
-//! The response contains the [swarm metadata](crate::tracker::torrent::SwarmMetadata)
+//! The response contains the [swarm metadata](crate::core::torrent::SwarmMetadata)
 //! for that torrent:
 //!
-//! - [complete](crate::tracker::torrent::SwarmMetadata::complete)
-//! - [downloaded](crate::tracker::torrent::SwarmMetadata::downloaded)
-//! - [incomplete](crate::tracker::torrent::SwarmMetadata::incomplete)
+//! - [complete](crate::core::torrent::SwarmMetadata::complete)
+//! - [downloaded](crate::core::torrent::SwarmMetadata::downloaded)
+//! - [incomplete](crate::core::torrent::SwarmMetadata::incomplete)
 //!
 //! > **NOTICE**: up to about 74 torrents can be scraped at once. A full scrape
 //! can't be done with this protocol. This is a limitation of the UDP protocol.

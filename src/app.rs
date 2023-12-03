@@ -28,8 +28,8 @@ use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
 
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
+use crate::core;
 use crate::servers::http::Version;
-use crate::tracker;
 
 /// # Panics
 ///
@@ -37,7 +37,7 @@ use crate::tracker;
 ///
 /// - Can't retrieve tracker keys from database.
 /// - Can't load whitelist from database.
-pub async fn start(config: Arc<Configuration>, tracker: Arc<tracker::Tracker>) -> Vec<JoinHandle<()>> {
+pub async fn start(config: Arc<Configuration>, tracker: Arc<core::Tracker>) -> Vec<JoinHandle<()>> {
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
     // Load peer keys

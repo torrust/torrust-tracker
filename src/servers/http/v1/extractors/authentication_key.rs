@@ -51,9 +51,9 @@ use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 
+use crate::core::auth::Key;
 use crate::servers::http::v1::handlers::common::auth;
 use crate::servers::http::v1::responses;
-use crate::tracker::auth::Key;
 
 /// Extractor for the [`Key`] struct.
 pub struct Extract(pub Key);

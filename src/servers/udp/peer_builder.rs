@@ -2,8 +2,8 @@
 use std::net::{IpAddr, SocketAddr};
 
 use super::request::AnnounceWrapper;
+use crate::core::peer::{Id, Peer};
 use crate::shared::clock::{Current, Time};
-use crate::tracker::peer::{Id, Peer};
 
 /// Extracts the [`Peer`] info from the
 /// announce request.

@@ -11,8 +11,8 @@ use serde::{self, Deserialize, Serialize};
 use thiserror::Error;
 use torrust_tracker_contrib_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
 
+use crate::core::{self, AnnounceData};
 use crate::servers::http::v1::responses;
-use crate::tracker::{self, AnnounceData};
 
 /// Normal (non compact) `announce` response.
 ///
@@ -125,8 +125,8 @@ impl Peer {
     }
 }
 
-impl From<tracker::peer::Peer> for Peer {
-    fn from(peer: tracker::peer::Peer) -> Self {
+impl From<core::peer::Peer> for Peer {
+    fn from(peer: core::peer::Peer) -> Self {
         Peer {
             peer_id: peer.peer_id.to_bytes(),
             ip: peer.peer_addr.ip(),
@@ -312,8 +312,8 @@ impl CompactPeer {
     }
 }
 
-impl From<tracker::peer::Peer> for CompactPeer {
-    fn from(peer: tracker::peer::Peer) -> Self {
+impl From<core::peer::Peer> for CompactPeer {
+    fn from(peer: core::peer::Peer) -> Self {
         CompactPeer {
             ip: peer.peer_addr.ip(),
             port: peer.peer_addr.port(),

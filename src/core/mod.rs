@@ -55,7 +55,7 @@
 //! Once you have instantiated the `Tracker` you can `announce` a new [`Peer`] with:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::tracker::peer;
+//! use torrust_tracker::core::peer;
 //! use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 //! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
 //! use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
@@ -97,7 +97,7 @@
 //! The returned struct is:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::tracker::peer::Peer;
+//! use torrust_tracker::core::peer::Peer;
 //!
 //! pub struct AnnounceData {
 //!     pub peers: Vec<Peer>,
@@ -251,7 +251,7 @@
 //! A `Peer` is the struct used by the `Tracker` to keep peers data:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::tracker::peer::Id;
+//! use torrust_tracker::core::peer::Id;
 //! use std::net::SocketAddr;
 //! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
 //! use aquatic_udp_protocol::NumberOfBytes;
@@ -364,7 +364,7 @@
 //! To learn more about tracker authentication, refer to the following modules :
 //!
 //! - [`auth`] module.
-//! - [`tracker`](crate::tracker) module.
+//! - [`core`](crate::core) module.
 //! - [`http`](crate::servers::http) module.
 //!
 //! # Statistics
@@ -455,8 +455,8 @@ use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
 use self::torrent::{SwarmMetadata, SwarmStats};
+use crate::core::databases::Database;
 use crate::shared::bit_torrent::info_hash::InfoHash;
-use crate::tracker::databases::Database;
 
 /// The domain layer tracker service.
 ///
@@ -470,8 +470,8 @@ use crate::tracker::databases::Database;
 pub struct Tracker {
     /// `Tracker` configuration. See [`torrust-tracker-configuration`](torrust_tracker_configuration)
     pub config: Arc<Configuration>,
-    /// A database driver implementation: [`Sqlite3`](crate::tracker::databases::sqlite)
-    /// or [`MySQL`](crate::tracker::databases::mysql)
+    /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)
+    /// or [`MySQL`](crate::core::databases::mysql)
     pub database: Box<dyn Database>,
     mode: TrackerMode,
     keys: RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
@@ -1110,11 +1110,11 @@ mod tests {
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
         use torrust_tracker_test_helpers::configuration;
 
+        use crate::core::peer::{self, Peer};
+        use crate::core::services::tracker_factory;
+        use crate::core::{TorrentsMetrics, Tracker};
         use crate::shared::bit_torrent::info_hash::InfoHash;
         use crate::shared::clock::DurationSinceUnixEpoch;
-        use crate::tracker::peer::{self, Peer};
-        use crate::tracker::services::tracker_factory;
-        use crate::tracker::{TorrentsMetrics, Tracker};
 
         fn public_tracker() -> Tracker {
             tracker_factory(configuration::ephemeral_mode_public().into())
@@ -1288,7 +1288,7 @@ mod tests {
 
             mod handling_an_announce_request {
 
-                use crate::tracker::tests::the_tracker::{
+                use crate::core::tests::the_tracker::{
                     peer_ip, public_tracker, sample_info_hash, sample_peer, sample_peer_1, sample_peer_2,
                 };
 
@@ -1296,7 +1296,7 @@ mod tests {
 
                     use std::net::{IpAddr, Ipv4Addr};
 
-                    use crate::tracker::assign_ip_address_to_peer;
+                    use crate::core::assign_ip_address_to_peer;
 
                     #[test]
                     fn using_the_source_ip_instead_of_the_ip_in_the_announce_request() {
@@ -1312,7 +1312,7 @@ mod tests {
                         use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
                         use std::str::FromStr;
 
-                        use crate::tracker::assign_ip_address_to_peer;
+                        use crate::core::assign_ip_address_to_peer;
 
                         #[test]
                         fn it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration() {
@@ -1353,7 +1353,7 @@ mod tests {
                         use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
                         use std::str::FromStr;
 
-                        use crate::tracker::assign_ip_address_to_peer;
+                        use crate::core::assign_ip_address_to_peer;
 
                         #[test]
                         fn it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration() {
@@ -1418,7 +1418,7 @@ mod tests {
 
                 mod it_should_update_the_swarm_stats_for_the_torrent {
 
-                    use crate::tracker::tests::the_tracker::{
+                    use crate::core::tests::the_tracker::{
                         completed_peer, leecher, peer_ip, public_tracker, sample_info_hash, seeder, started_peer,
                     };
 
@@ -1464,9 +1464,9 @@ mod tests {
 
                 use std::net::{IpAddr, Ipv4Addr};
 
+                use crate::core::tests::the_tracker::{complete_peer, incomplete_peer, public_tracker};
+                use crate::core::{ScrapeData, SwarmMetadata};
                 use crate::shared::bit_torrent::info_hash::InfoHash;
-                use crate::tracker::tests::the_tracker::{complete_peer, incomplete_peer, public_tracker};
-                use crate::tracker::{ScrapeData, SwarmMetadata};
 
                 #[tokio::test]
                 async fn it_should_return_a_zeroed_swarm_metadata_for_the_requested_file_if_the_tracker_does_not_have_that_torrent(
@@ -1542,7 +1542,7 @@ mod tests {
         mod configured_as_whitelisted {
 
             mod handling_authorization {
-                use crate::tracker::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
+                use crate::core::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
 
                 #[tokio::test]
                 async fn it_should_authorize_the_announce_and_scrape_actions_on_whitelisted_torrents() {
@@ -1569,7 +1569,7 @@ mod tests {
             }
 
             mod handling_the_torrent_whitelist {
-                use crate::tracker::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
+                use crate::core::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
 
                 #[tokio::test]
                 async fn it_should_add_a_torrent_to_the_whitelist() {
@@ -1596,7 +1596,7 @@ mod tests {
                 }
 
                 mod persistence {
-                    use crate::tracker::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
+                    use crate::core::tests::the_tracker::{sample_info_hash, whitelisted_tracker};
 
                     #[tokio::test]
                     async fn it_should_load_the_whitelist_from_the_database() {
@@ -1621,12 +1621,12 @@ mod tests {
 
             mod handling_an_scrape_request {
 
-                use crate::shared::bit_torrent::info_hash::InfoHash;
-                use crate::tracker::tests::the_tracker::{
+                use crate::core::tests::the_tracker::{
                     complete_peer, incomplete_peer, peer_ip, sample_info_hash, whitelisted_tracker,
                 };
-                use crate::tracker::torrent::SwarmMetadata;
-                use crate::tracker::ScrapeData;
+                use crate::core::torrent::SwarmMetadata;
+                use crate::core::ScrapeData;
+                use crate::shared::bit_torrent::info_hash::InfoHash;
 
                 #[test]
                 fn it_should_be_able_to_build_a_zeroed_scrape_data_for_a_list_of_info_hashes() {
@@ -1670,8 +1670,8 @@ mod tests {
                 use std::str::FromStr;
                 use std::time::Duration;
 
-                use crate::tracker::auth;
-                use crate::tracker::tests::the_tracker::private_tracker;
+                use crate::core::auth;
+                use crate::core::tests::the_tracker::private_tracker;
 
                 #[tokio::test]
                 async fn it_should_generate_the_expiring_authentication_keys() {
@@ -1767,7 +1767,7 @@ mod tests {
         mod handling_torrent_persistence {
             use aquatic_udp_protocol::AnnounceEvent;
 
-            use crate::tracker::tests::the_tracker::{sample_info_hash, sample_peer, tracker_persisting_torrents_in_database};
+            use crate::core::tests::the_tracker::{sample_info_hash, sample_peer, tracker_persisting_torrents_in_database};
 
             #[tokio::test]
             async fn it_should_persist_the_number_of_completed_peers_for_all_torrents_into_the_database() {

@@ -3,7 +3,7 @@
 //! Refer to the generic [HTTP server documentation](crate::servers::http) for
 //! more information about the HTTP tracker.
 use super::responses;
-use crate::tracker::error::Error;
+use crate::core::error::Error;
 
 pub mod announce;
 pub mod common;

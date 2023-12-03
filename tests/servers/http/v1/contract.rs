@@ -93,8 +93,8 @@ mod for_all_config_modes {
         use local_ip_address::local_ip;
         use reqwest::Response;
         use tokio::net::TcpListener;
+        use torrust_tracker::core::peer;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-        use torrust_tracker::tracker::peer;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
@@ -869,8 +869,8 @@ mod for_all_config_modes {
         use std::str::FromStr;
 
         use tokio::net::TcpListener;
+        use torrust_tracker::core::peer;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-        use torrust_tracker::tracker::peer;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
@@ -1147,8 +1147,8 @@ mod configured_as_whitelisted {
     mod receiving_an_scrape_request {
         use std::str::FromStr;
 
+        use torrust_tracker::core::peer;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-        use torrust_tracker::tracker::peer;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::common::fixtures::PeerBuilder;
@@ -1244,8 +1244,8 @@ mod configured_as_private {
         use std::str::FromStr;
         use std::time::Duration;
 
+        use torrust_tracker::core::auth::Key;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-        use torrust_tracker::tracker::auth::Key;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::servers::http::asserts::{assert_authentication_error_response, assert_is_announce_response};
@@ -1321,9 +1321,9 @@ mod configured_as_private {
         use std::str::FromStr;
         use std::time::Duration;
 
+        use torrust_tracker::core::auth::Key;
+        use torrust_tracker::core::peer;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-        use torrust_tracker::tracker::auth::Key;
-        use torrust_tracker::tracker::peer;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::common::fixtures::PeerBuilder;

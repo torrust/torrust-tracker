@@ -7,7 +7,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::peer;
-use crate::tracker::services::torrent::{BasicInfo, Info};
+use crate::core::services::torrent::{BasicInfo, Info};
 
 /// `Torrent` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -103,12 +103,12 @@ mod tests {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
     use super::Torrent;
+    use crate::core::peer;
+    use crate::core::services::torrent::{BasicInfo, Info};
     use crate::servers::apis::v1::context::torrent::resources::peer::Peer;
     use crate::servers::apis::v1::context::torrent::resources::torrent::ListItem;
     use crate::shared::bit_torrent::info_hash::InfoHash;
     use crate::shared::clock::DurationSinceUnixEpoch;
-    use crate::tracker::peer;
-    use crate::tracker::services::torrent::{BasicInfo, Info};
 
     fn sample_peer() -> peer::Peer {
         peer::Peer {

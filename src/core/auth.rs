@@ -12,7 +12,7 @@
 //! Keys are stored in this struct:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::tracker::auth::Key;
+//! use torrust_tracker::core::auth::Key;
 //! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
 //!
 //! pub struct ExpiringKey {
@@ -26,7 +26,7 @@
 //! You can generate a new key valid for `9999` seconds and `0` nanoseconds from the current time with the following:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::tracker::auth;
+//! use torrust_tracker::core::auth;
 //! use std::time::Duration;
 //!
 //! let expiring_key = auth::generate(Duration::new(9999, 0));
@@ -138,7 +138,7 @@ pub struct Key(String);
 /// Error returned when a key cannot be parsed from a string.
 ///
 /// ```rust,no_run
-/// use torrust_tracker::tracker::auth::Key;
+/// use torrust_tracker::core::auth::Key;
 /// use std::str::FromStr;
 ///
 /// let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
@@ -164,7 +164,7 @@ impl FromStr for Key {
     }
 }
 
-/// Verification error. Error returned when an [`ExpiringKey`] cannot be verified with the [`verify(...)`](crate::tracker::auth::verify) function.
+/// Verification error. Error returned when an [`ExpiringKey`] cannot be verified with the [`verify(...)`](crate::core::auth::verify) function.
 ///
 #[derive(Debug, Error)]
 #[allow(dead_code)]
@@ -196,7 +196,7 @@ mod tests {
     mod key {
         use std::str::FromStr;
 
-        use crate::tracker::auth::Key;
+        use crate::core::auth::Key;
 
         #[test]
         fn should_be_parsed_from_an_string() {
@@ -212,8 +212,8 @@ mod tests {
         use std::str::FromStr;
         use std::time::Duration;
 
+        use crate::core::auth;
         use crate::shared::clock::{Current, StoppedTime};
-        use crate::tracker::auth;
 
         #[test]
         fn should_be_parsed_from_an_string() {

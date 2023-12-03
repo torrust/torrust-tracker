@@ -2,15 +2,15 @@
 //!
 //! It includes:
 //!
-//! - A [`factory`](crate::tracker::services::statistics::setup::factory) function to build the structs needed to collect the tracker metrics.
-//! - A [`get_metrics`] service to get the [`tracker metrics`](crate::tracker::statistics::Metrics).
+//! - A [`factory`](crate::core::services::statistics::setup::factory) function to build the structs needed to collect the tracker metrics.
+//! - A [`get_metrics`] service to get the [`tracker metrics`](crate::core::statistics::Metrics).
 //!
 //! Tracker metrics are collected using a Publisher-Subscribe pattern.
 //!
 //! The factory function builds two structs:
 //!
-//! - An statistics [`EventSender`](crate::tracker::statistics::EventSender)
-//! - An statistics [`Repo`](crate::tracker::statistics::Repo)
+//! - An statistics [`EventSender`](crate::core::statistics::EventSender)
+//! - An statistics [`Repo`](crate::core::statistics::Repo)
 //!
 //! ```text
 //! let (stats_event_sender, stats_repository) = factory(tracker_usage_statistics);
@@ -21,7 +21,7 @@
 //! There is an event listener that is receiving all the events and processing them with an event handler.
 //! Then, the event handler updates the metrics depending on the received event.
 //!
-//! For example, if you send the event [`Event::Udp4Connect`](crate::tracker::statistics::Event::Udp4Connect):
+//! For example, if you send the event [`Event::Udp4Connect`](crate::core::statistics::Event::Udp4Connect):
 //!
 //! ```text
 //! let result = event_sender.send_event(Event::Udp4Connect).await;
@@ -40,8 +40,8 @@ pub mod setup;
 
 use std::sync::Arc;
 
-use crate::tracker::statistics::Metrics;
-use crate::tracker::{TorrentsMetrics, Tracker};
+use crate::core::statistics::Metrics;
+use crate::core::{TorrentsMetrics, Tracker};
 
 /// All the metrics collected by the tracker.
 #[derive(Debug, PartialEq)]
@@ -88,9 +88,9 @@ mod tests {
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::tracker;
-    use crate::tracker::services::statistics::{get_metrics, TrackerMetrics};
-    use crate::tracker::services::tracker_factory;
+    use crate::core;
+    use crate::core::services::statistics::{get_metrics, TrackerMetrics};
+    use crate::core::services::tracker_factory;
 
     pub fn tracker_configuration() -> Arc<Configuration> {
         Arc::new(configuration::ephemeral())
@@ -105,8 +105,8 @@ mod tests {
         assert_eq!(
             tracker_metrics,
             TrackerMetrics {
-                torrents_metrics: tracker::TorrentsMetrics::default(),
-                protocol_metrics: tracker::statistics::Metrics::default(),
+                torrents_metrics: core::TorrentsMetrics::default(),
+                protocol_metrics: core::statistics::Metrics::default(),
             }
         );
     }

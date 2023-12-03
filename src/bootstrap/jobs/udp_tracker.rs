@@ -12,14 +12,14 @@ use log::{error, info, warn};
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::UdpTracker;
 
+use crate::core;
 use crate::servers::udp::server::Udp;
-use crate::tracker;
 
 /// It starts a new UDP server with the provided configuration.
 ///
 /// It spawns a new asynchronous task for the new UDP server.
 #[must_use]
-pub fn start_job(config: &UdpTracker, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
+pub fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>) -> JoinHandle<()> {
     let bind_addr = config.bind_address.clone();
 
     tokio::spawn(async move {

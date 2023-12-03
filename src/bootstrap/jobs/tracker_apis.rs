@@ -28,8 +28,8 @@ use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpApi;
 
+use crate::core;
 use crate::servers::apis::server;
-use crate::tracker;
 
 /// This is the message that the "launcher" spawned task sends to the main
 /// application process to notify the API server was successfully started.
@@ -49,7 +49,7 @@ pub struct ApiServerJobStarted();
 /// # Panics
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
-pub async fn start_job(config: &HttpApi, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
+pub async fn start_job(config: &HttpApi, tracker: Arc<core::Tracker>) -> JoinHandle<()> {
     let bind_addr = config
         .bind_address
         .parse::<std::net::SocketAddr>()

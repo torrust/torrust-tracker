@@ -1,7 +1,7 @@
 //! `Peer` and Peer `Id` API resources.
 use serde::{Deserialize, Serialize};
 
-use crate::tracker;
+use crate::core;
 
 /// `Peer` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -35,8 +35,8 @@ pub struct Id {
     pub client: Option<String>,
 }
 
-impl From<tracker::peer::Id> for Id {
-    fn from(peer_id: tracker::peer::Id) -> Self {
+impl From<core::peer::Id> for Id {
+    fn from(peer_id: core::peer::Id) -> Self {
         Id {
             id: peer_id.to_hex_string(),
             client: peer_id.get_client_name(),
@@ -44,9 +44,9 @@ impl From<tracker::peer::Id> for Id {
     }
 }
 
-impl From<tracker::peer::Peer> for Peer {
+impl From<core::peer::Peer> for Peer {
     #[allow(deprecated)]
-    fn from(peer: tracker::peer::Peer) -> Self {
+    fn from(peer: core::peer::Peer) -> Self {
         Peer {
             peer_id: Id::from(peer.peer_id),
             peer_addr: peer.peer_addr.to_string(),

@@ -19,9 +19,9 @@ use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpTracker;
 
+use crate::core;
 use crate::servers::http::v1::launcher;
 use crate::servers::http::Version;
-use crate::tracker;
 
 /// This is the message that the "**launcher**" spawned task sends to the main application process to notify that the HTTP server was successfully started.
 ///
@@ -33,7 +33,7 @@ pub struct ServerJobStarted();
 ///
 /// Right now there is only one version but in the future we could support more than one HTTP tracker version at the same time.
 /// This feature allows supporting breaking changes on `BitTorrent` BEPs.
-pub async fn start_job(config: &HttpTracker, tracker: Arc<tracker::Tracker>, version: Version) -> JoinHandle<()> {
+pub async fn start_job(config: &HttpTracker, tracker: Arc<core::Tracker>, version: Version) -> JoinHandle<()> {
     match version {
         Version::V1 => start_v1(config, tracker.clone()).await,
     }
@@ -42,7 +42,7 @@ pub async fn start_job(config: &HttpTracker, tracker: Arc<tracker::Tracker>, ver
 /// # Panics
 ///
 /// It would panic if the `config::HttpTracker` struct would contain inappropriate values.
-async fn start_v1(config: &HttpTracker, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
+async fn start_v1(config: &HttpTracker, tracker: Arc<core::Tracker>) -> JoinHandle<()> {
     let bind_addr = config
         .bind_address
         .parse::<std::net::SocketAddr>()

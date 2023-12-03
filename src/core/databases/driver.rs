@@ -1,6 +1,6 @@
 //! Database driver factory.
 //!
-//! See [`databases::driver::build`](crate::tracker::databases::driver::build)
+//! See [`databases::driver::build`](crate::core::databases::driver::build)
 //! function for more information.
 use torrust_tracker_primitives::DatabaseDriver;
 
@@ -14,7 +14,7 @@ use super::{Builder, Database};
 /// Example for `SQLite3`:
 ///
 /// ```rust,no_run
-/// use torrust_tracker::tracker::databases;
+/// use torrust_tracker::core::databases;
 /// use torrust_tracker_primitives::DatabaseDriver;
 ///
 /// let db_driver = DatabaseDriver::Sqlite3;
@@ -25,7 +25,7 @@ use super::{Builder, Database};
 /// Example for `MySQL`:
 ///
 /// ```rust,no_run
-/// use torrust_tracker::tracker::databases;
+/// use torrust_tracker::core::databases;
 /// use torrust_tracker_primitives::DatabaseDriver;
 ///
 /// let db_driver = DatabaseDriver::MySQL;

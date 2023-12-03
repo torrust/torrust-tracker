@@ -8,9 +8,9 @@ use r2d2_sqlite::SqliteConnectionManager;
 use torrust_tracker_primitives::DatabaseDriver;
 
 use super::{Database, Error};
+use crate::core::auth::{self, Key};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::clock::DurationSinceUnixEpoch;
-use crate::tracker::auth::{self, Key};
 
 const DRIVER: DatabaseDriver = DatabaseDriver::Sqlite3;
 
@@ -22,7 +22,7 @@ pub struct Sqlite {
 impl Database for Sqlite {
     /// It instantiates a new `SQLite3` database driver.
     ///
-    /// Refer to [`databases::Database::new`](crate::tracker::databases::Database::new).
+    /// Refer to [`databases::Database::new`](crate::core::databases::Database::new).
     ///
     /// # Errors
     ///
@@ -32,7 +32,7 @@ impl Database for Sqlite {
         Pool::new(cm).map_or_else(|err| Err((err, DatabaseDriver::Sqlite3).into()), |pool| Ok(Sqlite { pool }))
     }
 
-    /// Refer to [`databases::Database::create_database_tables`](crate::tracker::databases::Database::create_database_tables).
+    /// Refer to [`databases::Database::create_database_tables`](crate::core::databases::Database::create_database_tables).
     fn create_database_tables(&self) -> Result<(), Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
@@ -66,7 +66,7 @@ impl Database for Sqlite {
         Ok(())
     }
 
-    /// Refer to [`databases::Database::drop_database_tables`](crate::tracker::databases::Database::drop_database_tables).
+    /// Refer to [`databases::Database::drop_database_tables`](crate::core::databases::Database::drop_database_tables).
     fn drop_database_tables(&self) -> Result<(), Error> {
         let drop_whitelist_table = "
         DROP TABLE whitelist;"
@@ -89,7 +89,7 @@ impl Database for Sqlite {
         Ok(())
     }
 
-    /// Refer to [`databases::Database::load_persistent_torrents`](crate::tracker::databases::Database::load_persistent_torrents).
+    /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
     async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -110,7 +110,7 @@ impl Database for Sqlite {
         Ok(torrents)
     }
 
-    /// Refer to [`databases::Database::load_keys`](crate::tracker::databases::Database::load_keys).
+    /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
     async fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -131,7 +131,7 @@ impl Database for Sqlite {
         Ok(keys)
     }
 
-    /// Refer to [`databases::Database::load_whitelist`](crate::tracker::databases::Database::load_whitelist).
+    /// Refer to [`databases::Database::load_whitelist`](crate::core::databases::Database::load_whitelist).
     async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -148,7 +148,7 @@ impl Database for Sqlite {
         Ok(info_hashes)
     }
 
-    /// Refer to [`databases::Database::save_persistent_torrent`](crate::tracker::databases::Database::save_persistent_torrent).
+    /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
     async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -167,7 +167,7 @@ impl Database for Sqlite {
         }
     }
 
-    /// Refer to [`databases::Database::get_info_hash_from_whitelist`](crate::tracker::databases::Database::get_info_hash_from_whitelist).
+    /// Refer to [`databases::Database::get_info_hash_from_whitelist`](crate::core::databases::Database::get_info_hash_from_whitelist).
     async fn get_info_hash_from_whitelist(&self, info_hash: &InfoHash) -> Result<Option<InfoHash>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -180,7 +180,7 @@ impl Database for Sqlite {
         Ok(query.map(|f| InfoHash::from_str(&f.get_unwrap::<_, String>(0)).unwrap()))
     }
 
-    /// Refer to [`databases::Database::add_info_hash_to_whitelist`](crate::tracker::databases::Database::add_info_hash_to_whitelist).
+    /// Refer to [`databases::Database::add_info_hash_to_whitelist`](crate::core::databases::Database::add_info_hash_to_whitelist).
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -196,7 +196,7 @@ impl Database for Sqlite {
         }
     }
 
-    /// Refer to [`databases::Database::remove_info_hash_from_whitelist`](crate::tracker::databases::Database::remove_info_hash_from_whitelist).
+    /// Refer to [`databases::Database::remove_info_hash_from_whitelist`](crate::core::databases::Database::remove_info_hash_from_whitelist).
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -214,7 +214,7 @@ impl Database for Sqlite {
         }
     }
 
-    /// Refer to [`databases::Database::get_key_from_keys`](crate::tracker::databases::Database::get_key_from_keys).
+    /// Refer to [`databases::Database::get_key_from_keys`](crate::core::databases::Database::get_key_from_keys).
     async fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -234,7 +234,7 @@ impl Database for Sqlite {
         }))
     }
 
-    /// Refer to [`databases::Database::add_key_to_keys`](crate::tracker::databases::Database::add_key_to_keys).
+    /// Refer to [`databases::Database::add_key_to_keys`](crate::core::databases::Database::add_key_to_keys).
     async fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -253,7 +253,7 @@ impl Database for Sqlite {
         }
     }
 
-    /// Refer to [`databases::Database::remove_key_from_keys`](crate::tracker::databases::Database::remove_key_from_keys).
+    /// Refer to [`databases::Database::remove_key_from_keys`](crate::core::databases::Database::remove_key_from_keys).
     async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 

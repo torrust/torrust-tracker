@@ -4,8 +4,8 @@
 //!
 //! There are two implementations of the trait (two drivers):
 //!
-//! - [`Mysql`](crate::tracker::databases::mysql::Mysql)
-//! - [`Sqlite`](crate::tracker::databases::sqlite::Sqlite)
+//! - [`Mysql`](crate::core::databases::mysql::Mysql)
+//! - [`Sqlite`](crate::core::databases::sqlite::Sqlite)
 //!
 //! > **NOTICE**: There are no database migrations. If there are any changes,
 //! we will implemented them or provide a script to migrate to the new schema.
@@ -22,7 +22,7 @@
 //! ---|---|---
 //!  `id`          | 1                                        | Autoincrement id
 //!  `info_hash`   | `c1277613db1d28709b034a017ab2cae4be07ae10` | `BitTorrent` infohash V1
-//!  `completed`   | 20                                       | The number of peers that have ever completed downloading the torrent associated to this entry. See [`Entry`](crate::tracker::torrent::Entry) for more information.
+//!  `completed`   | 20                                       | The number of peers that have ever completed downloading the torrent associated to this entry. See [`Entry`](crate::core::torrent::Entry) for more information.
 //!
 //! > **NOTICE**: The peer list for a torrent is not persisted. Since peer have to re-announce themselves on intervals, the data is be
 //! regenerated again after some minutes.
@@ -53,8 +53,8 @@ use std::marker::PhantomData;
 use async_trait::async_trait;
 
 use self::error::Error;
+use crate::core::auth::{self, Key};
 use crate::shared::bit_torrent::info_hash::InfoHash;
-use crate::tracker::auth::{self, Key};
 
 struct Builder<T>
 where
@@ -116,9 +116,9 @@ pub trait Database: Sync + Send {
     ///
     /// It returns an array of tuples with the torrent
     /// [`InfoHash`] and the
-    /// [`completed`](crate::tracker::torrent::Entry::completed) counter
+    /// [`completed`](crate::core::torrent::Entry::completed) counter
     /// which is the number of times the torrent has been downloaded.
-    /// See [`Entry::completed`](crate::tracker::torrent::Entry::completed).
+    /// See [`Entry::completed`](crate::core::torrent::Entry::completed).
     ///
     /// # Context: Torrent Metrics
     ///
@@ -200,8 +200,8 @@ pub trait Database: Sync + Send {
 
     /// It gets an expiring authentication key from the database.
     ///
-    /// It returns `Some(ExpiringKey)` if a [`ExpiringKey`](crate::tracker::auth::ExpiringKey)
-    /// with the input [`Key`](crate::tracker::auth::Key) exists, `None` otherwise.
+    /// It returns `Some(ExpiringKey)` if a [`ExpiringKey`](crate::core::auth::ExpiringKey)
+    /// with the input [`Key`](crate::core::auth::Key) exists, `None` otherwise.
     ///
     /// # Context: Authentication Keys
     ///

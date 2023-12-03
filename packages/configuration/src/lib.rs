@@ -30,10 +30,10 @@
 //!
 //! Each section in the toml structure is mapped to a data structure. For
 //! example, the `[http_api]` section (configuration for the tracker HTTP API)
-//! is mapped to the [`HttpApi`](HttpApi) structure.
+//! is mapped to the [`HttpApi`] structure.
 //!
 //! > **NOTICE**: some sections are arrays of structures. For example, the
-//! > `[[udp_trackers]]` section is an array of [`UdpTracker`](UdpTracker) since
+//! > `[[udp_trackers]]` section is an array of [`UdpTracker`] since
 //! > you can have multiple running UDP trackers bound to different ports.
 //!
 //! Please refer to the documentation of each structure for more information
@@ -394,7 +394,7 @@ pub struct Configuration {
     /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
     /// `Debug` and `Trace`. Default is `Info`.
     pub log_level: Option<String>,
-    /// Tracker mode. See [`TrackerMode`](torrust_tracker_primitives::TrackerMode) for more information.
+    /// Tracker mode. See [`TrackerMode`] for more information.
     pub mode: TrackerMode,
 
     // Database configuration

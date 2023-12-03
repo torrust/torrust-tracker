@@ -17,7 +17,7 @@ use log::info;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
 
-use crate::tracker;
+use crate::core;
 
 /// It starts a jobs for cleaning up the torrent data in the tracker.
 ///
@@ -25,7 +25,7 @@ use crate::tracker;
 ///
 /// Refer to [`torrust-tracker-configuration documentation`](https://docs.rs/torrust-tracker-configuration) for more info about that option.
 #[must_use]
-pub fn start_job(config: &Arc<Configuration>, tracker: &Arc<tracker::Tracker>) -> JoinHandle<()> {
+pub fn start_job(config: &Arc<Configuration>, tracker: &Arc<core::Tracker>) -> JoinHandle<()> {
     let weak_tracker = std::sync::Arc::downgrade(tracker);
     let interval = config.inactive_peer_cleanup_interval;
 

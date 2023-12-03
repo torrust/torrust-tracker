@@ -1,6 +1,6 @@
 //! Database errors.
 //!
-//! This module contains the [Database errors](crate::tracker::databases::error::Error).
+//! This module contains the [Database errors](crate::core::databases::error::Error).
 use std::panic::Location;
 use std::sync::Arc;
 
