@@ -2,7 +2,7 @@
 //!
 //! The service is responsible for handling the `announce` requests.
 //!
-//! It delegates the `announce` logic to the [`Tracker`](crate::tracker::Tracker::announce)
+//! It delegates the `announce` logic to the [`Tracker`](crate::core::Tracker::announce)
 //! and it returns the [`AnnounceData`] returned
 //! by the [`Tracker`].
 //!
@@ -11,9 +11,9 @@
 use std::net::IpAddr;
 use std::sync::Arc;
 
+use crate::core::peer::Peer;
+use crate::core::{statistics, AnnounceData, Tracker};
 use crate::shared::bit_torrent::info_hash::InfoHash;
-use crate::tracker::peer::Peer;
-use crate::tracker::{statistics, AnnounceData, Tracker};
 
 /// The HTTP tracker `announce` service.
 ///
@@ -50,10 +50,10 @@ mod tests {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::core::services::tracker_factory;
+    use crate::core::{peer, Tracker};
     use crate::shared::bit_torrent::info_hash::InfoHash;
     use crate::shared::clock::DurationSinceUnixEpoch;
-    use crate::tracker::services::tracker_factory;
-    use crate::tracker::{peer, Tracker};
 
     fn public_tracker() -> Tracker {
         tracker_factory(configuration::ephemeral_mode_public().into())
@@ -97,11 +97,11 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
+        use crate::core::peer::Peer;
+        use crate::core::torrent::SwarmStats;
+        use crate::core::{statistics, AnnounceData, Tracker};
         use crate::servers::http::v1::services::announce::invoke;
         use crate::servers::http::v1::services::announce::tests::{public_tracker, sample_info_hash, sample_peer};
-        use crate::tracker::peer::Peer;
-        use crate::tracker::torrent::SwarmStats;
-        use crate::tracker::{statistics, AnnounceData, Tracker};
 
         #[tokio::test]
         async fn it_should_return_the_announce_data() {

@@ -28,10 +28,10 @@ use log::{debug, error, info};
 use tokio::net::UdpSocket;
 use tokio::task::JoinHandle;
 
+use crate::core::Tracker;
 use crate::servers::signals::shutdown_signal;
 use crate::servers::udp::handlers::handle_packet;
 use crate::shared::bit_torrent::udp::MAX_PACKET_SIZE;
-use crate::tracker::Tracker;
 
 /// Error that can occur when starting or stopping the UDP server.
 ///

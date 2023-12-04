@@ -11,11 +11,11 @@ use serde::{de, Deserialize, Deserializer};
 
 use super::resources::torrent::ListItem;
 use super::responses::{torrent_info_response, torrent_list_response, torrent_not_known_response};
+use crate::core::services::torrent::{get_torrent_info, get_torrents, Pagination};
+use crate::core::Tracker;
 use crate::servers::apis::v1::responses::invalid_info_hash_param_response;
 use crate::servers::apis::InfoHashParam;
 use crate::shared::bit_torrent::info_hash::InfoHash;
-use crate::tracker::services::torrent::{get_torrent_info, get_torrents, Pagination};
-use crate::tracker::Tracker;
 
 /// It handles the request to get the torrent data.
 ///

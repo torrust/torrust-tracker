@@ -3,7 +3,7 @@
 //! A sample peer:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::tracker::peer;
+//! use torrust_tracker::core::peer;
 //! use std::net::SocketAddr;
 //! use std::net::IpAddr;
 //! use std::net::Ipv4Addr;
@@ -46,7 +46,7 @@ pub enum IPVersion {
 /// A sample peer:
 ///
 /// ```rust,no_run
-/// use torrust_tracker::tracker::peer;
+/// use torrust_tracker::core::peer;
 /// use std::net::SocketAddr;
 /// use std::net::IpAddr;
 /// use std::net::Ipv4Addr;
@@ -118,7 +118,7 @@ impl Peer {
 /// A sample peer ID:
 ///
 /// ```rust,no_run
-/// use torrust_tracker::tracker::peer;
+/// use torrust_tracker::core::peer;
 ///
 /// let peer_id = peer::Id(*b"-qB00000000000000000");
 /// ```
@@ -281,7 +281,7 @@ impl Serialize for Id {
 mod test {
 
     mod torrent_peer_id {
-        use crate::tracker::peer;
+        use crate::core::peer;
 
         #[test]
         fn should_be_instantiated_from_a_byte_slice() {
@@ -398,8 +398,8 @@ mod test {
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
         use serde_json::Value;
 
+        use crate::core::peer::{self, Peer};
         use crate::shared::clock::{Current, Time};
-        use crate::tracker::peer::{self, Peer};
 
         #[test]
         fn it_should_be_serializable() {

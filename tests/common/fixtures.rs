@@ -1,8 +1,8 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+use torrust_tracker::core::peer::{self, Id, Peer};
 use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
-use torrust_tracker::tracker::peer::{self, Id, Peer};
 
 pub struct PeerBuilder {
     peer: Peer,

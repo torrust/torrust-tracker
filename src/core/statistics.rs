@@ -13,10 +13,10 @@
 //!
 //! The data is collected by using an `event-sender -> event listener` model.
 //!
-//! The tracker uses an [`statistics::EventSender`](crate::tracker::statistics::EventSender) instance to send an event.
-//! The [`statistics::Keeper`](crate::tracker::statistics::Keeper) listens to new events and uses the [`statistics::Repo`](crate::tracker::statistics::Repo) to upgrade and store metrics.
+//! The tracker uses an [`statistics::EventSender`](crate::core::statistics::EventSender) instance to send an event.
+//! The [`statistics::Keeper`](crate::core::statistics::Keeper) listens to new events and uses the [`statistics::Repo`](crate::core::statistics::Repo) to upgrade and store metrics.
 //!
-//! See the [`statistics::Event`](crate::tracker::statistics::Event) enum to check which events are available.
+//! See the [`statistics::Event`](crate::core::statistics::Event) enum to check which events are available.
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -191,10 +191,10 @@ pub trait EventSender: Sync + Send {
     async fn send_event(&self, event: Event) -> Option<Result<(), SendError<Event>>>;
 }
 
-/// An [`statistics::EventSender`](crate::tracker::statistics::EventSender) implementation.
+/// An [`statistics::EventSender`](crate::core::statistics::EventSender) implementation.
 ///
 /// It uses a channel sender to send the statistic events. The channel is created by a
-/// [`statistics::Keeper`](crate::tracker::statistics::Keeper)
+/// [`statistics::Keeper`](crate::core::statistics::Keeper)
 pub struct Sender {
     sender: mpsc::Sender<Event>,
 }
@@ -307,7 +307,7 @@ impl Repo {
 mod tests {
 
     mod stats_tracker {
-        use crate::tracker::statistics::{Event, Keeper, Metrics};
+        use crate::core::statistics::{Event, Keeper, Metrics};
 
         #[tokio::test]
         async fn should_contain_the_tracker_statistics() {
@@ -331,7 +331,7 @@ mod tests {
     }
 
     mod event_handler {
-        use crate::tracker::statistics::{event_handler, Event, Repo};
+        use crate::core::statistics::{event_handler, Event, Repo};
 
         #[tokio::test]
         async fn should_increase_the_tcp4_announces_counter_when_it_receives_a_tcp4_announce_event() {

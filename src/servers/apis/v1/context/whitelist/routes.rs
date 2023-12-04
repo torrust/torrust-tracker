@@ -11,7 +11,7 @@ use axum::routing::{delete, get, post};
 use axum::Router;
 
 use super::handlers::{add_torrent_to_whitelist_handler, reload_whitelist_handler, remove_torrent_from_whitelist_handler};
-use crate::tracker::Tracker;
+use crate::core::Tracker;
 
 /// It adds the routes to the router for the [`whitelist`](crate::servers::apis::v1::context::whitelist) API context.
 pub fn add(prefix: &str, router: Router, tracker: Arc<Tracker>) -> Router {

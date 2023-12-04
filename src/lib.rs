@@ -387,7 +387,7 @@
 //!
 //! Torrust Tracker has four main components:
 //!
-//! - The core [`tracker`]
+//! - The core tracker [`core`]
 //! - The tracker REST [`API`](crate::servers::apis)
 //! - The [`UDP`](crate::servers::udp) tracker
 //! - The [`HTTP`](crate::servers::http) tracker
@@ -405,7 +405,7 @@
 //! - Statistics
 //! - Persistence
 //!
-//! See [`tracker`] for more details on the  [`tracker`] module.
+//! See [`core`] for more details on the  [`core`] module.
 //!
 //! ## Tracker API
 //!
@@ -471,9 +471,9 @@
 //! examples on the integration and unit tests.
 pub mod app;
 pub mod bootstrap;
+pub mod core;
 pub mod servers;
 pub mod shared;
-pub mod tracker;
 
 #[macro_use]
 extern crate lazy_static;

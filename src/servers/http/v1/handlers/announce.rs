@@ -14,6 +14,9 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
 
+use crate::core::auth::Key;
+use crate::core::peer::Peer;
+use crate::core::{AnnounceData, Tracker};
 use crate::servers::http::v1::extractors::announce_request::ExtractRequest;
 use crate::servers::http::v1::extractors::authentication_key::Extract as ExtractKey;
 use crate::servers::http::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
@@ -23,9 +26,6 @@ use crate::servers::http::v1::responses::{self, announce};
 use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
 use crate::servers::http::v1::services::{self, peer_ip_resolver};
 use crate::shared::clock::{Current, Time};
-use crate::tracker::auth::Key;
-use crate::tracker::peer::Peer;
-use crate::tracker::{AnnounceData, Tracker};
 
 /// It handles the `announce` request when the HTTP tracker does not require
 /// authentication (no PATH `key` parameter required).
@@ -159,12 +159,12 @@ mod tests {
 
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::core::services::tracker_factory;
+    use crate::core::{peer, Tracker};
     use crate::servers::http::v1::requests::announce::Announce;
     use crate::servers::http::v1::responses;
     use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
     use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::tracker::services::tracker_factory;
-    use crate::tracker::{peer, Tracker};
 
     fn private_tracker() -> Tracker {
         tracker_factory(configuration::ephemeral_mode_private().into())
@@ -215,9 +215,9 @@ mod tests {
         use std::sync::Arc;
 
         use super::{private_tracker, sample_announce_request, sample_client_ip_sources};
+        use crate::core::auth;
         use crate::servers::http::v1::handlers::announce::handle_announce;
         use crate::servers::http::v1::handlers::announce::tests::assert_error_response;
-        use crate::tracker::auth;
 
         #[tokio::test]
         async fn it_should_fail_when_the_authentication_key_is_missing() {

@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
+use torrust_tracker::core::peer::Peer;
+use torrust_tracker::core::Tracker;
 use torrust_tracker::servers::apis::server::{ApiServer, RunningApiServer, StoppedApiServer};
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-use torrust_tracker::tracker::peer::Peer;
-use torrust_tracker::tracker::Tracker;
 
 use super::connection_info::ConnectionInfo;
 use crate::common::app::setup_with_configuration;

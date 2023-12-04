@@ -191,9 +191,9 @@ mod tests {
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
+        use crate::core::peer;
+        use crate::core::torrent::Entry;
         use crate::shared::clock::{Current, DurationSinceUnixEpoch, Stopped, StoppedTime, Time, Working};
-        use crate::tracker::peer;
-        use crate::tracker::torrent::Entry;
 
         struct TorrentPeerBuilder {
             peer: peer::Peer,

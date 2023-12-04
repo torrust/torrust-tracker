@@ -20,8 +20,8 @@ pub const MAX_SCRAPE_TORRENTS: u8 = 74;
 
 /// HTTP tracker authentication key length.
 ///
-/// See function to [`generate`](crate::tracker::auth::generate) the
-/// [`ExpiringKeys`](crate::tracker::auth::ExpiringKey) for more information.
+/// See function to [`generate`](crate::core::auth::generate) the
+/// [`ExpiringKeys`](crate::core::auth::ExpiringKey) for more information.
 pub const AUTH_KEY_LENGTH: usize = 32;
 
 #[repr(u32)]

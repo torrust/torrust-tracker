@@ -17,10 +17,10 @@ use torrust_tracker_configuration::Configuration;
 
 use super::config::initialize_configuration;
 use crate::bootstrap;
+use crate::core::services::tracker_factory;
+use crate::core::Tracker;
 use crate::shared::clock::static_time;
 use crate::shared::crypto::ephemeral_instance_keys;
-use crate::tracker::services::tracker_factory;
-use crate::tracker::Tracker;
 
 /// It loads the configuration from the environment and builds the main domain [`Tracker`] struct.
 #[must_use]

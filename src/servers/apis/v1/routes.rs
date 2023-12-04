@@ -4,7 +4,7 @@ use std::sync::Arc;
 use axum::Router;
 
 use super::context::{auth_key, stats, torrent, whitelist};
-use crate::tracker::Tracker;
+use crate::core::Tracker;
 
 /// Add the routes for the v1 API.
 pub fn add(prefix: &str, router: Router, tracker: Arc<Tracker>) -> Router {

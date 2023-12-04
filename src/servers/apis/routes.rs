@@ -13,7 +13,7 @@ use tower_http::compression::CompressionLayer;
 
 use super::v1;
 use super::v1::context::health_check::handlers::health_check_handler;
-use crate::tracker::Tracker;
+use crate::core::Tracker;
 
 /// Add all API routes to the router.
 #[allow(clippy::needless_pass_by_value)]

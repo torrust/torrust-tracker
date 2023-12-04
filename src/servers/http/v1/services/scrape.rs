@@ -2,7 +2,7 @@
 //!
 //! The service is responsible for handling the `scrape` requests.
 //!
-//! It delegates the `scrape` logic to the [`Tracker`](crate::tracker::Tracker::scrape)
+//! It delegates the `scrape` logic to the [`Tracker`](crate::core::Tracker::scrape)
 //! and it returns the [`ScrapeData`] returned
 //! by the [`Tracker`].
 //!
@@ -11,8 +11,8 @@
 use std::net::IpAddr;
 use std::sync::Arc;
 
+use crate::core::{statistics, ScrapeData, Tracker};
 use crate::shared::bit_torrent::info_hash::InfoHash;
-use crate::tracker::{statistics, ScrapeData, Tracker};
 
 /// The HTTP tracker `scrape` service.
 ///
@@ -63,10 +63,10 @@ mod tests {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::core::services::tracker_factory;
+    use crate::core::{peer, Tracker};
     use crate::shared::bit_torrent::info_hash::InfoHash;
     use crate::shared::clock::DurationSinceUnixEpoch;
-    use crate::tracker::services::tracker_factory;
-    use crate::tracker::{peer, Tracker};
 
     fn public_tracker() -> Tracker {
         tracker_factory(configuration::ephemeral_mode_public().into())
@@ -101,12 +101,12 @@ mod tests {
         use mockall::predicate::eq;
         use torrust_tracker_test_helpers::configuration;
 
+        use crate::core::torrent::SwarmMetadata;
+        use crate::core::{statistics, ScrapeData, Tracker};
         use crate::servers::http::v1::services::scrape::invoke;
         use crate::servers::http::v1::services::scrape::tests::{
             public_tracker, sample_info_hash, sample_info_hashes, sample_peer,
         };
-        use crate::tracker::torrent::SwarmMetadata;
-        use crate::tracker::{statistics, ScrapeData, Tracker};
 
         #[tokio::test]
         async fn it_should_return_the_scrape_data_for_a_torrent() {
@@ -193,11 +193,11 @@ mod tests {
         use mockall::predicate::eq;
         use torrust_tracker_test_helpers::configuration;
 
+        use crate::core::{statistics, ScrapeData, Tracker};
         use crate::servers::http::v1::services::scrape::fake;
         use crate::servers::http::v1::services::scrape::tests::{
             public_tracker, sample_info_hash, sample_info_hashes, sample_peer,
         };
-        use crate::tracker::{statistics, ScrapeData, Tracker};
 
         #[tokio::test]
         async fn it_should_always_return_the_zeroed_scrape_data_for_a_torrent() {

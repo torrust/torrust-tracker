@@ -15,8 +15,8 @@
 //! - <https://datatracker.ietf.org/doc/html/rfc3986#section-2.1>
 //! - <https://en.wikipedia.org/wiki/URL_encoding>
 //! - <https://developer.mozilla.org/en-US/docs/Glossary/percent-encoding>
+use crate::core::peer::{self, IdConversionError};
 use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
-use crate::tracker::peer::{self, IdConversionError};
 
 /// Percent decodes a percent encoded infohash. Internally an
 /// [`InfoHash`] is a 20-byte array.
@@ -28,7 +28,7 @@ use crate::tracker::peer::{self, IdConversionError};
 /// use std::str::FromStr;
 /// use torrust_tracker::servers::http::percent_encoding::percent_decode_info_hash;
 /// use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-/// use torrust_tracker::tracker::peer;
+/// use torrust_tracker::core::peer;
 ///
 /// let encoded_infohash = "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0";
 ///
@@ -49,7 +49,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, Convers
     InfoHash::try_from(bytes)
 }
 
-/// Percent decodes a percent encoded peer id. Internally a peer [`Id`](crate::tracker::peer::Id)
+/// Percent decodes a percent encoded peer id. Internally a peer [`Id`](crate::core::peer::Id)
 /// is a 20-byte array.
 ///
 /// For example, given the peer id `*b"-qB00000000000000000"`,
@@ -59,7 +59,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, Convers
 /// use std::str::FromStr;
 /// use torrust_tracker::servers::http::percent_encoding::percent_decode_peer_id;
 /// use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-/// use torrust_tracker::tracker::peer;
+/// use torrust_tracker::core::peer;
 ///
 /// let encoded_peer_id = "%2DqB00000000000000000";
 ///
@@ -80,9 +80,9 @@ pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<peer::Id, IdConversio
 mod tests {
     use std::str::FromStr;
 
+    use crate::core::peer;
     use crate::servers::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
     use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::tracker::peer;
 
     #[test]
     fn it_should_decode_a_percent_encoded_info_hash() {

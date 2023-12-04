@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use futures::future::BoxFuture;
 
+use crate::core::Tracker;
 use crate::servers::signals::shutdown_signal;
-use crate::tracker::Tracker;
 
 /// Trait to be implemented by a HTTP server launcher for the tracker.
 ///

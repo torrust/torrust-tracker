@@ -7,15 +7,15 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use torrust_tracker_contrib_bencode::{ben_int, ben_map, BMutAccess};
 
-use crate::tracker::ScrapeData;
+use crate::core::ScrapeData;
 
 /// The `Scrape` response for the HTTP tracker.
 ///
 /// ```rust
 /// use torrust_tracker::servers::http::v1::responses::scrape::Bencoded;
 /// use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-/// use torrust_tracker::tracker::torrent::SwarmMetadata;
-/// use torrust_tracker::tracker::ScrapeData;
+/// use torrust_tracker::core::torrent::SwarmMetadata;
+/// use torrust_tracker::core::ScrapeData;
 ///
 /// let info_hash = InfoHash([0x69; 20]);
 /// let mut scrape_data = ScrapeData::empty();
@@ -92,10 +92,10 @@ impl IntoResponse for Bencoded {
 mod tests {
 
     mod scrape_response {
+        use crate::core::torrent::SwarmMetadata;
+        use crate::core::ScrapeData;
         use crate::servers::http::v1::responses::scrape::Bencoded;
         use crate::shared::bit_torrent::info_hash::InfoHash;
-        use crate::tracker::torrent::SwarmMetadata;
-        use crate::tracker::ScrapeData;
 
         fn sample_scrape_data() -> ScrapeData {
             let info_hash = InfoHash([0x69; 20]);
