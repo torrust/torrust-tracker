@@ -29,6 +29,6 @@ pub fn router(tracker: Arc<Tracker>) -> Router {
             tracker.config.clone(),
             v1::middlewares::auth::auth,
         ))
-        .route("/health_check", get(health_check_handler))
+        .route(&format!("{api_url_prefix}/health_check"), get(health_check_handler))
         .layer(CompressionLayer::new())
 }
