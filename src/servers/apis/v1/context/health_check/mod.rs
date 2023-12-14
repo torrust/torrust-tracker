@@ -8,14 +8,14 @@
 //!
 //! # Health Check
 //!
-//! `GET /health_check`
+//! `GET /api/health_check`
 //!
 //! Returns the API status.
 //!
 //! **Example request**
 //!
 //! ```bash
-//! curl "http://127.0.0.1:1212/health_check"
+//! curl "http://127.0.0.1:1212/api/health_check"
 //! ```
 //!
 //! **Example response** `200`

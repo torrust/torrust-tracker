@@ -45,7 +45,7 @@ async fn api_health_check(config: &HttpApi) -> Option<Json<Report>> {
         let addr: SocketAddr = config.bind_address.parse().expect("invalid socket address for API");
 
         if addr.port() != UNKNOWN_PORT {
-            let health_check_url = format!("http://{addr}/health_check");
+            let health_check_url = format!("http://{addr}/api/health_check");
 
             if !get_req_is_ok(&health_check_url).await {
                 return Some(responses::error(format!(

@@ -8,7 +8,7 @@ use crate::servers::api::v1::client::get;
 async fn health_check_endpoint_should_return_status_ok_if_api_is_running() {
     let test_env = running_test_environment(configuration::ephemeral()).await;
 
-    let url = format!("http://{}/health_check", test_env.get_connection_info().bind_address);
+    let url = format!("http://{}/api/health_check", test_env.get_connection_info().bind_address);
 
     let response = get(&url, None).await;
 
