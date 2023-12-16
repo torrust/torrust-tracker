@@ -12,9 +12,9 @@
 //! ```text
 //! Delivery layer     Domain layer
 //!
-//!     HTTP tracker |             
+//!     HTTP tracker |
 //!      UDP tracker |> Core tracker
-//! Tracker REST API |             
+//! Tracker REST API |
 //! ```
 //!
 //! # Table of contents
@@ -439,23 +439,23 @@ pub mod services;
 pub mod statistics;
 pub mod torrent;
 
-use std::collections::btree_map::Entry;
 use std::collections::{BTreeMap, HashMap};
 use std::net::IpAddr;
 use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
+use futures::future::join_all;
 use tokio::sync::mpsc::error::SendError;
-use tokio::sync::{RwLock, RwLockReadGuard};
 use torrust_tracker_configuration::Configuration;
 use torrust_tracker_primitives::TrackerMode;
 
 use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
-use self::torrent::{SwarmMetadata, SwarmStats};
+use self::torrent::repository::{RepositoryAsyncSingle, TRepositoryAsync};
 use crate::core::databases::Database;
+use crate::core::torrent::{SwarmMetadata, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 
 /// The domain layer tracker service.
@@ -472,11 +472,11 @@ pub struct Tracker {
     pub config: Arc<Configuration>,
     /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)
     /// or [`MySQL`](crate::core::databases::mysql)
-    pub database: Box<dyn Database>,
+    pub database: Arc<Box<dyn Database>>,
     mode: TrackerMode,
-    keys: RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
-    whitelist: RwLock<std::collections::HashSet<InfoHash>>,
-    torrents: RwLock<std::collections::BTreeMap<InfoHash, torrent::Entry>>,
+    keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
+    whitelist: tokio::sync::RwLock<std::collections::HashSet<InfoHash>>,
+    pub torrents: Arc<RepositoryAsyncSingle>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
 }
@@ -562,16 +562,16 @@ impl Tracker {
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
-        let database = databases::driver::build(&config.db_driver, &config.db_path)?;
+        let database = Arc::new(databases::driver::build(&config.db_driver, &config.db_path)?);
 
         let mode = config.mode;
 
         Ok(Tracker {
             config,
             mode,
-            keys: RwLock::new(std::collections::HashMap::new()),
-            whitelist: RwLock::new(std::collections::HashSet::new()),
-            torrents: RwLock::new(std::collections::BTreeMap::new()),
+            keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
+            whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),
+            torrents: Arc::new(RepositoryAsyncSingle::new()),
             stats_event_sender,
             stats_repository,
             database,
@@ -654,7 +654,8 @@ impl Tracker {
 
     /// It returns the data for a `scrape` response.
     async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> SwarmMetadata {
-        let torrents = self.get_torrents().await;
+        let torrents = self.torrents.get_torrents().await;
+
         match torrents.get(info_hash) {
             Some(torrent_entry) => torrent_entry.get_swarm_metadata(),
             None => SwarmMetadata::default(),
@@ -672,7 +673,7 @@ impl Tracker {
     pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.database.load_persistent_torrents().await?;
 
-        let mut torrents = self.torrents.write().await;
+        let mut torrents = self.torrents.get_torrents_mut().await;
 
         for (info_hash, completed) in persistent_torrents {
             // Skip if torrent entry already exists
@@ -692,7 +693,7 @@ impl Tracker {
     }
 
     async fn get_peers_for_peer(&self, info_hash: &InfoHash, peer: &Peer) -> Vec<peer::Peer> {
-        let read_lock = self.torrents.read().await;
+        let read_lock = self.torrents.get_torrents().await;
 
         match read_lock.get(info_hash) {
             None => vec![],
@@ -704,7 +705,7 @@ impl Tracker {
     ///
     /// Get all torrent peers for a given torrent
     pub async fn get_all_torrent_peers(&self, info_hash: &InfoHash) -> Vec<peer::Peer> {
-        let read_lock = self.torrents.read().await;
+        let read_lock = self.torrents.get_torrents().await;
 
         match read_lock.get(info_hash) {
             None => vec![],
@@ -721,79 +722,87 @@ impl Tracker {
         // code-review: consider splitting the function in two (command and query segregation).
         // `update_torrent_with_peer` and `get_stats`
 
-        let mut torrents = self.torrents.write().await;
+        let (stats, stats_updated) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
-        let torrent_entry = match torrents.entry(*info_hash) {
-            Entry::Vacant(vacant) => vacant.insert(torrent::Entry::new()),
-            Entry::Occupied(entry) => entry.into_mut(),
-        };
-
-        let stats_updated = torrent_entry.update_peer(peer);
-
-        // todo: move this action to a separate worker
         if self.config.persistent_torrent_completed_stat && stats_updated {
-            drop(
-                self.database
-                    .save_persistent_torrent(info_hash, torrent_entry.completed)
-                    .await,
-            );
+            let completed = stats.completed;
+            let info_hash = *info_hash;
+
+            drop(self.database.save_persistent_torrent(&info_hash, completed).await);
         }
 
-        let (seeders, completed, leechers) = torrent_entry.get_stats();
-
-        torrent::SwarmStats {
-            completed,
-            seeders,
-            leechers,
-        }
-    }
-
-    pub async fn get_torrents(&self) -> RwLockReadGuard<'_, BTreeMap<InfoHash, torrent::Entry>> {
-        self.torrents.read().await
+        stats
     }
 
     /// It calculates and returns the general `Tracker`
     /// [`TorrentsMetrics`]
     ///
     /// # Context: Tracker
+    ///
+    /// # Panics
+    /// Panics if unable to get the torrent metrics.
     pub async fn get_torrents_metrics(&self) -> TorrentsMetrics {
-        let mut torrents_metrics = TorrentsMetrics {
+        let arc_torrents_metrics = Arc::new(tokio::sync::Mutex::new(TorrentsMetrics {
             seeders: 0,
             completed: 0,
             leechers: 0,
             torrents: 0,
-        };
+        }));
 
-        let db = self.get_torrents().await;
+        let db = self.torrents.get_torrents().await.clone();
 
-        db.values().for_each(|torrent_entry| {
-            let (seeders, completed, leechers) = torrent_entry.get_stats();
-            torrents_metrics.seeders += u64::from(seeders);
-            torrents_metrics.completed += u64::from(completed);
-            torrents_metrics.leechers += u64::from(leechers);
-            torrents_metrics.torrents += 1;
-        });
+        let futures = db
+            .values()
+            .map(|torrent_entry| {
+                let torrent_entry = torrent_entry.clone();
+                let torrents_metrics = arc_torrents_metrics.clone();
 
-        torrents_metrics
+                async move {
+                    tokio::spawn(async move {
+                        let (seeders, completed, leechers) = torrent_entry.get_stats();
+                        torrents_metrics.lock().await.seeders += u64::from(seeders);
+                        torrents_metrics.lock().await.completed += u64::from(completed);
+                        torrents_metrics.lock().await.leechers += u64::from(leechers);
+                        torrents_metrics.lock().await.torrents += 1;
+                    })
+                    .await
+                    .expect("Error torrent_metrics spawn");
+                }
+            })
+            .collect::<Vec<_>>();
+
+        join_all(futures).await;
+
+        let torrents_metrics = Arc::try_unwrap(arc_torrents_metrics).expect("Could not unwrap arc_torrents_metrics");
+
+        torrents_metrics.into_inner()
     }
 
     /// Remove inactive peers and (optionally) peerless torrents
     ///
     /// # Context: Tracker
     pub async fn cleanup_torrents(&self) {
-        let mut torrents_lock = self.torrents.write().await;
+        let mut torrents_lock = self.torrents.get_torrents_mut().await;
 
         // If we don't need to remove torrents we will use the faster iter
         if self.config.remove_peerless_torrents {
-            torrents_lock.retain(|_, torrent_entry| {
+            let mut cleaned_torrents_map: BTreeMap<InfoHash, torrent::Entry> = BTreeMap::new();
+
+            for (info_hash, torrent_entry) in &mut *torrents_lock {
                 torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
 
-                if self.config.persistent_torrent_completed_stat {
-                    torrent_entry.completed > 0 || !torrent_entry.peers.is_empty()
-                } else {
-                    !torrent_entry.peers.is_empty()
+                if torrent_entry.peers.is_empty() {
+                    continue;
                 }
-            });
+
+                if self.config.persistent_torrent_completed_stat && torrent_entry.completed == 0 {
+                    continue;
+                }
+
+                cleaned_torrents_map.insert(*info_hash, torrent_entry.clone());
+            }
+
+            *torrents_lock = cleaned_torrents_map;
         } else {
             for torrent_entry in (*torrents_lock).values_mut() {
                 torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
@@ -1074,7 +1083,7 @@ impl Tracker {
     /// It return the `Tracker` [`statistics::Metrics`].
     ///
     /// # Context: Statistics
-    pub async fn get_stats(&self) -> RwLockReadGuard<'_, statistics::Metrics> {
+    pub async fn get_stats(&self) -> tokio::sync::RwLockReadGuard<'_, statistics::Metrics> {
         self.stats_repository.get_stats().await
     }
 
@@ -1786,11 +1795,11 @@ mod tests {
                 assert_eq!(swarm_stats.completed, 1);
 
                 // Remove the newly updated torrent from memory
-                tracker.torrents.write().await.remove(&info_hash);
+                tracker.torrents.get_torrents_mut().await.remove(&info_hash);
 
                 tracker.load_torrents_from_database().await.unwrap();
 
-                let torrents = tracker.get_torrents().await;
+                let torrents = tracker.torrents.get_torrents().await;
                 assert!(torrents.contains_key(&info_hash));
 
                 let torrent_entry = torrents.get(&info_hash).unwrap();

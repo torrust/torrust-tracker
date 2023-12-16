@@ -28,6 +28,8 @@
 //! Peer that don not have a full copy of the torrent data are called "leechers".
 //!
 //! > **NOTICE**: that both [`SwarmMetadata`] and [`SwarmStats`] contain the same information. [`SwarmMetadata`] is using the names used on [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html).
+pub mod repository;
+
 use std::time::Duration;
 
 use aquatic_udp_protocol::AnnounceEvent;
