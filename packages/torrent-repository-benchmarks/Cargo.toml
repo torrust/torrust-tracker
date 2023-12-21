@@ -1,0 +1,21 @@
+[package]
+name = "torrust-torrent-repository-benchmarks"
+authors.workspace = true
+categories.workspace = true
+description.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+aquatic_udp_protocol = "0.8.0"
+clap = { version = "4.4.8", features = ["derive"] }
+futures = "0.3.29"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+torrust-tracker = { path = "../../" }
