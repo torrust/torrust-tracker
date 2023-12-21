@@ -3,13 +3,13 @@
 # Torrust Tracker
 
 ## Builder Image
-FROM rust:bookworm as chef
+FROM rustlang/rust:nightly-bookworm as chef
 WORKDIR /tmp
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall --no-confirm cargo-chef cargo-nextest
 
 ## Tester Image
-FROM rust:slim-bookworm as tester
+FROM rustlang/rust:nightly-bookworm-slim as tester
 WORKDIR /tmp
 
 RUN apt-get update; apt-get install -y curl sqlite3; apt-get autoclean
