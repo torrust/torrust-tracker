@@ -93,7 +93,7 @@ impl Default for Pagination {
 
 /// It returns all the information the tracker has about one torrent in a [Info] struct.
 pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Option<Info> {
-    let db = tracker.get_torrents().await;
+    let db = tracker.torrents.get_torrents().await;
 
     let torrent_entry_option = db.get(info_hash);
 
@@ -118,21 +118,22 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
 
 /// It returns all the information the tracker has about multiple torrents in a [`BasicInfo`] struct, excluding the peer list.
 pub async fn get_torrents(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec<BasicInfo> {
-    let db = tracker.get_torrents().await;
+    let db = tracker.torrents.get_torrents().await;
 
-    db.iter()
-        .map(|(info_hash, torrent_entry)| {
-            let (seeders, completed, leechers) = torrent_entry.get_stats();
-            BasicInfo {
-                info_hash: *info_hash,
-                seeders: u64::from(seeders),
-                completed: u64::from(completed),
-                leechers: u64::from(leechers),
-            }
-        })
-        .skip(pagination.offset as usize)
-        .take(pagination.limit as usize)
-        .collect()
+    let mut basic_infos: Vec<BasicInfo> = vec![];
+
+    for (info_hash, torrent_entry) in db.iter().skip(pagination.offset as usize).take(pagination.limit as usize) {
+        let (seeders, completed, leechers) = torrent_entry.get_stats();
+
+        basic_infos.push(BasicInfo {
+            info_hash: *info_hash,
+            seeders: u64::from(seeders),
+            completed: u64::from(completed),
+            leechers: u64::from(leechers),
+        });
+    }
+
+    basic_infos
 }
 
 #[cfg(test)]
