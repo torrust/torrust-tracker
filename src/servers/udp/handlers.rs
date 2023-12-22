@@ -7,7 +7,7 @@ use aquatic_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads,
     NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
-use log::debug;
+use log::{debug, info};
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
 use crate::core::{statistics, Tracker};
@@ -73,6 +73,7 @@ pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: 
 ///
 /// This function does not ever return an error.
 pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, tracker: &Tracker) -> Result<Response, Error> {
+    info!(target: "UDP", "\"CONNECT TxID {}\"", request.transaction_id.0);
     debug!("udp connect request: {:#?}", request);
 
     let connection_cookie = make(&remote_addr);
@@ -135,6 +136,8 @@ pub async fn handle_announce(
     let remote_client_ip = remote_addr.ip();
 
     authenticate(&info_hash, tracker).await?;
+
+    info!(target: "UDP", "\"ANNOUNCE TxID {} IH {}\"", announce_request.transaction_id.0, info_hash.to_hex_string());
 
     let mut peer = peer_builder::from_request(&wrapped_announce_request, &remote_client_ip);
 
@@ -210,6 +213,7 @@ pub async fn handle_announce(
 ///
 /// This function does not ever return an error.
 pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tracker: &Tracker) -> Result<Response, Error> {
+    info!(target: "UDP", "\"SCRAPE TxID {}\"", request.transaction_id.0);
     debug!("udp scrape request: {:#?}", request);
 
     // Convert from aquatic infohashes
