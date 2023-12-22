@@ -3,7 +3,6 @@ use torrust_tracker_test_helpers::configuration;
 use crate::servers::api::test_environment::stopped_test_environment;
 
 #[tokio::test]
-#[ignore]
 #[should_panic = "Could not receive bind_address."]
 async fn should_fail_with_ssl_enabled_and_bad_ssl_config() {
     let mut test_env = stopped_test_environment(configuration::ephemeral());
