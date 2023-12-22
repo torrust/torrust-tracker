@@ -191,7 +191,7 @@ impl Udp {
                 Ok((valid_bytes, remote_addr)) = socket.recv_from(&mut data) => {
                     let payload = data[..valid_bytes].to_vec();
 
-                    info!("Received {} bytes", payload.len());
+                    debug!("Received {} bytes", payload.len());
                     debug!("From: {}", &remote_addr);
                     debug!("Payload: {:?}", payload);
 
@@ -227,7 +227,7 @@ impl Udp {
                 Ok((valid_bytes, remote_addr)) = socket.recv_from(&mut data) => {
                     let payload = data[..valid_bytes].to_vec();
 
-                    info!("Received {} bytes", payload.len());
+                    debug!("Received {} bytes", payload.len());
                     debug!("From: {}", &remote_addr);
                     debug!("Payload: {:?}", payload);
 
@@ -249,13 +249,13 @@ impl Udp {
                 let position = cursor.position() as usize;
                 let inner = cursor.get_ref();
 
-                info!("Sending {} bytes ...", &inner[..position].len());
+                debug!("Sending {} bytes ...", &inner[..position].len());
                 debug!("To: {:?}", &remote_addr);
                 debug!("Payload: {:?}", &inner[..position]);
 
                 Udp::send_packet(socket, &remote_addr, &inner[..position]).await;
 
-                info!("{} bytes sent", &inner[..position].len());
+                debug!("{} bytes sent", &inner[..position].len());
             }
             Err(_) => {
                 error!("could not write response to bytes.");
