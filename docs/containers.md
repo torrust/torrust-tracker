@@ -14,7 +14,7 @@ docker run -it torrust/tracker:latest
 or with Podman:
 
 ```sh
-podman run -it torrust/tracker:latest
+podman run -it docker.io/torrust/tracker:latest
 ```
 
 
@@ -122,10 +122,10 @@ docker run -it torrust-tracker:debug
 
 ```sh
 # Release Mode
-podman run -it torrust-tracker:release
+podman run -it docker.io/torrust-tracker:release
 
 # Debug Mode
-podman run -it torrust-tracker:debug
+podman run -it docker.io/torrust-tracker:debug
 ```
 
 ### Arguments
