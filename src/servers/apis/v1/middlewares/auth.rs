@@ -40,15 +40,12 @@ pub struct QueryParams {
 
 /// Middleware for authentication using a "token" GET param.
 /// The token must be one of the tokens in the tracker [HTTP API configuration](torrust_tracker_configuration::HttpApi).
-pub async fn auth<B>(
+pub async fn auth(
     State(config): State<Arc<Configuration>>,
     Query(params): Query<QueryParams>,
-    request: Request<B>,
-    next: Next<B>,
-) -> Response
-where
-    B: Send,
-{
+    request: Request<axum::body::Body>,
+    next: Next,
+) -> Response {
     let Some(token) = params.token else {
         return AuthError::Unauthorized.into_response();
     };

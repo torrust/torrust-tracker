@@ -40,11 +40,19 @@ impl Launcher {
     {
         let app = router(tracker);
 
+        let handle = Handle::new();
+
+        let cloned_handle = handle.clone();
+
+        tokio::task::spawn(async move {
+            shutdown_signal.await;
+            cloned_handle.shutdown();
+        });
+
         Box::pin(async {
-            axum::Server::from_tcp(tcp_listener)
-                .expect("Could not bind to tcp listener.")
-                .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
-                .with_graceful_shutdown(shutdown_signal)
+            axum_server::from_tcp(tcp_listener)
+                .handle(handle)
+                .serve(app.into_make_service_with_connect_info::<SocketAddr>())
                 .await
                 .expect("Axum server crashed.");
         })
@@ -73,7 +81,7 @@ impl Launcher {
 
         let cloned_handle = handle.clone();
 
-        tokio::task::spawn_local(async move {
+        tokio::task::spawn(async move {
             shutdown_signal.await;
             cloned_handle.shutdown();
         });
@@ -135,15 +143,22 @@ impl HttpServerLauncher for Launcher {
 /// # Panics
 ///
 /// Panics if the server could not listen to shutdown (ctrl+c) signal.
-pub fn start(socket_addr: std::net::SocketAddr, tracker: Arc<Tracker>) -> impl Future<Output = hyper::Result<()>> {
+pub fn start(socket_addr: std::net::SocketAddr, tracker: Arc<Tracker>) -> impl Future<Output = Result<(), std::io::Error>> {
     let app = router(tracker);
 
-    let server = axum::Server::bind(&socket_addr).serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>());
+    let handle = Handle::new();
 
-    server.with_graceful_shutdown(async move {
+    let cloned_handle = handle.clone();
+
+    tokio::task::spawn(async move {
         tokio::signal::ctrl_c().await.expect("Failed to listen to shutdown signal.");
-        info!("Stopping Torrust HTTP tracker server on http://{} ...", socket_addr);
-    })
+        info!("Stopping Torrust Health Check API server o http://{} ...", socket_addr);
+        cloned_handle.shutdown();
+    });
+
+    axum_server::bind(socket_addr)
+        .handle(handle)
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
 }
 
 /// Starts a new HTTPS server instance.

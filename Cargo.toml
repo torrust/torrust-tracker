@@ -32,8 +32,8 @@ version = "3.0.0-alpha.12-develop"
 [dependencies]
 aquatic_udp_protocol = "0"
 async-trait = "0"
-axum = { version = "0.6", features = ["macros"] }
-axum-client-ip = "0.4"
+axum = { version = "0", features = ["macros"] }
+axum-client-ip = "0"
 axum-server = { version = "0", features = ["tls-rustls"] }
 binascii = "0"
 chrono = { version = "0", default-features = false, features = ["clock"] }
@@ -41,7 +41,7 @@ config = "0"
 derive_more = "0"
 fern = "0"
 futures = "0"
-hyper = "0"
+hyper = "1"
 lazy_static = "1"
 log = { version = "0", features = ["release_max_level_info"] }
 multimap = "0"
@@ -64,7 +64,7 @@ torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "pa
 torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.12-develop", path = "contrib/bencode" }
 torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "packages/located-error" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "packages/primitives" }
-tower-http = { version = "0.4", features = ["compression-full"] }
+tower-http = { version = "0", features = ["compression-full"] }
 uuid = { version = "1", features = ["v4"] }
 
 [dev-dependencies]
