@@ -250,5 +250,11 @@
     "color": "eae3e7",
     "description": "You can still do it another way",
     "aliases": []
+  },
+  {
+    "name": "good first issue",
+    "color": "b0fc38",
+    "description": "Feel free to seek assistance when needed",
+    "aliases": []
   }
 ]
