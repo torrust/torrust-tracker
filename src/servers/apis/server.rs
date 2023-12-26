@@ -187,11 +187,19 @@ impl Launcher {
     {
         let app = router(tracker);
 
+        let handle = Handle::new();
+
+        let cloned_handle = handle.clone();
+
+        tokio::task::spawn(async move {
+            shutdown_signal.await;
+            cloned_handle.shutdown();
+        });
+
         Box::pin(async {
-            axum::Server::from_tcp(tcp_listener)
-                .expect("Could not bind to tcp listener.")
+            axum_server::from_tcp(tcp_listener)
+                .handle(handle)
                 .serve(app.into_make_service_with_connect_info::<SocketAddr>())
-                .with_graceful_shutdown(shutdown_signal)
                 .await
                 .expect("Axum server crashed.");
         })
@@ -213,7 +221,7 @@ impl Launcher {
 
         let cloned_handle = handle.clone();
 
-        tokio::task::spawn_local(async move {
+        tokio::task::spawn(async move {
             shutdown_signal.await;
             cloned_handle.shutdown();
         });
@@ -237,15 +245,19 @@ impl Launcher {
 /// # Panics
 ///
 /// It would panic if it fails to listen to shutdown signal.
-pub fn start(socket_addr: SocketAddr, tracker: Arc<Tracker>) -> impl Future<Output = hyper::Result<()>> {
+pub fn start(socket_addr: SocketAddr, tracker: Arc<Tracker>) -> impl Future<Output = Result<(), std::io::Error>> {
     let app = router(tracker);
 
-    let server = axum::Server::bind(&socket_addr).serve(app.into_make_service());
+    let handle = Handle::new();
+    let shutdown_handle = handle.clone();
 
-    server.with_graceful_shutdown(async move {
+    tokio::spawn(async move {
         tokio::signal::ctrl_c().await.expect("Failed to listen to shutdown signal.");
-        info!("Stopping Torrust APIs server on http://{} ...", socket_addr);
-    })
+        info!("Stopping Torrust APIs server on https://{} ...", socket_addr);
+        shutdown_handle.shutdown();
+    });
+
+    axum_server::bind(socket_addr).handle(handle).serve(app.into_make_service())
 }
 
 /// Starts the API server with graceful shutdown and TLS on the current thread.
