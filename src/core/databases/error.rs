@@ -5,7 +5,7 @@ use std::panic::Location;
 use std::sync::Arc;
 
 use r2d2_mysql::mysql::UrlError;
-use torrust_tracker_located_error::{Located, LocatedError};
+use torrust_tracker_located_error::{DynError, Located, LocatedError};
 use torrust_tracker_primitives::DatabaseDriver;
 
 #[derive(thiserror::Error, Debug, Clone)]
@@ -59,11 +59,11 @@ impl From<r2d2_sqlite::rusqlite::Error> for Error {
     fn from(err: r2d2_sqlite::rusqlite::Error) -> Self {
         match err {
             r2d2_sqlite::rusqlite::Error::QueryReturnedNoRows => Error::QueryReturnedNoRows {
-                source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
+                source: (Arc::new(err) as DynError).into(),
                 driver: DatabaseDriver::Sqlite3,
             },
             _ => Error::InvalidQuery {
-                source: (Arc::new(err) as Arc<dyn std::error::Error + Send + Sync>).into(),
+                source: (Arc::new(err) as DynError).into(),
                 driver: DatabaseDriver::Sqlite3,
             },
         }
@@ -73,7 +73,7 @@ impl From<r2d2_sqlite::rusqlite::Error> for Error {
 impl From<r2d2_mysql::mysql::Error> for Error {
     #[track_caller]
     fn from(err: r2d2_mysql::mysql::Error) -> Self {
-        let e: Arc<dyn std::error::Error + Send + Sync> = Arc::new(err);
+        let e: DynError = Arc::new(err);
         Error::InvalidQuery {
             source: e.into(),
             driver: DatabaseDriver::MySQL,

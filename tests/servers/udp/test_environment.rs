@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use torrust_tracker::core::peer::Peer;
 use torrust_tracker::core::Tracker;
-use torrust_tracker::servers::udp::server::{RunningUdpServer, StoppedUdpServer, UdpServer};
+use torrust_tracker::servers::udp::server::{Launcher, RunningUdpServer, StoppedUdpServer, UdpServer};
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 
 use crate::common::app::setup_with_configuration;
@@ -43,7 +43,14 @@ impl TestEnvironment<Stopped> {
 
         let tracker = setup_with_configuration(&cfg);
 
-        let udp_server = udp_server(cfg.udp_trackers[0].clone());
+        let udp_cfg = cfg.udp_trackers[0].clone();
+
+        let bind_to = udp_cfg
+            .bind_address
+            .parse::<std::net::SocketAddr>()
+            .expect("Tracker API bind_address invalid.");
+
+        let udp_server = udp_server(Launcher::new(bind_to));
 
         Self {
             cfg,
@@ -81,7 +88,7 @@ impl TestEnvironment<Running> {
     }
 
     pub fn bind_address(&self) -> SocketAddr {
-        self.state.udp_server.state.bind_address
+        self.state.udp_server.state.binding
     }
 }
 
@@ -95,6 +102,6 @@ pub async fn running_test_environment(cfg: torrust_tracker_configuration::Config
     TestEnvironment::new_running(cfg).await
 }
 
-pub fn udp_server(cfg: torrust_tracker_configuration::UdpTracker) -> StoppedUdpServer {
-    UdpServer::new(cfg)
+pub fn udp_server(launcher: Launcher) -> StoppedUdpServer {
+    UdpServer::new(launcher)
 }

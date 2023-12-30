@@ -1,5 +1,17 @@
 //! This module contains functions to handle signals.
+use std::time::Duration;
+
+use derive_more::Display;
 use log::info;
+use tokio::time::sleep;
+
+/// This is the message that the "launcher" spawned task receives from the main
+/// application process to notify the service to shutdown.
+///
+#[derive(Copy, Clone, Debug, Display)]
+pub enum Halted {
+    Normal,
+}
 
 /// Resolves on `ctrl_c` or the `terminate` signal.
 ///
@@ -33,18 +45,33 @@ pub async fn global_shutdown_signal() {
 /// # Panics
 ///
 /// Will panic if the `stop_receiver` resolves with an error.
-pub async fn shutdown_signal(stop_receiver: tokio::sync::oneshot::Receiver<u8>) {
-    let stop = async { stop_receiver.await.expect("Failed to install stop signal.") };
+pub async fn shutdown_signal(rx_halt: tokio::sync::oneshot::Receiver<Halted>) {
+    let halt = async { rx_halt.await.expect("Failed to install stop signal.") };
 
     tokio::select! {
-        _ = stop => {},
+        _ = halt => {},
         () = global_shutdown_signal() => {}
     }
 }
 
 /// Same as `shutdown_signal()`, but shows a message when it resolves.
-pub async fn shutdown_signal_with_message(stop_receiver: tokio::sync::oneshot::Receiver<u8>, message: String) {
-    shutdown_signal(stop_receiver).await;
+pub async fn shutdown_signal_with_message(rx_halt: tokio::sync::oneshot::Receiver<Halted>, message: String) {
+    shutdown_signal(rx_halt).await;
 
     info!("{message}");
+}
+
+pub async fn graceful_shutdown(handle: axum_server::Handle, rx_halt: tokio::sync::oneshot::Receiver<Halted>, message: String) {
+    shutdown_signal_with_message(rx_halt, message).await;
+
+    info!("sending graceful shutdown signal");
+    handle.graceful_shutdown(Some(Duration::from_secs(90)));
+
+    println!("!! shuting down in 90 seconds !!");
+
+    loop {
+        sleep(Duration::from_secs(1)).await;
+
+        info!("remaining alive connections: {}", handle.connection_count());
+    }
 }

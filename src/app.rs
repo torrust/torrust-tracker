@@ -28,8 +28,7 @@ use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
 
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
-use crate::core;
-use crate::servers::http::Version;
+use crate::{core, servers};
 
 /// # Panics
 ///
@@ -68,21 +67,22 @@ pub async fn start(config: Arc<Configuration>, tracker: Arc<core::Tracker>) -> V
                 udp_tracker_config.bind_address, config.mode
             );
         } else {
-            jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone()));
+            jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone()).await);
         }
     }
 
     // Start the HTTP blocks
     for http_tracker_config in &config.http_trackers {
-        if !http_tracker_config.enabled {
-            continue;
-        }
-        jobs.push(http_tracker::start_job(http_tracker_config, tracker.clone(), Version::V1).await);
+        if let Some(job) = http_tracker::start_job(http_tracker_config, tracker.clone(), servers::http::Version::V1).await {
+            jobs.push(job);
+        };
     }
 
     // Start HTTP API
     if config.http_api.enabled {
-        jobs.push(tracker_apis::start_job(&config.http_api, tracker.clone()).await);
+        if let Some(job) = tracker_apis::start_job(&config.http_api, tracker.clone(), servers::apis::Version::V1).await {
+            jobs.push(job);
+        };
     }
 
     // Start runners to remove torrents without peers, every interval

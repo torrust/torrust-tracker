@@ -2,11 +2,9 @@ use torrust_tracker_test_helpers::configuration;
 
 use crate::servers::http::test_environment::running_test_environment;
 
-pub type V1 = torrust_tracker::servers::http::v1::launcher::Launcher;
-
 #[tokio::test]
 async fn test_environment_should_be_started_and_stopped() {
-    let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+    let test_env = running_test_environment(configuration::ephemeral()).await;
 
     test_env.stop().await;
 }
@@ -18,11 +16,10 @@ mod for_all_config_modes {
 
     use crate::servers::http::client::Client;
     use crate::servers::http::test_environment::running_test_environment;
-    use crate::servers::http::v1::contract::V1;
 
     #[tokio::test]
     async fn health_check_endpoint_should_return_ok_if_the_http_tracker_is_running() {
-        let test_env = running_test_environment::<V1>(configuration::ephemeral_with_reverse_proxy()).await;
+        let test_env = running_test_environment(configuration::ephemeral_with_reverse_proxy()).await;
 
         let response = Client::new(*test_env.bind_address()).health_check().await;
 
@@ -40,14 +37,13 @@ mod for_all_config_modes {
         use crate::servers::http::client::Client;
         use crate::servers::http::requests::announce::QueryBuilder;
         use crate::servers::http::test_environment::running_test_environment;
-        use crate::servers::http::v1::contract::V1;
 
         #[tokio::test]
         async fn should_fail_when_the_http_request_does_not_include_the_xff_http_request_header() {
             // If the tracker is running behind a reverse proxy, the peer IP is the
             // right most IP in the `X-Forwarded-For` HTTP header, which is the IP of the proxy's client.
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_with_reverse_proxy()).await;
+            let test_env = running_test_environment(configuration::ephemeral_with_reverse_proxy()).await;
 
             let params = QueryBuilder::default().query().params();
 
@@ -60,7 +56,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_xff_http_request_header_contains_an_invalid_ip() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_with_reverse_proxy()).await;
+            let test_env = running_test_environment(configuration::ephemeral_with_reverse_proxy()).await;
 
             let params = QueryBuilder::default().query().params();
 
@@ -91,7 +87,7 @@ mod for_all_config_modes {
         use std::str::FromStr;
 
         use local_ip_address::local_ip;
-        use reqwest::Response;
+        use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
         use torrust_tracker::core::peer;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
@@ -108,11 +104,16 @@ mod for_all_config_modes {
         use crate::servers::http::responses;
         use crate::servers::http::responses::announce::{Announce, CompactPeer, CompactPeerList, DictionaryPeer};
         use crate::servers::http::test_environment::running_test_environment;
-        use crate::servers::http::v1::contract::V1;
+
+        #[tokio::test]
+        async fn it_should_start_and_stop() {
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
+            test_env.stop().await;
+        }
 
         #[tokio::test]
         async fn should_respond_if_only_the_mandatory_fields_are_provided() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -127,7 +128,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_url_query_component_is_empty() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let response = Client::new(*test_env.bind_address()).get("announce").await;
 
@@ -138,7 +139,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_url_query_parameters_are_invalid() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let invalid_query_param = "a=b=c";
 
@@ -153,7 +154,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_a_mandatory_field_is_missing() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             // Without `info_hash` param
 
@@ -190,7 +191,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_info_hash_param_is_invalid() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -212,7 +213,7 @@ mod for_all_config_modes {
             // 1. If tracker is NOT running `on_reverse_proxy` from the remote client IP.
             // 2. If tracker is     running `on_reverse_proxy` from `X-Forwarded-For` request HTTP header.
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -227,7 +228,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_downloaded_param_is_invalid() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -246,7 +247,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_uploaded_param_is_invalid() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -265,7 +266,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_peer_id_param_is_invalid() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -291,7 +292,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_port_param_is_invalid() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -310,7 +311,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_left_param_is_invalid() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -329,7 +330,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_event_param_is_invalid() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -356,7 +357,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_compact_param_is_invalid() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral()).await;
+            let test_env = running_test_environment(configuration::ephemeral()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -375,7 +376,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let response = Client::new(*test_env.bind_address())
                 .announce(
@@ -402,7 +403,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_the_list_of_previously_announced_peers() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -442,7 +443,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_the_list_of_previously_announced_peers_including_peers_using_ipv4_and_ipv6() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -492,7 +493,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_peer_id_even_if_the_ip_is_different() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
             let peer = PeerBuilder::default().build();
@@ -519,7 +520,7 @@ mod for_all_config_modes {
             // Tracker Returns Compact Peer Lists
             // https://www.bittorrent.org/beps/bep_0023.html
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -560,7 +561,7 @@ mod for_all_config_modes {
             // code-review: the HTTP tracker does not return the compact response by default if the "compact"
             // param is not provided in the announce URL. The BEP 23 suggest to do so.
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -598,7 +599,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_increase_the_number_of_tcp4_connections_handled_in_statistics() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             Client::new(*test_env.bind_address())
                 .announce(&QueryBuilder::default().query())
@@ -622,7 +623,7 @@ mod for_all_config_modes {
                 return; // we cannot bind to a ipv6 socket, so we will skip this test
             }
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_ipv6()).await;
+            let test_env = running_test_environment(configuration::ephemeral_ipv6()).await;
 
             Client::bind(*test_env.bind_address(), IpAddr::from_str("::1").unwrap())
                 .announce(&QueryBuilder::default().query())
@@ -641,7 +642,7 @@ mod for_all_config_modes {
         async fn should_not_increase_the_number_of_tcp6_connections_handled_if_the_client_is_not_using_an_ipv6_ip() {
             // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             Client::new(*test_env.bind_address())
                 .announce(
@@ -662,7 +663,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_increase_the_number_of_tcp4_announce_requests_handled_in_statistics() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             Client::new(*test_env.bind_address())
                 .announce(&QueryBuilder::default().query())
@@ -686,7 +687,7 @@ mod for_all_config_modes {
                 return; // we cannot bind to a ipv6 socket, so we will skip this test
             }
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_ipv6()).await;
+            let test_env = running_test_environment(configuration::ephemeral_ipv6()).await;
 
             Client::bind(*test_env.bind_address(), IpAddr::from_str("::1").unwrap())
                 .announce(&QueryBuilder::default().query())
@@ -705,7 +706,7 @@ mod for_all_config_modes {
         async fn should_not_increase_the_number_of_tcp6_announce_requests_handled_if_the_client_is_not_using_an_ipv6_ip() {
             // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             Client::new(*test_env.bind_address())
                 .announce(
@@ -726,19 +727,22 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_assign_to_the_peer_ip_the_remote_client_ip_instead_of_the_peer_address_in_the_request_param() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
             let client_ip = local_ip().unwrap();
-
-            let client = Client::bind(*test_env.bind_address(), client_ip);
 
             let announce_query = QueryBuilder::default()
                 .with_info_hash(&info_hash)
                 .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
                 .query();
 
-            client.announce(&announce_query).await;
+            {
+                let client = Client::bind(*test_env.bind_address(), client_ip);
+                let status = client.announce(&announce_query).await.status();
+
+                assert_eq!(status, StatusCode::OK);
+            }
 
             let peers = test_env.tracker.get_torrent_peers(&info_hash).await;
             let peer_addr = peers[0].peer_addr;
@@ -758,7 +762,7 @@ mod for_all_config_modes {
                 127.0.0.1      external_ip = "2.137.87.41"
             */
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_with_external_ip(
+            let test_env = running_test_environment(configuration::ephemeral_with_external_ip(
                 IpAddr::from_str("2.137.87.41").unwrap(),
             ))
             .await;
@@ -767,14 +771,17 @@ mod for_all_config_modes {
             let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
             let client_ip = loopback_ip;
 
-            let client = Client::bind(*test_env.bind_address(), client_ip);
-
             let announce_query = QueryBuilder::default()
                 .with_info_hash(&info_hash)
                 .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
                 .query();
 
-            client.announce(&announce_query).await;
+            {
+                let client = Client::bind(*test_env.bind_address(), client_ip);
+                let status = client.announce(&announce_query).await.status();
+
+                assert_eq!(status, StatusCode::OK);
+            }
 
             let peers = test_env.tracker.get_torrent_peers(&info_hash).await;
             let peer_addr = peers[0].peer_addr;
@@ -794,7 +801,7 @@ mod for_all_config_modes {
                ::1            external_ip = "2345:0425:2CA1:0000:0000:0567:5673:23b5"
             */
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_with_external_ip(
+            let test_env = running_test_environment(configuration::ephemeral_with_external_ip(
                 IpAddr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap(),
             ))
             .await;
@@ -803,14 +810,17 @@ mod for_all_config_modes {
             let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
             let client_ip = loopback_ip;
 
-            let client = Client::bind(*test_env.bind_address(), client_ip);
-
             let announce_query = QueryBuilder::default()
                 .with_info_hash(&info_hash)
                 .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
                 .query();
 
-            client.announce(&announce_query).await;
+            {
+                let client = Client::bind(*test_env.bind_address(), client_ip);
+                let status = client.announce(&announce_query).await.status();
+
+                assert_eq!(status, StatusCode::OK);
+            }
 
             let peers = test_env.tracker.get_torrent_peers(&info_hash).await;
             let peer_addr = peers[0].peer_addr;
@@ -830,21 +840,25 @@ mod for_all_config_modes {
             145.254.214.256     X-Forwarded-For = 145.254.214.256    on_reverse_proxy = true       145.254.214.256
             */
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_with_reverse_proxy()).await;
+            let test_env = running_test_environment(configuration::ephemeral_with_reverse_proxy()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
-            let client = Client::new(*test_env.bind_address());
-
             let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
 
-            client
-                .announce_with_header(
-                    &announce_query,
-                    "X-Forwarded-For",
-                    "203.0.113.195,2001:db8:85a3:8d3:1319:8a2e:370:7348,150.172.238.178",
-                )
-                .await;
+            {
+                let client = Client::new(*test_env.bind_address());
+                let status = client
+                    .announce_with_header(
+                        &announce_query,
+                        "X-Forwarded-For",
+                        "203.0.113.195,2001:db8:85a3:8d3:1319:8a2e:370:7348,150.172.238.178",
+                    )
+                    .await
+                    .status();
+
+                assert_eq!(status, StatusCode::OK);
+            }
 
             let peers = test_env.tracker.get_torrent_peers(&info_hash).await;
             let peer_addr = peers[0].peer_addr;
@@ -883,12 +897,11 @@ mod for_all_config_modes {
         use crate::servers::http::requests::scrape::QueryBuilder;
         use crate::servers::http::responses::scrape::{self, File, ResponseBuilder};
         use crate::servers::http::test_environment::running_test_environment;
-        use crate::servers::http::v1::contract::V1;
 
         //#[tokio::test]
         #[allow(dead_code)]
         async fn should_fail_when_the_request_is_empty() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
             let response = Client::new(*test_env.bind_address()).get("scrape").await;
 
             assert_missing_query_params_for_scrape_request_error_response(response).await;
@@ -898,7 +911,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_info_hash_param_is_invalid() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -915,7 +928,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_the_file_with_the_incomplete_peer_when_there_is_one_peer_with_bytes_pending_to_download() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -955,7 +968,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_the_file_with_the_complete_peer_when_there_is_one_peer_with_no_bytes_pending_to_download() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -995,7 +1008,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_a_file_with_zeroed_values_when_there_are_no_peers() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1014,7 +1027,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_accept_multiple_infohashes() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash1 = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
             let info_hash2 = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
@@ -1040,7 +1053,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_increase_the_number_ot_tcp4_scrape_requests_handled_in_statistics() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_public()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_public()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1070,7 +1083,7 @@ mod for_all_config_modes {
                 return; // we cannot bind to a ipv6 socket, so we will skip this test
             }
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_ipv6()).await;
+            let test_env = running_test_environment(configuration::ephemeral_ipv6()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1105,11 +1118,10 @@ mod configured_as_whitelisted {
         use crate::servers::http::client::Client;
         use crate::servers::http::requests::announce::QueryBuilder;
         use crate::servers::http::test_environment::running_test_environment;
-        use crate::servers::http::v1::contract::V1;
 
         #[tokio::test]
         async fn should_fail_if_the_torrent_is_not_in_the_whitelist() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_whitelisted()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_whitelisted()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1124,7 +1136,7 @@ mod configured_as_whitelisted {
 
         #[tokio::test]
         async fn should_allow_announcing_a_whitelisted_torrent() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_whitelisted()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_whitelisted()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1157,11 +1169,10 @@ mod configured_as_whitelisted {
         use crate::servers::http::requests;
         use crate::servers::http::responses::scrape::{File, ResponseBuilder};
         use crate::servers::http::test_environment::running_test_environment;
-        use crate::servers::http::v1::contract::V1;
 
         #[tokio::test]
         async fn should_return_the_zeroed_file_when_the_requested_file_is_not_whitelisted() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_whitelisted()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_whitelisted()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1192,7 +1203,7 @@ mod configured_as_whitelisted {
 
         #[tokio::test]
         async fn should_return_the_file_stats_when_the_requested_file_is_whitelisted() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_whitelisted()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_whitelisted()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1252,11 +1263,10 @@ mod configured_as_private {
         use crate::servers::http::client::Client;
         use crate::servers::http::requests::announce::QueryBuilder;
         use crate::servers::http::test_environment::running_test_environment;
-        use crate::servers::http::v1::contract::V1;
 
         #[tokio::test]
         async fn should_respond_to_authenticated_peers() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_private()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_private()).await;
 
             let expiring_key = test_env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
@@ -1271,7 +1281,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_fail_if_the_peer_has_not_provided_the_authentication_key() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_private()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_private()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1286,7 +1296,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_private()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_private()).await;
 
             let invalid_key = "INVALID_KEY";
 
@@ -1301,7 +1311,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_fail_if_the_peer_cannot_be_authenticated_with_the_provided_key() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_private()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_private()).await;
 
             // The tracker does not have this key
             let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
@@ -1332,11 +1342,10 @@ mod configured_as_private {
         use crate::servers::http::requests;
         use crate::servers::http::responses::scrape::{File, ResponseBuilder};
         use crate::servers::http::test_environment::running_test_environment;
-        use crate::servers::http::v1::contract::V1;
 
         #[tokio::test]
         async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_private()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_private()).await;
 
             let invalid_key = "INVALID_KEY";
 
@@ -1351,7 +1360,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_return_the_zeroed_file_when_the_client_is_not_authenticated() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_private()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_private()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1382,7 +1391,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_return_the_real_file_stats_when_the_client_is_authenticated() {
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_private()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_private()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1427,7 +1436,7 @@ mod configured_as_private {
             // There is not authentication error
             // code-review: should this really be this way?
 
-            let test_env = running_test_environment::<V1>(configuration::ephemeral_mode_private()).await;
+            let test_env = running_test_environment(configuration::ephemeral_mode_private()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 

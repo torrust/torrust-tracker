@@ -8,6 +8,7 @@ use aquatic_udp_protocol::{
     NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
 use log::{debug, info};
+use torrust_tracker_located_error::DynError;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
 use crate::core::{statistics, ScrapeData, Tracker};
@@ -46,7 +47,7 @@ pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: &
         // bad request
         Err(e) => handle_error(
             &Error::BadRequest {
-                source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+                source: (Arc::new(e) as DynError).into(),
             },
             TransactionId(0),
         ),

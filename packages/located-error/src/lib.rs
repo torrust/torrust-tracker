@@ -33,6 +33,10 @@ use std::error::Error;
 use std::panic::Location;
 use std::sync::Arc;
 
+use log::debug;
+
+pub type DynError = Arc<dyn std::error::Error + Send + Sync>;
+
 /// A generic wrapper around an error.
 ///
 /// Where `E` is the inner error (source error).
@@ -90,13 +94,13 @@ where
             source: Arc::new(self.0),
             location: Box::new(*std::panic::Location::caller()),
         };
-        log::debug!("{e}");
+        debug!("{e}");
         e
     }
 }
 
 #[allow(clippy::from_over_into)]
-impl<'a> Into<LocatedError<'a, dyn std::error::Error + Send + Sync>> for Arc<dyn std::error::Error + Send + Sync> {
+impl<'a> Into<LocatedError<'a, dyn std::error::Error + Send + Sync>> for DynError {
     #[track_caller]
     fn into(self) -> LocatedError<'a, dyn std::error::Error + Send + Sync> {
         LocatedError {
