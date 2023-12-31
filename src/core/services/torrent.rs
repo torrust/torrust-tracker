@@ -97,9 +97,7 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
 
     let torrent_entry_option = db.get(info_hash);
 
-    let Some(torrent_entry) = torrent_entry_option else {
-        return None;
-    };
+    let torrent_entry = torrent_entry_option?;
 
     let (seeders, completed, leechers) = torrent_entry.get_stats();
 
