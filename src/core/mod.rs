@@ -909,62 +909,6 @@ impl Tracker {
         Ok(())
     }
 
-    /// It authenticates and authorizes a UDP tracker request.
-    ///
-    /// # Context: Authentication and Authorization
-    ///
-    /// # Errors
-    ///
-    /// Will return a `torrent::Error::PeerKeyNotValid` if the `key` is not valid.
-    ///
-    /// Will return a `torrent::Error::PeerNotAuthenticated` if the `key` is `None`.
-    ///
-    /// Will return a `torrent::Error::TorrentNotWhitelisted` if the the Tracker is in listed mode and the `info_hash` is not whitelisted.
-    #[deprecated(since = "3.0.0", note = "please use `authenticate` and `authorize` instead")]
-    pub async fn authenticate_request(&self, info_hash: &InfoHash, key: &Option<Key>) -> Result<(), Error> {
-        // todo: this is a deprecated method.
-        // We're splitting authentication and authorization responsibilities.
-        // Use `authenticate` and `authorize` instead.
-
-        // Authentication
-
-        // no authentication needed in public mode
-        if self.is_public() {
-            return Ok(());
-        }
-
-        // check if auth_key is set and valid
-        if self.is_private() {
-            match key {
-                Some(key) => {
-                    if let Err(e) = self.verify_auth_key(key).await {
-                        return Err(Error::PeerKeyNotValid {
-                            key: key.clone(),
-                            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
-                        });
-                    }
-                }
-                None => {
-                    return Err(Error::PeerNotAuthenticated {
-                        location: Location::caller(),
-                    });
-                }
-            }
-        }
-
-        // Authorization
-
-        // check if info_hash is whitelisted
-        if self.is_whitelisted() && !self.is_info_hash_whitelisted(info_hash).await {
-            return Err(Error::TorrentNotWhitelisted {
-                info_hash: *info_hash,
-                location: Location::caller(),
-            });
-        }
-
-        Ok(())
-    }
-
     /// Right now, there is only authorization when the `Tracker` runs in
     /// `listed` or `private_listed` modes.
     ///
