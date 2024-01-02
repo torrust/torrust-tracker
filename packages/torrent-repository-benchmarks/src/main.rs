@@ -7,7 +7,9 @@ use torrust_torrent_repository_benchmarks::benches::asyn::{
 use torrust_torrent_repository_benchmarks::benches::sync::{
     add_multiple_torrents_in_parallel, add_one_torrent, update_multiple_torrents_in_parallel, update_one_torrent_in_parallel,
 };
-use torrust_tracker::core::torrent::repository::{AsyncSync, RepositoryAsync, RepositoryAsyncSingle, Sync, SyncSingle};
+use torrust_tracker::core::torrent::repository::{
+    AsyncSync, RepositoryAsync, RepositoryAsyncSingle, RepositoryDashmap, Sync, SyncSingle,
+};
 
 #[allow(clippy::too_many_lines)]
 #[allow(clippy::print_literal)]
@@ -134,6 +136,30 @@ fn main() {
             "{}: Avg/AdjAvg: {:?}",
             "update_multiple_torrents_in_parallel",
             rt.block_on(async_update_multiple_torrents_in_parallel::<RepositoryAsync>(&rt, 10))
+        );
+
+        println!();
+
+        println!("DashMap<InfoHash, Entry>");
+        println!(
+            "{}: Avg/AdjAvg: {:?}",
+            "add_one_torrent",
+            add_one_torrent::<RepositoryDashmap>(1_000_000)
+        );
+        println!(
+            "{}: Avg/AdjAvg: {:?}",
+            "update_one_torrent_in_parallel",
+            rt.block_on(update_one_torrent_in_parallel::<RepositoryDashmap>(&rt, 10))
+        );
+        println!(
+            "{}: Avg/AdjAvg: {:?}",
+            "add_multiple_torrents_in_parallel",
+            rt.block_on(add_multiple_torrents_in_parallel::<RepositoryDashmap>(&rt, 10))
+        );
+        println!(
+            "{}: Avg/AdjAvg: {:?}",
+            "update_multiple_torrents_in_parallel",
+            rt.block_on(update_multiple_torrents_in_parallel::<RepositoryDashmap>(&rt, 10))
         );
     }
 }
