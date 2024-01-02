@@ -35,7 +35,6 @@ async fn should_allow_getting_torrents() {
             seeders: 1,
             completed: 0,
             leechers: 0,
-            peers: None, // Torrent list does not include the peer list for each torrent
         }],
     )
     .await;
@@ -65,7 +64,6 @@ async fn should_allow_limiting_the_torrents_in_the_result() {
             seeders: 1,
             completed: 0,
             leechers: 0,
-            peers: None, // Torrent list does not include the peer list for each torrent
         }],
     )
     .await;
@@ -95,7 +93,6 @@ async fn should_allow_the_torrents_result_pagination() {
             seeders: 1,
             completed: 0,
             leechers: 0,
-            peers: None, // Torrent list does not include the peer list for each torrent
         }],
     )
     .await;
