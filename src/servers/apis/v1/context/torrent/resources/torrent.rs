@@ -44,9 +44,6 @@ pub struct ListItem {
     /// The torrent's leechers counter. Active peers that are downloading the
     /// torrent.
     pub leechers: u64,
-    /// The torrent's peers. It's always `None` in the struct and `null` in the
-    /// JSON response.
-    pub peers: Option<Vec<super::peer::Peer>>, // todo: this is always None. Remove field from endpoint?
 }
 
 impl ListItem {
@@ -90,7 +87,6 @@ impl From<BasicInfo> for ListItem {
             seeders: basic_info.seeders,
             completed: basic_info.completed,
             leechers: basic_info.leechers,
-            peers: None,
         }
     }
 }
@@ -156,7 +152,6 @@ mod tests {
                 seeders: 1,
                 completed: 2,
                 leechers: 3,
-                peers: None,
             }
         );
     }
