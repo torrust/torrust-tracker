@@ -598,7 +598,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
 
                 let expected_peer = TorrentPeerBuilder::default()
                     .with_peer_id(peer::Id(peer_id.0))
@@ -659,7 +659,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
 
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
             }
@@ -763,7 +763,7 @@ mod tests {
 
                     handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                    let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                    let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
 
                     let external_ip_in_tracker_configuration =
                         tracker.config.external_ip.clone().unwrap().parse::<Ipv4Addr>().unwrap();
@@ -820,7 +820,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
 
                 let expected_peer = TorrentPeerBuilder::default()
                     .with_peer_id(peer::Id(peer_id.0))
@@ -884,7 +884,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
 
                 // When using IPv6 the tracker converts the remote client ip into a IPv4 address
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V6(remote_client_ip), client_port));
@@ -1001,7 +1001,7 @@ mod tests {
 
                     handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                    let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                    let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
 
                     let _external_ip_in_tracker_configuration =
                         tracker.config.external_ip.clone().unwrap().parse::<Ipv6Addr>().unwrap();

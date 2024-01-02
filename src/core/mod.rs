@@ -458,6 +458,9 @@ use crate::core::databases::Database;
 use crate::core::torrent::{SwarmMetadata, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 
+/// The maximum number of returned peers for a torrent.
+pub const TORRENT_PEERS_LIMIT: usize = 74;
+
 /// The domain layer tracker service.
 ///
 /// Its main responsibility is to handle the `announce` and `scrape` requests.
@@ -623,7 +626,7 @@ impl Tracker {
 
         let swarm_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
-        let peers = self.get_peers_for_peer(info_hash, peer).await;
+        let peers = self.get_torrent_peers_for_peer(info_hash, peer).await;
 
         AnnounceData {
             peers,
@@ -692,24 +695,28 @@ impl Tracker {
         Ok(())
     }
 
-    async fn get_peers_for_peer(&self, info_hash: &InfoHash, peer: &Peer) -> Vec<peer::Peer> {
+    async fn get_torrent_peers_for_peer(&self, info_hash: &InfoHash, peer: &Peer) -> Vec<peer::Peer> {
         let read_lock = self.torrents.get_torrents().await;
 
         match read_lock.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_peers_for_peer(peer).into_iter().copied().collect(),
+            Some(entry) => entry
+                .get_peers_for_peer(peer, TORRENT_PEERS_LIMIT)
+                .into_iter()
+                .copied()
+                .collect(),
         }
     }
 
     /// # Context: Tracker
     ///
     /// Get all torrent peers for a given torrent
-    pub async fn get_all_torrent_peers(&self, info_hash: &InfoHash) -> Vec<peer::Peer> {
+    pub async fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<peer::Peer> {
         let read_lock = self.torrents.get_torrents().await;
 
         match read_lock.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_all_peers().into_iter().copied().collect(),
+            Some(entry) => entry.get_peers(TORRENT_PEERS_LIMIT).into_iter().copied().collect(),
         }
     }
 
@@ -1253,7 +1260,7 @@ mod tests {
 
             tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
 
-            let peers = tracker.get_all_torrent_peers(&info_hash).await;
+            let peers = tracker.get_torrent_peers(&info_hash).await;
 
             assert_eq!(peers, vec![peer]);
         }
@@ -1267,7 +1274,7 @@ mod tests {
 
             tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
 
-            let peers = tracker.get_peers_for_peer(&info_hash, &peer).await;
+            let peers = tracker.get_torrent_peers_for_peer(&info_hash, &peer).await;
 
             assert_eq!(peers, vec![]);
         }
