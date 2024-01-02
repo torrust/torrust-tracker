@@ -10,7 +10,7 @@ use aquatic_udp_protocol::{
 use log::{debug, info};
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
-use crate::core::{statistics, Tracker};
+use crate::core::{statistics, ScrapeData, Tracker};
 use crate::servers::udp::error::Error;
 use crate::servers::udp::peer_builder;
 use crate::servers::udp::request::AnnounceWrapper;
@@ -99,22 +99,6 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
     Ok(Response::from(response))
 }
 
-/// It authenticates the request. It returns an error if the peer is not allowed
-/// to make the request.
-///
-/// # Errors
-///
-/// Will return `Error` if unable to `authenticate_request`.
-#[allow(deprecated)]
-pub async fn authenticate(info_hash: &InfoHash, tracker: &Tracker) -> Result<(), Error> {
-    tracker
-        .authenticate_request(info_hash, &None)
-        .await
-        .map_err(|e| Error::TrackerError {
-            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
-        })
-}
-
 /// It handles the `Announce` request. Refer to [`Announce`](crate::servers::udp#announce)
 /// request for more information.
 ///
@@ -128,6 +112,13 @@ pub async fn handle_announce(
 ) -> Result<Response, Error> {
     debug!("udp announce request: {:#?}", announce_request);
 
+    // Authentication
+    if tracker.requires_authentication() {
+        return Err(Error::TrackerAuthenticationRequired {
+            location: Location::caller(),
+        });
+    }
+
     check(&remote_addr, &from_connection_id(&announce_request.connection_id))?;
 
     let wrapped_announce_request = AnnounceWrapper::new(announce_request);
@@ -135,7 +126,10 @@ pub async fn handle_announce(
     let info_hash = wrapped_announce_request.info_hash;
     let remote_client_ip = remote_addr.ip();
 
-    authenticate(&info_hash, tracker).await?;
+    // Authorization
+    tracker.authorize(&info_hash).await.map_err(|e| Error::TrackerError {
+        source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+    })?;
 
     info!(target: "UDP", "\"ANNOUNCE TxID {} IH {}\"", announce_request.transaction_id.0, info_hash.to_hex_string());
 
@@ -222,27 +216,23 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
         info_hashes.push(InfoHash(info_hash.0));
     }
 
-    let scrape_data = tracker.scrape(&info_hashes).await;
+    let scrape_data = if tracker.requires_authentication() {
+        ScrapeData::zeroed(&info_hashes)
+    } else {
+        tracker.scrape(&info_hashes).await
+    };
 
     let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
 
     for file in &scrape_data.files {
-        let info_hash = file.0;
         let swarm_metadata = file.1;
 
-        #[allow(deprecated)]
-        let scrape_entry = if tracker.authenticate_request(info_hash, &None).await.is_ok() {
-            #[allow(clippy::cast_possible_truncation)]
+        #[allow(clippy::cast_possible_truncation)]
+        let scrape_entry = {
             TorrentScrapeStatistics {
                 seeders: NumberOfPeers(i64::from(swarm_metadata.complete) as i32),
                 completed: NumberOfDownloads(i64::from(swarm_metadata.downloaded) as i32),
                 leechers: NumberOfPeers(i64::from(swarm_metadata.incomplete) as i32),
-            }
-        } else {
-            TorrentScrapeStatistics {
-                seeders: NumberOfPeers(0),
-                completed: NumberOfDownloads(0),
-                leechers: NumberOfPeers(0),
             }
         };
 
