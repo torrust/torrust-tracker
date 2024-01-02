@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use dashmap::DashMap;
+
 use crate::core::peer;
 use crate::core::torrent::{Entry, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;
@@ -297,5 +299,37 @@ impl RepositoryAsyncSingle {
 
     pub async fn get_torrents_mut(&self) -> tokio::sync::RwLockWriteGuard<'_, std::collections::BTreeMap<InfoHash, Entry>> {
         self.torrents.write().await
+    }
+}
+
+#[allow(clippy::module_name_repetitions)]
+pub struct RepositoryDashmap {
+    pub torrents: DashMap<InfoHash, Entry>,
+}
+
+impl Repository for RepositoryDashmap {
+    fn new() -> Self {
+        Self {
+            torrents: DashMap::new(),
+        }
+    }
+
+    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+        let (stats, stats_updated) = {
+            let mut torrent_entry = self.torrents.entry(*info_hash).or_default();
+            let stats_updated = torrent_entry.insert_or_update_peer(peer);
+            let stats = torrent_entry.get_stats();
+
+            (stats, stats_updated)
+        };
+
+        (
+            SwarmStats {
+                completed: stats.1,
+                seeders: stats.0,
+                leechers: stats.2,
+            },
+            stats_updated,
+        )
     }
 }

@@ -38,6 +38,7 @@ axum-server = { version = "0", features = ["tls-rustls"] }
 binascii = "0"
 chrono = { version = "0", default-features = false, features = ["clock"] }
 config = "0"
+dashmap = "5.5.3"
 derive_more = "0"
 fern = "0"
 futures = "0"
