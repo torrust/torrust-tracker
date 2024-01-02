@@ -71,7 +71,7 @@
 //! is behind a reverse proxy.
 //!
 //! > **NOTICE**: the maximum number of peers that the tracker can return is
-//! `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS).
+//! `74`. Defined with a hardcoded const [`TORRENT_PEERS_LIMIT`](crate::core::TORRENT_PEERS_LIMIT).
 //! Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
 //! for more information about this limitation.
 //!
@@ -237,7 +237,7 @@
 //! In order to scrape multiple torrents at the same time you can pass multiple
 //! `info_hash` parameters: `info_hash=%81%00%0...00%00%00&info_hash=%82%00%0...00%00%00`
 //!
-//! > **NOTICE**: the maximum number of torrent you can scrape at the same time
+//! > **NOTICE**: the maximum number of torrents you can scrape at the same time
 //! is `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS).
 //!
 //! **Sample response**

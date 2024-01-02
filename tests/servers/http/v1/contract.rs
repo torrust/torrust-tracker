@@ -740,7 +740,7 @@ mod for_all_config_modes {
 
             client.announce(&announce_query).await;
 
-            let peers = test_env.tracker.get_all_torrent_peers(&info_hash).await;
+            let peers = test_env.tracker.get_torrent_peers(&info_hash).await;
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(peer_addr.ip(), client_ip);
@@ -776,7 +776,7 @@ mod for_all_config_modes {
 
             client.announce(&announce_query).await;
 
-            let peers = test_env.tracker.get_all_torrent_peers(&info_hash).await;
+            let peers = test_env.tracker.get_torrent_peers(&info_hash).await;
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(peer_addr.ip(), test_env.tracker.config.get_ext_ip().unwrap());
@@ -812,7 +812,7 @@ mod for_all_config_modes {
 
             client.announce(&announce_query).await;
 
-            let peers = test_env.tracker.get_all_torrent_peers(&info_hash).await;
+            let peers = test_env.tracker.get_torrent_peers(&info_hash).await;
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(peer_addr.ip(), test_env.tracker.config.get_ext_ip().unwrap());
@@ -846,7 +846,7 @@ mod for_all_config_modes {
                 )
                 .await;
 
-            let peers = test_env.tracker.get_all_torrent_peers(&info_hash).await;
+            let peers = test_env.tracker.get_torrent_peers(&info_hash).await;
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(peer_addr.ip(), IpAddr::from_str("150.172.238.178").unwrap());

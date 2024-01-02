@@ -5,7 +5,6 @@ use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde::{Deserialize, Serialize};
 
 /// The maximum number of torrents that can be returned in an `scrape` response.
-/// It's also the maximum number of peers returned in an `announce` response.
 ///
 /// The [BEP 15. UDP Tracker Protocol for `BitTorrent`](https://www.bittorrent.org/beps/bep_0015.html)
 /// defines this limit:

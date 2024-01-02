@@ -69,7 +69,7 @@ impl Repository for Sync {
 
         let (stats, stats_updated) = {
             let mut torrent_entry_lock = torrent_entry.lock().unwrap();
-            let stats_updated = torrent_entry_lock.update_peer(peer);
+            let stats_updated = torrent_entry_lock.insert_or_update_peer(peer);
             let stats = torrent_entry_lock.get_stats();
 
             (stats, stats_updated)
@@ -126,7 +126,7 @@ impl Repository for SyncSingle {
             std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
         };
 
-        let stats_updated = torrent_entry.update_peer(peer);
+        let stats_updated = torrent_entry.insert_or_update_peer(peer);
         let stats = torrent_entry.get_stats();
 
         (
@@ -168,7 +168,7 @@ impl TRepositoryAsync for RepositoryAsync {
 
         let (stats, stats_updated) = {
             let mut torrent_entry_lock = torrent_entry.lock().await;
-            let stats_updated = torrent_entry_lock.update_peer(peer);
+            let stats_updated = torrent_entry_lock.insert_or_update_peer(peer);
             let stats = torrent_entry_lock.get_stats();
 
             (stats, stats_updated)
@@ -226,7 +226,7 @@ impl TRepositoryAsync for AsyncSync {
 
         let (stats, stats_updated) = {
             let mut torrent_entry_lock = torrent_entry.lock().unwrap();
-            let stats_updated = torrent_entry_lock.update_peer(peer);
+            let stats_updated = torrent_entry_lock.insert_or_update_peer(peer);
             let stats = torrent_entry_lock.get_stats();
 
             (stats, stats_updated)
@@ -273,7 +273,7 @@ impl TRepositoryAsync for RepositoryAsyncSingle {
         let (stats, stats_updated) = {
             let mut torrents_lock = self.torrents.write().await;
             let torrent_entry = torrents_lock.entry(*info_hash).or_insert(Entry::new());
-            let stats_updated = torrent_entry.update_peer(peer);
+            let stats_updated = torrent_entry.insert_or_update_peer(peer);
             let stats = torrent_entry.get_stats();
 
             (stats, stats_updated)
