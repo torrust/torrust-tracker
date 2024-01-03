@@ -19,12 +19,12 @@ use crate::core::Tracker;
 ///
 /// Will panic if tracker cannot be instantiated.
 #[must_use]
-pub fn tracker_factory(config: Arc<Configuration>) -> Tracker {
+pub fn tracker_factory(config: &Configuration) -> Tracker {
     // Initialize statistics
     let (stats_event_sender, stats_repository) = statistics::setup::factory(config.tracker_usage_statistics);
 
     // Initialize Torrust tracker
-    match Tracker::new(config, stats_event_sender, stats_repository) {
+    match Tracker::new(&Arc::new(config), stats_event_sender, stats_repository) {
         Ok(tracker) => tracker,
         Err(error) => {
             panic!("{}", error)

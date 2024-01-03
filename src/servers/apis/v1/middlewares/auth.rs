@@ -23,12 +23,12 @@
 //! identify the token.
 use std::sync::Arc;
 
-use axum::extract::{Query, State};
+use axum::extract::{self};
 use axum::http::Request;
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
-use torrust_tracker_configuration::{Configuration, HttpApi};
+use torrust_tracker_configuration::AccessTokens;
 
 use crate::servers::apis::v1::responses::unhandled_rejection_response;
 
@@ -38,11 +38,16 @@ pub struct QueryParams {
     pub token: Option<String>,
 }
 
+#[derive(Clone, Debug)]
+pub struct State {
+    pub access_tokens: Arc<AccessTokens>,
+}
+
 /// Middleware for authentication using a "token" GET param.
 /// The token must be one of the tokens in the tracker [HTTP API configuration](torrust_tracker_configuration::HttpApi).
 pub async fn auth(
-    State(config): State<Arc<Configuration>>,
-    Query(params): Query<QueryParams>,
+    extract::State(state): extract::State<State>,
+    extract::Query(params): extract::Query<QueryParams>,
     request: Request<axum::body::Body>,
     next: Next,
 ) -> Response {
@@ -50,7 +55,7 @@ pub async fn auth(
         return AuthError::Unauthorized.into_response();
     };
 
-    if !authenticate(&token, &config.http_api) {
+    if !authenticate(&token, &state.access_tokens) {
         return AuthError::TokenNotValid.into_response();
     }
 
@@ -73,8 +78,8 @@ impl IntoResponse for AuthError {
     }
 }
 
-fn authenticate(token: &str, http_api_config: &HttpApi) -> bool {
-    http_api_config.contains_token(token)
+fn authenticate(token: &str, tokens: &AccessTokens) -> bool {
+    tokens.values().any(|t| t == token)
 }
 
 /// `500` error response returned when the token is missing.

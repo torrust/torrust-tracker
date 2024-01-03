@@ -26,7 +26,7 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use log::info;
 use tokio::task::JoinHandle;
-use torrust_tracker_configuration::HttpApi;
+use torrust_tracker_configuration::{AccessTokens, HttpApi};
 
 use super::make_rust_tls;
 use crate::core;
@@ -64,8 +64,10 @@ pub async fn start_job(config: &HttpApi, tracker: Arc<core::Tracker>, version: V
             .await
             .map(|tls| tls.expect("it should have a valid tracker api tls configuration"));
 
+        let access_tokens = Arc::new(config.access_tokens.clone());
+
         match version {
-            Version::V1 => Some(start_v1(bind_to, tls, tracker.clone()).await),
+            Version::V1 => Some(start_v1(bind_to, tls, tracker.clone(), access_tokens).await),
         }
     } else {
         info!("Note: Not loading Http Tracker Service, Not Enabled in Configuration.");
@@ -73,9 +75,14 @@ pub async fn start_job(config: &HttpApi, tracker: Arc<core::Tracker>, version: V
     }
 }
 
-async fn start_v1(socket: SocketAddr, tls: Option<RustlsConfig>, tracker: Arc<core::Tracker>) -> JoinHandle<()> {
+async fn start_v1(
+    socket: SocketAddr,
+    tls: Option<RustlsConfig>,
+    tracker: Arc<core::Tracker>,
+    access_tokens: Arc<AccessTokens>,
+) -> JoinHandle<()> {
     let server = ApiServer::new(Launcher::new(socket, tls))
-        .start(tracker)
+        .start(tracker, access_tokens)
         .await
         .expect("it should be able to start to the tracker api");
 

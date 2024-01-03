@@ -32,6 +32,7 @@ use derive_more::Constructor;
 use futures::future::BoxFuture;
 use log::{error, info};
 use tokio::sync::oneshot::{Receiver, Sender};
+use torrust_tracker_configuration::AccessTokens;
 
 use super::routes::router;
 use crate::bootstrap::jobs::Started;
@@ -91,14 +92,14 @@ impl ApiServer<Stopped> {
     /// # Panics
     ///
     /// It would panic if the bound socket address cannot be sent back to this starter.
-    pub async fn start(self, tracker: Arc<Tracker>) -> Result<ApiServer<Running>, Error> {
+    pub async fn start(self, tracker: Arc<Tracker>, access_tokens: Arc<AccessTokens>) -> Result<ApiServer<Running>, Error> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
 
         let launcher = self.state.launcher;
 
         let task = tokio::spawn(async move {
-            launcher.start(tracker, tx_start, rx_halt).await;
+            launcher.start(tracker, access_tokens, tx_start, rx_halt).await;
             launcher
         });
 
@@ -159,8 +160,14 @@ impl Launcher {
     ///
     /// Will panic if unable to bind to the socket, or unable to get the address of the bound socket.
     /// Will also panic if unable to send message regarding the bound socket address.
-    pub fn start(&self, tracker: Arc<Tracker>, tx_start: Sender<Started>, rx_halt: Receiver<Halted>) -> BoxFuture<'static, ()> {
-        let router = router(tracker);
+    pub fn start(
+        &self,
+        tracker: Arc<Tracker>,
+        access_tokens: Arc<AccessTokens>,
+        tx_start: Sender<Started>,
+        rx_halt: Receiver<Halted>,
+    ) -> BoxFuture<'static, ()> {
+        let router = router(tracker, access_tokens);
         let socket = std::net::TcpListener::bind(self.bind_to).expect("Could not bind tcp_listener to address.");
         let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
 
@@ -227,8 +234,13 @@ mod tests {
             .await
             .map(|tls| tls.expect("tls config failed"));
 
+        let access_tokens = Arc::new(config.access_tokens.clone());
+
         let stopped = ApiServer::new(Launcher::new(bind_to, tls));
-        let started = stopped.start(tracker).await.expect("it should start the server");
+        let started = stopped
+            .start(tracker, access_tokens)
+            .await
+            .expect("it should start the server");
         let stopped = started.stop().await.expect("it should stop the server");
 
         assert_eq!(stopped.state.launcher.bind_to, bind_to);

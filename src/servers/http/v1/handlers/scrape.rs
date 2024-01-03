@@ -90,7 +90,7 @@ async fn handle_scrape(
     // Authorization for scrape requests is handled at the `Tracker` level
     // for each torrent.
 
-    let peer_ip = match peer_ip_resolver::invoke(tracker.config.on_reverse_proxy, client_ip_sources) {
+    let peer_ip = match peer_ip_resolver::invoke(tracker.is_behind_reverse_proxy(), client_ip_sources) {
         Ok(peer_ip) => peer_ip,
         Err(error) => return Err(responses::error::Error::from(error)),
     };
@@ -121,19 +121,19 @@ mod tests {
     use crate::shared::bit_torrent::info_hash::InfoHash;
 
     fn private_tracker() -> Tracker {
-        tracker_factory(configuration::ephemeral_mode_private().into())
+        tracker_factory(&configuration::ephemeral_mode_private())
     }
 
     fn whitelisted_tracker() -> Tracker {
-        tracker_factory(configuration::ephemeral_mode_whitelisted().into())
+        tracker_factory(&configuration::ephemeral_mode_whitelisted())
     }
 
     fn tracker_on_reverse_proxy() -> Tracker {
-        tracker_factory(configuration::ephemeral_with_reverse_proxy().into())
+        tracker_factory(&configuration::ephemeral_with_reverse_proxy())
     }
 
     fn tracker_not_on_reverse_proxy() -> Tracker {
-        tracker_factory(configuration::ephemeral_without_reverse_proxy().into())
+        tracker_factory(&configuration::ephemeral_without_reverse_proxy())
     }
 
     fn sample_scrape_request() -> Scrape {

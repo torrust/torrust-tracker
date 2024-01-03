@@ -1,13 +1,12 @@
-use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum_server::tls_rustls::RustlsConfig;
 use futures::executor::block_on;
 use torrust_tracker::bootstrap::jobs::make_rust_tls;
 use torrust_tracker::core::peer::Peer;
 use torrust_tracker::core::Tracker;
 use torrust_tracker::servers::apis::server::{ApiServer, Launcher, RunningApiServer, StoppedApiServer};
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+use torrust_tracker_configuration::HttpApi;
 
 use super::connection_info::ConnectionInfo;
 use crate::common::app::setup_with_configuration;
@@ -18,7 +17,7 @@ pub type StoppedTestEnvironment = TestEnvironment<Stopped>;
 pub type RunningTestEnvironment = TestEnvironment<Running>;
 
 pub struct TestEnvironment<S> {
-    pub cfg: Arc<torrust_tracker_configuration::Configuration>,
+    pub config: Arc<HttpApi>,
     pub tracker: Arc<Tracker>,
     pub state: S,
 }
@@ -41,9 +40,10 @@ impl<S> TestEnvironment<S> {
 
 impl TestEnvironment<Stopped> {
     pub fn new(cfg: torrust_tracker_configuration::Configuration) -> Self {
-        let tracker = setup_with_configuration(&Arc::new(cfg));
+        let cfg = Arc::new(cfg);
+        let tracker = setup_with_configuration(&cfg);
 
-        let config = tracker.config.http_api.clone();
+        let config = Arc::new(cfg.http_api.clone());
 
         let bind_to = config
             .bind_address
@@ -53,25 +53,23 @@ impl TestEnvironment<Stopped> {
         let tls = block_on(make_rust_tls(config.ssl_enabled, &config.ssl_cert_path, &config.ssl_key_path))
             .map(|tls| tls.expect("tls config failed"));
 
-        Self::new_stopped(tracker, bind_to, tls)
-    }
-
-    pub fn new_stopped(tracker: Arc<Tracker>, bind_to: SocketAddr, tls: Option<RustlsConfig>) -> Self {
         let api_server = api_server(Launcher::new(bind_to, tls));
 
         Self {
-            cfg: tracker.config.clone(),
+            config,
             tracker,
             state: Stopped { api_server },
         }
     }
 
     pub async fn start(self) -> TestEnvironment<Running> {
+        let access_tokens = Arc::new(self.config.access_tokens.clone());
+
         TestEnvironment {
-            cfg: self.cfg,
+            config: self.config,
             tracker: self.tracker.clone(),
             state: Running {
-                api_server: self.state.api_server.start(self.tracker).await.unwrap(),
+                api_server: self.state.api_server.start(self.tracker, access_tokens).await.unwrap(),
             },
         }
     }
@@ -90,7 +88,7 @@ impl TestEnvironment<Running> {
 
     pub async fn stop(self) -> TestEnvironment<Stopped> {
         TestEnvironment {
-            cfg: self.cfg,
+            config: self.config,
             tracker: self.tracker,
             state: Stopped {
                 api_server: self.state.api_server.stop().await.unwrap(),
@@ -101,7 +99,7 @@ impl TestEnvironment<Running> {
     pub fn get_connection_info(&self) -> ConnectionInfo {
         ConnectionInfo {
             bind_address: self.state.api_server.state.binding.to_string(),
-            api_token: self.cfg.http_api.access_tokens.get("admin").cloned(),
+            api_token: self.config.access_tokens.get("admin").cloned(),
         }
     }
 }

@@ -151,7 +151,7 @@ pub async fn handle_announce(
     if remote_addr.is_ipv4() {
         let announce_response = AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
-            announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
+            announce_interval: AnnounceInterval(i64::from(tracker.get_announce_policy().interval) as i32),
             leechers: NumberOfPeers(i64::from(response.stats.incomplete) as i32),
             seeders: NumberOfPeers(i64::from(response.stats.complete) as i32),
             peers: response
@@ -176,7 +176,7 @@ pub async fn handle_announce(
     } else {
         let announce_response = AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
-            announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
+            announce_interval: AnnounceInterval(i64::from(tracker.get_announce_policy().interval) as i32),
             leechers: NumberOfPeers(i64::from(response.stats.incomplete) as i32),
             seeders: NumberOfPeers(i64::from(response.stats.complete) as i32),
             peers: response
@@ -282,8 +282,8 @@ mod tests {
     use crate::core::{peer, Tracker};
     use crate::shared::clock::{Current, Time};
 
-    fn tracker_configuration() -> Arc<Configuration> {
-        Arc::new(default_testing_tracker_configuration())
+    fn tracker_configuration() -> Configuration {
+        default_testing_tracker_configuration()
     }
 
     fn default_testing_tracker_configuration() -> Configuration {
@@ -291,18 +291,18 @@ mod tests {
     }
 
     fn public_tracker() -> Arc<Tracker> {
-        initialized_tracker(configuration::ephemeral_mode_public().into())
+        initialized_tracker(&configuration::ephemeral_mode_public())
     }
 
     fn private_tracker() -> Arc<Tracker> {
-        initialized_tracker(configuration::ephemeral_mode_private().into())
+        initialized_tracker(&configuration::ephemeral_mode_private())
     }
 
     fn whitelisted_tracker() -> Arc<Tracker> {
-        initialized_tracker(configuration::ephemeral_mode_whitelisted().into())
+        initialized_tracker(&configuration::ephemeral_mode_whitelisted())
     }
 
-    fn initialized_tracker(configuration: Arc<Configuration>) -> Arc<Tracker> {
+    fn initialized_tracker(configuration: &Configuration) -> Arc<Tracker> {
         tracker_factory(configuration).into()
     }
 
@@ -452,8 +452,9 @@ mod tests {
 
             let client_socket_address = sample_ipv4_socket_address();
 
-            let torrent_tracker =
-                Arc::new(core::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap());
+            let torrent_tracker = Arc::new(
+                core::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+            );
             handle_connect(client_socket_address, &sample_connect_request(), &torrent_tracker)
                 .await
                 .unwrap();
@@ -469,8 +470,9 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
-            let torrent_tracker =
-                Arc::new(core::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap());
+            let torrent_tracker = Arc::new(
+                core::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+            );
             handle_connect(sample_ipv6_remote_addr(), &sample_connect_request(), &torrent_tracker)
                 .await
                 .unwrap();
@@ -710,7 +712,7 @@ mod tests {
                 let stats_event_sender = Box::new(stats_event_sender_mock);
 
                 let tracker = Arc::new(
-                    core::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    core::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
                 );
 
                 handle_announce(
@@ -756,12 +758,11 @@ mod tests {
 
                     let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
 
-                    let external_ip_in_tracker_configuration =
-                        tracker.config.external_ip.clone().unwrap().parse::<Ipv4Addr>().unwrap();
+                    let external_ip_in_tracker_configuration = tracker.get_maybe_external_ip().unwrap();
 
                     let expected_peer = TorrentPeerBuilder::default()
                         .with_peer_id(peer::Id(peer_id.0))
-                        .with_peer_addr(SocketAddr::new(IpAddr::V4(external_ip_in_tracker_configuration), client_port))
+                        .with_peer_addr(SocketAddr::new(external_ip_in_tracker_configuration, client_port))
                         .into();
 
                     assert_eq!(peers[0], expected_peer);
@@ -938,7 +939,7 @@ mod tests {
                 let stats_event_sender = Box::new(stats_event_sender_mock);
 
                 let tracker = Arc::new(
-                    core::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    core::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
                 );
 
                 let remote_addr = sample_ipv6_remote_addr();
@@ -968,7 +969,7 @@ mod tests {
                     let configuration = Arc::new(TrackerConfigurationBuilder::default().with_external_ip("::126.0.0.1").into());
                     let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
                     let tracker =
-                        Arc::new(core::Tracker::new(configuration, Some(stats_event_sender), stats_repository).unwrap());
+                        Arc::new(core::Tracker::new(&configuration, Some(stats_event_sender), stats_repository).unwrap());
 
                     let loopback_ipv4 = Ipv4Addr::new(127, 0, 0, 1);
                     let loopback_ipv6 = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
@@ -994,8 +995,9 @@ mod tests {
 
                     let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
 
-                    let _external_ip_in_tracker_configuration =
-                        tracker.config.external_ip.clone().unwrap().parse::<Ipv6Addr>().unwrap();
+                    let external_ip_in_tracker_configuration = tracker.get_maybe_external_ip().unwrap();
+
+                    assert!(external_ip_in_tracker_configuration.is_ipv6());
 
                     // There's a special type of IPv6 addresses that provide compatibility with IPv4.
                     // The last 32 bits of these addresses represent an IPv4, and are represented like this:
@@ -1246,7 +1248,7 @@ mod tests {
 
                 let remote_addr = sample_ipv4_remote_addr();
                 let tracker = Arc::new(
-                    core::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    core::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
                 );
 
                 handle_scrape(remote_addr, &sample_scrape_request(&remote_addr), &tracker)
@@ -1278,7 +1280,7 @@ mod tests {
 
                 let remote_addr = sample_ipv6_remote_addr();
                 let tracker = Arc::new(
-                    core::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    core::Tracker::new(&tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
                 );
 
                 handle_scrape(remote_addr, &sample_scrape_request(&remote_addr), &tracker)

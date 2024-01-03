@@ -229,7 +229,7 @@
 //! [health_check_api]
 //! bind_address = "127.0.0.1:1313"
 //!```
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::net::IpAddr;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -337,6 +337,8 @@ pub struct HttpTracker {
     pub ssl_key_path: Option<String>,
 }
 
+pub type AccessTokens = HashMap<String, String>;
+
 /// Configuration for the HTTP API.
 #[serde_as]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
@@ -360,20 +362,12 @@ pub struct HttpApi {
     /// token and the value is the token itself. The token is used to
     /// authenticate the user. All tokens are valid for all endpoints and have
     /// the all permissions.
-    pub access_tokens: HashMap<String, String>,
+    pub access_tokens: AccessTokens,
 }
 
 impl HttpApi {
     fn override_admin_token(&mut self, api_admin_token: &str) {
         self.access_tokens.insert("admin".to_string(), api_admin_token.to_string());
-    }
-
-    /// Checks if the given token is one of the token in the configuration.
-    #[must_use]
-    pub fn contains_token(&self, token: &str) -> bool {
-        let tokens: HashMap<String, String> = self.access_tokens.clone();
-        let tokens: HashSet<String> = tokens.into_values().collect();
-        tokens.contains(token)
     }
 }
 
@@ -804,7 +798,7 @@ mod tests {
     fn http_api_configuration_should_check_if_it_contains_a_token() {
         let configuration = Configuration::default();
 
-        assert!(configuration.http_api.contains_token("MyAccessToken"));
-        assert!(!configuration.http_api.contains_token("NonExistingToken"));
+        assert!(configuration.http_api.access_tokens.values().any(|t| t == "MyAccessToken"));
+        assert!(!configuration.http_api.access_tokens.values().any(|t| t == "NonExistingToken"));
     }
 }

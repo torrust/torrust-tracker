@@ -24,8 +24,8 @@ use crate::shared::crypto::ephemeral_instance_keys;
 
 /// It loads the configuration from the environment and builds the main domain [`Tracker`] struct.
 #[must_use]
-pub fn setup() -> (Arc<Configuration>, Arc<Tracker>) {
-    let configuration = Arc::new(initialize_configuration());
+pub fn setup() -> (Configuration, Arc<Tracker>) {
+    let configuration = initialize_configuration();
     let tracker = initialize_with_configuration(&configuration);
 
     (configuration, tracker)
@@ -35,7 +35,7 @@ pub fn setup() -> (Arc<Configuration>, Arc<Tracker>) {
 ///
 /// The configuration may be obtained from the environment (via config file or env vars).
 #[must_use]
-pub fn initialize_with_configuration(configuration: &Arc<Configuration>) -> Arc<Tracker> {
+pub fn initialize_with_configuration(configuration: &Configuration) -> Arc<Tracker> {
     initialize_static();
     initialize_logging(configuration);
     Arc::new(initialize_tracker(configuration))
@@ -60,13 +60,13 @@ pub fn initialize_static() {
 /// The tracker is the domain layer service. It's the entrypoint to make requests to the domain layer.
 /// It's used by other higher-level components like the UDP and HTTP trackers or the tracker API.
 #[must_use]
-pub fn initialize_tracker(config: &Arc<Configuration>) -> Tracker {
-    tracker_factory(config.clone())
+pub fn initialize_tracker(config: &Configuration) -> Tracker {
+    tracker_factory(config)
 }
 
 /// It initializes the log level, format and channel.
 ///
 /// See [the logging setup](crate::bootstrap::logging::setup) for more info about logging.
-pub fn initialize_logging(config: &Arc<Configuration>) {
+pub fn initialize_logging(config: &Configuration) {
     bootstrap::logging::setup(config);
 }

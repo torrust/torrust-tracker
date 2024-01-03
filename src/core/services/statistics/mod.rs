@@ -92,13 +92,13 @@ mod tests {
     use crate::core::services::statistics::{get_metrics, TrackerMetrics};
     use crate::core::services::tracker_factory;
 
-    pub fn tracker_configuration() -> Arc<Configuration> {
-        Arc::new(configuration::ephemeral())
+    pub fn tracker_configuration() -> Configuration {
+        configuration::ephemeral()
     }
 
     #[tokio::test]
     async fn the_statistics_service_should_return_the_tracker_metrics() {
-        let tracker = Arc::new(tracker_factory(tracker_configuration()));
+        let tracker = Arc::new(tracker_factory(&tracker_configuration()));
 
         let tracker_metrics = get_metrics(tracker.clone()).await;
 

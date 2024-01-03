@@ -387,13 +387,15 @@ mod for_all_config_modes {
                 )
                 .await;
 
+            let announce_policy = test_env.tracker.get_announce_policy();
+
             assert_announce_response(
                 response,
                 &Announce {
                     complete: 1, // the peer for this test
                     incomplete: 0,
-                    interval: test_env.tracker.config.announce_interval,
-                    min_interval: test_env.tracker.config.min_announce_interval,
+                    interval: announce_policy.interval,
+                    min_interval: announce_policy.interval_min,
                     peers: vec![],
                 },
             )
@@ -426,14 +428,16 @@ mod for_all_config_modes {
                 )
                 .await;
 
+            let announce_policy = test_env.tracker.get_announce_policy();
+
             // It should only contain the previously announced peer
             assert_announce_response(
                 response,
                 &Announce {
                     complete: 2,
                     incomplete: 0,
-                    interval: test_env.tracker.config.announce_interval,
-                    min_interval: test_env.tracker.config.min_announce_interval,
+                    interval: announce_policy.interval,
+                    min_interval: announce_policy.interval_min,
                     peers: vec![DictionaryPeer::from(previously_announced_peer)],
                 },
             )
@@ -475,6 +479,8 @@ mod for_all_config_modes {
                 )
                 .await;
 
+            let announce_policy = test_env.tracker.get_announce_policy();
+
             // The newly announced peer is not included on the response peer list,
             // but all the previously announced peers should be included regardless the IP version they are using.
             assert_announce_response(
@@ -482,8 +488,8 @@ mod for_all_config_modes {
                 &Announce {
                     complete: 3,
                     incomplete: 0,
-                    interval: test_env.tracker.config.announce_interval,
-                    min_interval: test_env.tracker.config.min_announce_interval,
+                    interval: announce_policy.interval,
+                    min_interval: announce_policy.interval_min,
                     peers: vec![DictionaryPeer::from(peer_using_ipv4), DictionaryPeer::from(peer_using_ipv6)],
                 },
             )
@@ -787,7 +793,7 @@ mod for_all_config_modes {
             let peers = test_env.tracker.get_torrent_peers(&info_hash).await;
             let peer_addr = peers[0].peer_addr;
 
-            assert_eq!(peer_addr.ip(), test_env.tracker.config.get_ext_ip().unwrap());
+            assert_eq!(peer_addr.ip(), test_env.tracker.get_maybe_external_ip().unwrap());
             assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
 
             test_env.stop().await;
@@ -826,7 +832,7 @@ mod for_all_config_modes {
             let peers = test_env.tracker.get_torrent_peers(&info_hash).await;
             let peer_addr = peers[0].peer_addr;
 
-            assert_eq!(peer_addr.ip(), test_env.tracker.config.get_ext_ip().unwrap());
+            assert_eq!(peer_addr.ip(), test_env.tracker.get_maybe_external_ip().unwrap());
             assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
 
             test_env.stop().await;
