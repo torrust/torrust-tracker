@@ -4,6 +4,7 @@ use reqwest::Response;
 
 use super::responses::announce::{Announce, Compact, DeserializedCompact};
 use super::responses::scrape;
+use crate::servers::http::responses::announce::DictionaryPeer;
 use crate::servers::http::responses::error::Error;
 
 pub fn assert_bencoded_error(response_text: &String, expected_failure_reason: &str, location: &'static Location<'static>) {
@@ -22,10 +23,11 @@ pub fn assert_bencoded_error(response_text: &String, expected_failure_reason: &s
     );
 }
 
+#[allow(dead_code)]
 pub async fn assert_empty_announce_response(response: Response) {
     assert_eq!(response.status(), 200);
     let announce_response: Announce = serde_bencode::from_str(&response.text().await.unwrap()).unwrap();
-    assert!(announce_response.peers.is_empty());
+    assert_eq!(announce_response.peers, Vec::<DictionaryPeer>::new());
 }
 
 pub async fn assert_announce_response(response: Response, expected_announce_response: &Announce) {

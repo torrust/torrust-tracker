@@ -97,8 +97,8 @@ mod for_all_config_modes {
         use crate::common::fixtures::invalid_info_hashes;
         use crate::servers::http::asserts::{
             assert_announce_response, assert_bad_announce_request_error_response, assert_cannot_parse_query_param_error_response,
-            assert_cannot_parse_query_params_error_response, assert_compact_announce_response, assert_empty_announce_response,
-            assert_is_announce_response, assert_missing_query_params_for_announce_request_error_response,
+            assert_cannot_parse_query_params_error_response, assert_compact_announce_response, assert_is_announce_response,
+            assert_missing_query_params_for_announce_request_error_response,
         };
         use crate::servers::http::client::Client;
         use crate::servers::http::requests::announce::{Compact, QueryBuilder};
@@ -497,26 +497,71 @@ mod for_all_config_modes {
             env.stop().await;
         }
 
+        /// code-review (da2ce7): is this really intended behavior?
         #[tokio::test]
         async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_peer_id_even_if_the_ip_is_different() {
             let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
-            let peer = PeerBuilder::default().build();
+            let announce_policy = env.tracker.get_announce_policy();
 
-            // Add a peer
-            env.add_torrent_peer(&info_hash, &peer).await;
+            let info_hash = InfoHash::from([0; 20]);
+            let id_a = peer::Id(*b"-qB00000000000000000");
+            let id_b = peer::Id(*b"-qB00000000000000001");
 
-            let announce_query = QueryBuilder::default()
-                .with_info_hash(&info_hash)
-                .with_peer_id(&peer.peer_id)
-                .query();
+            let addr_a = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
+            let addr_b = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2)), 8080);
+            let addr_c = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 3)), 8080);
 
-            assert_ne!(peer.peer_addr.ip(), announce_query.peer_addr);
+            let peer_a = PeerBuilder::default().with_peer_id(&id_a).with_peer_addr(&addr_a).build();
+            let peer_b = PeerBuilder::default().with_peer_id(&id_b).with_peer_addr(&addr_b).build();
 
-            let response = Client::new(*env.bind_address()).announce(&announce_query).await;
+            // Add both Peers into DB.
+            env.add_torrent_peer(&info_hash, &peer_a).await;
+            env.add_torrent_peer(&info_hash, &peer_b).await;
 
-            assert_empty_announce_response(response).await;
+            // The first query will overwrite the IP of the peer, no matter what ip we use.
+            {
+                let announce = QueryBuilder::default()
+                    .with_info_hash(&info_hash)
+                    .with_peer_id(&id_a)
+                    .with_peer_addr(&addr_c.ip()) // different ip, but this is erased.
+                    .query();
+
+                let response = Client::new(*env.bind_address()).announce(&announce).await;
+
+                let response_assert = Announce {
+                    complete: 2,
+                    incomplete: 0,
+                    interval: announce_policy.interval,
+                    min_interval: announce_policy.interval_min,
+                    peers: vec![peer_b.into()], // peer_b still has it's original ip.
+                };
+
+                println!("Query 1");
+                assert_announce_response(response, &response_assert).await;
+            }
+
+            // The Seconds Query will result with no listed peers, as both peer id's are now
+            // associated with the same client ip. i.e (0.0.0.0).
+            {
+                let announce = QueryBuilder::default()
+                    .with_info_hash(&info_hash)
+                    .with_peer_id(&id_b) // now we use peer b
+                    .query();
+
+                let response = Client::new(*env.bind_address()).announce(&announce).await;
+
+                let response_assert = Announce {
+                    complete: 2,
+                    incomplete: 0,
+                    interval: announce_policy.interval,
+                    min_interval: announce_policy.interval_min,
+                    peers: vec![], // peer_a now has host ip.
+                };
+
+                println!("Query 2");
+                assert_announce_response(response, &response_assert).await;
+            }
 
             env.stop().await;
         }
