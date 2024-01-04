@@ -239,7 +239,7 @@ use config::{Config, ConfigError, File, FileFormat};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use thiserror::Error;
-use torrust_tracker_located_error::{Located, LocatedError};
+use torrust_tracker_located_error::{DynError, Located, LocatedError};
 use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
 
 /// Information required for loading config
@@ -289,7 +289,7 @@ impl Info {
 
             fs::read_to_string(config_path)
                 .map_err(|e| Error::UnableToLoadFromConfigFile {
-                    source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+                    source: (Arc::new(e) as DynError).into(),
                 })?
                 .parse()
                 .map_err(|_e: std::convert::Infallible| Error::Infallible)?

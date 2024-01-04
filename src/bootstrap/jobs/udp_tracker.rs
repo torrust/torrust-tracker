@@ -8,30 +8,38 @@
 //! for the configuration options.
 use std::sync::Arc;
 
-use log::{error, info, warn};
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::UdpTracker;
 
 use crate::core;
-use crate::servers::udp::server::Udp;
+use crate::servers::udp::server::{Launcher, UdpServer};
 
 /// It starts a new UDP server with the provided configuration.
 ///
 /// It spawns a new asynchronous task for the new UDP server.
+///
+/// # Panics
+///
+/// It will panic if the API binding address is not a valid socket.
+/// It will panic if it is unable to start the UDP service.
+/// It will panic if the task did not finish successfully.
 #[must_use]
-pub fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>) -> JoinHandle<()> {
-    let bind_addr = config.bind_address.clone();
+pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>) -> JoinHandle<()> {
+    let bind_to = config
+        .bind_address
+        .parse::<std::net::SocketAddr>()
+        .expect("it should have a valid udp tracker bind address");
+
+    let server = UdpServer::new(Launcher::new(bind_to))
+        .start(tracker)
+        .await
+        .expect("it should be able to start the udp tracker");
 
     tokio::spawn(async move {
-        match Udp::new(&bind_addr).await {
-            Ok(udp_server) => {
-                info!("Starting UDP server on: udp://{}", bind_addr);
-                udp_server.start(tracker).await;
-            }
-            Err(e) => {
-                warn!("Could not start UDP tracker on: udp://{}", bind_addr);
-                error!("{}", e);
-            }
-        }
+        server
+            .state
+            .task
+            .await
+            .expect("it should be able to join to the udp tracker task");
     })
 }

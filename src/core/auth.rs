@@ -47,7 +47,7 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use torrust_tracker_located_error::LocatedError;
+use torrust_tracker_located_error::{DynError, LocatedError};
 
 use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
 use crate::shared::clock::{convert_from_timestamp_to_datetime_utc, Current, DurationSinceUnixEpoch, Time, TimeNow};
@@ -185,7 +185,7 @@ pub enum Error {
 impl From<r2d2_sqlite::rusqlite::Error> for Error {
     fn from(e: r2d2_sqlite::rusqlite::Error) -> Self {
         Error::KeyVerificationError {
-            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+            source: (Arc::new(e) as DynError).into(),
         }
     }
 }

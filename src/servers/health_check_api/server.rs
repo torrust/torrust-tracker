@@ -14,7 +14,7 @@ use serde_json::json;
 use tokio::sync::oneshot::Sender;
 use torrust_tracker_configuration::Configuration;
 
-use crate::bootstrap::jobs::health_check_api::ApiServerJobStarted;
+use crate::bootstrap::jobs::Started;
 use crate::servers::health_check_api::handlers::health_check_handler;
 
 /// Starts Health Check API server.
@@ -23,8 +23,8 @@ use crate::servers::health_check_api::handlers::health_check_handler;
 ///
 /// Will panic if binding to the socket address fails.
 pub fn start(
-    socket_addr: SocketAddr,
-    tx: Sender<ApiServerJobStarted>,
+    address: SocketAddr,
+    tx: Sender<Started>,
     config: Arc<Configuration>,
 ) -> impl Future<Output = Result<(), std::io::Error>> {
     let app = Router::new()
@@ -35,22 +35,20 @@ pub fn start(
     let handle = Handle::new();
     let cloned_handle = handle.clone();
 
-    let tcp_listener = std::net::TcpListener::bind(socket_addr).expect("Could not bind tcp_listener to address.");
-    let bound_addr = tcp_listener
-        .local_addr()
-        .expect("Could not get local_addr from tcp_listener.");
+    let socket = std::net::TcpListener::bind(address).expect("Could not bind tcp_listener to address.");
+    let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
 
     tokio::task::spawn(async move {
         tokio::signal::ctrl_c().await.expect("Failed to listen to shutdown signal.");
-        info!("Stopping Torrust Health Check API server o http://{} ...", bound_addr);
+        info!("Stopping Torrust Health Check API server o http://{} ...", address);
         cloned_handle.shutdown();
     });
 
-    let running = axum_server::from_tcp(tcp_listener)
+    let running = axum_server::from_tcp(socket)
         .handle(handle)
         .serve(app.into_make_service_with_connect_info::<SocketAddr>());
 
-    tx.send(ApiServerJobStarted { bound_addr })
+    tx.send(Started { address })
         .expect("the Health Check API server should not be dropped");
 
     running

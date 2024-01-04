@@ -1,30 +1,17 @@
 //! Module to handle the HTTP server instances.
-use std::future::Future;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use axum_server::tls_rustls::RustlsConfig;
+use axum_server::Handle;
+use derive_more::Constructor;
 use futures::future::BoxFuture;
+use tokio::sync::oneshot::{Receiver, Sender};
 
+use super::v1::routes::router;
+use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
-use crate::servers::signals::shutdown_signal;
-
-/// Trait to be implemented by a HTTP server launcher for the tracker.
-///
-/// A launcher is responsible for starting the server and returning the
-/// `SocketAddr` it is bound to.
-#[allow(clippy::module_name_repetitions)]
-pub trait HttpServerLauncher: Sync + Send {
-    fn new() -> Self;
-
-    fn start_with_graceful_shutdown<F>(
-        &self,
-        cfg: torrust_tracker_configuration::HttpTracker,
-        tracker: Arc<Tracker>,
-        shutdown_signal: F,
-    ) -> (SocketAddr, BoxFuture<'static, ()>)
-    where
-        F: Future<Output = ()> + Send + 'static;
-}
+use crate::servers::signals::{graceful_shutdown, Halted};
 
 /// Error that can occur when starting or stopping the HTTP server.
 ///
@@ -40,17 +27,61 @@ pub trait HttpServerLauncher: Sync + Send {
 /// completion.
 #[derive(Debug)]
 pub enum Error {
-    /// Any kind of error starting or stopping the server.
-    Error(String), // todo: refactor to use thiserror and add more variants for specific errors.
+    Error(String),
+}
+
+#[derive(Constructor, Debug)]
+pub struct Launcher {
+    pub bind_to: SocketAddr,
+    pub tls: Option<RustlsConfig>,
+}
+
+impl Launcher {
+    fn start(&self, tracker: Arc<Tracker>, tx_start: Sender<Started>, rx_halt: Receiver<Halted>) -> BoxFuture<'static, ()> {
+        let app = router(tracker);
+        let socket = std::net::TcpListener::bind(self.bind_to).expect("Could not bind tcp_listener to address.");
+        let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
+
+        let handle = Handle::new();
+
+        tokio::task::spawn(graceful_shutdown(
+            handle.clone(),
+            rx_halt,
+            format!("shutting down http server on socket address: {address}"),
+        ));
+
+        let tls = self.tls.clone();
+
+        let running = Box::pin(async {
+            match tls {
+                Some(tls) => axum_server::from_tcp_rustls(socket, tls)
+                    .handle(handle)
+                    .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
+                    .await
+                    .expect("Axum server crashed."),
+                None => axum_server::from_tcp(socket)
+                    .handle(handle)
+                    .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
+                    .await
+                    .expect("Axum server crashed."),
+            }
+        });
+
+        tx_start
+            .send(Started { address })
+            .expect("the HTTP(s) Tracker service should not be dropped");
+
+        running
+    }
 }
 
 /// A HTTP server instance controller with no HTTP instance running.
 #[allow(clippy::module_name_repetitions)]
-pub type StoppedHttpServer<I> = HttpServer<Stopped<I>>;
+pub type StoppedHttpServer = HttpServer<Stopped>;
 
 /// A HTTP server instance controller with a running HTTP instance.
 #[allow(clippy::module_name_repetitions)]
-pub type RunningHttpServer<I> = HttpServer<Running<I>>;
+pub type RunningHttpServer = HttpServer<Running>;
 
 /// A HTTP server instance controller.
 ///
@@ -69,31 +100,28 @@ pub type RunningHttpServer<I> = HttpServer<Running<I>>;
 /// intended to persist configurations between runs.
 #[allow(clippy::module_name_repetitions)]
 pub struct HttpServer<S> {
-    /// The configuration of the server that will be used every time the server
-    /// is started.
-    pub cfg: torrust_tracker_configuration::HttpTracker,
     /// The state of the server: `running` or `stopped`.
     pub state: S,
 }
 
 /// A stopped HTTP server state.
-pub struct Stopped<I: HttpServerLauncher> {
-    launcher: I,
+pub struct Stopped {
+    launcher: Launcher,
 }
 
 /// A running HTTP server state.
-pub struct Running<I: HttpServerLauncher> {
+pub struct Running {
     /// The address where the server is bound.
-    pub bind_addr: SocketAddr,
-    task_killer: tokio::sync::oneshot::Sender<u8>,
-    task: tokio::task::JoinHandle<I>,
+    pub binding: SocketAddr,
+    pub halt_task: tokio::sync::oneshot::Sender<Halted>,
+    pub task: tokio::task::JoinHandle<Launcher>,
 }
 
-impl<I: HttpServerLauncher + 'static> HttpServer<Stopped<I>> {
+impl HttpServer<Stopped> {
     /// It creates a new `HttpServer` controller in `stopped` state.
-    pub fn new(cfg: torrust_tracker_configuration::HttpTracker, launcher: I) -> Self {
+    #[must_use]
+    pub fn new(launcher: Launcher) -> Self {
         Self {
-            cfg,
             state: Stopped { launcher },
         }
     }
@@ -109,57 +137,80 @@ impl<I: HttpServerLauncher + 'static> HttpServer<Stopped<I>> {
     ///
     /// It would panic spawned HTTP server launcher cannot send the bound `SocketAddr`
     /// back to the main thread.
-    pub async fn start(self, tracker: Arc<Tracker>) -> Result<HttpServer<Running<I>>, Error> {
-        let (shutdown_sender, shutdown_receiver) = tokio::sync::oneshot::channel::<u8>();
-        let (addr_sender, addr_receiver) = tokio::sync::oneshot::channel::<SocketAddr>();
+    pub async fn start(self, tracker: Arc<Tracker>) -> Result<HttpServer<Running>, Error> {
+        let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
+        let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
 
-        let configuration = self.cfg.clone();
         let launcher = self.state.launcher;
 
         let task = tokio::spawn(async move {
-            let (bind_addr, server) =
-                launcher.start_with_graceful_shutdown(configuration, tracker, shutdown_signal(shutdown_receiver));
-
-            addr_sender.send(bind_addr).expect("Could not return SocketAddr.");
+            let server = launcher.start(tracker, tx_start, rx_halt);
 
             server.await;
 
             launcher
         });
 
-        let bind_address = addr_receiver
-            .await
-            .map_err(|_| Error::Error("Could not receive bind_address.".to_string()))?;
-
         Ok(HttpServer {
-            cfg: self.cfg,
             state: Running {
-                bind_addr: bind_address,
-                task_killer: shutdown_sender,
+                binding: rx_start.await.expect("unable to start service").address,
+                halt_task: tx_halt,
                 task,
             },
         })
     }
 }
 
-impl<I: HttpServerLauncher> HttpServer<Running<I>> {
+impl HttpServer<Running> {
     /// It stops the server and returns a `HttpServer` controller in `stopped`
     /// state.
     ///
     /// # Errors
     ///
     /// It would return an error if the channel for the task killer signal was closed.
-    pub async fn stop(self) -> Result<HttpServer<Stopped<I>>, Error> {
+    pub async fn stop(self) -> Result<HttpServer<Stopped>, Error> {
         self.state
-            .task_killer
-            .send(0)
+            .halt_task
+            .send(Halted::Normal)
             .map_err(|_| Error::Error("Task killer channel was closed.".to_string()))?;
 
         let launcher = self.state.task.await.map_err(|e| Error::Error(e.to_string()))?;
 
         Ok(HttpServer {
-            cfg: self.cfg,
             state: Stopped { launcher },
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
+
+    use crate::bootstrap::app::initialize_with_configuration;
+    use crate::bootstrap::jobs::make_rust_tls;
+    use crate::servers::http::server::{HttpServer, Launcher};
+
+    #[tokio::test]
+    async fn it_should_be_able_to_start_and_stop() {
+        let cfg = Arc::new(ephemeral_mode_public());
+        let tracker = initialize_with_configuration(&cfg);
+        let config = &cfg.http_trackers[0];
+
+        let bind_to = config
+            .bind_address
+            .parse::<std::net::SocketAddr>()
+            .expect("Tracker API bind_address invalid.");
+
+        let tls = make_rust_tls(config.ssl_enabled, &config.ssl_cert_path, &config.ssl_key_path)
+            .await
+            .map(|tls| tls.expect("tls config failed"));
+
+        let stopped = HttpServer::new(Launcher::new(bind_to, tls));
+        let started = stopped.start(tracker).await.expect("it should start the server");
+        let stopped = started.stop().await.expect("it should stop the server");
+
+        assert_eq!(stopped.state.launcher.bind_to, bind_to);
     }
 }
