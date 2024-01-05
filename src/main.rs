@@ -5,7 +5,7 @@ use torrust_tracker::{app, bootstrap};
 async fn main() {
     let (config, tracker) = bootstrap::app::setup();
 
-    let jobs = app::start(config.into(), tracker.clone()).await;
+    let jobs = app::start(&config, tracker).await;
 
     // handle the signals
     tokio::select! {

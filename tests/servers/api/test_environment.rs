@@ -5,6 +5,7 @@ use torrust_tracker::bootstrap::jobs::make_rust_tls;
 use torrust_tracker::core::peer::Peer;
 use torrust_tracker::core::Tracker;
 use torrust_tracker::servers::apis::server::{ApiServer, Launcher, RunningApiServer, StoppedApiServer};
+use torrust_tracker::servers::registar::Registar;
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker_configuration::HttpApi;
 
@@ -69,7 +70,12 @@ impl TestEnvironment<Stopped> {
             config: self.config,
             tracker: self.tracker.clone(),
             state: Running {
-                api_server: self.state.api_server.start(self.tracker, access_tokens).await.unwrap(),
+                api_server: self
+                    .state
+                    .api_server
+                    .start(self.tracker, Registar::default().give_form(), access_tokens)
+                    .await
+                    .unwrap(),
             },
         }
     }

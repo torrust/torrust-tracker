@@ -5,6 +5,7 @@ use torrust_tracker::bootstrap::jobs::make_rust_tls;
 use torrust_tracker::core::peer::Peer;
 use torrust_tracker::core::Tracker;
 use torrust_tracker::servers::http::server::{HttpServer, Launcher, RunningHttpServer, StoppedHttpServer};
+use torrust_tracker::servers::registar::Registar;
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 
 use crate::common::app::setup_with_configuration;
@@ -68,7 +69,12 @@ impl TestEnvironment<Stopped> {
             cfg: self.cfg,
             tracker: self.tracker.clone(),
             state: Running {
-                http_server: self.state.http_server.start(self.tracker).await.unwrap(),
+                http_server: self
+                    .state
+                    .http_server
+                    .start(self.tracker, Registar::default().give_form())
+                    .await
+                    .unwrap(),
             },
         }
     }

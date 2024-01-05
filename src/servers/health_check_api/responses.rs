@@ -1,11 +1,11 @@
 use axum::Json;
 
-use super::resources::Report;
+use super::resources::{CheckReport, Report};
 
-pub fn ok() -> Json<Report> {
-    Json(Report::ok())
+pub fn ok(details: Vec<CheckReport>) -> Json<Report> {
+    Json(Report::ok(details))
 }
 
-pub fn error(message: String) -> Json<Report> {
-    Json(Report::error(message))
+pub fn error(message: String, details: Vec<CheckReport>) -> Json<Report> {
+    Json(Report::error(message, details))
 }

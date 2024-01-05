@@ -1,7 +1,8 @@
 use std::io::Cursor;
+use std::net::SocketAddr;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{Request, Response};
+use aquatic_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
 use tokio::net::UdpSocket;
 
 use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
@@ -104,4 +105,27 @@ impl UdpTrackerClient {
 pub async fn new_udp_tracker_client_connected(remote_address: &str) -> UdpTrackerClient {
     let udp_client = new_udp_client_connected(remote_address).await;
     UdpTrackerClient { udp_client }
+}
+
+/// Helper Function to Check if a UDP Service is Connectable
+///
+/// # Errors
+///
+/// It will return an error if unable to connect to the UDP service.
+pub async fn check(binding: &SocketAddr) -> Result<String, String> {
+    let client = new_udp_tracker_client_connected(binding.to_string().as_str()).await;
+
+    let connect_request = ConnectRequest {
+        transaction_id: TransactionId(123),
+    };
+
+    client.send(connect_request.into()).await;
+
+    let response = client.receive().await;
+
+    if matches!(response, Response::Connect(_connect_response)) {
+        Ok("Connected".to_string())
+    } else {
+        Err("Did not Connect".to_string())
+    }
 }

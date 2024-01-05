@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use torrust_tracker::core::peer::Peer;
 use torrust_tracker::core::Tracker;
+use torrust_tracker::servers::registar::Registar;
 use torrust_tracker::servers::udp::server::{Launcher, RunningUdpServer, StoppedUdpServer, UdpServer};
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 
@@ -61,11 +62,13 @@ impl TestEnvironment<Stopped> {
 
     #[allow(dead_code)]
     pub async fn start(self) -> TestEnvironment<Running> {
+        let register = &Registar::default();
+
         TestEnvironment {
             cfg: self.cfg,
             tracker: self.tracker.clone(),
             state: Running {
-                udp_server: self.state.udp_server.start(self.tracker).await.unwrap(),
+                udp_server: self.state.udp_server.start(self.tracker, register.give_form()).await.unwrap(),
             },
         }
     }

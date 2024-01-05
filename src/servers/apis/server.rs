@@ -37,6 +37,7 @@ use torrust_tracker_configuration::AccessTokens;
 use super::routes::router;
 use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
+use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{graceful_shutdown, Halted};
 
 /// Errors that can occur when starting or stopping the API server.
@@ -75,6 +76,21 @@ pub struct Running {
     pub task: tokio::task::JoinHandle<Launcher>,
 }
 
+impl Running {
+    #[must_use]
+    pub fn new(
+        binding: SocketAddr,
+        halt_task: tokio::sync::oneshot::Sender<Halted>,
+        task: tokio::task::JoinHandle<Launcher>,
+    ) -> Self {
+        Self {
+            binding,
+            halt_task,
+            task,
+        }
+    }
+}
+
 impl ApiServer<Stopped> {
     #[must_use]
     pub fn new(launcher: Launcher) -> Self {
@@ -92,7 +108,12 @@ impl ApiServer<Stopped> {
     /// # Panics
     ///
     /// It would panic if the bound socket address cannot be sent back to this starter.
-    pub async fn start(self, tracker: Arc<Tracker>, access_tokens: Arc<AccessTokens>) -> Result<ApiServer<Running>, Error> {
+    pub async fn start(
+        self,
+        tracker: Arc<Tracker>,
+        form: ServiceRegistrationForm,
+        access_tokens: Arc<AccessTokens>,
+    ) -> Result<ApiServer<Running>, Error> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
 
@@ -104,13 +125,14 @@ impl ApiServer<Stopped> {
         });
 
         let api_server = match rx_start.await {
-            Ok(started) => ApiServer {
-                state: Running {
-                    binding: started.address,
-                    halt_task: tx_halt,
-                    task,
-                },
-            },
+            Ok(started) => {
+                form.send(ServiceRegistration::new(started.address, check_fn))
+                    .expect("it should be able to send service registration");
+
+                ApiServer {
+                    state: Running::new(started.address, tx_halt, task),
+                }
+            }
             Err(err) => {
                 let msg = format!("Unable to start API server: {err}");
                 error!("{}", msg);
@@ -140,6 +162,27 @@ impl ApiServer<Running> {
             state: Stopped { launcher },
         })
     }
+}
+
+/// Checks the Health by connecting to the API service endpoint.
+///
+/// # Errors
+///
+/// This function will return an error if unable to connect.
+/// Or if there request returns an error code.
+#[must_use]
+pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
+    let url = format!("http://{binding}/api/health_check");
+
+    let info = format!("checking api health check at: {url}");
+
+    let job = tokio::spawn(async move {
+        match reqwest::get(url).await {
+            Ok(response) => Ok(response.status().to_string()),
+            Err(err) => Err(err.to_string()),
+        }
+    });
+    ServiceHealthCheckJob::new(*binding, info, job)
 }
 
 /// A struct responsible for starting the API server.
@@ -218,6 +261,7 @@ mod tests {
     use crate::bootstrap::app::initialize_with_configuration;
     use crate::bootstrap::jobs::make_rust_tls;
     use crate::servers::apis::server::{ApiServer, Launcher};
+    use crate::servers::registar::Registar;
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
@@ -237,8 +281,11 @@ mod tests {
         let access_tokens = Arc::new(config.access_tokens.clone());
 
         let stopped = ApiServer::new(Launcher::new(bind_to, tls));
+
+        let register = &Registar::default();
+
         let started = stopped
-            .start(tracker, access_tokens)
+            .start(tracker, register.give_form(), access_tokens)
             .await
             .expect("it should start the server");
         let stopped = started.stop().await.expect("it should stop the server");

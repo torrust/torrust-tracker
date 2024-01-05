@@ -32,8 +32,10 @@ use tokio::task::JoinHandle;
 
 use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
+use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{shutdown_signal_with_message, Halted};
 use crate::servers::udp::handlers::handle_packet;
+use crate::shared::bit_torrent::tracker::udp::client::check;
 use crate::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
 
 /// Error that can occur when starting or stopping the UDP server.
@@ -117,7 +119,7 @@ impl UdpServer<Stopped> {
     ///
     /// It panics if unable to receive the bound socket address from service.
     ///
-    pub async fn start(self, tracker: Arc<Tracker>) -> Result<UdpServer<Running>, Error> {
+    pub async fn start(self, tracker: Arc<Tracker>, form: ServiceRegistrationForm) -> Result<UdpServer<Running>, Error> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
 
@@ -135,7 +137,10 @@ impl UdpServer<Stopped> {
             launcher
         });
 
-        let binding = rx_start.await.expect("unable to start service").address;
+        let binding = rx_start.await.expect("it should be able to start the service").address;
+
+        form.send(ServiceRegistration::new(binding, Udp::check))
+            .expect("it should be able to send service registration");
 
         let running_udp_server: UdpServer<Running> = UdpServer {
             state: Running {
@@ -305,6 +310,15 @@ impl Udp {
         // doesn't matter if it reaches or not
         drop(socket.send_to(payload, remote_addr).await);
     }
+
+    fn check(binding: &SocketAddr) -> ServiceHealthCheckJob {
+        let binding = *binding;
+        let info = format!("checking the udp tracker health check at: {binding}");
+
+        let job = tokio::spawn(async move { check(&binding).await });
+
+        ServiceHealthCheckJob::new(binding, info, job)
+    }
 }
 
 #[cfg(test)]
@@ -314,6 +328,7 @@ mod tests {
     use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
 
     use crate::bootstrap::app::initialize_with_configuration;
+    use crate::servers::registar::Registar;
     use crate::servers::udp::server::{Launcher, UdpServer};
 
     #[tokio::test]
@@ -327,8 +342,13 @@ mod tests {
             .parse::<std::net::SocketAddr>()
             .expect("Tracker API bind_address invalid.");
 
+        let register = &Registar::default();
+
         let stopped = UdpServer::new(Launcher::new(bind_to));
-        let started = stopped.start(tracker).await.expect("it should start the server");
+        let started = stopped
+            .start(tracker, register.give_form())
+            .await
+            .expect("it should start the server");
         let stopped = started.stop().await.expect("it should stop the server");
 
         assert_eq!(stopped.state.launcher.bind_to, bind_to);

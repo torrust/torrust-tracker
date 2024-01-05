@@ -3,7 +3,6 @@
 //! This API is intended to be used by the container infrastructure to check if
 //! the whole application is healthy.
 use std::net::SocketAddr;
-use std::sync::Arc;
 
 use axum::routing::get;
 use axum::{Json, Router};
@@ -12,10 +11,10 @@ use futures::Future;
 use log::info;
 use serde_json::json;
 use tokio::sync::oneshot::Sender;
-use torrust_tracker_configuration::Configuration;
 
 use crate::bootstrap::jobs::Started;
 use crate::servers::health_check_api::handlers::health_check_handler;
+use crate::servers::registar::ServiceRegistry;
 
 /// Starts Health Check API server.
 ///
@@ -25,12 +24,12 @@ use crate::servers::health_check_api::handlers::health_check_handler;
 pub fn start(
     address: SocketAddr,
     tx: Sender<Started>,
-    config: Arc<Configuration>,
+    register: ServiceRegistry,
 ) -> impl Future<Output = Result<(), std::io::Error>> {
     let app = Router::new()
         .route("/", get(|| async { Json(json!({})) }))
         .route("/health_check", get(health_check_handler))
-        .with_state(config);
+        .with_state(register);
 
     let handle = Handle::new();
     let cloned_handle = handle.clone();

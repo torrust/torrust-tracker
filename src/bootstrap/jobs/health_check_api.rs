@@ -13,15 +13,15 @@
 //!
 //! Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
 //! for the API configuration options.
-use std::sync::Arc;
 
 use log::info;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
-use torrust_tracker_configuration::Configuration;
+use torrust_tracker_configuration::HealthCheckApi;
 
 use super::Started;
 use crate::servers::health_check_api::server;
+use crate::servers::registar::ServiceRegistry;
 
 /// This function starts a new Health Check API server with the provided
 /// configuration.
@@ -33,9 +33,8 @@ use crate::servers::health_check_api::server;
 /// # Panics
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
-pub async fn start_job(config: Arc<Configuration>) -> JoinHandle<()> {
+pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> JoinHandle<()> {
     let bind_addr = config
-        .health_check_api
         .bind_address
         .parse::<std::net::SocketAddr>()
         .expect("it should have a valid health check bind address");
@@ -46,7 +45,7 @@ pub async fn start_job(config: Arc<Configuration>) -> JoinHandle<()> {
     let join_handle = tokio::spawn(async move {
         info!(target: "Health Check API", "Starting on: http://{}", bind_addr);
 
-        let handle = server::start(bind_addr, tx_start, config.clone());
+        let handle = server::start(bind_addr, tx_start, register);
 
         if let Ok(()) = handle.await {
             info!(target: "Health Check API", "Stopped server running on: http://{}", bind_addr);

@@ -32,6 +32,7 @@ use super::make_rust_tls;
 use crate::core;
 use crate::servers::apis::server::{ApiServer, Launcher};
 use crate::servers::apis::Version;
+use crate::servers::registar::ServiceRegistrationForm;
 
 /// This is the message that the "launcher" spawned task sends to the main
 /// application process to notify the API server was successfully started.
@@ -53,7 +54,12 @@ pub struct ApiServerJobStarted();
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
 ///
 ///
-pub async fn start_job(config: &HttpApi, tracker: Arc<core::Tracker>, version: Version) -> Option<JoinHandle<()>> {
+pub async fn start_job(
+    config: &HttpApi,
+    tracker: Arc<core::Tracker>,
+    form: ServiceRegistrationForm,
+    version: Version,
+) -> Option<JoinHandle<()>> {
     if config.enabled {
         let bind_to = config
             .bind_address
@@ -67,7 +73,7 @@ pub async fn start_job(config: &HttpApi, tracker: Arc<core::Tracker>, version: V
         let access_tokens = Arc::new(config.access_tokens.clone());
 
         match version {
-            Version::V1 => Some(start_v1(bind_to, tls, tracker.clone(), access_tokens).await),
+            Version::V1 => Some(start_v1(bind_to, tls, tracker.clone(), form, access_tokens).await),
         }
     } else {
         info!("Note: Not loading Http Tracker Service, Not Enabled in Configuration.");
@@ -79,10 +85,11 @@ async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,
     tracker: Arc<core::Tracker>,
+    form: ServiceRegistrationForm,
     access_tokens: Arc<AccessTokens>,
 ) -> JoinHandle<()> {
     let server = ApiServer::new(Launcher::new(socket, tls))
-        .start(tracker, access_tokens)
+        .start(tracker, form, access_tokens)
         .await
         .expect("it should be able to start to the tracker api");
 
@@ -101,6 +108,7 @@ mod tests {
     use crate::bootstrap::app::initialize_with_configuration;
     use crate::bootstrap::jobs::tracker_apis::start_job;
     use crate::servers::apis::Version;
+    use crate::servers::registar::Registar;
 
     #[tokio::test]
     async fn it_should_start_http_tracker() {
@@ -109,7 +117,7 @@ mod tests {
         let tracker = initialize_with_configuration(&cfg);
         let version = Version::V1;
 
-        start_job(config, tracker, version)
+        start_job(config, tracker, Registar::default().give_form(), version)
             .await
             .expect("it should be able to join to the tracker api start-job");
     }
