@@ -22,6 +22,7 @@ use torrust_tracker_configuration::HealthCheckApi;
 use super::Started;
 use crate::servers::health_check_api::server;
 use crate::servers::registar::ServiceRegistry;
+use crate::servers::signals::Halted;
 
 /// This function starts a new Health Check API server with the provided
 /// configuration.
@@ -40,12 +41,14 @@ pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> Jo
         .expect("it should have a valid health check bind address");
 
     let (tx_start, rx_start) = oneshot::channel::<Started>();
+    let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
+    drop(tx_halt);
 
     // Run the API server
     let join_handle = tokio::spawn(async move {
         info!(target: "Health Check API", "Starting on: http://{}", bind_addr);
 
-        let handle = server::start(bind_addr, tx_start, register);
+        let handle = server::start(bind_addr, tx_start, rx_halt, register);
 
         if let Ok(()) = handle.await {
             info!(target: "Health Check API", "Stopped server running on: http://{}", bind_addr);

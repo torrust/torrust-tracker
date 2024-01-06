@@ -21,6 +21,11 @@ pub(crate) async fn health_check_handler(State(register): State<ServiceRegistry>
         checks = mutex.await.values().map(ServiceRegistration::spawn_check).collect();
     }
 
+    // if we do not have any checks, lets return a `none` result.
+    if checks.is_empty() {
+        return responses::none();
+    }
+
     let jobs = checks.drain(..).map(|c| {
         tokio::spawn(async move {
             CheckReport {

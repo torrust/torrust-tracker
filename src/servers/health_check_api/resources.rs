@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub enum Status {
     Ok,
     Error,
+    None,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -34,6 +35,15 @@ pub struct Report {
 }
 
 impl Report {
+    #[must_use]
+    pub fn none() -> Report {
+        Self {
+            status: Status::None,
+            message: String::new(),
+            details: Vec::default(),
+        }
+    }
+
     #[must_use]
     pub fn ok(details: Vec<CheckReport>) -> Report {
         Self {

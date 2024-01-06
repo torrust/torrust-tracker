@@ -1,3 +1,7 @@
+use torrust_tracker::servers::udp::server;
+
 pub mod asserts;
 pub mod contract;
-pub mod test_environment;
+pub mod environment;
+
+pub type Started = environment::Environment<server::Running>;

@@ -1,11 +1,14 @@
 pub mod asserts;
 pub mod client;
+pub mod environment;
 pub mod requests;
 pub mod responses;
-pub mod test_environment;
 pub mod v1;
 
+pub type Started = environment::Environment<server::Running>;
+
 use percent_encoding::NON_ALPHANUMERIC;
+use torrust_tracker::servers::http::server;
 
 pub type ByteArray20 = [u8; 20];
 
