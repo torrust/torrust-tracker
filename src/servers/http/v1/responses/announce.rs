@@ -25,8 +25,8 @@ pub type NormalPeerList = PeerList<NormalPeer>;
 pub type CompactPeerList = PeerList<CompactPeer>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct PeerList<PeerType> {
-    pub peers: Vec<PeerType>,
+pub struct PeerList<Peer> {
+    pub peers: Vec<Peer>,
 }
 
 /// Normal (non compact) `announce` response.
