@@ -20,7 +20,7 @@ use crate::servers::http::v1::responses;
 ///
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{Normal, NormalPeer, Policy, SwarmStats};
+/// use torrust_tracker::servers::http::v1::responses::announce::{Normal, NormalPeer, Policy, SwarmStats, NormalPeerList};
 ///
 /// let response = Normal {
 ///     policy: Policy {
@@ -31,20 +31,22 @@ use crate::servers::http::v1::responses;
 ///         complete: 333,
 ///         incomplete: 444,
 ///     },
-///     peers: vec![
-///         // IPV4
-///         NormalPeer {
-///             peer_id: *b"-qB00000000000000001",
-///             ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
-///             port: 0x7070,                                          // 28784
-///         },
-///         // IPV6
-///         NormalPeer {
-///             peer_id: *b"-qB00000000000000002",
-///             ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-///             port: 0x7070, // 28784
-///         },
-///     ],
+///     peer_list: NormalPeerList {
+///         peers: vec![
+///             // IPV4
+///             NormalPeer {
+///                 peer_id: *b"-qB00000000000000001",
+///                 ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
+///                 port: 0x7070,                                          // 28784
+///             },
+///             // IPV6
+///             NormalPeer {
+///                 peer_id: *b"-qB00000000000000002",
+///                 ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+///                 port: 0x7070, // 28784
+///             },
+///         ],
+///     },
 /// };
 ///
 /// let bytes = response.body();
@@ -64,7 +66,15 @@ use crate::servers::http::v1::responses;
 pub struct Normal {
     pub policy: Policy,
     pub stats: SwarmStats,
-    pub peers: Vec<NormalPeer>,
+    pub peer_list: NormalPeerList,
+}
+
+pub type NormalPeerList = PeerList<NormalPeer>;
+pub type CompactPeerList = PeerList<CompactPeer>;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct PeerList<PeerType> {
+    pub peers: Vec<PeerType>,
 }
 
 /// Peer information in the [`Normal`]
@@ -121,7 +131,7 @@ impl Normal {
     pub fn body(&self) -> Vec<u8> {
         let mut peers_list = ben_list!();
         let peers_list_mut = peers_list.list_mut().unwrap();
-        for peer in &self.peers {
+        for peer in &self.peer_list.peers {
             peers_list_mut.push(peer.ben_map());
         }
 
@@ -159,7 +169,7 @@ impl From<AnnounceData> for Normal {
                 complete: domain_announce_response.swarm_stats.seeders,
                 incomplete: domain_announce_response.swarm_stats.leechers,
             },
-            peers,
+            peer_list: PeerList { peers },
         }
     }
 }
@@ -172,7 +182,7 @@ impl From<AnnounceData> for Normal {
 ///
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{Compact, CompactPeer, Policy, SwarmStats};
+/// use torrust_tracker::servers::http::v1::responses::announce::{Compact, CompactPeer, Policy, SwarmStats, CompactPeerList};
 ///
 /// let response = Compact {
 ///     policy: Policy {
@@ -183,18 +193,20 @@ impl From<AnnounceData> for Normal {
 ///         complete: 333,
 ///         incomplete: 444,
 ///     },
-///     peers: vec![
-///         // IPV4
-///         CompactPeer {
-///             ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
-///             port: 0x7070,                                          // 28784
-///         },
-///         // IPV6
-///         CompactPeer {
-///             ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-///             port: 0x7070, // 28784
-///         },
-///     ],
+///     peer_list: CompactPeerList {
+///         peers: vec![
+///             // IPV4
+///             CompactPeer {
+///                 ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
+///                 port: 0x7070,                                          // 28784
+///             },
+///             // IPV6
+///             CompactPeer {
+///                 ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+///                 port: 0x7070, // 28784
+///             },
+///        ],
+///     },
 /// };
 ///
 /// let bytes = response.body().unwrap();
@@ -218,7 +230,7 @@ impl From<AnnounceData> for Normal {
 pub struct Compact {
     pub policy: Policy,
     pub stats: SwarmStats,
-    pub peers: Vec<CompactPeer>,
+    pub peer_list: CompactPeerList,
 }
 
 /// Compact peer. It's used in the [`Compact`]
@@ -303,7 +315,7 @@ impl Compact {
 
     fn peers_v4_bytes(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let mut bytes: Vec<u8> = Vec::new();
-        for compact_peer in &self.peers {
+        for compact_peer in &self.peer_list.peers {
             match compact_peer.ip {
                 IpAddr::V4(_ip) => {
                     let peer_bytes = compact_peer.bytes()?;
@@ -317,7 +329,7 @@ impl Compact {
 
     fn peers_v6_bytes(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let mut bytes: Vec<u8> = Vec::new();
-        for compact_peer in &self.peers {
+        for compact_peer in &self.peer_list.peers {
             match compact_peer.ip {
                 IpAddr::V6(_ip) => {
                     let peer_bytes = compact_peer.bytes()?;
@@ -378,7 +390,7 @@ impl From<AnnounceData> for Compact {
                 complete: domain_announce_response.swarm_stats.seeders,
                 incomplete: domain_announce_response.swarm_stats.leechers,
             },
-            peers,
+            peer_list: CompactPeerList { peers },
         }
     }
 }
@@ -429,7 +441,9 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
     use super::{Normal, NormalPeer};
-    use crate::servers::http::v1::responses::announce::{Compact, CompactPeer, Policy, SwarmStats};
+    use crate::servers::http::v1::responses::announce::{
+        Compact, CompactPeer, CompactPeerList, NormalPeerList, Policy, SwarmStats,
+    };
 
     // Some ascii values used in tests:
     //
@@ -454,20 +468,22 @@ mod tests {
                 complete: 333,
                 incomplete: 444,
             },
-            peers: vec![
-                // IPV4
-                NormalPeer {
-                    peer_id: *b"-qB00000000000000001",
-                    ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
-                    port: 0x7070,                                          // 28784
-                },
-                // IPV6
-                NormalPeer {
-                    peer_id: *b"-qB00000000000000002",
-                    ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                    port: 0x7070, // 28784
-                },
-            ],
+            peer_list: NormalPeerList {
+                peers: vec![
+                    // IPV4
+                    NormalPeer {
+                        peer_id: *b"-qB00000000000000001",
+                        ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
+                        port: 0x7070,                                          // 28784
+                    },
+                    // IPV6
+                    NormalPeer {
+                        peer_id: *b"-qB00000000000000002",
+                        ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                        port: 0x7070, // 28784
+                    },
+                ],
+            },
         };
 
         let bytes = response.body();
@@ -492,18 +508,20 @@ mod tests {
                 complete: 333,
                 incomplete: 444,
             },
-            peers: vec![
-                // IPV4
-                CompactPeer {
-                    ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
-                    port: 0x7070,                                          // 28784
-                },
-                // IPV6
-                CompactPeer {
-                    ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                    port: 0x7070, // 28784
-                },
-            ],
+            peer_list: CompactPeerList {
+                peers: vec![
+                    // IPV4
+                    CompactPeer {
+                        ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
+                        port: 0x7070,                                          // 28784
+                    },
+                    // IPV6
+                    CompactPeer {
+                        ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                        port: 0x7070, // 28784
+                    },
+                ],
+            },
         };
 
         let bytes = response.body().unwrap();
