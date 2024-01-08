@@ -77,9 +77,9 @@ impl Repository for Sync {
 
         (
             SwarmStats {
-                completed: stats.1,
-                seeders: stats.0,
-                leechers: stats.2,
+                downloaded: stats.1,
+                complete: stats.0,
+                incomplete: stats.2,
             },
             stats_updated,
         )
@@ -131,9 +131,9 @@ impl Repository for SyncSingle {
 
         (
             SwarmStats {
-                completed: stats.1,
-                seeders: stats.0,
-                leechers: stats.2,
+                downloaded: stats.1,
+                complete: stats.0,
+                incomplete: stats.2,
             },
             stats_updated,
         )
@@ -176,9 +176,9 @@ impl TRepositoryAsync for RepositoryAsync {
 
         (
             SwarmStats {
-                completed: stats.1,
-                seeders: stats.0,
-                leechers: stats.2,
+                downloaded: stats.1,
+                complete: stats.0,
+                incomplete: stats.2,
             },
             stats_updated,
         )
@@ -234,9 +234,9 @@ impl TRepositoryAsync for AsyncSync {
 
         (
             SwarmStats {
-                completed: stats.1,
-                seeders: stats.0,
-                leechers: stats.2,
+                downloaded: stats.1,
+                complete: stats.0,
+                incomplete: stats.2,
             },
             stats_updated,
         )
@@ -281,9 +281,9 @@ impl TRepositoryAsync for RepositoryAsyncSingle {
 
         (
             SwarmStats {
-                completed: stats.1,
-                seeders: stats.0,
-                leechers: stats.2,
+                downloaded: stats.1,
+                complete: stats.0,
+                incomplete: stats.2,
             },
             stats_updated,
         )

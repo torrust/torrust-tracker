@@ -388,7 +388,7 @@ pub struct HealthCheckApi {
 }
 
 /// Announce policy
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct AnnouncePolicy {
     /// Interval in seconds that the client should wait between sending regular
     /// announce requests to the tracker.

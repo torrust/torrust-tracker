@@ -114,9 +114,9 @@ mod tests {
             let expected_announce_data = AnnounceData {
                 peers: vec![],
                 swarm_stats: SwarmStats {
-                    completed: 0,
-                    seeders: 1,
-                    leechers: 0,
+                    downloaded: 0,
+                    complete: 1,
+                    incomplete: 0,
                 },
                 interval: tracker.config.announce_interval,
                 interval_min: tracker.config.min_announce_interval,

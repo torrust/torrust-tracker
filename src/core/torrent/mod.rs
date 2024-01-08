@@ -73,18 +73,8 @@ impl SwarmMetadata {
     }
 }
 
-/// Swarm statistics for one torrent.
-///
-/// See [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
-#[derive(Debug, PartialEq, Default)]
-pub struct SwarmStats {
-    /// The number of peers that have ever completed downloading
-    pub completed: u32,
-    /// The number of active peers that have completed downloading (seeders)
-    pub seeders: u32,
-    /// The number of active peers that have not completed downloading (leechers)
-    pub leechers: u32,
-}
+/// [`SwarmStats`] has the same form as [`SwarmMetadata`]
+pub type SwarmStats = SwarmMetadata;
 
 impl Entry {
     #[must_use]

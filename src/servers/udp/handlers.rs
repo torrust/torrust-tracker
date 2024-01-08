@@ -152,8 +152,8 @@ pub async fn handle_announce(
         let announce_response = AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
             announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
-            leechers: NumberOfPeers(i64::from(response.swarm_stats.leechers) as i32),
-            seeders: NumberOfPeers(i64::from(response.swarm_stats.seeders) as i32),
+            leechers: NumberOfPeers(i64::from(response.swarm_stats.incomplete) as i32),
+            seeders: NumberOfPeers(i64::from(response.swarm_stats.complete) as i32),
             peers: response
                 .peers
                 .iter()
@@ -177,8 +177,8 @@ pub async fn handle_announce(
         let announce_response = AnnounceResponse {
             transaction_id: wrapped_announce_request.announce_request.transaction_id,
             announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
-            leechers: NumberOfPeers(i64::from(response.swarm_stats.leechers) as i32),
-            seeders: NumberOfPeers(i64::from(response.swarm_stats.seeders) as i32),
+            leechers: NumberOfPeers(i64::from(response.swarm_stats.incomplete) as i32),
+            seeders: NumberOfPeers(i64::from(response.swarm_stats.complete) as i32),
             peers: response
                 .peers
                 .iter()

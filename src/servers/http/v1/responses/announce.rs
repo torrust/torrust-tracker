@@ -7,11 +7,11 @@ use std::panic::Location;
 
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use serde::{self, Deserialize, Serialize};
 use thiserror::Error;
 use torrust_tracker_configuration::AnnouncePolicy;
 use torrust_tracker_contrib_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
 
+use crate::core::torrent::SwarmStats;
 use crate::core::{self, AnnounceData};
 use crate::servers::http::v1::responses;
 
@@ -22,6 +22,7 @@ use crate::servers::http::v1::responses;
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 /// use torrust_tracker_configuration::AnnouncePolicy;
+/// use torrust_tracker::core::torrent::SwarmStats;
 /// use torrust_tracker::servers::http::v1::responses::announce::{Normal, NormalPeer};
 ///
 /// let response = Normal {
@@ -29,8 +30,11 @@ use crate::servers::http::v1::responses;
 ///         interval: 111,
 ///         interval_min: 222,
 ///     },
-///     complete: 333,
-///     incomplete: 444,
+///     stats: SwarmStats {
+///         downloaded: 0,
+///         complete: 333,
+///         incomplete: 444,
+///     },
 ///     peers: vec![
 ///         // IPV4
 ///         NormalPeer {
@@ -60,15 +64,10 @@ use crate::servers::http::v1::responses;
 ///
 /// Refer to [BEP 03: The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
 /// for more information.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Normal {
-    /// Announce policy
     pub policy: AnnouncePolicy,
-    /// Number of peers with the entire file, i.e. seeders.
-    pub complete: u32,
-    /// Number of non-seeder peers, aka "leechers".
-    pub incomplete: u32,
-    /// A list of peers. The value is a list of dictionaries.
+    pub stats: SwarmStats,
     pub peers: Vec<NormalPeer>,
 }
 
@@ -85,7 +84,7 @@ pub struct Normal {
 ///     port: 0x7070,                                          // 28784
 /// };
 /// ```
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct NormalPeer {
     /// The peer's ID.
     pub peer_id: [u8; 20],
@@ -131,8 +130,8 @@ impl Normal {
         }
 
         (ben_map! {
-            "complete" => ben_int!(i64::from(self.complete)),
-            "incomplete" => ben_int!(i64::from(self.incomplete)),
+            "complete" => ben_int!(i64::from(self.stats.complete)),
+            "incomplete" => ben_int!(i64::from(self.stats.incomplete)),
             "interval" => ben_int!(i64::from(self.policy.interval)),
             "min interval" => ben_int!(i64::from(self.policy.interval_min)),
             "peers" => peers_list.clone()
@@ -160,8 +159,11 @@ impl From<AnnounceData> for Normal {
                 interval: domain_announce_response.interval,
                 interval_min: domain_announce_response.interval_min,
             },
-            complete: domain_announce_response.swarm_stats.seeders,
-            incomplete: domain_announce_response.swarm_stats.leechers,
+            stats: SwarmStats {
+                complete: domain_announce_response.swarm_stats.complete,
+                incomplete: domain_announce_response.swarm_stats.incomplete,
+                downloaded: 0,
+            },
             peers,
         }
     }
@@ -176,6 +178,7 @@ impl From<AnnounceData> for Normal {
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 /// use torrust_tracker_configuration::AnnouncePolicy;
+/// use torrust_tracker::core::torrent::SwarmStats;
 /// use torrust_tracker::servers::http::v1::responses::announce::{Compact, CompactPeer};
 ///
 /// let response = Compact {
@@ -183,8 +186,11 @@ impl From<AnnounceData> for Normal {
 ///         interval: 111,
 ///         interval_min: 222,
 ///     },
-///     complete: 333,
-///     incomplete: 444,
+///     stats: SwarmStats {
+///         downloaded: 0,
+///         complete: 333,
+///         incomplete: 444,
+///     },
 ///     peers: vec![
 ///         // IPV4
 ///         CompactPeer {
@@ -216,15 +222,10 @@ impl From<AnnounceData> for Normal {
 ///
 /// - [BEP 23: Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
 /// - [BEP 07: IPv6 Tracker Extension](https://www.bittorrent.org/beps/bep_0007.html)
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Compact {
-    /// Announce policy
     pub policy: AnnouncePolicy,
-    /// Number of seeders, aka "completed".
-    pub complete: u32,
-    /// Number of non-seeder peers, aka "incomplete".
-    pub incomplete: u32,
-    /// Compact peer list.
+    pub stats: SwarmStats,
     pub peers: Vec<CompactPeer>,
 }
 
@@ -250,7 +251,7 @@ pub struct Compact {
 ///
 /// Refer to [BEP 23: Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
 /// for more information.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct CompactPeer {
     /// The peer's IP address.
     pub ip: IpAddr,
@@ -296,8 +297,8 @@ impl Compact {
     /// Will return `Err` if internally interrupted.
     pub fn body(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let bytes = (ben_map! {
-            "complete" => ben_int!(i64::from(self.complete)),
-            "incomplete" => ben_int!(i64::from(self.incomplete)),
+            "complete" => ben_int!(i64::from(self.stats.complete)),
+            "incomplete" => ben_int!(i64::from(self.stats.incomplete)),
             "interval" => ben_int!(i64::from(self.policy.interval)),
             "min interval" => ben_int!(i64::from(self.policy.interval_min)),
             "peers" => ben_bytes!(self.peers_v4_bytes()?),
@@ -381,8 +382,11 @@ impl From<AnnounceData> for Compact {
                 interval: domain_announce_response.interval,
                 interval_min: domain_announce_response.interval_min,
             },
-            complete: domain_announce_response.swarm_stats.seeders,
-            incomplete: domain_announce_response.swarm_stats.leechers,
+            stats: SwarmStats {
+                complete: domain_announce_response.swarm_stats.complete,
+                incomplete: domain_announce_response.swarm_stats.incomplete,
+                downloaded: 0,
+            },
             peers,
         }
     }
@@ -396,6 +400,7 @@ mod tests {
     use torrust_tracker_configuration::AnnouncePolicy;
 
     use super::{Normal, NormalPeer};
+    use crate::core::torrent::SwarmStats;
     use crate::servers::http::v1::responses::announce::{Compact, CompactPeer};
 
     // Some ascii values used in tests:
@@ -417,8 +422,11 @@ mod tests {
                 interval: 111,
                 interval_min: 222,
             },
-            complete: 333,
-            incomplete: 444,
+            stats: SwarmStats {
+                downloaded: 0,
+                complete: 333,
+                incomplete: 444,
+            },
             peers: vec![
                 // IPV4
                 NormalPeer {
@@ -453,8 +461,11 @@ mod tests {
                 interval: 111,
                 interval_min: 222,
             },
-            complete: 333,
-            incomplete: 444,
+            stats: SwarmStats {
+                downloaded: 0,
+                complete: 333,
+                incomplete: 444,
+            },
             peers: vec![
                 // IPV4
                 CompactPeer {

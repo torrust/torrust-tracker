@@ -732,7 +732,7 @@ impl Tracker {
         let (stats, stats_updated) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
         if self.config.persistent_torrent_completed_stat && stats_updated {
-            let completed = stats.completed;
+            let completed = stats.downloaded;
             let info_hash = *info_hash;
 
             drop(self.database.save_persistent_torrent(&info_hash, completed).await);
@@ -1390,7 +1390,7 @@ mod tests {
 
                         let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
-                        assert_eq!(announce_data.swarm_stats.seeders, 1);
+                        assert_eq!(announce_data.swarm_stats.complete, 1);
                     }
 
                     #[tokio::test]
@@ -1401,7 +1401,7 @@ mod tests {
 
                         let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
-                        assert_eq!(announce_data.swarm_stats.leechers, 1);
+                        assert_eq!(announce_data.swarm_stats.incomplete, 1);
                     }
 
                     #[tokio::test]
@@ -1415,7 +1415,7 @@ mod tests {
                         let mut completed_peer = completed_peer();
                         let announce_data = tracker.announce(&sample_info_hash(), &mut completed_peer, &peer_ip()).await;
 
-                        assert_eq!(announce_data.swarm_stats.completed, 1);
+                        assert_eq!(announce_data.swarm_stats.downloaded, 1);
                     }
                 }
             }
@@ -1739,11 +1739,11 @@ mod tests {
 
                 peer.event = AnnounceEvent::Started;
                 let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
-                assert_eq!(swarm_stats.completed, 0);
+                assert_eq!(swarm_stats.downloaded, 0);
 
                 peer.event = AnnounceEvent::Completed;
                 let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
-                assert_eq!(swarm_stats.completed, 1);
+                assert_eq!(swarm_stats.downloaded, 1);
 
                 // Remove the newly updated torrent from memory
                 tracker.torrents.get_torrents_mut().await.remove(&info_hash);
