@@ -14,6 +14,21 @@ use torrust_tracker_contrib_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMu
 use crate::core::{self, AnnounceData};
 use crate::servers::http::v1::responses;
 
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct Announce<PeerList> {
+    pub policy: Policy,
+    pub stats: SwarmStats,
+    pub peer_list: PeerList,
+}
+
+pub type NormalPeerList = PeerList<NormalPeer>;
+pub type CompactPeerList = PeerList<CompactPeer>;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct PeerList<PeerType> {
+    pub peers: Vec<PeerType>,
+}
+
 /// Normal (non compact) `announce` response.
 ///
 /// It's a bencoded dictionary.
@@ -62,20 +77,7 @@ use crate::servers::http::v1::responses;
 ///
 /// Refer to [BEP 03: The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
 /// for more information.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Normal {
-    pub policy: Policy,
-    pub stats: SwarmStats,
-    pub peer_list: NormalPeerList,
-}
-
-pub type NormalPeerList = PeerList<NormalPeer>;
-pub type CompactPeerList = PeerList<CompactPeer>;
-
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct PeerList<PeerType> {
-    pub peers: Vec<PeerType>,
-}
+pub type Normal = Announce<NormalPeerList>;
 
 /// Peer information in the [`Normal`]
 /// response.
@@ -226,12 +228,7 @@ impl From<AnnounceData> for Normal {
 ///
 /// - [BEP 23: Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
 /// - [BEP 07: IPv6 Tracker Extension](https://www.bittorrent.org/beps/bep_0007.html)
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Compact {
-    pub policy: Policy,
-    pub stats: SwarmStats,
-    pub peer_list: CompactPeerList,
-}
+pub type Compact = Announce<CompactPeerList>;
 
 /// Compact peer. It's used in the [`Compact`]
 /// response.
