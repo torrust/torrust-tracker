@@ -120,10 +120,10 @@ fn build_response(announce_request: &Announce, announce_data: AnnounceData) -> R
     match &announce_request.compact {
         Some(compact) => match compact {
             Compact::Accepted => announce::Compact::from(announce_data).into_response(),
-            Compact::NotAccepted => announce::NonCompact::from(announce_data).into_response(),
+            Compact::NotAccepted => announce::Normal::from(announce_data).into_response(),
         },
         // Default response format non compact
-        None => announce::NonCompact::from(announce_data).into_response(),
+        None => announce::Normal::from(announce_data).into_response(),
     }
 }
 
