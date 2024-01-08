@@ -20,15 +20,17 @@ use crate::servers::http::v1::responses;
 ///
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{Normal, NormalPeer, Policy};
+/// use torrust_tracker::servers::http::v1::responses::announce::{Normal, NormalPeer, Policy, SwarmStats};
 ///
 /// let response = Normal {
 ///     policy: Policy {
 ///         interval: 111,
 ///         interval_min: 222,
 ///     },
-///     complete: 333,
-///     incomplete: 444,
+///     stats: SwarmStats {
+///         complete: 333,
+///         incomplete: 444,
+///     },
 ///     peers: vec![
 ///         // IPV4
 ///         NormalPeer {
@@ -60,13 +62,8 @@ use crate::servers::http::v1::responses;
 /// for more information.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Normal {
-    /// Announce policy
     pub policy: Policy,
-    /// Number of peers with the entire file, i.e. seeders.
-    pub complete: u32,
-    /// Number of non-seeder peers, aka "leechers".
-    pub incomplete: u32,
-    /// A list of peers. The value is a list of dictionaries.
+    pub stats: SwarmStats,
     pub peers: Vec<NormalPeer>,
 }
 
@@ -129,8 +126,8 @@ impl Normal {
         }
 
         (ben_map! {
-            "complete" => ben_int!(i64::from(self.complete)),
-            "incomplete" => ben_int!(i64::from(self.incomplete)),
+            "complete" => ben_int!(i64::from(self.stats.complete)),
+            "incomplete" => ben_int!(i64::from(self.stats.incomplete)),
             "interval" => ben_int!(i64::from(self.policy.interval)),
             "min interval" => ben_int!(i64::from(self.policy.interval_min)),
             "peers" => peers_list.clone()
@@ -158,8 +155,10 @@ impl From<AnnounceData> for Normal {
                 interval: domain_announce_response.interval,
                 interval_min: domain_announce_response.interval_min,
             },
-            complete: domain_announce_response.swarm_stats.seeders,
-            incomplete: domain_announce_response.swarm_stats.leechers,
+            stats: SwarmStats {
+                complete: domain_announce_response.swarm_stats.seeders,
+                incomplete: domain_announce_response.swarm_stats.leechers,
+            },
             peers,
         }
     }
@@ -173,15 +172,17 @@ impl From<AnnounceData> for Normal {
 ///
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{Compact, CompactPeer, Policy};
+/// use torrust_tracker::servers::http::v1::responses::announce::{Compact, CompactPeer, Policy, SwarmStats};
 ///
 /// let response = Compact {
 ///     policy: Policy {
 ///         interval: 111,
 ///         interval_min: 222,
 ///     },
-///     complete: 333,
-///     incomplete: 444,
+///     stats: SwarmStats {
+///         complete: 333,
+///         incomplete: 444,
+///     },
 ///     peers: vec![
 ///         // IPV4
 ///         CompactPeer {
@@ -215,13 +216,8 @@ impl From<AnnounceData> for Normal {
 /// - [BEP 07: IPv6 Tracker Extension](https://www.bittorrent.org/beps/bep_0007.html)
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Compact {
-    /// Announce policy
     pub policy: Policy,
-    /// Number of seeders, aka "completed".
-    pub complete: u32,
-    /// Number of non-seeder peers, aka "incomplete".
-    pub incomplete: u32,
-    /// Compact peer list.
+    pub stats: SwarmStats,
     pub peers: Vec<CompactPeer>,
 }
 
@@ -293,8 +289,8 @@ impl Compact {
     /// Will return `Err` if internally interrupted.
     pub fn body(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let bytes = (ben_map! {
-            "complete" => ben_int!(i64::from(self.complete)),
-            "incomplete" => ben_int!(i64::from(self.incomplete)),
+            "complete" => ben_int!(i64::from(self.stats.complete)),
+            "incomplete" => ben_int!(i64::from(self.stats.incomplete)),
             "interval" => ben_int!(i64::from(self.policy.interval)),
             "min interval" => ben_int!(i64::from(self.policy.interval_min)),
             "peers" => ben_bytes!(self.peers_v4_bytes()?),
@@ -378,8 +374,10 @@ impl From<AnnounceData> for Compact {
                 interval: domain_announce_response.interval,
                 interval_min: domain_announce_response.interval_min,
             },
-            complete: domain_announce_response.swarm_stats.seeders,
-            incomplete: domain_announce_response.swarm_stats.leechers,
+            stats: SwarmStats {
+                complete: domain_announce_response.swarm_stats.seeders,
+                incomplete: domain_announce_response.swarm_stats.leechers,
+            },
             peers,
         }
     }
@@ -416,13 +414,22 @@ pub struct Policy {
     pub interval_min: u32,
 }
 
+/// Announce policy
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct SwarmStats {
+    /// Number of seeders, aka "completed".
+    pub complete: u32,
+    /// Number of non-seeder peers, aka "incomplete".
+    pub incomplete: u32,
+}
+
 #[cfg(test)]
 mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
     use super::{Normal, NormalPeer};
-    use crate::servers::http::v1::responses::announce::{Compact, CompactPeer, Policy};
+    use crate::servers::http::v1::responses::announce::{Compact, CompactPeer, Policy, SwarmStats};
 
     // Some ascii values used in tests:
     //
@@ -443,8 +450,10 @@ mod tests {
                 interval: 111,
                 interval_min: 222,
             },
-            complete: 333,
-            incomplete: 444,
+            stats: SwarmStats {
+                complete: 333,
+                incomplete: 444,
+            },
             peers: vec![
                 // IPV4
                 NormalPeer {
@@ -479,8 +488,10 @@ mod tests {
                 interval: 111,
                 interval_min: 222,
             },
-            complete: 333,
-            incomplete: 444,
+            stats: SwarmStats {
+                complete: 333,
+                incomplete: 444,
+            },
             peers: vec![
                 // IPV4
                 CompactPeer {
