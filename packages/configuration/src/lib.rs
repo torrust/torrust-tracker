@@ -387,6 +387,45 @@ pub struct HealthCheckApi {
     pub bind_address: String,
 }
 
+/// Announce policy
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy)]
+pub struct AnnouncePolicy {
+    /// Interval in seconds that the client should wait between sending regular
+    /// announce requests to the tracker.
+    ///
+    /// It's a **recommended** wait time between announcements.
+    ///
+    /// This is the standard amount of time that clients should wait between
+    /// sending consecutive announcements to the tracker. This value is set by
+    /// the tracker and is typically provided in the tracker's response to a
+    /// client's initial request. It serves as a guideline for clients to know
+    /// how often they should contact the tracker for updates on the peer list,
+    /// while ensuring that the tracker is not overwhelmed with requests.
+    pub interval: u32,
+
+    /// Minimum announce interval. Clients must not reannounce more frequently
+    /// than this.
+    ///
+    /// It establishes the shortest allowed wait time.
+    ///
+    /// This is an optional parameter in the protocol that the tracker may
+    /// provide in its response. It sets a lower limit on the frequency at which
+    /// clients are allowed to send announcements. Clients should respect this
+    /// value to prevent sending too many requests in a short period, which
+    /// could lead to excessive load on the tracker or even getting banned by
+    /// the tracker for not adhering to the rules.
+    pub interval_min: u32,
+}
+
+impl Default for AnnouncePolicy {
+    fn default() -> Self {
+        Self {
+            interval: 120,
+            interval_min: 120,
+        }
+    }
+}
+
 /// Core configuration for the tracker.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -407,29 +446,10 @@ pub struct Configuration {
     /// example: `root:password@localhost:3306/torrust`.
     pub db_path: String,
 
-    /// Interval in seconds that the client should wait between sending regular
-    /// announce requests to the tracker.
-    ///
-    /// It's a **recommended** wait time between announcements.
-    ///
-    /// This is the standard amount of time that clients should wait between
-    /// sending consecutive announcements to the tracker. This value is set by
-    /// the tracker and is typically provided in the tracker's response to a
-    /// client's initial request. It serves as a guideline for clients to know
-    /// how often they should contact the tracker for updates on the peer list,
-    /// while ensuring that the tracker is not overwhelmed with requests.
+    /// See [`AnnouncePolicy::interval`]
     pub announce_interval: u32,
-    /// Minimum announce interval. Clients must not reannounce more frequently
-    /// than this.
-    ///
-    /// It establishes the shortest allowed wait time.
-    ///
-    /// This is an optional parameter in the protocol that the tracker may
-    /// provide in its response. It sets a lower limit on the frequency at which
-    /// clients are allowed to send announcements. Clients should respect this
-    /// value to prevent sending too many requests in a short period, which
-    /// could lead to excessive load on the tracker or even getting banned by
-    /// the tracker for not adhering to the rules.
+
+    /// See [`AnnouncePolicy::interval_min`]
     pub min_announce_interval: u32,
     /// Weather the tracker is behind a reverse proxy or not.
     /// If the tracker is behind a reverse proxy, the `X-Forwarded-For` header
@@ -516,13 +536,14 @@ impl From<ConfigError> for Error {
 
 impl Default for Configuration {
     fn default() -> Self {
+        let announce_policy = AnnouncePolicy::default();
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             mode: TrackerMode::Public,
             db_driver: DatabaseDriver::Sqlite3,
             db_path: String::from("./storage/tracker/lib/database/sqlite3.db"),
-            announce_interval: 120,
-            min_announce_interval: 120,
+            announce_interval: announce_policy.interval,
+            min_announce_interval: announce_policy.interval_min,
             max_peer_timeout: 900,
             on_reverse_proxy: false,
             external_ip: Some(String::from("0.0.0.0")),
