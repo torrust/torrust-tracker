@@ -20,11 +20,13 @@ use crate::servers::http::v1::responses;
 ///
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{Normal, NormalPeer};
+/// use torrust_tracker::servers::http::v1::responses::announce::{Normal, NormalPeer, Policy};
 ///
 /// let response = Normal {
-///     interval: 111,
-///     interval_min: 222,
+///     policy: Policy {
+///         interval: 111,
+///         interval_min: 222,
+///     },
 ///     complete: 333,
 ///     incomplete: 444,
 ///     peers: vec![
@@ -58,31 +60,8 @@ use crate::servers::http::v1::responses;
 /// for more information.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Normal {
-    /// Interval in seconds that the client should wait between sending regular
-    /// announce requests to the tracker.
-    ///
-    /// It's a **recommended** wait time between announcements.
-    ///
-    /// This is the standard amount of time that clients should wait between
-    /// sending consecutive announcements to the tracker. This value is set by
-    /// the tracker and is typically provided in the tracker's response to a
-    /// client's initial request. It serves as a guideline for clients to know
-    /// how often they should contact the tracker for updates on the peer list,
-    /// while ensuring that the tracker is not overwhelmed with requests.
-    pub interval: u32,
-    /// Minimum announce interval. Clients must not reannounce more frequently
-    /// than this.
-    ///
-    /// It establishes the shortest allowed wait time.
-    ///
-    /// This is an optional parameter in the protocol that the tracker may
-    /// provide in its response. It sets a lower limit on the frequency at which
-    /// clients are allowed to send announcements. Clients should respect this
-    /// value to prevent sending too many requests in a short period, which
-    /// could lead to excessive load on the tracker or even getting banned by
-    /// the tracker for not adhering to the rules.
-    #[serde(rename = "min interval")]
-    pub interval_min: u32,
+    /// Announce policy
+    pub policy: Policy,
     /// Number of peers with the entire file, i.e. seeders.
     pub complete: u32,
     /// Number of non-seeder peers, aka "leechers".
@@ -152,8 +131,8 @@ impl Normal {
         (ben_map! {
             "complete" => ben_int!(i64::from(self.complete)),
             "incomplete" => ben_int!(i64::from(self.incomplete)),
-            "interval" => ben_int!(i64::from(self.interval)),
-            "min interval" => ben_int!(i64::from(self.interval_min)),
+            "interval" => ben_int!(i64::from(self.policy.interval)),
+            "min interval" => ben_int!(i64::from(self.policy.interval_min)),
             "peers" => peers_list.clone()
         })
         .encode()
@@ -175,8 +154,10 @@ impl From<AnnounceData> for Normal {
             .collect();
 
         Self {
-            interval: domain_announce_response.interval,
-            interval_min: domain_announce_response.interval_min,
+            policy: Policy {
+                interval: domain_announce_response.interval,
+                interval_min: domain_announce_response.interval_min,
+            },
             complete: domain_announce_response.swarm_stats.seeders,
             incomplete: domain_announce_response.swarm_stats.leechers,
             peers,
@@ -192,11 +173,13 @@ impl From<AnnounceData> for Normal {
 ///
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{Compact, CompactPeer};
+/// use torrust_tracker::servers::http::v1::responses::announce::{Compact, CompactPeer, Policy};
 ///
 /// let response = Compact {
-///     interval: 111,
-///     interval_min: 222,
+///     policy: Policy {
+///         interval: 111,
+///         interval_min: 222,
+///     },
 ///     complete: 333,
 ///     incomplete: 444,
 ///     peers: vec![
@@ -232,31 +215,8 @@ impl From<AnnounceData> for Normal {
 /// - [BEP 07: IPv6 Tracker Extension](https://www.bittorrent.org/beps/bep_0007.html)
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Compact {
-    /// Interval in seconds that the client should wait between sending regular
-    /// announce requests to the tracker.
-    ///
-    /// It's a **recommended** wait time between announcements.
-    ///
-    /// This is the standard amount of time that clients should wait between
-    /// sending consecutive announcements to the tracker. This value is set by
-    /// the tracker and is typically provided in the tracker's response to a
-    /// client's initial request. It serves as a guideline for clients to know
-    /// how often they should contact the tracker for updates on the peer list,
-    /// while ensuring that the tracker is not overwhelmed with requests.    
-    pub interval: u32,
-    /// Minimum announce interval. Clients must not reannounce more frequently
-    /// than this.
-    ///
-    /// It establishes the shortest allowed wait time.
-    ///
-    /// This is an optional parameter in the protocol that the tracker may
-    /// provide in its response. It sets a lower limit on the frequency at which
-    /// clients are allowed to send announcements. Clients should respect this
-    /// value to prevent sending too many requests in a short period, which
-    /// could lead to excessive load on the tracker or even getting banned by
-    /// the tracker for not adhering to the rules.    
-    #[serde(rename = "min interval")]
-    pub interval_min: u32,
+    /// Announce policy
+    pub policy: Policy,
     /// Number of seeders, aka "completed".
     pub complete: u32,
     /// Number of non-seeder peers, aka "incomplete".
@@ -335,8 +295,8 @@ impl Compact {
         let bytes = (ben_map! {
             "complete" => ben_int!(i64::from(self.complete)),
             "incomplete" => ben_int!(i64::from(self.incomplete)),
-            "interval" => ben_int!(i64::from(self.interval)),
-            "min interval" => ben_int!(i64::from(self.interval_min)),
+            "interval" => ben_int!(i64::from(self.policy.interval)),
+            "min interval" => ben_int!(i64::from(self.policy.interval_min)),
             "peers" => ben_bytes!(self.peers_v4_bytes()?),
             "peers6" => ben_bytes!(self.peers_v6_bytes()?)
         })
@@ -414,13 +374,46 @@ impl From<AnnounceData> for Compact {
             .collect();
 
         Self {
-            interval: domain_announce_response.interval,
-            interval_min: domain_announce_response.interval_min,
+            policy: Policy {
+                interval: domain_announce_response.interval,
+                interval_min: domain_announce_response.interval_min,
+            },
             complete: domain_announce_response.swarm_stats.seeders,
             incomplete: domain_announce_response.swarm_stats.leechers,
             peers,
         }
     }
+}
+
+/// Announce policy
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct Policy {
+    /// Interval in seconds that the client should wait between sending regular
+    /// announce requests to the tracker.
+    ///
+    /// It's a **recommended** wait time between announcements.
+    ///
+    /// This is the standard amount of time that clients should wait between
+    /// sending consecutive announcements to the tracker. This value is set by
+    /// the tracker and is typically provided in the tracker's response to a
+    /// client's initial request. It serves as a guideline for clients to know
+    /// how often they should contact the tracker for updates on the peer list,
+    /// while ensuring that the tracker is not overwhelmed with requests.
+    pub interval: u32,
+
+    /// Minimum announce interval. Clients must not reannounce more frequently
+    /// than this.
+    ///
+    /// It establishes the shortest allowed wait time.
+    ///
+    /// This is an optional parameter in the protocol that the tracker may
+    /// provide in its response. It sets a lower limit on the frequency at which
+    /// clients are allowed to send announcements. Clients should respect this
+    /// value to prevent sending too many requests in a short period, which
+    /// could lead to excessive load on the tracker or even getting banned by
+    /// the tracker for not adhering to the rules.
+    #[serde(rename = "min interval")]
+    pub interval_min: u32,
 }
 
 #[cfg(test)]
@@ -429,7 +422,7 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
     use super::{Normal, NormalPeer};
-    use crate::servers::http::v1::responses::announce::{Compact, CompactPeer};
+    use crate::servers::http::v1::responses::announce::{Compact, CompactPeer, Policy};
 
     // Some ascii values used in tests:
     //
@@ -446,8 +439,10 @@ mod tests {
     #[test]
     fn non_compact_announce_response_can_be_bencoded() {
         let response = Normal {
-            interval: 111,
-            interval_min: 222,
+            policy: Policy {
+                interval: 111,
+                interval_min: 222,
+            },
             complete: 333,
             incomplete: 444,
             peers: vec![
@@ -480,8 +475,10 @@ mod tests {
     #[test]
     fn compact_announce_response_can_be_bencoded() {
         let response = Compact {
-            interval: 111,
-            interval_min: 222,
+            policy: Policy {
+                interval: 111,
+                interval_min: 222,
+            },
             complete: 333,
             incomplete: 444,
             peers: vec![
