@@ -10,7 +10,7 @@ use axum::routing::get;
 use axum::Router;
 
 use super::handlers::{get_torrent_handler, get_torrents_handler};
-use crate::tracker::Tracker;
+use crate::core::Tracker;
 
 /// It adds the routes to the router for the [`torrent`](crate::servers::apis::v1::context::torrent) API context.
 pub fn add(prefix: &str, router: Router, tracker: Arc<Tracker>) -> Router {

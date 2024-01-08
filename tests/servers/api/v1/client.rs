@@ -101,7 +101,7 @@ impl Client {
     }
 }
 
-async fn get(path: &str, query: Option<Query>) -> Response {
+pub async fn get(path: &str, query: Option<Query>) -> Response {
     match query {
         Some(params) => reqwest::Client::builder()
             .build()

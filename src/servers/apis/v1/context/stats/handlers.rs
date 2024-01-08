@@ -7,8 +7,8 @@ use axum::response::Json;
 
 use super::resources::Stats;
 use super::responses::stats_response;
-use crate::tracker::services::statistics::get_metrics;
-use crate::tracker::Tracker;
+use crate::core::services::statistics::get_metrics;
+use crate::core::Tracker;
 
 /// It handles the request to get the tracker statistics.
 ///

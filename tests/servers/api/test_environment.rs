@@ -1,9 +1,13 @@
+use std::net::SocketAddr;
 use std::sync::Arc;
 
-use torrust_tracker::servers::apis::server::{ApiServer, RunningApiServer, StoppedApiServer};
+use axum_server::tls_rustls::RustlsConfig;
+use futures::executor::block_on;
+use torrust_tracker::bootstrap::jobs::make_rust_tls;
+use torrust_tracker::core::peer::Peer;
+use torrust_tracker::core::Tracker;
+use torrust_tracker::servers::apis::server::{ApiServer, Launcher, RunningApiServer, StoppedApiServer};
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-use torrust_tracker::tracker::peer::Peer;
-use torrust_tracker::tracker::Tracker;
 
 use super::connection_info::ConnectionInfo;
 use crate::common::app::setup_with_configuration;
@@ -36,15 +40,27 @@ impl<S> TestEnvironment<S> {
 }
 
 impl TestEnvironment<Stopped> {
-    pub fn new_stopped(cfg: torrust_tracker_configuration::Configuration) -> Self {
-        let cfg = Arc::new(cfg);
+    pub fn new(cfg: torrust_tracker_configuration::Configuration) -> Self {
+        let tracker = setup_with_configuration(&Arc::new(cfg));
 
-        let tracker = setup_with_configuration(&cfg);
+        let config = tracker.config.http_api.clone();
 
-        let api_server = api_server(cfg.http_api.clone());
+        let bind_to = config
+            .bind_address
+            .parse::<std::net::SocketAddr>()
+            .expect("Tracker API bind_address invalid.");
+
+        let tls = block_on(make_rust_tls(config.ssl_enabled, &config.ssl_cert_path, &config.ssl_key_path))
+            .map(|tls| tls.expect("tls config failed"));
+
+        Self::new_stopped(tracker, bind_to, tls)
+    }
+
+    pub fn new_stopped(tracker: Arc<Tracker>, bind_to: SocketAddr, tls: Option<RustlsConfig>) -> Self {
+        let api_server = api_server(Launcher::new(bind_to, tls));
 
         Self {
-            cfg,
+            cfg: tracker.config.clone(),
             tracker,
             state: Stopped { api_server },
         }
@@ -60,14 +76,14 @@ impl TestEnvironment<Stopped> {
         }
     }
 
-    pub fn config_mut(&mut self) -> &mut torrust_tracker_configuration::HttpApi {
-        &mut self.state.api_server.cfg
-    }
+    // pub fn config_mut(&mut self) -> &mut torrust_tracker_configuration::HttpApi {
+    //     &mut self.cfg.http_api
+    // }
 }
 
 impl TestEnvironment<Running> {
     pub async fn new_running(cfg: torrust_tracker_configuration::Configuration) -> Self {
-        let test_env = StoppedTestEnvironment::new_stopped(cfg);
+        let test_env = StoppedTestEnvironment::new(cfg);
 
         test_env.start().await
     }
@@ -84,15 +100,16 @@ impl TestEnvironment<Running> {
 
     pub fn get_connection_info(&self) -> ConnectionInfo {
         ConnectionInfo {
-            bind_address: self.state.api_server.state.bind_addr.to_string(),
-            api_token: self.state.api_server.cfg.access_tokens.get("admin").cloned(),
+            bind_address: self.state.api_server.state.binding.to_string(),
+            api_token: self.cfg.http_api.access_tokens.get("admin").cloned(),
         }
     }
 }
 
 #[allow(clippy::module_name_repetitions)]
+#[allow(dead_code)]
 pub fn stopped_test_environment(cfg: torrust_tracker_configuration::Configuration) -> StoppedTestEnvironment {
-    TestEnvironment::new_stopped(cfg)
+    TestEnvironment::new(cfg)
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -100,6 +117,6 @@ pub async fn running_test_environment(cfg: torrust_tracker_configuration::Config
     TestEnvironment::new_running(cfg).await
 }
 
-pub fn api_server(cfg: torrust_tracker_configuration::HttpApi) -> StoppedApiServer {
-    ApiServer::new(cfg)
+pub fn api_server(launcher: Launcher) -> StoppedApiServer {
+    ApiServer::new(launcher)
 }

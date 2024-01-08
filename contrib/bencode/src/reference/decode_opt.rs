@@ -41,7 +41,7 @@ impl BDecodeOpt {
     ///
     /// It may be useful to disable this if for example, the input bencode is prepended to
     /// some payload and you would like to disassociate it. In this case, to find where the
-    /// rest of the payload starts that wasn't decoded, get the bencode buffer, and call len().
+    /// rest of the payload starts that wasn't decoded, get the bencode buffer, and call `len()`.
     #[must_use]
     pub fn enforce_full_decode(&self) -> bool {
         self.enforce_full_decode

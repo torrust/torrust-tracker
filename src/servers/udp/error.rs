@@ -29,4 +29,8 @@ pub enum Error {
     BadRequest {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
+
+    /// Error returned when tracker requires authentication.
+    #[error("domain tracker requires authentication but is not supported in current UDP implementation. Location: {location}")]
+    TrackerAuthenticationRequired { location: &'static Location<'static> },
 }

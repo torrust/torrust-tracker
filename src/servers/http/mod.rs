@@ -71,7 +71,7 @@
 //! is behind a reverse proxy.
 //!
 //! > **NOTICE**: the maximum number of peers that the tracker can return is
-//! `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS).
+//! `74`. Defined with a hardcoded const [`TORRENT_PEERS_LIMIT`](crate::core::TORRENT_PEERS_LIMIT).
 //! Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
 //! for more information about this limitation.
 //!
@@ -206,15 +206,15 @@
 //!
 //! ### Scrape
 //!
-//! The `scrape` request allows a peer to get [swarm metadata](crate::tracker::torrent::SwarmMetadata)
+//! The `scrape` request allows a peer to get [swarm metadata](crate::core::torrent::SwarmMetadata)
 //! for multiple torrents at the same time.
 //!
-//! The response contains the [swarm metadata](crate::tracker::torrent::SwarmMetadata)
+//! The response contains the [swarm metadata](crate::core::torrent::SwarmMetadata)
 //! for that torrent:
 //!
-//! - [complete](crate::tracker::torrent::SwarmMetadata::complete)
-//! - [downloaded](crate::tracker::torrent::SwarmMetadata::downloaded)
-//! - [incomplete](crate::tracker::torrent::SwarmMetadata::incomplete)
+//! - [complete](crate::core::torrent::SwarmMetadata::complete)
+//! - [downloaded](crate::core::torrent::SwarmMetadata::downloaded)
+//! - [incomplete](crate::core::torrent::SwarmMetadata::incomplete)
 //!
 //! **Query parameters**
 //!
@@ -237,7 +237,7 @@
 //! In order to scrape multiple torrents at the same time you can pass multiple
 //! `info_hash` parameters: `info_hash=%81%00%0...00%00%00&info_hash=%82%00%0...00%00%00`
 //!
-//! > **NOTICE**: the maximum number of torrent you can scrape at the same time
+//! > **NOTICE**: the maximum number of torrents you can scrape at the same time
 //! is `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS).
 //!
 //! **Sample response**
@@ -266,7 +266,7 @@
 //! Where the `files` key contains a dictionary of dictionaries. The first
 //! dictionary key is the `info_hash` of the torrent (`iiiiiiiiiiiiiiiiiiii` in
 //! the example). The second level dictionary contains the
-//! [swarm metadata](crate::tracker::torrent::SwarmMetadata) for that torrent.
+//! [swarm metadata](crate::core::torrent::SwarmMetadata) for that torrent.
 //!
 //! If you save the response as a file and you open it with a program that
 //! can handle binary data you would see:

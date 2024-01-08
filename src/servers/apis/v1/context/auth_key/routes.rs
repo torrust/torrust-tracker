@@ -12,7 +12,7 @@ use axum::routing::{get, post};
 use axum::Router;
 
 use super::handlers::{delete_auth_key_handler, generate_auth_key_handler, reload_keys_handler};
-use crate::tracker::Tracker;
+use crate::core::Tracker;
 
 /// It adds the routes to the router for the [`auth_key`](crate::servers::apis::v1::context::auth_key) API context.
 pub fn add(prefix: &str, router: Router, tracker: Arc<Tracker>) -> Router {

@@ -9,7 +9,7 @@ use axum::routing::get;
 use axum::Router;
 
 use super::handlers::get_stats_handler;
-use crate::tracker::Tracker;
+use crate::core::Tracker;
 
 /// It adds the routes to the router for the [`stats`](crate::servers::apis::v1::context::stats) API context.
 pub fn add(prefix: &str, router: Router, tracker: Arc<Tracker>) -> Router {

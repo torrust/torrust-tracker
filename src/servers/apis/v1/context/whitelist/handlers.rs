@@ -9,10 +9,10 @@ use axum::response::Response;
 use super::responses::{
     failed_to_reload_whitelist_response, failed_to_remove_torrent_from_whitelist_response, failed_to_whitelist_torrent_response,
 };
+use crate::core::Tracker;
 use crate::servers::apis::v1::responses::{invalid_info_hash_param_response, ok_response};
 use crate::servers::apis::InfoHashParam;
 use crate::shared::bit_torrent::info_hash::InfoHash;
-use crate::tracker::Tracker;
 
 /// It handles the request to add a torrent to the whitelist.
 ///

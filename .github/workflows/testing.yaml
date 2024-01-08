@@ -39,7 +39,7 @@ jobs:
 
     strategy:
       matrix:
-        toolchain: [stable, nightly]
+        toolchain: [nightly]
 
     steps:
       - id: checkout
@@ -79,7 +79,7 @@ jobs:
 
     strategy:
       matrix:
-        toolchain: [stable, nightly]
+        toolchain: [nightly]
 
     steps:
       - id: checkout

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use torrust_tracker::tracker::Tracker;
+use torrust_tracker::core::Tracker;
 
 pub mod connection_info;
 pub mod test_environment;

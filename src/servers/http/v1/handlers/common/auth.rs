@@ -5,8 +5,8 @@ use std::panic::Location;
 
 use thiserror::Error;
 
+use crate::core::auth;
 use crate::servers::http::v1::responses;
-use crate::tracker::auth;
 
 /// Authentication error.
 ///

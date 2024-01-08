@@ -6,8 +6,8 @@ use axum::Router;
 use axum_client_ip::SecureClientIpSource;
 use tower_http::compression::CompressionLayer;
 
-use super::handlers::{announce, scrape};
-use crate::tracker::Tracker;
+use super::handlers::{announce, health_check, scrape};
+use crate::core::Tracker;
 
 /// It adds the routes to the router.
 ///
@@ -16,6 +16,8 @@ use crate::tracker::Tracker;
 #[allow(clippy::needless_pass_by_value)]
 pub fn router(tracker: Arc<Tracker>) -> Router {
     Router::new()
+        // Health check
+        .route("/health_check", get(health_check::handler))
         // Announce request
         .route("/announce", get(announce::handle_without_key).with_state(tracker.clone()))
         .route("/announce/:key", get(announce::handle_with_key).with_state(tracker.clone()))

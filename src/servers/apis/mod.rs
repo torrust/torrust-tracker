@@ -159,8 +159,6 @@ pub mod routes;
 pub mod server;
 pub mod v1;
 
-use serde::Deserialize;
-
 /// The info hash URL path parameter.
 ///
 /// Some API endpoints require an info hash as a path parameter.
@@ -172,3 +170,12 @@ use serde::Deserialize;
 /// in order to provide a more specific error message.
 #[derive(Deserialize)]
 pub struct InfoHashParam(pub String);
+
+use serde::{Deserialize, Serialize};
+
+/// The version of the HTTP Api.
+#[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
+pub enum Version {
+    /// The `v1` version of the HTTP Api.
+    V1,
+}

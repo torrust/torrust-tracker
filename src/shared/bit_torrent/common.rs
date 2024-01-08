@@ -5,7 +5,6 @@ use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde::{Deserialize, Serialize};
 
 /// The maximum number of torrents that can be returned in an `scrape` response.
-/// It's also the maximum number of peers returned in an `announce` response.
 ///
 /// The [BEP 15. UDP Tracker Protocol for `BitTorrent`](https://www.bittorrent.org/beps/bep_0015.html)
 /// defines this limit:
@@ -20,8 +19,8 @@ pub const MAX_SCRAPE_TORRENTS: u8 = 74;
 
 /// HTTP tracker authentication key length.
 ///
-/// See function to [`generate`](crate::tracker::auth::generate) the
-/// [`ExpiringKeys`](crate::tracker::auth::ExpiringKey) for more information.
+/// See function to [`generate`](crate::core::auth::generate) the
+/// [`ExpiringKeys`](crate::core::auth::ExpiringKey) for more information.
 pub const AUTH_KEY_LENGTH: usize = 32;
 
 #[repr(u32)]

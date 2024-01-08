@@ -1,7 +1,7 @@
 use std::net::IpAddr;
 
 use reqwest::{Client as ReqwestClient, Response};
-use torrust_tracker::tracker::auth::Key;
+use torrust_tracker::core::auth::Key;
 
 use super::requests::announce::{self, Query};
 use super::requests::scrape;
@@ -58,6 +58,10 @@ impl Client {
     pub async fn announce_with_header(&self, query: &Query, key: &str, value: &str) -> Response {
         self.get_with_header(&self.build_announce_path_and_query(query), key, value)
             .await
+    }
+
+    pub async fn health_check(&self) -> Response {
+        self.get(&self.build_path("health_check")).await
     }
 
     pub async fn get(&self, path: &str) -> Response {

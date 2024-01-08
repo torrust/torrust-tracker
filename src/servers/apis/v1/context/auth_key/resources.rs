@@ -3,8 +3,8 @@ use std::convert::From;
 
 use serde::{Deserialize, Serialize};
 
+use crate::core::auth::{self, Key};
 use crate::shared::clock::convert_from_iso_8601_to_timestamp;
-use crate::tracker::auth::{self, Key};
 
 /// A resource that represents an authentication key.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -43,8 +43,8 @@ mod tests {
     use std::time::Duration;
 
     use super::AuthKey;
+    use crate::core::auth::{self, Key};
     use crate::shared::clock::{Current, TimeNow};
-    use crate::tracker::auth::{self, Key};
 
     struct TestTime {
         pub timestamp: u64,

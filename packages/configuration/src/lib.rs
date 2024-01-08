@@ -30,10 +30,10 @@
 //!
 //! Each section in the toml structure is mapped to a data structure. For
 //! example, the `[http_api]` section (configuration for the tracker HTTP API)
-//! is mapped to the [`HttpApi`](HttpApi) structure.
+//! is mapped to the [`HttpApi`] structure.
 //!
 //! > **NOTICE**: some sections are arrays of structures. For example, the
-//! > `[[udp_trackers]]` section is an array of [`UdpTracker`](UdpTracker) since
+//! > `[[udp_trackers]]` section is an array of [`UdpTracker`] since
 //! > you can have multiple running UDP trackers bound to different ports.
 //!
 //! Please refer to the documentation of each structure for more information
@@ -191,40 +191,43 @@
 //! The default configuration is:
 //!
 //! ```toml
-//! log_level = "info"
-//! mode = "public"
+//! announce_interval = 120
 //! db_driver = "Sqlite3"
 //! db_path = "./storage/tracker/lib/database/sqlite3.db"
-//! announce_interval = 120
-//! min_announce_interval = 120
-//! max_peer_timeout = 900
-//! on_reverse_proxy = false
 //! external_ip = "0.0.0.0"
-//! tracker_usage_statistics = true
-//! persistent_torrent_completed_stat = false
 //! inactive_peer_cleanup_interval = 600
+//! log_level = "info"
+//! max_peer_timeout = 900
+//! min_announce_interval = 120
+//! mode = "public"
+//! on_reverse_proxy = false
+//! persistent_torrent_completed_stat = false
 //! remove_peerless_torrents = true
+//! tracker_usage_statistics = true
 //!
 //! [[udp_trackers]]
-//! enabled = false
 //! bind_address = "0.0.0.0:6969"
+//! enabled = false
 //!
 //! [[http_trackers]]
-//! enabled = false
 //! bind_address = "0.0.0.0:7070"
-//! ssl_enabled = false
+//! enabled = false
 //! ssl_cert_path = ""
+//! ssl_enabled = false
 //! ssl_key_path = ""
 //!
 //! [http_api]
-//! enabled = true
 //! bind_address = "127.0.0.1:1212"
-//! ssl_enabled = false
+//! enabled = true
 //! ssl_cert_path = ""
+//! ssl_enabled = false
 //! ssl_key_path = ""
 //!
 //! [http_api.access_tokens]
 //! admin = "MyAccessToken"
+//!
+//! [health_check_api]
+//! bind_address = "127.0.0.1:1313"
 //!```
 use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
@@ -236,7 +239,7 @@ use config::{Config, ConfigError, File, FileFormat};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use thiserror::Error;
-use torrust_tracker_located_error::{Located, LocatedError};
+use torrust_tracker_located_error::{DynError, Located, LocatedError};
 use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
 
 /// Information required for loading config
@@ -286,7 +289,7 @@ impl Info {
 
             fs::read_to_string(config_path)
                 .map_err(|e| Error::UnableToLoadFromConfigFile {
-                    source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+                    source: (Arc::new(e) as DynError).into(),
                 })?
                 .parse()
                 .map_err(|_e: std::convert::Infallible| Error::Infallible)?
@@ -342,7 +345,7 @@ pub struct HttpApi {
     /// The address the tracker will bind to.
     /// The format is `ip:port`, for example `0.0.0.0:6969`. If you want to
     /// listen to all interfaces, use `0.0.0.0`. If you want the operating
-    /// system to choose a random port, use port `0`.    
+    /// system to choose a random port, use port `0`.
     pub bind_address: String,
     /// Weather the HTTP API will use SSL or not.
     pub ssl_enabled: bool,
@@ -363,9 +366,7 @@ impl HttpApi {
     fn override_admin_token(&mut self, api_admin_token: &str) {
         self.access_tokens.insert("admin".to_string(), api_admin_token.to_string());
     }
-}
 
-impl HttpApi {
     /// Checks if the given token is one of the token in the configuration.
     #[must_use]
     pub fn contains_token(&self, token: &str) -> bool {
@@ -375,6 +376,17 @@ impl HttpApi {
     }
 }
 
+/// Configuration for the Health Check API.
+#[serde_as]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+pub struct HealthCheckApi {
+    /// The address the API will bind to.
+    /// The format is `ip:port`, for example `127.0.0.1:1313`. If you want to
+    /// listen to all interfaces, use `0.0.0.0`. If you want the operating
+    /// system to choose a random port, use port `0`.
+    pub bind_address: String,
+}
+
 /// Core configuration for the tracker.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -382,7 +394,7 @@ pub struct Configuration {
     /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
     /// `Debug` and `Trace`. Default is `Info`.
     pub log_level: Option<String>,
-    /// Tracker mode. See [`TrackerMode`](torrust_tracker_primitives::TrackerMode) for more information.
+    /// Tracker mode. See [`TrackerMode`] for more information.
     pub mode: TrackerMode,
 
     // Database configuration
@@ -465,6 +477,8 @@ pub struct Configuration {
     pub http_trackers: Vec<HttpTracker>,
     /// The HTTP API configuration.
     pub http_api: HttpApi,
+    /// The Health Check API configuration.
+    pub health_check_api: HealthCheckApi,
 }
 
 /// Errors that can occur when loading the configuration.
@@ -528,6 +542,9 @@ impl Default for Configuration {
                     .iter()
                     .cloned()
                     .collect(),
+            },
+            health_check_api: HealthCheckApi {
+                bind_address: String::from("127.0.0.1:1313"),
             },
         };
         configuration.udp_trackers.push(UdpTracker {
@@ -676,6 +693,9 @@ mod tests {
 
                                 [http_api.access_tokens]
                                 admin = "MyAccessToken"
+
+                                [health_check_api]
+                                bind_address = "127.0.0.1:1313"
         "#
         .lines()
         .map(str::trim_start)

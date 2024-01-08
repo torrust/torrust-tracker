@@ -7,7 +7,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::peer;
-use crate::tracker::services::torrent::{BasicInfo, Info};
+use crate::core::services::torrent::{BasicInfo, Info};
 
 /// `Torrent` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -44,9 +44,6 @@ pub struct ListItem {
     /// The torrent's leechers counter. Active peers that are downloading the
     /// torrent.
     pub leechers: u64,
-    /// The torrent's peers. It's always `None` in the struct and `null` in the
-    /// JSON response.
-    pub peers: Option<Vec<super::peer::Peer>>, // todo: this is always None. Remove field from endpoint?
 }
 
 impl ListItem {
@@ -90,7 +87,6 @@ impl From<BasicInfo> for ListItem {
             seeders: basic_info.seeders,
             completed: basic_info.completed,
             leechers: basic_info.leechers,
-            peers: None,
         }
     }
 }
@@ -103,12 +99,12 @@ mod tests {
     use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
     use super::Torrent;
+    use crate::core::peer;
+    use crate::core::services::torrent::{BasicInfo, Info};
     use crate::servers::apis::v1::context::torrent::resources::peer::Peer;
     use crate::servers::apis::v1::context::torrent::resources::torrent::ListItem;
     use crate::shared::bit_torrent::info_hash::InfoHash;
     use crate::shared::clock::DurationSinceUnixEpoch;
-    use crate::tracker::peer;
-    use crate::tracker::services::torrent::{BasicInfo, Info};
 
     fn sample_peer() -> peer::Peer {
         peer::Peer {
@@ -156,7 +152,6 @@ mod tests {
                 seeders: 1,
                 completed: 2,
                 leechers: 3,
-                peers: None,
             }
         );
     }

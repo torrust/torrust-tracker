@@ -1,16 +1,18 @@
 use std::sync::Arc;
 
-use torrust_tracker::servers::http::server::{HttpServer, HttpServerLauncher, RunningHttpServer, StoppedHttpServer};
+use futures::executor::block_on;
+use torrust_tracker::bootstrap::jobs::make_rust_tls;
+use torrust_tracker::core::peer::Peer;
+use torrust_tracker::core::Tracker;
+use torrust_tracker::servers::http::server::{HttpServer, Launcher, RunningHttpServer, StoppedHttpServer};
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-use torrust_tracker::tracker::peer::Peer;
-use torrust_tracker::tracker::Tracker;
 
 use crate::common::app::setup_with_configuration;
 
 #[allow(clippy::module_name_repetitions, dead_code)]
-pub type StoppedTestEnvironment<I> = TestEnvironment<Stopped<I>>;
+pub type StoppedTestEnvironment = TestEnvironment<Stopped>;
 #[allow(clippy::module_name_repetitions)]
-pub type RunningTestEnvironment<I> = TestEnvironment<Running<I>>;
+pub type RunningTestEnvironment = TestEnvironment<Running>;
 
 pub struct TestEnvironment<S> {
     pub cfg: Arc<torrust_tracker_configuration::Configuration>,
@@ -19,12 +21,12 @@ pub struct TestEnvironment<S> {
 }
 
 #[allow(dead_code)]
-pub struct Stopped<I: HttpServerLauncher> {
-    http_server: StoppedHttpServer<I>,
+pub struct Stopped {
+    http_server: StoppedHttpServer,
 }
 
-pub struct Running<I: HttpServerLauncher> {
-    http_server: RunningHttpServer<I>,
+pub struct Running {
+    http_server: RunningHttpServer,
 }
 
 impl<S> TestEnvironment<S> {
@@ -34,14 +36,24 @@ impl<S> TestEnvironment<S> {
     }
 }
 
-impl<I: HttpServerLauncher + 'static> TestEnvironment<Stopped<I>> {
+impl TestEnvironment<Stopped> {
     #[allow(dead_code)]
     pub fn new_stopped(cfg: torrust_tracker_configuration::Configuration) -> Self {
         let cfg = Arc::new(cfg);
 
         let tracker = setup_with_configuration(&cfg);
 
-        let http_server = http_server(cfg.http_trackers[0].clone());
+        let config = cfg.http_trackers[0].clone();
+
+        let bind_to = config
+            .bind_address
+            .parse::<std::net::SocketAddr>()
+            .expect("Tracker API bind_address invalid.");
+
+        let tls = block_on(make_rust_tls(config.ssl_enabled, &config.ssl_cert_path, &config.ssl_key_path))
+            .map(|tls| tls.expect("tls config failed"));
+
+        let http_server = HttpServer::new(Launcher::new(bind_to, tls));
 
         Self {
             cfg,
@@ -51,7 +63,7 @@ impl<I: HttpServerLauncher + 'static> TestEnvironment<Stopped<I>> {
     }
 
     #[allow(dead_code)]
-    pub async fn start(self) -> TestEnvironment<Running<I>> {
+    pub async fn start(self) -> TestEnvironment<Running> {
         TestEnvironment {
             cfg: self.cfg,
             tracker: self.tracker.clone(),
@@ -61,25 +73,25 @@ impl<I: HttpServerLauncher + 'static> TestEnvironment<Stopped<I>> {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn config(&self) -> &torrust_tracker_configuration::HttpTracker {
-        &self.state.http_server.cfg
-    }
+    // #[allow(dead_code)]
+    // pub fn config(&self) -> &torrust_tracker_configuration::HttpTracker {
+    //     &self.state.http_server.cfg
+    // }
 
-    #[allow(dead_code)]
-    pub fn config_mut(&mut self) -> &mut torrust_tracker_configuration::HttpTracker {
-        &mut self.state.http_server.cfg
-    }
+    // #[allow(dead_code)]
+    // pub fn config_mut(&mut self) -> &mut torrust_tracker_configuration::HttpTracker {
+    //     &mut self.state.http_server.cfg
+    // }
 }
 
-impl<I: HttpServerLauncher + 'static> TestEnvironment<Running<I>> {
+impl TestEnvironment<Running> {
     pub async fn new_running(cfg: torrust_tracker_configuration::Configuration) -> Self {
         let test_env = StoppedTestEnvironment::new_stopped(cfg);
 
         test_env.start().await
     }
 
-    pub async fn stop(self) -> TestEnvironment<Stopped<I>> {
+    pub async fn stop(self) -> TestEnvironment<Stopped> {
         TestEnvironment {
             cfg: self.cfg,
             tracker: self.tracker,
@@ -90,31 +102,26 @@ impl<I: HttpServerLauncher + 'static> TestEnvironment<Running<I>> {
     }
 
     pub fn bind_address(&self) -> &std::net::SocketAddr {
-        &self.state.http_server.state.bind_addr
+        &self.state.http_server.state.binding
     }
 
-    #[allow(dead_code)]
-    pub fn config(&self) -> &torrust_tracker_configuration::HttpTracker {
-        &self.state.http_server.cfg
-    }
+    // #[allow(dead_code)]
+    // pub fn config(&self) -> &torrust_tracker_configuration::HttpTracker {
+    //     &self.state.http_server.cfg
+    // }
 }
 
 #[allow(clippy::module_name_repetitions, dead_code)]
-pub fn stopped_test_environment<I: HttpServerLauncher + 'static>(
-    cfg: torrust_tracker_configuration::Configuration,
-) -> StoppedTestEnvironment<I> {
+pub fn stopped_test_environment(cfg: torrust_tracker_configuration::Configuration) -> StoppedTestEnvironment {
     TestEnvironment::new_stopped(cfg)
 }
 
 #[allow(clippy::module_name_repetitions)]
-pub async fn running_test_environment<I: HttpServerLauncher + 'static>(
-    cfg: torrust_tracker_configuration::Configuration,
-) -> RunningTestEnvironment<I> {
+pub async fn running_test_environment(cfg: torrust_tracker_configuration::Configuration) -> RunningTestEnvironment {
     TestEnvironment::new_running(cfg).await
 }
 
-pub fn http_server<I: HttpServerLauncher + 'static>(cfg: torrust_tracker_configuration::HttpTracker) -> StoppedHttpServer<I> {
-    let http_server = I::new();
-
-    HttpServer::new(cfg, http_server)
+#[allow(dead_code)]
+pub fn http_server(launcher: Launcher) -> StoppedHttpServer {
+    HttpServer::new(launcher)
 }

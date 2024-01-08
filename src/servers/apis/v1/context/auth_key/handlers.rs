@@ -10,10 +10,10 @@ use serde::Deserialize;
 use super::responses::{
     auth_key_response, failed_to_delete_key_response, failed_to_generate_key_response, failed_to_reload_keys_response,
 };
+use crate::core::auth::Key;
+use crate::core::Tracker;
 use crate::servers::apis::v1::context::auth_key::resources::AuthKey;
 use crate::servers::apis::v1::responses::{invalid_auth_key_param_response, ok_response};
-use crate::tracker::auth::Key;
-use crate::tracker::Tracker;
 
 /// It handles the request to generate a new authentication key.
 ///
