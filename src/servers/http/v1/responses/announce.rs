@@ -20,22 +20,22 @@ use crate::servers::http::v1::responses;
 ///
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{NonCompact, Peer};
+/// use torrust_tracker::servers::http::v1::responses::announce::{Normal, NormalPeer};
 ///
-/// let response = NonCompact {
+/// let response = Normal {
 ///     interval: 111,
 ///     interval_min: 222,
 ///     complete: 333,
 ///     incomplete: 444,
 ///     peers: vec![
 ///         // IPV4
-///         Peer {
+///         NormalPeer {
 ///             peer_id: *b"-qB00000000000000001",
 ///             ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
 ///             port: 0x7070,                                          // 28784
 ///         },
 ///         // IPV6
-///         Peer {
+///         NormalPeer {
 ///             peer_id: *b"-qB00000000000000002",
 ///             ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
 ///             port: 0x7070, // 28784
@@ -57,7 +57,7 @@ use crate::servers::http::v1::responses;
 /// Refer to [BEP 03: The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
 /// for more information.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct NonCompact {
+pub struct Normal {
     /// Interval in seconds that the client should wait between sending regular
     /// announce requests to the tracker.
     ///
@@ -88,24 +88,24 @@ pub struct NonCompact {
     /// Number of non-seeder peers, aka "leechers".
     pub incomplete: u32,
     /// A list of peers. The value is a list of dictionaries.
-    pub peers: Vec<Peer>,
+    pub peers: Vec<NormalPeer>,
 }
 
-/// Peer information in the [`NonCompact`]
+/// Peer information in the [`Normal`]
 /// response.
 ///
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{NonCompact, Peer};
+/// use torrust_tracker::servers::http::v1::responses::announce::{Normal, NormalPeer};
 ///
-/// let peer = Peer {
+/// let peer = NormalPeer {
 ///     peer_id: *b"-qB00000000000000001",
 ///     ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
 ///     port: 0x7070,                                          // 28784
 /// };
 /// ```
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Peer {
+pub struct NormalPeer {
     /// The peer's ID.
     pub peer_id: [u8; 20],
     /// The peer's IP address.
@@ -114,7 +114,7 @@ pub struct Peer {
     pub port: u16,
 }
 
-impl Peer {
+impl NormalPeer {
     #[must_use]
     pub fn ben_map(&self) -> BencodeMut<'_> {
         ben_map! {
@@ -125,9 +125,9 @@ impl Peer {
     }
 }
 
-impl From<core::peer::Peer> for Peer {
+impl From<core::peer::Peer> for NormalPeer {
     fn from(peer: core::peer::Peer) -> Self {
-        Peer {
+        NormalPeer {
             peer_id: peer.peer_id.to_bytes(),
             ip: peer.peer_addr.ip(),
             port: peer.peer_addr.port(),
@@ -135,7 +135,7 @@ impl From<core::peer::Peer> for Peer {
     }
 }
 
-impl NonCompact {
+impl Normal {
     /// Returns the bencoded body of the non-compact response.
     ///
     /// # Panics
@@ -160,15 +160,19 @@ impl NonCompact {
     }
 }
 
-impl IntoResponse for NonCompact {
+impl IntoResponse for Normal {
     fn into_response(self) -> Response {
         (StatusCode::OK, self.body()).into_response()
     }
 }
 
-impl From<AnnounceData> for NonCompact {
+impl From<AnnounceData> for Normal {
     fn from(domain_announce_response: AnnounceData) -> Self {
-        let peers: Vec<Peer> = domain_announce_response.peers.iter().map(|peer| Peer::from(*peer)).collect();
+        let peers: Vec<NormalPeer> = domain_announce_response
+            .peers
+            .iter()
+            .map(|peer| NormalPeer::from(*peer))
+            .collect();
 
         Self {
             interval: domain_announce_response.interval,
@@ -424,7 +428,7 @@ mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-    use super::{NonCompact, Peer};
+    use super::{Normal, NormalPeer};
     use crate::servers::http::v1::responses::announce::{Compact, CompactPeer};
 
     // Some ascii values used in tests:
@@ -441,20 +445,20 @@ mod tests {
 
     #[test]
     fn non_compact_announce_response_can_be_bencoded() {
-        let response = NonCompact {
+        let response = Normal {
             interval: 111,
             interval_min: 222,
             complete: 333,
             incomplete: 444,
             peers: vec![
                 // IPV4
-                Peer {
+                NormalPeer {
                     peer_id: *b"-qB00000000000000001",
                     ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
                     port: 0x7070,                                          // 28784
                 },
                 // IPV6
-                Peer {
+                NormalPeer {
                     peer_id: *b"-qB00000000000000002",
                     ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                     port: 0x7070, // 28784
