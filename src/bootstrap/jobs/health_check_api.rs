@@ -55,7 +55,7 @@ pub async fn start_job(config: Arc<Configuration>) -> JoinHandle<()> {
 
     // Wait until the API server job is running
     match rx_start.await {
-        Ok(msg) => info!("Torrust Health Check API server started on socket: {}", msg.address),
+        Ok(msg) => info!("Torrust Health Check API server started on: http://{}", msg.address),
         Err(e) => panic!("the Health Check API server was dropped: {e}"),
     }
 
