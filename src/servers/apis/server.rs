@@ -30,7 +30,7 @@ use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
-use log::error;
+use log::{error, info};
 use tokio::sync::oneshot::{Receiver, Sender};
 
 use super::routes::router;
@@ -102,7 +102,6 @@ impl ApiServer<Stopped> {
             launcher
         });
 
-        //let address = rx_start.await.expect("unable to start service").address;
         let api_server = match rx_start.await {
             Ok(started) => ApiServer {
                 state: Running {
@@ -112,7 +111,7 @@ impl ApiServer<Stopped> {
                 },
             },
             Err(err) => {
-                let msg = format!("unable to start API server: {err}");
+                let msg = format!("Unable to start API server: {err}");
                 error!("{}", msg);
                 panic!("{}", msg);
             }
@@ -170,10 +169,11 @@ impl Launcher {
         tokio::task::spawn(graceful_shutdown(
             handle.clone(),
             rx_halt,
-            format!("Shutting down http server on socket address: {address}"),
+            format!("Shutting down tracker API server on socket address: {address}"),
         ));
 
         let tls = self.tls.clone();
+        let protocol = if tls.is_some() { "https" } else { "http" };
 
         let running = Box::pin(async {
             match tls {
@@ -181,18 +181,20 @@ impl Launcher {
                     .handle(handle)
                     .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
-                    .expect("Axum server crashed."),
+                    .expect("Axum server for tracker API crashed."),
                 None => axum_server::from_tcp(socket)
                     .handle(handle)
                     .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
-                    .expect("Axum server crashed."),
+                    .expect("Axum server for tracker API crashed."),
             }
         });
 
+        info!(target: "API", "API server started on {protocol}://{}", address);
+
         tx_start
             .send(Started { address })
-            .expect("the HTTP(s) Tracker service should not be dropped");
+            .expect("the HTTP(s) Tracker API service should not be dropped");
 
         running
     }
