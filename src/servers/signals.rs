@@ -46,11 +46,16 @@ pub async fn global_shutdown_signal() {
 ///
 /// Will panic if the `stop_receiver` resolves with an error.
 pub async fn shutdown_signal(rx_halt: tokio::sync::oneshot::Receiver<Halted>) {
-    let halt = async { rx_halt.await.expect("Failed to install stop signal.") };
+    let halt = async {
+        match rx_halt.await {
+            Ok(signal) => signal,
+            Err(err) => panic!("Failed to install stop signal: {err}"),
+        }
+    };
 
     tokio::select! {
-        _ = halt => {},
-        () = global_shutdown_signal() => {}
+        signal = halt => { info!("Halt signal processed: {}", signal) },
+        () = global_shutdown_signal() => { info!("Global shutdown signal processed") }
     }
 }
 

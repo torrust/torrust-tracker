@@ -30,6 +30,7 @@ use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
+use log::error;
 use tokio::sync::oneshot::{Receiver, Sender};
 
 use super::routes::router;
@@ -101,13 +102,23 @@ impl ApiServer<Stopped> {
             launcher
         });
 
-        Ok(ApiServer {
-            state: Running {
-                binding: rx_start.await.expect("unable to start service").address,
-                halt_task: tx_halt,
-                task,
+        //let address = rx_start.await.expect("unable to start service").address;
+        let api_server = match rx_start.await {
+            Ok(started) => ApiServer {
+                state: Running {
+                    binding: started.address,
+                    halt_task: tx_halt,
+                    task,
+                },
             },
-        })
+            Err(err) => {
+                let msg = format!("unable to start API server: {err}");
+                error!("{}", msg);
+                panic!("{}", msg);
+            }
+        };
+
+        Ok(api_server)
     }
 }
 

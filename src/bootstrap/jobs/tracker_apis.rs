@@ -80,6 +80,7 @@ async fn start_v1(socket: SocketAddr, tls: Option<RustlsConfig>, tracker: Arc<co
         .expect("it should be able to start to the tracker api");
 
     tokio::spawn(async move {
+        assert!(!server.state.halt_task.is_closed(), "Halt channel should be open");
         server.state.task.await.expect("failed to close service");
     })
 }
