@@ -6,6 +6,7 @@ use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
+use log::info;
 use tokio::sync::oneshot::{Receiver, Sender};
 
 use super::v1::routes::router;
@@ -51,6 +52,9 @@ impl Launcher {
         ));
 
         let tls = self.tls.clone();
+        let protocol = if tls.is_some() { "https" } else { "http" };
+
+        info!(target: "HTTP Tracker", "Starting on: {protocol}://{}", address);
 
         let running = Box::pin(async {
             match tls {
@@ -66,6 +70,8 @@ impl Launcher {
                     .expect("Axum server crashed."),
             }
         });
+
+        info!(target: "HTTP Tracker", "Started on: {protocol}://{}", address);
 
         tx_start
             .send(Started { address })
