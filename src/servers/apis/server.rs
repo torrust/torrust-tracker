@@ -170,7 +170,7 @@ impl Launcher {
         tokio::task::spawn(graceful_shutdown(
             handle.clone(),
             rx_halt,
-            format!("shutting down http server on socket address: {address}"),
+            format!("Shutting down http server on socket address: {address}"),
         ));
 
         let tls = self.tls.clone();

@@ -22,7 +22,7 @@ pub struct Started {
 
 pub async fn make_rust_tls(enabled: bool, cert: &Option<String>, key: &Option<String>) -> Option<Result<RustlsConfig, Error>> {
     if !enabled {
-        info!("tls not enabled");
+        info!("TLS not enabled");
         return None;
     }
 
