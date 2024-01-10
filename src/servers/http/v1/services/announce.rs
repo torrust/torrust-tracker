@@ -94,6 +94,7 @@ mod tests {
         use std::sync::Arc;
 
         use mockall::predicate::eq;
+        use torrust_tracker_configuration::AnnouncePolicy;
         use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
@@ -113,13 +114,12 @@ mod tests {
 
             let expected_announce_data = AnnounceData {
                 peers: vec![],
-                swarm_stats: SwarmStats {
+                stats: SwarmStats {
                     downloaded: 0,
                     complete: 1,
                     incomplete: 0,
                 },
-                interval: tracker.config.announce_interval,
-                interval_min: tracker.config.min_announce_interval,
+                policy: AnnouncePolicy::default(),
             };
 
             assert_eq!(announce_data, expected_announce_data);

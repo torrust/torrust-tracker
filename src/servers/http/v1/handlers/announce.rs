@@ -22,7 +22,7 @@ use crate::servers::http::v1::extractors::authentication_key::Extract as Extract
 use crate::servers::http::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
 use crate::servers::http::v1::handlers::common::auth;
 use crate::servers::http::v1::requests::announce::{Announce, Compact, Event};
-use crate::servers::http::v1::responses::{self, announce};
+use crate::servers::http::v1::responses::{self};
 use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
 use crate::servers::http::v1::services::{self, peer_ip_resolver};
 use crate::shared::clock::{Current, Time};
@@ -117,13 +117,12 @@ async fn handle_announce(
 }
 
 fn build_response(announce_request: &Announce, announce_data: AnnounceData) -> Response {
-    match &announce_request.compact {
-        Some(compact) => match compact {
-            Compact::Accepted => announce::Compact::from(announce_data).into_response(),
-            Compact::NotAccepted => announce::Normal::from(announce_data).into_response(),
-        },
-        // Default response format non compact
-        None => announce::Normal::from(announce_data).into_response(),
+    if announce_request.compact.as_ref().is_some_and(|f| *f == Compact::Accepted) {
+        let response: responses::Announce<responses::Compact> = announce_data.into();
+        response.into_response()
+    } else {
+        let response: responses::Announce<responses::Normal> = announce_data.into();
+        response.into_response()
     }
 }
 

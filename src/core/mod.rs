@@ -98,12 +98,12 @@
 //!
 //! ```rust,no_run
 //! use torrust_tracker::core::peer::Peer;
+//! use torrust_tracker_configuration::AnnouncePolicy;
 //!
 //! pub struct AnnounceData {
 //!     pub peers: Vec<Peer>,
 //!     pub swarm_stats: SwarmStats,
-//!     pub interval: u32, // Option `announce_interval` from core tracker configuration
-//!     pub interval_min: u32, // Option `min_announce_interval` from core tracker configuration
+//!     pub policy: AnnouncePolicy, // the tracker announce policy.
 //! }
 //!
 //! pub struct SwarmStats {
@@ -445,9 +445,10 @@ use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
+use derive_more::Constructor;
 use futures::future::join_all;
 use tokio::sync::mpsc::error::SendError;
-use torrust_tracker_configuration::Configuration;
+use torrust_tracker_configuration::{AnnouncePolicy, Configuration};
 use torrust_tracker_primitives::TrackerMode;
 
 use self::auth::Key;
@@ -487,7 +488,7 @@ pub struct Tracker {
 /// Structure that holds general `Tracker` torrents metrics.
 ///
 /// Metrics are aggregate values for all torrents.
-#[derive(Debug, PartialEq, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct TorrentsMetrics {
     /// Total number of seeders for all torrents
     pub seeders: u64,
@@ -500,20 +501,14 @@ pub struct TorrentsMetrics {
 }
 
 /// Structure that holds the data returned by the `announce` request.
-#[derive(Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq, Constructor, Default)]
 pub struct AnnounceData {
     /// The list of peers that are downloading the same torrent.
     /// It excludes the peer that made the request.
     pub peers: Vec<Peer>,
     /// Swarm statistics
-    pub swarm_stats: SwarmStats,
-    /// The interval in seconds that the client should wait between sending
-    /// regular requests to the tracker.
-    /// Refer to [`announce_interval`](torrust_tracker_configuration::Configuration::announce_interval).
-    pub interval: u32,
-    /// The minimum announce interval in seconds that the client should wait.
-    /// Refer to [`min_announce_interval`](torrust_tracker_configuration::Configuration::min_announce_interval).
-    pub interval_min: u32,
+    pub stats: SwarmStats,
+    pub policy: AnnouncePolicy,
 }
 
 /// Structure that holds the data returned by the `scrape` request.
@@ -628,11 +623,12 @@ impl Tracker {
 
         let peers = self.get_torrent_peers_for_peer(info_hash, peer).await;
 
+        let policy = AnnouncePolicy::new(self.config.announce_interval, self.config.min_announce_interval);
+
         AnnounceData {
             peers,
-            swarm_stats,
-            interval: self.config.announce_interval,
-            interval_min: self.config.min_announce_interval,
+            stats: swarm_stats,
+            policy,
         }
     }
 
@@ -1390,7 +1386,7 @@ mod tests {
 
                         let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
-                        assert_eq!(announce_data.swarm_stats.complete, 1);
+                        assert_eq!(announce_data.stats.complete, 1);
                     }
 
                     #[tokio::test]
@@ -1401,7 +1397,7 @@ mod tests {
 
                         let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
-                        assert_eq!(announce_data.swarm_stats.incomplete, 1);
+                        assert_eq!(announce_data.stats.incomplete, 1);
                     }
 
                     #[tokio::test]
@@ -1415,7 +1411,7 @@ mod tests {
                         let mut completed_peer = completed_peer();
                         let announce_data = tracker.announce(&sample_info_hash(), &mut completed_peer, &peer_ip()).await;
 
-                        assert_eq!(announce_data.swarm_stats.downloaded, 1);
+                        assert_eq!(announce_data.stats.downloaded, 1);
                     }
                 }
             }

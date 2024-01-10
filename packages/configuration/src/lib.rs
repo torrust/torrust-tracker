@@ -236,6 +236,7 @@ use std::sync::Arc;
 use std::{env, fs};
 
 use config::{Config, ConfigError, File, FileFormat};
+use derive_more::Constructor;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use thiserror::Error;
@@ -388,7 +389,7 @@ pub struct HealthCheckApi {
 }
 
 /// Announce policy
-#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Constructor)]
 pub struct AnnouncePolicy {
     /// Interval in seconds that the client should wait between sending regular
     /// announce requests to the tracker.
@@ -537,6 +538,7 @@ impl From<ConfigError> for Error {
 impl Default for Configuration {
     fn default() -> Self {
         let announce_policy = AnnouncePolicy::default();
+
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             mode: TrackerMode::Public,

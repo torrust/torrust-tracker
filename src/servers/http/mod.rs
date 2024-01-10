@@ -152,7 +152,7 @@
 //! 000000f0: 65                                       e
 //! ```
 //!
-//! Refer to the [`Normal`](crate::servers::http::v1::responses::announce::Normal)
+//! Refer to the [`Normal`](crate::servers::http::v1::responses::announce::Normal), i.e. `Non-Compact`
 //! response for more information about the response.
 //!
 //! **Sample compact response**
