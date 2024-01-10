@@ -32,6 +32,7 @@
         "Containerfile",
         "curr",
         "Cyberneering",
+        "datagram",
         "datetime",
         "Dijke",
         "distroless",
@@ -79,6 +80,7 @@
         "nonroot",
         "Norberg",
         "numwant",
+        "nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7",
         "oneshot",
         "ostr",
         "Pando",
@@ -129,8 +131,7 @@
         "Xtorrent",
         "Xunlei",
         "xxxxxxxxxxxxxxxxxxxxd",
-        "yyyyyyyyyyyyyyyyyyyyd",
-        "nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7"
+        "yyyyyyyyyyyyyyyyyyyyd"
     ],
     "enableFiletypes": [
         "dockerfile",

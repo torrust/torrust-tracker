@@ -120,22 +120,29 @@ impl UdpServer<Stopped> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
 
+        assert!(!tx_halt.is_closed(), "Halt channel for UDP tracker should be open");
+
         let launcher = self.state.launcher;
 
         let task = tokio::spawn(async move {
-            launcher.start(tracker, tx_start, rx_halt).await;
+            debug!(target: "UDP Tracker", "Launcher starting ...");
+
+            let starting = launcher.start(tracker, tx_start, rx_halt).await;
+
+            starting.await.expect("UDP server should have started running");
+
             launcher
         });
 
+        let binding = rx_start.await.expect("unable to start service").address;
+
         let running_udp_server: UdpServer<Running> = UdpServer {
             state: Running {
-                binding: rx_start.await.expect("unable to start service").address,
+                binding,
                 halt_task: tx_halt,
                 task,
             },
         };
-
-        info!("Running UDP Tracker on Socket: {}", running_udp_server.state.binding);
 
         Ok(running_udp_server)
     }
@@ -202,41 +209,62 @@ impl Udp {
         tx_start: Sender<Started>,
         rx_halt: Receiver<Halted>,
     ) -> JoinHandle<()> {
-        let binding = Arc::new(UdpSocket::bind(bind_to).await.expect("Could not bind to {self.socket}."));
-        let address = binding.local_addr().expect("Could not get local_addr from {binding}.");
+        let socket = Arc::new(UdpSocket::bind(bind_to).await.expect("Could not bind to {self.socket}."));
+        let address = socket.local_addr().expect("Could not get local_addr from {binding}.");
+
+        info!(target: "UDP Tracker", "Starting on: udp://{}", address);
 
         let running = tokio::task::spawn(async move {
-            let halt = async move {
-                shutdown_signal_with_message(rx_halt, format!("Halting Http Service Bound to Socket: {address}")).await;
+            let halt = tokio::task::spawn(async move {
+                debug!(target: "UDP Tracker", "Waiting for halt signal for socket address: udp://{address}  ...");
+
+                shutdown_signal_with_message(
+                    rx_halt,
+                    format!("Shutting down UDP server on socket address: udp://{address}"),
+                )
+                .await;
+            });
+
+            let listen = async move {
+                debug!(target: "UDP Tracker", "Waiting for packets on socket address: udp://{address} ...");
+
+                loop {
+                    let mut data = [0; MAX_PACKET_SIZE];
+                    let socket_clone = socket.clone();
+
+                    match socket_clone.recv_from(&mut data).await {
+                        Ok((valid_bytes, remote_addr)) => {
+                            let payload = data[..valid_bytes].to_vec();
+
+                            debug!(target: "UDP Tracker", "Received {} bytes", payload.len());
+                            debug!(target: "UDP Tracker", "From: {}", &remote_addr);
+                            debug!(target: "UDP Tracker", "Payload: {:?}", payload);
+
+                            let response = handle_packet(remote_addr, payload, &tracker).await;
+
+                            Udp::send_response(socket_clone, remote_addr, response).await;
+                        }
+                        Err(err) => {
+                            error!("Error reading UDP datagram from socket. Error: {:?}", err);
+                        }
+                    }
+                }
             };
 
             pin_mut!(halt);
+            pin_mut!(listen);
 
-            loop {
-                let mut data = [0; MAX_PACKET_SIZE];
-                let binding = binding.clone();
+            tx_start
+                .send(Started { address })
+                .expect("the UDP Tracker service should not be dropped");
 
-                tokio::select! {
-                    () = & mut halt => {},
-
-                    Ok((valid_bytes, remote_addr)) = binding.recv_from(&mut data) => {
-                        let payload = data[..valid_bytes].to_vec();
-
-                        debug!("Received {} bytes", payload.len());
-                        debug!("From: {}", &remote_addr);
-                        debug!("Payload: {:?}", payload);
-
-                        let response = handle_packet(remote_addr, payload, &tracker).await;
-
-                        Udp::send_response(binding, remote_addr, response).await;
-                    }
-                }
+            tokio::select! {
+                _ = & mut halt => { debug!(target: "UDP Tracker", "Halt signal spawned task stopped on address: udp://{address}"); },
+                () = & mut listen => { debug!(target: "UDP Tracker", "Socket listener stopped on address: udp://{address}"); },
             }
         });
 
-        tx_start
-            .send(Started { address })
-            .expect("the UDP Tracker service should not be dropped");
+        info!(target: "UDP Tracker", "Started on: udp://{}", address);
 
         running
     }
