@@ -44,18 +44,18 @@ pub async fn start_job(config: Arc<Configuration>) -> JoinHandle<()> {
 
     // Run the API server
     let join_handle = tokio::spawn(async move {
-        info!("Starting Health Check API server: http://{}", bind_addr);
+        info!(target: "Health Check API", "Starting on: http://{}", bind_addr);
 
         let handle = server::start(bind_addr, tx_start, config.clone());
 
         if let Ok(()) = handle.await {
-            info!("Health Check API server on http://{} stopped", bind_addr);
+            info!(target: "Health Check API", "Stopped server running on: http://{}", bind_addr);
         }
     });
 
     // Wait until the API server job is running
     match rx_start.await {
-        Ok(msg) => info!("Torrust Health Check API server started on: http://{}", msg.address),
+        Ok(msg) => info!(target: "Health Check API", "Started on: http://{}", msg.address),
         Err(e) => panic!("the Health Check API server was dropped: {e}"),
     }
 
