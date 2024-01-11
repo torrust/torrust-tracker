@@ -8,6 +8,7 @@
 //! for the configuration options.
 use std::sync::Arc;
 
+use log::debug;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::UdpTracker;
 
@@ -36,10 +37,20 @@ pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>) -> Join
         .expect("it should be able to start the udp tracker");
 
     tokio::spawn(async move {
+        debug!(target: "UDP Tracker", "Wait for launcher (UDP service) to finish ...");
+        debug!(target: "UDP Tracker", "Is halt channel closed before waiting?: {}", server.state.halt_task.is_closed());
+
+        assert!(
+            !server.state.halt_task.is_closed(),
+            "Halt channel for UDP tracker should be open"
+        );
+
         server
             .state
             .task
             .await
             .expect("it should be able to join to the udp tracker task");
+
+        debug!(target: "UDP Tracker", "Is halt channel closed after finishing the server?: {}", server.state.halt_task.is_closed());
     })
 }

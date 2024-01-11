@@ -175,6 +175,8 @@ impl Launcher {
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { "https" } else { "http" };
 
+        info!(target: "API", "Starting on {protocol}://{}", address);
+
         let running = Box::pin(async {
             match tls {
                 Some(tls) => axum_server::from_tcp_rustls(socket, tls)
@@ -190,7 +192,7 @@ impl Launcher {
             }
         });
 
-        info!(target: "API", "API server started on {protocol}://{}", address);
+        info!(target: "API", "Started on {protocol}://{}", address);
 
         tx_start
             .send(Started { address })
