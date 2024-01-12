@@ -277,9 +277,85 @@ impl Serialize for Id {
     }
 }
 
-#[cfg(test)]
-mod test {
+pub mod fixture {
+    use std::net::SocketAddr;
 
+    use aquatic_udp_protocol::NumberOfBytes;
+
+    use super::{Id, Peer};
+
+    #[derive(PartialEq, Debug)]
+
+    pub struct PeerBuilder {
+        peer: Peer,
+    }
+
+    #[allow(clippy::derivable_impls)]
+    impl Default for PeerBuilder {
+        fn default() -> Self {
+            Self { peer: Peer::default() }
+        }
+    }
+
+    impl PeerBuilder {
+        #[allow(dead_code)]
+        #[must_use]
+        pub fn with_peer_id(mut self, peer_id: &Id) -> Self {
+            self.peer.peer_id = *peer_id;
+            self
+        }
+
+        #[allow(dead_code)]
+        #[must_use]
+        pub fn with_peer_addr(mut self, peer_addr: &SocketAddr) -> Self {
+            self.peer.peer_addr = *peer_addr;
+            self
+        }
+
+        #[allow(dead_code)]
+        #[must_use]
+        pub fn with_bytes_pending_to_download(mut self, left: i64) -> Self {
+            self.peer.left = NumberOfBytes(left);
+            self
+        }
+
+        #[allow(dead_code)]
+        #[must_use]
+        pub fn with_no_bytes_pending_to_download(mut self) -> Self {
+            self.peer.left = NumberOfBytes(0);
+            self
+        }
+
+        #[allow(dead_code)]
+        #[must_use]
+        pub fn build(self) -> Peer {
+            self.into()
+        }
+
+        #[allow(dead_code)]
+        #[must_use]
+        pub fn into(self) -> Peer {
+            self.peer
+        }
+    }
+
+    impl Default for Peer {
+        fn default() -> Self {
+            Self {
+                peer_id: Id(*b"-qB00000000000000000"),
+                peer_addr: std::net::SocketAddr::new(std::net::IpAddr::V4(std::net::Ipv4Addr::new(126, 0, 0, 1)), 8080),
+                updated: crate::shared::clock::DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+                uploaded: NumberOfBytes(0),
+                downloaded: NumberOfBytes(0),
+                left: NumberOfBytes(0),
+                event: aquatic_udp_protocol::AnnounceEvent::Started,
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+pub mod test {
     mod torrent_peer_id {
         use crate::core::peer;
 

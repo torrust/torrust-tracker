@@ -3462,6 +3462,7 @@ name = "torrust-tracker-configuration"
 version = "3.0.0-alpha.12-develop"
 dependencies = [
  "config",
+ "derive_more",
  "log",
  "serde",
  "serde_with",

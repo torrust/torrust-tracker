@@ -134,7 +134,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to save.
-    async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error>;
+    async fn save_persistent_torrent(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error>;
 
     // Whitelist
 

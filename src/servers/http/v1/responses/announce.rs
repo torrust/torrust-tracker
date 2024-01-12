@@ -2,110 +2,184 @@
 //!
 //! Data structures and logic to build the `announce` response.
 use std::io::Write;
-use std::net::IpAddr;
-use std::panic::Location;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
-use serde::{self, Deserialize, Serialize};
-use thiserror::Error;
+use derive_more::{AsRef, Constructor, From};
 use torrust_tracker_contrib_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
 
+use super::Response;
+use crate::core::peer::Peer;
 use crate::core::{self, AnnounceData};
 use crate::servers::http::v1::responses;
 
-/// Normal (non compact) `announce` response.
+/// An [`Announce`] response, that can be anything that is convertible from [`AnnounceData`].
 ///
-/// It's a bencoded dictionary.
+/// The [`Announce`] can built from any data that implements: [`From<AnnounceData>`] and [`Into<Vec<u8>>`].
 ///
-/// ```rust
-/// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{NonCompact, Peer};
+/// The two standard forms of an announce response are: [`Normal`] and [`Compact`].
 ///
-/// let response = NonCompact {
-///     interval: 111,
-///     interval_min: 222,
-///     complete: 333,
-///     incomplete: 444,
-///     peers: vec![
-///         // IPV4
-///         Peer {
-///             peer_id: *b"-qB00000000000000001",
-///             ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
-///             port: 0x7070,                                          // 28784
-///         },
-///         // IPV6
-///         Peer {
-///             peer_id: *b"-qB00000000000000002",
-///             ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-///             port: 0x7070, // 28784
-///         },
-///     ],
-/// };
 ///
-/// let bytes = response.body();
+/// _"To reduce the size of tracker responses and to reduce memory and
+/// computational requirements in trackers, trackers may return peers as a
+/// packed string rather than as a bencoded list."_
 ///
-/// // The expected bencoded response.
-/// let expected_bytes = b"d8:completei333e10:incompletei444e8:intervali111e12:min intervali222e5:peersld2:ip15:105.105.105.1057:peer id20:-qB000000000000000014:porti28784eed2:ip39:6969:6969:6969:6969:6969:6969:6969:69697:peer id20:-qB000000000000000024:porti28784eeee";
+/// Refer to the official BEPs for more information:
 ///
-/// assert_eq!(
-///     String::from_utf8(bytes).unwrap(),
-///     String::from_utf8(expected_bytes.to_vec()).unwrap()
-/// );
-/// ```
-///
-/// Refer to [BEP 03: The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-/// for more information.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct NonCompact {
-    /// Interval in seconds that the client should wait between sending regular
-    /// announce requests to the tracker.
-    ///
-    /// It's a **recommended** wait time between announcements.
-    ///
-    /// This is the standard amount of time that clients should wait between
-    /// sending consecutive announcements to the tracker. This value is set by
-    /// the tracker and is typically provided in the tracker's response to a
-    /// client's initial request. It serves as a guideline for clients to know
-    /// how often they should contact the tracker for updates on the peer list,
-    /// while ensuring that the tracker is not overwhelmed with requests.
-    pub interval: u32,
-    /// Minimum announce interval. Clients must not reannounce more frequently
-    /// than this.
-    ///
-    /// It establishes the shortest allowed wait time.
-    ///
-    /// This is an optional parameter in the protocol that the tracker may
-    /// provide in its response. It sets a lower limit on the frequency at which
-    /// clients are allowed to send announcements. Clients should respect this
-    /// value to prevent sending too many requests in a short period, which
-    /// could lead to excessive load on the tracker or even getting banned by
-    /// the tracker for not adhering to the rules.
-    #[serde(rename = "min interval")]
-    pub interval_min: u32,
-    /// Number of peers with the entire file, i.e. seeders.
-    pub complete: u32,
-    /// Number of non-seeder peers, aka "leechers".
-    pub incomplete: u32,
-    /// A list of peers. The value is a list of dictionaries.
-    pub peers: Vec<Peer>,
+/// - [BEP 03: The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
+/// - [BEP 23: Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
+/// - [BEP 07: IPv6 Tracker Extension](https://www.bittorrent.org/beps/bep_0007.html)
+
+#[derive(Debug, AsRef, PartialEq, Constructor)]
+pub struct Announce<E>
+where
+    E: From<AnnounceData> + Into<Vec<u8>>,
+{
+    data: E,
 }
 
-/// Peer information in the [`NonCompact`]
-/// response.
+/// Build any [`Announce`] from an [`AnnounceData`].
+impl<E: From<AnnounceData> + Into<Vec<u8>>> From<AnnounceData> for Announce<E> {
+    fn from(data: AnnounceData) -> Self {
+        Self::new(data.into())
+    }
+}
+
+/// Convert any Announce [`Announce`] into a [`axum::response::Response`]
+impl<E: From<AnnounceData> + Into<Vec<u8>>> axum::response::IntoResponse for Announce<E>
+where
+    Announce<E>: Response,
+{
+    fn into_response(self) -> axum::response::Response {
+        axum::response::IntoResponse::into_response(self.body().map(|bytes| (StatusCode::OK, bytes)))
+    }
+}
+
+/// Implement the [`Response`] for the [`Announce`].
+///
+impl<E: From<AnnounceData> + Into<Vec<u8>>> Response for Announce<E> {
+    fn body(self) -> Result<Vec<u8>, responses::error::Error> {
+        Ok(self.data.into())
+    }
+}
+
+/// Format of the [`Normal`] (Non-Compact) Encoding
+pub struct Normal {
+    complete: i64,
+    incomplete: i64,
+    interval: i64,
+    min_interval: i64,
+    peers: Vec<NormalPeer>,
+}
+
+impl From<AnnounceData> for Normal {
+    fn from(data: AnnounceData) -> Self {
+        Self {
+            complete: data.stats.complete.into(),
+            incomplete: data.stats.incomplete.into(),
+            interval: data.policy.interval.into(),
+            min_interval: data.policy.interval_min.into(),
+            peers: data.peers.into_iter().collect(),
+        }
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<Vec<u8>> for Normal {
+    fn into(self) -> Vec<u8> {
+        let mut peers_list = ben_list!();
+        let peers_list_mut = peers_list.list_mut().unwrap();
+        for peer in &self.peers {
+            peers_list_mut.push(peer.into());
+        }
+
+        (ben_map! {
+            "complete" => ben_int!(self.complete),
+            "incomplete" => ben_int!(self.incomplete),
+            "interval" => ben_int!(self.interval),
+            "min interval" => ben_int!(self.min_interval),
+            "peers" => peers_list.clone()
+        })
+        .encode()
+    }
+}
+
+/// Format of the [`Compact`] Encoding
+pub struct Compact {
+    complete: i64,
+    incomplete: i64,
+    interval: i64,
+    min_interval: i64,
+    peers: Vec<u8>,
+    peers6: Vec<u8>,
+}
+
+impl From<AnnounceData> for Compact {
+    fn from(data: AnnounceData) -> Self {
+        let compact_peers: Vec<CompactPeer> = data.peers.into_iter().collect();
+
+        let (peers, peers6): (Vec<CompactPeerData<Ipv4Addr>>, Vec<CompactPeerData<Ipv6Addr>>) =
+            compact_peers.into_iter().collect();
+
+        let peers_encoded: CompactPeersEncoded = peers.into_iter().collect();
+        let peers_encoded_6: CompactPeersEncoded = peers6.into_iter().collect();
+
+        Self {
+            complete: data.stats.complete.into(),
+            incomplete: data.stats.incomplete.into(),
+            interval: data.policy.interval.into(),
+            min_interval: data.policy.interval_min.into(),
+            peers: peers_encoded.0,
+            peers6: peers_encoded_6.0,
+        }
+    }
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<Vec<u8>> for Compact {
+    fn into(self) -> Vec<u8> {
+        (ben_map! {
+            "complete" => ben_int!(self.complete),
+            "incomplete" => ben_int!(self.incomplete),
+            "interval" => ben_int!(self.interval),
+            "min interval" => ben_int!(self.min_interval),
+            "peers" => ben_bytes!(self.peers),
+            "peers6" => ben_bytes!(self.peers6)
+        })
+        .encode()
+    }
+}
+
+/// Marker Trait for Peer Vectors
+pub trait PeerEncoding: From<Peer> + PartialEq {}
+
+impl<P: PeerEncoding> FromIterator<Peer> for Vec<P> {
+    fn from_iter<T: IntoIterator<Item = Peer>>(iter: T) -> Self {
+        let mut peers: Vec<P> = vec![];
+
+        for peer in iter {
+            peers.push(peer.into());
+        }
+
+        peers
+    }
+}
+
+/// A [`NormalPeer`], for the [`Normal`] form.
 ///
 /// ```rust
 /// use std::net::{IpAddr, Ipv4Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{NonCompact, Peer};
+/// use torrust_tracker::servers::http::v1::responses::announce::{Normal, NormalPeer};
 ///
-/// let peer = Peer {
+/// let peer = NormalPeer {
 ///     peer_id: *b"-qB00000000000000001",
 ///     ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
 ///     port: 0x7070,                                          // 28784
 /// };
-/// ```
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Peer {
+///
+///  ```
+#[derive(Debug, PartialEq)]
+pub struct NormalPeer {
     /// The peer's ID.
     pub peer_id: [u8; 20],
     /// The peer's IP address.
@@ -114,20 +188,11 @@ pub struct Peer {
     pub port: u16,
 }
 
-impl Peer {
-    #[must_use]
-    pub fn ben_map(&self) -> BencodeMut<'_> {
-        ben_map! {
-            "peer id" => ben_bytes!(self.peer_id.clone().to_vec()),
-            "ip" => ben_bytes!(self.ip.to_string()),
-            "port" => ben_int!(i64::from(self.port))
-        }
-    }
-}
+impl PeerEncoding for NormalPeer {}
 
-impl From<core::peer::Peer> for Peer {
+impl From<core::peer::Peer> for NormalPeer {
     fn from(peer: core::peer::Peer) -> Self {
-        Peer {
+        NormalPeer {
             peer_id: peer.peer_id.to_bytes(),
             ip: peer.peer_addr.ip(),
             port: peer.peer_addr.port(),
@@ -135,136 +200,19 @@ impl From<core::peer::Peer> for Peer {
     }
 }
 
-impl NonCompact {
-    /// Returns the bencoded body of the non-compact response.
-    ///
-    /// # Panics
-    ///
-    /// Will return an error if it can't access the bencode as a mutable `BListAccess`.
-    #[must_use]
-    pub fn body(&self) -> Vec<u8> {
-        let mut peers_list = ben_list!();
-        let peers_list_mut = peers_list.list_mut().unwrap();
-        for peer in &self.peers {
-            peers_list_mut.push(peer.ben_map());
-        }
-
-        (ben_map! {
-            "complete" => ben_int!(i64::from(self.complete)),
-            "incomplete" => ben_int!(i64::from(self.incomplete)),
-            "interval" => ben_int!(i64::from(self.interval)),
-            "min interval" => ben_int!(i64::from(self.interval_min)),
-            "peers" => peers_list.clone()
-        })
-        .encode()
-    }
-}
-
-impl IntoResponse for NonCompact {
-    fn into_response(self) -> Response {
-        (StatusCode::OK, self.body()).into_response()
-    }
-}
-
-impl From<AnnounceData> for NonCompact {
-    fn from(domain_announce_response: AnnounceData) -> Self {
-        let peers: Vec<Peer> = domain_announce_response.peers.iter().map(|peer| Peer::from(*peer)).collect();
-
-        Self {
-            interval: domain_announce_response.interval,
-            interval_min: domain_announce_response.interval_min,
-            complete: domain_announce_response.swarm_stats.seeders,
-            incomplete: domain_announce_response.swarm_stats.leechers,
-            peers,
+impl From<&NormalPeer> for BencodeMut<'_> {
+    fn from(value: &NormalPeer) -> Self {
+        ben_map! {
+            "peer id" => ben_bytes!(value.peer_id.clone().to_vec()),
+            "ip" => ben_bytes!(value.ip.to_string()),
+            "port" => ben_int!(i64::from(value.port))
         }
     }
 }
 
-/// Compact `announce` response.
+/// A [`CompactPeer`], for the [`Compact`] form.
 ///
-/// _"To reduce the size of tracker responses and to reduce memory and
-/// computational requirements in trackers, trackers may return peers as a
-/// packed string rather than as a bencoded list."_
-///
-/// ```rust
-/// use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::{Compact, CompactPeer};
-///
-/// let response = Compact {
-///     interval: 111,
-///     interval_min: 222,
-///     complete: 333,
-///     incomplete: 444,
-///     peers: vec![
-///         // IPV4
-///         CompactPeer {
-///             ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
-///             port: 0x7070,                                          // 28784
-///         },
-///         // IPV6
-///         CompactPeer {
-///             ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-///             port: 0x7070, // 28784
-///         },
-///     ],
-/// };
-///
-/// let bytes = response.body().unwrap();
-///
-/// // The expected bencoded response.
-/// let expected_bytes =
-///     // cspell:disable-next-line
-///     b"d8:completei333e10:incompletei444e8:intervali111e12:min intervali222e5:peers6:iiiipp6:peers618:iiiiiiiiiiiiiiiippe";
-///
-/// assert_eq!(
-///     String::from_utf8(bytes).unwrap(),
-///     String::from_utf8(expected_bytes.to_vec()).unwrap()
-/// );
-/// ```
-///
-/// Refer to the official BEPs for more information:
-///
-/// - [BEP 23: Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
-/// - [BEP 07: IPv6 Tracker Extension](https://www.bittorrent.org/beps/bep_0007.html)
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Compact {
-    /// Interval in seconds that the client should wait between sending regular
-    /// announce requests to the tracker.
-    ///
-    /// It's a **recommended** wait time between announcements.
-    ///
-    /// This is the standard amount of time that clients should wait between
-    /// sending consecutive announcements to the tracker. This value is set by
-    /// the tracker and is typically provided in the tracker's response to a
-    /// client's initial request. It serves as a guideline for clients to know
-    /// how often they should contact the tracker for updates on the peer list,
-    /// while ensuring that the tracker is not overwhelmed with requests.    
-    pub interval: u32,
-    /// Minimum announce interval. Clients must not reannounce more frequently
-    /// than this.
-    ///
-    /// It establishes the shortest allowed wait time.
-    ///
-    /// This is an optional parameter in the protocol that the tracker may
-    /// provide in its response. It sets a lower limit on the frequency at which
-    /// clients are allowed to send announcements. Clients should respect this
-    /// value to prevent sending too many requests in a short period, which
-    /// could lead to excessive load on the tracker or even getting banned by
-    /// the tracker for not adhering to the rules.    
-    #[serde(rename = "min interval")]
-    pub interval_min: u32,
-    /// Number of seeders, aka "completed".
-    pub complete: u32,
-    /// Number of non-seeder peers, aka "incomplete".
-    pub incomplete: u32,
-    /// Compact peer list.
-    pub peers: Vec<CompactPeer>,
-}
-
-/// Compact peer. It's used in the [`Compact`]
-/// response.
-///
-/// _"To reduce the size of tracker responses and to reduce memory and
+///  _"To reduce the size of tracker responses and to reduce memory and
 /// computational requirements in trackers, trackers may return peers as a
 /// packed string rather than as a bencoded list."_
 ///
@@ -272,160 +220,107 @@ pub struct Compact {
 /// the peer's ID.
 ///
 /// ```rust
-/// use std::net::{IpAddr, Ipv4Addr};
-/// use torrust_tracker::servers::http::v1::responses::announce::CompactPeer;
+///  use std::net::{IpAddr, Ipv4Addr};
+///  use torrust_tracker::servers::http::v1::responses::announce::{Compact, CompactPeer, CompactPeerData};
 ///
-/// let compact_peer = CompactPeer {
-///     ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
-///     port: 0x7070                                           // 28784
-/// };
-/// ```
+///  let peer = CompactPeer::V4(CompactPeerData {
+///     ip: Ipv4Addr::new(0x69, 0x69, 0x69, 0x69), // 105.105.105.105
+///     port: 0x7070, // 28784
+/// });
+///
+///  ```
 ///
 /// Refer to [BEP 23: Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
 /// for more information.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct CompactPeer {
+#[derive(Clone, Debug, PartialEq)]
+pub enum CompactPeer {
     /// The peer's IP address.
-    pub ip: IpAddr,
+    V4(CompactPeerData<Ipv4Addr>),
+    /// The peer's port number.
+    V6(CompactPeerData<Ipv6Addr>),
+}
+
+impl PeerEncoding for CompactPeer {}
+
+impl From<core::peer::Peer> for CompactPeer {
+    fn from(peer: core::peer::Peer) -> Self {
+        match (peer.peer_addr.ip(), peer.peer_addr.port()) {
+            (IpAddr::V4(ip), port) => Self::V4(CompactPeerData { ip, port }),
+            (IpAddr::V6(ip), port) => Self::V6(CompactPeerData { ip, port }),
+        }
+    }
+}
+
+/// The [`CompactPeerData`], that made with either a [`Ipv4Addr`], or [`Ipv6Addr`] along with a `port`.
+///
+#[derive(Clone, Debug, PartialEq)]
+pub struct CompactPeerData<V> {
+    /// The peer's IP address.
+    pub ip: V,
     /// The peer's port number.
     pub port: u16,
 }
 
-impl CompactPeer {
-    /// Returns the compact peer as a byte vector.
-    ///
-    /// # Errors
-    ///
-    /// Will return `Err` if internally interrupted.
-    pub fn bytes(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+impl FromIterator<CompactPeer> for (Vec<CompactPeerData<Ipv4Addr>>, Vec<CompactPeerData<Ipv6Addr>>) {
+    fn from_iter<T: IntoIterator<Item = CompactPeer>>(iter: T) -> Self {
+        let mut peers_v4: Vec<CompactPeerData<Ipv4Addr>> = vec![];
+        let mut peers_v6: Vec<CompactPeerData<Ipv6Addr>> = vec![];
+
+        for peer in iter {
+            match peer {
+                CompactPeer::V4(peer) => peers_v4.push(peer),
+                CompactPeer::V6(peer6) => peers_v6.push(peer6),
+            }
+        }
+
+        (peers_v4, peers_v6)
+    }
+}
+
+#[derive(From, PartialEq)]
+struct CompactPeersEncoded(Vec<u8>);
+
+impl FromIterator<CompactPeerData<Ipv4Addr>> for CompactPeersEncoded {
+    fn from_iter<T: IntoIterator<Item = CompactPeerData<Ipv4Addr>>>(iter: T) -> Self {
+        let mut bytes: Vec<u8> = vec![];
+
+        for peer in iter {
+            bytes
+                .write_all(&u32::from(peer.ip).to_be_bytes())
+                .expect("it should write peer ip");
+            bytes.write_all(&peer.port.to_be_bytes()).expect("it should write peer port");
+        }
+
+        bytes.into()
+    }
+}
+
+impl FromIterator<CompactPeerData<Ipv6Addr>> for CompactPeersEncoded {
+    fn from_iter<T: IntoIterator<Item = CompactPeerData<Ipv6Addr>>>(iter: T) -> Self {
         let mut bytes: Vec<u8> = Vec::new();
-        match self.ip {
-            IpAddr::V4(ip) => {
-                bytes.write_all(&u32::from(ip).to_be_bytes())?;
-            }
-            IpAddr::V6(ip) => {
-                bytes.write_all(&u128::from(ip).to_be_bytes())?;
-            }
+
+        for peer in iter {
+            bytes
+                .write_all(&u128::from(peer.ip).to_be_bytes())
+                .expect("it should write peer ip");
+            bytes.write_all(&peer.port.to_be_bytes()).expect("it should write peer port");
         }
-        bytes.write_all(&self.port.to_be_bytes())?;
-        Ok(bytes)
-    }
-}
-
-impl From<core::peer::Peer> for CompactPeer {
-    fn from(peer: core::peer::Peer) -> Self {
-        CompactPeer {
-            ip: peer.peer_addr.ip(),
-            port: peer.peer_addr.port(),
-        }
-    }
-}
-
-impl Compact {
-    /// Returns the bencoded compact response as a byte vector.
-    ///
-    /// # Errors
-    ///
-    /// Will return `Err` if internally interrupted.
-    pub fn body(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        let bytes = (ben_map! {
-            "complete" => ben_int!(i64::from(self.complete)),
-            "incomplete" => ben_int!(i64::from(self.incomplete)),
-            "interval" => ben_int!(i64::from(self.interval)),
-            "min interval" => ben_int!(i64::from(self.interval_min)),
-            "peers" => ben_bytes!(self.peers_v4_bytes()?),
-            "peers6" => ben_bytes!(self.peers_v6_bytes()?)
-        })
-        .encode();
-
-        Ok(bytes)
-    }
-
-    fn peers_v4_bytes(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        let mut bytes: Vec<u8> = Vec::new();
-        for compact_peer in &self.peers {
-            match compact_peer.ip {
-                IpAddr::V4(_ip) => {
-                    let peer_bytes = compact_peer.bytes()?;
-                    bytes.write_all(&peer_bytes)?;
-                }
-                IpAddr::V6(_) => {}
-            }
-        }
-        Ok(bytes)
-    }
-
-    fn peers_v6_bytes(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        let mut bytes: Vec<u8> = Vec::new();
-        for compact_peer in &self.peers {
-            match compact_peer.ip {
-                IpAddr::V6(_ip) => {
-                    let peer_bytes = compact_peer.bytes()?;
-                    bytes.write_all(&peer_bytes)?;
-                }
-                IpAddr::V4(_) => {}
-            }
-        }
-        Ok(bytes)
-    }
-}
-
-/// `Compact` response serialization error.
-#[derive(Error, Debug)]
-pub enum CompactSerializationError {
-    #[error("cannot write bytes: {inner_error} in {location}")]
-    CannotWriteBytes {
-        location: &'static Location<'static>,
-        inner_error: String,
-    },
-}
-
-impl From<CompactSerializationError> for responses::error::Error {
-    fn from(err: CompactSerializationError) -> Self {
-        responses::error::Error {
-            failure_reason: format!("{err}"),
-        }
-    }
-}
-
-impl IntoResponse for Compact {
-    fn into_response(self) -> Response {
-        match self.body() {
-            Ok(bytes) => (StatusCode::OK, bytes).into_response(),
-            Err(err) => responses::error::Error::from(CompactSerializationError::CannotWriteBytes {
-                location: Location::caller(),
-                inner_error: format!("{err}"),
-            })
-            .into_response(),
-        }
-    }
-}
-
-impl From<AnnounceData> for Compact {
-    fn from(domain_announce_response: AnnounceData) -> Self {
-        let peers: Vec<CompactPeer> = domain_announce_response
-            .peers
-            .iter()
-            .map(|peer| CompactPeer::from(*peer))
-            .collect();
-
-        Self {
-            interval: domain_announce_response.interval,
-            interval_min: domain_announce_response.interval_min,
-            complete: domain_announce_response.swarm_stats.seeders,
-            incomplete: domain_announce_response.swarm_stats.leechers,
-            peers,
-        }
+        bytes.into()
     }
 }
 
 #[cfg(test)]
 mod tests {
 
-    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-    use super::{NonCompact, Peer};
-    use crate::servers::http::v1::responses::announce::{Compact, CompactPeer};
+    use torrust_tracker_configuration::AnnouncePolicy;
+
+    use crate::core::peer::fixture::PeerBuilder;
+    use crate::core::peer::Id;
+    use crate::core::torrent::SwarmStats;
+    use crate::core::AnnounceData;
+    use crate::servers::http::v1::responses::announce::{Announce, Compact, Normal, Response};
 
     // Some ascii values used in tests:
     //
@@ -439,30 +334,32 @@ mod tests {
     // IP addresses and port numbers used in tests are chosen so that their bencoded representation
     // is also a valid string which makes asserts more readable.
 
+    fn setup_announce_data() -> AnnounceData {
+        let policy = AnnouncePolicy::new(111, 222);
+
+        let peer_ipv4 = PeerBuilder::default()
+            .with_peer_id(&Id(*b"-qB00000000000000001"))
+            .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 0x7070))
+            .build();
+
+        let peer_ipv6 = PeerBuilder::default()
+            .with_peer_id(&Id(*b"-qB00000000000000002"))
+            .with_peer_addr(&SocketAddr::new(
+                IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                0x7070,
+            ))
+            .build();
+
+        let peers = vec![peer_ipv4, peer_ipv6];
+        let stats = SwarmStats::new(333, 333, 444);
+
+        AnnounceData::new(peers, stats, policy)
+    }
+
     #[test]
     fn non_compact_announce_response_can_be_bencoded() {
-        let response = NonCompact {
-            interval: 111,
-            interval_min: 222,
-            complete: 333,
-            incomplete: 444,
-            peers: vec![
-                // IPV4
-                Peer {
-                    peer_id: *b"-qB00000000000000001",
-                    ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
-                    port: 0x7070,                                          // 28784
-                },
-                // IPV6
-                Peer {
-                    peer_id: *b"-qB00000000000000002",
-                    ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                    port: 0x7070, // 28784
-                },
-            ],
-        };
-
-        let bytes = response.body();
+        let response: Announce<Normal> = setup_announce_data().into();
+        let bytes = response.body().expect("it should encode the response");
 
         // cspell:disable-next-line
         let expected_bytes = b"d8:completei333e10:incompletei444e8:intervali111e12:min intervali222e5:peersld2:ip15:105.105.105.1057:peer id20:-qB000000000000000014:porti28784eed2:ip39:6969:6969:6969:6969:6969:6969:6969:69697:peer id20:-qB000000000000000024:porti28784eeee";
@@ -475,26 +372,8 @@ mod tests {
 
     #[test]
     fn compact_announce_response_can_be_bencoded() {
-        let response = Compact {
-            interval: 111,
-            interval_min: 222,
-            complete: 333,
-            incomplete: 444,
-            peers: vec![
-                // IPV4
-                CompactPeer {
-                    ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
-                    port: 0x7070,                                          // 28784
-                },
-                // IPV6
-                CompactPeer {
-                    ip: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                    port: 0x7070, // 28784
-                },
-            ],
-        };
-
-        let bytes = response.body().unwrap();
+        let response: Announce<Compact> = setup_announce_data().into();
+        let bytes = response.body().expect("it should encode the response");
 
         let expected_bytes =
             // cspell:disable-next-line

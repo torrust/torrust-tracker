@@ -1,11 +1,11 @@
 use std::str::FromStr;
 
+use torrust_tracker::core::peer::fixture::PeerBuilder;
 use torrust_tracker::servers::apis::v1::context::torrent::resources::peer::Peer;
 use torrust_tracker::servers::apis::v1::context::torrent::resources::torrent::{self, Torrent};
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker_test_helpers::configuration;
 
-use crate::common::fixtures::PeerBuilder;
 use crate::common::http::{Query, QueryParam};
 use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
 use crate::servers::api::test_environment::running_test_environment;

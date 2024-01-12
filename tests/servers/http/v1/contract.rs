@@ -90,10 +90,11 @@ mod for_all_config_modes {
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
         use torrust_tracker::core::peer;
+        use torrust_tracker::core::peer::fixture::PeerBuilder;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
+        use crate::common::fixtures::invalid_info_hashes;
         use crate::servers::http::asserts::{
             assert_announce_response, assert_bad_announce_request_error_response, assert_cannot_parse_query_param_error_response,
             assert_cannot_parse_query_params_error_response, assert_compact_announce_response, assert_empty_announce_response,
@@ -884,10 +885,11 @@ mod for_all_config_modes {
 
         use tokio::net::TcpListener;
         use torrust_tracker::core::peer;
+        use torrust_tracker::core::peer::fixture::PeerBuilder;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::common::fixtures::{invalid_info_hashes, PeerBuilder};
+        use crate::common::fixtures::invalid_info_hashes;
         use crate::servers::http::asserts::{
             assert_cannot_parse_query_params_error_response, assert_missing_query_params_for_scrape_request_error_response,
             assert_scrape_response,
@@ -1160,10 +1162,10 @@ mod configured_as_whitelisted {
         use std::str::FromStr;
 
         use torrust_tracker::core::peer;
+        use torrust_tracker::core::peer::fixture::PeerBuilder;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::common::fixtures::PeerBuilder;
         use crate::servers::http::asserts::assert_scrape_response;
         use crate::servers::http::client::Client;
         use crate::servers::http::requests;
@@ -1333,10 +1335,10 @@ mod configured_as_private {
 
         use torrust_tracker::core::auth::Key;
         use torrust_tracker::core::peer;
+        use torrust_tracker::core::peer::fixture::PeerBuilder;
         use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::common::fixtures::PeerBuilder;
         use crate::servers::http::asserts::{assert_authentication_error_response, assert_scrape_response};
         use crate::servers::http::client::Client;
         use crate::servers::http::requests;

@@ -1,10 +1,10 @@
 use std::str::FromStr;
 
+use torrust_tracker::core::peer::fixture::PeerBuilder;
 use torrust_tracker::servers::apis::v1::context::stats::resources::Stats;
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker_test_helpers::configuration;
 
-use crate::common::fixtures::PeerBuilder;
 use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
 use crate::servers::api::test_environment::running_test_environment;
 use crate::servers::api::v1::asserts::{assert_stats, assert_token_not_valid, assert_unauthorized};

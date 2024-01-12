@@ -33,6 +33,7 @@ pub mod repository;
 use std::time::Duration;
 
 use aquatic_udp_protocol::AnnounceEvent;
+use derive_more::Constructor;
 use serde::{Deserialize, Serialize};
 
 use super::peer::{self, Peer};
@@ -56,13 +57,13 @@ pub struct Entry {
 /// Swarm metadata dictionary in the scrape response.
 ///
 /// See [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
-#[derive(Debug, PartialEq, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Default, Constructor)]
 pub struct SwarmMetadata {
-    /// The number of peers that have ever completed downloading
-    pub downloaded: u32,
-    /// The number of active peers that have completed downloading (seeders)
-    pub complete: u32,
-    /// The number of active peers that have not completed downloading (leechers)
+    /// (i.e `completed`): The number of peers that have ever completed downloading
+    pub downloaded: u32, //
+    /// (i.e `seeders`): The number of active peers that have completed downloading (seeders)
+    pub complete: u32, //seeders
+    /// (i.e `leechers`): The number of active peers that have not completed downloading (leechers)
     pub incomplete: u32,
 }
 
@@ -73,18 +74,8 @@ impl SwarmMetadata {
     }
 }
 
-/// Swarm statistics for one torrent.
-///
-/// See [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
-#[derive(Debug, PartialEq, Default)]
-pub struct SwarmStats {
-    /// The number of peers that have ever completed downloading
-    pub completed: u32,
-    /// The number of active peers that have completed downloading (seeders)
-    pub seeders: u32,
-    /// The number of active peers that have not completed downloading (leechers)
-    pub leechers: u32,
-}
+/// [`SwarmStats`] has the same form as [`SwarmMetadata`]
+pub type SwarmStats = SwarmMetadata;
 
 impl Entry {
     #[must_use]
