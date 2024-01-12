@@ -3,7 +3,7 @@ db_driver = "Sqlite3"
 db_path = "./storage/tracker/lib/database/sqlite3.db"
 external_ip = "0.0.0.0"
 inactive_peer_cleanup_interval = 600
-log_level = "info"
+log_level = "debug"
 max_peer_timeout = 900
 min_announce_interval = 120
 mode = "public"
@@ -14,7 +14,7 @@ tracker_usage_statistics = true
 
 [[udp_trackers]]
 bind_address = "0.0.0.0:6969"
-enabled = false
+enabled = true
 
 [[http_trackers]]
 bind_address = "0.0.0.0:7070"
@@ -25,7 +25,7 @@ ssl_key_path = ""
 
 [http_api]
 bind_address = "127.0.0.1:1212"
-enabled = true
+enabled = false
 ssl_cert_path = ""
 ssl_enabled = false
 ssl_key_path = ""

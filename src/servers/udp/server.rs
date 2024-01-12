@@ -20,6 +20,7 @@
 use std::io::Cursor;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::thread;
 
 use aquatic_udp_protocol::Response;
 use derive_more::Constructor;
@@ -28,6 +29,7 @@ use log::{debug, error, info};
 use tokio::net::UdpSocket;
 use tokio::sync::oneshot::{Receiver, Sender};
 use tokio::task::JoinHandle;
+use tokio::time;
 
 use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
@@ -241,6 +243,8 @@ impl Udp {
                             debug!(target: "UDP Tracker", "Payload: {:?}", payload);
 
                             let response = handle_packet(remote_addr, payload, &tracker).await;
+
+                            thread::sleep(time::Duration::from_secs(20));
 
                             Udp::send_response(socket_clone, remote_addr, response).await;
                         }
