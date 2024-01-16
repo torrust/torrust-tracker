@@ -4,7 +4,10 @@
 //!
 //! - They are harder to maintain.
 //! - They introduce new attack vectors.
+use std::time::Duration;
 use std::{env, process};
+
+use reqwest::Client;
 
 #[tokio::main]
 async fn main() {
@@ -19,7 +22,9 @@ async fn main() {
 
     let url = &args[1].clone();
 
-    match reqwest::get(url).await {
+    let client = Client::builder().timeout(Duration::from_secs(5)).build().unwrap();
+
+    match client.get(url).send().await {
         Ok(response) => {
             if response.status().is_success() {
                 println!("STATUS: {}", response.status());
