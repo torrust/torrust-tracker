@@ -20,6 +20,7 @@
 use std::io::Cursor;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use aquatic_udp_protocol::Response;
 use derive_more::Constructor;
@@ -240,9 +241,16 @@ impl Udp {
                             debug!(target: "UDP Tracker", "From: {}", &remote_addr);
                             debug!(target: "UDP Tracker", "Payload: {:?}", payload);
 
-                            let response = handle_packet(remote_addr, payload, &tracker).await;
+                            let response_fut = handle_packet(remote_addr, payload, &tracker);
 
-                            Udp::send_response(socket_clone, remote_addr, response).await;
+                            match tokio::time::timeout(Duration::from_secs(5), response_fut).await {
+                                Ok(response) => {
+                                    Udp::send_response(socket_clone, remote_addr, response).await;
+                                }
+                                Err(_) => {
+                                    error!("Timeout occurred while processing the UDP request.");
+                                }
+                            }
                         }
                         Err(err) => {
                             error!("Error reading UDP datagram from socket. Error: {:?}", err);
