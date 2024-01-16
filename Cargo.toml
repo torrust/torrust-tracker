@@ -54,8 +54,10 @@ rand = "0"
 reqwest = "0"
 serde = { version = "1", features = ["derive"] }
 serde_bencode = "0"
+serde_bytes = "0"
 serde_json = "1"
 serde_with = "3"
+serde_repr = "0"
 tdyne-peer-id = "1"
 tdyne-peer-id-registry = "0"
 thiserror = "1"
@@ -73,8 +75,6 @@ local-ip-address = "0"
 mockall = "0"
 once_cell = "1.18.0"
 reqwest = { version = "0", features = ["json"] }
-serde_bytes = "0"
-serde_repr = "0"
 serde_urlencoded = "0"
 torrust-tracker-test-helpers = { version = "3.0.0-alpha.12-develop", path = "packages/test-helpers" }
 
