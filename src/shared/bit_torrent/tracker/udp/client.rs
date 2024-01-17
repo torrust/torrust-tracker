@@ -4,7 +4,7 @@ use std::sync::Arc;
 use aquatic_udp_protocol::{Request, Response};
 use tokio::net::UdpSocket;
 
-use crate::shared::bit_torrent::udp::{source_address, MAX_PACKET_SIZE};
+use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct UdpClient {

@@ -8,7 +8,7 @@ use torrust_tracker_configuration::{Configuration, HttpApi, HttpTracker, UdpTrac
 
 use super::resources::Report;
 use super::responses;
-use crate::shared::bit_torrent::udp::client::new_udp_tracker_client_connected;
+use crate::shared::bit_torrent::tracker::udp::client::new_udp_tracker_client_connected;
 
 /// If port 0 is specified in the configuration the OS will automatically
 /// assign a free port. But we do now know in from the configuration.

@@ -70,4 +70,3 @@
 pub mod common;
 pub mod info_hash;
 pub mod tracker;
-pub mod udp;
