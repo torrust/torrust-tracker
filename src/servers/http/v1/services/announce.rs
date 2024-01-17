@@ -56,7 +56,7 @@ mod tests {
     use crate::shared::clock::DurationSinceUnixEpoch;
 
     fn public_tracker() -> Tracker {
-        tracker_factory(configuration::ephemeral_mode_public().into())
+        tracker_factory(&configuration::ephemeral_mode_public())
     }
 
     fn sample_info_hash() -> InfoHash {
@@ -94,7 +94,6 @@ mod tests {
         use std::sync::Arc;
 
         use mockall::predicate::eq;
-        use torrust_tracker_configuration::AnnouncePolicy;
         use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
@@ -119,7 +118,7 @@ mod tests {
                     complete: 1,
                     incomplete: 0,
                 },
-                policy: AnnouncePolicy::default(),
+                policy: tracker.get_announce_policy(),
             };
 
             assert_eq!(announce_data, expected_announce_data);
@@ -135,14 +134,8 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
-            let tracker = Arc::new(
-                Tracker::new(
-                    Arc::new(configuration::ephemeral()),
-                    Some(stats_event_sender),
-                    statistics::Repo::new(),
-                )
-                .unwrap(),
-            );
+            let tracker =
+                Arc::new(Tracker::new(&configuration::ephemeral(), Some(stats_event_sender), statistics::Repo::new()).unwrap());
 
             let mut peer = sample_peer_using_ipv4();
 
@@ -154,7 +147,7 @@ mod tests {
             configuration.external_ip =
                 Some(IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)).to_string());
 
-            Tracker::new(Arc::new(configuration), Some(stats_event_sender), statistics::Repo::new()).unwrap()
+            Tracker::new(&configuration, Some(stats_event_sender), statistics::Repo::new()).unwrap()
         }
 
         fn peer_with_the_ipv4_loopback_ip() -> Peer {
@@ -199,14 +192,8 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
-            let tracker = Arc::new(
-                Tracker::new(
-                    Arc::new(configuration::ephemeral()),
-                    Some(stats_event_sender),
-                    statistics::Repo::new(),
-                )
-                .unwrap(),
-            );
+            let tracker =
+                Arc::new(Tracker::new(&configuration::ephemeral(), Some(stats_event_sender), statistics::Repo::new()).unwrap());
 
             let mut peer = sample_peer_using_ipv6();
 

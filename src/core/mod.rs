@@ -447,6 +447,7 @@ use std::time::Duration;
 
 use derive_more::Constructor;
 use futures::future::join_all;
+use log::debug;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_configuration::{AnnouncePolicy, Configuration};
 use torrust_tracker_primitives::TrackerMode;
@@ -472,17 +473,19 @@ pub const TORRENT_PEERS_LIMIT: usize = 74;
 /// Typically, the `Tracker` is used by a higher application service that handles
 /// the network layer.
 pub struct Tracker {
-    /// `Tracker` configuration. See [`torrust-tracker-configuration`](torrust_tracker_configuration)
-    pub config: Arc<Configuration>,
+    announce_policy: AnnouncePolicy,
     /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)
     /// or [`MySQL`](crate::core::databases::mysql)
     pub database: Arc<Box<dyn Database>>,
     mode: TrackerMode,
+    policy: TrackerPolicy,
     keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
     whitelist: tokio::sync::RwLock<std::collections::HashSet<InfoHash>>,
     pub torrents: Arc<RepositoryAsyncSingle>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
+    external_ip: Option<IpAddr>,
+    on_reverse_proxy: bool,
 }
 
 /// Structure that holds general `Tracker` torrents metrics.
@@ -500,6 +503,12 @@ pub struct TorrentsMetrics {
     pub torrents: u64,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Default, Constructor)]
+pub struct TrackerPolicy {
+    pub remove_peerless_torrents: bool,
+    pub max_peer_timeout: u32,
+    pub persistent_torrent_completed_stat: bool,
+}
 /// Structure that holds the data returned by the `announce` request.
 #[derive(Clone, Debug, PartialEq, Constructor, Default)]
 pub struct AnnounceData {
@@ -556,7 +565,7 @@ impl Tracker {
     ///
     /// Will return a `databases::error::Error` if unable to connect to database. The `Tracker` is responsible for the persistence.
     pub fn new(
-        config: Arc<Configuration>,
+        config: &Configuration,
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
@@ -565,7 +574,8 @@ impl Tracker {
         let mode = config.mode;
 
         Ok(Tracker {
-            config,
+            //config,
+            announce_policy: AnnouncePolicy::new(config.announce_interval, config.min_announce_interval),
             mode,
             keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
             whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),
@@ -573,6 +583,13 @@ impl Tracker {
             stats_event_sender,
             stats_repository,
             database,
+            external_ip: config.get_ext_ip(),
+            policy: TrackerPolicy::new(
+                config.remove_peerless_torrents,
+                config.max_peer_timeout,
+                config.persistent_torrent_completed_stat,
+            ),
+            on_reverse_proxy: config.on_reverse_proxy,
         })
     }
 
@@ -596,6 +613,19 @@ impl Tracker {
         self.is_private()
     }
 
+    /// Returns `true` is the tracker is in whitelisted mode.
+    pub fn is_behind_reverse_proxy(&self) -> bool {
+        self.on_reverse_proxy
+    }
+
+    pub fn get_announce_policy(&self) -> AnnouncePolicy {
+        self.announce_policy
+    }
+
+    pub fn get_maybe_external_ip(&self) -> Option<IpAddr> {
+        self.external_ip
+    }
+
     /// It handles an announce request.
     ///
     /// # Context: Tracker
@@ -617,18 +647,19 @@ impl Tracker {
         // we are actually handling authentication at the handlers level. So I would extract that
         // responsibility into another authentication service.
 
-        peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.get_ext_ip()));
+        debug!("Before: {peer:?}");
+        peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.external_ip));
+        debug!("After: {peer:?}");
 
-        let swarm_stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
+        // we should update the torrent and get the stats before we get the peer list.
+        let stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
         let peers = self.get_torrent_peers_for_peer(info_hash, peer).await;
 
-        let policy = AnnouncePolicy::new(self.config.announce_interval, self.config.min_announce_interval);
-
         AnnounceData {
             peers,
-            stats: swarm_stats,
-            policy,
+            stats,
+            policy: self.get_announce_policy(),
         }
     }
 
@@ -727,7 +758,7 @@ impl Tracker {
 
         let (stats, stats_updated) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
-        if self.config.persistent_torrent_completed_stat && stats_updated {
+        if self.policy.persistent_torrent_completed_stat && stats_updated {
             let completed = stats.downloaded;
             let info_hash = *info_hash;
 
@@ -788,17 +819,17 @@ impl Tracker {
         let mut torrents_lock = self.torrents.get_torrents_mut().await;
 
         // If we don't need to remove torrents we will use the faster iter
-        if self.config.remove_peerless_torrents {
+        if self.policy.remove_peerless_torrents {
             let mut cleaned_torrents_map: BTreeMap<InfoHash, torrent::Entry> = BTreeMap::new();
 
             for (info_hash, torrent_entry) in &mut *torrents_lock {
-                torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
+                torrent_entry.remove_inactive_peers(self.policy.max_peer_timeout);
 
                 if torrent_entry.peers.is_empty() {
                     continue;
                 }
 
-                if self.config.persistent_torrent_completed_stat && torrent_entry.completed == 0 {
+                if self.policy.persistent_torrent_completed_stat && torrent_entry.completed == 0 {
                     continue;
                 }
 
@@ -808,7 +839,7 @@ impl Tracker {
             *torrents_lock = cleaned_torrents_map;
         } else {
             for torrent_entry in (*torrents_lock).values_mut() {
-                torrent_entry.remove_inactive_peers(self.config.max_peer_timeout);
+                torrent_entry.remove_inactive_peers(self.policy.max_peer_timeout);
             }
         }
     }
@@ -1061,7 +1092,6 @@ mod tests {
 
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::str::FromStr;
-        use std::sync::Arc;
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
         use torrust_tracker_test_helpers::configuration;
@@ -1073,21 +1103,21 @@ mod tests {
         use crate::shared::clock::DurationSinceUnixEpoch;
 
         fn public_tracker() -> Tracker {
-            tracker_factory(configuration::ephemeral_mode_public().into())
+            tracker_factory(&configuration::ephemeral_mode_public())
         }
 
         fn private_tracker() -> Tracker {
-            tracker_factory(configuration::ephemeral_mode_private().into())
+            tracker_factory(&configuration::ephemeral_mode_private())
         }
 
         fn whitelisted_tracker() -> Tracker {
-            tracker_factory(configuration::ephemeral_mode_whitelisted().into())
+            tracker_factory(&configuration::ephemeral_mode_whitelisted())
         }
 
         pub fn tracker_persisting_torrents_in_database() -> Tracker {
             let mut configuration = configuration::ephemeral();
             configuration.persistent_torrent_completed_stat = true;
-            tracker_factory(Arc::new(configuration))
+            tracker_factory(&configuration)
         }
 
         fn sample_info_hash() -> InfoHash {

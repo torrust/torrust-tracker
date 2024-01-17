@@ -13,6 +13,7 @@ use tokio::task::JoinHandle;
 use torrust_tracker_configuration::UdpTracker;
 
 use crate::core;
+use crate::servers::registar::ServiceRegistrationForm;
 use crate::servers::udp::server::{Launcher, UdpServer};
 
 /// It starts a new UDP server with the provided configuration.
@@ -25,14 +26,14 @@ use crate::servers::udp::server::{Launcher, UdpServer};
 /// It will panic if it is unable to start the UDP service.
 /// It will panic if the task did not finish successfully.
 #[must_use]
-pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>) -> JoinHandle<()> {
+pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: ServiceRegistrationForm) -> JoinHandle<()> {
     let bind_to = config
         .bind_address
         .parse::<std::net::SocketAddr>()
         .expect("it should have a valid udp tracker bind address");
 
     let server = UdpServer::new(Launcher::new(bind_to))
-        .start(tracker)
+        .start(tracker, form)
         .await
         .expect("it should be able to start the udp tracker");
 

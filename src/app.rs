@@ -28,6 +28,7 @@ use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
 
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
+use crate::servers::registar::Registar;
 use crate::{core, servers};
 
 /// # Panics
@@ -36,8 +37,10 @@ use crate::{core, servers};
 ///
 /// - Can't retrieve tracker keys from database.
 /// - Can't load whitelist from database.
-pub async fn start(config: Arc<Configuration>, tracker: Arc<core::Tracker>) -> Vec<JoinHandle<()>> {
+pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<JoinHandle<()>> {
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
+
+    let registar = Registar::default();
 
     // Load peer keys
     if tracker.is_private() {
@@ -67,31 +70,45 @@ pub async fn start(config: Arc<Configuration>, tracker: Arc<core::Tracker>) -> V
                 udp_tracker_config.bind_address, config.mode
             );
         } else {
-            jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone()).await);
+            jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone(), registar.give_form()).await);
         }
     }
 
     // Start the HTTP blocks
     for http_tracker_config in &config.http_trackers {
-        if let Some(job) = http_tracker::start_job(http_tracker_config, tracker.clone(), servers::http::Version::V1).await {
+        if let Some(job) = http_tracker::start_job(
+            http_tracker_config,
+            tracker.clone(),
+            registar.give_form(),
+            servers::http::Version::V1,
+        )
+        .await
+        {
             jobs.push(job);
         };
     }
 
     // Start HTTP API
     if config.http_api.enabled {
-        if let Some(job) = tracker_apis::start_job(&config.http_api, tracker.clone(), servers::apis::Version::V1).await {
+        if let Some(job) = tracker_apis::start_job(
+            &config.http_api,
+            tracker.clone(),
+            registar.give_form(),
+            servers::apis::Version::V1,
+        )
+        .await
+        {
             jobs.push(job);
         };
     }
 
     // Start runners to remove torrents without peers, every interval
     if config.inactive_peer_cleanup_interval > 0 {
-        jobs.push(torrent_cleanup::start_job(&config, &tracker));
+        jobs.push(torrent_cleanup::start_job(config, &tracker));
     }
 
     // Start Health Check API
-    jobs.push(health_check_api::start_job(config).await);
+    jobs.push(health_check_api::start_job(&config.health_check_api, registar.entries()).await);
 
     jobs
 }

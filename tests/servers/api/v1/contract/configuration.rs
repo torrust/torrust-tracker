@@ -5,7 +5,7 @@
 // use torrust_tracker_test_helpers::configuration;
 
 // use crate::common::app::setup_with_configuration;
-// use crate::servers::api::test_environment::stopped_test_environment;
+// use crate::servers::api::environment::stopped_environment;
 
 #[tokio::test]
 #[ignore]
@@ -27,7 +27,7 @@ async fn should_fail_with_ssl_enabled_and_bad_ssl_config() {
     //         None
     //     };
 
-    // let test_env = new_stopped(tracker, bind_to, tls);
+    // let env = new_stopped(tracker, bind_to, tls);
 
-    // test_env.start().await;
+    // env.start().await;
 }

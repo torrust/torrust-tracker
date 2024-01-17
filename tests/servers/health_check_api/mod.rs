@@ -1,3 +1,5 @@
 pub mod client;
 pub mod contract;
-pub mod test_environment;
+pub mod environment;
+
+pub type Started = environment::Environment<environment::Running>;

@@ -11,7 +11,7 @@ use torrust_tracker::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
 use torrust_tracker_test_helpers::configuration;
 
 use crate::servers::udp::asserts::is_error_response;
-use crate::servers::udp::test_environment::running_test_environment;
+use crate::servers::udp::Started;
 
 fn empty_udp_request() -> [u8; MAX_PACKET_SIZE] {
     [0; MAX_PACKET_SIZE]
@@ -36,9 +36,9 @@ async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrac
 
 #[tokio::test]
 async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
-    let test_env = running_test_environment(configuration::ephemeral()).await;
+    let env = Started::new(&configuration::ephemeral().into()).await;
 
-    let client = new_udp_client_connected(&test_env.bind_address().to_string()).await;
+    let client = new_udp_client_connected(&env.bind_address().to_string()).await;
 
     client.send(&empty_udp_request()).await;
 
@@ -55,13 +55,13 @@ mod receiving_a_connection_request {
     use torrust_tracker_test_helpers::configuration;
 
     use crate::servers::udp::asserts::is_connect_response;
-    use crate::servers::udp::test_environment::running_test_environment;
+    use crate::servers::udp::Started;
 
     #[tokio::test]
     async fn should_return_a_connect_response() {
-        let test_env = running_test_environment(configuration::ephemeral()).await;
+        let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = new_udp_tracker_client_connected(&test_env.bind_address().to_string()).await;
+        let client = new_udp_tracker_client_connected(&env.bind_address().to_string()).await;
 
         let connect_request = ConnectRequest {
             transaction_id: TransactionId(123),
@@ -87,13 +87,13 @@ mod receiving_an_announce_request {
 
     use crate::servers::udp::asserts::is_ipv4_announce_response;
     use crate::servers::udp::contract::send_connection_request;
-    use crate::servers::udp::test_environment::running_test_environment;
+    use crate::servers::udp::Started;
 
     #[tokio::test]
     async fn should_return_an_announce_response() {
-        let test_env = running_test_environment(configuration::ephemeral()).await;
+        let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = new_udp_tracker_client_connected(&test_env.bind_address().to_string()).await;
+        let client = new_udp_tracker_client_connected(&env.bind_address().to_string()).await;
 
         let connection_id = send_connection_request(TransactionId(123), &client).await;
 
@@ -129,13 +129,13 @@ mod receiving_an_scrape_request {
 
     use crate::servers::udp::asserts::is_scrape_response;
     use crate::servers::udp::contract::send_connection_request;
-    use crate::servers::udp::test_environment::running_test_environment;
+    use crate::servers::udp::Started;
 
     #[tokio::test]
     async fn should_return_a_scrape_response() {
-        let test_env = running_test_environment(configuration::ephemeral()).await;
+        let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = new_udp_tracker_client_connected(&test_env.bind_address().to_string()).await;
+        let client = new_udp_tracker_client_connected(&env.bind_address().to_string()).await;
 
         let connection_id = send_connection_request(TransactionId(123), &client).await;
 

@@ -12,6 +12,7 @@ use tokio::sync::oneshot::{Receiver, Sender};
 use super::v1::routes::router;
 use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
+use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{graceful_shutdown, Halted};
 
 /// Error that can occur when starting or stopping the HTTP server.
@@ -143,7 +144,7 @@ impl HttpServer<Stopped> {
     ///
     /// It would panic spawned HTTP server launcher cannot send the bound `SocketAddr`
     /// back to the main thread.
-    pub async fn start(self, tracker: Arc<Tracker>) -> Result<HttpServer<Running>, Error> {
+    pub async fn start(self, tracker: Arc<Tracker>, form: ServiceRegistrationForm) -> Result<HttpServer<Running>, Error> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
 
@@ -157,9 +158,14 @@ impl HttpServer<Stopped> {
             launcher
         });
 
+        let binding = rx_start.await.expect("it should be able to start the service").address;
+
+        form.send(ServiceRegistration::new(binding, check_fn))
+            .expect("it should be able to send service registration");
+
         Ok(HttpServer {
             state: Running {
-                binding: rx_start.await.expect("unable to start service").address,
+                binding,
                 halt_task: tx_halt,
                 task,
             },
@@ -188,6 +194,28 @@ impl HttpServer<Running> {
     }
 }
 
+/// Checks the Health by connecting to the HTTP tracker endpoint.
+///
+/// # Errors
+///
+/// This function will return an error if unable to connect.
+/// Or if the request returns an error.
+#[must_use]
+pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
+    let url = format!("http://{binding}/health_check");
+
+    let info = format!("checking http tracker health check at: {url}");
+
+    let job = tokio::spawn(async move {
+        match reqwest::get(url).await {
+            Ok(response) => Ok(response.status().to_string()),
+            Err(err) => Err(err.to_string()),
+        }
+    });
+
+    ServiceHealthCheckJob::new(*binding, info, job)
+}
+
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
@@ -197,6 +225,7 @@ mod tests {
     use crate::bootstrap::app::initialize_with_configuration;
     use crate::bootstrap::jobs::make_rust_tls;
     use crate::servers::http::server::{HttpServer, Launcher};
+    use crate::servers::registar::Registar;
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
@@ -213,8 +242,13 @@ mod tests {
             .await
             .map(|tls| tls.expect("tls config failed"));
 
+        let register = &Registar::default();
+
         let stopped = HttpServer::new(Launcher::new(bind_to, tls));
-        let started = stopped.start(tracker).await.expect("it should start the server");
+        let started = stopped
+            .start(tracker, register.give_form())
+            .await
+            .expect("it should start the server");
         let stopped = started.stop().await.expect("it should stop the server");
 
         assert_eq!(stopped.state.launcher.bind_to, bind_to);
