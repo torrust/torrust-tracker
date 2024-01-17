@@ -20,7 +20,7 @@ pub async fn async_add_one_torrent<T: TRepositoryAsync + Send + Sync + 'static>(
         let start_time = std::time::Instant::now();
 
         torrent_repository
-            .update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
+            .upsert_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
             .await;
 
         let result = start_time.elapsed();
@@ -46,7 +46,7 @@ pub async fn async_update_one_torrent_in_parallel<T: TRepositoryAsync + Send + S
 
         // Add the torrent/peer to the torrent repository
         torrent_repository
-            .update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
+            .upsert_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
             .await;
 
         let start_time = std::time::Instant::now();
@@ -56,7 +56,7 @@ pub async fn async_update_one_torrent_in_parallel<T: TRepositoryAsync + Send + S
 
             let handle = runtime.spawn(async move {
                 torrent_repository_clone
-                    .update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
+                    .upsert_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
                     .await;
 
                 if let Some(sleep_time) = args.sleep {
@@ -100,7 +100,7 @@ pub async fn async_add_multiple_torrents_in_parallel<T: TRepositoryAsync + Send 
 
             let handle = runtime.spawn(async move {
                 torrent_repository_clone
-                    .update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
+                    .upsert_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
                     .await;
 
                 if let Some(sleep_time) = args.sleep {
@@ -140,7 +140,7 @@ pub async fn async_update_multiple_torrents_in_parallel<T: TRepositoryAsync + Se
         // Add the torrents/peers to the torrent repository
         for info_hash in &info_hashes {
             torrent_repository
-                .update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
+                .upsert_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
                 .await;
         }
 
@@ -151,7 +151,7 @@ pub async fn async_update_multiple_torrents_in_parallel<T: TRepositoryAsync + Se
 
             let handle = runtime.spawn(async move {
                 torrent_repository_clone
-                    .update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
+                    .upsert_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
                     .await;
 
                 if let Some(sleep_time) = args.sleep {

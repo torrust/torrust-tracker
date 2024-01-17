@@ -21,7 +21,7 @@ pub fn add_one_torrent<T: Repository + Send + Sync + 'static>(samples: usize) ->
 
         let start_time = std::time::Instant::now();
 
-        torrent_repository.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
+        torrent_repository.upsert_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
 
         let result = start_time.elapsed();
 
@@ -45,7 +45,7 @@ pub async fn update_one_torrent_in_parallel<T: Repository + Send + Sync + 'stati
         let handles = FuturesUnordered::new();
 
         // Add the torrent/peer to the torrent repository
-        torrent_repository.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
+        torrent_repository.upsert_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
 
         let start_time = std::time::Instant::now();
 
@@ -53,7 +53,7 @@ pub async fn update_one_torrent_in_parallel<T: Repository + Send + Sync + 'stati
             let torrent_repository_clone = torrent_repository.clone();
 
             let handle = runtime.spawn(async move {
-                torrent_repository_clone.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
+                torrent_repository_clone.upsert_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
 
                 if let Some(sleep_time) = args.sleep {
                     let start_time = std::time::Instant::now();
@@ -95,7 +95,7 @@ pub async fn add_multiple_torrents_in_parallel<T: Repository + Send + Sync + 'st
             let torrent_repository_clone = torrent_repository.clone();
 
             let handle = runtime.spawn(async move {
-                torrent_repository_clone.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
+                torrent_repository_clone.upsert_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
 
                 if let Some(sleep_time) = args.sleep {
                     let start_time = std::time::Instant::now();
@@ -133,7 +133,7 @@ pub async fn update_multiple_torrents_in_parallel<T: Repository + Send + Sync + 
 
         // Add the torrents/peers to the torrent repository
         for info_hash in &info_hashes {
-            torrent_repository.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
+            torrent_repository.upsert_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
         }
 
         let start_time = std::time::Instant::now();
@@ -142,7 +142,7 @@ pub async fn update_multiple_torrents_in_parallel<T: Repository + Send + Sync + 
             let torrent_repository_clone = torrent_repository.clone();
 
             let handle = runtime.spawn(async move {
-                torrent_repository_clone.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
+                torrent_repository_clone.upsert_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
 
                 if let Some(sleep_time) = args.sleep {
                     let start_time = std::time::Instant::now();

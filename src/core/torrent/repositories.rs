@@ -1,21 +1,34 @@
+use std::iter;
 use std::mem::size_of;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
-use dashmap::DashMap;
+use dashmap::{DashMap, Map, SharedValue};
+use log::debug;
 
 use crate::core::peer;
 use crate::core::torrent::{Entry, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::mem_size::{MemSize, POINTER_SIZE};
 
+const INFO_HASH_SIZE: usize = size_of::<InfoHash>();
+
+/// Total memory impact of adding a new torrent to a map with 1 [peer::Peer].
+const TORRENT_INSERTION_SIZE_COST: usize = 216;
+
+pub struct TryReserveError;
+
 pub trait Repository {
     fn new() -> Self;
-    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool);
+
+    /// Updates or inserts a torrent with a peer and returns the torrent statistics.
+    fn upsert_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool);
 }
 
 pub trait TRepositoryAsync {
     fn new() -> Self;
-    fn update_torrent_with_peer_and_get_stats(
+
+    /// Updates or inserts a torrent with a peer and returns the torrent statistics.
+    fn upsert_torrent_with_peer_and_get_stats(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
@@ -58,7 +71,7 @@ impl Repository for Sync {
         }
     }
 
-    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+    fn upsert_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let maybe_existing_torrent_entry = self.get_torrents().get(info_hash).cloned();
 
         let torrent_entry: Arc<std::sync::Mutex<Entry>> = if let Some(existing_torrent_entry) = maybe_existing_torrent_entry {
@@ -122,7 +135,7 @@ impl Repository for SyncSingle {
         }
     }
 
-    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+    fn upsert_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let mut torrents = self.torrents.write().unwrap();
 
         let torrent_entry = match torrents.entry(*info_hash) {
@@ -157,7 +170,7 @@ impl TRepositoryAsync for RepositoryAsync {
         }
     }
 
-    async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+    async fn upsert_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let maybe_existing_torrent_entry = self.get_torrents().await.get(info_hash).cloned();
 
         let torrent_entry: Arc<tokio::sync::Mutex<Entry>> = if let Some(existing_torrent_entry) = maybe_existing_torrent_entry {
@@ -215,7 +228,7 @@ impl TRepositoryAsync for AsyncSync {
         }
     }
 
-    async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+    async fn upsert_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let maybe_existing_torrent_entry = self.get_torrents().await.get(info_hash).cloned();
 
         let torrent_entry: Arc<std::sync::Mutex<Entry>> = if let Some(existing_torrent_entry) = maybe_existing_torrent_entry {
@@ -273,7 +286,7 @@ impl TRepositoryAsync for RepositoryAsyncSingle {
         }
     }
 
-    async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+    async fn upsert_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let (stats, stats_updated) = {
             let mut torrents_lock = self.torrents.write().await;
             let torrent_entry = torrents_lock.entry(*info_hash).or_insert(Entry::new());
@@ -307,13 +320,12 @@ impl RepositoryAsyncSingle {
 #[allow(clippy::module_name_repetitions)]
 pub struct RepositoryDashmap {
     pub torrents: DashMap<InfoHash, Entry>,
-    pub sharded_priority_index: Vec<Vec<InfoHash>>,
+    pub shard_priority_list: Vec<Mutex<Vec<InfoHash>>>,
 }
 
 impl MemSize for RepositoryDashmap {
     fn get_mem_size(&self) -> usize {
         const MAP_SIZE: usize = size_of::<DashMap<InfoHash, Entry>>();
-        const INFO_HASH_SIZE: usize = size_of::<InfoHash>();
 
         let mut total_size_of_entries: usize = 0;
 
@@ -327,16 +339,86 @@ impl MemSize for RepositoryDashmap {
     }
 }
 
-impl RepositoryDashmap {}
+impl RepositoryDashmap {
+    fn free_memory_on_shard(&self, shard_idx: usize, amount: usize) {
+        let mut shard = unsafe { self.torrents._yield_write_shard(shard_idx) };
+        let mut priority_list = unsafe { self.shard_priority_list.get_unchecked(shard_idx) }.lock().unwrap();
+        let mut amount_freed: usize = 0;
 
-impl Repository for RepositoryDashmap {
-    fn new() -> Self {
-        Self {
-            torrents: DashMap::new(),
+        while amount_freed < amount && !priority_list.is_empty() {
+            // Can safely unwrap as we check if the priority list is not empty
+            let torrent_hash_to_be_removed = priority_list.pop().unwrap();
+
+            if let Some(torrent) = shard.remove(&torrent_hash_to_be_removed) {
+                amount_freed += torrent.get().get_mem_size();
+            }
         }
     }
 
-    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+    fn get_shard_mem_size(&self, shard_idx: usize) -> usize {
+        let mut shard = unsafe { self.torrents._yield_write_shard(shard_idx) };
+
+        let mut mem_size_shard: usize = 0;
+
+        for torrent in shard.values() {
+            mem_size_shard += torrent.get().get_mem_size();
+        }
+
+        mem_size_shard
+    }
+
+    fn insert_torrent(&self, info_hash: &InfoHash) -> Result<Option<Entry>, TryReserveError> {
+        let hash = self.torrents.hash_usize(info_hash);
+        let shard_idx = self.torrents.determine_shard(hash);
+
+        let mut shard = unsafe { self.torrents._yield_write_shard(shard_idx) };
+
+        shard.try_reserve(TORRENT_INSERTION_SIZE_COST).map_err(|_| TryReserveError)?;
+
+        Ok(shard
+            .insert(info_hash.clone(), SharedValue::new(Entry::new()))
+            .map(|v| v.into_inner()))
+    }
+}
+
+impl Repository for RepositoryDashmap {
+    fn new() -> Self {
+        let torrents = DashMap::new();
+
+        // Keep a priority order per shard to prevent locking the entire map when checking and freeing memory.
+        let shard_priority_list = iter::repeat_with(|| Mutex::new(vec![]))
+            .take(torrents._shard_count())
+            .collect();
+
+        Self {
+            torrents,
+            shard_priority_list,
+        }
+    }
+
+    fn upsert_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+        const MAX_MEMORY_LIMIT: Option<usize> = Some(4096);
+
+        let maybe_torrent = self.torrents.get_mut(info_hash);
+
+        if maybe_torrent.is_none() {
+            let hash = self.torrents.hash_usize(&info_hash);
+            let shard_idx = self.torrents.determine_shard(hash);
+            let mem_size_shard = self.get_shard_mem_size(shard_idx);
+            let memory_available = MAX_MEMORY_LIMIT / 8 - mem_size_shard;
+            let memory_shortage = TORRENT_INSERTION_SIZE_COST - memory_available;
+
+            if memory_shortage > 0 {
+                self.free_memory_on_shard(shard_idx, memory_shortage);
+            }
+
+            if let Err(err) = self.insert_torrent(info_hash) {
+                debug!("")
+            }
+
+            if let Ok(res) = self.torrents.insert(TORRENT_INSERTION_SIZE_COST) {}
+        }
+
         let (stats, stats_updated) = {
             let mut torrent_entry = self.torrents.entry(*info_hash).or_default();
             let stats_updated = torrent_entry.insert_or_update_peer(peer);
@@ -347,9 +429,9 @@ impl Repository for RepositoryDashmap {
 
         (
             SwarmStats {
-                completed: stats.1,
-                seeders: stats.0,
-                leechers: stats.2,
+                downloaded: stats.1,
+                complete: stats.0,
+                incomplete: stats.2,
             },
             stats_updated,
         )
@@ -382,11 +464,11 @@ pub mod tests {
 
         assert_eq!(torrent_repository.get_mem_size(), 40);
 
-        torrent_repository.update_torrent_with_peer_and_get_stats(&info_hash_1, &torrent_peer_1);
+        torrent_repository.upsert_torrent_with_peer_and_get_stats(&info_hash_1, &torrent_peer_1);
 
         assert_eq!(torrent_repository.get_mem_size(), 256);
 
-        torrent_repository.update_torrent_with_peer_and_get_stats(&info_hash_2, &torrent_peer_2);
+        torrent_repository.upsert_torrent_with_peer_and_get_stats(&info_hash_2, &torrent_peer_2);
 
         assert_eq!(torrent_repository.get_mem_size(), 472);
 

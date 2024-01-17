@@ -750,7 +750,7 @@ impl Tracker {
 
         let (stats, stats_updated) = self
             .torrent_repository
-            .update_torrent_with_peer_and_get_stats(info_hash, peer);
+            .upsert_torrent_with_peer_and_get_stats(info_hash, peer);
 
         if self.policy.persistent_torrent_completed_stat && stats_updated {
             let completed = stats.downloaded;
