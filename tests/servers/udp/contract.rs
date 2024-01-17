@@ -118,6 +118,8 @@ mod receiving_an_announce_request {
 
         let response = client.receive().await;
 
+        println!("test response {response:?}");
+
         assert!(is_ipv4_announce_response(&response));
     }
 }
