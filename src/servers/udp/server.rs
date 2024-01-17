@@ -34,7 +34,7 @@ use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
 use crate::servers::signals::{shutdown_signal_with_message, Halted};
 use crate::servers::udp::handlers::handle_packet;
-use crate::shared::bit_torrent::udp::MAX_PACKET_SIZE;
+use crate::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
 
 /// Error that can occur when starting or stopping the UDP server.
 ///
