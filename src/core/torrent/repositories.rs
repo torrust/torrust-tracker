@@ -1,3 +1,4 @@
+use std::mem::size_of;
 use std::sync::Arc;
 
 use dashmap::DashMap;
@@ -5,6 +6,7 @@ use dashmap::DashMap;
 use crate::core::peer;
 use crate::core::torrent::{Entry, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;
+use crate::shared::mem_size::{MemSize, POINTER_SIZE};
 
 pub trait Repository {
     fn new() -> Self;
@@ -305,7 +307,27 @@ impl RepositoryAsyncSingle {
 #[allow(clippy::module_name_repetitions)]
 pub struct RepositoryDashmap {
     pub torrents: DashMap<InfoHash, Entry>,
+    pub sharded_priority_index: Vec<Vec<InfoHash>>,
 }
+
+impl MemSize for RepositoryDashmap {
+    fn get_mem_size(&self) -> usize {
+        const MAP_SIZE: usize = size_of::<DashMap<InfoHash, Entry>>();
+        const INFO_HASH_SIZE: usize = size_of::<InfoHash>();
+
+        let mut total_size_of_entries: usize = 0;
+
+        for rm in self.torrents.iter() {
+            // Add 2 times the POINTER_SIZE for a pointer to the key as String and value as Entry
+            let entry_size = (2 * POINTER_SIZE) + INFO_HASH_SIZE + rm.value().get_mem_size();
+            total_size_of_entries += entry_size;
+        }
+
+        MAP_SIZE + total_size_of_entries
+    }
+}
+
+impl RepositoryDashmap {}
 
 impl Repository for RepositoryDashmap {
     fn new() -> Self {
@@ -331,5 +353,63 @@ impl Repository for RepositoryDashmap {
             },
             stats_updated,
         )
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use deepsize::DeepSizeOf;
+
+    use crate::core::peer;
+    use crate::core::torrent::repositories::{Repository, RepositoryDashmap};
+    use crate::shared::bit_torrent::info_hash::InfoHash;
+    use crate::shared::mem_size::MemSize;
+
+    #[test]
+    fn torrent_repository_should_have_runtime_memory_size_of() {
+        let torrent_repository = RepositoryDashmap::new();
+
+        let info_hash_1 = InfoHash([0u8; 20]);
+        let info_hash_2 = InfoHash([1u8; 20]);
+
+        let torrent_peer_1 = crate::core::torrent::tests::torrent_entry::TorrentPeerBuilder::default()
+            .with_peer_id(peer::Id([0u8; 20]))
+            .into();
+
+        let torrent_peer_2 = crate::core::torrent::tests::torrent_entry::TorrentPeerBuilder::default()
+            .with_peer_id(peer::Id([1u8; 20]))
+            .into();
+
+        assert_eq!(torrent_repository.get_mem_size(), 40);
+
+        torrent_repository.update_torrent_with_peer_and_get_stats(&info_hash_1, &torrent_peer_1);
+
+        assert_eq!(torrent_repository.get_mem_size(), 256);
+
+        torrent_repository.update_torrent_with_peer_and_get_stats(&info_hash_2, &torrent_peer_2);
+
+        assert_eq!(torrent_repository.get_mem_size(), 472);
+
+        let torrent_entry_1 = torrent_repository.torrents.get(&info_hash_1).unwrap();
+
+        assert_eq!(torrent_entry_1.get_mem_size(), 180);
+
+        {
+            let mut torrent_entry_2 = torrent_repository.torrents.get_mut(&info_hash_2).unwrap();
+
+            assert_eq!(torrent_entry_2.get_mem_size(), 180);
+
+            torrent_entry_2.insert_or_update_peer(&torrent_peer_1);
+
+            assert_eq!(torrent_entry_2.get_mem_size(), 312);
+        }
+
+        assert_eq!(torrent_peer_1.deep_size_of(), 192);
+
+        assert_eq!(torrent_repository.get_mem_size(), 604);
+
+        torrent_repository.torrents.remove(&info_hash_2);
+
+        assert_eq!(torrent_repository.get_mem_size(), 256);
     }
 }

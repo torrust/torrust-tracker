@@ -439,7 +439,7 @@ pub mod services;
 pub mod statistics;
 pub mod torrent;
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::net::IpAddr;
 use std::panic::Location;
 use std::sync::Arc;
@@ -456,7 +456,7 @@ use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
 use crate::core::databases::Database;
-use crate::core::torrent::repository::{Repository, RepositoryDashmap};
+use crate::core::torrent::repositories::{Repository, RepositoryDashmap};
 use crate::core::torrent::{SwarmMetadata, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 
@@ -708,7 +708,7 @@ impl Tracker {
             }
 
             let torrent_entry = torrent::Entry {
-                peers: BTreeMap::default(),
+                peers: HashMap::default(),
                 completed,
             };
 

@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use clap::Parser;
 use futures::stream::FuturesUnordered;
-use torrust_tracker::core::torrent::repository::Repository;
+use torrust_tracker::core::torrent::repositories::Repository;
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 
 use crate::args::Args;

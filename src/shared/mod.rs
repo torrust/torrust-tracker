@@ -6,3 +6,4 @@
 pub mod bit_torrent;
 pub mod clock;
 pub mod crypto;
+pub mod mem_size;

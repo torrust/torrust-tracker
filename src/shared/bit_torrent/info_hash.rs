@@ -131,10 +131,11 @@
 //! The result is a 20-char string: `5452869BE36F9F3350CCEE6B4544E7E76CAAADAB`
 use std::panic::Location;
 
+use deepsize::DeepSizeOf;
 use thiserror::Error;
 
 /// `BitTorrent` Info Hash v1
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, DeepSizeOf)]
 pub struct InfoHash(pub [u8; 20]);
 
 const INFO_HASH_BYTES_LEN: usize = 20;

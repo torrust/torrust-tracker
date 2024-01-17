@@ -7,7 +7,7 @@ use torrust_torrent_repository_benchmarks::benches::asyn::{
 use torrust_torrent_repository_benchmarks::benches::sync::{
     add_multiple_torrents_in_parallel, add_one_torrent, update_multiple_torrents_in_parallel, update_one_torrent_in_parallel,
 };
-use torrust_tracker::core::torrent::repository::{
+use torrust_tracker::core::torrent::repositories::{
     AsyncSync, RepositoryAsync, RepositoryAsyncSingle, RepositoryDashmap, Sync, SyncSingle,
 };
 

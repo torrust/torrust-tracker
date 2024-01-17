@@ -20,10 +20,12 @@
 //!     event: AnnounceEvent::Started,
 //! };
 //! ```
+use std::mem::size_of;
 use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+use deepsize::{known_deep_size, DeepSizeOf};
 use serde;
 use serde::Serialize;
 use thiserror::Error;
@@ -86,6 +88,9 @@ pub struct Peer {
     pub event: AnnounceEvent,
 }
 
+// Represents the size in bytes of the Peer struct
+known_deep_size!(size_of::<Peer>(); Peer);
+
 impl Peer {
     #[must_use]
     pub fn is_seeder(&self) -> bool {
@@ -122,7 +127,7 @@ impl Peer {
 ///
 /// let peer_id = peer::Id(*b"-qB00000000000000000");
 /// ```
-#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy, DeepSizeOf)]
 pub struct Id(pub [u8; 20]);
 
 const PEER_ID_BYTES_LEN: usize = 20;
