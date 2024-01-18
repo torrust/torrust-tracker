@@ -370,7 +370,7 @@ impl RepositoryDashmap {
 
     fn check_do_free_memory_on_shard(&self, shard_idx: usize, amount: usize) {
         let mem_size_shard = self.get_shard_mem_size(shard_idx);
-        let maybe_max_memory_available = MAX_MEMORY_LIMIT.map(|v| v / 8 - mem_size_shard);
+        let maybe_max_memory_available = MAX_MEMORY_LIMIT.map(|v| v / self.torrents._shard_count() - mem_size_shard);
         let memory_shortage = maybe_max_memory_available.map(|v| amount.saturating_sub(v)).unwrap_or(0);
 
         if memory_shortage > 0 {
