@@ -5,8 +5,8 @@ use std::sync::{Arc, Mutex};
 
 use dashmap::{DashMap, Map};
 
+use crate::core::peer;
 use crate::core::torrent::{Entry, SwarmStats};
-use crate::core::{peer, torrent};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::mem_size::{MemSize, POINTER_SIZE};
 
@@ -18,7 +18,7 @@ const TORRENT_INSERTION_SIZE_COST: usize = 216;
 const PEER_INSERTION_SIZE_COST: usize = 132;
 
 // todo: config
-const MAX_MEMORY_LIMIT: Option<usize> = Some(4096);
+const MAX_MEMORY_LIMIT: Option<usize> = Some(4_000_000_000);
 
 pub trait Repository {
     fn new() -> Self;
@@ -371,7 +371,7 @@ impl RepositoryDashmap {
     fn check_do_free_memory_on_shard(&self, shard_idx: usize, amount: usize) {
         let mem_size_shard = self.get_shard_mem_size(shard_idx);
         let maybe_max_memory_available = MAX_MEMORY_LIMIT.map(|v| v / 8 - mem_size_shard);
-        let memory_shortage = maybe_max_memory_available.map(|v| amount - v).unwrap_or(0);
+        let memory_shortage = maybe_max_memory_available.map(|v| amount.saturating_sub(v)).unwrap_or(0);
 
         if memory_shortage > 0 {
             self.free_memory_on_shard(shard_idx, memory_shortage);
