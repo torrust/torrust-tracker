@@ -10,15 +10,15 @@ use crate::core::torrent::{Entry, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::mem_size::{MemSize, POINTER_SIZE};
 
+// todo: config
+const MAX_MEMORY_LIMIT: Option<usize> = Some(4_000_000_000);
+
 const INFO_HASH_SIZE: usize = size_of::<InfoHash>();
 
 /// Total memory impact of adding a new empty torrent ([torrent::Entry]) to a map.
 const TORRENT_INSERTION_SIZE_COST: usize = 216;
 /// Total memory impact of adding a new peer ([peer::Peer]) to a map.
 const PEER_INSERTION_SIZE_COST: usize = 132;
-
-// todo: config
-const MAX_MEMORY_LIMIT: Option<usize> = Some(4_000_000_000);
 
 pub trait Repository {
     fn new() -> Self;
@@ -407,13 +407,29 @@ impl RepositoryDashmap {
         mem_size_shard
     }
 
+    fn shift_torrent_to_front_on_shard_priority_list(&self, shard_idx: usize, info_hash: &InfoHash) {
+        let mut priority_list = self.shard_priority_list.get(shard_idx).unwrap().lock().unwrap();
+
+        let mut index = None;
+
+        for (i, torrent) in priority_list.iter().enumerate() {
+            if torrent == info_hash {
+                index = Some(i);
+            }
+        }
+
+        if let Some(index) = index {
+            let _torrent = priority_list.remove(index);
+        }
+
+        priority_list.push_front(info_hash.to_owned());
+    }
+
     fn insert_torrent(&self, info_hash: &InfoHash) -> Option<Entry> {
         let hash = self.torrents.hash_usize(info_hash);
         let shard_idx = self.torrents.determine_shard(hash);
 
-        let mut priority_list = self.shard_priority_list.get(shard_idx).unwrap().lock().unwrap();
-
-        priority_list.push_front(info_hash.to_owned());
+        self.shift_torrent_to_front_on_shard_priority_list(shard_idx, info_hash);
 
         self.torrents.insert(info_hash.to_owned(), Entry::new())
     }
@@ -441,6 +457,8 @@ impl Repository for RepositoryDashmap {
         if !self.torrents.contains_key(info_hash) {
             self.check_do_free_memory_on_shard(shard_idx, TORRENT_INSERTION_SIZE_COST);
             self.insert_torrent(info_hash);
+        } else {
+            self.shift_torrent_to_front_on_shard_priority_list(shard_idx, info_hash);
         }
 
         let peer_exists = self.torrents.get(info_hash).unwrap().peers.contains_key(&peer.peer_id);
