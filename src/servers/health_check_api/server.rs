@@ -8,6 +8,7 @@ use axum::routing::get;
 use axum::{Json, Router};
 use axum_server::Handle;
 use futures::Future;
+use log::debug;
 use serde_json::json;
 use tokio::sync::oneshot::{Receiver, Sender};
 
@@ -37,10 +38,12 @@ pub fn start(
 
     let handle = Handle::new();
 
+    debug!(target: "Health Check API", "Starting service with graceful shutdown in a spawned task ...");
+
     tokio::task::spawn(graceful_shutdown(
         handle.clone(),
         rx_halt,
-        format!("shutting down http server on socket address: {address}"),
+        format!("Shutting down http server on socket address: {address}"),
     ));
 
     let running = axum_server::from_tcp(socket)

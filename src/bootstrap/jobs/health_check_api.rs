@@ -42,24 +42,32 @@ pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> Jo
 
     let (tx_start, rx_start) = oneshot::channel::<Started>();
     let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
-    drop(tx_halt);
+
+    let protocol = "http";
 
     // Run the API server
     let join_handle = tokio::spawn(async move {
-        info!(target: "Health Check API", "Starting on: http://{}", bind_addr);
+        info!(target: "Health Check API", "Starting on: {protocol}://{}", bind_addr);
 
         let handle = server::start(bind_addr, tx_start, rx_halt, register);
 
         if let Ok(()) = handle.await {
-            info!(target: "Health Check API", "Stopped server running on: http://{}", bind_addr);
+            info!(target: "Health Check API", "Stopped server running on: {protocol}://{}", bind_addr);
         }
     });
 
-    // Wait until the API server job is running
+    // Wait until the server sends the started message
     match rx_start.await {
-        Ok(msg) => info!(target: "Health Check API", "Started on: http://{}", msg.address),
+        Ok(msg) => info!(target: "Health Check API", "Started on: {protocol}://{}", msg.address),
         Err(e) => panic!("the Health Check API server was dropped: {e}"),
     }
 
-    join_handle
+    // Wait until the server finishes
+    tokio::spawn(async move {
+        assert!(!tx_halt.is_closed(), "Halt channel for Health Check API should be open");
+
+        join_handle
+            .await
+            .expect("it should be able to join to the Health Check API server task");
+    })
 }
