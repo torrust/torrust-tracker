@@ -5,6 +5,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use derive_more::Constructor;
+use log::debug;
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 
@@ -81,10 +82,15 @@ impl Registar {
 
     /// Inserts a listing into the registry.
     async fn insert(&self, rx: tokio::sync::oneshot::Receiver<ServiceRegistration>) {
-        let listing = rx.await.expect("it should receive the listing");
+        debug!("Waiting for the started service to send registration data ...");
+
+        let service_registration = rx
+            .await
+            .expect("it should receive the service registration from the started service");
 
         let mut mutex = self.registry.lock().await;
-        mutex.insert(listing.binding, listing);
+
+        mutex.insert(service_registration.binding, service_registration);
     }
 
     /// Returns the [`ServiceRegistry`] of services

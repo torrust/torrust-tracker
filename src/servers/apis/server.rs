@@ -30,7 +30,7 @@ use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
-use log::{error, info};
+use log::{debug, error, info};
 use tokio::sync::oneshot::{Receiver, Sender};
 use torrust_tracker_configuration::AccessTokens;
 
@@ -120,7 +120,12 @@ impl ApiServer<Stopped> {
         let launcher = self.state.launcher;
 
         let task = tokio::spawn(async move {
-            launcher.start(tracker, access_tokens, tx_start, rx_halt).await;
+            debug!(target: "API", "Starting with launcher in spawned task ...");
+
+            let _task = launcher.start(tracker, access_tokens, tx_start, rx_halt).await;
+
+            debug!(target: "API", "Started with launcher in spawned task");
+
             launcher
         });
 
@@ -266,8 +271,9 @@ mod tests {
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
         let cfg = Arc::new(ephemeral_mode_public());
-        let tracker = initialize_with_configuration(&cfg);
         let config = &cfg.http_api;
+
+        let tracker = initialize_with_configuration(&cfg);
 
         let bind_to = config
             .bind_address
