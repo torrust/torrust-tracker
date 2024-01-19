@@ -4,6 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use aquatic_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
+use log::debug;
 use tokio::net::UdpSocket;
 use tokio::time;
 
@@ -19,7 +20,12 @@ impl UdpClient {
     ///
     /// Will panic if the local address can't be bound.
     pub async fn bind(local_address: &str) -> Self {
-        let socket = UdpSocket::bind(local_address).await.unwrap();
+        let valid_socket_addr = local_address
+            .parse::<SocketAddr>()
+            .unwrap_or_else(|_| panic!("{local_address} is not a valid socket address"));
+
+        let socket = UdpSocket::bind(valid_socket_addr).await.unwrap();
+
         Self {
             socket: Arc::new(socket),
         }
@@ -29,7 +35,14 @@ impl UdpClient {
     ///
     /// Will panic if can't connect to the socket.
     pub async fn connect(&self, remote_address: &str) {
-        self.socket.connect(remote_address).await.unwrap();
+        let valid_socket_addr = remote_address
+            .parse::<SocketAddr>()
+            .unwrap_or_else(|_| panic!("{remote_address} is not a valid socket address"));
+
+        match self.socket.connect(valid_socket_addr).await {
+            Ok(()) => debug!("Connected successfully"),
+            Err(e) => panic!("Failed to connect: {e:?}"),
+        }
     }
 
     /// # Panics
@@ -39,6 +52,8 @@ impl UdpClient {
     /// - Can't write to the socket.
     /// - Can't send data.
     pub async fn send(&self, bytes: &[u8]) -> usize {
+        debug!(target: "UDP client", "send {bytes:?}");
+
         self.socket.writable().await.unwrap();
         self.socket.send(bytes).await.unwrap()
     }
@@ -50,8 +65,15 @@ impl UdpClient {
     /// - Can't read from the socket.
     /// - Can't receive data.
     pub async fn receive(&self, bytes: &mut [u8]) -> usize {
+        debug!(target: "UDP client", "receiving ...");
+
         self.socket.readable().await.unwrap();
-        self.socket.recv(bytes).await.unwrap()
+
+        let size = self.socket.recv(bytes).await.unwrap();
+
+        debug!(target: "UDP client", "{size} bytes received {bytes:?}");
+
+        size
     }
 }
 
@@ -73,6 +95,8 @@ impl UdpTrackerClient {
     ///
     /// Will panic if can't write request to bytes.
     pub async fn send(&self, request: Request) -> usize {
+        debug!(target: "UDP tracker client", "send request {request:?}");
+
         // Write request into a buffer
         let request_buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(request_buffer);
@@ -98,6 +122,8 @@ impl UdpTrackerClient {
         let mut response_buffer = [0u8; MAX_PACKET_SIZE];
 
         let payload_size = self.udp_client.receive(&mut response_buffer).await;
+
+        debug!(target: "UDP tracker client", "received {payload_size} bytes. Response {response_buffer:?}");
 
         Response::from_bytes(&response_buffer[..payload_size], true).unwrap()
     }
