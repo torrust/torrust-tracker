@@ -110,7 +110,3 @@ jobs:
       - id: test
         name: Run Unit Tests
         run: cargo test --tests --benches --examples --workspace --all-targets --all-features
-
-      - id: coverage
-        name: Generate Coverage Report
-        run: cargo llvm-cov nextest --tests --benches --examples --workspace --all-targets --all-features
