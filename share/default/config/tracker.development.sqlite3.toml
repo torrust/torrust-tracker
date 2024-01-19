@@ -13,18 +13,18 @@ remove_peerless_torrents = true
 tracker_usage_statistics = true
 
 [[udp_trackers]]
-bind_address = "0.0.0.0:0"
+bind_address = "0.0.0.0:6969"
 enabled = true
 
 [[http_trackers]]
-bind_address = "0.0.0.0:0"
+bind_address = "0.0.0.0:7070"
 enabled = true
 ssl_cert_path = ""
 ssl_enabled = false
 ssl_key_path = ""
 
 [http_api]
-bind_address = "127.0.0.1:0"
+bind_address = "127.0.0.1:1212"
 enabled = true
 ssl_cert_path = ""
 ssl_enabled = false
