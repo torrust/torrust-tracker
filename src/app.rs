@@ -76,6 +76,10 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
 
     // Start the HTTP blocks
     for http_tracker_config in &config.http_trackers {
+        if !http_tracker_config.enabled {
+            continue;
+        }
+
         if let Some(job) = http_tracker::start_job(
             http_tracker_config,
             tracker.clone(),
