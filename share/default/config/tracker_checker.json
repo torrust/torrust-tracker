@@ -1,0 +1,11 @@
+{
+    "udp_trackers": [
+        "127.0.0.1:6969"
+    ],
+    "http_trackers": [
+        "http://127.0.0.1:7070"
+    ],
+    "health_checks": [
+        "http://127.0.0.1:1313/health_check"
+    ]
+}
