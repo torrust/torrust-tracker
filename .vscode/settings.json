@@ -2,6 +2,12 @@
   "[rust]": {
     "editor.formatOnSave": true
   },
+  "[ignore]": { "rust-analyzer.cargo.extraEnv" : {
+    "RUSTFLAGS": "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests",
+    "RUSTDOCFLAGS": "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests",
+    "CARGO_INCREMENTAL": "0",
+    "RUST_BACKTRACE": "1"
+  }},
   "rust-analyzer.checkOnSave": true,
   "rust-analyzer.check.command": "clippy",
   "rust-analyzer.check.allTargets": true,

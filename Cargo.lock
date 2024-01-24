@@ -2622,6 +2622,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ringbuf"
+version = "0.4.0-rc.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b8f7d58e4f67752d63318605656be063e333154aa35b70126075e9d05552979"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
 name = "rkyv"
 version = "0.7.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3448,6 +3457,7 @@ dependencies = [
  "r2d2_sqlite",
  "rand",
  "reqwest",
+ "ringbuf",
  "serde",
  "serde_bencode",
  "serde_bytes",

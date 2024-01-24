@@ -143,6 +143,8 @@ pub async fn new_udp_tracker_client_connected(remote_address: &str) -> UdpTracke
 ///
 /// # Panics
 pub async fn check(binding: &SocketAddr) -> Result<String, String> {
+    debug!("Checking Service (detail): {binding:?}.");
+
     let client = new_udp_tracker_client_connected(binding.to_string().as_str()).await;
 
     let connect_request = ConnectRequest {

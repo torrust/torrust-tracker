@@ -11,6 +11,7 @@ use log::{debug, info};
 use torrust_tracker_located_error::DynError;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
+use super::UdpRequest;
 use crate::core::{statistics, ScrapeData, Tracker};
 use crate::servers::udp::error::Error;
 use crate::servers::udp::peer_builder;
@@ -27,10 +28,13 @@ use crate::shared::bit_torrent::info_hash::InfoHash;
 /// type.
 ///
 /// It will return an `Error` response if the request is invalid.
-pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: &Tracker) -> Response {
-    match Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS).map_err(|e| Error::InternalServer {
-        message: format!("{e:?}"),
-        location: Location::caller(),
+pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker>) -> Response {
+    debug!("Handling Packets: {udp_request:?}");
+    match Request::from_bytes(&udp_request.payload[..udp_request.payload.len()], MAX_SCRAPE_TORRENTS).map_err(|e| {
+        Error::InternalServer {
+            message: format!("{e:?}"),
+            location: Location::caller(),
+        }
     }) {
         Ok(request) => {
             let transaction_id = match &request {
@@ -39,7 +43,7 @@ pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: &
                 Request::Scrape(scrape_request) => scrape_request.transaction_id,
             };
 
-            match handle_request(request, remote_addr, tracker).await {
+            match handle_request(request, udp_request.from, tracker).await {
                 Ok(response) => response,
                 Err(e) => handle_error(&e, transaction_id),
             }
@@ -60,6 +64,8 @@ pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: &
 ///
 /// If a error happens in the `handle_request` function, it will just return the  `ServerError`.
 pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: &Tracker) -> Result<Response, Error> {
+    debug!("Handling Request: {request:?} to: {remote_addr:?}");
+
     match request {
         Request::Connect(connect_request) => handle_connect(remote_addr, &connect_request, tracker).await,
         Request::Announce(announce_request) => handle_announce(remote_addr, &announce_request, tracker).await,

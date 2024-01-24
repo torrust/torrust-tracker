@@ -68,11 +68,29 @@ impl Environment<Running> {
             config: self.config,
             tracker: self.tracker,
             registar: Registar::default(),
-            server: self.server.stop().await.unwrap(),
+            server: self.server.stop().await.expect("it stop the udp tracker service"),
         }
     }
 
     pub fn bind_address(&self) -> SocketAddr {
         self.server.state.binding
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use tokio::time::sleep;
+    use torrust_tracker_test_helpers::configuration;
+
+    use crate::servers::udp::Started;
+
+    #[tokio::test]
+    async fn it_should_make_and_stop_udp_server() {
+        let env = Started::new(&configuration::ephemeral().into()).await;
+        sleep(Duration::from_secs(1)).await;
+        env.stop().await;
+        sleep(Duration::from_secs(1)).await;
     }
 }

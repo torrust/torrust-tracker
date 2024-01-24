@@ -47,6 +47,8 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
     let response = Response::from_bytes(&buffer, true).unwrap();
 
     assert!(is_error_response(&response, "bad request"));
+
+    env.stop().await;
 }
 
 mod receiving_a_connection_request {
@@ -72,6 +74,8 @@ mod receiving_a_connection_request {
         let response = client.receive().await;
 
         assert!(is_connect_response(&response, TransactionId(123)));
+
+        env.stop().await;
     }
 }
 
@@ -121,6 +125,8 @@ mod receiving_an_announce_request {
         println!("test response {response:?}");
 
         assert!(is_ipv4_announce_response(&response));
+
+        env.stop().await;
     }
 }
 
@@ -158,5 +164,7 @@ mod receiving_an_scrape_request {
         let response = client.receive().await;
 
         assert!(is_scrape_response(&response));
+
+        env.stop().await;
     }
 }
