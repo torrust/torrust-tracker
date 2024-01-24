@@ -110,3 +110,32 @@ jobs:
       - id: test
         name: Run Unit Tests
         run: cargo test --tests --benches --examples --workspace --all-targets --all-features
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    needs: unit
+
+    strategy:
+      matrix:
+        toolchain: [nightly]
+
+    steps:
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: llvm-tools-preview
+
+      - id: cache
+        name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - id: test
+        name: Run E2E Tests
+        run: cargo run --bin e2e_tests_runner ./share/default/config/tracker.e2e.container.sqlite3.toml
