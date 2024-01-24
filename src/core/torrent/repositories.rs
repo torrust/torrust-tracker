@@ -3,20 +3,22 @@ use std::iter;
 use std::mem::size_of;
 use std::sync::{Arc, Mutex};
 
-use dashmap::{DashMap, Map};
+use dashmap::{DashMap, Map, SharedValue};
 
 use crate::core::peer;
 use crate::core::torrent::{Entry, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::mem_size::{MemSize, POINTER_SIZE};
 
-// todo: config
-const MAX_MEMORY_LIMIT: Option<usize> = Some(4_000_000_000);
+// todo: Make this a config option. Through env?
+const MAX_MEMORY_LIMIT: Option<usize> = Some(8_000_000_000); // 8GB
 
 const INFO_HASH_SIZE: usize = size_of::<InfoHash>();
 
+#[allow(dead_code)]
 /// Total memory impact of adding a new empty torrent ([torrent::Entry]) to a map.
 const TORRENT_INSERTION_SIZE_COST: usize = 216;
+
 /// Total memory impact of adding a new peer ([peer::Peer]) to a map.
 const PEER_INSERTION_SIZE_COST: usize = 132;
 
@@ -344,13 +346,16 @@ impl MemSize for RepositoryDashmap {
 
 impl RepositoryDashmap {
     /// Removes all torrents with no peers and returns the amount of memory freed in bytes.
-    fn clean_empty_torrents_in_shard(&self, shard_idx: usize) -> usize {
+    fn _clean_empty_torrents_in_shard(&self, shard_idx: usize) -> usize {
         let mut to_be_removed_torrents: HashSet<InfoHash> = HashSet::new();
         let mut memory_freed: usize = 0;
 
         let mut shard = unsafe { self.torrents._yield_write_shard(shard_idx) };
 
-        for (info_hash, torrent) in shard.iter() {
+        for (info_hash, torrent) in shard.iter_mut() {
+            // todo: Get the max peer timeout from config.
+            torrent.get_mut().remove_inactive_peers(900);
+
             if torrent.get().peers.is_empty() {
                 to_be_removed_torrents.insert(info_hash.to_owned());
                 memory_freed += (2 * POINTER_SIZE) + INFO_HASH_SIZE + torrent.get().get_mem_size();
@@ -368,6 +373,20 @@ impl RepositoryDashmap {
         memory_freed
     }
 
+    fn _get_index_of_torrent_on_shard_priority_list(&self, shard_idx: usize, info_hash: &InfoHash) -> Option<usize> {
+        let priority_list = unsafe { self.shard_priority_list.get_unchecked(shard_idx) }.lock().unwrap();
+
+        let mut index = None;
+
+        for (i, torrent) in priority_list.iter().enumerate() {
+            if torrent == info_hash {
+                index = Some(i);
+            }
+        }
+
+        index
+    }
+
     fn check_do_free_memory_on_shard(&self, shard_idx: usize, amount: usize) {
         let mem_size_shard = self.get_shard_mem_size(shard_idx);
         let maybe_max_memory_available = MAX_MEMORY_LIMIT.map(|v| v / self.torrents._shard_count() - mem_size_shard);
@@ -379,13 +398,15 @@ impl RepositoryDashmap {
     }
 
     fn free_memory_on_shard(&self, shard_idx: usize, amount: usize) {
-        let mut shard = unsafe { self.torrents._yield_write_shard(shard_idx) };
-        let mut priority_list = unsafe { self.shard_priority_list.get_unchecked(shard_idx) }.lock().unwrap();
         let mut amount_freed: usize = 0;
 
-        while amount_freed < amount && !priority_list.is_empty() {
-            amount_freed += self.clean_empty_torrents_in_shard(shard_idx);
+        // Free memory from inactive torrents first.
+        amount_freed += self._clean_empty_torrents_in_shard(shard_idx);
 
+        let mut shard = unsafe { self.torrents._yield_write_shard(shard_idx) };
+        let mut priority_list = unsafe { self.shard_priority_list.get_unchecked(shard_idx) }.lock().unwrap();
+
+        while amount_freed < amount && !priority_list.is_empty() {
             // Can safely unwrap as we check if the priority list is not empty
             let torrent_hash_to_be_removed = priority_list.pop_back().unwrap();
 
@@ -408,30 +429,25 @@ impl RepositoryDashmap {
     }
 
     fn shift_torrent_to_front_on_shard_priority_list(&self, shard_idx: usize, info_hash: &InfoHash) {
+        let maybe_index = self._get_index_of_torrent_on_shard_priority_list(shard_idx, info_hash);
+
         let mut priority_list = self.shard_priority_list.get(shard_idx).unwrap().lock().unwrap();
 
-        let mut index = None;
-
-        for (i, torrent) in priority_list.iter().enumerate() {
-            if torrent == info_hash {
-                index = Some(i);
-            }
-        }
-
-        if let Some(index) = index {
+        if let Some(index) = maybe_index {
             let _torrent = priority_list.remove(index);
         }
 
         priority_list.push_front(info_hash.to_owned());
     }
 
-    fn insert_torrent(&self, info_hash: &InfoHash) -> Option<Entry> {
-        let hash = self.torrents.hash_usize(info_hash);
-        let shard_idx = self.torrents.determine_shard(hash);
+    fn insert_torrent_into_shard(&self, shard_idx: usize, info_hash: &InfoHash) -> Option<Entry> {
+        let mut shard = unsafe { self.torrents._yield_write_shard(shard_idx) };
 
         self.shift_torrent_to_front_on_shard_priority_list(shard_idx, info_hash);
 
-        self.torrents.insert(info_hash.to_owned(), Entry::new())
+        shard
+            .insert(info_hash.to_owned(), SharedValue::new(Entry::default()))
+            .map(|v| v.into_inner())
     }
 }
 
@@ -456,10 +472,12 @@ impl Repository for RepositoryDashmap {
 
         if !self.torrents.contains_key(info_hash) {
             self.check_do_free_memory_on_shard(shard_idx, TORRENT_INSERTION_SIZE_COST);
-            self.insert_torrent(info_hash);
+            self.insert_torrent_into_shard(shard_idx, info_hash);
         } else {
             self.shift_torrent_to_front_on_shard_priority_list(shard_idx, info_hash);
         }
+
+        // todo: Reserve the freed memory above.
 
         let peer_exists = self.torrents.get(info_hash).unwrap().peers.contains_key(&peer.peer_id);
 
@@ -467,6 +485,8 @@ impl Repository for RepositoryDashmap {
             self.check_do_free_memory_on_shard(shard_idx, PEER_INSERTION_SIZE_COST);
         }
 
+        // todo: Will unwrap to none if the max repo size / shard amount is lower than the size of a torrent + 1 peer.
+        // todo: Should assert that the above condition is never the case.
         let mut torrent = self.torrents.get_mut(info_hash).unwrap();
 
         let stats_updated = torrent.insert_or_update_peer(peer);
@@ -538,5 +558,31 @@ pub mod tests {
         torrent_repository.torrents.remove(&info_hash_2);
 
         assert_eq!(torrent_repository.get_mem_size(), 256);
+    }
+
+    #[test]
+    fn torrent_should_have_priority_index_of_0() {
+        let torrent_repository = RepositoryDashmap::new();
+
+        let info_hash_1 = InfoHash([0u8; 20]);
+        let info_hash_2 = InfoHash([1u8; 20]);
+
+        let torrent_peer_1 = crate::core::torrent::tests::torrent_entry::TorrentPeerBuilder::default()
+            .with_peer_id(peer::Id([0u8; 20]))
+            .into();
+
+        let torrent_peer_2 = crate::core::torrent::tests::torrent_entry::TorrentPeerBuilder::default()
+            .with_peer_id(peer::Id([1u8; 20]))
+            .into();
+
+        torrent_repository.upsert_torrent_with_peer_and_get_stats(&info_hash_1, &torrent_peer_1);
+        torrent_repository.upsert_torrent_with_peer_and_get_stats(&info_hash_2, &torrent_peer_2);
+
+        let hash = torrent_repository.torrents.hash_usize(&info_hash_2);
+        let shard_idx = torrent_repository.torrents.determine_shard(hash);
+
+        let maybe_priority_idx = torrent_repository._get_index_of_torrent_on_shard_priority_list(shard_idx, &info_hash_2);
+
+        assert_eq!(maybe_priority_idx, Some(0))
     }
 }
