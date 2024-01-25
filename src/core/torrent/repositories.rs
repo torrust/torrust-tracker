@@ -1,7 +1,7 @@
 use std::collections::{HashSet, VecDeque};
 use std::iter;
 use std::mem::size_of;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use dashmap::{DashMap, Map, SharedValue};
 
@@ -11,11 +11,10 @@ use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::mem_size::{MemSize, POINTER_SIZE};
 
 // todo: Make this a config option. Through env?
-const MAX_MEMORY_LIMIT: Option<usize> = Some(8_000_000_000); // 8GB
+const MAX_MEMORY_LIMIT: Option<usize> = Some(8_000); // 8GB
 
 const INFO_HASH_SIZE: usize = size_of::<InfoHash>();
 
-#[allow(dead_code)]
 /// Total memory impact of adding a new empty torrent ([torrent::Entry]) to a map.
 const TORRENT_INSERTION_SIZE_COST: usize = 216;
 
@@ -326,6 +325,7 @@ impl RepositoryAsyncSingle {
 pub struct RepositoryDashmap {
     pub torrents: DashMap<InfoHash, Entry>,
     pub shard_priority_list: Vec<Mutex<VecDeque<InfoHash>>>,
+    pub shard_locks: Vec<Mutex<()>>,
 }
 
 impl MemSize for RepositoryDashmap {
@@ -385,6 +385,10 @@ impl RepositoryDashmap {
         }
 
         index
+    }
+
+    unsafe fn _yield_shard_lock(&self, shard_idx: usize) -> MutexGuard<'_, ()> {
+        self.shard_locks.get_unchecked(shard_idx).lock().unwrap()
     }
 
     fn check_do_free_memory_on_shard(&self, shard_idx: usize, amount: usize) {
@@ -460,15 +464,20 @@ impl Repository for RepositoryDashmap {
             .take(torrents._shard_count())
             .collect();
 
+        let shard_locks = iter::repeat_with(|| Mutex::new(())).take(torrents._shard_count()).collect();
+
         Self {
             torrents,
             shard_priority_list,
+            shard_locks,
         }
     }
 
     fn upsert_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let hash = self.torrents.hash_usize(&info_hash);
         let shard_idx = self.torrents.determine_shard(hash);
+
+        let _shard_lock = unsafe { self._yield_shard_lock(shard_idx) };
 
         if !self.torrents.contains_key(info_hash) {
             self.check_do_free_memory_on_shard(shard_idx, TORRENT_INSERTION_SIZE_COST);
@@ -491,6 +500,8 @@ impl Repository for RepositoryDashmap {
 
         let stats_updated = torrent.insert_or_update_peer(peer);
         let stats = torrent.get_stats();
+
+        drop(_shard_lock);
 
         (
             SwarmStats {
