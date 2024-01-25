@@ -473,6 +473,7 @@ pub mod app;
 pub mod bootstrap;
 pub mod checker;
 pub mod core;
+pub mod e2e;
 pub mod servers;
 pub mod shared;
 

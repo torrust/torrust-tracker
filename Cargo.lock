@@ -3467,6 +3467,7 @@ dependencies = [
  "serde_with",
  "tdyne-peer-id",
  "tdyne-peer-id-registry",
+ "tempfile",
  "thiserror",
  "tokio",
  "torrust-tracker-configuration",
