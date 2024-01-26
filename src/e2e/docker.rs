@@ -4,25 +4,25 @@ use std::process::{Command, Output};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use log::debug;
+use log::{debug, info};
 
 /// Docker command wrapper.
 pub struct Docker {}
 
+#[derive(Clone, Debug)]
 pub struct RunningContainer {
+    pub image: String,
     pub name: String,
     pub output: Output,
 }
 
 impl Drop for RunningContainer {
-    /// Ensures that the temporary container is stopped and removed when the
-    /// struct goes out of scope.
+    /// Ensures that the temporary container is stopped when the struct goes out
+    /// of scope.
     fn drop(&mut self) {
+        info!("Dropping running container: {}", self.name);
         if Docker::is_container_running(&self.name) {
             let _unused = Docker::stop(self);
-        }
-        if Docker::container_exist(&self.name) {
-            let _unused = Docker::remove(&self.name);
         }
     }
 }
@@ -95,6 +95,7 @@ impl Docker {
 
         if output.status.success() {
             Ok(RunningContainer {
+                image: image.to_owned(),
                 name: container.to_owned(),
                 output,
             })

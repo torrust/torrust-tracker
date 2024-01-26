@@ -2,20 +2,26 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::Duration;
 use std::{env, io};
 
 use log::{debug, info, LevelFilter};
-use rand::distributions::Alphanumeric;
-use rand::Rng;
 
-use super::docker::RunningContainer;
-use crate::e2e::docker::{Docker, RunOptions};
+use super::tracker_container::TrackerContainer;
+use crate::e2e::docker::RunOptions;
 use crate::e2e::logs_parser::RunningServices;
 use crate::e2e::temp_dir::Handler;
 
+/* code-review:
+     - We use always the same docker image name. Should we use a random image name (tag)?
+     - We use the name image name we use in other workflows `torrust-tracker:local`.
+       Should we use a different one like `torrust-tracker:e2e`?
+     - We remove the container after running tests but not the container image.
+       Should we remove the image too?
+*/
+
 pub const NUMBER_OF_ARGUMENTS: usize = 2;
-const CONTAINER_TAG: &str = "torrust-tracker:local";
+const CONTAINER_IMAGE: &str = "torrust-tracker:local";
+const CONTAINER_NAME_PREFIX: &str = "tracker_";
 const TRACKER_CHECKER_CONFIG_FILE: &str = "tracker_checker.json";
 
 pub struct Arguments {
@@ -34,11 +40,9 @@ pub fn run() {
 
     let tracker_config = load_tracker_configuration(&args.tracker_config_path);
 
-    build_tracker_container_image(CONTAINER_TAG);
+    let mut tracker_container = TrackerContainer::new(CONTAINER_IMAGE, CONTAINER_NAME_PREFIX);
 
-    let temp_dir = create_temp_dir();
-
-    let container_name = generate_random_container_name("tracker_");
+    tracker_container.build_image();
 
     // code-review: if we want to use port 0 we don't know which ports we have to open.
     // Besides, if we don't use port 0 we should get the port numbers from the tracker configuration.
@@ -53,30 +57,32 @@ pub fn run() {
         ],
     };
 
-    let container = run_tracker_container(CONTAINER_TAG, &container_name, &options);
+    tracker_container.run(&options);
 
-    let running_services = parse_running_services_from_logs(&container);
-
-    assert_there_are_no_panics_in_logs(&container);
+    let running_services = tracker_container.running_services();
 
     assert_there_is_at_least_one_service_per_type(&running_services);
 
     let tracker_checker_config =
         serde_json::to_string_pretty(&running_services).expect("Running services should be serialized into JSON");
 
+    let temp_dir = create_temp_dir();
+
     let mut tracker_checker_config_path = PathBuf::from(&temp_dir.temp_dir.path());
     tracker_checker_config_path.push(TRACKER_CHECKER_CONFIG_FILE);
 
     write_tracker_checker_config_file(&tracker_checker_config_path, &tracker_checker_config);
 
-    run_tracker_checker(&tracker_checker_config_path).expect("Tracker checker should check running services");
+    run_tracker_checker(&tracker_checker_config_path).expect("All tracker services should be running correctly");
 
     // More E2E tests could be added here in the future.
     // For example: `cargo test ...` for only E2E tests, using this shared test env.
 
-    stop_tracker_container(&container);
+    tracker_container.stop();
 
-    remove_tracker_container(&container_name);
+    tracker_container.remove();
+
+    info!("Tracker container final state:\n{:#?}", tracker_container);
 }
 
 fn setup_runner_logging(level: LevelFilter) {
@@ -125,11 +131,6 @@ fn read_file(path: &str) -> String {
     std::fs::read_to_string(path).unwrap_or_else(|_| panic!("Can't read file {path}"))
 }
 
-fn build_tracker_container_image(tag: &str) {
-    info!("Building tracker container image with tag: {} ...", tag);
-    Docker::build("./Containerfile", tag).expect("A tracker local docker image should be built");
-}
-
 fn create_temp_dir() -> Handler {
     debug!(
         "Current dir: {:?}",
@@ -141,63 +142,6 @@ fn create_temp_dir() -> Handler {
     info!("Temp dir created: {:?}", temp_dir_handler.temp_dir);
 
     temp_dir_handler
-}
-
-fn generate_random_container_name(prefix: &str) -> String {
-    let rand_string: String = rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(20)
-        .map(char::from)
-        .collect();
-
-    format!("{prefix}{rand_string}")
-}
-
-fn run_tracker_container(image: &str, container_name: &str, options: &RunOptions) -> RunningContainer {
-    info!("Running docker tracker image: {container_name} ...");
-
-    let container = Docker::run(image, container_name, options).expect("A tracker local docker image should be running");
-
-    info!("Waiting for the container {container_name} to be healthy ...");
-
-    let is_healthy = Docker::wait_until_is_healthy(container_name, Duration::from_secs(10));
-
-    assert!(is_healthy, "Unhealthy tracker container: {container_name}");
-
-    debug!("Container {container_name} is healthy ...");
-
-    container
-}
-
-fn stop_tracker_container(container: &RunningContainer) {
-    info!("Stopping docker tracker image: {} ...", container.name);
-    Docker::stop(container).expect("Container should be stopped");
-    assert_there_are_no_panics_in_logs(container);
-}
-
-fn remove_tracker_container(container_name: &str) {
-    info!("Removing docker tracker image: {container_name} ...");
-    Docker::remove(container_name).expect("Container should be removed");
-}
-
-fn assert_there_are_no_panics_in_logs(container: &RunningContainer) -> RunningServices {
-    let logs = Docker::logs(&container.name).expect("Logs should be captured from running container");
-
-    assert!(
-        !(logs.contains(" panicked at ") || logs.contains("RUST_BACKTRACE=1")),
-        "{}",
-        format!("Panics found is logs:\n{logs}")
-    );
-
-    RunningServices::parse_from_logs(&logs)
-}
-
-fn parse_running_services_from_logs(container: &RunningContainer) -> RunningServices {
-    let logs = Docker::logs(&container.name).expect("Logs should be captured from running container");
-
-    debug!("Logs after starting the container:\n{logs}");
-
-    RunningServices::parse_from_logs(&logs)
 }
 
 fn assert_there_is_at_least_one_service_per_type(running_services: &RunningServices) {
@@ -216,15 +160,20 @@ fn assert_there_is_at_least_one_service_per_type(running_services: &RunningServi
 }
 
 fn write_tracker_checker_config_file(config_file_path: &Path, config: &str) {
+    info!(
+        "Writing Tracker Checker configuration file: {:?} \n{config}",
+        config_file_path
+    );
+
     let mut file = File::create(config_file_path).expect("Tracker checker config file to be created");
 
     file.write_all(config.as_bytes())
         .expect("Tracker checker config file to be written");
-
-    info!("Tracker checker configuration file: {:?} \n{config}", config_file_path);
 }
 
-/// Runs the tracker checker
+/// Runs the Tracker Checker.
+///
+/// For example:
 ///
 /// ```text
 /// cargo run --bin tracker_checker "./share/default/config/tracker_checker.json"
@@ -239,7 +188,7 @@ fn write_tracker_checker_config_file(config_file_path: &Path, config: &str) {
 /// Will panic if the config path is not a valid string.
 pub fn run_tracker_checker(config_path: &Path) -> io::Result<()> {
     info!(
-        "Running tacker checker: cargo --bin tracker_checker {}",
+        "Running Tracker Checker: cargo --bin tracker_checker {}",
         config_path.display()
     );
 
@@ -254,7 +203,7 @@ pub fn run_tracker_checker(config_path: &Path) -> io::Result<()> {
     } else {
         Err(io::Error::new(
             io::ErrorKind::Other,
-            format!("Failed to run tracker checker with config file {path}"),
+            format!("Failed to run Tracker Checker with config file {path}"),
         ))
     }
 }
