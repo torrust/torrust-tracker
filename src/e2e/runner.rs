@@ -57,6 +57,8 @@ pub fn run() {
 
     let running_services = parse_running_services_from_logs(&container);
 
+    assert_there_is_at_least_one_service_per_type(&running_services);
+
     let tracker_checker_config =
         serde_json::to_string_pretty(&running_services).expect("Running services should be serialized into JSON");
 
@@ -168,6 +170,21 @@ fn parse_running_services_from_logs(container: &RunningContainer) -> RunningServ
     debug!("Logs after starting the container:\n{logs}");
 
     RunningServices::parse_from_logs(&logs)
+}
+
+fn assert_there_is_at_least_one_service_per_type(running_services: &RunningServices) {
+    assert!(
+        !running_services.udp_trackers.is_empty(),
+        "At least one UDP tracker should be enabled in E2E tests configuration"
+    );
+    assert!(
+        !running_services.http_trackers.is_empty(),
+        "At least one HTTP tracker should be enabled in E2E tests configuration"
+    );
+    assert!(
+        !running_services.health_checks.is_empty(),
+        "At least one Health Check should be enabled in E2E tests configuration"
+    );
 }
 
 fn write_tracker_checker_config_file(config_file_path: &Path, config: &str) {
