@@ -2,20 +2,26 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::Duration;
 use std::{env, io};
 
 use log::{debug, info, LevelFilter};
-use rand::distributions::Alphanumeric;
-use rand::Rng;
 
-use super::docker::RunningContainer;
-use crate::e2e::docker::Docker;
+use super::tracker_container::TrackerContainer;
+use crate::e2e::docker::RunOptions;
 use crate::e2e::logs_parser::RunningServices;
 use crate::e2e::temp_dir::Handler;
 
+/* code-review:
+     - We use always the same docker image name. Should we use a random image name (tag)?
+     - We use the name image name we use in other workflows `torrust-tracker:local`.
+       Should we use a different one like `torrust-tracker:e2e`?
+     - We remove the container after running tests but not the container image.
+       Should we remove the image too?
+*/
+
 pub const NUMBER_OF_ARGUMENTS: usize = 2;
-const CONTAINER_TAG: &str = "torrust-tracker:local";
+const CONTAINER_IMAGE: &str = "torrust-tracker:local";
+const CONTAINER_NAME_PREFIX: &str = "tracker_";
 const TRACKER_CHECKER_CONFIG_FILE: &str = "tracker_checker.json";
 
 pub struct Arguments {
@@ -34,40 +40,46 @@ pub fn run() {
 
     let tracker_config = load_tracker_configuration(&args.tracker_config_path);
 
-    build_tracker_container_image(CONTAINER_TAG);
+    let mut tracker_container = TrackerContainer::new(CONTAINER_IMAGE, CONTAINER_NAME_PREFIX);
 
-    let temp_dir = create_temp_dir();
-
-    let container_name = generate_random_container_name("tracker_");
+    tracker_container.build_image();
 
     // code-review: if we want to use port 0 we don't know which ports we have to open.
     // Besides, if we don't use port 0 we should get the port numbers from the tracker configuration.
     // We could not use docker, but the intention was to create E2E tests including containerization.
-    let env_vars = [("TORRUST_TRACKER_CONFIG".to_string(), tracker_config.to_string())];
-    let ports = [
-        "6969:6969/udp".to_string(),
-        "7070:7070/tcp".to_string(),
-        "1212:1212/tcp".to_string(),
-        "1313:1313/tcp".to_string(),
-    ];
+    let options = RunOptions {
+        env_vars: vec![("TORRUST_TRACKER_CONFIG".to_string(), tracker_config.to_string())],
+        ports: vec![
+            "6969:6969/udp".to_string(),
+            "7070:7070/tcp".to_string(),
+            "1212:1212/tcp".to_string(),
+            "1313:1313/tcp".to_string(),
+        ],
+    };
 
-    let container = run_tracker_container(&container_name, &env_vars, &ports);
+    tracker_container.run(&options);
 
-    let running_services = parse_running_services_from_logs(&container);
+    let running_services = tracker_container.running_services();
 
-    let tracker_checker_config =
-        serde_json::to_string_pretty(&running_services).expect("Running services should be serialized into JSON");
+    assert_there_is_at_least_one_service_per_type(&running_services);
 
-    let mut tracker_checker_config_path = PathBuf::from(&temp_dir.temp_dir.path());
-    tracker_checker_config_path.push(TRACKER_CHECKER_CONFIG_FILE);
+    let temp_dir = create_temp_dir();
 
-    write_tracker_checker_config_file(&tracker_checker_config_path, &tracker_checker_config);
+    let tracker_checker_config_path =
+        create_tracker_checker_config_file(&running_services, temp_dir.temp_dir.path(), TRACKER_CHECKER_CONFIG_FILE);
 
-    run_tracker_checker(&tracker_checker_config_path).expect("Tracker checker should check running services");
+    // todo: inject the configuration with an env variable so that we don't have
+    // to create the temporary directory/file.
+    run_tracker_checker(&tracker_checker_config_path).expect("All tracker services should be running correctly");
 
-    // More E2E tests could be executed here in the future. For example: `cargo test ...`.
+    // More E2E tests could be added here in the future.
+    // For example: `cargo test ...` for only E2E tests, using this shared test env.
 
-    info!("Running container `{}` will be automatically removed", container.name);
+    tracker_container.stop();
+
+    tracker_container.remove();
+
+    info!("Tracker container final state:\n{:#?}", tracker_container);
 }
 
 fn setup_runner_logging(level: LevelFilter) {
@@ -116,11 +128,6 @@ fn read_file(path: &str) -> String {
     std::fs::read_to_string(path).unwrap_or_else(|_| panic!("Can't read file {path}"))
 }
 
-fn build_tracker_container_image(tag: &str) {
-    info!("Building tracker container image with tag: {} ...", tag);
-    Docker::build("./Containerfile", tag).expect("A tracker local docker image should be built");
-}
-
 fn create_temp_dir() -> Handler {
     debug!(
         "Current dir: {:?}",
@@ -134,51 +141,48 @@ fn create_temp_dir() -> Handler {
     temp_dir_handler
 }
 
-fn generate_random_container_name(prefix: &str) -> String {
-    let rand_string: String = rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(20)
-        .map(char::from)
-        .collect();
-
-    format!("{prefix}{rand_string}")
+fn assert_there_is_at_least_one_service_per_type(running_services: &RunningServices) {
+    assert!(
+        !running_services.udp_trackers.is_empty(),
+        "At least one UDP tracker should be enabled in E2E tests configuration"
+    );
+    assert!(
+        !running_services.http_trackers.is_empty(),
+        "At least one HTTP tracker should be enabled in E2E tests configuration"
+    );
+    assert!(
+        !running_services.health_checks.is_empty(),
+        "At least one Health Check should be enabled in E2E tests configuration"
+    );
 }
 
-fn run_tracker_container(container_name: &str, env_vars: &[(String, String)], ports: &[String]) -> RunningContainer {
-    info!("Running docker tracker image: {container_name} ...");
+fn create_tracker_checker_config_file(running_services: &RunningServices, config_path: &Path, config_name: &str) -> PathBuf {
+    let tracker_checker_config =
+        serde_json::to_string_pretty(&running_services).expect("Running services should be serialized into JSON");
 
-    let container =
-        Docker::run(CONTAINER_TAG, container_name, env_vars, ports).expect("A tracker local docker image should be running");
+    let mut tracker_checker_config_path = PathBuf::from(&config_path);
+    tracker_checker_config_path.push(config_name);
 
-    info!("Waiting for the container {container_name} to be healthy ...");
+    write_tracker_checker_config_file(&tracker_checker_config_path, &tracker_checker_config);
 
-    let is_healthy = Docker::wait_until_is_healthy(container_name, Duration::from_secs(10));
-
-    assert!(is_healthy, "Unhealthy tracker container: {container_name}");
-
-    debug!("Container {container_name} is healthy ...");
-
-    container
-}
-
-fn parse_running_services_from_logs(container: &RunningContainer) -> RunningServices {
-    let logs = Docker::logs(&container.name).expect("Logs should be captured from running container");
-
-    debug!("Logs after starting the container:\n{logs}");
-
-    RunningServices::parse_from_logs(&logs)
+    tracker_checker_config_path
 }
 
 fn write_tracker_checker_config_file(config_file_path: &Path, config: &str) {
+    info!(
+        "Writing Tracker Checker configuration file: {:?} \n{config}",
+        config_file_path
+    );
+
     let mut file = File::create(config_file_path).expect("Tracker checker config file to be created");
 
     file.write_all(config.as_bytes())
         .expect("Tracker checker config file to be written");
-
-    info!("Tracker checker configuration file: {:?} \n{config}", config_file_path);
 }
 
-/// Runs the tracker checker
+/// Runs the Tracker Checker.
+///
+/// For example:
 ///
 /// ```text
 /// cargo run --bin tracker_checker "./share/default/config/tracker_checker.json"
@@ -193,7 +197,7 @@ fn write_tracker_checker_config_file(config_file_path: &Path, config: &str) {
 /// Will panic if the config path is not a valid string.
 pub fn run_tracker_checker(config_path: &Path) -> io::Result<()> {
     info!(
-        "Running tacker checker: cargo --bin tracker_checker {}",
+        "Running Tracker Checker: cargo --bin tracker_checker {}",
         config_path.display()
     );
 
@@ -208,7 +212,7 @@ pub fn run_tracker_checker(config_path: &Path) -> io::Result<()> {
     } else {
         Err(io::Error::new(
             io::ErrorKind::Other,
-            format!("Failed to run tracker checker with config file {path}"),
+            format!("Failed to run Tracker Checker with config file {path}"),
         ))
     }
 }

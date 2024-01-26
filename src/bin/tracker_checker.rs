@@ -7,5 +7,5 @@ use torrust_tracker::checker::app;
 
 #[tokio::main]
 async fn main() {
-    app::run().await;
+    app::run().await.expect("Some checks fail");
 }

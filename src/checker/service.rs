@@ -14,12 +14,24 @@ pub struct Service {
     pub(crate) console: Console,
 }
 
+#[derive(Debug)]
+pub enum CheckError {
+    UdpError,
+    HttpError,
+    HealthCheckError { url: Url },
+}
+
 impl Service {
-    pub async fn run_checks(&self) {
+    /// # Errors
+    ///
+    /// Will return OK is all checks pass or an array with the check errors.
+    pub async fn run_checks(&self) -> Result<(), Vec<CheckError>> {
         self.console.println("Running checks for trackers ...");
+
         self.check_udp_trackers();
         self.check_http_trackers();
-        self.run_health_checks().await;
+
+        self.run_health_checks().await
     }
 
     fn check_udp_trackers(&self) {
@@ -38,11 +50,22 @@ impl Service {
         }
     }
 
-    async fn run_health_checks(&self) {
+    async fn run_health_checks(&self) -> Result<(), Vec<CheckError>> {
         self.console.println("Health checks ...");
 
+        let mut check_errors = vec![];
+
         for health_check_url in &self.config.health_checks {
-            self.run_health_check(health_check_url.clone()).await;
+            match self.run_health_check(health_check_url.clone()).await {
+                Ok(()) => {}
+                Err(err) => check_errors.push(err),
+            }
+        }
+
+        if check_errors.is_empty() {
+            Ok(())
+        } else {
+            Err(check_errors)
         }
     }
 
@@ -62,7 +85,7 @@ impl Service {
             .println(&format!("{} - HTTP tracker at {} is OK (TODO)", "✓".green(), url));
     }
 
-    async fn run_health_check(&self, url: Url) {
+    async fn run_health_check(&self, url: Url) -> Result<(), CheckError> {
         let client = Client::builder().timeout(Duration::from_secs(5)).build().unwrap();
 
         match client.get(url.clone()).send().await {
@@ -70,14 +93,17 @@ impl Service {
                 if response.status().is_success() {
                     self.console
                         .println(&format!("{} - Health API at {} is OK", "✓".green(), url));
+                    Ok(())
                 } else {
                     self.console
                         .eprintln(&format!("{} - Health API at {} failing: {:?}", "✗".red(), url, response));
+                    Err(CheckError::HealthCheckError { url })
                 }
             }
             Err(err) => {
                 self.console
                     .eprintln(&format!("{} - Health API at {} failing: {:?}", "✗".red(), url, err));
+                Err(CheckError::HealthCheckError { url })
             }
         }
     }

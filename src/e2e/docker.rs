@@ -4,23 +4,33 @@ use std::process::{Command, Output};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use log::debug;
+use log::{debug, info};
 
 /// Docker command wrapper.
 pub struct Docker {}
 
+#[derive(Clone, Debug)]
 pub struct RunningContainer {
+    pub image: String,
     pub name: String,
     pub output: Output,
 }
 
 impl Drop for RunningContainer {
-    /// Ensures that the temporary container is stopped and removed when the
-    /// struct goes out of scope.
+    /// Ensures that the temporary container is stopped when the struct goes out
+    /// of scope.
     fn drop(&mut self) {
-        let _unused = Docker::stop(self);
-        let _unused = Docker::remove(&self.name);
+        info!("Dropping running container: {}", self.name);
+        if Docker::is_container_running(&self.name) {
+            let _unused = Docker::stop(self);
+        }
     }
+}
+
+/// `docker run` command options.
+pub struct RunOptions {
+    pub env_vars: Vec<(String, String)>,
+    pub ports: Vec<String>,
 }
 
 impl Docker {
@@ -55,7 +65,7 @@ impl Docker {
     /// # Errors
     ///
     /// Will fail if the docker run command fails.
-    pub fn run(image: &str, container: &str, env_vars: &[(String, String)], ports: &[String]) -> io::Result<RunningContainer> {
+    pub fn run(image: &str, container: &str, options: &RunOptions) -> io::Result<RunningContainer> {
         let initial_args = vec![
             "run".to_string(),
             "--detach".to_string(),
@@ -65,14 +75,14 @@ impl Docker {
 
         // Add environment variables
         let mut env_var_args: Vec<String> = vec![];
-        for (key, value) in env_vars {
+        for (key, value) in &options.env_vars {
             env_var_args.push("--env".to_string());
             env_var_args.push(format!("{key}={value}"));
         }
 
         // Add port mappings
         let mut port_args: Vec<String> = vec![];
-        for port in ports {
+        for port in &options.ports {
             port_args.push("--publish".to_string());
             port_args.push(port.to_string());
         }
@@ -85,6 +95,7 @@ impl Docker {
 
         if output.status.success() {
             Ok(RunningContainer {
+                image: image.to_owned(),
                 name: container.to_owned(),
                 output,
             })
@@ -173,5 +184,51 @@ impl Docker {
         }
 
         false
+    }
+
+    /// Checks if a Docker container is running.
+    ///
+    /// # Arguments
+    ///
+    /// * `container` - The name of the Docker container.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the container is running, `false` otherwise.
+    #[must_use]
+    pub fn is_container_running(container: &str) -> bool {
+        match Command::new("docker")
+            .args(["ps", "-f", &format!("name={container}"), "--format", "{{.Names}}"])
+            .output()
+        {
+            Ok(output) => {
+                let output_str = String::from_utf8_lossy(&output.stdout);
+                output_str.contains(container)
+            }
+            Err(_) => false,
+        }
+    }
+
+    /// Checks if a Docker container exists.
+    ///
+    /// # Arguments
+    ///
+    /// * `container` - The name of the Docker container.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the container exists, `false` otherwise.
+    #[must_use]
+    pub fn container_exist(container: &str) -> bool {
+        match Command::new("docker")
+            .args(["ps", "-a", "-f", &format!("name={container}"), "--format", "{{.Names}}"])
+            .output()
+        {
+            Ok(output) => {
+                let output_str = String::from_utf8_lossy(&output.stdout);
+                output_str.contains(container)
+            }
+            Err(_) => false,
+        }
     }
 }
