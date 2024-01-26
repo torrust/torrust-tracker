@@ -23,6 +23,12 @@ impl Drop for RunningContainer {
     }
 }
 
+/// `docker run` command options.
+pub struct RunOptions {
+    pub env_vars: Vec<(String, String)>,
+    pub ports: Vec<String>,
+}
+
 impl Docker {
     /// Builds a Docker image from a given Dockerfile.
     ///
@@ -55,7 +61,7 @@ impl Docker {
     /// # Errors
     ///
     /// Will fail if the docker run command fails.
-    pub fn run(image: &str, container: &str, env_vars: &[(String, String)], ports: &[String]) -> io::Result<RunningContainer> {
+    pub fn run(image: &str, container: &str, options: &RunOptions) -> io::Result<RunningContainer> {
         let initial_args = vec![
             "run".to_string(),
             "--detach".to_string(),
@@ -65,14 +71,14 @@ impl Docker {
 
         // Add environment variables
         let mut env_var_args: Vec<String> = vec![];
-        for (key, value) in env_vars {
+        for (key, value) in &options.env_vars {
             env_var_args.push("--env".to_string());
             env_var_args.push(format!("{key}={value}"));
         }
 
         // Add port mappings
         let mut port_args: Vec<String> = vec![];
-        for port in ports {
+        for port in &options.ports {
             port_args.push("--publish".to_string());
             port_args.push(port.to_string());
         }

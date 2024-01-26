@@ -10,7 +10,7 @@ use rand::distributions::Alphanumeric;
 use rand::Rng;
 
 use super::docker::RunningContainer;
-use crate::e2e::docker::Docker;
+use crate::e2e::docker::{Docker, RunOptions};
 use crate::e2e::logs_parser::RunningServices;
 use crate::e2e::temp_dir::Handler;
 
@@ -43,15 +43,17 @@ pub fn run() {
     // code-review: if we want to use port 0 we don't know which ports we have to open.
     // Besides, if we don't use port 0 we should get the port numbers from the tracker configuration.
     // We could not use docker, but the intention was to create E2E tests including containerization.
-    let env_vars = [("TORRUST_TRACKER_CONFIG".to_string(), tracker_config.to_string())];
-    let ports = [
-        "6969:6969/udp".to_string(),
-        "7070:7070/tcp".to_string(),
-        "1212:1212/tcp".to_string(),
-        "1313:1313/tcp".to_string(),
-    ];
+    let options = RunOptions {
+        env_vars: vec![("TORRUST_TRACKER_CONFIG".to_string(), tracker_config.to_string())],
+        ports: vec![
+            "6969:6969/udp".to_string(),
+            "7070:7070/tcp".to_string(),
+            "1212:1212/tcp".to_string(),
+            "1313:1313/tcp".to_string(),
+        ],
+    };
 
-    let container = run_tracker_container(&container_name, &env_vars, &ports);
+    let container = run_tracker_container(CONTAINER_TAG, &container_name, &options);
 
     let running_services = parse_running_services_from_logs(&container);
 
@@ -144,11 +146,10 @@ fn generate_random_container_name(prefix: &str) -> String {
     format!("{prefix}{rand_string}")
 }
 
-fn run_tracker_container(container_name: &str, env_vars: &[(String, String)], ports: &[String]) -> RunningContainer {
+fn run_tracker_container(image: &str, container_name: &str, options: &RunOptions) -> RunningContainer {
     info!("Running docker tracker image: {container_name} ...");
 
-    let container =
-        Docker::run(CONTAINER_TAG, container_name, env_vars, ports).expect("A tracker local docker image should be running");
+    let container = Docker::run(image, container_name, options).expect("A tracker local docker image should be running");
 
     info!("Waiting for the container {container_name} to be healthy ...");
 
