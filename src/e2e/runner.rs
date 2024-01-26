@@ -63,16 +63,13 @@ pub fn run() {
 
     assert_there_is_at_least_one_service_per_type(&running_services);
 
-    let tracker_checker_config =
-        serde_json::to_string_pretty(&running_services).expect("Running services should be serialized into JSON");
-
     let temp_dir = create_temp_dir();
 
-    let mut tracker_checker_config_path = PathBuf::from(&temp_dir.temp_dir.path());
-    tracker_checker_config_path.push(TRACKER_CHECKER_CONFIG_FILE);
+    let tracker_checker_config_path =
+        create_tracker_checker_config_file(&running_services, temp_dir.temp_dir.path(), TRACKER_CHECKER_CONFIG_FILE);
 
-    write_tracker_checker_config_file(&tracker_checker_config_path, &tracker_checker_config);
-
+    // todo: inject the configuration with an env variable so that we don't have 
+    // to create the temporary directory/file.
     run_tracker_checker(&tracker_checker_config_path).expect("All tracker services should be running correctly");
 
     // More E2E tests could be added here in the future.
@@ -157,6 +154,18 @@ fn assert_there_is_at_least_one_service_per_type(running_services: &RunningServi
         !running_services.health_checks.is_empty(),
         "At least one Health Check should be enabled in E2E tests configuration"
     );
+}
+
+fn create_tracker_checker_config_file(running_services: &RunningServices, config_path: &Path, config_name: &str) -> PathBuf {
+    let tracker_checker_config =
+        serde_json::to_string_pretty(&running_services).expect("Running services should be serialized into JSON");
+
+    let mut tracker_checker_config_path = PathBuf::from(&config_path);
+    tracker_checker_config_path.push(config_name);
+
+    write_tracker_checker_config_file(&tracker_checker_config_path, &tracker_checker_config);
+
+    tracker_checker_config_path
 }
 
 fn write_tracker_checker_config_file(config_file_path: &Path, config: &str) {
