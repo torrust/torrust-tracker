@@ -57,6 +57,8 @@ pub fn run() {
 
     let running_services = parse_running_services_from_logs(&container);
 
+    assert_there_are_no_panics_in_logs(&container);
+
     assert_there_is_at_least_one_service_per_type(&running_services);
 
     let tracker_checker_config =
@@ -69,9 +71,12 @@ pub fn run() {
 
     run_tracker_checker(&tracker_checker_config_path).expect("Tracker checker should check running services");
 
-    // More E2E tests could be executed here in the future. For example: `cargo test ...`.
+    // More E2E tests could be added here in the future.
+    // For example: `cargo test ...` for only E2E tests, using this shared test env.
 
-    info!("Running container `{}` will be automatically removed", container.name);
+    stop_tracker_container(&container);
+
+    remove_tracker_container(&container_name);
 }
 
 fn setup_runner_logging(level: LevelFilter) {
@@ -162,6 +167,29 @@ fn run_tracker_container(image: &str, container_name: &str, options: &RunOptions
     debug!("Container {container_name} is healthy ...");
 
     container
+}
+
+fn stop_tracker_container(container: &RunningContainer) {
+    info!("Stopping docker tracker image: {} ...", container.name);
+    Docker::stop(container).expect("Container should be stopped");
+    assert_there_are_no_panics_in_logs(container);
+}
+
+fn remove_tracker_container(container_name: &str) {
+    info!("Removing docker tracker image: {container_name} ...");
+    Docker::remove(container_name).expect("Container should be removed");
+}
+
+fn assert_there_are_no_panics_in_logs(container: &RunningContainer) -> RunningServices {
+    let logs = Docker::logs(&container.name).expect("Logs should be captured from running container");
+
+    assert!(
+        !(logs.contains(" panicked at ") || logs.contains("RUST_BACKTRACE=1")),
+        "{}",
+        format!("Panics found is logs:\n{logs}")
+    );
+
+    RunningServices::parse_from_logs(&logs)
 }
 
 fn parse_running_services_from_logs(container: &RunningContainer) -> RunningServices {
