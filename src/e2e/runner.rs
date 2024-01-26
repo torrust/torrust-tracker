@@ -68,7 +68,7 @@ pub fn run() {
     let tracker_checker_config_path =
         create_tracker_checker_config_file(&running_services, temp_dir.temp_dir.path(), TRACKER_CHECKER_CONFIG_FILE);
 
-    // todo: inject the configuration with an env variable so that we don't have 
+    // todo: inject the configuration with an env variable so that we don't have
     // to create the temporary directory/file.
     run_tracker_checker(&tracker_checker_config_path).expect("All tracker services should be running correctly");
 

@@ -2,18 +2,22 @@ use std::sync::Arc;
 
 use super::config::Configuration;
 use super::console::Console;
+use super::service::{CheckError, Service};
 use crate::checker::config::parse_from_json;
-use crate::checker::service::Service;
 
 pub const NUMBER_OF_ARGUMENTS: usize = 2;
 
+/// # Errors
+///
+/// If some checks fails it will return a vector with all failing checks.
+///
 /// # Panics
 ///
 /// Will panic if:
 ///
 /// - It can't read the json configuration file.
 /// - The configuration file is invalid.
-pub async fn run() {
+pub async fn run() -> Result<(), Vec<CheckError>> {
     let args = parse_arguments();
     let config = setup_config(&args);
     let console_printer = Console {};
@@ -22,7 +26,7 @@ pub async fn run() {
         console: console_printer,
     };
 
-    service.run_checks().await;
+    service.run_checks().await
 }
 
 pub struct Arguments {
