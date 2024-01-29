@@ -1,12 +1,14 @@
 use std::collections::HashMap;
+use std::fmt::Write;
 use std::str;
 
-use serde::{self, Deserialize, Serialize};
+use serde::ser::SerializeMap;
+use serde::{self, Deserialize, Serialize, Serializer};
 use serde_bencode::value::Value;
 
 use crate::shared::bit_torrent::tracker::http::{ByteArray20, InfoHash};
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Deserialize)]
 pub struct Response {
     pub files: HashMap<ByteArray20, File>,
 }
@@ -58,6 +60,31 @@ impl TryFrom<DeserializedResponse> for Response {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 struct DeserializedResponse {
     pub files: Value,
+}
+
+// Custom serialization for Response
+impl Serialize for Response {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(self.files.len()))?;
+        for (key, value) in &self.files {
+            // Convert ByteArray20 key to hex string
+            let hex_key = byte_array_to_hex_string(key);
+            map.serialize_entry(&hex_key, value)?;
+        }
+        map.end()
+    }
+}
+
+// Helper function to convert ByteArray20 to hex string
+fn byte_array_to_hex_string(byte_array: &ByteArray20) -> String {
+    let mut hex_string = String::with_capacity(byte_array.len() * 2);
+    for byte in byte_array {
+        write!(hex_string, "{byte:02x}").expect("Writing to string should never fail");
+    }
+    hex_string
 }
 
 #[derive(Default)]
