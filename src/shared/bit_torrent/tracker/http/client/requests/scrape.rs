@@ -1,4 +1,6 @@
-use std::fmt;
+use std::convert::TryFrom;
+use std::error::Error;
+use std::fmt::{self};
 use std::str::FromStr;
 
 use crate::shared::bit_torrent::info_hash::InfoHash;
@@ -11,6 +13,35 @@ pub struct Query {
 impl fmt::Display for Query {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.build())
+    }
+}
+
+#[derive(Debug)]
+#[allow(dead_code)]
+pub struct ConversionError(String);
+
+impl fmt::Display for ConversionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Invalid infohash: {}", self.0)
+    }
+}
+
+impl Error for ConversionError {}
+
+impl TryFrom<&[String]> for Query {
+    type Error = ConversionError;
+
+    fn try_from(info_hashes: &[String]) -> Result<Self, Self::Error> {
+        let mut validated_info_hashes: Vec<ByteArray20> = Vec::new();
+
+        for info_hash in info_hashes {
+            let validated_info_hash = InfoHash::from_str(info_hash).map_err(|_| ConversionError(info_hash.clone()))?;
+            validated_info_hashes.push(validated_info_hash.0);
+        }
+
+        Ok(Self {
+            info_hash: validated_info_hashes,
+        })
     }
 }
 
