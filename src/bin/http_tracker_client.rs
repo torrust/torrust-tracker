@@ -15,6 +15,7 @@
 //! ```
 use std::str::FromStr;
 
+use anyhow::Context;
 use clap::{Parser, Subcommand};
 use reqwest::Url;
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
@@ -37,24 +38,25 @@ enum Command {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     match args.command {
         Command::Announce { tracker_url, info_hash } => {
-            announce_command(tracker_url, info_hash).await;
+            announce_command(tracker_url, info_hash).await?;
         }
         Command::Scrape {
             tracker_url,
             info_hashes,
         } => {
-            scrape_command(&tracker_url, &info_hashes).await;
+            scrape_command(&tracker_url, &info_hashes).await?;
         }
     }
+    Ok(())
 }
 
-async fn announce_command(tracker_url: String, info_hash: String) {
-    let base_url = Url::parse(&tracker_url).expect("Invalid HTTP tracker base URL");
+async fn announce_command(tracker_url: String, info_hash: String) -> anyhow::Result<()> {
+    let base_url = Url::parse(&tracker_url).context("failed to parse HTTP tracker base URL")?;
     let info_hash =
         InfoHash::from_str(&info_hash).expect("Invalid infohash. Example infohash: `9c38422213e30bff212b30c360d26f9a02136422`");
 
@@ -67,16 +69,17 @@ async fn announce_command(tracker_url: String, info_hash: String) {
     let announce_response: Announce = serde_bencode::from_bytes(&body)
         .unwrap_or_else(|_| panic!("response body should be a valid announce response, got: \"{:#?}\"", &body));
 
-    let json = serde_json::to_string(&announce_response).expect("announce response should be a valid JSON");
+    let json = serde_json::to_string(&announce_response).context("failed to serialize scrape response into JSON")?;
 
     println!("{json}");
+
+    Ok(())
 }
 
-async fn scrape_command(tracker_url: &str, info_hashes: &[String]) {
-    let base_url = Url::parse(tracker_url).expect("Invalid HTTP tracker base URL");
+async fn scrape_command(tracker_url: &str, info_hashes: &[String]) -> anyhow::Result<()> {
+    let base_url = Url::parse(tracker_url).context("failed to parse HTTP tracker base URL")?;
 
-    let query = requests::scrape::Query::try_from(info_hashes)
-        .expect("All infohashes should be valid. Example infohash: `9c38422213e30bff212b30c360d26f9a02136422`");
+    let query = requests::scrape::Query::try_from(info_hashes).context("failed to parse infohashes")?;
 
     let response = Client::new(base_url).scrape(&query).await;
 
@@ -85,7 +88,9 @@ async fn scrape_command(tracker_url: &str, info_hashes: &[String]) {
     let scrape_response = scrape::Response::try_from_bencoded(&body)
         .unwrap_or_else(|_| panic!("response body should be a valid scrape response, got: \"{:#?}\"", &body));
 
-    let json = serde_json::to_string(&scrape_response).expect("scrape response should be a valid JSON");
+    let json = serde_json::to_string(&scrape_response).context("failed to serialize scrape response into JSON")?;
 
     println!("{json}");
+
+    Ok(())
 }

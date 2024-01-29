@@ -1,4 +1,5 @@
 use std::convert::TryFrom;
+use std::error::Error;
 use std::fmt::{self};
 use std::str::FromStr;
 
@@ -16,7 +17,16 @@ impl fmt::Display for Query {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct ConversionError(String);
+
+impl fmt::Display for ConversionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Invalid infohash: {}", self.0)
+    }
+}
+
+impl Error for ConversionError {}
 
 impl TryFrom<&[String]> for Query {
     type Error = ConversionError;
