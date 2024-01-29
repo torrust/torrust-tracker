@@ -14,6 +14,8 @@ pub struct Service {
     pub(crate) console: Console,
 }
 
+pub type CheckResult = Result<(), CheckError>;
+
 #[derive(Debug)]
 pub enum CheckError {
     UdpError,
@@ -25,7 +27,7 @@ impl Service {
     /// # Errors
     ///
     /// Will return OK is all checks pass or an array with the check errors.
-    pub async fn run_checks(&self) -> Result<(), Vec<CheckError>> {
+    pub async fn run_checks(&self) -> Vec<CheckResult> {
         self.console.println("Running checks for trackers ...");
 
         self.check_udp_trackers();
@@ -50,23 +52,19 @@ impl Service {
         }
     }
 
-    async fn run_health_checks(&self) -> Result<(), Vec<CheckError>> {
+    async fn run_health_checks(&self) -> Vec<CheckResult> {
         self.console.println("Health checks ...");
 
-        let mut check_errors = vec![];
+        let mut check_results = vec![];
 
         for health_check_url in &self.config.health_checks {
             match self.run_health_check(health_check_url.clone()).await {
-                Ok(()) => {}
-                Err(err) => check_errors.push(err),
+                Ok(()) => check_results.push(Ok(())),
+                Err(err) => check_results.push(Err(err)),
             }
         }
 
-        if check_errors.is_empty() {
-            Ok(())
-        } else {
-            Err(check_errors)
-        }
+        check_results
     }
 
     fn check_udp_tracker(&self, address: &SocketAddr) {
