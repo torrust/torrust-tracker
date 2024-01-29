@@ -1,24 +1,67 @@
-use std::env;
+//! UDP Tracker client:
+//!
+//! Examples:
+//!
+//! Announce request:
+//!
+//! ```text
+//! cargo run --bin udp_tracker_client 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq
+//! ```
+//!
+//! Announce response:
+//!
+//! ```json
+//! {
+//!   "transaction_id": -888840697
+//!   "announce_interval": 120,
+//!   "leechers": 0,
+//!   "seeders": 1,
+//!   "peers": [
+//!     "123.123.123.123:51289"
+//!   ],
+//! }
+/// ````
 use std::net::{Ipv4Addr, SocketAddr};
 use std::str::FromStr;
 
+use anyhow::Context;
 use aquatic_udp_protocol::common::InfoHash;
+use aquatic_udp_protocol::Response::{AnnounceIpv4, AnnounceIpv6};
 use aquatic_udp_protocol::{
     AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port, Response,
     TransactionId,
 };
+use clap::{Parser, Subcommand};
 use log::{debug, LevelFilter};
+use serde_json::json;
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash as TorrustInfoHash;
 use torrust_tracker::shared::bit_torrent::tracker::udp::client::{UdpClient, UdpTrackerClient};
 
 const ASSIGNED_BY_OS: i32 = 0;
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand, Debug)]
+enum Command {
+    Announce {
+        #[arg(value_parser = parse_socket_addr)]
+        tracker_socket_addr: SocketAddr,
+        #[arg(value_parser = parse_info_hash)]
+        info_hash: TorrustInfoHash,
+    },
+}
+
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     setup_logging(LevelFilter::Info);
 
-    let (remote_socket_addr, info_hash) = parse_arguments();
+    let args = Args::parse();
 
     // Configuration
     let local_port = ASSIGNED_BY_OS;
@@ -26,33 +69,64 @@ async fn main() {
     let bind_to = format!("0.0.0.0:{local_port}");
 
     // Bind to local port
-
     debug!("Binding to: {bind_to}");
     let udp_client = UdpClient::bind(&bind_to).await;
     let bound_to = udp_client.socket.local_addr().unwrap();
     debug!("Bound to:   {bound_to}");
 
-    // Connect to remote socket
+    let response = match args.command {
+        Command::Announce {
+            tracker_socket_addr,
+            info_hash,
+        } => {
+            debug!("Connecting to remote: udp://{tracker_socket_addr}");
 
-    debug!("Connecting to remote: udp://{remote_socket_addr}");
-    udp_client.connect(&remote_socket_addr).await;
+            udp_client.connect(&tracker_socket_addr.to_string()).await;
 
-    let udp_tracker_client = UdpTrackerClient { udp_client };
+            let udp_tracker_client = UdpTrackerClient { udp_client };
 
-    let transaction_id = TransactionId(transaction_id);
+            let transaction_id = TransactionId(transaction_id);
 
-    let connection_id = send_connection_request(transaction_id, &udp_tracker_client).await;
+            let connection_id = send_connection_request(transaction_id, &udp_tracker_client).await;
 
-    let response = send_announce_request(
-        connection_id,
-        transaction_id,
-        info_hash,
-        Port(bound_to.port()),
-        &udp_tracker_client,
-    )
-    .await;
+            send_announce_request(
+                connection_id,
+                transaction_id,
+                info_hash,
+                Port(bound_to.port()),
+                &udp_tracker_client,
+            )
+            .await
+        }
+    };
 
-    println!("{response:#?}");
+    match response {
+        AnnounceIpv4(announce) => {
+            let json = json!({
+                "transaction_id": announce.transaction_id.0,
+                "announce_interval": announce.announce_interval.0,
+                "leechers": announce.leechers.0,
+                "seeders": announce.seeders.0,
+                "peers": announce.peers.iter().map(|peer| format!("{}:{}", peer.ip_address, peer.port.0)).collect::<Vec<_>>(),
+            });
+            let pretty_json = serde_json::to_string_pretty(&json).unwrap();
+            println!("{pretty_json}");
+        }
+        AnnounceIpv6(announce) => {
+            let json = json!({
+                "transaction_id": announce.transaction_id.0,
+                "announce_interval": announce.announce_interval.0,
+                "leechers": announce.leechers.0,
+                "seeders": announce.seeders.0,
+                "peers6": announce.peers.iter().map(|peer| format!("{}:{}", peer.ip_address, peer.port.0)).collect::<Vec<_>>(),
+            });
+            let pretty_json = serde_json::to_string_pretty(&json).unwrap();
+            println!("{pretty_json}");
+        }
+        _ => println!("{response:#?}"),
+    }
+
+    Ok(())
 }
 
 fn setup_logging(level: LevelFilter) {
@@ -76,31 +150,12 @@ fn setup_logging(level: LevelFilter) {
     debug!("logging initialized.");
 }
 
-fn parse_arguments() -> (String, TorrustInfoHash) {
-    let args: Vec<String> = env::args().collect();
+fn parse_socket_addr(s: &str) -> anyhow::Result<SocketAddr> {
+    s.parse().with_context(|| format!("failed to parse socket address: `{s}`"))
+}
 
-    if args.len() != 3 {
-        eprintln!("Error: invalid number of arguments!");
-        eprintln!("Usage:   cargo run --bin udp_tracker_client <UDP_TRACKER_SOCKET_ADDRESS> <INFO_HASH>");
-        eprintln!("Example: cargo run --bin udp_tracker_client 144.126.245.19:6969 9c38422213e30bff212b30c360d26f9a02136422");
-        std::process::exit(1);
-    }
-
-    let remote_socket_addr = &args[1];
-    let _valid_socket_addr = remote_socket_addr.parse::<SocketAddr>().unwrap_or_else(|_| {
-        panic!(
-            "Invalid argument: `{}`. Argument 1 should be a valid socket address. For example: `144.126.245.19:6969`.",
-            args[1]
-        )
-    });
-    let info_hash = TorrustInfoHash::from_str(&args[2]).unwrap_or_else(|_| {
-        panic!(
-            "Invalid argument: `{}`. Argument 2 should be a valid infohash. For example: `9c38422213e30bff212b30c360d26f9a02136422`.",
-            args[2]
-        )
-    });
-
-    (remote_socket_addr.to_string(), info_hash)
+fn parse_info_hash(s: &str) -> anyhow::Result<TorrustInfoHash> {
+    TorrustInfoHash::from_str(s).map_err(|e| anyhow::Error::msg(format!("failed to parse info-hash `{s}`: {e:?}")))
 }
 
 async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrackerClient) -> ConnectionId {
