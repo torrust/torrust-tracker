@@ -1,4 +1,4 @@
-//! Program to run check running trackers.
+//! Program to check running trackers.
 use torrust_tracker::console::clients::checker::app;
 
 #[tokio::main]
