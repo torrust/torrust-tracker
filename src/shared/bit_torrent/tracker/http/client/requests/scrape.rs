@@ -45,6 +45,23 @@ impl TryFrom<&[String]> for Query {
     }
 }
 
+impl TryFrom<Vec<String>> for Query {
+    type Error = ConversionError;
+
+    fn try_from(info_hashes: Vec<String>) -> Result<Self, Self::Error> {
+        let mut validated_info_hashes: Vec<ByteArray20> = Vec::new();
+
+        for info_hash in info_hashes {
+            let validated_info_hash = InfoHash::from_str(&info_hash).map_err(|_| ConversionError(info_hash.clone()))?;
+            validated_info_hashes.push(validated_info_hash.0);
+        }
+
+        Ok(Self {
+            info_hash: validated_info_hashes,
+        })
+    }
+}
+
 /// HTTP Tracker Scrape Request:
 ///
 /// <https://www.bittorrent.org/beps/bep_0048.html>
