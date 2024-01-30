@@ -1,15 +1,9 @@
-use std::fs::File;
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::{env, io};
-
 use log::{debug, info, LevelFilter};
 
 use super::tracker_container::TrackerContainer;
 use crate::e2e::docker::RunOptions;
 use crate::e2e::logs_parser::RunningServices;
-use crate::e2e::temp_dir::Handler;
+use crate::e2e::tracker_checker::{self};
 
 /* code-review:
      - We use always the same docker image name. Should we use a random image name (tag)?
@@ -19,10 +13,9 @@ use crate::e2e::temp_dir::Handler;
        Should we remove the image too?
 */
 
-pub const NUMBER_OF_ARGUMENTS: usize = 2;
+const NUMBER_OF_ARGUMENTS: usize = 2;
 const CONTAINER_IMAGE: &str = "torrust-tracker:local";
 const CONTAINER_NAME_PREFIX: &str = "tracker_";
-const TRACKER_CHECKER_CONFIG_FILE: &str = "tracker_checker.json";
 
 pub struct Arguments {
     pub tracker_config_path: String,
@@ -63,14 +56,10 @@ pub fn run() {
 
     assert_there_is_at_least_one_service_per_type(&running_services);
 
-    let temp_dir = create_temp_dir();
+    let tracker_checker_config =
+        serde_json::to_string_pretty(&running_services).expect("Running services should be serialized into JSON");
 
-    let tracker_checker_config_path =
-        create_tracker_checker_config_file(&running_services, temp_dir.temp_dir.path(), TRACKER_CHECKER_CONFIG_FILE);
-
-    // todo: inject the configuration with an env variable so that we don't have
-    // to create the temporary directory/file.
-    run_tracker_checker(&tracker_checker_config_path).expect("All tracker services should be running correctly");
+    tracker_checker::run(&tracker_checker_config).expect("All tracker services should be running correctly");
 
     // More E2E tests could be added here in the future.
     // For example: `cargo test ...` for only E2E tests, using this shared test env.
@@ -128,19 +117,6 @@ fn read_file(path: &str) -> String {
     std::fs::read_to_string(path).unwrap_or_else(|_| panic!("Can't read file {path}"))
 }
 
-fn create_temp_dir() -> Handler {
-    debug!(
-        "Current dir: {:?}",
-        env::current_dir().expect("It should return the current dir")
-    );
-
-    let temp_dir_handler = Handler::new().expect("A temp dir should be created");
-
-    info!("Temp dir created: {:?}", temp_dir_handler.temp_dir);
-
-    temp_dir_handler
-}
-
 fn assert_there_is_at_least_one_service_per_type(running_services: &RunningServices) {
     assert!(
         !running_services.udp_trackers.is_empty(),
@@ -154,65 +130,4 @@ fn assert_there_is_at_least_one_service_per_type(running_services: &RunningServi
         !running_services.health_checks.is_empty(),
         "At least one Health Check should be enabled in E2E tests configuration"
     );
-}
-
-fn create_tracker_checker_config_file(running_services: &RunningServices, config_path: &Path, config_name: &str) -> PathBuf {
-    let tracker_checker_config =
-        serde_json::to_string_pretty(&running_services).expect("Running services should be serialized into JSON");
-
-    let mut tracker_checker_config_path = PathBuf::from(&config_path);
-    tracker_checker_config_path.push(config_name);
-
-    write_tracker_checker_config_file(&tracker_checker_config_path, &tracker_checker_config);
-
-    tracker_checker_config_path
-}
-
-fn write_tracker_checker_config_file(config_file_path: &Path, config: &str) {
-    info!(
-        "Writing Tracker Checker configuration file: {:?} \n{config}",
-        config_file_path
-    );
-
-    let mut file = File::create(config_file_path).expect("Tracker checker config file to be created");
-
-    file.write_all(config.as_bytes())
-        .expect("Tracker checker config file to be written");
-}
-
-/// Runs the Tracker Checker.
-///
-/// For example:
-///
-/// ```text
-/// cargo run --bin tracker_checker "./share/default/config/tracker_checker.json"
-/// ```
-///
-/// # Errors
-///
-/// Will return an error if the tracker checker fails.
-///
-/// # Panics
-///
-/// Will panic if the config path is not a valid string.
-pub fn run_tracker_checker(config_path: &Path) -> io::Result<()> {
-    info!(
-        "Running Tracker Checker: cargo run --bin tracker_checker -- --config-path \"{}\"",
-        config_path.display()
-    );
-
-    let path = config_path.to_str().expect("The path should be a valid string");
-
-    let status = Command::new("cargo")
-        .args(["run", "--bin", "tracker_checker", "--", "--config-path", path])
-        .status()?;
-
-    if status.success() {
-        Ok(())
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::Other,
-            format!("Failed to run Tracker Checker with config file {path}"),
-        ))
-    }
 }
