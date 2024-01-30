@@ -197,14 +197,14 @@ fn write_tracker_checker_config_file(config_file_path: &Path, config: &str) {
 /// Will panic if the config path is not a valid string.
 pub fn run_tracker_checker(config_path: &Path) -> io::Result<()> {
     info!(
-        "Running Tracker Checker: cargo --bin tracker_checker {}",
+        "Running Tracker Checker: cargo run --bin tracker_checker -- --config-path \"{}\"",
         config_path.display()
     );
 
     let path = config_path.to_str().expect("The path should be a valid string");
 
     let status = Command::new("cargo")
-        .args(["run", "--bin", "tracker_checker", path])
+        .args(["run", "--bin", "tracker_checker", "--", "--config-path", path])
         .status()?;
 
     if status.success() {
