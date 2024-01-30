@@ -471,7 +471,6 @@
 //! examples on the integration and unit tests.
 pub mod app;
 pub mod bootstrap;
-pub mod checker;
 pub mod console;
 pub mod core;
 pub mod servers;

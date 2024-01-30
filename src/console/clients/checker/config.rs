@@ -117,7 +117,7 @@ mod tests {
     }
 
     mod building_configuration_from_plan_configuration {
-        use crate::checker::config::{Configuration, PlainConfiguration};
+        use crate::console::clients::checker::config::{Configuration, PlainConfiguration};
 
         #[test]
         fn it_should_fail_when_a_tracker_udp_address_is_invalid() {
