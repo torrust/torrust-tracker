@@ -1,3 +1,17 @@
+//! Program to run checks against running trackers.
+//!
+//! Run providing a config file path:
+//!
+//! ```text
+//! cargo run --bin tracker_checker -- --config-path "./share/default/config/tracker_checker.json"
+//! TORRUST_CHECKER_CONFIG_PATH="./share/default/config/tracker_checker.json" cargo run --bin tracker_checker
+//! ```
+//!
+//! Run providing the configuration:
+//!
+//! ```text
+//! TORRUST_CHECKER_CONFIG=$(cat "./share/default/config/tracker_checker.json") cargo run --bin tracker_checker
+//! ```
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -7,7 +21,7 @@ use clap::Parser;
 use super::config::Configuration;
 use super::console::Console;
 use super::service::{CheckResult, Service};
-use crate::checker::config::parse_from_json;
+use crate::console::clients::checker::config::parse_from_json;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]

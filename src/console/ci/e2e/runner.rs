@@ -1,9 +1,14 @@
+//! Program to run E2E tests.
+//!
+//! ```text
+//! cargo run --bin e2e_tests_runner share/default/config/tracker.e2e.container.sqlite3.toml
+//! ```
 use log::{debug, info, LevelFilter};
 
 use super::tracker_container::TrackerContainer;
-use crate::e2e::docker::RunOptions;
-use crate::e2e::logs_parser::RunningServices;
-use crate::e2e::tracker_checker::{self};
+use crate::console::ci::e2e::docker::RunOptions;
+use crate::console::ci::e2e::logs_parser::RunningServices;
+use crate::console::ci::e2e::tracker_checker::{self};
 
 /* code-review:
      - We use always the same docker image name. Should we use a random image name (tag)?

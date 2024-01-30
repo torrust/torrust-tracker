@@ -49,8 +49,8 @@ impl Printer for Logger {
 
 #[cfg(test)]
 mod tests {
-    use crate::checker::logger::Logger;
-    use crate::checker::printer::{Printer, CLEAR_SCREEN};
+    use crate::console::clients::checker::logger::Logger;
+    use crate::console::clients::checker::printer::{Printer, CLEAR_SCREEN};
 
     #[test]
     fn should_capture_the_clear_screen_command() {

@@ -6,7 +6,7 @@ use rand::Rng;
 
 use super::docker::{RunOptions, RunningContainer};
 use super::logs_parser::RunningServices;
-use crate::e2e::docker::Docker;
+use crate::console::ci::e2e::docker::Docker;
 
 #[derive(Debug)]
 pub struct TrackerContainer {

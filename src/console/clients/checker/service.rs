@@ -7,7 +7,7 @@ use reqwest::{Client, Url};
 
 use super::config::Configuration;
 use super::console::Console;
-use crate::checker::printer::Printer;
+use crate::console::clients::checker::printer::Printer;
 
 pub struct Service {
     pub(crate) config: Arc<Configuration>,
