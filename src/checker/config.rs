@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fmt;
 use std::net::SocketAddr;
 
@@ -42,6 +43,8 @@ pub enum ConfigurationError {
     InvalidUdpAddress(std::net::AddrParseError),
     InvalidUrl(url::ParseError),
 }
+
+impl Error for ConfigurationError {}
 
 impl fmt::Display for ConfigurationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
