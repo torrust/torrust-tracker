@@ -325,7 +325,6 @@ impl RepositoryAsyncSingle {
 pub struct RepositoryDashmap {
     pub torrents: DashMap<InfoHash, Entry>,
     pub shard_priority_list: Vec<Mutex<VecDeque<InfoHash>>>,
-    pub shard_locks: Vec<Mutex<()>>,
 }
 
 impl MemSize for RepositoryDashmap {
@@ -381,12 +380,9 @@ impl Repository for RepositoryDashmap {
             .take(torrents._shard_count())
             .collect();
 
-        let shard_locks = iter::repeat_with(|| Mutex::new(())).take(torrents._shard_count()).collect();
-
         Self {
             torrents,
             shard_priority_list,
-            shard_locks,
         }
     }
 
