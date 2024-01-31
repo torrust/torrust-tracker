@@ -56,25 +56,21 @@
 //! ```
 //!
 //! The protocol (`udp://`) in the URL is mandatory. The path (`\scrape`) is optional. It always uses `\scrape`.
-use std::net::{Ipv4Addr, SocketAddr, ToSocketAddrs};
+use std::net::{SocketAddr, ToSocketAddrs};
 use std::str::FromStr;
 
 use anyhow::Context;
-use aquatic_udp_protocol::common::InfoHash;
 use aquatic_udp_protocol::Response::{AnnounceIpv4, AnnounceIpv6, Scrape};
-use aquatic_udp_protocol::{
-    AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port, Response,
-    ScrapeRequest, TransactionId,
-};
+use aquatic_udp_protocol::{Port, TransactionId};
 use clap::{Parser, Subcommand};
 use log::{debug, LevelFilter};
 use serde_json::json;
 use url::Url;
 
+use crate::console::clients::udp::checker;
 use crate::shared::bit_torrent::info_hash::InfoHash as TorrustInfoHash;
-use crate::shared::bit_torrent::tracker::udp::client::{UdpClient, UdpTrackerClient};
 
-const ASSIGNED_BY_OS: i32 = 0;
+const ASSIGNED_BY_OS: u16 = 0;
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
 
 #[derive(Parser, Debug)]
@@ -110,41 +106,36 @@ pub async fn run() -> anyhow::Result<()> {
 
     let args = Args::parse();
 
-    // Configuration
-    let local_port = ASSIGNED_BY_OS;
-    let local_bind_to = format!("0.0.0.0:{local_port}");
-    let transaction_id = RANDOM_TRANSACTION_ID;
-
-    // Bind to local port
-    debug!("Binding to: {local_bind_to}");
-    let udp_client = UdpClient::bind(&local_bind_to).await;
-    let bound_to = udp_client.socket.local_addr().context("binding local address")?;
-    debug!("Bound to:   {bound_to}");
-
-    let transaction_id = TransactionId(transaction_id);
-
     let response = match args.command {
         Command::Announce {
             tracker_socket_addr,
             info_hash,
         } => {
-            let (connection_id, udp_tracker_client) = connect(&tracker_socket_addr, udp_client, transaction_id).await;
+            let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
 
-            send_announce_request(
-                connection_id,
-                transaction_id,
-                info_hash,
-                Port(bound_to.port()),
-                &udp_tracker_client,
-            )
-            .await
+            let mut client = checker::Client::default();
+
+            let bound_to = client.bind_and_connect(ASSIGNED_BY_OS, &tracker_socket_addr).await?;
+
+            let connection_id = client.send_connection_request(transaction_id).await?;
+
+            client
+                .send_announce_request(connection_id, transaction_id, info_hash, Port(bound_to.port()))
+                .await?
         }
         Command::Scrape {
             tracker_socket_addr,
             info_hashes,
         } => {
-            let (connection_id, udp_tracker_client) = connect(&tracker_socket_addr, udp_client, transaction_id).await;
-            send_scrape_request(connection_id, transaction_id, info_hashes, &udp_tracker_client).await
+            let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
+
+            let mut client = checker::Client::default();
+
+            let _bound_to = client.bind_and_connect(ASSIGNED_BY_OS, &tracker_socket_addr).await?;
+
+            let connection_id = client.send_connection_request(transaction_id).await?;
+
+            client.send_scrape_request(connection_id, transaction_id, info_hashes).await?
         }
     };
 
@@ -264,96 +255,4 @@ fn parse_socket_addr(tracker_socket_addr_str: &str) -> anyhow::Result<SocketAddr
 fn parse_info_hash(info_hash_str: &str) -> anyhow::Result<TorrustInfoHash> {
     TorrustInfoHash::from_str(info_hash_str)
         .map_err(|e| anyhow::Error::msg(format!("failed to parse info-hash `{info_hash_str}`: {e:?}")))
-}
-
-async fn connect(
-    tracker_socket_addr: &SocketAddr,
-    udp_client: UdpClient,
-    transaction_id: TransactionId,
-) -> (ConnectionId, UdpTrackerClient) {
-    debug!("Connecting to tracker: udp://{tracker_socket_addr}");
-
-    udp_client.connect(&tracker_socket_addr.to_string()).await;
-
-    let udp_tracker_client = UdpTrackerClient { udp_client };
-
-    let connection_id = send_connection_request(transaction_id, &udp_tracker_client).await;
-
-    (connection_id, udp_tracker_client)
-}
-
-async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrackerClient) -> ConnectionId {
-    debug!("Sending connection request with transaction id: {transaction_id:#?}");
-
-    let connect_request = ConnectRequest { transaction_id };
-
-    client.send(connect_request.into()).await;
-
-    let response = client.receive().await;
-
-    debug!("connection request response:\n{response:#?}");
-
-    match response {
-        Response::Connect(connect_response) => connect_response.connection_id,
-        _ => panic!("error connecting to udp server. Unexpected response"),
-    }
-}
-
-async fn send_announce_request(
-    connection_id: ConnectionId,
-    transaction_id: TransactionId,
-    info_hash: TorrustInfoHash,
-    port: Port,
-    client: &UdpTrackerClient,
-) -> Response {
-    debug!("Sending announce request with transaction id: {transaction_id:#?}");
-
-    let announce_request = AnnounceRequest {
-        connection_id,
-        transaction_id,
-        info_hash: InfoHash(info_hash.bytes()),
-        peer_id: PeerId(*b"-qB00000000000000001"),
-        bytes_downloaded: NumberOfBytes(0i64),
-        bytes_uploaded: NumberOfBytes(0i64),
-        bytes_left: NumberOfBytes(0i64),
-        event: AnnounceEvent::Started,
-        ip_address: Some(Ipv4Addr::new(0, 0, 0, 0)),
-        key: PeerKey(0u32),
-        peers_wanted: NumberOfPeers(1i32),
-        port,
-    };
-
-    client.send(announce_request.into()).await;
-
-    let response = client.receive().await;
-
-    debug!("announce request response:\n{response:#?}");
-
-    response
-}
-
-async fn send_scrape_request(
-    connection_id: ConnectionId,
-    transaction_id: TransactionId,
-    info_hashes: Vec<TorrustInfoHash>,
-    client: &UdpTrackerClient,
-) -> Response {
-    debug!("Sending scrape request with transaction id: {transaction_id:#?}");
-
-    let scrape_request = ScrapeRequest {
-        connection_id,
-        transaction_id,
-        info_hashes: info_hashes
-            .iter()
-            .map(|torrust_info_hash| InfoHash(torrust_info_hash.bytes()))
-            .collect(),
-    };
-
-    client.send(scrape_request.into()).await;
-
-    let response = client.receive().await;
-
-    debug!("scrape request response:\n{response:#?}");
-
-    response
 }

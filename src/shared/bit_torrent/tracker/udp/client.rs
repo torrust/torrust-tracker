@@ -11,6 +11,7 @@ use tokio::time;
 use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
 
 #[allow(clippy::module_name_repetitions)]
+#[derive(Debug)]
 pub struct UdpClient {
     pub socket: Arc<UdpSocket>,
 }
@@ -86,6 +87,7 @@ pub async fn new_udp_client_connected(remote_address: &str) -> UdpClient {
 }
 
 #[allow(clippy::module_name_repetitions)]
+#[derive(Debug)]
 pub struct UdpTrackerClient {
     pub udp_client: UdpClient,
 }
