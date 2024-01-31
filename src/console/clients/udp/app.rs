@@ -60,7 +60,7 @@ use std::net::{SocketAddr, ToSocketAddrs};
 use std::str::FromStr;
 
 use anyhow::Context;
-use aquatic_udp_protocol::Response::{AnnounceIpv4, AnnounceIpv6, Scrape};
+use aquatic_udp_protocol::Response::{self, AnnounceIpv4, AnnounceIpv6, Scrape};
 use aquatic_udp_protocol::{Port, TransactionId};
 use clap::{Parser, Subcommand};
 use log::{debug, LevelFilter};
@@ -110,33 +110,11 @@ pub async fn run() -> anyhow::Result<()> {
         Command::Announce {
             tracker_socket_addr,
             info_hash,
-        } => {
-            let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
-
-            let mut client = checker::Client::default();
-
-            let bound_to = client.bind_and_connect(ASSIGNED_BY_OS, &tracker_socket_addr).await?;
-
-            let connection_id = client.send_connection_request(transaction_id).await?;
-
-            client
-                .send_announce_request(connection_id, transaction_id, info_hash, Port(bound_to.port()))
-                .await?
-        }
+        } => handle_announce(&tracker_socket_addr, &info_hash).await?,
         Command::Scrape {
             tracker_socket_addr,
             info_hashes,
-        } => {
-            let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
-
-            let mut client = checker::Client::default();
-
-            let _bound_to = client.bind_and_connect(ASSIGNED_BY_OS, &tracker_socket_addr).await?;
-
-            let connection_id = client.send_connection_request(transaction_id).await?;
-
-            client.send_scrape_request(connection_id, transaction_id, info_hashes).await?
-        }
+        } => handle_scrape(&tracker_socket_addr, &info_hashes).await?,
     };
 
     match response {
@@ -199,6 +177,34 @@ fn setup_logging(level: LevelFilter) {
     }
 
     debug!("logging initialized.");
+}
+
+async fn handle_announce(tracker_socket_addr: &SocketAddr, info_hash: &TorrustInfoHash) -> anyhow::Result<Response> {
+    let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
+
+    let mut client = checker::Client::default();
+
+    let bound_to = client.bind_and_connect(ASSIGNED_BY_OS, tracker_socket_addr).await?;
+
+    let connection_id = client.send_connection_request(transaction_id).await?;
+
+    client
+        .send_announce_request(connection_id, transaction_id, *info_hash, Port(bound_to.port()))
+        .await
+}
+
+async fn handle_scrape(tracker_socket_addr: &SocketAddr, info_hashes: &[TorrustInfoHash]) -> anyhow::Result<Response> {
+    let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
+
+    let mut client = checker::Client::default();
+
+    let _bound_to = client.bind_and_connect(ASSIGNED_BY_OS, tracker_socket_addr).await?;
+
+    let connection_id = client.send_connection_request(transaction_id).await?;
+
+    client
+        .send_scrape_request(connection_id, transaction_id, info_hashes.to_vec())
+        .await
 }
 
 fn parse_socket_addr(tracker_socket_addr_str: &str) -> anyhow::Result<SocketAddr> {
