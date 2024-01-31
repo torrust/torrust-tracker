@@ -64,10 +64,10 @@ use aquatic_udp_protocol::Response::{self, AnnounceIpv4, AnnounceIpv6, Scrape};
 use aquatic_udp_protocol::{Port, TransactionId};
 use clap::{Parser, Subcommand};
 use log::{debug, LevelFilter};
-use serde_json::json;
 use url::Url;
 
 use crate::console::clients::udp::checker;
+use crate::console::clients::udp::responses::{AnnounceResponseDto, ScrapeResponseDto};
 use crate::shared::bit_torrent::info_hash::InfoHash as TorrustInfoHash;
 
 const ASSIGNED_BY_OS: u16 = 0;
@@ -117,45 +117,7 @@ pub async fn run() -> anyhow::Result<()> {
         } => handle_scrape(&tracker_socket_addr, &info_hashes).await?,
     };
 
-    match response {
-        AnnounceIpv4(announce) => {
-            let json = json!({
-                "transaction_id": announce.transaction_id.0,
-                "announce_interval": announce.announce_interval.0,
-                "leechers": announce.leechers.0,
-                "seeders": announce.seeders.0,
-                "peers": announce.peers.iter().map(|peer| format!("{}:{}", peer.ip_address, peer.port.0)).collect::<Vec<_>>(),
-            });
-            let pretty_json = serde_json::to_string_pretty(&json).context("announce IPv4 response JSON serialization")?;
-            println!("{pretty_json}");
-        }
-        AnnounceIpv6(announce) => {
-            let json = json!({
-                "transaction_id": announce.transaction_id.0,
-                "announce_interval": announce.announce_interval.0,
-                "leechers": announce.leechers.0,
-                "seeders": announce.seeders.0,
-                "peers6": announce.peers.iter().map(|peer| format!("{}:{}", peer.ip_address, peer.port.0)).collect::<Vec<_>>(),
-            });
-            let pretty_json = serde_json::to_string_pretty(&json).context("announce IPv6 response JSON serialization")?;
-            println!("{pretty_json}");
-        }
-        Scrape(scrape) => {
-            let json = json!({
-                "transaction_id": scrape.transaction_id.0,
-                "torrent_stats": scrape.torrent_stats.iter().map(|torrent_scrape_statistics| json!({
-                    "seeders": torrent_scrape_statistics.seeders.0,
-                    "completed": torrent_scrape_statistics.completed.0,
-                    "leechers": torrent_scrape_statistics.leechers.0,
-                })).collect::<Vec<_>>(),
-            });
-            let pretty_json = serde_json::to_string_pretty(&json).context("scrape response JSON serialization")?;
-            println!("{pretty_json}");
-        }
-        _ => println!("{response:#?}"), // todo: serialize to JSON all responses.
-    };
-
-    Ok(())
+    print_response(response)
 }
 
 fn setup_logging(level: LevelFilter) {
@@ -205,6 +167,29 @@ async fn handle_scrape(tracker_socket_addr: &SocketAddr, info_hashes: &[TorrustI
     client
         .send_scrape_request(connection_id, transaction_id, info_hashes.to_vec())
         .await
+}
+
+fn print_response(response: Response) -> anyhow::Result<()> {
+    match response {
+        AnnounceIpv4(response) => {
+            let pretty_json = serde_json::to_string_pretty(&AnnounceResponseDto::from(response))
+                .context("announce IPv4 response JSON serialization")?;
+            println!("{pretty_json}");
+        }
+        AnnounceIpv6(response) => {
+            let pretty_json = serde_json::to_string_pretty(&AnnounceResponseDto::from(response))
+                .context("announce IPv6 response JSON serialization")?;
+            println!("{pretty_json}");
+        }
+        Scrape(response) => {
+            let pretty_json =
+                serde_json::to_string_pretty(&ScrapeResponseDto::from(response)).context("scrape response JSON serialization")?;
+            println!("{pretty_json}");
+        }
+        _ => println!("{response:#?}"), // todo: serialize to JSON all aquatic responses.
+    };
+
+    Ok(())
 }
 
 fn parse_socket_addr(tracker_socket_addr_str: &str) -> anyhow::Result<SocketAddr> {
