@@ -43,6 +43,7 @@ deepsize = "0.2.0"
 derive_more = "0"
 fern = "0"
 futures = "0"
+hashbrown = "0"
 hyper = "1"
 lazy_static = "1"
 log = { version = "0", features = ["release_max_level_info"] }
