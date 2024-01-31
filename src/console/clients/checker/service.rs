@@ -4,6 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use colored::Colorize;
+use log::debug;
 use reqwest::{Client as HttpClient, Url};
 
 use super::config::Configuration;
@@ -38,7 +39,7 @@ impl Service {
 
         let mut check_results = vec![];
 
-        self.check_udp_trackers();
+        self.check_udp_trackers(&mut check_results).await;
 
         self.check_http_trackers(&mut check_results).await;
 
@@ -47,11 +48,44 @@ impl Service {
         check_results
     }
 
-    fn check_udp_trackers(&self) {
+    async fn check_udp_trackers(&self, check_results: &mut Vec<CheckResult>) {
         self.console.println("UDP trackers ...");
 
         for udp_tracker in &self.config.udp_trackers {
-            self.check_udp_tracker(udp_tracker);
+            let colored_tracker_url = udp_tracker.to_string().yellow();
+
+            /* todo:
+                - Initialize the UDP client
+                - Pass the connected client the the check function
+                    - Connect to the tracker
+                    - Make the request (announce or scrape)
+            */
+
+            match self.check_udp_announce(udp_tracker).await {
+                Ok(()) => {
+                    check_results.push(Ok(()));
+                    self.console
+                        .println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
+                }
+                Err(err) => {
+                    check_results.push(Err(err));
+                    self.console
+                        .println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
+                }
+            }
+
+            match self.check_udp_scrape(udp_tracker).await {
+                Ok(()) => {
+                    check_results.push(Ok(()));
+                    self.console
+                        .println(&format!("{} - Scrape at {} is OK", "✓".green(), colored_tracker_url));
+                }
+                Err(err) => {
+                    check_results.push(Err(err));
+                    self.console
+                        .println(&format!("{} - Scrape at {} is failing", "✗".red(), colored_tracker_url));
+                }
+            }
         }
     }
 
@@ -65,7 +99,7 @@ impl Service {
                 Ok(()) => {
                     check_results.push(Ok(()));
                     self.console
-                        .println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
+                        .println(&format!("{} - Announce at {} is OK (TODO)", "✓".green(), colored_tracker_url));
                 }
                 Err(err) => {
                     check_results.push(Err(err));
@@ -78,7 +112,7 @@ impl Service {
                 Ok(()) => {
                     check_results.push(Ok(()));
                     self.console
-                        .println(&format!("{} - Scrape at {} is OK", "✓".green(), colored_tracker_url));
+                        .println(&format!("{} - Scrape at {} is OK (TODO)", "✓".green(), colored_tracker_url));
                 }
                 Err(err) => {
                     check_results.push(Err(err));
@@ -100,26 +134,23 @@ impl Service {
         }
     }
 
-    fn check_udp_tracker(&self, address: &SocketAddr) {
-        // todo:
-        // - Make announce request
-        // - Make scrape request
-
-        let colored_address = address.to_string().yellow();
-
-        self.console.println(&format!(
-            "{} - UDP tracker at udp://{} is OK ({})",
-            "✓".green(),
-            colored_address,
-            "TODO".red(),
-        ));
+    #[allow(clippy::unused_async)]
+    async fn check_udp_announce(&self, tracker_socket_addr: &SocketAddr) -> Result<(), CheckError> {
+        debug!("{tracker_socket_addr}");
+        Ok(())
     }
 
-    async fn check_http_announce(&self, url: &Url) -> Result<(), CheckError> {
+    #[allow(clippy::unused_async)]
+    async fn check_udp_scrape(&self, tracker_socket_addr: &SocketAddr) -> Result<(), CheckError> {
+        debug!("{tracker_socket_addr}");
+        Ok(())
+    }
+
+    async fn check_http_announce(&self, tracker_url: &Url) -> Result<(), CheckError> {
         let info_hash_str = "9c38422213e30bff212b30c360d26f9a02136422".to_string(); // # DevSkim: ignore DS173237
         let info_hash = InfoHash::from_str(&info_hash_str).expect("a valid info-hash is required");
 
-        let response = Client::new(url.clone())
+        let response = Client::new(tracker_url.clone())
             .announce(&QueryBuilder::with_default_values().with_info_hash(&info_hash).query())
             .await;
 
@@ -127,10 +158,15 @@ impl Service {
             if let Ok(_announce_response) = serde_bencode::from_bytes::<Announce>(&body) {
                 Ok(())
             } else {
-                Err(CheckError::HttpError { url: url.clone() })
+                debug!("announce body {:#?}", body);
+                Err(CheckError::HttpError {
+                    url: tracker_url.clone(),
+                })
             }
         } else {
-            Err(CheckError::HttpError { url: url.clone() })
+            Err(CheckError::HttpError {
+                url: tracker_url.clone(),
+            })
         }
     }
 
@@ -144,6 +180,7 @@ impl Service {
             if let Ok(_scrape_response) = scrape::Response::try_from_bencoded(&body) {
                 Ok(())
             } else {
+                debug!("scrape body {:#?}", body);
                 Err(CheckError::HttpError { url: url.clone() })
             }
         } else {
