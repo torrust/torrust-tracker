@@ -389,8 +389,11 @@ impl Repository for RepositoryDashmap {
     fn upsert_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let hash = self.torrents.hash_usize(&info_hash);
         let shard_idx = self.torrents.determine_shard(hash);
+
+        // Is safe as it tries to get an array item at a certain index that we know exists for sure
         let mut shard = unsafe { self.torrents._yield_write_shard(shard_idx) };
 
+        // Remove the torrent from the shard
         let mut torrent = shard.remove(info_hash).map(|v| v.into_inner()).unwrap_or_default();
 
         let stats_updated = torrent.insert_or_update_peer(peer);
@@ -398,20 +401,25 @@ impl Repository for RepositoryDashmap {
 
         let mut mem_size_shard: usize = 0;
 
+        // Calculate and set the current mem size of the shard
         for torrent in shard.values() {
             mem_size_shard += (2 * POINTER_SIZE) + INFO_HASH_SIZE + torrent.get().get_mem_size();
         }
 
+        // Get the max memory limit per shard
         let maybe_max_memory_available = MAX_MEMORY_LIMIT.map(|v| v / self.torrents._shard_count() - mem_size_shard);
 
+        // Calculate the shortage of memory on the shard
         let memory_shortage = maybe_max_memory_available
             .map(|v| TORRENT_INSERTION_SIZE_COST.saturating_sub(v))
             .unwrap_or(0);
 
+        // Free the needed memory on the shard if there is a shortage
         if memory_shortage > 0 {
             let mut amount_freed: usize = 0;
 
-            let mut priority_list = unsafe { self.shard_priority_list.get_unchecked(shard_idx) }.lock().unwrap();
+            // Unwrap is safe as we try to get an array item at a certain index that we know exists for sure
+            let mut priority_list = self.shard_priority_list.get(shard_idx).unwrap().lock().unwrap();
 
             while amount_freed < memory_shortage && !priority_list.is_empty() {
                 // Can safely unwrap as we check if the priority list is not empty
@@ -423,8 +431,10 @@ impl Repository for RepositoryDashmap {
             }
         }
 
+        // Add or shift the torrent info hash to the top of the shard priority list
         self.addshift_torrent_to_front_on_shard_priority_list(shard_idx, info_hash);
 
+        // (re)insert (updated) torrent into the shard
         shard
             .insert(info_hash.to_owned(), SharedValue::new(torrent))
             .map(|v| v.into_inner());
