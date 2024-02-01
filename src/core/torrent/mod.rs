@@ -28,27 +28,32 @@
 //! Peer that don not have a full copy of the torrent data are called "leechers".
 //!
 //! > **NOTICE**: that both [`SwarmMetadata`] and [`SwarmStats`] contain the same information. [`SwarmMetadata`] is using the names used on [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html).
-pub mod repository;
+pub mod repositories;
 
+use std::mem::size_of;
 use std::time::Duration;
 
 use aquatic_udp_protocol::AnnounceEvent;
+use deepsize::DeepSizeOf;
 use derive_more::Constructor;
 use serde::{Deserialize, Serialize};
 
 use super::peer::{self, Peer};
 use crate::shared::clock::{Current, TimeNow};
+use crate::shared::mem_size::{MemSize, POINTER_SIZE};
+
+pub type PeersList = std::collections::HashMap<peer::Id, peer::Peer>;
 
 /// A data structure containing all the information about a torrent in the tracker.
 ///
 /// This is the tracker entry for a given torrent and contains the swarm data,
 /// that's the list of all the peers trying to download the same torrent.
 /// The tracker keeps one entry like this for every torrent.
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, DeepSizeOf)]
 pub struct Entry {
     /// The swarm: a network of peers that are all trying to download the torrent associated to this entry
     #[serde(skip)]
-    pub peers: std::collections::BTreeMap<peer::Id, peer::Peer>,
+    pub peers: PeersList,
     /// The number of peers that have ever completed downloading the torrent associated to this entry
     pub completed: u32,
 }
@@ -81,7 +86,7 @@ impl Entry {
     #[must_use]
     pub fn new() -> Entry {
         Entry {
-            peers: std::collections::BTreeMap::new(),
+            peers: std::collections::HashMap::new(),
             completed: 0,
         }
     }
@@ -184,6 +189,18 @@ impl Entry {
     }
 }
 
+impl MemSize for Entry {
+    fn get_mem_size(&self) -> usize {
+        const MAP_SIZE: usize = size_of::<PeersList>();
+        const PEER_ID_SIZE: usize = size_of::<peer::Id>();
+        const PEER_SIZE: usize = size_of::<Peer>();
+
+        let peers_map_len = self.peers.len();
+
+        MAP_SIZE + (peers_map_len * ((2 * POINTER_SIZE) + PEER_ID_SIZE + PEER_SIZE))
+    }
+}
+
 impl Default for Entry {
     fn default() -> Self {
         Self::new()
@@ -193,8 +210,7 @@ impl Default for Entry {
 #[cfg(test)]
 mod tests {
 
-    mod torrent_entry {
-
+    pub mod torrent_entry {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::ops::Sub;
         use std::time::Duration;
@@ -204,8 +220,9 @@ mod tests {
         use crate::core::torrent::Entry;
         use crate::core::{peer, TORRENT_PEERS_LIMIT};
         use crate::shared::clock::{Current, DurationSinceUnixEpoch, Stopped, StoppedTime, Time, Working};
+        use crate::shared::mem_size::MemSize;
 
-        struct TorrentPeerBuilder {
+        pub struct TorrentPeerBuilder {
             peer: peer::Peer,
         }
 
@@ -481,6 +498,34 @@ mod tests {
             torrent_entry.remove_inactive_peers(timeout);
 
             assert_eq!(torrent_entry.peers.len(), 0);
+        }
+
+        #[test]
+        fn torrent_should_have_runtime_memory_size_of() {
+            let mut torrent_entry = Entry::new();
+
+            let torrent_peer_1 = TorrentPeerBuilder::default().with_peer_id(peer::Id([0u8; 20])).into();
+            let torrent_peer_2 = TorrentPeerBuilder::default().with_peer_id(peer::Id([1u8; 20])).into();
+
+            torrent_entry.insert_or_update_peer(&torrent_peer_1);
+            torrent_entry.insert_or_update_peer(&torrent_peer_2);
+
+            assert_eq!(torrent_entry.peers.len(), 2);
+            assert_eq!(torrent_entry.get_mem_size(), 312);
+
+            for i in 2u32..1_000_000_u32 {
+                let bytes: [u8; 4] = i.to_le_bytes();
+                let mut padded: [u8; 20] = [0u8; 20];
+
+                padded[..4].copy_from_slice(&bytes);
+
+                let torrent_peer = TorrentPeerBuilder::default().with_peer_id(peer::Id(padded)).into();
+
+                torrent_entry.insert_or_update_peer(&torrent_peer);
+            }
+
+            assert_eq!(torrent_entry.peers.len(), 1_000_000);
+            assert_eq!(torrent_entry.get_mem_size(), 132_000_048);
         }
     }
 }

@@ -431,6 +431,10 @@ pub struct Configuration {
     /// Tracker mode. See [`TrackerMode`] for more information.
     pub mode: TrackerMode,
 
+    /// (Optional) Set the max amount of space the torrent repository can use for storing torrents.
+    /// Size should be in in MegaBytes.
+    pub max_torrent_repository_size: Option<usize>,
+
     // Database configuration
     /// Database driver. Possible values are: `Sqlite3`, and `MySQL`.
     pub db_driver: DatabaseDriver,
@@ -536,6 +540,7 @@ impl Default for Configuration {
         let mut configuration = Configuration {
             log_level: Option::from(String::from("info")),
             mode: TrackerMode::Public,
+            max_torrent_repository_size: None,
             db_driver: DatabaseDriver::Sqlite3,
             db_path: String::from("./storage/tracker/lib/database/sqlite3.db"),
             announce_interval: announce_policy.interval,

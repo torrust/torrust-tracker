@@ -93,17 +93,15 @@ impl Default for Pagination {
 
 /// It returns all the information the tracker has about one torrent in a [Info] struct.
 pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Option<Info> {
-    let db = tracker.torrents.get_torrents().await;
+    let maybe_torrent_entry = tracker.torrent_repository.torrents.get(info_hash);
 
-    let torrent_entry_option = db.get(info_hash);
-
-    let torrent_entry = torrent_entry_option?;
+    let torrent_entry = maybe_torrent_entry?;
 
     let (seeders, completed, leechers) = torrent_entry.get_stats();
 
     let peers = torrent_entry.get_all_peers();
 
-    let peers = Some(peers.iter().map(|peer| (**peer)).collect());
+    let peers = Some(peers.iter().map(|peer| **peer).collect());
 
     Some(Info {
         info_hash: *info_hash,
@@ -116,11 +114,17 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
 
 /// It returns all the information the tracker has about multiple torrents in a [`BasicInfo`] struct, excluding the peer list.
 pub async fn get_torrents(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec<BasicInfo> {
-    let db = tracker.torrents.get_torrents().await;
-
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
-    for (info_hash, torrent_entry) in db.iter().skip(pagination.offset as usize).take(pagination.limit as usize) {
+    for rm in tracker
+        .torrent_repository
+        .torrents
+        .iter()
+        .skip(pagination.offset as usize)
+        .take(pagination.limit as usize)
+    {
+        let (info_hash, torrent_entry) = rm.pair();
+
         let (seeders, completed, leechers) = torrent_entry.get_stats();
 
         basic_infos.push(BasicInfo {
@@ -319,6 +323,43 @@ mod tests {
 
         #[tokio::test]
         async fn should_return_torrents_ordered_by_info_hash() {
+            let tracker = Arc::new(tracker_factory(&tracker_configuration()));
+
+            let hash1 = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
+            let info_hash1 = InfoHash::from_str(&hash1).unwrap();
+            tracker
+                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
+                .await;
+
+            let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
+            let info_hash2 = InfoHash::from_str(&hash2).unwrap();
+            tracker
+                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
+                .await;
+
+            let torrents = get_torrents(tracker.clone(), &Pagination::default()).await;
+
+            assert_eq!(
+                torrents,
+                vec![
+                    BasicInfo {
+                        info_hash: InfoHash::from_str(&hash2).unwrap(),
+                        seeders: 1,
+                        completed: 0,
+                        leechers: 0,
+                    },
+                    BasicInfo {
+                        info_hash: InfoHash::from_str(&hash1).unwrap(),
+                        seeders: 1,
+                        completed: 0,
+                        leechers: 0,
+                    }
+                ]
+            );
+        }
+
+        #[tokio::test]
+        async fn should_return_all_torrent_info_hashes() {
             let tracker = Arc::new(tracker_factory(&tracker_configuration()));
 
             let hash1 = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
