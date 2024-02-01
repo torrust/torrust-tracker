@@ -58,11 +58,15 @@ impl Service {
         self.console.println("UDP trackers ...");
 
         for udp_tracker in &self.config.udp_trackers {
+            debug!("UDP tracker: {:?}", udp_tracker);
+
             let colored_tracker_url = udp_tracker.to_string().yellow();
 
             let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
 
             let mut client = checker::Client::default();
+
+            debug!("Bind and connect");
 
             let Ok(bound_to) = client.bind_and_connect(ASSIGNED_BY_OS, udp_tracker).await else {
                 check_results.push(Err(CheckError::UdpError {
@@ -72,6 +76,8 @@ impl Service {
                     .println(&format!("{} - Can't connect to socket {}", "✗".red(), colored_tracker_url));
                 break;
             };
+
+            debug!("Send connection request");
 
             let Ok(connection_id) = client.send_connection_request(transaction_id).await else {
                 check_results.push(Err(CheckError::UdpError {
@@ -86,6 +92,8 @@ impl Service {
             };
 
             let info_hash = InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // # DevSkim: ignore DS173237
+
+            debug!("Send announce request");
 
             if (client
                 .send_announce_request(connection_id, transaction_id, info_hash, Port(bound_to.port()))
@@ -103,6 +111,8 @@ impl Service {
                 self.console
                     .println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
             }
+
+            debug!("Send scrape request");
 
             let info_hashes = vec![InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422"))]; // # DevSkim: ignore DS173237
 

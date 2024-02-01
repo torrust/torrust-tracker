@@ -17,6 +17,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use clap::Parser;
+use log::{debug, LevelFilter};
 
 use super::config::Configuration;
 use super::console::Console;
@@ -39,6 +40,8 @@ struct Args {
 ///
 /// Will return an error if the configuration was not provided.
 pub async fn run() -> Result<Vec<CheckResult>> {
+    setup_logging(LevelFilter::Info);
+
     let args = Args::parse();
 
     let config = setup_config(args)?;
@@ -51,6 +54,27 @@ pub async fn run() -> Result<Vec<CheckResult>> {
     };
 
     Ok(service.run_checks().await)
+}
+
+fn setup_logging(level: LevelFilter) {
+    if let Err(_err) = fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "{} [{}][{}] {}",
+                chrono::Local::now().format("%+"),
+                record.target(),
+                record.level(),
+                message
+            ));
+        })
+        .level(level)
+        .chain(std::io::stdout())
+        .apply()
+    {
+        panic!("Failed to initialize logging.")
+    }
+
+    debug!("logging initialized.");
 }
 
 fn setup_config(args: Args) -> Result<Configuration> {
