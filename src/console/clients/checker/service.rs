@@ -3,18 +3,24 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 
+use aquatic_udp_protocol::{Port, TransactionId};
 use colored::Colorize;
+use hex_literal::hex;
 use log::debug;
 use reqwest::{Client as HttpClient, Url};
 
 use super::config::Configuration;
 use super::console::Console;
 use crate::console::clients::checker::printer::Printer;
+use crate::console::clients::udp::checker;
 use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::bit_torrent::tracker::http::client::requests::announce::QueryBuilder;
 use crate::shared::bit_torrent::tracker::http::client::responses::announce::Announce;
 use crate::shared::bit_torrent::tracker::http::client::responses::scrape;
 use crate::shared::bit_torrent::tracker::http::client::{requests, Client};
+
+const ASSIGNED_BY_OS: u16 = 0;
+const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
 
 pub struct Service {
     pub(crate) config: Arc<Configuration>,
@@ -25,7 +31,7 @@ pub type CheckResult = Result<(), CheckError>;
 
 #[derive(Debug)]
 pub enum CheckError {
-    UdpError,
+    UdpError { socket_addr: SocketAddr },
     HttpError { url: Url },
     HealthCheckError { url: Url },
 }
@@ -54,37 +60,63 @@ impl Service {
         for udp_tracker in &self.config.udp_trackers {
             let colored_tracker_url = udp_tracker.to_string().yellow();
 
-            /* todo:
-                - Initialize the UDP client
-                - Pass the connected client the the check function
-                    - Connect to the tracker
-                    - Make the request (announce or scrape)
-            */
+            let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
 
-            match self.check_udp_announce(udp_tracker).await {
-                Ok(()) => {
-                    check_results.push(Ok(()));
-                    self.console
-                        .println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
-                }
-                Err(err) => {
-                    check_results.push(Err(err));
-                    self.console
-                        .println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
-                }
+            let mut client = checker::Client::default();
+
+            let Ok(bound_to) = client.bind_and_connect(ASSIGNED_BY_OS, udp_tracker).await else {
+                check_results.push(Err(CheckError::UdpError {
+                    socket_addr: *udp_tracker,
+                }));
+                self.console
+                    .println(&format!("{} - Can't connect to socket {}", "✗".red(), colored_tracker_url));
+                break;
+            };
+
+            let Ok(connection_id) = client.send_connection_request(transaction_id).await else {
+                check_results.push(Err(CheckError::UdpError {
+                    socket_addr: *udp_tracker,
+                }));
+                self.console.println(&format!(
+                    "{} - Can't make tracker connection request to {}",
+                    "✗".red(),
+                    colored_tracker_url
+                ));
+                break;
+            };
+
+            let info_hash = InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // # DevSkim: ignore DS173237
+
+            if (client
+                .send_announce_request(connection_id, transaction_id, info_hash, Port(bound_to.port()))
+                .await)
+                .is_ok()
+            {
+                check_results.push(Ok(()));
+                self.console
+                    .println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
+            } else {
+                let err = CheckError::UdpError {
+                    socket_addr: *udp_tracker,
+                };
+                check_results.push(Err(err));
+                self.console
+                    .println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
             }
 
-            match self.check_udp_scrape(udp_tracker).await {
-                Ok(()) => {
-                    check_results.push(Ok(()));
-                    self.console
-                        .println(&format!("{} - Scrape at {} is OK", "✓".green(), colored_tracker_url));
-                }
-                Err(err) => {
-                    check_results.push(Err(err));
-                    self.console
-                        .println(&format!("{} - Scrape at {} is failing", "✗".red(), colored_tracker_url));
-                }
+            let info_hashes = vec![InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422"))]; // # DevSkim: ignore DS173237
+
+            if (client.send_scrape_request(connection_id, transaction_id, info_hashes).await).is_ok() {
+                check_results.push(Ok(()));
+                self.console
+                    .println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
+            } else {
+                let err = CheckError::UdpError {
+                    socket_addr: *udp_tracker,
+                };
+                check_results.push(Err(err));
+                self.console
+                    .println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
             }
         }
     }
@@ -99,7 +131,7 @@ impl Service {
                 Ok(()) => {
                     check_results.push(Ok(()));
                     self.console
-                        .println(&format!("{} - Announce at {} is OK (TODO)", "✓".green(), colored_tracker_url));
+                        .println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
                 }
                 Err(err) => {
                     check_results.push(Err(err));
@@ -112,7 +144,7 @@ impl Service {
                 Ok(()) => {
                     check_results.push(Ok(()));
                     self.console
-                        .println(&format!("{} - Scrape at {} is OK (TODO)", "✓".green(), colored_tracker_url));
+                        .println(&format!("{} - Scrape at {} is OK", "✓".green(), colored_tracker_url));
                 }
                 Err(err) => {
                     check_results.push(Err(err));
@@ -134,22 +166,14 @@ impl Service {
         }
     }
 
-    #[allow(clippy::unused_async)]
-    async fn check_udp_announce(&self, tracker_socket_addr: &SocketAddr) -> Result<(), CheckError> {
-        debug!("{tracker_socket_addr}");
-        Ok(())
-    }
-
-    #[allow(clippy::unused_async)]
-    async fn check_udp_scrape(&self, tracker_socket_addr: &SocketAddr) -> Result<(), CheckError> {
-        debug!("{tracker_socket_addr}");
-        Ok(())
-    }
-
     async fn check_http_announce(&self, tracker_url: &Url) -> Result<(), CheckError> {
         let info_hash_str = "9c38422213e30bff212b30c360d26f9a02136422".to_string(); // # DevSkim: ignore DS173237
         let info_hash = InfoHash::from_str(&info_hash_str).expect("a valid info-hash is required");
 
+        // todo: HTTP request could panic.For example, if the server is not accessible.
+        // We should change the client to catch that error and return a `CheckError`.
+        // Otherwise the checking process will stop. The idea is to process all checks
+        // and return a final report.
         let response = Client::new(tracker_url.clone())
             .announce(&QueryBuilder::with_default_values().with_info_hash(&info_hash).query())
             .await;
@@ -174,6 +198,10 @@ impl Service {
         let info_hashes: Vec<String> = vec!["9c38422213e30bff212b30c360d26f9a02136422".to_string()]; // # DevSkim: ignore DS173237
         let query = requests::scrape::Query::try_from(info_hashes).expect("a valid array of info-hashes is required");
 
+        // todo: HTTP request could panic.For example, if the server is not accessible.
+        // We should change the client to catch that error and return a `CheckError`.
+        // Otherwise the checking process will stop. The idea is to process all checks
+        // and return a final report.
         let response = Client::new(url.clone()).scrape(&query).await;
 
         if let Ok(body) = response.bytes().await {
