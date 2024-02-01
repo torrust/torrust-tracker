@@ -10,9 +10,18 @@ use tokio::time;
 
 use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
 
+/// Default timeout for sending and receiving packets. And waiting for sockets
+/// to be readable and writable.
+const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);
+
 #[allow(clippy::module_name_repetitions)]
+#[derive(Debug)]
 pub struct UdpClient {
+    /// The socket to connect to
     pub socket: Arc<UdpSocket>,
+
+    /// Timeout for sending and receiving packets
+    pub timeout: Duration,
 }
 
 impl UdpClient {
@@ -28,6 +37,7 @@ impl UdpClient {
 
         Self {
             socket: Arc::new(socket),
+            timeout: DEFAULT_TIMEOUT,
         }
     }
 
@@ -52,10 +62,23 @@ impl UdpClient {
     /// - Can't write to the socket.
     /// - Can't send data.
     pub async fn send(&self, bytes: &[u8]) -> usize {
-        debug!(target: "UDP client", "send {bytes:?}");
+        debug!(target: "UDP client", "sending {bytes:?} ...");
 
-        self.socket.writable().await.unwrap();
-        self.socket.send(bytes).await.unwrap()
+        match time::timeout(self.timeout, self.socket.writable()).await {
+            Ok(writable_result) => match writable_result {
+                Ok(()) => (),
+                Err(e) => panic!("{}", format!("IO error waiting for the socket to become readable: {e:?}")),
+            },
+            Err(e) => panic!("{}", format!("Timeout waiting for the socket to become readable: {e:?}")),
+        };
+
+        match time::timeout(self.timeout, self.socket.send(bytes)).await {
+            Ok(send_result) => match send_result {
+                Ok(size) => size,
+                Err(e) => panic!("{}", format!("IO error during send: {e:?}")),
+            },
+            Err(e) => panic!("{}", format!("Send operation timed out: {e:?}")),
+        }
     }
 
     /// # Panics
@@ -67,9 +90,21 @@ impl UdpClient {
     pub async fn receive(&self, bytes: &mut [u8]) -> usize {
         debug!(target: "UDP client", "receiving ...");
 
-        self.socket.readable().await.unwrap();
+        match time::timeout(self.timeout, self.socket.readable()).await {
+            Ok(readable_result) => match readable_result {
+                Ok(()) => (),
+                Err(e) => panic!("{}", format!("IO error waiting for the socket to become readable: {e:?}")),
+            },
+            Err(e) => panic!("{}", format!("Timeout waiting for the socket to become readable: {e:?}")),
+        };
 
-        let size = self.socket.recv(bytes).await.unwrap();
+        let size = match time::timeout(self.timeout, self.socket.recv(bytes)).await {
+            Ok(recv_result) => match recv_result {
+                Ok(size) => size,
+                Err(e) => panic!("{}", format!("IO error during send: {e:?}")),
+            },
+            Err(e) => panic!("{}", format!("Receive operation timed out: {e:?}")),
+        };
 
         debug!(target: "UDP client", "{size} bytes received {bytes:?}");
 
@@ -86,6 +121,7 @@ pub async fn new_udp_client_connected(remote_address: &str) -> UdpClient {
 }
 
 #[allow(clippy::module_name_repetitions)]
+#[derive(Debug)]
 pub struct UdpTrackerClient {
     pub udp_client: UdpClient,
 }
