@@ -4,7 +4,7 @@ use std::time::Duration;
 use clap::Parser;
 use futures::stream::FuturesUnordered;
 use torrust_tracker::core::torrent::repository_sync::{RepositoryStdRwLock, RepositorySync};
-use torrust_tracker::core::torrent::UpdateTorrentSync;
+use torrust_tracker::core::torrent::UpdateTorrentAsync;
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 
 use crate::args::Args;
@@ -12,9 +12,9 @@ use crate::benches::utils::{generate_unique_info_hashes, get_average_and_adjuste
 
 // Simply add one torrent
 #[must_use]
-pub fn add_one_torrent<T>(samples: usize) -> (Duration, Duration)
+pub async fn add_one_torrent<T>(samples: usize) -> (Duration, Duration)
 where
-    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentSync,
+    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentAsync,
 {
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
 
@@ -25,7 +25,9 @@ where
 
         let start_time = std::time::Instant::now();
 
-        torrent_repository.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
+        torrent_repository
+            .update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
+            .await;
 
         let result = start_time.elapsed();
 
@@ -39,7 +41,7 @@ where
 pub async fn update_one_torrent_in_parallel<T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
     T: Send + Sync + 'static,
-    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentSync,
+    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentAsync,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
@@ -50,7 +52,9 @@ where
         let handles = FuturesUnordered::new();
 
         // Add the torrent/peer to the torrent repository
-        torrent_repository.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
+        torrent_repository
+            .update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
+            .await;
 
         let start_time = std::time::Instant::now();
 
@@ -58,7 +62,9 @@ where
             let torrent_repository_clone = torrent_repository.clone();
 
             let handle = runtime.spawn(async move {
-                torrent_repository_clone.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
+                torrent_repository_clone
+                    .update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
+                    .await;
 
                 if let Some(sleep_time) = args.sleep {
                     let start_time = std::time::Instant::now();
@@ -85,7 +91,7 @@ where
 pub async fn add_multiple_torrents_in_parallel<T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
     T: Send + Sync + 'static,
-    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentSync,
+    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentAsync,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
@@ -101,7 +107,9 @@ where
             let torrent_repository_clone = torrent_repository.clone();
 
             let handle = runtime.spawn(async move {
-                torrent_repository_clone.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
+                torrent_repository_clone
+                    .update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
+                    .await;
 
                 if let Some(sleep_time) = args.sleep {
                     let start_time = std::time::Instant::now();
@@ -128,7 +136,7 @@ where
 pub async fn update_multiple_torrents_in_parallel<T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
     T: Send + Sync + 'static,
-    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentSync,
+    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentAsync,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
@@ -140,7 +148,9 @@ where
 
         // Add the torrents/peers to the torrent repository
         for info_hash in &info_hashes {
-            torrent_repository.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
+            torrent_repository
+                .update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
+                .await;
         }
 
         let start_time = std::time::Instant::now();
@@ -149,7 +159,9 @@ where
             let torrent_repository_clone = torrent_repository.clone();
 
             let handle = runtime.spawn(async move {
-                torrent_repository_clone.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
+                torrent_repository_clone
+                    .update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
+                    .await;
 
                 if let Some(sleep_time) = args.sleep {
                     let start_time = std::time::Instant::now();

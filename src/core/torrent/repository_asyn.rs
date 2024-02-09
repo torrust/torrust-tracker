@@ -1,17 +1,11 @@
 use std::sync::Arc;
 
-use super::{EntryMutexStd, EntryMutexTokio};
+use super::{EntryMutexStd, EntryMutexTokio, UpdateTorrentAsync};
 use crate::core::peer;
 use crate::core::torrent::{Entry, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 
 pub trait RepositoryAsync<T>: Default {
-    fn update_torrent_with_peer_and_get_stats(
-        &self,
-        info_hash: &InfoHash,
-        peer: &peer::Peer,
-    ) -> impl std::future::Future<Output = (SwarmStats, bool)> + Send;
-
     fn get_torrents<'a>(
         &'a self,
     ) -> impl std::future::Future<Output = tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, T>>> + Send
@@ -28,8 +22,7 @@ pub trait RepositoryAsync<T>: Default {
 pub struct RepositoryTokioRwLock<T> {
     torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, T>>,
 }
-
-impl RepositoryAsync<EntryMutexTokio> for RepositoryTokioRwLock<EntryMutexTokio> {
+impl UpdateTorrentAsync for RepositoryTokioRwLock<EntryMutexTokio> {
     async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let maybe_existing_torrent_entry = self.get_torrents().await.get(info_hash).cloned();
 
@@ -60,7 +53,9 @@ impl RepositoryAsync<EntryMutexTokio> for RepositoryTokioRwLock<EntryMutexTokio>
             stats_updated,
         )
     }
+}
 
+impl RepositoryAsync<EntryMutexTokio> for RepositoryTokioRwLock<EntryMutexTokio> {
     async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexTokio>>
     where
         std::collections::BTreeMap<InfoHash, EntryMutexTokio>: 'a,
@@ -86,7 +81,7 @@ impl Default for RepositoryTokioRwLock<EntryMutexTokio> {
     }
 }
 
-impl RepositoryAsync<EntryMutexStd> for RepositoryTokioRwLock<EntryMutexStd> {
+impl UpdateTorrentAsync for RepositoryTokioRwLock<EntryMutexStd> {
     async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let maybe_existing_torrent_entry = self.get_torrents().await.get(info_hash).cloned();
 
@@ -117,7 +112,9 @@ impl RepositoryAsync<EntryMutexStd> for RepositoryTokioRwLock<EntryMutexStd> {
             stats_updated,
         )
     }
+}
 
+impl RepositoryAsync<EntryMutexStd> for RepositoryTokioRwLock<EntryMutexStd> {
     async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexStd>>
     where
         std::collections::BTreeMap<InfoHash, EntryMutexStd>: 'a,
@@ -143,7 +140,7 @@ impl Default for RepositoryTokioRwLock<EntryMutexStd> {
     }
 }
 
-impl RepositoryAsync<Entry> for RepositoryTokioRwLock<Entry> {
+impl UpdateTorrentAsync for RepositoryTokioRwLock<Entry> {
     async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
         let (stats, stats_updated) = {
             let mut torrents_lock = self.torrents.write().await;
@@ -163,7 +160,9 @@ impl RepositoryAsync<Entry> for RepositoryTokioRwLock<Entry> {
             stats_updated,
         )
     }
+}
 
+impl RepositoryAsync<Entry> for RepositoryTokioRwLock<Entry> {
     async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, Entry>>
     where
         std::collections::BTreeMap<InfoHash, Entry>: 'a,

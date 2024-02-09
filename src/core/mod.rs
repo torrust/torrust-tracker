@@ -456,7 +456,7 @@ use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
 use self::torrent::repository_asyn::{RepositoryAsync, RepositoryTokioRwLock};
-use self::torrent::Entry;
+use self::torrent::{Entry, UpdateTorrentAsync};
 use crate::core::databases::Database;
 use crate::core::torrent::{SwarmMetadata, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;

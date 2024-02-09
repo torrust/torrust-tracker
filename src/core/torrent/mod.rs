@@ -39,7 +39,20 @@ use derive_more::Constructor;
 use serde::{Deserialize, Serialize};
 
 use super::peer::{self, Peer};
+use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::clock::{Current, TimeNow};
+
+pub trait UpdateTorrentSync {
+    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool);
+}
+
+pub trait UpdateTorrentAsync {
+    fn update_torrent_with_peer_and_get_stats(
+        &self,
+        info_hash: &InfoHash,
+        peer: &peer::Peer,
+    ) -> impl std::future::Future<Output = (SwarmStats, bool)> + Send;
+}
 
 /// A data structure containing all the information about a torrent in the tracker.
 ///
