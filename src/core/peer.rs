@@ -22,6 +22,7 @@
 //! ```
 use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
+use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde::Serialize;
@@ -83,6 +84,58 @@ pub struct Peer {
     /// This is an optional key which maps to started, completed, or stopped (or empty, which is the same as not being present).
     #[serde(with = "AnnounceEventDef")]
     pub event: AnnounceEvent,
+}
+
+pub trait ReadInfo {
+    fn is_seeder(&self) -> bool;
+    fn get_event(&self) -> AnnounceEvent;
+    fn get_id(&self) -> Id;
+    fn get_updated(&self) -> DurationSinceUnixEpoch;
+    fn get_address(&self) -> SocketAddr;
+}
+
+impl ReadInfo for Peer {
+    fn is_seeder(&self) -> bool {
+        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+    }
+
+    fn get_event(&self) -> AnnounceEvent {
+        self.event
+    }
+
+    fn get_id(&self) -> Id {
+        self.peer_id
+    }
+
+    fn get_updated(&self) -> DurationSinceUnixEpoch {
+        self.updated
+    }
+
+    fn get_address(&self) -> SocketAddr {
+        self.peer_addr
+    }
+}
+
+impl ReadInfo for Arc<Peer> {
+    fn is_seeder(&self) -> bool {
+        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+    }
+
+    fn get_event(&self) -> AnnounceEvent {
+        self.event
+    }
+
+    fn get_id(&self) -> Id {
+        self.peer_id
+    }
+
+    fn get_updated(&self) -> DurationSinceUnixEpoch {
+        self.updated
+    }
+
+    fn get_address(&self) -> SocketAddr {
+        self.peer_addr
+    }
 }
 
 impl Peer {

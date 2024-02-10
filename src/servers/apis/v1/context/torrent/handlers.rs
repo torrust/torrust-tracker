@@ -82,7 +82,7 @@ pub async fn get_torrents_handler(State(tracker): State<Arc<Tracker>>, paginatio
         torrent_list_response(
             &get_torrents_page(
                 tracker.clone(),
-                &Pagination::new_with_options(pagination.0.offset, pagination.0.limit),
+                Some(&Pagination::new_with_options(pagination.0.offset, pagination.0.limit)),
             )
             .await,
         )

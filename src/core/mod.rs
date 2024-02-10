@@ -102,11 +102,11 @@
 //!
 //! pub struct AnnounceData {
 //!     pub peers: Vec<Peer>,
-//!     pub swarm_stats: SwarmStats,
+//!     pub swarm_stats: SwarmMetadata,
 //!     pub policy: AnnouncePolicy, // the tracker announce policy.
 //! }
 //!
-//! pub struct SwarmStats {
+//! pub struct SwarmMetadata {
 //!     pub completed: u32, // The number of peers that have ever completed downloading
 //!     pub seeders: u32,   // The number of active peers that have completed downloading (seeders)
 //!     pub leechers: u32,  // The number of active peers that have not completed downloading (leechers)
@@ -232,16 +232,11 @@
 //!     pub incomplete: u32, // The number of active peers that have not completed downloading (leechers)
 //! }
 //!
-//! pub struct SwarmStats {
-//!     pub completed: u32, // The number of peers that have ever completed downloading
-//!     pub seeders: u32,   // The number of active peers that have completed downloading (seeders)
-//!     pub leechers: u32,  // The number of active peers that have not completed downloading (leechers)
-//! }
 //! ```
 //!
 //! > **NOTICE**: that `complete` or `completed` peers are the peers that have completed downloading, but only the active ones are considered "seeders".
 //!
-//! `SwarmStats` struct follows name conventions for `scrape` responses. See [BEP 48](https://www.bittorrent.org/beps/bep_0048.html), while `SwarmStats`
+//! `SwarmMetadata` struct follows name conventions for `scrape` responses. See [BEP 48](https://www.bittorrent.org/beps/bep_0048.html), while `SwarmMetadata`
 //! is used for the rest of cases.
 //!
 //! Refer to [`torrent`] module for more details about these data structures.
@@ -439,14 +434,13 @@ pub mod services;
 pub mod statistics;
 pub mod torrent;
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::net::IpAddr;
 use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
 use derive_more::Constructor;
-use futures::future::join_all;
 use log::debug;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_configuration::{AnnouncePolicy, Configuration};
@@ -455,10 +449,11 @@ use torrust_tracker_primitives::TrackerMode;
 use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
-use self::torrent::repository_asyn::{RepositoryAsync, RepositoryTokioRwLock};
-use self::torrent::{Entry, UpdateTorrentAsync};
+use self::torrent::entry::{Entry, ReadInfo, ReadPeers};
+use self::torrent::repository::tokio_sync::RepositoryTokioRwLock;
+use self::torrent::repository::{Repository, UpdateTorrentAsync};
 use crate::core::databases::Database;
-use crate::core::torrent::{SwarmMetadata, SwarmStats};
+use crate::core::torrent::SwarmMetadata;
 use crate::shared::bit_torrent::info_hash::InfoHash;
 
 /// The maximum number of returned peers for a torrent.
@@ -515,9 +510,9 @@ pub struct TrackerPolicy {
 pub struct AnnounceData {
     /// The list of peers that are downloading the same torrent.
     /// It excludes the peer that made the request.
-    pub peers: Vec<Peer>,
+    pub peers: Vec<Arc<Peer>>,
     /// Swarm statistics
-    pub stats: SwarmStats,
+    pub stats: SwarmMetadata,
     pub policy: AnnouncePolicy,
 }
 
@@ -685,10 +680,8 @@ impl Tracker {
 
     /// It returns the data for a `scrape` response.
     async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> SwarmMetadata {
-        let torrents = self.torrents.get_torrents().await;
-
-        match torrents.get(info_hash) {
-            Some(torrent_entry) => torrent_entry.get_swarm_metadata(),
+        match self.torrents.get(info_hash).await {
+            Some(torrent_entry) => torrent_entry.get_stats(),
             None => SwarmMetadata::default(),
         }
     }
@@ -704,47 +697,25 @@ impl Tracker {
     pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.database.load_persistent_torrents().await?;
 
-        let mut torrents = self.torrents.get_torrents_mut().await;
-
-        for (info_hash, completed) in persistent_torrents {
-            // Skip if torrent entry already exists
-            if torrents.contains_key(&info_hash) {
-                continue;
-            }
-
-            let torrent_entry = torrent::Entry {
-                peers: BTreeMap::default(),
-                completed,
-            };
-
-            torrents.insert(info_hash, torrent_entry);
-        }
+        self.torrents.import_persistent(&persistent_torrents).await;
 
         Ok(())
     }
 
-    async fn get_torrent_peers_for_peer(&self, info_hash: &InfoHash, peer: &Peer) -> Vec<peer::Peer> {
-        let read_lock = self.torrents.get_torrents().await;
-
-        match read_lock.get(info_hash) {
+    async fn get_torrent_peers_for_peer(&self, info_hash: &InfoHash, peer: &Peer) -> Vec<Arc<peer::Peer>> {
+        match self.torrents.get(info_hash).await {
             None => vec![],
-            Some(entry) => entry
-                .get_peers_for_peer(peer, TORRENT_PEERS_LIMIT)
-                .into_iter()
-                .copied()
-                .collect(),
+            Some(entry) => entry.get_peers_for_peer(peer, Some(TORRENT_PEERS_LIMIT)),
         }
     }
 
     /// # Context: Tracker
     ///
     /// Get all torrent peers for a given torrent
-    pub async fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<peer::Peer> {
-        let read_lock = self.torrents.get_torrents().await;
-
-        match read_lock.get(info_hash) {
+    pub async fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<Arc<peer::Peer>> {
+        match self.torrents.get(info_hash).await {
             None => vec![],
-            Some(entry) => entry.get_peers(TORRENT_PEERS_LIMIT).into_iter().copied().collect(),
+            Some(entry) => entry.get_peers(Some(TORRENT_PEERS_LIMIT)),
         }
     }
 
@@ -753,11 +724,15 @@ impl Tracker {
     /// needed for a `announce` request response.
     ///
     /// # Context: Tracker
-    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::SwarmStats {
+    pub async fn update_torrent_with_peer_and_get_stats(
+        &self,
+        info_hash: &InfoHash,
+        peer: &peer::Peer,
+    ) -> torrent::SwarmMetadata {
         // code-review: consider splitting the function in two (command and query segregation).
         // `update_torrent_with_peer` and `get_stats`
 
-        let (stats, stats_updated) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
+        let (stats_updated, stats) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
         if self.policy.persistent_torrent_completed_stat && stats_updated {
             let completed = stats.downloaded;
@@ -777,71 +752,18 @@ impl Tracker {
     /// # Panics
     /// Panics if unable to get the torrent metrics.
     pub async fn get_torrents_metrics(&self) -> TorrentsMetrics {
-        let arc_torrents_metrics = Arc::new(tokio::sync::Mutex::new(TorrentsMetrics {
-            seeders: 0,
-            completed: 0,
-            leechers: 0,
-            torrents: 0,
-        }));
-
-        let db = self.torrents.get_torrents().await.clone();
-
-        let futures = db
-            .values()
-            .map(|torrent_entry| {
-                let torrent_entry = torrent_entry.clone();
-                let torrents_metrics = arc_torrents_metrics.clone();
-
-                async move {
-                    tokio::spawn(async move {
-                        let (seeders, completed, leechers) = torrent_entry.get_stats();
-                        torrents_metrics.lock().await.seeders += u64::from(seeders);
-                        torrents_metrics.lock().await.completed += u64::from(completed);
-                        torrents_metrics.lock().await.leechers += u64::from(leechers);
-                        torrents_metrics.lock().await.torrents += 1;
-                    })
-                    .await
-                    .expect("Error torrent_metrics spawn");
-                }
-            })
-            .collect::<Vec<_>>();
-
-        join_all(futures).await;
-
-        let torrents_metrics = Arc::try_unwrap(arc_torrents_metrics).expect("Could not unwrap arc_torrents_metrics");
-
-        torrents_metrics.into_inner()
+        self.torrents.get_metrics().await
     }
 
     /// Remove inactive peers and (optionally) peerless torrents
     ///
     /// # Context: Tracker
     pub async fn cleanup_torrents(&self) {
-        let mut torrents_lock = self.torrents.get_torrents_mut().await;
-
         // If we don't need to remove torrents we will use the faster iter
         if self.policy.remove_peerless_torrents {
-            let mut cleaned_torrents_map: BTreeMap<InfoHash, torrent::Entry> = BTreeMap::new();
-
-            for (info_hash, torrent_entry) in &mut *torrents_lock {
-                torrent_entry.remove_inactive_peers(self.policy.max_peer_timeout);
-
-                if torrent_entry.peers.is_empty() {
-                    continue;
-                }
-
-                if self.policy.persistent_torrent_completed_stat && torrent_entry.completed == 0 {
-                    continue;
-                }
-
-                cleaned_torrents_map.insert(*info_hash, torrent_entry.clone());
-            }
-
-            *torrents_lock = cleaned_torrents_map;
+            self.torrents.remove_peerless_torrents(&self.policy).await;
         } else {
-            for torrent_entry in (*torrents_lock).values_mut() {
-                torrent_entry.remove_inactive_peers(self.policy.max_peer_timeout);
-            }
+            self.torrents.remove_inactive_peers(self.policy.max_peer_timeout).await;
         }
     }
 
@@ -1093,6 +1015,7 @@ mod tests {
 
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::str::FromStr;
+        use std::sync::Arc;
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
         use torrust_tracker_test_helpers::configuration;
@@ -1233,7 +1156,7 @@ mod tests {
 
             let peers = tracker.get_torrent_peers(&info_hash).await;
 
-            assert_eq!(peers, vec![peer]);
+            assert_eq!(peers, vec![Arc::new(peer)]);
         }
 
         #[tokio::test]
@@ -1274,6 +1197,8 @@ mod tests {
         mod for_all_config_modes {
 
             mod handling_an_announce_request {
+
+                use std::sync::Arc;
 
                 use crate::core::tests::the_tracker::{
                     peer_ip, public_tracker, sample_info_hash, sample_peer, sample_peer_1, sample_peer_2,
@@ -1400,7 +1325,7 @@ mod tests {
                     let mut peer = sample_peer_2();
                     let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
 
-                    assert_eq!(announce_data.peers, vec![previously_announced_peer]);
+                    assert_eq!(announce_data.peers, vec![Arc::new(previously_announced_peer)]);
                 }
 
                 mod it_should_update_the_swarm_stats_for_the_torrent {
@@ -1755,7 +1680,7 @@ mod tests {
             use aquatic_udp_protocol::AnnounceEvent;
 
             use crate::core::tests::the_tracker::{sample_info_hash, sample_peer, tracker_persisting_torrents_in_database};
-            use crate::core::torrent::repository_asyn::RepositoryAsync;
+            use crate::core::torrent::repository::Repository;
 
             #[tokio::test]
             async fn it_should_persist_the_number_of_completed_peers_for_all_torrents_into_the_database() {
@@ -1774,14 +1699,15 @@ mod tests {
                 assert_eq!(swarm_stats.downloaded, 1);
 
                 // Remove the newly updated torrent from memory
-                tracker.torrents.get_torrents_mut().await.remove(&info_hash);
+                tracker.torrents.remove(&info_hash).await;
 
                 tracker.load_torrents_from_database().await.unwrap();
 
-                let torrents = tracker.torrents.get_torrents().await;
-                assert!(torrents.contains_key(&info_hash));
-
-                let torrent_entry = torrents.get(&info_hash).unwrap();
+                let torrent_entry = tracker
+                    .torrents
+                    .get(&info_hash)
+                    .await
+                    .expect("it should be able to get entry");
 
                 // It persists the number of completed peers.
                 assert_eq!(torrent_entry.completed, 1);

@@ -642,7 +642,7 @@ mod tests {
                     .with_peer_addr(SocketAddr::new(IpAddr::V4(client_ip), client_port))
                     .into();
 
-                assert_eq!(peers[0], expected_peer);
+                assert_eq!(peers[0], Arc::new(expected_peer));
             }
 
             #[tokio::test]
@@ -770,6 +770,7 @@ mod tests {
 
             mod from_a_loopback_ip {
                 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+                use std::sync::Arc;
 
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
 
@@ -809,7 +810,7 @@ mod tests {
                         .with_peer_addr(SocketAddr::new(external_ip_in_tracker_configuration, client_port))
                         .into();
 
-                    assert_eq!(peers[0], expected_peer);
+                    assert_eq!(peers[0], Arc::new(expected_peer));
                 }
             }
         }
@@ -863,7 +864,7 @@ mod tests {
                     .with_peer_addr(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
-                assert_eq!(peers[0], expected_peer);
+                assert_eq!(peers[0], Arc::new(expected_peer));
             }
 
             #[tokio::test]

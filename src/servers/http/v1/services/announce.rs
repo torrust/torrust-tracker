@@ -98,7 +98,7 @@ mod tests {
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
         use crate::core::peer::Peer;
-        use crate::core::torrent::SwarmStats;
+        use crate::core::torrent::SwarmMetadata;
         use crate::core::{statistics, AnnounceData, Tracker};
         use crate::servers::http::v1::services::announce::invoke;
         use crate::servers::http::v1::services::announce::tests::{public_tracker, sample_info_hash, sample_peer};
@@ -113,7 +113,7 @@ mod tests {
 
             let expected_announce_data = AnnounceData {
                 peers: vec![],
-                stats: SwarmStats {
+                stats: SwarmMetadata {
                     downloaded: 0,
                     complete: 1,
                     incomplete: 0,

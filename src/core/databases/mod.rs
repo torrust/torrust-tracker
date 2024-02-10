@@ -56,6 +56,8 @@ use self::error::Error;
 use crate::core::auth::{self, Key};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 
+pub type PersistentTorrents = Vec<(InfoHash, u32)>;
+
 struct Builder<T>
 where
     T: Database,
@@ -125,7 +127,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to load.
-    async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error>;
+    async fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error>;
 
     /// It saves the torrent metrics data into the database.
     ///

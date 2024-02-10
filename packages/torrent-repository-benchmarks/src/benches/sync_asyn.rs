@@ -3,8 +3,8 @@ use std::time::Duration;
 
 use clap::Parser;
 use futures::stream::FuturesUnordered;
-use torrust_tracker::core::torrent::repository_sync::{RepositoryStdRwLock, RepositorySync};
-use torrust_tracker::core::torrent::UpdateTorrentAsync;
+use torrust_tracker::core::torrent::repository::std_sync::RepositoryStdRwLock;
+use torrust_tracker::core::torrent::repository::UpdateTorrentAsync;
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 
 use crate::args::Args;
@@ -14,7 +14,7 @@ use crate::benches::utils::{generate_unique_info_hashes, get_average_and_adjuste
 #[must_use]
 pub async fn add_one_torrent<T>(samples: usize) -> (Duration, Duration)
 where
-    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentAsync,
+    RepositoryStdRwLock<T>: UpdateTorrentAsync + Default,
 {
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
 
@@ -41,7 +41,7 @@ where
 pub async fn update_one_torrent_in_parallel<T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
     T: Send + Sync + 'static,
-    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentAsync,
+    RepositoryStdRwLock<T>: UpdateTorrentAsync + Default,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
@@ -91,7 +91,7 @@ where
 pub async fn add_multiple_torrents_in_parallel<T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
     T: Send + Sync + 'static,
-    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentAsync,
+    RepositoryStdRwLock<T>: UpdateTorrentAsync + Default,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
@@ -136,7 +136,7 @@ where
 pub async fn update_multiple_torrents_in_parallel<T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
     T: Send + Sync + 'static,
-    RepositoryStdRwLock<T>: RepositorySync<T> + UpdateTorrentAsync,
+    RepositoryStdRwLock<T>: UpdateTorrentAsync + Default,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);

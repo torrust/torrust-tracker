@@ -79,7 +79,7 @@ impl From<AnnounceData> for Normal {
             incomplete: data.stats.incomplete.into(),
             interval: data.policy.interval.into(),
             min_interval: data.policy.interval_min.into(),
-            peers: data.peers.into_iter().collect(),
+            peers: data.peers.iter().map(AsRef::as_ref).copied().collect(),
         }
     }
 }
@@ -116,7 +116,7 @@ pub struct Compact {
 
 impl From<AnnounceData> for Compact {
     fn from(data: AnnounceData) -> Self {
-        let compact_peers: Vec<CompactPeer> = data.peers.into_iter().collect();
+        let compact_peers: Vec<CompactPeer> = data.peers.iter().map(AsRef::as_ref).copied().collect();
 
         let (peers, peers6): (Vec<CompactPeerData<Ipv4Addr>>, Vec<CompactPeerData<Ipv6Addr>>) =
             compact_peers.into_iter().collect();
@@ -313,12 +313,13 @@ impl FromIterator<CompactPeerData<Ipv6Addr>> for CompactPeersEncoded {
 mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+    use std::sync::Arc;
 
     use torrust_tracker_configuration::AnnouncePolicy;
 
     use crate::core::peer::fixture::PeerBuilder;
     use crate::core::peer::Id;
-    use crate::core::torrent::SwarmStats;
+    use crate::core::torrent::SwarmMetadata;
     use crate::core::AnnounceData;
     use crate::servers::http::v1::responses::announce::{Announce, Compact, Normal, Response};
 
@@ -350,8 +351,8 @@ mod tests {
             ))
             .build();
 
-        let peers = vec![peer_ipv4, peer_ipv6];
-        let stats = SwarmStats::new(333, 333, 444);
+        let peers = vec![Arc::new(peer_ipv4), Arc::new(peer_ipv6)];
+        let stats = SwarmMetadata::new(333, 333, 444);
 
         AnnounceData::new(peers, stats, policy)
     }
