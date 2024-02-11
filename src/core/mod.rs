@@ -449,9 +449,9 @@ use torrust_tracker_primitives::TrackerMode;
 use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
-use self::torrent::entry::{Entry, ReadInfo, ReadPeers};
-use self::torrent::repository::tokio_sync::RepositoryTokioRwLock;
-use self::torrent::repository::{Repository, UpdateTorrentAsync};
+use self::torrent::entry::{ReadInfo, ReadPeers};
+use self::torrent::repository::{Repository, UpdateTorrentSync};
+use self::torrent::Torrents;
 use crate::core::databases::Database;
 use crate::core::torrent::SwarmMetadata;
 use crate::shared::bit_torrent::info_hash::InfoHash;
@@ -477,7 +477,7 @@ pub struct Tracker {
     policy: TrackerPolicy,
     keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
     whitelist: tokio::sync::RwLock<std::collections::HashSet<InfoHash>>,
-    pub torrents: Arc<RepositoryTokioRwLock<Entry>>,
+    pub torrents: Arc<Torrents>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
     external_ip: Option<IpAddr>,
@@ -575,7 +575,7 @@ impl Tracker {
             mode,
             keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
             whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),
-            torrents: Arc::new(RepositoryTokioRwLock::<Entry>::default()),
+            torrents: Arc::default(),
             stats_event_sender,
             stats_repository,
             database,
@@ -732,7 +732,7 @@ impl Tracker {
         // code-review: consider splitting the function in two (command and query segregation).
         // `update_torrent_with_peer` and `get_stats`
 
-        let (stats_updated, stats) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
+        let (stats_updated, stats) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer);
 
         if self.policy.persistent_torrent_completed_stat && stats_updated {
             let completed = stats.downloaded;
@@ -1680,6 +1680,7 @@ mod tests {
             use aquatic_udp_protocol::AnnounceEvent;
 
             use crate::core::tests::the_tracker::{sample_info_hash, sample_peer, tracker_persisting_torrents_in_database};
+            use crate::core::torrent::entry::ReadInfo;
             use crate::core::torrent::repository::Repository;
 
             #[tokio::test]
@@ -1710,10 +1711,10 @@ mod tests {
                     .expect("it should be able to get entry");
 
                 // It persists the number of completed peers.
-                assert_eq!(torrent_entry.completed, 1);
+                assert_eq!(torrent_entry.get_stats().downloaded, 1);
 
                 // It does not persist the peers
-                assert!(torrent_entry.peers.is_empty());
+                assert!(torrent_entry.peers_is_empty());
             }
         }
     }

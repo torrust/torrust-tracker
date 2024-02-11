@@ -9,7 +9,7 @@ use std::sync::Arc;
 use serde::Deserialize;
 
 use crate::core::peer::Peer;
-use crate::core::torrent::entry::{self, ReadInfo};
+use crate::core::torrent::entry::{ReadInfo, ReadPeers};
 use crate::core::torrent::repository::Repository;
 use crate::core::Tracker;
 use crate::shared::bit_torrent::info_hash::InfoHash;
@@ -99,9 +99,9 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
 
     let torrent_entry = torrent_entry_option?;
 
-    let stats = entry::ReadInfo::get_stats(&torrent_entry);
+    let stats = torrent_entry.get_stats();
 
-    let peers = entry::ReadPeers::get_peers(&torrent_entry, None);
+    let peers = torrent_entry.get_peers(None);
 
     let peers = Some(peers.iter().map(|peer| (**peer)).collect());
 
@@ -119,7 +119,7 @@ pub async fn get_torrents_page(tracker: Arc<Tracker>, pagination: Option<&Pagina
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
     for (info_hash, torrent_entry) in tracker.torrents.get_paginated(pagination).await {
-        let stats = entry::ReadInfo::get_stats(&torrent_entry);
+        let stats = torrent_entry.get_stats();
 
         basic_infos.push(BasicInfo {
             info_hash,

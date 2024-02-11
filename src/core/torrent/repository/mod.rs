@@ -4,10 +4,14 @@ use crate::core::services::torrent::Pagination;
 use crate::core::{peer, TorrentsMetrics, TrackerPolicy};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 
-pub mod std_sync;
-pub mod tokio_sync;
+pub mod rw_lock_std;
+pub mod rw_lock_std_mutex_std;
+pub mod rw_lock_std_mutex_tokio;
+pub mod rw_lock_tokio;
+pub mod rw_lock_tokio_mutex_std;
+pub mod rw_lock_tokio_mutex_tokio;
 
-pub trait Repository<T>: Default {
+pub trait Repository<T>: Default + 'static {
     fn get(&self, key: &InfoHash) -> impl std::future::Future<Output = Option<T>> + Send;
     fn get_metrics(&self) -> impl std::future::Future<Output = TorrentsMetrics> + Send;
     fn get_paginated(&self, pagination: Option<&Pagination>) -> impl std::future::Future<Output = Vec<(InfoHash, T)>> + Send;
@@ -27,4 +31,14 @@ pub trait UpdateTorrentAsync {
         info_hash: &InfoHash,
         peer: &peer::Peer,
     ) -> impl std::future::Future<Output = (bool, SwarmMetadata)> + Send;
+}
+
+#[derive(Default)]
+pub struct RwLockTokio<T> {
+    torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, T>>,
+}
+
+#[derive(Default)]
+pub struct RwLockStd<T> {
+    torrents: std::sync::RwLock<std::collections::BTreeMap<InfoHash, T>>,
 }

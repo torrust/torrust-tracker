@@ -19,11 +19,11 @@ use crate::shared::clock::{Current, TimeNow};
 pub struct Entry {
     /// The swarm: a network of peers that are all trying to download the torrent associated to this entry
     #[serde(skip)]
-    pub peers: std::collections::BTreeMap<peer::Id, Arc<peer::Peer>>,
+    pub(crate) peers: std::collections::BTreeMap<peer::Id, Arc<peer::Peer>>,
     /// The number of peers that have ever completed downloading the torrent associated to this entry
-    pub completed: u32,
+    pub(crate) completed: u32,
 }
-
+pub type Single = Entry;
 pub type MutexStd = Arc<std::sync::Mutex<Entry>>;
 pub type MutexTokio = Arc<tokio::sync::Mutex<Entry>>;
 
@@ -35,6 +35,23 @@ pub trait ReadInfo {
 
     /// Returns True if Still a Valid Entry according to the Tracker Policy
     fn is_not_zombie(&self, policy: &TrackerPolicy) -> bool;
+
+    /// Returns True if the Peers is Empty
+    fn peers_is_empty(&self) -> bool;
+}
+
+/// Same as [`ReadInfo`], but async.
+pub trait ReadInfoAsync {
+    /// It returns the swarm metadata (statistics) as a struct:
+    ///
+    /// `(seeders, completed, leechers)`
+    fn get_stats(&self) -> impl std::future::Future<Output = SwarmMetadata> + Send;
+
+    /// Returns True if Still a Valid Entry according to the Tracker Policy
+    fn is_not_zombie(&self, policy: &TrackerPolicy) -> impl std::future::Future<Output = bool> + Send;
+
+    /// Returns True if the Peers is Empty
+    fn peers_is_empty(&self) -> impl std::future::Future<Output = bool> + Send;
 }
 
 pub trait ReadPeers {
@@ -49,15 +66,10 @@ pub trait ReadPeers {
     fn get_peers_for_peer(&self, client: &peer::Peer, limit: Option<usize>) -> Vec<Arc<peer::Peer>>;
 }
 
-pub trait ReadAsync {
-    /// Get all swarm peers, optionally limiting the result.
+/// Same as [`ReadPeers`], but async.
+pub trait ReadPeersAsync {
     fn get_peers(&self, limit: Option<usize>) -> impl std::future::Future<Output = Vec<Arc<peer::Peer>>> + Send;
 
-    /// It returns the list of peers for a given peer client, optionally limiting the
-    /// result.
-    ///
-    /// It filters out the input peer, typically because we want to return this
-    /// list of peers to that client peer.
     fn get_peers_for_peer(
         &self,
         client: &peer::Peer,
@@ -79,12 +91,14 @@ pub trait Update {
     fn remove_inactive_peers(&mut self, max_peer_timeout: u32);
 }
 
+/// Same as [`Update`], except not `mut`.
 pub trait UpdateSync {
     fn insert_or_update_peer(&self, peer: &peer::Peer) -> bool;
     fn insert_or_update_peer_and_get_stats(&self, peer: &peer::Peer) -> (bool, SwarmMetadata);
     fn remove_inactive_peers(&self, max_peer_timeout: u32);
 }
 
+/// Same as [`Update`], except not `mut` and async.
 pub trait UpdateAsync {
     fn insert_or_update_peer(&self, peer: &peer::Peer) -> impl std::future::Future<Output = bool> + Send;
 
@@ -96,7 +110,7 @@ pub trait UpdateAsync {
     fn remove_inactive_peers(&self, max_peer_timeout: u32) -> impl std::future::Future<Output = ()> + Send;
 }
 
-impl ReadInfo for Entry {
+impl ReadInfo for Single {
     #[allow(clippy::cast_possible_truncation)]
     fn get_stats(&self) -> SwarmMetadata {
         let complete: u32 = self.peers.values().filter(|peer| peer.is_seeder()).count() as u32;
@@ -120,9 +134,41 @@ impl ReadInfo for Entry {
 
         true
     }
+
+    fn peers_is_empty(&self) -> bool {
+        self.peers.is_empty()
+    }
 }
 
-impl ReadPeers for Entry {
+impl ReadInfo for MutexStd {
+    fn get_stats(&self) -> SwarmMetadata {
+        self.lock().expect("it should get a lock").get_stats()
+    }
+
+    fn is_not_zombie(&self, policy: &TrackerPolicy) -> bool {
+        self.lock().expect("it should get a lock").is_not_zombie(policy)
+    }
+
+    fn peers_is_empty(&self) -> bool {
+        self.lock().expect("it should get a lock").peers_is_empty()
+    }
+}
+
+impl ReadInfoAsync for MutexTokio {
+    async fn get_stats(&self) -> SwarmMetadata {
+        self.lock().await.get_stats()
+    }
+
+    async fn is_not_zombie(&self, policy: &TrackerPolicy) -> bool {
+        self.lock().await.is_not_zombie(policy)
+    }
+
+    async fn peers_is_empty(&self) -> bool {
+        self.lock().await.peers_is_empty()
+    }
+}
+
+impl ReadPeers for Single {
     fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
         match limit {
             Some(limit) => self.peers.values().take(limit).cloned().collect(),
@@ -162,7 +208,7 @@ impl ReadPeers for MutexStd {
     }
 }
 
-impl ReadAsync for MutexTokio {
+impl ReadPeersAsync for MutexTokio {
     async fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
         self.lock().await.get_peers(limit)
     }
@@ -172,7 +218,7 @@ impl ReadAsync for MutexTokio {
     }
 }
 
-impl Update for Entry {
+impl Update for Single {
     fn insert_or_update_peer(&mut self, peer: &peer::Peer) -> bool {
         let mut did_torrent_stats_change: bool = false;
 

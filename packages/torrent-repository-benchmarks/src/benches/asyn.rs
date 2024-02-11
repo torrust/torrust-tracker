@@ -1,24 +1,21 @@
-use std::sync::Arc;
 use std::time::Duration;
 
 use clap::Parser;
 use futures::stream::FuturesUnordered;
-use torrust_tracker::core::torrent::repository::tokio_sync::RepositoryTokioRwLock;
 use torrust_tracker::core::torrent::repository::UpdateTorrentAsync;
 use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 
 use crate::args::Args;
 use crate::benches::utils::{generate_unique_info_hashes, get_average_and_adjusted_average_from_results, DEFAULT_PEER};
 
-pub async fn add_one_torrent<T>(samples: usize) -> (Duration, Duration)
+pub async fn add_one_torrent<V>(samples: usize) -> (Duration, Duration)
 where
-    T: Default,
-    RepositoryTokioRwLock<T>: UpdateTorrentAsync + Default,
+    V: UpdateTorrentAsync + Default,
 {
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
 
     for _ in 0..samples {
-        let torrent_repository = Arc::new(RepositoryTokioRwLock::<T>::default());
+        let torrent_repository = V::default();
 
         let info_hash = InfoHash([0; 20]);
 
@@ -37,16 +34,15 @@ where
 }
 
 // Add one torrent ten thousand times in parallel (depending on the set worker threads)
-pub async fn update_one_torrent_in_parallel<T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
+pub async fn update_one_torrent_in_parallel<V>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
-    T: Default + Send + Sync + 'static,
-    RepositoryTokioRwLock<T>: UpdateTorrentAsync + Default,
+    V: UpdateTorrentAsync + Default + Clone + Send + Sync + 'static,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
 
     for _ in 0..samples {
-        let torrent_repository = Arc::new(RepositoryTokioRwLock::<T>::default());
+        let torrent_repository = V::default();
         let info_hash: &'static InfoHash = &InfoHash([0; 20]);
         let handles = FuturesUnordered::new();
 
@@ -87,16 +83,15 @@ where
 }
 
 // Add ten thousand torrents in parallel (depending on the set worker threads)
-pub async fn add_multiple_torrents_in_parallel<T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
+pub async fn add_multiple_torrents_in_parallel<V>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
-    T: Default + Send + Sync + 'static,
-    RepositoryTokioRwLock<T>: UpdateTorrentAsync + Default,
+    V: UpdateTorrentAsync + Default + Clone + Send + Sync + 'static,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
 
     for _ in 0..samples {
-        let torrent_repository = Arc::new(RepositoryTokioRwLock::<T>::default());
+        let torrent_repository = V::default();
         let info_hashes = generate_unique_info_hashes(10_000);
         let handles = FuturesUnordered::new();
 
@@ -132,16 +127,15 @@ where
 }
 
 // Async update ten thousand torrents in parallel (depending on the set worker threads)
-pub async fn update_multiple_torrents_in_parallel<T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
+pub async fn update_multiple_torrents_in_parallel<V>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
-    T: Default + Send + Sync + 'static,
-    RepositoryTokioRwLock<T>: UpdateTorrentAsync + Default,
+    V: UpdateTorrentAsync + Default + Clone + Send + Sync + 'static,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
 
     for _ in 0..samples {
-        let torrent_repository = Arc::new(RepositoryTokioRwLock::<T>::default());
+        let torrent_repository = V::default();
         let info_hashes = generate_unique_info_hashes(10_000);
         let handles = FuturesUnordered::new();
 
