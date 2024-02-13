@@ -9,13 +9,13 @@ use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
+use torrust_tracker_primitives::announce_event::AnnounceEvent;
+use torrust_tracker_primitives::{peer, NumberOfBytes};
 
 use crate::core::auth::Key;
-use crate::core::peer::Peer;
 use crate::core::{AnnounceData, Tracker};
 use crate::servers::http::v1::extractors::announce_request::ExtractRequest;
 use crate::servers::http::v1::extractors::authentication_key::Extract as ExtractKey;
@@ -130,19 +130,20 @@ fn build_response(announce_request: &Announce, announce_data: AnnounceData) -> R
 ///
 /// It ignores the peer address in the announce request params.
 #[must_use]
-fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> Peer {
-    Peer {
+fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> peer::Peer {
+    peer::Peer {
         peer_id: announce_request.peer_id,
         peer_addr: SocketAddr::new(*peer_ip, announce_request.port),
         updated: Current::now(),
         uploaded: NumberOfBytes(announce_request.uploaded.unwrap_or(0)),
         downloaded: NumberOfBytes(announce_request.downloaded.unwrap_or(0)),
         left: NumberOfBytes(announce_request.left.unwrap_or(0)),
-        event: map_to_aquatic_event(&announce_request.event),
+        event: map_to_torrust_event(&announce_request.event),
     }
 }
 
-fn map_to_aquatic_event(event: &Option<Event>) -> AnnounceEvent {
+#[must_use]
+pub fn map_to_aquatic_event(event: &Option<Event>) -> aquatic_udp_protocol::AnnounceEvent {
     match event {
         Some(event) => match &event {
             Event::Started => aquatic_udp_protocol::AnnounceEvent::Started,
@@ -153,17 +154,30 @@ fn map_to_aquatic_event(event: &Option<Event>) -> AnnounceEvent {
     }
 }
 
+#[must_use]
+pub fn map_to_torrust_event(event: &Option<Event>) -> AnnounceEvent {
+    match event {
+        Some(event) => match &event {
+            Event::Started => AnnounceEvent::Started,
+            Event::Stopped => AnnounceEvent::Stopped,
+            Event::Completed => AnnounceEvent::Completed,
+        },
+        None => AnnounceEvent::None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
+    use torrust_tracker_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::peer;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::core::services::tracker_factory;
-    use crate::core::{peer, Tracker};
+    use crate::core::Tracker;
     use crate::servers::http::v1::requests::announce::Announce;
     use crate::servers::http::v1::responses;
     use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
-    use crate::shared::bit_torrent::info_hash::InfoHash;
 
     fn private_tracker() -> Tracker {
         tracker_factory(&configuration::ephemeral_mode_private())

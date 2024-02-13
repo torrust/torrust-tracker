@@ -3,12 +3,12 @@ use std::sync::Arc;
 use futures::executor::block_on;
 use torrust_tracker::bootstrap::app::initialize_with_configuration;
 use torrust_tracker::bootstrap::jobs::make_rust_tls;
-use torrust_tracker::core::peer::Peer;
 use torrust_tracker::core::Tracker;
 use torrust_tracker::servers::http::server::{HttpServer, Launcher, Running, Stopped};
 use torrust_tracker::servers::registar::Registar;
-use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
 use torrust_tracker_configuration::{Configuration, HttpTracker};
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::peer;
 
 pub struct Environment<S> {
     pub config: Arc<HttpTracker>,
@@ -19,7 +19,7 @@ pub struct Environment<S> {
 
 impl<S> Environment<S> {
     /// Add a torrent to the tracker
-    pub async fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &Peer) {
+    pub async fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         self.tracker.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
     }
 }

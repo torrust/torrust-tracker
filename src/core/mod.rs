@@ -52,13 +52,13 @@
 //! The tracker responds to the peer with the list of other peers in the swarm so that
 //! the peer can contact them to start downloading pieces of the file from them.
 //!
-//! Once you have instantiated the `Tracker` you can `announce` a new [`Peer`] with:
+//! Once you have instantiated the `Tracker` you can `announce` a new [`peer::Peer`] with:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::core::peer;
-//! use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-//! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
-//! use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+//! use torrust_tracker_primitives::peer;
+//! use torrust_tracker_primitives::info_hash::InfoHash;
+//! use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfBytes};
+//! use torrust_tracker_primitives::announce_event::AnnounceEvent;
 //! use std::net::SocketAddr;
 //! use std::net::IpAddr;
 //! use std::net::Ipv4Addr;
@@ -97,11 +97,11 @@
 //! The returned struct is:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::core::peer::Peer;
+//! use torrust_tracker_primitives::peer;
 //! use torrust_tracker_configuration::AnnouncePolicy;
 //!
 //! pub struct AnnounceData {
-//!     pub peers: Vec<Peer>,
+//!     pub peers: Vec<peer::Peer>,
 //!     pub swarm_stats: SwarmMetadata,
 //!     pub policy: AnnouncePolicy, // the tracker announce policy.
 //! }
@@ -136,7 +136,7 @@
 //! The returned struct is:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+//! use torrust_tracker_primitives::info_hash::InfoHash;
 //! use std::collections::HashMap;
 //!
 //! pub struct ScrapeData {
@@ -165,7 +165,7 @@
 //! There are two data structures for infohashes: byte arrays and hex strings:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+//! use torrust_tracker_primitives::info_hash::InfoHash;
 //! use std::str::FromStr;
 //!
 //! let info_hash: InfoHash = [255u8; 20].into();
@@ -246,14 +246,14 @@
 //! A `Peer` is the struct used by the `Tracker` to keep peers data:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::core::peer::Id;
+//! use torrust_tracker_primitives::peer;
 //! use std::net::SocketAddr;
-//! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
+//! use torrust_tracker_primitives::DurationSinceUnixEpoch;
 //! use aquatic_udp_protocol::NumberOfBytes;
 //! use aquatic_udp_protocol::AnnounceEvent;
 //!
 //! pub struct Peer {
-//!     pub peer_id: Id,                     // The peer ID
+//!     pub peer_id: peer::Id,                     // The peer ID
 //!     pub peer_addr: SocketAddr,           // Peer socket address
 //!     pub updated: DurationSinceUnixEpoch, // Last time (timestamp) when the peer was updated
 //!     pub uploaded: NumberOfBytes,         // Number of bytes the peer has uploaded so far
@@ -429,10 +429,11 @@
 pub mod auth;
 pub mod databases;
 pub mod error;
-pub mod peer;
 pub mod services;
 pub mod statistics;
 pub mod torrent;
+
+pub mod peer_tests;
 
 use std::collections::HashMap;
 use std::net::IpAddr;
@@ -443,18 +444,19 @@ use std::time::Duration;
 use derive_more::Constructor;
 use log::debug;
 use tokio::sync::mpsc::error::SendError;
-use torrust_tracker_configuration::{AnnouncePolicy, Configuration};
-use torrust_tracker_primitives::TrackerMode;
+use torrust_tracker_configuration::{AnnouncePolicy, Configuration, TrackerPolicy};
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+use torrust_tracker_primitives::{peer, TrackerMode};
+use torrust_tracker_torrent_repository::entry::EntrySync;
+use torrust_tracker_torrent_repository::repository::Repository;
 
 use self::auth::Key;
 use self::error::Error;
-use self::peer::Peer;
-use self::torrent::entry::{ReadInfo, ReadPeers};
-use self::torrent::repository::{Repository, UpdateTorrentSync};
 use self::torrent::Torrents;
 use crate::core::databases::Database;
-use crate::core::torrent::SwarmMetadata;
-use crate::shared::bit_torrent::info_hash::InfoHash;
+use crate::shared::clock::{self, TimeNow};
 
 /// The maximum number of returned peers for a torrent.
 pub const TORRENT_PEERS_LIMIT: usize = 74;
@@ -484,33 +486,12 @@ pub struct Tracker {
     on_reverse_proxy: bool,
 }
 
-/// Structure that holds general `Tracker` torrents metrics.
-///
-/// Metrics are aggregate values for all torrents.
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct TorrentsMetrics {
-    /// Total number of seeders for all torrents
-    pub seeders: u64,
-    /// Total number of peers that have ever completed downloading for all torrents.
-    pub completed: u64,
-    /// Total number of leechers for all torrents.
-    pub leechers: u64,
-    /// Total number of torrents.
-    pub torrents: u64,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Default, Constructor)]
-pub struct TrackerPolicy {
-    pub remove_peerless_torrents: bool,
-    pub max_peer_timeout: u32,
-    pub persistent_torrent_completed_stat: bool,
-}
 /// Structure that holds the data returned by the `announce` request.
 #[derive(Clone, Debug, PartialEq, Constructor, Default)]
 pub struct AnnounceData {
     /// The list of peers that are downloading the same torrent.
     /// It excludes the peer that made the request.
-    pub peers: Vec<Arc<Peer>>,
+    pub peers: Vec<Arc<peer::Peer>>,
     /// Swarm statistics
     pub stats: SwarmMetadata,
     pub policy: AnnouncePolicy,
@@ -627,7 +608,7 @@ impl Tracker {
     /// # Context: Tracker
     ///
     /// BEP 03: [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html).
-    pub async fn announce(&self, info_hash: &InfoHash, peer: &mut Peer, remote_client_ip: &IpAddr) -> AnnounceData {
+    pub async fn announce(&self, info_hash: &InfoHash, peer: &mut peer::Peer, remote_client_ip: &IpAddr) -> AnnounceData {
         // code-review: maybe instead of mutating the peer we could just return
         // a tuple with the new peer and the announce data: (Peer, AnnounceData).
         // It could even be a different struct: `StoredPeer` or `PublicPeer`.
@@ -650,7 +631,7 @@ impl Tracker {
         // we should update the torrent and get the stats before we get the peer list.
         let stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
 
-        let peers = self.get_torrent_peers_for_peer(info_hash, peer).await;
+        let peers = self.get_torrent_peers_for_peer(info_hash, peer);
 
         AnnounceData {
             peers,
@@ -669,7 +650,7 @@ impl Tracker {
 
         for info_hash in info_hashes {
             let swarm_metadata = match self.authorize(info_hash).await {
-                Ok(()) => self.get_swarm_metadata(info_hash).await,
+                Ok(()) => self.get_swarm_metadata(info_hash),
                 Err(_) => SwarmMetadata::zeroed(),
             };
             scrape_data.add_file(info_hash, swarm_metadata);
@@ -679,8 +660,8 @@ impl Tracker {
     }
 
     /// It returns the data for a `scrape` response.
-    async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> SwarmMetadata {
-        match self.torrents.get(info_hash).await {
+    fn get_swarm_metadata(&self, info_hash: &InfoHash) -> SwarmMetadata {
+        match self.torrents.get(info_hash) {
             Some(torrent_entry) => torrent_entry.get_stats(),
             None => SwarmMetadata::default(),
         }
@@ -697,13 +678,13 @@ impl Tracker {
     pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.database.load_persistent_torrents().await?;
 
-        self.torrents.import_persistent(&persistent_torrents).await;
+        self.torrents.import_persistent(&persistent_torrents);
 
         Ok(())
     }
 
-    async fn get_torrent_peers_for_peer(&self, info_hash: &InfoHash, peer: &Peer) -> Vec<Arc<peer::Peer>> {
-        match self.torrents.get(info_hash).await {
+    fn get_torrent_peers_for_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> Vec<Arc<peer::Peer>> {
+        match self.torrents.get(info_hash) {
             None => vec![],
             Some(entry) => entry.get_peers_for_peer(peer, Some(TORRENT_PEERS_LIMIT)),
         }
@@ -712,8 +693,8 @@ impl Tracker {
     /// # Context: Tracker
     ///
     /// Get all torrent peers for a given torrent
-    pub async fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<Arc<peer::Peer>> {
-        match self.torrents.get(info_hash).await {
+    pub fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<Arc<peer::Peer>> {
+        match self.torrents.get(info_hash) {
             None => vec![],
             Some(entry) => entry.get_peers(Some(TORRENT_PEERS_LIMIT)),
         }
@@ -724,11 +705,7 @@ impl Tracker {
     /// needed for a `announce` request response.
     ///
     /// # Context: Tracker
-    pub async fn update_torrent_with_peer_and_get_stats(
-        &self,
-        info_hash: &InfoHash,
-        peer: &peer::Peer,
-    ) -> torrent::SwarmMetadata {
+    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> SwarmMetadata {
         // code-review: consider splitting the function in two (command and query segregation).
         // `update_torrent_with_peer` and `get_stats`
 
@@ -751,19 +728,21 @@ impl Tracker {
     ///
     /// # Panics
     /// Panics if unable to get the torrent metrics.
-    pub async fn get_torrents_metrics(&self) -> TorrentsMetrics {
-        self.torrents.get_metrics().await
+    pub fn get_torrents_metrics(&self) -> TorrentsMetrics {
+        self.torrents.get_metrics()
     }
 
     /// Remove inactive peers and (optionally) peerless torrents
     ///
     /// # Context: Tracker
-    pub async fn cleanup_torrents(&self) {
+    pub fn cleanup_torrents(&self) {
         // If we don't need to remove torrents we will use the faster iter
         if self.policy.remove_peerless_torrents {
-            self.torrents.remove_peerless_torrents(&self.policy).await;
+            self.torrents.remove_peerless_torrents(&self.policy);
         } else {
-            self.torrents.remove_inactive_peers(self.policy.max_peer_timeout).await;
+            let current_cutoff =
+                clock::Current::sub(&Duration::from_secs(u64::from(self.policy.max_peer_timeout))).unwrap_or_default();
+            self.torrents.remove_inactive_peers(current_cutoff);
         }
     }
 
@@ -1017,14 +996,15 @@ mod tests {
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+        use torrust_tracker_primitives::announce_event::AnnounceEvent;
+        use torrust_tracker_primitives::info_hash::InfoHash;
+        use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfBytes};
         use torrust_tracker_test_helpers::configuration;
 
         use crate::core::peer::{self, Peer};
         use crate::core::services::tracker_factory;
         use crate::core::{TorrentsMetrics, Tracker};
-        use crate::shared::bit_torrent::info_hash::InfoHash;
-        use crate::shared::clock::DurationSinceUnixEpoch;
+        use crate::shared::bit_torrent::info_hash::fixture::gen_seeded_infohash;
 
         fn public_tracker() -> Tracker {
             tracker_factory(&configuration::ephemeral_mode_public())
@@ -1132,7 +1112,7 @@ mod tests {
         async fn should_collect_torrent_metrics() {
             let tracker = public_tracker();
 
-            let torrents_metrics = tracker.get_torrents_metrics().await;
+            let torrents_metrics = tracker.get_torrents_metrics();
 
             assert_eq!(
                 torrents_metrics,
@@ -1154,7 +1134,7 @@ mod tests {
 
             tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
 
-            let peers = tracker.get_torrent_peers(&info_hash).await;
+            let peers = tracker.get_torrent_peers(&info_hash);
 
             assert_eq!(peers, vec![Arc::new(peer)]);
         }
@@ -1168,7 +1148,7 @@ mod tests {
 
             tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
 
-            let peers = tracker.get_torrent_peers_for_peer(&info_hash, &peer).await;
+            let peers = tracker.get_torrent_peers_for_peer(&info_hash, &peer);
 
             assert_eq!(peers, vec![]);
         }
@@ -1181,7 +1161,7 @@ mod tests {
                 .update_torrent_with_peer_and_get_stats(&sample_info_hash(), &leecher())
                 .await;
 
-            let torrent_metrics = tracker.get_torrents_metrics().await;
+            let torrent_metrics = tracker.get_torrents_metrics();
 
             assert_eq!(
                 torrent_metrics,
@@ -1191,6 +1171,34 @@ mod tests {
                     leechers: 1,
                     torrents: 1,
                 }
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_get_many_the_torrent_metrics() {
+            let tracker = public_tracker();
+
+            let start_time = std::time::Instant::now();
+            for i in 0..1_000_000 {
+                tracker
+                    .update_torrent_with_peer_and_get_stats(&gen_seeded_infohash(&i), &leecher())
+                    .await;
+            }
+            let result_a = start_time.elapsed();
+
+            let start_time = std::time::Instant::now();
+            let torrent_metrics = tracker.get_torrents_metrics();
+            let result_b = start_time.elapsed();
+
+            assert_eq!(
+                (torrent_metrics),
+                (TorrentsMetrics {
+                    seeders: 0,
+                    completed: 0,
+                    leechers: 1_000_000,
+                    torrents: 1_000_000,
+                }),
+                "{result_a:?} {result_b:?}"
             );
         }
 
@@ -1376,9 +1384,10 @@ mod tests {
 
                 use std::net::{IpAddr, Ipv4Addr};
 
+                use torrust_tracker_primitives::info_hash::InfoHash;
+
                 use crate::core::tests::the_tracker::{complete_peer, incomplete_peer, public_tracker};
                 use crate::core::{ScrapeData, SwarmMetadata};
-                use crate::shared::bit_torrent::info_hash::InfoHash;
 
                 #[tokio::test]
                 async fn it_should_return_a_zeroed_swarm_metadata_for_the_requested_file_if_the_tracker_does_not_have_that_torrent(
@@ -1533,12 +1542,13 @@ mod tests {
 
             mod handling_an_scrape_request {
 
+                use torrust_tracker_primitives::info_hash::InfoHash;
+                use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+
                 use crate::core::tests::the_tracker::{
                     complete_peer, incomplete_peer, peer_ip, sample_info_hash, whitelisted_tracker,
                 };
-                use crate::core::torrent::SwarmMetadata;
                 use crate::core::ScrapeData;
-                use crate::shared::bit_torrent::info_hash::InfoHash;
 
                 #[test]
                 fn it_should_be_able_to_build_a_zeroed_scrape_data_for_a_list_of_info_hashes() {
@@ -1677,11 +1687,12 @@ mod tests {
         }
 
         mod handling_torrent_persistence {
-            use aquatic_udp_protocol::AnnounceEvent;
+
+            use torrust_tracker_primitives::announce_event::AnnounceEvent;
+            use torrust_tracker_torrent_repository::entry::EntrySync;
+            use torrust_tracker_torrent_repository::repository::Repository;
 
             use crate::core::tests::the_tracker::{sample_info_hash, sample_peer, tracker_persisting_torrents_in_database};
-            use crate::core::torrent::entry::ReadInfo;
-            use crate::core::torrent::repository::Repository;
 
             #[tokio::test]
             async fn it_should_persist_the_number_of_completed_peers_for_all_torrents_into_the_database() {
@@ -1700,15 +1711,11 @@ mod tests {
                 assert_eq!(swarm_stats.downloaded, 1);
 
                 // Remove the newly updated torrent from memory
-                tracker.torrents.remove(&info_hash).await;
+                tracker.torrents.remove(&info_hash);
 
                 tracker.load_torrents_from_database().await.unwrap();
 
-                let torrent_entry = tracker
-                    .torrents
-                    .get(&info_hash)
-                    .await
-                    .expect("it should be able to get entry");
+                let torrent_entry = tracker.torrents.get(&info_hash).expect("it should be able to get entry");
 
                 // It persists the number of completed peers.
                 assert_eq!(torrent_entry.get_stats().downloaded, 1);

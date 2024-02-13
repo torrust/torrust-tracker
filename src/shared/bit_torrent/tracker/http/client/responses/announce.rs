@@ -1,8 +1,7 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use serde::{Deserialize, Serialize};
-
-use crate::core::peer::Peer;
+use torrust_tracker_primitives::peer;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Announce {
@@ -23,8 +22,8 @@ pub struct DictionaryPeer {
     pub port: u16,
 }
 
-impl From<Peer> for DictionaryPeer {
-    fn from(peer: Peer) -> Self {
+impl From<peer::Peer> for DictionaryPeer {
+    fn from(peer: peer::Peer) -> Self {
         DictionaryPeer {
             peer_id: peer.peer_id.to_bytes().to_vec(),
             ip: peer.peer_addr.ip().to_string(),

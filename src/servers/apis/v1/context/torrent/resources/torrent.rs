@@ -6,7 +6,6 @@
 //! the JSON response.
 use serde::{Deserialize, Serialize};
 
-use super::peer;
 use crate::core::services::torrent::{BasicInfo, Info};
 
 /// `Torrent` API resource.
@@ -68,14 +67,16 @@ pub fn to_resource(basic_info_vec: &[BasicInfo]) -> Vec<ListItem> {
 
 impl From<Info> for Torrent {
     fn from(info: Info) -> Self {
+        let peers: Option<super::peer::Vector> = info.peers.map(|peers| peers.into_iter().collect());
+
+        let peers: Option<Vec<super::peer::Peer>> = peers.map(|peers| peers.0);
+
         Self {
             info_hash: info.info_hash.to_string(),
             seeders: info.seeders,
             completed: info.completed,
             leechers: info.leechers,
-            peers: info
-                .peers
-                .map(|peers| peers.iter().map(|peer| peer::Peer::from(*peer)).collect()),
+            peers,
         }
     }
 }
@@ -96,15 +97,14 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::str::FromStr;
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use torrust_tracker_primitives::announce_event::AnnounceEvent;
+    use torrust_tracker_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
 
     use super::Torrent;
-    use crate::core::peer;
     use crate::core::services::torrent::{BasicInfo, Info};
     use crate::servers::apis::v1::context::torrent::resources::peer::Peer;
     use crate::servers::apis::v1::context::torrent::resources::torrent::ListItem;
-    use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::shared::clock::DurationSinceUnixEpoch;
 
     fn sample_peer() -> peer::Peer {
         peer::Peer {

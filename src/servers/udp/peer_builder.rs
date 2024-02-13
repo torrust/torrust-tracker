@@ -1,11 +1,13 @@
 //! Logic to extract the peer info from the announce request.
 use std::net::{IpAddr, SocketAddr};
 
+use torrust_tracker_primitives::announce_event::AnnounceEvent;
+use torrust_tracker_primitives::{peer, NumberOfBytes};
+
 use super::request::AnnounceWrapper;
-use crate::core::peer::{Id, Peer};
 use crate::shared::clock::{Current, Time};
 
-/// Extracts the [`Peer`] info from the
+/// Extracts the [`peer::Peer`] info from the
 /// announce request.
 ///
 /// # Arguments
@@ -14,14 +16,14 @@ use crate::shared::clock::{Current, Time};
 /// * `peer_ip` - The real IP address of the peer, not the one in the announce
 /// request.
 #[must_use]
-pub fn from_request(announce_wrapper: &AnnounceWrapper, peer_ip: &IpAddr) -> Peer {
-    Peer {
-        peer_id: Id(announce_wrapper.announce_request.peer_id.0),
+pub fn from_request(announce_wrapper: &AnnounceWrapper, peer_ip: &IpAddr) -> peer::Peer {
+    peer::Peer {
+        peer_id: peer::Id(announce_wrapper.announce_request.peer_id.0),
         peer_addr: SocketAddr::new(*peer_ip, announce_wrapper.announce_request.port.0),
         updated: Current::now(),
-        uploaded: announce_wrapper.announce_request.bytes_uploaded,
-        downloaded: announce_wrapper.announce_request.bytes_downloaded,
-        left: announce_wrapper.announce_request.bytes_left,
-        event: announce_wrapper.announce_request.event,
+        uploaded: NumberOfBytes(announce_wrapper.announce_request.bytes_uploaded.0),
+        downloaded: NumberOfBytes(announce_wrapper.announce_request.bytes_downloaded.0),
+        left: NumberOfBytes(announce_wrapper.announce_request.bytes_left.0),
+        event: AnnounceEvent::from_i32(announce_wrapper.announce_request.event.to_i32()),
     }
 }

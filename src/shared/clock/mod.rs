@@ -31,9 +31,7 @@ use std::str::FromStr;
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
-
-/// Duration since the Unix Epoch.
-pub type DurationSinceUnixEpoch = Duration;
+use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 /// Clock types.
 #[derive(Debug)]

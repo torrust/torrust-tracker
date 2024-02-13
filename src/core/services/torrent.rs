@@ -6,13 +6,13 @@
 //! - [`get_torrents`]: it returns data about some torrent in bulk excluding the peer list.
 use std::sync::Arc;
 
-use serde::Deserialize;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::pagination::Pagination;
+use torrust_tracker_primitives::peer;
+use torrust_tracker_torrent_repository::entry::EntrySync;
+use torrust_tracker_torrent_repository::repository::Repository;
 
-use crate::core::peer::Peer;
-use crate::core::torrent::entry::{ReadInfo, ReadPeers};
-use crate::core::torrent::repository::Repository;
 use crate::core::Tracker;
-use crate::shared::bit_torrent::info_hash::InfoHash;
 
 /// It contains all the information the tracker has about a torrent
 #[derive(Debug, PartialEq)]
@@ -26,7 +26,7 @@ pub struct Info {
     /// The total number of leechers for this torrent. Peers that actively downloading this torrent
     pub leechers: u64,
     /// The swarm: the list of peers that are actively trying to download or serving this torrent
-    pub peers: Option<Vec<Peer>>,
+    pub peers: Option<Vec<peer::Peer>>,
 }
 
 /// It contains only part of the information the tracker has about a torrent
@@ -44,58 +44,9 @@ pub struct BasicInfo {
     pub leechers: u64,
 }
 
-/// A struct to keep information about the page when results are being paginated
-#[derive(Deserialize)]
-pub struct Pagination {
-    /// The page number, starting at 0
-    pub offset: u32,
-    /// Page size. The number of results per page
-    pub limit: u32,
-}
-
-impl Pagination {
-    #[must_use]
-    pub fn new(offset: u32, limit: u32) -> Self {
-        Self { offset, limit }
-    }
-
-    #[must_use]
-    pub fn new_with_options(offset_option: Option<u32>, limit_option: Option<u32>) -> Self {
-        let offset = match offset_option {
-            Some(offset) => offset,
-            None => Pagination::default_offset(),
-        };
-        let limit = match limit_option {
-            Some(offset) => offset,
-            None => Pagination::default_limit(),
-        };
-
-        Self { offset, limit }
-    }
-
-    #[must_use]
-    pub fn default_offset() -> u32 {
-        0
-    }
-
-    #[must_use]
-    pub fn default_limit() -> u32 {
-        4000
-    }
-}
-
-impl Default for Pagination {
-    fn default() -> Self {
-        Self {
-            offset: Self::default_offset(),
-            limit: Self::default_limit(),
-        }
-    }
-}
-
 /// It returns all the information the tracker has about one torrent in a [Info] struct.
 pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Option<Info> {
-    let torrent_entry_option = tracker.torrents.get(info_hash).await;
+    let torrent_entry_option = tracker.torrents.get(info_hash);
 
     let torrent_entry = torrent_entry_option?;
 
@@ -118,7 +69,7 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
 pub async fn get_torrents_page(tracker: Arc<Tracker>, pagination: Option<&Pagination>) -> Vec<BasicInfo> {
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
-    for (info_hash, torrent_entry) in tracker.torrents.get_paginated(pagination).await {
+    for (info_hash, torrent_entry) in tracker.torrents.get_paginated(pagination) {
         let stats = torrent_entry.get_stats();
 
         basic_infos.push(BasicInfo {
@@ -137,7 +88,7 @@ pub async fn get_torrents(tracker: Arc<Tracker>, info_hashes: &[InfoHash]) -> Ve
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
     for info_hash in info_hashes {
-        if let Some(stats) = tracker.torrents.get(info_hash).await.map(|t| t.get_stats()) {
+        if let Some(stats) = tracker.torrents.get(info_hash).map(|t| t.get_stats()) {
             basic_infos.push(BasicInfo {
                 info_hash: *info_hash,
                 seeders: u64::from(stats.complete),
@@ -154,10 +105,8 @@ pub async fn get_torrents(tracker: Arc<Tracker>, info_hashes: &[InfoHash]) -> Ve
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-
-    use crate::core::peer;
-    use crate::shared::clock::DurationSinceUnixEpoch;
+    use torrust_tracker_primitives::announce_event::AnnounceEvent;
+    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
 
     fn sample_peer() -> peer::Peer {
         peer::Peer {
@@ -177,12 +126,12 @@ mod tests {
         use std::sync::Arc;
 
         use torrust_tracker_configuration::Configuration;
+        use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::core::services::torrent::tests::sample_peer;
         use crate::core::services::torrent::{get_torrent_info, Info};
         use crate::core::services::tracker_factory;
-        use crate::shared::bit_torrent::info_hash::InfoHash;
 
         pub fn tracker_configuration() -> Configuration {
             configuration::ephemeral()
@@ -232,12 +181,12 @@ mod tests {
         use std::sync::Arc;
 
         use torrust_tracker_configuration::Configuration;
+        use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::core::services::torrent::tests::sample_peer;
         use crate::core::services::torrent::{get_torrents_page, BasicInfo, Pagination};
         use crate::core::services::tracker_factory;
-        use crate::shared::bit_torrent::info_hash::InfoHash;
 
         pub fn tracker_configuration() -> Configuration {
             configuration::ephemeral()

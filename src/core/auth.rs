@@ -13,7 +13,7 @@
 //!
 //! ```rust,no_run
 //! use torrust_tracker::core::auth::Key;
-//! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
+//! use torrust_tracker_primitives::DurationSinceUnixEpoch;
 //!
 //! pub struct ExpiringKey {
 //!     /// Random 32-char string. For example: `YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ`
@@ -48,9 +48,10 @@ use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use torrust_tracker_located_error::{DynError, LocatedError};
+use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
-use crate::shared::clock::{convert_from_timestamp_to_datetime_utc, Current, DurationSinceUnixEpoch, Time, TimeNow};
+use crate::shared::clock::{convert_from_timestamp_to_datetime_utc, Current, Time, TimeNow};
 
 #[must_use]
 /// It generates a new random 32-char authentication [`ExpiringKey`]

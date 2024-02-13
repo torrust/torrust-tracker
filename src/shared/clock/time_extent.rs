@@ -542,9 +542,11 @@ mod test {
     mod make_time_extent {
 
         mod fn_now {
+            use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
             use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
             use crate::shared::clock::time_extent::{Base, DefaultTimeExtentMaker, Make, TimeExtent};
-            use crate::shared::clock::{Current, DurationSinceUnixEpoch, StoppedTime};
+            use crate::shared::clock::{Current, StoppedTime};
 
             #[test]
             fn it_should_give_a_time_extent() {
@@ -582,9 +584,11 @@ mod test {
         mod fn_now_after {
             use std::time::Duration;
 
+            use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
             use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
             use crate::shared::clock::time_extent::{Base, DefaultTimeExtentMaker, Make};
-            use crate::shared::clock::{Current, DurationSinceUnixEpoch, StoppedTime};
+            use crate::shared::clock::{Current, StoppedTime};
 
             #[test]
             fn it_should_give_a_time_extent() {
@@ -621,8 +625,10 @@ mod test {
         mod fn_now_before {
             use std::time::Duration;
 
+            use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
             use crate::shared::clock::time_extent::{Base, DefaultTimeExtentMaker, Make, TimeExtent};
-            use crate::shared::clock::{Current, DurationSinceUnixEpoch, StoppedTime};
+            use crate::shared::clock::{Current, StoppedTime};
 
             #[test]
             fn it_should_give_a_time_extent() {

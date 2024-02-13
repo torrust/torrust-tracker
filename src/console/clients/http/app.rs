@@ -18,8 +18,8 @@ use std::str::FromStr;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 use reqwest::Url;
+use torrust_tracker_primitives::info_hash::InfoHash;
 
-use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::bit_torrent::tracker::http::client::requests::announce::QueryBuilder;
 use crate::shared::bit_torrent::tracker::http::client::responses::announce::Announce;
 use crate::shared::bit_torrent::tracker::http::client::responses::scrape;

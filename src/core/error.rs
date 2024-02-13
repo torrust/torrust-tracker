@@ -9,6 +9,7 @@
 use std::panic::Location;
 
 use torrust_tracker_located_error::LocatedError;
+use torrust_tracker_primitives::info_hash::InfoHash;
 
 /// Authentication or authorization error returned by the core `Tracker`
 #[derive(thiserror::Error, Debug, Clone)]
@@ -25,7 +26,7 @@ pub enum Error {
     // Authorization errors
     #[error("The torrent: {info_hash}, is not whitelisted, {location}")]
     TorrentNotWhitelisted {
-        info_hash: crate::shared::bit_torrent::info_hash::InfoHash,
+        info_hash: InfoHash,
         location: &'static Location<'static>,
     },
 }

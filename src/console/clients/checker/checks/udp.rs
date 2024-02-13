@@ -4,12 +4,12 @@ use aquatic_udp_protocol::{Port, TransactionId};
 use colored::Colorize;
 use hex_literal::hex;
 use log::debug;
+use torrust_tracker_primitives::info_hash::InfoHash;
 
 use crate::console::clients::checker::console::Console;
 use crate::console::clients::checker::printer::Printer;
 use crate::console::clients::checker::service::{CheckError, CheckResult};
 use crate::console::clients::udp::checker;
-use crate::shared::bit_torrent::info_hash::InfoHash;
 
 const ASSIGNED_BY_OS: u16 = 0;
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;

@@ -12,6 +12,7 @@ use aquatic_udp_protocol::{
 use log::debug;
 use tokio::net::UdpSocket;
 use torrust_tracker_located_error::DynError;
+use torrust_tracker_primitives::info_hash::InfoHash;
 use uuid::Uuid;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
@@ -22,7 +23,6 @@ use crate::servers::udp::logging::{log_bad_request, log_error_response, log_requ
 use crate::servers::udp::peer_builder;
 use crate::servers::udp::request::AnnounceWrapper;
 use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
-use crate::shared::bit_torrent::info_hash::InfoHash;
 
 /// It handles the incoming UDP packets.
 ///
@@ -318,12 +318,13 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
     use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_primitives::announce_event::AnnounceEvent;
+    use torrust_tracker_primitives::{peer, NumberOfBytes};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::core::services::tracker_factory;
-    use crate::core::{peer, Tracker};
+    use crate::core::Tracker;
     use crate::shared::clock::{Current, Time};
 
     fn tracker_configuration() -> Configuration {
@@ -605,8 +606,9 @@ mod tests {
                 Response, ResponsePeer,
             };
             use mockall::predicate::eq;
+            use torrust_tracker_primitives::peer;
 
-            use crate::core::{self, peer, statistics};
+            use crate::core::{self, statistics};
             use crate::servers::udp::connection_cookie::{into_connection_id, make};
             use crate::servers::udp::handlers::handle_announce;
             use crate::servers::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
@@ -635,7 +637,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
                 let expected_peer = TorrentPeerBuilder::default()
                     .with_peer_id(peer::Id(peer_id.0))
@@ -696,7 +698,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
             }
@@ -773,8 +775,8 @@ mod tests {
                 use std::sync::Arc;
 
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
+                use torrust_tracker_primitives::peer;
 
-                use crate::core::peer;
                 use crate::servers::udp::connection_cookie::{into_connection_id, make};
                 use crate::servers::udp::handlers::handle_announce;
                 use crate::servers::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
@@ -801,7 +803,7 @@ mod tests {
 
                     handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                    let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
+                    let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
                     let external_ip_in_tracker_configuration = tracker.get_maybe_external_ip().unwrap();
 
@@ -826,8 +828,9 @@ mod tests {
                 Response, ResponsePeer,
             };
             use mockall::predicate::eq;
+            use torrust_tracker_primitives::peer;
 
-            use crate::core::{self, peer, statistics};
+            use crate::core::{self, statistics};
             use crate::servers::udp::connection_cookie::{into_connection_id, make};
             use crate::servers::udp::handlers::handle_announce;
             use crate::servers::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
@@ -857,7 +860,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
                 let expected_peer = TorrentPeerBuilder::default()
                     .with_peer_id(peer::Id(peer_id.0))
@@ -921,7 +924,7 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
                 // When using IPv6 the tracker converts the remote client ip into a IPv4 address
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V6(remote_client_ip), client_port));
@@ -1038,7 +1041,7 @@ mod tests {
 
                     handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                    let peers = tracker.get_torrent_peers(&info_hash.0.into()).await;
+                    let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
                     let external_ip_in_tracker_configuration = tracker.get_maybe_external_ip().unwrap();
 
@@ -1063,9 +1066,10 @@ mod tests {
             InfoHash, NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
             TransactionId,
         };
+        use torrust_tracker_primitives::peer;
 
         use super::TorrentPeerBuilder;
-        use crate::core::{self, peer};
+        use crate::core::{self};
         use crate::servers::udp::connection_cookie::{into_connection_id, make};
         use crate::servers::udp::handlers::handle_scrape;
         use crate::servers::udp::handlers::tests::{public_tracker, sample_ipv4_remote_addr};

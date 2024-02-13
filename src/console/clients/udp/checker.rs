@@ -8,8 +8,8 @@ use aquatic_udp_protocol::{
 };
 use log::debug;
 use thiserror::Error;
+use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
 
-use crate::shared::bit_torrent::info_hash::InfoHash as TorrustInfoHash;
 use crate::shared::bit_torrent::tracker::udp::client::{UdpClient, UdpTrackerClient};
 
 #[derive(Error, Debug)]

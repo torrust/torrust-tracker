@@ -71,10 +71,11 @@ impl From<TrackerMetrics> for Stats {
 
 #[cfg(test)]
 mod tests {
+    use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+
     use super::Stats;
     use crate::core::services::statistics::TrackerMetrics;
     use crate::core::statistics::Metrics;
-    use crate::core::TorrentsMetrics;
 
     #[test]
     fn stats_resource_should_be_converted_from_tracker_metrics() {

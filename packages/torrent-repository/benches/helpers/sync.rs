@@ -1,16 +1,19 @@
+use std::sync::Arc;
 use std::time::Duration;
 
 use clap::Parser;
 use futures::stream::FuturesUnordered;
-use torrust_tracker::core::torrent::repository::UpdateTorrentAsync;
-use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_torrent_repository::repository::Repository;
 
-use crate::args::Args;
-use crate::benches::utils::{generate_unique_info_hashes, get_average_and_adjusted_average_from_results, DEFAULT_PEER};
+use super::args::Args;
+use super::utils::{generate_unique_info_hashes, get_average_and_adjusted_average_from_results, DEFAULT_PEER};
 
-pub async fn add_one_torrent<V>(samples: usize) -> (Duration, Duration)
+// Simply add one torrent
+#[must_use]
+pub fn add_one_torrent<V, T>(samples: usize) -> (Duration, Duration)
 where
-    V: UpdateTorrentAsync + Default,
+    V: Repository<T> + Default,
 {
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
 
@@ -21,9 +24,7 @@ where
 
         let start_time = std::time::Instant::now();
 
-        torrent_repository
-            .update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
-            .await;
+        torrent_repository.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
 
         let result = start_time.elapsed();
 
@@ -34,22 +35,21 @@ where
 }
 
 // Add one torrent ten thousand times in parallel (depending on the set worker threads)
-pub async fn update_one_torrent_in_parallel<V>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
+pub async fn update_one_torrent_in_parallel<V, T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
-    V: UpdateTorrentAsync + Default + Clone + Send + Sync + 'static,
+    V: Repository<T> + Default,
+    Arc<V>: Clone + Send + Sync + 'static,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
 
     for _ in 0..samples {
-        let torrent_repository = V::default();
+        let torrent_repository = Arc::<V>::default();
         let info_hash: &'static InfoHash = &InfoHash([0; 20]);
         let handles = FuturesUnordered::new();
 
         // Add the torrent/peer to the torrent repository
-        torrent_repository
-            .update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
-            .await;
+        torrent_repository.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
 
         let start_time = std::time::Instant::now();
 
@@ -57,9 +57,7 @@ where
             let torrent_repository_clone = torrent_repository.clone();
 
             let handle = runtime.spawn(async move {
-                torrent_repository_clone
-                    .update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
-                    .await;
+                torrent_repository_clone.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
 
                 if let Some(sleep_time) = args.sleep {
                     let start_time = std::time::Instant::now();
@@ -83,15 +81,16 @@ where
 }
 
 // Add ten thousand torrents in parallel (depending on the set worker threads)
-pub async fn add_multiple_torrents_in_parallel<V>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
+pub async fn add_multiple_torrents_in_parallel<V, T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
-    V: UpdateTorrentAsync + Default + Clone + Send + Sync + 'static,
+    V: Repository<T> + Default,
+    Arc<V>: Clone + Send + Sync + 'static,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
 
     for _ in 0..samples {
-        let torrent_repository = V::default();
+        let torrent_repository = Arc::<V>::default();
         let info_hashes = generate_unique_info_hashes(10_000);
         let handles = FuturesUnordered::new();
 
@@ -101,9 +100,7 @@ where
             let torrent_repository_clone = torrent_repository.clone();
 
             let handle = runtime.spawn(async move {
-                torrent_repository_clone
-                    .update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
-                    .await;
+                torrent_repository_clone.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
 
                 if let Some(sleep_time) = args.sleep {
                     let start_time = std::time::Instant::now();
@@ -126,24 +123,23 @@ where
     get_average_and_adjusted_average_from_results(results)
 }
 
-// Async update ten thousand torrents in parallel (depending on the set worker threads)
-pub async fn update_multiple_torrents_in_parallel<V>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
+// Update ten thousand torrents in parallel (depending on the set worker threads)
+pub async fn update_multiple_torrents_in_parallel<V, T>(runtime: &tokio::runtime::Runtime, samples: usize) -> (Duration, Duration)
 where
-    V: UpdateTorrentAsync + Default + Clone + Send + Sync + 'static,
+    V: Repository<T> + Default,
+    Arc<V>: Clone + Send + Sync + 'static,
 {
     let args = Args::parse();
     let mut results: Vec<Duration> = Vec::with_capacity(samples);
 
     for _ in 0..samples {
-        let torrent_repository = V::default();
+        let torrent_repository = Arc::<V>::default();
         let info_hashes = generate_unique_info_hashes(10_000);
         let handles = FuturesUnordered::new();
 
         // Add the torrents/peers to the torrent repository
         for info_hash in &info_hashes {
-            torrent_repository
-                .update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER)
-                .await;
+            torrent_repository.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
         }
 
         let start_time = std::time::Instant::now();
@@ -152,9 +148,7 @@ where
             let torrent_repository_clone = torrent_repository.clone();
 
             let handle = runtime.spawn(async move {
-                torrent_repository_clone
-                    .update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER)
-                    .await;
+                torrent_repository_clone.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
 
                 if let Some(sleep_time) = args.sleep {
                     let start_time = std::time::Instant::now();

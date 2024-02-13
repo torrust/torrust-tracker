@@ -5,12 +5,11 @@ use std::str::FromStr;
 use async_trait::async_trait;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
-use torrust_tracker_primitives::DatabaseDriver;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::{DatabaseDriver, DurationSinceUnixEpoch};
 
 use super::{Database, Error};
 use crate::core::auth::{self, Key};
-use crate::shared::bit_torrent::info_hash::InfoHash;
-use crate::shared::clock::DurationSinceUnixEpoch;
 
 const DRIVER: DatabaseDriver = DatabaseDriver::Sqlite3;
 

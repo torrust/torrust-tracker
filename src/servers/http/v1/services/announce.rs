@@ -11,9 +11,10 @@
 use std::net::IpAddr;
 use std::sync::Arc;
 
-use crate::core::peer::Peer;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::peer;
+
 use crate::core::{statistics, AnnounceData, Tracker};
-use crate::shared::bit_torrent::info_hash::InfoHash;
 
 /// The HTTP tracker `announce` service.
 ///
@@ -25,7 +26,7 @@ use crate::shared::bit_torrent::info_hash::InfoHash;
 /// > **NOTICE**: as the HTTP tracker does not requires a connection request
 /// like the UDP tracker, the number of TCP connections is incremented for
 /// each `announce` request.
-pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut Peer) -> AnnounceData {
+pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut peer::Peer) -> AnnounceData {
     let original_peer_ip = peer.peer_addr.ip();
 
     // The tracker could change the original peer ip
@@ -47,13 +48,13 @@ pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut Peer)
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use torrust_tracker_primitives::announce_event::AnnounceEvent;
+    use torrust_tracker_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::core::services::tracker_factory;
-    use crate::core::{peer, Tracker};
-    use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::shared::clock::DurationSinceUnixEpoch;
+    use crate::core::Tracker;
 
     fn public_tracker() -> Tracker {
         tracker_factory(&configuration::ephemeral_mode_public())
@@ -94,11 +95,11 @@ mod tests {
         use std::sync::Arc;
 
         use mockall::predicate::eq;
+        use torrust_tracker_primitives::peer;
+        use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
-        use crate::core::peer::Peer;
-        use crate::core::torrent::SwarmMetadata;
         use crate::core::{statistics, AnnounceData, Tracker};
         use crate::servers::http::v1::services::announce::invoke;
         use crate::servers::http::v1::services::announce::tests::{public_tracker, sample_info_hash, sample_peer};
@@ -150,7 +151,7 @@ mod tests {
             Tracker::new(&configuration, Some(stats_event_sender), statistics::Repo::new()).unwrap()
         }
 
-        fn peer_with_the_ipv4_loopback_ip() -> Peer {
+        fn peer_with_the_ipv4_loopback_ip() -> peer::Peer {
             let loopback_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
             let mut peer = sample_peer();
             peer.peer_addr = SocketAddr::new(loopback_ip, 8080);

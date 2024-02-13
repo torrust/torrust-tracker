@@ -7,10 +7,10 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use axum::http::StatusCode;
 use derive_more::{AsRef, Constructor, From};
 use torrust_tracker_contrib_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
+use torrust_tracker_primitives::peer;
 
 use super::Response;
-use crate::core::peer::Peer;
-use crate::core::{self, AnnounceData};
+use crate::core::AnnounceData;
 use crate::servers::http::v1::responses;
 
 /// An [`Announce`] response, that can be anything that is convertible from [`AnnounceData`].
@@ -150,21 +150,6 @@ impl Into<Vec<u8>> for Compact {
     }
 }
 
-/// Marker Trait for Peer Vectors
-pub trait PeerEncoding: From<Peer> + PartialEq {}
-
-impl<P: PeerEncoding> FromIterator<Peer> for Vec<P> {
-    fn from_iter<T: IntoIterator<Item = Peer>>(iter: T) -> Self {
-        let mut peers: Vec<P> = vec![];
-
-        for peer in iter {
-            peers.push(peer.into());
-        }
-
-        peers
-    }
-}
-
 /// A [`NormalPeer`], for the [`Normal`] form.
 ///
 /// ```rust
@@ -188,10 +173,10 @@ pub struct NormalPeer {
     pub port: u16,
 }
 
-impl PeerEncoding for NormalPeer {}
+impl peer::Encoding for NormalPeer {}
 
-impl From<core::peer::Peer> for NormalPeer {
-    fn from(peer: core::peer::Peer) -> Self {
+impl From<peer::Peer> for NormalPeer {
+    fn from(peer: peer::Peer) -> Self {
         NormalPeer {
             peer_id: peer.peer_id.to_bytes(),
             ip: peer.peer_addr.ip(),
@@ -240,10 +225,10 @@ pub enum CompactPeer {
     V6(CompactPeerData<Ipv6Addr>),
 }
 
-impl PeerEncoding for CompactPeer {}
+impl peer::Encoding for CompactPeer {}
 
-impl From<core::peer::Peer> for CompactPeer {
-    fn from(peer: core::peer::Peer) -> Self {
+impl From<peer::Peer> for CompactPeer {
+    fn from(peer: peer::Peer) -> Self {
         match (peer.peer_addr.ip(), peer.peer_addr.port()) {
             (IpAddr::V4(ip), port) => Self::V4(CompactPeerData { ip, port }),
             (IpAddr::V6(ip), port) => Self::V6(CompactPeerData { ip, port }),
@@ -316,10 +301,10 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_tracker_configuration::AnnouncePolicy;
+    use torrust_tracker_primitives::peer;
+    use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+    use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-    use crate::core::peer::fixture::PeerBuilder;
-    use crate::core::peer::Id;
-    use crate::core::torrent::SwarmMetadata;
     use crate::core::AnnounceData;
     use crate::servers::http::v1::responses::announce::{Announce, Compact, Normal, Response};
 
@@ -339,12 +324,12 @@ mod tests {
         let policy = AnnouncePolicy::new(111, 222);
 
         let peer_ipv4 = PeerBuilder::default()
-            .with_peer_id(&Id(*b"-qB00000000000000001"))
+            .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 0x7070))
             .build();
 
         let peer_ipv6 = PeerBuilder::default()
-            .with_peer_id(&Id(*b"-qB00000000000000002"))
+            .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
             .with_peer_addr(&SocketAddr::new(
                 IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                 0x7070,

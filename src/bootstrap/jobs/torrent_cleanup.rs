@@ -44,7 +44,7 @@ pub fn start_job(config: &Configuration, tracker: &Arc<core::Tracker>) -> JoinHa
                     if let Some(tracker) = weak_tracker.upgrade() {
                         let start_time = Utc::now().time();
                         info!("Cleaning up torrents..");
-                        tracker.cleanup_torrents().await;
+                        tracker.cleanup_torrents();
                         info!("Cleaned up torrents in: {}ms", (Utc::now().time() - start_time).num_milliseconds());
                     } else {
                         break;

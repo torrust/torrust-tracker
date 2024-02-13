@@ -2,8 +2,8 @@
 //!
 //! There are to main data structures:
 //!
-//! - A torrent [`Entry`]: it contains all the information stored by the tracker for one torrent.
-//! - The [`SwarmMetadata`]: it contains aggregate information that can me derived from the torrent entries.
+//! - A torrent [`Entry`](torrust_tracker_torrent_repository::entry::Entry): it contains all the information stored by the tracker for one torrent.
+//! - The [`SwarmMetadata`](torrust_tracker_primitives::swarm_metadata::SwarmMetadata): it contains aggregate information that can me derived from the torrent entries.
 //!
 //! A "swarm" is a network of peers that are trying to download the same torrent.
 //!
@@ -25,41 +25,10 @@
 //! - The number of peers that have NOT completed downloading the torrent and are still active, that means they are actively participating in the network.
 //! Peer that don not have a full copy of the torrent data are called "leechers".
 //!
-//! > **NOTICE**: that both [`SwarmMetadata`] and [`SwarmMetadata`] contain the same information. [`SwarmMetadata`] is using the names used on [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html).
-pub mod entry;
-pub mod repository;
 
-use derive_more::Constructor;
+use torrust_tracker_torrent_repository::TorrentsRwLockStdMutexStd;
 
 pub type Torrents = TorrentsRwLockStdMutexStd; // Currently Used
-
-pub type TorrentsRwLockStd = repository::RwLockStd<entry::Single>;
-pub type TorrentsRwLockStdMutexStd = repository::RwLockStd<entry::MutexStd>;
-pub type TorrentsRwLockStdMutexTokio = repository::RwLockStd<entry::MutexTokio>;
-pub type TorrentsRwLockTokio = repository::RwLockTokio<entry::Single>;
-pub type TorrentsRwLockTokioMutexStd = repository::RwLockTokio<entry::MutexStd>;
-pub type TorrentsRwLockTokioMutexTokio = repository::RwLockTokio<entry::MutexTokio>;
-
-/// Swarm statistics for one torrent.
-/// Swarm metadata dictionary in the scrape response.
-///
-/// See [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
-#[derive(Copy, Clone, Debug, PartialEq, Default, Constructor)]
-pub struct SwarmMetadata {
-    /// (i.e `completed`): The number of peers that have ever completed downloading
-    pub downloaded: u32, //
-    /// (i.e `seeders`): The number of active peers that have completed downloading (seeders)
-    pub complete: u32, //seeders
-    /// (i.e `leechers`): The number of active peers that have not completed downloading (leechers)
-    pub incomplete: u32,
-}
-
-impl SwarmMetadata {
-    #[must_use]
-    pub fn zeroed() -> Self {
-        Self::default()
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -71,11 +40,13 @@ mod tests {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+        use torrust_tracker_primitives::announce_event::AnnounceEvent;
+        use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
+        use torrust_tracker_torrent_repository::entry::Entry;
+        use torrust_tracker_torrent_repository::EntrySingle;
 
-        use crate::core::torrent::entry::{self, ReadInfo, ReadPeers, Update};
-        use crate::core::{peer, TORRENT_PEERS_LIMIT};
-        use crate::shared::clock::{Current, DurationSinceUnixEpoch, Stopped, StoppedTime, Time, Working};
+        use crate::core::TORRENT_PEERS_LIMIT;
+        use crate::shared::clock::{self, StoppedTime, Time, TimeNow};
 
         struct TorrentPeerBuilder {
             peer: peer::Peer,
@@ -86,7 +57,7 @@ mod tests {
                 let default_peer = peer::Peer {
                     peer_id: peer::Id([0u8; 20]),
                     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
-                    updated: Current::now(),
+                    updated: clock::Current::now(),
                     uploaded: NumberOfBytes(0),
                     downloaded: NumberOfBytes(0),
                     left: NumberOfBytes(0),
@@ -145,14 +116,14 @@ mod tests {
 
         #[test]
         fn the_default_torrent_entry_should_contain_an_empty_list_of_peers() {
-            let torrent_entry = entry::Single::default();
+            let torrent_entry = EntrySingle::default();
 
             assert_eq!(torrent_entry.get_peers(None).len(), 0);
         }
 
         #[test]
         fn a_new_peer_can_be_added_to_a_torrent_entry() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let torrent_peer = TorrentPeerBuilder::default().into();
 
             torrent_entry.insert_or_update_peer(&torrent_peer); // Add the peer
@@ -163,7 +134,7 @@ mod tests {
 
         #[test]
         fn a_torrent_entry_should_contain_the_list_of_peers_that_were_added_to_the_torrent() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let torrent_peer = TorrentPeerBuilder::default().into();
 
             torrent_entry.insert_or_update_peer(&torrent_peer); // Add the peer
@@ -173,7 +144,7 @@ mod tests {
 
         #[test]
         fn a_peer_can_be_updated_in_a_torrent_entry() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let mut torrent_peer = TorrentPeerBuilder::default().into();
             torrent_entry.insert_or_update_peer(&torrent_peer); // Add the peer
 
@@ -185,7 +156,7 @@ mod tests {
 
         #[test]
         fn a_peer_should_be_removed_from_a_torrent_entry_when_the_peer_announces_it_has_stopped() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let mut torrent_peer = TorrentPeerBuilder::default().into();
             torrent_entry.insert_or_update_peer(&torrent_peer); // Add the peer
 
@@ -197,7 +168,7 @@ mod tests {
 
         #[test]
         fn torrent_stats_change_when_a_previously_known_peer_announces_it_has_completed_the_torrent() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let mut torrent_peer = TorrentPeerBuilder::default().into();
 
             torrent_entry.insert_or_update_peer(&torrent_peer); // Add the peer
@@ -211,7 +182,7 @@ mod tests {
         #[test]
         fn torrent_stats_should_not_change_when_a_peer_announces_it_has_completed_the_torrent_if_it_is_the_first_announce_from_the_peer(
         ) {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let torrent_peer_announcing_complete_event = TorrentPeerBuilder::default().with_event_completed().into();
 
             // Add a peer that did not exist before in the entry
@@ -223,7 +194,7 @@ mod tests {
         #[test]
         fn a_torrent_entry_should_return_the_list_of_peers_for_a_given_peer_filtering_out_the_client_that_is_making_the_request()
         {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let peer_socket_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
             let torrent_peer = TorrentPeerBuilder::default().with_peer_address(peer_socket_address).into();
             torrent_entry.insert_or_update_peer(&torrent_peer); // Add peer
@@ -236,7 +207,7 @@ mod tests {
 
         #[test]
         fn two_peers_with_the_same_ip_but_different_port_should_be_considered_different_peers() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
 
             let peer_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
 
@@ -270,7 +241,7 @@ mod tests {
 
         #[test]
         fn the_tracker_should_limit_the_list_of_peers_to_74_when_clients_scrape_torrents() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
 
             // We add one more peer than the scrape limit
             for peer_number in 1..=74 + 1 {
@@ -287,7 +258,7 @@ mod tests {
 
         #[test]
         fn torrent_stats_should_have_the_number_of_seeders_for_a_torrent() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let torrent_seeder = a_torrent_seeder();
 
             torrent_entry.insert_or_update_peer(&torrent_seeder); // Add seeder
@@ -297,7 +268,7 @@ mod tests {
 
         #[test]
         fn torrent_stats_should_have_the_number_of_leechers_for_a_torrent() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let torrent_leecher = a_torrent_leecher();
 
             torrent_entry.insert_or_update_peer(&torrent_leecher); // Add leecher
@@ -308,7 +279,7 @@ mod tests {
         #[test]
         fn torrent_stats_should_have_the_number_of_peers_that_having_announced_at_least_two_events_the_latest_one_is_the_completed_event(
         ) {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let mut torrent_peer = TorrentPeerBuilder::default().into();
             torrent_entry.insert_or_update_peer(&torrent_peer); // Add the peer
 
@@ -323,7 +294,7 @@ mod tests {
 
         #[test]
         fn torrent_stats_should_not_include_a_peer_in_the_completed_counter_if_the_peer_has_announced_only_one_event() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
             let torrent_peer_announcing_complete_event = TorrentPeerBuilder::default().with_event_completed().into();
 
             // Announce "Completed" torrent download event.
@@ -337,12 +308,12 @@ mod tests {
 
         #[test]
         fn a_torrent_entry_should_remove_a_peer_not_updated_after_a_timeout_in_seconds() {
-            let mut torrent_entry = entry::Single::default();
+            let mut torrent_entry = EntrySingle::default();
 
             let timeout = 120u32;
 
-            let now = Working::now();
-            Stopped::local_set(&now);
+            let now = clock::Working::now();
+            clock::Stopped::local_set(&now);
 
             let timeout_seconds_before_now = now.sub(Duration::from_secs(u64::from(timeout)));
             let inactive_peer = TorrentPeerBuilder::default()
@@ -350,9 +321,10 @@ mod tests {
                 .into();
             torrent_entry.insert_or_update_peer(&inactive_peer); // Add the peer
 
-            torrent_entry.remove_inactive_peers(timeout);
+            let current_cutoff = clock::Current::sub(&Duration::from_secs(u64::from(timeout))).unwrap_or_default();
+            torrent_entry.remove_inactive_peers(current_cutoff);
 
-            assert_eq!(torrent_entry.peers.len(), 0);
+            assert_eq!(torrent_entry.get_peers_len(), 0);
         }
     }
 }

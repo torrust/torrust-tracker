@@ -2,10 +2,10 @@ use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use torrust_tracker::core::peer::{Id, Peer};
-use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
+use torrust_tracker_primitives::announce_event::AnnounceEvent;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::peer::{Id, Peer};
+use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfBytes};
 
 pub const DEFAULT_PEER: Peer = Peer {
     peer_id: Id([0; 20]),

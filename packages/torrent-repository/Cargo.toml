@@ -1,0 +1,24 @@
+[package]
+description = "A library to provide error decorator with the location and the source of the original error."
+keywords = ["torrents", "repository", "library"]
+name = "torrust-tracker-torrent-repository"
+readme = "README.md"
+
+authors.workspace = true
+categories.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+clap = { version = "4.4.8", features = ["derive"] }
+futures = "0.3.29"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "../primitives" }
+torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "../configuration" }
+serde = { version = "1", features = ["derive"] }

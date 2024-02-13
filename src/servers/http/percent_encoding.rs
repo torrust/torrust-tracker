@@ -15,8 +15,8 @@
 //! - <https://datatracker.ietf.org/doc/html/rfc3986#section-2.1>
 //! - <https://en.wikipedia.org/wiki/URL_encoding>
 //! - <https://developer.mozilla.org/en-US/docs/Glossary/percent-encoding>
-use crate::core::peer::{self, IdConversionError};
-use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
+use torrust_tracker_primitives::info_hash::{self, InfoHash};
+use torrust_tracker_primitives::peer;
 
 /// Percent decodes a percent encoded infohash. Internally an
 /// [`InfoHash`] is a 20-byte array.
@@ -27,8 +27,8 @@ use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
 /// ```rust
 /// use std::str::FromStr;
 /// use torrust_tracker::servers::http::percent_encoding::percent_decode_info_hash;
-/// use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-/// use torrust_tracker::core::peer;
+/// use torrust_tracker_primitives::info_hash::InfoHash;
+/// use torrust_tracker_primitives::peer;
 ///
 /// let encoded_infohash = "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0";
 ///
@@ -44,12 +44,12 @@ use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
 ///
 /// Will return `Err` if the decoded bytes do not represent a valid
 /// [`InfoHash`].
-pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, ConversionError> {
+pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_hash::ConversionError> {
     let bytes = percent_encoding::percent_decode_str(raw_info_hash).collect::<Vec<u8>>();
     InfoHash::try_from(bytes)
 }
 
-/// Percent decodes a percent encoded peer id. Internally a peer [`Id`](crate::core::peer::Id)
+/// Percent decodes a percent encoded peer id. Internally a peer [`Id`](peer::Id)
 /// is a 20-byte array.
 ///
 /// For example, given the peer id `*b"-qB00000000000000000"`,
@@ -58,8 +58,8 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, Convers
 /// ```rust
 /// use std::str::FromStr;
 /// use torrust_tracker::servers::http::percent_encoding::percent_decode_peer_id;
-/// use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-/// use torrust_tracker::core::peer;
+/// use torrust_tracker_primitives::info_hash::InfoHash;
+/// use torrust_tracker_primitives::peer;
 ///
 /// let encoded_peer_id = "%2DqB00000000000000000";
 ///
@@ -71,7 +71,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, Convers
 /// # Errors
 ///
 /// Will return `Err` if if the decoded bytes do not represent a valid [`peer::Id`].
-pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<peer::Id, IdConversionError> {
+pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<peer::Id, peer::IdConversionError> {
     let bytes = percent_encoding::percent_decode_str(raw_peer_id).collect::<Vec<u8>>();
     peer::Id::try_from(bytes)
 }
@@ -80,9 +80,10 @@ pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<peer::Id, IdConversio
 mod tests {
     use std::str::FromStr;
 
-    use crate::core::peer;
+    use torrust_tracker_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::peer;
+
     use crate::servers::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
-    use crate::shared::bit_torrent::info_hash::InfoHash;
 
     #[test]
     fn it_should_decode_a_percent_encoded_info_hash() {

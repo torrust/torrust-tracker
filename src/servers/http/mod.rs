@@ -206,15 +206,15 @@
 //!
 //! ### Scrape
 //!
-//! The `scrape` request allows a peer to get [swarm metadata](crate::core::torrent::SwarmMetadata)
+//! The `scrape` request allows a peer to get [swarm metadata](torrust_tracker_primitives::swarm_metadata::SwarmMetadata)
 //! for multiple torrents at the same time.
 //!
-//! The response contains the [swarm metadata](crate::core::torrent::SwarmMetadata)
+//! The response contains the [swarm metadata](torrust_tracker_primitives::swarm_metadata::SwarmMetadata)
 //! for that torrent:
 //!
-//! - [complete](crate::core::torrent::SwarmMetadata::complete)
-//! - [downloaded](crate::core::torrent::SwarmMetadata::downloaded)
-//! - [incomplete](crate::core::torrent::SwarmMetadata::incomplete)
+//! - [complete](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::complete)
+//! - [downloaded](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::downloaded)
+//! - [incomplete](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::incomplete)
 //!
 //! **Query parameters**
 //!
@@ -266,7 +266,7 @@
 //! Where the `files` key contains a dictionary of dictionaries. The first
 //! dictionary key is the `info_hash` of the torrent (`iiiiiiiiiiiiiiiiiiii` in
 //! the example). The second level dictionary contains the
-//! [swarm metadata](crate::core::torrent::SwarmMetadata) for that torrent.
+//! [swarm metadata](torrust_tracker_primitives::swarm_metadata::SwarmMetadata) for that torrent.
 //!
 //! If you save the response as a file and you open it with a program that
 //! can handle binary data you would see:

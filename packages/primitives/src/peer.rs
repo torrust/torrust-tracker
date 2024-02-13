@@ -3,12 +3,12 @@
 //! A sample peer:
 //!
 //! ```rust,no_run
-//! use torrust_tracker::core::peer;
+//! use torrust_tracker_primitives::peer;
 //! use std::net::SocketAddr;
 //! use std::net::IpAddr;
 //! use std::net::Ipv4Addr;
-//! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
-//! use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+//! use torrust_tracker_primitives::DurationSinceUnixEpoch;
+//!
 //!
 //! peer::Peer {
 //!     peer_id: peer::Id(*b"-qB00000000000000000"),
@@ -20,38 +20,26 @@
 //!     event: AnnounceEvent::Started,
 //! };
 //! ```
+
 use std::net::{IpAddr, SocketAddr};
-use std::panic::Location;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde::Serialize;
-use thiserror::Error;
 
-use crate::shared::bit_torrent::common::{AnnounceEventDef, NumberOfBytesDef};
-use crate::shared::clock::utils::ser_unix_time_value;
-use crate::shared::clock::DurationSinceUnixEpoch;
-
-/// IP version used by the peer to connect to the tracker: IPv4 or IPv6
-#[derive(PartialEq, Eq, Debug)]
-pub enum IPVersion {
-    /// <https://en.wikipedia.org/wiki/Internet_Protocol_version_4>
-    IPv4,
-    /// <https://en.wikipedia.org/wiki/IPv6>
-    IPv6,
-}
+use crate::announce_event::AnnounceEvent;
+use crate::{ser_unix_time_value, DurationSinceUnixEpoch, IPVersion, NumberOfBytes};
 
 /// Peer struct used by the core `Tracker`.
 ///
 /// A sample peer:
 ///
 /// ```rust,no_run
-/// use torrust_tracker::core::peer;
+/// use torrust_tracker_primitives::peer;
 /// use std::net::SocketAddr;
 /// use std::net::IpAddr;
 /// use std::net::Ipv4Addr;
-/// use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
-/// use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+/// use torrust_tracker_primitives::DurationSinceUnixEpoch;
+///
 ///
 /// peer::Peer {
 ///     peer_id: peer::Id(*b"-qB00000000000000000"),
@@ -73,16 +61,12 @@ pub struct Peer {
     #[serde(serialize_with = "ser_unix_time_value")]
     pub updated: DurationSinceUnixEpoch,
     /// The total amount of bytes uploaded by this peer so far
-    #[serde(with = "NumberOfBytesDef")]
     pub uploaded: NumberOfBytes,
     /// The total amount of bytes downloaded by this peer so far
-    #[serde(with = "NumberOfBytesDef")]
     pub downloaded: NumberOfBytes,
     /// The number of bytes this peer still has to download
-    #[serde(with = "NumberOfBytesDef")]
     pub left: NumberOfBytes,
     /// This is an optional key which maps to started, completed, or stopped (or empty, which is the same as not being present).
-    #[serde(with = "AnnounceEventDef")]
     pub event: AnnounceEvent,
 }
 
@@ -162,22 +146,9 @@ impl Peer {
     }
 }
 
-/// Peer ID. A 20-byte array.
-///
-/// A string of length 20 which this downloader uses as its id.
-/// Each downloader generates its own id at random at the start of a new download.
-///
-/// A sample peer ID:
-///
-/// ```rust,no_run
-/// use torrust_tracker::core::peer;
-///
-/// let peer_id = peer::Id(*b"-qB00000000000000000");
-/// ```
-#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy)]
-pub struct Id(pub [u8; 20]);
+use std::panic::Location;
 
-const PEER_ID_BYTES_LEN: usize = 20;
+use thiserror::Error;
 
 /// Error returned when trying to convert an invalid peer id from another type.
 ///
@@ -194,30 +165,6 @@ pub enum IdConversionError {
         location: &'static Location<'static>,
         message: String,
     },
-}
-
-impl Id {
-    /// # Panics
-    ///
-    /// Will panic if byte slice does not contains the exact amount of bytes need for the `Id`.
-    #[must_use]
-    pub fn from_bytes(bytes: &[u8]) -> Self {
-        assert_eq!(
-            PEER_ID_BYTES_LEN,
-            bytes.len(),
-            "we are testing the equality of the constant: `PEER_ID_BYTES_LEN` ({}) and the supplied `bytes` length: {}",
-            PEER_ID_BYTES_LEN,
-            bytes.len(),
-        );
-        let mut ret = Self([0u8; PEER_ID_BYTES_LEN]);
-        ret.0.clone_from_slice(bytes);
-        ret
-    }
-
-    #[must_use]
-    pub fn to_bytes(&self) -> [u8; 20] {
-        self.0
-    }
 }
 
 impl From<[u8; 20]> for Id {
@@ -263,7 +210,47 @@ impl std::fmt::Display for Id {
     }
 }
 
+/// Peer ID. A 20-byte array.
+///
+/// A string of length 20 which this downloader uses as its id.
+/// Each downloader generates its own id at random at the start of a new download.
+///
+/// A sample peer ID:
+///
+/// ```rust,no_run
+/// use torrust_tracker_primitives::peer;
+///
+/// let peer_id = peer::Id(*b"-qB00000000000000000");
+/// ```
+///
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord, Copy)]
+pub struct Id(pub [u8; 20]);
+
+pub const PEER_ID_BYTES_LEN: usize = 20;
+
 impl Id {
+    /// # Panics
+    ///
+    /// Will panic if byte slice does not contains the exact amount of bytes need for the `Id`.
+    #[must_use]
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        assert_eq!(
+            PEER_ID_BYTES_LEN,
+            bytes.len(),
+            "we are testing the equality of the constant: `PEER_ID_BYTES_LEN` ({}) and the supplied `bytes` length: {}",
+            PEER_ID_BYTES_LEN,
+            bytes.len(),
+        );
+        let mut ret = Self([0u8; PEER_ID_BYTES_LEN]);
+        ret.0.clone_from_slice(bytes);
+        ret
+    }
+
+    #[must_use]
+    pub fn to_bytes(&self) -> [u8; 20] {
+        self.0
+    }
+
     #[must_use]
     /// Converts to hex string.
     ///
@@ -329,12 +316,27 @@ impl Serialize for Id {
     }
 }
 
+/// Marker Trait for Peer Vectors
+pub trait Encoding: From<Peer> + PartialEq {}
+
+impl<P: Encoding> FromIterator<Peer> for Vec<P> {
+    fn from_iter<T: IntoIterator<Item = Peer>>(iter: T) -> Self {
+        let mut peers: Vec<P> = vec![];
+
+        for peer in iter {
+            peers.push(peer.into());
+        }
+
+        peers
+    }
+}
+
 pub mod fixture {
     use std::net::SocketAddr;
 
-    use aquatic_udp_protocol::NumberOfBytes;
-
     use super::{Id, Peer};
+    use crate::announce_event::AnnounceEvent;
+    use crate::{DurationSinceUnixEpoch, NumberOfBytes};
 
     #[derive(PartialEq, Debug)]
 
@@ -396,11 +398,11 @@ pub mod fixture {
             Self {
                 peer_id: Id(*b"-qB00000000000000000"),
                 peer_addr: std::net::SocketAddr::new(std::net::IpAddr::V4(std::net::Ipv4Addr::new(126, 0, 0, 1)), 8080),
-                updated: crate::shared::clock::DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+                updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes(0),
                 downloaded: NumberOfBytes(0),
                 left: NumberOfBytes(0),
-                event: aquatic_udp_protocol::AnnounceEvent::Started,
+                event: AnnounceEvent::Started,
             }
         }
     }
@@ -409,7 +411,7 @@ pub mod fixture {
 #[cfg(test)]
 pub mod test {
     mod torrent_peer_id {
-        use crate::core::peer;
+        use crate::peer;
 
         #[test]
         fn should_be_instantiated_from_a_byte_slice() {
@@ -516,52 +518,6 @@ pub mod test {
         #[test]
         fn should_return_the_inner_bytes() {
             assert_eq!(peer::Id(*b"-qB00000000000000000").to_bytes(), *b"-qB00000000000000000");
-        }
-    }
-
-    mod torrent_peer {
-
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-        use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-        use serde_json::Value;
-
-        use crate::core::peer::{self, Peer};
-        use crate::shared::clock::{Current, Time};
-
-        #[test]
-        fn it_should_be_serializable() {
-            let torrent_peer = Peer {
-                peer_id: peer::Id(*b"-qB0000-000000000000"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-                updated: Current::now(),
-                uploaded: NumberOfBytes(0),
-                downloaded: NumberOfBytes(0),
-                left: NumberOfBytes(0),
-                event: AnnounceEvent::Started,
-            };
-
-            let raw_json = serde_json::to_string(&torrent_peer).unwrap();
-
-            let expected_raw_json = r#"
-                {
-                    "peer_id": {
-                        "id": "0x2d7142303030302d303030303030303030303030",
-                        "client": "qBittorrent"
-                    },
-                    "peer_addr":"126.0.0.1:8080",
-                    "updated":0,
-                    "uploaded":0,
-                    "downloaded":0,
-                    "left":0,
-                    "event":"Started"
-                }
-            "#;
-
-            assert_eq!(
-                serde_json::from_str::<Value>(&raw_json).unwrap(),
-                serde_json::from_str::<Value>(expected_raw_json).unwrap()
-            );
         }
     }
 }

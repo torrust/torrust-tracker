@@ -6,8 +6,7 @@
 //! Some of the type in this module are wrappers around the types in the
 //! `aquatic_udp_protocol` crate.
 use aquatic_udp_protocol::AnnounceRequest;
-
-use crate::shared::bit_torrent::info_hash::InfoHash;
+use torrust_tracker_primitives::info_hash::InfoHash;
 
 /// Wrapper around [`AnnounceRequest`].
 pub struct AnnounceWrapper {

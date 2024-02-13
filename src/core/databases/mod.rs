@@ -22,7 +22,7 @@
 //! ---|---|---
 //!  `id`          | 1                                        | Autoincrement id
 //!  `info_hash`   | `c1277613db1d28709b034a017ab2cae4be07ae10` | `BitTorrent` infohash V1
-//!  `completed`   | 20                                       | The number of peers that have ever completed downloading the torrent associated to this entry. See [`Entry`](crate::core::torrent::Entry) for more information.
+//!  `completed`   | 20                                       | The number of peers that have ever completed downloading the torrent associated to this entry. See [`Entry`](torrust_tracker_torrent_repository::entry::Entry) for more information.
 //!
 //! > **NOTICE**: The peer list for a torrent is not persisted. Since peer have to re-announce themselves on intervals, the data is be
 //! regenerated again after some minutes.
@@ -51,12 +51,11 @@ pub mod sqlite;
 use std::marker::PhantomData;
 
 use async_trait::async_trait;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::PersistentTorrents;
 
 use self::error::Error;
 use crate::core::auth::{self, Key};
-use crate::shared::bit_torrent::info_hash::InfoHash;
-
-pub type PersistentTorrents = Vec<(InfoHash, u32)>;
 
 struct Builder<T>
 where
@@ -118,9 +117,9 @@ pub trait Database: Sync + Send {
     ///
     /// It returns an array of tuples with the torrent
     /// [`InfoHash`] and the
-    /// [`completed`](crate::core::torrent::Entry::completed) counter
+    /// [`completed`](torrust_tracker_torrent_repository::entry::Entry::completed) counter
     /// which is the number of times the torrent has been downloaded.
-    /// See [`Entry::completed`](crate::core::torrent::Entry::completed).
+    /// See [`Entry::completed`](torrust_tracker_torrent_repository::entry::Entry::completed).
     ///
     /// # Context: Torrent Metrics
     ///

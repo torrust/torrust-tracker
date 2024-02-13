@@ -3450,17 +3450,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "torrust-torrent-repository-benchmarks"
-version = "3.0.0-alpha.12-develop"
-dependencies = [
- "aquatic_udp_protocol",
- "clap",
- "futures",
- "tokio",
- "torrust-tracker",
-]
-
-[[package]]
 name = "torrust-tracker"
 version = "3.0.0-alpha.12-develop"
 dependencies = [
@@ -3471,7 +3460,6 @@ dependencies = [
  "axum-client-ip",
  "axum-extra",
  "axum-server",
- "binascii",
  "chrono",
  "clap",
  "colored",
@@ -3498,8 +3486,6 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "serde_repr",
- "tdyne-peer-id",
- "tdyne-peer-id-registry",
  "thiserror",
  "tokio",
  "torrust-tracker-configuration",
@@ -3507,6 +3493,7 @@ dependencies = [
  "torrust-tracker-located-error",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-torrent-repository",
  "tower-http",
  "trace",
  "tracing",
@@ -3549,8 +3536,12 @@ dependencies = [
 name = "torrust-tracker-primitives"
 version = "3.0.0-alpha.12-develop"
 dependencies = [
+ "binascii",
  "derive_more",
  "serde",
+ "tdyne-peer-id",
+ "tdyne-peer-id-registry",
+ "thiserror",
 ]
 
 [[package]]
@@ -3558,6 +3549,18 @@ name = "torrust-tracker-test-helpers"
 version = "3.0.0-alpha.12-develop"
 dependencies = [
  "rand",
+ "torrust-tracker-configuration",
+ "torrust-tracker-primitives",
+]
+
+[[package]]
+name = "torrust-tracker-torrent-repository"
+version = "3.0.0-alpha.12-develop"
+dependencies = [
+ "clap",
+ "futures",
+ "serde",
+ "tokio",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
 ]

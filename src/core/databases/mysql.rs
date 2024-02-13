@@ -8,12 +8,12 @@ use r2d2::Pool;
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MySqlConnectionManager;
+use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::DatabaseDriver;
 
 use super::{Database, Error};
 use crate::core::auth::{self, Key};
 use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
-use crate::shared::bit_torrent::info_hash::InfoHash;
 
 const DRIVER: DatabaseDriver = DatabaseDriver::MySQL;
 
