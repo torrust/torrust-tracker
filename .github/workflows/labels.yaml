@@ -29,7 +29,7 @@ jobs:
 
       - id: sync
         name: Apply Labels from File
-        uses: EndBug/label-sync@da00f2c11fdb78e4fae44adac2fdd713778ea3e8
+        uses: EndBug/label-sync@52074158190acb45f3077f9099fea818aa43f97a
         with:
           config-file: .github/labels.json
           delete-other-labels: true
