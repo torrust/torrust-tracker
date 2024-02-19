@@ -40,7 +40,6 @@ pub struct Launcher {
 
 impl Launcher {
     fn start(&self, tracker: Arc<Tracker>, tx_start: Sender<Started>, rx_halt: Receiver<Halted>) -> BoxFuture<'static, ()> {
-        let app = router(tracker);
         let socket = std::net::TcpListener::bind(self.bind_to).expect("Could not bind tcp_listener to address.");
         let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
 
@@ -55,7 +54,9 @@ impl Launcher {
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { "https" } else { "http" };
 
-        info!(target: "HTTP Tracker", "Starting on: {protocol}://{}", address);
+        info!(target: "HTTP TRACKER", "Starting on: {protocol}://{}", address);
+
+        let app = router(tracker, address);
 
         let running = Box::pin(async {
             match tls {
@@ -72,7 +73,7 @@ impl Launcher {
             }
         });
 
-        info!(target: "HTTP Tracker", "Started on: {protocol}://{}", address);
+        info!(target: "HTTP TRACKER", "Started on: {protocol}://{}", address);
 
         tx_start
             .send(Started { address })
