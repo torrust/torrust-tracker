@@ -47,18 +47,18 @@ pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> Jo
 
     // Run the API server
     let join_handle = tokio::spawn(async move {
-        info!(target: "Health Check API", "Starting on: {protocol}://{}", bind_addr);
+        info!(target: "HEALTH CHECK API", "Starting on: {protocol}://{}", bind_addr);
 
         let handle = server::start(bind_addr, tx_start, rx_halt, register);
 
         if let Ok(()) = handle.await {
-            info!(target: "Health Check API", "Stopped server running on: {protocol}://{}", bind_addr);
+            info!(target: "HEALTH CHECK API", "Stopped server running on: {protocol}://{}", bind_addr);
         }
     });
 
     // Wait until the server sends the started message
     match rx_start.await {
-        Ok(msg) => info!(target: "Health Check API", "Started on: {protocol}://{}", msg.address),
+        Ok(msg) => info!(target: "HEALTH CHECK API", "Started on: {protocol}://{}", msg.address),
         Err(e) => panic!("the Health Check API server was dropped: {e}"),
     }
 

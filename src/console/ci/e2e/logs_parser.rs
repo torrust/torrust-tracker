@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 const UDP_TRACKER_PATTERN: &str = "[UDP Tracker][INFO] Starting on: udp://";
 const HTTP_TRACKER_PATTERN: &str = "[HTTP Tracker][INFO] Starting on: ";
-const HEALTH_CHECK_PATTERN: &str = "[Health Check API][INFO] Starting on: ";
+const HEALTH_CHECK_PATTERN: &str = "[HEALTH CHECK API][INFO] Starting on: ";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct RunningServices {
@@ -27,8 +27,8 @@ impl RunningServices {
     /// 2024-01-24T16:36:14.615716574+00:00 [torrust_tracker::bootstrap::jobs][INFO] TLS not enabled
     /// 2024-01-24T16:36:14.615764904+00:00 [API][INFO] Starting on http://127.0.0.1:1212
     /// 2024-01-24T16:36:14.615767264+00:00 [API][INFO] Started on http://127.0.0.1:1212
-    /// 2024-01-24T16:36:14.615777574+00:00 [Health Check API][INFO] Starting on: http://127.0.0.1:1313
-    /// 2024-01-24T16:36:14.615791124+00:00 [Health Check API][INFO] Started on: http://127.0.0.1:1313
+    /// 2024-01-24T16:36:14.615777574+00:00 [HEALTH CHECK API][INFO] Starting on: http://127.0.0.1:1313
+    /// 2024-01-24T16:36:14.615791124+00:00 [HEALTH CHECK API][INFO] Started on: http://127.0.0.1:1313
     /// ```
     ///
     /// It would extract these services:
@@ -88,7 +88,7 @@ mod tests {
         let logs = "\
             [UDP Tracker][INFO] Starting on: udp://0.0.0.0:8080\n\
             [HTTP Tracker][INFO] Starting on: 0.0.0.0:9090\n\
-            [Health Check API][INFO] Starting on: 0.0.0.0:10010";
+            [HEALTH CHECK API][INFO] Starting on: 0.0.0.0:10010";
         let running_services = RunningServices::parse_from_logs(logs);
 
         assert_eq!(running_services.udp_trackers, vec!["127.0.0.1:8080"]);
