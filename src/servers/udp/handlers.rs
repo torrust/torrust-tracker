@@ -1,4 +1,5 @@
 //! Handlers for the UDP server.
+use std::fmt;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
@@ -7,13 +8,16 @@ use aquatic_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads,
     NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
-use log::{debug, info};
+use log::debug;
+use tokio::net::UdpSocket;
 use torrust_tracker_located_error::DynError;
+use uuid::Uuid;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
 use super::UdpRequest;
 use crate::core::{statistics, ScrapeData, Tracker};
 use crate::servers::udp::error::Error;
+use crate::servers::udp::logging::{log_bad_request, log_error_response, log_request, log_response};
 use crate::servers::udp::peer_builder;
 use crate::servers::udp::request::AnnounceWrapper;
 use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
@@ -28,8 +32,12 @@ use crate::shared::bit_torrent::info_hash::InfoHash;
 /// type.
 ///
 /// It will return an `Error` response if the request is invalid.
-pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker>) -> Response {
+pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker>, socket: Arc<UdpSocket>) -> Response {
     debug!("Handling Packets: {udp_request:?}");
+
+    let request_id = RequestId::make(&udp_request);
+    let server_socket_addr = socket.local_addr().expect("Could not get local_addr for socket.");
+
     match Request::from_bytes(&udp_request.payload[..udp_request.payload.len()], MAX_SCRAPE_TORRENTS).map_err(|e| {
         Error::InternalServer {
             message: format!("{e:?}"),
@@ -37,24 +45,37 @@ pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker
         }
     }) {
         Ok(request) => {
+            log_request(&request, &request_id, &server_socket_addr);
+
             let transaction_id = match &request {
                 Request::Connect(connect_request) => connect_request.transaction_id,
                 Request::Announce(announce_request) => announce_request.transaction_id,
                 Request::Scrape(scrape_request) => scrape_request.transaction_id,
             };
 
-            match handle_request(request, udp_request.from, tracker).await {
+            let response = match handle_request(request, udp_request.from, tracker).await {
                 Ok(response) => response,
                 Err(e) => handle_error(&e, transaction_id),
-            }
+            };
+
+            log_response(&response, &transaction_id, &request_id, &server_socket_addr);
+
+            response
         }
-        // bad request
-        Err(e) => handle_error(
-            &Error::BadRequest {
-                source: (Arc::new(e) as DynError).into(),
-            },
-            TransactionId(0),
-        ),
+        Err(e) => {
+            log_bad_request(&request_id);
+
+            let response = handle_error(
+                &Error::BadRequest {
+                    source: (Arc::new(e) as DynError).into(),
+                },
+                TransactionId(0),
+            );
+
+            log_error_response(&request_id);
+
+            response
+        }
     }
 }
 
@@ -80,7 +101,6 @@ pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: 
 ///
 /// This function does not ever return an error.
 pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, tracker: &Tracker) -> Result<Response, Error> {
-    info!(target: "UDP", "\"CONNECT TxID {}\"", request.transaction_id.0);
     debug!("udp connect request: {:#?}", request);
 
     let connection_cookie = make(&remote_addr);
@@ -137,8 +157,6 @@ pub async fn handle_announce(
     tracker.authorize(&info_hash).await.map_err(|e| Error::TrackerError {
         source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
     })?;
-
-    info!(target: "UDP", "\"ANNOUNCE TxID {} IH {}\"", announce_request.transaction_id.0, info_hash.to_hex_string());
 
     let mut peer = peer_builder::from_request(&wrapped_announce_request, &remote_client_ip);
 
@@ -214,7 +232,6 @@ pub async fn handle_announce(
 ///
 /// This function does not ever return an error.
 pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tracker: &Tracker) -> Result<Response, Error> {
-    info!(target: "UDP", "\"SCRAPE TxID {}\"", request.transaction_id.0);
     debug!("udp scrape request: {:#?}", request);
 
     // Convert from aquatic infohashes
@@ -272,6 +289,22 @@ fn handle_error(e: &Error, transaction_id: TransactionId) -> Response {
         transaction_id,
         message: message.into(),
     })
+}
+
+/// An identifier for a request.
+#[derive(Debug, Clone)]
+pub struct RequestId(Uuid);
+
+impl RequestId {
+    fn make(_request: &UdpRequest) -> RequestId {
+        RequestId(Uuid::new_v4())
+    }
+}
+
+impl fmt::Display for RequestId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 #[cfg(test)]

@@ -247,10 +247,10 @@ impl Udp {
         let address = socket.local_addr().expect("Could not get local_addr from {binding}.");
         let halt = shutdown_signal_with_message(rx_halt, format!("Halting Http Service Bound to Socket: {address}"));
 
-        info!(target: "UDP Tracker", "Starting on: udp://{}", address);
+        info!(target: "UDP TRACKER", "Starting on: udp://{}", address);
 
         let running = tokio::task::spawn(async move {
-            debug!(target: "UDP Tracker", "Started: Waiting for packets on socket address: udp://{address} ...");
+            debug!(target: "UDP TRACKER", "Started: Waiting for packets on socket address: udp://{address} ...");
 
             let tracker = tracker.clone();
             let socket = socket.clone();
@@ -275,13 +275,13 @@ impl Udp {
             .send(Started { address })
             .expect("the UDP Tracker service should not be dropped");
 
-        debug!(target: "UDP Tracker", "Started on: udp://{}", address);
+        debug!(target: "UDP TRACKER", "Started on: udp://{}", address);
 
         let stop = running.abort_handle();
 
         select! {
-            _ = running => { debug!(target: "UDP Tracker", "Socket listener stopped on address: udp://{address}"); },
-            () = halt => { debug!(target: "UDP Tracker", "Halt signal spawned task stopped on address: udp://{address}"); }
+            _ = running => { debug!(target: "UDP TRACKER", "Socket listener stopped on address: udp://{address}"); },
+            () = halt => { debug!(target: "UDP TRACKER", "Halt signal spawned task stopped on address: udp://{address}"); }
         }
         stop.abort();
 
@@ -327,7 +327,7 @@ impl Udp {
     async fn make_response(tracker: Arc<Tracker>, socket: Arc<UdpSocket>, udp_request: UdpRequest) {
         trace!("Making Response to {udp_request:?}");
         let from = udp_request.from;
-        let response = handlers::handle_packet(udp_request, &tracker.clone()).await;
+        let response = handlers::handle_packet(udp_request, &tracker.clone(), socket.clone()).await;
         Self::send_response(&socket.clone(), from, response).await;
     }
 

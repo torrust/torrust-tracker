@@ -38,8 +38,8 @@ pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: S
         .expect("it should be able to start the udp tracker");
 
     tokio::spawn(async move {
-        debug!(target: "UDP Tracker", "Wait for launcher (UDP service) to finish ...");
-        debug!(target: "UDP Tracker", "Is halt channel closed before waiting?: {}", server.state.halt_task.is_closed());
+        debug!(target: "UDP TRACKER", "Wait for launcher (UDP service) to finish ...");
+        debug!(target: "UDP TRACKER", "Is halt channel closed before waiting?: {}", server.state.halt_task.is_closed());
 
         assert!(
             !server.state.halt_task.is_closed(),
@@ -52,6 +52,6 @@ pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: S
             .await
             .expect("it should be able to join to the udp tracker task");
 
-        debug!(target: "UDP Tracker", "Is halt channel closed after finishing the server?: {}", server.state.halt_task.is_closed());
+        debug!(target: "UDP TRACKER", "Is halt channel closed after finishing the server?: {}", server.state.halt_task.is_closed());
     })
 }
