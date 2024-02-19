@@ -1,6 +1,6 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use serde::{self, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::core::peer::Peer;
 

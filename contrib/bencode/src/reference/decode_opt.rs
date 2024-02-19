@@ -1,5 +1,3 @@
-use std::default::Default;
-
 const DEFAULT_MAX_RECURSION: usize = 50;
 const DEFAULT_CHECK_KEY_SORT: bool = false;
 const DEFAULT_ENFORCE_FULL_DECODE: bool = true;

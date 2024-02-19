@@ -86,8 +86,6 @@ pub mod seeds {
 
         #[cfg(test)]
         mod tests {
-            use std::convert::TryInto;
-
             use crate::shared::crypto::ephemeral_instance_keys::RANDOM_SEED;
             use crate::shared::crypto::keys::seeds::detail::ZEROED_TEST_SEED;
             use crate::shared::crypto::keys::seeds::CURRENT_SEED;
