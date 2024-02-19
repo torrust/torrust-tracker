@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 const UDP_TRACKER_PATTERN: &str = "[UDP Tracker][INFO] Starting on: udp://";
-const HTTP_TRACKER_PATTERN: &str = "[HTTP Tracker][INFO] Starting on: ";
+const HTTP_TRACKER_PATTERN: &str = "[HTTP TRACKER][INFO] Starting on: ";
 const HEALTH_CHECK_PATTERN: &str = "[HEALTH CHECK API][INFO] Starting on: ";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -22,8 +22,8 @@ impl RunningServices {
     /// 2024-01-24T16:36:14.614898789+00:00 [torrust_tracker::bootstrap::logging][INFO] logging initialized.
     /// 2024-01-24T16:36:14.615586025+00:00 [UDP Tracker][INFO] Starting on: udp://0.0.0.0:6969
     /// 2024-01-24T16:36:14.615623705+00:00 [torrust_tracker::bootstrap::jobs][INFO] TLS not enabled
-    /// 2024-01-24T16:36:14.615694484+00:00 [HTTP Tracker][INFO] Starting on: http://0.0.0.0:7070
-    /// 2024-01-24T16:36:14.615710534+00:00 [HTTP Tracker][INFO] Started on: http://0.0.0.0:7070
+    /// 2024-01-24T16:36:14.615694484+00:00 [HTTP TRACKER][INFO] Starting on: http://0.0.0.0:7070
+    /// 2024-01-24T16:36:14.615710534+00:00 [HTTP TRACKER][INFO] Started on: http://0.0.0.0:7070
     /// 2024-01-24T16:36:14.615716574+00:00 [torrust_tracker::bootstrap::jobs][INFO] TLS not enabled
     /// 2024-01-24T16:36:14.615764904+00:00 [API][INFO] Starting on http://127.0.0.1:1212
     /// 2024-01-24T16:36:14.615767264+00:00 [API][INFO] Started on http://127.0.0.1:1212
@@ -87,7 +87,7 @@ mod tests {
     fn it_should_parse_from_logs_with_valid_logs() {
         let logs = "\
             [UDP Tracker][INFO] Starting on: udp://0.0.0.0:8080\n\
-            [HTTP Tracker][INFO] Starting on: 0.0.0.0:9090\n\
+            [HTTP TRACKER][INFO] Starting on: 0.0.0.0:9090\n\
             [HEALTH CHECK API][INFO] Starting on: 0.0.0.0:10010";
         let running_services = RunningServices::parse_from_logs(logs);
 

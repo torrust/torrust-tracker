@@ -1,10 +1,20 @@
 //! HTTP server routes for version `v1`.
+use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
+use axum::http::{HeaderName, HeaderValue};
+use axum::response::Response;
 use axum::routing::get;
 use axum::Router;
 use axum_client_ip::SecureClientIpSource;
+use hyper::Request;
 use tower_http::compression::CompressionLayer;
+use tower_http::propagate_header::PropagateHeaderLayer;
+use tower_http::request_id::{MakeRequestId, RequestId, SetRequestIdLayer};
+use tower_http::trace::{DefaultMakeSpan, TraceLayer};
+use tracing::{Level, Span};
+use uuid::Uuid;
 
 use super::handlers::{announce, health_check, scrape};
 use crate::core::Tracker;
@@ -14,7 +24,7 @@ use crate::core::Tracker;
 /// > **NOTICE**: it's added a layer to get the client IP from the connection
 /// info. The tracker could use the connection info to get the client IP.
 #[allow(clippy::needless_pass_by_value)]
-pub fn router(tracker: Arc<Tracker>) -> Router {
+pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
     Router::new()
         // Health check
         .route("/health_check", get(health_check::handler))
@@ -27,4 +37,47 @@ pub fn router(tracker: Arc<Tracker>) -> Router {
         // Add extension to get the client IP from the connection info
         .layer(SecureClientIpSource::ConnectInfo.into_extension())
         .layer(CompressionLayer::new())
+        .layer(SetRequestIdLayer::x_request_id(RequestIdGenerator))
+        .layer(PropagateHeaderLayer::new(HeaderName::from_static("x-request-id")))
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+                .on_request(move |request: &Request<axum::body::Body>, _span: &Span| {
+                    let method = request.method().to_string();
+                    let uri = request.uri().to_string();
+                    let request_id = request
+                        .headers()
+                        .get("x-request-id")
+                        .map(|v| v.to_str().unwrap_or_default())
+                        .unwrap_or_default();
+
+                    tracing::span!(
+                        target:"HTTP TRACKER",
+                        tracing::Level::INFO, "request", server_socket_addr= %server_socket_addr, method = %method, uri = %uri, request_id = %request_id);
+                })
+                .on_response(move |response: &Response, latency: Duration, _span: &Span| {
+                    let status_code = response.status();
+                    let request_id = response
+                        .headers()
+                        .get("x-request-id")
+                        .map(|v| v.to_str().unwrap_or_default())
+                        .unwrap_or_default();
+                    let latency_ms = latency.as_millis();
+
+                    tracing::span!(
+                        target: "HTTP TRACKER",
+                        tracing::Level::INFO, "response", server_socket_addr= %server_socket_addr, latency = %latency_ms, status = %status_code, request_id = %request_id);
+                }),
+        )
+        .layer(SetRequestIdLayer::x_request_id(RequestIdGenerator))
+}
+
+#[derive(Clone, Default)]
+struct RequestIdGenerator;
+
+impl MakeRequestId for RequestIdGenerator {
+    fn make_request_id<B>(&mut self, _request: &Request<B>) -> Option<RequestId> {
+        let id = HeaderValue::from_str(&Uuid::new_v4().to_string()).expect("UUID is a valid HTTP header value");
+        Some(RequestId::new(id))
+    }
 }
