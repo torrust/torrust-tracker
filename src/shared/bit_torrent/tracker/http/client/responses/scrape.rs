@@ -3,7 +3,7 @@ use std::fmt::Write;
 use std::str;
 
 use serde::ser::SerializeMap;
-use serde::{self, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize, Serializer};
 use serde_bencode::value::Value;
 
 use crate::shared::bit_torrent::tracker::http::{ByteArray20, InfoHash};

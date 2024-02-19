@@ -177,8 +177,6 @@ fn peek_byte(bytes: &[u8], pos: usize) -> BencodeParseResult<u8> {
 
 #[cfg(test)]
 mod tests {
-    use std::default::Default;
-
     use crate::access::bencode::BRefAccess;
     use crate::reference::bencode_ref::BencodeRef;
     use crate::reference::decode_opt::BDecodeOpt;

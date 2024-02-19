@@ -125,8 +125,6 @@ impl<'a> BRefAccessExt<'a> for BencodeRef<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::default::Default;
-
     use crate::access::bencode::BRefAccess;
     use crate::reference::bencode_ref::BencodeRef;
     use crate::reference::decode_opt::BDecodeOpt;

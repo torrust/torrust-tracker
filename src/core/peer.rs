@@ -24,7 +24,6 @@ use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use serde;
 use serde::Serialize;
 use thiserror::Error;
 

@@ -13,7 +13,7 @@
 //! code.
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use serde::{self, Serialize};
+use serde::Serialize;
 
 /// `Error` response for the [`HTTP tracker`](crate::servers::http).
 #[derive(Serialize, Debug, PartialEq)]

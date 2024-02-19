@@ -1,5 +1,4 @@
 //! API resources for the [`auth_key`](crate::servers::apis::v1::context::auth_key) API context.
-use std::convert::From;
 
 use serde::{Deserialize, Serialize};
 

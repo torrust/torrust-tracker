@@ -4,7 +4,6 @@ use std::net::SocketAddr;
 
 use reqwest::Url as ServiceUrl;
 use serde::Deserialize;
-use url;
 
 /// It parses the configuration from a JSON format.
 ///
@@ -88,7 +87,7 @@ impl TryFrom<PlainConfiguration> for Configuration {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::net::{IpAddr, Ipv4Addr};
 
     use super::*;
 

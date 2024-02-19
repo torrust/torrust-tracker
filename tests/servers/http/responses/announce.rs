@@ -1,6 +1,6 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use serde::{self, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use torrust_tracker::core::peer::Peer;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]

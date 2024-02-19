@@ -1,4 +1,3 @@
-use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt::{self};
 use std::str::FromStr;
