@@ -51,21 +51,21 @@ impl Environment<Stopped> {
 
         let register = self.registar.entries();
 
-        debug!(target: "Health Check API", "Spawning task to launch the service ...");
+        debug!(target: "HEALTH CHECK API", "Spawning task to launch the service ...");
 
         let server = tokio::spawn(async move {
-            debug!(target: "Health Check API", "Starting the server in a spawned task ...");
+            debug!(target: "HEALTH CHECK API", "Starting the server in a spawned task ...");
 
             server::start(self.state.bind_to, tx_start, rx_halt, register)
                 .await
                 .expect("it should start the health check service");
 
-            debug!(target: "Health Check API", "Server started. Sending the binding {} ...", self.state.bind_to);
+            debug!(target: "HEALTH CHECK API", "Server started. Sending the binding {} ...", self.state.bind_to);
 
             self.state.bind_to
         });
 
-        debug!(target: "Health Check API", "Waiting for spawning task to send the binding ...");
+        debug!(target: "HEALTH CHECK API", "Waiting for spawning task to send the binding ...");
 
         let binding = rx_start.await.expect("it should send service binding").address;
 
