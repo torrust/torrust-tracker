@@ -24,9 +24,7 @@ use std::sync::Arc;
 use aquatic_udp_protocol::Response;
 use derive_more::Constructor;
 use log::{debug, error, info, trace};
-use ringbuf::storage::Static;
-use ringbuf::traits::{Consumer, Observer, RingBuffer};
-use ringbuf::LocalRb;
+use ringbuf::{Rb, StaticRb};
 use tokio::net::UdpSocket;
 use tokio::sync::oneshot;
 use tokio::task::{AbortHandle, JoinHandle};
@@ -205,7 +203,7 @@ impl Launcher {
 
 #[derive(Default)]
 struct ActiveRequests {
-    rb: LocalRb<Static<AbortHandle, 50>>, // the number of requests we handle at the same time.
+    rb: StaticRb<AbortHandle, 50>, // the number of requests we handle at the same time.
 }
 
 impl std::fmt::Debug for ActiveRequests {
