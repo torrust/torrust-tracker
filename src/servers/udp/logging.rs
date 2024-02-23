@@ -1,6 +1,7 @@
 //! Logging for UDP Tracker requests and responses.
 
 use std::net::SocketAddr;
+use std::time::Duration;
 
 use aquatic_udp_protocol::{Request, Response, TransactionId};
 
@@ -36,7 +37,13 @@ pub fn log_request(request: &Request, request_id: &RequestId, server_socket_addr
 
             tracing::span!(
                 target: "UDP TRACKER",
-                tracing::Level::INFO, "request", server_socket_addr = %server_socket_addr, action = %action, transaction_id = %transaction_id_str, request_id = %request_id, connection_id = %connection_id_str);
+                tracing::Level::INFO,
+                "request",
+                server_socket_addr = %server_socket_addr,
+                action = %action,
+                transaction_id = %transaction_id_str,
+                request_id = %request_id,
+                connection_id = %connection_id_str);
         }
     };
 }
@@ -54,10 +61,16 @@ pub fn log_response(
     transaction_id: &TransactionId,
     request_id: &RequestId,
     server_socket_addr: &SocketAddr,
+    latency: Duration,
 ) {
     tracing::span!(
         target: "UDP TRACKER",
-        tracing::Level::INFO, "response", server_socket_addr = %server_socket_addr, transaction_id = %transaction_id.0.to_string(), request_id = %request_id);
+        tracing::Level::INFO, 
+        "response", 
+        server_socket_addr = %server_socket_addr, 
+        transaction_id = %transaction_id.0.to_string(), 
+        request_id = %request_id,
+        latency_ms = %latency.as_millis());
 }
 
 pub fn log_bad_request(request_id: &RequestId) {

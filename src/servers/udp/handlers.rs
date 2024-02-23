@@ -3,6 +3,7 @@ use std::fmt;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
+use std::time::Instant;
 
 use aquatic_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads,
@@ -35,6 +36,8 @@ use crate::shared::bit_torrent::info_hash::InfoHash;
 pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker>, socket: Arc<UdpSocket>) -> Response {
     debug!("Handling Packets: {udp_request:?}");
 
+    let start_time = Instant::now();
+
     let request_id = RequestId::make(&udp_request);
     let server_socket_addr = socket.local_addr().expect("Could not get local_addr for socket.");
 
@@ -58,7 +61,9 @@ pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker
                 Err(e) => handle_error(&e, transaction_id),
             };
 
-            log_response(&response, &transaction_id, &request_id, &server_socket_addr);
+            let latency = start_time.elapsed();
+
+            log_response(&response, &transaction_id, &request_id, &server_socket_addr, latency);
 
             response
         }
