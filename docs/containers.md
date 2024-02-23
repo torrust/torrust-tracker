@@ -1,9 +1,9 @@
 # Containers (Docker or Podman)
 
 ## Demo environment
+
 It is simple to setup the tracker with the default
 configuration and run it using the pre-built public docker image:
-
 
 With Docker:
 
@@ -17,11 +17,12 @@ or with Podman:
 podman run -it docker.io/torrust/tracker:latest
 ```
 
-
 ## Requirements
+
 - Tested with recent versions of Docker or Podman.
 
 ## Volumes
+
 The [Containerfile](../Containerfile) (i.e. the Dockerfile) Defines Three Volumes:
 
 ```Dockerfile
@@ -38,7 +39,8 @@ When instancing the container image with the `docker run` or `podman run` comman
 
 > NOTE: You can adjust this mapping for your preference, however this mapping is the default in our guides and scripts.
 
-### Pre-Create Host-Mapped Folders:
+### Pre-Create Host-Mapped Folders
+
 Please run this command where you wish to run the container:
 
 ```sh
@@ -46,11 +48,13 @@ mkdir -p ./storage/tracker/lib/ ./storage/tracker/log/ ./storage/tracker/etc/
 ```
 
 ### Matching Ownership ID's of Host Storage and Container Volumes
+
 It is important that the `torrust` user has the same uid `$(id -u)` as the host mapped folders. In our [entry script](../share/container/entry_script_sh), installed to `/usr/local/bin/entry.sh` inside the container, switches to the `torrust` user created based upon the `USER_UID` environmental variable.
 
 When running the container, you may use the `--env USER_ID="$(id -u)"` argument that gets the current user-id and passes to the container.
 
 ### Mapped Tree Structure
+
 Using the standard mapping defined above produces this following mapped tree:
 
 ```s
@@ -78,6 +82,7 @@ git clone https://github.com/torrust/torrust-tracker.git; cd torrust-tracker
 ```
 
 ### (Docker) Setup Context
+
 Before starting, if you are using docker, it is helpful to reset the context to the default:
 
 ```sh
@@ -107,6 +112,7 @@ podman build --target debug --tag torrust-tracker:debug --file Containerfile .
 ## Running the Container
 
 ### Basic Run
+
 No arguments are needed for simply checking the container image works:
 
 #### (Docker) Run Basic
@@ -118,6 +124,7 @@ docker run -it torrust-tracker:release
 # Debug Mode
 docker run -it torrust-tracker:debug
 ```
+
 #### (Podman) Run Basic
 
 ```sh
@@ -129,11 +136,13 @@ podman run -it docker.io/torrust-tracker:debug
 ```
 
 ### Arguments
+
 The arguments need to be placed before the image tag. i.e.
 
 `run [arguments] torrust-tracker:release`
 
-#### Environmental Variables:
+#### Environmental Variables
+
 Environmental variables are loaded through the `--env`, in the format `--env VAR="value"`.
 
 The following environmental variables can be set:
@@ -148,8 +157,8 @@ The following environmental variables can be set:
 - `API_PORT` - The port for the tracker API. This should match the port used in the configuration, (default `1212`).
 - `HEALTH_CHECK_API_PORT` - The port for the Health Check API. This should match the port used in the configuration, (default `1313`).
 
-
 ### Sockets
+
 Socket ports used internally within the container can be mapped to with the `--publish` argument.
 
 The format is: `--publish [optional_host_ip]:[host_port]:[container_port]/[optional_protocol]`, for example: `--publish 127.0.0.1:8080:80/tcp`.
@@ -164,7 +173,8 @@ The default ports can be mapped with the following:
 
 > NOTE: Inside the container it is necessary to expose a socket with the wildcard address `0.0.0.0` so that it may be accessible from the host. Verify that the configuration that the sockets are wildcard.
 
-### Volumes
+### Host-mapped Volumes
+
 By default the container will use install volumes for `/var/lib/torrust/tracker`, `/var/log/torrust/tracker`, and `/etc/torrust/tracker`, however for better administration it good to make these volumes host-mapped.
 
 The argument to host-map volumes is `--volume`, with the format: `--volume=[host-src:]container-dest[:<options>]`.
@@ -177,10 +187,9 @@ The default mapping can be supplied with the following arguments:
 --volume ./storage/tracker/etc:/etc/torrust/tracker:Z \
 ```
 
-
 Please not the `:Z` at the end of the podman `--volume` mapping arguments, this is to give read-write permission on SELinux enabled systemd, if this doesn't work on your system, you can use `:rw` instead.
 
-## Complete Example:
+## Complete Example
 
 ### With Docker
 
@@ -257,7 +266,7 @@ $ docker ps
 CONTAINER ID   IMAGE             COMMAND                  CREATED          STATUS                   PORTS                                                                                                                             NAMES
 06feacb91a9e   torrust-tracker   "cargo run"              18 minutes ago   Up 4 seconds             0.0.0.0:1212->1212/tcp, :::1212->1212/tcp, 0.0.0.0:7070->7070/tcp, :::7070->7070/tcp, 0.0.0.0:6969->6969/udp, :::6969->6969/udp   torrust-tracker-1
 34d29e792ee2   mysql:8.0         "docker-entrypoint.s…"   18 minutes ago   Up 5 seconds (healthy)   0.0.0.0:3306->3306/tcp, :::3306->3306/tcp, 33060/tcp                                                                              torrust-mysql-1
-``` 
+```
 
 And you should be able to use the application, for example making a request to the API:
 
