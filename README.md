@@ -45,7 +45,7 @@ docker run -it torrust/tracker:develop
 #### Podman:
 
 ```sh
-podman run -it torrust/tracker:develop
+podman run -it docker.io/torrust/tracker:develop
 ```
 > Please read our [container guide][containers.md] for more information.
 
