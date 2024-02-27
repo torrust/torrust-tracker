@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use axum::http::{HeaderName, HeaderValue};
+use axum::http::HeaderName;
 use axum::response::Response;
 use axum::routing::get;
 use axum::Router;
@@ -11,10 +11,9 @@ use axum_client_ip::SecureClientIpSource;
 use hyper::Request;
 use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
-use tower_http::request_id::{MakeRequestId, RequestId, SetRequestIdLayer};
+use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{Level, Span};
-use uuid::Uuid;
 
 use super::handlers::{announce, health_check, scrape};
 use crate::core::Tracker;
@@ -37,7 +36,7 @@ pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
         // Add extension to get the client IP from the connection info
         .layer(SecureClientIpSource::ConnectInfo.into_extension())
         .layer(CompressionLayer::new())
-        .layer(SetRequestIdLayer::x_request_id(RequestIdGenerator))
+        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(PropagateHeaderLayer::new(HeaderName::from_static("x-request-id")))
         .layer(
             TraceLayer::new_for_http()
@@ -69,15 +68,5 @@ pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
                         tracing::Level::INFO, "response", server_socket_addr= %server_socket_addr, latency = %latency_ms, status = %status_code, request_id = %request_id);
                 }),
         )
-        .layer(SetRequestIdLayer::x_request_id(RequestIdGenerator))
-}
-
-#[derive(Clone, Default)]
-struct RequestIdGenerator;
-
-impl MakeRequestId for RequestIdGenerator {
-    fn make_request_id<B>(&mut self, _request: &Request<B>) -> Option<RequestId> {
-        let id = HeaderValue::from_str(&Uuid::new_v4().to_string()).expect("UUID is a valid HTTP header value");
-        Some(RequestId::new(id))
-    }
+        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
 }
