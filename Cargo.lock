@@ -762,6 +762,7 @@ dependencies = [
  "ciborium",
  "clap",
  "criterion-plot",
+ "futures",
  "is-terminal",
  "itertools 0.10.5",
  "num-traits",
@@ -774,6 +775,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "tinytemplate",
+ "tokio",
  "walkdir",
 ]
 
@@ -3557,7 +3559,7 @@ dependencies = [
 name = "torrust-tracker-torrent-repository"
 version = "3.0.0-alpha.12-develop"
 dependencies = [
- "clap",
+ "criterion",
  "futures",
  "serde",
  "tokio",

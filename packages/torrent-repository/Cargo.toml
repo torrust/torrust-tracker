@@ -16,9 +16,15 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-clap = { version = "4.4.8", features = ["derive"] }
 futures = "0.3.29"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "../primitives" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "../configuration" }
 serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+criterion = { version = "0", features = ["async_tokio"] }
+
+[[bench]]
+harness = false
+name = "repository_benchmark"

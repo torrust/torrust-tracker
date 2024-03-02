@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::time::Duration;
 
 use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::info_hash::InfoHash;
@@ -38,36 +37,4 @@ pub fn generate_unique_info_hashes(size: usize) -> Vec<InfoHash> {
     assert_eq!(result.len(), size);
 
     result.into_iter().collect()
-}
-
-#[must_use]
-pub fn within_acceptable_range(test: &Duration, norm: &Duration) -> bool {
-    let test_secs = test.as_secs_f64();
-    let norm_secs = norm.as_secs_f64();
-
-    // Calculate the upper and lower bounds for the 10% tolerance
-    let tolerance = norm_secs * 0.1;
-
-    // Calculate the upper and lower limits
-    let upper_limit = norm_secs + tolerance;
-    let lower_limit = norm_secs - tolerance;
-
-    test_secs < upper_limit && test_secs > lower_limit
-}
-
-#[must_use]
-pub fn get_average_and_adjusted_average_from_results(mut results: Vec<Duration>) -> (Duration, Duration) {
-    #[allow(clippy::cast_possible_truncation)]
-    let average = results.iter().sum::<Duration>() / results.len() as u32;
-
-    results.retain(|result| within_acceptable_range(result, &average));
-
-    let mut adjusted_average = Duration::from_nanos(0);
-
-    #[allow(clippy::cast_possible_truncation)]
-    if results.len() > 1 {
-        adjusted_average = results.iter().sum::<Duration>() / results.len() as u32;
-    }
-
-    (average, adjusted_average)
 }
