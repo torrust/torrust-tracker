@@ -34,6 +34,7 @@ aquatic_udp_protocol = "0"
 async-trait = "0"
 axum = { version = "0", features = ["macros"] }
 axum-client-ip = "0"
+axum-extra = { version = "0.9.2", features = ["query"] }
 axum-server = { version = "0", features = ["tls-rustls"] }
 binascii = "0"
 chrono = { version = "0", default-features = false, features = ["clock"] }
