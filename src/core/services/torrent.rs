@@ -115,7 +115,7 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
 }
 
 /// It returns all the information the tracker has about multiple torrents in a [`BasicInfo`] struct, excluding the peer list.
-pub async fn get_torrents(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec<BasicInfo> {
+pub async fn get_torrents_page(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec<BasicInfo> {
     let db = tracker.torrents.get_torrents().await;
 
     let mut basic_infos: Vec<BasicInfo> = vec![];
@@ -129,6 +129,28 @@ pub async fn get_torrents(tracker: Arc<Tracker>, pagination: &Pagination) -> Vec
             completed: u64::from(completed),
             leechers: u64::from(leechers),
         });
+    }
+
+    basic_infos
+}
+
+/// It returns all the information the tracker has about multiple torrents in a [`BasicInfo`] struct, excluding the peer list.
+pub async fn get_torrents(tracker: Arc<Tracker>, info_hashes: &[InfoHash]) -> Vec<BasicInfo> {
+    let db = tracker.torrents.get_torrents().await;
+
+    let mut basic_infos: Vec<BasicInfo> = vec![];
+
+    for info_hash in info_hashes {
+        if let Some(entry) = db.get(info_hash) {
+            let (seeders, completed, leechers) = entry.get_stats();
+
+            basic_infos.push(BasicInfo {
+                info_hash: *info_hash,
+                seeders: u64::from(seeders),
+                completed: u64::from(completed),
+                leechers: u64::from(leechers),
+            });
+        }
     }
 
     basic_infos
@@ -219,7 +241,7 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use crate::core::services::torrent::tests::sample_peer;
-        use crate::core::services::torrent::{get_torrents, BasicInfo, Pagination};
+        use crate::core::services::torrent::{get_torrents_page, BasicInfo, Pagination};
         use crate::core::services::tracker_factory;
         use crate::shared::bit_torrent::info_hash::InfoHash;
 
@@ -231,7 +253,7 @@ mod tests {
         async fn should_return_an_empty_result_if_the_tracker_does_not_have_any_torrent() {
             let tracker = Arc::new(tracker_factory(&tracker_configuration()));
 
-            let torrents = get_torrents(tracker.clone(), &Pagination::default()).await;
+            let torrents = get_torrents_page(tracker.clone(), &Pagination::default()).await;
 
             assert_eq!(torrents, vec![]);
         }
@@ -247,7 +269,7 @@ mod tests {
                 .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer())
                 .await;
 
-            let torrents = get_torrents(tracker.clone(), &Pagination::default()).await;
+            let torrents = get_torrents_page(tracker.clone(), &Pagination::default()).await;
 
             assert_eq!(
                 torrents,
@@ -279,7 +301,7 @@ mod tests {
             let offset = 0;
             let limit = 1;
 
-            let torrents = get_torrents(tracker.clone(), &Pagination::new(offset, limit)).await;
+            let torrents = get_torrents_page(tracker.clone(), &Pagination::new(offset, limit)).await;
 
             assert_eq!(torrents.len(), 1);
         }
@@ -303,7 +325,7 @@ mod tests {
             let offset = 1;
             let limit = 4000;
 
-            let torrents = get_torrents(tracker.clone(), &Pagination::new(offset, limit)).await;
+            let torrents = get_torrents_page(tracker.clone(), &Pagination::new(offset, limit)).await;
 
             assert_eq!(torrents.len(), 1);
             assert_eq!(
@@ -333,7 +355,7 @@ mod tests {
                 .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
                 .await;
 
-            let torrents = get_torrents(tracker.clone(), &Pagination::default()).await;
+            let torrents = get_torrents_page(tracker.clone(), &Pagination::default()).await;
 
             assert_eq!(
                 torrents,

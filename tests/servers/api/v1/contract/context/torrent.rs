@@ -19,7 +19,7 @@ use crate::servers::api::v1::contract::fixtures::{
 use crate::servers::api::Started;
 
 #[tokio::test]
-async fn should_allow_getting_torrents() {
+async fn should_allow_getting_all_torrents() {
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
@@ -101,6 +101,48 @@ async fn should_allow_the_torrents_result_pagination() {
 }
 
 #[tokio::test]
+async fn should_allow_getting_a_list_of_torrents_providing_infohashes() {
+    let env = Started::new(&configuration::ephemeral().into()).await;
+
+    let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(); // DevSkim: ignore DS173237
+    let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap(); // DevSkim: ignore DS173237
+
+    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().into()).await;
+    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().into()).await;
+
+    let response = Client::new(env.get_connection_info())
+        .get_torrents(Query::params(
+            [
+                QueryParam::new("info_hash", "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d"), // DevSkim: ignore DS173237
+                QueryParam::new("info_hash", "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d"), // DevSkim: ignore DS173237
+            ]
+            .to_vec(),
+        ))
+        .await;
+
+    assert_torrent_list(
+        response,
+        vec![
+            torrent::ListItem {
+                info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(), // DevSkim: ignore DS173237
+                seeders: 1,
+                completed: 0,
+                leechers: 0,
+            },
+            torrent::ListItem {
+                info_hash: "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_string(), // DevSkim: ignore DS173237
+                seeders: 1,
+                completed: 0,
+                leechers: 0,
+            },
+        ],
+    )
+    .await;
+
+    env.stop().await;
+}
+
+#[tokio::test]
 async fn should_fail_getting_torrents_when_the_offset_query_parameter_cannot_be_parsed() {
     let env = Started::new(&configuration::ephemeral().into()).await;
 
@@ -129,6 +171,27 @@ async fn should_fail_getting_torrents_when_the_limit_query_parameter_cannot_be_p
             .await;
 
         assert_bad_request(response, "Failed to deserialize query string: invalid digit found in string").await;
+    }
+
+    env.stop().await;
+}
+
+#[tokio::test]
+async fn should_fail_getting_torrents_when_the_info_hash_parameter_is_invalid() {
+    let env = Started::new(&configuration::ephemeral().into()).await;
+
+    let invalid_info_hashes = [" ", "-1", "1.1", "INVALID INFO_HASH"];
+
+    for invalid_info_hash in &invalid_info_hashes {
+        let response = Client::new(env.get_connection_info())
+            .get_torrents(Query::params([QueryParam::new("info_hash", invalid_info_hash)].to_vec()))
+            .await;
+
+        assert_bad_request(
+            response,
+            &format!("Invalid URL: invalid infohash param: string \"{invalid_info_hash}\", expected a 40 character long string"),
+        )
+        .await;
     }
 
     env.stop().await;
