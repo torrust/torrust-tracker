@@ -19,7 +19,7 @@ pub enum DatabaseDriver {
     // TODO: Move to the database crate once that gets its own crate.
     /// The Sqlite3 database driver.
     Sqlite3,
-    /// The MySQL database driver.
+    /// The `MySQL` database driver.
     MySQL,
 }
 

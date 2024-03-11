@@ -55,7 +55,7 @@ pub fn ephemeral() -> Configuration {
     let temp_directory = env::temp_dir();
     let random_db_id = random::string(16);
     let temp_file = temp_directory.join(format!("data_{random_db_id}.db"));
-    config.db_path = temp_file.to_str().unwrap().to_owned();
+    temp_file.to_str().unwrap().clone_into(&mut config.db_path);
 
     config
 }
@@ -138,8 +138,8 @@ pub fn ephemeral_ipv6() -> Configuration {
 
     let ipv6 = format!("[::]:{}", 0);
 
-    cfg.http_api.bind_address = ipv6.clone();
-    cfg.http_trackers[0].bind_address = ipv6.clone();
+    cfg.http_api.bind_address.clone_from(&ipv6);
+    cfg.http_trackers[0].bind_address.clone_from(&ipv6);
     cfg.udp_trackers[0].bind_address = ipv6;
 
     cfg

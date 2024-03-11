@@ -13,7 +13,7 @@ pub enum Error {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
-    /// Error returned from a third-party library (aquatic_udp_protocol).
+    /// Error returned from a third-party library (`aquatic_udp_protocol`).
     #[error("internal server error: {message}, {location}")]
     InternalServer {
         location: &'static Location<'static>,
