@@ -475,7 +475,7 @@ pub struct Configuration {
     /// peers from the torrent peer list.
     pub inactive_peer_cleanup_interval: u64,
     /// If enabled, the tracker will remove torrents that have no peers.
-    /// THe clean up torrent job runs every `inactive_peer_cleanup_interval`
+    /// The clean up torrent job runs every `inactive_peer_cleanup_interval`
     /// seconds and it removes inactive peers. Eventually, the peer list of a
     /// torrent could be empty and the torrent will be removed if this option is
     /// enabled.
