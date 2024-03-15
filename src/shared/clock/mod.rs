@@ -30,7 +30,7 @@ use std::num::IntErrorKind;
 use std::str::FromStr;
 use std::time::Duration;
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 
 /// Duration since the Unix Epoch.
 pub type DurationSinceUnixEpoch = Duration;
@@ -120,14 +120,11 @@ pub fn convert_from_datetime_utc_to_timestamp(datetime_utc: &DateTime<Utc>) -> D
 /// (this will naturally happen in 292.5 billion years)
 #[must_use]
 pub fn convert_from_timestamp_to_datetime_utc(duration: DurationSinceUnixEpoch) -> DateTime<Utc> {
-    DateTime::<Utc>::from_naive_utc_and_offset(
-        NaiveDateTime::from_timestamp_opt(
-            i64::try_from(duration.as_secs()).expect("Overflow of i64 seconds, very future!"),
-            duration.subsec_nanos(),
-        )
-        .unwrap(),
-        Utc,
+    DateTime::from_timestamp(
+        i64::try_from(duration.as_secs()).expect("Overflow of i64 seconds, very future!"),
+        duration.subsec_nanos(),
     )
+    .unwrap()
 }
 
 #[cfg(test)]
@@ -150,7 +147,7 @@ mod tests {
     }
 
     mod timestamp {
-        use chrono::{DateTime, NaiveDateTime, Utc};
+        use chrono::DateTime;
 
         use crate::shared::clock::{
             convert_from_datetime_utc_to_timestamp, convert_from_iso_8601_to_timestamp, convert_from_timestamp_to_datetime_utc,
@@ -162,13 +159,13 @@ mod tests {
             let timestamp = DurationSinceUnixEpoch::ZERO;
             assert_eq!(
                 convert_from_timestamp_to_datetime_utc(timestamp),
-                DateTime::<Utc>::from_naive_utc_and_offset(NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), Utc)
+                DateTime::from_timestamp(0, 0).unwrap()
             );
         }
 
         #[test]
         fn should_be_converted_from_datetime_utc() {
-            let datetime = DateTime::<Utc>::from_naive_utc_and_offset(NaiveDateTime::from_timestamp_opt(0, 0).unwrap(), Utc);
+            let datetime = DateTime::from_timestamp(0, 0).unwrap();
             assert_eq!(
                 convert_from_datetime_utc_to_timestamp(&datetime),
                 DurationSinceUnixEpoch::ZERO
