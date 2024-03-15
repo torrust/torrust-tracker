@@ -2,144 +2,123 @@
 
 We have two types of benchmarking:
 
-- E2E benchmarking running the service (HTTP or UDP tracker).
+- E2E benchmarking running the UDP tracker.
 - Internal torrents repository benchmarking.
 
 ## E2E benchmarking
 
 We are using the scripts provided by [aquatic](https://github.com/greatest-ape/aquatic).
 
-Installing both commands:
+How to install both commands:
 
 ```console
-cargo install aquatic_udp_load_test
-cargo install aquatic_http_load_test
+cargo install aquatic_udp_load_test && cargo install aquatic_http_load_test
+```
+
+You can also clone and build the repos. It's the way used for the results shown
+in this documentation.
+
+```console
+git clone git@github.com:greatest-ape/aquatic.git
+cd aquatic
+cargo build --release -p aquatic_udp_load_test
 ```
 
 ### Run UDP load test
 
-Run the tracker with UDP service enabled on port 3000 and set log level to `error`.
+Run the tracker with UDP service enabled and other services disabled and set log level to `error`.
 
 ```toml
 log_level = "error"
 
 [[udp_trackers]]
-bind_address = "0.0.0.0:3000"
 enabled = true
 ```
 
-Run the load test with:
+Build and run the tracker:
 
 ```console
-aquatic_udp_load_test
-```
-
-Output:
-
-```output
-Starting client with config: Config {
-    server_address: 127.0.0.1:3000,
-    log_level: Error,
-    workers: 1,
-    duration: 0,
-    network: NetworkConfig {
-        multiple_client_ipv4s: true,
-        first_port: 45000,
-        poll_timeout: 276,
-        poll_event_capacity: 2877,
-        recv_buffer: 6000000,
-    },
-    requests: RequestConfig {
-        number_of_torrents: 10000,
-        scrape_max_torrents: 50,
-        weight_connect: 0,
-        weight_announce: 100,
-        weight_scrape: 1,
-        torrent_gamma_shape: 0.2,
-        torrent_gamma_scale: 100.0,
-        peer_seeder_probability: 0.25,
-        additional_request_probability: 0.5,
-    },
-}
-
-Requests out: 32632.43/second
-Responses in: 24239.33/second
-  - Connect responses:  7896.91
-  - Announce responses: 16327.01
-  - Scrape responses:   15.40
-  - Error responses:    0.00
-Peers per announce response: 33.10
-```
-
-### Run HTTP load test
-
-Run the tracker with UDP service enabled on port 3000 and set log level to `error`.
-
-```toml
-[[udp_trackers]]
-bind_address = "0.0.0.0:3000"
-enabled = true
-```
-
-Run the load test with:
-
-```console
-aquatic_http_load_test
-```
-
-Output:
-
-```output
-Starting client with config: Config {
-    server_address: 127.0.0.1:3000,
-    log_level: Error,
-    num_workers: 1,
-    num_connections: 128,
-    connection_creation_interval_ms: 10,
-    url_suffix: "",
-    duration: 0,
-    keep_alive: true,
-    torrents: TorrentConfig {
-        number_of_torrents: 10000,
-        peer_seeder_probability: 0.25,
-        weight_announce: 5,
-        weight_scrape: 0,
-        torrent_gamma_shape: 0.2,
-        torrent_gamma_scale: 100.0,
-    },
-    cpu_pinning: CpuPinningConfigDesc {
-        active: false,
-        direction: Descending,
-        hyperthread: System,
-        core_offset: 0,
-    },
-}
-```
-
-### Comparing UDP tracker with other Rust implementations
-
-#### Torrust UDP Tracker
-
-Running the tracker:
-
-```console
-git@github.com:torrust/torrust-tracker.git
-cd torrust-tracker
 cargo build --release
 TORRUST_TRACKER_PATH_CONFIG="./share/default/config/tracker.udp.benchmarking.toml" ./target/release/torrust-tracker
 ```
 
-Running the test: `aquatic_udp_load_test`.
+Run the load test with:
+
+```console
+./target/release/aquatic_udp_load_test
+```
+
+> NOTICE: You need to modify the port in the `udp_load_test` crate to use `6969` and rebuild.
+
+Output:
 
 ```output
-Requests out: 13075.56/second
-Responses in: 12058.38/second
-  - Connect responses:  1017.18
-  - Announce responses: 11035.00
-  - Scrape responses:   6.20
+Starting client with config: Config {
+    server_address: 127.0.0.1:6969,
+    log_level: Error,
+    workers: 1,
+    duration: 0,
+    summarize_last: 0,
+    extra_statistics: true,
+    network: NetworkConfig {
+        multiple_client_ipv4s: true,
+        sockets_per_worker: 4,
+        recv_buffer: 8000000,
+    },
+    requests: RequestConfig {
+        number_of_torrents: 1000000,
+        number_of_peers: 2000000,
+        scrape_max_torrents: 10,
+        announce_peers_wanted: 30,
+        weight_connect: 50,
+        weight_announce: 50,
+        weight_scrape: 1,
+        peer_seeder_probability: 0.75,
+    },
+}
+
+Requests out: 398367.11/second
+Responses in: 358530.40/second
+  - Connect responses:  177567.60
+  - Announce responses: 177508.08
+  - Scrape responses:   3454.72
   - Error responses:    0.00
-Peers per announce response: 41.13
+Peers per announce response: 0.00
+Announce responses per info hash:
+  - p10: 1
+  - p25: 1
+  - p50: 1
+  - p75: 1
+  - p90: 2
+  - p95: 3
+  - p99: 105
+  - p99.9: 289
+  - p100: 361
 ```
+
+> IMPORTANT: The performance of th Torrust UDP Tracker is drastically decreased with these log levels: `info`, `debug`, `trace`.
+
+```output
+Requests out: 40719.21/second
+Responses in: 33762.72/second
+  - Connect responses:  16732.76
+  - Announce responses: 16692.98
+  - Scrape responses:   336.98
+  - Error responses:    0.00
+Peers per announce response: 0.00
+Announce responses per info hash:
+  - p10: 1
+  - p25: 1
+  - p50: 1
+  - p75: 1
+  - p90: 7
+  - p95: 14
+  - p99: 27
+  - p99.9: 35
+  - p100: 45
+```
+
+### Comparing UDP tracker with other Rust implementations
 
 #### Aquatic UDP Tracker
 
@@ -149,29 +128,44 @@ Running the tracker:
 git clone git@github.com:greatest-ape/aquatic.git
 cd aquatic
 cargo build --release -p aquatic_udp
-./target/release/aquatic_udp -c "aquatic-udp-config.toml"
+./target/release/aquatic_udp -p > "aquatic-udp-config.toml"
 ./target/release/aquatic_udp -c "aquatic-udp-config.toml"
 ```
 
-Running the test: `aquatic_udp_load_test`.
+Run the load test with:
+
+```console
+./target/release/aquatic_udp_load_test
+```
 
 ```output
-Requests out: 383873.14/second
-Responses in: 383440.35/second
-  - Connect responses:  429.19
-  - Announce responses: 379249.22
-  - Scrape responses:   3761.93
+Requests out: 432896.42/second
+Responses in: 389577.70/second
+  - Connect responses:  192864.02
+  - Announce responses: 192817.55
+  - Scrape responses:   3896.13
   - Error responses:    0.00
-Peers per announce response: 15.33
+Peers per announce response: 21.55
+Announce responses per info hash:
+  - p10: 1
+  - p25: 1
+  - p50: 1
+  - p75: 1
+  - p90: 2
+  - p95: 3
+  - p99: 105
+  - p99.9: 311
+  - p100: 395
 ```
 
 #### Torrust-Actix UDP Tracker
 
-Run the tracker with UDP service enabled on port 3000 and set log level to `error`.
+Run the tracker with UDP service enabled and other services disabled and set log level to `error`.
 
 ```toml
+log_level = "error"
+
 [[udp_trackers]]
-bind_address = "0.0.0.0:3000"
 enabled = true
 ```
 
@@ -183,16 +177,32 @@ cargo build --release
 ./target/release/torrust-actix
 ```
 
-Running the test: `aquatic_udp_load_test`.
+Run the load test with:
+
+```console
+./target/release/aquatic_udp_load_test
+```
+
+> NOTICE: You need to modify the port in the `udp_load_test` crate to use `6969` and rebuild.
 
 ```output
-Requests out: 3072.94/second
-Responses in: 2395.15/second
-  - Connect responses:  556.79
-  - Announce responses: 1821.16
-  - Scrape responses:   17.20
+Requests out: 200953.97/second
+Responses in: 180858.14/second
+  - Connect responses:  89517.13
+  - Announce responses: 89539.67
+  - Scrape responses:   1801.34
   - Error responses:    0.00
-Peers per announce response: 133.88
+Peers per announce response: 1.00
+Announce responses per info hash:
+  - p10: 1
+  - p25: 1
+  - p50: 1
+  - p75: 1
+  - p90: 2
+  - p95: 7
+  - p99: 87
+  - p99.9: 155
+  - p100: 188
 ```
 
 ### Results
@@ -201,9 +211,18 @@ Announce request per second:
 
 | Tracker       |  Announce |
 |---------------|-----------|
-| Aquatic       |   379,249 |
-| Torrust       |    11,035 |
-| Torrust-Actix |     1,821 |
+| Aquatic       |   192,817 |
+| Torrust       |   177,508 |
+| Torrust-Actix |    89,539 |
+
+Using a PC with:
+
+- RAM: 64GiB
+- Processor: AMD Ryzen 9 7950X x 32
+- Graphics: AMD Radeon Graphics / Intel Arc A770 Graphics (DG2)
+- OS: Ubuntu 23.04
+- OS Type: 64-bit
+- Kernel Version: Linux 6.2.0-20-generic
 
 ## Repository benchmarking
 
