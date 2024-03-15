@@ -69,13 +69,6 @@ impl From<ScrapeResponse> for ScrapeResponseDto {
 }
 
 #[derive(Serialize)]
-struct Peer {
-    seeders: i32,
-    completed: i32,
-    leechers: i32,
-}
-
-#[derive(Serialize)]
 struct TorrentStats {
     seeders: i32,
     completed: i32,

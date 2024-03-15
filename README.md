@@ -126,6 +126,10 @@ The following services are provided by the default configuration:
 - [Tracker (HTTP/TLS)][HTTP]
 - [Tracker (UDP)][UDP]
 
+## Benchmarking
+
+- [Benchmarking](./docs/benchmarking.md)
+
 ## Contributing
 
 We are happy to support and welcome new people to our project. Please consider our [contributor guide][guide.md].</br>
