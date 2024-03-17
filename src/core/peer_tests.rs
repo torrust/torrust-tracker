@@ -2,17 +2,21 @@
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+use torrust_tracker_clock::clock::stopped::Stopped as _;
+use torrust_tracker_clock::clock::{self, Time};
 use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::{peer, NumberOfBytes};
 
-use crate::shared::clock::{self, Time};
+use crate::CurrentClock;
 
 #[test]
 fn it_should_be_serializable() {
+    clock::Stopped::local_set_to_unix_epoch();
+
     let torrent_peer = peer::Peer {
         peer_id: peer::Id(*b"-qB0000-000000000000"),
         peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-        updated: clock::Current::now(),
+        updated: CurrentClock::now(),
         uploaded: NumberOfBytes(0),
         downloaded: NumberOfBytes(0),
         left: NumberOfBytes(0),

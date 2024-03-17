@@ -444,7 +444,8 @@ use std::time::Duration;
 use derive_more::Constructor;
 use log::debug;
 use tokio::sync::mpsc::error::SendError;
-use torrust_tracker_configuration::{AnnouncePolicy, Configuration, TrackerPolicy};
+use torrust_tracker_clock::clock::Time;
+use torrust_tracker_configuration::{AnnouncePolicy, Configuration, TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
@@ -456,10 +457,7 @@ use self::auth::Key;
 use self::error::Error;
 use self::torrent::Torrents;
 use crate::core::databases::Database;
-use crate::shared::clock::{self, TimeNow};
-
-/// The maximum number of returned peers for a torrent.
-pub const TORRENT_PEERS_LIMIT: usize = 74;
+use crate::CurrentClock;
 
 /// The domain layer tracker service.
 ///
@@ -741,7 +739,7 @@ impl Tracker {
             self.torrents.remove_peerless_torrents(&self.policy);
         } else {
             let current_cutoff =
-                clock::Current::sub(&Duration::from_secs(u64::from(self.policy.max_peer_timeout))).unwrap_or_default();
+                CurrentClock::now_sub(&Duration::from_secs(u64::from(self.policy.max_peer_timeout))).unwrap_or_default();
             self.torrents.remove_inactive_peers(current_cutoff);
         }
     }
@@ -1592,8 +1590,11 @@ mod tests {
                 use std::str::FromStr;
                 use std::time::Duration;
 
+                use torrust_tracker_clock::clock::Time;
+
                 use crate::core::auth;
                 use crate::core::tests::the_tracker::private_tracker;
+                use crate::CurrentClock;
 
                 #[tokio::test]
                 async fn it_should_generate_the_expiring_authentication_keys() {
@@ -1601,7 +1602,7 @@ mod tests {
 
                     let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
 
-                    assert_eq!(key.valid_until, Duration::from_secs(100));
+                    assert_eq!(key.valid_until, CurrentClock::now_add(&Duration::from_secs(100)).unwrap());
                 }
 
                 #[tokio::test]

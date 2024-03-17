@@ -1,11 +1,12 @@
 //! Logic to extract the peer info from the announce request.
 use std::net::{IpAddr, SocketAddr};
 
+use torrust_tracker_clock::clock::Time;
 use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::{peer, NumberOfBytes};
 
 use super::request::AnnounceWrapper;
-use crate::shared::clock::{Current, Time};
+use crate::CurrentClock;
 
 /// Extracts the [`peer::Peer`] info from the
 /// announce request.
@@ -20,7 +21,7 @@ pub fn from_request(announce_wrapper: &AnnounceWrapper, peer_ip: &IpAddr) -> pee
     peer::Peer {
         peer_id: peer::Id(announce_wrapper.announce_request.peer_id.0),
         peer_addr: SocketAddr::new(*peer_ip, announce_wrapper.announce_request.port.0),
-        updated: Current::now(),
+        updated: CurrentClock::now(),
         uploaded: NumberOfBytes(announce_wrapper.announce_request.bytes_uploaded.0),
         downloaded: NumberOfBytes(announce_wrapper.announce_request.bytes_downloaded.0),
         left: NumberOfBytes(announce_wrapper.announce_request.bytes_left.0),

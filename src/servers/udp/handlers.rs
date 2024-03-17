@@ -318,6 +318,7 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
+    use torrust_tracker_clock::clock::Time;
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_primitives::announce_event::AnnounceEvent;
     use torrust_tracker_primitives::{peer, NumberOfBytes};
@@ -325,7 +326,7 @@ mod tests {
 
     use crate::core::services::tracker_factory;
     use crate::core::Tracker;
-    use crate::shared::clock::{Current, Time};
+    use crate::CurrentClock;
 
     fn tracker_configuration() -> Configuration {
         default_testing_tracker_configuration()
@@ -376,7 +377,7 @@ mod tests {
             let default_peer = peer::Peer {
                 peer_id: peer::Id([255u8; 20]),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-                updated: Current::now(),
+                updated: CurrentClock::now(),
                 uploaded: NumberOfBytes(0),
                 downloaded: NumberOfBytes(0),
                 left: NumberOfBytes(0),

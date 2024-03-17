@@ -65,7 +65,7 @@
 use std::num::{IntErrorKind, TryFromIntError};
 use std::time::Duration;
 
-use super::{Stopped, TimeNow, Type, Working};
+use crate::clock::{self, Stopped, Working};
 
 /// This trait defines the operations that can be performed on a `TimeExtent`.
 pub trait Extent: Sized + Default {
@@ -199,10 +199,10 @@ impl Extent for TimeExtent {
 /// It gives you the time in time extents.
 pub trait Make<Clock>: Sized
 where
-    Clock: TimeNow,
+    Clock: clock::Time,
 {
     /// It gives you the current time extent (with a certain increment) for
-    /// the current time. It gets the current timestamp front he `Clock`.
+    /// the current time. It gets the current timestamp front the `Clock`.
     ///
     /// For example:
     ///
@@ -223,12 +223,12 @@ where
             })
     }
 
-    /// Same as [`now`](crate::shared::clock::time_extent::Make::now), but it
+    /// Same as [`now`](crate::time_extent::Make::now), but it
     /// will add an extra duration to the current time before calculating the
     /// time extent. It gives you a time extent for a time in the future.
     #[must_use]
     fn now_after(increment: &Base, add_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
-        match Clock::add(add_time) {
+        match Clock::now_add(add_time) {
             None => None,
             Some(time) => time
                 .as_nanos()
@@ -240,12 +240,12 @@ where
         }
     }
 
-    /// Same as [`now`](crate::shared::clock::time_extent::Make::now), but it
+    /// Same as [`now`](crate::time_extent::Make::now), but it
     /// will subtract a duration to the current time before calculating the
     /// time extent. It gives you a time extent for a time in the past.
     #[must_use]
     fn now_before(increment: &Base, sub_time: &Duration) -> Option<Result<TimeExtent, TryFromIntError>> {
-        match Clock::sub(sub_time) {
+        match Clock::now_sub(sub_time) {
             None => None,
             Some(time) => time
                 .as_nanos()
@@ -262,38 +262,30 @@ where
 ///
 /// It's a clock which measures time in `TimeExtents`.
 #[derive(Debug)]
-pub struct Maker<const CLOCK_TYPE: usize> {}
+pub struct Maker<T> {
+    clock: std::marker::PhantomData<T>,
+}
 
 /// A `TimeExtent` maker which makes `TimeExtents` from the `Working` clock.
-pub type WorkingTimeExtentMaker = Maker<{ Type::WorkingClock as usize }>;
+pub type WorkingTimeExtentMaker = Maker<Working>;
 
 /// A `TimeExtent` maker which makes `TimeExtents` from the `Stopped` clock.
-pub type StoppedTimeExtentMaker = Maker<{ Type::StoppedClock as usize }>;
+pub type StoppedTimeExtentMaker = Maker<Stopped>;
 
-impl Make<Working> for WorkingTimeExtentMaker {}
-impl Make<Stopped> for StoppedTimeExtentMaker {}
-
-/// The default `TimeExtent` maker. It is `WorkingTimeExtentMaker` in production
-/// and `StoppedTimeExtentMaker` in tests.
-#[cfg(not(test))]
-pub type DefaultTimeExtentMaker = WorkingTimeExtentMaker;
-
-/// The default `TimeExtent` maker. It is `WorkingTimeExtentMaker` in production
-/// and `StoppedTimeExtentMaker` in tests.
-#[cfg(test)]
-pub type DefaultTimeExtentMaker = StoppedTimeExtentMaker;
+impl Make<clock::Working> for WorkingTimeExtentMaker {}
+impl Make<clock::Stopped> for StoppedTimeExtentMaker {}
 
 #[cfg(test)]
 mod test {
-    use crate::shared::clock::time_extent::TimeExtent;
+    use crate::time_extent::TimeExtent;
 
     const TIME_EXTENT_VAL: TimeExtent = TimeExtent::from_sec(2, &239_812_388_723);
 
     mod fn_checked_duration_from_nanos {
         use std::time::Duration;
 
-        use crate::shared::clock::time_extent::checked_duration_from_nanos;
-        use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
+        use crate::time_extent::checked_duration_from_nanos;
+        use crate::time_extent::test::TIME_EXTENT_VAL;
 
         const NANOS_PER_SEC: u32 = 1_000_000_000;
 
@@ -334,7 +326,7 @@ mod test {
     mod time_extent {
 
         mod fn_default {
-            use crate::shared::clock::time_extent::{TimeExtent, ZERO};
+            use crate::time_extent::{TimeExtent, ZERO};
 
             #[test]
             fn it_should_default_initialize_to_zero() {
@@ -343,8 +335,8 @@ mod test {
         }
 
         mod fn_from_sec {
-            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
-            use crate::shared::clock::time_extent::{Multiplier, TimeExtent, ZERO};
+            use crate::time_extent::test::TIME_EXTENT_VAL;
+            use crate::time_extent::{Multiplier, TimeExtent, ZERO};
 
             #[test]
             fn it_should_make_empty_for_zero() {
@@ -360,8 +352,8 @@ mod test {
         }
 
         mod fn_new {
-            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
-            use crate::shared::clock::time_extent::{Base, Extent, Multiplier, TimeExtent, ZERO};
+            use crate::time_extent::test::TIME_EXTENT_VAL;
+            use crate::time_extent::{Base, Extent, Multiplier, TimeExtent, ZERO};
 
             #[test]
             fn it_should_make_empty_for_zero() {
@@ -383,8 +375,8 @@ mod test {
         mod fn_increase {
             use std::num::IntErrorKind;
 
-            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
-            use crate::shared::clock::time_extent::{Extent, TimeExtent, ZERO};
+            use crate::time_extent::test::TIME_EXTENT_VAL;
+            use crate::time_extent::{Extent, TimeExtent, ZERO};
 
             #[test]
             fn it_should_not_increase_for_zero() {
@@ -411,8 +403,8 @@ mod test {
         mod fn_decrease {
             use std::num::IntErrorKind;
 
-            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
-            use crate::shared::clock::time_extent::{Extent, TimeExtent, ZERO};
+            use crate::time_extent::test::TIME_EXTENT_VAL;
+            use crate::time_extent::{Extent, TimeExtent, ZERO};
 
             #[test]
             fn it_should_not_decrease_for_zero() {
@@ -437,8 +429,8 @@ mod test {
         }
 
         mod fn_total {
-            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
-            use crate::shared::clock::time_extent::{Base, Extent, Product, TimeExtent, MAX, ZERO};
+            use crate::time_extent::test::TIME_EXTENT_VAL;
+            use crate::time_extent::{Base, Extent, Product, TimeExtent, MAX, ZERO};
 
             #[test]
             fn it_should_be_zero_for_zero() {
@@ -485,8 +477,8 @@ mod test {
         }
 
         mod fn_total_next {
-            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
-            use crate::shared::clock::time_extent::{Base, Extent, Product, TimeExtent, MAX, ZERO};
+            use crate::time_extent::test::TIME_EXTENT_VAL;
+            use crate::time_extent::{Base, Extent, Product, TimeExtent, MAX, ZERO};
 
             #[test]
             fn it_should_be_zero_for_zero() {
@@ -544,9 +536,10 @@ mod test {
         mod fn_now {
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
-            use crate::shared::clock::time_extent::{Base, DefaultTimeExtentMaker, Make, TimeExtent};
-            use crate::shared::clock::{Current, StoppedTime};
+            use crate::clock::stopped::Stopped as _;
+            use crate::time_extent::test::TIME_EXTENT_VAL;
+            use crate::time_extent::{Base, Make, TimeExtent};
+            use crate::{CurrentClock, DefaultTimeExtentMaker};
 
             #[test]
             fn it_should_give_a_time_extent() {
@@ -558,7 +551,7 @@ mod test {
                     }
                 );
 
-                Current::local_set(&DurationSinceUnixEpoch::from_secs(TIME_EXTENT_VAL.amount * 2));
+                CurrentClock::local_set(&DurationSinceUnixEpoch::from_secs(TIME_EXTENT_VAL.amount * 2));
 
                 assert_eq!(
                     DefaultTimeExtentMaker::now(&TIME_EXTENT_VAL.increment).unwrap().unwrap(),
@@ -573,7 +566,7 @@ mod test {
 
             #[test]
             fn it_should_fail_if_amount_exceeds_bounds() {
-                Current::local_set(&DurationSinceUnixEpoch::MAX);
+                CurrentClock::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(
                     DefaultTimeExtentMaker::now(&Base::from_millis(1)).unwrap().unwrap_err(),
                     u64::try_from(u128::MAX).unwrap_err()
@@ -586,9 +579,10 @@ mod test {
 
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-            use crate::shared::clock::time_extent::test::TIME_EXTENT_VAL;
-            use crate::shared::clock::time_extent::{Base, DefaultTimeExtentMaker, Make};
-            use crate::shared::clock::{Current, StoppedTime};
+            use crate::clock::stopped::Stopped as _;
+            use crate::time_extent::test::TIME_EXTENT_VAL;
+            use crate::time_extent::{Base, Make};
+            use crate::{CurrentClock, DefaultTimeExtentMaker};
 
             #[test]
             fn it_should_give_a_time_extent() {
@@ -607,13 +601,13 @@ mod test {
             fn it_should_fail_for_zero() {
                 assert_eq!(DefaultTimeExtentMaker::now_after(&Base::ZERO, &Duration::ZERO), None);
 
-                Current::local_set(&DurationSinceUnixEpoch::MAX);
+                CurrentClock::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(DefaultTimeExtentMaker::now_after(&Base::ZERO, &Duration::MAX), None);
             }
 
             #[test]
             fn it_should_fail_if_amount_exceeds_bounds() {
-                Current::local_set(&DurationSinceUnixEpoch::MAX);
+                CurrentClock::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(
                     DefaultTimeExtentMaker::now_after(&Base::from_millis(1), &Duration::ZERO)
                         .unwrap()
@@ -627,12 +621,13 @@ mod test {
 
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-            use crate::shared::clock::time_extent::{Base, DefaultTimeExtentMaker, Make, TimeExtent};
-            use crate::shared::clock::{Current, StoppedTime};
+            use crate::clock::stopped::Stopped as _;
+            use crate::time_extent::{Base, Make, TimeExtent};
+            use crate::{CurrentClock, DefaultTimeExtentMaker};
 
             #[test]
             fn it_should_give_a_time_extent() {
-                Current::local_set(&DurationSinceUnixEpoch::MAX);
+                CurrentClock::local_set(&DurationSinceUnixEpoch::MAX);
 
                 assert_eq!(
                     DefaultTimeExtentMaker::now_before(
@@ -657,7 +652,7 @@ mod test {
 
             #[test]
             fn it_should_fail_if_amount_exceeds_bounds() {
-                Current::local_set(&DurationSinceUnixEpoch::MAX);
+                CurrentClock::local_set(&DurationSinceUnixEpoch::MAX);
                 assert_eq!(
                     DefaultTimeExtentMaker::now_before(&Base::from_millis(1), &Duration::ZERO)
                         .unwrap()

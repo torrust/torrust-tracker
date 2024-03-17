@@ -1,5 +1,5 @@
 [package]
-description = "A library to provide error decorator with the location and the source of the original error."
+description = "A library that provides a repository of torrents files and their peers."
 keywords = ["torrents", "repository", "library"]
 name = "torrust-tracker-torrent-repository"
 readme = "README.md"
@@ -20,10 +20,11 @@ futures = "0.3.29"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "../primitives" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "../configuration" }
-serde = { version = "1", features = ["derive"] }
+torrust-tracker-clock = { version = "3.0.0-alpha.12-develop", path = "../clock" }
 
 [dev-dependencies]
 criterion = { version = "0", features = ["async_tokio"] }
+rstest = "0"
 
 [[bench]]
 harness = false

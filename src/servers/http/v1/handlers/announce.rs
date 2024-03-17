@@ -12,6 +12,7 @@ use std::sync::Arc;
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use log::debug;
+use torrust_tracker_clock::clock::Time;
 use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::{peer, NumberOfBytes};
 
@@ -25,7 +26,7 @@ use crate::servers::http::v1::requests::announce::{Announce, Compact, Event};
 use crate::servers::http::v1::responses::{self};
 use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
 use crate::servers::http::v1::services::{self, peer_ip_resolver};
-use crate::shared::clock::{Current, Time};
+use crate::CurrentClock;
 
 /// It handles the `announce` request when the HTTP tracker does not require
 /// authentication (no PATH `key` parameter required).
@@ -134,7 +135,7 @@ fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> peer::Pee
     peer::Peer {
         peer_id: announce_request.peer_id,
         peer_addr: SocketAddr::new(*peer_ip, announce_request.port),
-        updated: Current::now(),
+        updated: CurrentClock::now(),
         uploaded: NumberOfBytes(announce_request.uploaded.unwrap_or(0)),
         downloaded: NumberOfBytes(announce_request.downloaded.unwrap_or(0)),
         left: NumberOfBytes(announce_request.left.unwrap_or(0)),

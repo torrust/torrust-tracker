@@ -71,7 +71,7 @@
 //! is behind a reverse proxy.
 //!
 //! > **NOTICE**: the maximum number of peers that the tracker can return is
-//! `74`. Defined with a hardcoded const [`TORRENT_PEERS_LIMIT`](crate::core::TORRENT_PEERS_LIMIT).
+//! `74`. Defined with a hardcoded const [`TORRENT_PEERS_LIMIT`](torrust_tracker_configuration::TORRENT_PEERS_LIMIT).
 //! Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
 //! for more information about this limitation.
 //!

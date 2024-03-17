@@ -1,9 +1,9 @@
 //! API resources for the [`auth_key`](crate::servers::apis::v1::context::auth_key) API context.
 
 use serde::{Deserialize, Serialize};
+use torrust_tracker_clock::conv::convert_from_iso_8601_to_timestamp;
 
 use crate::core::auth::{self, Key};
-use crate::shared::clock::convert_from_iso_8601_to_timestamp;
 
 /// A resource that represents an authentication key.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -41,9 +41,12 @@ impl From<auth::ExpiringKey> for AuthKey {
 mod tests {
     use std::time::Duration;
 
+    use torrust_tracker_clock::clock::stopped::Stopped as _;
+    use torrust_tracker_clock::clock::{self, Time};
+
     use super::AuthKey;
     use crate::core::auth::{self, Key};
-    use crate::shared::clock::{Current, TimeNow};
+    use crate::CurrentClock;
 
     struct TestTime {
         pub timestamp: u64,
@@ -65,6 +68,8 @@ mod tests {
     #[test]
     #[allow(deprecated)]
     fn it_should_be_convertible_into_an_auth_key() {
+        clock::Stopped::local_set_to_unix_epoch();
+
         let auth_key_resource = AuthKey {
             key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".to_string(), // cspell:disable-line
             valid_until: one_hour_after_unix_epoch().timestamp,
@@ -75,7 +80,7 @@ mod tests {
             auth::ExpiringKey::from(auth_key_resource),
             auth::ExpiringKey {
                 key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<Key>().unwrap(), // cspell:disable-line
-                valid_until: Current::add(&Duration::new(one_hour_after_unix_epoch().timestamp, 0)).unwrap()
+                valid_until: CurrentClock::now_add(&Duration::new(one_hour_after_unix_epoch().timestamp, 0)).unwrap()
             }
         );
     }
@@ -83,9 +88,11 @@ mod tests {
     #[test]
     #[allow(deprecated)]
     fn it_should_be_convertible_from_an_auth_key() {
+        clock::Stopped::local_set_to_unix_epoch();
+
         let auth_key = auth::ExpiringKey {
             key: "IaWDneuFNZi8IB4MPA3qW1CD0M30EZSM".parse::<Key>().unwrap(), // cspell:disable-line
-            valid_until: Current::add(&Duration::new(one_hour_after_unix_epoch().timestamp, 0)).unwrap(),
+            valid_until: CurrentClock::now_add(&Duration::new(one_hour_after_unix_epoch().timestamp, 0)).unwrap(),
         };
 
         assert_eq!(

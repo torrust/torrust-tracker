@@ -70,9 +70,9 @@ use std::net::SocketAddr;
 use std::panic::Location;
 
 use aquatic_udp_protocol::ConnectionId;
+use torrust_tracker_clock::time_extent::{Extent, TimeExtent};
 
 use super::error::Error;
-use crate::shared::clock::time_extent::{Extent, TimeExtent};
 
 pub type Cookie = [u8; 8];
 
@@ -133,9 +133,11 @@ mod cookie_builder {
     use std::hash::{Hash, Hasher};
     use std::net::SocketAddr;
 
+    use torrust_tracker_clock::time_extent::{Extent, Make, TimeExtent};
+
     use super::{Cookie, SinceUnixEpochTimeExtent, COOKIE_LIFETIME};
-    use crate::shared::clock::time_extent::{DefaultTimeExtentMaker, Extent, Make, TimeExtent};
     use crate::shared::crypto::keys::seeds::{Current, Keeper};
+    use crate::DefaultTimeExtentMaker;
 
     pub(super) fn get_last_time_extent() -> SinceUnixEpochTimeExtent {
         DefaultTimeExtentMaker::now(&COOKIE_LIFETIME.increment)
@@ -162,10 +164,12 @@ mod cookie_builder {
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use torrust_tracker_clock::clock::stopped::Stopped as _;
+    use torrust_tracker_clock::clock::{self};
+    use torrust_tracker_clock::time_extent::{self, Extent};
+
     use super::cookie_builder::{self};
     use crate::servers::udp::connection_cookie::{check, make, Cookie, COOKIE_LIFETIME};
-    use crate::shared::clock::time_extent::{self, Extent};
-    use crate::shared::clock::{Stopped, StoppedTime};
 
     // #![feature(const_socketaddr)]
     // const REMOTE_ADDRESS_IPV4_ZERO: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
@@ -175,6 +179,8 @@ mod tests {
         // Note: This constant may need to be updated in the future as the hash is not guaranteed to to be stable between versions.
         const ID_COOKIE_OLD: Cookie = [23, 204, 198, 29, 48, 180, 62, 19];
         const ID_COOKIE_NEW: Cookie = [41, 166, 45, 246, 249, 24, 108, 203];
+
+        clock::Stopped::local_set_to_unix_epoch();
 
         let cookie = make(&SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0));
 
@@ -276,7 +282,7 @@ mod tests {
 
         let cookie = make(&remote_address);
 
-        Stopped::local_add(&COOKIE_LIFETIME.increment).unwrap();
+        clock::Stopped::local_add(&COOKIE_LIFETIME.increment).unwrap();
 
         let cookie_next = make(&remote_address);
 
@@ -298,7 +304,7 @@ mod tests {
 
         let cookie = make(&remote_address);
 
-        Stopped::local_add(&COOKIE_LIFETIME.increment).unwrap();
+        clock::Stopped::local_add(&COOKIE_LIFETIME.increment).unwrap();
 
         check(&remote_address, &cookie).unwrap();
     }
@@ -307,9 +313,11 @@ mod tests {
     fn it_should_be_valid_for_the_last_time_extent() {
         let remote_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
+        clock::Stopped::local_set_to_unix_epoch();
+
         let cookie = make(&remote_address);
 
-        Stopped::local_set(&COOKIE_LIFETIME.total().unwrap().unwrap());
+        clock::Stopped::local_set(&COOKIE_LIFETIME.total().unwrap().unwrap());
 
         check(&remote_address, &cookie).unwrap();
     }
@@ -321,7 +329,7 @@ mod tests {
 
         let cookie = make(&remote_address);
 
-        Stopped::local_set(&COOKIE_LIFETIME.total_next().unwrap().unwrap());
+        clock::Stopped::local_set(&COOKIE_LIFETIME.total_next().unwrap().unwrap());
 
         check(&remote_address, &cookie).unwrap();
     }

@@ -243,6 +243,9 @@ use thiserror::Error;
 use torrust_tracker_located_error::{DynError, Located, LocatedError};
 use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
 
+/// The maximum number of returned peers for a torrent.
+pub const TORRENT_PEERS_LIMIT: usize = 74;
+
 #[derive(Copy, Clone, Debug, PartialEq, Default, Constructor)]
 pub struct TrackerPolicy {
     pub remove_peerless_torrents: bool,
