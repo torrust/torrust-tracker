@@ -203,7 +203,7 @@ impl Launcher {
 
 #[derive(Default)]
 struct ActiveRequests {
-    rb: StaticRb<AbortHandle, 50>, // the number of requests we handle at the same time.
+    rb: StaticRb<AbortHandle, 1000>, // the number of requests we handle at the same time.
 }
 
 impl std::fmt::Debug for ActiveRequests {
@@ -241,8 +241,14 @@ impl Udp {
         tx_start: oneshot::Sender<Started>,
         rx_halt: oneshot::Receiver<Halted>,
     ) {
-        let socket = Arc::new(UdpSocket::bind(bind_to).await.expect("Could not bind to {self.socket}."));
-        let address = socket.local_addr().expect("Could not get local_addr from {binding}.");
+        let socket = Arc::new(
+            UdpSocket::bind(bind_to)
+                .await
+                .unwrap_or_else(|_| panic!("Could not bind to {bind_to}.")),
+        );
+        let address = socket
+            .local_addr()
+            .unwrap_or_else(|_| panic!("Could not get local_addr from {bind_to}."));
         let halt = shutdown_signal_with_message(rx_halt, format!("Halting Http Service Bound to Socket: {address}"));
 
         info!(target: "UDP TRACKER", "Starting on: udp://{}", address);
