@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CARGO_INCREMENTAL: "0"
-      RUSTFLAGS: "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests"
-      RUSTDOCFLAGS: "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests"
+      RUSTFLAGS: "-Z profile -C codegen-units=1 -C opt-level=0 -C link-dead-code -C overflow-checks=off -Z panic_abort_tests -C panic=abort"
+      RUSTDOCFLAGS: "-Z profile -C codegen-units=1 -C opt-level=0 -C link-dead-code -C overflow-checks=off -Z panic_abort_tests -C panic=abort"
 
     steps:
       - id: checkout_push
@@ -55,8 +55,9 @@ jobs:
         name: Run Build Checks
         run: cargo check --tests --benches --examples --workspace --all-targets --all-features
 
-      # Run Test Locally:
-      # RUSTFLAGS="-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests" RUSTDOCFLAGS="-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests" CARGO_INCREMENTAL="0" RUST_BACKTRACE=1 cargo test --tests --benches --examples --workspace --all-targets --all-features
+      - id: clean
+        name: Clean Build Directory
+        run: cargo clean
 
       - id: test
         name: Run Unit Tests
