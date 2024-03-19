@@ -99,8 +99,8 @@ impl Entry {
             }
             AnnounceEvent::Completed => {
                 let peer_old = self.peers.insert(peer.peer_id, *peer);
-                // Don't count if peer was not previously known
-                if peer_old.is_some() {
+                // Don't count if peer was not previously known and not already completed.
+                if peer_old.is_some_and(|p| p.event != AnnounceEvent::Completed) {
                     self.completed += 1;
                     did_torrent_stats_change = true;
                 }
