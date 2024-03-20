@@ -113,7 +113,11 @@ mod api {
             let details = report.details.first().expect("it should have some details");
 
             assert_eq!(details.binding, binding);
-            assert!(details.result.as_ref().is_err_and(|e| e.contains("Connection refused")));
+            assert!(
+                details.result.as_ref().is_err_and(|e| e.contains("client error (Connect)")),
+                "Expected to contain, \"client error (Connect)\", but have message \"{:?}\".",
+                details.result
+            );
             assert_eq!(
                 details.info,
                 format!("checking api health check at: http://{binding}/api/health_check")
@@ -210,7 +214,11 @@ mod http {
             let details = report.details.first().expect("it should have some details");
 
             assert_eq!(details.binding, binding);
-            assert!(details.result.as_ref().is_err_and(|e| e.contains("Connection refused")));
+            assert!(
+                details.result.as_ref().is_err_and(|e| e.contains("client error (Connect)")),
+                "Expected to contain, \"client error (Connect)\", but have message \"{:?}\".",
+                details.result
+            );
             assert_eq!(
                 details.info,
                 format!("checking http tracker health check at: http://{binding}/health_check")
