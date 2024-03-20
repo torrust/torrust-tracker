@@ -3,10 +3,11 @@
 /.coverage/
 /.idea/
 /.vscode/launch.json
-/tracker.toml
 /data.db
 /database.db
 /database.json.bz2
 /storage/
 /target
 /tracker.*
+/tracker.toml
+callgrind.out
