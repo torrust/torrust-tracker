@@ -1,12 +1,13 @@
 [package]
+description = "A set of benchmarks for the torrent repository"
+keywords = ["benchmarking", "library", "repository", "torrent"]
 name = "torrust-torrent-repository-benchmarks"
+readme = "README.md"
+
 authors.workspace = true
-categories.workspace = true
-description.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
-keywords.workspace = true
 license.workspace = true
 publish.workspace = true
 repository.workspace = true

@@ -57,6 +57,12 @@ jobs:
         name: Enable Workflow Cache
         uses: Swatinem/rust-cache@v2
 
+      - id: tools
+        name: Install Tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-machete
+
       - id: check
         name: Run Build Checks
         run: cargo check --tests --benches --examples --workspace --all-targets --all-features
@@ -70,6 +76,14 @@ jobs:
         env:
           RUSTDOCFLAGS: "-D warnings"
         run: cargo doc --no-deps --bins --examples --workspace --all-features
+
+      - id: clean
+        name: Clean Build Directory
+        run: cargo clean
+
+      - id: deps
+        name: Check Unused Dependencies
+        run: cargo machete
 
 
   unit:

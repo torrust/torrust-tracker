@@ -61,7 +61,7 @@ jobs:
 
       - id: test
         name: Run Unit Tests
-        run: cargo test --tests --benches --examples --workspace --all-targets --all-features
+        run: cargo test --tests --workspace --all-targets --all-features
 
       - id: coverage
         name: Generate Coverage Report
