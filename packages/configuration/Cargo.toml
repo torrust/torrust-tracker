@@ -17,7 +17,6 @@ version.workspace = true
 [dependencies]
 config = "0"
 derive_more = "0"
-log = { version = "0", features = ["release_max_level_info"] }
 serde = { version = "1", features = ["derive"] }
 serde_with = "3"
 thiserror = "1"

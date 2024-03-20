@@ -15,7 +15,6 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-lazy_static = "1"
 rand = "0"
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "../configuration" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "../primitives" }
