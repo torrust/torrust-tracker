@@ -9,8 +9,8 @@ min_announce_interval = 120
 mode = "public"
 on_reverse_proxy = false
 persistent_torrent_completed_stat = false
-remove_peerless_torrents = true
-tracker_usage_statistics = true
+remove_peerless_torrents = false
+tracker_usage_statistics = false
 
 [[udp_trackers]]
 bind_address = "0.0.0.0:6969"
