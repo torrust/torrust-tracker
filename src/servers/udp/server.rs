@@ -203,7 +203,7 @@ impl Launcher {
 
 #[derive(Default)]
 struct ActiveRequests {
-    rb: StaticRb<AbortHandle, 1000>, // the number of requests we handle at the same time.
+    rb: StaticRb<AbortHandle, 50>, // the number of requests we handle at the same time.
 }
 
 impl std::fmt::Debug for ActiveRequests {
