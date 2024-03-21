@@ -105,6 +105,7 @@
         "rerequests",
         "ringbuf",
         "rngs",
+        "rosegment",
         "routable",
         "rusqlite",
         "RUSTDOCFLAGS",
