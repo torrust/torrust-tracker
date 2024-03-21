@@ -11,3 +11,5 @@
 /tracker.*
 /tracker.toml
 callgrind.out
+flamegraph.svg
+perf.data*
