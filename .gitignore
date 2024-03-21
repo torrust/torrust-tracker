@@ -6,10 +6,10 @@
 /data.db
 /database.db
 /database.json.bz2
+/flamegraph.svg
 /storage/
 /target
 /tracker.*
 /tracker.toml
 callgrind.out
-flamegraph.svg
 perf.data*
