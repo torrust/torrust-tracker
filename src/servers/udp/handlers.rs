@@ -714,9 +714,7 @@ mod tests {
                     .with_peer_addr(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
-                tracker
-                    .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv6)
-                    .await;
+                tracker.inner_announce(&info_hash.0.into(), &peer_using_ipv6).await;
             }
 
             async fn announce_a_new_peer_using_ipv4(tracker: Arc<core::Tracker>) -> Response {
@@ -938,9 +936,7 @@ mod tests {
                     .with_peer_addr(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 
-                tracker
-                    .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv4)
-                    .await;
+                tracker.inner_announce(&info_hash.0.into(), &peer_using_ipv4).await;
             }
 
             async fn announce_a_new_peer_using_ipv6(tracker: Arc<core::Tracker>) -> Response {
@@ -1112,9 +1108,7 @@ mod tests {
                 .with_bytes_left(0)
                 .into();
 
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer)
-                .await;
+            tracker.inner_announce(&info_hash.0.into(), &peer).await;
         }
 
         fn build_scrape_request(remote_addr: &SocketAddr, info_hash: &InfoHash) -> ScrapeRequest {

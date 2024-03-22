@@ -213,9 +213,7 @@ mod tests {
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer())
-                .await;
+            tracker.inner_announce(&info_hash, &sample_peer()).await;
 
             let torrent_info = get_torrent_info(tracker.clone(), &info_hash).await.unwrap();
 
@@ -265,9 +263,7 @@ mod tests {
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
 
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer())
-                .await;
+            tracker.inner_announce(&info_hash, &sample_peer()).await;
 
             let torrents = get_torrents_page(tracker.clone(), &Pagination::default()).await;
 
@@ -291,12 +287,8 @@ mod tests {
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
 
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
-                .await;
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
-                .await;
+            tracker.inner_announce(&info_hash1, &sample_peer()).await;
+            tracker.inner_announce(&info_hash2, &sample_peer()).await;
 
             let offset = 0;
             let limit = 1;
@@ -315,12 +307,8 @@ mod tests {
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
 
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
-                .await;
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
-                .await;
+            tracker.inner_announce(&info_hash1, &sample_peer()).await;
+            tracker.inner_announce(&info_hash2, &sample_peer()).await;
 
             let offset = 1;
             let limit = 4000;
@@ -345,15 +333,11 @@ mod tests {
 
             let hash1 = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash1 = InfoHash::from_str(&hash1).unwrap();
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
-                .await;
+            tracker.inner_announce(&info_hash1, &sample_peer()).await;
 
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
-                .await;
+            tracker.inner_announce(&info_hash2, &sample_peer()).await;
 
             let torrents = get_torrents_page(tracker.clone(), &Pagination::default()).await;
 

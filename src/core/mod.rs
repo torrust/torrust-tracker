@@ -651,10 +651,7 @@ impl Tracker {
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.external_ip));
         debug!("After: {peer:?}");
 
-        // we should update the torrent and get the stats before we get the peer list.
-        let stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
-
-        let peers = self.get_torrent_peers_for_peer(info_hash, peer).await;
+        let (stats, peers) = self.inner_announce(info_hash, peer).await;
 
         AnnounceData {
             peers,
@@ -722,19 +719,6 @@ impl Tracker {
         Ok(())
     }
 
-    async fn get_torrent_peers_for_peer(&self, info_hash: &InfoHash, peer: &Peer) -> Vec<peer::Peer> {
-        let read_lock = self.torrents.get_torrents().await;
-
-        match read_lock.get(info_hash) {
-            None => vec![],
-            Some(entry) => entry
-                .get_peers_for_peer(peer, TORRENT_PEERS_LIMIT)
-                .into_iter()
-                .copied()
-                .collect(),
-        }
-    }
-
     /// # Context: Tracker
     ///
     /// Get all torrent peers for a given torrent
@@ -752,11 +736,8 @@ impl Tracker {
     /// needed for a `announce` request response.
     ///
     /// # Context: Tracker
-    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> torrent::SwarmStats {
-        // code-review: consider splitting the function in two (command and query segregation).
-        // `update_torrent_with_peer` and `get_stats`
-
-        let (stats, stats_updated) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
+    pub async fn inner_announce(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (torrent::SwarmStats, Vec<Peer>) {
+        let (stats, stats_updated, peers) = self.torrents.announce(info_hash, peer).await;
 
         if self.policy.persistent_torrent_completed_stat && stats_updated {
             let completed = stats.downloaded;
@@ -765,7 +746,7 @@ impl Tracker {
             drop(self.database.save_persistent_torrent(&info_hash, completed).await);
         }
 
-        stats
+        (stats, peers)
     }
 
     /// It calculates and returns the general `Tracker`
@@ -1228,7 +1209,7 @@ mod tests {
             let info_hash = sample_info_hash();
             let peer = sample_peer();
 
-            tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+            tracker.inner_announce(&info_hash, &peer).await;
 
             let peers = tracker.get_torrent_peers(&info_hash).await;
 
@@ -1242,9 +1223,7 @@ mod tests {
             let info_hash = sample_info_hash();
             let peer = sample_peer();
 
-            tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
-
-            let peers = tracker.get_torrent_peers_for_peer(&info_hash, &peer).await;
+            let (_stats, peers) = tracker.inner_announce(&info_hash, &peer).await;
 
             assert_eq!(peers, vec![]);
         }
@@ -1253,9 +1232,7 @@ mod tests {
         async fn it_should_return_the_torrent_metrics() {
             let tracker = public_tracker();
 
-            tracker
-                .update_torrent_with_peer_and_get_stats(&sample_info_hash(), &leecher())
-                .await;
+            tracker.inner_announce(&sample_info_hash(), &leecher()).await;
 
             let torrent_metrics = tracker.get_torrents_metrics().await;
 
@@ -1764,11 +1741,11 @@ mod tests {
                 let mut peer = sample_peer();
 
                 peer.event = AnnounceEvent::Started;
-                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+                let (swarm_stats, _peers) = tracker.inner_announce(&info_hash, &peer).await;
                 assert_eq!(swarm_stats.downloaded, 0);
 
                 peer.event = AnnounceEvent::Completed;
-                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+                let (swarm_stats, _peers) = tracker.inner_announce(&info_hash, &peer).await;
                 assert_eq!(swarm_stats.downloaded, 1);
 
                 // Remove the newly updated torrent from memory
