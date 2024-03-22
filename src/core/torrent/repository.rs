@@ -1,21 +1,22 @@
 use std::sync::Arc;
 
-use crate::core::peer;
+use crate::core::peer::Peer;
 use crate::core::torrent::{Entry, SwarmStats};
+use crate::core::{peer, TORRENT_PEERS_LIMIT};
 use crate::shared::bit_torrent::info_hash::InfoHash;
 
 pub trait Repository {
     fn new() -> Self;
-    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool);
+    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool, Vec<Peer>);
 }
 
 pub trait TRepositoryAsync {
     fn new() -> Self;
-    fn update_torrent_with_peer_and_get_stats(
+    fn announce(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
-    ) -> impl std::future::Future<Output = (SwarmStats, bool)> + Send;
+    ) -> impl std::future::Future<Output = (SwarmStats, bool, Vec<Peer>)> + Send;
 }
 
 /// Structure that holds all torrents. Using `std::sync` locks.
@@ -54,7 +55,7 @@ impl Repository for Sync {
         }
     }
 
-    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool, Vec<Peer>) {
         let maybe_existing_torrent_entry = self.get_torrents().get(info_hash).cloned();
 
         let torrent_entry: Arc<std::sync::Mutex<Entry>> = if let Some(existing_torrent_entry) = maybe_existing_torrent_entry {
@@ -67,12 +68,17 @@ impl Repository for Sync {
             entry.clone()
         };
 
-        let (stats, stats_updated) = {
+        let (stats, stats_updated, peers) = {
             let mut torrent_entry_lock = torrent_entry.lock().unwrap();
             let stats_updated = torrent_entry_lock.insert_or_update_peer(peer);
             let stats = torrent_entry_lock.get_stats();
+            let peers: Vec<Peer> = torrent_entry_lock
+                .get_peers_for_peer(peer, TORRENT_PEERS_LIMIT)
+                .into_iter()
+                .copied()
+                .collect();
 
-            (stats, stats_updated)
+            (stats, stats_updated, peers)
         };
 
         (
@@ -82,6 +88,7 @@ impl Repository for Sync {
                 incomplete: stats.2,
             },
             stats_updated,
+            peers,
         )
     }
 }
@@ -118,7 +125,7 @@ impl Repository for SyncSingle {
         }
     }
 
-    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool, Vec<Peer>) {
         let mut torrents = self.torrents.write().unwrap();
 
         let torrent_entry = match torrents.entry(*info_hash) {
@@ -128,6 +135,11 @@ impl Repository for SyncSingle {
 
         let stats_updated = torrent_entry.insert_or_update_peer(peer);
         let stats = torrent_entry.get_stats();
+        let peers: Vec<Peer> = torrent_entry
+            .get_peers_for_peer(peer, TORRENT_PEERS_LIMIT)
+            .into_iter()
+            .copied()
+            .collect();
 
         (
             SwarmStats {
@@ -136,6 +148,7 @@ impl Repository for SyncSingle {
                 incomplete: stats.2,
             },
             stats_updated,
+            peers,
         )
     }
 }
@@ -153,7 +166,7 @@ impl TRepositoryAsync for RepositoryAsync {
         }
     }
 
-    async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+    async fn announce(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool, Vec<Peer>) {
         let maybe_existing_torrent_entry = self.get_torrents().await.get(info_hash).cloned();
 
         let torrent_entry: Arc<tokio::sync::Mutex<Entry>> = if let Some(existing_torrent_entry) = maybe_existing_torrent_entry {
@@ -166,12 +179,17 @@ impl TRepositoryAsync for RepositoryAsync {
             entry.clone()
         };
 
-        let (stats, stats_updated) = {
+        let (stats, stats_updated, peers) = {
             let mut torrent_entry_lock = torrent_entry.lock().await;
             let stats_updated = torrent_entry_lock.insert_or_update_peer(peer);
             let stats = torrent_entry_lock.get_stats();
+            let peers: Vec<Peer> = torrent_entry_lock
+                .get_peers_for_peer(peer, TORRENT_PEERS_LIMIT)
+                .into_iter()
+                .copied()
+                .collect();
 
-            (stats, stats_updated)
+            (stats, stats_updated, peers)
         };
 
         (
@@ -181,6 +199,7 @@ impl TRepositoryAsync for RepositoryAsync {
                 incomplete: stats.2,
             },
             stats_updated,
+            peers,
         )
     }
 }
@@ -211,7 +230,7 @@ impl TRepositoryAsync for AsyncSync {
         }
     }
 
-    async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
+    async fn announce(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool, Vec<Peer>) {
         let maybe_existing_torrent_entry = self.get_torrents().await.get(info_hash).cloned();
 
         let torrent_entry: Arc<std::sync::Mutex<Entry>> = if let Some(existing_torrent_entry) = maybe_existing_torrent_entry {
@@ -224,12 +243,17 @@ impl TRepositoryAsync for AsyncSync {
             entry.clone()
         };
 
-        let (stats, stats_updated) = {
+        let (stats, stats_updated, peers) = {
             let mut torrent_entry_lock = torrent_entry.lock().unwrap();
             let stats_updated = torrent_entry_lock.insert_or_update_peer(peer);
             let stats = torrent_entry_lock.get_stats();
+            let peers: Vec<Peer> = torrent_entry_lock
+                .get_peers_for_peer(peer, TORRENT_PEERS_LIMIT)
+                .into_iter()
+                .copied()
+                .collect();
 
-            (stats, stats_updated)
+            (stats, stats_updated, peers)
         };
 
         (
@@ -239,6 +263,7 @@ impl TRepositoryAsync for AsyncSync {
                 incomplete: stats.2,
             },
             stats_updated,
+            peers,
         )
     }
 }
@@ -269,24 +294,32 @@ impl TRepositoryAsync for RepositoryAsyncSingle {
         }
     }
 
-    async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool) {
-        let (stats, stats_updated) = {
-            let mut torrents_lock = self.torrents.write().await;
-            let torrent_entry = torrents_lock.entry(*info_hash).or_insert(Entry::new());
-            let stats_updated = torrent_entry.insert_or_update_peer(peer);
-            let stats = torrent_entry.get_stats();
-
-            (stats, stats_updated)
+    async fn announce(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (SwarmStats, bool, Vec<Peer>) {
+        let stats_updated = {
+            let mut torrents_write_lock = self.torrents.write().await;
+            let torrent_entry = torrents_write_lock.entry(*info_hash).or_insert(Entry::new());
+            torrent_entry.insert_or_update_peer(peer)
         };
 
-        (
-            SwarmStats {
-                downloaded: stats.1,
-                complete: stats.0,
-                incomplete: stats.2,
-            },
-            stats_updated,
-        )
+        let (stats, peers) = {
+            let torrents_read_lock = self.torrents.read().await;
+
+            match torrents_read_lock.get(info_hash) {
+                None => (SwarmStats::zeroed(), vec![]),
+                Some(entry) => {
+                    let stats = entry.get_swarm_metadata();
+                    let peers: Vec<Peer> = entry
+                        .get_peers_for_peer(peer, TORRENT_PEERS_LIMIT)
+                        .into_iter()
+                        .copied()
+                        .collect();
+
+                    (stats, peers)
+                }
+            }
+        };
+
+        (stats, stats_updated, peers)
     }
 }
 
