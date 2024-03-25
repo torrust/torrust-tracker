@@ -25,6 +25,7 @@ torrust-tracker-clock = { version = "3.0.0-alpha.12-develop", path = "../clock" 
 [dev-dependencies]
 criterion = { version = "0", features = ["async_tokio"] }
 rstest = "0"
+async-std = {version = "1", features = ["attributes", "tokio1"] }
 
 [[bench]]
 harness = false
