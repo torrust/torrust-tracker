@@ -1,3 +1,4 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::panic::Location;
 
 use thiserror::Error;
@@ -74,6 +75,24 @@ impl std::convert::From<&[u8]> for InfoHash {
         let mut ret = InfoHash([0u8; 20]);
         ret.0.clone_from_slice(data);
         ret
+    }
+}
+
+/// for testing
+impl std::convert::From<&DefaultHasher> for InfoHash {
+    fn from(data: &DefaultHasher) -> InfoHash {
+        let n = data.finish().to_le_bytes();
+        InfoHash([
+            n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[0], n[1], n[2],
+            n[3],
+        ])
+    }
+}
+
+impl std::convert::From<&i32> for InfoHash {
+    fn from(n: &i32) -> InfoHash {
+        let n = n.to_le_bytes();
+        InfoHash([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, n[0], n[1], n[2], n[3]])
     }
 }
 

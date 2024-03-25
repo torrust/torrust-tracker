@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use torrust_tracker_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::{DatabaseDriver, DurationSinceUnixEpoch};
+use torrust_tracker_primitives::{DatabaseDriver, DurationSinceUnixEpoch, PersistentTorrents};
 
 use super::{Database, Error};
 use crate::core::auth::{self, Key};
@@ -89,7 +89,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
-    async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error> {
+    async fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
@@ -101,12 +101,7 @@ impl Database for Sqlite {
             Ok((info_hash, completed))
         })?;
 
-        //torrent_iter?;
-        //let torrent_iter = torrent_iter.unwrap();
-
-        let torrents: Vec<(InfoHash, u32)> = torrent_iter.filter_map(std::result::Result::ok).collect();
-
-        Ok(torrents)
+        Ok(torrent_iter.filter_map(std::result::Result::ok).collect())
     }
 
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).

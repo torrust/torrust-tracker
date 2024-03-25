@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::iter::zip;
 use std::pin::Pin;
 use std::sync::Arc;
 
@@ -75,9 +76,9 @@ where
 
         for entry in entries {
             let stats = entry.lock().await.get_stats();
-            metrics.seeders += u64::from(stats.complete);
-            metrics.completed += u64::from(stats.downloaded);
-            metrics.leechers += u64::from(stats.incomplete);
+            metrics.complete += u64::from(stats.complete);
+            metrics.downloaded += u64::from(stats.downloaded);
+            metrics.incomplete += u64::from(stats.incomplete);
             metrics.torrents += 1;
         }
 
@@ -96,7 +97,7 @@ where
             let entry = EntryMutexTokio::new(
                 EntrySingle {
                     peers: BTreeMap::default(),
-                    completed: *completed,
+                    downloaded: *completed,
                 }
                 .into(),
             );
@@ -124,8 +125,27 @@ where
     }
 
     async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
+        let handles: Vec<Pin<Box<dyn Future<Output = Option<InfoHash>> + Send>>>;
+
+        {
+            let db = self.get_torrents();
+
+            handles = zip(db.keys().copied(), db.values().cloned())
+                .map(|(infohash, torrent)| {
+                    torrent
+                        .check_good(policy)
+                        .map(move |good| if good { None } else { Some(infohash) })
+                        .boxed()
+                })
+                .collect::<Vec<_>>();
+        }
+
+        let not_good = join_all(handles).await;
+
         let mut db = self.get_torrents_mut();
 
-        db.retain(|_, e| e.blocking_lock().is_not_zombie(policy));
+        for remove in not_good.into_iter().flatten() {
+            drop(db.remove(&remove));
+        }
     }
 }

@@ -117,9 +117,9 @@ pub trait Database: Sync + Send {
     ///
     /// It returns an array of tuples with the torrent
     /// [`InfoHash`] and the
-    /// [`completed`](torrust_tracker_torrent_repository::entry::Torrent::completed) counter
+    /// [`downloaded`](torrust_tracker_torrent_repository::entry::Torrent::downloaded) counter
     /// which is the number of times the torrent has been downloaded.
-    /// See [`Entry::completed`](torrust_tracker_torrent_repository::entry::Torrent::completed).
+    /// See [`Entry::downloaded`](torrust_tracker_torrent_repository::entry::Torrent::downloaded).
     ///
     /// # Context: Torrent Metrics
     ///

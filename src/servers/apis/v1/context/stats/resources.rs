@@ -50,9 +50,9 @@ impl From<TrackerMetrics> for Stats {
     fn from(metrics: TrackerMetrics) -> Self {
         Self {
             torrents: metrics.torrents_metrics.torrents,
-            seeders: metrics.torrents_metrics.seeders,
-            completed: metrics.torrents_metrics.completed,
-            leechers: metrics.torrents_metrics.leechers,
+            seeders: metrics.torrents_metrics.complete,
+            completed: metrics.torrents_metrics.downloaded,
+            leechers: metrics.torrents_metrics.incomplete,
             tcp4_connections_handled: metrics.protocol_metrics.tcp4_connections_handled,
             tcp4_announces_handled: metrics.protocol_metrics.tcp4_announces_handled,
             tcp4_scrapes_handled: metrics.protocol_metrics.tcp4_scrapes_handled,
@@ -82,9 +82,9 @@ mod tests {
         assert_eq!(
             Stats::from(TrackerMetrics {
                 torrents_metrics: TorrentsMetrics {
-                    seeders: 1,
-                    completed: 2,
-                    leechers: 3,
+                    complete: 1,
+                    downloaded: 2,
+                    incomplete: 3,
                     torrents: 4
                 },
                 protocol_metrics: Metrics {

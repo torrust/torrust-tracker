@@ -57,9 +57,9 @@ where
 
         for entry in self.get_torrents().values() {
             let stats = entry.lock().expect("it should get a lock").get_stats();
-            metrics.seeders += u64::from(stats.complete);
-            metrics.completed += u64::from(stats.downloaded);
-            metrics.leechers += u64::from(stats.incomplete);
+            metrics.complete += u64::from(stats.complete);
+            metrics.downloaded += u64::from(stats.downloaded);
+            metrics.incomplete += u64::from(stats.incomplete);
             metrics.torrents += 1;
         }
 
@@ -92,7 +92,7 @@ where
             let entry = EntryMutexStd::new(
                 EntrySingle {
                     peers: BTreeMap::default(),
-                    completed: *completed,
+                    downloaded: *completed,
                 }
                 .into(),
             );
@@ -118,6 +118,6 @@ where
     fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         let mut db = self.get_torrents_mut();
 
-        db.retain(|_, e| e.lock().expect("it should lock entry").is_not_zombie(policy));
+        db.retain(|_, e| e.lock().expect("it should lock entry").is_good(policy));
     }
 }

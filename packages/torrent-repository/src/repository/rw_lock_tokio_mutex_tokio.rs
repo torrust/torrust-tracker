@@ -70,11 +70,11 @@ where
     async fn get_metrics(&self) -> TorrentsMetrics {
         let mut metrics = TorrentsMetrics::default();
 
-        for entry in self.get_torrents().await.values().cloned() {
+        for entry in self.get_torrents().await.values() {
             let stats = entry.get_stats().await;
-            metrics.seeders += u64::from(stats.complete);
-            metrics.completed += u64::from(stats.downloaded);
-            metrics.leechers += u64::from(stats.incomplete);
+            metrics.complete += u64::from(stats.complete);
+            metrics.downloaded += u64::from(stats.downloaded);
+            metrics.incomplete += u64::from(stats.incomplete);
             metrics.torrents += 1;
         }
 
@@ -93,7 +93,7 @@ where
             let entry = EntryMutexTokio::new(
                 EntrySingle {
                     peers: BTreeMap::default(),
-                    completed: *completed,
+                    downloaded: *completed,
                 }
                 .into(),
             );
@@ -119,6 +119,16 @@ where
     async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         let mut db = self.get_torrents_mut().await;
 
-        db.retain(|_, e| e.blocking_lock().is_not_zombie(policy));
+        let mut not_good = Vec::<InfoHash>::default();
+
+        for (&infohash, torrent) in db.iter() {
+            if !torrent.clone().check_good(policy).await {
+                not_good.push(infohash);
+            }
+        }
+
+        for remove in not_good {
+            drop(db.remove(&remove));
+        }
     }
 }

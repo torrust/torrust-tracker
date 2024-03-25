@@ -51,7 +51,7 @@ use crate::{ser_unix_time_value, DurationSinceUnixEpoch, IPVersion, NumberOfByte
 ///     event: AnnounceEvent::Started,
 /// };
 /// ```
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Copy)]
+#[derive(Debug, Clone, Serialize, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Peer {
     /// ID used by the downloader peer
     pub peer_id: Id,
@@ -170,6 +170,16 @@ pub enum IdConversionError {
 impl From<[u8; 20]> for Id {
     fn from(bytes: [u8; 20]) -> Self {
         Id(bytes)
+    }
+}
+
+impl From<i32> for Id {
+    fn from(number: i32) -> Self {
+        let peer_id = number.to_le_bytes();
+        Id::from([
+            0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, peer_id[0], peer_id[1], peer_id[2],
+            peer_id[3],
+        ])
     }
 }
 
@@ -332,7 +342,7 @@ impl<P: Encoding> FromIterator<Peer> for Vec<P> {
 }
 
 pub mod fixture {
-    use std::net::SocketAddr;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     use super::{Id, Peer};
     use crate::announce_event::AnnounceEvent;
@@ -396,14 +406,20 @@ pub mod fixture {
     impl Default for Peer {
         fn default() -> Self {
             Self {
-                peer_id: Id(*b"-qB00000000000000000"),
-                peer_addr: std::net::SocketAddr::new(std::net::IpAddr::V4(std::net::Ipv4Addr::new(126, 0, 0, 1)), 8080),
+                peer_id: Id::default(),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes(0),
                 downloaded: NumberOfBytes(0),
                 left: NumberOfBytes(0),
                 event: AnnounceEvent::Started,
             }
+        }
+    }
+
+    impl Default for Id {
+        fn default() -> Self {
+            Self(*b"-qB00000000000000000")
         }
     }
 }

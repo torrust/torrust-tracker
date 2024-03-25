@@ -29,6 +29,3 @@
 use torrust_tracker_torrent_repository::TorrentsRwLockStdMutexStd;
 
 pub type Torrents = TorrentsRwLockStdMutexStd; // Currently Used
-
-#[cfg(test)]
-mod tests {}

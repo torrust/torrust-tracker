@@ -49,9 +49,9 @@ where
 
         for entry in self.get_torrents().values() {
             let stats = entry.get_stats();
-            metrics.seeders += u64::from(stats.complete);
-            metrics.completed += u64::from(stats.downloaded);
-            metrics.leechers += u64::from(stats.incomplete);
+            metrics.complete += u64::from(stats.complete);
+            metrics.downloaded += u64::from(stats.downloaded);
+            metrics.incomplete += u64::from(stats.incomplete);
             metrics.torrents += 1;
         }
 
@@ -75,7 +75,7 @@ where
     fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
         let mut torrents = self.get_torrents_mut();
 
-        for (info_hash, completed) in persistent_torrents {
+        for (info_hash, downloaded) in persistent_torrents {
             // Skip if torrent entry already exists
             if torrents.contains_key(info_hash) {
                 continue;
@@ -83,7 +83,7 @@ where
 
             let entry = EntrySingle {
                 peers: BTreeMap::default(),
-                completed: *completed,
+                downloaded: *downloaded,
             };
 
             torrents.insert(*info_hash, entry);
@@ -107,6 +107,6 @@ where
     fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         let mut db = self.get_torrents_mut();
 
-        db.retain(|_, e| e.is_not_zombie(policy));
+        db.retain(|_, e| e.is_good(policy));
     }
 }

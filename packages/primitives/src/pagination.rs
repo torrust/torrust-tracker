@@ -1,7 +1,8 @@
+use derive_more::Constructor;
 use serde::Deserialize;
 
 /// A struct to keep information about the page when results are being paginated
-#[derive(Deserialize, Copy, Clone, Debug, PartialEq)]
+#[derive(Deserialize, Copy, Clone, Debug, PartialEq, Constructor)]
 pub struct Pagination {
     /// The page number, starting at 0
     pub offset: u32,
@@ -10,11 +11,6 @@ pub struct Pagination {
 }
 
 impl Pagination {
-    #[must_use]
-    pub fn new(offset: u32, limit: u32) -> Self {
-        Self { offset, limit }
-    }
-
     #[must_use]
     pub fn new_with_options(offset_option: Option<u32>, limit_option: Option<u32>) -> Self {
         let offset = match offset_option {

@@ -684,7 +684,7 @@ impl Tracker {
     fn get_torrent_peers_for_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> Vec<Arc<peer::Peer>> {
         match self.torrents.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_peers_for_peer(peer, Some(TORRENT_PEERS_LIMIT)),
+            Some(entry) => entry.get_peers_for_client(&peer.peer_addr, Some(TORRENT_PEERS_LIMIT)),
         }
     }
 
@@ -1115,9 +1115,9 @@ mod tests {
             assert_eq!(
                 torrents_metrics,
                 TorrentsMetrics {
-                    seeders: 0,
-                    completed: 0,
-                    leechers: 0,
+                    complete: 0,
+                    downloaded: 0,
+                    incomplete: 0,
                     torrents: 0
                 }
             );
@@ -1164,9 +1164,9 @@ mod tests {
             assert_eq!(
                 torrent_metrics,
                 TorrentsMetrics {
-                    seeders: 0,
-                    completed: 0,
-                    leechers: 1,
+                    complete: 0,
+                    downloaded: 0,
+                    incomplete: 1,
                     torrents: 1,
                 }
             );
@@ -1191,9 +1191,9 @@ mod tests {
             assert_eq!(
                 (torrent_metrics),
                 (TorrentsMetrics {
-                    seeders: 0,
-                    completed: 0,
-                    leechers: 1_000_000,
+                    complete: 0,
+                    downloaded: 0,
+                    incomplete: 1_000_000,
                     torrents: 1_000_000,
                 }),
                 "{result_a:?} {result_b:?}"

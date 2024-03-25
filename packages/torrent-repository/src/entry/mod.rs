@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 //use serde::{Deserialize, Serialize};
@@ -17,7 +18,7 @@ pub trait Entry {
     fn get_stats(&self) -> SwarmMetadata;
 
     /// Returns True if Still a Valid Entry according to the Tracker Policy
-    fn is_not_zombie(&self, policy: &TrackerPolicy) -> bool;
+    fn is_good(&self, policy: &TrackerPolicy) -> bool;
 
     /// Returns True if the Peers is Empty
     fn peers_is_empty(&self) -> bool;
@@ -33,7 +34,7 @@ pub trait Entry {
     ///
     /// It filters out the input peer, typically because we want to return this
     /// list of peers to that client peer.
-    fn get_peers_for_peer(&self, client: &peer::Peer, limit: Option<usize>) -> Vec<Arc<peer::Peer>>;
+    fn get_peers_for_client(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>>;
 
     /// It updates a peer and returns true if the number of complete downloads have increased.
     ///
@@ -51,11 +52,11 @@ pub trait Entry {
 #[allow(clippy::module_name_repetitions)]
 pub trait EntrySync {
     fn get_stats(&self) -> SwarmMetadata;
-    fn is_not_zombie(&self, policy: &TrackerPolicy) -> bool;
+    fn is_good(&self, policy: &TrackerPolicy) -> bool;
     fn peers_is_empty(&self) -> bool;
     fn get_peers_len(&self) -> usize;
     fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>>;
-    fn get_peers_for_peer(&self, client: &peer::Peer, limit: Option<usize>) -> Vec<Arc<peer::Peer>>;
+    fn get_peers_for_client(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>>;
     fn insert_or_update_peer(&self, peer: &peer::Peer) -> bool;
     fn insert_or_update_peer_and_get_stats(&self, peer: &peer::Peer) -> (bool, SwarmMetadata);
     fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch);
@@ -63,16 +64,14 @@ pub trait EntrySync {
 
 #[allow(clippy::module_name_repetitions)]
 pub trait EntryAsync {
-    fn get_stats(self) -> impl std::future::Future<Output = SwarmMetadata> + Send;
-
-    #[allow(clippy::wrong_self_convention)]
-    fn is_not_zombie(self, policy: &TrackerPolicy) -> impl std::future::Future<Output = bool> + Send;
-    fn peers_is_empty(self) -> impl std::future::Future<Output = bool> + Send;
-    fn get_peers_len(self) -> impl std::future::Future<Output = usize> + Send;
-    fn get_peers(self, limit: Option<usize>) -> impl std::future::Future<Output = Vec<Arc<peer::Peer>>> + Send;
-    fn get_peers_for_peer(
-        self,
-        client: &peer::Peer,
+    fn get_stats(&self) -> impl std::future::Future<Output = SwarmMetadata> + Send;
+    fn check_good(self, policy: &TrackerPolicy) -> impl std::future::Future<Output = bool> + Send;
+    fn peers_is_empty(&self) -> impl std::future::Future<Output = bool> + Send;
+    fn get_peers_len(&self) -> impl std::future::Future<Output = usize> + Send;
+    fn get_peers(&self, limit: Option<usize>) -> impl std::future::Future<Output = Vec<Arc<peer::Peer>>> + Send;
+    fn get_peers_for_client(
+        &self,
+        client: &SocketAddr,
         limit: Option<usize>,
     ) -> impl std::future::Future<Output = Vec<Arc<peer::Peer>>> + Send;
     fn insert_or_update_peer(self, peer: &peer::Peer) -> impl std::future::Future<Output = bool> + Send;
@@ -88,11 +87,11 @@ pub trait EntryAsync {
 /// This is the tracker entry for a given torrent and contains the swarm data,
 /// that's the list of all the peers trying to download the same torrent.
 /// The tracker keeps one entry like this for every torrent.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Torrent {
     /// The swarm: a network of peers that are all trying to download the torrent associated to this entry
     // #[serde(skip)]
     pub(crate) peers: std::collections::BTreeMap<peer::Id, Arc<peer::Peer>>,
     /// The number of peers that have ever completed downloading the torrent associated to this entry
-    pub(crate) completed: u32,
+    pub(crate) downloaded: u32,
 }

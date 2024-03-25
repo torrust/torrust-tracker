@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 /// Announce events. Described on  the
 /// [BEP 3. The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Hash, Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum AnnounceEvent {
     /// The peer has started downloading the torrent.
     Started,

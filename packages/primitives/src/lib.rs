@@ -4,6 +4,7 @@
 //! which is a `BitTorrent` tracker server. These structures are used not only
 //! by the tracker server crate, but also by other crates in the Torrust
 //! ecosystem.
+use std::collections::BTreeMap;
 use std::time::Duration;
 
 use info_hash::InfoHash;
@@ -38,7 +39,7 @@ pub enum IPVersion {
 }
 
 /// Number of bytes downloaded, uploaded or pending to download (left) by the peer.
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Hash, Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct NumberOfBytes(pub i64);
 
 /// The database management system used by the tracker.
@@ -58,7 +59,7 @@ pub enum DatabaseDriver {
     MySQL,
 }
 
-pub type PersistentTorrents = Vec<(InfoHash, u32)>;
+pub type PersistentTorrents = BTreeMap<InfoHash, u32>;
 
 /// The mode the tracker will run in.
 ///

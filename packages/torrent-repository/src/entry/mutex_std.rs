@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use torrust_tracker_configuration::TrackerPolicy;
@@ -5,15 +6,15 @@ use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
 use super::{Entry, EntrySync};
-use crate::EntryMutexStd;
+use crate::{EntryMutexStd, EntrySingle};
 
 impl EntrySync for EntryMutexStd {
     fn get_stats(&self) -> SwarmMetadata {
         self.lock().expect("it should get a lock").get_stats()
     }
 
-    fn is_not_zombie(&self, policy: &TrackerPolicy) -> bool {
-        self.lock().expect("it should get a lock").is_not_zombie(policy)
+    fn is_good(&self, policy: &TrackerPolicy) -> bool {
+        self.lock().expect("it should get a lock").is_good(policy)
     }
 
     fn peers_is_empty(&self) -> bool {
@@ -28,8 +29,8 @@ impl EntrySync for EntryMutexStd {
         self.lock().expect("it should get lock").get_peers(limit)
     }
 
-    fn get_peers_for_peer(&self, client: &peer::Peer, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        self.lock().expect("it should get lock").get_peers_for_peer(client, limit)
+    fn get_peers_for_client(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
+        self.lock().expect("it should get lock").get_peers_for_client(client, limit)
     }
 
     fn insert_or_update_peer(&self, peer: &peer::Peer) -> bool {
@@ -46,5 +47,11 @@ impl EntrySync for EntryMutexStd {
         self.lock()
             .expect("it should lock the entry")
             .remove_inactive_peers(current_cutoff);
+    }
+}
+
+impl From<EntrySingle> for EntryMutexStd {
+    fn from(entry: EntrySingle) -> Self {
+        Arc::new(std::sync::Mutex::new(entry))
     }
 }
