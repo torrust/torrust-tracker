@@ -50,9 +50,9 @@ impl From<TrackerMetrics> for Stats {
     fn from(metrics: TrackerMetrics) -> Self {
         Self {
             torrents: metrics.torrents_metrics.torrents,
-            seeders: metrics.torrents_metrics.seeders,
-            completed: metrics.torrents_metrics.completed,
-            leechers: metrics.torrents_metrics.leechers,
+            seeders: metrics.torrents_metrics.complete,
+            completed: metrics.torrents_metrics.downloaded,
+            leechers: metrics.torrents_metrics.incomplete,
             tcp4_connections_handled: metrics.protocol_metrics.tcp4_connections_handled,
             tcp4_announces_handled: metrics.protocol_metrics.tcp4_announces_handled,
             tcp4_scrapes_handled: metrics.protocol_metrics.tcp4_scrapes_handled,
@@ -71,19 +71,20 @@ impl From<TrackerMetrics> for Stats {
 
 #[cfg(test)]
 mod tests {
+    use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+
     use super::Stats;
     use crate::core::services::statistics::TrackerMetrics;
     use crate::core::statistics::Metrics;
-    use crate::core::TorrentsMetrics;
 
     #[test]
     fn stats_resource_should_be_converted_from_tracker_metrics() {
         assert_eq!(
             Stats::from(TrackerMetrics {
                 torrents_metrics: TorrentsMetrics {
-                    seeders: 1,
-                    completed: 2,
-                    leechers: 3,
+                    complete: 1,
+                    downloaded: 2,
+                    incomplete: 3,
                     torrents: 4
                 },
                 protocol_metrics: Metrics {

@@ -13,7 +13,7 @@
 //!
 //! ```rust,no_run
 //! use torrust_tracker::core::auth::Key;
-//! use torrust_tracker::shared::clock::DurationSinceUnixEpoch;
+//! use torrust_tracker_primitives::DurationSinceUnixEpoch;
 //!
 //! pub struct ExpiringKey {
 //!     /// Random 32-char string. For example: `YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ`
@@ -47,10 +47,13 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use torrust_tracker_clock::clock::Time;
+use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_tracker_located_error::{DynError, LocatedError};
+use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
-use crate::shared::clock::{convert_from_timestamp_to_datetime_utc, Current, DurationSinceUnixEpoch, Time, TimeNow};
+use crate::CurrentClock;
 
 #[must_use]
 /// It generates a new random 32-char authentication [`ExpiringKey`]
@@ -69,7 +72,7 @@ pub fn generate(lifetime: Duration) -> ExpiringKey {
 
     ExpiringKey {
         key: random_id.parse::<Key>().unwrap(),
-        valid_until: Current::add(&lifetime).unwrap(),
+        valid_until: CurrentClock::now_add(&lifetime).unwrap(),
     }
 }
 
@@ -81,7 +84,7 @@ pub fn generate(lifetime: Duration) -> ExpiringKey {
 ///
 /// Will return `Error::KeyInvalid` if `auth_key.valid_until` is past the `None`.
 pub fn verify(auth_key: &ExpiringKey) -> Result<(), Error> {
-    let current_time: DurationSinceUnixEpoch = Current::now();
+    let current_time: DurationSinceUnixEpoch = CurrentClock::now();
 
     if auth_key.valid_until < current_time {
         Err(Error::KeyExpired {
@@ -212,8 +215,10 @@ mod tests {
         use std::str::FromStr;
         use std::time::Duration;
 
+        use torrust_tracker_clock::clock;
+        use torrust_tracker_clock::clock::stopped::Stopped as _;
+
         use crate::core::auth;
-        use crate::shared::clock::{Current, StoppedTime};
 
         #[test]
         fn should_be_parsed_from_an_string() {
@@ -227,7 +232,7 @@ mod tests {
         #[test]
         fn should_be_displayed() {
             // Set the time to the current time.
-            Current::local_set_to_unix_epoch();
+            clock::Stopped::local_set_to_unix_epoch();
 
             let expiring_key = auth::generate(Duration::from_secs(0));
 
@@ -247,18 +252,18 @@ mod tests {
         #[test]
         fn should_be_generate_and_verified() {
             // Set the time to the current time.
-            Current::local_set_to_system_time_now();
+            clock::Stopped::local_set_to_system_time_now();
 
             // Make key that is valid for 19 seconds.
             let expiring_key = auth::generate(Duration::from_secs(19));
 
             // Mock the time has passed 10 sec.
-            Current::local_add(&Duration::from_secs(10)).unwrap();
+            clock::Stopped::local_add(&Duration::from_secs(10)).unwrap();
 
             assert!(auth::verify(&expiring_key).is_ok());
 
             // Mock the time has passed another 10 sec.
-            Current::local_add(&Duration::from_secs(10)).unwrap();
+            clock::Stopped::local_add(&Duration::from_secs(10)).unwrap();
 
             assert!(auth::verify(&expiring_key).is_err());
         }

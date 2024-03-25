@@ -3,9 +3,9 @@ use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 
 use serde_repr::Serialize_repr;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::peer;
 
-use crate::core::peer::Id;
-use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::bit_torrent::tracker::http::{percent_encode_byte_array, ByteArray20};
 
 pub struct Query {
@@ -99,7 +99,7 @@ impl QueryBuilder {
             peer_addr: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 88)),
             downloaded: 0,
             uploaded: 0,
-            peer_id: Id(*b"-qB00000000000000001").0,
+            peer_id: peer::Id(*b"-qB00000000000000001").0,
             port: 17548,
             left: 0,
             event: Some(Event::Completed),
@@ -117,7 +117,7 @@ impl QueryBuilder {
     }
 
     #[must_use]
-    pub fn with_peer_id(mut self, peer_id: &Id) -> Self {
+    pub fn with_peer_id(mut self, peer_id: &peer::Id) -> Self {
         self.announce_query.peer_id = peer_id.0;
         self
     }

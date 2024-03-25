@@ -13,8 +13,8 @@ use crate::core::ScrapeData;
 ///
 /// ```rust
 /// use torrust_tracker::servers::http::v1::responses::scrape::Bencoded;
-/// use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
-/// use torrust_tracker::core::torrent::SwarmMetadata;
+/// use torrust_tracker_primitives::info_hash::InfoHash;
+/// use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 /// use torrust_tracker::core::ScrapeData;
 ///
 /// let info_hash = InfoHash([0x69; 20]);
@@ -92,10 +92,11 @@ impl IntoResponse for Bencoded {
 mod tests {
 
     mod scrape_response {
-        use crate::core::torrent::SwarmMetadata;
+        use torrust_tracker_primitives::info_hash::InfoHash;
+        use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+
         use crate::core::ScrapeData;
         use crate::servers::http::v1::responses::scrape::Bencoded;
-        use crate::shared::bit_torrent::info_hash::InfoHash;
 
         fn sample_scrape_data() -> ScrapeData {
             let info_hash = InfoHash([0x69; 20]);

@@ -4,9 +4,9 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use aquatic_udp_protocol::{Request, Response, TransactionId};
+use torrust_tracker_primitives::info_hash::InfoHash;
 
 use super::handlers::RequestId;
-use crate::shared::bit_torrent::info_hash::InfoHash;
 
 pub fn log_request(request: &Request, request_id: &RequestId, server_socket_addr: &SocketAddr) {
     let action = map_action_name(request);

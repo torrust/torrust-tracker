@@ -89,9 +89,9 @@ mod for_all_config_modes {
         use local_ip_address::local_ip;
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
-        use torrust_tracker::core::peer;
-        use torrust_tracker::core::peer::fixture::PeerBuilder;
-        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+        use torrust_tracker_primitives::info_hash::InfoHash;
+        use torrust_tracker_primitives::peer;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::common::fixtures::invalid_info_hashes;
@@ -750,7 +750,7 @@ mod for_all_config_modes {
                 assert_eq!(status, StatusCode::OK);
             }
 
-            let peers = env.tracker.get_torrent_peers(&info_hash).await;
+            let peers = env.tracker.get_torrent_peers(&info_hash);
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(peer_addr.ip(), client_ip);
@@ -786,7 +786,7 @@ mod for_all_config_modes {
                 assert_eq!(status, StatusCode::OK);
             }
 
-            let peers = env.tracker.get_torrent_peers(&info_hash).await;
+            let peers = env.tracker.get_torrent_peers(&info_hash);
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(peer_addr.ip(), env.tracker.get_maybe_external_ip().unwrap());
@@ -826,7 +826,7 @@ mod for_all_config_modes {
                 assert_eq!(status, StatusCode::OK);
             }
 
-            let peers = env.tracker.get_torrent_peers(&info_hash).await;
+            let peers = env.tracker.get_torrent_peers(&info_hash);
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(peer_addr.ip(), env.tracker.get_maybe_external_ip().unwrap());
@@ -864,7 +864,7 @@ mod for_all_config_modes {
                 assert_eq!(status, StatusCode::OK);
             }
 
-            let peers = env.tracker.get_torrent_peers(&info_hash).await;
+            let peers = env.tracker.get_torrent_peers(&info_hash);
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(peer_addr.ip(), IpAddr::from_str("150.172.238.178").unwrap());
@@ -887,9 +887,9 @@ mod for_all_config_modes {
         use std::str::FromStr;
 
         use tokio::net::TcpListener;
-        use torrust_tracker::core::peer;
-        use torrust_tracker::core::peer::fixture::PeerBuilder;
-        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+        use torrust_tracker_primitives::info_hash::InfoHash;
+        use torrust_tracker_primitives::peer;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::common::fixtures::invalid_info_hashes;
@@ -1113,7 +1113,7 @@ mod configured_as_whitelisted {
     mod and_receiving_an_announce_request {
         use std::str::FromStr;
 
-        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+        use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::servers::http::asserts::{assert_is_announce_response, assert_torrent_not_in_whitelist_error_response};
@@ -1160,9 +1160,9 @@ mod configured_as_whitelisted {
     mod receiving_an_scrape_request {
         use std::str::FromStr;
 
-        use torrust_tracker::core::peer;
-        use torrust_tracker::core::peer::fixture::PeerBuilder;
-        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+        use torrust_tracker_primitives::info_hash::InfoHash;
+        use torrust_tracker_primitives::peer;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::servers::http::asserts::assert_scrape_response;
@@ -1253,7 +1253,7 @@ mod configured_as_private {
         use std::time::Duration;
 
         use torrust_tracker::core::auth::Key;
-        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+        use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::servers::http::asserts::{assert_authentication_error_response, assert_is_announce_response};
@@ -1329,9 +1329,9 @@ mod configured_as_private {
         use std::time::Duration;
 
         use torrust_tracker::core::auth::Key;
-        use torrust_tracker::core::peer;
-        use torrust_tracker::core::peer::fixture::PeerBuilder;
-        use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+        use torrust_tracker_primitives::info_hash::InfoHash;
+        use torrust_tracker_primitives::peer;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::servers::http::asserts::{assert_authentication_error_response, assert_scrape_response};

@@ -1,7 +1,6 @@
 //! `BitTorrent` protocol primitive types
 //!
 //! [BEP 3. The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde::{Deserialize, Serialize};
 
 /// The maximum number of torrents that can be returned in an `scrape` response.
@@ -33,23 +32,3 @@ enum Actions {
     Scrape = 2,
     Error = 3,
 }
-
-/// Announce events. Described on  the
-/// [BEP 3. The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-#[derive(Serialize, Deserialize)]
-#[serde(remote = "AnnounceEvent")]
-pub enum AnnounceEventDef {
-    /// The peer has started downloading the torrent.
-    Started,
-    /// The peer has ceased downloading the torrent.
-    Stopped,
-    /// The peer has completed downloading the torrent.
-    Completed,
-    /// This is one of the announcements done at regular intervals.
-    None,
-}
-
-/// Number of bytes downloaded, uploaded or pending to download (left) by the peer.
-#[derive(Serialize, Deserialize)]
-#[serde(remote = "NumberOfBytes")]
-pub struct NumberOfBytesDef(pub i64);

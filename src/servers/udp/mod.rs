@@ -62,7 +62,7 @@
 //! ```
 //!
 //! For the `Announce` request there is a wrapper struct [`AnnounceWrapper`](crate::servers::udp::request::AnnounceWrapper).
-//! It was added to add an extra field with the internal [`InfoHash`](crate::shared::bit_torrent::info_hash::InfoHash) struct.
+//! It was added to add an extra field with the internal [`InfoHash`](torrust_tracker_primitives::info_hash::InfoHash) struct.
 //!
 //! ### Connect
 //!
@@ -345,7 +345,7 @@
 //! packet.
 //!
 //! We are using a wrapper struct for the aquatic [`AnnounceRequest`](aquatic_udp_protocol::request::AnnounceRequest)
-//! struct, because we have our internal [`InfoHash`](crate::shared::bit_torrent::info_hash::InfoHash)
+//! struct, because we have our internal [`InfoHash`](torrust_tracker_primitives::info_hash::InfoHash)
 //! struct.
 //!
 //! ```text
@@ -467,15 +467,15 @@
 //!
 //! ### Scrape
 //!
-//! The `scrape` request allows a peer to get [swarm metadata](crate::core::torrent::SwarmMetadata)
+//! The `scrape` request allows a peer to get [swarm metadata](torrust_tracker_primitives::swarm_metadata::SwarmMetadata)
 //! for multiple torrents at the same time.
 //!
-//! The response contains the [swarm metadata](crate::core::torrent::SwarmMetadata)
+//! The response contains the [swarm metadata](torrust_tracker_primitives::swarm_metadata::SwarmMetadata)
 //! for that torrent:
 //!
-//! - [complete](crate::core::torrent::SwarmMetadata::complete)
-//! - [downloaded](crate::core::torrent::SwarmMetadata::downloaded)
-//! - [incomplete](crate::core::torrent::SwarmMetadata::incomplete)
+//! - [complete](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::complete)
+//! - [downloaded](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::downloaded)
+//! - [incomplete](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::incomplete)
 //!
 //! > **NOTICE**: up to about 74 torrents can be scraped at once. A full scrape
 //! can't be done with this protocol. This is a limitation of the UDP protocol.

@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use torrust_tracker::shared::bit_torrent::info_hash::InfoHash;
+use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_test_helpers::configuration;
 
 use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};

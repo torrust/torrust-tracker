@@ -10,13 +10,14 @@ use axum_extra::extract::Query;
 use log::debug;
 use serde::{de, Deserialize, Deserializer};
 use thiserror::Error;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::pagination::Pagination;
 
 use super::responses::{torrent_info_response, torrent_list_response, torrent_not_known_response};
-use crate::core::services::torrent::{get_torrent_info, get_torrents, get_torrents_page, Pagination};
+use crate::core::services::torrent::{get_torrent_info, get_torrents, get_torrents_page};
 use crate::core::Tracker;
 use crate::servers::apis::v1::responses::invalid_info_hash_param_response;
 use crate::servers::apis::InfoHashParam;
-use crate::shared::bit_torrent::info_hash::InfoHash;
 
 /// It handles the request to get the torrent data.
 ///
@@ -82,7 +83,7 @@ pub async fn get_torrents_handler(State(tracker): State<Arc<Tracker>>, paginatio
         torrent_list_response(
             &get_torrents_page(
                 tracker.clone(),
-                &Pagination::new_with_options(pagination.0.offset, pagination.0.limit),
+                Some(&Pagination::new_with_options(pagination.0.offset, pagination.0.limit)),
             )
             .await,
         )

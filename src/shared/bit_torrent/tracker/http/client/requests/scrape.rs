@@ -2,7 +2,8 @@ use std::error::Error;
 use std::fmt::{self};
 use std::str::FromStr;
 
-use crate::shared::bit_torrent::info_hash::InfoHash;
+use torrust_tracker_primitives::info_hash::InfoHash;
+
 use crate::shared::bit_torrent::tracker::http::{percent_encode_byte_array, ByteArray20};
 
 pub struct Query {

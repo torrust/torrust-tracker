@@ -64,11 +64,11 @@ use aquatic_udp_protocol::Response::{self, AnnounceIpv4, AnnounceIpv6, Scrape};
 use aquatic_udp_protocol::{Port, TransactionId};
 use clap::{Parser, Subcommand};
 use log::{debug, LevelFilter};
+use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
 use url::Url;
 
 use crate::console::clients::udp::checker;
 use crate::console::clients::udp::responses::{AnnounceResponseDto, ScrapeResponseDto};
-use crate::shared::bit_torrent::info_hash::InfoHash as TorrustInfoHash;
 
 const ASSIGNED_BY_OS: u16 = 0;
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;

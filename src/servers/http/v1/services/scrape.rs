@@ -11,8 +11,9 @@
 use std::net::IpAddr;
 use std::sync::Arc;
 
+use torrust_tracker_primitives::info_hash::InfoHash;
+
 use crate::core::{statistics, ScrapeData, Tracker};
-use crate::shared::bit_torrent::info_hash::InfoHash;
 
 /// The HTTP tracker `scrape` service.
 ///
@@ -60,13 +61,13 @@ mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use torrust_tracker_primitives::announce_event::AnnounceEvent;
+    use torrust_tracker_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::core::services::tracker_factory;
-    use crate::core::{peer, Tracker};
-    use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::shared::clock::DurationSinceUnixEpoch;
+    use crate::core::Tracker;
 
     fn public_tracker() -> Tracker {
         tracker_factory(&configuration::ephemeral_mode_public())
@@ -99,9 +100,9 @@ mod tests {
         use std::sync::Arc;
 
         use mockall::predicate::eq;
+        use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::core::torrent::SwarmMetadata;
         use crate::core::{statistics, ScrapeData, Tracker};
         use crate::servers::http::v1::services::scrape::invoke;
         use crate::servers::http::v1::services::scrape::tests::{

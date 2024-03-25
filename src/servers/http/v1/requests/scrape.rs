@@ -5,11 +5,11 @@ use std::panic::Location;
 
 use thiserror::Error;
 use torrust_tracker_located_error::{Located, LocatedError};
+use torrust_tracker_primitives::info_hash::{self, InfoHash};
 
 use crate::servers::http::percent_encoding::percent_decode_info_hash;
 use crate::servers::http::v1::query::Query;
 use crate::servers::http::v1::responses;
-use crate::shared::bit_torrent::info_hash::{ConversionError, InfoHash};
 
 pub type NumberOfBytes = i64;
 
@@ -34,7 +34,7 @@ pub enum ParseScrapeQueryError {
     InvalidInfoHashParam {
         param_name: String,
         param_value: String,
-        source: LocatedError<'static, ConversionError>,
+        source: LocatedError<'static, info_hash::ConversionError>,
     },
 }
 
@@ -86,9 +86,10 @@ mod tests {
 
     mod scrape_request {
 
+        use torrust_tracker_primitives::info_hash::InfoHash;
+
         use crate::servers::http::v1::query::Query;
         use crate::servers::http::v1::requests::scrape::{Scrape, INFO_HASH};
-        use crate::shared::bit_torrent::info_hash::InfoHash;
 
         #[test]
         fn should_be_instantiated_from_the_url_query_with_only_one_infohash() {

@@ -3,12 +3,12 @@ use std::str::FromStr;
 use colored::Colorize;
 use log::debug;
 use reqwest::Url as ServiceUrl;
+use torrust_tracker_primitives::info_hash::InfoHash;
 use url::Url;
 
 use crate::console::clients::checker::console::Console;
 use crate::console::clients::checker::printer::Printer;
 use crate::console::clients::checker::service::{CheckError, CheckResult};
-use crate::shared::bit_torrent::info_hash::InfoHash;
 use crate::shared::bit_torrent::tracker::http::client::requests::announce::QueryBuilder;
 use crate::shared::bit_torrent::tracker::http::client::responses::announce::Announce;
 use crate::shared::bit_torrent::tracker::http::client::responses::scrape;

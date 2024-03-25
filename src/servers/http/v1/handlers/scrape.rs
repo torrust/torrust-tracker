@@ -111,6 +111,7 @@ mod tests {
     use std::net::IpAddr;
     use std::str::FromStr;
 
+    use torrust_tracker_primitives::info_hash::InfoHash;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::core::services::tracker_factory;
@@ -118,7 +119,6 @@ mod tests {
     use crate::servers::http::v1::requests::scrape::Scrape;
     use crate::servers::http::v1::responses;
     use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
-    use crate::shared::bit_torrent::info_hash::InfoHash;
 
     fn private_tracker() -> Tracker {
         tracker_factory(&configuration::ephemeral_mode_private())

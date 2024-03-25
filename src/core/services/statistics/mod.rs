@@ -40,8 +40,10 @@ pub mod setup;
 
 use std::sync::Arc;
 
+use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+
 use crate::core::statistics::Metrics;
-use crate::core::{TorrentsMetrics, Tracker};
+use crate::core::Tracker;
 
 /// All the metrics collected by the tracker.
 #[derive(Debug, PartialEq)]
@@ -59,7 +61,7 @@ pub struct TrackerMetrics {
 
 /// It returns all the [`TrackerMetrics`]
 pub async fn get_metrics(tracker: Arc<Tracker>) -> TrackerMetrics {
-    let torrents_metrics = tracker.get_torrents_metrics().await;
+    let torrents_metrics = tracker.get_torrents_metrics();
     let stats = tracker.get_stats().await;
 
     TrackerMetrics {
@@ -86,6 +88,7 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::core;
@@ -105,7 +108,7 @@ mod tests {
         assert_eq!(
             tracker_metrics,
             TrackerMetrics {
-                torrents_metrics: core::TorrentsMetrics::default(),
+                torrents_metrics: TorrentsMetrics::default(),
                 protocol_metrics: core::statistics::Metrics::default(),
             }
         );

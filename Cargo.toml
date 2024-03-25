@@ -37,7 +37,6 @@ axum = { version = "0", features = ["macros"] }
 axum-client-ip = "0"
 axum-extra = { version = "0", features = ["query"] }
 axum-server = { version = "0", features = ["tls-rustls"] }
-binascii = "0"
 chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
 colored = "2"
@@ -62,14 +61,14 @@ serde_bencode = "0"
 serde_bytes = "0"
 serde_json = "1"
 serde_repr = "0"
-tdyne-peer-id = "1"
-tdyne-peer-id-registry = "0"
 thiserror = "1"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "packages/configuration" }
+torrust-tracker-clock = { version = "3.0.0-alpha.12-develop", path = "packages/clock" }
 torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.12-develop", path = "contrib/bencode" }
 torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "packages/located-error" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "packages/primitives" }
+torrust-tracker-torrent-repository = { version = "3.0.0-alpha.12-develop", path = "packages/torrent-repository" }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
 trace = "0"
 tracing = "0"
@@ -91,7 +90,7 @@ members = [
     "packages/located-error",
     "packages/primitives",
     "packages/test-helpers",
-    "packages/torrent-repository-benchmarks",
+    "packages/torrent-repository"
 ]
 
 [profile.dev]

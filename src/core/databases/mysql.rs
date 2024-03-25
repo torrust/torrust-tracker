@@ -8,12 +8,12 @@ use r2d2::Pool;
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MySqlConnectionManager;
-use torrust_tracker_primitives::DatabaseDriver;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::{DatabaseDriver, PersistentTorrents};
 
 use super::{Database, Error};
 use crate::core::auth::{self, Key};
 use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
-use crate::shared::bit_torrent::info_hash::InfoHash;
 
 const DRIVER: DatabaseDriver = DatabaseDriver::MySQL;
 
@@ -105,7 +105,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
-    async fn load_persistent_torrents(&self) -> Result<Vec<(InfoHash, u32)>, Error> {
+    async fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let torrents = conn.query_map(
@@ -116,7 +116,7 @@ impl Database for Mysql {
             },
         )?;
 
-        Ok(torrents)
+        Ok(torrents.iter().copied().collect())
     }
 
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
