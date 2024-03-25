@@ -28,8 +28,10 @@
 //! Peer that don not have a full copy of the torrent data are called "leechers".
 //!
 //! > **NOTICE**: that both [`SwarmMetadata`] and [`SwarmStats`] contain the same information. [`SwarmMetadata`] is using the names used on [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html).
-pub mod repository;
+pub mod repository_asyn;
+pub mod repository_sync;
 
+use std::sync::Arc;
 use std::time::Duration;
 
 use aquatic_udp_protocol::AnnounceEvent;
@@ -52,6 +54,9 @@ pub struct Entry {
     /// The number of peers that have ever completed downloading the torrent associated to this entry
     pub completed: u32,
 }
+
+pub type EntryMutexTokio = Arc<tokio::sync::Mutex<Entry>>;
+pub type EntryMutexStd = Arc<std::sync::Mutex<Entry>>;
 
 /// Swarm statistics for one torrent.
 /// Swarm metadata dictionary in the scrape response.

@@ -73,9 +73,13 @@ impl ResponseBuilder {
 
 #[derive(Debug)]
 pub enum BencodeParseError {
+    #[allow(dead_code)]
     InvalidValueExpectedDict { value: Value },
+    #[allow(dead_code)]
     InvalidValueExpectedInt { value: Value },
+    #[allow(dead_code)]
     InvalidFileField { value: Value },
+    #[allow(dead_code)]
     MissingFileField { field_name: String },
 }
 

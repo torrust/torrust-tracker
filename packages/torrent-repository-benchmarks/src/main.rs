@@ -7,7 +7,7 @@ use torrust_torrent_repository_benchmarks::benches::asyn::{
 use torrust_torrent_repository_benchmarks::benches::sync::{
     add_multiple_torrents_in_parallel, add_one_torrent, update_multiple_torrents_in_parallel, update_one_torrent_in_parallel,
 };
-use torrust_tracker::core::torrent::repository::{AsyncSync, RepositoryAsync, RepositoryAsyncSingle, Sync, SyncSingle};
+use torrust_tracker::core::torrent::{Entry, EntryMutexStd, EntryMutexTokio};
 
 #[allow(clippy::too_many_lines)]
 #[allow(clippy::print_literal)]
@@ -25,67 +25,67 @@ fn main() {
     println!(
         "{}: Avg/AdjAvg: {:?}",
         "add_one_torrent",
-        rt.block_on(async_add_one_torrent::<RepositoryAsyncSingle>(1_000_000))
+        rt.block_on(async_add_one_torrent::<Entry>(1_000_000))
     );
     println!(
         "{}: Avg/AdjAvg: {:?}",
         "update_one_torrent_in_parallel",
-        rt.block_on(async_update_one_torrent_in_parallel::<RepositoryAsyncSingle>(&rt, 10))
+        rt.block_on(async_update_one_torrent_in_parallel::<Entry>(&rt, 10))
     );
     println!(
         "{}: Avg/AdjAvg: {:?}",
         "add_multiple_torrents_in_parallel",
-        rt.block_on(async_add_multiple_torrents_in_parallel::<RepositoryAsyncSingle>(&rt, 10))
+        rt.block_on(async_add_multiple_torrents_in_parallel::<Entry>(&rt, 10))
     );
     println!(
         "{}: Avg/AdjAvg: {:?}",
         "update_multiple_torrents_in_parallel",
-        rt.block_on(async_update_multiple_torrents_in_parallel::<RepositoryAsyncSingle>(&rt, 10))
+        rt.block_on(async_update_multiple_torrents_in_parallel::<Entry>(&rt, 10))
     );
 
     if let Some(true) = args.compare {
         println!();
 
         println!("std::sync::RwLock<std::collections::BTreeMap<InfoHash, Entry>>");
-        println!(
-            "{}: Avg/AdjAvg: {:?}",
-            "add_one_torrent",
-            add_one_torrent::<SyncSingle>(1_000_000)
-        );
+        println!("{}: Avg/AdjAvg: {:?}", "add_one_torrent", add_one_torrent::<Entry>(1_000_000));
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "update_one_torrent_in_parallel",
-            rt.block_on(update_one_torrent_in_parallel::<SyncSingle>(&rt, 10))
+            rt.block_on(update_one_torrent_in_parallel::<Entry>(&rt, 10))
         );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "add_multiple_torrents_in_parallel",
-            rt.block_on(add_multiple_torrents_in_parallel::<SyncSingle>(&rt, 10))
+            rt.block_on(add_multiple_torrents_in_parallel::<Entry>(&rt, 10))
         );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "update_multiple_torrents_in_parallel",
-            rt.block_on(update_multiple_torrents_in_parallel::<SyncSingle>(&rt, 10))
+            rt.block_on(update_multiple_torrents_in_parallel::<Entry>(&rt, 10))
         );
 
         println!();
 
         println!("std::sync::RwLock<std::collections::BTreeMap<InfoHash, Arc<std::sync::Mutex<Entry>>>>");
-        println!("{}: Avg/AdjAvg: {:?}", "add_one_torrent", add_one_torrent::<Sync>(1_000_000));
+        println!(
+            "{}: Avg/AdjAvg: {:?}",
+            "add_one_torrent",
+            add_one_torrent::<EntryMutexStd>(1_000_000)
+        );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "update_one_torrent_in_parallel",
-            rt.block_on(update_one_torrent_in_parallel::<Sync>(&rt, 10))
+            rt.block_on(update_one_torrent_in_parallel::<EntryMutexStd>(&rt, 10))
         );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "add_multiple_torrents_in_parallel",
-            rt.block_on(add_multiple_torrents_in_parallel::<Sync>(&rt, 10))
+            rt.block_on(add_multiple_torrents_in_parallel::<EntryMutexStd>(&rt, 10))
         );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "update_multiple_torrents_in_parallel",
-            rt.block_on(update_multiple_torrents_in_parallel::<Sync>(&rt, 10))
+            rt.block_on(update_multiple_torrents_in_parallel::<EntryMutexStd>(&rt, 10))
         );
 
         println!();
@@ -94,22 +94,22 @@ fn main() {
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "add_one_torrent",
-            rt.block_on(async_add_one_torrent::<AsyncSync>(1_000_000))
+            rt.block_on(async_add_one_torrent::<EntryMutexStd>(1_000_000))
         );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "update_one_torrent_in_parallel",
-            rt.block_on(async_update_one_torrent_in_parallel::<AsyncSync>(&rt, 10))
+            rt.block_on(async_update_one_torrent_in_parallel::<EntryMutexStd>(&rt, 10))
         );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "add_multiple_torrents_in_parallel",
-            rt.block_on(async_add_multiple_torrents_in_parallel::<AsyncSync>(&rt, 10))
+            rt.block_on(async_add_multiple_torrents_in_parallel::<EntryMutexStd>(&rt, 10))
         );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "update_multiple_torrents_in_parallel",
-            rt.block_on(async_update_multiple_torrents_in_parallel::<AsyncSync>(&rt, 10))
+            rt.block_on(async_update_multiple_torrents_in_parallel::<EntryMutexStd>(&rt, 10))
         );
 
         println!();
@@ -118,22 +118,22 @@ fn main() {
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "add_one_torrent",
-            rt.block_on(async_add_one_torrent::<RepositoryAsync>(1_000_000))
+            rt.block_on(async_add_one_torrent::<EntryMutexTokio>(1_000_000))
         );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "update_one_torrent_in_parallel",
-            rt.block_on(async_update_one_torrent_in_parallel::<RepositoryAsync>(&rt, 10))
+            rt.block_on(async_update_one_torrent_in_parallel::<EntryMutexTokio>(&rt, 10))
         );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "add_multiple_torrents_in_parallel",
-            rt.block_on(async_add_multiple_torrents_in_parallel::<RepositoryAsync>(&rt, 10))
+            rt.block_on(async_add_multiple_torrents_in_parallel::<EntryMutexTokio>(&rt, 10))
         );
         println!(
             "{}: Avg/AdjAvg: {:?}",
             "update_multiple_torrents_in_parallel",
-            rt.block_on(async_update_multiple_torrents_in_parallel::<RepositoryAsync>(&rt, 10))
+            rt.block_on(async_update_multiple_torrents_in_parallel::<EntryMutexTokio>(&rt, 10))
         );
     }
 }

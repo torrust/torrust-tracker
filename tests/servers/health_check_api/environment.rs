@@ -12,6 +12,7 @@ use torrust_tracker_configuration::HealthCheckApi;
 
 #[derive(Debug)]
 pub enum Error {
+    #[allow(dead_code)]
     Error(String),
 }
 

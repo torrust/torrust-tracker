@@ -455,7 +455,8 @@ use torrust_tracker_primitives::TrackerMode;
 use self::auth::Key;
 use self::error::Error;
 use self::peer::Peer;
-use self::torrent::repository::{RepositoryAsyncSingle, TRepositoryAsync};
+use self::torrent::repository_asyn::{RepositoryAsync, RepositoryTokioRwLock};
+use self::torrent::Entry;
 use crate::core::databases::Database;
 use crate::core::torrent::{SwarmMetadata, SwarmStats};
 use crate::shared::bit_torrent::info_hash::InfoHash;
@@ -481,7 +482,7 @@ pub struct Tracker {
     policy: TrackerPolicy,
     keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
     whitelist: tokio::sync::RwLock<std::collections::HashSet<InfoHash>>,
-    pub torrents: Arc<RepositoryAsyncSingle>,
+    pub torrents: Arc<RepositoryTokioRwLock<Entry>>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
     external_ip: Option<IpAddr>,
@@ -579,7 +580,7 @@ impl Tracker {
             mode,
             keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
             whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),
-            torrents: Arc::new(RepositoryAsyncSingle::new()),
+            torrents: Arc::new(RepositoryTokioRwLock::<Entry>::default()),
             stats_event_sender,
             stats_repository,
             database,
@@ -1754,6 +1755,7 @@ mod tests {
             use aquatic_udp_protocol::AnnounceEvent;
 
             use crate::core::tests::the_tracker::{sample_info_hash, sample_peer, tracker_persisting_torrents_in_database};
+            use crate::core::torrent::repository_asyn::RepositoryAsync;
 
             #[tokio::test]
             async fn it_should_persist_the_number_of_completed_peers_for_all_torrents_into_the_database() {

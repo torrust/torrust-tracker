@@ -9,6 +9,7 @@ use std::sync::Arc;
 use serde::Deserialize;
 
 use crate::core::peer::Peer;
+use crate::core::torrent::repository_asyn::RepositoryAsync;
 use crate::core::Tracker;
 use crate::shared::bit_torrent::info_hash::InfoHash;
 
