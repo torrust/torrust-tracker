@@ -78,6 +78,11 @@ async fn handle(
    See https://github.com/torrust/torrust-tracker/discussions/240.
 */
 
+/* code-review (da2ce7): The IP that is supplied with the announce request is completely dropped
+   in favour of the IP supplied by the `client_ip_sources`.
+   Is this intended behavior, is the IP in the client announce request completely untrusted?
+*/
+
 async fn handle_announce(
     tracker: &Arc<Tracker>,
     announce_request: &Announce,
