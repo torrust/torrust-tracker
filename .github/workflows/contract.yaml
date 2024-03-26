@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        toolchain: [nightly]
+        toolchain: [nightly, stable]
 
     steps:
       - id: checkout
