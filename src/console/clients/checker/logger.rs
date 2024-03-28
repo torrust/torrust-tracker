@@ -2,6 +2,7 @@ use std::cell::RefCell;
 
 use super::printer::{Printer, CLEAR_SCREEN};
 
+#[derive(Debug, Clone)]
 pub struct Logger {
     output: RefCell<String>,
 }

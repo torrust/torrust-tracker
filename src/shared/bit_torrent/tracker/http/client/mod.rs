@@ -2,17 +2,31 @@ pub mod requests;
 pub mod responses;
 
 use std::net::IpAddr;
+use std::sync::Arc;
+use std::time::Duration;
 
+use hyper::StatusCode;
 use requests::announce::{self, Query};
 use requests::scrape;
 use reqwest::{Client as ReqwestClient, Response, Url};
+use thiserror::Error;
 
 use crate::core::auth::Key;
 
+#[derive(Debug, Clone, Error)]
+pub enum Error {
+    #[error("Failed to Build a Http Client: {err:?}")]
+    ClientBuildingError { err: Arc<reqwest::Error> },
+    #[error("Failed to get a response: {err:?}")]
+    ResponseError { err: Arc<reqwest::Error> },
+    #[error("Returned a non-success code: \"{code}\" with the response: \"{response:?}\"")]
+    UnsuccessfulResponse { code: StatusCode, response: Arc<Response> },
+}
+
 /// HTTP Tracker Client
 pub struct Client {
+    client: ReqwestClient,
     base_url: Url,
-    reqwest: ReqwestClient,
     key: Option<Key>,
 }
 
@@ -25,78 +39,144 @@ pub struct Client {
 ///         base url              path                                query
 /// ```
 impl Client {
-    /// # Panics
+    /// # Errors
     ///
     /// This method fails if the client builder fails.
-    #[must_use]
-    pub fn new(base_url: Url) -> Self {
-        Self {
+    pub fn new(base_url: Url, timeout: Duration) -> Result<Self, Error> {
+        let client = reqwest::Client::builder()
+            .timeout(timeout)
+            .build()
+            .map_err(|e| Error::ClientBuildingError { err: e.into() })?;
+
+        Ok(Self {
             base_url,
-            reqwest: reqwest::Client::builder().build().unwrap(),
+            client,
             key: None,
-        }
+        })
     }
 
     /// Creates the new client binding it to an specific local address.
     ///
-    /// # Panics
+    /// # Errors
     ///
     /// This method fails if the client builder fails.
-    #[must_use]
-    pub fn bind(base_url: Url, local_address: IpAddr) -> Self {
-        Self {
+    pub fn bind(base_url: Url, timeout: Duration, local_address: IpAddr) -> Result<Self, Error> {
+        let client = reqwest::Client::builder()
+            .timeout(timeout)
+            .local_address(local_address)
+            .build()
+            .map_err(|e| Error::ClientBuildingError { err: e.into() })?;
+
+        Ok(Self {
             base_url,
-            reqwest: reqwest::Client::builder().local_address(local_address).build().unwrap(),
+            client,
             key: None,
-        }
+        })
     }
 
-    /// # Panics
+    /// # Errors
     ///
     /// This method fails if the client builder fails.
-    #[must_use]
-    pub fn authenticated(base_url: Url, key: Key) -> Self {
-        Self {
+    pub fn authenticated(base_url: Url, key: Key, timeout: Duration) -> Result<Self, Error> {
+        let client = reqwest::Client::builder()
+            .timeout(timeout)
+            .build()
+            .map_err(|e| Error::ClientBuildingError { err: e.into() })?;
+
+        Ok(Self {
             base_url,
-            reqwest: reqwest::Client::builder().build().unwrap(),
+            client,
             key: Some(key),
+        })
+    }
+
+    /// # Errors
+    ///
+    /// This method fails if the returned response was not successful
+    pub async fn announce(&self, query: &announce::Query) -> Result<Response, Error> {
+        let response = self.get(&self.build_announce_path_and_query(query)).await?;
+
+        if response.status().is_success() {
+            Ok(response)
+        } else {
+            Err(Error::UnsuccessfulResponse {
+                code: response.status(),
+                response: response.into(),
+            })
         }
     }
 
-    pub async fn announce(&self, query: &announce::Query) -> Response {
-        self.get(&self.build_announce_path_and_query(query)).await
+    /// # Errors
+    ///
+    /// This method fails if the returned response was not successful
+    pub async fn scrape(&self, query: &scrape::Query) -> Result<Response, Error> {
+        let response = self.get(&self.build_scrape_path_and_query(query)).await?;
+
+        if response.status().is_success() {
+            Ok(response)
+        } else {
+            Err(Error::UnsuccessfulResponse {
+                code: response.status(),
+                response: response.into(),
+            })
+        }
     }
 
-    pub async fn scrape(&self, query: &scrape::Query) -> Response {
-        self.get(&self.build_scrape_path_and_query(query)).await
+    /// # Errors
+    ///
+    /// This method fails if the returned response was not successful
+    pub async fn announce_with_header(&self, query: &Query, key: &str, value: &str) -> Result<Response, Error> {
+        let response = self
+            .get_with_header(&self.build_announce_path_and_query(query), key, value)
+            .await?;
+
+        if response.status().is_success() {
+            Ok(response)
+        } else {
+            Err(Error::UnsuccessfulResponse {
+                code: response.status(),
+                response: response.into(),
+            })
+        }
     }
 
-    pub async fn announce_with_header(&self, query: &Query, key: &str, value: &str) -> Response {
-        self.get_with_header(&self.build_announce_path_and_query(query), key, value)
+    /// # Errors
+    ///
+    /// This method fails if the returned response was not successful
+    pub async fn health_check(&self) -> Result<Response, Error> {
+        let response = self.get(&self.build_path("health_check")).await?;
+
+        if response.status().is_success() {
+            Ok(response)
+        } else {
+            Err(Error::UnsuccessfulResponse {
+                code: response.status(),
+                response: response.into(),
+            })
+        }
+    }
+
+    /// # Errors
+    ///
+    /// This method fails if there was an error while sending request.
+    pub async fn get(&self, path: &str) -> Result<Response, Error> {
+        self.client
+            .get(self.build_url(path))
+            .send()
             .await
+            .map_err(|e| Error::ResponseError { err: e.into() })
     }
 
-    pub async fn health_check(&self) -> Response {
-        self.get(&self.build_path("health_check")).await
-    }
-
-    /// # Panics
+    /// # Errors
     ///
     /// This method fails if there was an error while sending request.
-    pub async fn get(&self, path: &str) -> Response {
-        self.reqwest.get(self.build_url(path)).send().await.unwrap()
-    }
-
-    /// # Panics
-    ///
-    /// This method fails if there was an error while sending request.
-    pub async fn get_with_header(&self, path: &str, key: &str, value: &str) -> Response {
-        self.reqwest
+    pub async fn get_with_header(&self, path: &str, key: &str, value: &str) -> Result<Response, Error> {
+        self.client
             .get(self.build_url(path))
             .header(key, value)
             .send()
             .await
-            .unwrap()
+            .map_err(|e| Error::ResponseError { err: e.into() })
     }
 
     fn build_announce_path_and_query(&self, query: &announce::Query) -> String {

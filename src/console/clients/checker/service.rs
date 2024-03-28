@@ -1,7 +1,10 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use anyhow::{Context, Result};
 use reqwest::Url;
+use thiserror::Error;
+use tokio::task::JoinSet;
 
 use super::checks;
 use super::config::Configuration;
@@ -15,28 +18,37 @@ pub struct Service {
 
 pub type CheckResult = Result<(), CheckError>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Error)]
 pub enum CheckError {
+    #[error("Error In Udp: socket: {socket_addr:?}")]
     UdpError { socket_addr: SocketAddr },
-    HttpError { url: Url },
-    HealthCheckError { url: Url },
+    #[error("Error In Http: url: {url:?}")]
+    HttpCheckError { url: Url, err: checks::http::Error },
+    #[error("Error In HeathCheck: url: {url:?}")]
+    HealthCheckError { url: Url, err: checks::health::Error },
 }
 
 impl Service {
     /// # Errors
     ///
-    /// Will return OK is all checks pass or an array with the check errors.
-    pub async fn run_checks(&self) -> Vec<CheckResult> {
+    /// It will return an error if some of the tests panic or otherwise fail to run.
+    /// On success it will return a vector of `Ok(())` of [`CheckResult`].
+    pub async fn run_checks(self) -> Result<Vec<CheckResult>> {
         self.console.println("Running checks for trackers ...");
 
-        let mut check_results = vec![];
+        let mut check_results = Vec::<CheckResult>::default();
 
-        checks::udp::run(&self.config.udp_trackers, &self.console, &mut check_results).await;
+        let timeout = self.config.client_timeout;
 
-        checks::http::run(&self.config.http_trackers, &self.console, &mut check_results).await;
+        let mut checks = JoinSet::new();
+        checks.spawn(checks::udp::run(self.config.udp_trackers.clone(), timeout, self.console));
+        checks.spawn(checks::http::run(self.config.http_trackers.clone(), timeout, self.console));
+        checks.spawn(checks::health::run(self.config.health_checks.clone(), timeout, self.console));
 
-        checks::health::run(&self.config.health_checks, &self.console, &mut check_results).await;
+        while let Some(results) = checks.join_next().await {
+            check_results.append(&mut results.context("failed to join check")?);
+        }
 
-        check_results
+        Ok(check_results)
     }
 }

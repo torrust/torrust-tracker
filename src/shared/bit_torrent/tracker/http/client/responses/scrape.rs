@@ -5,6 +5,7 @@ use std::str;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_bencode::value::Value;
+use thiserror::Error;
 
 use crate::shared::bit_torrent::tracker::http::{ByteArray20, InfoHash};
 
@@ -105,11 +106,15 @@ impl ResponseBuilder {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum BencodeParseError {
+    #[error("Invalid Value in Dictionary: {value:?}")]
     InvalidValueExpectedDict { value: Value },
+    #[error("Invalid Value in Integer: {value:?}")]
     InvalidValueExpectedInt { value: Value },
+    #[error("Invalid File Field: {value:?}")]
     InvalidFileField { value: Value },
+    #[error("Missing File Field: {field_name}")]
     MissingFileField { field_name: String },
 }
 
