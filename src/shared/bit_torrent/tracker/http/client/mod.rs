@@ -6,9 +6,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use hyper::StatusCode;
-use requests::announce::{self, Query};
-use requests::scrape;
-use reqwest::{Client as ReqwestClient, Response, Url};
+use reqwest::{Response, Url};
 use thiserror::Error;
 
 use crate::core::auth::Key;
@@ -25,7 +23,7 @@ pub enum Error {
 
 /// HTTP Tracker Client
 pub struct Client {
-    client: ReqwestClient,
+    client: reqwest::Client,
     base_url: Url,
     key: Option<Key>,
 }
@@ -93,7 +91,7 @@ impl Client {
     /// # Errors
     ///
     /// This method fails if the returned response was not successful
-    pub async fn announce(&self, query: &announce::Query) -> Result<Response, Error> {
+    pub async fn announce(&self, query: &requests::Announce) -> Result<Response, Error> {
         let response = self.get(&self.build_announce_path_and_query(query)).await?;
 
         if response.status().is_success() {
@@ -109,7 +107,7 @@ impl Client {
     /// # Errors
     ///
     /// This method fails if the returned response was not successful
-    pub async fn scrape(&self, query: &scrape::Query) -> Result<Response, Error> {
+    pub async fn scrape(&self, query: &requests::Scrape) -> Result<Response, Error> {
         let response = self.get(&self.build_scrape_path_and_query(query)).await?;
 
         if response.status().is_success() {
@@ -125,7 +123,7 @@ impl Client {
     /// # Errors
     ///
     /// This method fails if the returned response was not successful
-    pub async fn announce_with_header(&self, query: &Query, key: &str, value: &str) -> Result<Response, Error> {
+    pub async fn announce_with_header(&self, query: &requests::Announce, key: &str, value: &str) -> Result<Response, Error> {
         let response = self
             .get_with_header(&self.build_announce_path_and_query(query), key, value)
             .await?;
@@ -179,11 +177,11 @@ impl Client {
             .map_err(|e| Error::ResponseError { err: e.into() })
     }
 
-    fn build_announce_path_and_query(&self, query: &announce::Query) -> String {
+    fn build_announce_path_and_query(&self, query: &requests::Announce) -> String {
         format!("{}?{query}", self.build_path("announce"))
     }
 
-    fn build_scrape_path_and_query(&self, query: &scrape::Query) -> String {
+    fn build_scrape_path_and_query(&self, query: &requests::Scrape) -> String {
         format!("{}?{query}", self.build_path("scrape"))
     }
 

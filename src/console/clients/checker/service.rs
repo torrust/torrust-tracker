@@ -10,6 +10,7 @@ use super::checks;
 use super::config::Configuration;
 use super::console::Console;
 use crate::console::clients::checker::printer::Printer;
+use crate::console::clients::http;
 
 pub struct Service {
     pub(crate) config: Arc<Configuration>,
@@ -23,7 +24,7 @@ pub enum CheckError {
     #[error("Error In Udp: socket: {socket_addr:?}")]
     UdpError { socket_addr: SocketAddr },
     #[error("Error In Http: url: {url:?}")]
-    HttpCheckError { url: Url, err: checks::http::Error },
+    HttpCheckError { url: Url, err: http::Error },
     #[error("Error In HeathCheck: url: {url:?}")]
     HealthCheckError { url: Url, err: checks::health::Error },
 }
