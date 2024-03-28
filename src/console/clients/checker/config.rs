@@ -1,19 +1,19 @@
 use std::error::Error;
 use std::fmt;
 use std::net::SocketAddr;
+use std::time::Duration;
 
 use reqwest::Url as ServiceUrl;
 use serde::Deserialize;
+
+/// Client Timeout
+const TIMEOUT_SEC: Duration = Duration::from_secs(5);
 
 /// It parses the configuration from a JSON format.
 ///
 /// # Errors
 ///
 /// Will return an error if the configuration is not valid.
-///
-/// # Panics
-///
-/// Will panic if unable to read the configuration file.
 pub fn parse_from_json(json: &str) -> Result<Configuration, ConfigurationError> {
     let plain_config: PlainConfiguration = serde_json::from_str(json).map_err(ConfigurationError::JsonParseError)?;
     Configuration::try_from(plain_config)
@@ -22,7 +22,7 @@ pub fn parse_from_json(json: &str) -> Result<Configuration, ConfigurationError> 
 /// DTO for the configuration to serialize/deserialize configuration.
 ///
 /// Configuration does not need to be valid.
-#[derive(Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct PlainConfiguration {
     pub udp_trackers: Vec<String>,
     pub http_trackers: Vec<String>,
@@ -30,10 +30,12 @@ struct PlainConfiguration {
 }
 
 /// Validated configuration
+#[derive(Debug, Clone)]
 pub struct Configuration {
     pub udp_trackers: Vec<SocketAddr>,
     pub http_trackers: Vec<ServiceUrl>,
     pub health_checks: Vec<ServiceUrl>,
+    pub client_timeout: Duration,
 }
 
 #[derive(Debug)]
@@ -81,6 +83,7 @@ impl TryFrom<PlainConfiguration> for Configuration {
             udp_trackers,
             http_trackers,
             health_checks,
+            client_timeout: TIMEOUT_SEC,
         })
     }
 }
@@ -107,11 +110,11 @@ mod tests {
         );
         assert_eq!(
             config.http_trackers,
-            vec![ServiceUrl::parse("http://127.0.0.1:8080").unwrap()]
+            vec![ServiceUrl::parse("http://127.0.0.1:8080").expect("it should be a valid url")]
         );
         assert_eq!(
             config.health_checks,
-            vec![ServiceUrl::parse("http://127.0.0.1:8080/health").unwrap()]
+            vec![ServiceUrl::parse("http://127.0.0.1:8080/health").expect("it should be a valid url")]
         );
     }
 

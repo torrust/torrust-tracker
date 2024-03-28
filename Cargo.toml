@@ -70,7 +70,6 @@ torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "pa
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "packages/primitives" }
 torrust-tracker-torrent-repository = { version = "3.0.0-alpha.12-develop", path = "packages/torrent-repository" }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
-trace = "0"
 tracing = "0"
 url = "2"
 uuid = { version = "1", features = ["v4"] }

@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::time::Duration;
 
 use aquatic_udp_protocol::{Port, TransactionId};
 use colored::Colorize;
@@ -14,10 +15,12 @@ use crate::console::clients::udp::checker;
 const ASSIGNED_BY_OS: u16 = 0;
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
 
-pub async fn run(udp_trackers: &Vec<SocketAddr>, console: &Console, check_results: &mut Vec<CheckResult>) {
+pub async fn run(udp_trackers: Vec<SocketAddr>, _: Duration, console: Console) -> Vec<CheckResult> {
+    let mut check_results = Vec::default();
+
     console.println("UDP trackers ...");
 
-    for udp_tracker in udp_trackers {
+    for ref udp_tracker in udp_trackers {
         debug!("UDP tracker: {:?}", udp_tracker);
 
         let colored_tracker_url = udp_tracker.to_string().yellow();
@@ -84,4 +87,6 @@ pub async fn run(udp_trackers: &Vec<SocketAddr>, console: &Console, check_result
             console.println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
         }
     }
+
+    check_results
 }

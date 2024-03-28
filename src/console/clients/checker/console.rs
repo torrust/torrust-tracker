@@ -1,5 +1,6 @@
 use super::printer::{Printer, CLEAR_SCREEN};
 
+#[derive(Debug, Clone, Copy)]
 pub struct Console {}
 
 impl Default for Console {

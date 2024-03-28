@@ -31,5 +31,6 @@
   "evenBetterToml.formatter.trailingNewline": true,
   "evenBetterToml.formatter.reorderKeys": true,
   "evenBetterToml.formatter.reorderArrays": true,
+  "rust-analyzer.showUnlinkedFileNotification": false,
 
 }

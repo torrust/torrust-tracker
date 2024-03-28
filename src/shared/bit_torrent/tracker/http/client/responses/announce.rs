@@ -1,10 +1,13 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+use axum::body::Bytes;
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::peer;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Announce {
+use super::{Announce, BencodeParseError};
+
+#[derive(Serialize, Deserialize, Debug, Default, PartialEq, Eq, Clone)]
+pub(super) struct Response {
     pub complete: u32,
     pub incomplete: u32,
     pub interval: u32,
@@ -13,7 +16,35 @@ pub struct Announce {
     pub peers: Vec<DictionaryPeer>, // Peers using IPV4 and IPV6
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Default)]
+pub struct ResponseBuilder {
+    response: Response,
+}
+
+impl TryFrom<&Bytes> for ResponseBuilder {
+    type Error = BencodeParseError;
+
+    /// # Errors
+    ///
+    /// Will return an error if the deserialized bencoded response can't not be converted into a valid response.
+    fn try_from(value: &Bytes) -> Result<Self, Self::Error> {
+        let response: Response = serde_bencode::from_bytes(value).map_err(|e| BencodeParseError::ParseSerdeBencodeError {
+            data: value.to_vec(),
+            err: e.into(),
+        })?;
+
+        Ok(Self { response })
+    }
+}
+
+impl ResponseBuilder {
+    #[must_use]
+    pub fn build(self) -> Announce {
+        self.response.into()
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct DictionaryPeer {
     pub ip: String,
     #[serde(rename = "peer id")]

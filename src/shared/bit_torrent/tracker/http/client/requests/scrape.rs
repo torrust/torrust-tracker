@@ -4,10 +4,12 @@ use std::str::FromStr;
 
 use torrust_tracker_primitives::info_hash::InfoHash;
 
+use super::Scrape;
 use crate::shared::bit_torrent::tracker::http::{percent_encode_byte_array, ByteArray20};
 
+#[derive(Default, Debug, PartialEq, Eq, Clone)]
 pub struct Query {
-    pub info_hash: Vec<ByteArray20>,
+    pub infohashes: Vec<ByteArray20>,
 }
 
 impl fmt::Display for Query {
@@ -28,20 +30,29 @@ impl fmt::Display for ConversionError {
 
 impl Error for ConversionError {}
 
+impl FromIterator<InfoHash> for Query {
+    fn from_iter<T: IntoIterator<Item = InfoHash>>(iter: T) -> Self {
+        let mut infohashes = Vec::default();
+
+        for infohash in iter {
+            infohashes.push(infohash.0);
+        }
+
+        Query { infohashes }
+    }
+}
+
 impl TryFrom<&[String]> for Query {
     type Error = ConversionError;
 
-    fn try_from(info_hashes: &[String]) -> Result<Self, Self::Error> {
-        let mut validated_info_hashes: Vec<ByteArray20> = Vec::new();
+    fn try_from(values: &[String]) -> Result<Self, Self::Error> {
+        let mut infohashes = Vec::default();
 
-        for info_hash in info_hashes {
-            let validated_info_hash = InfoHash::from_str(info_hash).map_err(|_| ConversionError(info_hash.clone()))?;
-            validated_info_hashes.push(validated_info_hash.0);
+        for i in values {
+            infohashes.push(InfoHash::from_str(i).map_err(|_| ConversionError(i.clone()))?);
         }
 
-        Ok(Self {
-            info_hash: validated_info_hashes,
-        })
+        Ok(Query::from_iter(infohashes))
     }
 }
 
@@ -57,7 +68,7 @@ impl TryFrom<Vec<String>> for Query {
         }
 
         Ok(Self {
-            info_hash: validated_info_hashes,
+            infohashes: validated_info_hashes,
         })
     }
 }
@@ -66,12 +77,6 @@ impl TryFrom<Vec<String>> for Query {
 ///
 /// <https://www.bittorrent.org/beps/bep_0048.html>
 impl Query {
-    /// It builds the URL query component for the scrape request.
-    ///
-    /// This custom URL query params encoding is needed because `reqwest` does not allow
-    /// bytes arrays in query parameters. More info on this issue:
-    ///
-    /// <https://github.com/seanmonstar/reqwest/issues/1613>
     #[must_use]
     pub fn build(&self) -> String {
         self.params().to_string()
@@ -83,17 +88,15 @@ impl Query {
     }
 }
 
+#[derive(Default)]
 pub struct QueryBuilder {
     scrape_query: Query,
 }
 
-impl Default for QueryBuilder {
-    fn default() -> Self {
-        let default_scrape_query = Query {
-            info_hash: [InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap().0].to_vec(), // # DevSkim: ignore DS173237
-        };
+impl FromIterator<InfoHash> for QueryBuilder {
+    fn from_iter<T: IntoIterator<Item = InfoHash>>(iter: T) -> Self {
         Self {
-            scrape_query: default_scrape_query,
+            scrape_query: Query::from_iter(iter),
         }
     }
 }
@@ -101,19 +104,19 @@ impl Default for QueryBuilder {
 impl QueryBuilder {
     #[must_use]
     pub fn with_one_info_hash(mut self, info_hash: &InfoHash) -> Self {
-        self.scrape_query.info_hash = [info_hash.0].to_vec();
+        self.scrape_query.infohashes = [info_hash.0].to_vec();
         self
     }
 
     #[must_use]
     pub fn add_info_hash(mut self, info_hash: &InfoHash) -> Self {
-        self.scrape_query.info_hash.push(info_hash.0);
+        self.scrape_query.infohashes.push(info_hash.0);
         self
     }
 
     #[must_use]
-    pub fn query(self) -> Query {
-        self.scrape_query
+    pub fn build(self) -> Scrape {
+        self.scrape_query.into()
     }
 }
 
@@ -146,6 +149,12 @@ impl QueryParams {
     }
 }
 
+/// It builds the URL query component for the scrape request.
+///
+/// This custom URL query params encoding is needed because `reqwest` does not allow
+/// bytes arrays in query parameters. More info on this issue:
+///
+/// <https://github.com/seanmonstar/reqwest/issues/1613>
 impl std::fmt::Display for QueryParams {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let query = self
@@ -159,10 +168,17 @@ impl std::fmt::Display for QueryParams {
     }
 }
 
-impl QueryParams {
-    pub fn from(scrape_query: &Query) -> Self {
-        let info_hashes = scrape_query
-            .info_hash
+impl From<Scrape> for QueryParams {
+    fn from(value: Scrape) -> Self {
+        let query: &Query = &Scrape::into(value);
+        query.into()
+    }
+}
+
+impl From<&Query> for QueryParams {
+    fn from(value: &Query) -> Self {
+        let info_hashes = value
+            .infohashes
             .iter()
             .map(percent_encode_byte_array)
             .collect::<Vec<String>>();
