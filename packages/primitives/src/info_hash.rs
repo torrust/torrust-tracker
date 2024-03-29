@@ -94,8 +94,8 @@ impl std::convert::From<&DefaultHasher> for InfoHash {
     }
 }
 
-impl std::convert::From<&i32> for InfoHash {
-    fn from(n: &i32) -> InfoHash {
+impl std::convert::From<i32> for InfoHash {
+    fn from(n: i32) -> InfoHash {
         let n = n.to_le_bytes();
         InfoHash([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, n[0], n[1], n[2], n[3]])
     }

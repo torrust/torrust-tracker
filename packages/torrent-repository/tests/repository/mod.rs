@@ -115,7 +115,7 @@ fn many_out_of_order() -> Entries {
         let mut entry = EntrySingle::default();
         entry.insert_or_update_peer(&a_started_peer(i));
 
-        entries.insert((InfoHash::from(&i), entry));
+        entries.insert((InfoHash::from(i), entry));
     }
 
     // we keep the random order from the hashed set for the vector.

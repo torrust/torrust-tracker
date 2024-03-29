@@ -1,8 +1,8 @@
 use std::fmt;
-use std::net::{IpAddr, Ipv4Addr};
-use std::str::FromStr;
+use std::net::IpAddr;
 
 use serde_repr::Serialize_repr;
+use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
 
@@ -12,13 +12,13 @@ use crate::shared::bit_torrent::tracker::http::{percent_encode_byte_array, ByteA
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub(super) struct Query {
     pub info_hash: ByteArray20,
-    pub peer_addr: IpAddr,
-    pub downloaded: BaseTenASCII,
-    pub uploaded: BaseTenASCII,
+    pub peer_addr: Option<IpAddr>,
+    pub downloaded: Option<BaseTenASCII>,
+    pub uploaded: Option<BaseTenASCII>,
     pub peer_id: ByteArray20,
     pub port: PortNumber,
-    pub left: BaseTenASCII,
-    pub event: Option<Event>,
+    pub left: Option<BaseTenASCII>,
+    pub event: Option<AnnounceEvent>,
     pub compact: Option<Compact>,
 }
 
@@ -30,23 +30,6 @@ impl fmt::Display for Query {
 
 pub type BaseTenASCII = u64;
 pub type PortNumber = u16;
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum Event {
-    //Started,
-    //Stopped,
-    Completed,
-}
-
-impl fmt::Display for Event {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            //Event::Started => write!(f, "started"),
-            //Event::Stopped => write!(f, "stopped"),
-            Event::Completed => write!(f, "completed"),
-        }
-    }
-}
 
 #[derive(Serialize_repr, PartialEq, Eq, Debug, Clone, Copy)]
 #[repr(u8)]
@@ -64,6 +47,7 @@ impl fmt::Display for Compact {
     }
 }
 
+#[derive(Debug)]
 pub struct QueryBuilder {
     query: Query,
 }
@@ -73,49 +57,43 @@ impl QueryBuilder {
     ///
     /// Will panic if the default info-hash value is not a valid info-hash.
     #[must_use]
-    pub fn with_default_values() -> QueryBuilder {
+    pub fn new(info_hash: InfoHash, peer_id: peer::Id, port: u16) -> QueryBuilder {
         Self {
             query: Query {
-                info_hash: InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap().0, // # DevSkim: ignore DS173237
-                peer_addr: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 88)),
-                downloaded: 0,
-                uploaded: 0,
-                peer_id: peer::Id(*b"-qB00000000000000001").0,
-                port: 17548,
-                left: 0,
-                event: Some(Event::Completed),
-                compact: Some(Compact::NotAccepted),
+                info_hash: info_hash.0,
+                peer_addr: None,
+                downloaded: None,
+                uploaded: None,
+                peer_id: peer_id.0,
+                port,
+                left: None,
+                event: None,
+                compact: None,
             },
         }
     }
 
     #[must_use]
-    pub fn with_info_hash(mut self, info_hash: &InfoHash) -> Self {
-        self.query.info_hash = info_hash.0;
+    pub fn with_event(mut self, event: AnnounceEvent) -> Self {
+        self.query.event = Some(event);
         self
     }
 
     #[must_use]
-    pub fn with_peer_id(mut self, peer_id: &peer::Id) -> Self {
-        self.query.peer_id = peer_id.0;
-        self
-    }
-
-    #[must_use]
-    pub fn with_compact(mut self, compact: Compact) -> Self {
-        self.query.compact = Some(compact);
-        self
-    }
-
-    #[must_use]
-    pub fn with_peer_addr(mut self, peer_addr: &IpAddr) -> Self {
-        self.query.peer_addr = *peer_addr;
+    pub fn with_compact(mut self) -> Self {
+        self.query.compact = Some(Compact::Accepted);
         self
     }
 
     #[must_use]
     pub fn without_compact(mut self) -> Self {
-        self.query.compact = None;
+        self.query.compact = Some(Compact::NotAccepted);
+        self
+    }
+
+    #[must_use]
+    pub fn with_peer_addr(mut self, peer_addr: &IpAddr) -> Self {
+        self.query.peer_addr = Some(*peer_addr);
         self
     }
 
@@ -212,19 +190,16 @@ impl From<&Query> for QueryParams {
     fn from(value: &Query) -> Self {
         let query = value;
 
-        let event = query.event.as_ref().map(std::string::ToString::to_string);
-        let compact = query.compact.as_ref().map(std::string::ToString::to_string);
-
         Self {
             info_hash: Some(percent_encode_byte_array(&query.info_hash)),
-            peer_addr: Some(query.peer_addr.to_string()),
-            downloaded: Some(query.downloaded.to_string()),
-            uploaded: Some(query.uploaded.to_string()),
+            peer_addr: query.peer_addr.as_ref().map(std::string::ToString::to_string),
+            downloaded: query.downloaded.as_ref().map(std::string::ToString::to_string),
+            uploaded: query.uploaded.as_ref().map(std::string::ToString::to_string),
             peer_id: Some(percent_encode_byte_array(&query.peer_id)),
             port: Some(query.port.to_string()),
-            left: Some(query.left.to_string()),
-            event,
-            compact,
+            left: query.left.as_ref().map(std::string::ToString::to_string),
+            event: query.event.as_ref().map(std::string::ToString::to_string),
+            compact: query.compact.as_ref().map(std::string::ToString::to_string),
         }
     }
 }

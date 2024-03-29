@@ -1,20 +1,22 @@
 use std::sync::Arc;
 
 use derive_more::From;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub mod announce;
 pub mod error;
 pub mod scrape;
 
-#[derive(Serialize, Debug, From, PartialEq, Eq, Clone)]
+#[derive(Serialize, Deserialize, Debug, From, PartialEq, Eq, Clone)]
 pub struct Announce {
+    #[serde(flatten)]
     response: announce::Response,
 }
 
-#[derive(Serialize, Debug, From, PartialEq, Eq, Clone)]
+#[derive(Serialize, Deserialize, Debug, From, PartialEq, Eq, Clone)]
 pub struct Scrape {
+    #[serde(flatten)]
     response: scrape::Response,
 }
 

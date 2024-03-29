@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use thiserror::Error;
 use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::peer;
 use url::Url;
 
 use crate::shared::bit_torrent::tracker::http::client::requests::{announce, scrape};
@@ -35,11 +36,7 @@ pub async fn check_http_announce(url: &Url, timeout: Duration, info_hash: InfoHa
     let client = Client::new(url.clone(), timeout).map_err(|err| Error::HttpClientError { err })?;
 
     let response = client
-        .announce(
-            &announce::QueryBuilder::with_default_values()
-                .with_info_hash(&info_hash)
-                .build(),
-        )
+        .announce(&announce::QueryBuilder::new(info_hash, peer::Id::from(1), 17548).build())
         .await
         .map_err(|err| Error::HttpClientError { err })?;
 

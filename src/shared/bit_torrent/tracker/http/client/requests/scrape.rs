@@ -90,33 +90,37 @@ impl Query {
 
 #[derive(Default)]
 pub struct QueryBuilder {
-    scrape_query: Query,
+    query: Query,
 }
 
 impl FromIterator<InfoHash> for QueryBuilder {
     fn from_iter<T: IntoIterator<Item = InfoHash>>(iter: T) -> Self {
         Self {
-            scrape_query: Query::from_iter(iter),
+            query: Query::from_iter(iter),
+        }
+    }
+}
+
+impl From<&InfoHash> for QueryBuilder {
+    fn from(value: &InfoHash) -> Self {
+        Self {
+            query: Query {
+                infohashes: [value.0].to_vec(),
+            },
         }
     }
 }
 
 impl QueryBuilder {
     #[must_use]
-    pub fn with_one_info_hash(mut self, info_hash: &InfoHash) -> Self {
-        self.scrape_query.infohashes = [info_hash.0].to_vec();
-        self
-    }
-
-    #[must_use]
     pub fn add_info_hash(mut self, info_hash: &InfoHash) -> Self {
-        self.scrape_query.infohashes.push(info_hash.0);
+        self.query.infohashes.push(info_hash.0);
         self
     }
 
     #[must_use]
     pub fn build(self) -> Scrape {
-        self.scrape_query.into()
+        self.query.into()
     }
 }
 

@@ -1,10 +1,9 @@
 use std::panic::Location;
 
 use reqwest::Response;
-
-use super::responses::announce::{Announce, Compact, DeserializedCompact};
-use super::responses::scrape;
-use crate::servers::http::responses::error::Error;
+use torrust_tracker::shared::bit_torrent::tracker::http::client::responses;
+use torrust_tracker::shared::bit_torrent::tracker::http::client::responses::error::Error;
+use torrust_tracker_configuration::AnnouncePolicy;
 
 pub fn assert_bencoded_error(response_text: &String, expected_failure_reason: &str, location: &'static Location<'static>) {
     let error_failure_reason = serde_bencode::from_str::<Error>(response_text)
@@ -22,36 +21,36 @@ pub fn assert_bencoded_error(response_text: &String, expected_failure_reason: &s
     );
 }
 
-pub async fn assert_empty_announce_response(response: Response) {
+pub async fn assert_empty_announce_response(response: Response, policy: &AnnouncePolicy) {
     assert_eq!(response.status(), 200);
-    let announce_response: Announce = serde_bencode::from_str(&response.text().await.unwrap()).unwrap();
-    assert!(announce_response.peers.is_empty());
+    let announce_response: responses::Announce = serde_bencode::from_str(&response.text().await.unwrap()).unwrap();
+    assert_eq!(announce_response, responses::announce::ResponseBuilder::new(policy).build());
 }
 
-pub async fn assert_announce_response(response: Response, expected_announce_response: &Announce) {
+pub async fn assert_announce_response(response: Response, expected_announce_response: &responses::Announce) {
     assert_eq!(response.status(), 200);
 
     let body = response.bytes().await.unwrap();
 
-    let announce_response: Announce = serde_bencode::from_bytes(&body)
+    let announce_response: responses::Announce = serde_bencode::from_bytes(&body)
         .unwrap_or_else(|_| panic!("response body should be a valid announce response, got \"{:#?}\"", &body));
 
     assert_eq!(announce_response, *expected_announce_response);
 }
 
-pub async fn assert_compact_announce_response(response: Response, expected_response: &Compact) {
+pub async fn assert_compact_announce_response(response: Response, expected_response: &responses::announce::Compact) {
     assert_eq!(response.status(), 200);
 
     let bytes = response.bytes().await.unwrap();
 
-    let compact_announce = DeserializedCompact::from_bytes(&bytes).unwrap_or_else(|_| {
+    let compact_announce = responses::announce::DeserializedCompact::from_bytes(&bytes).unwrap_or_else(|_| {
         panic!(
             "response body should be a valid compact announce response, got \"{:?}\"",
             &bytes
         )
     });
 
-    let actual_response = Compact::from(compact_announce);
+    let actual_response = responses::announce::Compact::from(compact_announce);
 
     assert_eq!(actual_response, *expected_response);
 }
@@ -61,10 +60,12 @@ pub async fn assert_compact_announce_response(response: Response, expected_respo
 /// ```text
 /// b"d5:filesd20:\x9c8B\"\x13\xe3\x0b\xff!+0\xc3`\xd2o\x9a\x02\x13d\"d8:completei1e10:downloadedi0e10:incompletei0eeee"
 /// ```
-pub async fn assert_scrape_response(response: Response, expected_response: &scrape::Response) {
+pub async fn assert_scrape_response(response: Response, expected_response: &responses::Scrape) {
     assert_eq!(response.status(), 200);
 
-    let scrape_response = scrape::Response::try_from_bencoded(&response.bytes().await.unwrap()).unwrap();
+    let scrape_response = responses::scrape::ResponseBuilder::try_from(&response.bytes().await.unwrap())
+        .unwrap()
+        .build();
 
     assert_eq!(scrape_response, *expected_response);
 }
@@ -72,7 +73,7 @@ pub async fn assert_scrape_response(response: Response, expected_response: &scra
 pub async fn assert_is_announce_response(response: Response) {
     assert_eq!(response.status(), 200);
     let body = response.text().await.unwrap();
-    let _announce_response: Announce = serde_bencode::from_str(&body)
+    let _announce_response: responses::Announce = serde_bencode::from_str(&body)
         .unwrap_or_else(|_| panic!("response body should be a valid announce response, got \"{}\"", &body));
 }
 

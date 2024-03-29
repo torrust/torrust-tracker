@@ -392,13 +392,14 @@ pub mod fixture {
 
         #[allow(dead_code)]
         #[must_use]
-        pub fn build(self) -> Peer {
-            self.into()
+        pub fn with_event(mut self, event: AnnounceEvent) -> Self {
+            self.peer.event = event;
+            self
         }
 
         #[allow(dead_code)]
         #[must_use]
-        pub fn into(self) -> Peer {
+        pub fn build(self) -> Peer {
             self.peer
         }
     }

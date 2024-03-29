@@ -2,9 +2,7 @@ use std::net::IpAddr;
 
 use reqwest::{Client as ReqwestClient, Response};
 use torrust_tracker::core::auth::Key;
-
-use super::requests::announce::{self, Query};
-use super::requests::scrape;
+use torrust_tracker::shared::bit_torrent::tracker::http::client::requests;
 
 /// HTTP Tracker Client
 pub struct Client {
@@ -47,15 +45,15 @@ impl Client {
         }
     }
 
-    pub async fn announce(&self, query: &announce::Query) -> Response {
+    pub async fn announce(&self, query: &requests::Announce) -> Response {
         self.get(&self.build_announce_path_and_query(query)).await
     }
 
-    pub async fn scrape(&self, query: &scrape::Query) -> Response {
+    pub async fn scrape(&self, query: &requests::Scrape) -> Response {
         self.get(&self.build_scrape_path_and_query(query)).await
     }
 
-    pub async fn announce_with_header(&self, query: &Query, key: &str, value: &str) -> Response {
+    pub async fn announce_with_header(&self, query: &requests::Announce, key: &str, value: &str) -> Response {
         self.get_with_header(&self.build_announce_path_and_query(query), key, value)
             .await
     }
@@ -77,11 +75,11 @@ impl Client {
             .unwrap()
     }
 
-    fn build_announce_path_and_query(&self, query: &announce::Query) -> String {
+    fn build_announce_path_and_query(&self, query: &requests::Announce) -> String {
         format!("{}?{query}", self.build_path("announce"))
     }
 
-    fn build_scrape_path_and_query(&self, query: &scrape::Query) -> String {
+    fn build_scrape_path_and_query(&self, query: &requests::Scrape) -> String {
         format!("{}?{query}", self.build_path("scrape"))
     }
 

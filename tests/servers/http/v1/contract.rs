@@ -9,6 +9,8 @@ async fn environment_should_be_started_and_stopped() {
     env.stop().await;
 }
 
+pub(crate) const PORT: u16 = 17548;
+
 mod for_all_config_modes {
 
     use torrust_tracker::servers::http::v1::handlers::health_check::{Report, Status};
@@ -31,11 +33,15 @@ mod for_all_config_modes {
     }
 
     mod and_running_on_reverse_proxy {
+
+        use torrust_tracker::shared::bit_torrent::tracker::http::client::requests;
+        use torrust_tracker_primitives::info_hash::InfoHash;
+        use torrust_tracker_primitives::peer;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::servers::http::asserts::assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response;
         use crate::servers::http::client::Client;
-        use crate::servers::http::requests::announce::QueryBuilder;
+        use crate::servers::http::v1::contract::PORT;
         use crate::servers::http::Started;
 
         #[tokio::test]
@@ -45,7 +51,8 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_with_reverse_proxy().into()).await;
 
-            let params = QueryBuilder::default().query().params();
+            let query = requests::announce::QueryBuilder::new(InfoHash::from(1), peer::Id::from(1), PORT).build();
+            let params: requests::announce::QueryParams = (&query).into();
 
             let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
 
@@ -58,7 +65,8 @@ mod for_all_config_modes {
         async fn should_fail_when_the_xff_http_request_header_contains_an_invalid_ip() {
             let env = Started::new(&configuration::ephemeral_with_reverse_proxy().into()).await;
 
-            let params = QueryBuilder::default().query().params();
+            let query = requests::announce::QueryBuilder::new(InfoHash::from(1), peer::Id::from(1), PORT).build();
+            let params: requests::announce::QueryParams = (&query).into();
 
             let response = Client::new(*env.bind_address())
                 .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
@@ -89,6 +97,8 @@ mod for_all_config_modes {
         use local_ip_address::local_ip;
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
+        use torrust_tracker::shared::bit_torrent::tracker::http::client::{requests, responses};
+        use torrust_tracker_primitives::announce_event::AnnounceEvent;
         use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_primitives::peer;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -101,9 +111,20 @@ mod for_all_config_modes {
             assert_is_announce_response, assert_missing_query_params_for_announce_request_error_response,
         };
         use crate::servers::http::client::Client;
-        use crate::servers::http::requests::announce::{Compact, QueryBuilder};
-        use crate::servers::http::responses::announce::{Announce, CompactPeer, CompactPeerList, DictionaryPeer};
-        use crate::servers::http::{responses, Started};
+        use crate::servers::http::v1::contract::PORT;
+        use crate::servers::http::Started;
+
+        pub(crate) fn default_query_builder() -> requests::announce::QueryBuilder {
+            requests::announce::QueryBuilder::new(InfoHash::from(1), peer::Id::from(1), PORT)
+        }
+
+        pub(crate) fn default_prams() -> requests::announce::QueryParams {
+            requests::announce::QueryParams::from(&default_query_builder().build())
+        }
+
+        pub(crate) fn with_infohash(info_hash: &str) -> requests::Announce {
+            requests::announce::QueryBuilder::new(info_hash.parse().expect("invalid infohash"), peer::Id::from(1), PORT).build()
+        }
 
         #[tokio::test]
         async fn it_should_start_and_stop() {
@@ -115,7 +136,7 @@ mod for_all_config_modes {
         async fn should_respond_if_only_the_mandatory_fields_are_provided() {
             let env = Started::new(&configuration::ephemeral().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             params.remove_optional_params();
 
@@ -158,7 +179,7 @@ mod for_all_config_modes {
 
             // Without `info_hash` param
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             params.info_hash = None;
 
@@ -168,7 +189,7 @@ mod for_all_config_modes {
 
             // Without `peer_id` param
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             params.peer_id = None;
 
@@ -178,7 +199,7 @@ mod for_all_config_modes {
 
             // Without `port` param
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             params.port = None;
 
@@ -190,10 +211,23 @@ mod for_all_config_modes {
         }
 
         #[tokio::test]
+        async fn it_should_return_an_empty_response_when_announcing_a_stopped_peer() {
+            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+
+            let query = default_query_builder().with_event(AnnounceEvent::Stopped).build();
+
+            let response = Client::new(*env.bind_address()).announce(&query).await;
+
+            assert_empty_announce_response(response, &env.tracker.get_announce_policy()).await;
+
+            env.stop().await;
+        }
+
+        #[tokio::test]
         async fn should_fail_when_the_info_hash_param_is_invalid() {
             let env = Started::new(&configuration::ephemeral().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             for invalid_value in &invalid_info_hashes() {
                 params.set("info_hash", invalid_value);
@@ -215,7 +249,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             params.peer_addr = Some("INVALID-IP-ADDRESS".to_string());
 
@@ -230,7 +264,7 @@ mod for_all_config_modes {
         async fn should_fail_when_the_downloaded_param_is_invalid() {
             let env = Started::new(&configuration::ephemeral().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             let invalid_values = ["-1", "1.1", "a"];
 
@@ -249,7 +283,7 @@ mod for_all_config_modes {
         async fn should_fail_when_the_uploaded_param_is_invalid() {
             let env = Started::new(&configuration::ephemeral().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             let invalid_values = ["-1", "1.1", "a"];
 
@@ -268,7 +302,7 @@ mod for_all_config_modes {
         async fn should_fail_when_the_peer_id_param_is_invalid() {
             let env = Started::new(&configuration::ephemeral().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             let invalid_values = [
                 "0",
@@ -294,7 +328,7 @@ mod for_all_config_modes {
         async fn should_fail_when_the_port_param_is_invalid() {
             let env = Started::new(&configuration::ephemeral().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             let invalid_values = ["-1", "1.1", "a"];
 
@@ -313,7 +347,7 @@ mod for_all_config_modes {
         async fn should_fail_when_the_left_param_is_invalid() {
             let env = Started::new(&configuration::ephemeral().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             let invalid_values = ["-1", "1.1", "a"];
 
@@ -332,7 +366,7 @@ mod for_all_config_modes {
         async fn should_fail_when_the_event_param_is_invalid() {
             let env = Started::new(&configuration::ephemeral().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             let invalid_values = [
                 "0",
@@ -359,7 +393,7 @@ mod for_all_config_modes {
         async fn should_fail_when_the_compact_param_is_invalid() {
             let env = Started::new(&configuration::ephemeral().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params = default_prams();
 
             let invalid_values = ["-1", "1.1", "a"];
 
@@ -378,27 +412,16 @@ mod for_all_config_modes {
         async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
             let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
 
-            let response = Client::new(*env.bind_address())
-                .announce(
-                    &QueryBuilder::default()
-                        .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap())
-                        .query(),
-                )
-                .await;
+            let announce = with_infohash("9c38422213e30bff212b30c360d26f9a02136422");
 
-            let announce_policy = env.tracker.get_announce_policy();
+            let response = Client::new(*env.bind_address()).announce(&announce).await;
 
-            assert_announce_response(
-                response,
-                &Announce {
-                    complete: 1, // the peer for this test
-                    incomplete: 0,
-                    interval: announce_policy.interval,
-                    min_interval: announce_policy.interval_min,
-                    peers: vec![],
-                },
-            )
-            .await;
+            let expected_response = responses::announce::ResponseBuilder::new(&env.tracker.get_announce_policy())
+                // the peer for this test
+                .with_complete(1)
+                .build();
+
+            assert_announce_response(response, &expected_response).await;
 
             env.stop().await;
         }
@@ -417,30 +440,19 @@ mod for_all_config_modes {
             // Add the Peer 1
             env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
-            // Announce the new Peer 2. This new peer is non included on the response peer list
-            let response = Client::new(*env.bind_address())
-                .announce(
-                    &QueryBuilder::default()
-                        .with_info_hash(&info_hash)
-                        .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
-                        .query(),
-                )
-                .await;
+            let query = requests::announce::QueryBuilder::new(info_hash, peer::Id(*b"-qB00000000000000002"), PORT).build();
 
-            let announce_policy = env.tracker.get_announce_policy();
+            // Announce the new Peer 2. This new peer is non included on the response peer list
+            let response = Client::new(*env.bind_address()).announce(&query).await;
+
+            let expected_response = responses::announce::ResponseBuilder::new(&env.tracker.get_announce_policy())
+                // the peer for this test
+                .with_complete(2)
+                .with_peers(vec![responses::announce::DictionaryPeer::from(previously_announced_peer)])
+                .build();
 
             // It should only contain the previously announced peer
-            assert_announce_response(
-                response,
-                &Announce {
-                    complete: 2,
-                    incomplete: 0,
-                    interval: announce_policy.interval,
-                    min_interval: announce_policy.interval_min,
-                    peers: vec![DictionaryPeer::from(previously_announced_peer)],
-                },
-            )
-            .await;
+            assert_announce_response(response, &expected_response).await;
 
             env.stop().await;
         }
@@ -468,31 +480,22 @@ mod for_all_config_modes {
                 .build();
             env.add_torrent_peer(&info_hash, &peer_using_ipv6).await;
 
-            // Announce the new Peer.
-            let response = Client::new(*env.bind_address())
-                .announce(
-                    &QueryBuilder::default()
-                        .with_info_hash(&info_hash)
-                        .with_peer_id(&peer::Id(*b"-qB00000000000000003"))
-                        .query(),
-                )
-                .await;
+            let query = requests::announce::QueryBuilder::new(info_hash, peer::Id(*b"-qB00000000000000003"), PORT).build();
 
-            let announce_policy = env.tracker.get_announce_policy();
+            // Announce the new Peer.
+            let response = Client::new(*env.bind_address()).announce(&query).await;
 
             // The newly announced peer is not included on the response peer list,
             // but all the previously announced peers should be included regardless the IP version they are using.
-            assert_announce_response(
-                response,
-                &Announce {
-                    complete: 3,
-                    incomplete: 0,
-                    interval: announce_policy.interval,
-                    min_interval: announce_policy.interval_min,
-                    peers: vec![DictionaryPeer::from(peer_using_ipv4), DictionaryPeer::from(peer_using_ipv6)],
-                },
-            )
-            .await;
+            let expected_response = responses::announce::ResponseBuilder::new(&env.tracker.get_announce_policy())
+                .with_complete(3)
+                .with_peers(vec![
+                    responses::announce::DictionaryPeer::from(peer_using_ipv4),
+                    responses::announce::DictionaryPeer::from(peer_using_ipv6),
+                ])
+                .build();
+
+            assert_announce_response(response, &expected_response).await;
 
             env.stop().await;
         }
@@ -507,16 +510,17 @@ mod for_all_config_modes {
             // Add a peer
             env.add_torrent_peer(&info_hash, &peer).await;
 
-            let announce_query = QueryBuilder::default()
-                .with_info_hash(&info_hash)
-                .with_peer_id(&peer.peer_id)
-                .query();
+            let query = requests::announce::QueryBuilder::new(info_hash, peer.peer_id, PORT).build();
 
-            assert_ne!(peer.peer_addr.ip(), announce_query.peer_addr);
+            let response = Client::new(*env.bind_address()).announce(&query).await;
 
-            let response = Client::new(*env.bind_address()).announce(&announce_query).await;
-
-            assert_empty_announce_response(response).await;
+            assert_announce_response(
+                response,
+                &responses::announce::ResponseBuilder::new(&env.tracker.get_announce_policy())
+                    .with_complete(1)
+                    .build(),
+            )
+            .await;
 
             env.stop().await;
         }
@@ -538,23 +542,21 @@ mod for_all_config_modes {
             // Add the Peer 1
             env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
+            let query = requests::announce::QueryBuilder::new(info_hash, peer::Id(*b"-qB00000000000000002"), PORT)
+                .with_compact()
+                .build();
+
             // Announce the new Peer 2 accepting compact responses
-            let response = Client::new(*env.bind_address())
-                .announce(
-                    &QueryBuilder::default()
-                        .with_info_hash(&info_hash)
-                        .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
-                        .with_compact(Compact::Accepted)
-                        .query(),
-                )
-                .await;
+            let response = Client::new(*env.bind_address()).announce(&query).await;
 
             let expected_response = responses::announce::Compact {
                 complete: 2,
                 incomplete: 0,
                 interval: 120,
                 min_interval: 120,
-                peers: CompactPeerList::new([CompactPeer::new(&previously_announced_peer.peer_addr)].to_vec()),
+                peers: responses::announce::CompactPeerList::new(
+                    [responses::announce::CompactPeer::new(&previously_announced_peer.peer_addr)].to_vec(),
+                ),
             };
 
             assert_compact_announce_response(response, &expected_response).await;
@@ -582,15 +584,9 @@ mod for_all_config_modes {
             // Announce the new Peer 2 without passing the "compact" param
             // By default it should respond with the compact peer list
             // https://www.bittorrent.org/beps/bep_0023.html
-            let response = Client::new(*env.bind_address())
-                .announce(
-                    &QueryBuilder::default()
-                        .with_info_hash(&info_hash)
-                        .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
-                        .without_compact()
-                        .query(),
-                )
-                .await;
+            let query = requests::announce::QueryBuilder::new(info_hash, peer::Id(*b"-qB00000000000000002"), PORT).build();
+
+            let response = Client::new(*env.bind_address()).announce(&query).await;
 
             assert!(!is_a_compact_announce_response(response).await);
 
@@ -608,7 +604,7 @@ mod for_all_config_modes {
             let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
 
             Client::new(*env.bind_address())
-                .announce(&QueryBuilder::default().query())
+                .announce(&default_query_builder().build())
                 .await;
 
             let stats = env.tracker.get_stats().await;
@@ -632,7 +628,7 @@ mod for_all_config_modes {
             let env = Started::new(&configuration::ephemeral_ipv6().into()).await;
 
             Client::bind(*env.bind_address(), IpAddr::from_str("::1").unwrap())
-                .announce(&QueryBuilder::default().query())
+                .announce(&default_query_builder().build())
                 .await;
 
             let stats = env.tracker.get_stats().await;
@@ -652,9 +648,9 @@ mod for_all_config_modes {
 
             Client::new(*env.bind_address())
                 .announce(
-                    &QueryBuilder::default()
+                    &default_query_builder()
                         .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
-                        .query(),
+                        .build(),
                 )
                 .await;
 
@@ -672,7 +668,7 @@ mod for_all_config_modes {
             let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
 
             Client::new(*env.bind_address())
-                .announce(&QueryBuilder::default().query())
+                .announce(&default_query_builder().build())
                 .await;
 
             let stats = env.tracker.get_stats().await;
@@ -696,7 +692,7 @@ mod for_all_config_modes {
             let env = Started::new(&configuration::ephemeral_ipv6().into()).await;
 
             Client::bind(*env.bind_address(), IpAddr::from_str("::1").unwrap())
-                .announce(&QueryBuilder::default().query())
+                .announce(&default_query_builder().build())
                 .await;
 
             let stats = env.tracker.get_stats().await;
@@ -716,9 +712,9 @@ mod for_all_config_modes {
 
             Client::new(*env.bind_address())
                 .announce(
-                    &QueryBuilder::default()
+                    &default_query_builder()
                         .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
-                        .query(),
+                        .build(),
                 )
                 .await;
 
@@ -738,14 +734,13 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
             let client_ip = local_ip().unwrap();
 
-            let announce_query = QueryBuilder::default()
-                .with_info_hash(&info_hash)
+            let query = requests::announce::QueryBuilder::new(info_hash, peer::Id::from(1), PORT)
                 .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
-                .query();
+                .build();
 
             {
                 let client = Client::bind(*env.bind_address(), client_ip);
-                let status = client.announce(&announce_query).await.status();
+                let status = client.announce(&query).await.status();
 
                 assert_eq!(status, StatusCode::OK);
             }
@@ -774,14 +769,13 @@ mod for_all_config_modes {
             let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
             let client_ip = loopback_ip;
 
-            let announce_query = QueryBuilder::default()
-                .with_info_hash(&info_hash)
+            let query = requests::announce::QueryBuilder::new(info_hash, peer::Id::from(1), PORT)
                 .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
-                .query();
+                .build();
 
             {
                 let client = Client::bind(*env.bind_address(), client_ip);
-                let status = client.announce(&announce_query).await.status();
+                let status = client.announce(&query).await.status();
 
                 assert_eq!(status, StatusCode::OK);
             }
@@ -814,14 +808,13 @@ mod for_all_config_modes {
             let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
             let client_ip = loopback_ip;
 
-            let announce_query = QueryBuilder::default()
-                .with_info_hash(&info_hash)
+            let query = requests::announce::QueryBuilder::new(info_hash, peer::Id::from(1), PORT)
                 .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
-                .query();
+                .build();
 
             {
                 let client = Client::bind(*env.bind_address(), client_ip);
-                let status = client.announce(&announce_query).await.status();
+                let status = client.announce(&query).await.status();
 
                 assert_eq!(status, StatusCode::OK);
             }
@@ -846,15 +839,15 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_with_reverse_proxy().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash: InfoHash = "9c38422213e30bff212b30c360d26f9a02136422".parse().expect("it should parse");
 
-            let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
+            let query = requests::announce::QueryBuilder::new(info_hash, peer::Id::from(1), PORT).build();
 
             {
                 let client = Client::new(*env.bind_address());
                 let status = client
                     .announce_with_header(
-                        &announce_query,
+                        &query,
                         "X-Forwarded-For",
                         "203.0.113.195,2001:db8:85a3:8d3:1319:8a2e:370:7348,150.172.238.178",
                     )
@@ -887,6 +880,8 @@ mod for_all_config_modes {
         use std::str::FromStr;
 
         use tokio::net::TcpListener;
+        use torrust_tracker::shared::bit_torrent::tracker::http::client::responses::scrape::File;
+        use torrust_tracker::shared::bit_torrent::tracker::http::client::{requests, responses};
         use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_primitives::peer;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -898,9 +893,7 @@ mod for_all_config_modes {
             assert_scrape_response,
         };
         use crate::servers::http::client::Client;
-        use crate::servers::http::requests::scrape::QueryBuilder;
-        use crate::servers::http::responses::scrape::{self, File, ResponseBuilder};
-        use crate::servers::http::{requests, Started};
+        use crate::servers::http::Started;
 
         //#[tokio::test]
         #[allow(dead_code)]
@@ -917,7 +910,7 @@ mod for_all_config_modes {
         async fn should_fail_when_the_info_hash_param_is_invalid() {
             let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let mut params: requests::scrape::QueryParams = requests::scrape::QueryBuilder::default().build().into();
 
             for invalid_value in &invalid_info_hashes() {
                 params.set_one_info_hash_param(invalid_value);
@@ -946,22 +939,18 @@ mod for_all_config_modes {
             .await;
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&requests::scrape::QueryBuilder::from(&info_hash).build())
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default()
-                .add_file(
+            let expected_scrape_response = responses::scrape::ResponseBuilder::default()
+                .add_file((
                     info_hash.bytes(),
                     File {
                         complete: 0,
                         downloaded: 0,
                         incomplete: 1,
                     },
-                )
+                ))
                 .build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
@@ -985,22 +974,18 @@ mod for_all_config_modes {
             .await;
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&requests::scrape::QueryBuilder::from(&info_hash).build())
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default()
-                .add_file(
+            let expected_scrape_response = responses::scrape::ResponseBuilder::default()
+                .add_file((
                     info_hash.bytes(),
                     File {
                         complete: 1,
                         downloaded: 0,
                         incomplete: 0,
                     },
-                )
+                ))
                 .build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
@@ -1015,14 +1000,12 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&requests::scrape::QueryBuilder::from(&info_hash).build())
                 .await;
 
-            assert_scrape_response(response, &scrape::Response::with_one_file(info_hash.bytes(), File::zeroed())).await;
+            let expected_response = responses::scrape::ResponseBuilder::from((info_hash.bytes(), File::zeroed())).build();
+
+            assert_scrape_response(response, &expected_response).await;
 
             env.stop().await;
         }
@@ -1039,13 +1022,13 @@ mod for_all_config_modes {
                     &requests::scrape::QueryBuilder::default()
                         .add_info_hash(&info_hash1)
                         .add_info_hash(&info_hash2)
-                        .query(),
+                        .build(),
                 )
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default()
-                .add_file(info_hash1.bytes(), File::zeroed())
-                .add_file(info_hash2.bytes(), File::zeroed())
+            let expected_scrape_response = responses::scrape::ResponseBuilder::default()
+                .add_file((info_hash1.bytes(), File::zeroed()))
+                .add_file((info_hash2.bytes(), File::zeroed()))
                 .build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
@@ -1060,11 +1043,7 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
             Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&requests::scrape::QueryBuilder::from(&info_hash).build())
                 .await;
 
             let stats = env.tracker.get_stats().await;
@@ -1090,11 +1069,7 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
             Client::bind(*env.bind_address(), IpAddr::from_str("::1").unwrap())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&requests::scrape::QueryBuilder::from(&info_hash).build())
                 .await;
 
             let stats = env.tracker.get_stats().await;
@@ -1113,12 +1088,14 @@ mod configured_as_whitelisted {
     mod and_receiving_an_announce_request {
         use std::str::FromStr;
 
+        use torrust_tracker::shared::bit_torrent::tracker::http::client::requests;
         use torrust_tracker_primitives::info_hash::InfoHash;
+        use torrust_tracker_primitives::peer;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::servers::http::asserts::{assert_is_announce_response, assert_torrent_not_in_whitelist_error_response};
         use crate::servers::http::client::Client;
-        use crate::servers::http::requests::announce::QueryBuilder;
+        use crate::servers::http::v1::contract::PORT;
         use crate::servers::http::Started;
 
         #[tokio::test]
@@ -1128,7 +1105,7 @@ mod configured_as_whitelisted {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
             let response = Client::new(*env.bind_address())
-                .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
+                .announce(&requests::announce::QueryBuilder::new(info_hash, peer::Id::from(1), PORT).build())
                 .await;
 
             assert_torrent_not_in_whitelist_error_response(response).await;
@@ -1148,7 +1125,7 @@ mod configured_as_whitelisted {
                 .expect("should add the torrent to the whitelist");
 
             let response = Client::new(*env.bind_address())
-                .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
+                .announce(&requests::announce::QueryBuilder::new(info_hash, peer::Id::from(1), PORT).build())
                 .await;
 
             assert_is_announce_response(response).await;
@@ -1160,6 +1137,8 @@ mod configured_as_whitelisted {
     mod receiving_an_scrape_request {
         use std::str::FromStr;
 
+        use torrust_tracker::shared::bit_torrent::tracker::http::client::responses::scrape::File;
+        use torrust_tracker::shared::bit_torrent::tracker::http::client::{requests, responses};
         use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_primitives::peer;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -1167,8 +1146,7 @@ mod configured_as_whitelisted {
 
         use crate::servers::http::asserts::assert_scrape_response;
         use crate::servers::http::client::Client;
-        use crate::servers::http::responses::scrape::{File, ResponseBuilder};
-        use crate::servers::http::{requests, Started};
+        use crate::servers::http::Started;
 
         #[tokio::test]
         async fn should_return_the_zeroed_file_when_the_requested_file_is_not_whitelisted() {
@@ -1186,14 +1164,10 @@ mod configured_as_whitelisted {
             .await;
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&requests::scrape::QueryBuilder::from(&info_hash).build())
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
+            let expected_scrape_response = responses::scrape::ResponseBuilder::from((info_hash.bytes(), File::zeroed())).build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
 
@@ -1221,23 +1195,18 @@ mod configured_as_whitelisted {
                 .expect("should add the torrent to the whitelist");
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&requests::scrape::QueryBuilder::from(&info_hash).build())
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default()
-                .add_file(
-                    info_hash.bytes(),
-                    File {
-                        complete: 0,
-                        downloaded: 0,
-                        incomplete: 1,
-                    },
-                )
-                .build();
+            let expected_scrape_response = responses::scrape::ResponseBuilder::from((
+                info_hash.bytes(),
+                File {
+                    complete: 0,
+                    downloaded: 0,
+                    incomplete: 1,
+                },
+            ))
+            .build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
 
@@ -1253,12 +1222,14 @@ mod configured_as_private {
         use std::time::Duration;
 
         use torrust_tracker::core::auth::Key;
+        use torrust_tracker::shared::bit_torrent::tracker::http::client::requests;
         use torrust_tracker_primitives::info_hash::InfoHash;
+        use torrust_tracker_primitives::peer;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::servers::http::asserts::{assert_authentication_error_response, assert_is_announce_response};
         use crate::servers::http::client::Client;
-        use crate::servers::http::requests::announce::QueryBuilder;
+        use crate::servers::http::v1::contract::PORT;
         use crate::servers::http::Started;
 
         #[tokio::test]
@@ -1268,7 +1239,7 @@ mod configured_as_private {
             let expiring_key = env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
             let response = Client::authenticated(*env.bind_address(), expiring_key.key())
-                .announce(&QueryBuilder::default().query())
+                .announce(&requests::announce::QueryBuilder::new(InfoHash::from(1), peer::Id::from(1), PORT).build())
                 .await;
 
             assert_is_announce_response(response).await;
@@ -1283,7 +1254,7 @@ mod configured_as_private {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
             let response = Client::new(*env.bind_address())
-                .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
+                .announce(&requests::announce::QueryBuilder::new(info_hash, peer::Id::from(1), PORT).build())
                 .await;
 
             assert_authentication_error_response(response).await;
@@ -1299,7 +1270,7 @@ mod configured_as_private {
 
             let response = Client::new(*env.bind_address())
                     .get(&format!(
-                        "announce/{invalid_key}?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0"
+                        "announce/{invalid_key}?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port={PORT}&left=0&event=completed&compact=0"
                     ))
                     .await;
 
@@ -1314,7 +1285,7 @@ mod configured_as_private {
             let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
             let response = Client::authenticated(*env.bind_address(), unregistered_key)
-                .announce(&QueryBuilder::default().query())
+                .announce(&requests::announce::QueryBuilder::new(InfoHash::from(1), peer::Id::from(1), PORT).build())
                 .await;
 
             assert_authentication_error_response(response).await;
@@ -1329,6 +1300,8 @@ mod configured_as_private {
         use std::time::Duration;
 
         use torrust_tracker::core::auth::Key;
+        use torrust_tracker::shared::bit_torrent::tracker::http::client::responses::scrape::File;
+        use torrust_tracker::shared::bit_torrent::tracker::http::client::{requests, responses};
         use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_primitives::peer;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -1336,8 +1309,7 @@ mod configured_as_private {
 
         use crate::servers::http::asserts::{assert_authentication_error_response, assert_scrape_response};
         use crate::servers::http::client::Client;
-        use crate::servers::http::responses::scrape::{File, ResponseBuilder};
-        use crate::servers::http::{requests, Started};
+        use crate::servers::http::Started;
 
         #[tokio::test]
         async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
@@ -1370,14 +1342,10 @@ mod configured_as_private {
             .await;
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&requests::scrape::QueryBuilder::from(&info_hash).build())
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
+            let expected_scrape_response = responses::scrape::ResponseBuilder::from((info_hash.bytes(), File::zeroed())).build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
 
@@ -1402,23 +1370,18 @@ mod configured_as_private {
             let expiring_key = env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
             let response = Client::authenticated(*env.bind_address(), expiring_key.key())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&requests::scrape::QueryBuilder::from(&info_hash).build())
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default()
-                .add_file(
-                    info_hash.bytes(),
-                    File {
-                        complete: 0,
-                        downloaded: 0,
-                        incomplete: 1,
-                    },
-                )
-                .build();
+            let expected_scrape_response = responses::scrape::ResponseBuilder::from((
+                info_hash.bytes(),
+                File {
+                    complete: 0,
+                    downloaded: 0,
+                    incomplete: 1,
+                },
+            ))
+            .build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
 
@@ -1446,14 +1409,10 @@ mod configured_as_private {
             let false_key: Key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
 
             let response = Client::authenticated(*env.bind_address(), false_key)
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&requests::scrape::QueryBuilder::from(&info_hash).build())
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
+            let expected_scrape_response = responses::scrape::ResponseBuilder::from((info_hash.bytes(), File::zeroed())).build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
 

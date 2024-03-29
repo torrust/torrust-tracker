@@ -16,9 +16,33 @@ pub(super) struct Response {
     pub peers: Vec<DictionaryPeer>, // Peers using IPV4 and IPV6
 }
 
-#[derive(Default)]
 pub struct ResponseBuilder {
     response: Response,
+}
+
+impl ResponseBuilder {
+    #[must_use]
+    pub fn new(policy: &torrust_tracker_configuration::AnnouncePolicy) -> Self {
+        Self {
+            response: Response {
+                interval: policy.interval,
+                min_interval: policy.interval_min,
+                ..Default::default()
+            },
+        }
+    }
+
+    #[must_use]
+    pub fn with_complete(mut self, complete: u32) -> Self {
+        self.response.complete = complete;
+        self
+    }
+
+    #[must_use]
+    pub fn with_peers(mut self, peers: Vec<DictionaryPeer>) -> Self {
+        self.response.peers = peers;
+        self
+    }
 }
 
 impl TryFrom<&Bytes> for ResponseBuilder {
