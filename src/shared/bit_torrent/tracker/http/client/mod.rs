@@ -75,7 +75,7 @@ impl Client {
     /// # Errors
     ///
     /// This method fails if the client builder fails.
-    pub fn authenticated(base_url: Url, key: Key, timeout: Duration) -> Result<Self, Error> {
+    pub fn authenticated(base_url: Url, timeout: Duration, key: Key) -> Result<Self, Error> {
         let client = reqwest::Client::builder()
             .timeout(timeout)
             .build()
