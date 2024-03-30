@@ -273,7 +273,12 @@ mod udp {
             let details = report.details.first().expect("it should have some details");
 
             assert_eq!(details.binding, service.bind_address());
-            assert_eq!(details.result, Ok("Connected".to_string()));
+
+            assert!(
+                details.result.clone().is_ok_and(|e| e.contains("Connected")),
+                "Expected Okay, but Got: {:?}",
+                details.result
+            );
 
             assert_eq!(
                 details.info,
@@ -318,7 +323,11 @@ mod udp {
             let details = report.details.first().expect("it should have some details");
 
             assert_eq!(details.binding, binding);
-            assert_eq!(details.result, Err("Timed Out".to_string()));
+            assert!(
+                details.result.clone().is_err_and(|e| e.contains("Timed Out")),
+                "Expected Error, Got: {:?}",
+                details.result
+            );
             assert_eq!(details.info, format!("checking the udp tracker health check at: {binding}"));
 
             env.stop().await.expect("it should stop the service");

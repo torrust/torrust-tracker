@@ -233,6 +233,7 @@ use std::collections::HashMap;
 use std::net::IpAddr;
 use std::str::FromStr;
 use std::sync::Arc;
+use std::time::Duration;
 use std::{env, fs};
 
 use config::{Config, ConfigError, File, FileFormat};
@@ -245,6 +246,19 @@ use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
 
 /// The maximum number of returned peers for a torrent.
 pub const TORRENT_PEERS_LIMIT: usize = 74;
+
+/// Client Timeout
+pub const CLIENT_TIMEOUT_DEFAULT: Duration = Duration::from_secs(5);
+
+/// The maximum number of bytes in a UDP packet.
+pub const MAX_PACKET_SIZE: usize = 1496;
+
+/// The a free port is dynamically chosen by the operating system.
+pub const PORT_ASSIGNED_BY_OS: u16 = 0;
+
+/// A magic 64-bit integer constant defined in the protocol that is used to
+/// identify the protocol.
+pub const PROTOCOL_ID: i64 = 0x0417_2710_1980;
 
 #[derive(Copy, Clone, Debug, PartialEq, Constructor)]
 pub struct TrackerPolicy {

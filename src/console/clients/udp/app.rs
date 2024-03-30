@@ -70,7 +70,6 @@ use url::Url;
 use crate::console::clients::udp::checker;
 use crate::console::clients::udp::responses::{AnnounceResponseDto, ScrapeResponseDto};
 
-const ASSIGNED_BY_OS: u16 = 0;
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
 
 #[derive(Parser, Debug)]
@@ -144,29 +143,29 @@ fn setup_logging(level: LevelFilter) {
 async fn handle_announce(tracker_socket_addr: &SocketAddr, info_hash: &TorrustInfoHash) -> anyhow::Result<Response> {
     let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
 
-    let mut client = checker::Client::default();
+    let client = checker::Client::bind_and_connect(tracker_socket_addr).await?;
 
-    let bound_to = client.bind_and_connect(ASSIGNED_BY_OS, tracker_socket_addr).await?;
+    let bound_to = client.client.local_addr()?;
 
-    let connection_id = client.send_connection_request(transaction_id).await?;
+    let ctx = client.send_connection_request(transaction_id).await?;
 
     client
-        .send_announce_request(connection_id, transaction_id, *info_hash, Port(bound_to.port()))
+        .send_announce_request(&ctx, *info_hash, Port(bound_to.port()))
         .await
+        .context("failed to handle announce")
 }
 
 async fn handle_scrape(tracker_socket_addr: &SocketAddr, info_hashes: &[TorrustInfoHash]) -> anyhow::Result<Response> {
     let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
 
-    let mut client = checker::Client::default();
+    let client = checker::Client::bind_and_connect(tracker_socket_addr).await?;
 
-    let _bound_to = client.bind_and_connect(ASSIGNED_BY_OS, tracker_socket_addr).await?;
-
-    let connection_id = client.send_connection_request(transaction_id).await?;
+    let ctx = client.send_connection_request(transaction_id).await?;
 
     client
-        .send_scrape_request(connection_id, transaction_id, info_hashes.to_vec())
+        .send_scrape_request(&ctx, info_hashes.to_vec())
         .await
+        .context("failed to handle scrape")
 }
 
 fn print_response(response: Response) -> anyhow::Result<()> {

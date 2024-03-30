@@ -1,12 +1,53 @@
+use std::net::{Ipv4Addr, SocketAddr};
+use std::sync::Arc;
+
+use thiserror::Error;
+
 pub mod client;
 
-/// The maximum number of bytes in a UDP packet.
-pub const MAX_PACKET_SIZE: usize = 1496;
-/// A magic 64-bit integer constant defined in the protocol that is used to
-/// identify the protocol.
-pub const PROTOCOL_ID: i64 = 0x0417_2710_1980;
+#[derive(Debug, Clone, Error)]
+pub enum Error {
+    #[error("Timed Out: \"{context}\".")]
+    TimedOut { context: String },
+
+    #[error("Failed to Get Writeable Socket: {err:?}")]
+    UnableToGetWriteable { err: Arc<std::io::Error> },
+
+    #[error("Error when sending to socket: {err:?}")]
+    UnableToSendToSocket { err: Arc<std::io::Error> },
+
+    #[error("Failed to Get Readable Socket: {err:?}")]
+    UnableToGetReadable { err: Arc<std::io::Error> },
+
+    #[error("Error when reading from socket: {err:?}")]
+    UnableToReadFromSocket { err: Arc<std::io::Error> },
+
+    #[error("Error when writing to buffer: {err:?}")]
+    UnableToWriteToRequestBuffer { err: Arc<std::io::Error> },
+
+    #[error("Error when writing to buffer: {err:?}")]
+    UnableToGetResponseFromBuffer { err: Arc<std::io::Error> },
+
+    #[error("Received an unexpected response: {response:?}")]
+    UnexpectedResponse { response: aquatic_udp_protocol::Response },
+
+    #[error("Received an unexpected TransactionId: Expected: {expected:?}, Received: {received:?}")]
+    UnexpectedTransactionId {
+        expected: aquatic_udp_protocol::TransactionId,
+        received: aquatic_udp_protocol::TransactionId,
+    },
+
+    #[error("Failed to bind the Client: {err:?}")]
+    ClientBuildingError { err: Arc<std::io::Error> },
+    #[error("Failed to get the bound local socket: {err:?}")]
+    UnableToGetLocalAddress { err: Arc<std::io::Error> },
+    #[error("Failed to connect to remote: {err:?}")]
+    UnableToConnectToRemote { err: Arc<std::io::Error> },
+    #[error("Failed to get the connected socket: {err:?}")]
+    UnableToGetRemoteAddress { err: Arc<std::io::Error> },
+}
 
 /// Generates the source address for the UDP client
-fn source_address(port: u16) -> String {
-    format!("127.0.0.1:{port}")
+fn source_address(port: u16) -> SocketAddr {
+    SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), port)
 }

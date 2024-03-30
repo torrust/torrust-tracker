@@ -23,12 +23,14 @@ use std::sync::Arc;
 
 use aquatic_udp_protocol::Response;
 use derive_more::Constructor;
+use futures::TryFutureExt;
 use log::{debug, error, info, trace};
 use ringbuf::{Rb, StaticRb};
 use tokio::net::UdpSocket;
 use tokio::sync::oneshot;
 use tokio::task::{AbortHandle, JoinHandle};
 use tokio::{select, task};
+use torrust_tracker_configuration::MAX_PACKET_SIZE;
 
 use super::UdpRequest;
 use crate::bootstrap::jobs::Started;
@@ -36,8 +38,7 @@ use crate::core::Tracker;
 use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{shutdown_signal_with_message, Halted};
 use crate::servers::udp::handlers;
-use crate::shared::bit_torrent::tracker::udp::client::check;
-use crate::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
+use crate::shared::bit_torrent::tracker::udp::client::Client;
 
 /// Error that can occur when starting or stopping the UDP server.
 ///
@@ -373,13 +374,12 @@ impl Udp {
         drop(socket.send_to(payload, remote_addr).await);
     }
 
-    fn check(binding: &SocketAddr) -> ServiceHealthCheckJob {
-        let binding = *binding;
-        let info = format!("checking the udp tracker health check at: {binding}");
+    fn check(&addr: &SocketAddr) -> ServiceHealthCheckJob {
+        let info = format!("checking the udp tracker health check at: {addr}");
 
-        let job = tokio::spawn(async move { check(&binding).await });
+        let job = tokio::spawn(Client::connect(addr).and_then(Client::check).map_err(|e| e.to_string()));
 
-        ServiceHealthCheckJob::new(binding, info, job)
+        ServiceHealthCheckJob::new(addr, info, job)
     }
 }
 

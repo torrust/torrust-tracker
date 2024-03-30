@@ -1,7 +1,6 @@
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use aquatic_udp_protocol::{Port, TransactionId};
 use colored::Colorize;
 use hex_literal::hex;
 use log::debug;
@@ -10,83 +9,121 @@ use torrust_tracker_primitives::info_hash::InfoHash;
 use crate::console::clients::checker::console::Console;
 use crate::console::clients::checker::printer::Printer;
 use crate::console::clients::checker::service::{CheckError, CheckResult};
-use crate::console::clients::udp::checker;
-
-const ASSIGNED_BY_OS: u16 = 0;
-const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
+use crate::console::clients::udp::checker::{self, Client};
+use crate::console::clients::udp::Error;
 
 pub async fn run(udp_trackers: Vec<SocketAddr>, _: Duration, console: Console) -> Vec<CheckResult> {
     let mut check_results = Vec::default();
 
     console.println("UDP trackers ...");
 
-    for ref udp_tracker in udp_trackers {
-        debug!("UDP tracker: {:?}", udp_tracker);
+    let info_hash = InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // # DevSkim: ignore DS173237
 
-        let colored_tracker_url = udp_tracker.to_string().yellow();
+    for ref addr in udp_trackers {
+        debug!("UDP tracker: {:?}", addr);
 
-        let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
+        let colored_addr = addr.to_string().yellow();
 
-        let mut client = checker::Client::default();
+        // Setup Connection
+        let Ok((client, ctx)) = ({
+            let res = setup_connection(addr).await;
 
-        debug!("Bind and connect");
+            check_results.push(match res {
+                Ok(_) => {
+                    console.println(&format!("{} - Setup of {} is OK", "✓".green(), colored_addr));
+                    Ok(())
+                }
+                Err(ref e) => {
+                    console.println(&format!("{} - Setup of {} is failing", "✗".red(), colored_addr));
+                    Err(CheckError::UdpCheckError {
+                        addr: *addr,
+                        err: e.clone(),
+                    })
+                }
+            });
 
-        let Ok(bound_to) = client.bind_and_connect(ASSIGNED_BY_OS, udp_tracker).await else {
-            check_results.push(Err(CheckError::UdpError {
-                socket_addr: *udp_tracker,
-            }));
-            console.println(&format!("{} - Can't connect to socket {}", "✗".red(), colored_tracker_url));
+            res
+        }) else {
             break;
         };
 
-        debug!("Send connection request");
+        // Do Announce
+        if {
+            let res = check_udp_announce(&client, &ctx, info_hash).await;
 
-        let Ok(connection_id) = client.send_connection_request(transaction_id).await else {
-            check_results.push(Err(CheckError::UdpError {
-                socket_addr: *udp_tracker,
-            }));
-            console.println(&format!(
-                "{} - Can't make tracker connection request to {}",
-                "✗".red(),
-                colored_tracker_url
-            ));
-            break;
-        };
+            check_results.push(match res {
+                Ok(_) => {
+                    console.println(&format!("{} - Announce of {} is OK", "✓".green(), colored_addr));
+                    Ok(())
+                }
+                Err(ref e) => {
+                    console.println(&format!("{} - Announce of {} is failing", "✗".red(), colored_addr));
+                    Err(CheckError::UdpCheckError {
+                        addr: *addr,
+                        err: e.clone(),
+                    })
+                }
+            });
 
-        let info_hash = InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // # DevSkim: ignore DS173237
-
-        debug!("Send announce request");
-
-        if (client
-            .send_announce_request(connection_id, transaction_id, info_hash, Port(bound_to.port()))
-            .await)
-            .is_ok()
+            res
+        }
+        .is_err()
         {
-            check_results.push(Ok(()));
-            console.println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
-        } else {
-            let err = CheckError::UdpError {
-                socket_addr: *udp_tracker,
-            };
-            check_results.push(Err(err));
-            console.println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
+            break;
+        };
+
+        // Do Scrape
+        if {
+            let res = check_udp_scrape(&client, &ctx, vec![info_hash]).await;
+
+            check_results.push(match res {
+                Ok(_) => {
+                    console.println(&format!("{} - Announce of {} is OK", "✓".green(), colored_addr));
+                    Ok(())
+                }
+                Err(ref e) => {
+                    console.println(&format!("{} - Announce of {} is failing", "✗".red(), colored_addr));
+                    Err(CheckError::UdpCheckError {
+                        addr: *addr,
+                        err: e.clone(),
+                    })
+                }
+            });
+            res
         }
-
-        debug!("Send scrape request");
-
-        let info_hashes = vec![InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422"))]; // # DevSkim: ignore DS173237
-
-        if (client.send_scrape_request(connection_id, transaction_id, info_hashes).await).is_ok() {
-            check_results.push(Ok(()));
-            console.println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
-        } else {
-            let err = CheckError::UdpError {
-                socket_addr: *udp_tracker,
-            };
-            check_results.push(Err(err));
-            console.println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
-        }
+        .is_err()
+        {
+            break;
+        };
     }
 
     check_results
+}
+
+async fn setup_connection(addr: &SocketAddr) -> Result<(Client, aquatic_udp_protocol::ConnectResponse), Error> {
+    let client = checker::Client::bind_and_connect(addr).await?;
+
+    let transaction_id = aquatic_udp_protocol::TransactionId(rand::Rng::gen(&mut rand::thread_rng()));
+
+    let ctx = client.send_connection_request(transaction_id).await?;
+
+    Ok((client, ctx))
+}
+
+async fn check_udp_announce(
+    client: &Client,
+    ctx: &aquatic_udp_protocol::ConnectResponse,
+    info_hash: InfoHash,
+) -> Result<aquatic_udp_protocol::Response, Error> {
+    client
+        .send_announce_request(ctx, info_hash, aquatic_udp_protocol::Port(client.local_addr()?.port()))
+        .await
+}
+
+async fn check_udp_scrape(
+    client: &Client,
+    ctx: &aquatic_udp_protocol::ConnectResponse,
+    infohashes: Vec<InfoHash>,
+) -> Result<aquatic_udp_protocol::Response, Error> {
+    client.send_scrape_request(ctx, infohashes).await
 }
