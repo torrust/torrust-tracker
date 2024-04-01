@@ -103,6 +103,6 @@ debug = 1
 lto = "fat"
 opt-level = 3
 
-[target.x86_64-unknown-linux-gnu]
-linker = "/usr/bin/clang"
-rustflags = ["-Clink-arg=-fuse-ld=lld", "-Clink-arg=-Wl,--no-rosegment"]
+[profile.release-debug]
+inherits = "release"
+debug = true
