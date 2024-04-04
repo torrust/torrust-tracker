@@ -41,6 +41,7 @@ chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
 colored = "2"
 config = "0"
+crossbeam-skiplist = "0.1"
 derive_more = "0"
 futures = "0"
 hex-literal = "0"
@@ -60,7 +61,7 @@ serde_bytes = "0"
 serde_json = "1"
 serde_repr = "0"
 thiserror = "1"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "sync", "tracing"] }
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "tracing"] }
 torrust-tracker-clock = { version = "3.0.0-alpha.12-develop", path = "packages/clock" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "packages/configuration" }
 torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.12-develop", path = "contrib/bencode" }
