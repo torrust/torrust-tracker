@@ -8,10 +8,12 @@ use crate::servers::health_check_api::Started;
 #[tokio::test]
 async fn health_check_endpoint_should_return_status_ok_when_there_is_no_services_registered() {
     let configuration = configuration::ephemeral_with_no_services();
+    let registar = Registar::default();
 
-    let env = Started::new(&configuration.health_check_api.into(), Registar::default()).await;
+    let config = configuration.health_check_api.clone();
+    let env = Started::new(&config.into(), &registar).await;
 
-    let response = get(&format!("http://{}/health_check", env.state.binding)).await;
+    let response = get(&format!("http://{}/health_check", env.addr)).await;
 
     assert_eq!(response.status(), 200);
     assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -46,9 +48,9 @@ mod api {
 
         {
             let config = configuration.health_check_api.clone();
-            let env = Started::new(&config.into(), registar).await;
+            let env = Started::new(&config.into(), &registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await;
+            let response = get(&format!("http://{}/health_check", env.addr)).await;
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -95,9 +97,9 @@ mod api {
 
         {
             let config = configuration.health_check_api.clone();
-            let env = Started::new(&config.into(), registar).await;
+            let env = Started::new(&config.into(), &registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await;
+            let response = get(&format!("http://{}/health_check", env.addr)).await;
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -151,9 +153,9 @@ mod http {
 
         {
             let config = configuration.health_check_api.clone();
-            let env = Started::new(&config.into(), registar).await;
+            let env = Started::new(&config.into(), &registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await;
+            let response = get(&format!("http://{}/health_check", env.addr)).await;
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -168,7 +170,7 @@ mod http {
 
             let details = report.details.first().expect("it should have some details");
 
-            assert_eq!(details.binding, *service.bind_address());
+            assert_eq!(details.binding, service.bind_address());
             assert_eq!(details.result, Ok("200 OK".to_string()));
 
             assert_eq!(
@@ -191,7 +193,7 @@ mod http {
 
         let service = http::Started::new(&configuration).await;
 
-        let binding = *service.bind_address();
+        let binding = service.bind_address();
 
         let registar = service.registar.clone();
 
@@ -199,9 +201,9 @@ mod http {
 
         {
             let config = configuration.health_check_api.clone();
-            let env = Started::new(&config.into(), registar).await;
+            let env = Started::new(&config.into(), &registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await;
+            let response = get(&format!("http://{}/health_check", env.addr)).await;
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -241,23 +243,23 @@ mod udp {
     use torrust_tracker::servers::health_check_api::resources::{Report, Status};
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::common::udp;
     use crate::servers::health_check_api::client::get;
     use crate::servers::health_check_api::Started;
-    use crate::servers::udp;
 
     #[tokio::test]
     pub(crate) async fn it_should_return_good_health_for_udp_service() {
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = udp::Started::new(&configuration).await;
+        let service = udp::Started::new(&configuration.clone()).await;
 
         let registar = service.registar.clone();
 
         {
             let config = configuration.health_check_api.clone();
-            let env = Started::new(&config.into(), registar).await;
+            let env = Started::new(&config.into(), &registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await;
+            let response = get(&format!("http://{}/health_check", env.addr)).await;
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -295,7 +297,7 @@ mod udp {
     pub(crate) async fn it_should_return_error_when_udp_service_was_stopped_after_registration() {
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = udp::Started::new(&configuration).await;
+        let service = udp::Started::new(&configuration.clone()).await;
 
         let binding = service.bind_address();
 
@@ -305,9 +307,9 @@ mod udp {
 
         {
             let config = configuration.health_check_api.clone();
-            let env = Started::new(&config.into(), registar).await;
+            let env = Started::new(&config.into(), &registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await;
+            let response = get(&format!("http://{}/health_check", env.addr)).await;
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");

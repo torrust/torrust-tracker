@@ -4,7 +4,7 @@ use std::process::{Command, Output};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use log::{debug, info};
+use tracing::{debug, info};
 
 /// Docker command wrapper.
 pub struct Docker {}

@@ -15,30 +15,35 @@ use std::sync::Arc;
 
 use torrust_tracker_clock::static_time;
 use torrust_tracker_configuration::Configuration;
+use tracing::metadata::ParseLevelError;
+use tracing::Level;
 
 use super::config::initialize_configuration;
-use crate::bootstrap;
 use crate::core::services::tracker_factory;
 use crate::core::Tracker;
 use crate::shared::crypto::ephemeral_instance_keys;
 
-/// It loads the configuration from the environment and builds the main domain [`Tracker`] struct.
+/// It loads the configuration from the environment and setups up tracing (logging).
+///
+/// # Panics
+///
+/// It will panic if the tracing level is malformed in the configuration.
 #[must_use]
-pub fn setup() -> (Configuration, Arc<Tracker>) {
-    let configuration = initialize_configuration();
-    let tracker = initialize_with_configuration(&configuration);
+pub fn config() -> (Configuration, Level) {
+    let config = initialize_configuration();
+    let level = parse_level_or_default(&config.log_level).expect("its should provide a valid value for the log level");
 
-    (configuration, tracker)
+    (config, level)
 }
 
 /// It initializes the application with the given configuration.
 ///
 /// The configuration may be obtained from the environment (via config file or env vars).
 #[must_use]
-pub fn initialize_with_configuration(configuration: &Configuration) -> Arc<Tracker> {
+pub fn tracker(configuration: &Configuration) -> Arc<Tracker> {
     initialize_static();
-    initialize_logging(configuration);
-    Arc::new(initialize_tracker(configuration))
+
+    Arc::new(tracker_factory(configuration))
 }
 
 /// It initializes the application static values.
@@ -47,7 +52,7 @@ pub fn initialize_with_configuration(configuration: &Configuration) -> Arc<Track
 ///
 /// - The time when the application started.
 /// - An ephemeral instance random seed. This seed is used for encryption and it's changed when the main application process is restarted.
-pub fn initialize_static() {
+fn initialize_static() {
     // Set the time of Torrust app starting
     lazy_static::initialize(&static_time::TIME_AT_APP_START);
 
@@ -55,18 +60,6 @@ pub fn initialize_static() {
     lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
 }
 
-/// It builds the domain tracker
-///
-/// The tracker is the domain layer service. It's the entrypoint to make requests to the domain layer.
-/// It's used by other higher-level components like the UDP and HTTP trackers or the tracker API.
-#[must_use]
-pub fn initialize_tracker(config: &Configuration) -> Tracker {
-    tracker_factory(config)
-}
-
-/// It initializes the log level, format and channel.
-///
-/// See [the logging setup](crate::bootstrap::logging::setup) for more info about logging.
-pub fn initialize_logging(config: &Configuration) {
-    bootstrap::logging::setup(config);
+fn parse_level_or_default(level: &Option<String>) -> Result<Level, ParseLevelError> {
+    level.as_deref().unwrap_or("info").parse()
 }

@@ -6,20 +6,49 @@
 //! 2. Launch all the application services as concurrent jobs.
 //!
 //! This modules contains all the functions needed to start those jobs.
+
+use std::panic::Location;
+use std::sync::Arc;
+
+use axum_server::tls_rustls::RustlsConfig;
+use thiserror::Error;
+use torrust_tracker_located_error::{DynError, LocatedError};
+use tracing::{info, instrument};
 pub mod health_check_api;
 pub mod http_tracker;
 pub mod torrent_cleanup;
 pub mod tracker_apis;
 pub mod udp_tracker;
 
-/// This is the message that the "launcher" spawned task sends to the main
-/// application process to notify the service was successfully started.
-///
-#[derive(Debug)]
-pub struct Started {
-    pub address: std::net::SocketAddr,
+#[derive(Error, Debug, Clone)]
+pub enum Error {
+    #[error("Timeout elapsed for Task")]
+    TimeoutError { err: Arc<tokio::time::error::Elapsed> },
+    #[error("Error From Service: {err}")]
+    ServiceError { err: crate::servers::service::Error },
+
+    #[error("tls config missing")]
+    MissingTlsConfig { location: &'static Location<'static> },
+
+    #[error("bad tls config: {source}")]
+    BadTlsConfig {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 }
 
+impl From<tokio::time::error::Elapsed> for Error {
+    fn from(e: tokio::time::error::Elapsed) -> Self {
+        Error::TimeoutError { err: e.into() }
+    }
+}
+
+impl From<crate::servers::service::Error> for Error {
+    fn from(err: crate::servers::service::Error) -> Self {
+        Error::ServiceError { err }
+    }
+}
+
+#[instrument(ret)]
 pub async fn make_rust_tls(enabled: bool, cert: &Option<String>, key: &Option<String>) -> Option<Result<RustlsConfig, Error>> {
     if !enabled {
         info!("TLS not enabled");
@@ -71,26 +100,4 @@ mod tests {
 
         assert_eq!(err.to_string(), "tls config missing");
     }
-}
-
-use std::panic::Location;
-use std::sync::Arc;
-
-use axum_server::tls_rustls::RustlsConfig;
-use log::info;
-use thiserror::Error;
-use torrust_tracker_located_error::{DynError, LocatedError};
-
-/// Error returned by the Bootstrap Process.
-#[derive(Error, Debug)]
-pub enum Error {
-    /// Enabled tls but missing config.
-    #[error("tls config missing")]
-    MissingTlsConfig { location: &'static Location<'static> },
-
-    /// Unable to parse tls Config.
-    #[error("bad tls config: {source}")]
-    BadTlsConfig {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-    },
 }

@@ -1,12 +1,12 @@
 use std::net::{Ipv4Addr, SocketAddr};
+use std::time::Duration;
 
-use aquatic_udp_protocol::common::InfoHash;
 use aquatic_udp_protocol::{
     AnnounceEvent, AnnounceRequest, ConnectResponse, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port, Response,
     ScrapeRequest, TransactionId,
 };
-use log::debug;
-use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use tracing::debug;
 
 use super::Error;
 use crate::shared::bit_torrent::tracker::udp;
@@ -14,7 +14,7 @@ use crate::shared::bit_torrent::tracker::udp;
 /// A UDP Tracker client to make test requests (checks).
 #[derive(Debug, Clone)]
 pub struct Client {
-    pub client: udp::client::Client,
+    pub client: udp::Client,
 }
 
 impl Client {
@@ -26,10 +26,10 @@ impl Client {
     ///
     /// - It can't bound to the local socket address.
     /// - It can't make a connection request successfully to the remote UDP server.
-    pub async fn bind_and_connect(addr: &SocketAddr) -> Result<Self, Error> {
-        let client = udp::client::Client::connect(*addr)
+    pub async fn bind_and_connect(&addr: &SocketAddr, &timeout: &Duration) -> Result<Self, Error> {
+        let client = udp::Client::connect(addr, timeout)
             .await
-            .map_err(|err| Error::UnableToBindAndConnect { addr: *addr, err })?;
+            .map_err(|err| Error::UnableToBindAndConnect { addr, err })?;
 
         Ok(Self { client })
     }
@@ -66,7 +66,7 @@ impl Client {
     pub async fn send_announce_request(
         &self,
         ctx: &ConnectResponse,
-        info_hash: TorrustInfoHash,
+        info_hash: InfoHash,
         client_port: Port,
     ) -> Result<Response, Error> {
         debug!("Sending announce request with transaction id: {:#?}", ctx.transaction_id);
@@ -74,7 +74,7 @@ impl Client {
         let announce_request = AnnounceRequest {
             connection_id: ctx.connection_id,
             transaction_id: ctx.transaction_id,
-            info_hash: InfoHash(info_hash.bytes()),
+            info_hash: aquatic_udp_protocol::InfoHash(info_hash.bytes()),
             peer_id: PeerId(*b"-qB00000000000000001"),
             bytes_downloaded: NumberOfBytes(0i64),
             bytes_uploaded: NumberOfBytes(0i64),
@@ -109,7 +109,7 @@ impl Client {
     ///
     /// Will return and error if the client is not connected. You have to connect
     /// before calling this function.
-    pub async fn send_scrape_request(&self, ctx: &ConnectResponse, info_hashes: Vec<TorrustInfoHash>) -> Result<Response, Error> {
+    pub async fn send_scrape_request(&self, ctx: &ConnectResponse, info_hashes: &[InfoHash]) -> Result<Response, Error> {
         debug!("Sending scrape request with transaction id: {:#?}", ctx.transaction_id);
 
         let scrape_request = ScrapeRequest {
@@ -117,7 +117,7 @@ impl Client {
             transaction_id: ctx.transaction_id,
             info_hashes: info_hashes
                 .iter()
-                .map(|torrust_info_hash| InfoHash(torrust_info_hash.bytes()))
+                .map(|torrust_info_hash| aquatic_udp_protocol::InfoHash(torrust_info_hash.bytes()))
                 .collect(),
         };
 

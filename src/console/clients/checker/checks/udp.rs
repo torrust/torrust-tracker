@@ -3,8 +3,8 @@ use std::time::Duration;
 
 use colored::Colorize;
 use hex_literal::hex;
-use log::debug;
 use torrust_tracker_primitives::info_hash::InfoHash;
+use tracing::debug;
 
 use crate::console::clients::checker::console::Console;
 use crate::console::clients::checker::printer::Printer;
@@ -12,7 +12,7 @@ use crate::console::clients::checker::service::{CheckError, CheckResult};
 use crate::console::clients::udp::checker::{self, Client};
 use crate::console::clients::udp::Error;
 
-pub async fn run(udp_trackers: Vec<SocketAddr>, _: Duration, console: Console) -> Vec<CheckResult> {
+pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration, console: Console) -> Vec<CheckResult> {
     let mut check_results = Vec::default();
 
     console.println("UDP trackers ...");
@@ -26,7 +26,7 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, _: Duration, console: Console) -
 
         // Setup Connection
         let Ok((client, ctx)) = ({
-            let res = setup_connection(addr).await;
+            let res = setup_connection(addr, &timeout).await;
 
             check_results.push(match res {
                 Ok(_) => {
@@ -74,7 +74,7 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, _: Duration, console: Console) -
 
         // Do Scrape
         if {
-            let res = check_udp_scrape(&client, &ctx, vec![info_hash]).await;
+            let res = check_udp_scrape(&client, &ctx, &[info_hash]).await;
 
             check_results.push(match res {
                 Ok(_) => {
@@ -100,8 +100,11 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, _: Duration, console: Console) -
     check_results
 }
 
-async fn setup_connection(addr: &SocketAddr) -> Result<(Client, aquatic_udp_protocol::ConnectResponse), Error> {
-    let client = checker::Client::bind_and_connect(addr).await?;
+async fn setup_connection(
+    addr: &SocketAddr,
+    timeout: &Duration,
+) -> Result<(Client, aquatic_udp_protocol::ConnectResponse), Error> {
+    let client = checker::Client::bind_and_connect(addr, timeout).await?;
 
     let transaction_id = aquatic_udp_protocol::TransactionId(rand::Rng::gen(&mut rand::thread_rng()));
 
@@ -123,7 +126,7 @@ async fn check_udp_announce(
 async fn check_udp_scrape(
     client: &Client,
     ctx: &aquatic_udp_protocol::ConnectResponse,
-    infohashes: Vec<InfoHash>,
+    info_hashes: &[InfoHash],
 ) -> Result<aquatic_udp_protocol::Response, Error> {
-    client.send_scrape_request(ctx, infohashes).await
+    client.send_scrape_request(ctx, info_hashes).await
 }

@@ -25,7 +25,7 @@ use crate::core::{statistics, ScrapeData, Tracker};
 /// > **NOTICE**: as the HTTP tracker does not requires a connection request
 /// like the UDP tracker, the number of TCP connections is incremented for
 /// each `scrape` request.
-pub async fn invoke(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
+pub async fn invoke(tracker: &Arc<Tracker>, info_hashes: &[InfoHash], original_peer_ip: &IpAddr) -> ScrapeData {
     let scrape_data = tracker.scrape(info_hashes).await;
 
     send_scrape_event(original_peer_ip, tracker).await;
@@ -39,7 +39,7 @@ pub async fn invoke(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, origina
 /// the tracker returns empty stats for all the torrents.
 ///
 /// > **NOTICE**: tracker statistics are not updated in this case.
-pub async fn fake(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
+pub async fn fake(tracker: &Arc<Tracker>, info_hashes: &[InfoHash], original_peer_ip: &IpAddr) -> ScrapeData {
     send_scrape_event(original_peer_ip, tracker).await;
 
     ScrapeData::zeroed(info_hashes)

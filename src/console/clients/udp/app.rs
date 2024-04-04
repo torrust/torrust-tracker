@@ -56,19 +56,19 @@
 //! ```
 //!
 //! The protocol (`udp://`) in the URL is mandatory. The path (`\scrape`) is optional. It always uses `\scrape`.
-use std::net::{SocketAddr, ToSocketAddrs};
-use std::str::FromStr;
+use std::net::SocketAddr;
+use std::time::Duration;
 
 use anyhow::Context;
 use aquatic_udp_protocol::Response::{self, AnnounceIpv4, AnnounceIpv6, Scrape};
 use aquatic_udp_protocol::{Port, TransactionId};
 use clap::{Parser, Subcommand};
-use log::{debug, LevelFilter};
-use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
-use url::Url;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use tracing::Level;
 
 use crate::console::clients::udp::checker;
 use crate::console::clients::udp::responses::{AnnounceResponseDto, ScrapeResponseDto};
+use crate::console::clients::{parse_info_hash, parse_socket_addr, DEFAULT_TIMEOUT_SEC};
 
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
 
@@ -77,21 +77,24 @@ const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
 struct Args {
     #[command(subcommand)]
     command: Command,
+
+    #[arg(value_parser = parse_socket_addr, help = "tracker url")]
+    addr: SocketAddr,
+
+    /// Name of the person to greet
+    #[arg(long, default_value = DEFAULT_TIMEOUT_SEC, help = "connection timeout in seconds")]
+    timeout_sec: u64,
 }
 
 #[derive(Subcommand, Debug)]
 enum Command {
     Announce {
-        #[arg(value_parser = parse_socket_addr)]
-        tracker_socket_addr: SocketAddr,
         #[arg(value_parser = parse_info_hash)]
-        info_hash: TorrustInfoHash,
+        info_hash: InfoHash,
     },
     Scrape {
-        #[arg(value_parser = parse_socket_addr)]
-        tracker_socket_addr: SocketAddr,
         #[arg(value_parser = parse_info_hash, num_args = 1..=74, value_delimiter = ' ')]
-        info_hashes: Vec<TorrustInfoHash>,
+        info_hashes: Vec<InfoHash>,
     },
 }
 
@@ -101,49 +104,24 @@ enum Command {
 ///
 ///
 pub async fn run() -> anyhow::Result<()> {
-    setup_logging(LevelFilter::Info);
+    let () = tracing_subscriber::fmt().compact().with_max_level(Level::TRACE).init();
 
     let args = Args::parse();
 
+    let timeout = Duration::from_secs(args.timeout_sec);
+
     let response = match args.command {
-        Command::Announce {
-            tracker_socket_addr,
-            info_hash,
-        } => handle_announce(&tracker_socket_addr, &info_hash).await?,
-        Command::Scrape {
-            tracker_socket_addr,
-            info_hashes,
-        } => handle_scrape(&tracker_socket_addr, &info_hashes).await?,
+        Command::Announce { info_hash } => handle_announce(&args.addr, &timeout, &info_hash).await?,
+        Command::Scrape { info_hashes } => handle_scrape(&args.addr, &timeout, &info_hashes).await?,
     };
 
     print_response(response)
 }
 
-fn setup_logging(level: LevelFilter) {
-    if let Err(_err) = fern::Dispatch::new()
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "{} [{}][{}] {}",
-                chrono::Local::now().format("%+"),
-                record.target(),
-                record.level(),
-                message
-            ));
-        })
-        .level(level)
-        .chain(std::io::stdout())
-        .apply()
-    {
-        panic!("Failed to initialize logging.")
-    }
-
-    debug!("logging initialized.");
-}
-
-async fn handle_announce(tracker_socket_addr: &SocketAddr, info_hash: &TorrustInfoHash) -> anyhow::Result<Response> {
+async fn handle_announce(addr: &SocketAddr, timeout: &Duration, info_hash: &InfoHash) -> anyhow::Result<Response> {
     let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
 
-    let client = checker::Client::bind_and_connect(tracker_socket_addr).await?;
+    let client = checker::Client::bind_and_connect(addr, timeout).await?;
 
     let bound_to = client.client.local_addr()?;
 
@@ -155,15 +133,15 @@ async fn handle_announce(tracker_socket_addr: &SocketAddr, info_hash: &TorrustIn
         .context("failed to handle announce")
 }
 
-async fn handle_scrape(tracker_socket_addr: &SocketAddr, info_hashes: &[TorrustInfoHash]) -> anyhow::Result<Response> {
+async fn handle_scrape(addr: &SocketAddr, timeout: &Duration, info_hashes: &[InfoHash]) -> anyhow::Result<Response> {
     let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
 
-    let client = checker::Client::bind_and_connect(tracker_socket_addr).await?;
+    let client = checker::Client::bind_and_connect(addr, timeout).await?;
 
     let ctx = client.send_connection_request(transaction_id).await?;
 
     client
-        .send_scrape_request(&ctx, info_hashes.to_vec())
+        .send_scrape_request(&ctx, info_hashes)
         .await
         .context("failed to handle scrape")
 }
@@ -189,60 +167,4 @@ fn print_response(response: Response) -> anyhow::Result<()> {
     };
 
     Ok(())
-}
-
-fn parse_socket_addr(tracker_socket_addr_str: &str) -> anyhow::Result<SocketAddr> {
-    debug!("Tracker socket address: {tracker_socket_addr_str:#?}");
-
-    // Check if the address is a valid URL. If so, extract the host and port.
-    let resolved_addr = if let Ok(url) = Url::parse(tracker_socket_addr_str) {
-        debug!("Tracker socket address URL: {url:?}");
-
-        let host = url
-            .host_str()
-            .with_context(|| format!("invalid host in URL: `{tracker_socket_addr_str}`"))?
-            .to_owned();
-
-        let port = url
-            .port()
-            .with_context(|| format!("port not found in URL: `{tracker_socket_addr_str}`"))?
-            .to_owned();
-
-        (host, port)
-    } else {
-        // If not a URL, assume it's a host:port pair.
-
-        let parts: Vec<&str> = tracker_socket_addr_str.split(':').collect();
-
-        if parts.len() != 2 {
-            return Err(anyhow::anyhow!(
-                "invalid address format: `{}`. Expected format is host:port",
-                tracker_socket_addr_str
-            ));
-        }
-
-        let host = parts[0].to_owned();
-
-        let port = parts[1]
-            .parse::<u16>()
-            .with_context(|| format!("invalid port: `{}`", parts[1]))?
-            .to_owned();
-
-        (host, port)
-    };
-
-    debug!("Resolved address: {resolved_addr:#?}");
-
-    // Perform DNS resolution.
-    let socket_addrs: Vec<_> = resolved_addr.to_socket_addrs()?.collect();
-    if socket_addrs.is_empty() {
-        Err(anyhow::anyhow!("DNS resolution failed for `{}`", tracker_socket_addr_str))
-    } else {
-        Ok(socket_addrs[0])
-    }
-}
-
-fn parse_info_hash(info_hash_str: &str) -> anyhow::Result<TorrustInfoHash> {
-    TorrustInfoHash::from_str(info_hash_str)
-        .map_err(|e| anyhow::Error::msg(format!("failed to parse info-hash `{info_hash_str}`: {e:?}")))
 }

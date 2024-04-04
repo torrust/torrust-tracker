@@ -13,6 +13,7 @@ use crate::core::auth::{self, Key};
 
 const DRIVER: DatabaseDriver = DatabaseDriver::Sqlite3;
 
+#[derive(Debug)]
 pub struct Sqlite {
     pool: Pool<SqliteConnectionManager>,
 }

@@ -1,25 +1,28 @@
+use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use torrust_tracker::bootstrap::app::initialize_with_configuration;
+use torrust_tracker::bootstrap::app::tracker;
 use torrust_tracker::core::Tracker;
 use torrust_tracker::servers::registar::Registar;
-use torrust_tracker::servers::udp::server::{Launcher, Running, Stopped, UdpServer};
+use torrust_tracker::servers::service::{Service, Started, Stopped};
+use torrust_tracker::servers::udp::server::{UdpHandle, UdpLauncher};
 use torrust_tracker_configuration::{Configuration, UdpTracker};
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
 
-pub struct Environment<S> {
+pub struct Environment<S: Debug> {
     pub config: Arc<UdpTracker>,
     pub tracker: Arc<Tracker>,
     pub registar: Registar,
-    pub server: UdpServer<S>,
+    pub server: Service<S, UdpLauncher, UdpHandle>,
+    pub addr: Option<SocketAddr>,
 }
 
-impl<S> Environment<S> {
+impl<S: Debug> Environment<S> {
     /// Add a torrent to the tracker
     #[allow(dead_code)]
-    pub async fn add_torrent(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    pub async fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         self.tracker.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
     }
 }
@@ -27,70 +30,64 @@ impl<S> Environment<S> {
 impl Environment<Stopped> {
     #[allow(dead_code)]
     pub fn new(configuration: &Arc<Configuration>) -> Self {
-        let tracker = initialize_with_configuration(configuration);
+        let tracker = tracker(configuration);
 
         let config = Arc::new(configuration.udp_trackers[0].clone());
 
-        let bind_to = config
+        let addr = config
             .bind_address
             .parse::<std::net::SocketAddr>()
             .expect("Tracker API bind_address invalid.");
 
-        let server = UdpServer::new(Launcher::new(bind_to));
+        let server = Service::new(UdpLauncher::new(tracker.clone(), addr));
 
         Self {
             config,
             tracker,
-            registar: Registar::default(),
             server,
+            registar: Registar::default(),
+            addr: None,
         }
     }
 
     #[allow(dead_code)]
-    pub async fn start(self) -> Environment<Running> {
+    pub async fn start(self) -> Environment<Started<UdpHandle>> {
+        let server = self.server.start().unwrap();
+
+        // reg_form wait for the service to be ready before proceeding
+        let () = server
+            .reg_form(self.registar.give_form())
+            .await
+            .expect("it should register a form");
+
+        let addr = server.listening().await.expect("it should get address");
+
         Environment {
             config: self.config,
             tracker: self.tracker.clone(),
             registar: self.registar.clone(),
-            server: self.server.start(self.tracker, self.registar.give_form()).await.unwrap(),
+            server,
+            addr: Some(addr),
         }
     }
 }
 
-impl Environment<Running> {
+impl Environment<Started<UdpHandle>> {
     pub async fn new(configuration: &Arc<Configuration>) -> Self {
         Environment::<Stopped>::new(configuration).start().await
     }
 
-    #[allow(dead_code)]
     pub async fn stop(self) -> Environment<Stopped> {
         Environment {
             config: self.config,
             tracker: self.tracker,
             registar: Registar::default(),
-            server: self.server.stop().await.expect("it stop the udp tracker service"),
+            server: self.server.stop().await.unwrap(),
+            addr: None,
         }
     }
 
-    pub fn bind_address(&self) -> SocketAddr {
-        self.server.state.binding
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::time::Duration;
-
-    use tokio::time::sleep;
-    use torrust_tracker_test_helpers::configuration;
-
-    use crate::servers::udp::Started;
-
-    #[tokio::test]
-    async fn it_should_make_and_stop_udp_server() {
-        let env = Started::new(&configuration::ephemeral().into()).await;
-        sleep(Duration::from_secs(1)).await;
-        env.stop().await;
-        sleep(Duration::from_secs(1)).await;
+    pub fn bind_address(&self) -> std::net::SocketAddr {
+        self.addr.expect("it should get the listening address")
     }
 }

@@ -4,12 +4,12 @@
 // https://www.bittorrent.org/beps/bep_0015.html
 
 use aquatic_udp_protocol::Response;
-use torrust_tracker::shared::bit_torrent::tracker::udp::client::Client;
-use torrust_tracker_configuration::MAX_PACKET_SIZE;
+use torrust_tracker::shared::bit_torrent::tracker::udp::Client;
+use torrust_tracker_configuration::{CLIENT_TIMEOUT_DEFAULT, MAX_PACKET_SIZE};
 use torrust_tracker_test_helpers::configuration;
 
+use crate::common::udp::Started;
 use crate::servers::udp::asserts::is_error_response;
-use crate::servers::udp::Started;
 
 fn empty_udp_request() -> [u8; MAX_PACKET_SIZE] {
     [0; MAX_PACKET_SIZE]
@@ -23,7 +23,9 @@ fn empty_buffer() -> [u8; MAX_PACKET_SIZE] {
 async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
     let env = Started::new(&configuration::ephemeral().into()).await;
 
-    let client = Client::connect(env.bind_address()).await.expect("it should connect");
+    let client = Client::connect(env.bind_address(), CLIENT_TIMEOUT_DEFAULT)
+        .await
+        .expect("it should connect");
 
     client.send(&empty_udp_request()).await.expect("it should send request");
 
@@ -39,17 +41,20 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
 
 mod receiving_a_connection_request {
     use aquatic_udp_protocol::{ConnectRequest, TransactionId};
-    use torrust_tracker::shared::bit_torrent::tracker::udp::client::Client;
+    use torrust_tracker::shared::bit_torrent::tracker::udp::Client;
+    use torrust_tracker_configuration::CLIENT_TIMEOUT_DEFAULT;
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::common::udp::Started;
     use crate::servers::udp::asserts::is_connect_response;
-    use crate::servers::udp::Started;
 
     #[tokio::test]
     async fn should_return_a_connect_response() {
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = Client::connect(env.bind_address()).await.expect("it should connect");
+        let client = Client::connect(env.bind_address(), CLIENT_TIMEOUT_DEFAULT)
+            .await
+            .expect("it should connect");
 
         let connect_request = ConnectRequest {
             transaction_id: TransactionId(123),
@@ -75,17 +80,20 @@ mod receiving_an_announce_request {
         AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port,
         TransactionId,
     };
-    use torrust_tracker::shared::bit_torrent::tracker::udp::client::Client;
+    use torrust_tracker::shared::bit_torrent::tracker::udp::Client;
+    use torrust_tracker_configuration::CLIENT_TIMEOUT_DEFAULT;
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::common::udp::Started;
     use crate::servers::udp::asserts::is_ipv4_announce_response;
-    use crate::servers::udp::Started;
 
     #[tokio::test]
     async fn should_return_an_announce_response() {
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = Client::connect(env.bind_address()).await.expect("it should connect");
+        let client = Client::connect(env.bind_address(), CLIENT_TIMEOUT_DEFAULT)
+            .await
+            .expect("it should connect");
 
         let ctx = client
             .do_connection_request(TransactionId(123))
@@ -126,17 +134,20 @@ mod receiving_an_announce_request {
 
 mod receiving_an_scrape_request {
     use aquatic_udp_protocol::{ConnectionId, InfoHash, ScrapeRequest, TransactionId};
-    use torrust_tracker::shared::bit_torrent::tracker::udp::client::Client;
+    use torrust_tracker::shared::bit_torrent::tracker::udp::Client;
+    use torrust_tracker_configuration::CLIENT_TIMEOUT_DEFAULT;
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::common::udp::Started;
     use crate::servers::udp::asserts::is_scrape_response;
-    use crate::servers::udp::Started;
 
     #[tokio::test]
     async fn should_return_a_scrape_response() {
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = Client::connect(env.bind_address()).await.expect("it should connect");
+        let client = Client::connect(env.bind_address(), CLIENT_TIMEOUT_DEFAULT)
+            .await
+            .expect("it should connect");
 
         let ctx = client
             .do_connection_request(TransactionId(123))

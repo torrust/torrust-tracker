@@ -1,16 +1,15 @@
 //! This module contains functions to handle signals.
-use std::time::Duration;
 
 use derive_more::Display;
-use log::info;
-use tokio::time::sleep;
+use tracing::info;
 
 /// This is the message that the "launcher" spawned task receives from the main
 /// application process to notify the service to shutdown.
 ///
-#[derive(Copy, Clone, Debug, Display)]
+#[derive(Copy, Clone, Debug, Display, PartialEq, Eq)]
 pub enum Halted {
     Normal,
+    Dropped,
 }
 
 /// Resolves on `ctrl_c` or the `terminate` signal.
@@ -64,19 +63,4 @@ pub async fn shutdown_signal_with_message(rx_halt: tokio::sync::oneshot::Receive
     shutdown_signal(rx_halt).await;
 
     info!("{message}");
-}
-
-pub async fn graceful_shutdown(handle: axum_server::Handle, rx_halt: tokio::sync::oneshot::Receiver<Halted>, message: String) {
-    shutdown_signal_with_message(rx_halt, message).await;
-
-    info!("Sending graceful shutdown signal");
-    handle.graceful_shutdown(Some(Duration::from_secs(90)));
-
-    println!("!! shuting down in 90 seconds !!");
-
-    loop {
-        sleep(Duration::from_secs(1)).await;
-
-        info!("remaining alive connections: {}", handle.connection_count());
-    }
 }

@@ -48,6 +48,7 @@ pub mod error;
 pub mod mysql;
 pub mod sqlite;
 
+use std::fmt::Debug;
 use std::marker::PhantomData;
 
 use async_trait::async_trait;
@@ -80,7 +81,7 @@ where
 
 /// The persistence trait. It contains all the methods to interact with the database.
 #[async_trait]
-pub trait Database: Sync + Send {
+pub trait Database: Debug + Sync + Send {
     /// It instantiates a new database driver.
     ///
     /// # Errors

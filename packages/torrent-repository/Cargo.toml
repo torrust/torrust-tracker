@@ -23,7 +23,6 @@ torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "..
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "../primitives" }
 
 [dev-dependencies]
-async-std = { version = "1", features = ["attributes", "tokio1"] }
 criterion = { version = "0", features = ["async_tokio"] }
 rstest = "0"
 

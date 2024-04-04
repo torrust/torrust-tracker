@@ -237,7 +237,7 @@ use std::time::Duration;
 use std::{env, fs};
 
 use config::{Config, ConfigError, File, FileFormat};
-use derive_more::Constructor;
+use derive_more::{AsMut, AsRef, Constructor, Display};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use thiserror::Error;
@@ -361,7 +361,20 @@ pub struct HttpTracker {
     pub ssl_key_path: Option<String>,
 }
 
-pub type AccessTokens = HashMap<String, String>;
+#[derive(Constructor, Serialize, Deserialize, AsRef, AsMut, PartialEq, Eq, Clone, Display)]
+#[display(fmt = "AccessTokens (values hidden): {tokens:?}")]
+pub struct AccessTokens {
+    tokens: HashMap<String, String>,
+}
+
+impl std::fmt::Debug for AccessTokens {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let keys: Vec<String> = self.tokens.keys().cloned().collect();
+        f.debug_struct("AccessTokens")
+            .field("tokens keys", &keys)
+            .finish_non_exhaustive()
+    }
+}
 
 /// Configuration for the HTTP API.
 #[serde_as]
@@ -391,7 +404,9 @@ pub struct HttpApi {
 
 impl HttpApi {
     fn override_admin_token(&mut self, api_admin_token: &str) {
-        self.access_tokens.insert("admin".to_string(), api_admin_token.to_string());
+        self.access_tokens
+            .as_mut()
+            .insert("admin".to_string(), api_admin_token.to_string());
     }
 }
 
@@ -579,10 +594,12 @@ impl Default for Configuration {
                 ssl_enabled: false,
                 ssl_cert_path: None,
                 ssl_key_path: None,
-                access_tokens: [(String::from("admin"), String::from("MyAccessToken"))]
-                    .iter()
-                    .cloned()
-                    .collect(),
+                access_tokens: AccessTokens::new(
+                    [(String::from("admin"), String::from("MyAccessToken"))]
+                        .iter()
+                        .cloned()
+                        .collect(),
+                ),
             },
             health_check_api: HealthCheckApi {
                 bind_address: String::from("127.0.0.1:1313"),
@@ -822,7 +839,17 @@ mod tests {
     fn http_api_configuration_should_check_if_it_contains_a_token() {
         let configuration = Configuration::default();
 
-        assert!(configuration.http_api.access_tokens.values().any(|t| t == "MyAccessToken"));
-        assert!(!configuration.http_api.access_tokens.values().any(|t| t == "NonExistingToken"));
+        assert!(configuration
+            .http_api
+            .access_tokens
+            .as_ref()
+            .values()
+            .any(|t| t == "MyAccessToken"));
+        assert!(!configuration
+            .http_api
+            .access_tokens
+            .as_ref()
+            .values()
+            .any(|t| t == "NonExistingToken"));
     }
 }

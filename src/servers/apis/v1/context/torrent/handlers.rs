@@ -7,11 +7,11 @@ use std::sync::Arc;
 use axum::extract::{Path, State};
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::Query;
-use log::debug;
 use serde::{de, Deserialize, Deserializer};
 use thiserror::Error;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
+use tracing::debug;
 
 use super::responses::{torrent_info_response, torrent_list_response, torrent_not_known_response};
 use crate::core::services::torrent::{get_torrent_info, get_torrents, get_torrents_page};

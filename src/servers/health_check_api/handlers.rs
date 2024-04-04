@@ -16,9 +16,9 @@ pub(crate) async fn health_check_handler(State(register): State<ServiceRegistry>
     let mut checks: VecDeque<ServiceHealthCheckJob> = VecDeque::new();
 
     {
-        let mutex = register.lock();
+        let mutex = register.as_ref().lock().expect("it should get a lock");
 
-        checks = mutex.await.values().map(ServiceRegistration::spawn_check).collect();
+        checks = mutex.values().map(ServiceRegistration::spawn_check).collect();
     }
 
     // if we do not have any checks, lets return a `none` result.
@@ -29,7 +29,7 @@ pub(crate) async fn health_check_handler(State(register): State<ServiceRegistry>
     let jobs = checks.drain(..).map(|c| {
         tokio::spawn(async move {
             CheckReport {
-                binding: c.binding,
+                binding: c.addr,
                 info: c.info.clone(),
                 result: c.job.await.expect("it should be able to join into the checking function"),
             }

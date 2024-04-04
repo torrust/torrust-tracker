@@ -32,7 +32,7 @@ pub enum Error {
 /// # Errors
 ///
 /// This function will return an error if .
-pub async fn check_http_announce(url: &Url, timeout: Duration, info_hash: InfoHash) -> Result<responses::Announce, Error> {
+pub async fn check_http_announce(url: &Url, &timeout: &Duration, &info_hash: &InfoHash) -> Result<responses::Announce, Error> {
     let client = Client::new(url.clone(), timeout).map_err(|err| Error::HttpClientError { err })?;
 
     let response = client
@@ -52,7 +52,7 @@ pub async fn check_http_announce(url: &Url, timeout: Duration, info_hash: InfoHa
 /// # Errors
 ///
 /// This function will return an error if .
-pub async fn check_http_scrape(url: &Url, timeout: Duration, info_hashes: &[InfoHash]) -> Result<responses::Scrape, Error> {
+pub async fn check_http_scrape(url: &Url, &timeout: &Duration, info_hashes: &[InfoHash]) -> Result<responses::Scrape, Error> {
     let query = info_hashes.iter().copied().collect::<scrape::QueryBuilder>().build();
 
     let client = Client::new(url.clone(), timeout).map_err(|err| Error::HttpClientError { err })?;

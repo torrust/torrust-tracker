@@ -1,8 +1,8 @@
 use std::time::Duration;
 
-use log::{debug, error, info};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
+use tracing::{debug, error, info};
 
 use super::docker::{RunOptions, RunningContainer};
 use super::logs_parser::RunningServices;

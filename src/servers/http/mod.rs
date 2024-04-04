@@ -306,7 +306,7 @@
 use serde::{Deserialize, Serialize};
 
 pub mod percent_encoding;
-pub mod server;
+pub mod service;
 pub mod v1;
 
 /// The version of the HTTP tracker.

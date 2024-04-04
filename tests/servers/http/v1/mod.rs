@@ -2,51 +2,50 @@ use std::net::IpAddr;
 
 use reqwest::Response;
 use torrust_tracker::core::auth::Key;
-use torrust_tracker::servers::http::server::Running;
 use torrust_tracker::shared::bit_torrent::tracker::http::client::{requests, Client};
+use torrust_tracker_configuration::CLIENT_TIMEOUT_DEFAULT;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
 
-use super::environment::Environment;
-use super::TIMEOUT;
+use super::Started;
 
 pub mod contract;
 
 pub(crate) const PORT: u16 = 17548;
 
-pub(crate) fn create_default_client(env: &Environment<Running>) -> Client {
-    let url: url::Url = format!("http://{}/", &env.bind_address())
+pub(crate) fn create_default_client(env: &Started<'static>) -> Client {
+    let url: url::Url = format!("http://{}/", env.bind_address())
         .parse()
         .expect("it should make a valid url");
-    Client::new(url, TIMEOUT).expect("it should make a client")
+    Client::new(url, CLIENT_TIMEOUT_DEFAULT).expect("it should make a client")
 }
 
-pub(crate) fn create_bonded_client(env: &Environment<Running>, local_address: IpAddr) -> Client {
-    let url: url::Url = format!("http://{}/", &env.bind_address())
+pub(crate) fn create_bonded_client(env: &Started<'static>, local_address: IpAddr) -> Client {
+    let url: url::Url = format!("http://{}/", env.bind_address())
         .parse()
         .expect("it should make a valid url");
-    Client::bind(url, TIMEOUT, local_address).expect("it should make a client")
+    Client::bind(url, CLIENT_TIMEOUT_DEFAULT, local_address).expect("it should make a client")
 }
 
-pub(crate) fn create_authenticated_client(env: &Environment<Running>, key: Key) -> Client {
-    let url: url::Url = format!("http://{}/", &env.bind_address())
+pub(crate) fn create_authenticated_client(env: &Started<'static>, key: Key) -> Client {
+    let url: url::Url = format!("http://{}/", env.bind_address())
         .parse()
         .expect("it should make a valid url");
-    Client::authenticated(url, TIMEOUT, key).expect("it should make a client")
+    Client::authenticated(url, CLIENT_TIMEOUT_DEFAULT, key).expect("it should make a client")
 }
 
-pub(crate) async fn create_client_response(env: &Environment<Running>, path: &str) -> Response {
+pub(crate) async fn create_client_response(env: &Started<'static>, path: &str) -> Response {
     create_default_client(env).get(path).await.expect("it should get a response")
 }
 
-pub(crate) async fn create_client_announce_response(env: &Environment<Running>, query: &requests::Announce) -> Response {
+pub(crate) async fn create_client_announce_response(env: &Started<'static>, query: &requests::Announce) -> Response {
     create_default_client(env)
         .announce(query)
         .await
         .expect("it should get a response")
 }
 
-pub(crate) async fn create_client_scrape_response(env: &Environment<Running>, query: &requests::Scrape) -> Response {
+pub(crate) async fn create_client_scrape_response(env: &Started<'static>, query: &requests::Scrape) -> Response {
     create_default_client(env)
         .scrape(query)
         .await
@@ -54,7 +53,7 @@ pub(crate) async fn create_client_scrape_response(env: &Environment<Running>, qu
 }
 
 pub(crate) async fn create_bonded_client_announce_response(
-    env: &Environment<Running>,
+    env: &Started<'static>,
     local_address: IpAddr,
     query: &requests::Announce,
 ) -> Response {
@@ -65,7 +64,7 @@ pub(crate) async fn create_bonded_client_announce_response(
 }
 
 pub(crate) async fn create_bonded_client_scrape_response(
-    env: &Environment<Running>,
+    env: &Started<'static>,
     local_address: IpAddr,
     query: &requests::Scrape,
 ) -> Response {

@@ -79,7 +79,7 @@ impl IntoResponse for AuthError {
 }
 
 fn authenticate(token: &str, tokens: &AccessTokens) -> bool {
-    tokens.values().any(|t| t == token)
+    tokens.as_ref().values().any(|t| t == token)
 }
 
 /// `500` error response returned when the token is missing.

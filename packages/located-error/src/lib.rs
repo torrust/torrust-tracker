@@ -33,7 +33,7 @@ use std::error::Error;
 use std::panic::Location;
 use std::sync::Arc;
 
-use log::debug;
+use tracing::debug;
 
 pub type DynError = Arc<dyn std::error::Error + Send + Sync>;
 

@@ -2,12 +2,11 @@
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
-use derive_more::Constructor;
-use log::debug;
-use tokio::sync::Mutex;
+use derive_more::{AsRef, Constructor, Display};
 use tokio::task::JoinHandle;
+use tracing::debug;
 
 /// A [`ServiceHeathCheckResult`] is returned by a completed health check.
 pub type ServiceHeathCheckResult = Result<String, String>;
@@ -17,7 +16,7 @@ pub type ServiceHeathCheckResult = Result<String, String>;
 /// The `job` awaits a [`ServiceHeathCheckResult`].
 #[derive(Debug, Constructor)]
 pub struct ServiceHealthCheckJob {
-    pub binding: SocketAddr,
+    pub addr: SocketAddr,
     pub info: String,
     pub job: JoinHandle<ServiceHeathCheckResult>,
 }
@@ -32,14 +31,14 @@ pub type FnSpawnServiceHeathCheck = fn(&SocketAddr) -> ServiceHealthCheckJob;
 /// Each registration includes a function that fulfils the [`FnSpawnServiceHeathCheck`] specification.
 #[derive(Clone, Debug, Constructor)]
 pub struct ServiceRegistration {
-    binding: SocketAddr,
+    addr: SocketAddr,
     check_fn: FnSpawnServiceHeathCheck,
 }
 
 impl ServiceRegistration {
     #[must_use]
     pub fn spawn_check(&self) -> ServiceHealthCheckJob {
-        (self.check_fn)(&self.binding)
+        (self.check_fn)(&self.addr)
     }
 }
 
@@ -47,12 +46,30 @@ impl ServiceRegistration {
 pub type ServiceRegistrationForm = tokio::sync::oneshot::Sender<ServiceRegistration>;
 
 /// The [`ServiceRegistry`] contains each unique [`ServiceRegistration`] by it's [`SocketAddr`].
-pub type ServiceRegistry = Arc<Mutex<HashMap<SocketAddr, ServiceRegistration>>>;
+#[derive(AsRef, Clone, Debug, Default, Display)]
+#[display(fmt = "targets: {:?}", "self.targets()")]
+pub struct ServiceRegistry {
+    registry: Arc<Mutex<HashMap<SocketAddr, ServiceRegistration>>>,
+}
+
+impl ServiceRegistry {
+    fn targets(&self) -> Vec<SocketAddr> {
+        self.registry.lock().expect("it should get a lock").keys().copied().collect()
+    }
+}
 
 /// The [`Registar`] manages the [`ServiceRegistry`].
 #[derive(Clone, Debug)]
 pub struct Registar {
     registry: ServiceRegistry,
+}
+
+impl Registar {
+    /// Please try to only use for testing...
+    #[must_use]
+    pub fn get_registry(&self) -> ServiceRegistry {
+        self.registry.clone()
+    }
 }
 
 #[allow(clippy::derivable_impls)]
@@ -65,6 +82,7 @@ impl Default for Registar {
 }
 
 impl Registar {
+    #[must_use]
     pub fn new(register: ServiceRegistry) -> Self {
         Self { registry: register }
     }
@@ -88,9 +106,9 @@ impl Registar {
             .await
             .expect("it should receive the service registration from the started service");
 
-        let mut mutex = self.registry.lock().await;
+        let mut mutex = self.registry.as_ref().lock().expect("it should get a lock");
 
-        mutex.insert(service_registration.binding, service_registration);
+        mutex.insert(service_registration.addr, service_registration);
     }
 
     /// Returns the [`ServiceRegistry`] of services

@@ -5,10 +5,10 @@ use std::time::Duration;
 
 use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Request, Response, TransactionId};
 use derive_more::{AsRef, Constructor, From, Into};
-use log::debug;
 use tokio::net::UdpSocket;
 use tokio::time;
 use torrust_tracker_configuration::{CLIENT_TIMEOUT_DEFAULT, MAX_PACKET_SIZE, PORT_ASSIGNED_BY_OS};
+use tracing::debug;
 
 use super::{source_address, Error};
 
@@ -70,6 +70,7 @@ impl Bound {
     /// # Errors
     ///
     /// This function errors if underlying function fails.
+    #[allow(dead_code)]
     pub fn local_addr(&self) -> Result<SocketAddr, Error> {
         self.sock
             .local_addr()
@@ -96,8 +97,11 @@ impl Client {
     /// # Errors
     ///
     /// This function returns and error if the the binding fails.
-    pub async fn connect(addr: SocketAddr) -> Result<Self, Error> {
-        let launcher = Launcher::default();
+    pub async fn connect(addr: SocketAddr, timeout: Duration) -> Result<Self, Error> {
+        let launcher = Launcher {
+            timeout,
+            ..Default::default()
+        };
         let bound = launcher.bind().await?;
 
         bound.connect(addr).await
@@ -261,7 +265,7 @@ impl Client {
     /// # Panics
     pub async fn check(self) -> Result<String, Error> {
         let connect_request = ConnectRequest {
-            transaction_id: TransactionId(123),
+            transaction_id: TransactionId(rand::Rng::gen(&mut rand::thread_rng())),
         };
 
         let _ = self.send_request(connect_request.clone().into()).await?;

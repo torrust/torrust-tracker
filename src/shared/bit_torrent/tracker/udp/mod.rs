@@ -3,7 +3,9 @@ use std::sync::Arc;
 
 use thiserror::Error;
 
-pub mod client;
+mod client;
+
+pub use client::Client;
 
 #[derive(Debug, Clone, Error)]
 pub enum Error {

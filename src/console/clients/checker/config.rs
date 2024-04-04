@@ -5,9 +5,7 @@ use std::time::Duration;
 
 use reqwest::Url as ServiceUrl;
 use serde::Deserialize;
-
-/// Client Timeout
-const TIMEOUT_SEC: Duration = Duration::from_secs(5);
+use torrust_tracker_configuration::CLIENT_TIMEOUT_DEFAULT;
 
 /// It parses the configuration from a JSON format.
 ///
@@ -83,7 +81,7 @@ impl TryFrom<PlainConfiguration> for Configuration {
             udp_trackers,
             http_trackers,
             health_checks,
-            client_timeout: TIMEOUT_SEC,
+            client_timeout: CLIENT_TIMEOUT_DEFAULT,
         })
     }
 }

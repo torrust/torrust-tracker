@@ -30,7 +30,7 @@ pub async fn run(health_checks: Vec<Url>, timeout: Duration, console: Console) -
     for url in health_checks {
         let colored_url = url.to_string().yellow();
 
-        match run_health_check(url.clone(), timeout).await {
+        match run_health_check(url.clone(), &timeout).await {
             Ok(response) => {
                 console.println(&format!(
                     "{} - Health API at {} is {}",
@@ -52,7 +52,7 @@ pub async fn run(health_checks: Vec<Url>, timeout: Duration, console: Console) -
     check_results
 }
 
-async fn run_health_check(url: Url, timeout: Duration) -> Result<Response, Error> {
+async fn run_health_check(url: Url, &timeout: &Duration) -> Result<Response, Error> {
     let client = HttpClient::builder()
         .timeout(timeout)
         .build()

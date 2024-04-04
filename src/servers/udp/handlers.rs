@@ -9,10 +9,10 @@ use aquatic_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads,
     NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
-use log::debug;
 use tokio::net::UdpSocket;
 use torrust_tracker_located_error::DynError;
 use torrust_tracker_primitives::info_hash::InfoHash;
+use tracing::debug;
 use uuid::Uuid;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
@@ -33,12 +33,12 @@ use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 /// type.
 ///
 /// It will return an `Error` response if the request is invalid.
-pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker>, socket: Arc<UdpSocket>) -> Response {
+pub(crate) async fn handle_packet(udp_request: &UdpRequest, tracker: &Arc<Tracker>, socket: Arc<UdpSocket>) -> Response {
     debug!("Handling Packets: {udp_request:?}");
 
     let start_time = Instant::now();
 
-    let request_id = RequestId::make(&udp_request);
+    let request_id = RequestId::make(udp_request);
     let server_socket_addr = socket.local_addr().expect("Could not get local_addr for socket.");
 
     match Request::from_bytes(&udp_request.payload[..udp_request.payload.len()], MAX_SCRAPE_TORRENTS).map_err(|e| {

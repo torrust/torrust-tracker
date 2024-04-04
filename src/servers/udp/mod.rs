@@ -643,11 +643,16 @@ use std::net::SocketAddr;
 
 pub mod connection_cookie;
 pub mod error;
+pub mod handle;
 pub mod handlers;
 pub mod logging;
 pub mod peer_builder;
 pub mod request;
 pub mod server;
+
+pub use handle::Handle;
+
+use self::handle::Watcher;
 
 /// Number of bytes.
 pub type Bytes = u64;
@@ -657,8 +662,23 @@ pub type Port = u16;
 /// match requests and responses.
 pub type TransactionId = i64;
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub enum Version {
+    /// The `v0` i.e un-versioned version of the Udp API.
+    V0,
+}
+
 pub(crate) struct UdpRequest {
     payload: Vec<u8>,
     from: SocketAddr,
+    watcher: Watcher,
+}
+
+impl std::fmt::Debug for UdpRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("UdpRequest")
+            .field("payload", &self.payload)
+            .field("from", &self.from)
+            .finish_non_exhaustive()
+    }
 }

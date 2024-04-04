@@ -15,7 +15,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-log = { version = "0", features = ["release_max_level_info"] }
+tracing = "0"
 
 [dev-dependencies]
 thiserror = "1"
