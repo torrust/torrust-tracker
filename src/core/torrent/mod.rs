@@ -26,6 +26,7 @@
 //! Peer that don not have a full copy of the torrent data are called "leechers".
 //!
 
-use torrust_tracker_torrent_repository::TorrentsRwLockStdMutexStd;
+use torrust_tracker_torrent_repository::TorrentsSkipMapMutexStd;
 
-pub type Torrents = TorrentsRwLockStdMutexStd; // Currently Used
+//pub type Torrents = TorrentsRwLockStdMutexStd; // Currently Used
+pub type Torrents = TorrentsSkipMapMutexStd; // Currently Used

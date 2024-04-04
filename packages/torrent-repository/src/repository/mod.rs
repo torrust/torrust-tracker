@@ -11,6 +11,7 @@ pub mod rw_lock_std_mutex_tokio;
 pub mod rw_lock_tokio;
 pub mod rw_lock_tokio_mutex_std;
 pub mod rw_lock_tokio_mutex_tokio;
+pub mod skip_map_mutex_std;
 
 use std::fmt::Debug;
 
