@@ -3770,6 +3770,7 @@ name = "torrust-tracker-torrent-repository"
 version = "3.0.0-alpha.12-develop"
 dependencies = [
  "criterion",
+ "crossbeam-skiplist",
  "futures",
  "rstest",
  "tokio",
