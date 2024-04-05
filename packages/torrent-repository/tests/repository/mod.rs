@@ -8,7 +8,8 @@ use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::{NumberOfBytes, PersistentTorrents};
 use torrust_tracker_torrent_repository::entry::Entry as _;
-use torrust_tracker_torrent_repository::repository::{RwLockStd, RwLockTokio};
+use torrust_tracker_torrent_repository::repository::rw_lock_std::RwLockStd;
+use torrust_tracker_torrent_repository::repository::rw_lock_tokio::RwLockTokio;
 use torrust_tracker_torrent_repository::EntrySingle;
 
 use crate::common::repo::Repo;
