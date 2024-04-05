@@ -11,6 +11,24 @@ use super::RepositoryAsync;
 use crate::entry::Entry;
 use crate::{EntrySingle, TorrentsRwLockTokio};
 
+#[derive(Default, Debug)]
+pub struct RwLockTokio<T> {
+    pub(crate) torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, T>>,
+}
+
+impl<T> RwLockTokio<T> {
+    pub fn write(
+        &self,
+    ) -> impl std::future::Future<
+        Output = tokio::sync::RwLockWriteGuard<
+            '_,
+            std::collections::BTreeMap<torrust_tracker_primitives::info_hash::InfoHash, T>,
+        >,
+    > {
+        self.torrents.write()
+    }
+}
+
 impl TorrentsRwLockTokio {
     async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle>>
     where
