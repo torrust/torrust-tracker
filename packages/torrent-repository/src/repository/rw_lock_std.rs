@@ -11,6 +11,22 @@ use super::Repository;
 use crate::entry::Entry;
 use crate::{EntrySingle, TorrentsRwLockStd};
 
+#[derive(Default, Debug)]
+pub struct RwLockStd<T> {
+    pub(crate) torrents: std::sync::RwLock<std::collections::BTreeMap<InfoHash, T>>,
+}
+
+impl<T> RwLockStd<T> {
+    /// # Panics
+    ///
+    /// Panics if unable to get a lock.
+    pub fn write(
+        &self,
+    ) -> std::sync::RwLockWriteGuard<'_, std::collections::BTreeMap<torrust_tracker_primitives::info_hash::InfoHash, T>> {
+        self.torrents.write().expect("it should get lock")
+    }
+}
+
 impl TorrentsRwLockStd {
     fn get_torrents<'a>(&'a self) -> std::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle>>
     where

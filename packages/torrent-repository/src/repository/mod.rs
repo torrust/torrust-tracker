@@ -11,6 +11,7 @@ pub mod rw_lock_std_mutex_tokio;
 pub mod rw_lock_tokio;
 pub mod rw_lock_tokio_mutex_std;
 pub mod rw_lock_tokio_mutex_tokio;
+pub mod skip_map_mutex_std;
 
 use std::fmt::Debug;
 
@@ -39,38 +40,4 @@ pub trait RepositoryAsync<T>: Debug + Default + Sized + 'static {
         info_hash: &InfoHash,
         peer: &peer::Peer,
     ) -> impl std::future::Future<Output = (bool, SwarmMetadata)> + Send;
-}
-
-#[derive(Default, Debug)]
-pub struct RwLockStd<T> {
-    torrents: std::sync::RwLock<std::collections::BTreeMap<InfoHash, T>>,
-}
-
-#[derive(Default, Debug)]
-pub struct RwLockTokio<T> {
-    torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, T>>,
-}
-
-impl<T> RwLockStd<T> {
-    /// # Panics
-    ///
-    /// Panics if unable to get a lock.
-    pub fn write(
-        &self,
-    ) -> std::sync::RwLockWriteGuard<'_, std::collections::BTreeMap<torrust_tracker_primitives::info_hash::InfoHash, T>> {
-        self.torrents.write().expect("it should get lock")
-    }
-}
-
-impl<T> RwLockTokio<T> {
-    pub fn write(
-        &self,
-    ) -> impl std::future::Future<
-        Output = tokio::sync::RwLockWriteGuard<
-            '_,
-            std::collections::BTreeMap<torrust_tracker_primitives::info_hash::InfoHash, T>,
-        >,
-    > {
-        self.torrents.write()
-    }
 }

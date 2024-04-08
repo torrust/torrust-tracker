@@ -8,7 +8,9 @@ use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::{NumberOfBytes, PersistentTorrents};
 use torrust_tracker_torrent_repository::entry::Entry as _;
-use torrust_tracker_torrent_repository::repository::{RwLockStd, RwLockTokio};
+use torrust_tracker_torrent_repository::repository::rw_lock_std::RwLockStd;
+use torrust_tracker_torrent_repository::repository::rw_lock_tokio::RwLockTokio;
+use torrust_tracker_torrent_repository::repository::skip_map_mutex_std::CrossbeamSkipList;
 use torrust_tracker_torrent_repository::EntrySingle;
 
 use crate::common::repo::Repo;
@@ -16,30 +18,37 @@ use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
 
 #[fixture]
 fn standard() -> Repo {
-    Repo::Std(RwLockStd::default())
+    Repo::RwLockStd(RwLockStd::default())
 }
+
 #[fixture]
 fn standard_mutex() -> Repo {
-    Repo::StdMutexStd(RwLockStd::default())
+    Repo::RwLockStdMutexStd(RwLockStd::default())
 }
 
 #[fixture]
 fn standard_tokio() -> Repo {
-    Repo::StdMutexTokio(RwLockStd::default())
+    Repo::RwLockStdMutexTokio(RwLockStd::default())
 }
 
 #[fixture]
 fn tokio_std() -> Repo {
-    Repo::Tokio(RwLockTokio::default())
+    Repo::RwLockTokio(RwLockTokio::default())
 }
+
 #[fixture]
 fn tokio_mutex() -> Repo {
-    Repo::TokioMutexStd(RwLockTokio::default())
+    Repo::RwLockTokioMutexStd(RwLockTokio::default())
 }
 
 #[fixture]
 fn tokio_tokio() -> Repo {
-    Repo::TokioMutexTokio(RwLockTokio::default())
+    Repo::RwLockTokioMutexTokio(RwLockTokio::default())
+}
+
+#[fixture]
+fn skip_list_std() -> Repo {
+    Repo::SkipMapMutexStd(CrossbeamSkipList::default())
 }
 
 type Entries = Vec<(InfoHash, EntrySingle)>;
@@ -223,7 +232,16 @@ fn policy_remove_persist() -> TrackerPolicy {
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_get_a_torrent_entry(
-    #[values(standard(), standard_mutex(), standard_tokio(), tokio_std(), tokio_mutex(), tokio_tokio())] repo: Repo,
+    #[values(
+        standard(),
+        standard_mutex(),
+        standard_tokio(),
+        tokio_std(),
+        tokio_mutex(),
+        tokio_tokio(),
+        skip_list_std()
+    )]
+    repo: Repo,
     #[case] entries: Entries,
 ) {
     make(&repo, &entries).await;
@@ -246,7 +264,16 @@ async fn it_should_get_a_torrent_entry(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_get_paginated_entries_in_a_stable_or_sorted_order(
-    #[values(standard(), standard_mutex(), standard_tokio(), tokio_std(), tokio_mutex(), tokio_tokio())] repo: Repo,
+    #[values(
+        standard(),
+        standard_mutex(),
+        standard_tokio(),
+        tokio_std(),
+        tokio_mutex(),
+        tokio_tokio(),
+        skip_list_std()
+    )]
+    repo: Repo,
     #[case] entries: Entries,
     many_out_of_order: Entries,
 ) {
@@ -279,7 +306,16 @@ async fn it_should_get_paginated_entries_in_a_stable_or_sorted_order(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_get_paginated(
-    #[values(standard(), standard_mutex(), standard_tokio(), tokio_std(), tokio_mutex(), tokio_tokio())] repo: Repo,
+    #[values(
+        standard(),
+        standard_mutex(),
+        standard_tokio(),
+        tokio_std(),
+        tokio_mutex(),
+        tokio_tokio(),
+        skip_list_std()
+    )]
+    repo: Repo,
     #[case] entries: Entries,
     #[values(paginated_limit_zero(), paginated_limit_one(), paginated_limit_one_offset_one())] paginated: Pagination,
 ) {
@@ -327,7 +363,16 @@ async fn it_should_get_paginated(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_get_metrics(
-    #[values(standard(), standard_mutex(), standard_tokio(), tokio_std(), tokio_mutex(), tokio_tokio())] repo: Repo,
+    #[values(
+        standard(),
+        standard_mutex(),
+        standard_tokio(),
+        tokio_std(),
+        tokio_mutex(),
+        tokio_tokio(),
+        skip_list_std()
+    )]
+    repo: Repo,
     #[case] entries: Entries,
 ) {
     use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
@@ -359,7 +404,16 @@ async fn it_should_get_metrics(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_import_persistent_torrents(
-    #[values(standard(), standard_mutex(), standard_tokio(), tokio_std(), tokio_mutex(), tokio_tokio())] repo: Repo,
+    #[values(
+        standard(),
+        standard_mutex(),
+        standard_tokio(),
+        tokio_std(),
+        tokio_mutex(),
+        tokio_tokio(),
+        skip_list_std()
+    )]
+    repo: Repo,
     #[case] entries: Entries,
     #[values(persistent_empty(), persistent_single(), persistent_three())] persistent_torrents: PersistentTorrents,
 ) {
@@ -388,7 +442,16 @@ async fn it_should_import_persistent_torrents(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_remove_an_entry(
-    #[values(standard(), standard_mutex(), standard_tokio(), tokio_std(), tokio_mutex(), tokio_tokio())] repo: Repo,
+    #[values(
+        standard(),
+        standard_mutex(),
+        standard_tokio(),
+        tokio_std(),
+        tokio_mutex(),
+        tokio_tokio(),
+        skip_list_std()
+    )]
+    repo: Repo,
     #[case] entries: Entries,
 ) {
     make(&repo, &entries).await;
@@ -415,7 +478,16 @@ async fn it_should_remove_an_entry(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_remove_inactive_peers(
-    #[values(standard(), standard_mutex(), standard_tokio(), tokio_std(), tokio_mutex(), tokio_tokio())] repo: Repo,
+    #[values(
+        standard(),
+        standard_mutex(),
+        standard_tokio(),
+        tokio_std(),
+        tokio_mutex(),
+        tokio_tokio(),
+        skip_list_std()
+    )]
+    repo: Repo,
     #[case] entries: Entries,
 ) {
     use std::ops::Sub as _;
@@ -488,7 +560,16 @@ async fn it_should_remove_inactive_peers(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_remove_peerless_torrents(
-    #[values(standard(), standard_mutex(), standard_tokio(), tokio_std(), tokio_mutex(), tokio_tokio())] repo: Repo,
+    #[values(
+        standard(),
+        standard_mutex(),
+        standard_tokio(),
+        tokio_std(),
+        tokio_mutex(),
+        tokio_tokio(),
+        skip_list_std()
+    )]
+    repo: Repo,
     #[case] entries: Entries,
     #[values(policy_none(), policy_persist(), policy_remove(), policy_remove_persist())] policy: TrackerPolicy,
 ) {

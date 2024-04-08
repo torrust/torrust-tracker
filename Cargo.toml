@@ -41,6 +41,7 @@ chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
 colored = "2"
 config = "0"
+crossbeam-skiplist = "0.1"
 derive_more = "0"
 fern = "0"
 futures = "0"
@@ -63,8 +64,8 @@ serde_json = "1"
 serde_repr = "0"
 thiserror = "1"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
-torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "packages/configuration" }
 torrust-tracker-clock = { version = "3.0.0-alpha.12-develop", path = "packages/clock" }
+torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "packages/configuration" }
 torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.12-develop", path = "contrib/bencode" }
 torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "packages/located-error" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "packages/primitives" }
@@ -76,7 +77,7 @@ url = "2"
 uuid = { version = "1", features = ["v4"] }
 
 [package.metadata.cargo-machete]
-ignored = ["serde_bytes"]
+ignored = ["serde_bytes", "crossbeam-skiplist"]
 
 [dev-dependencies]
 local-ip-address = "0"
