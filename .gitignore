@@ -13,3 +13,4 @@
 /tracker.toml
 callgrind.out
 perf.data*
+*.code-workspace
