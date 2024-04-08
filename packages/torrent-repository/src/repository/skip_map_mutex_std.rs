@@ -15,7 +15,7 @@ use crate::{EntryMutexStd, EntrySingle};
 
 #[derive(Default, Debug)]
 pub struct CrossbeamSkipList<T> {
-    torrents: SkipMap<InfoHash, T>,
+    pub torrents: SkipMap<InfoHash, T>,
 }
 
 impl Repository<EntryMutexStd> for CrossbeamSkipList<EntryMutexStd>
