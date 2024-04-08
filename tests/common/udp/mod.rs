@@ -1,9 +1,9 @@
 use torrust_tracker::servers::service;
-use torrust_tracker::servers::udp::server::UdpHandle;
+use torrust_tracker::servers::udp::handle::Handle;
 
 pub mod environment;
 
-pub type Started<'a> = environment::Environment<service::Started<UdpHandle>>;
+pub type Started<'a> = environment::Environment<service::Started<Handle>>;
 //pub type Stopped<'a> = environment::Environment<service::Stopped>;
 
 #[cfg(test)]

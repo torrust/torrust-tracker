@@ -303,10 +303,13 @@
 //!
 //! - [Bencode](https://en.wikipedia.org/wiki/Bencode).
 //! - [Bencode to Json Online converter](https://chocobo1.github.io/bencode_online).
+
 use serde::{Deserialize, Serialize};
 
+pub mod check;
+pub mod handle;
+pub mod launcher;
 pub mod percent_encoding;
-pub mod service;
 pub mod v1;
 
 /// The version of the HTTP tracker.

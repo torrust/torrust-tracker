@@ -15,6 +15,7 @@
 //! for the API configuration options.
 
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::task::JoinHandle;
@@ -22,9 +23,9 @@ use torrust_tracker_configuration::HealthCheckApi;
 use tracing::instrument;
 
 use super::Error;
-use crate::servers::health_check_api::server::HealthCheckLauncher;
+use crate::servers::health_check_api::launcher::Launcher;
 use crate::servers::health_check_api::Version;
-use crate::servers::registar::{ServiceRegistrationForm, ServiceRegistry};
+use crate::servers::registar::{Form, Registar, Registry};
 use crate::servers::service::Service;
 
 /// This function starts a new Health Check API server with the provided
@@ -39,14 +40,12 @@ use crate::servers::service::Service;
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
 ///
 #[allow(clippy::async_yields_async)]
-#[instrument(ret, skip(form), fields(registry = %registry))]
-pub async fn start_job(
-    config: &HealthCheckApi,
-    registry: ServiceRegistry,
-    form: ServiceRegistrationForm,
-    version: Version,
-) -> JoinHandle<()> {
+#[instrument(ret, fields(registar = %registar))]
+pub async fn start_job(config: &HealthCheckApi, registar: &Registar, version: Version) -> JoinHandle<()> {
     let addr = config.bind_address.parse().expect("it should parse the binding address");
+
+    let form = registar.form();
+    let registry = registar.as_ref().clone();
 
     match version {
         Version::V0 => start_v0(addr, registry, form).await.expect("it should start the service"),
@@ -60,8 +59,8 @@ pub async fn start_job(
 ///
 #[allow(clippy::async_yields_async)]
 #[instrument(err, ret, skip(form), fields(registry = %registry))]
-async fn start_v0(addr: SocketAddr, registry: ServiceRegistry, form: ServiceRegistrationForm) -> Result<JoinHandle<()>, Error> {
-    let service = Service::new(HealthCheckLauncher::new(addr, registry));
+async fn start_v0(addr: SocketAddr, registry: Arc<Registry>, form: Form) -> Result<JoinHandle<()>, Error> {
+    let service = Service::new(Launcher::new(addr, registry));
 
     let started = service.start().map_err(Error::from)?;
 
@@ -83,22 +82,22 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
-    use tracing_test::traced_test;
 
+    //use tracing_test::traced_test;
     use crate::bootstrap::jobs::health_check_api::{start_job, start_v0};
     use crate::servers::health_check_api::Version;
     use crate::servers::registar::Registar;
 
     #[tokio::test]
-    #[traced_test]
+    //#[traced_test]
     async fn it_should_start_and_stop_the_job_for_the_health_check_service() {
         let cfg = Arc::new(ephemeral_mode_public());
         let config = &cfg.health_check_api;
         let version = Version::V0;
 
-        let registar = &Registar::default();
+        let registar = Registar::default();
 
-        let job = start_job(config, registar.get_registry(), registar.give_form(), version).await;
+        let job = start_job(config, &registar, version).await;
 
         job.abort();
 
@@ -106,7 +105,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[traced_test]
+    //#[traced_test]
     async fn it_should_start_and_stop_the_v0_of_the_health_check_service() {
         let addr = ephemeral_mode_public()
             .health_check_api
@@ -115,10 +114,10 @@ mod tests {
             .expect("it should parse the binding address");
 
         let registar = Registar::default();
+        let form = registar.form();
+        let registry = registar.as_ref().clone();
 
-        let job = start_v0(addr, registar.get_registry(), registar.give_form())
-            .await
-            .expect("it should start");
+        let job = start_v0(addr, registry, form).await.expect("it should start");
 
         job.abort();
 

@@ -6,6 +6,7 @@ use thiserror::Error;
 mod client;
 
 pub use client::Client;
+use torrust_tracker_located_error::DynError;
 
 #[derive(Debug, Clone, Error)]
 pub enum Error {
@@ -47,6 +48,12 @@ pub enum Error {
     UnableToConnectToRemote { err: Arc<std::io::Error> },
     #[error("Failed to get the connected socket: {err:?}")]
     UnableToGetRemoteAddress { err: Arc<std::io::Error> },
+}
+
+impl From<Error> for DynError {
+    fn from(e: Error) -> Self {
+        Arc::new(Box::new(e))
+    }
 }
 
 /// Generates the source address for the UDP client

@@ -169,7 +169,7 @@ mod tests {
     use torrust_tracker_clock::time_extent::{self, Extent};
 
     use super::cookie_builder::{self};
-    use crate::servers::udp::connection_cookie::{check, make, Cookie, COOKIE_LIFETIME};
+    use crate::servers::udp::v0::cookie::{check, make, Cookie, COOKIE_LIFETIME};
 
     // #![feature(const_socketaddr)]
     // const REMOTE_ADDRESS_IPV4_ZERO: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);

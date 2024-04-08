@@ -5,12 +5,11 @@ use std::sync::Arc;
 
 use futures::future::BoxFuture;
 use thiserror::Error;
-use tokio::task::{JoinError, JoinHandle};
 use tracing::{debug, instrument, trace};
 
-use super::registar::{FnSpawnServiceHeathCheck, ServiceRegistration, ServiceRegistrationForm};
+use super::registar::{Form, HealthCheckFactory, Registration};
 use super::signals::Halted;
-use super::udp::server::UdpError;
+use super::udp;
 
 #[derive(Error, Debug, Clone)]
 pub enum Error {
@@ -27,22 +26,22 @@ pub enum Error {
         err: Arc<tokio::sync::oneshot::error::RecvError>,
     },
     #[error("Failed to send ServiceRegistration: {err:?}")]
-    UnableToSendRegistrationMessage { err: ServiceRegistration },
+    UnableToSendRegistrationMessage { err: Arc<Registration> },
     #[error("Failed to send Halted: {err:?}")]
     UnableToSendHaltingMessage { err: Halted },
     #[error("Failed to join task when stopping: {err:?}")]
     UnableToJoinStoppingService { err: Arc<tokio::task::JoinError> },
     #[error("Failed to start udp service: {err:?}")]
-    UnableToStartUdpService { err: UdpError },
+    UnableToStartUdpService { err: udp::Error },
 
     #[error("Failed to join the tokio task: {err:?}")]
-    UnableJoinTokioTask { err: Arc<JoinError> },
+    UnableJoinTokioTask { err: Arc<tokio::task::JoinError> },
 }
 
 pub type AddrFuture<'a> = BoxFuture<'a, Option<SocketAddr>>;
 
 pub type TaskFuture<'a, T, E> = BoxFuture<'a, Result<T, E>>;
-pub type TaskHandle<T, E> = JoinHandle<Result<T, E>>;
+pub type TaskHandle<T, E> = tokio::task::JoinHandle<Result<T, E>>;
 
 pub trait Handle: Debug + Default + Send + 'static {
     /// Stops the Service
@@ -51,7 +50,17 @@ pub trait Handle: Debug + Default + Send + 'static {
     ///
     /// This function will return an error if the service fails to stop cleanly.
     ///
+    /// Stops the service.
+    ///
     fn stop(self) -> Result<(), Error>;
+
+    /// Shutdown the service gracefully when the future is spawned.
+    ///
+    /// Note: the task returns when shutdown has completed.
+    ///
+    /// # Errors: if the shutdown fails, the future will return an error.
+    ///
+    fn into_graceful_shutdown_future<'a>(self) -> BoxFuture<'a, Result<(), Error>>;
 
     fn listening(&self) -> AddrFuture<'_>;
 }
@@ -67,7 +76,7 @@ where
     /// This function will return an error if the launching fails,
     /// or when the future returns with an error.
     ///
-    fn start(self) -> Result<(TaskFuture<'static, (), Error>, H, FnSpawnServiceHeathCheck), Error>;
+    fn start(self) -> Result<(TaskFuture<'static, (), Error>, H, HealthCheckFactory), Error>;
 }
 
 /// A service instance controller.
@@ -112,16 +121,20 @@ where
 {
     task: TaskHandle<(), Error>,
     pub handle: H,
-    check_fn: FnSpawnServiceHeathCheck,
+    check_factory: HealthCheckFactory,
 }
 
 impl<H: Handle> Started<H> {
     #[instrument(skip(task))]
-    pub fn new(task: TaskFuture<'static, (), Error>, handle: H, check_fn: FnSpawnServiceHeathCheck) -> Self {
+    pub fn new(task: TaskFuture<'static, (), Error>, handle: H, check_factory: HealthCheckFactory) -> Self {
         debug!("spawning the task in tokio");
         let task: TaskHandle<(), Error> = tokio::task::spawn(task);
 
-        Self { task, handle, check_fn }
+        Self {
+            task,
+            handle,
+            check_factory,
+        }
     }
 }
 
@@ -153,7 +166,7 @@ impl<H: Handle, L: Launcher<H> + Send + 'static> Service<Stopped, L, H> {
     ///
     /// It would return an error if the underling launcher returns an error.
     ///
-    #[instrument(err, ret)]
+    #[instrument(err)]
     pub fn start(self) -> Result<Service<Started<H>, L, H>, Error> {
         trace!("starting the task");
         let (task, handle, check_fn) = self.launcher.clone().start()?;
@@ -174,7 +187,7 @@ impl<'a, H: Handle, L: Launcher<H> + Send + 'a> Service<Started<H>, L, H> {
     ///
     /// This function will return an error if unable to get address.
     ///
-    #[instrument(err, ret)]
+    #[instrument(err)]
     pub async fn listening(&self) -> Result<SocketAddr, Error> {
         trace!("awaiting the service to inform it's ready and listening");
         self.state
@@ -192,7 +205,7 @@ impl<'a, H: Handle, L: Launcher<H> + Send + 'a> Service<Started<H>, L, H> {
     /// or unable to complete the registration.
     ///
     #[instrument(err, ret, skip(form))]
-    pub async fn reg_form(&self, form: ServiceRegistrationForm) -> Result<(), Error> {
+    pub async fn reg_form(&self, form: Form) -> Result<(), Error> {
         trace!("awaiting for the service to be ready and return it's local address");
         let addr = self.listening().await?;
 
@@ -200,8 +213,8 @@ impl<'a, H: Handle, L: Launcher<H> + Send + 'a> Service<Started<H>, L, H> {
             "sends the service registration on the supplied form,
         with the local address and self-check closure"
         );
-        form.send(ServiceRegistration::new(addr, self.state.check_fn))
-            .map_err(|err| Error::UnableToSendRegistrationMessage { err })
+        form.send(Registration::new(addr, self.state.check_factory.clone()))
+            .map_err(|e| Error::UnableToSendRegistrationMessage { err: e.into() })
     }
 
     /// It returns the active task with it's handler.
@@ -238,7 +251,7 @@ impl<'a, H: Handle, L: Launcher<H> + Send + 'a> Service<Started<H>, L, H> {
     /// # Errors
     ///
     /// It would return an error if unable to stop, of the task finished with an error.
-    #[instrument(err, ret)]
+    #[instrument(err)]
     pub async fn stop(self) -> Result<Service<Stopped, L, H>, Error> {
         let () = self.state.handle.stop()?;
         let () = self

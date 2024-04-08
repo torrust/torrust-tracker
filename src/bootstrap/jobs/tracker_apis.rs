@@ -32,7 +32,7 @@ use super::make_rust_tls;
 use crate::core;
 use crate::servers::apis::server::ApiLauncher;
 use crate::servers::apis::Version;
-use crate::servers::registar::ServiceRegistrationForm;
+use crate::servers::registar::Form;
 use crate::servers::service::Service;
 
 /// This is the message that the "launcher" spawned task sends to the main
@@ -56,12 +56,7 @@ pub struct ApiServerJobStarted();
 ///
 #[allow(clippy::async_yields_async)]
 #[instrument(ret)]
-pub async fn start_job(
-    config: &HttpApi,
-    tracker: Arc<core::Tracker>,
-    form: ServiceRegistrationForm,
-    version: Version,
-) -> Option<JoinHandle<()>> {
+pub async fn start_job(config: &HttpApi, tracker: Arc<core::Tracker>, form: Form, version: Version) -> Option<JoinHandle<()>> {
     if config.enabled {
         let bind_to = config
             .bind_address
@@ -89,7 +84,7 @@ async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,
     tracker: Arc<core::Tracker>,
-    form: ServiceRegistrationForm,
+    form: Form,
     access_tokens: Arc<AccessTokens>,
 ) -> JoinHandle<()> {
     let service = Service::new(ApiLauncher::new(tracker, access_tokens, socket, tls));
@@ -124,7 +119,7 @@ mod tests {
         let tracker = tracker(&cfg);
         let version = Version::V1;
 
-        start_job(config, tracker, Registar::default().give_form(), version)
+        start_job(config, tracker, Registar::default().form(), version)
             .await
             .expect("it should be able to join to the tracker api start-job");
     }

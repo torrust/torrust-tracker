@@ -1,6 +1,8 @@
 //! This module contains functions to handle signals.
 
 use derive_more::Display;
+use futures::future::BoxFuture;
+use futures::FutureExt;
 use tracing::info;
 
 /// This is the message that the "launcher" spawned task receives from the main
@@ -12,29 +14,53 @@ pub enum Halted {
     Dropped,
 }
 
-/// Resolves on `ctrl_c` or the `terminate` signal.
+/// Creates a Future to Await the Terminate Signal (unix only)
 ///
 /// # Panics
 ///
-/// Will panic if the `ctrl_c` or `terminate` signal resolves with an error.
-pub async fn global_shutdown_signal() {
-    let ctrl_c = async {
-        tokio::signal::ctrl_c().await.expect("failed to install Ctrl+C handler");
-    };
-
+/// Panics if unable to connect to the global signal handle.
+///
+#[must_use]
+pub fn global_terminate_signal<'a>() -> BoxFuture<'a, ()> {
     #[cfg(unix)]
-    let terminate = async {
+    let terminate: BoxFuture<'a, ()> = async {
         tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
             .expect("failed to install signal handler")
             .recv()
             .await;
-    };
+    }
+    .boxed();
 
     #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
+    let terminate: BoxFuture<'a, ()> = std::future::pending::<()>().boxed();
+
+    terminate
+}
+
+/// Creates a Future to Await the Interrupt, i.e `ctrl_c` Signal
+///
+/// # Panics
+///
+/// Panics if unable to connect to the global signal handle.
+///
+#[must_use]
+pub fn global_interrupt_signal<'a>() -> BoxFuture<'a, ()> {
+    let interrupt: BoxFuture<'a, ()> = async {
+        tokio::signal::ctrl_c().await.expect("failed to install Ctrl+C handler");
+    }
+    .boxed();
+
+    interrupt
+}
+
+/// Resolves on `ctrl_c` or the `terminate` signal.
+///
+pub async fn global_shutdown_signal() {
+    let interrupt = global_interrupt_signal();
+    let terminate = global_terminate_signal();
 
     tokio::select! {
-        () = ctrl_c => {},
+        () = interrupt => {},
         () = terminate => {}
     }
 }
@@ -43,7 +69,8 @@ pub async fn global_shutdown_signal() {
 ///
 /// # Panics
 ///
-/// Will panic if the `stop_receiver` resolves with an error.
+/// Will panic if unable to connect to the receiving channel.
+///
 pub async fn shutdown_signal(rx_halt: tokio::sync::oneshot::Receiver<Halted>) {
     let halt = async {
         match rx_halt.await {

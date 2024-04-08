@@ -1,12 +1,13 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use torrust_tracker::servers::health_check_api::server::{HealthCheckHandle, HealthCheckLauncher};
-use torrust_tracker::servers::registar::{Registar, ServiceRegistrationForm, ServiceRegistry};
+use torrust_tracker::servers::health_check_api::handle::Handle;
+use torrust_tracker::servers::health_check_api::launcher::Launcher;
+use torrust_tracker::servers::registar::{Form, Registar, Registry};
 use torrust_tracker::servers::service;
 use torrust_tracker_configuration::HealthCheckApi;
 
-type Started = service::Service<service::Started<HealthCheckHandle>, HealthCheckLauncher, HealthCheckHandle>;
+type Started = service::Service<service::Started<Handle>, Launcher, Handle>;
 
 pub struct Environment {
     service: Started,
@@ -20,16 +21,16 @@ impl Environment {
     ///
     /// Panics if something goes wrong...
     pub async fn new(config: &Arc<HealthCheckApi>, registar: &Registar) -> Self {
-        let registry = registar.clone().get_registry();
+        let registry = registar.as_ref().clone();
 
         let addr = config
             .bind_address
             .parse::<std::net::SocketAddr>()
             .expect("it should have a valid http tracker bind address");
 
-        let form = registar.give_form();
+        let form = registar.form();
 
-        let (started, listening) = Self::start_v0(addr, &registry, form).await;
+        let (started, listening) = Self::start_v0(addr, registry, form).await;
 
         Self {
             service: started,
@@ -42,8 +43,8 @@ impl Environment {
     /// # Panics
     ///
     /// Panics if something goes wrong...
-    async fn start_v0(addr: SocketAddr, registry: &ServiceRegistry, form: ServiceRegistrationForm) -> (Started, SocketAddr) {
-        let service = service::Service::new(HealthCheckLauncher::new(addr, registry.clone()));
+    async fn start_v0(addr: SocketAddr, registry: Arc<Registry>, form: Form) -> (Started, SocketAddr) {
+        let service = service::Service::new(Launcher::new(addr, registry));
 
         let started: Started = service.start().expect("it should start");
 

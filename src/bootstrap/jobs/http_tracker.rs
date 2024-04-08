@@ -20,9 +20,9 @@ use tracing::{info, instrument};
 
 use super::make_rust_tls;
 use crate::core;
-use crate::servers::http::service::HttpLauncher;
+use crate::servers::http::launcher::Launcher;
 use crate::servers::http::Version;
-use crate::servers::registar::ServiceRegistrationForm;
+use crate::servers::registar::Form;
 use crate::servers::service::Service;
 
 /// It starts a new HTTP server with the provided configuration and version.
@@ -39,7 +39,7 @@ use crate::servers::service::Service;
 pub async fn start_job(
     config: &HttpTracker,
     tracker: Arc<core::Tracker>,
-    form: ServiceRegistrationForm,
+    form: Form,
     version: Version,
 ) -> Option<JoinHandle<()>> {
     if config.enabled {
@@ -63,13 +63,8 @@ pub async fn start_job(
 
 #[allow(clippy::async_yields_async)]
 #[instrument(ret)]
-async fn start_v1(
-    socket: SocketAddr,
-    tls: Option<RustlsConfig>,
-    tracker: Arc<core::Tracker>,
-    form: ServiceRegistrationForm,
-) -> JoinHandle<()> {
-    let service = Service::new(HttpLauncher::new(tracker, socket, tls));
+async fn start_v1(socket: SocketAddr, tls: Option<RustlsConfig>, tracker: Arc<core::Tracker>, form: Form) -> JoinHandle<()> {
+    let service = Service::new(Launcher::new(tracker, socket, tls));
 
     let started = service.start().expect("it should start");
 
@@ -101,7 +96,7 @@ mod tests {
         let tracker = tracker(&cfg);
         let version = Version::V1;
 
-        let job = start_job(config, tracker, Registar::default().give_form(), version)
+        let job = start_job(config, tracker, Registar::default().form(), version)
             .await
             .expect("it should be able to join to the http tracker start-job");
 

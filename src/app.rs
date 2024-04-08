@@ -67,7 +67,7 @@ pub async fn start(tracker_config: &Configuration, tracker: Arc<core::Tracker>) 
                 config.bind_address, tracker_config.mode
             );
         } else if let Some(job) =
-            udp_tracker::start_job(config, tracker.clone(), registar.give_form(), servers::udp::Version::V0).await
+            udp_tracker::start_job(config, tracker.clone(), registar.form(), servers::udp::Version::V0).await
         {
             jobs.push(job);
         };
@@ -75,9 +75,7 @@ pub async fn start(tracker_config: &Configuration, tracker: Arc<core::Tracker>) 
 
     // Start the HTTP blocks
     for config in &tracker_config.http_trackers {
-        if let Some(job) =
-            http_tracker::start_job(config, tracker.clone(), registar.give_form(), servers::http::Version::V1).await
-        {
+        if let Some(job) = http_tracker::start_job(config, tracker.clone(), registar.form(), servers::http::Version::V1).await {
             jobs.push(job);
         };
     }
@@ -87,7 +85,7 @@ pub async fn start(tracker_config: &Configuration, tracker: Arc<core::Tracker>) 
         if let Some(job) = tracker_apis::start_job(
             &tracker_config.http_api,
             tracker.clone(),
-            registar.give_form(),
+            registar.form(),
             servers::apis::Version::V1,
         )
         .await
@@ -101,16 +99,8 @@ pub async fn start(tracker_config: &Configuration, tracker: Arc<core::Tracker>) 
         jobs.push(torrent_cleanup::start_job(tracker_config, &tracker));
     }
 
-    // Start Health Check API
-    jobs.push(
-        health_check_api::start_job(
-            &tracker_config.health_check_api,
-            registar.entries(),
-            registar.give_form(),
-            Version::V0,
-        )
-        .await,
-    );
+    // Start Health Check API, consuming the registar.
+    jobs.push(health_check_api::start_job(&tracker_config.health_check_api, &registar, Version::V0).await);
 
     jobs
 }

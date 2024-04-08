@@ -1,4 +1,4 @@
-use torrust_tracker::servers::health_check_api::resources::{Report, Status};
+use torrust_tracker::servers::health_check_api::v0::resources::{Report, Status};
 use torrust_tracker::servers::registar::Registar;
 use torrust_tracker_test_helpers::configuration;
 
@@ -31,7 +31,7 @@ async fn health_check_endpoint_should_return_status_ok_when_there_is_no_services
 mod api {
     use std::sync::Arc;
 
-    use torrust_tracker::servers::health_check_api::resources::{Report, Status};
+    use torrust_tracker::servers::health_check_api::v0::resources::{Report, Status};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::servers::api;
@@ -136,7 +136,7 @@ mod api {
 mod http {
     use std::sync::Arc;
 
-    use torrust_tracker::servers::health_check_api::resources::{Report, Status};
+    use torrust_tracker::servers::health_check_api::v0::resources::{Report, Status};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::servers::health_check_api::client::get;
@@ -240,7 +240,7 @@ mod http {
 mod udp {
     use std::sync::Arc;
 
-    use torrust_tracker::servers::health_check_api::resources::{Report, Status};
+    use torrust_tracker::servers::health_check_api::v0::resources::{Report, Status};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::common::udp;

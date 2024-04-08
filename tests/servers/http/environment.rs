@@ -6,7 +6,8 @@ use futures::executor::block_on;
 use torrust_tracker::bootstrap::app::tracker;
 use torrust_tracker::bootstrap::jobs::make_rust_tls;
 use torrust_tracker::core::Tracker;
-use torrust_tracker::servers::http::service::{HttpHandle, HttpLauncher};
+use torrust_tracker::servers::http::handle::Handle;
+use torrust_tracker::servers::http::launcher::Launcher;
 use torrust_tracker::servers::registar::Registar;
 use torrust_tracker::servers::service::{Service, Started, Stopped};
 use torrust_tracker_configuration::{Configuration, HttpTracker};
@@ -17,7 +18,7 @@ pub struct Environment<S: Debug> {
     pub config: Arc<HttpTracker>,
     pub tracker: Arc<Tracker>,
     pub registar: Registar,
-    pub server: Service<S, HttpLauncher, HttpHandle>,
+    pub server: Service<S, Launcher, Handle>,
     pub addr: Option<SocketAddr>,
 }
 
@@ -43,7 +44,7 @@ impl Environment<Stopped> {
         let tls = block_on(make_rust_tls(config.ssl_enabled, &config.ssl_cert_path, &config.ssl_key_path))
             .map(|tls| tls.expect("tls config failed"));
 
-        let server = Service::new(HttpLauncher::new(tracker.clone(), bind_to, tls));
+        let server = Service::new(Launcher::new(tracker.clone(), bind_to, tls));
 
         Self {
             config,
@@ -55,12 +56,12 @@ impl Environment<Stopped> {
     }
 
     #[allow(dead_code)]
-    pub async fn start(self) -> Environment<Started<HttpHandle>> {
+    pub async fn start(self) -> Environment<Started<Handle>> {
         let server = self.server.start().unwrap();
 
         // reg_form wait for the service to be ready before proceeding
         let () = server
-            .reg_form(self.registar.give_form())
+            .reg_form(self.registar.form())
             .await
             .expect("it should register a form");
 
@@ -76,7 +77,7 @@ impl Environment<Stopped> {
     }
 }
 
-impl Environment<Started<HttpHandle>> {
+impl Environment<Started<Handle>> {
     pub async fn new(configuration: &Arc<Configuration>) -> Self {
         Environment::<Stopped>::new(configuration).start().await
     }

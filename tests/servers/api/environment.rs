@@ -61,7 +61,7 @@ impl Environment<Stopped> {
 
         // reg_form wait for the service to be ready before proceeding
         let () = server
-            .reg_form(self.registar.give_form())
+            .reg_form(self.registar.form())
             .await
             .expect("it should register a form");
 

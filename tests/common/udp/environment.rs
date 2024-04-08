@@ -6,7 +6,8 @@ use torrust_tracker::bootstrap::app::tracker;
 use torrust_tracker::core::Tracker;
 use torrust_tracker::servers::registar::Registar;
 use torrust_tracker::servers::service::{Service, Started, Stopped};
-use torrust_tracker::servers::udp::server::{UdpHandle, UdpLauncher};
+use torrust_tracker::servers::udp::handle::Handle;
+use torrust_tracker::servers::udp::launcher::Launcher;
 use torrust_tracker_configuration::{Configuration, UdpTracker};
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
@@ -15,7 +16,7 @@ pub struct Environment<S: Debug> {
     pub config: Arc<UdpTracker>,
     pub tracker: Arc<Tracker>,
     pub registar: Registar,
-    pub server: Service<S, UdpLauncher, UdpHandle>,
+    pub server: Service<S, Launcher, Handle>,
     pub addr: Option<SocketAddr>,
 }
 
@@ -39,7 +40,7 @@ impl Environment<Stopped> {
             .parse::<std::net::SocketAddr>()
             .expect("Tracker API bind_address invalid.");
 
-        let server = Service::new(UdpLauncher::new(tracker.clone(), addr));
+        let server = Service::new(Launcher::new(tracker.clone(), addr));
 
         Self {
             config,
@@ -51,12 +52,12 @@ impl Environment<Stopped> {
     }
 
     #[allow(dead_code)]
-    pub async fn start(self) -> Environment<Started<UdpHandle>> {
+    pub async fn start(self) -> Environment<Started<Handle>> {
         let server = self.server.start().unwrap();
 
         // reg_form wait for the service to be ready before proceeding
         let () = server
-            .reg_form(self.registar.give_form())
+            .reg_form(self.registar.form())
             .await
             .expect("it should register a form");
 
@@ -72,7 +73,7 @@ impl Environment<Stopped> {
     }
 }
 
-impl Environment<Started<UdpHandle>> {
+impl Environment<Started<Handle>> {
     pub async fn new(configuration: &Arc<Configuration>) -> Self {
         Environment::<Stopped>::new(configuration).start().await
     }

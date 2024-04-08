@@ -427,6 +427,7 @@ pub mod fixture {
 
 #[cfg(test)]
 pub mod test {
+
     mod torrent_peer_id {
         use crate::peer;
 

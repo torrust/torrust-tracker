@@ -30,33 +30,51 @@ use axum_server::tls_rustls::RustlsConfig;
 use derive_more::{Constructor, Display};
 use futures::{FutureExt as _, TryFutureExt as _};
 use torrust_tracker_configuration::AccessTokens;
+use torrust_tracker_located_error::DynError;
+use tracing::info;
 
 use super::routes::router;
 use crate::core::Tracker;
-use crate::servers::registar::{FnSpawnServiceHeathCheck, ServiceHealthCheckJob};
-use crate::servers::service::{AddrFuture, Error, Handle, Launcher, TaskFuture};
+use crate::servers::registar::{self, HealthCheckFactory, HeathCheckFuture, HeathCheckResult};
+use crate::servers::service::{self, AddrFuture, Error, TaskFuture};
 use crate::servers::signals::Halted;
 use crate::servers::tcp::graceful_axum_shutdown;
 
-/// Checks the Health by connecting to the API service endpoint.
+/// Build a health check future task for checking
+/// the http api health check endpoint.
 ///
-/// # Errors
-///
-/// This function will return an error if unable to connect.
-/// Or if there request returns an error code.
 #[must_use]
-fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
-    let url = format!("http://{binding}/api/health_check");
+fn check_builder(addr: SocketAddr) -> HeathCheckFuture<'static> {
+    let url = format!("http://{addr}/api/health_check");
 
-    let info = format!("checking api health check at: {url}");
+    info!("checking api health check at: {url}");
 
-    let job = tokio::spawn(async move {
-        match reqwest::get(url).await {
-            Ok(response) => Ok(response.status().to_string()),
-            Err(err) => Err(err.to_string()),
-        }
-    });
-    ServiceHealthCheckJob::new(*binding, info, job)
+    let response = reqwest::get(url)
+        .map_err(move |e| registar::Error::UnableToGetAnyResponse {
+            addr,
+            msg: "Udp Client".to_string(),
+            err: DynError::into(Arc::new(e)),
+        })
+        .boxed();
+
+    let check = response
+        .and_then(move |r| async move {
+            r.error_for_status()
+                .map_err(move |e| registar::Error::UnableToObtainGoodResponse {
+                    addr,
+                    msg: "Udp Client".to_string(),
+                    err: DynError::into(Arc::new(e)),
+                })
+        })
+        .boxed();
+
+    check
+        .map_ok(move |r| registar::Success::AllGood {
+            addr,
+            msg: r.status().to_string(),
+        })
+        .map(HeathCheckResult::from)
+        .boxed()
 }
 
 #[derive(Debug)]
@@ -93,13 +111,17 @@ impl Default for ApiHandle {
     }
 }
 
-impl Handle for ApiHandle {
+impl service::Handle for ApiHandle {
     fn stop(mut self) -> Result<(), Error> {
         self.shutdown()
     }
 
     fn listening(&self) -> AddrFuture<'_> {
         self.axum_handle.listening().boxed()
+    }
+
+    fn into_graceful_shutdown_future<'a>(self) -> futures::prelude::future::BoxFuture<'a, Result<(), Error>> {
+        todo!()
     }
 }
 
@@ -128,8 +150,8 @@ impl ApiLauncher {
     }
 }
 
-impl Launcher<ApiHandle> for ApiLauncher {
-    fn start(self) -> Result<(TaskFuture<'static, (), Error>, ApiHandle, FnSpawnServiceHeathCheck), Error> {
+impl service::Launcher<ApiHandle> for ApiLauncher {
+    fn start(self) -> Result<(TaskFuture<'static, (), Error>, ApiHandle, HealthCheckFactory), Error> {
         let handle = ApiHandle::default();
 
         let running: TaskFuture<'_, (), Error> = {
@@ -160,7 +182,9 @@ impl Launcher<ApiHandle> for ApiLauncher {
             }
         };
 
-        Ok((running, handle, check_fn))
+        let check_factory = HealthCheckFactory::new(check_builder);
+
+        Ok((running, handle, check_factory))
     }
 }
 
@@ -199,7 +223,7 @@ mod tests {
         let stopped = Service::new(ApiLauncher::new(tracker, access_tokens, addr, tls));
 
         let started = stopped.start().expect("it should start the server");
-        let () = started.reg_form(register.give_form()).await.expect("it should register");
+        let () = started.reg_form(register.form()).await.expect("it should register");
 
         let stopped = started.stop().await.expect("it should stop the server");
 

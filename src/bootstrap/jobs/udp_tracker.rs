@@ -14,9 +14,9 @@ use torrust_tracker_configuration::UdpTracker;
 use tracing::{info, instrument};
 
 use crate::core;
-use crate::servers::registar::ServiceRegistrationForm;
+use crate::servers::registar::Form;
 use crate::servers::service::Service;
-use crate::servers::udp::server::UdpLauncher;
+use crate::servers::udp::launcher::Launcher;
 use crate::servers::udp::Version;
 
 /// It starts a new UDP server with the provided configuration.
@@ -32,12 +32,7 @@ use crate::servers::udp::Version;
 #[must_use]
 #[allow(clippy::async_yields_async)]
 #[instrument(ret)]
-pub async fn start_job(
-    config: &UdpTracker,
-    tracker: Arc<core::Tracker>,
-    form: ServiceRegistrationForm,
-    version: Version,
-) -> Option<JoinHandle<()>> {
+pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: Form, version: Version) -> Option<JoinHandle<()>> {
     if config.enabled {
         let addr = config
             .bind_address
@@ -55,8 +50,8 @@ pub async fn start_job(
 
 #[allow(clippy::async_yields_async)]
 #[instrument(ret)]
-async fn start_v0(socket: SocketAddr, tracker: Arc<core::Tracker>, form: ServiceRegistrationForm) -> JoinHandle<()> {
-    let service = Service::new(UdpLauncher::new(tracker, socket));
+async fn start_v0(socket: SocketAddr, tracker: Arc<core::Tracker>, form: Form) -> JoinHandle<()> {
+    let service = Service::new(Launcher::new(tracker, socket));
 
     let started = service.start().expect("it should start");
 
