@@ -278,8 +278,7 @@ async fn it_should_get_paginated_entries_in_a_stable_or_sorted_order(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std(),
-        dash_map_std()
+        skip_list_std()
     )]
     repo: Repo,
     #[case] entries: Entries,
@@ -321,8 +320,7 @@ async fn it_should_get_paginated(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std(),
-        dash_map_std()
+        skip_list_std()
     )]
     repo: Repo,
     #[case] entries: Entries,
