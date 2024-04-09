@@ -2,17 +2,17 @@ use std::cell::RefCell;
 
 use super::printer::{Printer, CLEAR_SCREEN};
 
-pub struct Logger {
+pub struct Tracer {
     output: RefCell<String>,
 }
 
-impl Default for Logger {
+impl Default for Tracer {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Logger {
+impl Tracer {
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -20,12 +20,12 @@ impl Logger {
         }
     }
 
-    pub fn log(&self) -> String {
+    pub fn tracing(&self) -> String {
         self.output.borrow().clone()
     }
 }
 
-impl Printer for Logger {
+impl Printer for Tracer {
     fn clear(&self) {
         self.print(CLEAR_SCREEN);
     }
@@ -49,24 +49,24 @@ impl Printer for Logger {
 
 #[cfg(test)]
 mod tests {
-    use crate::console::clients::checker::logger::Logger;
+    use crate::console::clients::checker::logger::Tracer;
     use crate::console::clients::checker::printer::{Printer, CLEAR_SCREEN};
 
     #[test]
     fn should_capture_the_clear_screen_command() {
-        let console_logger = Logger::new();
+        let console_logger = Tracer::new();
 
         console_logger.clear();
 
-        assert_eq!(CLEAR_SCREEN, console_logger.log());
+        assert_eq!(CLEAR_SCREEN, console_logger.tracing());
     }
 
     #[test]
     fn should_capture_the_print_command_output() {
-        let console_logger = Logger::new();
+        let console_logger = Tracer::new();
 
         console_logger.print("OUTPUT");
 
-        assert_eq!("OUTPUT", console_logger.log());
+        assert_eq!("OUTPUT", console_logger.tracing());
     }
 }

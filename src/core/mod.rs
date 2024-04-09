@@ -312,7 +312,7 @@
 //! You can control the behavior of this module with the module settings:
 //!
 //! ```toml
-//! log_level = "debug"
+//! trace_level = "debug"
 //! mode = "public"
 //! db_driver = "Sqlite3"
 //! db_path = "./storage/tracker/lib/database/sqlite3.db"
@@ -442,7 +442,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use derive_more::Constructor;
-use log::debug;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_configuration::{AnnouncePolicy, Configuration, TrackerPolicy, TORRENT_PEERS_LIMIT};
@@ -452,6 +451,7 @@ use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, TrackerMode};
 use torrust_tracker_torrent_repository::entry::EntrySync;
 use torrust_tracker_torrent_repository::repository::Repository;
+use tracing::debug;
 
 use self::auth::Key;
 use self::error::Error;

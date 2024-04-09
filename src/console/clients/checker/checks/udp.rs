@@ -3,8 +3,8 @@ use std::net::SocketAddr;
 use aquatic_udp_protocol::{Port, TransactionId};
 use colored::Colorize;
 use hex_literal::hex;
-use log::debug;
 use torrust_tracker_primitives::info_hash::InfoHash;
+use tracing::debug;
 
 use crate::console::clients::checker::console::Console;
 use crate::console::clients::checker::printer::Printer;

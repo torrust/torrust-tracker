@@ -3,13 +3,13 @@ use std::str::FromStr;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use log::debug;
 use r2d2::Pool;
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MySqlConnectionManager;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::{DatabaseDriver, PersistentTorrents};
+use tracing::debug;
 
 use super::{Database, Error};
 use crate::core::auth::{self, Key};

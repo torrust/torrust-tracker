@@ -2,7 +2,7 @@
 use std::env;
 use std::net::IpAddr;
 
-use torrust_tracker_configuration::Configuration;
+use torrust_tracker_configuration::{Configuration, TraceLevel};
 use torrust_tracker_primitives::TrackerMode;
 
 use crate::random;
@@ -15,7 +15,7 @@ use crate::random;
 /// > **NOTICE**: Port 0 is used for ephemeral ports, which means that the OS
 /// will assign a random free port for the tracker to use.
 ///
-/// > **NOTICE**: You can change the log level to `debug` to see the logs of the
+/// > **NOTICE**: You can change the tracing level to `debug` to see the traces of the
 /// tracker while running the tests. That can be particularly useful when
 /// debugging tests.
 ///
@@ -28,7 +28,7 @@ pub fn ephemeral() -> Configuration {
     // For example: a test for the UDP tracker should disable the API and HTTP tracker.
 
     let mut config = Configuration {
-        log_level: Some("off".to_owned()), // Change to `debug` for tests debugging
+        tracing_max_verbosity_level: TraceLevel::new("off"), // Change to `debug` for tests debugging
         ..Default::default()
     };
 

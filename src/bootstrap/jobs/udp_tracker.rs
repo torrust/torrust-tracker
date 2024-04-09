@@ -8,9 +8,9 @@
 //! for the configuration options.
 use std::sync::Arc;
 
-use log::debug;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::UdpTracker;
+use tracing::debug;
 
 use crate::core;
 use crate::servers::registar::ServiceRegistrationForm;

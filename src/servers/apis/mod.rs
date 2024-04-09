@@ -42,7 +42,7 @@
 //!
 //! ```text
 //! Loading configuration from config file ./tracker.toml
-//! 023-03-28T12:19:24.963054069+01:00 [torrust_tracker::bootstrap::logging][INFO] logging initialized.
+//! 023-03-28T12:19:24.963054069+01:00 [torrust_tracker::bootstrap::tracing][INFO] tracing initialized.
 //! ...
 //! 023-03-28T12:19:24.964138723+01:00 [torrust_tracker::bootstrap::jobs::tracker_apis][INFO] Starting Torrust APIs server on: http://0.0.0.0:1212
 //! ```

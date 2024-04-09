@@ -63,8 +63,8 @@ use anyhow::Context;
 use aquatic_udp_protocol::Response::{self, AnnounceIpv4, AnnounceIpv6, Scrape};
 use aquatic_udp_protocol::{Port, TransactionId};
 use clap::{Parser, Subcommand};
-use log::{debug, LevelFilter};
 use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
+use tracing::debug;
 use url::Url;
 
 use crate::console::clients::udp::checker;
@@ -102,7 +102,7 @@ enum Command {
 ///
 ///
 pub async fn run() -> anyhow::Result<()> {
-    setup_logging(LevelFilter::Info);
+    setup_tracing(tracing::Level::INFO);
 
     let args = Args::parse();
 
@@ -120,25 +120,10 @@ pub async fn run() -> anyhow::Result<()> {
     print_response(response)
 }
 
-fn setup_logging(level: LevelFilter) {
-    if let Err(_err) = fern::Dispatch::new()
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "{} [{}][{}] {}",
-                chrono::Local::now().format("%+"),
-                record.target(),
-                record.level(),
-                message
-            ));
-        })
-        .level(level)
-        .chain(std::io::stdout())
-        .apply()
-    {
-        panic!("Failed to initialize logging.")
-    }
+fn setup_tracing(level: tracing::Level) {
+    let () = tracing_subscriber::fmt().pretty().with_max_level(level).init();
 
-    debug!("logging initialized.");
+    debug!("tracing initialized.");
 }
 
 async fn handle_announce(tracker_socket_addr: &SocketAddr, info_hash: &TorrustInfoHash) -> anyhow::Result<Response> {

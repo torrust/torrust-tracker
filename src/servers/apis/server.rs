@@ -30,9 +30,9 @@ use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
-use log::{debug, error, info};
 use tokio::sync::oneshot::{Receiver, Sender};
 use torrust_tracker_configuration::AccessTokens;
+use tracing::{debug, error, info};
 
 use super::routes::router;
 use crate::bootstrap::jobs::Started;

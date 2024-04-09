@@ -1,11 +1,11 @@
 use std::time::Duration;
 
-use log::{debug, error, info};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
+use tracing::{debug, error, info};
 
 use super::docker::{RunOptions, RunningContainer};
-use super::logs_parser::RunningServices;
+use super::trace_parser::RunningServices;
 use crate::console::ci::e2e::docker::Docker;
 
 #[derive(Debug)]
@@ -62,19 +62,19 @@ impl TrackerContainer {
 
         self.running = Some(container);
 
-        self.assert_there_are_no_panics_in_logs();
+        self.assert_there_are_no_panics_in_traces();
     }
 
     /// # Panics
     ///
-    /// Will panic if it can't get the logs from the running container.
+    /// Will panic if it can't get the traces from the running container.
     #[must_use]
     pub fn running_services(&self) -> RunningServices {
-        let logs = Docker::logs(&self.name).expect("Logs should be captured from running container");
+        let traces = Docker::traces(&self.name).expect("Traces should be captured from running container");
 
-        debug!("Parsing running services from logs. Logs :\n{logs}");
+        debug!("Parsing running services from traces. Traces :\n{traces}");
 
-        RunningServices::parse_from_logs(&logs)
+        RunningServices::parse_from_traces(&traces)
     }
 
     /// # Panics
@@ -87,7 +87,7 @@ impl TrackerContainer {
 
                 Docker::stop(container).expect("Container should be stopped");
 
-                self.assert_there_are_no_panics_in_logs();
+                self.assert_there_are_no_panics_in_traces();
             }
             None => {
                 if Docker::is_container_running(&self.name) {
@@ -126,13 +126,13 @@ impl TrackerContainer {
         format!("{prefix}{rand_string}")
     }
 
-    fn assert_there_are_no_panics_in_logs(&self) {
-        let logs = Docker::logs(&self.name).expect("Logs should be captured from running container");
+    fn assert_there_are_no_panics_in_traces(&self) {
+        let traces = Docker::traces(&self.name).expect("Traces should be captured from running container");
 
         assert!(
-            !(logs.contains(" panicked at ") || logs.contains("RUST_BACKTRACE=1")),
+            !(traces.contains(" panicked at ") || traces.contains("RUST_BACKTRACE=1")),
             "{}",
-            format!("Panics found is logs:\n{logs}")
+            format!("Panics found is traces:\n{traces}")
         );
     }
 }

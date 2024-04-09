@@ -81,7 +81,7 @@
 //! ```
 //!
 //! > NOTICE: We are using an specific tracker configuration for profiling that
-//! removes all features except the UDP tracker and sets the logging level to `error`.
+//! removes all features except the UDP tracker and sets the tracing level to `error`.
 //!
 //! Build the aquatic UDP load test command:
 //!
@@ -107,7 +107,7 @@
 //! ```text
 //! Starting client with config: Config {
 //!     server_address: 127.0.0.1:6969,
-//!     log_level: Error,
+//!     trace_level: Error,
 //!     workers: 1,
 //!     duration: 0,
 //!     summarize_last: 0,
@@ -159,8 +159,8 @@
 use std::env;
 use std::time::Duration;
 
-use log::info;
 use tokio::time::sleep;
+use tracing::info;
 
 use crate::{app, bootstrap};
 

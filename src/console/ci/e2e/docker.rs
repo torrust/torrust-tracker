@@ -4,7 +4,7 @@ use std::process::{Command, Output};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use log::{debug, info};
+use tracing::{debug, info};
 
 /// Docker command wrapper.
 pub struct Docker {}
@@ -143,12 +143,12 @@ impl Docker {
         }
     }
 
-    /// Fetches logs from a Docker container.
+    /// Fetches traces from a Docker container.
     ///
     /// # Errors
     ///
-    /// Will fail if the docker logs command fails.
-    pub fn logs(container: &str) -> io::Result<String> {
+    /// Will fail if the docker traces command fails.
+    pub fn traces(container: &str) -> io::Result<String> {
         let output = Command::new("docker").args(["logs", container]).output()?;
 
         if output.status.success() {
@@ -156,7 +156,7 @@ impl Docker {
         } else {
             Err(io::Error::new(
                 io::ErrorKind::Other,
-                format!("Failed to fetch logs from Docker container {container}"),
+                format!("Failed to fetch traces from Docker container {container}"),
             ))
         }
     }

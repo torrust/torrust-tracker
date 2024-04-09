@@ -9,19 +9,19 @@ use aquatic_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads,
     NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
-use log::debug;
 use tokio::net::UdpSocket;
 use torrust_tracker_located_error::DynError;
 use torrust_tracker_primitives::info_hash::InfoHash;
+use tracing::debug;
 use uuid::Uuid;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
 use super::UdpRequest;
 use crate::core::{statistics, ScrapeData, Tracker};
 use crate::servers::udp::error::Error;
-use crate::servers::udp::logging::{log_bad_request, log_error_response, log_request, log_response};
 use crate::servers::udp::peer_builder;
 use crate::servers::udp::request::AnnounceWrapper;
+use crate::servers::udp::tracing::{trace_bad_request, trace_error_response, trace_request, trace_response};
 use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 
 /// It handles the incoming UDP packets.
@@ -48,7 +48,7 @@ pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker
         }
     }) {
         Ok(request) => {
-            log_request(&request, &request_id, &server_socket_addr);
+            trace_request(&request, &request_id, &server_socket_addr);
 
             let transaction_id = match &request {
                 Request::Connect(connect_request) => connect_request.transaction_id,
@@ -63,12 +63,12 @@ pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker
 
             let latency = start_time.elapsed();
 
-            log_response(&response, &transaction_id, &request_id, &server_socket_addr, latency);
+            trace_response(&response, &transaction_id, &request_id, &server_socket_addr, latency);
 
             response
         }
         Err(e) => {
-            log_bad_request(&request_id);
+            trace_bad_request(&request_id);
 
             let response = handle_error(
                 &Error::BadRequest {
@@ -77,7 +77,7 @@ pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker
                 TransactionId(0),
             );
 
-            log_error_response(&request_id);
+            trace_error_response(&request_id);
 
             response
         }

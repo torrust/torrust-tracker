@@ -29,7 +29,7 @@ cargo build --release -p aquatic_udp_load_test
 Run the tracker with UDP service enabled and other services disabled and set log level to `error`.
 
 ```toml
-log_level = "error"
+trace_level = "error"
 
 [[udp_trackers]]
 enabled = true
@@ -55,7 +55,7 @@ Output:
 ```output
 Starting client with config: Config {
     server_address: 127.0.0.1:6969,
-    log_level: Error,
+    trace_level: Error,
     workers: 1,
     duration: 0,
     summarize_last: 0,
@@ -163,7 +163,7 @@ Announce responses per info hash:
 Run the tracker with UDP service enabled and other services disabled and set log level to `error`.
 
 ```toml
-log_level = "error"
+trace_level = "error"
 
 [[udp_trackers]]
 enabled = true

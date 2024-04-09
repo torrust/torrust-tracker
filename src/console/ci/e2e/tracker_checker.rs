@@ -1,7 +1,7 @@
 use std::io;
 use std::process::Command;
 
-use log::info;
+use tracing::info;
 
 /// Runs the Tracker Checker.
 ///

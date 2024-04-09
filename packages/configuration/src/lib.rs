@@ -144,8 +144,8 @@
 //!         RequestHeader set X-Forwarded-Proto "https"
 //!         RequestHeader set X-Forwarded-Port "443"
 //!
-//!         ErrorLog ${APACHE_LOG_DIR}/tracker.torrust.com-error.log
-//!         CustomLog ${APACHE_LOG_DIR}/tracker.torrust.com-access.log combined
+//!         ErrorLog ${APACHE_LOG_DIR}/tracker.torrust.com-error.tracing
+//!         CustomLog ${APACHE_LOG_DIR}/tracker.torrust.com-access.tracing combined
 //!
 //!         SSLCertificateFile CERT_PATH
 //!         SSLCertificateKeyFile CERT_KEY_PATH
@@ -196,7 +196,7 @@
 //! db_path = "./storage/tracker/lib/database/sqlite3.db"
 //! external_ip = "0.0.0.0"
 //! inactive_peer_cleanup_interval = 600
-//! log_level = "info"
+//! trace_filter = "info"
 //! max_peer_timeout = 900
 //! min_announce_interval = 120
 //! mode = "public"
@@ -236,7 +236,7 @@ use std::sync::Arc;
 use std::{env, fs};
 
 use config::{Config, ConfigError, File, FileFormat};
-use derive_more::Constructor;
+use derive_more::{AsRef, Constructor};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
 use thiserror::Error;
@@ -431,13 +431,90 @@ impl Default for AnnouncePolicy {
     }
 }
 
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, AsRef)]
+#[serde(transparent)]
+pub struct TraceLevel {
+    level: String,
+}
+
+impl TraceLevel {
+    #[must_use]
+    pub fn new(level: &str) -> Self {
+        Self {
+            level: level.to_ascii_lowercase().to_string(),
+        }
+    }
+}
+
+impl std::fmt::Display for TraceLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.level.to_ascii_lowercase())
+    }
+}
+
+impl Default for TraceLevel {
+    fn default() -> Self {
+        Self::new("info")
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, AsRef)]
+#[serde(transparent)]
+pub struct TraceStyle {
+    style: String,
+}
+
+impl TraceStyle {
+    #[must_use]
+    pub fn new(style: &str) -> Self {
+        Self {
+            style: style.to_ascii_lowercase().to_string(),
+        }
+    }
+}
+
+impl std::fmt::Display for TraceStyle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.style.to_ascii_lowercase())
+    }
+}
+
+impl Default for TraceStyle {
+    fn default() -> Self {
+        Self::new("pretty")
+    }
+}
+
 /// Core configuration for the tracker.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
-    /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
-    /// `Debug` and `Trace`. Default is `Info`.
-    pub log_level: Option<String>,
+    /// Maximum Verbosity Level for Trace Subscription.
+    ///
+    /// Possible values are:
+    /// - `off`
+    /// - `error` (strongest)
+    /// - `info`   <--------- default
+    /// - `debug`
+    /// - `trace` (weakest)
+    ///
+    /// Default is `Info`.
+    #[serde(default, alias = "log_level", alias = "trace_filter")]
+    pub tracing_max_verbosity_level: TraceLevel,
+
+    /// Trace Subscription Format and Style
+    ///
+    /// Possible values are:
+    /// - `full`
+    /// - `pretty` <------------- default
+    /// - `pretty_with_paths`
+    /// - `pretty_without_paths`
+    /// - `compact`
+    /// - `json`
+    ///
+    #[serde(default, alias = "trace_style")]
+    pub tracing_format_style: TraceStyle,
+
     /// Tracker mode. See [`TrackerMode`] for more information.
     pub mode: TrackerMode,
 
@@ -544,7 +621,8 @@ impl Default for Configuration {
         let announce_policy = AnnouncePolicy::default();
 
         let mut configuration = Configuration {
-            log_level: Option::from(String::from("info")),
+            tracing_max_verbosity_level: TraceLevel::default(),
+            tracing_format_style: TraceStyle::new("pretty"),
             mode: TrackerMode::Public,
             db_driver: DatabaseDriver::Sqlite3,
             db_path: String::from("./storage/tracker/lib/database/sqlite3.db"),
@@ -686,7 +764,8 @@ mod tests {
 
     #[cfg(test)]
     fn default_config_toml() -> String {
-        let config = r#"log_level = "info"
+        let config = r#"tracing_max_verbosity_level = "info"
+                                tracing_format_style = "pretty"
                                 mode = "public"
                                 db_driver = "Sqlite3"
                                 db_path = "./storage/tracker/lib/database/sqlite3.db"

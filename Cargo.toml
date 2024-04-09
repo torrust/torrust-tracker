@@ -44,12 +44,10 @@ config = "0"
 crossbeam-skiplist = "0.1"
 dashmap = "5.5.3"
 derive_more = "0"
-fern = "0"
 futures = "0"
 hex-literal = "0"
 hyper = "1"
 lazy_static = "1"
-log = { version = "0", features = ["release_max_level_info"] }
 multimap = "0"
 percent-encoding = "2"
 r2d2 = "0"
@@ -72,13 +70,13 @@ torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "pa
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "packages/primitives" }
 torrust-tracker-torrent-repository = { version = "3.0.0-alpha.12-develop", path = "packages/torrent-repository" }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
-trace = "0"
 tracing = "0"
+tracing-subscriber = { version = "0", features = ["json"] }
 url = "2"
 uuid = { version = "1", features = ["v4"] }
 
 [package.metadata.cargo-machete]
-ignored = ["serde_bytes", "crossbeam-skiplist", "dashmap"]
+ignored = ["crossbeam-skiplist", "dashmap", "serde_bytes"]
 
 [dev-dependencies]
 local-ip-address = "0"
@@ -92,7 +90,7 @@ members = [
     "packages/located-error",
     "packages/primitives",
     "packages/test-helpers",
-    "packages/torrent-repository"
+    "packages/torrent-repository",
 ]
 
 [profile.dev]
@@ -106,5 +104,5 @@ lto = "fat"
 opt-level = 3
 
 [profile.release-debug]
-inherits = "release"
 debug = true
+inherits = "release"

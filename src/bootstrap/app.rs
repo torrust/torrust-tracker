@@ -9,7 +9,7 @@
 //!
 //! 1. Load the global application configuration.
 //! 2. Initialize static variables.
-//! 3. Initialize logging.
+//! 3. Initialize the tracing subscriber.
 //! 4. Initialize the domain tracker.
 use std::sync::Arc;
 
@@ -37,7 +37,7 @@ pub fn setup() -> (Configuration, Arc<Tracker>) {
 #[must_use]
 pub fn initialize_with_configuration(configuration: &Configuration) -> Arc<Tracker> {
     initialize_static();
-    initialize_logging(configuration);
+    initialize_tracing(configuration);
     Arc::new(initialize_tracker(configuration))
 }
 
@@ -64,9 +64,9 @@ pub fn initialize_tracker(config: &Configuration) -> Tracker {
     tracker_factory(config)
 }
 
-/// It initializes the log level, format and channel.
+/// It initializes the tracing level, format and channel.
 ///
-/// See [the logging setup](crate::bootstrap::logging::setup) for more info about logging.
-pub fn initialize_logging(config: &Configuration) {
-    bootstrap::logging::setup(config);
+/// See [the tracing setup](crate::bootstrap::tracing::setup) for more info about tracing.
+pub fn initialize_tracing(config: &Configuration) {
+    bootstrap::tracing::setup(config);
 }

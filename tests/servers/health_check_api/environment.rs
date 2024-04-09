@@ -1,7 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use log::debug;
 use tokio::sync::oneshot::{self, Sender};
 use tokio::task::JoinHandle;
 use torrust_tracker::bootstrap::jobs::Started;
@@ -9,6 +8,7 @@ use torrust_tracker::servers::health_check_api::server;
 use torrust_tracker::servers::registar::Registar;
 use torrust_tracker::servers::signals::{self, Halted};
 use torrust_tracker_configuration::HealthCheckApi;
+use tracing::debug;
 
 #[derive(Debug)]
 pub enum Error {

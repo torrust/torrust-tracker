@@ -20,11 +20,11 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use log::debug;
 #[cfg(test)]
 use mockall::{automock, predicate::str};
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{mpsc, RwLock, RwLockReadGuard};
+use tracing::debug;
 
 const CHANNEL_BUFFER_SIZE: usize = 65_535;
 

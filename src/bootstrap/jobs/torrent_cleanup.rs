@@ -13,9 +13,9 @@
 use std::sync::Arc;
 
 use chrono::Utc;
-use log::info;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
+use tracing::info;
 
 use crate::core;
 

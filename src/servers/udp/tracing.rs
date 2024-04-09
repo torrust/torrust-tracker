@@ -1,4 +1,4 @@
-//! Logging for UDP Tracker requests and responses.
+//! Tracing for UDP Tracker requests and responses.
 
 use std::net::SocketAddr;
 use std::time::Duration;
@@ -8,7 +8,7 @@ use torrust_tracker_primitives::info_hash::InfoHash;
 
 use super::handlers::RequestId;
 
-pub fn log_request(request: &Request, request_id: &RequestId, server_socket_addr: &SocketAddr) {
+pub fn trace_request(request: &Request, request_id: &RequestId, server_socket_addr: &SocketAddr) {
     let action = map_action_name(request);
 
     match &request {
@@ -56,7 +56,7 @@ fn map_action_name(udp_request: &Request) -> String {
     }
 }
 
-pub fn log_response(
+pub fn trace_response(
     _response: &Response,
     transaction_id: &TransactionId,
     request_id: &RequestId,
@@ -73,13 +73,13 @@ pub fn log_response(
         latency_ms = %latency.as_millis());
 }
 
-pub fn log_bad_request(request_id: &RequestId) {
+pub fn trace_bad_request(request_id: &RequestId) {
     tracing::span!(
         target: "UDP TRACKER",
         tracing::Level::INFO, "bad request", request_id = %request_id);
 }
 
-pub fn log_error_response(request_id: &RequestId) {
+pub fn trace_error_response(request_id: &RequestId) {
     tracing::span!(
         target: "UDP TRACKER",
         tracing::Level::INFO, "response", request_id = %request_id);

@@ -8,4 +8,4 @@
 pub mod app;
 pub mod config;
 pub mod jobs;
-pub mod logging;
+pub mod tracing;

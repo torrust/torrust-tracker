@@ -4,9 +4,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use aquatic_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
-use log::debug;
 use tokio::net::UdpSocket;
 use tokio::time;
+use tracing::debug;
 
 use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
 
