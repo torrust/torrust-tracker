@@ -5,6 +5,7 @@ use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
 
+pub mod dash_map_mutex_std;
 pub mod rw_lock_std;
 pub mod rw_lock_std_mutex_std;
 pub mod rw_lock_std_mutex_tokio;

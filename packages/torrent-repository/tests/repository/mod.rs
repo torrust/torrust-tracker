@@ -8,6 +8,7 @@ use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::{NumberOfBytes, PersistentTorrents};
 use torrust_tracker_torrent_repository::entry::Entry as _;
+use torrust_tracker_torrent_repository::repository::dash_map_mutex_std::XacrimonDashMap;
 use torrust_tracker_torrent_repository::repository::rw_lock_std::RwLockStd;
 use torrust_tracker_torrent_repository::repository::rw_lock_tokio::RwLockTokio;
 use torrust_tracker_torrent_repository::repository::skip_map_mutex_std::CrossbeamSkipList;
@@ -49,6 +50,11 @@ fn tokio_tokio() -> Repo {
 #[fixture]
 fn skip_list_std() -> Repo {
     Repo::SkipMapMutexStd(CrossbeamSkipList::default())
+}
+
+#[fixture]
+fn dash_map_std() -> Repo {
+    Repo::DashMapMutexStd(XacrimonDashMap::default())
 }
 
 type Entries = Vec<(InfoHash, EntrySingle)>;
@@ -239,7 +245,8 @@ async fn it_should_get_a_torrent_entry(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std()
+        skip_list_std(),
+        dash_map_std()
     )]
     repo: Repo,
     #[case] entries: Entries,
@@ -370,7 +377,8 @@ async fn it_should_get_metrics(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std()
+        skip_list_std(),
+        dash_map_std()
     )]
     repo: Repo,
     #[case] entries: Entries,
@@ -411,7 +419,8 @@ async fn it_should_import_persistent_torrents(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std()
+        skip_list_std(),
+        dash_map_std()
     )]
     repo: Repo,
     #[case] entries: Entries,
@@ -449,7 +458,8 @@ async fn it_should_remove_an_entry(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std()
+        skip_list_std(),
+        dash_map_std()
     )]
     repo: Repo,
     #[case] entries: Entries,
@@ -485,7 +495,8 @@ async fn it_should_remove_inactive_peers(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std()
+        skip_list_std(),
+        dash_map_std()
     )]
     repo: Repo,
     #[case] entries: Entries,
@@ -567,7 +578,8 @@ async fn it_should_remove_peerless_torrents(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std()
+        skip_list_std(),
+        dash_map_std()
     )]
     repo: Repo,
     #[case] entries: Entries,
