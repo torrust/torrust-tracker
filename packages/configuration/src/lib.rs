@@ -229,6 +229,10 @@
 //! [health_check_api]
 //! bind_address = "127.0.0.1:1313"
 //!```
+pub mod http_tracker;
+pub mod tracker_api;
+pub mod udp_tracker;
+
 use std::collections::HashMap;
 use std::net::IpAddr;
 use std::str::FromStr;
@@ -261,16 +265,7 @@ pub struct Info {
 }
 
 impl Info {
-    /// Build Configuration Info
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use torrust_tracker_configuration::Info;
-    ///
-    /// let result = Info::new(env_var_config, env_var_path_config, default_path_config, env_var_api_admin_token);
-    /// assert_eq!(result, );
-    /// ```
+    /// Build Configuration Info.
     ///
     /// # Errors
     ///

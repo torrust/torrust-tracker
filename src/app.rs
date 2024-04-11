@@ -75,21 +75,26 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     }
 
     // Start the HTTP blocks
-    for http_tracker_config in &config.http_trackers {
-        if !http_tracker_config.enabled {
-            continue;
-        }
+    for plain_http_tracker_config in &config.http_trackers {
+        match torrust_tracker_configuration::http_tracker::Config::try_from(plain_http_tracker_config.clone()) {
+            Ok(http_tracker_config) => {
+                if !http_tracker_config.is_enabled() {
+                    continue;
+                }
 
-        if let Some(job) = http_tracker::start_job(
-            http_tracker_config,
-            tracker.clone(),
-            registar.give_form(),
-            servers::http::Version::V1,
-        )
-        .await
-        {
-            jobs.push(job);
-        };
+                if let Some(job) = http_tracker::start_job(
+                    &http_tracker_config.into(),
+                    tracker.clone(),
+                    registar.give_form(),
+                    servers::http::Version::V1,
+                )
+                .await
+                {
+                    jobs.push(job);
+                };
+            }
+            Err(err) => panic!("Invalid HTTP Tracker configuration: {err}"),
+        }
     }
 
     // Start HTTP API
