@@ -23,17 +23,19 @@ where
     EntryMutexStd: EntrySync,
     EntrySingle: Entry,
 {
-    fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (bool, SwarmMetadata) {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         if let Some(entry) = self.torrents.get(info_hash) {
-            entry.insert_or_update_peer_and_get_stats(peer)
+            entry.upsert_peer(peer);
         } else {
             let _unused = self.torrents.insert(*info_hash, Arc::default());
-
-            match self.torrents.get(info_hash) {
-                Some(entry) => entry.insert_or_update_peer_and_get_stats(peer),
-                None => (false, SwarmMetadata::zeroed()),
+            if let Some(entry) = self.torrents.get(info_hash) {
+                entry.upsert_peer(peer);
             }
         }
+    }
+
+    fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
+        self.torrents.get(info_hash).map(|entry| entry.value().get_swarm_metadata())
     }
 
     fn get(&self, key: &InfoHash) -> Option<EntryMutexStd> {
@@ -45,7 +47,7 @@ where
         let mut metrics = TorrentsMetrics::default();
 
         for entry in &self.torrents {
-            let stats = entry.value().lock().expect("it should get a lock").get_stats();
+            let stats = entry.value().lock().expect("it should get a lock").get_swarm_metadata();
             metrics.complete += u64::from(stats.complete);
             metrics.downloaded += u64::from(stats.downloaded);
             metrics.incomplete += u64::from(stats.incomplete);

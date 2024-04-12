@@ -20,7 +20,7 @@ impl<S> Environment<S> {
     /// Add a torrent to the tracker
     #[allow(dead_code)]
     pub async fn add_torrent(&self, info_hash: &InfoHash, peer: &peer::Peer) {
-        self.tracker.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
+        self.tracker.upsert_peer_and_get_stats(info_hash, peer).await;
     }
 }
 

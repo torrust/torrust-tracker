@@ -35,7 +35,7 @@ where
     EntryMutexStd: EntrySync,
     EntrySingle: Entry,
 {
-    async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> (bool, SwarmMetadata) {
+    async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         let maybe_entry = self.get_torrents().await.get(info_hash).cloned();
 
         let entry = if let Some(entry) = maybe_entry {
@@ -46,8 +46,13 @@ where
             entry.clone()
         };
 
-        entry.insert_or_update_peer_and_get_stats(peer)
+        entry.upsert_peer(peer);
     }
+
+    async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
+        self.get(info_hash).await.map(|entry| entry.get_swarm_metadata())
+    }
+
     async fn get(&self, key: &InfoHash) -> Option<EntryMutexStd> {
         let db = self.get_torrents().await;
         db.get(key).cloned()
@@ -71,7 +76,7 @@ where
         let mut metrics = TorrentsMetrics::default();
 
         for entry in self.get_torrents().await.values() {
-            let stats = entry.get_stats();
+            let stats = entry.get_swarm_metadata();
             metrics.complete += u64::from(stats.complete);
             metrics.downloaded += u64::from(stats.downloaded);
             metrics.incomplete += u64::from(stats.incomplete);

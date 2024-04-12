@@ -9,8 +9,8 @@ use super::{Entry, EntryAsync};
 use crate::{EntryMutexTokio, EntrySingle};
 
 impl EntryAsync for EntryMutexTokio {
-    async fn get_stats(&self) -> SwarmMetadata {
-        self.lock().await.get_stats()
+    async fn get_swarm_metadata(&self) -> SwarmMetadata {
+        self.lock().await.get_swarm_metadata()
     }
 
     async fn check_good(self, policy: &TrackerPolicy) -> bool {
@@ -33,12 +33,8 @@ impl EntryAsync for EntryMutexTokio {
         self.lock().await.get_peers_for_client(client, limit)
     }
 
-    async fn insert_or_update_peer(self, peer: &peer::Peer) -> bool {
-        self.lock().await.insert_or_update_peer(peer)
-    }
-
-    async fn insert_or_update_peer_and_get_stats(self, peer: &peer::Peer) -> (bool, SwarmMetadata) {
-        self.lock().await.insert_or_update_peer_and_get_stats(peer)
+    async fn upsert_peer(self, peer: &peer::Peer) -> bool {
+        self.lock().await.upsert_peer(peer)
     }
 
     async fn remove_inactive_peers(self, current_cutoff: DurationSinceUnixEpoch) {

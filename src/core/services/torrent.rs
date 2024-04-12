@@ -50,7 +50,7 @@ pub async fn get_torrent_info(tracker: Arc<Tracker>, info_hash: &InfoHash) -> Op
 
     let torrent_entry = torrent_entry_option?;
 
-    let stats = torrent_entry.get_stats();
+    let stats = torrent_entry.get_swarm_metadata();
 
     let peers = torrent_entry.get_peers(None);
 
@@ -70,7 +70,7 @@ pub async fn get_torrents_page(tracker: Arc<Tracker>, pagination: Option<&Pagina
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
     for (info_hash, torrent_entry) in tracker.torrents.get_paginated(pagination) {
-        let stats = torrent_entry.get_stats();
+        let stats = torrent_entry.get_swarm_metadata();
 
         basic_infos.push(BasicInfo {
             info_hash,
@@ -88,7 +88,7 @@ pub async fn get_torrents(tracker: Arc<Tracker>, info_hashes: &[InfoHash]) -> Ve
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
     for info_hash in info_hashes {
-        if let Some(stats) = tracker.torrents.get(info_hash).map(|t| t.get_stats()) {
+        if let Some(stats) = tracker.torrents.get(info_hash).map(|t| t.get_swarm_metadata()) {
             basic_infos.push(BasicInfo {
                 info_hash: *info_hash,
                 seeders: u64::from(stats.complete),
@@ -156,9 +156,7 @@ mod tests {
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer())
-                .await;
+            tracker.upsert_peer_and_get_stats(&info_hash, &sample_peer()).await;
 
             let torrent_info = get_torrent_info(tracker.clone(), &info_hash).await.unwrap();
 
@@ -208,9 +206,7 @@ mod tests {
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash = InfoHash::from_str(&hash).unwrap();
 
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash, &sample_peer())
-                .await;
+            tracker.upsert_peer_and_get_stats(&info_hash, &sample_peer()).await;
 
             let torrents = get_torrents_page(tracker.clone(), Some(&Pagination::default())).await;
 
@@ -234,12 +230,8 @@ mod tests {
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
 
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
-                .await;
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
-                .await;
+            tracker.upsert_peer_and_get_stats(&info_hash1, &sample_peer()).await;
+            tracker.upsert_peer_and_get_stats(&info_hash2, &sample_peer()).await;
 
             let offset = 0;
             let limit = 1;
@@ -258,12 +250,8 @@ mod tests {
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
 
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
-                .await;
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
-                .await;
+            tracker.upsert_peer_and_get_stats(&info_hash1, &sample_peer()).await;
+            tracker.upsert_peer_and_get_stats(&info_hash2, &sample_peer()).await;
 
             let offset = 1;
             let limit = 4000;
@@ -288,15 +276,11 @@ mod tests {
 
             let hash1 = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
             let info_hash1 = InfoHash::from_str(&hash1).unwrap();
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash1, &sample_peer())
-                .await;
+            tracker.upsert_peer_and_get_stats(&info_hash1, &sample_peer()).await;
 
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned();
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash2, &sample_peer())
-                .await;
+            tracker.upsert_peer_and_get_stats(&info_hash2, &sample_peer()).await;
 
             let torrents = get_torrents_page(tracker.clone(), Some(&Pagination::default())).await;
 
