@@ -17,9 +17,9 @@ pub(crate) enum Torrent {
 impl Torrent {
     pub(crate) async fn get_stats(&self) -> SwarmMetadata {
         match self {
-            Torrent::Single(entry) => entry.get_stats(),
-            Torrent::MutexStd(entry) => entry.get_stats(),
-            Torrent::MutexTokio(entry) => entry.clone().get_stats().await,
+            Torrent::Single(entry) => entry.get_swarm_metadata(),
+            Torrent::MutexStd(entry) => entry.get_swarm_metadata(),
+            Torrent::MutexTokio(entry) => entry.clone().get_swarm_metadata().await,
         }
     }
 
@@ -63,19 +63,11 @@ impl Torrent {
         }
     }
 
-    pub(crate) async fn insert_or_update_peer(&mut self, peer: &peer::Peer) -> bool {
+    pub(crate) async fn upsert_peer(&mut self, peer: &peer::Peer) -> bool {
         match self {
-            Torrent::Single(entry) => entry.insert_or_update_peer(peer),
-            Torrent::MutexStd(entry) => entry.insert_or_update_peer(peer),
-            Torrent::MutexTokio(entry) => entry.clone().insert_or_update_peer(peer).await,
-        }
-    }
-
-    pub(crate) async fn insert_or_update_peer_and_get_stats(&mut self, peer: &peer::Peer) -> (bool, SwarmMetadata) {
-        match self {
-            Torrent::Single(entry) => entry.insert_or_update_peer_and_get_stats(peer),
-            Torrent::MutexStd(entry) => entry.insert_or_update_peer_and_get_stats(peer),
-            Torrent::MutexTokio(entry) => entry.clone().insert_or_update_peer_and_get_stats(peer).await,
+            Torrent::Single(entry) => entry.upsert_peer(peer),
+            Torrent::MutexStd(entry) => entry.upsert_peer(peer),
+            Torrent::MutexTokio(entry) => entry.clone().upsert_peer(peer).await,
         }
     }
 

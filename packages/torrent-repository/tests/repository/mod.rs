@@ -6,6 +6,7 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
+use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{NumberOfBytes, PersistentTorrents};
 use torrust_tracker_torrent_repository::entry::Entry as _;
 use torrust_tracker_torrent_repository::repository::dash_map_mutex_std::XacrimonDashMap;
@@ -72,14 +73,14 @@ fn default() -> Entries {
 #[fixture]
 fn started() -> Entries {
     let mut torrent = EntrySingle::default();
-    torrent.insert_or_update_peer(&a_started_peer(1));
+    torrent.upsert_peer(&a_started_peer(1));
     vec![(InfoHash::default(), torrent)]
 }
 
 #[fixture]
 fn completed() -> Entries {
     let mut torrent = EntrySingle::default();
-    torrent.insert_or_update_peer(&a_completed_peer(2));
+    torrent.upsert_peer(&a_completed_peer(2));
     vec![(InfoHash::default(), torrent)]
 }
 
@@ -87,10 +88,10 @@ fn completed() -> Entries {
 fn downloaded() -> Entries {
     let mut torrent = EntrySingle::default();
     let mut peer = a_started_peer(3);
-    torrent.insert_or_update_peer(&peer);
+    torrent.upsert_peer(&peer);
     peer.event = AnnounceEvent::Completed;
     peer.left = NumberOfBytes(0);
-    torrent.insert_or_update_peer(&peer);
+    torrent.upsert_peer(&peer);
     vec![(InfoHash::default(), torrent)]
 }
 
@@ -98,21 +99,21 @@ fn downloaded() -> Entries {
 fn three() -> Entries {
     let mut started = EntrySingle::default();
     let started_h = &mut DefaultHasher::default();
-    started.insert_or_update_peer(&a_started_peer(1));
+    started.upsert_peer(&a_started_peer(1));
     started.hash(started_h);
 
     let mut completed = EntrySingle::default();
     let completed_h = &mut DefaultHasher::default();
-    completed.insert_or_update_peer(&a_completed_peer(2));
+    completed.upsert_peer(&a_completed_peer(2));
     completed.hash(completed_h);
 
     let mut downloaded = EntrySingle::default();
     let downloaded_h = &mut DefaultHasher::default();
     let mut downloaded_peer = a_started_peer(3);
-    downloaded.insert_or_update_peer(&downloaded_peer);
+    downloaded.upsert_peer(&downloaded_peer);
     downloaded_peer.event = AnnounceEvent::Completed;
     downloaded_peer.left = NumberOfBytes(0);
-    downloaded.insert_or_update_peer(&downloaded_peer);
+    downloaded.upsert_peer(&downloaded_peer);
     downloaded.hash(downloaded_h);
 
     vec![
@@ -128,7 +129,7 @@ fn many_out_of_order() -> Entries {
 
     for i in 0..408 {
         let mut entry = EntrySingle::default();
-        entry.insert_or_update_peer(&a_started_peer(i));
+        entry.upsert_peer(&a_started_peer(i));
 
         entries.insert((InfoHash::from(i), entry));
     }
@@ -143,7 +144,7 @@ fn many_hashed_in_order() -> Entries {
 
     for i in 0..408 {
         let mut entry = EntrySingle::default();
-        entry.insert_or_update_peer(&a_started_peer(i));
+        entry.upsert_peer(&a_started_peer(i));
 
         let hash: &mut DefaultHasher = &mut DefaultHasher::default();
         hash.write_i32(i);
@@ -390,7 +391,7 @@ async fn it_should_get_metrics(
     let mut metrics = TorrentsMetrics::default();
 
     for (_, torrent) in entries {
-        let stats = torrent.get_stats();
+        let stats = torrent.get_swarm_metadata();
 
         metrics.torrents += 1;
         metrics.incomplete += u64::from(stats.incomplete);
@@ -537,8 +538,23 @@ async fn it_should_remove_inactive_peers(
     // Insert the infohash and peer into the repository
     // and verify there is an extra torrent entry.
     {
-        repo.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+        repo.upsert_peer(&info_hash, &peer).await;
         assert_eq!(repo.get_metrics().await.torrents, entries.len() as u64 + 1);
+    }
+
+    // Insert the infohash and peer into the repository
+    // and verify the swarm metadata was updated.
+    {
+        repo.upsert_peer(&info_hash, &peer).await;
+        let stats = repo.get_swarm_metadata(&info_hash).await;
+        assert_eq!(
+            stats,
+            Some(SwarmMetadata {
+                downloaded: 0,
+                complete: 1,
+                incomplete: 0
+            })
+        );
     }
 
     // Verify that this new peer was inserted into the repository.

@@ -628,10 +628,9 @@ impl Tracker {
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.external_ip));
         debug!("After: {peer:?}");
 
-        // we should update the torrent and get the stats before we get the peer list.
-        let stats = self.update_torrent_with_peer_and_get_stats(info_hash, peer).await;
+        let stats = self.upsert_peer_and_get_stats(info_hash, peer).await;
 
-        let peers = self.get_torrent_peers_for_peer(info_hash, peer);
+        let peers = self.get_peers_for(info_hash, peer);
 
         AnnounceData {
             peers,
@@ -662,7 +661,7 @@ impl Tracker {
     /// It returns the data for a `scrape` response.
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> SwarmMetadata {
         match self.torrents.get(info_hash) {
-            Some(torrent_entry) => torrent_entry.get_stats(),
+            Some(torrent_entry) => torrent_entry.get_swarm_metadata(),
             None => SwarmMetadata::default(),
         }
     }
@@ -683,7 +682,7 @@ impl Tracker {
         Ok(())
     }
 
-    fn get_torrent_peers_for_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> Vec<Arc<peer::Peer>> {
+    fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer) -> Vec<Arc<peer::Peer>> {
         match self.torrents.get(info_hash) {
             None => vec![],
             Some(entry) => entry.get_peers_for_client(&peer.peer_addr, Some(TORRENT_PEERS_LIMIT)),
@@ -705,20 +704,36 @@ impl Tracker {
     /// needed for a `announce` request response.
     ///
     /// # Context: Tracker
-    pub async fn update_torrent_with_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> SwarmMetadata {
-        // code-review: consider splitting the function in two (command and query segregation).
-        // `update_torrent_with_peer` and `get_stats`
+    pub async fn upsert_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> SwarmMetadata {
+        let swarm_metadata_before = match self.torrents.get_swarm_metadata(info_hash) {
+            Some(swarm_metadata) => swarm_metadata,
+            None => SwarmMetadata::zeroed(),
+        };
 
-        let (stats_updated, stats) = self.torrents.update_torrent_with_peer_and_get_stats(info_hash, peer);
+        self.torrents.upsert_peer(info_hash, peer);
 
-        if self.policy.persistent_torrent_completed_stat && stats_updated {
-            let completed = stats.downloaded;
+        let swarm_metadata_after = match self.torrents.get_swarm_metadata(info_hash) {
+            Some(swarm_metadata) => swarm_metadata,
+            None => SwarmMetadata::zeroed(),
+        };
+
+        if swarm_metadata_before != swarm_metadata_after {
+            self.persist_stats(info_hash, &swarm_metadata_after).await;
+        }
+
+        swarm_metadata_after
+    }
+
+    /// It stores the torrents stats into the database (if persistency is enabled).
+    ///
+    /// # Context: Tracker
+    async fn persist_stats(&self, info_hash: &InfoHash, swarm_metadata: &SwarmMetadata) {
+        if self.policy.persistent_torrent_completed_stat {
+            let completed = swarm_metadata.downloaded;
             let info_hash = *info_hash;
 
             drop(self.database.save_persistent_torrent(&info_hash, completed).await);
         }
-
-        stats
     }
 
     /// It calculates and returns the general `Tracker`
@@ -1132,7 +1147,7 @@ mod tests {
             let info_hash = sample_info_hash();
             let peer = sample_peer();
 
-            tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+            tracker.upsert_peer_and_get_stats(&info_hash, &peer).await;
 
             let peers = tracker.get_torrent_peers(&info_hash);
 
@@ -1146,9 +1161,9 @@ mod tests {
             let info_hash = sample_info_hash();
             let peer = sample_peer();
 
-            tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+            tracker.upsert_peer_and_get_stats(&info_hash, &peer).await;
 
-            let peers = tracker.get_torrent_peers_for_peer(&info_hash, &peer);
+            let peers = tracker.get_peers_for(&info_hash, &peer);
 
             assert_eq!(peers, vec![]);
         }
@@ -1157,9 +1172,7 @@ mod tests {
         async fn it_should_return_the_torrent_metrics() {
             let tracker = public_tracker();
 
-            tracker
-                .update_torrent_with_peer_and_get_stats(&sample_info_hash(), &leecher())
-                .await;
+            tracker.upsert_peer_and_get_stats(&sample_info_hash(), &leecher()).await;
 
             let torrent_metrics = tracker.get_torrents_metrics();
 
@@ -1180,9 +1193,7 @@ mod tests {
 
             let start_time = std::time::Instant::now();
             for i in 0..1_000_000 {
-                tracker
-                    .update_torrent_with_peer_and_get_stats(&gen_seeded_infohash(&i), &leecher())
-                    .await;
+                tracker.upsert_peer_and_get_stats(&gen_seeded_infohash(&i), &leecher()).await;
             }
             let result_a = start_time.elapsed();
 
@@ -1706,11 +1717,11 @@ mod tests {
                 let mut peer = sample_peer();
 
                 peer.event = AnnounceEvent::Started;
-                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+                let swarm_stats = tracker.upsert_peer_and_get_stats(&info_hash, &peer).await;
                 assert_eq!(swarm_stats.downloaded, 0);
 
                 peer.event = AnnounceEvent::Completed;
-                let swarm_stats = tracker.update_torrent_with_peer_and_get_stats(&info_hash, &peer).await;
+                let swarm_stats = tracker.upsert_peer_and_get_stats(&info_hash, &peer).await;
                 assert_eq!(swarm_stats.downloaded, 1);
 
                 // Remove the newly updated torrent from memory
@@ -1721,7 +1732,7 @@ mod tests {
                 let torrent_entry = tracker.torrents.get(&info_hash).expect("it should be able to get entry");
 
                 // It persists the number of completed peers.
-                assert_eq!(torrent_entry.get_stats().downloaded, 1);
+                assert_eq!(torrent_entry.get_swarm_metadata().downloaded, 1);
 
                 // It does not persist the peers
                 assert!(torrent_entry.peers_is_empty());

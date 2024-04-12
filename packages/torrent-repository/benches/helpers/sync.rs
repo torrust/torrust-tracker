@@ -20,7 +20,9 @@ where
 
         let info_hash = InfoHash([0; 20]);
 
-        torrent_repository.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
+        torrent_repository.upsert_peer(&info_hash, &DEFAULT_PEER);
+
+        torrent_repository.get_swarm_metadata(&info_hash);
     }
 
     start.elapsed()
@@ -37,7 +39,9 @@ where
     let handles = FuturesUnordered::new();
 
     // Add the torrent/peer to the torrent repository
-    torrent_repository.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
+    torrent_repository.upsert_peer(info_hash, &DEFAULT_PEER);
+
+    torrent_repository.get_swarm_metadata(info_hash);
 
     let start = Instant::now();
 
@@ -45,7 +49,9 @@ where
         let torrent_repository_clone = torrent_repository.clone();
 
         let handle = runtime.spawn(async move {
-            torrent_repository_clone.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
+            torrent_repository_clone.upsert_peer(info_hash, &DEFAULT_PEER);
+
+            torrent_repository_clone.get_swarm_metadata(info_hash);
 
             if let Some(sleep_time) = sleep {
                 let start_time = std::time::Instant::now();
@@ -83,7 +89,9 @@ where
         let torrent_repository_clone = torrent_repository.clone();
 
         let handle = runtime.spawn(async move {
-            torrent_repository_clone.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
+            torrent_repository_clone.upsert_peer(&info_hash, &DEFAULT_PEER);
+
+            torrent_repository_clone.get_swarm_metadata(&info_hash);
 
             if let Some(sleep_time) = sleep {
                 let start_time = std::time::Instant::now();
@@ -117,7 +125,8 @@ where
 
     // Add the torrents/peers to the torrent repository
     for info_hash in &info_hashes {
-        torrent_repository.update_torrent_with_peer_and_get_stats(info_hash, &DEFAULT_PEER);
+        torrent_repository.upsert_peer(info_hash, &DEFAULT_PEER);
+        torrent_repository.get_swarm_metadata(info_hash);
     }
 
     let start = Instant::now();
@@ -126,7 +135,8 @@ where
         let torrent_repository_clone = torrent_repository.clone();
 
         let handle = runtime.spawn(async move {
-            torrent_repository_clone.update_torrent_with_peer_and_get_stats(&info_hash, &DEFAULT_PEER);
+            torrent_repository_clone.upsert_peer(&info_hash, &DEFAULT_PEER);
+            torrent_repository_clone.get_swarm_metadata(&info_hash);
 
             if let Some(sleep_time) = sleep {
                 let start_time = std::time::Instant::now();

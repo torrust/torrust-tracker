@@ -9,8 +9,8 @@ use super::{Entry, EntrySync};
 use crate::{EntryMutexStd, EntrySingle};
 
 impl EntrySync for EntryMutexStd {
-    fn get_stats(&self) -> SwarmMetadata {
-        self.lock().expect("it should get a lock").get_stats()
+    fn get_swarm_metadata(&self) -> SwarmMetadata {
+        self.lock().expect("it should get a lock").get_swarm_metadata()
     }
 
     fn is_good(&self, policy: &TrackerPolicy) -> bool {
@@ -33,14 +33,8 @@ impl EntrySync for EntryMutexStd {
         self.lock().expect("it should get lock").get_peers_for_client(client, limit)
     }
 
-    fn insert_or_update_peer(&self, peer: &peer::Peer) -> bool {
-        self.lock().expect("it should lock the entry").insert_or_update_peer(peer)
-    }
-
-    fn insert_or_update_peer_and_get_stats(&self, peer: &peer::Peer) -> (bool, SwarmMetadata) {
-        self.lock()
-            .expect("it should lock the entry")
-            .insert_or_update_peer_and_get_stats(peer)
+    fn upsert_peer(&self, peer: &peer::Peer) -> bool {
+        self.lock().expect("it should lock the entry").upsert_peer(peer)
     }
 
     fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
