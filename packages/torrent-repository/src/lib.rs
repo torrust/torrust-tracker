@@ -1,3 +1,5 @@
+#![feature(hasher_prefixfree_extras)]
+
 use std::sync::Arc;
 
 use repository::dash_map_mutex_std::XacrimonDashMap;

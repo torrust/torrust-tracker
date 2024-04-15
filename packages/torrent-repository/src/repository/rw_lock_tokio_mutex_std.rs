@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use torrust_tracker_configuration::TrackerPolicy;
@@ -13,18 +13,18 @@ use crate::entry::{Entry, EntrySync};
 use crate::{EntryMutexStd, EntrySingle, TorrentsRwLockTokioMutexStd};
 
 impl TorrentsRwLockTokioMutexStd {
-    async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexStd>>
+    async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, std::collections::HashMap<InfoHash, EntryMutexStd>>
     where
-        std::collections::BTreeMap<InfoHash, EntryMutexStd>: 'a,
+        std::collections::HashMap<InfoHash, EntryMutexStd>: 'a,
     {
         self.torrents.read().await
     }
 
     async fn get_torrents_mut<'a>(
         &'a self,
-    ) -> tokio::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexStd>>
+    ) -> tokio::sync::RwLockWriteGuard<'a, std::collections::HashMap<InfoHash, EntryMutexStd>>
     where
-        std::collections::BTreeMap<InfoHash, EntryMutexStd>: 'a,
+        std::collections::HashMap<InfoHash, EntryMutexStd>: 'a,
     {
         self.torrents.write().await
     }
@@ -97,7 +97,7 @@ where
 
             let entry = EntryMutexStd::new(
                 EntrySingle {
-                    peers: BTreeMap::default(),
+                    peers: HashMap::default(),
                     downloaded: *completed,
                 }
                 .into(),

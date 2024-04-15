@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use dashmap::DashMap;
@@ -82,7 +82,7 @@ where
 
             let entry = EntryMutexStd::new(
                 EntrySingle {
-                    peers: BTreeMap::default(),
+                    peers: HashMap::default(),
                     downloaded: *completed,
                 }
                 .into(),

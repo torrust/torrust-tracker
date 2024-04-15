@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::info_hash::InfoHash;
@@ -13,7 +13,7 @@ use crate::{EntrySingle, TorrentsRwLockTokio};
 
 #[derive(Default, Debug)]
 pub struct RwLockTokio<T> {
-    pub(crate) torrents: tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, T>>,
+    pub(crate) torrents: tokio::sync::RwLock<std::collections::HashMap<InfoHash, T>>,
 }
 
 impl<T> RwLockTokio<T> {
@@ -22,7 +22,7 @@ impl<T> RwLockTokio<T> {
     ) -> impl std::future::Future<
         Output = tokio::sync::RwLockWriteGuard<
             '_,
-            std::collections::BTreeMap<torrust_tracker_primitives::info_hash::InfoHash, T>,
+            std::collections::HashMap<torrust_tracker_primitives::info_hash::InfoHash, T>,
         >,
     > {
         self.torrents.write()
@@ -30,18 +30,18 @@ impl<T> RwLockTokio<T> {
 }
 
 impl TorrentsRwLockTokio {
-    async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle>>
+    async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, std::collections::HashMap<InfoHash, EntrySingle>>
     where
-        std::collections::BTreeMap<InfoHash, EntrySingle>: 'a,
+        std::collections::HashMap<InfoHash, EntrySingle>: 'a,
     {
         self.torrents.read().await
     }
 
     async fn get_torrents_mut<'a>(
         &'a self,
-    ) -> tokio::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle>>
+    ) -> tokio::sync::RwLockWriteGuard<'a, std::collections::HashMap<InfoHash, EntrySingle>>
     where
-        std::collections::BTreeMap<InfoHash, EntrySingle>: 'a,
+        std::collections::HashMap<InfoHash, EntrySingle>: 'a,
     {
         self.torrents.write().await
     }
@@ -106,7 +106,7 @@ where
             }
 
             let entry = EntrySingle {
-                peers: BTreeMap::default(),
+                peers: HashMap::default(),
                 downloaded: *completed,
             };
 

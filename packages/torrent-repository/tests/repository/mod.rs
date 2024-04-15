@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 use rstest::{fixture, rstest};
@@ -140,7 +140,7 @@ fn many_out_of_order() -> Entries {
 
 #[fixture]
 fn many_hashed_in_order() -> Entries {
-    let mut entries: BTreeMap<InfoHash, EntrySingle> = BTreeMap::default();
+    let mut entries: HashMap<InfoHash, EntrySingle> = HashMap::default();
 
     for i in 0..408 {
         let mut entry = EntrySingle::default();

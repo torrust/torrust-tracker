@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use torrust_tracker_configuration::TrackerPolicy;
@@ -13,16 +13,16 @@ use crate::entry::{Entry, EntrySync};
 use crate::{EntryMutexStd, EntrySingle, TorrentsRwLockStdMutexStd};
 
 impl TorrentsRwLockStdMutexStd {
-    fn get_torrents<'a>(&'a self) -> std::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexStd>>
+    fn get_torrents<'a>(&'a self) -> std::sync::RwLockReadGuard<'a, std::collections::HashMap<InfoHash, EntryMutexStd>>
     where
-        std::collections::BTreeMap<InfoHash, crate::EntryMutexStd>: 'a,
+        std::collections::HashMap<InfoHash, crate::EntryMutexStd>: 'a,
     {
         self.torrents.read().expect("unable to get torrent list")
     }
 
-    fn get_torrents_mut<'a>(&'a self) -> std::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexStd>>
+    fn get_torrents_mut<'a>(&'a self) -> std::sync::RwLockWriteGuard<'a, std::collections::HashMap<InfoHash, EntryMutexStd>>
     where
-        std::collections::BTreeMap<InfoHash, EntryMutexStd>: 'a,
+        std::collections::HashMap<InfoHash, EntryMutexStd>: 'a,
     {
         self.torrents.write().expect("unable to get writable torrent list")
     }
@@ -97,7 +97,7 @@ where
 
             let entry = EntryMutexStd::new(
                 EntrySingle {
-                    peers: BTreeMap::default(),
+                    peers: HashMap::default(),
                     downloaded: *completed,
                 }
                 .into(),

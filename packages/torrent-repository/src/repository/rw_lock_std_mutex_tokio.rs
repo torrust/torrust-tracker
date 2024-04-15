@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::iter::zip;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -17,16 +17,16 @@ use crate::entry::{Entry, EntryAsync};
 use crate::{EntryMutexTokio, EntrySingle, TorrentsRwLockStdMutexTokio};
 
 impl TorrentsRwLockStdMutexTokio {
-    fn get_torrents<'a>(&'a self) -> std::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexTokio>>
+    fn get_torrents<'a>(&'a self) -> std::sync::RwLockReadGuard<'a, std::collections::HashMap<InfoHash, EntryMutexTokio>>
     where
-        std::collections::BTreeMap<InfoHash, EntryMutexTokio>: 'a,
+        std::collections::HashMap<InfoHash, EntryMutexTokio>: 'a,
     {
         self.torrents.read().expect("unable to get torrent list")
     }
 
-    fn get_torrents_mut<'a>(&'a self) -> std::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexTokio>>
+    fn get_torrents_mut<'a>(&'a self) -> std::sync::RwLockWriteGuard<'a, std::collections::HashMap<InfoHash, EntryMutexTokio>>
     where
-        std::collections::BTreeMap<InfoHash, EntryMutexTokio>: 'a,
+        std::collections::HashMap<InfoHash, EntryMutexTokio>: 'a,
     {
         self.torrents.write().expect("unable to get writable torrent list")
     }
@@ -106,7 +106,7 @@ where
 
             let entry = EntryMutexTokio::new(
                 EntrySingle {
-                    peers: BTreeMap::default(),
+                    peers: HashMap::default(),
                     downloaded: *completed,
                 }
                 .into(),

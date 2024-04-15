@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::info_hash::InfoHash;
@@ -13,7 +13,7 @@ use crate::{EntrySingle, TorrentsRwLockStd};
 
 #[derive(Default, Debug)]
 pub struct RwLockStd<T> {
-    pub(crate) torrents: std::sync::RwLock<std::collections::BTreeMap<InfoHash, T>>,
+    pub(crate) torrents: std::sync::RwLock<std::collections::HashMap<InfoHash, T>>,
 }
 
 impl<T> RwLockStd<T> {
@@ -22,22 +22,22 @@ impl<T> RwLockStd<T> {
     /// Panics if unable to get a lock.
     pub fn write(
         &self,
-    ) -> std::sync::RwLockWriteGuard<'_, std::collections::BTreeMap<torrust_tracker_primitives::info_hash::InfoHash, T>> {
+    ) -> std::sync::RwLockWriteGuard<'_, std::collections::HashMap<torrust_tracker_primitives::info_hash::InfoHash, T>> {
         self.torrents.write().expect("it should get lock")
     }
 }
 
 impl TorrentsRwLockStd {
-    fn get_torrents<'a>(&'a self) -> std::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle>>
+    fn get_torrents<'a>(&'a self) -> std::sync::RwLockReadGuard<'a, std::collections::HashMap<InfoHash, EntrySingle>>
     where
-        std::collections::BTreeMap<InfoHash, EntrySingle>: 'a,
+        std::collections::HashMap<InfoHash, EntrySingle>: 'a,
     {
         self.torrents.read().expect("it should get the read lock")
     }
 
-    fn get_torrents_mut<'a>(&'a self) -> std::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle>>
+    fn get_torrents_mut<'a>(&'a self) -> std::sync::RwLockWriteGuard<'a, std::collections::HashMap<InfoHash, EntrySingle>>
     where
-        std::collections::BTreeMap<InfoHash, EntrySingle>: 'a,
+        std::collections::HashMap<InfoHash, EntrySingle>: 'a,
     {
         self.torrents.write().expect("it should get the write lock")
     }
@@ -102,7 +102,7 @@ where
             }
 
             let entry = EntrySingle {
-                peers: BTreeMap::default(),
+                peers: HashMap::default(),
                 downloaded: *downloaded,
             };
 

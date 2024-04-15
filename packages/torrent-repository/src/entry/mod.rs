@@ -79,11 +79,23 @@ pub trait EntryAsync {
 /// This is the tracker entry for a given torrent and contains the swarm data,
 /// that's the list of all the peers trying to download the same torrent.
 /// The tracker keeps one entry like this for every torrent.
-#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Torrent {
     /// The swarm: a network of peers that are all trying to download the torrent associated to this entry
     // #[serde(skip)]
-    pub(crate) peers: std::collections::BTreeMap<peer::Id, Arc<peer::Peer>>,
+    pub(crate) peers: std::collections::HashMap<peer::Id, Arc<peer::Peer>>,
     /// The number of peers that have ever completed downloading the torrent associated to this entry
     pub(crate) downloaded: u32,
+}
+
+impl std::hash::Hash for Torrent {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write_length_prefix(self.peers.len());
+
+        for peer in &self.peers {
+            peer.hash(state);
+        }
+
+        self.downloaded.hash(state);
+    }
 }
