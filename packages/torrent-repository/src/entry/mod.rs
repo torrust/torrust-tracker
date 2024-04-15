@@ -2,13 +2,15 @@ use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-//use serde::{Deserialize, Serialize};
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
+use self::peer_list::PeerList;
+
 pub mod mutex_std;
 pub mod mutex_tokio;
+pub mod peer_list;
 pub mod single;
 
 pub trait Entry {
@@ -85,69 +87,4 @@ pub struct Torrent {
     pub(crate) swarm: PeerList,
     /// The number of peers that have ever completed downloading the torrent associated to this entry
     pub(crate) downloaded: u32,
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PeerList {
-    peers: std::collections::BTreeMap<peer::Id, Arc<peer::Peer>>,
-}
-
-impl PeerList {
-    fn len(&self) -> usize {
-        self.peers.len()
-    }
-
-    fn is_empty(&self) -> bool {
-        self.peers.is_empty()
-    }
-
-    fn insert(&mut self, key: peer::Id, value: Arc<peer::Peer>) -> Option<Arc<peer::Peer>> {
-        self.peers.insert(key, value)
-    }
-
-    fn remove(&mut self, key: &peer::Id) -> Option<Arc<peer::Peer>> {
-        self.peers.remove(key)
-    }
-
-    fn retain<F>(&mut self, f: F)
-    where
-        F: FnMut(&peer::Id, &mut Arc<peer::Peer>) -> bool,
-    {
-        self.peers.retain(f);
-    }
-
-    fn seeders_and_leechers(&self) -> (usize, usize) {
-        let seeders = self.peers.values().filter(|peer| peer.is_seeder()).count();
-        let leechers = self.len() - seeders;
-
-        (seeders, leechers)
-    }
-
-    fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        match limit {
-            Some(limit) => self.peers.values().take(limit).cloned().collect(),
-            None => self.peers.values().cloned().collect(),
-        }
-    }
-
-    fn get_peers_for_client(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        match limit {
-            Some(limit) => self
-                .peers
-                .values()
-                // Take peers which are not the client peer
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *client)
-                // Limit the number of peers on the result
-                .take(limit)
-                .cloned()
-                .collect(),
-            None => self
-                .peers
-                .values()
-                // Take peers which are not the client peer
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *client)
-                .cloned()
-                .collect(),
-        }
-    }
 }

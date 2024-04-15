@@ -11,7 +11,8 @@ use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
 
 use super::RepositoryAsync;
-use crate::entry::{Entry, EntryAsync, PeerList};
+use crate::entry::peer_list::PeerList;
+use crate::entry::{Entry, EntryAsync};
 use crate::{EntryMutexTokio, EntrySingle, TorrentsRwLockStdMutexTokio};
 
 impl TorrentsRwLockStdMutexTokio {
