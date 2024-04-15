@@ -6,7 +6,8 @@ use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
 
 use super::Repository;
-use crate::entry::{Entry, PeerList};
+use crate::entry::peer_list::PeerList;
+use crate::entry::Entry;
 use crate::{EntrySingle, TorrentsRwLockStd};
 
 #[derive(Default, Debug)]
