@@ -81,8 +81,8 @@ pub trait EntryAsync {
 /// The tracker keeps one entry like this for every torrent.
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Torrent {
-    /// The swarm: a network of peers that are all trying to download the torrent associated to this entry
-    pub(crate) peers: PeerList,
+    /// A network of peers that are all trying to download the torrent associated to this entry
+    pub(crate) swarm: PeerList,
     /// The number of peers that have ever completed downloading the torrent associated to this entry
     pub(crate) downloaded: u32,
 }

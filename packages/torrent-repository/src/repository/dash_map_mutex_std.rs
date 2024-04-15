@@ -81,7 +81,7 @@ where
 
             let entry = EntryMutexStd::new(
                 EntrySingle {
-                    peers: PeerList::default(),
+                    swarm: PeerList::default(),
                     downloaded: *completed,
                 }
                 .into(),

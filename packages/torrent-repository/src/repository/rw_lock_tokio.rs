@@ -104,7 +104,7 @@ where
             }
 
             let entry = EntrySingle {
-                peers: PeerList::default(),
+                swarm: PeerList::default(),
                 downloaded: *completed,
             };
 
