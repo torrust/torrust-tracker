@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-//use serde::{Deserialize, Serialize};
+use rustc_hash::FxHashMap;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
@@ -83,7 +83,7 @@ pub trait EntryAsync {
 pub struct Torrent {
     /// The swarm: a network of peers that are all trying to download the torrent associated to this entry
     // #[serde(skip)]
-    pub(crate) peers: std::collections::HashMap<peer::Id, Arc<peer::Peer>>,
+    pub(crate) peers: FxHashMap<peer::Id, Arc<peer::Peer>>,
     /// The number of peers that have ever completed downloading the torrent associated to this entry
     pub(crate) downloaded: u32,
 }

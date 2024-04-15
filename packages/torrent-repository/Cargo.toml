@@ -19,6 +19,7 @@ version.workspace = true
 crossbeam-skiplist = "0.1"
 dashmap = "5.5.3"
 futures = "0.3.29"
+rustc-hash = "1.1.0"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-clock = { version = "3.0.0-alpha.12-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "../configuration" }

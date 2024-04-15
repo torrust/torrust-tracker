@@ -126,6 +126,7 @@
         "routable",
         "rstest",
         "rusqlite",
+        "rustc",
         "RUSTDOCFLAGS",
         "RUSTFLAGS",
         "rustfmt",
