@@ -9,9 +9,16 @@ use torrust_tracker_clock::clock;
 pub mod entry;
 pub mod repository;
 
+// Entry
+
 pub type EntrySingle = entry::Torrent;
 pub type EntryMutexStd = Arc<std::sync::Mutex<entry::Torrent>>;
 pub type EntryMutexTokio = Arc<tokio::sync::Mutex<entry::Torrent>>;
+
+pub type EntrySkipMap = entry::SkipMapTorrent;
+pub type EntrySkipMapMutexStd = Arc<std::sync::Mutex<entry::SkipMapTorrent>>;
+
+// Repos
 
 pub type TorrentsRwLockStd = RwLockStd<EntrySingle>;
 pub type TorrentsRwLockStdMutexStd = RwLockStd<EntryMutexStd>;
@@ -22,6 +29,8 @@ pub type TorrentsRwLockTokioMutexTokio = RwLockTokio<EntryMutexTokio>;
 
 pub type TorrentsSkipMapMutexStd = CrossbeamSkipList<EntryMutexStd>;
 pub type TorrentsDashMapMutexStd = XacrimonDashMap<EntryMutexStd>;
+
+pub type TorrentsSkipMapMutexStdSkipMap = CrossbeamSkipList<EntrySkipMapMutexStd>;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.

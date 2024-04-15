@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-//use serde::{Deserialize, Serialize};
+use crossbeam_skiplist::SkipMap;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
@@ -10,6 +10,8 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 pub mod mutex_std;
 pub mod mutex_tokio;
 pub mod single;
+pub mod skip_map;
+pub mod skip_map_mutex_std;
 
 pub trait Entry {
     /// It returns the swarm metadata (statistics) as a struct:
@@ -84,6 +86,15 @@ pub struct Torrent {
     /// The swarm: a network of peers that are all trying to download the torrent associated to this entry
     // #[serde(skip)]
     pub(crate) peers: std::collections::BTreeMap<peer::Id, Arc<peer::Peer>>,
+    /// The number of peers that have ever completed downloading the torrent associated to this entry
+    pub(crate) downloaded: u32,
+}
+
+#[derive(Debug, Default)]
+pub struct SkipMapTorrent {
+    /// The swarm: a network of peers that are all trying to download the torrent associated to this entry
+    // #[serde(skip)]
+    pub(crate) peers: SkipMap<peer::Id, Arc<peer::Peer>>,
     /// The number of peers that have ever completed downloading the torrent associated to this entry
     pub(crate) downloaded: u32,
 }
