@@ -62,34 +62,34 @@ async fn make(torrent: &mut Torrent, makes: &Makes) -> Vec<Peer> {
         Makes::Empty => vec![],
         Makes::Started => {
             let peer = a_started_peer(1);
-            torrent.insert_or_update_peer(&peer).await;
+            torrent.upsert_peer(&peer).await;
             vec![peer]
         }
         Makes::Completed => {
             let peer = a_completed_peer(2);
-            torrent.insert_or_update_peer(&peer).await;
+            torrent.upsert_peer(&peer).await;
             vec![peer]
         }
         Makes::Downloaded => {
             let mut peer = a_started_peer(3);
-            torrent.insert_or_update_peer(&peer).await;
+            torrent.upsert_peer(&peer).await;
             peer.event = AnnounceEvent::Completed;
             peer.left = NumberOfBytes(0);
-            torrent.insert_or_update_peer(&peer).await;
+            torrent.upsert_peer(&peer).await;
             vec![peer]
         }
         Makes::Three => {
             let peer_1 = a_started_peer(1);
-            torrent.insert_or_update_peer(&peer_1).await;
+            torrent.upsert_peer(&peer_1).await;
 
             let peer_2 = a_completed_peer(2);
-            torrent.insert_or_update_peer(&peer_2).await;
+            torrent.upsert_peer(&peer_2).await;
 
             let mut peer_3 = a_started_peer(3);
-            torrent.insert_or_update_peer(&peer_3).await;
+            torrent.upsert_peer(&peer_3).await;
             peer_3.event = AnnounceEvent::Completed;
             peer_3.left = NumberOfBytes(0);
-            torrent.insert_or_update_peer(&peer_3).await;
+            torrent.upsert_peer(&peer_3).await;
             vec![peer_1, peer_2, peer_3]
         }
     }
@@ -182,7 +182,7 @@ async fn it_should_update_a_peer(
 
     // Make and insert a new peer.
     let mut peer = a_started_peer(-1);
-    torrent.insert_or_update_peer(&peer).await;
+    torrent.upsert_peer(&peer).await;
 
     // Get the Inserted Peer by Id.
     let peers = torrent.get_peers(None).await;
@@ -195,7 +195,7 @@ async fn it_should_update_a_peer(
 
     // Announce "Completed" torrent download event.
     peer.event = AnnounceEvent::Completed;
-    torrent.insert_or_update_peer(&peer).await;
+    torrent.upsert_peer(&peer).await;
 
     // Get the Updated Peer by Id.
     let peers = torrent.get_peers(None).await;
@@ -224,7 +224,7 @@ async fn it_should_remove_a_peer_upon_stopped_announcement(
 
     let mut peer = a_started_peer(-1);
 
-    torrent.insert_or_update_peer(&peer).await;
+    torrent.upsert_peer(&peer).await;
 
     // The started peer should be inserted.
     let peers = torrent.get_peers(None).await;
@@ -237,7 +237,7 @@ async fn it_should_remove_a_peer_upon_stopped_announcement(
 
     // Change peer to "Stopped" and insert.
     peer.event = AnnounceEvent::Stopped;
-    torrent.insert_or_update_peer(&peer).await;
+    torrent.upsert_peer(&peer).await;
 
     // It should be removed now.
     let peers = torrent.get_peers(None).await;
@@ -270,13 +270,12 @@ async fn it_should_handle_a_peer_completed_announcement_and_update_the_downloade
     // Announce "Completed" torrent download event.
     peer.event = AnnounceEvent::Completed;
 
-    let (updated, stats) = torrent.insert_or_update_peer_and_get_stats(&peer).await;
+    torrent.upsert_peer(&peer).await;
+    let stats = torrent.get_stats().await;
 
     if is_already_completed {
-        assert!(!updated);
         assert_eq!(stats.downloaded, downloaded);
     } else {
-        assert!(updated);
         assert_eq!(stats.downloaded, downloaded + 1);
     }
 }
@@ -301,7 +300,8 @@ async fn it_should_update_a_peer_as_a_seeder(
 
     // Set Bytes Left to Zero
     peer.left = NumberOfBytes(0);
-    let (_, stats) = torrent.insert_or_update_peer_and_get_stats(&peer).await; // Add the peer
+    torrent.upsert_peer(&peer).await;
+    let stats = torrent.get_stats().await;
 
     if is_already_non_left {
         // it was already complete
@@ -332,7 +332,8 @@ async fn it_should_update_a_peer_as_incomplete(
 
     // Set Bytes Left to no Zero
     peer.left = NumberOfBytes(1);
-    let (_, stats) = torrent.insert_or_update_peer_and_get_stats(&peer).await; // Add the peer
+    torrent.upsert_peer(&peer).await;
+    let stats = torrent.get_stats().await;
 
     if completed_already {
         // now it is incomplete
@@ -368,7 +369,7 @@ async fn it_should_get_peers_excluding_the_client_socket(
 
     // set the address to the socket.
     peer.peer_addr = socket;
-    torrent.insert_or_update_peer(&peer).await; // Add peer
+    torrent.upsert_peer(&peer).await; // Add peer
 
     // It should not include the peer that has the same socket.
     assert!(!torrent.get_peers_for_client(&socket, None).await.contains(&peer.into()));
@@ -391,7 +392,7 @@ async fn it_should_limit_the_number_of_peers_returned(
     for peer_number in 1..=74 + 1 {
         let mut peer = a_started_peer(1);
         peer.peer_id = peer::Id::from(peer_number);
-        torrent.insert_or_update_peer(&peer).await;
+        torrent.upsert_peer(&peer).await;
     }
 
     let peers = torrent.get_peers(Some(TORRENT_PEERS_LIMIT)).await;
@@ -422,7 +423,7 @@ async fn it_should_remove_inactive_peers_beyond_cutoff(
 
     peer.updated = now.sub(EXPIRE);
 
-    torrent.insert_or_update_peer(&peer).await;
+    torrent.upsert_peer(&peer).await;
 
     assert_eq!(torrent.get_peers_len().await, peers.len() + 1);
 

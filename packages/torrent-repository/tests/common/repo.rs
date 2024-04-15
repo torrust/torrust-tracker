@@ -23,6 +23,32 @@ pub(crate) enum Repo {
 }
 
 impl Repo {
+    pub(crate) async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+        match self {
+            Repo::RwLockStd(repo) => repo.upsert_peer(info_hash, peer),
+            Repo::RwLockStdMutexStd(repo) => repo.upsert_peer(info_hash, peer),
+            Repo::RwLockStdMutexTokio(repo) => repo.upsert_peer(info_hash, peer).await,
+            Repo::RwLockTokio(repo) => repo.upsert_peer(info_hash, peer).await,
+            Repo::RwLockTokioMutexStd(repo) => repo.upsert_peer(info_hash, peer).await,
+            Repo::RwLockTokioMutexTokio(repo) => repo.upsert_peer(info_hash, peer).await,
+            Repo::SkipMapMutexStd(repo) => repo.upsert_peer(info_hash, peer),
+            Repo::DashMapMutexStd(repo) => repo.upsert_peer(info_hash, peer),
+        }
+    }
+
+    pub(crate) async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
+        match self {
+            Repo::RwLockStd(repo) => repo.get_swarm_metadata(info_hash),
+            Repo::RwLockStdMutexStd(repo) => repo.get_swarm_metadata(info_hash),
+            Repo::RwLockStdMutexTokio(repo) => repo.get_swarm_metadata(info_hash).await,
+            Repo::RwLockTokio(repo) => repo.get_swarm_metadata(info_hash).await,
+            Repo::RwLockTokioMutexStd(repo) => repo.get_swarm_metadata(info_hash).await,
+            Repo::RwLockTokioMutexTokio(repo) => repo.get_swarm_metadata(info_hash).await,
+            Repo::SkipMapMutexStd(repo) => repo.get_swarm_metadata(info_hash),
+            Repo::DashMapMutexStd(repo) => repo.get_swarm_metadata(info_hash),
+        }
+    }
+
     pub(crate) async fn get(&self, key: &InfoHash) -> Option<EntrySingle> {
         match self {
             Repo::RwLockStd(repo) => repo.get(key),
@@ -142,23 +168,6 @@ impl Repo {
             Repo::RwLockTokioMutexTokio(repo) => repo.remove_peerless_torrents(policy).await,
             Repo::SkipMapMutexStd(repo) => repo.remove_peerless_torrents(policy),
             Repo::DashMapMutexStd(repo) => repo.remove_peerless_torrents(policy),
-        }
-    }
-
-    pub(crate) async fn update_torrent_with_peer_and_get_stats(
-        &self,
-        info_hash: &InfoHash,
-        peer: &peer::Peer,
-    ) -> (bool, SwarmMetadata) {
-        match self {
-            Repo::RwLockStd(repo) => repo.update_torrent_with_peer_and_get_stats(info_hash, peer),
-            Repo::RwLockStdMutexStd(repo) => repo.update_torrent_with_peer_and_get_stats(info_hash, peer),
-            Repo::RwLockStdMutexTokio(repo) => repo.update_torrent_with_peer_and_get_stats(info_hash, peer).await,
-            Repo::RwLockTokio(repo) => repo.update_torrent_with_peer_and_get_stats(info_hash, peer).await,
-            Repo::RwLockTokioMutexStd(repo) => repo.update_torrent_with_peer_and_get_stats(info_hash, peer).await,
-            Repo::RwLockTokioMutexTokio(repo) => repo.update_torrent_with_peer_and_get_stats(info_hash, peer).await,
-            Repo::SkipMapMutexStd(repo) => repo.update_torrent_with_peer_and_get_stats(info_hash, peer),
-            Repo::DashMapMutexStd(repo) => repo.update_torrent_with_peer_and_get_stats(info_hash, peer),
         }
     }
 

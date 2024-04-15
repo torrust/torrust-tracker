@@ -12,7 +12,7 @@ use crate::EntrySingle;
 
 impl Entry for EntrySingle {
     #[allow(clippy::cast_possible_truncation)]
-    fn get_stats(&self) -> SwarmMetadata {
+    fn get_swarm_metadata(&self) -> SwarmMetadata {
         let complete: u32 = self.peers.values().filter(|peer| peer.is_seeder()).count() as u32;
         let incomplete: u32 = self.peers.len() as u32 - complete;
 
@@ -70,7 +70,7 @@ impl Entry for EntrySingle {
         }
     }
 
-    fn insert_or_update_peer(&mut self, peer: &peer::Peer) -> bool {
+    fn upsert_peer(&mut self, peer: &peer::Peer) -> bool {
         let mut downloaded_stats_updated: bool = false;
 
         match peer::ReadInfo::get_event(peer) {
@@ -91,12 +91,6 @@ impl Entry for EntrySingle {
         }
 
         downloaded_stats_updated
-    }
-
-    fn insert_or_update_peer_and_get_stats(&mut self, peer: &peer::Peer) -> (bool, SwarmMetadata) {
-        let changed = self.insert_or_update_peer(peer);
-        let stats = self.get_stats();
-        (changed, stats)
     }
 
     fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {
