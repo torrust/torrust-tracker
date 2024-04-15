@@ -104,7 +104,7 @@ where
 
             let entry = EntryMutexTokio::new(
                 EntrySingle {
-                    peers: PeerList::default(),
+                    swarm: PeerList::default(),
                     downloaded: *completed,
                 }
                 .into(),
