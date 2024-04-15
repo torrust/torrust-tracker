@@ -9,7 +9,7 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent
 
 use super::Repository;
 use crate::entry::Entry;
-use crate::{EntrySingle, TorrentsRwLockStd};
+use crate::{BTreeMapPeerList, EntrySingle, TorrentsRwLockStd};
 
 #[derive(Default, Debug)]
 pub struct RwLockStd<T> {
@@ -28,24 +28,28 @@ impl<T> RwLockStd<T> {
 }
 
 impl TorrentsRwLockStd {
-    fn get_torrents<'a>(&'a self) -> std::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle>>
+    fn get_torrents<'a>(
+        &'a self,
+    ) -> std::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle<BTreeMapPeerList>>>
     where
-        std::collections::BTreeMap<InfoHash, EntrySingle>: 'a,
+        std::collections::BTreeMap<InfoHash, EntrySingle<BTreeMapPeerList>>: 'a,
     {
         self.torrents.read().expect("it should get the read lock")
     }
 
-    fn get_torrents_mut<'a>(&'a self) -> std::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle>>
+    fn get_torrents_mut<'a>(
+        &'a self,
+    ) -> std::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle<BTreeMapPeerList>>>
     where
-        std::collections::BTreeMap<InfoHash, EntrySingle>: 'a,
+        std::collections::BTreeMap<InfoHash, EntrySingle<BTreeMapPeerList>>: 'a,
     {
         self.torrents.write().expect("it should get the write lock")
     }
 }
 
-impl Repository<EntrySingle> for TorrentsRwLockStd
+impl Repository<EntrySingle<BTreeMapPeerList>> for TorrentsRwLockStd
 where
-    EntrySingle: Entry,
+    EntrySingle<BTreeMapPeerList>: Entry,
 {
     fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         let mut db = self.get_torrents_mut();
@@ -59,7 +63,7 @@ where
         self.get(info_hash).map(|entry| entry.get_swarm_metadata())
     }
 
-    fn get(&self, key: &InfoHash) -> Option<EntrySingle> {
+    fn get(&self, key: &InfoHash) -> Option<EntrySingle<BTreeMapPeerList>> {
         let db = self.get_torrents();
         db.get(key).cloned()
     }
@@ -78,7 +82,7 @@ where
         metrics
     }
 
-    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntrySingle)> {
+    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntrySingle<BTreeMapPeerList>)> {
         let db = self.get_torrents();
 
         match pagination {
@@ -110,7 +114,7 @@ where
         }
     }
 
-    fn remove(&self, key: &InfoHash) -> Option<EntrySingle> {
+    fn remove(&self, key: &InfoHash) -> Option<EntrySingle<BTreeMapPeerList>> {
         let mut db = self.get_torrents_mut();
         db.remove(key)
     }

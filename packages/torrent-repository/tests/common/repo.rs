@@ -6,8 +6,9 @@ use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
 use torrust_tracker_torrent_repository::repository::{Repository as _, RepositoryAsync as _};
 use torrust_tracker_torrent_repository::{
-    EntrySingle, TorrentsDashMapMutexStd, TorrentsRwLockStd, TorrentsRwLockStdMutexStd, TorrentsRwLockStdMutexTokio,
-    TorrentsRwLockTokio, TorrentsRwLockTokioMutexStd, TorrentsRwLockTokioMutexTokio, TorrentsSkipMapMutexStd,
+    BTreeMapPeerList, EntrySingle, TorrentsDashMapMutexStd, TorrentsRwLockStd, TorrentsRwLockStdMutexStd,
+    TorrentsRwLockStdMutexTokio, TorrentsRwLockTokio, TorrentsRwLockTokioMutexStd, TorrentsRwLockTokioMutexTokio,
+    TorrentsSkipMapMutexStd,
 };
 
 #[derive(Debug)]
@@ -49,7 +50,7 @@ impl Repo {
         }
     }
 
-    pub(crate) async fn get(&self, key: &InfoHash) -> Option<EntrySingle> {
+    pub(crate) async fn get(&self, key: &InfoHash) -> Option<EntrySingle<BTreeMapPeerList>> {
         match self {
             Repo::RwLockStd(repo) => repo.get(key),
             Repo::RwLockStdMutexStd(repo) => Some(repo.get(key)?.lock().unwrap().clone()),
@@ -75,7 +76,7 @@ impl Repo {
         }
     }
 
-    pub(crate) async fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntrySingle)> {
+    pub(crate) async fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntrySingle<BTreeMapPeerList>)> {
         match self {
             Repo::RwLockStd(repo) => repo.get_paginated(pagination),
             Repo::RwLockStdMutexStd(repo) => repo
@@ -84,7 +85,7 @@ impl Repo {
                 .map(|(i, t)| (*i, t.lock().expect("it should get a lock").clone()))
                 .collect(),
             Repo::RwLockStdMutexTokio(repo) => {
-                let mut v: Vec<(InfoHash, EntrySingle)> = vec![];
+                let mut v: Vec<(InfoHash, EntrySingle<BTreeMapPeerList>)> = vec![];
 
                 for (i, t) in repo.get_paginated(pagination).await {
                     v.push((i, t.lock().await.clone()));
@@ -99,7 +100,7 @@ impl Repo {
                 .map(|(i, t)| (*i, t.lock().expect("it should get a lock").clone()))
                 .collect(),
             Repo::RwLockTokioMutexTokio(repo) => {
-                let mut v: Vec<(InfoHash, EntrySingle)> = vec![];
+                let mut v: Vec<(InfoHash, EntrySingle<BTreeMapPeerList>)> = vec![];
 
                 for (i, t) in repo.get_paginated(pagination).await {
                     v.push((i, t.lock().await.clone()));
@@ -132,7 +133,7 @@ impl Repo {
         }
     }
 
-    pub(crate) async fn remove(&self, key: &InfoHash) -> Option<EntrySingle> {
+    pub(crate) async fn remove(&self, key: &InfoHash) -> Option<EntrySingle<BTreeMapPeerList>> {
         match self {
             Repo::RwLockStd(repo) => repo.remove(key),
             Repo::RwLockStdMutexStd(repo) => Some(repo.remove(key)?.lock().unwrap().clone()),
@@ -171,7 +172,11 @@ impl Repo {
         }
     }
 
-    pub(crate) async fn insert(&self, info_hash: &InfoHash, torrent: EntrySingle) -> Option<EntrySingle> {
+    pub(crate) async fn insert(
+        &self,
+        info_hash: &InfoHash,
+        torrent: EntrySingle<BTreeMapPeerList>,
+    ) -> Option<EntrySingle<BTreeMapPeerList>> {
         match self {
             Repo::RwLockStd(repo) => {
                 repo.write().insert(*info_hash, torrent);

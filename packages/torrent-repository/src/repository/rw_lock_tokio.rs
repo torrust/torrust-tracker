@@ -9,7 +9,7 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent
 
 use super::RepositoryAsync;
 use crate::entry::Entry;
-use crate::{EntrySingle, TorrentsRwLockTokio};
+use crate::{BTreeMapPeerList, EntrySingle, TorrentsRwLockTokio};
 
 #[derive(Default, Debug)]
 pub struct RwLockTokio<T> {
@@ -30,26 +30,28 @@ impl<T> RwLockTokio<T> {
 }
 
 impl TorrentsRwLockTokio {
-    async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle>>
+    async fn get_torrents<'a>(
+        &'a self,
+    ) -> tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle<BTreeMapPeerList>>>
     where
-        std::collections::BTreeMap<InfoHash, EntrySingle>: 'a,
+        std::collections::BTreeMap<InfoHash, EntrySingle<BTreeMapPeerList>>: 'a,
     {
         self.torrents.read().await
     }
 
     async fn get_torrents_mut<'a>(
         &'a self,
-    ) -> tokio::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle>>
+    ) -> tokio::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntrySingle<BTreeMapPeerList>>>
     where
-        std::collections::BTreeMap<InfoHash, EntrySingle>: 'a,
+        std::collections::BTreeMap<InfoHash, EntrySingle<BTreeMapPeerList>>: 'a,
     {
         self.torrents.write().await
     }
 }
 
-impl RepositoryAsync<EntrySingle> for TorrentsRwLockTokio
+impl RepositoryAsync<EntrySingle<BTreeMapPeerList>> for TorrentsRwLockTokio
 where
-    EntrySingle: Entry,
+    EntrySingle<BTreeMapPeerList>: Entry,
 {
     async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         let mut db = self.get_torrents_mut().await;
@@ -63,12 +65,12 @@ where
         self.get(info_hash).await.map(|entry| entry.get_swarm_metadata())
     }
 
-    async fn get(&self, key: &InfoHash) -> Option<EntrySingle> {
+    async fn get(&self, key: &InfoHash) -> Option<EntrySingle<BTreeMapPeerList>> {
         let db = self.get_torrents().await;
         db.get(key).cloned()
     }
 
-    async fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntrySingle)> {
+    async fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntrySingle<BTreeMapPeerList>)> {
         let db = self.get_torrents().await;
 
         match pagination {
@@ -114,7 +116,7 @@ where
         }
     }
 
-    async fn remove(&self, key: &InfoHash) -> Option<EntrySingle> {
+    async fn remove(&self, key: &InfoHash) -> Option<EntrySingle<BTreeMapPeerList>> {
         let mut db = self.get_torrents_mut().await;
         db.remove(key)
     }

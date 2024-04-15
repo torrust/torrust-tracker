@@ -11,17 +11,17 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent
 
 use super::Repository;
 use crate::entry::{Entry, EntrySync};
-use crate::{EntryMutexStd, EntrySingle};
+use crate::{BTreeMapPeerList, EntryMutexStd, EntrySingle};
 
 #[derive(Default, Debug)]
 pub struct XacrimonDashMap<T> {
     pub torrents: DashMap<InfoHash, T>,
 }
 
-impl Repository<EntryMutexStd> for XacrimonDashMap<EntryMutexStd>
+impl Repository<EntryMutexStd<BTreeMapPeerList>> for XacrimonDashMap<EntryMutexStd<BTreeMapPeerList>>
 where
-    EntryMutexStd: EntrySync,
-    EntrySingle: Entry,
+    EntryMutexStd<BTreeMapPeerList>: EntrySync,
+    EntrySingle<BTreeMapPeerList>: Entry,
 {
     fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         if let Some(entry) = self.torrents.get(info_hash) {
@@ -38,7 +38,7 @@ where
         self.torrents.get(info_hash).map(|entry| entry.value().get_swarm_metadata())
     }
 
-    fn get(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    fn get(&self, key: &InfoHash) -> Option<EntryMutexStd<BTreeMapPeerList>> {
         let maybe_entry = self.torrents.get(key);
         maybe_entry.map(|entry| entry.clone())
     }
@@ -57,7 +57,7 @@ where
         metrics
     }
 
-    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
+    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd<BTreeMapPeerList>)> {
         match pagination {
             Some(pagination) => self
                 .torrents
@@ -92,7 +92,7 @@ where
         }
     }
 
-    fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd<BTreeMapPeerList>> {
         self.torrents.remove(key).map(|(_key, value)| value.clone())
     }
 

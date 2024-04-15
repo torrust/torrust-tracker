@@ -10,30 +10,32 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent
 
 use super::RepositoryAsync;
 use crate::entry::{Entry, EntryAsync};
-use crate::{EntryMutexTokio, EntrySingle, TorrentsRwLockTokioMutexTokio};
+use crate::{BTreeMapPeerList, EntryMutexTokio, EntrySingle, TorrentsRwLockTokioMutexTokio};
 
 impl TorrentsRwLockTokioMutexTokio {
-    async fn get_torrents<'a>(&'a self) -> tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexTokio>>
+    async fn get_torrents<'a>(
+        &'a self,
+    ) -> tokio::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexTokio<BTreeMapPeerList>>>
     where
-        std::collections::BTreeMap<InfoHash, EntryMutexTokio>: 'a,
+        std::collections::BTreeMap<InfoHash, EntryMutexTokio<BTreeMapPeerList>>: 'a,
     {
         self.torrents.read().await
     }
 
     async fn get_torrents_mut<'a>(
         &'a self,
-    ) -> tokio::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexTokio>>
+    ) -> tokio::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexTokio<BTreeMapPeerList>>>
     where
-        std::collections::BTreeMap<InfoHash, EntryMutexTokio>: 'a,
+        std::collections::BTreeMap<InfoHash, EntryMutexTokio<BTreeMapPeerList>>: 'a,
     {
         self.torrents.write().await
     }
 }
 
-impl RepositoryAsync<EntryMutexTokio> for TorrentsRwLockTokioMutexTokio
+impl RepositoryAsync<EntryMutexTokio<BTreeMapPeerList>> for TorrentsRwLockTokioMutexTokio
 where
-    EntryMutexTokio: EntryAsync,
-    EntrySingle: Entry,
+    EntryMutexTokio<BTreeMapPeerList>: EntryAsync,
+    EntrySingle<BTreeMapPeerList>: Entry,
 {
     async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         let maybe_entry = self.get_torrents().await.get(info_hash).cloned();
@@ -56,12 +58,12 @@ where
         }
     }
 
-    async fn get(&self, key: &InfoHash) -> Option<EntryMutexTokio> {
+    async fn get(&self, key: &InfoHash) -> Option<EntryMutexTokio<BTreeMapPeerList>> {
         let db = self.get_torrents().await;
         db.get(key).cloned()
     }
 
-    async fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexTokio)> {
+    async fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexTokio<BTreeMapPeerList>)> {
         let db = self.get_torrents().await;
 
         match pagination {
@@ -110,7 +112,7 @@ where
         }
     }
 
-    async fn remove(&self, key: &InfoHash) -> Option<EntryMutexTokio> {
+    async fn remove(&self, key: &InfoHash) -> Option<EntryMutexTokio<BTreeMapPeerList>> {
         let mut db = self.get_torrents_mut().await;
         db.remove(key)
     }

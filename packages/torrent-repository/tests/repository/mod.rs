@@ -13,7 +13,7 @@ use torrust_tracker_torrent_repository::repository::dash_map_mutex_std::Xacrimon
 use torrust_tracker_torrent_repository::repository::rw_lock_std::RwLockStd;
 use torrust_tracker_torrent_repository::repository::rw_lock_tokio::RwLockTokio;
 use torrust_tracker_torrent_repository::repository::skip_map_mutex_std::CrossbeamSkipList;
-use torrust_tracker_torrent_repository::EntrySingle;
+use torrust_tracker_torrent_repository::{BTreeMapPeerList, EntrySingle};
 
 use crate::common::repo::Repo;
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
@@ -58,7 +58,7 @@ fn dash_map_std() -> Repo {
     Repo::DashMapMutexStd(XacrimonDashMap::default())
 }
 
-type Entries = Vec<(InfoHash, EntrySingle)>;
+type Entries = Vec<(InfoHash, EntrySingle<BTreeMapPeerList>)>;
 
 #[fixture]
 fn empty() -> Entries {
@@ -125,7 +125,7 @@ fn three() -> Entries {
 
 #[fixture]
 fn many_out_of_order() -> Entries {
-    let mut entries: HashSet<(InfoHash, EntrySingle)> = HashSet::default();
+    let mut entries: HashSet<(InfoHash, EntrySingle<BTreeMapPeerList>)> = HashSet::default();
 
     for i in 0..408 {
         let mut entry = EntrySingle::default();
@@ -140,7 +140,7 @@ fn many_out_of_order() -> Entries {
 
 #[fixture]
 fn many_hashed_in_order() -> Entries {
-    let mut entries: BTreeMap<InfoHash, EntrySingle> = BTreeMap::default();
+    let mut entries: BTreeMap<InfoHash, EntrySingle<BTreeMapPeerList>> = BTreeMap::default();
 
     for i in 0..408 {
         let mut entry = EntrySingle::default();

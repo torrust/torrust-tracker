@@ -10,28 +10,32 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent
 
 use super::Repository;
 use crate::entry::{Entry, EntrySync};
-use crate::{EntryMutexStd, EntrySingle, TorrentsRwLockStdMutexStd};
+use crate::{BTreeMapPeerList, EntryMutexStd, EntrySingle, TorrentsRwLockStdMutexStd};
 
 impl TorrentsRwLockStdMutexStd {
-    fn get_torrents<'a>(&'a self) -> std::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexStd>>
+    fn get_torrents<'a>(
+        &'a self,
+    ) -> std::sync::RwLockReadGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexStd<BTreeMapPeerList>>>
     where
-        std::collections::BTreeMap<InfoHash, crate::EntryMutexStd>: 'a,
+        std::collections::BTreeMap<InfoHash, crate::EntryMutexStd<BTreeMapPeerList>>: 'a,
     {
         self.torrents.read().expect("unable to get torrent list")
     }
 
-    fn get_torrents_mut<'a>(&'a self) -> std::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexStd>>
+    fn get_torrents_mut<'a>(
+        &'a self,
+    ) -> std::sync::RwLockWriteGuard<'a, std::collections::BTreeMap<InfoHash, EntryMutexStd<BTreeMapPeerList>>>
     where
-        std::collections::BTreeMap<InfoHash, EntryMutexStd>: 'a,
+        std::collections::BTreeMap<InfoHash, EntryMutexStd<BTreeMapPeerList>>: 'a,
     {
         self.torrents.write().expect("unable to get writable torrent list")
     }
 }
 
-impl Repository<EntryMutexStd> for TorrentsRwLockStdMutexStd
+impl Repository<EntryMutexStd<BTreeMapPeerList>> for TorrentsRwLockStdMutexStd
 where
-    EntryMutexStd: EntrySync,
-    EntrySingle: Entry,
+    EntryMutexStd<BTreeMapPeerList>: EntrySync,
+    EntrySingle<BTreeMapPeerList>: Entry,
 {
     fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         let maybe_entry = self.get_torrents().get(info_hash).cloned();
@@ -53,7 +57,7 @@ where
             .map(super::super::entry::EntrySync::get_swarm_metadata)
     }
 
-    fn get(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    fn get(&self, key: &InfoHash) -> Option<EntryMutexStd<BTreeMapPeerList>> {
         let db = self.get_torrents();
         db.get(key).cloned()
     }
@@ -72,7 +76,7 @@ where
         metrics
     }
 
-    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
+    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd<BTreeMapPeerList>)> {
         let db = self.get_torrents();
 
         match pagination {
@@ -107,7 +111,7 @@ where
         }
     }
 
-    fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd<BTreeMapPeerList>> {
         let mut db = self.get_torrents_mut();
         db.remove(key)
     }

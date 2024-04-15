@@ -5,13 +5,13 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 use torrust_tracker_torrent_repository::entry::{Entry as _, EntryAsync as _, EntrySync as _};
-use torrust_tracker_torrent_repository::{EntryMutexStd, EntryMutexTokio, EntrySingle};
+use torrust_tracker_torrent_repository::{BTreeMapPeerList, EntryMutexStd, EntryMutexTokio, EntrySingle};
 
 #[derive(Debug, Clone)]
 pub(crate) enum Torrent {
-    Single(EntrySingle),
-    MutexStd(EntryMutexStd),
-    MutexTokio(EntryMutexTokio),
+    Single(EntrySingle<BTreeMapPeerList>),
+    MutexStd(EntryMutexStd<BTreeMapPeerList>),
+    MutexTokio(EntryMutexTokio<BTreeMapPeerList>),
 }
 
 impl Torrent {

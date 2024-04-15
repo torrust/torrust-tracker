@@ -1,36 +1,46 @@
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
+use crossbeam_skiplist::SkipMap;
 use repository::dash_map_mutex_std::XacrimonDashMap;
 use repository::rw_lock_std::RwLockStd;
 use repository::rw_lock_tokio::RwLockTokio;
 use repository::skip_map_mutex_std::CrossbeamSkipList;
 use torrust_tracker_clock::clock;
+use torrust_tracker_primitives::peer;
 
 pub mod entry;
 pub mod repository;
 
-// Entry
+// Peer List
 
-pub type EntrySingle = entry::Torrent;
-pub type EntryMutexStd = Arc<std::sync::Mutex<entry::Torrent>>;
-pub type EntryMutexTokio = Arc<tokio::sync::Mutex<entry::Torrent>>;
+pub type BTreeMapPeerList = BTreeMap<peer::Id, Arc<peer::Peer>>;
+pub type SkipMapPeerList = SkipMap<peer::Id, Arc<peer::Peer>>;
 
-pub type EntrySkipMap = entry::SkipMapTorrent;
-pub type EntrySkipMapMutexStd = Arc<std::sync::Mutex<entry::SkipMapTorrent>>;
+// Torrent Entry
+
+pub type EntrySingle<T> = entry::Torrent<T>;
+pub type EntryMutexStd<T> = Arc<std::sync::Mutex<EntrySingle<T>>>;
+pub type EntryMutexTokio<T> = Arc<tokio::sync::Mutex<EntrySingle<T>>>;
 
 // Repos
 
-pub type TorrentsRwLockStd = RwLockStd<EntrySingle>;
-pub type TorrentsRwLockStdMutexStd = RwLockStd<EntryMutexStd>;
-pub type TorrentsRwLockStdMutexTokio = RwLockStd<EntryMutexTokio>;
-pub type TorrentsRwLockTokio = RwLockTokio<EntrySingle>;
-pub type TorrentsRwLockTokioMutexStd = RwLockTokio<EntryMutexStd>;
-pub type TorrentsRwLockTokioMutexTokio = RwLockTokio<EntryMutexTokio>;
+// Torrent repo and peer list: BTreeMap
+pub type TorrentsRwLockStd = RwLockStd<EntrySingle<BTreeMapPeerList>>;
+pub type TorrentsRwLockStdMutexStd = RwLockStd<EntryMutexStd<BTreeMapPeerList>>;
+pub type TorrentsRwLockStdMutexTokio = RwLockStd<EntryMutexTokio<BTreeMapPeerList>>;
+pub type TorrentsRwLockTokio = RwLockTokio<EntrySingle<BTreeMapPeerList>>;
+pub type TorrentsRwLockTokioMutexStd = RwLockTokio<EntryMutexStd<BTreeMapPeerList>>;
+pub type TorrentsRwLockTokioMutexTokio = RwLockTokio<EntryMutexTokio<BTreeMapPeerList>>;
 
-pub type TorrentsSkipMapMutexStd = CrossbeamSkipList<EntryMutexStd>;
-pub type TorrentsDashMapMutexStd = XacrimonDashMap<EntryMutexStd>;
+// Torrent repo: SkipMap; Peer list: BTreeMap
+pub type TorrentsSkipMapMutexStd = CrossbeamSkipList<EntryMutexStd<BTreeMapPeerList>>;
 
-pub type TorrentsSkipMapMutexStdSkipMap = CrossbeamSkipList<EntrySkipMapMutexStd>;
+// Torrent repo: DashMap; Peer list: BTreeMap
+pub type TorrentsDashMapMutexStd = XacrimonDashMap<EntryMutexStd<BTreeMapPeerList>>;
+
+// Torrent repo and peer list: SkipMap
+pub type TorrentsSkipMapMutexStdSkipMap = CrossbeamSkipList<EntryMutexStd<SkipMapPeerList>>;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.

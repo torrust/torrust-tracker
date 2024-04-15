@@ -11,17 +11,17 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent
 
 use super::Repository;
 use crate::entry::{Entry, EntrySync};
-use crate::{EntryMutexStd, EntrySingle, EntrySkipMap, EntrySkipMapMutexStd};
+use crate::{BTreeMapPeerList, EntryMutexStd, EntrySingle, SkipMapPeerList};
 
 #[derive(Default, Debug)]
 pub struct CrossbeamSkipList<T> {
     pub torrents: SkipMap<InfoHash, T>,
 }
 
-impl Repository<EntryMutexStd> for CrossbeamSkipList<EntryMutexStd>
+impl Repository<EntryMutexStd<BTreeMapPeerList>> for CrossbeamSkipList<EntryMutexStd<BTreeMapPeerList>>
 where
-    EntryMutexStd: EntrySync,
-    EntrySingle: Entry,
+    EntryMutexStd<BTreeMapPeerList>: EntrySync,
+    EntrySingle<BTreeMapPeerList>: Entry,
 {
     fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         let entry = self.torrents.get_or_insert(*info_hash, Arc::default());
@@ -32,7 +32,7 @@ where
         self.torrents.get(info_hash).map(|entry| entry.value().get_swarm_metadata())
     }
 
-    fn get(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    fn get(&self, key: &InfoHash) -> Option<EntryMutexStd<BTreeMapPeerList>> {
         let maybe_entry = self.torrents.get(key);
         maybe_entry.map(|entry| entry.value().clone())
     }
@@ -51,7 +51,7 @@ where
         metrics
     }
 
-    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
+    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd<BTreeMapPeerList>)> {
         match pagination {
             Some(pagination) => self
                 .torrents
@@ -88,7 +88,7 @@ where
         }
     }
 
-    fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd<BTreeMapPeerList>> {
         self.torrents.remove(key).map(|entry| entry.value().clone())
     }
 
@@ -109,10 +109,10 @@ where
     }
 }
 
-impl Repository<EntrySkipMapMutexStd> for CrossbeamSkipList<EntrySkipMapMutexStd>
+impl Repository<EntryMutexStd<SkipMapPeerList>> for CrossbeamSkipList<EntryMutexStd<SkipMapPeerList>>
 where
-    EntrySkipMapMutexStd: EntrySync,
-    EntrySkipMap: Entry,
+    EntryMutexStd<SkipMapPeerList>: EntrySync,
+    EntrySingle<SkipMapPeerList>: Entry,
 {
     fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         let entry = self.torrents.get_or_insert(*info_hash, Arc::default());
@@ -123,7 +123,7 @@ where
         self.torrents.get(info_hash).map(|entry| entry.value().get_swarm_metadata())
     }
 
-    fn get(&self, key: &InfoHash) -> Option<EntrySkipMapMutexStd> {
+    fn get(&self, key: &InfoHash) -> Option<EntryMutexStd<SkipMapPeerList>> {
         let maybe_entry = self.torrents.get(key);
         maybe_entry.map(|entry| entry.value().clone())
     }
@@ -142,7 +142,7 @@ where
         metrics
     }
 
-    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntrySkipMapMutexStd)> {
+    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd<SkipMapPeerList>)> {
         match pagination {
             Some(pagination) => self
                 .torrents
@@ -165,8 +165,8 @@ where
                 continue;
             }
 
-            let entry = EntrySkipMapMutexStd::new(
-                EntrySkipMap {
+            let entry = EntryMutexStd::new(
+                EntrySingle {
                     peers: SkipMap::default(),
                     downloaded: *completed,
                 }
@@ -179,7 +179,7 @@ where
         }
     }
 
-    fn remove(&self, key: &InfoHash) -> Option<EntrySkipMapMutexStd> {
+    fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd<SkipMapPeerList>> {
         self.torrents.remove(key).map(|entry| entry.value().clone())
     }
 
