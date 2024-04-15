@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use dashmap::DashMap;
@@ -10,7 +9,7 @@ use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
 
 use super::Repository;
-use crate::entry::{Entry, EntrySync};
+use crate::entry::{Entry, EntrySync, PeerList};
 use crate::{EntryMutexStd, EntrySingle};
 
 #[derive(Default, Debug)]
@@ -82,7 +81,7 @@ where
 
             let entry = EntryMutexStd::new(
                 EntrySingle {
-                    peers: BTreeMap::default(),
+                    peers: PeerList::default(),
                     downloaded: *completed,
                 }
                 .into(),

@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use torrust_tracker_configuration::TrackerPolicy;
@@ -9,7 +8,7 @@ use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
 
 use super::RepositoryAsync;
-use crate::entry::{Entry, EntryAsync};
+use crate::entry::{Entry, EntryAsync, PeerList};
 use crate::{EntryMutexTokio, EntrySingle, TorrentsRwLockTokioMutexTokio};
 
 impl TorrentsRwLockTokioMutexTokio {
@@ -100,7 +99,7 @@ where
 
             let entry = EntryMutexTokio::new(
                 EntrySingle {
-                    peers: BTreeMap::default(),
+                    peers: PeerList::default(),
                     downloaded: *completed,
                 }
                 .into(),

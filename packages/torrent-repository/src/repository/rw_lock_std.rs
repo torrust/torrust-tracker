@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
@@ -8,7 +6,7 @@ use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
 
 use super::Repository;
-use crate::entry::Entry;
+use crate::entry::{Entry, PeerList};
 use crate::{EntrySingle, TorrentsRwLockStd};
 
 #[derive(Default, Debug)]
@@ -102,7 +100,7 @@ where
             }
 
             let entry = EntrySingle {
-                peers: BTreeMap::default(),
+                peers: PeerList::default(),
                 downloaded: *downloaded,
             };
 

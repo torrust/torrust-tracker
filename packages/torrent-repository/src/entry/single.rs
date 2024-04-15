@@ -13,13 +13,12 @@ use crate::EntrySingle;
 impl Entry for EntrySingle {
     #[allow(clippy::cast_possible_truncation)]
     fn get_swarm_metadata(&self) -> SwarmMetadata {
-        let complete: u32 = self.peers.values().filter(|peer| peer.is_seeder()).count() as u32;
-        let incomplete: u32 = self.peers.len() as u32 - complete;
+        let (seeders, leechers) = self.peers.seeders_and_leechers();
 
         SwarmMetadata {
             downloaded: self.downloaded,
-            complete,
-            incomplete,
+            complete: seeders as u32,
+            incomplete: leechers as u32,
         }
     }
 
@@ -42,32 +41,13 @@ impl Entry for EntrySingle {
     fn get_peers_len(&self) -> usize {
         self.peers.len()
     }
+
     fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        match limit {
-            Some(limit) => self.peers.values().take(limit).cloned().collect(),
-            None => self.peers.values().cloned().collect(),
-        }
+        self.peers.get_peers(limit)
     }
 
     fn get_peers_for_client(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        match limit {
-            Some(limit) => self
-                .peers
-                .values()
-                // Take peers which are not the client peer
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *client)
-                // Limit the number of peers on the result
-                .take(limit)
-                .cloned()
-                .collect(),
-            None => self
-                .peers
-                .values()
-                // Take peers which are not the client peer
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *client)
-                .cloned()
-                .collect(),
-        }
+        self.peers.get_peers_for_client(client, limit)
     }
 
     fn upsert_peer(&mut self, peer: &peer::Peer) -> bool {
