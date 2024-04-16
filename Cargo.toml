@@ -51,6 +51,7 @@ hyper = "1"
 lazy_static = "1"
 log = { version = "0", features = ["release_max_level_info"] }
 multimap = "0"
+parking_lot = "0.12.1"
 percent-encoding = "2"
 r2d2 = "0"
 r2d2_mysql = "24"
