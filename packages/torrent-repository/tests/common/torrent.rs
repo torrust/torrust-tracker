@@ -5,13 +5,16 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 use torrust_tracker_torrent_repository::entry::{Entry as _, EntryAsync as _, EntrySync as _};
-use torrust_tracker_torrent_repository::{EntryMutexStd, EntryMutexTokio, EntryRwLockParkingLot, EntrySingle};
+use torrust_tracker_torrent_repository::{
+    EntryMutexParkingLot, EntryMutexStd, EntryMutexTokio, EntryRwLockParkingLot, EntrySingle,
+};
 
 #[derive(Debug, Clone)]
 pub(crate) enum Torrent {
     Single(EntrySingle),
     MutexStd(EntryMutexStd),
     MutexTokio(EntryMutexTokio),
+    MutexParkingLot(EntryMutexParkingLot),
     RwLockParkingLot(EntryRwLockParkingLot),
 }
 
@@ -21,6 +24,7 @@ impl Torrent {
             Torrent::Single(entry) => entry.get_swarm_metadata(),
             Torrent::MutexStd(entry) => entry.get_swarm_metadata(),
             Torrent::MutexTokio(entry) => entry.clone().get_swarm_metadata().await,
+            Torrent::MutexParkingLot(entry) => entry.clone().get_swarm_metadata(),
             Torrent::RwLockParkingLot(entry) => entry.clone().get_swarm_metadata(),
         }
     }
@@ -30,6 +34,7 @@ impl Torrent {
             Torrent::Single(entry) => entry.is_good(policy),
             Torrent::MutexStd(entry) => entry.is_good(policy),
             Torrent::MutexTokio(entry) => entry.clone().check_good(policy).await,
+            Torrent::MutexParkingLot(entry) => entry.is_good(policy),
             Torrent::RwLockParkingLot(entry) => entry.is_good(policy),
         }
     }
@@ -39,6 +44,7 @@ impl Torrent {
             Torrent::Single(entry) => entry.peers_is_empty(),
             Torrent::MutexStd(entry) => entry.peers_is_empty(),
             Torrent::MutexTokio(entry) => entry.clone().peers_is_empty().await,
+            Torrent::MutexParkingLot(entry) => entry.peers_is_empty(),
             Torrent::RwLockParkingLot(entry) => entry.peers_is_empty(),
         }
     }
@@ -48,6 +54,7 @@ impl Torrent {
             Torrent::Single(entry) => entry.get_peers_len(),
             Torrent::MutexStd(entry) => entry.get_peers_len(),
             Torrent::MutexTokio(entry) => entry.clone().get_peers_len().await,
+            Torrent::MutexParkingLot(entry) => entry.get_peers_len(),
             Torrent::RwLockParkingLot(entry) => entry.get_peers_len(),
         }
     }
@@ -57,6 +64,7 @@ impl Torrent {
             Torrent::Single(entry) => entry.get_peers(limit),
             Torrent::MutexStd(entry) => entry.get_peers(limit),
             Torrent::MutexTokio(entry) => entry.clone().get_peers(limit).await,
+            Torrent::MutexParkingLot(entry) => entry.get_peers(limit),
             Torrent::RwLockParkingLot(entry) => entry.get_peers(limit),
         }
     }
@@ -66,6 +74,7 @@ impl Torrent {
             Torrent::Single(entry) => entry.get_peers_for_client(client, limit),
             Torrent::MutexStd(entry) => entry.get_peers_for_client(client, limit),
             Torrent::MutexTokio(entry) => entry.clone().get_peers_for_client(client, limit).await,
+            Torrent::MutexParkingLot(entry) => entry.get_peers_for_client(client, limit),
             Torrent::RwLockParkingLot(entry) => entry.get_peers_for_client(client, limit),
         }
     }
@@ -75,6 +84,7 @@ impl Torrent {
             Torrent::Single(entry) => entry.upsert_peer(peer),
             Torrent::MutexStd(entry) => entry.upsert_peer(peer),
             Torrent::MutexTokio(entry) => entry.clone().upsert_peer(peer).await,
+            Torrent::MutexParkingLot(entry) => entry.upsert_peer(peer),
             Torrent::RwLockParkingLot(entry) => entry.upsert_peer(peer),
         }
     }
@@ -84,6 +94,7 @@ impl Torrent {
             Torrent::Single(entry) => entry.remove_inactive_peers(current_cutoff),
             Torrent::MutexStd(entry) => entry.remove_inactive_peers(current_cutoff),
             Torrent::MutexTokio(entry) => entry.clone().remove_inactive_peers(current_cutoff).await,
+            Torrent::MutexParkingLot(entry) => entry.remove_inactive_peers(current_cutoff),
             Torrent::RwLockParkingLot(entry) => entry.remove_inactive_peers(current_cutoff),
         }
     }

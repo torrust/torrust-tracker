@@ -7,8 +7,8 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent
 use torrust_tracker_torrent_repository::repository::{Repository as _, RepositoryAsync as _};
 use torrust_tracker_torrent_repository::{
     EntrySingle, TorrentsDashMapMutexStd, TorrentsRwLockStd, TorrentsRwLockStdMutexStd, TorrentsRwLockStdMutexTokio,
-    TorrentsRwLockTokio, TorrentsRwLockTokioMutexStd, TorrentsRwLockTokioMutexTokio, TorrentsSkipMapMutexStd,
-    TorrentsSkipMapRwLockParkingLot,
+    TorrentsRwLockTokio, TorrentsRwLockTokioMutexStd, TorrentsRwLockTokioMutexTokio, TorrentsSkipMapMutexParkingLot,
+    TorrentsSkipMapMutexStd, TorrentsSkipMapRwLockParkingLot,
 };
 
 #[derive(Debug)]
@@ -20,6 +20,7 @@ pub(crate) enum Repo {
     RwLockTokioMutexStd(TorrentsRwLockTokioMutexStd),
     RwLockTokioMutexTokio(TorrentsRwLockTokioMutexTokio),
     SkipMapMutexStd(TorrentsSkipMapMutexStd),
+    SkipMapMutexParkingLot(TorrentsSkipMapMutexParkingLot),
     SkipMapRwLockParkingLot(TorrentsSkipMapRwLockParkingLot),
     DashMapMutexStd(TorrentsDashMapMutexStd),
 }
@@ -34,6 +35,7 @@ impl Repo {
             Repo::RwLockTokioMutexStd(repo) => repo.upsert_peer(info_hash, peer).await,
             Repo::RwLockTokioMutexTokio(repo) => repo.upsert_peer(info_hash, peer).await,
             Repo::SkipMapMutexStd(repo) => repo.upsert_peer(info_hash, peer),
+            Repo::SkipMapMutexParkingLot(repo) => repo.upsert_peer(info_hash, peer),
             Repo::SkipMapRwLockParkingLot(repo) => repo.upsert_peer(info_hash, peer),
             Repo::DashMapMutexStd(repo) => repo.upsert_peer(info_hash, peer),
         }
@@ -48,6 +50,7 @@ impl Repo {
             Repo::RwLockTokioMutexStd(repo) => repo.get_swarm_metadata(info_hash).await,
             Repo::RwLockTokioMutexTokio(repo) => repo.get_swarm_metadata(info_hash).await,
             Repo::SkipMapMutexStd(repo) => repo.get_swarm_metadata(info_hash),
+            Repo::SkipMapMutexParkingLot(repo) => repo.get_swarm_metadata(info_hash),
             Repo::SkipMapRwLockParkingLot(repo) => repo.get_swarm_metadata(info_hash),
             Repo::DashMapMutexStd(repo) => repo.get_swarm_metadata(info_hash),
         }
@@ -62,6 +65,7 @@ impl Repo {
             Repo::RwLockTokioMutexStd(repo) => Some(repo.get(key).await?.lock().unwrap().clone()),
             Repo::RwLockTokioMutexTokio(repo) => Some(repo.get(key).await?.lock().await.clone()),
             Repo::SkipMapMutexStd(repo) => Some(repo.get(key)?.lock().unwrap().clone()),
+            Repo::SkipMapMutexParkingLot(repo) => Some(repo.get(key)?.lock().clone()),
             Repo::SkipMapRwLockParkingLot(repo) => Some(repo.get(key)?.read().clone()),
             Repo::DashMapMutexStd(repo) => Some(repo.get(key)?.lock().unwrap().clone()),
         }
@@ -76,6 +80,7 @@ impl Repo {
             Repo::RwLockTokioMutexStd(repo) => repo.get_metrics().await,
             Repo::RwLockTokioMutexTokio(repo) => repo.get_metrics().await,
             Repo::SkipMapMutexStd(repo) => repo.get_metrics(),
+            Repo::SkipMapMutexParkingLot(repo) => repo.get_metrics(),
             Repo::SkipMapRwLockParkingLot(repo) => repo.get_metrics(),
             Repo::DashMapMutexStd(repo) => repo.get_metrics(),
         }
@@ -117,6 +122,11 @@ impl Repo {
                 .iter()
                 .map(|(i, t)| (*i, t.lock().expect("it should get a lock").clone()))
                 .collect(),
+            Repo::SkipMapMutexParkingLot(repo) => repo
+                .get_paginated(pagination)
+                .iter()
+                .map(|(i, t)| (*i, t.lock().clone()))
+                .collect(),
             Repo::SkipMapRwLockParkingLot(repo) => repo
                 .get_paginated(pagination)
                 .iter()
@@ -139,6 +149,7 @@ impl Repo {
             Repo::RwLockTokioMutexStd(repo) => repo.import_persistent(persistent_torrents).await,
             Repo::RwLockTokioMutexTokio(repo) => repo.import_persistent(persistent_torrents).await,
             Repo::SkipMapMutexStd(repo) => repo.import_persistent(persistent_torrents),
+            Repo::SkipMapMutexParkingLot(repo) => repo.import_persistent(persistent_torrents),
             Repo::SkipMapRwLockParkingLot(repo) => repo.import_persistent(persistent_torrents),
             Repo::DashMapMutexStd(repo) => repo.import_persistent(persistent_torrents),
         }
@@ -153,6 +164,7 @@ impl Repo {
             Repo::RwLockTokioMutexStd(repo) => Some(repo.remove(key).await?.lock().unwrap().clone()),
             Repo::RwLockTokioMutexTokio(repo) => Some(repo.remove(key).await?.lock().await.clone()),
             Repo::SkipMapMutexStd(repo) => Some(repo.remove(key)?.lock().unwrap().clone()),
+            Repo::SkipMapMutexParkingLot(repo) => Some(repo.remove(key)?.lock().clone()),
             Repo::SkipMapRwLockParkingLot(repo) => Some(repo.remove(key)?.write().clone()),
             Repo::DashMapMutexStd(repo) => Some(repo.remove(key)?.lock().unwrap().clone()),
         }
@@ -167,6 +179,7 @@ impl Repo {
             Repo::RwLockTokioMutexStd(repo) => repo.remove_inactive_peers(current_cutoff).await,
             Repo::RwLockTokioMutexTokio(repo) => repo.remove_inactive_peers(current_cutoff).await,
             Repo::SkipMapMutexStd(repo) => repo.remove_inactive_peers(current_cutoff),
+            Repo::SkipMapMutexParkingLot(repo) => repo.remove_inactive_peers(current_cutoff),
             Repo::SkipMapRwLockParkingLot(repo) => repo.remove_inactive_peers(current_cutoff),
             Repo::DashMapMutexStd(repo) => repo.remove_inactive_peers(current_cutoff),
         }
@@ -181,6 +194,7 @@ impl Repo {
             Repo::RwLockTokioMutexStd(repo) => repo.remove_peerless_torrents(policy).await,
             Repo::RwLockTokioMutexTokio(repo) => repo.remove_peerless_torrents(policy).await,
             Repo::SkipMapMutexStd(repo) => repo.remove_peerless_torrents(policy),
+            Repo::SkipMapMutexParkingLot(repo) => repo.remove_peerless_torrents(policy),
             Repo::SkipMapRwLockParkingLot(repo) => repo.remove_peerless_torrents(policy),
             Repo::DashMapMutexStd(repo) => repo.remove_peerless_torrents(policy),
         }
@@ -207,6 +221,9 @@ impl Repo {
                 repo.write().await.insert(*info_hash, torrent.into());
             }
             Repo::SkipMapMutexStd(repo) => {
+                repo.torrents.insert(*info_hash, torrent.into());
+            }
+            Repo::SkipMapMutexParkingLot(repo) => {
                 repo.torrents.insert(*info_hash, torrent.into());
             }
             Repo::SkipMapRwLockParkingLot(repo) => {
