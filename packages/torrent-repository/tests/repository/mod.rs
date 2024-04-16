@@ -49,8 +49,13 @@ fn tokio_tokio() -> Repo {
 }
 
 #[fixture]
-fn skip_list_std() -> Repo {
+fn skip_list_mutex_std() -> Repo {
     Repo::SkipMapMutexStd(CrossbeamSkipList::default())
+}
+
+#[fixture]
+fn skip_list_rw_lock_parking_lot() -> Repo {
+    Repo::SkipMapRwLockParkingLot(CrossbeamSkipList::default())
 }
 
 #[fixture]
@@ -246,7 +251,8 @@ async fn it_should_get_a_torrent_entry(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std(),
+        skip_list_mutex_std(),
+        skip_list_rw_lock_parking_lot(),
         dash_map_std()
     )]
     repo: Repo,
@@ -279,7 +285,8 @@ async fn it_should_get_paginated_entries_in_a_stable_or_sorted_order(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std()
+        skip_list_mutex_std(),
+        skip_list_rw_lock_parking_lot()
     )]
     repo: Repo,
     #[case] entries: Entries,
@@ -321,7 +328,8 @@ async fn it_should_get_paginated(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std()
+        skip_list_mutex_std(),
+        skip_list_rw_lock_parking_lot()
     )]
     repo: Repo,
     #[case] entries: Entries,
@@ -378,7 +386,8 @@ async fn it_should_get_metrics(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std(),
+        skip_list_mutex_std(),
+        skip_list_rw_lock_parking_lot(),
         dash_map_std()
     )]
     repo: Repo,
@@ -420,7 +429,8 @@ async fn it_should_import_persistent_torrents(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std(),
+        skip_list_mutex_std(),
+        skip_list_rw_lock_parking_lot(),
         dash_map_std()
     )]
     repo: Repo,
@@ -459,7 +469,8 @@ async fn it_should_remove_an_entry(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std(),
+        skip_list_mutex_std(),
+        skip_list_rw_lock_parking_lot(),
         dash_map_std()
     )]
     repo: Repo,
@@ -496,7 +507,8 @@ async fn it_should_remove_inactive_peers(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std(),
+        skip_list_mutex_std(),
+        skip_list_rw_lock_parking_lot(),
         dash_map_std()
     )]
     repo: Repo,
@@ -594,7 +606,8 @@ async fn it_should_remove_peerless_torrents(
         tokio_std(),
         tokio_mutex(),
         tokio_tokio(),
-        skip_list_std(),
+        skip_list_mutex_std(),
+        skip_list_rw_lock_parking_lot(),
         dash_map_std()
     )]
     repo: Repo,

@@ -5,7 +5,7 @@ mod helpers;
 use criterion::{criterion_group, criterion_main, Criterion};
 use torrust_tracker_torrent_repository::{
     TorrentsDashMapMutexStd, TorrentsRwLockStd, TorrentsRwLockStdMutexStd, TorrentsRwLockStdMutexTokio, TorrentsRwLockTokio,
-    TorrentsRwLockTokioMutexStd, TorrentsRwLockTokioMutexTokio, TorrentsSkipMapMutexStd,
+    TorrentsRwLockTokioMutexStd, TorrentsRwLockTokioMutexTokio, TorrentsSkipMapMutexStd, TorrentsSkipMapRwLockParkingLot,
 };
 
 use crate::helpers::{asyn, sync};
@@ -47,6 +47,10 @@ fn add_one_torrent(c: &mut Criterion) {
 
     group.bench_function("SkipMapMutexStd", |b| {
         b.iter_custom(sync::add_one_torrent::<TorrentsSkipMapMutexStd, _>);
+    });
+
+    group.bench_function("SkipMapRwLockParkingLot", |b| {
+        b.iter_custom(sync::add_one_torrent::<TorrentsSkipMapRwLockParkingLot, _>);
     });
 
     group.bench_function("DashMapMutexStd", |b| {
@@ -100,6 +104,11 @@ fn add_multiple_torrents_in_parallel(c: &mut Criterion) {
     group.bench_function("SkipMapMutexStd", |b| {
         b.to_async(&rt)
             .iter_custom(|iters| sync::add_multiple_torrents_in_parallel::<TorrentsSkipMapMutexStd, _>(&rt, iters, None));
+    });
+
+    group.bench_function("SkipMapRwLockParkingLot", |b| {
+        b.to_async(&rt)
+            .iter_custom(|iters| sync::add_multiple_torrents_in_parallel::<TorrentsSkipMapRwLockParkingLot, _>(&rt, iters, None));
     });
 
     group.bench_function("DashMapMutexStd", |b| {
@@ -156,6 +165,11 @@ fn update_one_torrent_in_parallel(c: &mut Criterion) {
             .iter_custom(|iters| sync::update_one_torrent_in_parallel::<TorrentsSkipMapMutexStd, _>(&rt, iters, None));
     });
 
+    group.bench_function("SkipMapRwLockParkingLot", |b| {
+        b.to_async(&rt)
+            .iter_custom(|iters| sync::update_one_torrent_in_parallel::<TorrentsSkipMapRwLockParkingLot, _>(&rt, iters, None));
+    });
+
     group.bench_function("DashMapMutexStd", |b| {
         b.to_async(&rt)
             .iter_custom(|iters| sync::update_one_torrent_in_parallel::<TorrentsDashMapMutexStd, _>(&rt, iters, None));
@@ -209,6 +223,12 @@ fn update_multiple_torrents_in_parallel(c: &mut Criterion) {
     group.bench_function("SkipMapMutexStd", |b| {
         b.to_async(&rt)
             .iter_custom(|iters| sync::update_multiple_torrents_in_parallel::<TorrentsSkipMapMutexStd, _>(&rt, iters, None));
+    });
+
+    group.bench_function("SkipMapRwLockParkingLot", |b| {
+        b.to_async(&rt).iter_custom(|iters| {
+            sync::update_multiple_torrents_in_parallel::<TorrentsSkipMapRwLockParkingLot, _>(&rt, iters, None)
+        });
     });
 
     group.bench_function("DashMapMutexStd", |b| {
