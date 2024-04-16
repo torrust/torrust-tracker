@@ -9,7 +9,9 @@ use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{peer, NumberOfBytes};
-use torrust_tracker_torrent_repository::{EntryMutexStd, EntryMutexTokio, EntryRwLockParkingLot, EntrySingle};
+use torrust_tracker_torrent_repository::{
+    EntryMutexParkingLot, EntryMutexStd, EntryMutexTokio, EntryRwLockParkingLot, EntrySingle,
+};
 
 use crate::common::torrent::Torrent;
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
@@ -27,6 +29,11 @@ fn mutex_std() -> Torrent {
 #[fixture]
 fn mutex_tokio() -> Torrent {
     Torrent::MutexTokio(EntryMutexTokio::default())
+}
+
+#[fixture]
+fn mutex_parking_lot() -> Torrent {
+    Torrent::MutexParkingLot(EntryMutexParkingLot::default())
 }
 
 #[fixture]
@@ -104,7 +111,7 @@ async fn make(torrent: &mut Torrent, makes: &Makes) -> Vec<Peer> {
 #[case::empty(&Makes::Empty)]
 #[tokio::test]
 async fn it_should_be_empty_by_default(
-    #[values(single(), mutex_std(), mutex_tokio(), rw_lock_parking_lot())] mut torrent: Torrent,
+    #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
 ) {
     make(&mut torrent, makes).await;
@@ -120,7 +127,7 @@ async fn it_should_be_empty_by_default(
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_check_if_entry_is_good(
-    #[values(single(), mutex_std(), mutex_tokio(), rw_lock_parking_lot())] mut torrent: Torrent,
+    #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
     #[values(policy_none(), policy_persist(), policy_remove(), policy_remove_persist())] policy: TrackerPolicy,
 ) {
@@ -158,7 +165,7 @@ async fn it_should_check_if_entry_is_good(
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_get_peers_for_torrent_entry(
-    #[values(single(), mutex_std(), mutex_tokio(), rw_lock_parking_lot())] mut torrent: Torrent,
+    #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
 ) {
     let peers = make(&mut torrent, makes).await;
@@ -217,7 +224,7 @@ async fn it_should_update_a_peer(#[values(single(), mutex_std(), mutex_tokio())]
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_remove_a_peer_upon_stopped_announcement(
-    #[values(single(), mutex_std(), mutex_tokio(), rw_lock_parking_lot())] mut torrent: Torrent,
+    #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
 ) {
     use torrust_tracker_primitives::peer::ReadInfo as _;
@@ -258,7 +265,7 @@ async fn it_should_remove_a_peer_upon_stopped_announcement(
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_handle_a_peer_completed_announcement_and_update_the_downloaded_statistic(
-    #[values(single(), mutex_std(), mutex_tokio(), rw_lock_parking_lot())] mut torrent: Torrent,
+    #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
 ) {
     make(&mut torrent, makes).await;
@@ -289,7 +296,7 @@ async fn it_should_handle_a_peer_completed_announcement_and_update_the_downloade
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_update_a_peer_as_a_seeder(
-    #[values(single(), mutex_std(), mutex_tokio(), rw_lock_parking_lot())] mut torrent: Torrent,
+    #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
 ) {
     let peers = make(&mut torrent, makes).await;
@@ -321,7 +328,7 @@ async fn it_should_update_a_peer_as_a_seeder(
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_update_a_peer_as_incomplete(
-    #[values(single(), mutex_std(), mutex_tokio(), rw_lock_parking_lot())] mut torrent: Torrent,
+    #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
 ) {
     let peers = make(&mut torrent, makes).await;
@@ -353,7 +360,7 @@ async fn it_should_update_a_peer_as_incomplete(
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_get_peers_excluding_the_client_socket(
-    #[values(single(), mutex_std(), mutex_tokio(), rw_lock_parking_lot())] mut torrent: Torrent,
+    #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
 ) {
     make(&mut torrent, makes).await;
@@ -385,7 +392,7 @@ async fn it_should_get_peers_excluding_the_client_socket(
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_limit_the_number_of_peers_returned(
-    #[values(single(), mutex_std(), mutex_tokio(), rw_lock_parking_lot())] mut torrent: Torrent,
+    #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
 ) {
     make(&mut torrent, makes).await;
@@ -410,7 +417,7 @@ async fn it_should_limit_the_number_of_peers_returned(
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_remove_inactive_peers_beyond_cutoff(
-    #[values(single(), mutex_std(), mutex_tokio(), rw_lock_parking_lot())] mut torrent: Torrent,
+    #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
 ) {
     const TIMEOUT: Duration = Duration::from_secs(120);
