@@ -79,7 +79,7 @@ url = "2"
 uuid = { version = "1", features = ["v4"] }
 
 [package.metadata.cargo-machete]
-ignored = ["serde_bytes", "crossbeam-skiplist", "dashmap"]
+ignored = ["serde_bytes", "crossbeam-skiplist", "dashmap", "parking_lot"]
 
 [dev-dependencies]
 local-ip-address = "0"
