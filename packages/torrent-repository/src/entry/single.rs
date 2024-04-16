@@ -43,11 +43,11 @@ impl Entry for EntrySingle {
     }
 
     fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        self.swarm.get_peers(limit)
+        self.swarm.get_all(limit)
     }
 
     fn get_peers_for_client(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        self.swarm.get_peers_for_client(client, limit)
+        self.swarm.get_peers_excluding_addr(client, limit)
     }
 
     fn upsert_peer(&mut self, peer: &peer::Peer) -> bool {
@@ -58,7 +58,7 @@ impl Entry for EntrySingle {
                 drop(self.swarm.remove(&peer::ReadInfo::get_id(peer)));
             }
             AnnounceEvent::Completed => {
-                let previous = self.swarm.insert(peer::ReadInfo::get_id(peer), Arc::new(*peer));
+                let previous = self.swarm.upsert(Arc::new(*peer));
                 // Don't count if peer was not previously known and not already completed.
                 if previous.is_some_and(|p| p.event != AnnounceEvent::Completed) {
                     self.downloaded += 1;
@@ -66,7 +66,7 @@ impl Entry for EntrySingle {
                 }
             }
             _ => {
-                drop(self.swarm.insert(peer::ReadInfo::get_id(peer), Arc::new(*peer)));
+                drop(self.swarm.upsert(Arc::new(*peer)));
             }
         }
 
@@ -74,7 +74,6 @@ impl Entry for EntrySingle {
     }
 
     fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {
-        self.swarm
-            .retain(|_, peer| peer::ReadInfo::get_updated(peer) > current_cutoff);
+        self.swarm.remove_inactive_peers(current_cutoff);
     }
 }
