@@ -9,9 +9,15 @@ use torrust_tracker_clock::clock;
 pub mod entry;
 pub mod repository;
 
+// Repo Entries
+
 pub type EntrySingle = entry::Torrent;
 pub type EntryMutexStd = Arc<std::sync::Mutex<entry::Torrent>>;
 pub type EntryMutexTokio = Arc<tokio::sync::Mutex<entry::Torrent>>;
+pub type EntryMutexParkingLot = Arc<parking_lot::Mutex<entry::Torrent>>;
+pub type EntryRwLockParkingLot = Arc<parking_lot::RwLock<entry::Torrent>>;
+
+// Repos
 
 pub type TorrentsRwLockStd = RwLockStd<EntrySingle>;
 pub type TorrentsRwLockStdMutexStd = RwLockStd<EntryMutexStd>;
@@ -21,6 +27,9 @@ pub type TorrentsRwLockTokioMutexStd = RwLockTokio<EntryMutexStd>;
 pub type TorrentsRwLockTokioMutexTokio = RwLockTokio<EntryMutexTokio>;
 
 pub type TorrentsSkipMapMutexStd = CrossbeamSkipList<EntryMutexStd>;
+pub type TorrentsSkipMapMutexParkingLot = CrossbeamSkipList<EntryMutexParkingLot>;
+pub type TorrentsSkipMapRwLockParkingLot = CrossbeamSkipList<EntryRwLockParkingLot>;
+
 pub type TorrentsDashMapMutexStd = XacrimonDashMap<EntryMutexStd>;
 
 /// This code needs to be copied into each crate.

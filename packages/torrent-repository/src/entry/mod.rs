@@ -8,9 +8,11 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
 use self::peer_list::PeerList;
 
+pub mod mutex_parking_lot;
 pub mod mutex_std;
 pub mod mutex_tokio;
 pub mod peer_list;
+pub mod rw_lock_parking_lot;
 pub mod single;
 
 pub trait Entry {
