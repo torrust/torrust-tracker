@@ -13,13 +13,12 @@ use crate::EntrySingle;
 impl Entry for EntrySingle {
     #[allow(clippy::cast_possible_truncation)]
     fn get_swarm_metadata(&self) -> SwarmMetadata {
-        let complete: u32 = self.peers.values().filter(|peer| peer.is_seeder()).count() as u32;
-        let incomplete: u32 = self.peers.len() as u32 - complete;
+        let (seeders, leechers) = self.swarm.seeders_and_leechers();
 
         SwarmMetadata {
             downloaded: self.downloaded,
-            complete,
-            incomplete,
+            complete: seeders as u32,
+            incomplete: leechers as u32,
         }
     }
 
@@ -28,7 +27,7 @@ impl Entry for EntrySingle {
             return true;
         }
 
-        if policy.remove_peerless_torrents && self.peers.is_empty() {
+        if policy.remove_peerless_torrents && self.swarm.is_empty() {
             return false;
         }
 
@@ -36,38 +35,19 @@ impl Entry for EntrySingle {
     }
 
     fn peers_is_empty(&self) -> bool {
-        self.peers.is_empty()
+        self.swarm.is_empty()
     }
 
     fn get_peers_len(&self) -> usize {
-        self.peers.len()
+        self.swarm.len()
     }
+
     fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        match limit {
-            Some(limit) => self.peers.values().take(limit).cloned().collect(),
-            None => self.peers.values().cloned().collect(),
-        }
+        self.swarm.get_all(limit)
     }
 
     fn get_peers_for_client(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        match limit {
-            Some(limit) => self
-                .peers
-                .values()
-                // Take peers which are not the client peer
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *client)
-                // Limit the number of peers on the result
-                .take(limit)
-                .cloned()
-                .collect(),
-            None => self
-                .peers
-                .values()
-                // Take peers which are not the client peer
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *client)
-                .cloned()
-                .collect(),
-        }
+        self.swarm.get_peers_excluding_addr(client, limit)
     }
 
     fn upsert_peer(&mut self, peer: &peer::Peer) -> bool {
@@ -75,10 +55,10 @@ impl Entry for EntrySingle {
 
         match peer::ReadInfo::get_event(peer) {
             AnnounceEvent::Stopped => {
-                drop(self.peers.remove(&peer::ReadInfo::get_id(peer)));
+                drop(self.swarm.remove(&peer::ReadInfo::get_id(peer)));
             }
             AnnounceEvent::Completed => {
-                let previous = self.peers.insert(peer::ReadInfo::get_id(peer), Arc::new(*peer));
+                let previous = self.swarm.upsert(Arc::new(*peer));
                 // Don't count if peer was not previously known and not already completed.
                 if previous.is_some_and(|p| p.event != AnnounceEvent::Completed) {
                     self.downloaded += 1;
@@ -86,7 +66,7 @@ impl Entry for EntrySingle {
                 }
             }
             _ => {
-                drop(self.peers.insert(peer::ReadInfo::get_id(peer), Arc::new(*peer)));
+                drop(self.swarm.upsert(Arc::new(*peer)));
             }
         }
 
@@ -94,7 +74,6 @@ impl Entry for EntrySingle {
     }
 
     fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {
-        self.peers
-            .retain(|_, peer| peer::ReadInfo::get_updated(peer) > current_cutoff);
+        self.swarm.remove_inactive_peers(current_cutoff);
     }
 }

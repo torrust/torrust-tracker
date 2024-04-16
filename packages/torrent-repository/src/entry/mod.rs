@@ -2,13 +2,15 @@ use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-//use serde::{Deserialize, Serialize};
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
+use self::peer_list::PeerList;
+
 pub mod mutex_std;
 pub mod mutex_tokio;
+pub mod peer_list;
 pub mod single;
 
 pub trait Entry {
@@ -81,9 +83,8 @@ pub trait EntryAsync {
 /// The tracker keeps one entry like this for every torrent.
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Torrent {
-    /// The swarm: a network of peers that are all trying to download the torrent associated to this entry
-    // #[serde(skip)]
-    pub(crate) peers: std::collections::BTreeMap<peer::Id, Arc<peer::Peer>>,
+    /// A network of peers that are all trying to download the torrent associated to this entry
+    pub(crate) swarm: PeerList,
     /// The number of peers that have ever completed downloading the torrent associated to this entry
     pub(crate) downloaded: u32,
 }

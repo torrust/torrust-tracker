@@ -364,6 +364,38 @@ pub mod fixture {
     impl PeerBuilder {
         #[allow(dead_code)]
         #[must_use]
+        pub fn seeder() -> Self {
+            let peer = Peer {
+                peer_id: Id(*b"-qB00000000000000001"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
+                updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+                uploaded: NumberOfBytes(0),
+                downloaded: NumberOfBytes(0),
+                left: NumberOfBytes(0),
+                event: AnnounceEvent::Completed,
+            };
+
+            Self { peer }
+        }
+
+        #[allow(dead_code)]
+        #[must_use]
+        pub fn leecher() -> Self {
+            let peer = Peer {
+                peer_id: Id(*b"-qB00000000000000002"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080),
+                updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+                uploaded: NumberOfBytes(0),
+                downloaded: NumberOfBytes(0),
+                left: NumberOfBytes(10),
+                event: AnnounceEvent::Started,
+            };
+
+            Self { peer }
+        }
+
+        #[allow(dead_code)]
+        #[must_use]
         pub fn with_peer_id(mut self, peer_id: &Id) -> Self {
             self.peer.peer_id = *peer_id;
             self
@@ -387,6 +419,13 @@ pub mod fixture {
         #[must_use]
         pub fn with_no_bytes_pending_to_download(mut self) -> Self {
             self.peer.left = NumberOfBytes(0);
+            self
+        }
+
+        #[allow(dead_code)]
+        #[must_use]
+        pub fn last_updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
+            self.peer.updated = updated;
             self
         }
 

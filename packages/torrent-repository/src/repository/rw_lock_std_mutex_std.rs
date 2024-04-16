@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use torrust_tracker_configuration::TrackerPolicy;
@@ -9,6 +8,7 @@ use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
 
 use super::Repository;
+use crate::entry::peer_list::PeerList;
 use crate::entry::{Entry, EntrySync};
 use crate::{EntryMutexStd, EntrySingle, TorrentsRwLockStdMutexStd};
 
@@ -97,7 +97,7 @@ where
 
             let entry = EntryMutexStd::new(
                 EntrySingle {
-                    peers: BTreeMap::default(),
+                    swarm: PeerList::default(),
                     downloaded: *completed,
                 }
                 .into(),
