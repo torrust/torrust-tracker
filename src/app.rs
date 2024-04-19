@@ -60,7 +60,7 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
 
     // Start the UDP blocks
     for plain_udp_tracker_config in &config.udp_trackers {
-        match torrust_tracker_configuration::udp_tracker::Config::try_from(plain_udp_tracker_config.clone()) {
+        match torrust_tracker_configuration::sections::udp_tracker::Config::try_from(plain_udp_tracker_config.clone()) {
             Ok(udp_tracker_config) => {
                 if !udp_tracker_config.is_enabled() {
                     continue;
@@ -82,7 +82,7 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
 
     // Start the HTTP blocks
     for plain_http_tracker_config in &config.http_trackers {
-        match torrust_tracker_configuration::http_tracker::Config::try_from(plain_http_tracker_config.clone()) {
+        match torrust_tracker_configuration::sections::http_tracker::Config::try_from(plain_http_tracker_config.clone()) {
             Ok(http_tracker_config) => {
                 if !http_tracker_config.is_enabled() {
                     continue;
@@ -104,7 +104,7 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     }
 
     // Start HTTP API
-    match torrust_tracker_configuration::tracker_api::Config::try_from(config.http_api.clone()) {
+    match torrust_tracker_configuration::sections::tracker_api::Config::try_from(config.http_api.clone()) {
         Ok(tracker_api_config) => {
             if tracker_api_config.is_enabled() {
                 if let Some(job) = tracker_apis::start_job(
@@ -128,7 +128,7 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     }
 
     // Start Health Check API
-    match torrust_tracker_configuration::health_check_api::Config::try_from(config.health_check_api.clone()) {
+    match torrust_tracker_configuration::sections::health_check_api::Config::try_from(config.health_check_api.clone()) {
         Ok(health_check_api_config) => {
             jobs.push(health_check_api::start_job(&health_check_api_config.into(), registar.entries()).await);
         }

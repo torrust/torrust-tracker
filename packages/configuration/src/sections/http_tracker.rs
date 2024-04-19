@@ -1,6 +1,6 @@
-//! Validated configuration for the Tracker API service.
+//! Validated configuration for the HTTP Tracker service.
 //!
-//! [``crate::HttpApi``] is a DTO containing the parsed data from the toml
+//! [``crate::HttpTracker``] is a DTO containing the parsed data from the toml
 //! file.
 //!
 //! This configuration is a first level of validation that can be perform
@@ -14,7 +14,7 @@ use std::net::SocketAddr;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{AccessTokens, HttpApi};
+use crate::HttpTracker;
 
 /// Errors that can occur when validating the plain configuration.
 #[derive(Error, Debug, PartialEq)]
@@ -38,7 +38,6 @@ pub struct Config {
     ssl_enabled: bool,
     ssl_cert_path: Option<String>, // todo: use Path
     ssl_key_path: Option<String>,  // todo: use Path
-    access_tokens: AccessTokens,
 }
 
 impl Config {
@@ -48,10 +47,10 @@ impl Config {
     }
 }
 
-impl TryFrom<HttpApi> for Config {
+impl TryFrom<HttpTracker> for Config {
     type Error = ValidationError;
 
-    fn try_from(config: HttpApi) -> Result<Self, Self::Error> {
+    fn try_from(config: HttpTracker) -> Result<Self, Self::Error> {
         let socket_addr = match config.bind_address.parse::<SocketAddr>() {
             Ok(socket_addr) => socket_addr,
             Err(_err) => {
@@ -91,12 +90,11 @@ impl TryFrom<HttpApi> for Config {
             ssl_enabled: config.ssl_enabled,
             ssl_cert_path: config.ssl_cert_path,
             ssl_key_path: config.ssl_key_path,
-            access_tokens: config.access_tokens,
         })
     }
 }
 
-impl From<Config> for HttpApi {
+impl From<Config> for HttpTracker {
     fn from(config: Config) -> Self {
         Self {
             enabled: config.enabled,
@@ -104,27 +102,22 @@ impl From<Config> for HttpApi {
             ssl_enabled: config.ssl_enabled,
             ssl_cert_path: config.ssl_cert_path,
             ssl_key_path: config.ssl_key_path,
-            access_tokens: config.access_tokens,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-
-    use std::collections::HashMap;
-
     use super::*;
 
     #[test]
     fn it_should_return_an_error_when_the_bind_address_is_not_a_valid_socket_address() {
-        let plain_config = HttpApi {
+        let plain_config = HttpTracker {
             enabled: true,
             bind_address: "300.300.300.300:7070".to_string(),
             ssl_enabled: true,
             ssl_cert_path: None,
             ssl_key_path: Some("./localhost.key".to_string()),
-            access_tokens: HashMap::new(),
         };
 
         assert_eq!(
@@ -136,20 +129,17 @@ mod tests {
     }
 
     mod when_ssl_is_enabled {
-        use std::collections::HashMap;
-
-        use crate::tracker_api::{Config, ValidationError};
-        use crate::HttpApi;
+        use crate::sections::http_tracker::{Config, ValidationError};
+        use crate::HttpTracker;
 
         #[test]
         fn it_should_return_an_error_when_ssl_is_enabled_but_the_cert_path_is_not_provided() {
-            let plain_config = HttpApi {
+            let plain_config = HttpTracker {
                 enabled: true,
-                bind_address: "127.0.0.1:1212".to_string(),
+                bind_address: "127.0.0.1:7070".to_string(),
                 ssl_enabled: true,
                 ssl_cert_path: None,
                 ssl_key_path: Some("./localhost.key".to_string()),
-                access_tokens: HashMap::new(),
             };
 
             assert_eq!(Config::try_from(plain_config), Err(ValidationError::MissingSslCertPath));
@@ -157,13 +147,12 @@ mod tests {
 
         #[test]
         fn it_should_return_an_error_when_ssl_is_enabled_but_the_cert_path_is_empty() {
-            let plain_config = HttpApi {
+            let plain_config = HttpTracker {
                 enabled: true,
-                bind_address: "127.0.0.1:1212".to_string(),
+                bind_address: "127.0.0.1:7070".to_string(),
                 ssl_enabled: true,
                 ssl_cert_path: Some(String::new()),
                 ssl_key_path: Some("./localhost.key".to_string()),
-                access_tokens: HashMap::new(),
             };
 
             assert_eq!(Config::try_from(plain_config), Err(ValidationError::MissingSslCertPath));
@@ -171,13 +160,12 @@ mod tests {
 
         #[test]
         fn it_should_return_an_error_when_ssl_is_enabled_but_the_key_path_is_not_provided() {
-            let plain_config = HttpApi {
+            let plain_config = HttpTracker {
                 enabled: true,
-                bind_address: "127.0.0.1:1212".to_string(),
+                bind_address: "127.0.0.1:7070".to_string(),
                 ssl_enabled: true,
                 ssl_cert_path: Some("./localhost.crt".to_string()),
                 ssl_key_path: None,
-                access_tokens: HashMap::new(),
             };
 
             assert_eq!(Config::try_from(plain_config), Err(ValidationError::MissingSslKeyPath));
@@ -185,13 +173,12 @@ mod tests {
 
         #[test]
         fn it_should_return_an_error_when_ssl_is_enabled_but_the_key_path_is_empty() {
-            let plain_config = HttpApi {
+            let plain_config = HttpTracker {
                 enabled: true,
-                bind_address: "127.0.0.1:1212".to_string(),
+                bind_address: "127.0.0.1:7070".to_string(),
                 ssl_enabled: true,
                 ssl_cert_path: Some("./localhost.crt".to_string()),
                 ssl_key_path: Some(String::new()),
-                access_tokens: HashMap::new(),
             };
 
             assert_eq!(Config::try_from(plain_config), Err(ValidationError::MissingSslKeyPath));
