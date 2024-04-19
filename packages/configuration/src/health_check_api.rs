@@ -1,6 +1,6 @@
-//! Validated configuration for the UDP Tracker service.
+//! Validated configuration for the Health Check Api service.
 //!
-//! [``crate::UdpTracker``] is a DTO containing the parsed data from the toml
+//! [``crate::HealthCheckApi``] is a DTO containing the parsed data from the toml
 //! file.
 //!
 //! This configuration is a first level of validation that can be perform
@@ -12,39 +12,33 @@ use std::net::SocketAddr;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::UdpTracker;
+use crate::HealthCheckApi;
 
 /// Errors that can occur when validating the plain configuration.
 #[derive(Error, Debug, PartialEq)]
 pub enum ValidationError {
     /// Invalid bind address.
-    #[error("invalid bind address, got: {bind_address}")]
+    #[error("Invalid bind address, got: {bind_address}")]
     InvalidBindAddress { bind_address: String },
 }
 
 /// Configuration for each HTTP tracker.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Config {
-    enabled: bool,
     bind_address: String, // todo: use SocketAddr
 }
 
 impl Config {
-    #[must_use]
-    pub fn is_enabled(&self) -> bool {
-        self.enabled
-    }
-
     #[must_use]
     pub fn bind_address(&self) -> &str {
         &self.bind_address
     }
 }
 
-impl TryFrom<UdpTracker> for Config {
+impl TryFrom<HealthCheckApi> for Config {
     type Error = ValidationError;
 
-    fn try_from(config: UdpTracker) -> Result<Self, Self::Error> {
+    fn try_from(config: HealthCheckApi) -> Result<Self, Self::Error> {
         let socket_addr = match config.bind_address.parse::<SocketAddr>() {
             Ok(socket_addr) => socket_addr,
             Err(_err) => {
@@ -55,16 +49,14 @@ impl TryFrom<UdpTracker> for Config {
         };
 
         Ok(Self {
-            enabled: config.enabled,
             bind_address: socket_addr.to_string(),
         })
     }
 }
 
-impl From<Config> for UdpTracker {
+impl From<Config> for HealthCheckApi {
     fn from(config: Config) -> Self {
         Self {
-            enabled: config.enabled,
             bind_address: config.bind_address,
         }
     }
@@ -76,8 +68,7 @@ mod tests {
 
     #[test]
     fn it_should_return_an_error_when_the_bind_address_is_not_a_valid_socket_address() {
-        let plain_config = UdpTracker {
-            enabled: true,
+        let plain_config = HealthCheckApi {
             bind_address: "300.300.300.300:7070".to_string(),
         };
 

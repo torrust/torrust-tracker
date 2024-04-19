@@ -128,7 +128,12 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     }
 
     // Start Health Check API
-    jobs.push(health_check_api::start_job(&config.health_check_api, registar.entries()).await);
+    match torrust_tracker_configuration::health_check_api::Config::try_from(config.health_check_api.clone()) {
+        Ok(health_check_api_config) => {
+            jobs.push(health_check_api::start_job(&health_check_api_config.into(), registar.entries()).await);
+        }
+        Err(err) => panic!("Invalid Health Check API configuration: {err}"),
+    }
 
     jobs
 }
