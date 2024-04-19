@@ -14,15 +14,15 @@ use thiserror::Error;
 
 use crate::HttpTracker;
 
-/// Errors that can occur when validating the plan configuration.
+/// Errors that can occur when validating the plain configuration.
 #[derive(Error, Debug, PartialEq)]
 pub enum ValidationError {
     /// Missing SSL cert path.
-    #[error("missing SSL cert path, got: {ssl_cert_path}")]
-    MissingSslCertPath { ssl_cert_path: String },
+    #[error("missing SSL cert path")]
+    MissingSslCertPath,
     /// Missing SSL key path.
-    #[error("missing SSL key path, got: {ssl_key_path}")]
-    MissingSslKeyPath { ssl_key_path: String },
+    #[error("missing SSL key path")]
+    MissingSslKeyPath,
 }
 
 /// Configuration for each HTTP tracker.
@@ -50,31 +50,23 @@ impl TryFrom<HttpTracker> for Config {
             match config.ssl_cert_path.clone() {
                 Some(ssl_cert_path) => {
                     if ssl_cert_path.is_empty() {
-                        Err(ValidationError::MissingSslCertPath {
-                            ssl_cert_path: String::new(),
-                        })
+                        Err(ValidationError::MissingSslCertPath)
                     } else {
                         Ok(())
                     }
                 }
-                None => Err(ValidationError::MissingSslCertPath {
-                    ssl_cert_path: String::new(),
-                }),
+                None => Err(ValidationError::MissingSslCertPath),
             }?;
 
             match config.ssl_key_path.clone() {
                 Some(ssl_key_path) => {
                     if ssl_key_path.is_empty() {
-                        Err(ValidationError::MissingSslKeyPath {
-                            ssl_key_path: String::new(),
-                        })
+                        Err(ValidationError::MissingSslKeyPath)
                     } else {
                         Ok(())
                     }
                 }
-                None => Err(ValidationError::MissingSslKeyPath {
-                    ssl_key_path: String::new(),
-                }),
+                None => Err(ValidationError::MissingSslKeyPath),
             }?;
         }
 
@@ -117,12 +109,7 @@ mod tests {
                 ssl_key_path: Some("./localhost.key".to_string()),
             };
 
-            assert_eq!(
-                Config::try_from(plain_config),
-                Err(ValidationError::MissingSslCertPath {
-                    ssl_cert_path: String::new()
-                })
-            );
+            assert_eq!(Config::try_from(plain_config), Err(ValidationError::MissingSslCertPath));
         }
 
         #[test]
@@ -135,12 +122,7 @@ mod tests {
                 ssl_key_path: Some("./localhost.key".to_string()),
             };
 
-            assert_eq!(
-                Config::try_from(plain_config),
-                Err(ValidationError::MissingSslCertPath {
-                    ssl_cert_path: String::new()
-                })
-            );
+            assert_eq!(Config::try_from(plain_config), Err(ValidationError::MissingSslCertPath));
         }
 
         #[test]
@@ -153,12 +135,7 @@ mod tests {
                 ssl_key_path: None,
             };
 
-            assert_eq!(
-                Config::try_from(plain_config),
-                Err(ValidationError::MissingSslKeyPath {
-                    ssl_key_path: String::new()
-                })
-            );
+            assert_eq!(Config::try_from(plain_config), Err(ValidationError::MissingSslKeyPath));
         }
 
         #[test]
@@ -171,12 +148,7 @@ mod tests {
                 ssl_key_path: Some(String::new()),
             };
 
-            assert_eq!(
-                Config::try_from(plain_config),
-                Err(ValidationError::MissingSslKeyPath {
-                    ssl_key_path: String::new()
-                })
-            );
+            assert_eq!(Config::try_from(plain_config), Err(ValidationError::MissingSslKeyPath));
         }
     }
 }

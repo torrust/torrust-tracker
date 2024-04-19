@@ -98,17 +98,22 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     }
 
     // Start HTTP API
-    if config.http_api.enabled {
-        if let Some(job) = tracker_apis::start_job(
-            &config.http_api,
-            tracker.clone(),
-            registar.give_form(),
-            servers::apis::Version::V1,
-        )
-        .await
-        {
-            jobs.push(job);
-        };
+    match torrust_tracker_configuration::tracker_api::Config::try_from(config.http_api.clone()) {
+        Ok(tracker_api_config) => {
+            if tracker_api_config.is_enabled() {
+                if let Some(job) = tracker_apis::start_job(
+                    &tracker_api_config.into(),
+                    tracker.clone(),
+                    registar.give_form(),
+                    servers::apis::Version::V1,
+                )
+                .await
+                {
+                    jobs.push(job);
+                };
+            }
+        }
+        Err(err) => panic!("Invalid Tracker API configuration: {err}"),
     }
 
     // Start runners to remove torrents without peers, every interval

@@ -27,7 +27,7 @@ ssl_key_path = ""
 bind_address = "127.0.0.1:1212"
 enabled = true
 ssl_cert_path = ""
-ssl_enabled = false
+ssl_enabled = true
 ssl_key_path = ""
 
 [http_api.access_tokens]
