@@ -59,18 +59,24 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     }
 
     // Start the UDP blocks
-    for udp_tracker_config in &config.udp_trackers {
-        if !udp_tracker_config.enabled {
-            continue;
-        }
+    for plain_udp_tracker_config in &config.udp_trackers {
+        match torrust_tracker_configuration::udp_tracker::Config::try_from(plain_udp_tracker_config.clone()) {
+            Ok(udp_tracker_config) => {
+                if !udp_tracker_config.is_enabled() {
+                    continue;
+                }
 
-        if tracker.is_private() {
-            warn!(
-                "Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!",
-                udp_tracker_config.bind_address, config.mode
-            );
-        } else {
-            jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone(), registar.give_form()).await);
+                if tracker.is_private() {
+                    warn!(
+                        "Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!",
+                        udp_tracker_config.bind_address(),
+                        config.mode
+                    );
+                } else {
+                    jobs.push(udp_tracker::start_job(&udp_tracker_config.into(), tracker.clone(), registar.give_form()).await);
+                }
+            }
+            Err(err) => panic!("Invalid UDP Tracker configuration: {err}"),
         }
     }
 
