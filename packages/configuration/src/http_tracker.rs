@@ -9,6 +9,8 @@
 //! For example, if SSL is enabled you must provide the certificate path. That
 //! can be validated. However, this validation does not check if the
 //! certificate is valid.
+use std::net::SocketAddr;
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -17,6 +19,9 @@ use crate::HttpTracker;
 /// Errors that can occur when validating the plain configuration.
 #[derive(Error, Debug, PartialEq)]
 pub enum ValidationError {
+    /// Invalid bind address.
+    #[error("Invalid bind address, got: {bind_address}")]
+    InvalidBindAddress { bind_address: String },
     /// Missing SSL cert path.
     #[error("missing SSL cert path")]
     MissingSslCertPath,
@@ -46,6 +51,15 @@ impl TryFrom<HttpTracker> for Config {
     type Error = ValidationError;
 
     fn try_from(config: HttpTracker) -> Result<Self, Self::Error> {
+        let socket_addr = match config.bind_address.parse::<SocketAddr>() {
+            Ok(socket_addr) => socket_addr,
+            Err(_err) => {
+                return Err(ValidationError::InvalidBindAddress {
+                    bind_address: config.bind_address,
+                })
+            }
+        };
+
         if config.ssl_enabled {
             match config.ssl_cert_path.clone() {
                 Some(ssl_cert_path) => {
@@ -72,7 +86,7 @@ impl TryFrom<HttpTracker> for Config {
 
         Ok(Self {
             enabled: config.enabled,
-            bind_address: config.bind_address,
+            bind_address: socket_addr.to_string(),
             ssl_enabled: config.ssl_enabled,
             ssl_cert_path: config.ssl_cert_path,
             ssl_key_path: config.ssl_key_path,
@@ -94,6 +108,25 @@ impl From<Config> for HttpTracker {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn it_should_return_an_error_when_the_bind_address_is_not_a_valid_socket_address() {
+        let plain_config = HttpTracker {
+            enabled: true,
+            bind_address: "300.300.300.300:7070".to_string(),
+            ssl_enabled: true,
+            ssl_cert_path: None,
+            ssl_key_path: Some("./localhost.key".to_string()),
+        };
+
+        assert_eq!(
+            Config::try_from(plain_config),
+            Err(ValidationError::InvalidBindAddress {
+                bind_address: "300.300.300.300:7070".to_string()
+            })
+        );
+    }
 
     mod when_ssl_is_enabled {
         use crate::http_tracker::{Config, ValidationError};
