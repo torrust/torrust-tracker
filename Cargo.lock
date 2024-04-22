@@ -1356,7 +1356,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d032832d74006f99547004d49410a4b4218e4c33382d56ca3ff89df74f86b953"
 dependencies = [
  "atomic",
+ "parking_lot",
+ "pear",
  "serde",
+ "tempfile",
+ "toml",
  "uncased",
  "version_check",
 ]
@@ -1903,6 +1907,12 @@ dependencies = [
  "hashbrown 0.14.5",
  "serde",
 ]
+
+[[package]]
+name = "inlinable_string"
+version = "0.1.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c8fae54786f62fb2918dcfae3d568594e50eb9b5c25bf04371af6fe7516452fb"
 
 [[package]]
 name = "instant"
@@ -2584,6 +2594,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8835116a5c179084a830efb3adc117ab007512b535bc1a21c991d3b32a6b44dd"
 
 [[package]]
+name = "pear"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bdeeaa00ce488657faba8ebf44ab9361f9365a97bd39ffb8a60663f57ff4b467"
+dependencies = [
+ "inlinable_string",
+ "pear_codegen",
+ "yansi",
+]
+
+[[package]]
+name = "pear_codegen"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4bab5b985dc082b345f812b7df84e1bef27e7207b39e448439ba8bd69c93f147"
+dependencies = [
+ "proc-macro2",
+ "proc-macro2-diagnostics",
+ "quote",
+ "syn 2.0.60",
+]
+
+[[package]]
 name = "pem"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2878,6 +2911,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ad3d49ab951a01fbaafe34f2ec74122942fe18a3f9814c3268f1bb72042131b"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "proc-macro2-diagnostics"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af066a9c399a26e020ada66a034357a868728e72cd426f3adcd35f80d88d88c8"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.60",
+ "version_check",
+ "yansi",
 ]
 
 [[package]]
@@ -4065,6 +4111,7 @@ version = "3.0.0-alpha.12-develop"
 dependencies = [
  "config",
  "derive_more",
+ "figment",
  "serde",
  "serde_with",
  "thiserror",
@@ -4668,6 +4715,12 @@ checksum = "56c1936c4cc7a1c9ab21a1ebb602eb942ba868cbd44a99cb7cdc5892335e1c85"
 dependencies = [
  "linked-hash-map",
 ]
+
+[[package]]
+name = "yansi"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
 
 [[package]]
 name = "zerocopy"
