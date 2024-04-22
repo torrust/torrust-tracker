@@ -38,6 +38,11 @@ use crate::{core, servers};
 /// - Can't retrieve tracker keys from database.
 /// - Can't load whitelist from database.
 pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<JoinHandle<()>> {
+    let _core_config = match torrust_tracker_configuration::sections::core::Config::try_from(config.clone()) {
+        Ok(core_config) => core_config,
+        Err(err) => panic!("Invalid core configuration: {err}"),
+    };
+
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
     let registar = Registar::default();

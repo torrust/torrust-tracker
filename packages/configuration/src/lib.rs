@@ -426,7 +426,7 @@ impl Default for AnnouncePolicy {
 
 /// Core configuration for the tracker.
 #[allow(clippy::struct_excessive_bools)]
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Configuration {
     /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
     /// `Debug` and `Trace`. Default is `Info`.
