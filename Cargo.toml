@@ -39,7 +39,6 @@ axum-extra = { version = "0", features = ["query"] }
 axum-server = { version = "0", features = ["tls-rustls"] }
 chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
-colored = "2"
 config = "0"
 crossbeam-skiplist = "0.1"
 dashmap = "5.5.3"
