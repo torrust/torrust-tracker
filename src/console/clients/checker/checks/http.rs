@@ -1,47 +1,57 @@
 use std::str::FromStr;
 
-use colored::Colorize;
 use log::debug;
 use reqwest::Url as ServiceUrl;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use url::Url;
 
-use crate::console::clients::checker::console::Console;
-use crate::console::clients::checker::printer::Printer;
 use crate::console::clients::checker::service::{CheckError, CheckResult};
 use crate::shared::bit_torrent::tracker::http::client::requests::announce::QueryBuilder;
 use crate::shared::bit_torrent::tracker::http::client::responses::announce::Announce;
 use crate::shared::bit_torrent::tracker::http::client::responses::scrape;
 use crate::shared::bit_torrent::tracker::http::client::{requests, Client};
 
-pub async fn run(http_trackers: &Vec<ServiceUrl>, console: &Console, check_results: &mut Vec<CheckResult>) {
-    console.println("HTTP trackers ...");
+use super::structs::{CheckerOutput, Status};
+
+#[allow(clippy::missing_panics_doc)]
+pub async fn run(http_trackers: &Vec<ServiceUrl>, check_results: &mut Vec<CheckResult>) -> Vec<CheckerOutput> {
+    let mut http_checkers: Vec<CheckerOutput> = Vec::new();
 
     for http_tracker in http_trackers {
-        let colored_tracker_url = http_tracker.to_string().yellow();
+        let mut http_checker = CheckerOutput {
+            url: http_tracker.to_string(),
+            status: Status {
+                code: String::new(),
+                message: String::new(),
+            },
+        };
 
         match check_http_announce(http_tracker).await {
             Ok(()) => {
                 check_results.push(Ok(()));
-                console.println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
+                http_checker.status.code = "ok".to_string();
             }
             Err(err) => {
                 check_results.push(Err(err));
-                console.println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
+                http_checker.status.code = "error".to_string();
+                http_checker.status.message = "Announce is failing.".to_string();
             }
         }
 
         match check_http_scrape(http_tracker).await {
             Ok(()) => {
                 check_results.push(Ok(()));
-                console.println(&format!("{} - Scrape at {} is OK", "✓".green(), colored_tracker_url));
+                http_checker.status.code = "ok".to_string();
             }
             Err(err) => {
                 check_results.push(Err(err));
-                console.println(&format!("{} - Scrape at {} is failing", "✗".red(), colored_tracker_url));
+                http_checker.status.code = "error".to_string();
+                http_checker.status.message = "Scrape is failing.".to_string();
             }
         }
+        http_checkers.push(http_checker);
     }
+    http_checkers
 }
 
 async fn check_http_announce(tracker_url: &Url) -> Result<(), CheckError> {

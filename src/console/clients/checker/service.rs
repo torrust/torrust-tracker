@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use reqwest::Url;
 
-use super::checks;
+use super::checks::{self};
 use super::config::Configuration;
 use super::console::Console;
 use crate::console::clients::checker::printer::Printer;
@@ -26,16 +26,21 @@ impl Service {
     /// # Errors
     ///
     /// Will return OK is all checks pass or an array with the check errors.
+    #[allow(clippy::missing_panics_doc)]
     pub async fn run_checks(&self) -> Vec<CheckResult> {
         self.console.println("Running checks for trackers ...");
 
         let mut check_results = vec![];
 
-        checks::udp::run(&self.config.udp_trackers, &self.console, &mut check_results).await;
+        let udp_checkers = checks::udp::run(&self.config.udp_trackers, &mut check_results).await;
 
-        checks::http::run(&self.config.http_trackers, &self.console, &mut check_results).await;
+        let http_checkers = checks::http::run(&self.config.http_trackers, &mut check_results).await;
 
-        checks::health::run(&self.config.health_checks, &self.console, &mut check_results).await;
+        let health_checkers = checks::health::run(&self.config.health_checks, &mut check_results).await;
+
+        let json_output =
+            serde_json::json!({ "udp_trackers": udp_checkers, "http_trackers": http_checkers, "health_checks": health_checkers });
+        self.console.println(&serde_json::to_string_pretty(&json_output).unwrap());
 
         check_results
     }

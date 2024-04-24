@@ -1,26 +1,32 @@
 use std::net::SocketAddr;
 
 use aquatic_udp_protocol::{Port, TransactionId};
-use colored::Colorize;
 use hex_literal::hex;
 use log::debug;
 use torrust_tracker_primitives::info_hash::InfoHash;
 
-use crate::console::clients::checker::console::Console;
-use crate::console::clients::checker::printer::Printer;
 use crate::console::clients::checker::service::{CheckError, CheckResult};
 use crate::console::clients::udp::checker;
+
+use crate::console::clients::checker::checks::structs::{CheckerOutput, Status};
 
 const ASSIGNED_BY_OS: u16 = 0;
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
 
-pub async fn run(udp_trackers: &Vec<SocketAddr>, console: &Console, check_results: &mut Vec<CheckResult>) {
-    console.println("UDP trackers ...");
+#[allow(clippy::missing_panics_doc)]
+pub async fn run(udp_trackers: &Vec<SocketAddr>, check_results: &mut Vec<CheckResult>) -> Vec<CheckerOutput> {
+    let mut udp_checkers: Vec<CheckerOutput> = Vec::new();
 
     for udp_tracker in udp_trackers {
-        debug!("UDP tracker: {:?}", udp_tracker);
+        let mut checker_output = CheckerOutput {
+            url: udp_tracker.to_string(),
+            status: Status {
+                code: String::new(),
+                message: String::new(),
+            },
+        };
 
-        let colored_tracker_url = udp_tracker.to_string().yellow();
+        debug!("UDP tracker: {:?}", udp_tracker);
 
         let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
 
@@ -32,7 +38,8 @@ pub async fn run(udp_trackers: &Vec<SocketAddr>, console: &Console, check_result
             check_results.push(Err(CheckError::UdpError {
                 socket_addr: *udp_tracker,
             }));
-            console.println(&format!("{} - Can't connect to socket {}", "✗".red(), colored_tracker_url));
+            checker_output.status.code = "error".to_string();
+            checker_output.status.message = "Can't connect to socket.".to_string();
             break;
         };
 
@@ -42,11 +49,8 @@ pub async fn run(udp_trackers: &Vec<SocketAddr>, console: &Console, check_result
             check_results.push(Err(CheckError::UdpError {
                 socket_addr: *udp_tracker,
             }));
-            console.println(&format!(
-                "{} - Can't make tracker connection request to {}",
-                "✗".red(),
-                colored_tracker_url
-            ));
+            checker_output.status.code = "error".to_string();
+            checker_output.status.message = "Can't make tracker connection request.".to_string();
             break;
         };
 
@@ -60,13 +64,14 @@ pub async fn run(udp_trackers: &Vec<SocketAddr>, console: &Console, check_result
             .is_ok()
         {
             check_results.push(Ok(()));
-            console.println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
+            checker_output.status.code = "ok".to_string();
         } else {
             let err = CheckError::UdpError {
                 socket_addr: *udp_tracker,
             };
             check_results.push(Err(err));
-            console.println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
+            checker_output.status.code = "error".to_string();
+            checker_output.status.message = "Announce is failing.".to_string();
         }
 
         debug!("Send scrape request");
@@ -75,13 +80,16 @@ pub async fn run(udp_trackers: &Vec<SocketAddr>, console: &Console, check_result
 
         if (client.send_scrape_request(connection_id, transaction_id, info_hashes).await).is_ok() {
             check_results.push(Ok(()));
-            console.println(&format!("{} - Announce at {} is OK", "✓".green(), colored_tracker_url));
+            checker_output.status.code = "ok".to_string();
         } else {
             let err = CheckError::UdpError {
                 socket_addr: *udp_tracker,
             };
             check_results.push(Err(err));
-            console.println(&format!("{} - Announce at {} is failing", "✗".red(), colored_tracker_url));
+            checker_output.status.code = "error".to_string();
+            checker_output.status.message = "Scrape is failing.".to_string();
         }
+        udp_checkers.push(checker_output);
     }
+    udp_checkers
 }
