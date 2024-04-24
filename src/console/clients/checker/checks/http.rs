@@ -5,13 +5,12 @@ use reqwest::Url as ServiceUrl;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use url::Url;
 
+use super::structs::{CheckerOutput, Status};
 use crate::console::clients::checker::service::{CheckError, CheckResult};
 use crate::shared::bit_torrent::tracker::http::client::requests::announce::QueryBuilder;
 use crate::shared::bit_torrent::tracker::http::client::responses::announce::Announce;
 use crate::shared::bit_torrent::tracker::http::client::responses::scrape;
 use crate::shared::bit_torrent::tracker::http::client::{requests, Client};
-
-use super::structs::{CheckerOutput, Status};
 
 #[allow(clippy::missing_panics_doc)]
 pub async fn run(http_trackers: &Vec<ServiceUrl>, check_results: &mut Vec<CheckResult>) -> Vec<CheckerOutput> {

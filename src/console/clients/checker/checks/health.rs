@@ -2,9 +2,8 @@ use std::time::Duration;
 
 use reqwest::{Client as HttpClient, Url, Url as ServiceUrl};
 
-use crate::console::clients::checker::service::{CheckError, CheckResult};
-
 use super::structs::{CheckerOutput, Status};
+use crate::console::clients::checker::service::{CheckError, CheckResult};
 
 #[allow(clippy::missing_panics_doc)]
 pub async fn run(health_checks: &Vec<ServiceUrl>, check_results: &mut Vec<CheckResult>) -> Vec<CheckerOutput> {

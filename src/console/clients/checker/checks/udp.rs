@@ -5,10 +5,9 @@ use hex_literal::hex;
 use log::debug;
 use torrust_tracker_primitives::info_hash::InfoHash;
 
+use crate::console::clients::checker::checks::structs::{CheckerOutput, Status};
 use crate::console::clients::checker::service::{CheckError, CheckResult};
 use crate::console::clients::udp::checker;
-
-use crate::console::clients::checker::checks::structs::{CheckerOutput, Status};
 
 const ASSIGNED_BY_OS: u16 = 0;
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;

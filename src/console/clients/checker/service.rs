@@ -28,8 +28,6 @@ impl Service {
     /// Will return OK is all checks pass or an array with the check errors.
     #[allow(clippy::missing_panics_doc)]
     pub async fn run_checks(&self) -> Vec<CheckResult> {
-        self.console.println("Running checks for trackers ...");
-
         let mut check_results = vec![];
 
         let udp_checkers = checks::udp::run(&self.config.udp_trackers, &mut check_results).await;
