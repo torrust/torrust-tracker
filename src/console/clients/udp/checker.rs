@@ -64,7 +64,7 @@ impl Client {
         let binding_address = local_bind_to.parse().context("binding local address")?;
 
         debug!("Binding to: {local_bind_to}");
-        let udp_client = UdpClient::bind(&local_bind_to).await;
+        let udp_client = UdpClient::bind(&local_bind_to).await?;
 
         let bound_to = udp_client.socket.local_addr().context("bound local address")?;
         debug!("Bound to: {bound_to}");
@@ -88,7 +88,7 @@ impl Client {
 
         match &self.udp_tracker_client {
             Some(client) => {
-                client.udp_client.connect(&tracker_socket_addr.to_string()).await;
+                client.udp_client.connect(&tracker_socket_addr.to_string()).await?;
                 self.remote_socket = Some(*tracker_socket_addr);
                 Ok(())
             }
@@ -116,9 +116,9 @@ impl Client {
 
         match &self.udp_tracker_client {
             Some(client) => {
-                client.send(connect_request.into()).await;
+                client.send(connect_request.into()).await?;
 
-                let response = client.receive().await;
+                let response = client.receive().await?;
 
                 debug!("connection request response:\n{response:#?}");
 
@@ -163,9 +163,9 @@ impl Client {
 
         match &self.udp_tracker_client {
             Some(client) => {
-                client.send(announce_request.into()).await;
+                client.send(announce_request.into()).await?;
 
-                let response = client.receive().await;
+                let response = client.receive().await?;
 
                 debug!("announce request response:\n{response:#?}");
 
@@ -200,9 +200,9 @@ impl Client {
 
         match &self.udp_tracker_client {
             Some(client) => {
-                client.send(scrape_request.into()).await;
+                client.send(scrape_request.into()).await?;
 
-                let response = client.receive().await;
+                let response = client.receive().await?;
 
                 debug!("scrape request response:\n{response:#?}");
 

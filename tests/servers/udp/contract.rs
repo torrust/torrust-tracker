@@ -24,9 +24,15 @@ fn empty_buffer() -> [u8; MAX_PACKET_SIZE] {
 async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrackerClient) -> ConnectionId {
     let connect_request = ConnectRequest { transaction_id };
 
-    client.send(connect_request.into()).await;
+    match client.send(connect_request.into()).await {
+        Ok(_) => (),
+        Err(err) => panic!("{err}"),
+    };
 
-    let response = client.receive().await;
+    let response = match client.receive().await {
+        Ok(response) => response,
+        Err(err) => panic!("{err}"),
+    };
 
     match response {
         Response::Connect(connect_response) => connect_response.connection_id,
@@ -38,12 +44,22 @@ async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrac
 async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
     let env = Started::new(&configuration::ephemeral().into()).await;
 
-    let client = new_udp_client_connected(&env.bind_address().to_string()).await;
+    let client = match new_udp_client_connected(&env.bind_address().to_string()).await {
+        Ok(udp_client) => udp_client,
+        Err(err) => panic!("{err}"),
+    };
 
-    client.send(&empty_udp_request()).await;
+    match client.send(&empty_udp_request()).await {
+        Ok(_) => (),
+        Err(err) => panic!("{err}"),
+    };
 
     let mut buffer = empty_buffer();
-    client.receive(&mut buffer).await;
+    match client.receive(&mut buffer).await {
+        Ok(_) => (),
+        Err(err) => panic!("{err}"),
+    };
+
     let response = Response::from_bytes(&buffer, true).unwrap();
 
     assert!(is_error_response(&response, "bad request"));
@@ -63,15 +79,24 @@ mod receiving_a_connection_request {
     async fn should_return_a_connect_response() {
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = new_udp_tracker_client_connected(&env.bind_address().to_string()).await;
+        let client = match new_udp_tracker_client_connected(&env.bind_address().to_string()).await {
+            Ok(udp_tracker_client) => udp_tracker_client,
+            Err(err) => panic!("{err}"),
+        };
 
         let connect_request = ConnectRequest {
             transaction_id: TransactionId(123),
         };
 
-        client.send(connect_request.into()).await;
+        match client.send(connect_request.into()).await {
+            Ok(_) => (),
+            Err(err) => panic!("{err}"),
+        };
 
-        let response = client.receive().await;
+        let response = match client.receive().await {
+            Ok(response) => response,
+            Err(err) => panic!("{err}"),
+        };
 
         assert!(is_connect_response(&response, TransactionId(123)));
 
@@ -97,7 +122,10 @@ mod receiving_an_announce_request {
     async fn should_return_an_announce_response() {
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = new_udp_tracker_client_connected(&env.bind_address().to_string()).await;
+        let client = match new_udp_tracker_client_connected(&env.bind_address().to_string()).await {
+            Ok(udp_tracker_client) => udp_tracker_client,
+            Err(err) => panic!("{err}"),
+        };
 
         let connection_id = send_connection_request(TransactionId(123), &client).await;
 
@@ -118,9 +146,15 @@ mod receiving_an_announce_request {
             port: Port(client.udp_client.socket.local_addr().unwrap().port()),
         };
 
-        client.send(announce_request.into()).await;
+        match client.send(announce_request.into()).await {
+            Ok(_) => (),
+            Err(err) => panic!("{err}"),
+        };
 
-        let response = client.receive().await;
+        let response = match client.receive().await {
+            Ok(response) => response,
+            Err(err) => panic!("{err}"),
+        };
 
         println!("test response {response:?}");
 
@@ -143,7 +177,10 @@ mod receiving_an_scrape_request {
     async fn should_return_a_scrape_response() {
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = new_udp_tracker_client_connected(&env.bind_address().to_string()).await;
+        let client = match new_udp_tracker_client_connected(&env.bind_address().to_string()).await {
+            Ok(udp_tracker_client) => udp_tracker_client,
+            Err(err) => panic!("{err}"),
+        };
 
         let connection_id = send_connection_request(TransactionId(123), &client).await;
 
@@ -159,9 +196,15 @@ mod receiving_an_scrape_request {
             info_hashes,
         };
 
-        client.send(scrape_request.into()).await;
+        match client.send(scrape_request.into()).await {
+            Ok(_) => (),
+            Err(err) => panic!("{err}"),
+        };
 
-        let response = client.receive().await;
+        let response = match client.receive().await {
+            Ok(response) => response,
+            Err(err) => panic!("{err}"),
+        };
 
         assert!(is_scrape_response(&response));
 
