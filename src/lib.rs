@@ -120,9 +120,9 @@
 //! The default configuration expects a directory `./storage/tracker/lib/database` to be writable by the tracker process.
 //!
 //! By default the tracker uses `SQLite` and the database file name `data.db`.
-//! 
+//!
 //! We will have to have a file to save the torrust-tracker, which we will call "torrust".
-//! 
+//!
 //! ```text
 //!     mkdir torrust
 //!     cd torrust/
@@ -132,7 +132,7 @@
 //! Visit [`HTTP`](crate::servers::http) or [`API`](crate::servers::apis) if you want to know how you can use HTTPS.
 //!
 //! ## Install from sources
-//! 
+//!
 //!
 //! ```text
 //! git clone https://github.com/torrust/torrust-tracker.git \
@@ -141,15 +141,15 @@
 //!   && mkdir -p ./storage/tracker/lib/database \
 //!   && mkdir -p ./storage/tracker/lib/tls
 //! ```
-//! 
+//!
 //! To run the tracker we will have to use the command "cargo run" this will have to compile data while being executed and after being compiled it will start running the tracker.
 //!  
 //! ```text
 //!     cargo run
 //! ```
-//! 
-//! If you want to configure your tracker further, you can go to the "Configuration" section to configure it to your liking. 
-//! 
+//!
+//! If you want to configure your tracker further, you can go to the "Configuration" section to configure it to your liking.
+//!
 //!
 //! ## Run with docker
 //!
