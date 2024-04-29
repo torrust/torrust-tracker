@@ -142,7 +142,7 @@
 //!   && mkdir -p ./storage/tracker/lib/tls
 //! ```
 //!
-//! To run the tracker we will have to use the command "cargo run" this will have to compile data while being executed and after being compiled it will start running the tracker.
+//! To run the tracker we will have to use the commands "cargo run" this will have to compile data while being executed and after being compiled it will start running the tracker.
 //!  
 //! ```text
 //!     cargo run
