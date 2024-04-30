@@ -121,11 +121,11 @@
 //!
 //! By default the tracker uses `SQLite` and the database file name `data.db`.
 //!
-//! We will have to have a file to save the torrust-tracker, which we will call "torrust".
+//! We need a folder to clone the repository.
 //!
 //! ```text
 //!     mkdir torrust
-//!     cd torrust/
+//!     cd torrust
 //! ```
 //!
 //! You only need the `tls` directory in case you are setting up SSL for the HTTP tracker or the tracker API.
@@ -159,7 +159,7 @@
 //! # Configuration
 //!
 //! In order to run the tracker you need to provide the configuration. If you run the tracker without providing the configuration,
-//! the tracker will generate the default configuration the first time you run it. It will generate a `Cargo.toml` file with
+//! the tracker will generate the default configuration the first time you run it. It will generate a `./share/default/config/tracker.development.sqlite3.toml.` file with
 //! in the root directory.
 //!
 //! The default configuration is:
@@ -208,18 +208,18 @@
 //!
 //! For more information about each service and options you can visit the documentation for the [torrust-tracker-configuration crate](https://docs.rs/torrust-tracker-configuration).
 //!
-//! Alternatively to the `Cargo.toml` file you can use one environment variable `TORRUST_TRACKER_CONFIG` to pass the configuration to the tracker:
+//! Alternatively to the `tracker.toml` file you can use one environment variable `TORRUST_TRACKER_CONFIG` to pass the configuration to the tracker:
 //!
 //! ```text
-//! TORRUST_TRACKER_CONFIG=$(cat Cargo.toml)
+//! TORRUST_TRACKER_CONFIG=$(cat tracker.toml)
 //! cargo run
 //! ```
 //!
-//! In the previous example you are just setting the env var with the contents of the `Cargo.toml` file.
+//! In the previous example you are just setting the env var with the contents of the `tracker.toml` file.
 //!
-//! The env var contains the same data as the `Cargo.toml`. It's particularly useful in you are [running the tracker with docker](https://github.com/torrust/torrust-tracker/tree/develop/docker).
+//! The env var contains the same data as the `tracker.toml`. It's particularly useful in you are [running the tracker with docker](https://github.com/torrust/torrust-tracker/tree/develop/docker).
 //!
-//! > NOTE: The `TORRUST_TRACKER_CONFIG` env var has priority over the `Cargo.toml` file.
+//! > NOTE: The `TORRUST_TRACKER_CONFIG` env var has priority over the `tracker.toml` file.
 //!
 //! # Usage
 //!
