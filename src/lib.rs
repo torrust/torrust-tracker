@@ -131,7 +131,7 @@
 //! You only need the `tls` directory in case you are setting up SSL for the HTTP tracker or the tracker API.
 //! Visit [`HTTP`](crate::servers::http) or [`API`](crate::servers::apis) if you want to know how you can use HTTPS.
 //!
-//! ## Install from sources
+//! ## Install from sources.
 //!
 //!
 //! ```text
