@@ -39,7 +39,6 @@ axum-extra = { version = "0", features = ["query"] }
 axum-server = { version = "0", features = ["tls-rustls"] }
 chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
-colored = "2"
 config = "0"
 crossbeam-skiplist = "0.1"
 dashmap = "5.5.3"
@@ -62,7 +61,7 @@ ringbuf = "0"
 serde = { version = "1", features = ["derive"] }
 serde_bencode = "0"
 serde_bytes = "0"
-serde_json = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
 serde_repr = "0"
 thiserror = "1"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
