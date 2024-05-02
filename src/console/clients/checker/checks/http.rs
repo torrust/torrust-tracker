@@ -61,9 +61,19 @@ async fn check_http_announce(tracker_url: &Url) -> Result<(), CheckError> {
     // We should change the client to catch that error and return a `CheckError`.
     // Otherwise the checking process will stop. The idea is to process all checks
     // and return a final report.
-    let response = Client::new(tracker_url.clone())
+    let Ok(client) = Client::new(tracker_url.clone()) else {
+        return Err(CheckError::HttpError {
+            url: (tracker_url.to_owned()),
+        });
+    };
+    let Ok(response) = client
         .announce(&QueryBuilder::with_default_values().with_info_hash(&info_hash).query())
-        .await;
+        .await
+    else {
+        return Err(CheckError::HttpError {
+            url: (tracker_url.to_owned()),
+        });
+    };
 
     if let Ok(body) = response.bytes().await {
         if let Ok(_announce_response) = serde_bencode::from_bytes::<Announce>(&body) {
@@ -89,7 +99,13 @@ async fn check_http_scrape(url: &Url) -> Result<(), CheckError> {
     // We should change the client to catch that error and return a `CheckError`.
     // Otherwise the checking process will stop. The idea is to process all checks
     // and return a final report.
-    let response = Client::new(url.clone()).scrape(&query).await;
+
+    let Ok(client) = Client::new(url.clone()) else {
+        return Err(CheckError::HttpError { url: (url.to_owned()) });
+    };
+    let Ok(response) = client.scrape(&query).await else {
+        return Err(CheckError::HttpError { url: (url.to_owned()) });
+    };
 
     if let Ok(body) = response.bytes().await {
         if let Ok(_scrape_response) = scrape::Response::try_from_bencoded(&body) {
