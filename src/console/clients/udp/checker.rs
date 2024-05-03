@@ -20,6 +20,8 @@ pub enum ClientError {
     NotConnected,
     #[error("Unexpected response while connecting the the remote server.")]
     UnexpectedConnectionResponse,
+    #[error("Connection timeout.")]
+    ConnectionTimeout,
 }
 
 /// A UDP Tracker client to make test requests (checks).

@@ -4,13 +4,14 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use aquatic_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
 use log::debug;
 use tokio::net::UdpSocket;
 use tokio::time;
 use zerocopy::network_endian::I32;
 
+use crate::console::clients::udp::checker::ClientError;
 use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
 
 /// Default timeout for sending and receiving packets. And waiting for sockets
@@ -79,7 +80,7 @@ impl UdpClient {
                     Err(e) => return Err(anyhow!("IO error waiting for the socket to become readable: {e:?}")),
                 };
             }
-            Err(e) => return Err(anyhow!("Timeout waiting for the socket to become readable: {e:?}")),
+            Err(_) => bail!(ClientError::ConnectionTimeout),
         };
 
         match time::timeout(self.timeout, self.socket.send(bytes)).await {
@@ -87,7 +88,7 @@ impl UdpClient {
                 Ok(size) => Ok(size),
                 Err(e) => Err(anyhow!("IO error during send: {e:?}")),
             },
-            Err(e) => Err(anyhow!("Send operation timed out: {e:?}")),
+            Err(_) => bail!(ClientError::ConnectionTimeout),
         }
     }
 
@@ -110,7 +111,7 @@ impl UdpClient {
                     Err(e) => return Err(anyhow!("IO error waiting for the socket to become readable: {e:?}")),
                 };
             }
-            Err(e) => return Err(anyhow!("Timeout waiting for the socket to become readable: {e:?}")),
+            Err(_) => bail!(ClientError::ConnectionTimeout),
         };
 
         let size_result = match time::timeout(self.timeout, self.socket.recv(bytes)).await {
@@ -118,7 +119,7 @@ impl UdpClient {
                 Ok(size) => Ok(size),
                 Err(e) => Err(anyhow!("IO error during send: {e:?}")),
             },
-            Err(e) => Err(anyhow!("Receive operation timed out: {e:?}")),
+            Err(_) => bail!(ClientError::ConnectionTimeout),
         };
 
         if size_result.is_ok() {
