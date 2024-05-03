@@ -3,6 +3,7 @@ pub mod responses;
 
 use std::net::IpAddr;
 
+use anyhow::{anyhow, Result};
 use requests::announce::{self, Query};
 use requests::scrape;
 use reqwest::{Client as ReqwestClient, Response, Url};
@@ -25,78 +26,83 @@ pub struct Client {
 ///         base url              path                                query
 /// ```
 impl Client {
-    /// # Panics
+    /// # Errors
     ///
     /// This method fails if the client builder fails.
-    #[must_use]
-    pub fn new(base_url: Url) -> Self {
-        Self {
+    pub fn new(base_url: Url) -> Result<Self> {
+        let reqwest = reqwest::Client::builder().build()?;
+        Ok(Self {
             base_url,
-            reqwest: reqwest::Client::builder().build().unwrap(),
+            reqwest,
             key: None,
-        }
+        })
     }
 
     /// Creates the new client binding it to an specific local address.
     ///
-    /// # Panics
+    /// # Errors
     ///
     /// This method fails if the client builder fails.
-    #[must_use]
-    pub fn bind(base_url: Url, local_address: IpAddr) -> Self {
-        Self {
+    pub fn bind(base_url: Url, local_address: IpAddr) -> Result<Self> {
+        let reqwest = reqwest::Client::builder().local_address(local_address).build()?;
+        Ok(Self {
             base_url,
-            reqwest: reqwest::Client::builder().local_address(local_address).build().unwrap(),
+            reqwest,
             key: None,
-        }
+        })
     }
 
-    /// # Panics
+    /// # Errors
     ///
     /// This method fails if the client builder fails.
-    #[must_use]
-    pub fn authenticated(base_url: Url, key: Key) -> Self {
-        Self {
+    pub fn authenticated(base_url: Url, key: Key) -> Result<Self> {
+        let reqwest = reqwest::Client::builder().build()?;
+        Ok(Self {
             base_url,
-            reqwest: reqwest::Client::builder().build().unwrap(),
+            reqwest,
             key: Some(key),
-        }
+        })
     }
 
-    pub async fn announce(&self, query: &announce::Query) -> Response {
+    /// # Errors
+    pub async fn announce(&self, query: &announce::Query) -> Result<Response> {
         self.get(&self.build_announce_path_and_query(query)).await
     }
 
-    pub async fn scrape(&self, query: &scrape::Query) -> Response {
+    /// # Errors
+    pub async fn scrape(&self, query: &scrape::Query) -> Result<Response> {
         self.get(&self.build_scrape_path_and_query(query)).await
     }
 
-    pub async fn announce_with_header(&self, query: &Query, key: &str, value: &str) -> Response {
+    /// # Errors
+    pub async fn announce_with_header(&self, query: &Query, key: &str, value: &str) -> Result<Response> {
         self.get_with_header(&self.build_announce_path_and_query(query), key, value)
             .await
     }
 
-    pub async fn health_check(&self) -> Response {
+    /// # Errors
+    pub async fn health_check(&self) -> Result<Response> {
         self.get(&self.build_path("health_check")).await
     }
 
-    /// # Panics
+    /// # Errors
     ///
     /// This method fails if there was an error while sending request.
-    pub async fn get(&self, path: &str) -> Response {
-        self.reqwest.get(self.build_url(path)).send().await.unwrap()
+    pub async fn get(&self, path: &str) -> Result<Response> {
+        match self.reqwest.get(self.build_url(path)).send().await {
+            Ok(response) => Ok(response),
+            Err(err) => Err(anyhow!("{err}")),
+        }
     }
 
-    /// # Panics
+    /// # Errors
     ///
     /// This method fails if there was an error while sending request.
-    pub async fn get_with_header(&self, path: &str, key: &str, value: &str) -> Response {
-        self.reqwest
-            .get(self.build_url(path))
-            .header(key, value)
-            .send()
-            .await
-            .unwrap()
+    pub async fn get_with_header(&self, path: &str, key: &str, value: &str) -> Result<Response> {
+        match self.reqwest.get(self.build_url(path)).header(key, value).send().await {
+            Ok(response) => Ok(response),
+            Err(err) => Err(anyhow!("{err}")),
+        }
     }
 
     fn build_announce_path_and_query(&self, query: &announce::Query) -> String {
