@@ -109,29 +109,47 @@
 //! With the default configuration you will need to create the `storage` directory:
 //!
 //! ```text
-//! storage/
-//! ├── database
-//! │   └── data.db
-//! └── tls
-//!     ├── localhost.crt
-//!     └── localhost.key
+//! ./storage/
+//! └── tracker
+//!     ├── etc
+//!     ├── lib
+//!     │   ├── database
+//!     │   │   └── sqlite3.db
+//!     │   └── tls
+//!     └── log
 //! ```
 //!
 //! The default configuration expects a directory `./storage/tracker/lib/database` to be writable by the tracker process.
 //!
-//! By default the tracker uses `SQLite` and the database file name `data.db`.
+//! By default the tracker uses `SQLite` and the database file name `sqlite3.db`.
 //!
 //! You only need the `tls` directory in case you are setting up SSL for the HTTP tracker or the tracker API.
 //! Visit [`HTTP`](crate::servers::http) or [`API`](crate::servers::apis) if you want to know how you can use HTTPS.
 //!
 //! ## Install from sources
 //!
+//! First, you need to create a folder to clone the repository.
+//!
+//! ```text
+//! cd /tmp
+//! mkdir torrust
+//! ```
+//!
 //! ```text
 //! git clone https://github.com/torrust/torrust-tracker.git \
 //!   && cd torrust-tracker \
 //!   && cargo build --release \
+//!   && mkdir -p ./storage/tracker/etc \
 //!   && mkdir -p ./storage/tracker/lib/database \
-//!   && mkdir -p ./storage/tracker/lib/tls
+//!   && mkdir -p ./storage/tracker/lib/tls \
+//!   && mkdir -p ./storage/tracker/log
+//! ```
+//!
+//! To run the tracker we will have to use the command "cargo run" this will
+//! compile and after being compiled it will start running the tracker.
+//!
+//! ```text
+//! cargo run
 //! ```
 //!
 //! ## Run with docker
@@ -141,9 +159,10 @@
 //!
 //! # Configuration
 //!
-//! In order to run the tracker you need to provide the configuration. If you run the tracker without providing the configuration,
-//! the tracker will generate the default configuration the first time you run it. It will generate a `tracker.toml` file with
-//! in the root directory.
+//! In order to run the tracker you need to provide the configuration. If you
+//! run the tracker without providing the configuration, the tracker will
+//! generate the default configuration the first time you run it. It will
+//! generate a `tracker.toml` file with in the root directory.
 //!
 //! The default configuration is:
 //!
@@ -187,26 +206,37 @@
 //! bind_address = "127.0.0.1:1313"
 //!```
 //!
-//! The default configuration includes one disabled UDP server, one disabled HTTP server and the enabled API.
+//! The default configuration includes one disabled UDP server, one disabled
+//! HTTP server and the enabled API.
 //!
-//! For more information about each service and options you can visit the documentation for the [torrust-tracker-configuration crate](https://docs.rs/torrust-tracker-configuration).
+//! For more information about each service and options you can visit the
+//! documentation for the [torrust-tracker-configuration crate](https://docs.rs/torrust-tracker-configuration).
 //!
-//! Alternatively to the `tracker.toml` file you can use one environment variable `TORRUST_TRACKER_CONFIG` to pass the configuration to the tracker:
+//! Alternatively to the `tracker.toml` file you can use one environment
+//! variable `TORRUST_TRACKER_CONFIG` to pass the configuration to the tracker:
 //!
 //! ```text
-//! TORRUST_TRACKER_CONFIG=$(cat tracker.toml)
-//! cargo run
+//! TORRUST_TRACKER_CONFIG=$(cat ./share/default/config/tracker.development.sqlite3.toml) ./target/release/torrust-tracker
 //! ```
 //!
-//! In the previous example you are just setting the env var with the contents of the `tracker.toml` file.
+//! In the previous example you are just setting the env var with the contents
+//! of the `tracker.toml` file.
 //!
-//! The env var contains the same data as the `tracker.toml`. It's particularly useful in you are [running the tracker with docker](https://github.com/torrust/torrust-tracker/tree/develop/docker).
+//! The env var contains the same data as the `tracker.toml`. It's particularly
+//! useful in you are [running the tracker with docker](https://github.com/torrust/torrust-tracker/tree/develop/docker).
 //!
-//! > NOTE: The `TORRUST_TRACKER_CONFIG` env var has priority over the `tracker.toml` file.
+//! > NOTICE: The `TORRUST_TRACKER_CONFIG` env var has priority over the `tracker.toml` file.
+//!
+//! By default, if you don’t specify any `tracker.toml` file, the application
+//! will use `./share/default/config/tracker.development.sqlite3.toml`.
+//!
+//! > IMPORTANT: Every time you change the configuration you need to restart the
+//! service.
 //!
 //! # Usage
 //!
-//! Running the tracker with the default configuration and enabling the UDP and HTTP trackers will expose the services on these URLs:
+//! Running the tracker with the default configuration and enabling the UDP and
+//! HTTP trackers will expose the services on these URLs:
 //!
 //! - REST API: <http://localhost:1212>
 //! - UDP tracker: <http://localhost:6969>
