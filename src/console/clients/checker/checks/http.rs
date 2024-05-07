@@ -1,7 +1,6 @@
 use std::str::FromStr as _;
 use std::time::Duration;
 
-use colored::Colorize;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use url::Url;
 
@@ -18,26 +17,24 @@ pub async fn run(http_trackers: Vec<Url>, timeout: Duration, console: Console) -
     console.println("HTTP trackers ...");
 
     for ref url in http_trackers {
-        let colored_url = url.to_string().yellow();
-
         check_results.push(match check_http_announce(url, &timeout).await {
             Ok(_) => {
-                console.println(&format!("{} - Announce at {} is OK", "✓".green(), colored_url));
+                console.println(&format!("{} - Announce at {} is OK", "✓", url));
                 Ok(())
             }
             Err(err) => {
-                console.println(&format!("{} - Announce at {} is failing", "✗".red(), colored_url));
+                console.println(&format!("{} - Announce at {} is failing", "✗", url));
                 Err(CheckError::HttpCheckError { url: url.clone(), err })
             }
         });
 
         check_results.push(match check_http_scrape(url, &timeout).await {
             Ok(_) => {
-                console.println(&format!("{} - Scrape at {} is OK", "✓".green(), colored_url));
+                console.println(&format!("{} - Scrape at {} is OK", "✓", url));
                 Ok(())
             }
             Err(err) => {
-                console.println(&format!("{} - Scrape at {} is failing", "✗".red(), colored_url));
+                console.println(&format!("{} - Scrape at {} is failing", "✗", url));
                 Err(CheckError::HttpCheckError { url: url.clone(), err })
             }
         });

@@ -31,7 +31,7 @@ version = "3.0.0-alpha.12-develop"
 
 [dependencies]
 anyhow = "1"
-aquatic_udp_protocol = "0.8"
+aquatic_udp_protocol = "0"
 async-trait = "0"
 axum = { version = "0", features = ["macros"] }
 axum-client-ip = "0"
@@ -55,7 +55,7 @@ r2d2_mysql = "24"
 r2d2_sqlite = { version = "0", features = ["bundled"] }
 rand = "0"
 reqwest = { version = "0", features = ["json"] }
-ringbuf = "0.3.3"
+ringbuf = "0"
 serde = { version = "1", features = ["derive"] }
 serde_bencode = "0"
 serde_bytes = "0"

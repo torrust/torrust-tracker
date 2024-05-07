@@ -2,7 +2,6 @@ use std::net::SocketAddr;
 use std::num::NonZeroU16;
 use std::time::Duration;
 
-use colored::Colorize;
 use hex_literal::hex;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use tracing::debug;
@@ -23,19 +22,17 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration, console: Cons
     for ref addr in udp_trackers {
         debug!("UDP tracker: {:?}", addr);
 
-        let colored_addr = addr.to_string().yellow();
-
         // Setup Connection
         let Ok((client, ctx)) = ({
             let res = setup_connection(addr, &timeout).await;
 
             check_results.push(match res {
                 Ok(_) => {
-                    console.println(&format!("{} - Setup of {} is OK", "✓".green(), colored_addr));
+                    console.println(&format!("{} - Setup of {} is OK", "✓", addr));
                     Ok(())
                 }
                 Err(ref e) => {
-                    console.println(&format!("{} - Setup of {} is failing", "✗".red(), colored_addr));
+                    console.println(&format!("{} - Setup of {} is failing", "✗", addr));
                     Err(CheckError::UdpCheckError {
                         addr: *addr,
                         err: e.clone(),
@@ -54,11 +51,11 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration, console: Cons
 
             check_results.push(match res {
                 Ok(_) => {
-                    console.println(&format!("{} - Announce of {} is OK", "✓".green(), colored_addr));
+                    console.println(&format!("{} - Announce of {} is OK", "✓", addr));
                     Ok(())
                 }
                 Err(ref e) => {
-                    console.println(&format!("{} - Announce of {} is failing", "✗".red(), colored_addr));
+                    console.println(&format!("{} - Announce of {} is failing", "✗", addr));
                     Err(CheckError::UdpCheckError {
                         addr: *addr,
                         err: e.clone(),
@@ -79,11 +76,11 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration, console: Cons
 
             check_results.push(match res {
                 Ok(_) => {
-                    console.println(&format!("{} - Announce of {} is OK", "✓".green(), colored_addr));
+                    console.println(&format!("{} - Announce of {} is OK", "✓", addr));
                     Ok(())
                 }
                 Err(ref e) => {
-                    console.println(&format!("{} - Announce of {} is failing", "✗".red(), colored_addr));
+                    console.println(&format!("{} - Announce of {} is failing", "✗", addr));
                     Err(CheckError::UdpCheckError {
                         addr: *addr,
                         err: e.clone(),
