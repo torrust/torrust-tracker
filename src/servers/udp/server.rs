@@ -346,7 +346,7 @@ impl Udp {
         let buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(buffer);
 
-        match response.write(&mut cursor) {
+        match response.write_bytes(&mut cursor) {
             Ok(()) => {
                 #[allow(clippy::cast_possible_truncation)]
                 let position = cursor.position() as usize;

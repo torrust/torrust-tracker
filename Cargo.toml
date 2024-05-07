@@ -31,7 +31,7 @@ version = "3.0.0-alpha.12-develop"
 
 [dependencies]
 anyhow = "1"
-aquatic_udp_protocol = "0.8"
+aquatic_udp_protocol = "0"
 async-trait = "0"
 axum = { version = "0", features = ["macros"] }
 axum-client-ip = "0"
@@ -76,6 +76,7 @@ trace = "0"
 tracing = "0"
 url = "2"
 uuid = { version = "1", features = ["v4"] }
+zerocopy = "0.7.33"
 
 [package.metadata.cargo-machete]
 ignored = ["serde_bytes", "crossbeam-skiplist", "dashmap", "parking_lot"]

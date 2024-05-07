@@ -142,7 +142,7 @@ fn setup_logging(level: LevelFilter) {
 }
 
 async fn handle_announce(tracker_socket_addr: &SocketAddr, info_hash: &TorrustInfoHash) -> anyhow::Result<Response> {
-    let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
+    let transaction_id = TransactionId::new(RANDOM_TRANSACTION_ID);
 
     let mut client = checker::Client::default();
 
@@ -151,12 +151,12 @@ async fn handle_announce(tracker_socket_addr: &SocketAddr, info_hash: &TorrustIn
     let connection_id = client.send_connection_request(transaction_id).await?;
 
     client
-        .send_announce_request(connection_id, transaction_id, *info_hash, Port(bound_to.port()))
+        .send_announce_request(connection_id, transaction_id, *info_hash, Port(bound_to.port().into()))
         .await
 }
 
 async fn handle_scrape(tracker_socket_addr: &SocketAddr, info_hashes: &[TorrustInfoHash]) -> anyhow::Result<Response> {
-    let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
+    let transaction_id = TransactionId::new(RANDOM_TRANSACTION_ID);
 
     let mut client = checker::Client::default();
 

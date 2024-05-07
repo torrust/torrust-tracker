@@ -3,8 +3,8 @@ use std::net::{Ipv4Addr, SocketAddr};
 use anyhow::Context;
 use aquatic_udp_protocol::common::InfoHash;
 use aquatic_udp_protocol::{
-    AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port, Response,
-    ScrapeRequest, TransactionId,
+    AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
+    PeerId, PeerKey, Port, Response, ScrapeRequest, TransactionId,
 };
 use log::debug;
 use thiserror::Error;
@@ -148,16 +148,17 @@ impl Client {
 
         let announce_request = AnnounceRequest {
             connection_id,
+            action_placeholder: AnnounceActionPlaceholder::default(),
             transaction_id,
             info_hash: InfoHash(info_hash.bytes()),
             peer_id: PeerId(*b"-qB00000000000000001"),
-            bytes_downloaded: NumberOfBytes(0i64),
-            bytes_uploaded: NumberOfBytes(0i64),
-            bytes_left: NumberOfBytes(0i64),
-            event: AnnounceEvent::Started,
-            ip_address: Some(Ipv4Addr::new(0, 0, 0, 0)),
-            key: PeerKey(0u32),
-            peers_wanted: NumberOfPeers(1i32),
+            bytes_downloaded: NumberOfBytes(0i64.into()),
+            bytes_uploaded: NumberOfBytes(0i64.into()),
+            bytes_left: NumberOfBytes(0i64.into()),
+            event: AnnounceEvent::Started.into(),
+            ip_address: Ipv4Addr::new(0, 0, 0, 0).into(),
+            key: PeerKey::new(0i32),
+            peers_wanted: NumberOfPeers(1i32.into()),
             port: client_port,
         };
 

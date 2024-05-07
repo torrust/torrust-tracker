@@ -60,7 +60,7 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
         Err(err) => panic!("{err}"),
     };
 
-    let response = Response::from_bytes(&buffer, true).unwrap();
+    let response = Response::parse_bytes(&buffer, true).unwrap();
 
     assert!(is_error_response(&response, "bad request"));
 
@@ -85,7 +85,7 @@ mod receiving_a_connection_request {
         };
 
         let connect_request = ConnectRequest {
-            transaction_id: TransactionId(123),
+            transaction_id: TransactionId::new(123),
         };
 
         match client.send(connect_request.into()).await {
@@ -98,7 +98,7 @@ mod receiving_a_connection_request {
             Err(err) => panic!("{err}"),
         };
 
-        assert!(is_connect_response(&response, TransactionId(123)));
+        assert!(is_connect_response(&response, TransactionId::new(123)));
 
         env.stop().await;
     }
@@ -108,8 +108,8 @@ mod receiving_an_announce_request {
     use std::net::Ipv4Addr;
 
     use aquatic_udp_protocol::{
-        AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port,
-        TransactionId,
+        AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId,
+        PeerKey, Port, TransactionId,
     };
     use torrust_tracker::shared::bit_torrent::tracker::udp::client::new_udp_tracker_client_connected;
     use torrust_tracker_test_helpers::configuration;
@@ -127,23 +127,24 @@ mod receiving_an_announce_request {
             Err(err) => panic!("{err}"),
         };
 
-        let connection_id = send_connection_request(TransactionId(123), &client).await;
+        let connection_id = send_connection_request(TransactionId::new(123), &client).await;
 
         // Send announce request
 
         let announce_request = AnnounceRequest {
             connection_id: ConnectionId(connection_id.0),
-            transaction_id: TransactionId(123i32),
+            action_placeholder: AnnounceActionPlaceholder::default(),
+            transaction_id: TransactionId::new(123i32),
             info_hash: InfoHash([0u8; 20]),
             peer_id: PeerId([255u8; 20]),
-            bytes_downloaded: NumberOfBytes(0i64),
-            bytes_uploaded: NumberOfBytes(0i64),
-            bytes_left: NumberOfBytes(0i64),
-            event: AnnounceEvent::Started,
-            ip_address: Some(Ipv4Addr::new(0, 0, 0, 0)),
-            key: PeerKey(0u32),
-            peers_wanted: NumberOfPeers(1i32),
-            port: Port(client.udp_client.socket.local_addr().unwrap().port()),
+            bytes_downloaded: NumberOfBytes(0i64.into()),
+            bytes_uploaded: NumberOfBytes(0i64.into()),
+            bytes_left: NumberOfBytes(0i64.into()),
+            event: AnnounceEvent::Started.into(),
+            ip_address: Ipv4Addr::new(0, 0, 0, 0).into(),
+            key: PeerKey::new(0i32),
+            peers_wanted: NumberOfPeers(1i32.into()),
+            port: Port(client.udp_client.socket.local_addr().unwrap().port().into()),
         };
 
         match client.send(announce_request.into()).await {
@@ -182,7 +183,7 @@ mod receiving_an_scrape_request {
             Err(err) => panic!("{err}"),
         };
 
-        let connection_id = send_connection_request(TransactionId(123), &client).await;
+        let connection_id = send_connection_request(TransactionId::new(123), &client).await;
 
         // Send scrape request
 
@@ -192,7 +193,7 @@ mod receiving_an_scrape_request {
 
         let scrape_request = ScrapeRequest {
             connection_id: ConnectionId(connection_id.0),
-            transaction_id: TransactionId(123i32),
+            transaction_id: TransactionId::new(123i32),
             info_hashes,
         };
 
