@@ -291,7 +291,14 @@ impl Udp {
                 if !h.is_finished() {
                     // the task is still running, lets yield and give it a chance to flush.
                     tokio::task::yield_now().await;
+
                     h.abort();
+
+                    let server_socket_addr = socket.local_addr().expect("Could not get local_addr for socket.");
+
+                    tracing::span!(
+                        target: "UDP TRACKER",
+                        tracing::Level::WARN, "request-aborted", server_socket_addr = %server_socket_addr);
                 }
             }
         }
