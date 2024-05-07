@@ -122,6 +122,10 @@ The following services are provided by the default configuration:
 
 ## Documentation
 
+You can read the [latest documentation][docs] from <https://docs.rs/>.
+
+Some specific sections:
+
 - [Management API (Version 1)][API]
 - [Tracker (HTTP/TLS)][HTTP]
 - [Tracker (UDP)][UDP]
