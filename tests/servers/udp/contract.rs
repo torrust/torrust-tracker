@@ -32,7 +32,7 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
     let mut buffer = empty_buffer();
     client.receive(&mut buffer).await.expect("it should receive a response");
 
-    let response = Response::from_bytes(&buffer, true).expect("it should parse a response");
+    let response = Response::parse_bytes(&buffer, true).expect("it should parse a response");
 
     assert!(is_error_response(&response, "bad request"));
 
@@ -57,7 +57,7 @@ mod receiving_a_connection_request {
             .expect("it should connect");
 
         let connect_request = ConnectRequest {
-            transaction_id: TransactionId(123),
+            transaction_id: TransactionId::new(123),
         };
 
         client
@@ -67,7 +67,7 @@ mod receiving_a_connection_request {
 
         let response = client.receive_response().await.expect("it should get response");
 
-        assert!(is_connect_response(&response, TransactionId(123)));
+        assert!(is_connect_response(&response, TransactionId::new(123)));
 
         env.stop().await;
     }
@@ -75,10 +75,11 @@ mod receiving_a_connection_request {
 
 mod receiving_an_announce_request {
     use std::net::Ipv4Addr;
+    use std::num::NonZeroU16;
 
     use aquatic_udp_protocol::{
-        AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port,
-        TransactionId,
+        AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId,
+        PeerKey, Port, TransactionId,
     };
     use torrust_tracker::shared::bit_torrent::tracker::udp::Client;
     use torrust_tracker_configuration::CLIENT_TIMEOUT_DEFAULT;
@@ -96,25 +97,28 @@ mod receiving_an_announce_request {
             .expect("it should connect");
 
         let ctx = client
-            .do_connection_request(TransactionId(123))
+            .do_connection_request(TransactionId::new(123))
             .await
             .expect("it should do connection");
 
         // Send announce request
 
+        let port = NonZeroU16::new(client.local_addr().unwrap().port()).expect("the port should be non-zero");
+
         let announce_request = AnnounceRequest {
             connection_id: ConnectionId(ctx.connection_id.0),
-            transaction_id: TransactionId(123i32),
+            action_placeholder: AnnounceActionPlaceholder::default(),
+            transaction_id: TransactionId::new(123i32),
             info_hash: InfoHash([0u8; 20]),
             peer_id: PeerId([255u8; 20]),
-            bytes_downloaded: NumberOfBytes(0i64),
-            bytes_uploaded: NumberOfBytes(0i64),
-            bytes_left: NumberOfBytes(0i64),
-            event: AnnounceEvent::Started,
-            ip_address: Some(Ipv4Addr::new(0, 0, 0, 0)),
-            key: PeerKey(0u32),
-            peers_wanted: NumberOfPeers(1i32),
-            port: Port(client.local_addr().expect("it should get the local address").port()),
+            bytes_downloaded: NumberOfBytes(0i64.into()),
+            bytes_uploaded: NumberOfBytes(0i64.into()),
+            bytes_left: NumberOfBytes(0i64.into()),
+            event: AnnounceEvent::Started.into(),
+            ip_address: Ipv4Addr::new(0, 0, 0, 0).into(),
+            key: PeerKey::new(0i32),
+            peers_wanted: NumberOfPeers(1i32.into()),
+            port: Port::new(port),
         };
 
         client
@@ -150,7 +154,7 @@ mod receiving_an_scrape_request {
             .expect("it should connect");
 
         let ctx = client
-            .do_connection_request(TransactionId(123))
+            .do_connection_request(TransactionId::new(123))
             .await
             .expect("it should connect");
 
@@ -162,7 +166,7 @@ mod receiving_an_scrape_request {
 
         let scrape_request = ScrapeRequest {
             connection_id: ConnectionId(ctx.connection_id.0),
-            transaction_id: TransactionId(123i32),
+            transaction_id: TransactionId::new(123i32),
             info_hashes,
         };
 

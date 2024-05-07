@@ -163,7 +163,8 @@
         "Xtorrent",
         "Xunlei",
         "xxxxxxxxxxxxxxxxxxxxd",
-        "yyyyyyyyyyyyyyyyyyyyd"
+        "yyyyyyyyyyyyyyyyyyyyd",
+        "zerocopy"
     ],
     "enableFiletypes": [
         "dockerfile",

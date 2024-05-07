@@ -2,8 +2,8 @@ use std::net::{Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
 use aquatic_udp_protocol::{
-    AnnounceEvent, AnnounceRequest, ConnectResponse, NumberOfBytes, NumberOfPeers, PeerId, PeerKey, Port, Response,
-    ScrapeRequest, TransactionId,
+    AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectResponse, NumberOfBytes, NumberOfPeers, PeerId, PeerKey,
+    Port, Response, ScrapeRequest, TransactionId,
 };
 use torrust_tracker_primitives::info_hash::InfoHash;
 use tracing::debug;
@@ -76,14 +76,15 @@ impl Client {
             transaction_id: ctx.transaction_id,
             info_hash: aquatic_udp_protocol::InfoHash(info_hash.bytes()),
             peer_id: PeerId(*b"-qB00000000000000001"),
-            bytes_downloaded: NumberOfBytes(0i64),
-            bytes_uploaded: NumberOfBytes(0i64),
-            bytes_left: NumberOfBytes(0i64),
-            event: AnnounceEvent::Started,
-            ip_address: Some(Ipv4Addr::new(0, 0, 0, 0)),
-            key: PeerKey(0u32),
-            peers_wanted: NumberOfPeers(1i32),
+            bytes_downloaded: NumberOfBytes(0i64.into()),
+            bytes_uploaded: NumberOfBytes(0i64.into()),
+            bytes_left: NumberOfBytes(0i64.into()),
+            event: AnnounceEvent::Started.into(),
+            ip_address: Ipv4Addr::new(0, 0, 0, 0).into(),
+            key: PeerKey::new(0i32),
+            peers_wanted: NumberOfPeers(1i32.into()),
             port: client_port,
+            action_placeholder: AnnounceActionPlaceholder::default(),
         };
 
         let _ = self

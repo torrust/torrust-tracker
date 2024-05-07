@@ -57,6 +57,7 @@
 //!
 //! The protocol (`udp://`) in the URL is mandatory. The path (`\scrape`) is optional. It always uses `\scrape`.
 use std::net::SocketAddr;
+use std::num::NonZeroU16;
 use std::time::Duration;
 
 use anyhow::Context;
@@ -119,7 +120,7 @@ pub async fn run() -> anyhow::Result<()> {
 }
 
 async fn handle_announce(addr: &SocketAddr, timeout: &Duration, info_hash: &InfoHash) -> anyhow::Result<Response> {
-    let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
+    let transaction_id = TransactionId::new(RANDOM_TRANSACTION_ID);
 
     let client = checker::Client::bind_and_connect(addr, timeout).await?;
 
@@ -127,14 +128,16 @@ async fn handle_announce(addr: &SocketAddr, timeout: &Duration, info_hash: &Info
 
     let ctx = client.send_connection_request(transaction_id).await?;
 
+    let port = NonZeroU16::new(bound_to.port()).expect("it should be non-zero");
+
     client
-        .send_announce_request(&ctx, *info_hash, Port(bound_to.port()))
+        .send_announce_request(&ctx, *info_hash, Port::new(port))
         .await
         .context("failed to handle announce")
 }
 
 async fn handle_scrape(addr: &SocketAddr, timeout: &Duration, info_hashes: &[InfoHash]) -> anyhow::Result<Response> {
-    let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
+    let transaction_id = TransactionId::new(RANDOM_TRANSACTION_ID);
 
     let client = checker::Client::bind_and_connect(addr, timeout).await?;
 

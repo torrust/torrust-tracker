@@ -71,6 +71,8 @@ use std::panic::Location;
 
 use aquatic_udp_protocol::ConnectionId;
 use torrust_tracker_clock::time_extent::{Extent, TimeExtent};
+use zerocopy::network_endian::I64;
+use zerocopy::AsBytes;
 
 use super::error::Error;
 
@@ -83,13 +85,15 @@ pub const COOKIE_LIFETIME: TimeExtent = TimeExtent::from_sec(2, &60);
 /// Converts a connection ID into a connection cookie.
 #[must_use]
 pub fn from_connection_id(connection_id: &ConnectionId) -> Cookie {
-    connection_id.0.to_le_bytes()
+    let mut cookie = [0u8; 8];
+    connection_id.write_to(&mut cookie);
+    cookie
 }
 
 /// Converts a connection cookie into a connection ID.
 #[must_use]
 pub fn into_connection_id(connection_cookie: &Cookie) -> ConnectionId {
-    ConnectionId(i64::from_le_bytes(*connection_cookie))
+    ConnectionId(I64::new(i64::from_be_bytes(*connection_cookie)))
 }
 
 /// Generates a new connection cookie.

@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::num::NonZeroU16;
 use std::time::Duration;
 
 use colored::Colorize;
@@ -106,7 +107,7 @@ async fn setup_connection(
 ) -> Result<(Client, aquatic_udp_protocol::ConnectResponse), Error> {
     let client = checker::Client::bind_and_connect(addr, timeout).await?;
 
-    let transaction_id = aquatic_udp_protocol::TransactionId(rand::Rng::gen(&mut rand::thread_rng()));
+    let transaction_id = aquatic_udp_protocol::TransactionId::new(rand::Rng::gen(&mut rand::thread_rng()));
 
     let ctx = client.send_connection_request(transaction_id).await?;
 
@@ -118,8 +119,10 @@ async fn check_udp_announce(
     ctx: &aquatic_udp_protocol::ConnectResponse,
     info_hash: InfoHash,
 ) -> Result<aquatic_udp_protocol::Response, Error> {
+    let port = NonZeroU16::new(client.local_addr()?.port()).expect("it should be non-zero");
+
     client
-        .send_announce_request(ctx, info_hash, aquatic_udp_protocol::Port(client.local_addr()?.port()))
+        .send_announce_request(ctx, info_hash, aquatic_udp_protocol::Port::new(port))
         .await
 }
 

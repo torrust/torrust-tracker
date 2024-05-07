@@ -22,7 +22,8 @@ use std::sync::Arc;
 
 use futures::future::BoxFuture;
 use futures::FutureExt;
-use ringbuf::{Rb, StaticRb};
+use ringbuf::traits::{Consumer as _, Observer as _, RingBuffer as _};
+use ringbuf::StaticRb;
 use tokio::net::UdpSocket;
 use tokio::select;
 use tokio::task::AbortHandle;
@@ -316,7 +317,9 @@ fn get_response_payload(response: &aquatic_udp_protocol::Response) -> Vec<u8> {
     let buffer = vec![0u8; MAX_PACKET_SIZE];
     let mut cursor = std::io::Cursor::new(buffer);
 
-    let () = response.write(&mut cursor).expect("it should be able to write to buffer");
+    let () = response
+        .write_bytes(&mut cursor)
+        .expect("it should be able to write to buffer");
 
     #[allow(clippy::cast_possible_truncation)]
     let len = cursor.position() as usize;

@@ -204,7 +204,7 @@ impl Client {
         let mut cursor = Cursor::new(request_buffer);
 
         request
-            .write(&mut cursor)
+            .write_bytes(&mut cursor)
             .map_err(|e| Error::UnableToWriteToRequestBuffer { err: e.into() })?;
 
         let request_data = {
@@ -228,7 +228,7 @@ impl Client {
 
         debug!(target: "UDP tracker client", "received {payload_size} bytes. Response {response_buffer:?}");
 
-        Response::from_bytes(&response_buffer[..payload_size], true)
+        Response::parse_bytes(&response_buffer[..payload_size], true)
             .map_err(|e| Error::UnableToGetResponseFromBuffer { err: e.into() })
     }
 
@@ -247,13 +247,13 @@ impl Client {
 
         let connect_request = ConnectRequest { transaction_id };
 
-        let _ = self.send_request(connect_request.clone().into()).await?;
+        let _ = self.send_request(connect_request.into()).await?;
 
         let response = self.receive_response().await?;
 
         debug!("connection request response:\n{response:#?}");
 
-        check_connect_response(&response, &connect_request)
+        check_connect_response(&response, connect_request)
     }
 
     /// Helper Function to Check if a UDP Service is Connectable
@@ -265,13 +265,13 @@ impl Client {
     /// # Panics
     pub async fn check(self) -> Result<String, Error> {
         let connect_request = ConnectRequest {
-            transaction_id: TransactionId(rand::Rng::gen(&mut rand::thread_rng())),
+            transaction_id: TransactionId::new(rand::Rng::gen(&mut rand::thread_rng())),
         };
 
-        let _ = self.send_request(connect_request.clone().into()).await?;
+        let _ = self.send_request(connect_request.into()).await?;
 
         let process = move |response: Result<Response, Error>, connect_request: ConnectRequest| -> Result<String, Error> {
-            check_connect_response(&response?, &connect_request).map(|id| {
+            check_connect_response(&response?, connect_request).map(|id| {
                 format!(
                     "Connected with, transaction_id: {} and connection_id: {}",
                     id.transaction_id.0, id.connection_id.0
@@ -300,11 +300,11 @@ impl Client {
 /// If the [`Response`] is not a [`ConnectResponse`]
 /// or if the [`TransactionId`] dose not match.
 ///
-pub fn check_connect_response(response: &Response, connect_request: &ConnectRequest) -> Result<ConnectResponse, Error> {
+pub fn check_connect_response(response: &Response, connect_request: ConnectRequest) -> Result<ConnectResponse, Error> {
     match response {
         Response::Connect(connect) => {
             if connect.transaction_id == connect_request.transaction_id {
-                Ok(connect.clone())
+                Ok(*connect)
             } else {
                 Err(Error::UnexpectedTransactionId {
                     expected: connect.transaction_id,
