@@ -22,7 +22,7 @@ use std::sync::Arc;
 
 use futures::future::BoxFuture;
 use futures::FutureExt;
-use ringbuf::traits::{Consumer as _, Observer as _, RingBuffer as _};
+use ringbuf::traits::{Consumer as _, Observer as _, Producer as _};
 use ringbuf::StaticRb;
 use tokio::net::UdpSocket;
 use tokio::select;
@@ -36,7 +36,6 @@ use crate::core::Tracker;
 use crate::servers::udp::v0::handlers;
 use crate::shared::handle::{Handle, Watcher};
 
-#[derive(Default)]
 struct ActiveRequests {
     rb: StaticRb<AbortHandle, 50>, // the number of requests we handle at the same time.
 }
@@ -46,6 +45,17 @@ impl std::fmt::Debug for ActiveRequests {
         let (left, right) = &self.rb.as_slices();
         let dbg = format!("capacity: {}, left: {left:?}, right: {right:?}", &self.rb.capacity());
         f.debug_struct("ActiveRequests").field("rb", &dbg).finish()
+    }
+}
+
+impl ActiveRequests {
+    /// Creates a new [`ActiveRequests`] filled with finished tasks.
+    fn new() -> Self {
+        let mut rb = StaticRb::default();
+
+        let () = while rb.try_push(tokio::task::spawn_blocking(|| ()).abort_handle()).is_ok() {};
+
+        Self { rb }
     }
 }
 
@@ -65,7 +75,6 @@ pub(super) struct Udp {
     tracker: Arc<Tracker>,
     socket: Arc<UdpSocket>,
     addr: SocketAddr,
-    reqs: ActiveRequests,
 }
 
 enum Task {
@@ -85,7 +94,6 @@ impl Udp {
             tracker: tracker.clone(),
             socket: socket.clone(),
             handle: handle.clone(),
-            reqs: ActiveRequests::default(),
             addr,
         })
     }
@@ -115,53 +123,59 @@ impl Udp {
         Ok(())
     }
 
-    fn main_loop<'a>(mut self) -> BoxFuture<'a, Result<(), Error>> {
+    fn main_loop<'a>(self) -> BoxFuture<'a, Result<(), Error>> {
         async move {
             let mut task: Task;
-            loop {
-                let tracker = self.tracker.clone();
-                let socket = self.socket.clone();
+            let reqs = &mut ActiveRequests::new();
 
-                trace!("await readable socket");
-                {
-                    task = select! {
-                        biased;
-                        () = self.handle.wait_shutdown() => Task::Shutdown,
-                        r = socket.readable() => Task::Readable(r),
-                        () = self.handle.wait_graceful_shutdown() => Task::Graceful,
-                    };
-                }
+            'main: loop {
+                'ring: for h in reqs.rb.iter_mut() {
+                    let tracker = self.tracker.clone();
+                    let socket = self.socket.clone();
 
-                trace!("brake if interrupted");
-                {
-                    let () = match task {
-                        Task::Shutdown | Task::Graceful => {
-                            debug!("(shutting down): stop processing new requests");
-                            break;
-                        }
-                        Task::Readable(r) => r.map_err(|e| Error::UnableToGetReadableSocket {
-                            addr: self.addr,
-                            err: e.into(),
-                        })?,
-                        Task::Listening(_) => unreachable!(),
-                    };
-                }
+                    trace!("await readable socket");
+                    {
+                        task = select! {
+                            biased;
+                            () = self.handle.wait_shutdown() => Task::Shutdown,
+                            r = socket.readable() => Task::Readable(r),
+                            () = self.handle.wait_graceful_shutdown() => Task::Graceful,
+                        };
+                    }
 
-                trace!("read socket and fulfil request");
-                {
-                    trace!("receive request");
-                    let request = self.receive_request().await?;
+                    trace!("brake if interrupted");
+                    {
+                        let () = match task {
+                            Task::Shutdown | Task::Graceful => {
+                                debug!("(shutting down): stop processing new requests");
+                                break 'main;
+                            }
+                            Task::Readable(r) => r.map_err(|e| Error::UnableToGetReadableSocket {
+                                addr: self.addr,
+                                err: e.into(),
+                            })?,
+                            Task::Listening(_) => unreachable!(),
+                        };
+                    }
 
-                    trace!("create new job to respond to {}", request);
-                    let respond_job =
-                        tokio::task::spawn(fulfil_request(tracker, socket, self.addr, request, self.handle.watcher()));
+                    trace!("read socket and fulfil request");
+                    {
+                        trace!("limit number of active jobs");
+                        if h.is_finished() {
+                            trace!("receive request");
+                            let request = self.receive_request().await?;
 
-                    trace!("limit number of active jobs");
-                    if let Some(h) = self.reqs.rb.push_overwrite(respond_job.abort_handle()) {
-                        if !h.is_finished() {
-                            debug!("job was still active and will be aborted");
+                            trace!("create new job to respond to {}", request);
+                            let respond_job =
+                                tokio::task::spawn(fulfil_request(tracker, socket, self.addr, request, self.handle.watcher()));
+
+                            let mut h_new = respond_job.abort_handle();
+
+                            let () = std::mem::swap(h, &mut h_new);
+                        } else {
                             let () = tokio::task::yield_now().await; // yield to give it a chance...
                             h.abort();
+                            break 'ring;
                         }
                     }
                 }
@@ -328,26 +342,3 @@ fn get_response_payload(response: &aquatic_udp_protocol::Response) -> Vec<u8> {
 
     payload
 }
-
-//         match handle.listening().await {
-//             Some(addr) => {
-
-//                 handle.wait_graceful_shutdown()
-
-//                 shutdown_signal_with_message(rx_shutdown, format!("{message}, on socket address: {addr}")).await;
-
-//                 info!("Sending graceful shutdown signal");
-//                 handle.graceful_shutdown(Some(Duration::from_secs(90)));
-
-//                 println!("!! shuting down in 90 seconds !!");
-
-//                 loop {
-//                     tokio::time::sleep(Duration::from_secs(1)).await;
-
-//                     info!("remaining alive connections: {}", handle.connection_count());
-//                 }
-//             }
-//             None => handle.shutdown(),
-//         }
-//     });
-// }
