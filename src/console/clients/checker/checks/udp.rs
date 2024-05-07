@@ -27,7 +27,7 @@ pub async fn run(udp_trackers: &Vec<SocketAddr>, check_results: &mut Vec<CheckRe
 
         debug!("UDP tracker: {:?}", udp_tracker);
 
-        let transaction_id = TransactionId(RANDOM_TRANSACTION_ID);
+        let transaction_id = TransactionId::new(RANDOM_TRANSACTION_ID);
 
         let mut client = checker::Client::default();
 
@@ -58,7 +58,7 @@ pub async fn run(udp_trackers: &Vec<SocketAddr>, check_results: &mut Vec<CheckRe
         debug!("Send announce request");
 
         if (client
-            .send_announce_request(connection_id, transaction_id, info_hash, Port(bound_to.port()))
+            .send_announce_request(connection_id, transaction_id, info_hash, Port(bound_to.port().into()))
             .await)
             .is_ok()
         {

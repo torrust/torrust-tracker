@@ -9,6 +9,7 @@ use aquatic_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
 use log::debug;
 use tokio::net::UdpSocket;
 use tokio::time;
+use zerocopy::network_endian::I32;
 
 use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
 
@@ -160,7 +161,7 @@ impl UdpTrackerClient {
         let request_buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(request_buffer);
 
-        let request_data_result = match request.write(&mut cursor) {
+        let request_data_result = match request.write_bytes(&mut cursor) {
             Ok(()) => {
                 #[allow(clippy::cast_possible_truncation)]
                 let position = cursor.position() as usize;
@@ -186,7 +187,7 @@ impl UdpTrackerClient {
 
         debug!(target: "UDP tracker client", "received {payload_size} bytes. Response {response_buffer:?}");
 
-        let response = Response::from_bytes(&response_buffer[..payload_size], true)?;
+        let response = Response::parse_bytes(&response_buffer[..payload_size], true)?;
 
         Ok(response)
     }
@@ -218,7 +219,7 @@ pub async fn check(binding: &SocketAddr) -> Result<String, String> {
     match new_udp_tracker_client_connected(binding.to_string().as_str()).await {
         Ok(client) => {
             let connect_request = ConnectRequest {
-                transaction_id: TransactionId(123),
+                transaction_id: TransactionId(I32::new(123)),
             };
 
             // client.send() return usize, but doesn't use here
