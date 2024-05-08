@@ -15,7 +15,6 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-config = "0"
 derive_more = "0"
 figment = { version = "0.10.18", features = ["env", "test", "toml"] }
 serde = { version = "1", features = ["derive"] }

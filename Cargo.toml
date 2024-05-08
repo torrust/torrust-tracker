@@ -39,7 +39,6 @@ axum-extra = { version = "0", features = ["query"] }
 axum-server = { version = "0", features = ["tls-rustls"] }
 chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
-config = "0"
 crossbeam-skiplist = "0.1"
 dashmap = "5.5.3"
 derive_more = "0"
@@ -80,7 +79,7 @@ uuid = { version = "1", features = ["v4"] }
 zerocopy = "0.7.33"
 
 [package.metadata.cargo-machete]
-ignored = ["crossbeam-skiplist", "dashmap", "parking_lot", "serde_bytes"]
+ignored = ["crossbeam-skiplist", "dashmap", "figment", "parking_lot", "serde_bytes"]
 
 [dev-dependencies]
 local-ip-address = "0"
