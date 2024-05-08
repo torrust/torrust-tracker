@@ -383,21 +383,6 @@ impl Configuration {
         }
     }
 
-    /// Loads the configuration from the configuration file.
-    ///
-    /// # Errors
-    ///
-    /// Will return `Err` if `path` does not exist or has a bad configuration.    
-    pub fn load_from_file(path: &str) -> Result<Configuration, Error> {
-        let figment = Figment::new()
-            .merge(Toml::file(path))
-            .merge(Env::prefixed("TORRUST_TRACKER_"));
-
-        let config: Configuration = figment.extract()?;
-
-        Ok(config)
-    }
-
     /// Saves the default configuration at the given path.
     ///
     /// # Errors
@@ -459,6 +444,7 @@ impl Configuration {
 mod tests {
 
     use crate::v1::Configuration;
+    use crate::Info;
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -550,10 +536,13 @@ mod tests {
 
     #[test]
     fn configuration_should_be_loaded_from_a_toml_config_file() {
-        figment::Jail::expect_with(|jail| {
-            jail.create_file("tracker.toml", &default_config_toml())?;
+        figment::Jail::expect_with(|_jail| {
+            let info = Info {
+                tracker_toml: default_config_toml(),
+                api_admin_token: None,
+            };
 
-            let configuration = Configuration::load_from_file("tracker.toml").expect("Could not load configuration from file");
+            let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
             assert_eq!(configuration, Configuration::default());
 
@@ -564,11 +553,14 @@ mod tests {
     #[test]
     fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin() {
         figment::Jail::expect_with(|jail| {
-            jail.create_file("tracker.toml", &default_config_toml())?;
-
             jail.set_env("TORRUST_TRACKER_HTTP_API.ACCESS_TOKENS.ADMIN", "NewToken");
 
-            let configuration = Configuration::load_from_file("tracker.toml").expect("Could not load configuration from file");
+            let info = Info {
+                tracker_toml: default_config_toml(),
+                api_admin_token: None,
+            };
+
+            let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
             assert_eq!(
                 configuration.http_api.access_tokens.get("admin"),
