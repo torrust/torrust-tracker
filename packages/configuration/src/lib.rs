@@ -10,10 +10,9 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::{env, fs};
 
-use config::ConfigError;
 use derive_more::Constructor;
 use thiserror::Error;
-use torrust_tracker_located_error::{DynError, Located, LocatedError};
+use torrust_tracker_located_error::{DynError, LocatedError};
 
 /// The maximum number of returned peers for a torrent.
 pub const TORRENT_PEERS_LIMIT: usize = 74;
@@ -142,17 +141,19 @@ pub enum Error {
 
     /// Unable to load the configuration from the configuration file.
     #[error("Failed processing the configuration: {source}")]
-    ConfigError { source: LocatedError<'static, ConfigError> },
+    ConfigError {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
 
     #[error("The error for errors that can never happen.")]
     Infallible,
 }
 
-impl From<ConfigError> for Error {
+impl From<figment::Error> for Error {
     #[track_caller]
-    fn from(err: ConfigError) -> Self {
+    fn from(err: figment::Error) -> Self {
         Self::ConfigError {
-            source: Located(err).into(),
+            source: (Arc::new(err) as DynError).into(),
         }
     }
 }
