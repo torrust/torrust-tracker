@@ -31,8 +31,37 @@ pub struct HttpApi {
     pub access_tokens: AccessTokens,
 }
 
+impl Default for HttpApi {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            bind_address: String::from("127.0.0.1:1212"),
+            ssl_enabled: false,
+            ssl_cert_path: None,
+            ssl_key_path: None,
+            access_tokens: [(String::from("admin"), String::from("MyAccessToken"))]
+                .iter()
+                .cloned()
+                .collect(),
+        }
+    }
+}
+
 impl HttpApi {
     pub fn override_admin_token(&mut self, api_admin_token: &str) {
         self.access_tokens.insert("admin".to_string(), api_admin_token.to_string());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::v1::tracker_api::HttpApi;
+
+    #[test]
+    fn http_api_configuration_should_check_if_it_contains_a_token() {
+        let configuration = HttpApi::default();
+
+        assert!(configuration.access_tokens.values().any(|t| t == "MyAccessToken"));
+        assert!(!configuration.access_tokens.values().any(|t| t == "NonExistingToken"));
     }
 }
