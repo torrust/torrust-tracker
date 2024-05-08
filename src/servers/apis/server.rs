@@ -132,7 +132,7 @@ impl Drop for ApiHandle {
 }
 
 #[derive(Constructor, Clone, Debug, Display)]
-#[display(fmt = "intended_address: {addr}, with tracker, {access_tokens}, and  {}", "self.have_tls()")]
+#[display(fmt = "intended_address: {addr}, with tracker, tokens, and  {}", "self.have_tls()")]
 pub struct ApiLauncher {
     pub tracker: Arc<Tracker>,
     pub access_tokens: Arc<AccessTokens>,

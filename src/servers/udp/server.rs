@@ -27,7 +27,7 @@ use ringbuf::StaticRb;
 use tokio::net::UdpSocket;
 use tokio::select;
 use tokio::task::AbortHandle;
-use torrust_tracker_configuration::MAX_PACKET_SIZE;
+use torrust_tracker_configuration::UDP_MAX_PACKET_SIZE;
 use tracing::{debug, error, info, instrument, trace, warn, Level};
 
 use super::v0::UdpRequest;
@@ -260,7 +260,7 @@ impl Udp {
 
     #[instrument(skip(self))]
     async fn receive_request(&self) -> Result<UdpRequest, Error> {
-        let mut payload = Vec::with_capacity(MAX_PACKET_SIZE);
+        let mut payload = Vec::with_capacity(UDP_MAX_PACKET_SIZE);
 
         let (len, from) = self
             .socket
@@ -328,7 +328,7 @@ async fn fulfil_request(tracker: Arc<Tracker>, socket: Arc<UdpSocket>, addr: Soc
 
 #[instrument]
 fn get_response_payload(response: &aquatic_udp_protocol::Response) -> Vec<u8> {
-    let buffer = vec![0u8; MAX_PACKET_SIZE];
+    let buffer = vec![0u8; UDP_MAX_PACKET_SIZE];
     let mut cursor = std::io::Cursor::new(buffer);
 
     let () = response

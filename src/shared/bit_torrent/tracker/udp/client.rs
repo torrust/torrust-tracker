@@ -7,7 +7,7 @@ use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Request, Response, T
 use derive_more::{AsRef, Constructor, From, Into};
 use tokio::net::UdpSocket;
 use tokio::time;
-use torrust_tracker_configuration::{CLIENT_TIMEOUT_DEFAULT, MAX_PACKET_SIZE, PORT_ASSIGNED_BY_OS};
+use torrust_tracker_configuration::{CLIENT_TIMEOUT_DEFAULT, PORT_ASSIGNED_BY_OS, UDP_MAX_PACKET_SIZE};
 use tracing::debug;
 
 use super::{source_address, Error};
@@ -200,7 +200,7 @@ impl Client {
         debug!(target: "UDP tracker client", "send request {request:?}");
 
         // Write request into a buffer
-        let request_buffer = vec![0u8; MAX_PACKET_SIZE];
+        let request_buffer = vec![0u8; UDP_MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(request_buffer);
 
         request
@@ -222,7 +222,7 @@ impl Client {
     ///
     /// Will error if can't create response from the received payload (bytes buffer).
     pub async fn receive_response(&self) -> Result<Response, Error> {
-        let mut response_buffer = [0u8; MAX_PACKET_SIZE];
+        let mut response_buffer = [0u8; UDP_MAX_PACKET_SIZE];
 
         let payload_size = self.receive(&mut response_buffer).await?;
 

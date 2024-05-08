@@ -32,7 +32,7 @@ pub fn config() -> (Configuration, Level) {
     let config = initialize_configuration();
 
     let level: Level = config
-        .trace_level
+        .log_level
         .as_deref()
         .unwrap_or("info")
         .parse()

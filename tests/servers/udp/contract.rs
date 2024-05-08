@@ -5,18 +5,18 @@
 
 use aquatic_udp_protocol::Response;
 use torrust_tracker::shared::bit_torrent::tracker::udp::Client;
-use torrust_tracker_configuration::{CLIENT_TIMEOUT_DEFAULT, MAX_PACKET_SIZE};
+use torrust_tracker_configuration::{CLIENT_TIMEOUT_DEFAULT, UDP_MAX_PACKET_SIZE};
 use torrust_tracker_test_helpers::configuration;
 
 use crate::common::udp::Started;
 use crate::servers::udp::asserts::is_error_response;
 
-fn empty_udp_request() -> [u8; MAX_PACKET_SIZE] {
-    [0; MAX_PACKET_SIZE]
+fn empty_udp_request() -> [u8; UDP_MAX_PACKET_SIZE] {
+    [0; UDP_MAX_PACKET_SIZE]
 }
 
-fn empty_buffer() -> [u8; MAX_PACKET_SIZE] {
-    [0; MAX_PACKET_SIZE]
+fn empty_buffer() -> [u8; UDP_MAX_PACKET_SIZE] {
+    [0; UDP_MAX_PACKET_SIZE]
 }
 
 #[tokio::test]

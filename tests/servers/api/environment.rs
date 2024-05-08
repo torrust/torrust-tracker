@@ -99,7 +99,7 @@ impl Environment<Started<ApiHandle>> {
     pub fn get_connection_info(&self) -> ConnectionInfo {
         ConnectionInfo {
             bind_address: self.bind_address().to_string(),
-            api_token: self.config.access_tokens.as_ref().get("admin").cloned(),
+            api_token: self.config.access_tokens.get("admin").cloned(),
         }
     }
 }

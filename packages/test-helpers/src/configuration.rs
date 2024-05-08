@@ -28,7 +28,7 @@ pub fn ephemeral() -> Configuration {
     // For example: a test for the UDP tracker should disable the API and HTTP tracker.
 
     let mut config = Configuration {
-        trace_level: Some("off".to_owned()), // Change to `debug` for tests debugging
+        log_level: Some("off".to_owned()), // Change to `debug` for tests debugging
         ..Default::default()
     };
 
