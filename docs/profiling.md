@@ -79,7 +79,7 @@ Loading configuration file: `./share/default/config/tracker.udp.benchmarking.tom
 
 And some bars in the graph  will have the `unknown` label.
 
-![flamegraph generated without sudo](./media/flamegraph_generated_withput_sudo.svg)
+![flamegraph generated without sudo](./media/flamegraph_generated_without_sudo.svg)
 
 ## Using valgrind and kcachegrind
 
