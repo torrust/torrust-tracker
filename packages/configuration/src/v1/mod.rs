@@ -239,7 +239,7 @@ use std::fs;
 use std::net::IpAddr;
 use std::str::FromStr;
 
-use figment::providers::{Format, Toml};
+use figment::providers::{Env, Format, Toml};
 use figment::Figment;
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
@@ -400,6 +400,16 @@ impl Configuration {
     /// Will return `Err` if `path` does not exist or has a bad configuration.    
     pub fn load_from_file(path: &str) -> Result<Configuration, Error> {
         let figment = Figment::new().merge(Toml::file(path));
+        //.merge(Env::prefixed("TORRUST_TRACKER_"));
+
+        // code-review: merging values from env vars makes the test
+        // "configuration_should_be_loaded_from_a_toml_config_file" fail.
+        //
+        // It's because this line in a new test:
+        //
+        // jail.set_env("TORRUST_TRACKER_HTTP_API.ACCESS_TOKENS.ADMIN", "NewToken");
+        //
+        // It seems env vars are shared between tests.
 
         let config: Configuration = figment.extract()?;
 
@@ -427,7 +437,9 @@ impl Configuration {
     ///
     /// Will return `Err` if the environment variable does not exist or has a bad configuration.
     pub fn load(info: &Info) -> Result<Configuration, Error> {
-        let figment = Figment::new().merge(Toml::string(&info.tracker_toml));
+        let figment = Figment::new()
+            .merge(Toml::string(&info.tracker_toml))
+            .merge(Env::prefixed("TORRUST_TRACKER_"));
 
         let mut config: Configuration = figment.extract()?;
 
@@ -463,62 +475,94 @@ impl Configuration {
 
 #[cfg(test)]
 mod tests {
-    use figment::providers::{Format, Toml};
+    use figment::providers::{Env, Format, Toml};
     use figment::Figment;
 
     use crate::v1::Configuration;
 
+    #[cfg(test)]
+    fn default_config_toml() -> String {
+        let config = r#"log_level = "info"
+                                mode = "public"
+                                db_driver = "Sqlite3"
+                                db_path = "./storage/tracker/lib/database/sqlite3.db"
+                                announce_interval = 120
+                                min_announce_interval = 120
+                                on_reverse_proxy = false
+                                external_ip = "0.0.0.0"
+                                tracker_usage_statistics = true
+                                persistent_torrent_completed_stat = false
+                                max_peer_timeout = 900
+                                inactive_peer_cleanup_interval = 600
+                                remove_peerless_torrents = true
+
+                                [[udp_trackers]]
+                                enabled = false
+                                bind_address = "0.0.0.0:6969"
+
+                                [[http_trackers]]
+                                enabled = false
+                                bind_address = "0.0.0.0:7070"
+                                ssl_enabled = false
+                                ssl_cert_path = ""
+                                ssl_key_path = ""
+
+                                [http_api]
+                                enabled = true
+                                bind_address = "127.0.0.1:1212"
+                                ssl_enabled = false
+                                ssl_cert_path = ""
+                                ssl_key_path = ""
+
+                                [http_api.access_tokens]
+                                admin = "MyAccessToken"
+
+                                [health_check_api]
+                                bind_address = "127.0.0.1:1313"
+        "#
+        .lines()
+        .map(str::trim_start)
+        .collect::<Vec<&str>>()
+        .join("\n");
+        config
+    }
+
     #[test]
     fn configuration_should_be_loaded_from_a_toml_config_file() {
         figment::Jail::expect_with(|jail| {
-            jail.create_file(
-                "Config.toml",
-                r#"
-                log_level = "info"
-                mode = "public"
-                db_driver = "Sqlite3"
-                db_path = "./storage/tracker/lib/database/sqlite3.db"
-                announce_interval = 120
-                min_announce_interval = 120
-                on_reverse_proxy = false
-                external_ip = "0.0.0.0"
-                tracker_usage_statistics = true
-                persistent_torrent_completed_stat = false
-                max_peer_timeout = 900
-                inactive_peer_cleanup_interval = 600
-                remove_peerless_torrents = true
-                
-                [[udp_trackers]]
-                enabled = false
-                bind_address = "0.0.0.0:6969"
-                
-                [[http_trackers]]
-                enabled = false
-                bind_address = "0.0.0.0:7070"
-                ssl_enabled = false
-                ssl_cert_path = ""
-                ssl_key_path = ""
-                
-                [http_api]
-                enabled = true
-                bind_address = "127.0.0.1:1212"
-                ssl_enabled = false
-                ssl_cert_path = ""
-                ssl_key_path = ""
-                
-                [http_api.access_tokens]
-                admin = "MyAccessToken"
+            jail.create_file("Config.toml", &default_config_toml())?;
 
-                [health_check_api]
-                bind_address = "127.0.0.1:1313"
-                "#,
-            )?;
-
-            let figment = Figment::new().merge(Toml::file("Config.toml"));
+            // todo: replace with Configuration method
+            let figment = Figment::new()
+                .merge(Toml::file("Config.toml"))
+                .merge(Env::prefixed("TORRUST_TRACKER_"));
 
             let config: Configuration = figment.extract()?;
 
             assert_eq!(config, Configuration::default());
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin() {
+        figment::Jail::expect_with(|jail| {
+            jail.create_file("Config.toml", &default_config_toml())?;
+
+            jail.set_env("TORRUST_TRACKER_HTTP_API.ACCESS_TOKENS.ADMIN", "NewToken");
+
+            // todo: replace with Configuration method
+            let figment = Figment::new()
+                .merge(Toml::file("Config.toml"))
+                .merge(Env::prefixed("TORRUST_TRACKER_"));
+
+            let config: Configuration = figment.extract()?;
+
+            assert_eq!(
+                config.http_api.access_tokens.get("admin"),
+                Some("NewToken".to_owned()).as_ref()
+            );
 
             Ok(())
         });
