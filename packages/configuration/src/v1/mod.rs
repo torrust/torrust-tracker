@@ -1,4 +1,5 @@
-//! Configuration data structures for [Torrust Tracker](https://docs.rs/torrust-tracker).
+//! Version `1` for [Torrust Tracker](https://docs.rs/torrust-tracker)
+//! configuration data structures.
 //!
 //! This module contains the configuration data structures for the
 //! Torrust Tracker, which is a `BitTorrent` tracker server.
@@ -234,6 +235,11 @@ pub mod http_tracker;
 pub mod tracker_api;
 pub mod udp_tracker;
 
+use std::fs;
+use std::net::IpAddr;
+use std::str::FromStr;
+
+use config::{Config, File, FileFormat};
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
 
@@ -241,7 +247,7 @@ use self::health_check_api::HealthCheckApi;
 use self::http_tracker::HttpTracker;
 use self::tracker_api::HttpApi;
 use self::udp_tracker::UdpTracker;
-use crate::AnnouncePolicy;
+use crate::{AnnouncePolicy, Error, Info};
 
 /// Core configuration for the tracker.
 #[allow(clippy::struct_excessive_bools)]
@@ -365,6 +371,105 @@ impl Default for Configuration {
             ssl_key_path: None,
         });
         configuration
+    }
+}
+
+impl Configuration {
+    fn override_api_admin_token(&mut self, api_admin_token: &str) {
+        self.http_api.override_admin_token(api_admin_token);
+    }
+
+    /// Returns the tracker public IP address id defined in the configuration,
+    /// and `None` otherwise.
+    #[must_use]
+    pub fn get_ext_ip(&self) -> Option<IpAddr> {
+        match &self.external_ip {
+            None => None,
+            Some(external_ip) => match IpAddr::from_str(external_ip) {
+                Ok(external_ip) => Some(external_ip),
+                Err(_) => None,
+            },
+        }
+    }
+
+    /// Loads the configuration from the configuration file.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if `path` does not exist or has a bad configuration.    
+    pub fn load_from_file(path: &str) -> Result<Configuration, Error> {
+        // todo: use Figment
+
+        let config_builder = Config::builder();
+
+        #[allow(unused_assignments)]
+        let mut config = Config::default();
+
+        config = config_builder.add_source(File::with_name(path)).build()?;
+
+        let torrust_config: Configuration = config.try_deserialize()?;
+
+        Ok(torrust_config)
+    }
+
+    /// Saves the default configuration at the given path.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if `path` is not a valid path or the configuration
+    /// file cannot be created.
+    pub fn create_default_configuration_file(path: &str) -> Result<Configuration, Error> {
+        // todo: use Figment
+
+        let config = Configuration::default();
+        config.save_to_file(path)?;
+        Ok(config)
+    }
+
+    /// Loads the configuration from the `Info` struct. The whole
+    /// configuration in toml format is included in the `info.tracker_toml` string.
+    ///
+    /// Optionally will override the admin api token.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the environment variable does not exist or has a bad configuration.
+    pub fn load(info: &Info) -> Result<Configuration, Error> {
+        // todo: use Figment
+
+        let config_builder = Config::builder()
+            .add_source(File::from_str(&info.tracker_toml, FileFormat::Toml))
+            .build()?;
+        let mut config: Configuration = config_builder.try_deserialize()?;
+
+        if let Some(ref token) = info.api_admin_token {
+            config.override_api_admin_token(token);
+        };
+
+        Ok(config)
+    }
+
+    /// Saves the configuration to the configuration file.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if `filename` does not exist or the user does not have
+    /// permission to read it. Will also return `Err` if the configuration is
+    /// not valid or cannot be encoded to TOML.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the configuration cannot be written into the file.
+    pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
+        // todo: use Figment
+
+        fs::write(path, self.to_toml()).expect("Could not write to file!");
+        Ok(())
+    }
+
+    /// Encodes the configuration to TOML.
+    fn to_toml(&self) -> String {
+        toml::to_string(self).expect("Could not encode TOML value")
     }
 }
 

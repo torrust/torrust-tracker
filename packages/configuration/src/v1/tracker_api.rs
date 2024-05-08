@@ -30,3 +30,9 @@ pub struct HttpApi {
     /// the all permissions.
     pub access_tokens: AccessTokens,
 }
+
+impl HttpApi {
+    pub fn override_admin_token(&mut self, api_admin_token: &str) {
+        self.access_tokens.insert("admin".to_string(), api_admin_token.to_string());
+    }
+}
