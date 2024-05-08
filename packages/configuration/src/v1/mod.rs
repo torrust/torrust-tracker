@@ -345,17 +345,7 @@ impl Default for Configuration {
             remove_peerless_torrents: true,
             udp_trackers: Vec::new(),
             http_trackers: Vec::new(),
-            http_api: HttpApi {
-                enabled: true,
-                bind_address: String::from("127.0.0.1:1212"),
-                ssl_enabled: false,
-                ssl_cert_path: None,
-                ssl_key_path: None,
-                access_tokens: [(String::from("admin"), String::from("MyAccessToken"))]
-                    .iter()
-                    .cloned()
-                    .collect(),
-            },
+            http_api: HttpApi::default(),
             health_check_api: HealthCheckApi {
                 bind_address: String::from("127.0.0.1:1313"),
             },
@@ -399,17 +389,9 @@ impl Configuration {
     ///
     /// Will return `Err` if `path` does not exist or has a bad configuration.    
     pub fn load_from_file(path: &str) -> Result<Configuration, Error> {
-        let figment = Figment::new().merge(Toml::file(path));
-        //.merge(Env::prefixed("TORRUST_TRACKER_"));
-
-        // code-review: merging values from env vars makes the test
-        // "configuration_should_be_loaded_from_a_toml_config_file" fail.
-        //
-        // It's because this line in a new test:
-        //
-        // jail.set_env("TORRUST_TRACKER_HTTP_API.ACCESS_TOKENS.ADMIN", "NewToken");
-        //
-        // It seems env vars are shared between tests.
+        let figment = Figment::new()
+            .merge(Toml::file(path))
+            .merge(Env::prefixed("TORRUST_TRACKER_"));
 
         let config: Configuration = figment.extract()?;
 
@@ -475,8 +457,6 @@ impl Configuration {
 
 #[cfg(test)]
 mod tests {
-    use figment::providers::{Env, Format, Toml};
-    use figment::Figment;
 
     use crate::v1::Configuration;
 
@@ -528,18 +508,54 @@ mod tests {
     }
 
     #[test]
+    fn configuration_should_have_default_values() {
+        let configuration = Configuration::default();
+
+        let toml = toml::to_string(&configuration).expect("Could not encode TOML value");
+
+        assert_eq!(toml, default_config_toml());
+    }
+
+    #[test]
+    fn configuration_should_contain_the_external_ip() {
+        let configuration = Configuration::default();
+
+        assert_eq!(configuration.external_ip, Some(String::from("0.0.0.0")));
+    }
+
+    #[test]
+    fn configuration_should_be_saved_in_a_toml_config_file() {
+        use std::{env, fs};
+
+        use uuid::Uuid;
+
+        // Build temp config file path
+        let temp_directory = env::temp_dir();
+        let temp_file = temp_directory.join(format!("test_config_{}.toml", Uuid::new_v4()));
+
+        // Convert to argument type for Configuration::save_to_file
+        let config_file_path = temp_file;
+        let path = config_file_path.to_string_lossy().to_string();
+
+        let default_configuration = Configuration::default();
+
+        default_configuration
+            .save_to_file(&path)
+            .expect("Could not save configuration to file");
+
+        let contents = fs::read_to_string(&path).expect("Something went wrong reading the file");
+
+        assert_eq!(contents, default_config_toml());
+    }
+
+    #[test]
     fn configuration_should_be_loaded_from_a_toml_config_file() {
         figment::Jail::expect_with(|jail| {
-            jail.create_file("Config.toml", &default_config_toml())?;
+            jail.create_file("tracker.toml", &default_config_toml())?;
 
-            // todo: replace with Configuration method
-            let figment = Figment::new()
-                .merge(Toml::file("Config.toml"))
-                .merge(Env::prefixed("TORRUST_TRACKER_"));
+            let configuration = Configuration::load_from_file("tracker.toml").expect("Could not load configuration from file");
 
-            let config: Configuration = figment.extract()?;
-
-            assert_eq!(config, Configuration::default());
+            assert_eq!(configuration, Configuration::default());
 
             Ok(())
         });
@@ -548,19 +564,14 @@ mod tests {
     #[test]
     fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin() {
         figment::Jail::expect_with(|jail| {
-            jail.create_file("Config.toml", &default_config_toml())?;
+            jail.create_file("tracker.toml", &default_config_toml())?;
 
             jail.set_env("TORRUST_TRACKER_HTTP_API.ACCESS_TOKENS.ADMIN", "NewToken");
 
-            // todo: replace with Configuration method
-            let figment = Figment::new()
-                .merge(Toml::file("Config.toml"))
-                .merge(Env::prefixed("TORRUST_TRACKER_"));
-
-            let config: Configuration = figment.extract()?;
+            let configuration = Configuration::load_from_file("tracker.toml").expect("Could not load configuration from file");
 
             assert_eq!(
-                config.http_api.access_tokens.get("admin"),
+                configuration.http_api.access_tokens.get("admin"),
                 Some("NewToken".to_owned()).as_ref()
             );
 
