@@ -239,7 +239,8 @@ use std::fs;
 use std::net::IpAddr;
 use std::str::FromStr;
 
-use config::{Config, File, FileFormat};
+use figment::providers::{Format, Toml};
+use figment::Figment;
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
 
@@ -398,18 +399,11 @@ impl Configuration {
     ///
     /// Will return `Err` if `path` does not exist or has a bad configuration.    
     pub fn load_from_file(path: &str) -> Result<Configuration, Error> {
-        // todo: use Figment
+        let figment = Figment::new().merge(Toml::file(path));
 
-        let config_builder = Config::builder();
+        let config: Configuration = figment.extract()?;
 
-        #[allow(unused_assignments)]
-        let mut config = Config::default();
-
-        config = config_builder.add_source(File::with_name(path)).build()?;
-
-        let torrust_config: Configuration = config.try_deserialize()?;
-
-        Ok(torrust_config)
+        Ok(config)
     }
 
     /// Saves the default configuration at the given path.
@@ -419,8 +413,6 @@ impl Configuration {
     /// Will return `Err` if `path` is not a valid path or the configuration
     /// file cannot be created.
     pub fn create_default_configuration_file(path: &str) -> Result<Configuration, Error> {
-        // todo: use Figment
-
         let config = Configuration::default();
         config.save_to_file(path)?;
         Ok(config)
@@ -435,12 +427,9 @@ impl Configuration {
     ///
     /// Will return `Err` if the environment variable does not exist or has a bad configuration.
     pub fn load(info: &Info) -> Result<Configuration, Error> {
-        // todo: use Figment
+        let figment = Figment::new().merge(Toml::string(&info.tracker_toml));
 
-        let config_builder = Config::builder()
-            .add_source(File::from_str(&info.tracker_toml, FileFormat::Toml))
-            .build()?;
-        let mut config: Configuration = config_builder.try_deserialize()?;
+        let mut config: Configuration = figment.extract()?;
 
         if let Some(ref token) = info.api_admin_token {
             config.override_api_admin_token(token);
@@ -461,14 +450,13 @@ impl Configuration {
     ///
     /// Will panic if the configuration cannot be written into the file.
     pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
-        // todo: use Figment
-
         fs::write(path, self.to_toml()).expect("Could not write to file!");
         Ok(())
     }
 
     /// Encodes the configuration to TOML.
     fn to_toml(&self) -> String {
+        // code-review: do we need to use Figment also to serialize into toml?
         toml::to_string(self).expect("Could not encode TOML value")
     }
 }
