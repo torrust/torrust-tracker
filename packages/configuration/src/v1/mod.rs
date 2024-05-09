@@ -406,7 +406,7 @@ impl Configuration {
     pub fn load(info: &Info) -> Result<Configuration, Error> {
         let figment = Figment::new()
             .merge(Toml::string(&info.tracker_toml))
-            .merge(Env::prefixed("TORRUST_TRACKER_"));
+            .merge(Env::prefixed("TORRUST_TRACKER__").split("__"));
 
         let mut config: Configuration = figment.extract()?;
 
@@ -553,7 +553,7 @@ mod tests {
     #[test]
     fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin() {
         figment::Jail::expect_with(|jail| {
-            jail.set_env("TORRUST_TRACKER_HTTP_API.ACCESS_TOKENS.ADMIN", "NewToken");
+            jail.set_env("TORRUST_TRACKER__HTTP_API__ACCESS_TOKENS__ADMIN", "NewToken");
 
             let info = Info {
                 tracker_toml: default_config_toml(),
