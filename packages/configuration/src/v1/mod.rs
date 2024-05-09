@@ -239,7 +239,7 @@ use std::fs;
 use std::net::IpAddr;
 use std::str::FromStr;
 
-use figment::providers::{Env, Format, Toml};
+use figment::providers::{Env, Format, Serialized, Toml};
 use figment::Figment;
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
@@ -393,7 +393,7 @@ impl Configuration {
     ///
     /// Will return `Err` if the environment variable does not exist or has a bad configuration.
     pub fn load(info: &Info) -> Result<Configuration, Error> {
-        let figment = Figment::new()
+        let figment = Figment::from(Serialized::defaults(Configuration::default()))
             .merge(Toml::string(&info.tracker_toml))
             .merge(Env::prefixed("TORRUST_TRACKER__").split("__"));
 
@@ -521,6 +521,24 @@ mod tests {
         let contents = fs::read_to_string(&path).expect("Something went wrong reading the file");
 
         assert_eq!(contents, default_config_toml());
+    }
+
+    #[test]
+    fn configuration_should_use_the_default_values_when_an_empty_configuration_is_provided_by_the_user() {
+        figment::Jail::expect_with(|_jail| {
+            let empty_configuration = String::new();
+
+            let info = Info {
+                tracker_toml: empty_configuration,
+                api_admin_token: None,
+            };
+
+            let configuration = Configuration::load(&info).expect("Could not load configuration from file");
+
+            assert_eq!(configuration, Configuration::default());
+
+            Ok(())
+        });
     }
 
     #[test]
