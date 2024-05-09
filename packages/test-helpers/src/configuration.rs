@@ -1,6 +1,6 @@
 //! Tracker configuration factories for testing.
 use std::env;
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use torrust_tracker_configuration::Configuration;
 use torrust_tracker_primitives::TrackerMode;
@@ -39,7 +39,7 @@ pub fn ephemeral() -> Configuration {
 
     // Ephemeral socket address for Health Check API
     let health_check_api_port = 0u16;
-    config.health_check_api.bind_address = format!("127.0.0.1:{}", &health_check_api_port);
+    config.health_check_api.bind_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), health_check_api_port);
 
     // Ephemeral socket address for UDP tracker
     let udp_port = 0u16;

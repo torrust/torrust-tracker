@@ -23,10 +23,7 @@ impl Environment {
     pub async fn new(config: &Arc<HealthCheckApi>, registar: &Registar) -> Self {
         let registry = registar.as_ref().clone();
 
-        let addr = config
-            .bind_address
-            .parse::<std::net::SocketAddr>()
-            .expect("it should have a valid http tracker bind address");
+        let addr = config.bind_address;
 
         let form = registar.form();
 

@@ -42,7 +42,7 @@ use crate::servers::service::Service;
 #[allow(clippy::async_yields_async)]
 #[instrument(ret, fields(registar = %registar))]
 pub async fn start_job(config: &HealthCheckApi, registar: &Registar, version: Version) -> JoinHandle<()> {
-    let addr = config.bind_address.parse().expect("it should parse the binding address");
+    let addr = config.bind_address;
 
     let form = registar.form();
     let registry = registar.as_ref().clone();
