@@ -540,13 +540,32 @@ mod tests {
     }
 
     #[test]
-    fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin() {
+    fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin_with_env_var() {
         figment::Jail::expect_with(|jail| {
             jail.set_env("TORRUST_TRACKER__HTTP_API__ACCESS_TOKENS__ADMIN", "NewToken");
 
             let info = Info {
                 tracker_toml: default_config_toml(),
                 api_admin_token: None,
+            };
+
+            let configuration = Configuration::load(&info).expect("Could not load configuration from file");
+
+            assert_eq!(
+                configuration.http_api.access_tokens.get("admin"),
+                Some("NewToken".to_owned()).as_ref()
+            );
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin_with_the_deprecated_env_var_name() {
+        figment::Jail::expect_with(|_jail| {
+            let info = Info {
+                tracker_toml: default_config_toml(),
+                api_admin_token: Some("NewToken".to_owned()),
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
