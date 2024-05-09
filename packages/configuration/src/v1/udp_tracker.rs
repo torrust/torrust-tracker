@@ -10,3 +10,11 @@ pub struct UdpTracker {
     /// system to choose a random port, use port `0`.
     pub bind_address: String,
 }
+impl Default for UdpTracker {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            bind_address: String::from("0.0.0.0:6969"),
+        }
+    }
+}

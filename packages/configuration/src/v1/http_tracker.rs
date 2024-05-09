@@ -21,3 +21,15 @@ pub struct HttpTracker {
     #[serde_as(as = "NoneAsEmptyString")]
     pub ssl_key_path: Option<String>,
 }
+
+impl Default for HttpTracker {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            bind_address: String::from("0.0.0.0:7070"),
+            ssl_enabled: false,
+            ssl_cert_path: None,
+            ssl_key_path: None,
+        }
+    }
+}
