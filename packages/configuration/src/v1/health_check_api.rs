@@ -11,3 +11,11 @@ pub struct HealthCheckApi {
     /// system to choose a random port, use port `0`.
     pub bind_address: String,
 }
+
+impl Default for HealthCheckApi {
+    fn default() -> Self {
+        Self {
+            bind_address: String::from("127.0.0.1:1313"),
+        }
+    }
+}

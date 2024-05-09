@@ -346,21 +346,10 @@ impl Default for Configuration {
             udp_trackers: Vec::new(),
             http_trackers: Vec::new(),
             http_api: HttpApi::default(),
-            health_check_api: HealthCheckApi {
-                bind_address: String::from("127.0.0.1:1313"),
-            },
+            health_check_api: HealthCheckApi::default(),
         };
-        configuration.udp_trackers.push(UdpTracker {
-            enabled: false,
-            bind_address: String::from("0.0.0.0:6969"),
-        });
-        configuration.http_trackers.push(HttpTracker {
-            enabled: false,
-            bind_address: String::from("0.0.0.0:7070"),
-            ssl_enabled: false,
-            ssl_cert_path: None,
-            ssl_key_path: None,
-        });
+        configuration.udp_trackers.push(UdpTracker::default());
+        configuration.http_trackers.push(HttpTracker::default());
         configuration
     }
 }
