@@ -33,10 +33,7 @@ pub struct Environment<S> {
 
 impl Environment<Stopped> {
     pub fn new(config: &Arc<HealthCheckApi>, registar: Registar) -> Self {
-        let bind_to = config
-            .bind_address
-            .parse::<std::net::SocketAddr>()
-            .expect("Tracker API bind_address invalid.");
+        let bind_to = config.bind_address;
 
         Self {
             registar,
