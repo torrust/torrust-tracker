@@ -24,7 +24,7 @@ pub fn tracker_factory(config: &Configuration) -> Tracker {
     let (stats_event_sender, stats_repository) = statistics::setup::factory(config.core.tracker_usage_statistics);
 
     // Initialize Torrust tracker
-    match Tracker::new(&Arc::new(config), stats_event_sender, stats_repository) {
+    match Tracker::new(&Arc::new(config).core, stats_event_sender, stats_repository) {
         Ok(tracker) => tracker,
         Err(error) => {
             panic!("{}", error)
