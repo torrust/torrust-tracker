@@ -14,13 +14,24 @@
 use std::sync::Arc;
 
 use torrust_tracker_clock::static_time;
-use torrust_tracker_configuration::Configuration;
-use tracing::Level;
+use torrust_tracker_configuration::{Configuration, LogLevel};
+use tracing::level_filters::LevelFilter;
 
 use super::config::initialize_configuration;
 use crate::core::services::tracker_factory;
 use crate::core::Tracker;
 use crate::shared::crypto::ephemeral_instance_keys;
+
+fn map_to_tracing_level_filter(log_level: &LogLevel) -> LevelFilter {
+    match log_level {
+        LogLevel::Off => LevelFilter::OFF,
+        LogLevel::Error => LevelFilter::ERROR,
+        LogLevel::Warn => LevelFilter::WARN,
+        LogLevel::Info => LevelFilter::INFO,
+        LogLevel::Debug => LevelFilter::DEBUG,
+        LogLevel::Trace => LevelFilter::TRACE,
+    }
+}
 
 /// It loads the configuration from the environment gets trace level
 ///
@@ -28,15 +39,13 @@ use crate::shared::crypto::ephemeral_instance_keys;
 ///
 /// It will panic if the tracing level is malformed in the configuration.
 #[must_use]
-pub fn config() -> (Configuration, Level) {
+pub fn config() -> (Configuration, LevelFilter) {
     let config = initialize_configuration();
 
-    let level: Level = config
-        .log_level
-        .as_deref()
-        .unwrap_or("info")
-        .parse()
-        .expect("its should provide a valid value for the log level");
+    let level: LevelFilter = match &config.log_level {
+        None => LevelFilter::INFO,
+        Some(level) => map_to_tracing_level_filter(level),
+    };
 
     (config, level)
 }

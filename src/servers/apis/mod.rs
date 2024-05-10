@@ -130,8 +130,8 @@
 //! > **NOTICE**: You can generate a self-signed certificate for localhost using
 //! OpenSSL. See [Let's Encrypt](https://letsencrypt.org/docs/certificates-for-localhost/).
 //! That's particularly useful for testing purposes. Once you have the certificate
-//! you need to set the [`ssl_cert_path`](torrust_tracker_configuration::HttpApi::ssl_cert_path)
-//! and [`ssl_key_path`](torrust_tracker_configuration::HttpApi::ssl_key_path)
+//! you need to set the [`ssl_cert_path`](torrust_tracker_configuration::HttpApi::tsl_config.ssl_cert_path)
+//! and [`ssl_key_path`](torrust_tracker_configuration::HttpApi::tsl_config.ssl_key_path)
 //! options in the configuration file with the paths to the certificate
 //! (`localhost.crt`) and key (`localhost.key`) files.
 //!
