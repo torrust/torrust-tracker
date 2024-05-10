@@ -16,7 +16,7 @@
 //! the tracker will use the `X-Forwarded-For` header to get the client IP
 //! address.
 //!
-//! See [`torrust_tracker_configuration::Configuration::on_reverse_proxy`].
+//! See [`torrust_tracker_configuration::Configuration::core.on_reverse_proxy`].
 //!
 //! The tracker can also be configured to run without a reverse proxy. In this
 //! case, the tracker will use the IP address from the connection info.

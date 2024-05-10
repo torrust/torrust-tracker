@@ -426,7 +426,7 @@ mod tests {
         }
 
         pub fn with_external_ip(mut self, external_ip: &str) -> Self {
-            self.configuration.external_ip = Some(external_ip.to_owned().parse().expect("valid IP address"));
+            self.configuration.core.external_ip = Some(external_ip.to_owned().parse().expect("valid IP address"));
             self
         }
 

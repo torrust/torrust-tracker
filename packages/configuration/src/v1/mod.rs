@@ -78,7 +78,7 @@
 //!
 //! Alternatively, you could setup a reverse proxy like Nginx or Apache to
 //! handle the SSL/TLS part and forward the requests to the tracker. If you do
-//! that, you should set [`on_reverse_proxy`](crate::Configuration::on_reverse_proxy)
+//! that, you should set [`on_reverse_proxy`](crate::v1::core::Core::on_reverse_proxy)
 //! to `true` in the configuration file. It's out of scope for this
 //! documentation to explain in detail how to setup a reverse proxy, but the
 //! configuration file should be something like this:
@@ -230,86 +230,32 @@
 //! [health_check_api]
 //! bind_address = "127.0.0.1:1313"
 //!```
+pub mod core;
 pub mod health_check_api;
 pub mod http_tracker;
 pub mod tracker_api;
 pub mod udp_tracker;
 
 use std::fs;
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::IpAddr;
 
 use figment::providers::{Env, Format, Serialized, Toml};
 use figment::Figment;
 use serde::{Deserialize, Serialize};
-use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
 
+use self::core::Core;
 use self::health_check_api::HealthCheckApi;
 use self::http_tracker::HttpTracker;
 use self::tracker_api::HttpApi;
 use self::udp_tracker::UdpTracker;
-use crate::{AnnouncePolicy, Error, Info, LogLevel};
+use crate::{Error, Info};
 
 /// Core configuration for the tracker.
-#[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
-    /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
-    /// `Debug` and `Trace`. Default is `Info`.
-    pub log_level: Option<LogLevel>,
-    /// Tracker mode. See [`TrackerMode`] for more information.
-    pub mode: TrackerMode,
-
-    // Database configuration
-    /// Database driver. Possible values are: `Sqlite3`, and `MySQL`.
-    pub db_driver: DatabaseDriver,
-    /// Database connection string. The format depends on the database driver.
-    /// For `Sqlite3`, the format is `path/to/database.db`, for example:
-    /// `./storage/tracker/lib/database/sqlite3.db`.
-    /// For `Mysql`, the format is `mysql://db_user:db_user_password:port/db_name`, for
-    /// example: `root:password@localhost:3306/torrust`.
-    pub db_path: String,
-
-    /// See [`AnnouncePolicy::interval`]
-    pub announce_interval: u32,
-
-    /// See [`AnnouncePolicy::interval_min`]
-    pub min_announce_interval: u32,
-    /// Weather the tracker is behind a reverse proxy or not.
-    /// If the tracker is behind a reverse proxy, the `X-Forwarded-For` header
-    /// sent from the proxy will be used to get the client's IP address.
-    pub on_reverse_proxy: bool,
-    /// The external IP address of the tracker. If the client is using a
-    /// loopback IP address, this IP address will be used instead. If the peer
-    /// is using a loopback IP address, the tracker assumes that the peer is
-    /// in the same network as the tracker and will use the tracker's IP
-    /// address instead.
-    pub external_ip: Option<IpAddr>,
-    /// Weather the tracker should collect statistics about tracker usage.
-    /// If enabled, the tracker will collect statistics like the number of
-    /// connections handled, the number of announce requests handled, etc.
-    /// Refer to the [`Tracker`](https://docs.rs/torrust-tracker) for more
-    /// information about the collected metrics.
-    pub tracker_usage_statistics: bool,
-    /// If enabled the tracker will persist the number of completed downloads.
-    /// That's how many times a torrent has been downloaded completely.
-    pub persistent_torrent_completed_stat: bool,
-
-    // Cleanup job configuration
-    /// Maximum time in seconds that a peer can be inactive before being
-    /// considered an inactive peer. If a peer is inactive for more than this
-    /// time, it will be removed from the torrent peer list.
-    pub max_peer_timeout: u32,
-    /// Interval in seconds that the cleanup job will run to remove inactive
-    /// peers from the torrent peer list.
-    pub inactive_peer_cleanup_interval: u64,
-    /// If enabled, the tracker will remove torrents that have no peers.
-    /// The clean up torrent job runs every `inactive_peer_cleanup_interval`
-    /// seconds and it removes inactive peers. Eventually, the peer list of a
-    /// torrent could be empty and the torrent will be removed if this option is
-    /// enabled.
-    pub remove_peerless_torrents: bool,
-
-    // Server jobs configuration
+    /// Core configuration.
+    #[serde(flatten)]
+    pub core: Core,
     /// The list of UDP trackers the tracker is running. Each UDP tracker
     /// represents a UDP server that the tracker is running and it has its own
     /// configuration.
@@ -326,30 +272,13 @@ pub struct Configuration {
 
 impl Default for Configuration {
     fn default() -> Self {
-        let announce_policy = AnnouncePolicy::default();
-
-        let mut configuration = Configuration {
-            log_level: Some(LogLevel::Info),
-            mode: TrackerMode::Public,
-            db_driver: DatabaseDriver::Sqlite3,
-            db_path: String::from("./storage/tracker/lib/database/sqlite3.db"),
-            announce_interval: announce_policy.interval,
-            min_announce_interval: announce_policy.interval_min,
-            max_peer_timeout: 900,
-            on_reverse_proxy: false,
-            external_ip: Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))),
-            tracker_usage_statistics: true,
-            persistent_torrent_completed_stat: false,
-            inactive_peer_cleanup_interval: 600,
-            remove_peerless_torrents: true,
-            udp_trackers: Vec::new(),
-            http_trackers: Vec::new(),
+        Self {
+            core: Core::default(),
+            udp_trackers: vec![UdpTracker::default()],
+            http_trackers: vec![HttpTracker::default()],
             http_api: HttpApi::default(),
             health_check_api: HealthCheckApi::default(),
-        };
-        configuration.udp_trackers.push(UdpTracker::default());
-        configuration.http_trackers.push(HttpTracker::default());
-        configuration
+        }
     }
 }
 
@@ -362,7 +291,7 @@ impl Configuration {
     /// and `None` otherwise.
     #[must_use]
     pub fn get_ext_ip(&self) -> Option<IpAddr> {
-        self.external_ip.as_ref().map(|external_ip| *external_ip)
+        self.core.external_ip.as_ref().map(|external_ip| *external_ip)
     }
 
     /// Saves the default configuration at the given path.
@@ -490,7 +419,7 @@ mod tests {
     fn configuration_should_contain_the_external_ip() {
         let configuration = Configuration::default();
 
-        assert_eq!(configuration.external_ip, Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))));
+        assert_eq!(configuration.core.external_ip, Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))));
     }
 
     #[test]

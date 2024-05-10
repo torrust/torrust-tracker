@@ -27,10 +27,9 @@ pub fn ephemeral() -> Configuration {
     // todo: disable services that are not needed.
     // For example: a test for the UDP tracker should disable the API and HTTP tracker.
 
-    let mut config = Configuration {
-        log_level: Some(LogLevel::Off), // Change to `debug` for tests debugging
-        ..Default::default()
-    };
+    let mut config = Configuration::default();
+
+    config.core.log_level = Some(LogLevel::Off); // Change to `debug` for tests debugging
 
     // Ephemeral socket address for API
     let api_port = 0u16;
@@ -55,7 +54,7 @@ pub fn ephemeral() -> Configuration {
     let temp_directory = env::temp_dir();
     let random_db_id = random::string(16);
     let temp_file = temp_directory.join(format!("data_{random_db_id}.db"));
-    temp_file.to_str().unwrap().clone_into(&mut config.db_path);
+    temp_file.to_str().unwrap().clone_into(&mut config.core.db_path);
 
     config
 }
@@ -65,7 +64,7 @@ pub fn ephemeral() -> Configuration {
 pub fn ephemeral_with_reverse_proxy() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.on_reverse_proxy = true;
+    cfg.core.on_reverse_proxy = true;
 
     cfg
 }
@@ -75,7 +74,7 @@ pub fn ephemeral_with_reverse_proxy() -> Configuration {
 pub fn ephemeral_without_reverse_proxy() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.on_reverse_proxy = false;
+    cfg.core.on_reverse_proxy = false;
 
     cfg
 }
@@ -85,7 +84,7 @@ pub fn ephemeral_without_reverse_proxy() -> Configuration {
 pub fn ephemeral_mode_public() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.mode = TrackerMode::Public;
+    cfg.core.mode = TrackerMode::Public;
 
     cfg
 }
@@ -95,7 +94,7 @@ pub fn ephemeral_mode_public() -> Configuration {
 pub fn ephemeral_mode_private() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.mode = TrackerMode::Private;
+    cfg.core.mode = TrackerMode::Private;
 
     cfg
 }
@@ -105,7 +104,7 @@ pub fn ephemeral_mode_private() -> Configuration {
 pub fn ephemeral_mode_whitelisted() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.mode = TrackerMode::Listed;
+    cfg.core.mode = TrackerMode::Listed;
 
     cfg
 }
@@ -115,7 +114,7 @@ pub fn ephemeral_mode_whitelisted() -> Configuration {
 pub fn ephemeral_mode_private_whitelisted() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.mode = TrackerMode::PrivateListed;
+    cfg.core.mode = TrackerMode::PrivateListed;
 
     cfg
 }
@@ -125,7 +124,7 @@ pub fn ephemeral_mode_private_whitelisted() -> Configuration {
 pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.external_ip = Some(ip);
+    cfg.core.external_ip = Some(ip);
 
     cfg
 }
