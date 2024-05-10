@@ -224,7 +224,7 @@ mod tests {
     use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
 
     use crate::bootstrap::app::initialize_with_configuration;
-    use crate::bootstrap::jobs::make_rust_tls;
+    use crate::bootstrap::jobs::make_rust_tls_from_path_buf;
     use crate::servers::http::server::{HttpServer, Launcher};
     use crate::servers::registar::Registar;
 
@@ -236,7 +236,7 @@ mod tests {
 
         let bind_to = config.bind_address;
 
-        let tls = make_rust_tls(
+        let tls = make_rust_tls_from_path_buf(
             config.ssl_enabled,
             &config.tsl_config.ssl_cert_path,
             &config.tsl_config.ssl_key_path,
