@@ -10,17 +10,16 @@
 //! - `Trace`
 //!
 //! Refer to the [configuration crate documentation](https://docs.rs/torrust-tracker-configuration) to know how to change log settings.
-use std::str::FromStr;
 use std::sync::Once;
 
 use log::{info, LevelFilter};
-use torrust_tracker_configuration::Configuration;
+use torrust_tracker_configuration::{Configuration, LogLevel};
 
 static INIT: Once = Once::new();
 
 /// It redirects the log info to the standard output with the log level defined in the configuration
 pub fn setup(cfg: &Configuration) {
-    let level = config_level_or_default(&cfg.log_level);
+    let level = config_level_or_default(&cfg.core.log_level);
 
     if level == log::LevelFilter::Off {
         return;
@@ -31,10 +30,17 @@ pub fn setup(cfg: &Configuration) {
     });
 }
 
-fn config_level_or_default(log_level: &Option<String>) -> LevelFilter {
+fn config_level_or_default(log_level: &Option<LogLevel>) -> LevelFilter {
     match log_level {
         None => log::LevelFilter::Info,
-        Some(level) => LevelFilter::from_str(level).unwrap(),
+        Some(level) => match level {
+            LogLevel::Off => LevelFilter::Off,
+            LogLevel::Error => LevelFilter::Error,
+            LogLevel::Warn => LevelFilter::Warn,
+            LogLevel::Info => LevelFilter::Info,
+            LogLevel::Debug => LevelFilter::Debug,
+            LogLevel::Trace => LevelFilter::Trace,
+        },
     }
 }
 

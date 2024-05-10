@@ -20,15 +20,15 @@ pub struct Started {
     pub address: std::net::SocketAddr,
 }
 
-pub async fn make_rust_tls(enabled: bool, cert: &Option<String>, key: &Option<String>) -> Option<Result<RustlsConfig, Error>> {
+pub async fn make_rust_tls(enabled: bool, tsl_config: &TslConfig) -> Option<Result<RustlsConfig, Error>> {
     if !enabled {
         info!("TLS not enabled");
         return None;
     }
 
-    if let (Some(cert), Some(key)) = (cert, key) {
+    if let (Some(cert), Some(key)) = (tsl_config.ssl_cert_path.clone(), tsl_config.ssl_key_path.clone()) {
         info!("Using https: cert path: {cert}.");
-        info!("Using https: key path: {cert}.");
+        info!("Using https: key path: {key}.");
 
         Some(
             RustlsConfig::from_pem_file(cert, key)
@@ -47,15 +47,23 @@ pub async fn make_rust_tls(enabled: bool, cert: &Option<String>, key: &Option<St
 #[cfg(test)]
 mod tests {
 
+    use camino::Utf8PathBuf;
+    use torrust_tracker_configuration::TslConfig;
+
     use super::make_rust_tls;
 
     #[tokio::test]
     async fn it_should_error_on_bad_tls_config() {
-        let (bad_cert_path, bad_key_path) = (Some("bad cert path".to_string()), Some("bad key path".to_string()));
-        let err = make_rust_tls(true, &bad_cert_path, &bad_key_path)
-            .await
-            .expect("tls_was_enabled")
-            .expect_err("bad_cert_and_key_files");
+        let err = make_rust_tls(
+            true,
+            &TslConfig {
+                ssl_cert_path: Some(Utf8PathBuf::from("bad cert path")),
+                ssl_key_path: Some(Utf8PathBuf::from("bad key path")),
+            },
+        )
+        .await
+        .expect("tls_was_enabled")
+        .expect_err("bad_cert_and_key_files");
 
         assert!(err
             .to_string()
@@ -63,11 +71,17 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_error_on_missing_tls_config() {
-        let err = make_rust_tls(true, &None, &None)
-            .await
-            .expect("tls_was_enabled")
-            .expect_err("missing_config");
+    async fn it_should_error_on_missing_cert_or_key_paths() {
+        let err = make_rust_tls(
+            true,
+            &TslConfig {
+                ssl_cert_path: None,
+                ssl_key_path: None,
+            },
+        )
+        .await
+        .expect("tls_was_enabled")
+        .expect_err("missing_config");
 
         assert_eq!(err.to_string(), "tls config missing");
     }
@@ -79,6 +93,7 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use log::info;
 use thiserror::Error;
+use torrust_tracker_configuration::TslConfig;
 use torrust_tracker_located_error::{DynError, LocatedError};
 
 /// Error returned by the Bootstrap Process.

@@ -33,13 +33,9 @@ impl Environment<Stopped> {
 
         let config = Arc::new(configuration.http_api.clone());
 
-        let bind_to = config
-            .bind_address
-            .parse::<std::net::SocketAddr>()
-            .expect("Tracker API bind_address invalid.");
+        let bind_to = config.bind_address;
 
-        let tls = block_on(make_rust_tls(config.ssl_enabled, &config.ssl_cert_path, &config.ssl_key_path))
-            .map(|tls| tls.expect("tls config failed"));
+        let tls = block_on(make_rust_tls(config.ssl_enabled, &config.tsl_config)).map(|tls| tls.expect("tls config failed"));
 
         let server = ApiServer::new(Launcher::new(bind_to, tls));
 

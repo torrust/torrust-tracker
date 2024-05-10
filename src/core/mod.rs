@@ -544,13 +544,13 @@ impl Tracker {
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
-        let database = Arc::new(databases::driver::build(&config.db_driver, &config.db_path)?);
+        let database = Arc::new(databases::driver::build(&config.core.db_driver, &config.core.db_path)?);
 
-        let mode = config.mode;
+        let mode = config.core.mode;
 
         Ok(Tracker {
             //config,
-            announce_policy: AnnouncePolicy::new(config.announce_interval, config.min_announce_interval),
+            announce_policy: AnnouncePolicy::new(config.core.announce_interval, config.core.min_announce_interval),
             mode,
             keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
             whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),
@@ -560,11 +560,11 @@ impl Tracker {
             database,
             external_ip: config.get_ext_ip(),
             policy: TrackerPolicy::new(
-                config.remove_peerless_torrents,
-                config.max_peer_timeout,
-                config.persistent_torrent_completed_stat,
+                config.core.remove_peerless_torrents,
+                config.core.max_peer_timeout,
+                config.core.persistent_torrent_completed_stat,
             ),
-            on_reverse_proxy: config.on_reverse_proxy,
+            on_reverse_proxy: config.core.on_reverse_proxy,
         })
     }
 
@@ -1033,7 +1033,7 @@ mod tests {
 
         pub fn tracker_persisting_torrents_in_database() -> Tracker {
             let mut configuration = configuration::ephemeral();
-            configuration.persistent_torrent_completed_stat = true;
+            configuration.core.persistent_torrent_completed_stat = true;
             tracker_factory(&configuration)
         }
 

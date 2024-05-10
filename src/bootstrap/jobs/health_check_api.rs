@@ -35,10 +35,7 @@ use crate::servers::signals::Halted;
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
 pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> JoinHandle<()> {
-    let bind_addr = config
-        .bind_address
-        .parse::<std::net::SocketAddr>()
-        .expect("it should have a valid health check bind address");
+    let bind_addr = config.bind_address;
 
     let (tx_start, rx_start) = oneshot::channel::<Started>();
     let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();

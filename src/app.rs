@@ -67,7 +67,7 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
         if tracker.is_private() {
             warn!(
                 "Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!",
-                udp_tracker_config.bind_address, config.mode
+                udp_tracker_config.bind_address, config.core.mode
             );
         } else {
             jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone(), registar.give_form()).await);
@@ -107,8 +107,8 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     }
 
     // Start runners to remove torrents without peers, every interval
-    if config.inactive_peer_cleanup_interval > 0 {
-        jobs.push(torrent_cleanup::start_job(config, &tracker));
+    if config.core.inactive_peer_cleanup_interval > 0 {
+        jobs.push(torrent_cleanup::start_job(&config.core, &tracker));
     }
 
     // Start Health Check API

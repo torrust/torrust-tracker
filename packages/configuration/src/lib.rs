@@ -3,14 +3,17 @@
 //! This module contains the configuration data structures for the
 //! Torrust Tracker, which is a `BitTorrent` tracker server.
 //!
-//! The current version for configuration is [`v1`](crate::v1).
+//! The current version for configuration is [`v1`].
 pub mod v1;
 
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::{env, fs};
 
+use camino::Utf8PathBuf;
 use derive_more::Constructor;
+use serde::{Deserialize, Serialize};
+use serde_with::{serde_as, NoneAsEmptyString};
 use thiserror::Error;
 use torrust_tracker_located_error::{DynError, LocatedError};
 
@@ -156,4 +159,32 @@ impl From<figment::Error> for Error {
             source: (Arc::new(err) as DynError).into(),
         }
     }
+}
+
+#[serde_as]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
+pub struct TslConfig {
+    /// Path to the SSL certificate file.
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub ssl_cert_path: Option<Utf8PathBuf>,
+    /// Path to the SSL key file.
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub ssl_key_path: Option<Utf8PathBuf>,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum LogLevel {
+    /// A level lower than all log levels.
+    Off,
+    /// Corresponds to the `Error` log level.
+    Error,
+    /// Corresponds to the `Warn` log level.
+    Warn,
+    /// Corresponds to the `Info` log level.
+    Info,
+    /// Corresponds to the `Debug` log level.
+    Debug,
+    /// Corresponds to the `Trace` log level.
+    Trace,
 }

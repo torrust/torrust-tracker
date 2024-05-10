@@ -463,19 +463,16 @@ mod tests {
         let cfg = Arc::new(ephemeral_mode_public());
         let tracker = initialize_with_configuration(&cfg);
         let config = &cfg.udp_trackers[0];
-
-        let bind_to = config
-            .bind_address
-            .parse::<std::net::SocketAddr>()
-            .expect("Tracker API bind_address invalid.");
-
+        let bind_to = config.bind_address;
         let register = &Registar::default();
 
         let stopped = UdpServer::new(Launcher::new(bind_to));
+
         let started = stopped
             .start(tracker, register.give_form())
             .await
             .expect("it should start the server");
+
         let stopped = started.stop().await.expect("it should stop the server");
 
         tokio::time::sleep(Duration::from_secs(1)).await;

@@ -275,12 +275,9 @@ mod tests {
 
         let tracker = initialize_with_configuration(&cfg);
 
-        let bind_to = config
-            .bind_address
-            .parse::<std::net::SocketAddr>()
-            .expect("Tracker API bind_address invalid.");
+        let bind_to = config.bind_address;
 
-        let tls = make_rust_tls(config.ssl_enabled, &config.ssl_cert_path, &config.ssl_key_path)
+        let tls = make_rust_tls(config.ssl_enabled, &config.tsl_config)
             .await
             .map(|tls| tls.expect("tls config failed"));
 

@@ -145,8 +145,9 @@ mod tests {
 
         fn tracker_with_an_ipv6_external_ip(stats_event_sender: Box<dyn statistics::EventSender>) -> Tracker {
             let mut configuration = configuration::ephemeral();
-            configuration.external_ip =
-                Some(IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)).to_string());
+            configuration.core.external_ip = Some(IpAddr::V6(Ipv6Addr::new(
+                0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
+            )));
 
             Tracker::new(&configuration, Some(stats_event_sender), statistics::Repo::new()).unwrap()
         }

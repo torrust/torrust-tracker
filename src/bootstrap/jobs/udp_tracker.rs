@@ -27,10 +27,7 @@ use crate::servers::udp::server::{Launcher, UdpServer};
 /// It will panic if the task did not finish successfully.
 #[must_use]
 pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: ServiceRegistrationForm) -> JoinHandle<()> {
-    let bind_to = config
-        .bind_address
-        .parse::<std::net::SocketAddr>()
-        .expect("it should have a valid udp tracker bind address");
+    let bind_to = config.bind_address;
 
     let server = UdpServer::new(Launcher::new(bind_to))
         .start(tracker, form)

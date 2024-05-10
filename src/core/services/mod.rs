@@ -21,7 +21,7 @@ use crate::core::Tracker;
 #[must_use]
 pub fn tracker_factory(config: &Configuration) -> Tracker {
     // Initialize statistics
-    let (stats_event_sender, stats_repository) = statistics::setup::factory(config.tracker_usage_statistics);
+    let (stats_event_sender, stats_repository) = statistics::setup::factory(config.core.tracker_usage_statistics);
 
     // Initialize Torrust tracker
     match Tracker::new(&Arc::new(config), stats_event_sender, stats_repository) {

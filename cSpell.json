@@ -25,6 +25,7 @@
         "Buildx",
         "byteorder",
         "callgrind",
+        "camino",
         "canonicalize",
         "canonicalized",
         "certbot",
