@@ -11,6 +11,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::{env, fs};
 
+use camino::Utf8PathBuf;
 use derive_more::Constructor;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, NoneAsEmptyString};
@@ -175,8 +176,8 @@ impl From<figment::Error> for Error {
 pub struct TslConfig {
     /// Path to the SSL certificate file.
     #[serde_as(as = "NoneAsEmptyString")]
-    pub ssl_cert_path: Option<String>,
+    pub ssl_cert_path: Option<Utf8PathBuf>,
     /// Path to the SSL key file.
     #[serde_as(as = "NoneAsEmptyString")]
-    pub ssl_key_path: Option<String>,
+    pub ssl_key_path: Option<Utf8PathBuf>,
 }
