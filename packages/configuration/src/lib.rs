@@ -171,3 +171,20 @@ pub struct TslConfig {
     #[serde_as(as = "NoneAsEmptyString")]
     pub ssl_key_path: Option<Utf8PathBuf>,
 }
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
+#[serde(rename_all = "lowercase")]
+pub enum LogLevel {
+    /// A level lower than all log levels.
+    Off,
+    /// Corresponds to the `Error` log level.
+    Error,
+    /// Corresponds to the `Warn` log level.
+    Warn,
+    /// Corresponds to the `Info` log level.
+    Info,
+    /// Corresponds to the `Debug` log level.
+    Debug,
+    /// Corresponds to the `Trace` log level.
+    Trace,
+}

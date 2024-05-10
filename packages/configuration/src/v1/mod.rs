@@ -236,8 +236,7 @@ pub mod tracker_api;
 pub mod udp_tracker;
 
 use std::fs;
-use std::net::IpAddr;
-use std::str::FromStr;
+use std::net::{IpAddr, Ipv4Addr};
 
 use figment::providers::{Env, Format, Serialized, Toml};
 use figment::Figment;
@@ -248,7 +247,7 @@ use self::health_check_api::HealthCheckApi;
 use self::http_tracker::HttpTracker;
 use self::tracker_api::HttpApi;
 use self::udp_tracker::UdpTracker;
-use crate::{AnnouncePolicy, Error, Info};
+use crate::{AnnouncePolicy, Error, Info, LogLevel};
 
 /// Core configuration for the tracker.
 #[allow(clippy::struct_excessive_bools)]
@@ -256,7 +255,7 @@ use crate::{AnnouncePolicy, Error, Info};
 pub struct Configuration {
     /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
     /// `Debug` and `Trace`. Default is `Info`.
-    pub log_level: Option<String>,
+    pub log_level: Option<LogLevel>,
     /// Tracker mode. See [`TrackerMode`] for more information.
     pub mode: TrackerMode,
 
@@ -284,7 +283,7 @@ pub struct Configuration {
     /// is using a loopback IP address, the tracker assumes that the peer is
     /// in the same network as the tracker and will use the tracker's IP
     /// address instead.
-    pub external_ip: Option<String>,
+    pub external_ip: Option<IpAddr>,
     /// Weather the tracker should collect statistics about tracker usage.
     /// If enabled, the tracker will collect statistics like the number of
     /// connections handled, the number of announce requests handled, etc.
@@ -330,7 +329,7 @@ impl Default for Configuration {
         let announce_policy = AnnouncePolicy::default();
 
         let mut configuration = Configuration {
-            log_level: Option::from(String::from("info")),
+            log_level: Some(LogLevel::Info),
             mode: TrackerMode::Public,
             db_driver: DatabaseDriver::Sqlite3,
             db_path: String::from("./storage/tracker/lib/database/sqlite3.db"),
@@ -338,7 +337,7 @@ impl Default for Configuration {
             min_announce_interval: announce_policy.interval_min,
             max_peer_timeout: 900,
             on_reverse_proxy: false,
-            external_ip: Some(String::from("0.0.0.0")),
+            external_ip: Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))),
             tracker_usage_statistics: true,
             persistent_torrent_completed_stat: false,
             inactive_peer_cleanup_interval: 600,
@@ -363,13 +362,7 @@ impl Configuration {
     /// and `None` otherwise.
     #[must_use]
     pub fn get_ext_ip(&self) -> Option<IpAddr> {
-        match &self.external_ip {
-            None => None,
-            Some(external_ip) => match IpAddr::from_str(external_ip) {
-                Ok(external_ip) => Some(external_ip),
-                Err(_) => None,
-            },
-        }
+        self.external_ip.as_ref().map(|external_ip| *external_ip)
     }
 
     /// Saves the default configuration at the given path.
@@ -431,6 +424,8 @@ impl Configuration {
 
 #[cfg(test)]
 mod tests {
+
+    use std::net::{IpAddr, Ipv4Addr};
 
     use crate::v1::Configuration;
     use crate::Info;
@@ -495,7 +490,7 @@ mod tests {
     fn configuration_should_contain_the_external_ip() {
         let configuration = Configuration::default();
 
-        assert_eq!(configuration.external_ip, Some(String::from("0.0.0.0")));
+        assert_eq!(configuration.external_ip, Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))));
     }
 
     #[test]

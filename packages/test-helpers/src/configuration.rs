@@ -2,7 +2,7 @@
 use std::env;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-use torrust_tracker_configuration::Configuration;
+use torrust_tracker_configuration::{Configuration, LogLevel};
 use torrust_tracker_primitives::TrackerMode;
 
 use crate::random;
@@ -28,7 +28,7 @@ pub fn ephemeral() -> Configuration {
     // For example: a test for the UDP tracker should disable the API and HTTP tracker.
 
     let mut config = Configuration {
-        log_level: Some("off".to_owned()), // Change to `debug` for tests debugging
+        log_level: Some(LogLevel::Off), // Change to `debug` for tests debugging
         ..Default::default()
     };
 
@@ -125,7 +125,7 @@ pub fn ephemeral_mode_private_whitelisted() -> Configuration {
 pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.external_ip = Some(ip.to_string());
+    cfg.external_ip = Some(ip);
 
     cfg
 }
