@@ -49,7 +49,7 @@ pub fn ephemeral() -> Configuration {
     // Ephemeral socket address for HTTP tracker
     let http_port = 0u16;
     config.http_trackers[0].enabled = true;
-    config.http_trackers[0].bind_address = format!("127.0.0.1:{}", &http_port);
+    config.http_trackers[0].bind_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), http_port);
 
     // Ephemeral sqlite database
     let temp_directory = env::temp_dir();
@@ -139,7 +139,7 @@ pub fn ephemeral_ipv6() -> Configuration {
     let ipv6 = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0)), 0);
 
     cfg.http_api.bind_address.clone_from(&ipv6.to_string());
-    cfg.http_trackers[0].bind_address.clone_from(&ipv6.to_string());
+    cfg.http_trackers[0].bind_address.clone_from(&ipv6);
     cfg.udp_trackers[0].bind_address = ipv6;
 
     cfg

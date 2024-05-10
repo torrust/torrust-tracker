@@ -43,14 +43,15 @@ pub async fn start_job(
     version: Version,
 ) -> Option<JoinHandle<()>> {
     if config.enabled {
-        let socket = config
-            .bind_address
-            .parse::<std::net::SocketAddr>()
-            .expect("it should have a valid http tracker bind address");
+        let socket = config.bind_address;
 
-        let tls = make_rust_tls(config.ssl_enabled, &config.ssl_cert_path, &config.ssl_key_path)
-            .await
-            .map(|tls| tls.expect("it should have a valid http tracker tls configuration"));
+        let tls = make_rust_tls(
+            config.ssl_enabled,
+            &config.tsl_config.ssl_cert_path,
+            &config.tsl_config.ssl_key_path,
+        )
+        .await
+        .map(|tls| tls.expect("it should have a valid http tracker tls configuration"));
 
         match version {
             Version::V1 => Some(start_v1(socket, tls, tracker.clone(), form).await),

@@ -12,6 +12,8 @@ use std::time::Duration;
 use std::{env, fs};
 
 use derive_more::Constructor;
+use serde::{Deserialize, Serialize};
+use serde_with::{serde_as, NoneAsEmptyString};
 use thiserror::Error;
 use torrust_tracker_located_error::{DynError, LocatedError};
 
@@ -166,4 +168,15 @@ impl From<figment::Error> for Error {
             source: (Arc::new(err) as DynError).into(),
         }
     }
+}
+
+#[serde_as]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
+pub struct TslConfig {
+    /// Path to the SSL certificate file.
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub ssl_cert_path: Option<String>,
+    /// Path to the SSL key file.
+    #[serde_as(as = "NoneAsEmptyString")]
+    pub ssl_key_path: Option<String>,
 }

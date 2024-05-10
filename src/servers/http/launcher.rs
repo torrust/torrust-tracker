@@ -91,14 +91,15 @@ mod tests {
         let tracker = tracker(&cfg);
         let config = &cfg.http_trackers[0];
 
-        let bind_to = config
-            .bind_address
-            .parse::<std::net::SocketAddr>()
-            .expect("Tracker API bind_address invalid.");
+        let bind_to = config.bind_address;
 
-        let tls = make_rust_tls(config.ssl_enabled, &config.ssl_cert_path, &config.ssl_key_path)
-            .await
-            .map(|tls| tls.expect("tls config failed"));
+        let tls = make_rust_tls(
+            config.ssl_enabled,
+            &config.tsl_config.ssl_cert_path,
+            &config.tsl_config.ssl_key_path,
+        )
+        .await
+        .map(|tls| tls.expect("tls config failed"));
 
         let form = &registar::Registar::default();
 
