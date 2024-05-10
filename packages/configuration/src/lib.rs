@@ -3,7 +3,7 @@
 //! This module contains the configuration data structures for the
 //! Torrust Tracker, which is a `BitTorrent` tracker server.
 //!
-//! The current version for configuration is [`v1`](crate::v1).
+//! The current version for configuration is [`v1`].
 pub mod v1;
 
 use std::collections::HashMap;
@@ -172,7 +172,7 @@ pub struct TslConfig {
     pub ssl_key_path: Option<Utf8PathBuf>,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum LogLevel {
     /// A level lower than all log levels.

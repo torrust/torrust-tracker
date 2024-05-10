@@ -19,7 +19,7 @@ static INIT: Once = Once::new();
 
 /// It redirects the log info to the standard output with the log level defined in the configuration
 pub fn setup(cfg: &Configuration) {
-    let level = config_level_or_default(&cfg.log_level);
+    let level = config_level_or_default(&cfg.core.log_level);
 
     if level == log::LevelFilter::Off {
         return;
