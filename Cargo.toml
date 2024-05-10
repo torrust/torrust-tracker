@@ -37,6 +37,7 @@ axum = { version = "0", features = ["macros"] }
 axum-client-ip = "0"
 axum-extra = { version = "0", features = ["query"] }
 axum-server = { version = "0", features = ["tls-rustls"] }
+camino = { version = "1.1.6", features = ["serde"] }
 chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
 crossbeam-skiplist = "0.1"
