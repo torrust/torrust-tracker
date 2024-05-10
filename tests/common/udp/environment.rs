@@ -35,10 +35,7 @@ impl Environment<Stopped> {
 
         let config = Arc::new(configuration.udp_trackers[0].clone());
 
-        let addr = config
-            .bind_address
-            .parse::<std::net::SocketAddr>()
-            .expect("Tracker API bind_address invalid.");
+        let addr = config.bind_address;
 
         let server = Service::new(Launcher::new(tracker.clone(), addr));
 

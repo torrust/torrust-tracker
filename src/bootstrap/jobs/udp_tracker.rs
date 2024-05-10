@@ -34,10 +34,7 @@ use crate::servers::udp::Version;
 #[instrument(ret)]
 pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: Form, version: Version) -> Option<JoinHandle<()>> {
     if config.enabled {
-        let addr = config
-            .bind_address
-            .parse::<std::net::SocketAddr>()
-            .expect("it should have a valid http tracker bind address");
+        let addr = config.bind_address;
 
         match version {
             Version::V0 => Some(start_v0(addr, tracker.clone(), form).await),

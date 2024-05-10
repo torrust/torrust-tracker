@@ -107,11 +107,7 @@ mod tests {
     #[tokio::test]
     //#[traced_test]
     async fn it_should_start_and_stop_the_v0_of_the_health_check_service() {
-        let addr = ephemeral_mode_public()
-            .health_check_api
-            .bind_address
-            .parse()
-            .expect("it should parse the binding address");
+        let addr = ephemeral_mode_public().health_check_api.bind_address;
 
         let registar = Registar::default();
         let form = registar.form();

@@ -1,6 +1,6 @@
 //! Tracker configuration factories for testing.
 use std::env;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use torrust_tracker_configuration::Configuration;
 use torrust_tracker_primitives::TrackerMode;
@@ -44,7 +44,7 @@ pub fn ephemeral() -> Configuration {
     // Ephemeral socket address for UDP tracker
     let udp_port = 0u16;
     config.udp_trackers[0].enabled = true;
-    config.udp_trackers[0].bind_address = format!("127.0.0.1:{}", &udp_port);
+    config.udp_trackers[0].bind_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), udp_port);
 
     // Ephemeral socket address for HTTP tracker
     let http_port = 0u16;
@@ -136,10 +136,10 @@ pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
 pub fn ephemeral_ipv6() -> Configuration {
     let mut cfg = ephemeral();
 
-    let ipv6 = format!("[::]:{}", 0);
+    let ipv6 = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0)), 0);
 
-    cfg.http_api.bind_address.clone_from(&ipv6);
-    cfg.http_trackers[0].bind_address.clone_from(&ipv6);
+    cfg.http_api.bind_address.clone_from(&ipv6.to_string());
+    cfg.http_trackers[0].bind_address.clone_from(&ipv6.to_string());
     cfg.udp_trackers[0].bind_address = ipv6;
 
     cfg
