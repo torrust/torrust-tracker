@@ -444,7 +444,8 @@ use std::time::Duration;
 use derive_more::Constructor;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_clock::clock::Time;
-use torrust_tracker_configuration::{AnnouncePolicy, Configuration, TrackerPolicy, TORRENT_PEERS_LIMIT};
+use torrust_tracker_configuration::v1::core::Core;
+use torrust_tracker_configuration::{AnnouncePolicy, TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
@@ -542,17 +543,17 @@ impl Tracker {
     ///
     /// Will return a `databases::error::Error` if unable to connect to database. The `Tracker` is responsible for the persistence.
     pub fn new(
-        config: &Configuration,
+        config: &Core,
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
-        let database = Arc::new(databases::driver::build(&config.core.db_driver, &config.core.db_path)?);
+        let database = Arc::new(databases::driver::build(&config.db_driver, &config.db_path)?);
 
-        let mode = config.core.mode;
+        let mode = config.mode;
 
         Ok(Tracker {
             //config,
-            announce_policy: AnnouncePolicy::new(config.core.announce_interval, config.core.min_announce_interval),
+            announce_policy: AnnouncePolicy::new(config.announce_interval, config.min_announce_interval),
             mode,
             keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
             whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),
@@ -560,13 +561,13 @@ impl Tracker {
             stats_event_sender,
             stats_repository,
             database,
-            external_ip: config.get_ext_ip(),
+            external_ip: config.external_ip,
             policy: TrackerPolicy::new(
-                config.core.remove_peerless_torrents,
-                config.core.max_peer_timeout,
-                config.core.persistent_torrent_completed_stat,
+                config.remove_peerless_torrents,
+                config.max_peer_timeout,
+                config.persistent_torrent_completed_stat,
             ),
-            on_reverse_proxy: config.core.on_reverse_proxy,
+            on_reverse_proxy: config.on_reverse_proxy,
         })
     }
 

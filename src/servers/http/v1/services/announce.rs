@@ -135,8 +135,14 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
-            let tracker =
-                Arc::new(Tracker::new(&configuration::ephemeral(), Some(stats_event_sender), statistics::Repo::new()).unwrap());
+            let tracker = Arc::new(
+                Tracker::new(
+                    &configuration::ephemeral().core,
+                    Some(stats_event_sender),
+                    statistics::Repo::new(),
+                )
+                .unwrap(),
+            );
 
             let mut peer = sample_peer_using_ipv4();
 
@@ -149,7 +155,7 @@ mod tests {
                 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
             )));
 
-            Tracker::new(&configuration, Some(stats_event_sender), statistics::Repo::new()).unwrap()
+            Tracker::new(&configuration.core, Some(stats_event_sender), statistics::Repo::new()).unwrap()
         }
 
         fn peer_with_the_ipv4_loopback_ip() -> peer::Peer {
@@ -194,8 +200,14 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
-            let tracker =
-                Arc::new(Tracker::new(&configuration::ephemeral(), Some(stats_event_sender), statistics::Repo::new()).unwrap());
+            let tracker = Arc::new(
+                Tracker::new(
+                    &configuration::ephemeral().core,
+                    Some(stats_event_sender),
+                    statistics::Repo::new(),
+                )
+                .unwrap(),
+            );
 
             let mut peer = sample_peer_using_ipv6();
 

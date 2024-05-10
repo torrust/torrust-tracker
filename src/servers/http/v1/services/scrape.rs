@@ -146,8 +146,14 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
-            let tracker =
-                Arc::new(Tracker::new(&configuration::ephemeral(), Some(stats_event_sender), statistics::Repo::new()).unwrap());
+            let tracker = Arc::new(
+                Tracker::new(
+                    &configuration::ephemeral().core,
+                    Some(stats_event_sender),
+                    statistics::Repo::new(),
+                )
+                .unwrap(),
+            );
 
             let peer_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
 
@@ -164,8 +170,14 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
-            let tracker =
-                Arc::new(Tracker::new(&configuration::ephemeral(), Some(stats_event_sender), statistics::Repo::new()).unwrap());
+            let tracker = Arc::new(
+                Tracker::new(
+                    &configuration::ephemeral().core,
+                    Some(stats_event_sender),
+                    statistics::Repo::new(),
+                )
+                .unwrap(),
+            );
 
             let peer_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
@@ -217,8 +229,14 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
-            let tracker =
-                Arc::new(Tracker::new(&configuration::ephemeral(), Some(stats_event_sender), statistics::Repo::new()).unwrap());
+            let tracker = Arc::new(
+                Tracker::new(
+                    &configuration::ephemeral().core,
+                    Some(stats_event_sender),
+                    statistics::Repo::new(),
+                )
+                .unwrap(),
+            );
 
             let peer_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
 
@@ -235,8 +253,14 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
-            let tracker =
-                Arc::new(Tracker::new(&configuration::ephemeral(), Some(stats_event_sender), statistics::Repo::new()).unwrap());
+            let tracker = Arc::new(
+                Tracker::new(
+                    &configuration::ephemeral().core,
+                    Some(stats_event_sender),
+                    statistics::Repo::new(),
+                )
+                .unwrap(),
+            );
 
             let peer_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
