@@ -61,12 +61,9 @@ pub async fn start_job(
     version: Version,
 ) -> Option<JoinHandle<()>> {
     if config.enabled {
-        let bind_to = config
-            .bind_address
-            .parse::<std::net::SocketAddr>()
-            .expect("it should have a valid tracker api bind address");
+        let bind_to = config.bind_address;
 
-        let tls = make_rust_tls(config.ssl_enabled, &config.ssl_cert_path, &config.ssl_key_path)
+        let tls = make_rust_tls(config.ssl_enabled, &config.tsl_config)
             .await
             .map(|tls| tls.expect("it should have a valid tracker api tls configuration"));
 

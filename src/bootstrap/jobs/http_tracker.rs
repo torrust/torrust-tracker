@@ -18,7 +18,7 @@ use log::info;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpTracker;
 
-use super::make_rust_tls_from_path_buf;
+use super::make_rust_tls;
 use crate::core;
 use crate::servers::http::server::{HttpServer, Launcher};
 use crate::servers::http::Version;
@@ -42,13 +42,9 @@ pub async fn start_job(
     if config.enabled {
         let socket = config.bind_address;
 
-        let tls = make_rust_tls_from_path_buf(
-            config.ssl_enabled,
-            &config.tsl_config.ssl_cert_path,
-            &config.tsl_config.ssl_key_path,
-        )
-        .await
-        .map(|tls| tls.expect("it should have a valid http tracker tls configuration"));
+        let tls = make_rust_tls(config.ssl_enabled, &config.tsl_config)
+            .await
+            .map(|tls| tls.expect("it should have a valid http tracker tls configuration"));
 
         match version {
             Version::V1 => Some(start_v1(socket, tls, tracker.clone(), form).await),

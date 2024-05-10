@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use futures::executor::block_on;
 use torrust_tracker::bootstrap::app::initialize_with_configuration;
-use torrust_tracker::bootstrap::jobs::make_rust_tls_from_path_buf;
+use torrust_tracker::bootstrap::jobs::make_rust_tls;
 use torrust_tracker::core::Tracker;
 use torrust_tracker::servers::http::server::{HttpServer, Launcher, Running, Stopped};
 use torrust_tracker::servers::registar::Registar;
@@ -33,12 +33,7 @@ impl Environment<Stopped> {
 
         let bind_to = config.bind_address;
 
-        let tls = block_on(make_rust_tls_from_path_buf(
-            config.ssl_enabled,
-            &config.tsl_config.ssl_cert_path,
-            &config.tsl_config.ssl_key_path,
-        ))
-        .map(|tls| tls.expect("tls config failed"));
+        let tls = block_on(make_rust_tls(config.ssl_enabled, &config.tsl_config)).map(|tls| tls.expect("tls config failed"));
 
         let server = HttpServer::new(Launcher::new(bind_to, tls));
 

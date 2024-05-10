@@ -1,7 +1,10 @@
 use std::collections::HashMap;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, NoneAsEmptyString};
+use serde_with::serde_as;
+
+use crate::TslConfig;
 
 pub type AccessTokens = HashMap<String, String>;
 
@@ -15,19 +18,16 @@ pub struct HttpApi {
     /// The format is `ip:port`, for example `0.0.0.0:6969`. If you want to
     /// listen to all interfaces, use `0.0.0.0`. If you want the operating
     /// system to choose a random port, use port `0`.
-    pub bind_address: String,
+    pub bind_address: SocketAddr,
     /// Weather the HTTP API will use SSL or not.
     pub ssl_enabled: bool,
-    /// Path to the SSL certificate file. Only used if `ssl_enabled` is `true`.
-    #[serde_as(as = "NoneAsEmptyString")]
-    pub ssl_cert_path: Option<String>,
-    /// Path to the SSL key file. Only used if `ssl_enabled` is `true`.
-    #[serde_as(as = "NoneAsEmptyString")]
-    pub ssl_key_path: Option<String>,
+    /// TSL config. Only used if `ssl_enabled` is true.
+    #[serde(flatten)]
+    pub tsl_config: TslConfig,
     /// Access tokens for the HTTP API. The key is a label identifying the
     /// token and the value is the token itself. The token is used to
     /// authenticate the user. All tokens are valid for all endpoints and have
-    /// the all permissions.
+    /// all permissions.
     pub access_tokens: AccessTokens,
 }
 
@@ -35,10 +35,9 @@ impl Default for HttpApi {
     fn default() -> Self {
         Self {
             enabled: true,
-            bind_address: String::from("127.0.0.1:1212"),
+            bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1212),
             ssl_enabled: false,
-            ssl_cert_path: None,
-            ssl_key_path: None,
+            tsl_config: TslConfig::default(),
             access_tokens: [(String::from("admin"), String::from("MyAccessToken"))]
                 .iter()
                 .cloned()
