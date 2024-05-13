@@ -1,41 +1,9 @@
-announce_interval = 120
-db_driver = "Sqlite3"
-db_path = "./storage/tracker/lib/database/sqlite3.db"
-external_ip = "0.0.0.0"
-inactive_peer_cleanup_interval = 600
 log_level = "error"
-max_peer_timeout = 900
-min_announce_interval = 120
-mode = "public"
-on_reverse_proxy = false
-persistent_torrent_completed_stat = false
 remove_peerless_torrents = false
 tracker_usage_statistics = false
 
 [[udp_trackers]]
-bind_address = "0.0.0.0:6969"
 enabled = true
 
-[[http_trackers]]
-bind_address = "0.0.0.0:7070"
-enabled = false
-ssl_cert_path = ""
-ssl_enabled = false
-ssl_key_path = ""
-
 [http_api]
-bind_address = "127.0.0.1:1212"
 enabled = false
-ssl_cert_path = ""
-ssl_enabled = false
-ssl_key_path = ""
-
-[http_api.access_tokens]
-# Please override the admin token setting the environmental variable:
-# `TORRUST_TRACKER__HTTP_API__ACCESS_TOKENS__ADMIN`
-# The old variable name is deprecated:
-# `TORRUST_TRACKER_API_ADMIN_TOKEN`
-admin = "MyAccessToken"
-
-[health_check_api]
-bind_address = "127.0.0.1:1313"
