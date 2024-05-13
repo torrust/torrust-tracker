@@ -130,9 +130,19 @@ pub struct AnnouncePolicy {
 impl Default for AnnouncePolicy {
     fn default() -> Self {
         Self {
-            interval: 120,
-            interval_min: 120,
+            interval: Self::default_interval(),
+            interval_min: Self::default_interval_min(),
         }
+    }
+}
+
+impl AnnouncePolicy {
+    fn default_interval() -> u32 {
+        120
+    }
+
+    fn default_interval_min() -> u32 {
+        120
     }
 }
 
@@ -176,10 +186,24 @@ impl From<figment::Error> for Error {
 pub struct TslConfig {
     /// Path to the SSL certificate file.
     #[serde_as(as = "NoneAsEmptyString")]
+    #[serde(default = "TslConfig::default_ssl_cert_path")]
     pub ssl_cert_path: Option<Utf8PathBuf>,
     /// Path to the SSL key file.
     #[serde_as(as = "NoneAsEmptyString")]
+    #[serde(default = "TslConfig::default_ssl_key_path")]
     pub ssl_key_path: Option<Utf8PathBuf>,
+}
+
+impl TslConfig {
+    #[allow(clippy::unnecessary_wraps)]
+    fn default_ssl_cert_path() -> Option<Utf8PathBuf> {
+        Some(Utf8PathBuf::new())
+    }
+
+    #[allow(clippy::unnecessary_wraps)]
+    fn default_ssl_key_path() -> Option<Utf8PathBuf> {
+        Some(Utf8PathBuf::new())
+    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
