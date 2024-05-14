@@ -21,41 +21,39 @@
 
 ## Roadmap
 
+Core:
+
+- [ ] New option `want_ip_from_query_string`. See <https://github.com/torrust/torrust-tracker/discussions/532#issuecomment-1836642956>.
+- [ ] Permanent keys. See <https://github.com/torrust/torrust-tracker/discussions/244>.
+- [ ] Peer and torrents specific statistics. See <https://github.com/torrust/torrust-tracker/discussions/139>.
+
 Persistence:
 
-- [ ] Support other databases.
+- [ ] Support other databases like PostgreSQL.
+
+Performance:
+
+- [ ] More optimizations. See <https://github.com/torrust/torrust-tracker/discussions/774>.
+
+Protocols:
+
+- [ ] WebTorrent.
 
 Integrations:
 
-- [ ] Webhooks.
+- [ ] Monitoring (Prometheus).
 
-Administration:
+Utils:
 
-- [ ] Improve categories and tag management.
-- [ ] User management: list, search and ban users.
-- [ ] Full-private mode.
-- [ ] User statistics.
-
-Users:
-
-- [ ] Reset or change the password.
-- [ ] User profile.
-- [ ] Invitation system.
-- [ ] User moderation.
-- [ ] Add torrent providing only the info-hash.
-- [ ] Improve search.
-
-Torrents:
-
-- [ ] Change the source field.
-- [ ] Change the creator field.
-- [ ] Implement BEP 19: WebSeed - HTTP/FTP Seeding (GetRight style).
-- [ ] Implement BEP 32: BitTorrent DHT Extensions for IPv6.
+- [ ] Tracker client.
+- [ ] Tracker checker.
 
 Others:
 
-- [ ] Multi-tracker
-- [ ] Multi-language
+- [ ] Support for Windows.
+- [ ] Docker images for other architectures.
+
+<https://github.com/orgs/torrust/projects/10/views/6>
 
 ## Implemented BitTorrent Enhancement Proposals (BEPs)
 >
