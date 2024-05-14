@@ -1,6 +1,8 @@
 # Torrust Tracker
 
-[![container_wf_b]][container_wf] [![coverage_wf_b]][coverage_wf] [![deployment_wf_b]][deployment_wf] [![testing_wf_b]][testing_wf]**Torrust Tracker** is a [BitTorrent][bittorrent] Tracker that matchmakes peers and collects statistics. Written in [Rust Language][rust] with the [Axum] web framework. _**This tracker aims to be respectful to established standards, (both [formal][BEP 00] and [otherwise][torrent_source_felid]).___
+[![container_wf_b]][container_wf] [![coverage_wf_b]][coverage_wf] [![deployment_wf_b]][deployment_wf] [![testing_wf_b]][testing_wf]
+
+**Torrust Tracker** is a [BitTorrent][bittorrent] Tracker that matchmakes peers and collects statistics. Written in [Rust Language][rust] with the [Axum] web framework. **This tracker aims to be respectful to established standards, (both [formal][BEP 00] and [otherwise][torrent_source_felid]).**
 
 > This is a [Torrust][torrust] project and is in active development. It is community supported as well as sponsored by [Nautilus Cyberneering][nautilus].
 
@@ -16,6 +18,44 @@
 - [x] Tracker Management API.
 - [x] Support [newTrackon][newtrackon] checks.
 - [x] Persistent `SQLite3` or `MySQL` Databases.
+
+## Roadmap
+
+Persistence:
+
+- [ ] Support other databases.
+
+Integrations:
+
+- [ ] Webhooks.
+
+Administration:
+
+- [ ] Improve categories and tag management.
+- [ ] User management: list, search and ban users.
+- [ ] Full-private mode.
+- [ ] User statistics.
+
+Users:
+
+- [ ] Reset or change the password.
+- [ ] User profile.
+- [ ] Invitation system.
+- [ ] User moderation.
+- [ ] Add torrent providing only the info-hash.
+- [ ] Improve search.
+
+Torrents:
+
+- [ ] Change the source field.
+- [ ] Change the creator field.
+- [ ] Implement BEP 19: WebSeed - HTTP/FTP Seeding (GetRight style).
+- [ ] Implement BEP 32: BitTorrent DHT Extensions for IPv6.
+
+Others:
+
+- [ ] Multi-tracker
+- [ ] Multi-language
 
 ## Implemented BitTorrent Enhancement Proposals (BEPs)
 >
