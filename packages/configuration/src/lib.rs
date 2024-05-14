@@ -34,14 +34,13 @@ pub const UDP_MAX_PACKET_SIZE: usize = 1496;
 
 /// The whole `tracker.toml` file content. It has priority over the config file.
 /// Even if the file is not on the default path.
-const ENV_VAR_CONFIG: &str = "TORRUST_TRACKER_CONFIG";
+const ENV_VAR_CONFIG_TOML: &str = "TORRUST_TRACKER_CONFIG_TOML";
 
 /// The `tracker.toml` file location.
-pub const ENV_VAR_PATH_CONFIG: &str = "TORRUST_TRACKER_PATH_CONFIG";
+pub const ENV_VAR_CONFIG_TOML_PATH: &str = "TORRUST_TRACKER_CONFIG_TOML_PATH";
 
 /// Env var to overwrite API admin token.
-/// Deprecated: use `TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_API__ACCESS_TOKENS__ADMIN`.
-const ENV_VAR_API_ADMIN_TOKEN: &str = "TORRUST_TRACKER_API_ADMIN_TOKEN";
+const ENV_VAR_HTTP_API_ACCESS_TOKENS_ADMIN: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_API__ACCESS_TOKENS__ADMIN";
 
 pub type Configuration = v1::Configuration;
 pub type UdpTracker = v1::udp_tracker::UdpTracker;
@@ -75,9 +74,9 @@ impl Info {
     ///
     #[allow(clippy::needless_pass_by_value)]
     pub fn new(default_config_toml_path: String) -> Result<Self, Error> {
-        let env_var_config_toml = ENV_VAR_CONFIG.to_string();
-        let env_var_config_toml_path = ENV_VAR_PATH_CONFIG.to_string();
-        let env_var_api_admin_token = ENV_VAR_API_ADMIN_TOKEN.to_string();
+        let env_var_config_toml = ENV_VAR_CONFIG_TOML.to_string();
+        let env_var_config_toml_path = ENV_VAR_CONFIG_TOML_PATH.to_string();
+        let env_var_api_admin_token = ENV_VAR_HTTP_API_ACCESS_TOKENS_ADMIN.to_string();
 
         let config_toml = if let Ok(config_toml) = env::var(env_var_config_toml) {
             println!("Loading configuration from environment variable {config_toml} ...");
@@ -156,7 +155,7 @@ impl AnnouncePolicy {
 pub enum Error {
     /// Unable to load the configuration from the environment variable.
     /// This error only occurs if there is no configuration file and the
-    /// `TORRUST_TRACKER_CONFIG` environment variable is not set.
+    /// `TORRUST_TRACKER_CONFIG_TOML` environment variable is not set.
     #[error("Unable to load from Environmental Variable: {source}")]
     UnableToLoadFromEnvironmentVariable {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,

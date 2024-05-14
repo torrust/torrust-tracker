@@ -46,7 +46,7 @@ pub fn run() {
     // Besides, if we don't use port 0 we should get the port numbers from the tracker configuration.
     // We could not use docker, but the intention was to create E2E tests including containerization.
     let options = RunOptions {
-        env_vars: vec![("TORRUST_TRACKER_CONFIG".to_string(), tracker_config.to_string())],
+        env_vars: vec![("TORRUST_TRACKER_CONFIG_TOML".to_string(), tracker_config.to_string())],
         ports: vec![
             "6969:6969/udp".to_string(),
             "7070:7070/tcp".to_string(),

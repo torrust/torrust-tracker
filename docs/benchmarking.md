@@ -39,7 +39,7 @@ Build and run the tracker:
 
 ```console
 cargo build --release
-TORRUST_TRACKER_PATH_CONFIG="./share/default/config/tracker.udp.benchmarking.toml" ./target/release/torrust-tracker
+TORRUST_TRACKER_CONFIG_TOML_PATH="./share/default/config/tracker.udp.benchmarking.toml" ./target/release/torrust-tracker
 ```
 
 Run the load test with:
