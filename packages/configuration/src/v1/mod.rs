@@ -250,6 +250,11 @@ use self::tracker_api::HttpApi;
 use self::udp_tracker::UdpTracker;
 use crate::{Error, Info};
 
+/// Prefix for env vars that overwrite configuration options.
+const CONFIG_OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
+/// Path separator in env var names for nested values in configuration.
+const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
+
 /// Core configuration for the tracker.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
@@ -315,9 +320,16 @@ impl Configuration {
     ///
     /// Will return `Err` if the environment variable does not exist or has a bad configuration.
     pub fn load(info: &Info) -> Result<Configuration, Error> {
-        let figment = Figment::from(Serialized::defaults(Configuration::default()))
-            .merge(Toml::string(&info.tracker_toml))
-            .merge(Env::prefixed("TORRUST_TRACKER__").split("__"));
+        let figment = if let Some(config_toml) = &info.config_toml {
+            // Config in env var has priority over config file path
+            Figment::from(Serialized::defaults(Configuration::default()))
+                .merge(Toml::string(config_toml))
+                .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
+        } else {
+            Figment::from(Serialized::defaults(Configuration::default()))
+                .merge(Toml::file(&info.config_toml_path))
+                .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
+        };
 
         let mut config: Configuration = figment.extract()?;
 
@@ -449,11 +461,14 @@ mod tests {
 
     #[test]
     fn configuration_should_use_the_default_values_when_an_empty_configuration_is_provided_by_the_user() {
-        figment::Jail::expect_with(|_jail| {
+        figment::Jail::expect_with(|jail| {
+            jail.create_file("tracker.toml", "")?;
+
             let empty_configuration = String::new();
 
             let info = Info {
-                tracker_toml: empty_configuration,
+                config_toml: Some(empty_configuration),
+                config_toml_path: "tracker.toml".to_string(),
                 api_admin_token: None,
             };
 
@@ -466,28 +481,59 @@ mod tests {
     }
 
     #[test]
-    fn configuration_should_be_loaded_from_a_toml_config_file() {
+    fn default_configuration_could_be_overwritten_from_a_single_env_var_with_toml_contents() {
         figment::Jail::expect_with(|_jail| {
+            let config_toml = r#"
+                db_path = "OVERWRITTEN DEFAULT DB PATH"
+            "#
+            .to_string();
+
             let info = Info {
-                tracker_toml: default_config_toml(),
+                config_toml: Some(config_toml),
+                config_toml_path: String::new(),
                 api_admin_token: None,
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration, Configuration::default());
+            assert_eq!(configuration.core.db_path, "OVERWRITTEN DEFAULT DB PATH".to_string());
 
             Ok(())
         });
     }
 
     #[test]
-    fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin_with_env_var() {
+    fn default_configuration_could_be_overwritten_from_a_toml_config_file() {
         figment::Jail::expect_with(|jail| {
-            jail.set_env("TORRUST_TRACKER__HTTP_API__ACCESS_TOKENS__ADMIN", "NewToken");
+            jail.create_file(
+                "tracker.toml",
+                r#"
+                db_path = "OVERWRITTEN DEFAULT DB PATH"
+            "#,
+            )?;
 
             let info = Info {
-                tracker_toml: default_config_toml(),
+                config_toml: None,
+                config_toml_path: "tracker.toml".to_string(),
+                api_admin_token: None,
+            };
+
+            let configuration = Configuration::load(&info).expect("Could not load configuration from file");
+
+            assert_eq!(configuration.core.db_path, "OVERWRITTEN DEFAULT DB PATH".to_string());
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin_with_an_env_var() {
+        figment::Jail::expect_with(|jail| {
+            jail.set_env("TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_API__ACCESS_TOKENS__ADMIN", "NewToken");
+
+            let info = Info {
+                config_toml: Some(default_config_toml()),
+                config_toml_path: String::new(),
                 api_admin_token: None,
             };
 
@@ -506,7 +552,8 @@ mod tests {
     fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin_with_the_deprecated_env_var_name() {
         figment::Jail::expect_with(|_jail| {
             let info = Info {
-                tracker_toml: default_config_toml(),
+                config_toml: Some(default_config_toml()),
+                config_toml_path: String::new(),
                 api_admin_token: Some("NewToken".to_owned()),
             };
 
