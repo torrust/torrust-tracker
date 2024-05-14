@@ -84,14 +84,14 @@ cp ./share/default/config/tracker.development.sqlite3.toml ./storage/tracker/etc
 vim ./storage/tracker/etc/tracker.toml
 
 # Run the tracker with the updated configuration:
-TORRUST_TRACKER_PATH_CONFIG="./storage/tracker/etc/tracker.toml" cargo run
+TORRUST_TRACKER_CONFIG_TOML_PATH="./storage/tracker/etc/tracker.toml" cargo run
 ```
 
 _Optionally, you may choose to supply the entire configuration as an environmental variable:_
 
 ```sh
 # Use a configuration supplied on an environmental variable:
-TORRUST_TRACKER_CONFIG=$(cat "./storage/tracker/etc/tracker.toml") cargo run
+TORRUST_TRACKER_CONFIG_TOML=$(cat "./storage/tracker/etc/tracker.toml") cargo run
 ```
 
 _For deployment, you **should** override the `api_admin_token` by using an environmental variable:_
@@ -102,8 +102,8 @@ gpg --armor --gen-random 1 10 | tee ./storage/tracker/lib/tracker_api_admin_toke
 chmod go-rwx ./storage/tracker/lib/tracker_api_admin_token.secret
 
 # Override secret in configuration using an environmental variable:
-TORRUST_TRACKER_CONFIG=$(cat "./storage/tracker/etc/tracker.toml") \
-  TORRUST_TRACKER_API_ADMIN_TOKEN=$(cat "./storage/tracker/lib/tracker_api_admin_token.secret") \
+TORRUST_TRACKER_CONFIG_TOML=$(cat "./storage/tracker/etc/tracker.toml") \
+  TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_API__ACCESS_TOKENS__ADMIN=$(cat "./storage/tracker/lib/tracker_api_admin_token.secret") \
   cargo run
 ```
 

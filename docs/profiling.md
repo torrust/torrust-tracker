@@ -35,7 +35,7 @@ To generate the graph you will need to:
 ```console
 cargo build --profile=release-debug --bin=profiling
 ./target/release/aquatic_udp_load_test -c "load-test-config.toml"
-sudo TORRUST_TRACKER_PATH_CONFIG="./share/default/config/tracker.udp.benchmarking.toml" /home/USER/.cargo/bin/flamegraph -- ./target/release-debug/profiling 60
+sudo TORRUST_TRACKER_CONFIG_TOML_PATH="./share/default/config/tracker.udp.benchmarking.toml" /home/USER/.cargo/bin/flamegraph -- ./target/release-debug/profiling 60
 ```
 
 __NOTICE__: You need to install the `aquatic_udp_load_test` program.
@@ -92,7 +92,7 @@ Build and the binary for profiling:
 
 ```console
 RUSTFLAGS='-g' cargo build --release --bin profiling \
-   && export TORRUST_TRACKER_PATH_CONFIG="./share/default/config/tracker.udp.benchmarking.toml" \
+   && export TORRUST_TRACKER_CONFIG_TOML_PATH="./share/default/config/tracker.udp.benchmarking.toml" \
    && valgrind \
      --tool=callgrind \
      --callgrind-out-file=callgrind.out \

@@ -9,7 +9,7 @@
 //! with the same content as the file.
 //!
 //! Configuration can not only be loaded from a file, but also from an
-//! environment variable `TORRUST_TRACKER_CONFIG`. This is useful when running
+//! environment variable `TORRUST_TRACKER_CONFIG_TOML`. This is useful when running
 //! the tracker in a Docker container or environments where you do not have a
 //! persistent storage or you cannot inject a configuration file. Refer to
 //! [`Torrust Tracker documentation`](https://docs.rs/torrust-tracker) for more
@@ -288,10 +288,6 @@ impl Default for Configuration {
 }
 
 impl Configuration {
-    fn override_api_admin_token(&mut self, api_admin_token: &str) {
-        self.http_api.override_admin_token(api_admin_token);
-    }
-
     /// Returns the tracker public IP address id defined in the configuration,
     /// and `None` otherwise.
     #[must_use]
@@ -331,11 +327,7 @@ impl Configuration {
                 .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
         };
 
-        let mut config: Configuration = figment.extract()?;
-
-        if let Some(ref token) = info.api_admin_token {
-            config.override_api_admin_token(token);
-        };
+        let config: Configuration = figment.extract()?;
 
         Ok(config)
     }
@@ -469,7 +461,6 @@ mod tests {
             let info = Info {
                 config_toml: Some(empty_configuration),
                 config_toml_path: "tracker.toml".to_string(),
-                api_admin_token: None,
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
@@ -491,7 +482,6 @@ mod tests {
             let info = Info {
                 config_toml: Some(config_toml),
                 config_toml_path: String::new(),
-                api_admin_token: None,
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
@@ -515,7 +505,6 @@ mod tests {
             let info = Info {
                 config_toml: None,
                 config_toml_path: "tracker.toml".to_string(),
-                api_admin_token: None,
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
@@ -534,27 +523,6 @@ mod tests {
             let info = Info {
                 config_toml: Some(default_config_toml()),
                 config_toml_path: String::new(),
-                api_admin_token: None,
-            };
-
-            let configuration = Configuration::load(&info).expect("Could not load configuration from file");
-
-            assert_eq!(
-                configuration.http_api.access_tokens.get("admin"),
-                Some("NewToken".to_owned()).as_ref()
-            );
-
-            Ok(())
-        });
-    }
-
-    #[test]
-    fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin_with_the_deprecated_env_var_name() {
-        figment::Jail::expect_with(|_jail| {
-            let info = Info {
-                config_toml: Some(default_config_toml()),
-                config_toml_path: String::new(),
-                api_admin_token: Some("NewToken".to_owned()),
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
