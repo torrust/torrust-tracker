@@ -213,10 +213,10 @@
 //! documentation for the [torrust-tracker-configuration crate](https://docs.rs/torrust-tracker-configuration).
 //!
 //! Alternatively to the `tracker.toml` file you can use one environment
-//! variable `TORRUST_TRACKER_CONFIG` to pass the configuration to the tracker:
+//! variable `TORRUST_TRACKER_CONFIG_TOML` to pass the configuration to the tracker:
 //!
 //! ```text
-//! TORRUST_TRACKER_CONFIG=$(cat ./share/default/config/tracker.development.sqlite3.toml) ./target/release/torrust-tracker
+//! TORRUST_TRACKER_CONFIG_TOML=$(cat ./share/default/config/tracker.development.sqlite3.toml) ./target/release/torrust-tracker
 //! ```
 //!
 //! In the previous example you are just setting the env var with the contents
@@ -225,7 +225,7 @@
 //! The env var contains the same data as the `tracker.toml`. It's particularly
 //! useful in you are [running the tracker with docker](https://github.com/torrust/torrust-tracker/tree/develop/docker).
 //!
-//! > NOTICE: The `TORRUST_TRACKER_CONFIG` env var has priority over the `tracker.toml` file.
+//! > NOTICE: The `TORRUST_TRACKER_CONFIG_TOML` env var has priority over the `tracker.toml` file.
 //!
 //! By default, if you don’t specify any `tracker.toml` file, the application
 //! will use `./share/default/config/tracker.development.sqlite3.toml`.

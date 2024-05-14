@@ -9,7 +9,7 @@
 //! with the same content as the file.
 //!
 //! Configuration can not only be loaded from a file, but also from an
-//! environment variable `TORRUST_TRACKER_CONFIG`. This is useful when running
+//! environment variable `TORRUST_TRACKER_CONFIG_TOML`. This is useful when running
 //! the tracker in a Docker container or environments where you do not have a
 //! persistent storage or you cannot inject a configuration file. Refer to
 //! [`Torrust Tracker documentation`](https://docs.rs/torrust-tracker) for more

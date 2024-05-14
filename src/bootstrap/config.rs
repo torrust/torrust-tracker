@@ -1,6 +1,6 @@
 //! Initialize configuration from file or env var.
 //!
-//! All environment variables are prefixed with `TORRUST_TRACKER_BACK_`.
+//! All environment variables are prefixed with `TORRUST_TRACKER_`.
 
 use torrust_tracker_configuration::{Configuration, Info};
 
@@ -11,7 +11,7 @@ pub const DEFAULT_PATH_CONFIG: &str = "./share/default/config/tracker.developmen
 /// There are two methods to inject the configuration:
 ///
 /// 1. By using a config file: `tracker.toml`.
-/// 2. Environment variable: `TORRUST_TRACKER_CONFIG`. The variable contains the same contents as the `tracker.toml` file.
+/// 2. Environment variable: `TORRUST_TRACKER_CONFIG_TOML`. The variable contains the same contents as the `tracker.toml` file.
 ///
 /// Environment variable has priority over the config file.
 ///
@@ -20,7 +20,7 @@ pub const DEFAULT_PATH_CONFIG: &str = "./share/default/config/tracker.developmen
 /// # Panics
 ///
 /// Will panic if it can't load the configuration from either
-/// `./tracker.toml` file or the env var `TORRUST_TRACKER_CONFIG`.
+/// `./tracker.toml` file or the env var `TORRUST_TRACKER_CONFIG_TOML`.
 #[must_use]
 pub fn initialize_configuration() -> Configuration {
     let info = Info::new(DEFAULT_PATH_CONFIG.to_string()).expect("info to load configuration is not valid");

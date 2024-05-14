@@ -27,7 +27,7 @@
 //!
 //! ```text
 //! RUSTFLAGS='-g' cargo build --release --bin profiling \
-//!   && export TORRUST_TRACKER_PATH_CONFIG="./share/default/config/tracker.udp.benchmarking.toml" \
+//!   && export TORRUST_TRACKER_CONFIG_TOML_PATH="./share/default/config/tracker.udp.benchmarking.toml" \
 //!   && valgrind \
 //!     --tool=callgrind \
 //!     --callgrind-out-file=callgrind.out \
@@ -40,7 +40,7 @@
 //!
 //! ```text
 //! RUSTFLAGS='-g' cargo build --release --bin profiling \
-//!    && export TORRUST_TRACKER_PATH_CONFIG="./share/default/config/tracker.udp.benchmarking.toml" \
+//!    && export TORRUST_TRACKER_CONFIG_TOML_PATH="./share/default/config/tracker.udp.benchmarking.toml" \
 //!    && valgrind \
 //!      --tool=callgrind \
 //!      --callgrind-out-file=callgrind.out \
