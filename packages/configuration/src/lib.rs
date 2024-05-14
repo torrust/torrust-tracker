@@ -39,9 +39,6 @@ const ENV_VAR_CONFIG_TOML: &str = "TORRUST_TRACKER_CONFIG_TOML";
 /// The `tracker.toml` file location.
 pub const ENV_VAR_CONFIG_TOML_PATH: &str = "TORRUST_TRACKER_CONFIG_TOML_PATH";
 
-/// Env var to overwrite API admin token.
-const ENV_VAR_HTTP_API_ACCESS_TOKENS_ADMIN: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_API__ACCESS_TOKENS__ADMIN";
-
 pub type Configuration = v1::Configuration;
 pub type UdpTracker = v1::udp_tracker::UdpTracker;
 pub type HttpTracker = v1::http_tracker::HttpTracker;
@@ -62,7 +59,6 @@ pub struct TrackerPolicy {
 pub struct Info {
     config_toml: Option<String>,
     config_toml_path: String,
-    api_admin_token: Option<String>,
 }
 
 impl Info {
@@ -76,7 +72,6 @@ impl Info {
     pub fn new(default_config_toml_path: String) -> Result<Self, Error> {
         let env_var_config_toml = ENV_VAR_CONFIG_TOML.to_string();
         let env_var_config_toml_path = ENV_VAR_CONFIG_TOML_PATH.to_string();
-        let env_var_api_admin_token = ENV_VAR_HTTP_API_ACCESS_TOKENS_ADMIN.to_string();
 
         let config_toml = if let Ok(config_toml) = env::var(env_var_config_toml) {
             println!("Loading configuration from environment variable {config_toml} ...");
@@ -96,7 +91,6 @@ impl Info {
         Ok(Self {
             config_toml,
             config_toml_path,
-            api_admin_token: env::var(env_var_api_admin_token).ok(),
         })
     }
 }
