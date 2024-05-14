@@ -7,8 +7,8 @@
 pub mod v1;
 
 use std::collections::HashMap;
+use std::env;
 use std::sync::Arc;
-use std::{env, fs};
 
 use camino::Utf8PathBuf;
 use derive_more::Constructor;
@@ -38,7 +38,8 @@ pub struct TrackerPolicy {
 /// Information required for loading config
 #[derive(Debug, Default, Clone)]
 pub struct Info {
-    tracker_toml: String,
+    config_toml: Option<String>,
+    config_toml_path: String,
     api_admin_token: Option<String>,
 }
 
@@ -51,38 +52,30 @@ impl Info {
     ///
     #[allow(clippy::needless_pass_by_value)]
     pub fn new(
-        env_var_config: String,
-        env_var_path_config: String,
-        default_path_config: String,
+        env_var_config_toml: String,
+        env_var_config_toml_path: String,
+        default_config_toml_path: String,
         env_var_api_admin_token: String,
     ) -> Result<Self, Error> {
-        let tracker_toml = if let Ok(tracker_toml) = env::var(&env_var_config) {
-            println!("Loading configuration from env var {env_var_config} ...");
-
-            tracker_toml
+        let config_toml = if let Ok(config_toml) = env::var(env_var_config_toml) {
+            println!("Loading configuration from environment variable {config_toml} ...");
+            Some(config_toml)
         } else {
-            let config_path = if let Ok(config_path) = env::var(env_var_path_config) {
-                println!("Loading configuration file: `{config_path}` ...");
-
-                config_path
-            } else {
-                println!("Loading default configuration file: `{default_path_config}` ...");
-
-                default_path_config
-            };
-
-            fs::read_to_string(config_path)
-                .map_err(|e| Error::UnableToLoadFromConfigFile {
-                    source: (Arc::new(e) as DynError).into(),
-                })?
-                .parse()
-                .map_err(|_e: std::convert::Infallible| Error::Infallible)?
+            None
         };
-        let api_admin_token = env::var(env_var_api_admin_token).ok();
+
+        let config_toml_path = if let Ok(config_toml_path) = env::var(env_var_config_toml_path) {
+            println!("Loading configuration from file: `{config_toml_path}` ...");
+            config_toml_path
+        } else {
+            println!("Loading configuration from default configuration file: `{default_config_toml_path}` ...");
+            default_config_toml_path
+        };
 
         Ok(Self {
-            tracker_toml,
-            api_admin_token,
+            config_toml,
+            config_toml_path,
+            api_admin_token: env::var(env_var_api_admin_token).ok(),
         })
     }
 }
