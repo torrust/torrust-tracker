@@ -8,7 +8,8 @@ use super::check::check_builder;
 use super::handle::Handle;
 use super::v1::routes::router;
 use crate::core::Tracker;
-use crate::servers::{registar, service};
+use crate::servers::custom_axum_server::TimeoutAcceptor;
+use crate::servers::{custom_axum_server, registar, service};
 
 #[derive(Constructor, Clone, Debug, Display)]
 #[display(fmt = "intended_address: {addr}, with tracker, and  {}", "self.have_tls()")]
@@ -54,14 +55,16 @@ impl service::Launcher<Handle> for Launcher {
             let make_service = router(self.tracker, &addr).into_make_service_with_connect_info::<std::net::SocketAddr>();
 
             match self.tls.clone() {
-                Some(tls) => axum_server::from_tcp_rustls(listener, tls)
+                Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(listener, tls)
                     .handle(handle.axum_handle.clone())
+                    .acceptor(TimeoutAcceptor)
                     .serve(make_service)
                     .map_err(|e| service::Error::UnableToServe { err: e.into() })
                     .boxed(),
 
-                None => axum_server::from_tcp(listener)
+                None => custom_axum_server::from_tcp_with_timeouts(listener)
                     .handle(handle.axum_handle.clone())
+                    .acceptor(TimeoutAcceptor)
                     .serve(make_service)
                     .map_err(|e| service::Error::UnableToServe { err: e.into() })
                     .boxed(),
