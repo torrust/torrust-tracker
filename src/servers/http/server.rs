@@ -12,6 +12,7 @@ use tokio::sync::oneshot::{Receiver, Sender};
 use super::v1::routes::router;
 use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
+use crate::servers::custom_axum_server::{self, TimeoutAcceptor};
 use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{graceful_shutdown, Halted};
 
@@ -60,13 +61,15 @@ impl Launcher {
 
         let running = Box::pin(async {
             match tls {
-                Some(tls) => axum_server::from_tcp_rustls(socket, tls)
+                Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls)
                     .handle(handle)
+                    .acceptor(TimeoutAcceptor)
                     .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
                     .expect("Axum server crashed."),
-                None => axum_server::from_tcp(socket)
+                None => custom_axum_server::from_tcp_with_timeouts(socket)
                     .handle(handle)
+                    .acceptor(TimeoutAcceptor)
                     .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
                     .expect("Axum server crashed."),

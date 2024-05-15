@@ -3,12 +3,15 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
+use axum::error_handling::HandleErrorLayer;
 use axum::http::HeaderName;
 use axum::response::Response;
 use axum::routing::get;
-use axum::Router;
+use axum::{BoxError, Router};
 use axum_client_ip::SecureClientIpSource;
-use hyper::Request;
+use hyper::{Request, StatusCode};
+use tower::timeout::TimeoutLayer;
+use tower::ServiceBuilder;
 use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
@@ -17,6 +20,8 @@ use tracing::{Level, Span};
 
 use super::handlers::{announce, health_check, scrape};
 use crate::core::Tracker;
+
+const TIMEOUT: Duration = Duration::from_secs(5);
 
 /// It adds the routes to the router.
 ///
@@ -69,4 +74,11 @@ pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
                 }),
         )
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
+                .layer(
+            ServiceBuilder::new()
+                // this middleware goes above `TimeoutLayer` because it will receive
+                // errors returned by `TimeoutLayer`
+                .layer(HandleErrorLayer::new(|_: BoxError| async { StatusCode::REQUEST_TIMEOUT }))
+                .layer(TimeoutLayer::new(TIMEOUT)),
+        )
 }
