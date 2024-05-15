@@ -35,6 +35,7 @@ use tracing::info;
 
 use super::routes::router;
 use crate::core::Tracker;
+use crate::servers::custom_axum_server::{self, TimeoutAcceptor};
 use crate::servers::registar::{self, HealthCheckFactory, HeathCheckFuture, HeathCheckResult};
 use crate::servers::service::{self, AddrFuture, Error, TaskFuture};
 use crate::servers::signals::Halted;
@@ -168,14 +169,16 @@ impl service::Launcher<ApiHandle> for ApiLauncher {
                 router(self.tracker, self.access_tokens, &addr).into_make_service_with_connect_info::<std::net::SocketAddr>();
 
             match self.tls.clone() {
-                Some(tls) => axum_server::from_tcp_rustls(listener, tls)
+                Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(listener, tls)
                     .handle(handle.axum_handle.clone())
+                    .acceptor(TimeoutAcceptor)
                     .serve(make_service)
                     .map_err(|e| Error::UnableToServe { err: e.into() })
                     .boxed(),
 
-                None => axum_server::from_tcp(listener)
+                None => custom_axum_server::from_tcp_with_timeouts(listener)
                     .handle(handle.axum_handle.clone())
+                    .acceptor(TimeoutAcceptor)
                     .serve(make_service)
                     .map_err(|e| Error::UnableToServe { err: e.into() })
                     .boxed(),
