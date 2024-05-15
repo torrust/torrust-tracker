@@ -9,12 +9,15 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
+use axum::error_handling::HandleErrorLayer;
 use axum::http::HeaderName;
 use axum::response::Response;
 use axum::routing::get;
-use axum::{middleware, Router};
-use hyper::Request;
+use axum::{middleware, BoxError, Router};
+use hyper::{Request, StatusCode};
 use torrust_tracker_configuration::AccessTokens;
+use tower::timeout::TimeoutLayer;
+use tower::ServiceBuilder;
 use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
@@ -25,6 +28,8 @@ use super::v1;
 use super::v1::context::health_check::handlers::health_check_handler;
 use super::v1::middlewares::auth::State;
 use crate::core::Tracker;
+
+const TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Add all API routes to the router.
 #[allow(clippy::needless_pass_by_value)]
@@ -74,4 +79,11 @@ pub fn router(tracker: Arc<Tracker>, access_tokens: Arc<AccessTokens>, &_: &Sock
                 }),
         )
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
+        .layer(
+            ServiceBuilder::new()
+                // this middleware goes above `TimeoutLayer` because it will receive
+                // errors returned by `TimeoutLayer`
+                .layer(HandleErrorLayer::new(|_: BoxError| async { StatusCode::REQUEST_TIMEOUT }))
+                .layer(TimeoutLayer::new(TIMEOUT)),
+        )
 }
