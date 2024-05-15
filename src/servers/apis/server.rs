@@ -37,6 +37,7 @@ use torrust_tracker_configuration::AccessTokens;
 use super::routes::router;
 use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
+use crate::servers::custom_axum_server::{self, TimeoutAcceptor};
 use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{graceful_shutdown, Halted};
 
@@ -177,7 +178,7 @@ impl ApiServer<Running> {
 /// Or if there request returns an error code.
 #[must_use]
 pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
-    let url = format!("http://{binding}/api/health_check");
+    let url = format!("http://{binding}/api/health_check"); // DevSkim: ignore DS137138
 
     let info = format!("checking api health check at: {url}");
 
@@ -234,13 +235,15 @@ impl Launcher {
 
         let running = Box::pin(async {
             match tls {
-                Some(tls) => axum_server::from_tcp_rustls(socket, tls)
+                Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls)
                     .handle(handle)
+                    .acceptor(TimeoutAcceptor)
                     .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
                     .expect("Axum server for tracker API crashed."),
-                None => axum_server::from_tcp(socket)
+                None => custom_axum_server::from_tcp_with_timeouts(socket)
                     .handle(handle)
+                    .acceptor(TimeoutAcceptor)
                     .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
                     .expect("Axum server for tracker API crashed."),
