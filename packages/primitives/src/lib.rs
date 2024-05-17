@@ -85,3 +85,21 @@ pub enum TrackerMode {
     #[serde(rename = "private_listed")]
     PrivateListed,
 }
+
+impl Default for TrackerMode {
+    fn default() -> Self {
+        Self::Public
+    }
+}
+
+impl TrackerMode {
+    #[must_use]
+    pub fn is_open(&self) -> bool {
+        matches!(self, TrackerMode::Public | TrackerMode::Listed)
+    }
+
+    #[must_use]
+    pub fn is_close(&self) -> bool {
+        !self.is_open()
+    }
+}
