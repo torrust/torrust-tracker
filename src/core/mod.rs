@@ -547,7 +547,7 @@ impl Tracker {
     ) -> Result<Tracker, databases::error::Error> {
         let database = Arc::new(databases::driver::build(&config.db_driver, &config.db_path)?);
 
-        let mode = config.mode;
+        let mode = config.mode.clone();
 
         Ok(Tracker {
             //config,

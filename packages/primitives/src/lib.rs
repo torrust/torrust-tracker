@@ -67,7 +67,7 @@ pub type PersistentTorrents = BTreeMap<InfoHash, u32>;
 ///
 /// Refer to [Torrust Tracker Configuration](https://docs.rs/torrust-tracker-configuration)
 /// to know how to configure the tracker to run in each mode.
-#[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
 pub enum TrackerMode {
     /// Will track every new info hash and serve every peer.
     #[serde(rename = "public")]
