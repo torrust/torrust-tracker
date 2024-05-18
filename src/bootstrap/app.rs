@@ -15,7 +15,6 @@ use std::sync::Arc;
 
 use torrust_tracker_clock::static_time;
 use torrust_tracker_configuration::Configuration;
-use tracing::metadata::ParseLevelError;
 use tracing::Level;
 
 use super::config::initialize_configuration;
@@ -23,7 +22,7 @@ use crate::core::services::tracker_factory;
 use crate::core::Tracker;
 use crate::shared::crypto::ephemeral_instance_keys;
 
-/// It loads the configuration from the environment and setups up tracing (logging).
+/// It loads the configuration from the environment gets trace level
 ///
 /// # Panics
 ///
@@ -31,7 +30,13 @@ use crate::shared::crypto::ephemeral_instance_keys;
 #[must_use]
 pub fn config() -> (Configuration, Level) {
     let config = initialize_configuration();
-    let level = parse_level_or_default(&config.log_level).expect("its should provide a valid value for the log level");
+
+    let level: Level = config
+        .trace_level
+        .as_deref()
+        .unwrap_or("info")
+        .parse()
+        .expect("its should provide a valid value for the log level");
 
     (config, level)
 }
@@ -58,8 +63,4 @@ fn initialize_static() {
 
     // Initialize the Ephemeral Instance Random Seed
     lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
-}
-
-fn parse_level_or_default(level: &Option<String>) -> Result<Level, ParseLevelError> {
-    level.as_deref().unwrap_or("info").parse()
 }

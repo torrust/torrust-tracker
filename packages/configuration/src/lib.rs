@@ -466,13 +466,16 @@ impl Default for AnnouncePolicy {
 pub struct Configuration {
     /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
     /// `Debug` and `Trace`. Default is `Info`.
-    pub log_level: Option<String>,
+    #[serde(alias = "log_level")]
+    pub trace_level: Option<String>,
+
     /// Tracker mode. See [`TrackerMode`] for more information.
     pub mode: TrackerMode,
 
     // Database configuration
     /// Database driver. Possible values are: `Sqlite3`, and `MySQL`.
     pub db_driver: DatabaseDriver,
+
     /// Database connection string. The format depends on the database driver.
     /// For `Sqlite3`, the format is `path/to/database.db`, for example:
     /// `./storage/tracker/lib/database/sqlite3.db`.
@@ -573,7 +576,7 @@ impl Default for Configuration {
         let announce_policy = AnnouncePolicy::default();
 
         let mut configuration = Configuration {
-            log_level: Option::from(String::from("info")),
+            trace_level: Option::from(String::from("info")),
             mode: TrackerMode::Public,
             db_driver: DatabaseDriver::Sqlite3,
             db_path: String::from("./storage/tracker/lib/database/sqlite3.db"),

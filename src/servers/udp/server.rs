@@ -19,7 +19,6 @@
 //! In production, the `Udp` launcher is used directly.
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::time::Duration;
 
 use futures::future::BoxFuture;
 use futures::FutureExt;
@@ -33,7 +32,6 @@ use tracing::{debug, error, info, instrument, trace, warn, Level};
 use super::v0::UdpRequest;
 use super::Error;
 use crate::core::Tracker;
-use crate::servers::signals::{global_interrupt_signal, global_shutdown_signal, global_terminate_signal};
 use crate::servers::udp::v0::handlers;
 use crate::shared::handle::{Handle, Watcher};
 
@@ -70,16 +68,9 @@ pub(super) struct Udp {
 }
 
 enum Task {
-    BeforeListening,
-    Terminate,
-    Interrupt,
     Shutdown,
     Graceful,
     Listening(Option<SocketAddr>),
-    Remaining,
-    Finished,
-    //    Notified(Result<SocketAddr, Error>),
-    //    Ready(Result<SocketAddr, Error>),
     Readable(std::io::Result<()>),
 }
 
@@ -151,7 +142,7 @@ impl Udp {
                             addr: self.addr,
                             err: e.into(),
                         })?,
-                        _ => unreachable!(),
+                        Task::Listening(_) => unreachable!(),
                     };
                 }
 
@@ -186,7 +177,8 @@ impl Udp {
                     let () = self.handle.wait_connections_end().await;
                 }
                 Task::Readable(_) => unreachable!("it should not return readable"),
-                _ => unreachable!(),
+
+                Task::Listening(_) => unreachable!(),
             };
 
             Ok(())
@@ -233,7 +225,7 @@ impl Udp {
                     Err(Error::UnableToGetListeningAddress {})
                 }
             }
-            _ => unreachable!(),
+            Task::Readable(_) => unreachable!(),
         }
     }
 
@@ -332,89 +324,6 @@ fn get_response_payload(response: &aquatic_udp_protocol::Response) -> Vec<u8> {
     payload.truncate(len);
 
     payload
-}
-
-#[instrument(ret)]
-pub fn graceful_udp_shutdown(handle: &Handle, message: String) {
-    let handle = handle.clone();
-
-    tokio::task::spawn(async move {
-        {
-            let end = tokio::select! {
-                maybe = handle.listening() => { Task::Listening(maybe) },
-                () = global_shutdown_signal() => { Task::BeforeListening }
-            };
-
-            match end {
-                Task::BeforeListening => {
-                    warn!("Shutdown Before Listening");
-                    handle.shutdown();
-                    return;
-                }
-                Task::Listening(maybe) => {
-                    if let Some(addr) = maybe {
-                        info!("Listening to: {addr}");
-                    } else {
-                        warn!("Failed to start Listening");
-                        handle.shutdown();
-                        return;
-                    }
-                }
-
-                _ => unreachable!(),
-            }
-        };
-
-        loop {
-            let end = tokio::select! {
-                biased;
-                () = global_terminate_signal() => { Task::Terminate}
-                () = global_interrupt_signal() => { Task::Interrupt}
-                () = handle.wait_shutdown() => { Task::Shutdown}
-                () = handle.wait_graceful_shutdown() => { Task::Graceful}
-            };
-
-            match end {
-                Task::Interrupt => {
-                    if let Ok(()) = tokio::time::timeout(Duration::from_millis(100), handle.wait_graceful_shutdown()).await {
-                        info! {"Got Second Interrupt: Exiting Now"};
-                        handle.shutdown();
-                        return;
-                    }
-                    info! {"Got Interrupt: Gracefully Exiting over the next 90 seconds..."};
-                    handle.graceful_shutdown(Some(Duration::from_secs(90)));
-                }
-                Task::Terminate => {
-                    warn!("Got Terminate: Exiting Now!");
-                    handle.shutdown();
-                    return;
-                }
-                Task::Shutdown => {
-                    info!("Received Shutdown, Closing Service.");
-                    return;
-                }
-                Task::Graceful => loop {
-                    let wait = tokio::select! {
-                            biased;
-                            () = handle.wait_connections_end() => Task::Finished,
-                            () = tokio::time::sleep(Duration::from_secs(1)) => Task::Remaining,
-                    };
-
-                    match wait {
-                        Task::Remaining => {
-                            info!("Remaining Connections: {}", handle.connection_count());
-                        }
-                        Task::Finished => {
-                            info!("No More Connections, Closing Service");
-                            return;
-                        }
-                        _ => unreachable!(),
-                    };
-                },
-                _ => unreachable!(),
-            }
-        }
-    });
 }
 
 //         match handle.listening().await {
