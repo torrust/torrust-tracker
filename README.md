@@ -154,7 +154,7 @@ The following services are provided by the default configuration:
 - UDP _(tracker)_
   - `udp://127.0.0.1:6969/announce`.
 - HTTP _(tracker)_
-  - `http://127.0.0.1:6969/announce`.
+  - `http://127.0.0.1:7070/announce`.
 - API _(management)_
   - `http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken`.
 
