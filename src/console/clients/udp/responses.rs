@@ -1,8 +1,23 @@
 //! Aquatic responses are not serializable. These are the serializable wrappers.
 use std::net::{Ipv4Addr, Ipv6Addr};
 
-use aquatic_udp_protocol::{AnnounceResponse, Ipv4AddrBytes, Ipv6AddrBytes, ScrapeResponse};
+use aquatic_udp_protocol::{AnnounceResponse, ConnectResponse, ErrorResponse, Ipv4AddrBytes, Ipv6AddrBytes, ScrapeResponse};
 use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct ConnectResponseDto {
+    transaction_id: i32,
+    connection_id: i64,
+}
+
+impl From<ConnectResponse> for ConnectResponseDto {
+    fn from(connect: ConnectResponse) -> Self {
+        Self {
+            transaction_id: connect.transaction_id.0.into(),
+            connection_id: connect.connection_id.0.into(),
+        }
+    }
+}
 
 #[derive(Serialize)]
 pub struct AnnounceResponseDto {
@@ -64,6 +79,21 @@ impl From<ScrapeResponse> for ScrapeResponseDto {
                     leechers: torrent_scrape_statistics.leechers.0.into(),
                 })
                 .collect::<Vec<_>>(),
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct ErrorResponseDto {
+    transaction_id: i32,
+    message: String,
+}
+
+impl From<ErrorResponse> for ErrorResponseDto {
+    fn from(error: ErrorResponse) -> Self {
+        Self {
+            transaction_id: error.transaction_id.0.into(),
+            message: error.message.to_string(),
         }
     }
 }
