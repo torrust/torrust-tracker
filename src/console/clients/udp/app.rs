@@ -60,7 +60,7 @@ use std::net::{SocketAddr, ToSocketAddrs};
 use std::str::FromStr;
 
 use anyhow::Context;
-use aquatic_udp_protocol::Response::{self, AnnounceIpv4, AnnounceIpv6, Scrape};
+use aquatic_udp_protocol::Response::{self, AnnounceIpv4, AnnounceIpv6, Connect, Error, Scrape};
 use aquatic_udp_protocol::{Port, TransactionId};
 use clap::{Parser, Subcommand};
 use log::{debug, LevelFilter};
@@ -68,7 +68,7 @@ use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
 use url::Url;
 
 use crate::console::clients::udp::checker;
-use crate::console::clients::udp::responses::{AnnounceResponseDto, ScrapeResponseDto};
+use crate::console::clients::udp::responses::{AnnounceResponseDto, ConnectResponseDto, ErrorResponseDto, ScrapeResponseDto};
 
 const ASSIGNED_BY_OS: u16 = 0;
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
@@ -171,6 +171,11 @@ async fn handle_scrape(tracker_socket_addr: &SocketAddr, info_hashes: &[TorrustI
 
 fn print_response(response: Response) -> anyhow::Result<()> {
     match response {
+        Connect(response) => {
+            let pretty_json = serde_json::to_string_pretty(&ConnectResponseDto::from(response))
+                .context("connect response JSON serialization")?;
+            println!("{pretty_json}");
+        }
         AnnounceIpv4(response) => {
             let pretty_json = serde_json::to_string_pretty(&AnnounceResponseDto::from(response))
                 .context("announce IPv4 response JSON serialization")?;
@@ -186,7 +191,11 @@ fn print_response(response: Response) -> anyhow::Result<()> {
                 serde_json::to_string_pretty(&ScrapeResponseDto::from(response)).context("scrape response JSON serialization")?;
             println!("{pretty_json}");
         }
-        _ => println!("{response:#?}"), // todo: serialize to JSON all aquatic responses.
+        Error(response) => {
+            let pretty_json =
+                serde_json::to_string_pretty(&ErrorResponseDto::from(response)).context("error response JSON serialization")?;
+            println!("{pretty_json}");
+        }
     };
 
     Ok(())
