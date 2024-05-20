@@ -50,7 +50,7 @@ mod tests {
     use camino::Utf8PathBuf;
     use torrust_tracker_configuration::TslConfig;
 
-    use super::make_rust_tls;
+    use super::{make_rust_tls, Error};
 
     #[tokio::test]
     async fn it_should_error_on_bad_tls_config() {
@@ -65,9 +65,7 @@ mod tests {
         .expect("tls_was_enabled")
         .expect_err("bad_cert_and_key_files");
 
-        assert!(err
-            .to_string()
-            .contains("bad tls config: No such file or directory (os error 2)"));
+        assert!(matches!(err, Error::BadTlsConfig { source: _ }));
     }
 
     #[tokio::test]
@@ -83,7 +81,7 @@ mod tests {
         .expect("tls_was_enabled")
         .expect_err("missing_config");
 
-        assert_eq!(err.to_string(), "tls config missing");
+        assert!(matches!(err, Error::MissingTlsConfig { location: _ }));
     }
 }
 
