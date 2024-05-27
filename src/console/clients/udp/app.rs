@@ -60,15 +60,14 @@ use std::net::{SocketAddr, ToSocketAddrs};
 use std::str::FromStr;
 
 use anyhow::Context;
-use aquatic_udp_protocol::Response::{self, AnnounceIpv4, AnnounceIpv6, Connect, Error, Scrape};
-use aquatic_udp_protocol::{Port, TransactionId};
+use aquatic_udp_protocol::{Port, Response, TransactionId};
 use clap::{Parser, Subcommand};
 use log::{debug, LevelFilter};
 use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
 use url::Url;
 
 use crate::console::clients::udp::checker;
-use crate::console::clients::udp::responses::{AnnounceResponseDto, ConnectResponseDto, ErrorResponseDto, ScrapeResponseDto};
+use crate::console::clients::udp::responses::{DtoToJson, ResponseDto};
 
 const ASSIGNED_BY_OS: u16 = 0;
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
@@ -117,7 +116,8 @@ pub async fn run() -> anyhow::Result<()> {
         } => handle_scrape(&tracker_socket_addr, &info_hashes).await?,
     };
 
-    print_response(response)
+    let response_dto: ResponseDto = response.into();
+    response_dto.print_response()
 }
 
 fn setup_logging(level: LevelFilter) {
@@ -167,38 +167,6 @@ async fn handle_scrape(tracker_socket_addr: &SocketAddr, info_hashes: &[TorrustI
     client
         .send_scrape_request(connection_id, transaction_id, info_hashes.to_vec())
         .await
-}
-
-fn print_response(response: Response) -> anyhow::Result<()> {
-    match response {
-        Connect(response) => {
-            let pretty_json = serde_json::to_string_pretty(&ConnectResponseDto::from(response))
-                .context("connect response JSON serialization")?;
-            println!("{pretty_json}");
-        }
-        AnnounceIpv4(response) => {
-            let pretty_json = serde_json::to_string_pretty(&AnnounceResponseDto::from(response))
-                .context("announce IPv4 response JSON serialization")?;
-            println!("{pretty_json}");
-        }
-        AnnounceIpv6(response) => {
-            let pretty_json = serde_json::to_string_pretty(&AnnounceResponseDto::from(response))
-                .context("announce IPv6 response JSON serialization")?;
-            println!("{pretty_json}");
-        }
-        Scrape(response) => {
-            let pretty_json =
-                serde_json::to_string_pretty(&ScrapeResponseDto::from(response)).context("scrape response JSON serialization")?;
-            println!("{pretty_json}");
-        }
-        Error(response) => {
-            let pretty_json =
-                serde_json::to_string_pretty(&ErrorResponseDto::from(response)).context("error response JSON serialization")?;
-            println!("{pretty_json}");
-        }
-    };
-
-    Ok(())
 }
 
 fn parse_socket_addr(tracker_socket_addr_str: &str) -> anyhow::Result<SocketAddr> {
