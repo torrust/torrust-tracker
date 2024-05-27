@@ -7,6 +7,10 @@ use aquatic_udp_protocol::{AnnounceResponse, ConnectResponse, ErrorResponse, Ipv
 use serde::Serialize;
 
 pub trait DtoToJson {
+    /// # Errors
+    ///
+    /// Will return an error if serialization fails.
+    ///
     fn print_response(&self) -> anyhow::Result<()>
     where
         Self: Serialize,
