@@ -1,8 +1,45 @@
 //! Aquatic responses are not serializable. These are the serializable wrappers.
 use std::net::{Ipv4Addr, Ipv6Addr};
 
+use anyhow::Context;
+use aquatic_udp_protocol::Response::{self};
 use aquatic_udp_protocol::{AnnounceResponse, ConnectResponse, ErrorResponse, Ipv4AddrBytes, Ipv6AddrBytes, ScrapeResponse};
 use serde::Serialize;
+
+pub trait DtoToJson {
+    fn print_response(&self) -> anyhow::Result<()>
+    where
+        Self: Serialize,
+    {
+        let pretty_json = serde_json::to_string_pretty(self).context("response JSON serialization")?;
+        println!("{pretty_json}");
+
+        Ok(())
+    }
+}
+
+#[derive(Serialize)]
+pub enum ResponseDto {
+    Connect(ConnectResponseDto),
+    AnnounceIpv4(AnnounceResponseDto),
+    AnnounceIpv6(AnnounceResponseDto),
+    Scrape(ScrapeResponseDto),
+    Error(ErrorResponseDto),
+}
+
+impl From<Response> for ResponseDto {
+    fn from(response: Response) -> Self {
+        match response {
+            Response::Connect(response) => ResponseDto::Connect(ConnectResponseDto::from(response)),
+            Response::AnnounceIpv4(response) => ResponseDto::AnnounceIpv4(AnnounceResponseDto::from(response)),
+            Response::AnnounceIpv6(response) => ResponseDto::AnnounceIpv6(AnnounceResponseDto::from(response)),
+            Response::Scrape(response) => ResponseDto::Scrape(ScrapeResponseDto::from(response)),
+            Response::Error(response) => ResponseDto::Error(ErrorResponseDto::from(response)),
+        }
+    }
+}
+
+impl DtoToJson for ResponseDto {}
 
 #[derive(Serialize)]
 pub struct ConnectResponseDto {
