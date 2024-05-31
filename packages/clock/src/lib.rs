@@ -17,11 +17,11 @@
 //! ```
 //!
 //! > **NOTICE**: internally the `Duration` is stores it's main unit as seconds in a `u64` and it will
-//! overflow in 584.9 billion years.
+//! > overflow in 584.9 billion years.
 //!
 //! > **NOTICE**: the timestamp does not depend on the time zone. That gives you
-//! the ability to use the clock regardless of the underlying system time zone
-//! configuration. See [Unix time Wikipedia entry](https://en.wikipedia.org/wiki/Unix_time).
+//! > the ability to use the clock regardless of the underlying system time zone
+//! > configuration. See [Unix time Wikipedia entry](https://en.wikipedia.org/wiki/Unix_time).
 
 pub mod clock;
 pub mod conv;

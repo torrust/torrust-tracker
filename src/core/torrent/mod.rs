@@ -20,10 +20,10 @@
 //!
 //! - The number of peers that have completed downloading the torrent since the tracker started collecting metrics.
 //! - The number of peers that have completed downloading the torrent and are still active, that means they are actively participating in the network,
-//! by announcing themselves periodically to the tracker. Since they have completed downloading they have a full copy of the torrent data. Peers with a
-//! full copy of the data are called "seeders".
+//!   by announcing themselves periodically to the tracker. Since they have completed downloading they have a full copy of the torrent data. Peers with a
+//!   full copy of the data are called "seeders".
 //! - The number of peers that have NOT completed downloading the torrent and are still active, that means they are actively participating in the network.
-//! Peer that don not have a full copy of the torrent data are called "leechers".
+//!   Peer that don not have a full copy of the torrent data are called "leechers".
 //!
 use torrust_tracker_torrent_repository::TorrentsSkipMapMutexStd;
 

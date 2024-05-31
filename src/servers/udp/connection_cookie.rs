@@ -46,10 +46,10 @@
 //! Peer C connects at timestamp 180 slot 1 -> connection ID will be valid from timestamp 180 to 360
 //! ```
 //! > **NOTICE**: connection ID is always the same for a given peer
-//! (socket address) and time slot.
+//! > (socket address) and time slot.
 //!
 //! > **NOTICE**: connection ID will be valid for two time extents, **not two
-//! minutes**. It'll be valid for the the current time extent and the next one.
+//! > minutes**. It'll be valid for the the current time extent and the next one.
 //!
 //! Refer to [`Connect`](crate::servers::udp#connect) for more information about
 //! the connection process.
@@ -62,10 +62,8 @@
 //!
 //! ## Disadvantages
 //!
-//! - It's not very flexible. The connection ID is only valid for a certain
-//! amount of time.
-//! - It's not very accurate. The connection ID is valid for more than two
-//! minutes.
+//! - It's not very flexible. The connection ID is only valid for a certain amount of time.
+//! - It's not very accurate. The connection ID is valid for more than two minutes.
 use std::net::SocketAddr;
 use std::panic::Location;
 

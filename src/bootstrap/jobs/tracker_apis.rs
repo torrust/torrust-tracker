@@ -4,8 +4,8 @@
 //! function starts a the HTTP tracker REST API.
 //!
 //! > **NOTICE**: that even thought there is only one job the API has different
-//! versions. API consumers can choose which version to use. The API version is
-//! part of the URL, for example: `http://localhost:1212/api/v1/stats`.
+//! > versions. API consumers can choose which version to use. The API version is
+//! > part of the URL, for example: `http://localhost:1212/api/v1/stats`.
 //!
 //! The [`tracker_apis::start_job`](crate::bootstrap::jobs::tracker_apis::start_job)  
 //! function spawns a new asynchronous task, that tasks is the "**launcher**".
@@ -38,8 +38,8 @@ use crate::servers::registar::ServiceRegistrationForm;
 /// application process to notify the API server was successfully started.
 ///
 /// > **NOTICE**: it does not mean the API server is ready to receive requests.
-/// It only means the new server started. It might take some time to the server
-/// to be ready to accept request.
+/// > It only means the new server started. It might take some time to the server
+/// > to be ready to accept request.
 #[derive(Debug)]
 pub struct ApiServerJobStarted();
 

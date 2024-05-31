@@ -3,7 +3,7 @@
 //! The function [`http_tracker::start_job`](crate::bootstrap::jobs::http_tracker::start_job) starts a new HTTP tracker server.
 //!
 //! > **NOTICE**: the application can launch more than one HTTP tracker on different ports.
-//! Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration) for the configuration options.
+//! > Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration) for the configuration options.
 //!
 //! The [`http_tracker::start_job`](crate::bootstrap::jobs::http_tracker::start_job) function spawns a new asynchronous task,
 //! that tasks is the "**launcher**". The "**launcher**" starts the actual server and sends a message back to the main application.

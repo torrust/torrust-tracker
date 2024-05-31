@@ -219,7 +219,7 @@
 //! The torrent entry has two attributes:
 //!
 //! - `completed`: which is hte number of peers that have completed downloading the torrent file/s. As they have completed downloading,
-//!  they have a full version of the torrent data, and they can provide the full data to other peers. That's why they are also known as "seeders".
+//!   they have a full version of the torrent data, and they can provide the full data to other peers. That's why they are also known as "seeders".
 //! - `peers`: an indexed and orderer list of peer for the torrent. Each peer contains the data received from the peer in the `announce` request.
 //!
 //! The [`torrent`] module not only contains the original data obtained from peer via `announce` requests, it also contains
@@ -401,7 +401,7 @@
 //! - `scrapes_handled`: number of `scrape` handled requests by the tracker
 //!
 //! > **NOTICE**: as the HTTP tracker does not have an specific `connection` request like the UDP tracker, `connections_handled` are
-//! increased on every `announce` and `scrape` requests.
+//! > increased on every `announce` and `scrape` requests.
 //!
 //! The tracker exposes an event sender API that allows the tracker users to send events. When a higher application service handles a
 //! `connection` , `announce` or `scrape` requests, it notifies the `Tracker` by sending statistics events.
@@ -467,8 +467,8 @@ use crate::CurrentClock;
 /// authentication and other services.
 ///
 /// > **NOTICE**: the `Tracker` is not responsible for handling the network layer.
-/// Typically, the `Tracker` is used by a higher application service that handles
-/// the network layer.
+/// > Typically, the `Tracker` is used by a higher application service that handles
+/// > the network layer.
 pub struct Tracker {
     announce_policy: AnnouncePolicy,
     /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)

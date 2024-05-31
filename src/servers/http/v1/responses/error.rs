@@ -9,8 +9,8 @@
 //! why the query failed, and no other keys are required."_
 //!
 //! > **NOTICE**: error responses are bencoded and always have a `200 OK` status
-//!  code. The official `BitTorrent` specification does not specify the status
-//! code.
+//! > code. The official `BitTorrent` specification does not specify the status
+//! > code.
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;

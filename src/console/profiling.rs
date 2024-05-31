@@ -12,9 +12,9 @@
 //! ```
 //!
 //! > NOTICE: valgrind executes the program you wan to profile and waits until
-//! it ends. Since the tracker is a service and does not end the profiling
-//! binary accepts an arguments with the duration you want to run the tracker,
-//! so that it terminates automatically after that period of time.
+//! > it ends. Since the tracker is a service and does not end the profiling
+//! > binary accepts an arguments with the duration you want to run the tracker,
+//! > so that it terminates automatically after that period of time.
 //!
 //! # Run profiling
 //!
@@ -81,7 +81,7 @@
 //! ```
 //!
 //! > NOTICE: We are using an specific tracker configuration for profiling that
-//! removes all features except the UDP tracker and sets the logging level to `error`.
+//! > removes all features except the UDP tracker and sets the logging level to `error`.
 //!
 //! Build the aquatic UDP load test command:
 //!

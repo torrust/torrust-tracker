@@ -27,7 +27,7 @@ use crate::servers::signals::{graceful_shutdown, Halted};
 ///
 /// - The channel to send the shutdown signal to the server is closed.
 /// - The task to shutdown the server on the spawned server failed to execute to
-/// completion.
+///   completion.
 #[derive(Debug)]
 pub enum Error {
     Error(String),
@@ -107,8 +107,8 @@ pub type RunningHttpServer = HttpServer<Running>;
 /// server but always keeping the same configuration.
 ///
 /// > **NOTICE**: if the configurations changes after running the server it will
-/// reset to the initial value after stopping the server. This struct is not
-/// intended to persist configurations between runs.
+/// > reset to the initial value after stopping the server. This struct is not
+/// > intended to persist configurations between runs.
 #[allow(clippy::module_name_repetitions)]
 pub struct HttpServer<S> {
     /// The state of the server: `running` or `stopped`.

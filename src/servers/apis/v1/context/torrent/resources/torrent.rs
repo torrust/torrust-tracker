@@ -2,8 +2,8 @@
 //!
 //! - `Torrent` is the full torrent resource.
 //! - `ListItem` is a list item resource on a torrent list. `ListItem` does
-//! include a `peers` field but it is always `None` in the struct and `null` in
-//! the JSON response.
+//!   include a `peers` field but it is always `None` in the struct and `null` in
+//!   the JSON response.
 use serde::{Deserialize, Serialize};
 
 use crate::core::services::torrent::{BasicInfo, Info};

@@ -4,8 +4,8 @@
 //! function starts a new UDP tracker server.
 //!
 //! > **NOTICE**: that the application can launch more than one UDP tracker
-//! on different ports. Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
-//! for the configuration options.
+//! > on different ports. Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
+//! > for the configuration options.
 use std::sync::Arc;
 
 use log::debug;
