@@ -31,8 +31,7 @@ use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 /// It's responsible for:
 ///
 /// - Parsing the incoming packet.
-/// - Delegating the request to the correct handler depending on the request
-/// type.
+/// - Delegating the request to the correct handler depending on the request type.
 ///
 /// It will return an `Error` response if the request is invalid.
 pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker>, socket: Arc<UdpSocket>) -> Response {

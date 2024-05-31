@@ -14,8 +14,7 @@ use crate::CurrentClock;
 /// # Arguments
 ///
 /// * `announce_wrapper` - The announce request to extract the peer info from.
-/// * `peer_ip` - The real IP address of the peer, not the one in the announce
-/// request.
+/// * `peer_ip` - The real IP address of the peer, not the one in the announce request.
 #[must_use]
 pub fn from_request(announce_wrapper: &AnnounceWrapper, peer_ip: &IpAddr) -> peer::Peer {
     let announce_event = match aquatic_udp_protocol::AnnounceEvent::from(announce_wrapper.announce_request.event) {

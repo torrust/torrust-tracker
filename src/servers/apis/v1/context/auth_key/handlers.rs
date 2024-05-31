@@ -46,7 +46,7 @@ pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path
 ///
 /// - `POST /api/v1/key/120`. It will generate a new key valid for two minutes.
 /// - `DELETE /api/v1/key/xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6`. It will delete the
-/// key `xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6`.
+///   key `xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6`.
 ///
 /// > **NOTICE**: this may change in the future, in the [API v2](https://github.com/torrust/torrust-tracker/issues/144).
 #[derive(Deserialize)]

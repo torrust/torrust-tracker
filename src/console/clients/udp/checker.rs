@@ -104,7 +104,7 @@ impl Client {
     ///
     /// - It can't connect to the remote UDP socket.
     /// - It can't make a connection request successfully to the remote UDP
-    /// server (after successfully connecting to the remote UDP socket).
+    ///   server (after successfully connecting to the remote UDP socket).
     ///
     /// # Panics
     ///

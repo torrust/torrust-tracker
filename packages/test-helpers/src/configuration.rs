@@ -13,11 +13,11 @@ use crate::random;
 /// > **NOTICE**: This configuration is not meant to be used in production.
 ///
 /// > **NOTICE**: Port 0 is used for ephemeral ports, which means that the OS
-/// will assign a random free port for the tracker to use.
+/// > will assign a random free port for the tracker to use.
 ///
 /// > **NOTICE**: You can change the log level to `debug` to see the logs of the
-/// tracker while running the tests. That can be particularly useful when
-/// debugging tests.
+/// > tracker while running the tests. That can be particularly useful when
+/// > debugging tests.
 ///
 /// # Panics
 ///

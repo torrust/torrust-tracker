@@ -51,12 +51,12 @@ const COMPACT: &str = "compact";
 /// ```
 ///
 /// > **NOTICE**: The [BEP 03. The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-/// specifies that only the peer `IP` and `event`are optional. However, the
-/// tracker defines default values for some of the mandatory params.
+/// > specifies that only the peer `IP` and `event`are optional. However, the
+/// > tracker defines default values for some of the mandatory params.
 ///
 /// > **NOTICE**: The struct does not contain the `IP` of the peer. It's not
-/// mandatory and it's not used by the tracker. The `IP` is obtained from the
-/// request itself.
+/// > mandatory and it's not used by the tracker. The `IP` is obtained from the
+/// > request itself.
 #[derive(Debug, PartialEq)]
 pub struct Announce {
     // Mandatory params

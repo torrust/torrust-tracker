@@ -51,9 +51,9 @@
 //! ```
 //!
 //! > **NOTICE**: `valid_until` and `expiry_time` represent the same time.
-//! `valid_until` is the number of seconds since the Unix epoch
-//! ([timestamp](https://en.wikipedia.org/wiki/Timestamp)), while `expiry_time`
-//! is the human-readable time ([ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html)).
+//! > `valid_until` is the number of seconds since the Unix epoch
+//! > ([timestamp](https://en.wikipedia.org/wiki/Timestamp)), while `expiry_time`
+//! > is the human-readable time ([ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html)).
 //!
 //! **Resource**
 //!
@@ -96,8 +96,8 @@
 //! ```
 //!
 //! > **NOTICE**: a `500` status code will be returned and the body is not a
-//! valid JSON. It's a text body containing the serialized-to-display error
-//! message.
+//! > valid JSON. It's a text body containing the serialized-to-display error
+//! > message.
 //!
 //! # Reload authentication keys
 //!

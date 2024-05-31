@@ -2,8 +2,7 @@
 //!
 //! There are two main types in this module:
 //!
-//! - [`UdpServer`]: a controller to
-//! start and stop the server.
+//! - [`UdpServer`]: a controller to start and stop the server.
 //! - [`Udp`]: the server launcher.
 //!
 //! The `UdpServer` is an state machine for a given configuration. This struct
@@ -49,8 +48,7 @@ use crate::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
 ///
 /// Some errors triggered while stopping the server are:
 ///
-/// - The [`UdpServer`] cannot send the
-///  shutdown signal to the spawned UDP service thread.
+/// - The [`UdpServer`] cannot send the shutdown signal to the spawned UDP service thread.
 #[derive(Debug)]
 pub enum Error {
     /// Any kind of error starting or stopping the server.
@@ -78,8 +76,8 @@ pub type RunningUdpServer = UdpServer<Running>;
 /// server but always keeping the same configuration.
 ///
 /// > **NOTICE**: if the configurations changes after running the server it will
-/// reset to the initial value after stopping the server. This struct is not
-/// intended to persist configurations between runs.
+/// > reset to the initial value after stopping the server. This struct is not
+/// > intended to persist configurations between runs.
 #[allow(clippy::module_name_repetitions)]
 pub struct UdpServer<S> {
     /// The state of the server: `running` or `stopped`.
