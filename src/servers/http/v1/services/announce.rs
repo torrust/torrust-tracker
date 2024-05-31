@@ -24,8 +24,8 @@ use crate::core::{statistics, AnnounceData, Tracker};
 /// - The number of TCP `announce` requests handled by the HTTP tracker.
 ///
 /// > **NOTICE**: as the HTTP tracker does not requires a connection request
-/// like the UDP tracker, the number of TCP connections is incremented for
-/// each `announce` request.
+/// > like the UDP tracker, the number of TCP connections is incremented for
+/// > each `announce` request.
 pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut peer::Peer) -> AnnounceData {
     let original_peer_ip = peer.peer_addr.ip();
 

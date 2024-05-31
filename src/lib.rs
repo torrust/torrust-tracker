@@ -103,8 +103,8 @@
 //! ```
 //!
 //! > **NOTICE**: those are the commands for `Ubuntu`. If you are using a
-//! different OS, you will need to install the equivalent packages. Please
-//! refer to the documentation of your OS.
+//! > different OS, you will need to install the equivalent packages. Please
+//! > refer to the documentation of your OS.
 //!
 //! With the default configuration you will need to create the `storage` directory:
 //!
@@ -231,7 +231,7 @@
 //! will use `./share/default/config/tracker.development.sqlite3.toml`.
 //!
 //! > IMPORTANT: Every time you change the configuration you need to restart the
-//! service.
+//! > service.
 //!
 //! # Usage
 //!

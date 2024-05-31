@@ -1,7 +1,7 @@
 //! The tracker REST API with all its versions.
 //!
 //! > **NOTICE**: This API should not be exposed directly to the internet, it is
-//! intended for internal use only.
+//! > intended for internal use only.
 //!
 //! Endpoints for the latest API: [v1].
 //!
@@ -124,16 +124,16 @@
 //! ```
 //!
 //! > **NOTICE**: If you are using a reverse proxy like NGINX, you can skip this
-//! step and use NGINX for the SSL instead. See
-//! [other alternatives to Nginx/certbot](https://github.com/torrust/torrust-tracker/discussions/131)
+//! > step and use NGINX for the SSL instead. See
+//! > [other alternatives to Nginx/certbot](https://github.com/torrust/torrust-tracker/discussions/131)
 //!
 //! > **NOTICE**: You can generate a self-signed certificate for localhost using
-//! OpenSSL. See [Let's Encrypt](https://letsencrypt.org/docs/certificates-for-localhost/).
-//! That's particularly useful for testing purposes. Once you have the certificate
-//! you need to set the [`ssl_cert_path`](torrust_tracker_configuration::HttpApi::tsl_config.ssl_cert_path)
-//! and [`ssl_key_path`](torrust_tracker_configuration::HttpApi::tsl_config.ssl_key_path)
-//! options in the configuration file with the paths to the certificate
-//! (`localhost.crt`) and key (`localhost.key`) files.
+//! > OpenSSL. See [Let's Encrypt](https://letsencrypt.org/docs/certificates-for-localhost/).
+//! > That's particularly useful for testing purposes. Once you have the certificate
+//! > you need to set the [`ssl_cert_path`](torrust_tracker_configuration::HttpApi::tsl_config.ssl_cert_path)
+//! > and [`ssl_key_path`](torrust_tracker_configuration::HttpApi::tsl_config.ssl_key_path)
+//! > options in the configuration file with the paths to the certificate
+//! > (`localhost.crt`) and key (`localhost.key`) files.
 //!
 //! # Versioning
 //!
@@ -153,8 +153,8 @@
 //! If you want to contribute to this documentation you can [open a new pull request](https://github.com/torrust/torrust-tracker/pulls).
 //!
 //! > **NOTICE**: we are using [curl](https://curl.se/) in the API examples.
-//! And you have to use quotes around the URL in order to avoid unexpected
-//! errors. For example: `curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken"`.
+//! > And you have to use quotes around the URL in order to avoid unexpected
+//! > errors. For example: `curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken"`.
 pub mod routes;
 pub mod server;
 pub mod v1;

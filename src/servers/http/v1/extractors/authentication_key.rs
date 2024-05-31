@@ -39,9 +39,9 @@
 //! ```
 //!
 //! > **NOTICE**: the returned HTTP status code is always `200` for authentication errors.
-//! Neither [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-//! nor [The Private Torrents](https://www.bittorrent.org/beps/bep_0027.html)
-//! specifications specify any HTTP status code for authentication errors.
+//! > Neither [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
+//! > nor [The Private Torrents](https://www.bittorrent.org/beps/bep_0027.html)
+//! > specifications specify any HTTP status code for authentication errors.
 use std::panic::Location;
 
 use axum::async_trait;

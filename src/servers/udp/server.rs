@@ -2,8 +2,7 @@
 //!
 //! There are two main types in this module:
 //!
-//! - [`UdpServer`]: a controller to
-//! start and stop the server.
+//! - [`UdpServer`]: a controller to start and stop the server.
 //! - [`Udp`]: the server launcher.
 //!
 //! The `UdpServer` is an state machine for a given configuration. This struct

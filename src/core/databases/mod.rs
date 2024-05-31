@@ -8,7 +8,7 @@
 //! - [`Sqlite`](crate::core::databases::sqlite::Sqlite)
 //!
 //! > **NOTICE**: There are no database migrations. If there are any changes,
-//! we will implemented them or provide a script to migrate to the new schema.
+//! > we will implemented them or provide a script to migrate to the new schema.
 //!
 //! The persistent objects are:
 //!
@@ -25,7 +25,7 @@
 //!  `completed`   | 20                                       | The number of peers that have ever completed downloading the torrent associated to this entry. See [`Entry`](torrust_tracker_torrent_repository::entry::Entry) for more information.
 //!
 //! > **NOTICE**: The peer list for a torrent is not persisted. Since peer have to re-announce themselves on intervals, the data is be
-//! regenerated again after some minutes.
+//! > regenerated again after some minutes.
 //!
 //! # Torrent whitelist
 //!

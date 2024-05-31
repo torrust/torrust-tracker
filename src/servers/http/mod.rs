@@ -39,7 +39,7 @@
 //! **Query parameters**
 //!
 //! > **NOTICE**: you can click on the parameter name to see a full description
-//! after extracting and parsing the parameter from the URL query component.
+//! > after extracting and parsing the parameter from the URL query component.
 //!
 //! Parameter | Type | Description | Required |  Default | Example
 //! ---|---|---|---|---|---
@@ -58,40 +58,40 @@
 //! request for more information about the parameters.
 //!
 //! > **NOTICE**: the [BEP 03](https://www.bittorrent.org/beps/bep_0003.html)
-//! defines only the `ip` and `event` parameters as optional. However, the
-//! tracker assigns default values to the optional parameters if they are not
-//! provided.
+//! > defines only the `ip` and `event` parameters as optional. However, the
+//! > tracker assigns default values to the optional parameters if they are not
+//! > provided.
 //!
 //! > **NOTICE**: the `peer_addr` parameter is not part of the original
-//! specification. But the peer IP was added in the
-//! [UDP Tracker protocol](https://www.bittorrent.org/beps/bep_0015.html). It is
-//! used to provide the peer's IP address to the tracker, but it is ignored by
-//! the tracker. The tracker uses the IP address of the peer that sent the
-//! request or the right-most-ip in the `X-Forwarded-For` header if the tracker
-//! is behind a reverse proxy.
+//! > specification. But the peer IP was added in the
+//! > [UDP Tracker protocol](https://www.bittorrent.org/beps/bep_0015.html). It is
+//! > used to provide the peer's IP address to the tracker, but it is ignored by
+//! > the tracker. The tracker uses the IP address of the peer that sent the
+//! > request or the right-most-ip in the `X-Forwarded-For` header if the tracker
+//! > is behind a reverse proxy.
 //!
 //! > **NOTICE**: the maximum number of peers that the tracker can return is
-//! `74`. Defined with a hardcoded const [`TORRENT_PEERS_LIMIT`](torrust_tracker_configuration::TORRENT_PEERS_LIMIT).
-//! Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
-//! for more information about this limitation.
+//! > `74`. Defined with a hardcoded const [`TORRENT_PEERS_LIMIT`](torrust_tracker_configuration::TORRENT_PEERS_LIMIT).
+//! > Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
+//! > for more information about this limitation.
 //!
 //! > **NOTICE**: the `info_hash` parameter is NOT a `URL` encoded string param.
-//! It is percent encode of the raw `info_hash` bytes (40 bytes). URL `GET` params
-//! can contain any bytes, not only well-formed UTF-8. The `info_hash` is a
-//! 20-byte SHA1. Check the [`percent_encoding`]
-//! module to know more about the encoding.
+//! > It is percent encode of the raw `info_hash` bytes (40 bytes). URL `GET` params
+//! > can contain any bytes, not only well-formed UTF-8. The `info_hash` is a
+//! > 20-byte SHA1. Check the [`percent_encoding`]
+//! > module to know more about the encoding.
 //!
 //! > **NOTICE**: the `peer_id` parameter is NOT a `URL` encoded string param.
-//! It is percent encode of the raw peer ID bytes (20 bytes). URL `GET` params
-//! can contain any bytes, not only well-formed UTF-8. The `info_hash` is a
-//! 20-byte SHA1. Check the [`percent_encoding`]
-//! module to know more about the encoding.
+//! > It is percent encode of the raw peer ID bytes (20 bytes). URL `GET` params
+//! > can contain any bytes, not only well-formed UTF-8. The `info_hash` is a
+//! > 20-byte SHA1. Check the [`percent_encoding`]
+//! > module to know more about the encoding.
 //!
 //! > **NOTICE**: by default, the tracker returns the non-compact peer list when
-//! no `compact` parameter is provided or is empty. The
-//! [BEP 23](https://www.bittorrent.org/beps/bep_0023.html) suggests to do the
-//! opposite. The tracker should return the compact peer list by default and
-//! return the non-compact peer list if the `compact` parameter is `0`.
+//! > no `compact` parameter is provided or is empty. The
+//! > [BEP 23](https://www.bittorrent.org/beps/bep_0023.html) suggests to do the
+//! > opposite. The tracker should return the compact peer list by default and
+//! > return the non-compact peer list if the `compact` parameter is `0`.
 //!
 //! **Sample announce URL**
 //!
@@ -223,7 +223,7 @@
 //! [`info_hash`](crate::servers::http::v1::requests::scrape::Scrape::info_hashes) | percent encoded of 20-byte array | The `Info Hash` of the torrent. | Yes | No | `%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00`
 //!
 //! > **NOTICE**: you can scrape multiple torrents at the same time by passing
-//! multiple `info_hash` parameters.
+//! > multiple `info_hash` parameters.
 //!
 //! Refer to the [`Scrape`](crate::servers::http::v1::requests::scrape::Scrape)
 //! request for more information about the parameters.
@@ -238,7 +238,7 @@
 //! `info_hash` parameters: `info_hash=%81%00%0...00%00%00&info_hash=%82%00%0...00%00%00`
 //!
 //! > **NOTICE**: the maximum number of torrents you can scrape at the same time
-//! is `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS).
+//! > is `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS).
 //!
 //! **Sample response**
 //!

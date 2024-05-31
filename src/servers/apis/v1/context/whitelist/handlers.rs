@@ -42,7 +42,7 @@ pub async fn add_torrent_to_whitelist_handler(
 ///
 /// - `200` response with a [`ActionStatus::Ok`](crate::servers::apis::v1::responses::ActionStatus::Ok) in json.
 /// - `500` with serialized error in debug format if the torrent couldn't be
-/// removed from the whitelisted.
+///   removed from the whitelisted.
 ///
 /// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::whitelist#remove-a-torrent-from-the-whitelist)
 /// for more information about this endpoint.
@@ -65,7 +65,7 @@ pub async fn remove_torrent_from_whitelist_handler(
 ///
 /// - `200` response with a [`ActionStatus::Ok`](crate::servers::apis::v1::responses::ActionStatus::Ok) in json.
 /// - `500` with serialized error in debug format if the torrent whitelist
-/// couldn't be reloaded from the database.
+///   couldn't be reloaded from the database.
 ///
 /// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::whitelist#reload-the-whitelist)
 /// for more information about this endpoint.
