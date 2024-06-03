@@ -67,10 +67,9 @@ use torrust_tracker_primitives::info_hash::InfoHash;
 use tracing::Level;
 
 use crate::console::clients::udp::checker;
-
+use crate::console::clients::udp::responses::dto::ResponseDto;
+use crate::console::clients::udp::responses::json::ToJson;
 use crate::console::clients::{parse_info_hash, parse_socket_addr, DEFAULT_TIMEOUT_SEC};
-
-use super::responses::{DtoToJson as _, ResponseDto};
 
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
 
@@ -118,7 +117,11 @@ pub async fn run() -> anyhow::Result<()> {
     };
 
     let response_dto: ResponseDto = response.into();
-    response_dto.print_response()
+    let response_json = response_dto.to_json_string()?;
+
+    print!("{response_json}");
+
+    Ok(())
 }
 
 async fn handle_announce(addr: &SocketAddr, timeout: &Duration, info_hash: &InfoHash) -> anyhow::Result<Response> {
