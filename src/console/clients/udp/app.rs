@@ -67,7 +67,7 @@ use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
 use url::Url;
 
 use crate::console::clients::udp::checker;
-use crate::console::clients::udp::responses::dto::ResponseDto;
+use crate::console::clients::udp::responses::dto::SerializableResponse;
 use crate::console::clients::udp::responses::json::ToJson;
 
 const ASSIGNED_BY_OS: u16 = 0;
@@ -117,8 +117,8 @@ pub async fn run() -> anyhow::Result<()> {
         } => handle_scrape(&tracker_socket_addr, &info_hashes).await?,
     };
 
-    let response_dto: ResponseDto = response.into();
-    let response_json = response_dto.to_json_string()?;
+    let response: SerializableResponse = response.into();
+    let response_json = response.to_json_string()?;
 
     print!("{response_json}");
 

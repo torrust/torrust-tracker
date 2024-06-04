@@ -6,33 +6,33 @@ use aquatic_udp_protocol::{AnnounceResponse, ConnectResponse, ErrorResponse, Ipv
 use serde::Serialize;
 
 #[derive(Serialize)]
-pub enum ResponseDto {
-    Connect(ConnectResponseDto),
-    AnnounceIpv4(AnnounceResponseDto),
-    AnnounceIpv6(AnnounceResponseDto),
-    Scrape(ScrapeResponseDto),
-    Error(ErrorResponseDto),
+pub enum SerializableResponse {
+    Connect(ConnectSerializableResponse),
+    AnnounceIpv4(AnnounceSerializableResponse),
+    AnnounceIpv6(AnnounceSerializableResponse),
+    Scrape(ScrapeSerializableResponse),
+    Error(ErrorSerializableResponse),
 }
 
-impl From<Response> for ResponseDto {
+impl From<Response> for SerializableResponse {
     fn from(response: Response) -> Self {
         match response {
-            Response::Connect(response) => ResponseDto::Connect(ConnectResponseDto::from(response)),
-            Response::AnnounceIpv4(response) => ResponseDto::AnnounceIpv4(AnnounceResponseDto::from(response)),
-            Response::AnnounceIpv6(response) => ResponseDto::AnnounceIpv6(AnnounceResponseDto::from(response)),
-            Response::Scrape(response) => ResponseDto::Scrape(ScrapeResponseDto::from(response)),
-            Response::Error(response) => ResponseDto::Error(ErrorResponseDto::from(response)),
+            Response::Connect(response) => SerializableResponse::Connect(ConnectSerializableResponse::from(response)),
+            Response::AnnounceIpv4(response) => SerializableResponse::AnnounceIpv4(AnnounceSerializableResponse::from(response)),
+            Response::AnnounceIpv6(response) => SerializableResponse::AnnounceIpv6(AnnounceSerializableResponse::from(response)),
+            Response::Scrape(response) => SerializableResponse::Scrape(ScrapeSerializableResponse::from(response)),
+            Response::Error(response) => SerializableResponse::Error(ErrorSerializableResponse::from(response)),
         }
     }
 }
 
 #[derive(Serialize)]
-pub struct ConnectResponseDto {
+pub struct ConnectSerializableResponse {
     transaction_id: i32,
     connection_id: i64,
 }
 
-impl From<ConnectResponse> for ConnectResponseDto {
+impl From<ConnectResponse> for ConnectSerializableResponse {
     fn from(connect: ConnectResponse) -> Self {
         Self {
             transaction_id: connect.transaction_id.0.into(),
@@ -42,7 +42,7 @@ impl From<ConnectResponse> for ConnectResponseDto {
 }
 
 #[derive(Serialize)]
-pub struct AnnounceResponseDto {
+pub struct AnnounceSerializableResponse {
     transaction_id: i32,
     announce_interval: i32,
     leechers: i32,
@@ -50,7 +50,7 @@ pub struct AnnounceResponseDto {
     peers: Vec<String>,
 }
 
-impl From<AnnounceResponse<Ipv4AddrBytes>> for AnnounceResponseDto {
+impl From<AnnounceResponse<Ipv4AddrBytes>> for AnnounceSerializableResponse {
     fn from(announce: AnnounceResponse<Ipv4AddrBytes>) -> Self {
         Self {
             transaction_id: announce.fixed.transaction_id.0.into(),
@@ -66,7 +66,7 @@ impl From<AnnounceResponse<Ipv4AddrBytes>> for AnnounceResponseDto {
     }
 }
 
-impl From<AnnounceResponse<Ipv6AddrBytes>> for AnnounceResponseDto {
+impl From<AnnounceResponse<Ipv6AddrBytes>> for AnnounceSerializableResponse {
     fn from(announce: AnnounceResponse<Ipv6AddrBytes>) -> Self {
         Self {
             transaction_id: announce.fixed.transaction_id.0.into(),
@@ -83,12 +83,12 @@ impl From<AnnounceResponse<Ipv6AddrBytes>> for AnnounceResponseDto {
 }
 
 #[derive(Serialize)]
-pub struct ScrapeResponseDto {
+pub struct ScrapeSerializableResponse {
     transaction_id: i32,
     torrent_stats: Vec<TorrentStats>,
 }
 
-impl From<ScrapeResponse> for ScrapeResponseDto {
+impl From<ScrapeResponse> for ScrapeSerializableResponse {
     fn from(scrape: ScrapeResponse) -> Self {
         Self {
             transaction_id: scrape.transaction_id.0.into(),
@@ -106,12 +106,12 @@ impl From<ScrapeResponse> for ScrapeResponseDto {
 }
 
 #[derive(Serialize)]
-pub struct ErrorResponseDto {
+pub struct ErrorSerializableResponse {
     transaction_id: i32,
     message: String,
 }
 
-impl From<ErrorResponse> for ErrorResponseDto {
+impl From<ErrorResponse> for ErrorSerializableResponse {
     fn from(error: ErrorResponse) -> Self {
         Self {
             transaction_id: error.transaction_id.0.into(),
