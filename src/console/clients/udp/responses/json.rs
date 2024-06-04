@@ -3,6 +3,7 @@ use serde::Serialize;
 
 use super::dto::SerializableResponse;
 
+#[allow(clippy::module_name_repetitions)]
 pub trait ToJson {
     ///
     /// Returns a string with the JSON serialized version of the response
