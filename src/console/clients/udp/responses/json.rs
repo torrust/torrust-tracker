@@ -1,7 +1,7 @@
 use anyhow::Context;
 use serde::Serialize;
 
-use super::dto::ResponseDto;
+use super::dto::SerializableResponse;
 
 pub trait ToJson {
     ///
@@ -21,4 +21,4 @@ pub trait ToJson {
     }
 }
 
-impl ToJson for ResponseDto {}
+impl ToJson for SerializableResponse {}
