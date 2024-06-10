@@ -1,5 +1,5 @@
-use log::info;
 use torrust_tracker::{app, bootstrap};
+use tracing::info;
 
 #[tokio::main]
 async fn main() {

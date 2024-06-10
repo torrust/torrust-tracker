@@ -22,13 +22,13 @@ use std::sync::Arc;
 
 use aquatic_udp_protocol::Response;
 use derive_more::Constructor;
-use log::{debug, error, info, trace};
 use ringbuf::traits::{Consumer, Observer, Producer};
 use ringbuf::StaticRb;
 use tokio::net::UdpSocket;
 use tokio::sync::oneshot;
 use tokio::task::{AbortHandle, JoinHandle};
 use tokio::{select, task};
+use tracing::{debug, error, info, trace};
 
 use super::UdpRequest;
 use crate::bootstrap::jobs::Started;

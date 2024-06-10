@@ -14,10 +14,10 @@
 //! Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
 //! for the API configuration options.
 
-use log::info;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HealthCheckApi;
+use tracing::info;
 
 use super::Started;
 use crate::servers::health_check_api::server;

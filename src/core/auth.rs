@@ -42,7 +42,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use derive_more::Display;
-use log::debug;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
@@ -51,6 +50,7 @@ use torrust_tracker_clock::clock::Time;
 use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_tracker_located_error::{DynError, LocatedError};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
+use tracing::debug;
 
 use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
 use crate::CurrentClock;

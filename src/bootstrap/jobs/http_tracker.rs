@@ -14,9 +14,9 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
-use log::info;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpTracker;
+use tracing::info;
 
 use super::make_rust_tls;
 use crate::core;

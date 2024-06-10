@@ -5,9 +5,9 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use derive_more::Constructor;
-use log::debug;
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
+use tracing::debug;
 
 /// A [`ServiceHeathCheckResult`] is returned by a completed health check.
 pub type ServiceHeathCheckResult = Result<String, String>;

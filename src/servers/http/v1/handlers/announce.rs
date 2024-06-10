@@ -11,10 +11,10 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
-use log::debug;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::{peer, NumberOfBytes};
+use tracing::debug;
 
 use crate::core::auth::Key;
 use crate::core::{AnnounceData, Tracker};

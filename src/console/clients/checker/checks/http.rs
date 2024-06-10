@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
-use log::debug;
 use reqwest::Url as ServiceUrl;
 use torrust_tracker_primitives::info_hash::InfoHash;
+use tracing::debug;
 use url::Url;
 
 use super::structs::{CheckerOutput, Status};

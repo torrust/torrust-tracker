@@ -159,8 +159,8 @@
 use std::env;
 use std::time::Duration;
 
-use log::info;
 use tokio::time::sleep;
+use tracing::info;
 
 use crate::{app, bootstrap};
 
