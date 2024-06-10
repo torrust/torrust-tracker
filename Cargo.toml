@@ -80,6 +80,7 @@ tower = { version = "0.4.13", features = ["timeout"] }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
 trace = "0"
 tracing = "0"
+tracing-subscriber = { version = "0.3.18", features = ["json"] }
 url = "2"
 uuid = { version = "1", features = ["v4"] }
 zerocopy = "0.7.33"
