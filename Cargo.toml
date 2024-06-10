@@ -43,7 +43,6 @@ clap = { version = "4", features = ["derive", "env"] }
 crossbeam-skiplist = "0.1"
 dashmap = "5.5.3"
 derive_more = "0"
-fern = "0"
 figment = "0.10.18"
 futures = "0"
 futures-util = "0.3.30"
