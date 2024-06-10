@@ -3904,7 +3904,6 @@ dependencies = [
  "hyper-util",
  "lazy_static",
  "local-ip-address",
- "log",
  "mockall",
  "multimap",
  "parking_lot",
@@ -3977,7 +3976,6 @@ dependencies = [
 name = "torrust-tracker-located-error"
 version = "3.0.0-alpha.12-develop"
 dependencies = [
- "log",
  "thiserror",
  "tracing",
 ]
