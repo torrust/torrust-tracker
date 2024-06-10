@@ -152,4 +152,4 @@ jobs:
 
       - id: test
         name: Run E2E Tests
-        run: cargo run --bin e2e_tests_runner ./share/default/config/tracker.e2e.container.sqlite3.toml
+        run: cargo run --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"
