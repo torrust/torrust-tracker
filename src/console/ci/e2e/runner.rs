@@ -1,8 +1,26 @@
 //! Program to run E2E tests.
 //!
+//! You can execute it with (passing a TOML config file path):
+//!
 //! ```text
-//! cargo run --bin e2e_tests_runner share/default/config/tracker.e2e.container.sqlite3.toml
+//! cargo run --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"
 //! ```
+//!
+//! Or:
+//!
+//! ```text
+//! TORRUST_TRACKER_CONFIG_TOML_PATH="./share/default/config/tracker.e2e.container.sqlite3.toml" cargo run --bin e2e_tests_runner"
+//! ```
+//!
+//! You can execute it with (directly passing TOML config):
+//!
+//! ```text
+//! TORRUST_TRACKER_CONFIG_TOML=$(cat "./share/default/config/tracker.e2e.container.sqlite3.toml") cargo run --bin e2e_tests_runner
+//! ```
+use std::path::PathBuf;
+
+use anyhow::Context;
+use clap::Parser;
 use tracing::info;
 use tracing::level_filters::LevelFilter;
 
@@ -19,25 +37,38 @@ use crate::console::ci::e2e::tracker_checker::{self};
        Should we remove the image too?
 */
 
-const NUMBER_OF_ARGUMENTS: usize = 2;
 const CONTAINER_IMAGE: &str = "torrust-tracker:local";
 const CONTAINER_NAME_PREFIX: &str = "tracker_";
 
-pub struct Arguments {
-    pub tracker_config_path: String,
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Path to the JSON configuration file.
+    #[clap(short, long, env = "TORRUST_TRACKER_CONFIG_TOML_PATH")]
+    config_toml_path: Option<PathBuf>,
+
+    /// Direct configuration content in JSON.
+    #[clap(env = "TORRUST_TRACKER_CONFIG_TOML", hide_env_values = true)]
+    config_toml: Option<String>,
 }
 
 /// Script to run E2E tests.
 ///
+/// # Errors
+///
+/// Will return an error if it can't load the tracker configuration from arguments.
+///
 /// # Panics
 ///
 /// Will panic if it can't not perform any of the operations.
-pub fn run() {
+pub fn run() -> anyhow::Result<()> {
     tracing_stdout_init(LevelFilter::INFO);
 
-    let args = parse_arguments();
+    let args = Args::parse();
 
-    let tracker_config = load_tracker_configuration(&args.tracker_config_path);
+    let tracker_config = load_tracker_configuration(&args)?;
+
+    info!("tracker config:\n{tracker_config}");
 
     let mut tracker_container = TrackerContainer::new(CONTAINER_IMAGE, CONTAINER_NAME_PREFIX);
 
@@ -80,36 +111,36 @@ pub fn run() {
     tracker_container.remove();
 
     info!("Tracker container final state:\n{:#?}", tracker_container);
+
+    Ok(())
 }
 
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).with_ansi(false).init();
-    info!("logging initialized.");
+    info!("Logging initialized.");
 }
 
-fn parse_arguments() -> Arguments {
-    let args: Vec<String> = std::env::args().collect();
-
-    if args.len() < NUMBER_OF_ARGUMENTS {
-        eprintln!("Usage:       cargo run --bin e2e_tests_runner <PATH_TO_TRACKER_CONFIG_FILE>");
-        eprintln!("For example: cargo run --bin e2e_tests_runner ./share/default/config/tracker.e2e.container.sqlite3.toml");
-        std::process::exit(1);
+fn load_tracker_configuration(args: &Args) -> anyhow::Result<String> {
+    match (args.config_toml_path.clone(), args.config_toml.clone()) {
+        (Some(config_path), _) => {
+            info!(
+                "Reading tracker configuration from file: {} ...",
+                config_path.to_string_lossy()
+            );
+            load_config_from_file(&config_path)
+        }
+        (_, Some(config_content)) => {
+            info!("Reading tracker configuration from env var ...");
+            Ok(config_content)
+        }
+        _ => Err(anyhow::anyhow!("No configuration provided")),
     }
-
-    let config_path = &args[1];
-
-    Arguments {
-        tracker_config_path: config_path.to_string(),
-    }
 }
 
-fn load_tracker_configuration(tracker_config_path: &str) -> String {
-    info!("Reading tracker configuration from file: {} ...", tracker_config_path);
-    read_file(tracker_config_path)
-}
+fn load_config_from_file(path: &PathBuf) -> anyhow::Result<String> {
+    let config = std::fs::read_to_string(path).with_context(|| format!("CSan't read config file {path:?}"))?;
 
-fn read_file(path: &str) -> String {
-    std::fs::read_to_string(path).unwrap_or_else(|_| panic!("Can't read file {path}"))
+    Ok(config)
 }
 
 fn assert_there_is_at_least_one_service_per_type(running_services: &RunningServices) {
