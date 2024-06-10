@@ -78,8 +78,7 @@ torrust-tracker-torrent-repository = { version = "3.0.0-alpha.12-develop", path 
 tower = { version = "0.4.13", features = ["timeout"] }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
 tracing = "0"
-tracing-subscriber = "0"
-# tracing-test = "0"
+tracing-subscriber = { version = "0", features = ["json"] }
 url = "2"
 uuid = { version = "1", features = ["v4"] }
 zerocopy = "0.7.33"
