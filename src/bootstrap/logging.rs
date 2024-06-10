@@ -46,7 +46,7 @@ fn config_level_or_default(log_level: &Option<LogLevel>) -> LevelFilter {
 }
 
 fn tracing_stdout_init(filter: LevelFilter, style: &TraceStyle) {
-    let builder = tracing_subscriber::fmt().with_max_level(filter);
+    let builder = tracing_subscriber::fmt().with_max_level(filter).with_ansi(false);
 
     let () = match style {
         TraceStyle::Default => builder.init(),

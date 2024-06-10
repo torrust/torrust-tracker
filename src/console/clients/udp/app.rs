@@ -127,7 +127,7 @@ pub async fn run() -> anyhow::Result<()> {
 }
 
 fn tracing_stdout_init(filter: LevelFilter) {
-    tracing_subscriber::fmt().with_max_level(filter).init();
+    tracing_subscriber::fmt().with_max_level(filter).with_ansi(false).init();
     info!("logging initialized.");
 }
 

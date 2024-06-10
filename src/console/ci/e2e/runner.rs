@@ -60,6 +60,11 @@ pub fn run() {
 
     let running_services = tracker_container.running_services();
 
+    info!(
+        "Running services:\n {}",
+        serde_json::to_string_pretty(&running_services).expect("running services to be serializable to JSON")
+    );
+
     assert_there_is_at_least_one_service_per_type(&running_services);
 
     let tracker_checker_config =
@@ -78,7 +83,7 @@ pub fn run() {
 }
 
 fn tracing_stdout_init(filter: LevelFilter) {
-    tracing_subscriber::fmt().with_max_level(filter).init();
+    tracing_subscriber::fmt().with_max_level(filter).with_ansi(false).init();
     info!("logging initialized.");
 }
 

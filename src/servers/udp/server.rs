@@ -273,7 +273,7 @@ impl Udp {
             .send(Started { address })
             .expect("the UDP Tracker service should not be dropped");
 
-        debug!(target: "UDP TRACKER", "Started on: udp://{}", address);
+        info!(target: "UDP TRACKER", "Started on: udp://{}", address);
 
         let stop = running.abort_handle();
 
