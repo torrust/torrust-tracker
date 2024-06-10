@@ -176,6 +176,8 @@ impl Docker {
 
             let output_str = String::from_utf8_lossy(&output.stdout);
 
+            info!("Waiting until container is healthy: {:?}", output_str);
+
             if output_str.contains("(healthy)") {
                 return true;
             }

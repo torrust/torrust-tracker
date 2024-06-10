@@ -74,7 +74,7 @@ impl Info {
         let env_var_config_toml_path = ENV_VAR_CONFIG_TOML_PATH.to_string();
 
         let config_toml = if let Ok(config_toml) = env::var(env_var_config_toml) {
-            println!("Loading configuration from environment variable {config_toml} ...");
+            println!("Loading configuration from environment variable:\n {config_toml}");
             Some(config_toml)
         } else {
             None

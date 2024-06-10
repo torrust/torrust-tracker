@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 use super::docker::{RunOptions, RunningContainer};
 use super::logs_parser::RunningServices;
@@ -72,7 +72,7 @@ impl TrackerContainer {
     pub fn running_services(&self) -> RunningServices {
         let logs = Docker::logs(&self.name).expect("Logs should be captured from running container");
 
-        debug!("Parsing running services from logs. Logs :\n{logs}");
+        info!("Parsing running services from logs. Logs :\n{logs}");
 
         RunningServices::parse_from_logs(&logs)
     }
