@@ -1,9 +1,9 @@
 //! Utilities to parse Torrust Tracker logs.
 use serde::{Deserialize, Serialize};
 
-const UDP_TRACKER_PATTERN: &str = "[UDP TRACKER][INFO] Starting on: udp://";
-const HTTP_TRACKER_PATTERN: &str = "[HTTP TRACKER][INFO] Starting on: ";
-const HEALTH_CHECK_PATTERN: &str = "[HEALTH CHECK API][INFO] Starting on: ";
+const UDP_TRACKER_PATTERN: &str = "UDP TRACKER: Started on: udp://";
+const HTTP_TRACKER_PATTERN: &str = "HTTP TRACKER: Started on: ";
+const HEALTH_CHECK_PATTERN: &str = "HEALTH CHECK API: Started on: ";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct RunningServices {
@@ -18,17 +18,20 @@ impl RunningServices {
     /// For example, from this logs:
     ///
     /// ```text
-    /// Loading default configuration file: `./share/default/config/tracker.development.sqlite3.toml` ...
-    /// 2024-01-24T16:36:14.614898789+00:00 [torrust_tracker::bootstrap::logging][INFO] logging initialized.
-    /// 2024-01-24T16:36:14.615586025+00:00 [UDP TRACKER][INFO] Starting on: udp://0.0.0.0:6969
-    /// 2024-01-24T16:36:14.615623705+00:00 [torrust_tracker::bootstrap::jobs][INFO] TLS not enabled
-    /// 2024-01-24T16:36:14.615694484+00:00 [HTTP TRACKER][INFO] Starting on: http://0.0.0.0:7070
-    /// 2024-01-24T16:36:14.615710534+00:00 [HTTP TRACKER][INFO] Started on: http://0.0.0.0:7070
-    /// 2024-01-24T16:36:14.615716574+00:00 [torrust_tracker::bootstrap::jobs][INFO] TLS not enabled
-    /// 2024-01-24T16:36:14.615764904+00:00 [API][INFO] Starting on http://127.0.0.1:1212
-    /// 2024-01-24T16:36:14.615767264+00:00 [API][INFO] Started on http://127.0.0.1:1212
-    /// 2024-01-24T16:36:14.615777574+00:00 [HEALTH CHECK API][INFO] Starting on: http://127.0.0.1:1313
-    /// 2024-01-24T16:36:14.615791124+00:00 [HEALTH CHECK API][INFO] Started on: http://127.0.0.1:1313
+    /// Loading configuration from default configuration file: `./share/default/config/tracker.development.sqlite3.toml` ...
+    /// 2024-06-10T16:07:39.989540Z  INFO torrust_tracker::bootstrap::logging: logging initialized.
+    /// 2024-06-10T16:07:39.990205Z  INFO UDP TRACKER: Starting on: udp://0.0.0.0:6868
+    /// 2024-06-10T16:07:39.990215Z  INFO UDP TRACKER: Started on: udp://0.0.0.0:6868
+    /// 2024-06-10T16:07:39.990244Z  INFO UDP TRACKER: Starting on: udp://0.0.0.0:6969
+    /// 2024-06-10T16:07:39.990255Z  INFO UDP TRACKER: Started on: udp://0.0.0.0:6969
+    /// 2024-06-10T16:07:39.990261Z  INFO torrust_tracker::bootstrap::jobs: TLS not enabled
+    /// 2024-06-10T16:07:39.990303Z  INFO HTTP TRACKER: Starting on: http://0.0.0.0:7070
+    /// 2024-06-10T16:07:39.990439Z  INFO HTTP TRACKER: Started on: http://0.0.0.0:7070
+    /// 2024-06-10T16:07:39.990448Z  INFO torrust_tracker::bootstrap::jobs: TLS not enabled
+    /// 2024-06-10T16:07:39.990563Z  INFO API: Starting on http://127.0.0.1:1212
+    /// 2024-06-10T16:07:39.990565Z  INFO API: Started on http://127.0.0.1:1212
+    /// 2024-06-10T16:07:39.990577Z  INFO HEALTH CHECK API: Starting on: http://127.0.0.1:1313
+    /// 2024-06-10T16:07:39.990638Z  INFO HEALTH CHECK API: Started on: http://127.0.0.1:1313
     /// ```
     ///
     /// It would extract these services:
@@ -46,6 +49,9 @@ impl RunningServices {
     ///    ]
     /// }
     /// ```
+    ///
+    /// NOTICE: Using colors in the console output could affect this method
+    /// due to the hidden control chars.
     #[must_use]
     pub fn parse_from_logs(logs: &str) -> Self {
         let mut udp_trackers: Vec<String> = Vec::new();
@@ -85,25 +91,66 @@ mod tests {
 
     #[test]
     fn it_should_parse_from_logs_with_valid_logs() {
-        let logs = "\
-            [UDP TRACKER][INFO] Starting on: udp://0.0.0.0:8080\n\
-            [HTTP TRACKER][INFO] Starting on: 0.0.0.0:9090\n\
-            [HEALTH CHECK API][INFO] Starting on: 0.0.0.0:10010";
+        let logs = r#"
+            Loading configuration from environment variable db_path = "/var/lib/torrust/tracker/database/sqlite3.db"
+
+            [[udp_trackers]]
+            enabled = true
+
+            [[http_trackers]]
+            enabled = true
+            ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
+            ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
+
+            [http_api]
+            ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
+            ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
+
+            Loading configuration from default configuration file: `./share/default/config/tracker.development.sqlite3.toml` ...
+            2024-06-10T16:07:39.989540Z  INFO torrust_tracker::bootstrap::logging: logging initialized.
+            2024-06-10T16:07:39.990244Z  INFO UDP TRACKER: Starting on: udp://0.0.0.0:6969
+            2024-06-10T16:07:39.990255Z  INFO UDP TRACKER: Started on: udp://0.0.0.0:6969
+            2024-06-10T16:07:39.990261Z  INFO torrust_tracker::bootstrap::jobs: TLS not enabled
+            2024-06-10T16:07:39.990303Z  INFO HTTP TRACKER: Starting on: http://0.0.0.0:7070
+            2024-06-10T16:07:39.990439Z  INFO HTTP TRACKER: Started on: http://0.0.0.0:7070
+            2024-06-10T16:07:39.990448Z  INFO torrust_tracker::bootstrap::jobs: TLS not enabled
+            2024-06-10T16:07:39.990563Z  INFO API: Starting on http://127.0.0.1:1212
+            2024-06-10T16:07:39.990565Z  INFO API: Started on http://127.0.0.1:1212
+            2024-06-10T16:07:39.990577Z  INFO HEALTH CHECK API: Starting on: http://127.0.0.1:1313
+            2024-06-10T16:07:39.990638Z  INFO HEALTH CHECK API: Started on: http://127.0.0.1:1313
+            "#;
+
         let running_services = RunningServices::parse_from_logs(logs);
 
-        assert_eq!(running_services.udp_trackers, vec!["127.0.0.1:8080"]);
-        assert_eq!(running_services.http_trackers, vec!["127.0.0.1:9090"]);
-        assert_eq!(running_services.health_checks, vec!["127.0.0.1:10010/health_check"]);
+        assert_eq!(running_services.udp_trackers, vec!["127.0.0.1:6969"]);
+        assert_eq!(running_services.http_trackers, vec!["http://127.0.0.1:7070"]);
+        assert_eq!(running_services.health_checks, vec!["http://127.0.0.1:1313/health_check"]);
     }
 
     #[test]
     fn it_should_ignore_logs_with_no_matching_lines() {
-        let logs = "[Other Service][INFO] Starting on: 0.0.0.0:7070";
+        let logs = "[Other Service][INFO] Started on: 0.0.0.0:7070";
+
         let running_services = RunningServices::parse_from_logs(logs);
 
         assert!(running_services.udp_trackers.is_empty());
         assert!(running_services.http_trackers.is_empty());
         assert!(running_services.health_checks.is_empty());
+    }
+
+    #[test]
+    fn it_should_parse_multiple_services() {
+        let logs = "
+            2024-06-10T16:07:39.990205Z  INFO UDP TRACKER: Starting on: udp://0.0.0.0:6868
+            2024-06-10T16:07:39.990215Z  INFO UDP TRACKER: Started on: udp://0.0.0.0:6868
+
+            2024-06-10T16:07:39.990244Z  INFO UDP TRACKER: Starting on: udp://0.0.0.0:6969
+            2024-06-10T16:07:39.990255Z  INFO UDP TRACKER: Started on: udp://0.0.0.0:6969
+        ";
+
+        let running_services = RunningServices::parse_from_logs(logs);
+
+        assert_eq!(running_services.udp_trackers, vec!["127.0.0.1:6868", "127.0.0.1:6969"]);
     }
 
     #[test]

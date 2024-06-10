@@ -11,3 +11,7 @@ ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
 [http_api]
 ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
 ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
+
+[health_check_api]
+# Must be bound to wildcard IP to be accessible from outside the container
+bind_address = "0.0.0.0:1313"

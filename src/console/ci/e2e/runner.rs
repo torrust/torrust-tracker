@@ -3,7 +3,8 @@
 //! ```text
 //! cargo run --bin e2e_tests_runner share/default/config/tracker.e2e.container.sqlite3.toml
 //! ```
-use log::{debug, info, LevelFilter};
+use tracing::info;
+use tracing::level_filters::LevelFilter;
 
 use super::tracker_container::TrackerContainer;
 use crate::console::ci::e2e::docker::RunOptions;
@@ -32,7 +33,7 @@ pub struct Arguments {
 ///
 /// Will panic if it can't not perform any of the operations.
 pub fn run() {
-    setup_runner_logging(LevelFilter::Info);
+    tracing_stdout_init(LevelFilter::INFO);
 
     let args = parse_arguments();
 
@@ -59,6 +60,11 @@ pub fn run() {
 
     let running_services = tracker_container.running_services();
 
+    info!(
+        "Running services:\n {}",
+        serde_json::to_string_pretty(&running_services).expect("running services to be serializable to JSON")
+    );
+
     assert_there_is_at_least_one_service_per_type(&running_services);
 
     let tracker_checker_config =
@@ -76,25 +82,9 @@ pub fn run() {
     info!("Tracker container final state:\n{:#?}", tracker_container);
 }
 
-fn setup_runner_logging(level: LevelFilter) {
-    if let Err(_err) = fern::Dispatch::new()
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "{} [{}][{}] {}",
-                chrono::Local::now().format("%+"),
-                record.target(),
-                record.level(),
-                message
-            ));
-        })
-        .level(level)
-        .chain(std::io::stdout())
-        .apply()
-    {
-        panic!("Failed to initialize logging.")
-    }
-
-    debug!("logging initialized.");
+fn tracing_stdout_init(filter: LevelFilter) {
+    tracing_subscriber::fmt().with_max_level(filter).with_ansi(false).init();
+    info!("logging initialized.");
 }
 
 fn parse_arguments() -> Arguments {

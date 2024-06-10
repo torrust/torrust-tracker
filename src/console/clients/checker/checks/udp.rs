@@ -2,8 +2,8 @@ use std::net::SocketAddr;
 
 use aquatic_udp_protocol::{Port, TransactionId};
 use hex_literal::hex;
-use log::debug;
 use torrust_tracker_primitives::info_hash::InfoHash;
+use tracing::debug;
 
 use crate::console::clients::checker::checks::structs::{CheckerOutput, Status};
 use crate::console::clients::checker::service::{CheckError, CheckResult};

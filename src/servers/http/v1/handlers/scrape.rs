@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
-use log::debug;
+use tracing::debug;
 
 use crate::core::auth::Key;
 use crate::core::{ScrapeData, Tracker};

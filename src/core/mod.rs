@@ -442,7 +442,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use derive_more::Constructor;
-use log::debug;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_configuration::v1::core::Core;
@@ -453,6 +452,7 @@ use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, TrackerMode};
 use torrust_tracker_torrent_repository::entry::EntrySync;
 use torrust_tracker_torrent_repository::repository::Repository;
+use tracing::debug;
 
 use self::auth::Key;
 use self::error::Error;

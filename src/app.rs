@@ -23,9 +23,9 @@
 //! - Tracker REST API: the tracker API can be enabled/disabled.
 use std::sync::Arc;
 
-use log::warn;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
+use tracing::warn;
 
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
 use crate::servers::registar::Registar;

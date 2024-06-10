@@ -6,9 +6,9 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 use aquatic_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
-use log::debug;
 use tokio::net::UdpSocket;
 use tokio::time;
+use tracing::debug;
 use zerocopy::network_endian::I32;
 
 use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
