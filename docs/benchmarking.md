@@ -96,7 +96,7 @@ Announce responses per info hash:
   - p100: 361
 ```
 
-> IMPORTANT: The performance of th Torrust UDP Tracker is drastically decreased with these log levels: `info`, `debug`, `trace`.
+> IMPORTANT: The performance of the Torrust UDP Tracker is drastically decreased with these log levels: `info`, `debug`, `trace`.
 
 ```output
 Requests out: 40719.21/second
@@ -226,46 +226,76 @@ Using a PC with:
 
 ## Repository benchmarking
 
+### Requirements
+
+You need to install the `gnuplot` package.
+
+```console
+sudo apt install gnuplot
+```
+
+### Run
+
 You can run it with:
 
 ```console
-cargo run --release -p torrust-torrent-repository-benchmarks -- --threads 4 --sleep 0 --compare true
+cargo bench -p torrust-tracker-torrent-repository
 ```
 
-It tests the different implementation for the internal torrent storage.
+It tests the different implementations for the internal torrent storage.  The output should be something like this:
 
 ```output
-tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, Entry>>
-add_one_torrent: Avg/AdjAvg: (60ns, 59ns)
-update_one_torrent_in_parallel: Avg/AdjAvg: (10.909457ms, 0ns)
-add_multiple_torrents_in_parallel: Avg/AdjAvg: (13.88879ms, 0ns)
-update_multiple_torrents_in_parallel: Avg/AdjAvg: (7.772484ms, 7.782535ms)
-
-std::sync::RwLock<std::collections::BTreeMap<InfoHash, Entry>>
-add_one_torrent: Avg/AdjAvg: (43ns, 39ns)
-update_one_torrent_in_parallel: Avg/AdjAvg: (4.020937ms, 4.020937ms)
-add_multiple_torrents_in_parallel: Avg/AdjAvg: (5.896177ms, 5.768448ms)
-update_multiple_torrents_in_parallel: Avg/AdjAvg: (3.883823ms, 3.883823ms)
-
-std::sync::RwLock<std::collections::BTreeMap<InfoHash, Arc<std::sync::Mutex<Entry>>>>
-add_one_torrent: Avg/AdjAvg: (51ns, 49ns)
-update_one_torrent_in_parallel: Avg/AdjAvg: (3.252314ms, 3.149109ms)
-add_multiple_torrents_in_parallel: Avg/AdjAvg: (8.411094ms, 8.411094ms)
-update_multiple_torrents_in_parallel: Avg/AdjAvg: (4.106086ms, 4.106086ms)
-
-tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, Arc<std::sync::Mutex<Entry>>>>
-add_one_torrent: Avg/AdjAvg: (91ns, 90ns)
-update_one_torrent_in_parallel: Avg/AdjAvg: (3.542378ms, 3.435695ms)
-add_multiple_torrents_in_parallel: Avg/AdjAvg: (15.651172ms, 15.651172ms)
-update_multiple_torrents_in_parallel: Avg/AdjAvg: (4.368189ms, 4.257572ms)
-
-tokio::sync::RwLock<std::collections::BTreeMap<InfoHash, Arc<tokio::sync::Mutex<Entry>>>>
-add_one_torrent: Avg/AdjAvg: (111ns, 109ns)
-update_one_torrent_in_parallel: Avg/AdjAvg: (6.590677ms, 6.808535ms)
-add_multiple_torrents_in_parallel: Avg/AdjAvg: (16.572217ms, 16.30488ms)
-update_multiple_torrents_in_parallel: Avg/AdjAvg: (4.073221ms, 4.000122ms)
+     Running benches/repository_benchmark.rs (target/release/deps/repository_benchmark-2f7830898bbdfba4)
+add_one_torrent/RwLockStd
+                        time:   [60.936 ns 61.383 ns 61.764 ns]
+Found 24 outliers among 100 measurements (24.00%)
+  15 (15.00%) high mild
+  9 (9.00%) high severe
+add_one_torrent/RwLockStdMutexStd
+                        time:   [60.829 ns 60.937 ns 61.053 ns]
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high severe
+add_one_torrent/RwLockStdMutexTokio
+                        time:   [96.034 ns 96.243 ns 96.545 ns]
+Found 6 outliers among 100 measurements (6.00%)
+  4 (4.00%) high mild
+  2 (2.00%) high severe
+add_one_torrent/RwLockTokio
+                        time:   [108.25 ns 108.66 ns 109.06 ns]
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) low mild
+add_one_torrent/RwLockTokioMutexStd
+                        time:   [109.03 ns 109.11 ns 109.19 ns]
+Found 4 outliers among 100 measurements (4.00%)
+  1 (1.00%) low mild
+  1 (1.00%) high mild
+  2 (2.00%) high severe
+Benchmarking add_one_torrent/RwLockTokioMutexTokio: Collecting 100 samples in estimated 1.0003 s (7.1M iterationsadd_one_torrent/RwLockTokioMutexTokio
+                        time:   [139.64 ns 140.11 ns 140.62 ns]
 ```
+
+After running it you should have a new directory containing the criterion reports:
+
+```console
+target/criterion/
+├── add_multiple_torrents_in_parallel
+├── add_one_torrent
+├── report
+├── update_multiple_torrents_in_parallel
+└── update_one_torrent_in_parallel
+```
+
+You can see one report for each of the operations we are considering for benchmarking:
+
+- Add multiple torrents in parallel.
+- Add one torrent.
+- Update multiple torrents in parallel.
+- Update one torrent in parallel.
+
+Each report look like the following:
+
+![Torrent repository implementations benchmarking report](./media/torrent-repository-implementations-benchmarking-report.png)
 
 ## Other considerations
 
-We are testing new repository implementations that allow concurrent writes. See <https://github.com/torrust/torrust-tracker/issues/565>.
+If you are interested in knowing more about the tracker performance or contribute to improve its performance you ca join the [performance optimizations discussion](https://github.com/torrust/torrust-tracker/discussions/774).
