@@ -1,9 +1,11 @@
 //! Utilities to parse Torrust Tracker logs.
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-const UDP_TRACKER_PATTERN: &str = "UDP TRACKER: Started on: udp://";
-const HTTP_TRACKER_PATTERN: &str = "HTTP TRACKER: Started on: ";
-const HEALTH_CHECK_PATTERN: &str = "HEALTH CHECK API: Started on: ";
+const INFO_LOG_LEVEL: &str = "INFO";
+const UDP_TRACKER_LOG_TARGET: &str = "UDP TRACKER";
+const HTTP_TRACKER_LOG_TARGET: &str = "HTTP TRACKER";
+const HEALTH_CHECK_API_LOG_TARGET: &str = "HEALTH CHECK API";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct RunningServices {
@@ -52,19 +54,43 @@ impl RunningServices {
     ///
     /// NOTICE: Using colors in the console output could affect this method
     /// due to the hidden control chars.
+    ///
+    /// # Panics
+    ///
+    /// Will panic is the regular expression to parse the services can't be compiled.
     #[must_use]
     pub fn parse_from_logs(logs: &str) -> Self {
         let mut udp_trackers: Vec<String> = Vec::new();
         let mut http_trackers: Vec<String> = Vec::new();
         let mut health_checks: Vec<String> = Vec::new();
 
+        let udp_re = Regex::new(r"Started on: udp://([0-9.]+:[0-9]+)").unwrap();
+        let http_re = Regex::new(r"Started on: (https?://[0-9.]+:[0-9]+)").unwrap(); // DevSkim: ignore DS137138
+        let health_re = Regex::new(r"Started on: (https?://[0-9.]+:[0-9]+)").unwrap(); // DevSkim: ignore DS137138
+        let ansi_escape_re = Regex::new(r"\x1b\[[0-9;]*m").unwrap();
+
         for line in logs.lines() {
-            if let Some(address) = Self::extract_address_if_matches(line, UDP_TRACKER_PATTERN) {
-                udp_trackers.push(address);
-            } else if let Some(address) = Self::extract_address_if_matches(line, HTTP_TRACKER_PATTERN) {
-                http_trackers.push(address);
-            } else if let Some(address) = Self::extract_address_if_matches(line, HEALTH_CHECK_PATTERN) {
-                health_checks.push(format!("{address}/health_check"));
+            let clean_line = ansi_escape_re.replace_all(line, "");
+
+            if !line.contains(INFO_LOG_LEVEL) {
+                continue;
+            };
+
+            if line.contains(UDP_TRACKER_LOG_TARGET) {
+                if let Some(captures) = udp_re.captures(&clean_line) {
+                    let address = Self::replace_wildcard_ip_with_localhost(&captures[1]);
+                    udp_trackers.push(address);
+                }
+            } else if line.contains(HTTP_TRACKER_LOG_TARGET) {
+                if let Some(captures) = http_re.captures(&clean_line) {
+                    let address = Self::replace_wildcard_ip_with_localhost(&captures[1]);
+                    http_trackers.push(address);
+                }
+            } else if line.contains(HEALTH_CHECK_API_LOG_TARGET) {
+                if let Some(captures) = health_re.captures(&clean_line) {
+                    let address = format!("{}/health_check", Self::replace_wildcard_ip_with_localhost(&captures[1]));
+                    health_checks.push(address);
+                }
             }
         }
 
@@ -73,11 +99,6 @@ impl RunningServices {
             http_trackers,
             health_checks,
         }
-    }
-
-    fn extract_address_if_matches(line: &str, pattern: &str) -> Option<String> {
-        line.find(pattern)
-            .map(|start| Self::replace_wildcard_ip_with_localhost(line[start + pattern.len()..].trim()))
     }
 
     fn replace_wildcard_ip_with_localhost(address: &str) -> String {
@@ -125,6 +146,15 @@ mod tests {
         assert_eq!(running_services.udp_trackers, vec!["127.0.0.1:6969"]);
         assert_eq!(running_services.http_trackers, vec!["http://127.0.0.1:7070"]);
         assert_eq!(running_services.health_checks, vec!["http://127.0.0.1:1313/health_check"]);
+    }
+
+    #[test]
+    fn it_should_support_colored_output() {
+        let logs = "\x1b[2m2024-06-14T14:40:13.028824Z\x1b[0m  \x1b[33mINFO\x1b[0m \x1b[2mUDP TRACKER\x1b[0m: \x1b[37mStarted on: udp://0.0.0.0:6969\x1b[0m";
+
+        let running_services = RunningServices::parse_from_logs(logs);
+
+        assert_eq!(running_services.udp_trackers, vec!["127.0.0.1:6969"]);
     }
 
     #[test]

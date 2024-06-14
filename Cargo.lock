@@ -4067,6 +4067,7 @@ dependencies = [
  "r2d2_mysql",
  "r2d2_sqlite",
  "rand",
+ "regex",
  "reqwest",
  "ringbuf",
  "serde",
