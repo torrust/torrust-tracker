@@ -59,6 +59,7 @@ r2d2 = "0"
 r2d2_mysql = "24"
 r2d2_sqlite = { version = "0", features = ["bundled"] }
 rand = "0"
+regex = "1.10.5"
 reqwest = { version = "0", features = ["json"] }
 ringbuf = "0"
 serde = { version = "1", features = ["derive"] }
