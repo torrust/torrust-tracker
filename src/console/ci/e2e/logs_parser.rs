@@ -1,16 +1,11 @@
 //! Utilities to parse Torrust Tracker logs.
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 const INFO_LOG_LEVEL: &str = "INFO";
-
-const UDP_TRACKER_TARGET: &str = "UDP TRACKER";
-const UDP_TRACKER_SOCKET_ADDR_START_PATTERN: &str = "Started on: udp://";
-
-const HTTP_TRACKER_TARGET: &str = "HTTP TRACKER";
-const HTTP_TRACKER_URL_START_PATTERN: &str = "Started on: ";
-
-const HEALTH_CHECK_TARGET: &str = "HEALTH CHECK API";
-const HEALTH_CHECK_URL_START_PATTERN: &str = "Started on: ";
+const UDP_TRACKER_LOG_TARGET: &str = "UDP TRACKER";
+const HTTP_TRACKER_LOG_TARGET: &str = "HTTP TRACKER";
+const HEALTH_CHECK_API_LOG_TARGET: &str = "HEALTH CHECK API";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct RunningServices {
@@ -59,19 +54,43 @@ impl RunningServices {
     ///
     /// NOTICE: Using colors in the console output could affect this method
     /// due to the hidden control chars.
+    ///
+    /// # Panics
+    ///
+    /// Will panic is the regular expression to parse the services can't be compiled.
     #[must_use]
     pub fn parse_from_logs(logs: &str) -> Self {
         let mut udp_trackers: Vec<String> = Vec::new();
         let mut http_trackers: Vec<String> = Vec::new();
         let mut health_checks: Vec<String> = Vec::new();
 
+        let udp_re = Regex::new(r"Started on: udp://([0-9.]+:[0-9]+)").unwrap();
+        let http_re = Regex::new(r"Started on: (https?://[0-9.]+:[0-9]+)").unwrap(); // DevSkim: ignore DS137138
+        let health_re = Regex::new(r"Started on: (https?://[0-9.]+:[0-9]+)").unwrap(); // DevSkim: ignore DS137138
+        let ansi_escape_re = Regex::new(r"\x1b\[[0-9;]*m").unwrap();
+
         for line in logs.lines() {
-            if let Some(address) = Self::extract_udp_tracker_url(line) {
-                udp_trackers.push(address);
-            } else if let Some(address) = Self::extract_http_tracker_url(line) {
-                http_trackers.push(address);
-            } else if let Some(address) = Self::extract_health_check_api_url(line) {
-                health_checks.push(format!("{address}/health_check"));
+            let clean_line = ansi_escape_re.replace_all(line, "");
+
+            if !line.contains(INFO_LOG_LEVEL) {
+                continue;
+            };
+
+            if line.contains(UDP_TRACKER_LOG_TARGET) {
+                if let Some(captures) = udp_re.captures(&clean_line) {
+                    let address = Self::replace_wildcard_ip_with_localhost(&captures[1]);
+                    udp_trackers.push(address);
+                }
+            } else if line.contains(HTTP_TRACKER_LOG_TARGET) {
+                if let Some(captures) = http_re.captures(&clean_line) {
+                    let address = Self::replace_wildcard_ip_with_localhost(&captures[1]);
+                    http_trackers.push(address);
+                }
+            } else if line.contains(HEALTH_CHECK_API_LOG_TARGET) {
+                if let Some(captures) = health_re.captures(&clean_line) {
+                    let address = format!("{}/health_check", Self::replace_wildcard_ip_with_localhost(&captures[1]));
+                    health_checks.push(address);
+                }
             }
         }
 
@@ -80,34 +99,6 @@ impl RunningServices {
             http_trackers,
             health_checks,
         }
-    }
-
-    fn extract_udp_tracker_url(line: &str) -> Option<String> {
-        if !line.contains(INFO_LOG_LEVEL) || !line.contains(UDP_TRACKER_TARGET) {
-            return None;
-        };
-
-        line.find(UDP_TRACKER_SOCKET_ADDR_START_PATTERN).map(|start| {
-            Self::replace_wildcard_ip_with_localhost(line[start + UDP_TRACKER_SOCKET_ADDR_START_PATTERN.len()..].trim())
-        })
-    }
-
-    fn extract_http_tracker_url(line: &str) -> Option<String> {
-        if !line.contains(INFO_LOG_LEVEL) || !line.contains(HTTP_TRACKER_TARGET) {
-            return None;
-        };
-
-        line.find(HTTP_TRACKER_URL_START_PATTERN)
-            .map(|start| Self::replace_wildcard_ip_with_localhost(line[start + HTTP_TRACKER_URL_START_PATTERN.len()..].trim()))
-    }
-
-    fn extract_health_check_api_url(line: &str) -> Option<String> {
-        if !line.contains(INFO_LOG_LEVEL) || !line.contains(HEALTH_CHECK_TARGET) {
-            return None;
-        };
-
-        line.find(HEALTH_CHECK_URL_START_PATTERN)
-            .map(|start| Self::replace_wildcard_ip_with_localhost(line[start + HEALTH_CHECK_URL_START_PATTERN.len()..].trim()))
     }
 
     fn replace_wildcard_ip_with_localhost(address: &str) -> String {
