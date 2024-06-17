@@ -29,7 +29,7 @@ pub fn ephemeral() -> Configuration {
 
     let mut config = Configuration::default();
 
-    config.logging.log_level = Some(LogLevel::Off); // Change to `debug` for tests debugging
+    config.logging.log_level = LogLevel::Off; // Change to `debug` for tests debugging
 
     // Ephemeral socket address for API
     let api_port = 0u16;

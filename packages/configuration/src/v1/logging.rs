@@ -8,7 +8,7 @@ pub struct Logging {
     /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
     /// `Debug` and `Trace`. Default is `Info`.
     #[serde(default = "Logging::default_log_level")]
-    pub log_level: Option<LogLevel>,
+    pub log_level: LogLevel,
 }
 
 impl Default for Logging {
@@ -20,8 +20,7 @@ impl Default for Logging {
 }
 
 impl Logging {
-    #[allow(clippy::unnecessary_wraps)]
-    fn default_log_level() -> Option<LogLevel> {
-        Some(LogLevel::Info)
+    fn default_log_level() -> LogLevel {
+        LogLevel::Info
     }
 }
