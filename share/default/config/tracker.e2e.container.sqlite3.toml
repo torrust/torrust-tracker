@@ -1,3 +1,4 @@
+[core]
 db_path = "/var/lib/torrust/tracker/database/sqlite3.db"
 
 [[udp_trackers]]

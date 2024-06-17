@@ -42,7 +42,7 @@ fn map_to_tracing_level_filter(log_level: &LogLevel) -> LevelFilter {
 pub fn config() -> (Configuration, LevelFilter) {
     let config = initialize_configuration();
 
-    let level: LevelFilter = match &config.core.log_level {
+    let level: LevelFilter = match &config.logging.log_level {
         None => LevelFilter::INFO,
         Some(level) => map_to_tracing_level_filter(level),
     };

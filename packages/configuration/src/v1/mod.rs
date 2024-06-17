@@ -193,7 +193,10 @@
 //! The default configuration is:
 //!
 //! ```toml
+//! [logging]
 //! log_level = "info"
+//!
+//! [core]
 //! mode = "public"
 //! db_driver = "Sqlite3"
 //! db_path = "./storage/tracker/lib/database/sqlite3.db"
@@ -233,6 +236,7 @@
 pub mod core;
 pub mod health_check_api;
 pub mod http_tracker;
+pub mod logging;
 pub mod tracker_api;
 pub mod udp_tracker;
 
@@ -241,6 +245,7 @@ use std::net::IpAddr;
 
 use figment::providers::{Env, Format, Serialized, Toml};
 use figment::Figment;
+use logging::Logging;
 use serde::{Deserialize, Serialize};
 
 use self::core::Core;
@@ -258,19 +263,25 @@ const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 /// Core configuration for the tracker.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Configuration {
+    /// Logging configuration
+    pub logging: Logging,
+
     /// Core configuration.
-    #[serde(flatten)]
     pub core: Core,
+
     /// The list of UDP trackers the tracker is running. Each UDP tracker
     /// represents a UDP server that the tracker is running and it has its own
     /// configuration.
     pub udp_trackers: Vec<UdpTracker>,
+
     /// The list of HTTP trackers the tracker is running. Each HTTP tracker
     /// represents a HTTP server that the tracker is running and it has its own
     /// configuration.
     pub http_trackers: Vec<HttpTracker>,
+
     /// The HTTP API configuration.
     pub http_api: HttpApi,
+
     /// The Health Check API configuration.
     pub health_check_api: HealthCheckApi,
 }
@@ -278,6 +289,7 @@ pub struct Configuration {
 impl Default for Configuration {
     fn default() -> Self {
         Self {
+            logging: Logging::default(),
             core: Core::default(),
             udp_trackers: vec![UdpTracker::default()],
             http_trackers: vec![HttpTracker::default()],
@@ -365,7 +377,10 @@ mod tests {
 
     #[cfg(test)]
     fn default_config_toml() -> String {
-        let config = r#"log_level = "info"
+        let config = r#"[logging]
+                                log_level = "info"
+
+                                [core]
                                 mode = "public"
                                 db_driver = "Sqlite3"
                                 db_path = "./storage/tracker/lib/database/sqlite3.db"
@@ -475,6 +490,7 @@ mod tests {
     fn default_configuration_could_be_overwritten_from_a_single_env_var_with_toml_contents() {
         figment::Jail::expect_with(|_jail| {
             let config_toml = r#"
+                [core]
                 db_path = "OVERWRITTEN DEFAULT DB PATH"
             "#
             .to_string();
@@ -498,6 +514,7 @@ mod tests {
             jail.create_file(
                 "tracker.toml",
                 r#"
+                [core]
                 db_path = "OVERWRITTEN DEFAULT DB PATH"
             "#,
             )?;
