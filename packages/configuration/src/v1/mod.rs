@@ -198,13 +198,15 @@
 //!
 //! [core]
 //! mode = "public"
-//! announce_interval = 120
-//! min_announce_interval = 120
 //! tracker_usage_statistics = true
 //! persistent_torrent_completed_stat = false
 //! max_peer_timeout = 900
 //! inactive_peer_cleanup_interval = 600
 //! remove_peerless_torrents = true
+//!
+//! [core.announce_policy]
+//! interval = 120
+//! interval_min = 120
 //!
 //! [core.database]
 //! driver = "Sqlite3"
@@ -388,13 +390,15 @@ mod tests {
 
                                 [core]
                                 mode = "public"
-                                announce_interval = 120
-                                min_announce_interval = 120
                                 tracker_usage_statistics = true
                                 persistent_torrent_completed_stat = false
                                 max_peer_timeout = 900
                                 inactive_peer_cleanup_interval = 600
                                 remove_peerless_torrents = true
+
+                                [core.announce_policy]
+                                interval = 120
+                                interval_min = 120
 
                                 [core.database]
                                 driver = "Sqlite3"

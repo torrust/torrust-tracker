@@ -113,10 +113,10 @@
 //! }
 //!
 //! // Core tracker configuration
-//! pub struct Configuration {
+//! pub struct AnnounceInterval {
 //!     // ...
-//!     pub announce_interval: u32, // Interval in seconds that the client should wait between sending regular announce requests to the tracker
-//!     pub min_announce_interval: u32, // Minimum announce interval. Clients must not reannounce more frequently than this
+//!     pub interval: u32, // Interval in seconds that the client should wait between sending regular announce requests to the tracker
+//!     pub interval_min: u32, // Minimum announce interval. Clients must not reannounce more frequently than this
 //!     // ...
 //! }
 //! ```
@@ -317,13 +317,15 @@
 //!
 //! [core]
 //! mode = "public"
-//! announce_interval = 120
-//! min_announce_interval = 120
 //! max_peer_timeout = 900
 //! tracker_usage_statistics = true
 //! persistent_torrent_completed_stat = true
 //! inactive_peer_cleanup_interval = 600
 //! remove_peerless_torrents = false
+//!
+//! [core.announce_policy]
+//! interval = 120
+//! interval_min = 120
 //!
 //! [core.database]
 //! driver = "Sqlite3"
@@ -560,7 +562,7 @@ impl Tracker {
 
         Ok(Tracker {
             //config,
-            announce_policy: AnnouncePolicy::new(config.announce_interval, config.min_announce_interval),
+            announce_policy: config.announce_policy,
             mode,
             keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
             whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),

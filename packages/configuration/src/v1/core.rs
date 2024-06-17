@@ -12,14 +12,6 @@ pub struct Core {
     #[serde(default = "Core::default_mode")]
     pub mode: TrackerMode,
 
-    /// See [`AnnouncePolicy::interval`]
-    #[serde(default = "AnnouncePolicy::default_interval")]
-    pub announce_interval: u32,
-
-    /// See [`AnnouncePolicy::interval_min`]
-    #[serde(default = "AnnouncePolicy::default_interval_min")]
-    pub min_announce_interval: u32,
-
     /// Weather the tracker should collect statistics about tracker usage.
     /// If enabled, the tracker will collect statistics like the number of
     /// connections handled, the number of announce requests handled, etc.
@@ -53,6 +45,10 @@ pub struct Core {
     #[serde(default = "Core::default_remove_peerless_torrents")]
     pub remove_peerless_torrents: bool,
 
+    // Announce policy configuration.
+    #[serde(default = "Core::default_announce_policy")]
+    pub announce_policy: AnnouncePolicy,
+
     // Database configuration.
     #[serde(default = "Core::default_database")]
     pub database: Database,
@@ -64,17 +60,14 @@ pub struct Core {
 
 impl Default for Core {
     fn default() -> Self {
-        let announce_policy = AnnouncePolicy::default();
-
         Self {
             mode: Self::default_mode(),
-            announce_interval: announce_policy.interval,
-            min_announce_interval: announce_policy.interval_min,
             max_peer_timeout: Self::default_max_peer_timeout(),
             tracker_usage_statistics: Self::default_tracker_usage_statistics(),
             persistent_torrent_completed_stat: Self::default_persistent_torrent_completed_stat(),
             inactive_peer_cleanup_interval: Self::default_inactive_peer_cleanup_interval(),
             remove_peerless_torrents: Self::default_remove_peerless_torrents(),
+            announce_policy: Self::default_announce_policy(),
             database: Self::default_database(),
             net: Self::default_network(),
         }
@@ -104,6 +97,10 @@ impl Core {
 
     fn default_remove_peerless_torrents() -> bool {
         true
+    }
+
+    fn default_announce_policy() -> AnnouncePolicy {
+        AnnouncePolicy::default()
     }
 
     fn default_database() -> Database {
