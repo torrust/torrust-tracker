@@ -330,24 +330,23 @@ The storage folder must contain your certificates:
 
 ```s
 storage/tracker/lib/tls
-    ├── localhost.crt
-    └── localhost.key
+                    ├── localhost.crt
+                    └── localhost.key
+storage/http_api/lib/tls
+                     ├── localhost.crt
+                     └── localhost.key
 ```
 
 You have not enabled it in your `tracker.toml` file:
 
 ```toml
+[http_trackers.tsl_config]
+ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
+ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 
-[[http_trackers]]
-# ...
-ssl_enabled = true
-# ...
-
-[http_api]
-# ...
-ssl_enabled = true
-# ...
-
+[http_api.tsl_config]
+ssl_cert_path = "./storage/http_api/lib/tls/localhost.crt"
+ssl_key_path = "./storage/http_api/lib/tls/localhost.key"
 ```
 
 > NOTE: you can enable it independently for each HTTP tracker or the API.

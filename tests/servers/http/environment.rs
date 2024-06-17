@@ -33,7 +33,7 @@ impl Environment<Stopped> {
 
         let bind_to = config.bind_address;
 
-        let tls = block_on(make_rust_tls(config.ssl_enabled, &config.tsl_config)).map(|tls| tls.expect("tls config failed"));
+        let tls = block_on(make_rust_tls(&config.tsl_config)).map(|tls| tls.expect("tls config failed"));
 
         let server = HttpServer::new(Launcher::new(bind_to, tls));
 

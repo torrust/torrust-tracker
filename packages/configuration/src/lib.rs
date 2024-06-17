@@ -13,7 +13,7 @@ use std::sync::Arc;
 use camino::Utf8PathBuf;
 use derive_more::Constructor;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, NoneAsEmptyString};
+use serde_with::serde_as;
 use thiserror::Error;
 use torrust_tracker_located_error::{DynError, LocatedError};
 
@@ -215,24 +215,23 @@ impl From<figment::Error> for Error {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
 pub struct TslConfig {
     /// Path to the SSL certificate file.
-    #[serde_as(as = "NoneAsEmptyString")]
     #[serde(default = "TslConfig::default_ssl_cert_path")]
-    pub ssl_cert_path: Option<Utf8PathBuf>,
+    pub ssl_cert_path: Utf8PathBuf,
+
     /// Path to the SSL key file.
-    #[serde_as(as = "NoneAsEmptyString")]
     #[serde(default = "TslConfig::default_ssl_key_path")]
-    pub ssl_key_path: Option<Utf8PathBuf>,
+    pub ssl_key_path: Utf8PathBuf,
 }
 
 impl TslConfig {
     #[allow(clippy::unnecessary_wraps)]
-    fn default_ssl_cert_path() -> Option<Utf8PathBuf> {
-        Some(Utf8PathBuf::new())
+    fn default_ssl_cert_path() -> Utf8PathBuf {
+        Utf8PathBuf::new()
     }
 
     #[allow(clippy::unnecessary_wraps)]
-    fn default_ssl_key_path() -> Option<Utf8PathBuf> {
-        Some(Utf8PathBuf::new())
+    fn default_ssl_key_path() -> Utf8PathBuf {
+        Utf8PathBuf::new()
     }
 }
 

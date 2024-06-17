@@ -239,7 +239,7 @@ mod tests {
 
         let bind_to = config.bind_address;
 
-        let tls = make_rust_tls(config.ssl_enabled, &config.tsl_config)
+        let tls = make_rust_tls(&config.tsl_config)
             .await
             .map(|tls| tls.expect("tls config failed"));
 

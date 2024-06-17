@@ -42,7 +42,7 @@ pub async fn start_job(
     if config.enabled {
         let socket = config.bind_address;
 
-        let tls = make_rust_tls(config.ssl_enabled, &config.tsl_config)
+        let tls = make_rust_tls(&config.tsl_config)
             .await
             .map(|tls| tls.expect("it should have a valid http tracker tls configuration"));
 

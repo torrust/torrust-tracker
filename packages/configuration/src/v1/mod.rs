@@ -176,14 +176,16 @@
 //!
 //! ```s
 //! [[http_trackers]]
-//! enabled = true
 //! ...
+//!
+//! [http_trackers.tsl_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!
 //! [http_api]
-//! enabled = true
 //! ...
+//!
+//! [http_api.tsl_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //! ```
@@ -225,16 +227,10 @@
 //! [[http_trackers]]
 //! enabled = false
 //! bind_address = "0.0.0.0:7070"
-//! ssl_enabled = false
-//! ssl_cert_path = ""
-//! ssl_key_path = ""
 //!
 //! [http_api]
 //! enabled = true
 //! bind_address = "127.0.0.1:1212"
-//! ssl_enabled = false
-//! ssl_cert_path = ""
-//! ssl_key_path = ""
 //!
 //! [http_api.access_tokens]
 //! admin = "MyAccessToken"
@@ -419,16 +415,10 @@ mod tests {
                                 [[http_trackers]]
                                 enabled = false
                                 bind_address = "0.0.0.0:7070"
-                                ssl_enabled = false
-                                ssl_cert_path = ""
-                                ssl_key_path = ""
-
+                                
                                 [http_api]
                                 enabled = true
                                 bind_address = "127.0.0.1:1212"
-                                ssl_enabled = false
-                                ssl_cert_path = ""
-                                ssl_key_path = ""
 
                                 [http_api.access_tokens]
                                 admin = "MyAccessToken"
