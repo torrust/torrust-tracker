@@ -172,11 +172,13 @@
 //!
 //! [core]
 //! inactive_peer_cleanup_interval = 600
-//! max_peer_timeout = 900
 //! mode = "public"
+//! tracker_usage_statistics = true
+//!
+//! [core.tracker_policy]
+//! max_peer_timeout = 900
 //! persistent_torrent_completed_stat = false
 //! remove_peerless_torrents = true
-//! tracker_usage_statistics = true
 //!
 //! [core.announce_policy]
 //! interval = 120

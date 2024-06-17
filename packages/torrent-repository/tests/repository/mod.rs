@@ -220,22 +220,22 @@ fn paginated_limit_one_offset_one() -> Pagination {
 
 #[fixture]
 fn policy_none() -> TrackerPolicy {
-    TrackerPolicy::new(false, 0, false)
+    TrackerPolicy::new(0, false, false)
 }
 
 #[fixture]
 fn policy_persist() -> TrackerPolicy {
-    TrackerPolicy::new(false, 0, true)
+    TrackerPolicy::new(0, true, false)
 }
 
 #[fixture]
 fn policy_remove() -> TrackerPolicy {
-    TrackerPolicy::new(true, 0, false)
+    TrackerPolicy::new(0, false, true)
 }
 
 #[fixture]
 fn policy_remove_persist() -> TrackerPolicy {
-    TrackerPolicy::new(true, 0, true)
+    TrackerPolicy::new(0, true, true)
 }
 
 #[rstest]

@@ -199,9 +199,11 @@
 //! [core]
 //! mode = "public"
 //! tracker_usage_statistics = true
-//! persistent_torrent_completed_stat = false
-//! max_peer_timeout = 900
 //! inactive_peer_cleanup_interval = 600
+//!
+//! [core.tracker_policy]
+//! max_peer_timeout = 900
+//! persistent_torrent_completed_stat = false
 //! remove_peerless_torrents = true
 //!
 //! [core.announce_policy]
@@ -391,9 +393,11 @@ mod tests {
                                 [core]
                                 mode = "public"
                                 tracker_usage_statistics = true
-                                persistent_torrent_completed_stat = false
-                                max_peer_timeout = 900
                                 inactive_peer_cleanup_interval = 600
+
+                                [core.tracker_policy]
+                                max_peer_timeout = 900
+                                persistent_torrent_completed_stat = false
                                 remove_peerless_torrents = true
 
                                 [core.announce_policy]
