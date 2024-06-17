@@ -200,17 +200,19 @@
 //! mode = "public"
 //! announce_interval = 120
 //! min_announce_interval = 120
-//! on_reverse_proxy = false
-//! external_ip = "0.0.0.0"
 //! tracker_usage_statistics = true
 //! persistent_torrent_completed_stat = false
 //! max_peer_timeout = 900
 //! inactive_peer_cleanup_interval = 600
 //! remove_peerless_torrents = true
 //!
-//!   [core.database]
-//!   driver = "Sqlite3"
-//!   path = "./storage/tracker/lib/database/sqlite3.db"
+//! [core.database]
+//! driver = "Sqlite3"
+//! path = "./storage/tracker/lib/database/sqlite3.db"
+//!
+//! [core.net]
+//! external_ip = "0.0.0.0"
+//! on_reverse_proxy = false
 //!
 //! [[udp_trackers]]
 //! enabled = false
@@ -240,6 +242,7 @@ pub mod database;
 pub mod health_check_api;
 pub mod http_tracker;
 pub mod logging;
+pub mod network;
 pub mod tracker_api;
 pub mod udp_tracker;
 
@@ -307,7 +310,7 @@ impl Configuration {
     /// and `None` otherwise.
     #[must_use]
     pub fn get_ext_ip(&self) -> Option<IpAddr> {
-        self.core.external_ip.as_ref().map(|external_ip| *external_ip)
+        self.core.net.external_ip.as_ref().map(|external_ip| *external_ip)
     }
 
     /// Saves the default configuration at the given path.
@@ -387,18 +390,20 @@ mod tests {
                                 mode = "public"
                                 announce_interval = 120
                                 min_announce_interval = 120
-                                on_reverse_proxy = false
-                                external_ip = "0.0.0.0"
                                 tracker_usage_statistics = true
                                 persistent_torrent_completed_stat = false
                                 max_peer_timeout = 900
                                 inactive_peer_cleanup_interval = 600
                                 remove_peerless_torrents = true
 
-                                  [core.database]
-                                  driver = "Sqlite3"
-                                  path = "./storage/tracker/lib/database/sqlite3.db"
-                                
+                                [core.database]
+                                driver = "Sqlite3"
+                                path = "./storage/tracker/lib/database/sqlite3.db"
+
+                                [core.net]
+                                external_ip = "0.0.0.0"
+                                on_reverse_proxy = false
+
                                 [[udp_trackers]]
                                 enabled = false
                                 bind_address = "0.0.0.0:6969"
@@ -443,7 +448,10 @@ mod tests {
     fn configuration_should_contain_the_external_ip() {
         let configuration = Configuration::default();
 
-        assert_eq!(configuration.core.external_ip, Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))));
+        assert_eq!(
+            configuration.core.net.external_ip,
+            Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)))
+        );
     }
 
     #[test]

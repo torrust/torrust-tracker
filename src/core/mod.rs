@@ -320,16 +320,18 @@
 //! announce_interval = 120
 //! min_announce_interval = 120
 //! max_peer_timeout = 900
-//! on_reverse_proxy = false
-//! external_ip = "2.137.87.41"
 //! tracker_usage_statistics = true
 //! persistent_torrent_completed_stat = true
 //! inactive_peer_cleanup_interval = 600
 //! remove_peerless_torrents = false
 //!
-//!   [core.database]
-//!   driver = "Sqlite3"
-//!   path = "./storage/tracker/lib/database/sqlite3.db"
+//! [core.database]
+//! driver = "Sqlite3"
+//! path = "./storage/tracker/lib/database/sqlite3.db"
+//!
+//! [core.net]
+//! on_reverse_proxy = false
+//! external_ip = "2.137.87.41"
 //! ```
 //!
 //! Refer to the [`configuration` module documentation](https://docs.rs/torrust-tracker-configuration) to get more information about all options.
@@ -564,13 +566,13 @@ impl Tracker {
             stats_event_sender,
             stats_repository,
             database,
-            external_ip: config.external_ip,
+            external_ip: config.net.external_ip,
             policy: TrackerPolicy::new(
                 config.remove_peerless_torrents,
                 config.max_peer_timeout,
                 config.persistent_torrent_completed_stat,
             ),
-            on_reverse_proxy: config.on_reverse_proxy,
+            on_reverse_proxy: config.net.on_reverse_proxy,
         })
     }
 

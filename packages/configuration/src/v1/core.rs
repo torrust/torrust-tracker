@@ -1,8 +1,7 @@
-use std::net::{IpAddr, Ipv4Addr};
-
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::TrackerMode;
 
+use super::network::Network;
 use crate::v1::database::Database;
 use crate::AnnouncePolicy;
 
@@ -13,10 +12,6 @@ pub struct Core {
     #[serde(default = "Core::default_mode")]
     pub mode: TrackerMode,
 
-    // Database configuration.
-    #[serde(default = "Core::default_database")]
-    pub database: Database,
-
     /// See [`AnnouncePolicy::interval`]
     #[serde(default = "AnnouncePolicy::default_interval")]
     pub announce_interval: u32,
@@ -24,20 +19,6 @@ pub struct Core {
     /// See [`AnnouncePolicy::interval_min`]
     #[serde(default = "AnnouncePolicy::default_interval_min")]
     pub min_announce_interval: u32,
-
-    /// Weather the tracker is behind a reverse proxy or not.
-    /// If the tracker is behind a reverse proxy, the `X-Forwarded-For` header
-    /// sent from the proxy will be used to get the client's IP address.
-    #[serde(default = "Core::default_on_reverse_proxy")]
-    pub on_reverse_proxy: bool,
-
-    /// The external IP address of the tracker. If the client is using a
-    /// loopback IP address, this IP address will be used instead. If the peer
-    /// is using a loopback IP address, the tracker assumes that the peer is
-    /// in the same network as the tracker and will use the tracker's IP
-    /// address instead.
-    #[serde(default = "Core::default_external_ip")]
-    pub external_ip: Option<IpAddr>,
 
     /// Weather the tracker should collect statistics about tracker usage.
     /// If enabled, the tracker will collect statistics like the number of
@@ -71,6 +52,14 @@ pub struct Core {
     /// enabled.
     #[serde(default = "Core::default_remove_peerless_torrents")]
     pub remove_peerless_torrents: bool,
+
+    // Database configuration.
+    #[serde(default = "Core::default_database")]
+    pub database: Database,
+
+    // Network configuration.
+    #[serde(default = "Core::default_network")]
+    pub net: Network,
 }
 
 impl Default for Core {
@@ -79,16 +68,15 @@ impl Default for Core {
 
         Self {
             mode: Self::default_mode(),
-            database: Self::default_database(),
             announce_interval: announce_policy.interval,
             min_announce_interval: announce_policy.interval_min,
             max_peer_timeout: Self::default_max_peer_timeout(),
-            on_reverse_proxy: Self::default_on_reverse_proxy(),
-            external_ip: Self::default_external_ip(),
             tracker_usage_statistics: Self::default_tracker_usage_statistics(),
             persistent_torrent_completed_stat: Self::default_persistent_torrent_completed_stat(),
             inactive_peer_cleanup_interval: Self::default_inactive_peer_cleanup_interval(),
             remove_peerless_torrents: Self::default_remove_peerless_torrents(),
+            database: Self::default_database(),
+            net: Self::default_network(),
         }
     }
 }
@@ -96,19 +84,6 @@ impl Default for Core {
 impl Core {
     fn default_mode() -> TrackerMode {
         TrackerMode::Public
-    }
-
-    fn default_database() -> Database {
-        Database::default()
-    }
-
-    fn default_on_reverse_proxy() -> bool {
-        false
-    }
-
-    #[allow(clippy::unnecessary_wraps)]
-    fn default_external_ip() -> Option<IpAddr> {
-        Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)))
     }
 
     fn default_tracker_usage_statistics() -> bool {
@@ -129,5 +104,13 @@ impl Core {
 
     fn default_remove_peerless_torrents() -> bool {
         true
+    }
+
+    fn default_database() -> Database {
+        Database::default()
+    }
+
+    fn default_network() -> Network {
+        Network::default()
     }
 }
