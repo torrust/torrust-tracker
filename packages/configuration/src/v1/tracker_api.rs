@@ -15,19 +15,18 @@ pub struct HttpApi {
     /// Weather the HTTP API is enabled or not.
     #[serde(default = "HttpApi::default_enabled")]
     pub enabled: bool,
+
     /// The address the tracker will bind to.
     /// The format is `ip:port`, for example `0.0.0.0:6969`. If you want to
     /// listen to all interfaces, use `0.0.0.0`. If you want the operating
     /// system to choose a random port, use port `0`.
     #[serde(default = "HttpApi::default_bind_address")]
     pub bind_address: SocketAddr,
-    /// Weather the HTTP API will use SSL or not.
-    #[serde(default = "HttpApi::default_ssl_enabled")]
-    pub ssl_enabled: bool,
+
     /// TSL config. Only used if `ssl_enabled` is true.
-    #[serde(flatten)]
-    #[serde(default = "TslConfig::default")]
-    pub tsl_config: TslConfig,
+    #[serde(default = "HttpApi::default_tsl_config")]
+    pub tsl_config: Option<TslConfig>,
+
     /// Access tokens for the HTTP API. The key is a label identifying the
     /// token and the value is the token itself. The token is used to
     /// authenticate the user. All tokens are valid for all endpoints and have
@@ -41,8 +40,7 @@ impl Default for HttpApi {
         Self {
             enabled: Self::default_enabled(),
             bind_address: Self::default_bind_address(),
-            ssl_enabled: Self::default_ssl_enabled(),
-            tsl_config: TslConfig::default(),
+            tsl_config: Self::default_tsl_config(),
             access_tokens: Self::default_access_tokens(),
         }
     }
@@ -57,8 +55,9 @@ impl HttpApi {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1212)
     }
 
-    fn default_ssl_enabled() -> bool {
-        false
+    #[allow(clippy::unnecessary_wraps)]
+    fn default_tsl_config() -> Option<TslConfig> {
+        None
     }
 
     fn default_access_tokens() -> AccessTokens {

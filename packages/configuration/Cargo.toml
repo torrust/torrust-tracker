@@ -15,7 +15,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-camino = { version = "1.1.6", features = ["serde"] }
+camino = { version = "1.1.6", features = ["serde", "serde1"] }
 derive_more = "0"
 figment = { version = "0.10.18", features = ["env", "test", "toml"] }
 serde = { version = "1", features = ["derive"] }

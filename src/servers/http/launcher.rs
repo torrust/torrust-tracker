@@ -84,7 +84,7 @@ mod tests {
     use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
 
     use crate::bootstrap::app::tracker;
-    use crate::bootstrap::jobs::make_rust_tls_from_path_buf;
+    use crate::bootstrap::jobs::make_rust_tls;
     use crate::servers::http::launcher::Launcher;
     use crate::servers::{registar, service};
 
@@ -96,13 +96,14 @@ mod tests {
 
         let bind_to = config.bind_address;
 
-        let tls = make_rust_tls_from_path_buf(
-            config.ssl_enabled,
-            &config.tsl_config.ssl_cert_path,
-            &config.tsl_config.ssl_key_path,
-        )
-        .await
-        .map(|tls| tls.expect("tls config failed"));
+        let tls = match &config.tsl_config {
+            Some(tls_config) => Some(
+                make_rust_tls(tls_config)
+                    .await
+                    .expect("it should have a valid tracker https configuration"),
+            ),
+            None => None,
+        };
 
         let form = &registar::Registar::default();
 

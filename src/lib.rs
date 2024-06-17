@@ -199,16 +199,10 @@
 //! [[http_trackers]]
 //! bind_address = "0.0.0.0:7070"
 //! enabled = false
-//! ssl_cert_path = ""
-//! ssl_enabled = false
-//! ssl_key_path = ""
 //!
 //! [http_api]
 //! bind_address = "127.0.0.1:1212"
 //! enabled = true
-//! ssl_cert_path = ""
-//! ssl_enabled = false
-//! ssl_key_path = ""
 //!
 //! [http_api.access_tokens]
 //! admin = "MyAccessToken"
@@ -261,9 +255,6 @@
 //! [http_api]
 //! enabled = true
 //! bind_address = "127.0.0.1:1212"
-//! ssl_enabled = false
-//! ssl_cert_path = ""
-//! ssl_key_path = ""
 //! ```
 //!
 //! By default it's enabled on port `1212`. You also need to add access tokens in the configuration:

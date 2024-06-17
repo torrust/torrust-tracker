@@ -212,9 +212,14 @@ mod tests {
 
         let addr = config.bind_address;
 
-        let tls = make_rust_tls(config.ssl_enabled, &config.tsl_config)
-            .await
-            .map(|tls| tls.expect("tls config failed"));
+        let tls = match &config.tsl_config {
+            Some(tls_config) => Some(
+                make_rust_tls(tls_config)
+                    .await
+                    .expect("it should have a valid tracker api tls configuration"),
+            ),
+            None => None,
+        };
 
         let access_tokens = Arc::new(config.access_tokens.clone());
 

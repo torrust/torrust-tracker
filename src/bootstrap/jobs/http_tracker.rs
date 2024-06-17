@@ -45,9 +45,14 @@ pub async fn start_job(
     if config.enabled {
         let socket = config.bind_address;
 
-        let tls = make_rust_tls(config.ssl_enabled, &config.tsl_config)
-            .await
-            .map(|tls| tls.expect("it should have a valid http tracker tls configuration"));
+        let tls = match &config.tsl_config {
+            Some(tls_config) => Some(
+                make_rust_tls(tls_config)
+                    .await
+                    .expect("it should have a valid tracker https configuration"),
+            ),
+            None => None,
+        };
 
         match version {
             Version::V1 => Some(start_v1(socket, tls, tracker.clone(), form).await),

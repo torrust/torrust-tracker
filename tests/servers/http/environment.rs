@@ -38,7 +38,10 @@ impl Environment<Stopped> {
 
         let bind_to = config.bind_address;
 
-        let tls = block_on(make_rust_tls(config.ssl_enabled, &config.tsl_config)).map(|tls| tls.expect("tls config failed"));
+        let tls = config
+            .tsl_config
+            .as_ref()
+            .map(|tls_config| block_on(make_rust_tls(tls_config)).expect("it should have a valid tracker https configuration"));
 
         let server = Service::new(Launcher::new(tracker.clone(), bind_to, tls));
 

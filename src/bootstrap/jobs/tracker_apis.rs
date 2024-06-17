@@ -60,9 +60,14 @@ pub async fn start_job(config: &HttpApi, tracker: Arc<core::Tracker>, form: Form
     if config.enabled {
         let bind_to = config.bind_address;
 
-        let tls = make_rust_tls(config.ssl_enabled, &config.tsl_config)
-            .await
-            .map(|tls| tls.expect("it should have a valid tracker api tls configuration"));
+        let tls = match &config.tsl_config {
+            Some(tls_config) => Some(
+                make_rust_tls(tls_config)
+                    .await
+                    .expect("it should have a valid tracker api tls configuration"),
+            ),
+            None => None,
+        };
 
         let access_tokens = Arc::new(config.access_tokens.clone());
 

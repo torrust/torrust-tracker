@@ -3,9 +3,5 @@ driver = "MySQL"
 path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
 
 [[http_trackers]]
-ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
-ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
-
-[http_api]
-ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
-ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
+bind_address = "0.0.0.0:7070"
+enabled = true

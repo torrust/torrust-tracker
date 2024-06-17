@@ -12,19 +12,17 @@ pub struct HttpTracker {
     /// Weather the HTTP tracker is enabled or not.
     #[serde(default = "HttpTracker::default_enabled")]
     pub enabled: bool,
+
     /// The address the tracker will bind to.
     /// The format is `ip:port`, for example `0.0.0.0:6969`. If you want to
     /// listen to all interfaces, use `0.0.0.0`. If you want the operating
     /// system to choose a random port, use port `0`.
     #[serde(default = "HttpTracker::default_bind_address")]
     pub bind_address: SocketAddr,
-    /// Weather the HTTP tracker will use SSL or not.
-    #[serde(default = "HttpTracker::default_ssl_enabled")]
-    pub ssl_enabled: bool,
-    /// TSL config. Only used if `ssl_enabled` is true.
-    #[serde(flatten)]
-    #[serde(default = "TslConfig::default")]
-    pub tsl_config: TslConfig,
+
+    /// TSL config.
+    #[serde(default = "HttpTracker::default_tsl_config")]
+    pub tsl_config: Option<TslConfig>,
 }
 
 impl Default for HttpTracker {
@@ -32,8 +30,7 @@ impl Default for HttpTracker {
         Self {
             enabled: Self::default_enabled(),
             bind_address: Self::default_bind_address(),
-            ssl_enabled: Self::default_ssl_enabled(),
-            tsl_config: TslConfig::default(),
+            tsl_config: Self::default_tsl_config(),
         }
     }
 }
@@ -47,7 +44,7 @@ impl HttpTracker {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 7070)
     }
 
-    fn default_ssl_enabled() -> bool {
-        false
+    fn default_tsl_config() -> Option<TslConfig> {
+        None
     }
 }
