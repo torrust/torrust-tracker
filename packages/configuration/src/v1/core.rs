@@ -1,8 +1,9 @@
 use std::net::{IpAddr, Ipv4Addr};
 
 use serde::{Deserialize, Serialize};
-use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
+use torrust_tracker_primitives::TrackerMode;
 
+use crate::v1::database::Database;
 use crate::AnnouncePolicy;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -12,18 +13,9 @@ pub struct Core {
     #[serde(default = "Core::default_mode")]
     pub mode: TrackerMode,
 
-    // Database configuration
-    /// Database driver. Possible values are: `Sqlite3`, and `MySQL`.
-    #[serde(default = "Core::default_db_driver")]
-    pub db_driver: DatabaseDriver,
-
-    /// Database connection string. The format depends on the database driver.
-    /// For `Sqlite3`, the format is `path/to/database.db`, for example:
-    /// `./storage/tracker/lib/database/sqlite3.db`.
-    /// For `Mysql`, the format is `mysql://db_user:db_user_password:port/db_name`, for
-    /// example: `root:password@localhost:3306/torrust`.
-    #[serde(default = "Core::default_db_path")]
-    pub db_path: String,
+    // Database configuration.
+    #[serde(default = "Core::default_database")]
+    pub database: Database,
 
     /// See [`AnnouncePolicy::interval`]
     #[serde(default = "AnnouncePolicy::default_interval")]
@@ -87,8 +79,7 @@ impl Default for Core {
 
         Self {
             mode: Self::default_mode(),
-            db_driver: Self::default_db_driver(),
-            db_path: Self::default_db_path(),
+            database: Self::default_database(),
             announce_interval: announce_policy.interval,
             min_announce_interval: announce_policy.interval_min,
             max_peer_timeout: Self::default_max_peer_timeout(),
@@ -107,12 +98,8 @@ impl Core {
         TrackerMode::Public
     }
 
-    fn default_db_driver() -> DatabaseDriver {
-        DatabaseDriver::Sqlite3
-    }
-
-    fn default_db_path() -> String {
-        String::from("./storage/tracker/lib/database/sqlite3.db")
+    fn default_database() -> Database {
+        Database::default()
     }
 
     fn default_on_reverse_proxy() -> bool {

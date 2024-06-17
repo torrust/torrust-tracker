@@ -54,7 +54,7 @@ pub fn ephemeral() -> Configuration {
     let temp_directory = env::temp_dir();
     let random_db_id = random::string(16);
     let temp_file = temp_directory.join(format!("data_{random_db_id}.db"));
-    temp_file.to_str().unwrap().clone_into(&mut config.core.db_path);
+    temp_file.to_str().unwrap().clone_into(&mut config.core.database.path);
 
     config
 }

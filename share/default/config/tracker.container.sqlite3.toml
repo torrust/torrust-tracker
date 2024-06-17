@@ -1,5 +1,5 @@
-[core]
-db_path = "/var/lib/torrust/tracker/database/sqlite3.db"
+[core.database]
+path = "/var/lib/torrust/tracker/database/sqlite3.db"
 
 [[http_trackers]]
 ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
