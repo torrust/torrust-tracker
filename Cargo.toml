@@ -104,7 +104,7 @@ members = [
 
 [profile.dev]
 debug = 1
-lto = "thin"
+lto = "fat"
 opt-level = 1
 
 [profile.release]
