@@ -64,7 +64,7 @@ pub fn ephemeral() -> Configuration {
 pub fn ephemeral_with_reverse_proxy() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.on_reverse_proxy = true;
+    cfg.core.net.on_reverse_proxy = true;
 
     cfg
 }
@@ -74,7 +74,7 @@ pub fn ephemeral_with_reverse_proxy() -> Configuration {
 pub fn ephemeral_without_reverse_proxy() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.on_reverse_proxy = false;
+    cfg.core.net.on_reverse_proxy = false;
 
     cfg
 }
@@ -124,7 +124,7 @@ pub fn ephemeral_mode_private_whitelisted() -> Configuration {
 pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.external_ip = Some(ip);
+    cfg.core.net.external_ip = Some(ip);
 
     cfg
 }
