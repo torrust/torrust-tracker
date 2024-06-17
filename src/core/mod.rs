@@ -317,11 +317,13 @@
 //!
 //! [core]
 //! mode = "public"
-//! max_peer_timeout = 900
 //! tracker_usage_statistics = true
-//! persistent_torrent_completed_stat = true
 //! inactive_peer_cleanup_interval = 600
-//! remove_peerless_torrents = false
+//!
+//! [core.tracker_policy]
+//! max_peer_timeout = 900
+//! persistent_torrent_completed_stat = false
+//! remove_peerless_torrents = true
 //!
 //! [core.announce_policy]
 //! interval = 120
@@ -571,11 +573,7 @@ impl Tracker {
             stats_repository,
             database,
             external_ip: config.net.external_ip,
-            policy: TrackerPolicy::new(
-                config.remove_peerless_torrents,
-                config.max_peer_timeout,
-                config.persistent_torrent_completed_stat,
-            ),
+            policy: config.tracker_policy.clone(),
             on_reverse_proxy: config.net.on_reverse_proxy,
         })
     }
@@ -1045,7 +1043,7 @@ mod tests {
 
         pub fn tracker_persisting_torrents_in_database() -> Tracker {
             let mut configuration = configuration::ephemeral();
-            configuration.core.persistent_torrent_completed_stat = true;
+            configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
             tracker_factory(&configuration)
         }
 
