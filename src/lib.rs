@@ -171,22 +171,24 @@
 //! log_level = "info"
 //!
 //! [core]
-//! announce_interval = 120
 //! inactive_peer_cleanup_interval = 600
 //! max_peer_timeout = 900
-//! min_announce_interval = 120
 //! mode = "public"
 //! persistent_torrent_completed_stat = false
 //! remove_peerless_torrents = true
 //! tracker_usage_statistics = true
 //!
-//!   [core.database]
-//!   driver = "Sqlite3"
-//!   path = "./storage/tracker/lib/database/sqlite3.db"
+//! [core.announce_policy]
+//! interval = 120
+//! interval_min = 120
 //!
-//!   [core.net]
-//!   external_ip = "0.0.0.0"
-//!   on_reverse_proxy = false
+//! [core.database]
+//! driver = "Sqlite3"
+//! path = "./storage/tracker/lib/database/sqlite3.db"
+//!
+//! [core.net]
+//! external_ip = "0.0.0.0"
+//! on_reverse_proxy = false
 //!
 //! [[udp_trackers]]
 //! bind_address = "0.0.0.0:6969"

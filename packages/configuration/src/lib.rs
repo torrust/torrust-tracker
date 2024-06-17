@@ -86,7 +86,7 @@ impl Info {
 }
 
 /// Announce policy
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Constructor)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy, Constructor)]
 pub struct AnnouncePolicy {
     /// Interval in seconds that the client should wait between sending regular
     /// announce requests to the tracker.
@@ -99,6 +99,7 @@ pub struct AnnouncePolicy {
     /// client's initial request. It serves as a guideline for clients to know
     /// how often they should contact the tracker for updates on the peer list,
     /// while ensuring that the tracker is not overwhelmed with requests.
+    #[serde(default = "AnnouncePolicy::default_interval")]
     pub interval: u32,
 
     /// Minimum announce interval. Clients must not reannounce more frequently
@@ -112,6 +113,7 @@ pub struct AnnouncePolicy {
     /// value to prevent sending too many requests in a short period, which
     /// could lead to excessive load on the tracker or even getting banned by
     /// the tracker for not adhering to the rules.
+    #[serde(default = "AnnouncePolicy::default_interval_min")]
     pub interval_min: u32,
 }
 
