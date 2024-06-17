@@ -312,7 +312,10 @@
 //! You can control the behavior of this module with the module settings:
 //!
 //! ```toml
+//! [logging]
 //! log_level = "debug"
+//!
+//! [core]
 //! mode = "public"
 //! db_driver = "Sqlite3"
 //! db_path = "./storage/tracker/lib/database/sqlite3.db"

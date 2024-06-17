@@ -3,15 +3,11 @@ use std::net::{IpAddr, Ipv4Addr};
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::{DatabaseDriver, TrackerMode};
 
-use crate::{AnnouncePolicy, LogLevel};
+use crate::AnnouncePolicy;
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Core {
-    /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
-    /// `Debug` and `Trace`. Default is `Info`.
-    #[serde(default = "Core::default_log_level")]
-    pub log_level: Option<LogLevel>,
     /// Tracker mode. See [`TrackerMode`] for more information.
     #[serde(default = "Core::default_mode")]
     pub mode: TrackerMode,
@@ -20,6 +16,7 @@ pub struct Core {
     /// Database driver. Possible values are: `Sqlite3`, and `MySQL`.
     #[serde(default = "Core::default_db_driver")]
     pub db_driver: DatabaseDriver,
+
     /// Database connection string. The format depends on the database driver.
     /// For `Sqlite3`, the format is `path/to/database.db`, for example:
     /// `./storage/tracker/lib/database/sqlite3.db`.
@@ -35,11 +32,13 @@ pub struct Core {
     /// See [`AnnouncePolicy::interval_min`]
     #[serde(default = "AnnouncePolicy::default_interval_min")]
     pub min_announce_interval: u32,
+
     /// Weather the tracker is behind a reverse proxy or not.
     /// If the tracker is behind a reverse proxy, the `X-Forwarded-For` header
     /// sent from the proxy will be used to get the client's IP address.
     #[serde(default = "Core::default_on_reverse_proxy")]
     pub on_reverse_proxy: bool,
+
     /// The external IP address of the tracker. If the client is using a
     /// loopback IP address, this IP address will be used instead. If the peer
     /// is using a loopback IP address, the tracker assumes that the peer is
@@ -47,6 +46,7 @@ pub struct Core {
     /// address instead.
     #[serde(default = "Core::default_external_ip")]
     pub external_ip: Option<IpAddr>,
+
     /// Weather the tracker should collect statistics about tracker usage.
     /// If enabled, the tracker will collect statistics like the number of
     /// connections handled, the number of announce requests handled, etc.
@@ -54,6 +54,7 @@ pub struct Core {
     /// information about the collected metrics.
     #[serde(default = "Core::default_tracker_usage_statistics")]
     pub tracker_usage_statistics: bool,
+
     /// If enabled the tracker will persist the number of completed downloads.
     /// That's how many times a torrent has been downloaded completely.
     #[serde(default = "Core::default_persistent_torrent_completed_stat")]
@@ -65,10 +66,12 @@ pub struct Core {
     /// time, it will be removed from the torrent peer list.
     #[serde(default = "Core::default_max_peer_timeout")]
     pub max_peer_timeout: u32,
+
     /// Interval in seconds that the cleanup job will run to remove inactive
     /// peers from the torrent peer list.
     #[serde(default = "Core::default_inactive_peer_cleanup_interval")]
     pub inactive_peer_cleanup_interval: u64,
+
     /// If enabled, the tracker will remove torrents that have no peers.
     /// The clean up torrent job runs every `inactive_peer_cleanup_interval`
     /// seconds and it removes inactive peers. Eventually, the peer list of a
@@ -83,7 +86,6 @@ impl Default for Core {
         let announce_policy = AnnouncePolicy::default();
 
         Self {
-            log_level: Self::default_log_level(),
             mode: Self::default_mode(),
             db_driver: Self::default_db_driver(),
             db_path: Self::default_db_path(),
@@ -101,11 +103,6 @@ impl Default for Core {
 }
 
 impl Core {
-    #[allow(clippy::unnecessary_wraps)]
-    fn default_log_level() -> Option<LogLevel> {
-        Some(LogLevel::Info)
-    }
-
     fn default_mode() -> TrackerMode {
         TrackerMode::Public
     }

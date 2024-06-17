@@ -1,4 +1,7 @@
+[logging]
 log_level = "error"
+
+[core]
 remove_peerless_torrents = false
 tracker_usage_statistics = false
 

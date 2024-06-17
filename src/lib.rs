@@ -167,12 +167,15 @@
 //! The default configuration is:
 //!
 //! ```toml
+//! [logging]
+//! log_level = "info"
+//!
+//! [core]
 //! announce_interval = 120
 //! db_driver = "Sqlite3"
 //! db_path = "./storage/tracker/lib/database/sqlite3.db"
 //! external_ip = "0.0.0.0"
 //! inactive_peer_cleanup_interval = 600
-//! log_level = "info"
 //! max_peer_timeout = 900
 //! min_announce_interval = 120
 //! mode = "public"
