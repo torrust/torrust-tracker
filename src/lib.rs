@@ -172,8 +172,6 @@
 //!
 //! [core]
 //! announce_interval = 120
-//! db_driver = "Sqlite3"
-//! db_path = "./storage/tracker/lib/database/sqlite3.db"
 //! external_ip = "0.0.0.0"
 //! inactive_peer_cleanup_interval = 600
 //! max_peer_timeout = 900
@@ -183,6 +181,10 @@
 //! persistent_torrent_completed_stat = false
 //! remove_peerless_torrents = true
 //! tracker_usage_statistics = true
+//!
+//!   [core.database]
+//!   driver = "Sqlite3"
+//!   path = "./storage/tracker/lib/database/sqlite3.db"
 //!
 //! [[udp_trackers]]
 //! bind_address = "0.0.0.0:6969"

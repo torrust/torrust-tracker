@@ -198,8 +198,6 @@
 //!
 //! [core]
 //! mode = "public"
-//! db_driver = "Sqlite3"
-//! db_path = "./storage/tracker/lib/database/sqlite3.db"
 //! announce_interval = 120
 //! min_announce_interval = 120
 //! on_reverse_proxy = false
@@ -209,6 +207,10 @@
 //! max_peer_timeout = 900
 //! inactive_peer_cleanup_interval = 600
 //! remove_peerless_torrents = true
+//!
+//!   [core.database]
+//!   driver = "Sqlite3"
+//!   path = "./storage/tracker/lib/database/sqlite3.db"
 //!
 //! [[udp_trackers]]
 //! enabled = false
@@ -234,6 +236,7 @@
 //! bind_address = "127.0.0.1:1313"
 //!```
 pub mod core;
+pub mod database;
 pub mod health_check_api;
 pub mod http_tracker;
 pub mod logging;
@@ -382,8 +385,6 @@ mod tests {
 
                                 [core]
                                 mode = "public"
-                                db_driver = "Sqlite3"
-                                db_path = "./storage/tracker/lib/database/sqlite3.db"
                                 announce_interval = 120
                                 min_announce_interval = 120
                                 on_reverse_proxy = false
@@ -394,6 +395,10 @@ mod tests {
                                 inactive_peer_cleanup_interval = 600
                                 remove_peerless_torrents = true
 
+                                  [core.database]
+                                  driver = "Sqlite3"
+                                  path = "./storage/tracker/lib/database/sqlite3.db"
+                                
                                 [[udp_trackers]]
                                 enabled = false
                                 bind_address = "0.0.0.0:6969"
@@ -490,8 +495,8 @@ mod tests {
     fn default_configuration_could_be_overwritten_from_a_single_env_var_with_toml_contents() {
         figment::Jail::expect_with(|_jail| {
             let config_toml = r#"
-                [core]
-                db_path = "OVERWRITTEN DEFAULT DB PATH"
+                [core.database]
+                path = "OVERWRITTEN DEFAULT DB PATH"
             "#
             .to_string();
 
@@ -502,7 +507,7 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration.core.db_path, "OVERWRITTEN DEFAULT DB PATH".to_string());
+            assert_eq!(configuration.core.database.path, "OVERWRITTEN DEFAULT DB PATH".to_string());
 
             Ok(())
         });
@@ -514,8 +519,8 @@ mod tests {
             jail.create_file(
                 "tracker.toml",
                 r#"
-                [core]
-                db_path = "OVERWRITTEN DEFAULT DB PATH"
+                [core.database]
+                path = "OVERWRITTEN DEFAULT DB PATH"
             "#,
             )?;
 
@@ -526,7 +531,7 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration.core.db_path, "OVERWRITTEN DEFAULT DB PATH".to_string());
+            assert_eq!(configuration.core.database.path, "OVERWRITTEN DEFAULT DB PATH".to_string());
 
             Ok(())
         });
