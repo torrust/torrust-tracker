@@ -4,9 +4,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct UdpTracker {
-    /// Weather the UDP tracker is enabled or not.
-    #[serde(default = "UdpTracker::default_enabled")]
-    pub enabled: bool,
     /// The address the tracker will bind to.
     /// The format is `ip:port`, for example `0.0.0.0:6969`. If you want to
     /// listen to all interfaces, use `0.0.0.0`. If you want the operating
@@ -17,17 +14,12 @@ pub struct UdpTracker {
 impl Default for UdpTracker {
     fn default() -> Self {
         Self {
-            enabled: Self::default_enabled(),
             bind_address: Self::default_bind_address(),
         }
     }
 }
 
 impl UdpTracker {
-    fn default_enabled() -> bool {
-        false
-    }
-
     fn default_bind_address() -> SocketAddr {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 6969)
     }

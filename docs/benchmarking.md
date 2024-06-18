@@ -33,7 +33,7 @@ Run the tracker with UDP service enabled and other services disabled and set log
 log_level = "error"
 
 [[udp_trackers]]
-enabled = true
+bind_address = "0.0.0.0:6969"
 ```
 
 Build and run the tracker:
@@ -168,7 +168,7 @@ Run the tracker with UDP service enabled and other services disabled and set log
 log_level = "error"
 
 [[udp_trackers]]
-enabled = true
+bind_address = "0.0.0.0:6969"
 ```
 
 ```console

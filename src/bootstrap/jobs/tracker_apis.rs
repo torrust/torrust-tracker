@@ -26,7 +26,6 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::{AccessTokens, HttpApi};
-use tracing::info;
 
 use super::make_rust_tls;
 use crate::core;
@@ -60,21 +59,16 @@ pub async fn start_job(
     form: ServiceRegistrationForm,
     version: Version,
 ) -> Option<JoinHandle<()>> {
-    if config.enabled {
-        let bind_to = config.bind_address;
+    let bind_to = config.bind_address;
 
-        let tls = make_rust_tls(&config.tsl_config)
-            .await
-            .map(|tls| tls.expect("it should have a valid tracker api tls configuration"));
+    let tls = make_rust_tls(&config.tsl_config)
+        .await
+        .map(|tls| tls.expect("it should have a valid tracker api tls configuration"));
 
-        let access_tokens = Arc::new(config.access_tokens.clone());
+    let access_tokens = Arc::new(config.access_tokens.clone());
 
-        match version {
-            Version::V1 => Some(start_v1(bind_to, tls, tracker.clone(), form, access_tokens).await),
-        }
-    } else {
-        info!("Note: Not loading Http Tracker Service, Not Enabled in Configuration.");
-        None
+    match version {
+        Version::V1 => Some(start_v1(bind_to, tls, tracker.clone(), form, access_tokens).await),
     }
 }
 
@@ -110,7 +104,7 @@ mod tests {
     #[tokio::test]
     async fn it_should_start_http_tracker() {
         let cfg = Arc::new(ephemeral_mode_public());
-        let config = &cfg.http_api;
+        let config = &cfg.http_api.clone().unwrap();
         let tracker = initialize_with_configuration(&cfg);
         let version = Version::V1;
 

@@ -29,7 +29,9 @@ impl Environment<Stopped> {
     pub fn new(configuration: &Arc<Configuration>) -> Self {
         let tracker = initialize_with_configuration(configuration);
 
-        let config = Arc::new(configuration.udp_trackers[0].clone());
+        let udp_tracker = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
+
+        let config = Arc::new(udp_tracker[0].clone());
 
         let bind_to = config.bind_address;
 

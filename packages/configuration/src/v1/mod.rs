@@ -220,16 +220,7 @@
 //! external_ip = "0.0.0.0"
 //! on_reverse_proxy = false
 //!
-//! [[udp_trackers]]
-//! enabled = false
-//! bind_address = "0.0.0.0:6969"
-//!
-//! [[http_trackers]]
-//! enabled = false
-//! bind_address = "0.0.0.0:7070"
-//!
 //! [http_api]
-//! enabled = true
 //! bind_address = "127.0.0.1:1212"
 //!
 //! [http_api.access_tokens]
@@ -267,7 +258,7 @@ const CONFIG_OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
 const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 
 /// Core configuration for the tracker.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
 pub struct Configuration {
     /// Logging configuration
     pub logging: Logging,
@@ -278,31 +269,18 @@ pub struct Configuration {
     /// The list of UDP trackers the tracker is running. Each UDP tracker
     /// represents a UDP server that the tracker is running and it has its own
     /// configuration.
-    pub udp_trackers: Vec<UdpTracker>,
+    pub udp_trackers: Option<Vec<UdpTracker>>,
 
     /// The list of HTTP trackers the tracker is running. Each HTTP tracker
     /// represents a HTTP server that the tracker is running and it has its own
     /// configuration.
-    pub http_trackers: Vec<HttpTracker>,
+    pub http_trackers: Option<Vec<HttpTracker>>,
 
     /// The HTTP API configuration.
-    pub http_api: HttpApi,
+    pub http_api: Option<HttpApi>,
 
     /// The Health Check API configuration.
     pub health_check_api: HealthCheckApi,
-}
-
-impl Default for Configuration {
-    fn default() -> Self {
-        Self {
-            logging: Logging::default(),
-            core: Core::default(),
-            udp_trackers: vec![UdpTracker::default()],
-            http_trackers: vec![HttpTracker::default()],
-            http_api: HttpApi::default(),
-            health_check_api: HealthCheckApi::default(),
-        }
-    }
 }
 
 impl Configuration {
@@ -407,21 +385,6 @@ mod tests {
                                 [core.net]
                                 external_ip = "0.0.0.0"
                                 on_reverse_proxy = false
-
-                                [[udp_trackers]]
-                                enabled = false
-                                bind_address = "0.0.0.0:6969"
-
-                                [[http_trackers]]
-                                enabled = false
-                                bind_address = "0.0.0.0:7070"
-                                
-                                [http_api]
-                                enabled = true
-                                bind_address = "127.0.0.1:1212"
-
-                                [http_api.access_tokens]
-                                admin = "MyAccessToken"
 
                                 [health_check_api]
                                 bind_address = "127.0.0.1:1313"
@@ -556,7 +519,7 @@ mod tests {
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
             assert_eq!(
-                configuration.http_api.access_tokens.get("admin"),
+                configuration.http_api.unwrap().access_tokens.get("admin"),
                 Some("NewToken".to_owned()).as_ref()
             );
 

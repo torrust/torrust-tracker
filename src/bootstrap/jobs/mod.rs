@@ -43,9 +43,7 @@ pub async fn make_rust_tls(opt_tsl_config: &Option<TslConfig>) -> Option<Result<
                     }),
             )
         }
-        None => {
-            None
-        }
+        None => None,
     }
 }
 

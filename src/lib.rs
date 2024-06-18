@@ -192,21 +192,6 @@
 //! external_ip = "0.0.0.0"
 //! on_reverse_proxy = false
 //!
-//! [[udp_trackers]]
-//! bind_address = "0.0.0.0:6969"
-//! enabled = false
-//!
-//! [[http_trackers]]
-//! bind_address = "0.0.0.0:7070"
-//! enabled = false
-//!
-//! [http_api]
-//! bind_address = "127.0.0.1:1212"
-//! enabled = true
-//!
-//! [http_api.access_tokens]
-//! admin = "MyAccessToken"
-//!
 //! [health_check_api]
 //! bind_address = "127.0.0.1:1313"
 //!```
@@ -253,8 +238,10 @@
 //!
 //! ```toml
 //! [http_api]
-//! enabled = true
 //! bind_address = "127.0.0.1:1212"
+//!
+//! [http_api.access_tokens]
+//! admin = "MyAccessToken"
 //! ```
 //!
 //! By default it's enabled on port `1212`. You also need to add access tokens in the configuration:
@@ -310,7 +297,6 @@
 //!
 //! ```toml
 //! [[http_trackers]]
-//! enabled = true
 //! bind_address = "0.0.0.0:7070"
 //! ```
 //!
@@ -405,7 +391,6 @@
 //!
 //! ```toml
 //! [[udp_trackers]]
-//! enabled = true
 //! bind_address = "0.0.0.0:6969"
 //! ```
 //!

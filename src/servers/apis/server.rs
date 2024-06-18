@@ -274,7 +274,7 @@ mod tests {
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
         let cfg = Arc::new(ephemeral_mode_public());
-        let config = &cfg.http_api;
+        let config = &cfg.http_api.clone().unwrap();
 
         let tracker = initialize_with_configuration(&cfg);
 

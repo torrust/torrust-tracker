@@ -1,2 +1,16 @@
 [core.database]
 path = "/var/lib/torrust/tracker/database/sqlite3.db"
+
+# Uncomment to enable services
+
+#[[udp_trackers]]
+#bind_address = "0.0.0.0:6969"
+
+#[[http_trackers]]
+#bind_address = "0.0.0.0:7070"
+
+#[http_api]
+#bind_address = "0.0.0.0:1212"
+
+#[http_api.access_tokens]
+#admin = "MyAccessToken"
