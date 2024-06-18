@@ -12,10 +12,6 @@ pub type AccessTokens = HashMap<String, String>;
 #[serde_as]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct HttpApi {
-    /// Weather the HTTP API is enabled or not.
-    #[serde(default = "HttpApi::default_enabled")]
-    pub enabled: bool,
-
     /// The address the tracker will bind to.
     /// The format is `ip:port`, for example `0.0.0.0:6969`. If you want to
     /// listen to all interfaces, use `0.0.0.0`. If you want the operating
@@ -38,7 +34,6 @@ pub struct HttpApi {
 impl Default for HttpApi {
     fn default() -> Self {
         Self {
-            enabled: Self::default_enabled(),
             bind_address: Self::default_bind_address(),
             tsl_config: Self::default_tsl_config(),
             access_tokens: Self::default_access_tokens(),
@@ -47,10 +42,6 @@ impl Default for HttpApi {
 }
 
 impl HttpApi {
-    fn default_enabled() -> bool {
-        true
-    }
-
     fn default_bind_address() -> SocketAddr {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1212)
     }

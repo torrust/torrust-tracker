@@ -92,7 +92,7 @@ mod tests {
     async fn it_should_be_able_to_start_and_stop() {
         let cfg = Arc::new(ephemeral_mode_public());
         let tracker = tracker(&cfg);
-        let config = &cfg.http_trackers[0];
+        let config = &cfg.http_trackers.as_ref().unwrap()[0];
 
         let bind_to = config.bind_address;
 

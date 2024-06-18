@@ -60,36 +60,34 @@ pub async fn start(tracker_config: &Configuration, tracker: Arc<core::Tracker>) 
     }
 
     // Start the UDP blocks
-    for config in &tracker_config.udp_trackers {
-        if tracker.is_private() {
-            warn!(
-                "Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!",
-                config.bind_address, tracker_config.core.mode
-            );
-        } else if let Some(job) =
-            udp_tracker::start_job(config, tracker.clone(), registar.form(), servers::udp::Version::V0).await
-        {
-            jobs.push(job);
-        };
-    }
+    if let Some(udp_trackers) = &tracker_config.udp_trackers {
+        for config in udp_trackers {
+            if tracker.is_private() {
+                warn!(
+                    "Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!",
+                    config.bind_address, tracker_config.core.mode
+                );
+            } else if let Some(job) =
+                udp_tracker::start_job(config, tracker.clone(), registar.form(), servers::udp::Version::V0).await
+            {
+                jobs.push(job);
+            };
+        }
+    };
 
     // Start the HTTP blocks
-    for config in &tracker_config.http_trackers {
-        if let Some(job) = http_tracker::start_job(config, tracker.clone(), registar.form(), servers::http::Version::V1).await {
-            jobs.push(job);
-        };
-    }
+    if let Some(http_trackers) = &tracker_config.http_trackers {
+        for config in http_trackers {
+            if let Some(job) = http_tracker::start_job(config, tracker.clone(), registar.form(), servers::http::Version::V1).await
+            {
+                jobs.push(job);
+            };
+        }
+    };
 
     // Start HTTP API
-    if tracker_config.http_api.enabled {
-        if let Some(job) = tracker_apis::start_job(
-            &tracker_config.http_api,
-            tracker.clone(),
-            registar.form(),
-            servers::apis::Version::V1,
-        )
-        .await
-        {
+    if let Some(http_api) = &tracker_config.http_api {
+        if let Some(job) = tracker_apis::start_job(http_api, tracker.clone(), registar.form(), servers::apis::Version::V1).await {
             jobs.push(job);
         };
     }

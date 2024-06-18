@@ -16,7 +16,7 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpTracker;
-use tracing::{info, instrument};
+use tracing::instrument;
 
 use super::make_rust_tls;
 use crate::core;
@@ -42,24 +42,19 @@ pub async fn start_job(
     form: Form,
     version: Version,
 ) -> Option<JoinHandle<()>> {
-    if config.enabled {
-        let socket = config.bind_address;
+    let socket = config.bind_address;
 
-        let tls = match &config.tsl_config {
-            Some(tls_config) => Some(
-                make_rust_tls(tls_config)
-                    .await
-                    .expect("it should have a valid tracker https configuration"),
-            ),
-            None => None,
-        };
+    let tls = match &config.tsl_config {
+        Some(tls_config) => Some(
+            make_rust_tls(tls_config)
+                .await
+                .expect("it should have a valid tracker https configuration"),
+        ),
+        None => None,
+    };
 
-        match version {
-            Version::V1 => Some(start_v1(socket, tls, tracker.clone(), form).await),
-        }
-    } else {
-        info!("Note: Not loading Http Tracker Service, Not Enabled in Configuration.");
-        None
+    match version {
+        Version::V1 => Some(start_v1(socket, tls, tracker.clone(), form).await),
     }
 }
 
@@ -94,7 +89,7 @@ mod tests {
     #[tokio::test]
     async fn it_should_start_http_tracker() {
         let cfg = Arc::new(ephemeral_mode_public());
-        let config = &cfg.http_trackers[0];
+        let config = &cfg.http_trackers.as_ref().unwrap()[0];
         let tracker = tracker(&cfg);
         let version = Version::V1;
 

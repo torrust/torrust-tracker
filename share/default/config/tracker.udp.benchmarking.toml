@@ -6,7 +6,4 @@ remove_peerless_torrents = false
 tracker_usage_statistics = false
 
 [[udp_trackers]]
-enabled = true
-
-[http_api]
-enabled = false
+bind_address = "0.0.0.0:6969"

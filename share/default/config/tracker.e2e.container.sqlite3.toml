@@ -2,10 +2,16 @@
 path = "/var/lib/torrust/tracker/database/sqlite3.db"
 
 [[udp_trackers]]
-enabled = true
+bind_address = "0.0.0.0:6969"
 
 [[http_trackers]]
-enabled = true
+bind_address = "0.0.0.0:7070"
+
+[http_api]
+bind_address = "0.0.0.0:1212"
+
+[http_api.access_tokens]
+admin = "MyAccessToken"
 
 [health_check_api]
 # Must be bound to wildcard IP to be accessible from outside the container

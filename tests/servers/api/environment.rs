@@ -34,8 +34,7 @@ impl Environment<Stopped> {
     pub fn new(configuration: &Arc<Configuration>) -> Self {
         let tracker = tracker(configuration);
 
-        let config = Arc::new(configuration.http_api.clone());
-        let access_tokens = Arc::new(config.access_tokens.clone());
+        let config = Arc::new(configuration.http_api.clone().expect("missing API configuration"));
 
         let addr = config.bind_address;
 
@@ -44,7 +43,12 @@ impl Environment<Stopped> {
             .as_ref()
             .map(|tls_config| block_on(make_rust_tls(tls_config)).expect("it should have a valid tracker api tls configuration"));
 
-        let stopped = Service::new(ApiLauncher::new(tracker.clone(), access_tokens, addr, tls));
+        let stopped = Service::new(ApiLauncher::new(
+            tracker.clone(),
+            config.access_tokens.clone().into(),
+            addr,
+            tls,
+        ));
 
         Self {
             config,

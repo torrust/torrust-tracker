@@ -11,7 +11,7 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::UdpTracker;
-use tracing::{info, instrument};
+use tracing::instrument;
 
 use crate::core;
 use crate::servers::registar::Form;
@@ -33,15 +33,10 @@ use crate::servers::udp::Version;
 #[allow(clippy::async_yields_async)]
 #[instrument(ret)]
 pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: Form, version: Version) -> Option<JoinHandle<()>> {
-    if config.enabled {
-        let addr = config.bind_address;
+    let addr = config.bind_address;
 
-        match version {
-            Version::V0 => Some(start_v0(addr, tracker.clone(), form).await),
-        }
-    } else {
-        info!("Note: Not loading Udp Tracker Service, Not Enabled in Configuration.");
-        None
+    match version {
+        Version::V0 => Some(start_v0(addr, tracker.clone(), form).await),
     }
 }
 

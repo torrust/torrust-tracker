@@ -25,7 +25,6 @@
 //!
 //! ```toml
 //! [http_api]
-//! enabled = true
 //! bind_address = "0.0.0.0:1212"
 //!
 //! [http_api.tsl_config]
@@ -112,7 +111,6 @@
 //!
 //! ```toml
 //! [http_api]
-//! enabled = true
 //! bind_address = "0.0.0.0:1212"
 //!
 //! [http_api.tsl_config]
