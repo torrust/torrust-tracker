@@ -44,7 +44,6 @@ pub async fn make_rust_tls(opt_tsl_config: &Option<TslConfig>) -> Option<Result<
             )
         }
         None => {
-            info!("TLS not enabled");
             None
         }
     }
