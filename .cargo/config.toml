@@ -23,4 +23,3 @@ rustflags = [
     "-D",
     "unused",
 ]
-

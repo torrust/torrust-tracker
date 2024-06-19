@@ -17,10 +17,6 @@ fn empty_udp_request() -> [u8; MAX_PACKET_SIZE] {
     [0; MAX_PACKET_SIZE]
 }
 
-fn empty_buffer() -> [u8; MAX_PACKET_SIZE] {
-    [0; MAX_PACKET_SIZE]
-}
-
 async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrackerClient) -> ConnectionId {
     let connect_request = ConnectRequest { transaction_id };
 
@@ -54,13 +50,12 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
         Err(err) => panic!("{err}"),
     };
 
-    let mut buffer = empty_buffer();
-    match client.receive(&mut buffer).await {
-        Ok(_) => (),
+    let response = match client.receive().await {
+        Ok(response) => response,
         Err(err) => panic!("{err}"),
     };
 
-    let response = Response::parse_bytes(&buffer, true).unwrap();
+    let response = Response::parse_bytes(&response, true).unwrap();
 
     assert!(is_error_response(&response, "bad request"));
 
@@ -111,30 +106,20 @@ mod receiving_an_announce_request {
         AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId,
         PeerKey, Port, TransactionId,
     };
-    use torrust_tracker::shared::bit_torrent::tracker::udp::client::new_udp_tracker_client_connected;
+    use torrust_tracker::shared::bit_torrent::tracker::udp::client::{new_udp_tracker_client_connected, UdpTrackerClient};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::servers::udp::asserts::is_ipv4_announce_response;
     use crate::servers::udp::contract::send_connection_request;
     use crate::servers::udp::Started;
 
-    #[tokio::test]
-    async fn should_return_an_announce_response() {
-        let env = Started::new(&configuration::ephemeral().into()).await;
-
-        let client = match new_udp_tracker_client_connected(&env.bind_address().to_string()).await {
-            Ok(udp_tracker_client) => udp_tracker_client,
-            Err(err) => panic!("{err}"),
-        };
-
-        let connection_id = send_connection_request(TransactionId::new(123), &client).await;
-
+    pub async fn send_and_get_announce(tx_id: TransactionId, c_id: ConnectionId, client: &UdpTrackerClient) {
         // Send announce request
 
         let announce_request = AnnounceRequest {
-            connection_id: ConnectionId(connection_id.0),
+            connection_id: ConnectionId(c_id.0),
             action_placeholder: AnnounceActionPlaceholder::default(),
-            transaction_id: TransactionId::new(123i32),
+            transaction_id: tx_id,
             info_hash: InfoHash([0u8; 20]),
             peer_id: PeerId([255u8; 20]),
             bytes_downloaded: NumberOfBytes(0i64.into()),
@@ -160,6 +145,43 @@ mod receiving_an_announce_request {
         println!("test response {response:?}");
 
         assert!(is_ipv4_announce_response(&response));
+    }
+
+    #[tokio::test]
+    async fn should_return_an_announce_response() {
+        let env = Started::new(&configuration::ephemeral().into()).await;
+
+        let client = match new_udp_tracker_client_connected(&env.bind_address().to_string()).await {
+            Ok(udp_tracker_client) => udp_tracker_client,
+            Err(err) => panic!("{err}"),
+        };
+
+        let tx_id = TransactionId::new(123);
+
+        let c_id = send_connection_request(tx_id, &client).await;
+
+        send_and_get_announce(tx_id, c_id, &client).await;
+
+        env.stop().await;
+    }
+
+    #[tokio::test]
+    async fn should_return_many_announce_response() {
+        let env = Started::new(&configuration::ephemeral().into()).await;
+
+        let client = match new_udp_tracker_client_connected(&env.bind_address().to_string()).await {
+            Ok(udp_tracker_client) => udp_tracker_client,
+            Err(err) => panic!("{err}"),
+        };
+
+        let tx_id = TransactionId::new(123);
+
+        let c_id = send_connection_request(tx_id, &client).await;
+
+        for x in 0..1000 {
+            tracing::info!("req no: {x}");
+            send_and_get_announce(tx_id, c_id, &client).await;
+        }
 
         env.stop().await;
     }

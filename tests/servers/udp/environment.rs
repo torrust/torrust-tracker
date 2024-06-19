@@ -5,6 +5,7 @@ use torrust_tracker::bootstrap::app::initialize_with_configuration;
 use torrust_tracker::core::Tracker;
 use torrust_tracker::servers::registar::Registar;
 use torrust_tracker::servers::udp::server::{Launcher, Running, Stopped, UdpServer};
+use torrust_tracker::shared::bit_torrent::tracker::udp::client::DEFAULT_TIMEOUT;
 use torrust_tracker_configuration::{Configuration, UdpTracker};
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
@@ -58,16 +59,22 @@ impl Environment<Stopped> {
 
 impl Environment<Running> {
     pub async fn new(configuration: &Arc<Configuration>) -> Self {
-        Environment::<Stopped>::new(configuration).start().await
+        tokio::time::timeout(DEFAULT_TIMEOUT, Environment::<Stopped>::new(configuration).start())
+            .await
+            .expect("it should create an environment within the timeout")
     }
 
     #[allow(dead_code)]
     pub async fn stop(self) -> Environment<Stopped> {
+        let stopped = tokio::time::timeout(DEFAULT_TIMEOUT, self.server.stop())
+            .await
+            .expect("it should stop the environment within the timeout");
+
         Environment {
             config: self.config,
             tracker: self.tracker,
             registar: Registar::default(),
-            server: self.server.stop().await.expect("it stop the udp tracker service"),
+            server: stopped.expect("it stop the udp tracker service"),
         }
     }
 
