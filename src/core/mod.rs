@@ -113,10 +113,10 @@
 //! }
 //!
 //! // Core tracker configuration
-//! pub struct Configuration {
+//! pub struct AnnounceInterval {
 //!     // ...
-//!     pub announce_interval: u32, // Interval in seconds that the client should wait between sending regular announce requests to the tracker
-//!     pub min_announce_interval: u32, // Minimum announce interval. Clients must not reannounce more frequently than this
+//!     pub interval: u32, // Interval in seconds that the client should wait between sending regular announce requests to the tracker
+//!     pub interval_min: u32, // Minimum announce interval. Clients must not reannounce more frequently than this
 //!     // ...
 //! }
 //! ```
@@ -312,19 +312,30 @@
 //! You can control the behavior of this module with the module settings:
 //!
 //! ```toml
+//! [logging]
 //! log_level = "debug"
+//!
+//! [core]
 //! mode = "public"
-//! db_driver = "Sqlite3"
-//! db_path = "./storage/tracker/lib/database/sqlite3.db"
-//! announce_interval = 120
-//! min_announce_interval = 120
+//! tracker_usage_statistics = true
+//! inactive_peer_cleanup_interval = 600
+//!
+//! [core.tracker_policy]
 //! max_peer_timeout = 900
+//! persistent_torrent_completed_stat = false
+//! remove_peerless_torrents = true
+//!
+//! [core.announce_policy]
+//! interval = 120
+//! interval_min = 120
+//!
+//! [core.database]
+//! driver = "Sqlite3"
+//! path = "./storage/tracker/lib/database/sqlite3.db"
+//!
+//! [core.net]
 //! on_reverse_proxy = false
 //! external_ip = "2.137.87.41"
-//! tracker_usage_statistics = true
-//! persistent_torrent_completed_stat = true
-//! inactive_peer_cleanup_interval = 600
-//! remove_peerless_torrents = false
 //! ```
 //!
 //! Refer to the [`configuration` module documentation](https://docs.rs/torrust-tracker-configuration) to get more information about all options.
@@ -545,13 +556,13 @@ impl Tracker {
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
-        let database = Arc::new(databases::driver::build(&config.db_driver, &config.db_path)?);
+        let database = Arc::new(databases::driver::build(&config.database.driver, &config.database.path)?);
 
         let mode = config.mode.clone();
 
         Ok(Tracker {
             //config,
-            announce_policy: AnnouncePolicy::new(config.announce_interval, config.min_announce_interval),
+            announce_policy: config.announce_policy,
             mode,
             keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
             whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),
@@ -559,13 +570,9 @@ impl Tracker {
             stats_event_sender,
             stats_repository,
             database,
-            external_ip: config.external_ip,
-            policy: TrackerPolicy::new(
-                config.remove_peerless_torrents,
-                config.max_peer_timeout,
-                config.persistent_torrent_completed_stat,
-            ),
-            on_reverse_proxy: config.on_reverse_proxy,
+            external_ip: config.net.external_ip,
+            policy: config.tracker_policy.clone(),
+            on_reverse_proxy: config.net.on_reverse_proxy,
         })
     }
 
@@ -1034,7 +1041,7 @@ mod tests {
 
         pub fn tracker_persisting_torrents_in_database() -> Tracker {
             let mut configuration = configuration::ephemeral();
-            configuration.core.persistent_torrent_completed_stat = true;
+            configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
             tracker_factory(&configuration)
         }
 

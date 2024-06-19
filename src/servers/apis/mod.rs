@@ -25,9 +25,9 @@
 //!
 //! ```toml
 //! [http_api]
-//! enabled = true
 //! bind_address = "0.0.0.0:1212"
-//! ssl_enabled = false
+//!
+//! [http_api.tsl_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!
@@ -106,16 +106,14 @@
 //!
 //! # Setup SSL (optional)
 //!
-//! The API server supports SSL. You can enable it by setting the
-//! [`ssl_enabled`](torrust_tracker_configuration::HttpApi::ssl_enabled) option
-//! to `true` in the configuration file
-//! ([`http_api`](torrust_tracker_configuration::HttpApi) section).
+//! The API server supports SSL. You can enable it by adding the `tsl_config`
+//! section to the configuration.
 //!
 //! ```toml
 //! [http_api]
-//! enabled = true
 //! bind_address = "0.0.0.0:1212"
-//! ssl_enabled = true
+//!
+//! [http_api.tsl_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!

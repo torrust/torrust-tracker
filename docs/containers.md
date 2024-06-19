@@ -149,7 +149,7 @@ The following environmental variables can be set:
 
 - `TORRUST_TRACKER_CONFIG_TOML_PATH` - The in-container path to the tracker configuration file, (default: `"/etc/torrust/tracker/tracker.toml"`).
 - `TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_API__ACCESS_TOKENS__ADMIN` - Override of the admin token. If set, this value overrides any value set in the config.
-- `TORRUST_TRACKER_CONFIG_OVERRIDE_DB_DRIVER` - The database type used for the container, (options: `Sqlite3`, `MySQL`, default `Sqlite3`). Please Note: This dose not override the database configuration within the `.toml` config file.
+- `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER` - The database type used for the container, (options: `Sqlite3`, `MySQL`, default `Sqlite3`). Please Note: This dose not override the database configuration within the `.toml` config file.
 - `TORRUST_TRACKER_CONFIG_TOML` - Load config from this environmental variable instead from a file, (i.e: `TORRUST_TRACKER_CONFIG_TOML=$(cat tracker-tracker.toml)`).
 - `USER_ID` - The user id for the runtime crated `torrust` user. Please Note: This user id should match the ownership of the host-mapped volumes, (default `1000`).
 - `UDP_PORT` - The port for the UDP tracker. This should match the port used in the configuration, (default `6969`).
@@ -243,8 +243,9 @@ podman run -it \
 The docker-compose configuration includes the MySQL service configuration. If you want to use MySQL instead of SQLite you should verify the `/etc/torrust/tracker/tracker.toml` (i.e `./storage/tracker/etc/tracker.toml`) configuration:
 
 ```toml
-db_driver = "MySQL"
-db_path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
+[core.database]
+driver = "MySQL"
+path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
 ```
 
 ### Build and Run:
@@ -329,24 +330,23 @@ The storage folder must contain your certificates:
 
 ```s
 storage/tracker/lib/tls
-    ├── localhost.crt
-    └── localhost.key
+                    ├── localhost.crt
+                    └── localhost.key
+storage/http_api/lib/tls
+                     ├── localhost.crt
+                     └── localhost.key
 ```
 
 You have not enabled it in your `tracker.toml` file:
 
 ```toml
+[http_trackers.tsl_config]
+ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
+ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 
-[[http_trackers]]
-# ...
-ssl_enabled = true
-# ...
-
-[http_api]
-# ...
-ssl_enabled = true
-# ...
-
+[http_api.tsl_config]
+ssl_cert_path = "./storage/http_api/lib/tls/localhost.crt"
+ssl_key_path = "./storage/http_api/lib/tls/localhost.key"
 ```
 
 > NOTE: you can enable it independently for each HTTP tracker or the API.

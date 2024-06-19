@@ -206,7 +206,7 @@ impl HttpServer<Running> {
 /// Or if the request returns an error.
 #[must_use]
 pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
-    let url = format!("http://{binding}/health_check");
+    let url = format!("http://{binding}/health_check"); // DevSkim: ignore DS137138
 
     let info = format!("checking http tracker health check at: {url}");
 
@@ -235,11 +235,12 @@ mod tests {
     async fn it_should_be_able_to_start_and_stop() {
         let cfg = Arc::new(ephemeral_mode_public());
         let tracker = initialize_with_configuration(&cfg);
-        let config = &cfg.http_trackers[0];
+        let http_trackers = cfg.http_trackers.clone().expect("missing HTTP trackers configuration");
+        let config = &http_trackers[0];
 
         let bind_to = config.bind_address;
 
-        let tls = make_rust_tls(config.ssl_enabled, &config.tsl_config)
+        let tls = make_rust_tls(&config.tsl_config)
             .await
             .map(|tls| tls.expect("tls config failed"));
 

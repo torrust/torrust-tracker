@@ -29,10 +29,11 @@ cargo build --release -p aquatic_udp_load_test
 Run the tracker with UDP service enabled and other services disabled and set log level to `error`.
 
 ```toml
+[logging]
 log_level = "error"
 
 [[udp_trackers]]
-enabled = true
+bind_address = "0.0.0.0:6969"
 ```
 
 Build and run the tracker:
@@ -163,10 +164,11 @@ Announce responses per info hash:
 Run the tracker with UDP service enabled and other services disabled and set log level to `error`.
 
 ```toml
+[logging]
 log_level = "error"
 
 [[udp_trackers]]
-enabled = true
+bind_address = "0.0.0.0:6969"
 ```
 
 ```console

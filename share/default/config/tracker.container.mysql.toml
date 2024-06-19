@@ -1,10 +1,17 @@
-db_driver = "MySQL"
-db_path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
+[core.database]
+driver = "MySQL"
+path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
 
-[[http_trackers]]
-ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
-ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
+# Uncomment to enable services
 
-[http_api]
-ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
-ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
+#[[udp_trackers]]
+#bind_address = "0.0.0.0:6969"
+
+#[[http_trackers]]
+#bind_address = "0.0.0.0:7070"
+
+#[http_api]
+#bind_address = "0.0.0.0:1212"
+
+#[http_api.access_tokens]
+#admin = "MyAccessToken"

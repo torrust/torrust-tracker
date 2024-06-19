@@ -20,7 +20,7 @@ static INIT: Once = Once::new();
 
 /// It redirects the log info to the standard output with the log level defined in the configuration
 pub fn setup(cfg: &Configuration) {
-    let tracing_level = config_level_or_default(&cfg.core.log_level);
+    let tracing_level = map_to_tracing_level_filter(&cfg.logging.log_level);
 
     if tracing_level == LevelFilter::OFF {
         return;
@@ -31,17 +31,14 @@ pub fn setup(cfg: &Configuration) {
     });
 }
 
-fn config_level_or_default(log_level: &Option<LogLevel>) -> LevelFilter {
+fn map_to_tracing_level_filter(log_level: &LogLevel) -> LevelFilter {
     match log_level {
-        None => LevelFilter::INFO,
-        Some(level) => match level {
-            LogLevel::Off => LevelFilter::OFF,
-            LogLevel::Error => LevelFilter::ERROR,
-            LogLevel::Warn => LevelFilter::WARN,
-            LogLevel::Info => LevelFilter::INFO,
-            LogLevel::Debug => LevelFilter::DEBUG,
-            LogLevel::Trace => LevelFilter::TRACE,
-        },
+        LogLevel::Off => LevelFilter::OFF,
+        LogLevel::Error => LevelFilter::ERROR,
+        LogLevel::Warn => LevelFilter::WARN,
+        LogLevel::Info => LevelFilter::INFO,
+        LogLevel::Debug => LevelFilter::DEBUG,
+        LogLevel::Trace => LevelFilter::TRACE,
     }
 }
 

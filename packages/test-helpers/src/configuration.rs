@@ -2,7 +2,7 @@
 use std::env;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-use torrust_tracker_configuration::{Configuration, LogLevel};
+use torrust_tracker_configuration::{Configuration, HttpApi, HttpTracker, LogLevel, UdpTracker};
 use torrust_tracker_primitives::TrackerMode;
 
 use crate::random;
@@ -29,12 +29,14 @@ pub fn ephemeral() -> Configuration {
 
     let mut config = Configuration::default();
 
-    config.core.log_level = Some(LogLevel::Off); // Change to `debug` for tests debugging
+    config.logging.log_level = LogLevel::Off; // Change to `debug` for tests debugging
 
     // Ephemeral socket address for API
     let api_port = 0u16;
-    config.http_api.enabled = true;
-    config.http_api.bind_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), api_port);
+    config.http_api = Some(HttpApi {
+        bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), api_port),
+        ..Default::default()
+    });
 
     // Ephemeral socket address for Health Check API
     let health_check_api_port = 0u16;
@@ -42,19 +44,22 @@ pub fn ephemeral() -> Configuration {
 
     // Ephemeral socket address for UDP tracker
     let udp_port = 0u16;
-    config.udp_trackers[0].enabled = true;
-    config.udp_trackers[0].bind_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), udp_port);
+    config.udp_trackers = Some(vec![UdpTracker {
+        bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), udp_port),
+    }]);
 
     // Ephemeral socket address for HTTP tracker
     let http_port = 0u16;
-    config.http_trackers[0].enabled = true;
-    config.http_trackers[0].bind_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), http_port);
+    config.http_trackers = Some(vec![HttpTracker {
+        bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), http_port),
+        tsl_config: None,
+    }]);
 
     // Ephemeral sqlite database
     let temp_directory = env::temp_dir();
     let random_db_id = random::string(16);
     let temp_file = temp_directory.join(format!("data_{random_db_id}.db"));
-    temp_file.to_str().unwrap().clone_into(&mut config.core.db_path);
+    temp_file.to_str().unwrap().clone_into(&mut config.core.database.path);
 
     config
 }
@@ -64,7 +69,7 @@ pub fn ephemeral() -> Configuration {
 pub fn ephemeral_with_reverse_proxy() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.on_reverse_proxy = true;
+    cfg.core.net.on_reverse_proxy = true;
 
     cfg
 }
@@ -74,7 +79,7 @@ pub fn ephemeral_with_reverse_proxy() -> Configuration {
 pub fn ephemeral_without_reverse_proxy() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.on_reverse_proxy = false;
+    cfg.core.net.on_reverse_proxy = false;
 
     cfg
 }
@@ -124,7 +129,7 @@ pub fn ephemeral_mode_private_whitelisted() -> Configuration {
 pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.external_ip = Some(ip);
+    cfg.core.net.external_ip = Some(ip);
 
     cfg
 }
@@ -137,9 +142,17 @@ pub fn ephemeral_ipv6() -> Configuration {
 
     let ipv6 = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0)), 0);
 
-    cfg.http_api.bind_address.clone_from(&ipv6);
-    cfg.http_trackers[0].bind_address.clone_from(&ipv6);
-    cfg.udp_trackers[0].bind_address = ipv6;
+    if let Some(ref mut http_api) = cfg.http_api {
+        http_api.bind_address.clone_from(&ipv6);
+    };
+
+    if let Some(ref mut http_trackers) = cfg.http_trackers {
+        http_trackers[0].bind_address.clone_from(&ipv6);
+    }
+
+    if let Some(ref mut udp_trackers) = cfg.udp_trackers {
+        udp_trackers[0].bind_address.clone_from(&ipv6);
+    }
 
     cfg
 }
@@ -149,9 +162,9 @@ pub fn ephemeral_ipv6() -> Configuration {
 pub fn ephemeral_with_no_services() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.http_api.enabled = false;
-    cfg.http_trackers[0].enabled = false;
-    cfg.udp_trackers[0].enabled = false;
+    cfg.http_api = None;
+    cfg.http_trackers = None;
+    cfg.udp_trackers = None;
 
     cfg
 }

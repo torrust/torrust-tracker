@@ -176,14 +176,16 @@
 //!
 //! ```s
 //! [[http_trackers]]
-//! enabled = true
 //! ...
+//!
+//! [http_trackers.tsl_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!
 //! [http_api]
-//! enabled = true
 //! ...
+//!
+//! [http_api.tsl_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //! ```
@@ -193,37 +195,33 @@
 //! The default configuration is:
 //!
 //! ```toml
+//! [logging]
 //! log_level = "info"
+//!
+//! [core]
 //! mode = "public"
-//! db_driver = "Sqlite3"
-//! db_path = "./storage/tracker/lib/database/sqlite3.db"
-//! announce_interval = 120
-//! min_announce_interval = 120
-//! on_reverse_proxy = false
-//! external_ip = "0.0.0.0"
 //! tracker_usage_statistics = true
-//! persistent_torrent_completed_stat = false
-//! max_peer_timeout = 900
 //! inactive_peer_cleanup_interval = 600
+//!
+//! [core.tracker_policy]
+//! max_peer_timeout = 900
+//! persistent_torrent_completed_stat = false
 //! remove_peerless_torrents = true
 //!
-//! [[udp_trackers]]
-//! enabled = false
-//! bind_address = "0.0.0.0:6969"
+//! [core.announce_policy]
+//! interval = 120
+//! interval_min = 120
 //!
-//! [[http_trackers]]
-//! enabled = false
-//! bind_address = "0.0.0.0:7070"
-//! ssl_enabled = false
-//! ssl_cert_path = ""
-//! ssl_key_path = ""
+//! [core.database]
+//! driver = "Sqlite3"
+//! path = "./storage/tracker/lib/database/sqlite3.db"
+//!
+//! [core.net]
+//! external_ip = "0.0.0.0"
+//! on_reverse_proxy = false
 //!
 //! [http_api]
-//! enabled = true
 //! bind_address = "127.0.0.1:1212"
-//! ssl_enabled = false
-//! ssl_cert_path = ""
-//! ssl_key_path = ""
 //!
 //! [http_api.access_tokens]
 //! admin = "MyAccessToken"
@@ -231,8 +229,11 @@
 //! bind_address = "127.0.0.1:1313"
 //!```
 pub mod core;
+pub mod database;
 pub mod health_check_api;
 pub mod http_tracker;
+pub mod logging;
+pub mod network;
 pub mod tracker_api;
 pub mod udp_tracker;
 
@@ -241,6 +242,7 @@ use std::net::IpAddr;
 
 use figment::providers::{Env, Format, Serialized, Toml};
 use figment::Figment;
+use logging::Logging;
 use serde::{Deserialize, Serialize};
 
 use self::core::Core;
@@ -256,35 +258,29 @@ const CONFIG_OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
 const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 
 /// Core configuration for the tracker.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
 pub struct Configuration {
+    /// Logging configuration
+    pub logging: Logging,
+
     /// Core configuration.
-    #[serde(flatten)]
     pub core: Core,
+
     /// The list of UDP trackers the tracker is running. Each UDP tracker
     /// represents a UDP server that the tracker is running and it has its own
     /// configuration.
-    pub udp_trackers: Vec<UdpTracker>,
+    pub udp_trackers: Option<Vec<UdpTracker>>,
+
     /// The list of HTTP trackers the tracker is running. Each HTTP tracker
     /// represents a HTTP server that the tracker is running and it has its own
     /// configuration.
-    pub http_trackers: Vec<HttpTracker>,
+    pub http_trackers: Option<Vec<HttpTracker>>,
+
     /// The HTTP API configuration.
-    pub http_api: HttpApi,
+    pub http_api: Option<HttpApi>,
+
     /// The Health Check API configuration.
     pub health_check_api: HealthCheckApi,
-}
-
-impl Default for Configuration {
-    fn default() -> Self {
-        Self {
-            core: Core::default(),
-            udp_trackers: vec![UdpTracker::default()],
-            http_trackers: vec![HttpTracker::default()],
-            http_api: HttpApi::default(),
-            health_check_api: HealthCheckApi::default(),
-        }
-    }
 }
 
 impl Configuration {
@@ -292,7 +288,7 @@ impl Configuration {
     /// and `None` otherwise.
     #[must_use]
     pub fn get_ext_ip(&self) -> Option<IpAddr> {
-        self.core.external_ip.as_ref().map(|external_ip| *external_ip)
+        self.core.net.external_ip.as_ref().map(|external_ip| *external_ip)
     }
 
     /// Saves the default configuration at the given path.
@@ -365,40 +361,30 @@ mod tests {
 
     #[cfg(test)]
     fn default_config_toml() -> String {
-        let config = r#"log_level = "info"
+        let config = r#"[logging]
+                                log_level = "info"
+
+                                [core]
                                 mode = "public"
-                                db_driver = "Sqlite3"
-                                db_path = "./storage/tracker/lib/database/sqlite3.db"
-                                announce_interval = 120
-                                min_announce_interval = 120
-                                on_reverse_proxy = false
-                                external_ip = "0.0.0.0"
                                 tracker_usage_statistics = true
-                                persistent_torrent_completed_stat = false
-                                max_peer_timeout = 900
                                 inactive_peer_cleanup_interval = 600
+
+                                [core.tracker_policy]
+                                max_peer_timeout = 900
+                                persistent_torrent_completed_stat = false
                                 remove_peerless_torrents = true
 
-                                [[udp_trackers]]
-                                enabled = false
-                                bind_address = "0.0.0.0:6969"
+                                [core.announce_policy]
+                                interval = 120
+                                interval_min = 120
 
-                                [[http_trackers]]
-                                enabled = false
-                                bind_address = "0.0.0.0:7070"
-                                ssl_enabled = false
-                                ssl_cert_path = ""
-                                ssl_key_path = ""
+                                [core.database]
+                                driver = "Sqlite3"
+                                path = "./storage/tracker/lib/database/sqlite3.db"
 
-                                [http_api]
-                                enabled = true
-                                bind_address = "127.0.0.1:1212"
-                                ssl_enabled = false
-                                ssl_cert_path = ""
-                                ssl_key_path = ""
-
-                                [http_api.access_tokens]
-                                admin = "MyAccessToken"
+                                [core.net]
+                                external_ip = "0.0.0.0"
+                                on_reverse_proxy = false
 
                                 [health_check_api]
                                 bind_address = "127.0.0.1:1313"
@@ -423,7 +409,10 @@ mod tests {
     fn configuration_should_contain_the_external_ip() {
         let configuration = Configuration::default();
 
-        assert_eq!(configuration.core.external_ip, Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))));
+        assert_eq!(
+            configuration.core.net.external_ip,
+            Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)))
+        );
     }
 
     #[test]
@@ -475,7 +464,8 @@ mod tests {
     fn default_configuration_could_be_overwritten_from_a_single_env_var_with_toml_contents() {
         figment::Jail::expect_with(|_jail| {
             let config_toml = r#"
-                db_path = "OVERWRITTEN DEFAULT DB PATH"
+                [core.database]
+                path = "OVERWRITTEN DEFAULT DB PATH"
             "#
             .to_string();
 
@@ -486,7 +476,7 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration.core.db_path, "OVERWRITTEN DEFAULT DB PATH".to_string());
+            assert_eq!(configuration.core.database.path, "OVERWRITTEN DEFAULT DB PATH".to_string());
 
             Ok(())
         });
@@ -498,7 +488,8 @@ mod tests {
             jail.create_file(
                 "tracker.toml",
                 r#"
-                db_path = "OVERWRITTEN DEFAULT DB PATH"
+                [core.database]
+                path = "OVERWRITTEN DEFAULT DB PATH"
             "#,
             )?;
 
@@ -509,7 +500,7 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration.core.db_path, "OVERWRITTEN DEFAULT DB PATH".to_string());
+            assert_eq!(configuration.core.database.path, "OVERWRITTEN DEFAULT DB PATH".to_string());
 
             Ok(())
         });
@@ -528,7 +519,7 @@ mod tests {
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
             assert_eq!(
-                configuration.http_api.access_tokens.get("admin"),
+                configuration.http_api.unwrap().access_tokens.get("admin"),
                 Some("NewToken".to_owned()).as_ref()
             );
 

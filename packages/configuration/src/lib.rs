@@ -13,7 +13,7 @@ use std::sync::Arc;
 use camino::Utf8PathBuf;
 use derive_more::Constructor;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, NoneAsEmptyString};
+use serde_with::serde_as;
 use thiserror::Error;
 use torrust_tracker_located_error::{DynError, LocatedError};
 
@@ -37,11 +37,51 @@ pub type HealthCheckApi = v1::health_check_api::HealthCheckApi;
 
 pub type AccessTokens = HashMap<String, String>;
 
-#[derive(Copy, Clone, Debug, PartialEq, Constructor)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Constructor)]
 pub struct TrackerPolicy {
-    pub remove_peerless_torrents: bool,
+    // Cleanup job configuration
+    /// Maximum time in seconds that a peer can be inactive before being
+    /// considered an inactive peer. If a peer is inactive for more than this
+    /// time, it will be removed from the torrent peer list.
+    #[serde(default = "TrackerPolicy::default_max_peer_timeout")]
     pub max_peer_timeout: u32,
+
+    /// If enabled the tracker will persist the number of completed downloads.
+    /// That's how many times a torrent has been downloaded completely.
+    #[serde(default = "TrackerPolicy::default_persistent_torrent_completed_stat")]
     pub persistent_torrent_completed_stat: bool,
+
+    /// If enabled, the tracker will remove torrents that have no peers.
+    /// The clean up torrent job runs every `inactive_peer_cleanup_interval`
+    /// seconds and it removes inactive peers. Eventually, the peer list of a
+    /// torrent could be empty and the torrent will be removed if this option is
+    /// enabled.
+    #[serde(default = "TrackerPolicy::default_remove_peerless_torrents")]
+    pub remove_peerless_torrents: bool,
+}
+
+impl Default for TrackerPolicy {
+    fn default() -> Self {
+        Self {
+            max_peer_timeout: Self::default_max_peer_timeout(),
+            persistent_torrent_completed_stat: Self::default_persistent_torrent_completed_stat(),
+            remove_peerless_torrents: Self::default_remove_peerless_torrents(),
+        }
+    }
+}
+
+impl TrackerPolicy {
+    fn default_max_peer_timeout() -> u32 {
+        900
+    }
+
+    fn default_persistent_torrent_completed_stat() -> bool {
+        false
+    }
+
+    fn default_remove_peerless_torrents() -> bool {
+        true
+    }
 }
 
 /// Information required for loading config
@@ -86,7 +126,7 @@ impl Info {
 }
 
 /// Announce policy
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Constructor)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy, Constructor)]
 pub struct AnnouncePolicy {
     /// Interval in seconds that the client should wait between sending regular
     /// announce requests to the tracker.
@@ -99,6 +139,7 @@ pub struct AnnouncePolicy {
     /// client's initial request. It serves as a guideline for clients to know
     /// how often they should contact the tracker for updates on the peer list,
     /// while ensuring that the tracker is not overwhelmed with requests.
+    #[serde(default = "AnnouncePolicy::default_interval")]
     pub interval: u32,
 
     /// Minimum announce interval. Clients must not reannounce more frequently
@@ -112,6 +153,7 @@ pub struct AnnouncePolicy {
     /// value to prevent sending too many requests in a short period, which
     /// could lead to excessive load on the tracker or even getting banned by
     /// the tracker for not adhering to the rules.
+    #[serde(default = "AnnouncePolicy::default_interval_min")]
     pub interval_min: u32,
 }
 
@@ -173,24 +215,23 @@ impl From<figment::Error> for Error {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
 pub struct TslConfig {
     /// Path to the SSL certificate file.
-    #[serde_as(as = "NoneAsEmptyString")]
     #[serde(default = "TslConfig::default_ssl_cert_path")]
-    pub ssl_cert_path: Option<Utf8PathBuf>,
+    pub ssl_cert_path: Utf8PathBuf,
+
     /// Path to the SSL key file.
-    #[serde_as(as = "NoneAsEmptyString")]
     #[serde(default = "TslConfig::default_ssl_key_path")]
-    pub ssl_key_path: Option<Utf8PathBuf>,
+    pub ssl_key_path: Utf8PathBuf,
 }
 
 impl TslConfig {
     #[allow(clippy::unnecessary_wraps)]
-    fn default_ssl_cert_path() -> Option<Utf8PathBuf> {
-        Some(Utf8PathBuf::new())
+    fn default_ssl_cert_path() -> Utf8PathBuf {
+        Utf8PathBuf::new()
     }
 
     #[allow(clippy::unnecessary_wraps)]
-    fn default_ssl_key_path() -> Option<Utf8PathBuf> {
-        Some(Utf8PathBuf::new())
+    fn default_ssl_key_path() -> Utf8PathBuf {
+        Utf8PathBuf::new()
     }
 }
 

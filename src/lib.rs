@@ -167,40 +167,30 @@
 //! The default configuration is:
 //!
 //! ```toml
-//! announce_interval = 120
-//! db_driver = "Sqlite3"
-//! db_path = "./storage/tracker/lib/database/sqlite3.db"
-//! external_ip = "0.0.0.0"
-//! inactive_peer_cleanup_interval = 600
+//! [logging]
 //! log_level = "info"
-//! max_peer_timeout = 900
-//! min_announce_interval = 120
+//!
+//! [core]
+//! inactive_peer_cleanup_interval = 600
 //! mode = "public"
-//! on_reverse_proxy = false
-//! persistent_torrent_completed_stat = false
-//! remove_peerless_torrents = true
 //! tracker_usage_statistics = true
 //!
-//! [[udp_trackers]]
-//! bind_address = "0.0.0.0:6969"
-//! enabled = false
+//! [core.tracker_policy]
+//! max_peer_timeout = 900
+//! persistent_torrent_completed_stat = false
+//! remove_peerless_torrents = true
 //!
-//! [[http_trackers]]
-//! bind_address = "0.0.0.0:7070"
-//! enabled = false
-//! ssl_cert_path = ""
-//! ssl_enabled = false
-//! ssl_key_path = ""
+//! [core.announce_policy]
+//! interval = 120
+//! interval_min = 120
 //!
-//! [http_api]
-//! bind_address = "127.0.0.1:1212"
-//! enabled = true
-//! ssl_cert_path = ""
-//! ssl_enabled = false
-//! ssl_key_path = ""
+//! [core.database]
+//! driver = "Sqlite3"
+//! path = "./storage/tracker/lib/database/sqlite3.db"
 //!
-//! [http_api.access_tokens]
-//! admin = "MyAccessToken"
+//! [core.net]
+//! external_ip = "0.0.0.0"
+//! on_reverse_proxy = false
 //!
 //! [health_check_api]
 //! bind_address = "127.0.0.1:1313"
@@ -248,11 +238,10 @@
 //!
 //! ```toml
 //! [http_api]
-//! enabled = true
 //! bind_address = "127.0.0.1:1212"
-//! ssl_enabled = false
-//! ssl_cert_path = ""
-//! ssl_key_path = ""
+//!
+//! [http_api.access_tokens]
+//! admin = "MyAccessToken"
 //! ```
 //!
 //! By default it's enabled on port `1212`. You also need to add access tokens in the configuration:
@@ -308,7 +297,6 @@
 //!
 //! ```toml
 //! [[http_trackers]]
-//! enabled = true
 //! bind_address = "0.0.0.0:7070"
 //! ```
 //!
@@ -403,7 +391,6 @@
 //!
 //! ```toml
 //! [[udp_trackers]]
-//! enabled = true
 //! bind_address = "0.0.0.0:6969"
 //! ```
 //!

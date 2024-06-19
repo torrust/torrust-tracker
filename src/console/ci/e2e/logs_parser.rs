@@ -112,21 +112,7 @@ mod tests {
 
     #[test]
     fn it_should_parse_from_logs_with_valid_logs() {
-        let logs = r#"
-            Loading configuration from environment variable db_path = "/var/lib/torrust/tracker/database/sqlite3.db"
-
-            [[udp_trackers]]
-            enabled = true
-
-            [[http_trackers]]
-            enabled = true
-            ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
-            ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
-
-            [http_api]
-            ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
-            ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
-
+        let logs = r"
             Loading configuration from default configuration file: `./share/default/config/tracker.development.sqlite3.toml` ...
             2024-06-10T16:07:39.989540Z  INFO torrust_tracker::bootstrap::logging: logging initialized.
             2024-06-10T16:07:39.990244Z  INFO UDP TRACKER: Starting on: udp://0.0.0.0:6969
@@ -139,7 +125,7 @@ mod tests {
             2024-06-10T16:07:39.990565Z  INFO API: Started on http://127.0.0.1:1212
             2024-06-10T16:07:39.990577Z  INFO HEALTH CHECK API: Starting on: http://127.0.0.1:1313
             2024-06-10T16:07:39.990638Z  INFO HEALTH CHECK API: Started on: http://127.0.0.1:1313
-            "#;
+            ";
 
         let running_services = RunningServices::parse_from_logs(logs);
 
