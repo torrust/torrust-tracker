@@ -25,7 +25,7 @@ pub type RunningUdpServer = Server<Running>;
 /// A stopped UDP server state.
 
 pub struct Stopped {
-    pub launcher: Spawner,
+    pub spawner: Spawner,
 }
 
 /// A running UDP server state.
@@ -40,9 +40,9 @@ pub struct Running {
 impl Server<Stopped> {
     /// Creates a new `UdpServer` instance in `stopped`state.
     #[must_use]
-    pub fn new(launcher: Spawner) -> Self {
+    pub fn new(spawner: Spawner) -> Self {
         Self {
-            state: Stopped { launcher },
+            state: Stopped { spawner },
         }
     }
 
@@ -64,7 +64,7 @@ impl Server<Stopped> {
         assert!(!tx_halt.is_closed(), "Halt channel for UDP tracker should be open");
 
         // May need to wrap in a task to about a tokio bug.
-        let task = self.state.launcher.start(tracker, tx_start, rx_halt);
+        let task = self.state.spawner.spawn_launcher(tracker, tx_start, rx_halt);
 
         let binding = rx_start.await.expect("it should be able to start the service").address;
         let local_addr = format!("udp://{binding}");
@@ -107,7 +107,7 @@ impl Server<Running> {
         let launcher = self.state.task.await.expect("it should shutdown service");
 
         let stopped_api_server: Server<Stopped> = Server {
-            state: Stopped { launcher },
+            state: Stopped { spawner: launcher },
         };
 
         Ok(stopped_api_server)

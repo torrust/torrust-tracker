@@ -1,22 +1,4 @@
 //! Module to handle the UDP server instances.
-//!
-//! There are two main types in this module:
-//!
-//! - [`UdpServer`]: a controller to start and stop the server.
-//! - [`Udp`]: the server launcher.
-//!
-//! The `UdpServer` is an state machine for a given configuration. This struct
-//! represents concrete configuration and state. It allows to start and
-//! stop the server but always keeping the same configuration.
-//!
-//! The `Udp` is the server launcher. It's responsible for launching the UDP
-//! but without keeping any state.
-//!
-//! For the time being, the `UdpServer` is only used for testing purposes,
-//! because we want to be able to start and stop the server multiple times, and
-//! we want to know the bound address and the current state of the server.
-//! In production, the `Udp` launcher is used directly.
-
 use std::fmt::Debug;
 
 use super::RawRequest;
@@ -37,7 +19,7 @@ pub mod states;
 ///
 /// Some errors triggered while stopping the server are:
 ///
-/// - The [`UdpServer`] cannot send the shutdown signal to the spawned UDP service thread.
+/// - The [`Server`] cannot send the shutdown signal to the spawned UDP service thread.
 #[derive(Debug)]
 pub enum UdpError {
     /// Any kind of error starting or stopping the server.
@@ -92,7 +74,7 @@ mod tests {
 
         tokio::time::sleep(Duration::from_secs(1)).await;
 
-        assert_eq!(stopped.state.launcher.bind_to, bind_to);
+        assert_eq!(stopped.state.spawner.bind_to, bind_to);
     }
 
     #[tokio::test]
@@ -116,7 +98,7 @@ mod tests {
 
         tokio::time::sleep(Duration::from_secs(1)).await;
 
-        assert_eq!(stopped.state.launcher.bind_to, bind_to);
+        assert_eq!(stopped.state.spawner.bind_to, bind_to);
     }
 }
 
