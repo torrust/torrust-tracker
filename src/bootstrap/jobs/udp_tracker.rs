@@ -14,7 +14,8 @@ use tracing::debug;
 
 use crate::core;
 use crate::servers::registar::ServiceRegistrationForm;
-use crate::servers::udp::server::{Spawner, UdpServer};
+use crate::servers::udp::server::spawner::Spawner;
+use crate::servers::udp::server::Server;
 use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
 
 /// It starts a new UDP server with the provided configuration.
@@ -30,7 +31,7 @@ use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
 pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: ServiceRegistrationForm) -> JoinHandle<()> {
     let bind_to = config.bind_address;
 
-    let server = UdpServer::new(Spawner::new(bind_to))
+    let server = Server::new(Spawner::new(bind_to))
         .start(tracker, form)
         .await
         .expect("it should be able to start the udp tracker");

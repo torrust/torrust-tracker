@@ -660,7 +660,7 @@ pub type Port = u16;
 pub type TransactionId = i64;
 
 #[derive(Clone, Debug)]
-pub(crate) struct UdpRequest {
+pub struct RawRequest {
     payload: Vec<u8>,
     from: SocketAddr,
 }

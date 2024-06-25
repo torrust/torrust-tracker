@@ -4,7 +4,9 @@ use std::sync::Arc;
 use torrust_tracker::bootstrap::app::initialize_with_configuration;
 use torrust_tracker::core::Tracker;
 use torrust_tracker::servers::registar::Registar;
-use torrust_tracker::servers::udp::server::{Running, Spawner, Stopped, UdpServer};
+use torrust_tracker::servers::udp::server::spawner::Spawner;
+use torrust_tracker::servers::udp::server::states::{Running, Stopped};
+use torrust_tracker::servers::udp::server::Server;
 use torrust_tracker::shared::bit_torrent::tracker::udp::client::DEFAULT_TIMEOUT;
 use torrust_tracker_configuration::{Configuration, UdpTracker};
 use torrust_tracker_primitives::info_hash::InfoHash;
@@ -14,7 +16,7 @@ pub struct Environment<S> {
     pub config: Arc<UdpTracker>,
     pub tracker: Arc<Tracker>,
     pub registar: Registar,
-    pub server: UdpServer<S>,
+    pub server: Server<S>,
 }
 
 impl<S> Environment<S> {
@@ -36,7 +38,7 @@ impl Environment<Stopped> {
 
         let bind_to = config.bind_address;
 
-        let server = UdpServer::new(Spawner::new(bind_to));
+        let server = Server::new(Spawner::new(bind_to));
 
         Self {
             config,

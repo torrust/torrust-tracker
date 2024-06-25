@@ -17,7 +17,7 @@ use uuid::Uuid;
 use zerocopy::network_endian::I32;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
-use super::UdpRequest;
+use super::RawRequest;
 use crate::core::{statistics, ScrapeData, Tracker};
 use crate::servers::udp::error::Error;
 use crate::servers::udp::logging::{log_bad_request, log_error_response, log_request, log_response};
@@ -33,7 +33,7 @@ use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 /// - Delegating the request to the correct handler depending on the request type.
 ///
 /// It will return an `Error` response if the request is invalid.
-pub(crate) async fn handle_packet(udp_request: UdpRequest, tracker: &Arc<Tracker>, addr: SocketAddr) -> Response {
+pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Arc<Tracker>, addr: SocketAddr) -> Response {
     debug!("Handling Packets: {udp_request:?}");
 
     let start_time = Instant::now();
@@ -304,7 +304,7 @@ fn handle_error(e: &Error, transaction_id: TransactionId) -> Response {
 pub struct RequestId(Uuid);
 
 impl RequestId {
-    fn make(_request: &UdpRequest) -> RequestId {
+    fn make(_request: &RawRequest) -> RequestId {
         RequestId(Uuid::new_v4())
     }
 }
