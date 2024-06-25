@@ -5,6 +5,7 @@
 //! ```
 
 use torrust_tracker_clock::clock;
+mod clients;
 mod common;
 mod servers;
 

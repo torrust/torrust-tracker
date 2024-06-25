@@ -26,12 +26,14 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::{AccessTokens, HttpApi};
+use tracing::instrument;
 
 use super::make_rust_tls;
 use crate::core;
-use crate::servers::apis::server::{ApiServer, Launcher};
+use crate::servers::apis::server::ApiLauncher;
 use crate::servers::apis::Version;
-use crate::servers::registar::ServiceRegistrationForm;
+use crate::servers::registar::Form;
+use crate::servers::service::Service;
 
 /// This is the message that the "launcher" spawned task sends to the main
 /// application process to notify the API server was successfully started.
@@ -52,18 +54,19 @@ pub struct ApiServerJobStarted();
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
 ///
-///
-pub async fn start_job(
-    config: &HttpApi,
-    tracker: Arc<core::Tracker>,
-    form: ServiceRegistrationForm,
-    version: Version,
-) -> Option<JoinHandle<()>> {
+#[allow(clippy::async_yields_async)]
+#[instrument(ret)]
+pub async fn start_job(config: &HttpApi, tracker: Arc<core::Tracker>, form: Form, version: Version) -> Option<JoinHandle<()>> {
     let bind_to = config.bind_address;
 
-    let tls = make_rust_tls(&config.tsl_config)
-        .await
-        .map(|tls| tls.expect("it should have a valid tracker api tls configuration"));
+    let tls = match &config.tsl_config {
+        Some(tls_config) => Some(
+            make_rust_tls(tls_config)
+                .await
+                .expect("it should have a valid tracker api tls configuration"),
+        ),
+        None => None,
+    };
 
     let access_tokens = Arc::new(config.access_tokens.clone());
 
@@ -72,21 +75,26 @@ pub async fn start_job(
     }
 }
 
+#[allow(clippy::async_yields_async)]
+#[instrument(ret)]
 async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,
     tracker: Arc<core::Tracker>,
-    form: ServiceRegistrationForm,
+    form: Form,
     access_tokens: Arc<AccessTokens>,
 ) -> JoinHandle<()> {
-    let server = ApiServer::new(Launcher::new(socket, tls))
-        .start(tracker, form, access_tokens)
-        .await
-        .expect("it should be able to start to the tracker api");
+    let service = Service::new(ApiLauncher::new(tracker, access_tokens, socket, tls));
+
+    let started = service.start().expect("it should start");
+
+    let () = started.reg_form(form).await.expect("it should register");
+
+    let (task, _) = started.run();
 
     tokio::spawn(async move {
-        assert!(!server.state.halt_task.is_closed(), "Halt channel should be open");
-        server.state.task.await.expect("failed to close service");
+        let server = task.await.expect("it should shutdown");
+        drop(server);
     })
 }
 
@@ -96,7 +104,7 @@ mod tests {
 
     use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
 
-    use crate::bootstrap::app::initialize_with_configuration;
+    use crate::bootstrap::app::tracker;
     use crate::bootstrap::jobs::tracker_apis::start_job;
     use crate::servers::apis::Version;
     use crate::servers::registar::Registar;
@@ -104,11 +112,11 @@ mod tests {
     #[tokio::test]
     async fn it_should_start_http_tracker() {
         let cfg = Arc::new(ephemeral_mode_public());
-        let config = &cfg.http_api.clone().unwrap();
-        let tracker = initialize_with_configuration(&cfg);
+        let config = &cfg.http_api.as_ref().unwrap();
+        let tracker = tracker(&cfg);
         let version = Version::V1;
 
-        start_job(config, tracker, Registar::default().give_form(), version)
+        start_job(config, tracker, Registar::default().form(), version)
             .await
             .expect("it should be able to join to the tracker api start-job");
     }

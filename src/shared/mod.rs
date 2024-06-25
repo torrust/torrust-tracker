@@ -4,3 +4,4 @@
 //! - [`crypto`]: Encryption related logic.
 pub mod bit_torrent;
 pub mod crypto;
+pub mod handle;

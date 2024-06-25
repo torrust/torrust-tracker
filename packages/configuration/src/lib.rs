@@ -9,6 +9,7 @@ pub mod v1;
 use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
+use std::time::Duration;
 
 use camino::Utf8PathBuf;
 use derive_more::Constructor;
@@ -19,6 +20,15 @@ use torrust_tracker_located_error::{DynError, LocatedError};
 
 /// The maximum number of returned peers for a torrent.
 pub const TORRENT_PEERS_LIMIT: usize = 74;
+
+/// Client Timeout
+pub const CLIENT_TIMEOUT_DEFAULT: Duration = Duration::from_secs(5);
+
+/// The a free port is dynamically chosen by the operating system.
+pub const PORT_ASSIGNED_BY_OS: u16 = 0;
+
+/// The maximum number of bytes in a UDP packet.
+pub const UDP_MAX_PACKET_SIZE: usize = 1496;
 
 // Environment variables
 

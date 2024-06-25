@@ -17,6 +17,7 @@ use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
 
 const DRIVER: DatabaseDriver = DatabaseDriver::MySQL;
 
+#[derive(Debug)]
 pub struct Mysql {
     pool: Pool<MySqlConnectionManager>,
 }

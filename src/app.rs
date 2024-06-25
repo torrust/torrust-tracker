@@ -25,9 +25,10 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
-use tracing::{info, warn};
+use tracing::warn;
 
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
+use crate::servers::health_check_api::Version;
 use crate::servers::registar::Registar;
 use crate::{core, servers};
 
@@ -37,7 +38,7 @@ use crate::{core, servers};
 ///
 /// - Can't retrieve tracker keys from database.
 /// - Can't load whitelist from database.
-pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<JoinHandle<()>> {
+pub async fn start(tracker_config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<JoinHandle<()>> {
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
     let registar = Registar::default();
@@ -59,65 +60,45 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     }
 
     // Start the UDP blocks
-    match &config.udp_trackers {
-        Some(udp_trackers) => {
-            for udp_tracker_config in udp_trackers {
-                if tracker.is_private() {
-                    warn!(
-                        "Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!",
-                        udp_tracker_config.bind_address, config.core.mode
-                    );
-                } else {
-                    jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone(), registar.give_form()).await);
-                }
-            }
-        }
-        None => info!("No UDP blocks in configuration"),
-    }
-
-    // Start the HTTP blocks
-    match &config.http_trackers {
-        Some(http_trackers) => {
-            for http_tracker_config in http_trackers {
-                if let Some(job) = http_tracker::start_job(
-                    http_tracker_config,
-                    tracker.clone(),
-                    registar.give_form(),
-                    servers::http::Version::V1,
-                )
-                .await
-                {
-                    jobs.push(job);
-                };
-            }
-        }
-        None => info!("No HTTP blocks in configuration"),
-    }
-
-    // Start HTTP API
-    match &config.http_api {
-        Some(http_api_config) => {
-            if let Some(job) = tracker_apis::start_job(
-                http_api_config,
-                tracker.clone(),
-                registar.give_form(),
-                servers::apis::Version::V1,
-            )
-            .await
+    if let Some(udp_trackers) = &tracker_config.udp_trackers {
+        for config in udp_trackers {
+            if tracker.is_private() {
+                warn!(
+                    "Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!",
+                    config.bind_address, tracker_config.core.mode
+                );
+            } else if let Some(job) =
+                udp_tracker::start_job(config, tracker.clone(), registar.form(), servers::udp::Version::V0).await
             {
                 jobs.push(job);
             };
         }
-        None => info!("No API block in configuration"),
+    };
+
+    // Start the HTTP blocks
+    if let Some(http_trackers) = &tracker_config.http_trackers {
+        for config in http_trackers {
+            if let Some(job) = http_tracker::start_job(config, tracker.clone(), registar.form(), servers::http::Version::V1).await
+            {
+                jobs.push(job);
+            };
+        }
+    };
+
+    // Start HTTP API
+    if let Some(http_api) = &tracker_config.http_api {
+        if let Some(job) = tracker_apis::start_job(http_api, tracker.clone(), registar.form(), servers::apis::Version::V1).await {
+            jobs.push(job);
+        };
     }
 
     // Start runners to remove torrents without peers, every interval
-    if config.core.inactive_peer_cleanup_interval > 0 {
-        jobs.push(torrent_cleanup::start_job(&config.core, &tracker));
+    if tracker_config.core.inactive_peer_cleanup_interval > 0 {
+        jobs.push(torrent_cleanup::start_job(&tracker_config.core, &tracker));
     }
 
-    // Start Health Check API
-    jobs.push(health_check_api::start_job(&config.health_check_api, registar.entries()).await);
+    // Start Health Check API, consuming the registar.
+    jobs.push(health_check_api::start_job(&tracker_config.health_check_api, &registar, Version::V0).await);
 
     jobs
 }

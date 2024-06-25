@@ -24,7 +24,7 @@ async fn should_allow_getting_all_torrents() {
 
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
-    env.add_torrent_peer(&info_hash, &PeerBuilder::default().into()).await;
+    env.add_torrent_peer(&info_hash, &PeerBuilder::default().build()).await;
 
     let response = Client::new(env.get_connection_info()).get_torrents(Query::empty()).await;
 
@@ -50,8 +50,8 @@ async fn should_allow_limiting_the_torrents_in_the_result() {
     let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
     let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap();
 
-    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().into()).await;
-    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().into()).await;
+    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().build()).await;
+    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().build()).await;
 
     let response = Client::new(env.get_connection_info())
         .get_torrents(Query::params([QueryParam::new("limit", "1")].to_vec()))
@@ -79,8 +79,8 @@ async fn should_allow_the_torrents_result_pagination() {
     let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
     let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap();
 
-    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().into()).await;
-    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().into()).await;
+    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().build()).await;
+    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().build()).await;
 
     let response = Client::new(env.get_connection_info())
         .get_torrents(Query::params([QueryParam::new("offset", "1")].to_vec()))
@@ -107,8 +107,8 @@ async fn should_allow_getting_a_list_of_torrents_providing_infohashes() {
     let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(); // DevSkim: ignore DS173237
     let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap(); // DevSkim: ignore DS173237
 
-    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().into()).await;
-    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().into()).await;
+    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().build()).await;
+    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().build()).await;
 
     let response = Client::new(env.get_connection_info())
         .get_torrents(Query::params(
@@ -222,7 +222,7 @@ async fn should_allow_getting_a_torrent_info() {
 
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
-    let peer = PeerBuilder::default().into();
+    let peer = PeerBuilder::default().build();
 
     env.add_torrent_peer(&info_hash, &peer).await;
 
@@ -285,7 +285,7 @@ async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
 
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
 
-    env.add_torrent_peer(&info_hash, &PeerBuilder::default().into()).await;
+    env.add_torrent_peer(&info_hash, &PeerBuilder::default().build()).await;
 
     let response = Client::new(connection_with_invalid_token(env.get_connection_info().bind_address.as_str()))
         .get_torrent(&info_hash.to_string())

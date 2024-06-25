@@ -1,6 +1,6 @@
 [package]
 description = "A library that provides a repository of torrents files and their peers."
-keywords = ["torrents", "repository", "library"]
+keywords = ["library", "repository", "torrents"]
 name = "torrust-tracker-torrent-repository"
 readme = "README.md"
 
@@ -28,7 +28,6 @@ torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "../pr
 [dev-dependencies]
 criterion = { version = "0", features = ["async_tokio"] }
 rstest = "0"
-async-std = {version = "1", features = ["attributes", "tokio1"] }
 
 [[bench]]
 harness = false

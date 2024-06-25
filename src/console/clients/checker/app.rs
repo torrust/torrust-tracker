@@ -17,8 +17,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use tracing::info;
-use tracing::level_filters::LevelFilter;
+use tracing::Level;
 
 use super::config::Configuration;
 use super::console::Console;
@@ -41,7 +40,7 @@ struct Args {
 ///
 /// Will return an error if the configuration was not provided.
 pub async fn run() -> Result<Vec<CheckResult>> {
-    tracing_stdout_init(LevelFilter::INFO);
+    let () = tracing_subscriber::fmt().compact().with_max_level(Level::TRACE).init();
 
     let args = Args::parse();
 
@@ -54,24 +53,21 @@ pub async fn run() -> Result<Vec<CheckResult>> {
         console: console_printer,
     };
 
-    Ok(service.run_checks().await)
-}
-
-fn tracing_stdout_init(filter: LevelFilter) {
-    tracing_subscriber::fmt().with_max_level(filter).init();
-    info!("logging initialized.");
+    service.run_checks().await
 }
 
 fn setup_config(args: Args) -> Result<Configuration> {
-    match (args.config_path, args.config_content) {
-        (Some(config_path), _) => load_config_from_file(&config_path),
-        (_, Some(config_content)) => parse_from_json(&config_content).context("invalid config format"),
-        _ => Err(anyhow::anyhow!("no configuration provided")),
+    // If a config is directly supplied, we use it.
+    if let Some(config) = args.config_content {
+        parse_from_json(&config).context("invalid config format")
     }
-}
-
-fn load_config_from_file(path: &PathBuf) -> Result<Configuration> {
-    let file_content = std::fs::read_to_string(path).with_context(|| format!("can't read config file {path:?}"))?;
-
-    parse_from_json(&file_content).context("invalid config format")
+    // or we load it from a file...
+    else if let Some(path) = args.config_path {
+        let file_content = std::fs::read_to_string(path.clone()).with_context(|| format!("can't read config file {path:?}"))?;
+        parse_from_json(&file_content).context("invalid config format")
+    }
+    // but we cannot run without any config...
+    else {
+        Err(anyhow::anyhow!("no configuration provided"))
+    }
 }

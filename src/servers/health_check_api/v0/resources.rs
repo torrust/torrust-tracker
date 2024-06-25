@@ -2,6 +2,8 @@ use std::net::SocketAddr;
 
 use serde::{Deserialize, Serialize};
 
+use crate::servers::registar::{Error, HeathCheckResult, Success};
+
 #[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum Status {
     Ok,
@@ -24,6 +26,37 @@ impl CheckReport {
     #[must_use]
     pub fn fail(&self) -> bool {
         self.result.is_err()
+    }
+}
+
+impl From<HeathCheckResult> for CheckReport {
+    fn from(result: HeathCheckResult) -> Self {
+        let (addr, msg, result) = match result.as_ref() {
+            Ok(success) => {
+                let (addr, msg) = match success {
+                    Success::AllGood { addr, msg } => (addr, msg),
+                };
+
+                (addr, msg, Ok(success.to_string()))
+            }
+            Err(error) => {
+                let (addr, msg) = match error {
+                    Error::UnableToPreformSuccessfulHealthCheck { addr, msg }
+                    | Error::UnableToConnectToRemote { addr, msg, .. }
+                    | Error::UnableToPreformCheck { addr, msg, .. }
+                    | Error::UnableToObtainGoodResponse { addr, msg, .. }
+                    | Error::UnableToGetAnyResponse { addr, msg, .. } => (addr, msg),
+                };
+
+                (addr, msg, Err(error.to_string()))
+            }
+        };
+
+        Self {
+            binding: *addr,
+            info: msg.to_string(),
+            result,
+        }
     }
 }
 

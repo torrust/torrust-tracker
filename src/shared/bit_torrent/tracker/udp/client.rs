@@ -4,250 +4,317 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::{anyhow, Context, Result};
-use aquatic_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
+use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Request, Response, TransactionId};
+use derive_more::{AsRef, Constructor, From, Into};
 use tokio::net::UdpSocket;
 use tokio::time;
+use torrust_tracker_configuration::{CLIENT_TIMEOUT_DEFAULT, PORT_ASSIGNED_BY_OS, UDP_MAX_PACKET_SIZE};
 use tracing::debug;
-use zerocopy::network_endian::I32;
 
-use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
+use super::{source_address, Error};
 
-/// Default timeout for sending and receiving packets. And waiting for sockets
-/// to be readable and writable.
-const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);
-
-#[allow(clippy::module_name_repetitions)]
-#[derive(Debug)]
-pub struct UdpClient {
-    /// The socket to connect to
-    pub socket: Arc<UdpSocket>,
-
-    /// Timeout for sending and receiving packets
-    pub timeout: Duration,
+#[derive(From, Into, AsRef, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct LocalSocketAddr(SocketAddr);
+impl Default for LocalSocketAddr {
+    fn default() -> Self {
+        Self(source_address(PORT_ASSIGNED_BY_OS))
+    }
 }
 
-impl UdpClient {
+#[derive(From, Into, AsRef, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct Timeout(Duration);
+
+impl Default for Timeout {
+    fn default() -> Self {
+        Self(CLIENT_TIMEOUT_DEFAULT)
+    }
+}
+
+#[derive(Constructor, Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Launcher {
+    bind_to: LocalSocketAddr,
+    timeout: Duration,
+}
+
+#[derive(Debug)]
+pub struct Bound {
+    launcher: Launcher,
+    sock: UdpSocket,
+}
+
+#[derive(Debug, Clone)]
+pub struct Client {
+    launcher: Launcher,
+    sock: Arc<UdpSocket>,
+}
+
+impl Launcher {
     /// # Errors
     ///
-    /// Will return error if the local address can't be bound.
+    /// Will error if the local address can't be bound.
+    pub async fn bind(&self) -> Result<Bound, Error> {
+        let sock = UdpSocket::bind(self.bind_to.as_ref())
+            .await
+            .map_err(|e| Error::ClientBuildingError { err: e.into() })?;
+
+        Ok(Bound::new(*self, sock))
+    }
+}
+
+impl Bound {
+    fn new(launcher: Launcher, sock: UdpSocket) -> Self {
+        Self { launcher, sock }
+    }
+
+    /// Returns the local address of this [`Bound`].
     ///
-    pub async fn bind(local_address: &str) -> Result<Self> {
-        let socket_addr = local_address
-            .parse::<SocketAddr>()
-            .context(format!("{local_address} is not a valid socket address"))?;
-
-        let socket = UdpSocket::bind(socket_addr).await?;
-
-        let udp_client = Self {
-            socket: Arc::new(socket),
-            timeout: DEFAULT_TIMEOUT,
-        };
-        Ok(udp_client)
+    /// # Errors
+    ///
+    /// This function errors if underlying function fails.
+    #[allow(dead_code)]
+    pub fn local_addr(&self) -> Result<SocketAddr, Error> {
+        self.sock
+            .local_addr()
+            .map_err(|e| Error::UnableToGetLocalAddress { err: e.into() })
     }
 
     /// # Errors
     ///
-    /// Will return error if can't connect to the socket.
-    pub async fn connect(&self, remote_address: &str) -> Result<()> {
-        let socket_addr = remote_address
-            .parse::<SocketAddr>()
-            .context(format!("{remote_address} is not a valid socket address"))?;
+    /// Will error if can't connect to the socket.
+    pub async fn connect(self, addr: SocketAddr) -> Result<Client, Error> {
+        let () = self
+            .sock
+            .connect(addr)
+            .await
+            .map_err(|e| Error::UnableToConnectToRemote { err: e.into() })?;
 
-        match self.socket.connect(socket_addr).await {
-            Ok(()) => {
-                debug!("Connected successfully");
-                Ok(())
-            }
-            Err(e) => Err(anyhow!("Failed to connect: {e:?}")),
+        Ok(Client::new(self))
+    }
+}
+
+impl Client {
+    /// Creates a new `UdpTrackerClient` connected a remote `addr`.
+    ///
+    /// # Errors
+    ///
+    /// This function returns and error if the the binding fails.
+    pub async fn connect(addr: SocketAddr, timeout: Duration) -> Result<Self, Error> {
+        let launcher = Launcher {
+            timeout,
+            ..Default::default()
+        };
+        let bound = launcher.bind().await?;
+
+        bound.connect(addr).await
+    }
+
+    fn new(bound: Bound) -> Self {
+        Self {
+            sock: bound.sock.into(),
+            launcher: bound.launcher,
         }
     }
 
+    #[must_use]
+    pub fn timeout(&self) -> Duration {
+        self.launcher.timeout
+    }
+
+    /// Returns the local address of this [`Client`].
+    ///
     /// # Errors
     ///
-    /// Will return error if:
+    /// This function errors if underlying function fails.
+    pub fn local_addr(&self) -> Result<SocketAddr, Error> {
+        self.sock
+            .local_addr()
+            .map_err(|e| Error::UnableToGetLocalAddress { err: e.into() })
+    }
+
+    /// Returns the peer address of this [`Client`].
+    ///
+    /// # Errors
+    ///
+    /// This function errors if underlying function fails.
+    pub fn peer_addr(&self) -> Result<SocketAddr, Error> {
+        self.sock
+            .peer_addr()
+            .map_err(|e| Error::UnableToGetRemoteAddress { err: e.into() })
+    }
+
+    /// # Errors
+    ///
+    /// Will error if:
     ///
     /// - Can't write to the socket.
     /// - Can't send data.
-    pub async fn send(&self, bytes: &[u8]) -> Result<usize> {
+    pub async fn send(&self, bytes: &[u8]) -> Result<usize, Error> {
         debug!(target: "UDP client", "sending {bytes:?} ...");
 
-        match time::timeout(self.timeout, self.socket.writable()).await {
-            Ok(writable_result) => {
-                match writable_result {
-                    Ok(()) => (),
-                    Err(e) => return Err(anyhow!("IO error waiting for the socket to become readable: {e:?}")),
-                };
-            }
-            Err(e) => return Err(anyhow!("Timeout waiting for the socket to become readable: {e:?}")),
-        };
+        time::timeout(self.timeout(), self.sock.writable())
+            .await
+            .map_err(|_| Error::TimedOut {
+                context: "Get Writable Socket".into(),
+            })?
+            .map_err(|e| Error::UnableToGetWriteable { err: e.into() })?;
 
-        match time::timeout(self.timeout, self.socket.send(bytes)).await {
-            Ok(send_result) => match send_result {
-                Ok(size) => Ok(size),
-                Err(e) => Err(anyhow!("IO error during send: {e:?}")),
-            },
-            Err(e) => Err(anyhow!("Send operation timed out: {e:?}")),
-        }
+        time::timeout(self.timeout(), self.sock.send(bytes))
+            .await
+            .map_err(|_| Error::TimedOut {
+                context: "Send To Socket".into(),
+            })?
+            .map_err(|e| Error::UnableToSendToSocket { err: e.into() })
     }
 
     /// # Errors
     ///
-    /// Will return error if:
+    /// Will error if:
     ///
     /// - Can't read from the socket.
     /// - Can't receive data.
-    ///
-    /// # Panics
-    ///
-    pub async fn receive(&self, bytes: &mut [u8]) -> Result<usize> {
+    pub async fn receive(&self, bytes: &mut [u8]) -> Result<usize, Error> {
         debug!(target: "UDP client", "receiving ...");
 
-        match time::timeout(self.timeout, self.socket.readable()).await {
-            Ok(readable_result) => {
-                match readable_result {
-                    Ok(()) => (),
-                    Err(e) => return Err(anyhow!("IO error waiting for the socket to become readable: {e:?}")),
-                };
-            }
-            Err(e) => return Err(anyhow!("Timeout waiting for the socket to become readable: {e:?}")),
-        };
+        let () = time::timeout(self.timeout(), self.sock.readable())
+            .await
+            .map_err(|_| Error::TimedOut {
+                context: "Get Readable Socket".into(),
+            })?
+            .map_err(|e| Error::UnableToGetReadable { err: e.into() })?;
 
-        let size_result = match time::timeout(self.timeout, self.socket.recv(bytes)).await {
-            Ok(recv_result) => match recv_result {
-                Ok(size) => Ok(size),
-                Err(e) => Err(anyhow!("IO error during send: {e:?}")),
-            },
-            Err(e) => Err(anyhow!("Receive operation timed out: {e:?}")),
-        };
+        let size = time::timeout(self.timeout(), self.sock.recv(bytes))
+            .await
+            .map_err(|_| Error::TimedOut {
+                context: "Read From Socket".into(),
+            })?
+            .map_err(|e| Error::UnableToReadFromSocket { err: e.into() })?;
 
-        if size_result.is_ok() {
-            let size = size_result.as_ref().unwrap();
-            debug!(target: "UDP client", "{size} bytes received {bytes:?}");
-            size_result
-        } else {
-            size_result
-        }
+        debug!(target: "UDP client", "{size} bytes received {bytes:?}");
+
+        Ok(size)
     }
-}
 
-/// Creates a new `UdpClient` connected to a Udp server
-///
-/// # Errors
-///
-/// Will return any errors present in the call stack
-///
-pub async fn new_udp_client_connected(remote_address: &str) -> Result<UdpClient> {
-    let port = 0; // Let OS choose an unused port.
-    let client = UdpClient::bind(&source_address(port)).await?;
-    client.connect(remote_address).await?;
-    Ok(client)
-}
-
-#[allow(clippy::module_name_repetitions)]
-#[derive(Debug)]
-pub struct UdpTrackerClient {
-    pub udp_client: UdpClient,
-}
-
-impl UdpTrackerClient {
     /// # Errors
     ///
-    /// Will return error if can't write request to bytes.
-    pub async fn send(&self, request: Request) -> Result<usize> {
+    /// Will errors if can't write request to bytes.
+    pub async fn send_request(&self, request: Request) -> Result<usize, Error> {
         debug!(target: "UDP tracker client", "send request {request:?}");
 
         // Write request into a buffer
-        let request_buffer = vec![0u8; MAX_PACKET_SIZE];
+        let request_buffer = vec![0u8; UDP_MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(request_buffer);
 
-        let request_data_result = match request.write_bytes(&mut cursor) {
-            Ok(()) => {
-                #[allow(clippy::cast_possible_truncation)]
-                let position = cursor.position() as usize;
-                let inner_request_buffer = cursor.get_ref();
-                // Return slice which contains written request data
-                Ok(&inner_request_buffer[..position])
-            }
-            Err(e) => Err(anyhow!("could not write request to bytes: {e}.")),
+        request
+            .write_bytes(&mut cursor)
+            .map_err(|e| Error::UnableToWriteToRequestBuffer { err: e.into() })?;
+
+        let request_data = {
+            #[allow(clippy::cast_possible_truncation)]
+            let position = cursor.position() as usize;
+            let inner_request_buffer = cursor.get_ref();
+            // Return slice which contains written request data
+            &inner_request_buffer[..position]
         };
 
-        let request_data = request_data_result?;
-
-        self.udp_client.send(request_data).await
+        self.send(request_data).await
     }
 
     /// # Errors
     ///
-    /// Will return error if can't create response from the received payload (bytes buffer).
-    pub async fn receive(&self) -> Result<Response> {
-        let mut response_buffer = [0u8; MAX_PACKET_SIZE];
+    /// Will error if can't create response from the received payload (bytes buffer).
+    pub async fn receive_response(&self) -> Result<Response, Error> {
+        let mut response_buffer = [0u8; UDP_MAX_PACKET_SIZE];
 
-        let payload_size = self.udp_client.receive(&mut response_buffer).await?;
+        let payload_size = self.receive(&mut response_buffer).await?;
 
         debug!(target: "UDP tracker client", "received {payload_size} bytes. Response {response_buffer:?}");
 
-        let response = Response::parse_bytes(&response_buffer[..payload_size], true)?;
+        Response::parse_bytes(&response_buffer[..payload_size], true)
+            .map_err(|e| Error::UnableToGetResponseFromBuffer { err: e.into() })
+    }
 
-        Ok(response)
+    /// Completes a connection request to the UDP Tracker server.
+    ///
+    /// # Errors
+    ///
+    /// Will return and error if
+    ///
+    /// - It can't connect to the remote UDP socket.
+    /// - It can't make a connection request successfully to the remote UDP
+    /// server (after successfully connecting to the remote UDP socket).
+    ///
+    pub async fn do_connection_request(&self, transaction_id: TransactionId) -> Result<ConnectResponse, Error> {
+        debug!("Sending connection request with transaction id: {transaction_id:#?}");
+
+        let connect_request = ConnectRequest { transaction_id };
+
+        let _ = self.send_request(connect_request.into()).await?;
+
+        let response = self.receive_response().await?;
+
+        debug!("connection request response:\n{response:#?}");
+
+        check_connect_response(&response, connect_request)
+    }
+
+    /// Helper Function to Check if a UDP Service is Connectable
+    ///
+    /// # Errors
+    ///
+    /// It will return an error if unable to connect to the UDP service.
+    ///
+    /// # Panics
+    pub async fn check(self) -> Result<String, Error> {
+        let connect_request = ConnectRequest {
+            transaction_id: TransactionId::new(rand::Rng::gen(&mut rand::thread_rng())),
+        };
+
+        let _ = self.send_request(connect_request.into()).await?;
+
+        let process = move |response: Result<Response, Error>, connect_request: ConnectRequest| -> Result<String, Error> {
+            check_connect_response(&response?, connect_request).map(|id| {
+                format!(
+                    "Connected with, transaction_id: {} and connection_id: {}",
+                    id.transaction_id.0, id.connection_id.0
+                )
+            })
+        };
+
+        let sleep = time::sleep(Duration::from_millis(2000));
+        tokio::pin!(sleep);
+
+        tokio::select! {
+            () = &mut sleep => {
+                  Err(Error::TimedOut { context: "Receive Connect Response".into() })
+            }
+            response = self.receive_response() => {
+                  process(response, connect_request)
+            }
+        }
     }
 }
 
-/// Creates a new `UdpTrackerClient` connected to a Udp Tracker server
-///
-/// # Errors
-///
-/// Will return any errors present in the call stack
-///
-pub async fn new_udp_tracker_client_connected(remote_address: &str) -> Result<UdpTrackerClient> {
-    let udp_client = new_udp_client_connected(remote_address).await?;
-    let udp_tracker_client = UdpTrackerClient { udp_client };
-    Ok(udp_tracker_client)
-}
-
-/// Helper Function to Check if a UDP Service is Connectable
+/// Checks the Connect Response Against the Request
 ///
 /// # Panics
 ///
-/// It will return an error if unable to connect to the UDP service.
+/// If the [`Response`] is not a [`ConnectResponse`]
+/// or if the [`TransactionId`] dose not match.
 ///
-/// # Errors
-///
-pub async fn check(binding: &SocketAddr) -> Result<String, String> {
-    debug!("Checking Service (detail): {binding:?}.");
-
-    match new_udp_tracker_client_connected(binding.to_string().as_str()).await {
-        Ok(client) => {
-            let connect_request = ConnectRequest {
-                transaction_id: TransactionId(I32::new(123)),
-            };
-
-            // client.send() return usize, but doesn't use here
-            match client.send(connect_request.into()).await {
-                Ok(_) => (),
-                Err(e) => debug!("Error: {e:?}."),
-            };
-
-            let process = move |response| {
-                if matches!(response, Response::Connect(_connect_response)) {
-                    Ok("Connected".to_string())
-                } else {
-                    Err("Did not Connect".to_string())
-                }
-            };
-
-            let sleep = time::sleep(Duration::from_millis(2000));
-            tokio::pin!(sleep);
-
-            tokio::select! {
-                () = &mut sleep => {
-                      Err("Timed Out".to_string())
-                }
-                response = client.receive() => {
-                      process(response.unwrap())
-                }
+pub fn check_connect_response(response: &Response, connect_request: ConnectRequest) -> Result<ConnectResponse, Error> {
+    match response {
+        Response::Connect(connect) => {
+            if connect.transaction_id == connect_request.transaction_id {
+                Ok(*connect)
+            } else {
+                Err(Error::UnexpectedTransactionId {
+                    expected: connect.transaction_id,
+                    received: connect_request.transaction_id,
+                })
             }
         }
-        Err(e) => Err(format!("{e:?}")),
+        response => Err(Error::UnexpectedResponse {
+            response: response.clone(),
+        }),
     }
 }

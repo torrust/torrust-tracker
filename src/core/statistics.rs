@@ -17,6 +17,7 @@
 //! The [`statistics::Keeper`](crate::core::statistics::Keeper) listens to new events and uses the [`statistics::Repo`](crate::core::statistics::Repo) to upgrade and store metrics.
 //!
 //! See the [`statistics::Event`](crate::core::statistics::Event) enum to check which events are available.
+use std::fmt::Debug;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -187,7 +188,7 @@ async fn event_handler(event: Event, stats_repository: &Repo) {
 /// A trait to allow sending statistics events
 #[async_trait]
 #[cfg_attr(test, automock)]
-pub trait EventSender: Sync + Send {
+pub trait EventSender: Debug + Sync + Send {
     async fn send_event(&self, event: Event) -> Option<Result<(), SendError<Event>>>;
 }
 
@@ -195,6 +196,8 @@ pub trait EventSender: Sync + Send {
 ///
 /// It uses a channel sender to send the statistic events. The channel is created by a
 /// [`statistics::Keeper`](crate::core::statistics::Keeper)
+///
+#[derive(Debug)]
 pub struct Sender {
     sender: mpsc::Sender<Event>,
 }
@@ -207,7 +210,7 @@ impl EventSender for Sender {
 }
 
 /// A repository for the tracker metrics.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Repo {
     pub stats: Arc<RwLock<Metrics>>,
 }

@@ -640,14 +640,18 @@
 //! taken from the [libtorrent](https://www.rasterbar.com/products/libtorrent/udp_tracker_protocol.html).
 
 use std::net::SocketAddr;
+use std::sync::Arc;
 
-pub mod connection_cookie;
-pub mod error;
-pub mod handlers;
+use thiserror::Error;
+
+pub mod check;
+pub mod handle;
+pub mod launcher;
 pub mod logging;
 pub mod peer_builder;
 pub mod request;
 pub mod server;
+pub mod v0;
 
 /// Number of bytes.
 pub type Bytes = u64;
@@ -657,8 +661,44 @@ pub type Port = u16;
 /// match requests and responses.
 pub type TransactionId = i64;
 
-#[derive(Clone, Debug)]
-pub(crate) struct UdpRequest {
-    payload: Vec<u8>,
-    from: SocketAddr,
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub enum Version {
+    /// The `v0` i.e un-versioned version of the Udp API.
+    V0,
+}
+
+#[derive(Error, Debug, Clone)]
+pub enum Error {
+    #[error("Gracefully Canceled Processing Requests For: {addr}")]
+    GracefullyCanceled { addr: SocketAddr },
+    #[error("Stopped Processing Requests For: {addr}")]
+    Stopped { addr: SocketAddr },
+    #[error("Canceled Sending Response to Target: {target}")]
+    CanceledSending { target: SocketAddr },
+
+    #[error("Failed to Join Tokio Task: {err}")]
+    UnableToJoinTokioTask { err: Arc<tokio::task::JoinError> },
+
+    #[error("Stopped before starting")]
+    StopBeforeStarting {},
+
+    #[error("Failed to get Local Address from Socket: {err:?}")]
+    UnableToGetLocalAddress { err: Arc<std::io::Error> },
+
+    #[error("Failed to get Listening Address from Socket")]
+    UnableToGetListeningAddress {},
+    #[error("Socket Errored when waiting to read from: {addr}, with error: {err:?}")]
+    UnableToGetReadableSocket { addr: SocketAddr, err: Arc<std::io::Error> },
+    #[error("Socket Errored when reading from: {addr}, with error: {err:?}")]
+    UnableToReadFromSocket { addr: SocketAddr, err: Arc<std::io::Error> },
+    #[error("Socket Errored when sending to: {target}, with error: {err:?}")]
+    UnableToSendToSocket { target: SocketAddr, err: Arc<std::io::Error> },
+    #[error("Socket Errored when writing to: {target}, with error: {err:?}")]
+    UnableToWriteToSocket { target: SocketAddr, err: Arc<std::io::Error> },
+}
+
+impl From<tokio::task::JoinError> for Error {
+    fn from(e: tokio::task::JoinError) -> Self {
+        Self::UnableToJoinTokioTask { err: e.into() }
+    }
 }

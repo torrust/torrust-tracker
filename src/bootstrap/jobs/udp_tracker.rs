@@ -6,15 +6,18 @@
 //! > **NOTICE**: that the application can launch more than one UDP tracker
 //! > on different ports. Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
 //! > for the configuration options.
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::UdpTracker;
-use tracing::debug;
+use tracing::instrument;
 
 use crate::core;
-use crate::servers::registar::ServiceRegistrationForm;
-use crate::servers::udp::server::{Launcher, UdpServer};
+use crate::servers::registar::Form;
+use crate::servers::service::Service;
+use crate::servers::udp::launcher::Launcher;
+use crate::servers::udp::Version;
 
 /// It starts a new UDP server with the provided configuration.
 ///
@@ -25,30 +28,31 @@ use crate::servers::udp::server::{Launcher, UdpServer};
 /// It will panic if the API binding address is not a valid socket.
 /// It will panic if it is unable to start the UDP service.
 /// It will panic if the task did not finish successfully.
+///
 #[must_use]
-pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: ServiceRegistrationForm) -> JoinHandle<()> {
-    let bind_to = config.bind_address;
+#[allow(clippy::async_yields_async)]
+#[instrument(ret)]
+pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: Form, version: Version) -> Option<JoinHandle<()>> {
+    let addr = config.bind_address;
 
-    let server = UdpServer::new(Launcher::new(bind_to))
-        .start(tracker, form)
-        .await
-        .expect("it should be able to start the udp tracker");
+    match version {
+        Version::V0 => Some(start_v0(addr, tracker.clone(), form).await),
+    }
+}
+
+#[allow(clippy::async_yields_async)]
+#[instrument(ret)]
+async fn start_v0(socket: SocketAddr, tracker: Arc<core::Tracker>, form: Form) -> JoinHandle<()> {
+    let service = Service::new(Launcher::new(tracker, socket));
+
+    let started = service.start().expect("it should start");
+
+    let () = started.reg_form(form).await.expect("it should register");
+
+    let (task, _) = started.run();
 
     tokio::spawn(async move {
-        debug!(target: "UDP TRACKER", "Wait for launcher (UDP service) to finish ...");
-        debug!(target: "UDP TRACKER", "Is halt channel closed before waiting?: {}", server.state.halt_task.is_closed());
-
-        assert!(
-            !server.state.halt_task.is_closed(),
-            "Halt channel for UDP tracker should be open"
-        );
-
-        server
-            .state
-            .task
-            .await
-            .expect("it should be able to join to the udp tracker task");
-
-        debug!(target: "UDP TRACKER", "Is halt channel closed after finishing the server?: {}", server.state.halt_task.is_closed());
+        let server = task.await.expect("it should shutdown");
+        drop(server);
     })
 }

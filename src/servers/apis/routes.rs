@@ -5,6 +5,7 @@
 //!
 //! All the API routes have the `/api` prefix and the version number as the
 //! first path segment. For example: `/api/v1/torrents`.
+use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -32,7 +33,7 @@ const TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Add all API routes to the router.
 #[allow(clippy::needless_pass_by_value)]
-pub fn router(tracker: Arc<Tracker>, access_tokens: Arc<AccessTokens>) -> Router {
+pub fn router(tracker: Arc<Tracker>, access_tokens: Arc<AccessTokens>, &_: &SocketAddr) -> Router {
     let router = Router::new();
 
     let api_url_prefix = "/api";

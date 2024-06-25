@@ -14,15 +14,19 @@
 //! Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
 //! for the API configuration options.
 
-use tokio::sync::oneshot;
+use std::net::SocketAddr;
+use std::sync::Arc;
+use std::time::Duration;
+
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HealthCheckApi;
-use tracing::info;
+use tracing::instrument;
 
-use super::Started;
-use crate::servers::health_check_api::server;
-use crate::servers::registar::ServiceRegistry;
-use crate::servers::signals::Halted;
+use super::Error;
+use crate::servers::health_check_api::launcher::Launcher;
+use crate::servers::health_check_api::Version;
+use crate::servers::registar::{Form, Registar, Registry};
+use crate::servers::service::Service;
 
 /// This function starts a new Health Check API server with the provided
 /// configuration.
@@ -34,37 +38,85 @@ use crate::servers::signals::Halted;
 /// # Panics
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
-pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> JoinHandle<()> {
-    let bind_addr = config.bind_address;
+///
+#[allow(clippy::async_yields_async)]
+#[instrument(ret, fields(registar = %registar))]
+pub async fn start_job(config: &HealthCheckApi, registar: &Registar, version: Version) -> JoinHandle<()> {
+    let addr = config.bind_address;
 
-    let (tx_start, rx_start) = oneshot::channel::<Started>();
-    let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
+    let form = registar.form();
+    let registry = registar.as_ref().clone();
 
-    let protocol = "http";
+    match version {
+        Version::V0 => start_v0(addr, registry, form).await.expect("it should start the service"),
+    }
+}
 
-    // Run the API server
-    let join_handle = tokio::spawn(async move {
-        info!(target: "HEALTH CHECK API", "Starting on: {protocol}://{}", bind_addr);
+/// Starts the first (un-versioned) tracker service health check.
+/// # Panics
+///
+/// Panics if something goes wrong...
+///
+#[allow(clippy::async_yields_async)]
+#[instrument(err, ret, skip(form), fields(registry = %registry))]
+async fn start_v0(addr: SocketAddr, registry: Arc<Registry>, form: Form) -> Result<JoinHandle<()>, Error> {
+    let service = Service::new(Launcher::new(addr, registry));
 
-        let handle = server::start(bind_addr, tx_start, rx_halt, register);
+    let started = service.start().map_err(Error::from)?;
 
-        if let Ok(()) = handle.await {
-            info!(target: "HEALTH CHECK API", "Stopped server running on: {protocol}://{}", bind_addr);
-        }
-    });
+    let () = tokio::time::timeout(Duration::from_secs(5), started.reg_form(form))
+        .await
+        .map_err(Error::from)?
+        .map_err(Error::from)?;
 
-    // Wait until the server sends the started message
-    match rx_start.await {
-        Ok(msg) => info!(target: "HEALTH CHECK API", "Started on: {protocol}://{}", msg.address),
-        Err(e) => panic!("the Health Check API server was dropped: {e}"),
+    let (task, _) = started.run();
+
+    Ok(tokio::spawn(async move {
+        let server = task.await.expect("it should shutdown");
+        drop(server);
+    }))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
+
+    //use tracing_test::traced_test;
+    use crate::bootstrap::jobs::health_check_api::{start_job, start_v0};
+    use crate::servers::health_check_api::Version;
+    use crate::servers::registar::Registar;
+
+    #[tokio::test]
+    //#[traced_test]
+    async fn it_should_start_and_stop_the_job_for_the_health_check_service() {
+        let cfg = Arc::new(ephemeral_mode_public());
+        let config = &cfg.health_check_api;
+        let version = Version::V0;
+
+        let registar = Registar::default();
+
+        let job = start_job(config, &registar, version).await;
+
+        job.abort();
+
+        drop(job);
     }
 
-    // Wait until the server finishes
-    tokio::spawn(async move {
-        assert!(!tx_halt.is_closed(), "Halt channel for Health Check API should be open");
+    #[tokio::test]
+    //#[traced_test]
+    async fn it_should_start_and_stop_the_v0_of_the_health_check_service() {
+        let addr = ephemeral_mode_public().health_check_api.bind_address;
 
-        join_handle
-            .await
-            .expect("it should be able to join to the Health Check API server task");
-    })
+        let registar = Registar::default();
+        let form = registar.form();
+        let registry = registar.as_ref().clone();
+
+        let job = start_v0(addr, registry, form).await.expect("it should start");
+
+        job.abort();
+
+        drop(job);
+    }
 }

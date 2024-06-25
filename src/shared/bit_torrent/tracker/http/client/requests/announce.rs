@@ -1,74 +1,37 @@
 use std::fmt;
-use std::net::{IpAddr, Ipv4Addr};
-use std::str::FromStr;
+use std::net::IpAddr;
 
 use serde_repr::Serialize_repr;
+use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
 
+use super::Announce;
 use crate::shared::bit_torrent::tracker::http::{percent_encode_byte_array, ByteArray20};
 
-pub struct Query {
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub(super) struct Query {
     pub info_hash: ByteArray20,
-    pub peer_addr: IpAddr,
-    pub downloaded: BaseTenASCII,
-    pub uploaded: BaseTenASCII,
+    pub peer_addr: Option<IpAddr>,
+    pub downloaded: Option<BaseTenASCII>,
+    pub uploaded: Option<BaseTenASCII>,
     pub peer_id: ByteArray20,
     pub port: PortNumber,
-    pub left: BaseTenASCII,
-    pub event: Option<Event>,
+    pub left: Option<BaseTenASCII>,
+    pub event: Option<AnnounceEvent>,
     pub compact: Option<Compact>,
 }
 
 impl fmt::Display for Query {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.build())
-    }
-}
-
-/// HTTP Tracker Announce Request:
-///
-/// <https://wiki.theory.org/BitTorrentSpecification#Tracker_HTTP.2FHTTPS_Protocol>
-///
-/// Some parameters in the specification are not implemented in this tracker yet.
-impl Query {
-    /// It builds the URL query component for the announce request.
-    ///
-    /// This custom URL query params encoding is needed because `reqwest` does not allow
-    /// bytes arrays in query parameters. More info on this issue:
-    ///
-    /// <https://github.com/seanmonstar/reqwest/issues/1613>
-    #[must_use]
-    pub fn build(&self) -> String {
-        self.params().to_string()
-    }
-
-    #[must_use]
-    pub fn params(&self) -> QueryParams {
-        QueryParams::from(self)
+        write!(f, "{}", QueryParams::from(self))
     }
 }
 
 pub type BaseTenASCII = u64;
 pub type PortNumber = u16;
 
-pub enum Event {
-    //Started,
-    //Stopped,
-    Completed,
-}
-
-impl fmt::Display for Event {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            //Event::Started => write!(f, "started"),
-            //Event::Stopped => write!(f, "stopped"),
-            Event::Completed => write!(f, "completed"),
-        }
-    }
-}
-
-#[derive(Serialize_repr, PartialEq, Debug)]
+#[derive(Serialize_repr, PartialEq, Eq, Debug, Clone, Copy)]
 #[repr(u8)]
 pub enum Compact {
     Accepted = 1,
@@ -84,8 +47,9 @@ impl fmt::Display for Compact {
     }
 }
 
+#[derive(Debug)]
 pub struct QueryBuilder {
-    announce_query: Query,
+    query: Query,
 }
 
 impl QueryBuilder {
@@ -93,56 +57,49 @@ impl QueryBuilder {
     ///
     /// Will panic if the default info-hash value is not a valid info-hash.
     #[must_use]
-    pub fn with_default_values() -> QueryBuilder {
-        let default_announce_query = Query {
-            info_hash: InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap().0, // # DevSkim: ignore DS173237
-            peer_addr: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 88)),
-            downloaded: 0,
-            uploaded: 0,
-            peer_id: peer::Id(*b"-qB00000000000000001").0,
-            port: 17548,
-            left: 0,
-            event: Some(Event::Completed),
-            compact: Some(Compact::NotAccepted),
-        };
+    pub fn new(info_hash: InfoHash, peer_id: peer::Id, port: u16) -> QueryBuilder {
         Self {
-            announce_query: default_announce_query,
+            query: Query {
+                info_hash: info_hash.0,
+                peer_addr: None,
+                downloaded: None,
+                uploaded: None,
+                peer_id: peer_id.0,
+                port,
+                left: None,
+                event: None,
+                compact: None,
+            },
         }
     }
 
     #[must_use]
-    pub fn with_info_hash(mut self, info_hash: &InfoHash) -> Self {
-        self.announce_query.info_hash = info_hash.0;
+    pub fn with_event(mut self, event: AnnounceEvent) -> Self {
+        self.query.event = Some(event);
         self
     }
 
     #[must_use]
-    pub fn with_peer_id(mut self, peer_id: &peer::Id) -> Self {
-        self.announce_query.peer_id = peer_id.0;
-        self
-    }
-
-    #[must_use]
-    pub fn with_compact(mut self, compact: Compact) -> Self {
-        self.announce_query.compact = Some(compact);
-        self
-    }
-
-    #[must_use]
-    pub fn with_peer_addr(mut self, peer_addr: &IpAddr) -> Self {
-        self.announce_query.peer_addr = *peer_addr;
+    pub fn with_compact(mut self) -> Self {
+        self.query.compact = Some(Compact::Accepted);
         self
     }
 
     #[must_use]
     pub fn without_compact(mut self) -> Self {
-        self.announce_query.compact = None;
+        self.query.compact = Some(Compact::NotAccepted);
         self
     }
 
     #[must_use]
-    pub fn query(self) -> Query {
-        self.announce_query
+    pub fn with_peer_addr(mut self, peer_addr: &IpAddr) -> Self {
+        self.query.peer_addr = Some(*peer_addr);
+        self
+    }
+
+    #[must_use]
+    pub fn build(self) -> Announce {
+        self.query.into()
     }
 }
 
@@ -174,6 +131,12 @@ pub struct QueryParams {
     pub compact: Option<String>,
 }
 
+/// It builds the URL query component for the announce request.
+///
+/// This custom URL query params encoding is needed because `reqwest` does not allow
+/// bytes arrays in query parameters. More info on this issue:
+///
+/// <https://github.com/seanmonstar/reqwest/issues/1613>
 impl std::fmt::Display for QueryParams {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut params = vec![];
@@ -216,24 +179,32 @@ impl std::fmt::Display for QueryParams {
     }
 }
 
-impl QueryParams {
-    pub fn from(announce_query: &Query) -> Self {
-        let event = announce_query.event.as_ref().map(std::string::ToString::to_string);
-        let compact = announce_query.compact.as_ref().map(std::string::ToString::to_string);
+impl From<&Announce> for QueryParams {
+    fn from(value: &Announce) -> Self {
+        let query: &Query = &Announce::into(*value);
+        query.into()
+    }
+}
+
+impl From<&Query> for QueryParams {
+    fn from(value: &Query) -> Self {
+        let query = value;
 
         Self {
-            info_hash: Some(percent_encode_byte_array(&announce_query.info_hash)),
-            peer_addr: Some(announce_query.peer_addr.to_string()),
-            downloaded: Some(announce_query.downloaded.to_string()),
-            uploaded: Some(announce_query.uploaded.to_string()),
-            peer_id: Some(percent_encode_byte_array(&announce_query.peer_id)),
-            port: Some(announce_query.port.to_string()),
-            left: Some(announce_query.left.to_string()),
-            event,
-            compact,
+            info_hash: Some(percent_encode_byte_array(&query.info_hash)),
+            peer_addr: query.peer_addr.as_ref().map(std::string::ToString::to_string),
+            downloaded: query.downloaded.as_ref().map(std::string::ToString::to_string),
+            uploaded: query.uploaded.as_ref().map(std::string::ToString::to_string),
+            peer_id: Some(percent_encode_byte_array(&query.peer_id)),
+            port: Some(query.port.to_string()),
+            left: query.left.as_ref().map(std::string::ToString::to_string),
+            event: query.event.as_ref().map(std::string::ToString::to_string),
+            compact: query.compact.as_ref().map(std::string::ToString::to_string),
         }
     }
+}
 
+impl QueryParams {
     pub fn remove_optional_params(&mut self) {
         // todo: make them optional with the Option<...> in the AnnounceQuery struct
         // if they are really optional. So that we can crete a minimal AnnounceQuery

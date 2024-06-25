@@ -16,12 +16,14 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpTracker;
+use tracing::instrument;
 
 use super::make_rust_tls;
 use crate::core;
-use crate::servers::http::server::{HttpServer, Launcher};
+use crate::servers::http::launcher::Launcher;
 use crate::servers::http::Version;
-use crate::servers::registar::ServiceRegistrationForm;
+use crate::servers::registar::Form;
+use crate::servers::service::Service;
 
 /// It starts a new HTTP server with the provided configuration and version.
 ///
@@ -32,44 +34,44 @@ use crate::servers::registar::ServiceRegistrationForm;
 ///
 /// It would panic if the `config::HttpTracker` struct would contain inappropriate values.
 ///
+#[allow(clippy::async_yields_async)]
+#[instrument(ret)]
 pub async fn start_job(
     config: &HttpTracker,
     tracker: Arc<core::Tracker>,
-    form: ServiceRegistrationForm,
+    form: Form,
     version: Version,
 ) -> Option<JoinHandle<()>> {
     let socket = config.bind_address;
 
-    let tls = make_rust_tls(&config.tsl_config)
-        .await
-        .map(|tls| tls.expect("it should have a valid http tracker tls configuration"));
+    let tls = match &config.tsl_config {
+        Some(tls_config) => Some(
+            make_rust_tls(tls_config)
+                .await
+                .expect("it should have a valid tracker https configuration"),
+        ),
+        None => None,
+    };
 
     match version {
         Version::V1 => Some(start_v1(socket, tls, tracker.clone(), form).await),
     }
 }
 
-async fn start_v1(
-    socket: SocketAddr,
-    tls: Option<RustlsConfig>,
-    tracker: Arc<core::Tracker>,
-    form: ServiceRegistrationForm,
-) -> JoinHandle<()> {
-    let server = HttpServer::new(Launcher::new(socket, tls))
-        .start(tracker, form)
-        .await
-        .expect("it should be able to start to the http tracker");
+#[allow(clippy::async_yields_async)]
+#[instrument(ret)]
+async fn start_v1(socket: SocketAddr, tls: Option<RustlsConfig>, tracker: Arc<core::Tracker>, form: Form) -> JoinHandle<()> {
+    let service = Service::new(Launcher::new(tracker, socket, tls));
+
+    let started = service.start().expect("it should start");
+
+    let () = started.reg_form(form).await.expect("it should register");
+
+    let (task, _) = started.run();
 
     tokio::spawn(async move {
-        assert!(
-            !server.state.halt_task.is_closed(),
-            "Halt channel for HTTP tracker should be open"
-        );
-        server
-            .state
-            .task
-            .await
-            .expect("it should be able to join to the http tracker task");
+        let server = task.await.expect("it should shutdown");
+        drop(server);
     })
 }
 
@@ -79,7 +81,7 @@ mod tests {
 
     use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
 
-    use crate::bootstrap::app::initialize_with_configuration;
+    use crate::bootstrap::app::tracker;
     use crate::bootstrap::jobs::http_tracker::start_job;
     use crate::servers::http::Version;
     use crate::servers::registar::Registar;
@@ -87,13 +89,16 @@ mod tests {
     #[tokio::test]
     async fn it_should_start_http_tracker() {
         let cfg = Arc::new(ephemeral_mode_public());
-        let http_tracker = cfg.http_trackers.clone().expect("missing HTTP tracker configuration");
-        let config = &http_tracker[0];
-        let tracker = initialize_with_configuration(&cfg);
+        let config = &cfg.http_trackers.as_ref().unwrap()[0];
+        let tracker = tracker(&cfg);
         let version = Version::V1;
 
-        start_job(config, tracker, Registar::default().give_form(), version)
+        let job = start_job(config, tracker, Registar::default().form(), version)
             .await
             .expect("it should be able to join to the http tracker start-job");
+
+        job.abort();
+
+        drop(job);
     }
 }

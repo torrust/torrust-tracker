@@ -424,6 +424,13 @@ pub mod fixture {
 
         #[allow(dead_code)]
         #[must_use]
+        pub fn with_event(mut self, event: AnnounceEvent) -> Self {
+            self.peer.event = event;
+            self
+        }
+
+        #[allow(dead_code)]
+        #[must_use]
         pub fn last_updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
             self.peer.updated = updated;
             self
@@ -432,12 +439,6 @@ pub mod fixture {
         #[allow(dead_code)]
         #[must_use]
         pub fn build(self) -> Peer {
-            self.into()
-        }
-
-        #[allow(dead_code)]
-        #[must_use]
-        pub fn into(self) -> Peer {
             self.peer
         }
     }
@@ -465,6 +466,7 @@ pub mod fixture {
 
 #[cfg(test)]
 pub mod test {
+
     mod torrent_peer_id {
         use crate::peer;
 

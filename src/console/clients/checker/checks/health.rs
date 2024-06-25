@@ -1,49 +1,69 @@
+use std::sync::Arc;
 use std::time::Duration;
 
-use reqwest::{Client as HttpClient, Url, Url as ServiceUrl};
+use anyhow::Result;
+use hyper::StatusCode;
+use reqwest::{Client as HttpClient, Response};
+use thiserror::Error;
+use url::Url;
 
-use super::structs::{CheckerOutput, Status};
-use crate::console::clients::checker::service::{CheckError, CheckResult};
+use crate::console::clients::checker::{
+    console::Console,
+    printer::Printer as _,
+    service::{CheckError, CheckResult},
+};
 
-#[allow(clippy::missing_panics_doc)]
-pub async fn run(health_checks: &Vec<ServiceUrl>, check_results: &mut Vec<CheckResult>) -> Vec<CheckerOutput> {
-    let mut health_checkers: Vec<CheckerOutput> = Vec::new();
-
-    for health_check_url in health_checks {
-        let mut health_checker = CheckerOutput {
-            url: health_check_url.to_string(),
-            status: Status {
-                code: String::new(),
-                message: String::new(),
-            },
-        };
-        match run_health_check(health_check_url.clone()).await {
-            Ok(()) => {
-                check_results.push(Ok(()));
-                health_checker.status.code = "ok".to_string();
-            }
-            Err(err) => {
-                check_results.push(Err(err));
-                health_checker.status.code = "error".to_string();
-                health_checker.status.message = "Health API is failing.".to_string();
-            }
-        }
-        health_checkers.push(health_checker);
-    }
-    health_checkers
+#[derive(Debug, Clone, Error)]
+pub enum Error {
+    #[error("Failed to Build a Http Client: {err:?}")]
+    ClientBuildingError { err: Arc<reqwest::Error> },
+    #[error("Heath check failed to get a response: {err:?}")]
+    ResponseError { err: Arc<reqwest::Error> },
+    #[error("Http check returned a non-success code: \"{code}\" with the response: \"{response:?}\"")]
+    UnsuccessfulResponse { code: StatusCode, response: Arc<Response> },
 }
 
-async fn run_health_check(url: Url) -> Result<(), CheckError> {
-    let client = HttpClient::builder().timeout(Duration::from_secs(5)).build().unwrap();
+pub async fn run(health_checks: Vec<Url>, timeout: Duration, console: Console) -> Vec<CheckResult> {
+    let mut check_results = Vec::default();
 
-    match client.get(url.clone()).send().await {
-        Ok(response) => {
-            if response.status().is_success() {
-                Ok(())
-            } else {
-                Err(CheckError::HealthCheckError { url })
+    console.println("Health checks ...");
+
+    for url in health_checks {
+        match run_health_check(url.clone(), &timeout).await {
+            Ok(response) => {
+                console.println(&format!("{} - Health API at {} is {}", "✓", url, response.status()));
+
+                check_results.push(Ok(()));
+            }
+            Err(err) => {
+                console.eprintln(&format!("{} - Health API at {} is failing: {}", "✗", url, err));
+
+                check_results.push(Err(CheckError::HealthCheckError { url, err }));
             }
         }
-        Err(_) => Err(CheckError::HealthCheckError { url }),
+    }
+
+    check_results
+}
+
+async fn run_health_check(url: Url, &timeout: &Duration) -> Result<Response, Error> {
+    let client = HttpClient::builder()
+        .timeout(timeout)
+        .build()
+        .map_err(|e| Error::ClientBuildingError { err: e.into() })?;
+
+    let response = client
+        .get(url.clone())
+        .send()
+        .await
+        .map_err(|e| Error::ResponseError { err: e.into() })?;
+
+    if response.status().is_success() {
+        Ok(response)
+    } else {
+        Err(Error::UnsuccessfulResponse {
+            code: response.status(),
+            response: response.into(),
+        })
     }
 }

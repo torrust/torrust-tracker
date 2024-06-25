@@ -8,9 +8,12 @@ use std::time::Duration;
 use std::{env, process};
 
 use reqwest::Client;
+use tracing::Level;
 
 #[tokio::main]
 async fn main() {
+    let () = tracing_subscriber::fmt().compact().with_max_level(Level::TRACE).init();
+
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
         eprintln!("Usage:   cargo run --bin http_health_check <HEALTH_URL>");

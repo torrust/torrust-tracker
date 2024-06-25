@@ -27,236 +27,167 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
-use axum_server::Handle;
-use derive_more::Constructor;
-use futures::future::BoxFuture;
-use tokio::sync::oneshot::{Receiver, Sender};
+use derive_more::{Constructor, Display};
+use futures::{FutureExt as _, TryFutureExt as _};
 use torrust_tracker_configuration::AccessTokens;
-use tracing::{debug, error, info};
+use torrust_tracker_located_error::DynError;
+use tracing::info;
 
 use super::routes::router;
-use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
 use crate::servers::custom_axum_server::{self, TimeoutAcceptor};
-use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
-use crate::servers::signals::{graceful_shutdown, Halted};
+use crate::servers::registar::{self, HealthCheckFactory, HeathCheckFuture, HeathCheckResult};
+use crate::servers::service::{self, AddrFuture, Error, TaskFuture};
+use crate::servers::signals::Halted;
+use crate::servers::tcp::graceful_axum_shutdown;
 
-/// Errors that can occur when starting or stopping the API server.
-#[derive(Debug)]
-pub enum Error {
-    Error(String),
-}
-
-/// An alias for the `ApiServer` struct with the `Stopped` state.
-#[allow(clippy::module_name_repetitions)]
-pub type StoppedApiServer = ApiServer<Stopped>;
-
-/// An alias for the `ApiServer` struct with the `Running` state.
-#[allow(clippy::module_name_repetitions)]
-pub type RunningApiServer = ApiServer<Running>;
-
-/// A struct responsible for starting and stopping an API server with a
-/// specific configuration and keeping track of the started server.
+/// Build a health check future task for checking
+/// the http api health check endpoint.
 ///
-/// It's a state machine that can be in one of two
-/// states: `Stopped` or `Running`.
-#[allow(clippy::module_name_repetitions)]
-pub struct ApiServer<S> {
-    pub state: S,
+#[must_use]
+fn check_builder(addr: SocketAddr) -> HeathCheckFuture<'static> {
+    let url = format!("http://{addr}/api/health_check");
+
+    info!("checking api health check at: {url}");
+
+    let response = reqwest::get(url)
+        .map_err(move |e| registar::Error::UnableToGetAnyResponse {
+            addr,
+            msg: "Udp Client".to_string(),
+            err: DynError::into(Arc::new(e)),
+        })
+        .boxed();
+
+    let check = response
+        .and_then(move |r| async move {
+            r.error_for_status()
+                .map_err(move |e| registar::Error::UnableToObtainGoodResponse {
+                    addr,
+                    msg: "Udp Client".to_string(),
+                    err: DynError::into(Arc::new(e)),
+                })
+        })
+        .boxed();
+
+    check
+        .map_ok(move |r| registar::Success::AllGood {
+            addr,
+            msg: r.status().to_string(),
+        })
+        .map(HeathCheckResult::from)
+        .boxed()
 }
 
-/// The `Stopped` state of the `ApiServer` struct.
-pub struct Stopped {
-    launcher: Launcher,
+#[derive(Debug)]
+pub struct ApiHandle {
+    pub axum_handle: axum_server::Handle,
+    tx_shutdown: Option<tokio::sync::oneshot::Sender<Halted>>,
 }
 
-/// The `Running` state of the `ApiServer` struct.
-pub struct Running {
-    pub binding: SocketAddr,
-    pub halt_task: tokio::sync::oneshot::Sender<Halted>,
-    pub task: tokio::task::JoinHandle<Launcher>,
+impl ApiHandle {
+    fn shutdown(&mut self) -> Result<(), Error> {
+        if let Some(tx) = self.tx_shutdown.take() {
+            tx.send(Halted::Normal)
+                .map_err(|err| Error::UnableToSendHaltingMessage { err })?;
+        } else {
+            panic!("it has already taken the channel?");
+        };
+
+        Ok(())
+    }
 }
 
-impl Running {
-    #[must_use]
-    pub fn new(
-        binding: SocketAddr,
-        halt_task: tokio::sync::oneshot::Sender<Halted>,
-        task: tokio::task::JoinHandle<Launcher>,
-    ) -> Self {
+impl Default for ApiHandle {
+    fn default() -> Self {
+        let (tx_shutdown, rx_shutdown) = tokio::sync::oneshot::channel::<Halted>();
+
+        let axum_handle = axum_server::Handle::default();
+
+        let () = graceful_axum_shutdown(axum_handle.clone(), rx_shutdown, "Api service".to_owned());
+
         Self {
-            binding,
-            halt_task,
-            task,
+            axum_handle: axum_server::Handle::new(),
+            tx_shutdown: Some(tx_shutdown),
         }
     }
 }
 
-impl ApiServer<Stopped> {
-    #[must_use]
-    pub fn new(launcher: Launcher) -> Self {
-        Self {
-            state: Stopped { launcher },
-        }
+impl service::Handle for ApiHandle {
+    fn stop(mut self) -> Result<(), Error> {
+        self.shutdown()
     }
 
-    /// Starts the API server with the given configuration.
-    ///
-    /// # Errors
-    ///
-    /// It would return an error if no `SocketAddr` is returned after launching the server.
-    ///
-    /// # Panics
-    ///
-    /// It would panic if the bound socket address cannot be sent back to this starter.
-    pub async fn start(
-        self,
-        tracker: Arc<Tracker>,
-        form: ServiceRegistrationForm,
-        access_tokens: Arc<AccessTokens>,
-    ) -> Result<ApiServer<Running>, Error> {
-        let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
-        let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
+    fn listening(&self) -> AddrFuture<'_> {
+        self.axum_handle.listening().boxed()
+    }
 
-        let launcher = self.state.launcher;
+    fn into_graceful_shutdown_future<'a>(self) -> futures::prelude::future::BoxFuture<'a, Result<(), Error>> {
+        todo!()
+    }
+}
 
-        let task = tokio::spawn(async move {
-            debug!(target: "API", "Starting with launcher in spawned task ...");
+impl Drop for ApiHandle {
+    fn drop(&mut self) {
+        self.shutdown().expect("it should shutdown when dropped");
+    }
+}
 
-            let _task = launcher.start(tracker, access_tokens, tx_start, rx_halt).await;
+#[derive(Constructor, Clone, Debug, Display)]
+#[display(fmt = "intended_address: {addr}, with tracker, tokens, and  {}", "self.have_tls()")]
+pub struct ApiLauncher {
+    pub tracker: Arc<Tracker>,
+    pub access_tokens: Arc<AccessTokens>,
+    pub addr: SocketAddr,
+    pub tls: Option<RustlsConfig>,
+}
 
-            debug!(target: "API", "Started with launcher in spawned task");
+impl ApiLauncher {
+    fn have_tls(&self) -> String {
+        match self.tls {
+            Some(_) => "some",
+            None => "none",
+        }
+        .to_string()
+    }
+}
 
-            launcher
-        });
+impl service::Launcher<ApiHandle> for ApiLauncher {
+    fn start(self) -> Result<(TaskFuture<'static, (), Error>, ApiHandle, HealthCheckFactory), Error> {
+        let handle = ApiHandle::default();
 
-        let api_server = match rx_start.await {
-            Ok(started) => {
-                form.send(ServiceRegistration::new(started.address, check_fn))
-                    .expect("it should be able to send service registration");
+        let running: TaskFuture<'_, (), Error> = {
+            let listener = std::net::TcpListener::bind(self.addr).map_err(|e| Error::UnableToBindToSocket {
+                addr: self.addr,
+                err: e.into(),
+            })?;
 
-                ApiServer {
-                    state: Running::new(started.address, tx_halt, task),
-                }
-            }
-            Err(err) => {
-                let msg = format!("Unable to start API server: {err}");
-                error!("{}", msg);
-                panic!("{}", msg);
+            let addr = listener
+                .local_addr()
+                .map_err(|e| Error::UnableToGetLocalAddress { err: e.into() })?;
+
+            let make_service =
+                router(self.tracker, self.access_tokens, &addr).into_make_service_with_connect_info::<std::net::SocketAddr>();
+
+            match self.tls.clone() {
+                Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(listener, tls)
+                    .handle(handle.axum_handle.clone())
+                    .acceptor(TimeoutAcceptor)
+                    .serve(make_service)
+                    .map_err(|e| Error::UnableToServe { err: e.into() })
+                    .boxed(),
+
+                None => custom_axum_server::from_tcp_with_timeouts(listener)
+                    .handle(handle.axum_handle.clone())
+                    .acceptor(TimeoutAcceptor)
+                    .serve(make_service)
+                    .map_err(|e| Error::UnableToServe { err: e.into() })
+                    .boxed(),
             }
         };
 
-        Ok(api_server)
-    }
-}
+        let check_factory = HealthCheckFactory::new(check_builder);
 
-impl ApiServer<Running> {
-    /// Stops the API server.
-    ///
-    /// # Errors
-    ///
-    /// It would return an error if the channel for the task killer signal was closed.
-    pub async fn stop(self) -> Result<ApiServer<Stopped>, Error> {
-        self.state
-            .halt_task
-            .send(Halted::Normal)
-            .map_err(|_| Error::Error("Task killer channel was closed.".to_string()))?;
-
-        let launcher = self.state.task.await.map_err(|e| Error::Error(e.to_string()))?;
-
-        Ok(ApiServer {
-            state: Stopped { launcher },
-        })
-    }
-}
-
-/// Checks the Health by connecting to the API service endpoint.
-///
-/// # Errors
-///
-/// This function will return an error if unable to connect.
-/// Or if there request returns an error code.
-#[must_use]
-pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
-    let url = format!("http://{binding}/api/health_check"); // DevSkim: ignore DS137138
-
-    let info = format!("checking api health check at: {url}");
-
-    let job = tokio::spawn(async move {
-        match reqwest::get(url).await {
-            Ok(response) => Ok(response.status().to_string()),
-            Err(err) => Err(err.to_string()),
-        }
-    });
-    ServiceHealthCheckJob::new(*binding, info, job)
-}
-
-/// A struct responsible for starting the API server.
-#[derive(Constructor, Debug)]
-pub struct Launcher {
-    bind_to: SocketAddr,
-    tls: Option<RustlsConfig>,
-}
-
-impl Launcher {
-    /// Starts the API server with graceful shutdown.
-    ///
-    /// If TLS is enabled in the configuration, it will start the server with
-    /// TLS. See [`torrust-tracker-configuration`](torrust_tracker_configuration)
-    /// for more  information about configuration.
-    ///
-    /// # Panics
-    ///
-    /// Will panic if unable to bind to the socket, or unable to get the address of the bound socket.
-    /// Will also panic if unable to send message regarding the bound socket address.
-    pub fn start(
-        &self,
-        tracker: Arc<Tracker>,
-        access_tokens: Arc<AccessTokens>,
-        tx_start: Sender<Started>,
-        rx_halt: Receiver<Halted>,
-    ) -> BoxFuture<'static, ()> {
-        let router = router(tracker, access_tokens);
-        let socket = std::net::TcpListener::bind(self.bind_to).expect("Could not bind tcp_listener to address.");
-        let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
-
-        let handle = Handle::new();
-
-        tokio::task::spawn(graceful_shutdown(
-            handle.clone(),
-            rx_halt,
-            format!("Shutting down tracker API server on socket address: {address}"),
-        ));
-
-        let tls = self.tls.clone();
-        let protocol = if tls.is_some() { "https" } else { "http" };
-
-        info!(target: "API", "Starting on {protocol}://{}", address);
-
-        let running = Box::pin(async {
-            match tls {
-                Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls)
-                    .handle(handle)
-                    .acceptor(TimeoutAcceptor)
-                    .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
-                    .await
-                    .expect("Axum server for tracker API crashed."),
-                None => custom_axum_server::from_tcp_with_timeouts(socket)
-                    .handle(handle)
-                    .acceptor(TimeoutAcceptor)
-                    .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
-                    .await
-                    .expect("Axum server for tracker API crashed."),
-            }
-        });
-
-        info!(target: "API", "Started on {protocol}://{}", address);
-
-        tx_start
-            .send(Started { address })
-            .expect("the HTTP(s) Tracker API service should not be dropped");
-
-        running
+        Ok((running, handle, check_factory))
     }
 }
 
@@ -266,36 +197,41 @@ mod tests {
 
     use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
 
-    use crate::bootstrap::app::initialize_with_configuration;
+    use crate::bootstrap::app::tracker;
     use crate::bootstrap::jobs::make_rust_tls;
-    use crate::servers::apis::server::{ApiServer, Launcher};
+    use crate::servers::apis::server::ApiLauncher;
     use crate::servers::registar::Registar;
+    use crate::servers::service::Service;
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
         let cfg = Arc::new(ephemeral_mode_public());
         let config = &cfg.http_api.clone().unwrap();
 
-        let tracker = initialize_with_configuration(&cfg);
+        let tracker = tracker(&cfg);
 
-        let bind_to = config.bind_address;
+        let addr = config.bind_address;
 
-        let tls = make_rust_tls(&config.tsl_config)
-            .await
-            .map(|tls| tls.expect("tls config failed"));
+        let tls = match &config.tsl_config {
+            Some(tls_config) => Some(
+                make_rust_tls(tls_config)
+                    .await
+                    .expect("it should have a valid tracker api tls configuration"),
+            ),
+            None => None,
+        };
 
         let access_tokens = Arc::new(config.access_tokens.clone());
 
-        let stopped = ApiServer::new(Launcher::new(bind_to, tls));
-
         let register = &Registar::default();
 
-        let started = stopped
-            .start(tracker, register.give_form(), access_tokens)
-            .await
-            .expect("it should start the server");
+        let stopped = Service::new(ApiLauncher::new(tracker, access_tokens, addr, tls));
+
+        let started = stopped.start().expect("it should start the server");
+        let () = started.reg_form(register.form()).await.expect("it should register");
+
         let stopped = started.stop().await.expect("it should stop the server");
 
-        assert_eq!(stopped.state.launcher.bind_to, bind_to);
+        drop(stopped);
     }
 }

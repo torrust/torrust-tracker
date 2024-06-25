@@ -13,86 +13,83 @@
 //! ```text
 //! cargo run --bin http_tracker_client scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq
 //! ```
-use std::str::FromStr;
+use std::time::Duration;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 use reqwest::Url;
 use torrust_tracker_primitives::info_hash::InfoHash;
+use tracing::Level;
 
-use crate::shared::bit_torrent::tracker::http::client::requests::announce::QueryBuilder;
-use crate::shared::bit_torrent::tracker::http::client::responses::announce::Announce;
-use crate::shared::bit_torrent::tracker::http::client::responses::scrape;
-use crate::shared::bit_torrent::tracker::http::client::{requests, Client};
+use crate::console::clients::http::{check_http_announce, check_http_scrape};
+use crate::console::clients::{parse_info_hash, parse_url, DEFAULT_TIMEOUT_SEC};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     #[command(subcommand)]
     command: Command,
+
+    #[arg(value_parser = parse_url, help = "tracker url")]
+    addr: Url,
+
+    /// Name of the person to greet
+    #[arg(long, default_value = DEFAULT_TIMEOUT_SEC, help = "connection timeout in seconds")]
+    timeout_sec: u64,
 }
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    Announce { tracker_url: String, info_hash: String },
-    Scrape { tracker_url: String, info_hashes: Vec<String> },
+    Announce {
+        #[arg(value_parser = parse_info_hash)]
+        info_hash: InfoHash,
+    },
+    Scrape {
+        #[arg(value_parser = parse_info_hash, num_args = 1..=74, value_delimiter = ' ')]
+        info_hashes: Vec<InfoHash>,
+    },
 }
 
 /// # Errors
 ///
 /// Will return an error if the command fails.
 pub async fn run() -> anyhow::Result<()> {
+    let () = tracing_subscriber::fmt().compact().with_max_level(Level::TRACE).init();
+
     let args = Args::parse();
 
+    let timeout = Duration::from_secs(args.timeout_sec);
+
     match args.command {
-        Command::Announce { tracker_url, info_hash } => {
-            announce_command(tracker_url, info_hash).await?;
+        Command::Announce { info_hash } => {
+            announce_command(args.addr, &timeout, &info_hash).await?;
         }
-        Command::Scrape {
-            tracker_url,
-            info_hashes,
-        } => {
-            scrape_command(&tracker_url, &info_hashes).await?;
+        Command::Scrape { info_hashes } => {
+            scrape_command(&args.addr, &timeout, &info_hashes).await?;
         }
     }
 
     Ok(())
 }
 
-async fn announce_command(tracker_url: String, info_hash: String) -> anyhow::Result<()> {
-    let base_url = Url::parse(&tracker_url).context("failed to parse HTTP tracker base URL")?;
-    let info_hash =
-        InfoHash::from_str(&info_hash).expect("Invalid infohash. Example infohash: `9c38422213e30bff212b30c360d26f9a02136422`");
+async fn announce_command(addr: Url, timeout: &Duration, info_hash: &InfoHash) -> anyhow::Result<()> {
+    let response = check_http_announce(&addr, timeout, info_hash)
+        .await
+        .context("it should get a announce response")?;
 
-    let response = Client::new(base_url)?
-        .announce(&QueryBuilder::with_default_values().with_info_hash(&info_hash).query())
-        .await?;
-
-    let body = response.bytes().await?;
-
-    let announce_response: Announce = serde_bencode::from_bytes(&body)
-        .unwrap_or_else(|_| panic!("response body should be a valid announce response, got: \"{:#?}\"", &body));
-
-    let json = serde_json::to_string(&announce_response).context("failed to serialize scrape response into JSON")?;
+    let json = serde_json::to_string(&response).context("failed to serialize scrape response into JSON")?;
 
     println!("{json}");
 
     Ok(())
 }
 
-async fn scrape_command(tracker_url: &str, info_hashes: &[String]) -> anyhow::Result<()> {
-    let base_url = Url::parse(tracker_url).context("failed to parse HTTP tracker base URL")?;
+async fn scrape_command(addr: &Url, timeout: &Duration, info_hashes: &[InfoHash]) -> anyhow::Result<()> {
+    let response = check_http_scrape(addr, timeout, info_hashes)
+        .await
+        .context("it should get the scrape result")?;
 
-    let query = requests::scrape::Query::try_from(info_hashes).context("failed to parse infohashes")?;
-
-    let response = Client::new(base_url)?.scrape(&query).await?;
-
-    let body = response.bytes().await?;
-
-    let scrape_response = scrape::Response::try_from_bencoded(&body)
-        .unwrap_or_else(|_| panic!("response body should be a valid scrape response, got: \"{:#?}\"", &body));
-
-    let json = serde_json::to_string(&scrape_response).context("failed to serialize scrape response into JSON")?;
+    let json = serde_json::to_string(&response).context("failed to serialize scrape response into JSON")?;
 
     println!("{json}");
 

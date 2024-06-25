@@ -165,6 +165,9 @@ use tracing::info;
 use crate::{app, bootstrap};
 
 pub async fn run() {
+    let (config, level) = bootstrap::app::config();
+    let () = tracing_subscriber::fmt().compact().with_max_level(level).init();
+
     // Parse command line arguments
     let args: Vec<String> = env::args().collect();
 
@@ -180,7 +183,7 @@ pub async fn run() {
         return;
     };
 
-    let (config, tracker) = bootstrap::app::setup();
+    let tracker = bootstrap::app::tracker(&config);
 
     let jobs = app::start(&config, tracker).await;
 

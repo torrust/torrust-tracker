@@ -480,6 +480,8 @@ use crate::CurrentClock;
 /// > **NOTICE**: the `Tracker` is not responsible for handling the network layer.
 /// > Typically, the `Tracker` is used by a higher application service that handles
 /// > the network layer.
+#[derive(Debug)]
+
 pub struct Tracker {
     announce_policy: AnnouncePolicy,
     /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)
@@ -524,7 +526,7 @@ impl ScrapeData {
 
     /// Creates a new `ScrapeData` with zeroed metadata for each torrent.
     #[must_use]
-    pub fn zeroed(info_hashes: &Vec<InfoHash>) -> Self {
+    pub fn zeroed(info_hashes: &[InfoHash]) -> Self {
         let mut scrape_data = Self::empty();
 
         for info_hash in info_hashes {
@@ -650,7 +652,7 @@ impl Tracker {
     /// # Context: Tracker
     ///
     /// BEP 48: [Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html).
-    pub async fn scrape(&self, info_hashes: &Vec<InfoHash>) -> ScrapeData {
+    pub async fn scrape(&self, info_hashes: &[InfoHash]) -> ScrapeData {
         let mut scrape_data = ScrapeData::empty();
 
         for info_hash in info_hashes {
@@ -1441,7 +1443,7 @@ mod tests {
                         .await;
 
                     // Scrape
-                    let scrape_data = tracker.scrape(&vec![info_hash]).await;
+                    let scrape_data = tracker.scrape(&[info_hash]).await;
 
                     // The expected swarm metadata for the file
                     let mut expected_scrape_data = ScrapeData::empty();
@@ -1576,7 +1578,7 @@ mod tests {
                     let mut expected_scrape_data = ScrapeData::empty();
                     expected_scrape_data.add_file_with_zeroed_metadata(&sample_info_hash);
 
-                    assert_eq!(ScrapeData::zeroed(&vec![sample_info_hash]), expected_scrape_data);
+                    assert_eq!(ScrapeData::zeroed(&[sample_info_hash]), expected_scrape_data);
                 }
 
                 #[tokio::test]
@@ -1592,7 +1594,7 @@ mod tests {
                     let mut peer = complete_peer();
                     tracker.announce(&info_hash, &mut peer, &peer_ip()).await;
 
-                    let scrape_data = tracker.scrape(&vec![info_hash]).await;
+                    let scrape_data = tracker.scrape(&[info_hash]).await;
 
                     // The expected zeroed swarm metadata for the file
                     let mut expected_scrape_data = ScrapeData::empty();

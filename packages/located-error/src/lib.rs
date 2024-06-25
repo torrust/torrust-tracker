@@ -137,4 +137,5 @@ mod tests {
 
         assert_eq!(b.location.file(), l.file());
     }
+
 }

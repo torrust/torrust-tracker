@@ -16,7 +16,7 @@ async fn should_allow_getting_tracker_statistics() {
 
     env.add_torrent_peer(
         &InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(),
-        &PeerBuilder::default().into(),
+        &PeerBuilder::default().build(),
     )
     .await;
 

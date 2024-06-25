@@ -6,7 +6,7 @@ use std::time::Duration;
 use aquatic_udp_protocol::{Request, Response, TransactionId};
 use torrust_tracker_primitives::info_hash::InfoHash;
 
-use super::handlers::RequestId;
+use super::v0::handlers::RequestId;
 
 pub fn log_request(request: &Request, request_id: &RequestId, server_socket_addr: &SocketAddr) {
     let action = map_action_name(request);
@@ -24,7 +24,7 @@ pub fn log_request(request: &Request, request_id: &RequestId, server_socket_addr
             let transaction_id = announce_request.transaction_id;
             let transaction_id_str = transaction_id.0.to_string();
             let connection_id_str = announce_request.connection_id.0.to_string();
-            let info_hash_str = InfoHash::from_bytes(&announce_request.info_hash.0).to_hex_string();
+            let info_hash_str = InfoHash::from(announce_request.info_hash.0).to_hex_string();
 
             tracing::span!(
                 target: "UDP TRACKER",

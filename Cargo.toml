@@ -68,7 +68,7 @@ serde_bytes = "0"
 serde_json = { version = "1", features = ["preserve_order"] }
 serde_repr = "0"
 thiserror = "1"
-tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "tracing"] }
 torrust-tracker-clock = { version = "3.0.0-alpha.12-develop", path = "packages/clock" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "packages/configuration" }
 torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.12-develop", path = "contrib/bencode" }
@@ -77,9 +77,8 @@ torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "packa
 torrust-tracker-torrent-repository = { version = "3.0.0-alpha.12-develop", path = "packages/torrent-repository" }
 tower = { version = "0.4.13", features = ["timeout"] }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
-trace = "0"
 tracing = "0"
-tracing-subscriber = { version = "0.3.18", features = ["json"] }
+tracing-subscriber = { version = "0", features = ["json"] }
 url = "2"
 uuid = { version = "1", features = ["v4"] }
 zerocopy = "0.7.33"
@@ -90,6 +89,7 @@ ignored = ["crossbeam-skiplist", "dashmap", "figment", "parking_lot", "serde_byt
 [dev-dependencies]
 local-ip-address = "0"
 mockall = "0"
+rstest = "0"
 torrust-tracker-test-helpers = { version = "3.0.0-alpha.12-develop", path = "packages/test-helpers" }
 
 [workspace]

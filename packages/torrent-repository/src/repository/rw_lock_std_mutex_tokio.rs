@@ -1,9 +1,8 @@
 use std::iter::zip;
-use std::pin::Pin;
 use std::sync::Arc;
 
-use futures::future::join_all;
-use futures::{Future, FutureExt};
+use futures::future::{join_all, BoxFuture};
+use futures::FutureExt as _;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
@@ -122,7 +121,7 @@ where
     }
 
     async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
-        let handles: Vec<Pin<Box<dyn Future<Output = ()> + Send>>>;
+        let handles: Vec<BoxFuture<'_, ()>>;
         {
             let db = self.get_torrents();
             handles = db
@@ -135,7 +134,7 @@ where
     }
 
     async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
-        let handles: Vec<Pin<Box<dyn Future<Output = Option<InfoHash>> + Send>>>;
+        let handles: Vec<BoxFuture<'_, Option<InfoHash>>>;
 
         {
             let db = self.get_torrents();

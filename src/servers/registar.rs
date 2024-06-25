@@ -2,100 +2,157 @@
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::sync::Arc;
+use std::sync::{Arc, LockResult, Mutex, MutexGuard};
 
-use derive_more::Constructor;
-use tokio::sync::Mutex;
-use tokio::task::JoinHandle;
+use derive_more::{AsRef, Constructor, DebugCustom, Display, From};
+use futures::future::BoxFuture;
+use thiserror::Error;
+use torrust_tracker_located_error::DynError;
 use tracing::debug;
 
-/// A [`ServiceHeathCheckResult`] is returned by a completed health check.
-pub type ServiceHeathCheckResult = Result<String, String>;
+/// A [`HeathCheckFuture`] preforms a health check when spawned.
+pub type HeathCheckFuture<'a> = BoxFuture<'a, HeathCheckResult>;
 
-/// The [`ServiceHealthCheckJob`] has a health check job with it's metadata
+pub type HealthCheckBuilder = fn(SocketAddr) -> HeathCheckFuture<'static>;
+
+#[derive(Error, Debug, Clone)]
+pub enum Error {
+    #[error("Failed Check: for {addr}, {msg}")]
+    UnableToPreformSuccessfulHealthCheck { addr: SocketAddr, msg: String },
+
+    #[error("Failed To Connect to {addr}, {msg}, err: {err}")]
+    UnableToConnectToRemote { addr: SocketAddr, msg: String, err: DynError },
+
+    #[error("Failed To Preform Check {addr}, {msg}, err: {err}")]
+    UnableToPreformCheck { addr: SocketAddr, msg: String, err: DynError },
+
+    #[error("Failed To Get A Successful Response {addr}, {msg}, err: {err}")]
+    UnableToObtainGoodResponse { addr: SocketAddr, msg: String, err: DynError },
+
+    #[error("Failed To Get Any Response {addr}, {msg}, err: {err}")]
+    UnableToGetAnyResponse { addr: SocketAddr, msg: String, err: DynError },
+}
+
+#[derive(Error, Debug, Display, Clone)]
+pub enum Success {
+    #[display(fmt = "Success: {addr}, {msg}")]
+    AllGood { addr: SocketAddr, msg: String },
+}
+
+#[derive(Clone, Debug, AsRef, Display, From)]
+#[display(fmt = "Result: {}", "self.get_result_display()")]
+pub struct HeathCheckResult(Result<Success, Error>);
+
+impl HeathCheckResult {
+    fn get_result_display(&self) -> String {
+        let result = self.as_ref().clone();
+
+        result.map_or_else(|e| e.to_string(), |f| format!("Ok: {f}"))
+    }
+}
+
+/// The [`ServiceHealthCheck`] provides a builder that generates check futures.
 ///
-/// The `job` awaits a [`ServiceHeathCheckResult`].
+#[derive(AsRef, Constructor, Clone, DebugCustom)]
+#[debug(fmt = "...")]
+pub struct HealthCheckFactory {
+    pub builder: HealthCheckBuilder,
+}
+
+impl HealthCheckFactory {
+    fn make<'a>(&self, addr: SocketAddr) -> HeathCheckFuture<'a> {
+        (self.builder)(addr)
+    }
+}
+
+/// The [`Registration`] [`Form`] is provided to the [`Registar`] for registration.
+///
+pub type Form = tokio::sync::oneshot::Sender<Registration>;
+
+/// A [`Registration`] is provided to the [`Registar`] for registration.
+///
 #[derive(Debug, Constructor)]
-pub struct ServiceHealthCheckJob {
-    pub binding: SocketAddr,
-    pub info: String,
-    pub job: JoinHandle<ServiceHeathCheckResult>,
+pub struct Registration {
+    addr: SocketAddr,
+    check_factory: HealthCheckFactory,
 }
 
-/// The function specification [`FnSpawnServiceHeathCheck`].
-///
-/// A function fulfilling this specification will spawn a new [`ServiceHealthCheckJob`].
-pub type FnSpawnServiceHeathCheck = fn(&SocketAddr) -> ServiceHealthCheckJob;
-
-/// A [`ServiceRegistration`] is provided to the [`Registar`] for registration.
-///
-/// Each registration includes a function that fulfils the [`FnSpawnServiceHeathCheck`] specification.
-#[derive(Clone, Debug, Constructor)]
-pub struct ServiceRegistration {
-    binding: SocketAddr,
-    check_fn: FnSpawnServiceHeathCheck,
-}
-
-impl ServiceRegistration {
+impl Registration {
+    /// Creates the Check Task Future
+    ///
+    /// Note: This future  is not spawned yet.
     #[must_use]
-    pub fn spawn_check(&self) -> ServiceHealthCheckJob {
-        (self.check_fn)(&self.binding)
+    pub fn check_task<'a>(&self) -> HeathCheckFuture<'a> {
+        self.check_factory.make(self.addr)
     }
 }
 
-/// A [`ServiceRegistrationForm`] will return a completed [`ServiceRegistration`] to the [`Registar`].
-pub type ServiceRegistrationForm = tokio::sync::oneshot::Sender<ServiceRegistration>;
+type Db = HashMap<SocketAddr, Registration>;
 
-/// The [`ServiceRegistry`] contains each unique [`ServiceRegistration`] by it's [`SocketAddr`].
-pub type ServiceRegistry = Arc<Mutex<HashMap<SocketAddr, ServiceRegistration>>>;
+/// The [`Registry`] contains each unique [`ServiceRegistration`] by it's [`SocketAddr`].
+///
+#[derive(Default, Display)]
+#[display(fmt = "targets: {:?}", "self.targets()")]
+pub struct Registry {
+    db: Mutex<Db>,
+}
 
-/// The [`Registar`] manages the [`ServiceRegistry`].
-#[derive(Clone, Debug)]
+impl std::fmt::Debug for Registry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_list().entries(self.targets()).finish()
+    }
+}
+
+impl Registry {
+    /// Returns the locked db of this [`Registry`].
+    ///
+    /// # Errors
+    ///
+    /// This function will error if the lock is not functioning.
+    pub fn lock(&self) -> LockResult<MutexGuard<'_, Db>> {
+        self.db.lock()
+    }
+
+    fn targets(&self) -> Vec<SocketAddr> {
+        self.lock().expect("it should get a lock").keys().copied().collect()
+    }
+}
+
+/// The [`Registar`] manages the [`Registry`].
+///
+#[derive(Clone, AsRef, Debug, Display, Default)]
 pub struct Registar {
-    registry: ServiceRegistry,
-}
-
-#[allow(clippy::derivable_impls)]
-impl Default for Registar {
-    fn default() -> Self {
-        Self {
-            registry: ServiceRegistry::default(),
-        }
-    }
+    registry: Arc<Registry>,
 }
 
 impl Registar {
-    pub fn new(register: ServiceRegistry) -> Self {
-        Self { registry: register }
+    #[must_use]
+    pub fn new(register: Registry) -> Self {
+        Self {
+            registry: register.into(),
+        }
     }
 
-    /// Registers a Service
+    /// Gets the registration form and preforms the asynchronous registration.
+    ///
+    /// # Panics
+    ///
+    /// Inside the dropped future it can panic if the receiving channel is broken,
+    /// or if unable to get a lock for the registry.
     #[must_use]
-    pub fn give_form(&self) -> ServiceRegistrationForm {
-        let (tx, rx) = tokio::sync::oneshot::channel::<ServiceRegistration>();
-        let register = self.clone();
-        tokio::spawn(async move {
-            register.insert(rx).await;
-        });
+    pub fn form(&self) -> Form {
+        let (tx, rx) = tokio::sync::oneshot::channel::<Registration>();
+
+        let registry = self.registry.clone();
+
+        drop(tokio::spawn(async move {
+            let form = rx.await.expect("it should make a form");
+
+            let mut db = registry.db.lock().expect("it should get a lock");
+
+            db.insert(form.addr, form)
+        }));
+
         tx
-    }
-
-    /// Inserts a listing into the registry.
-    async fn insert(&self, rx: tokio::sync::oneshot::Receiver<ServiceRegistration>) {
-        debug!("Waiting for the started service to send registration data ...");
-
-        let service_registration = rx
-            .await
-            .expect("it should receive the service registration from the started service");
-
-        let mut mutex = self.registry.lock().await;
-
-        mutex.insert(service_registration.binding, service_registration);
-    }
-
-    /// Returns the [`ServiceRegistry`] of services
-    #[must_use]
-    pub fn entries(&self) -> ServiceRegistry {
-        self.registry.clone()
     }
 }

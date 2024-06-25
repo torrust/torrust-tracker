@@ -3,29 +3,18 @@ use std::panic::Location;
 
 use thiserror::Error;
 
+pub type ByteArray20 = [u8; 20];
+
 /// `BitTorrent` Info Hash v1
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Default, Debug)]
-pub struct InfoHash(pub [u8; 20]);
+pub struct InfoHash(pub ByteArray20);
 
 pub const INFO_HASH_BYTES_LEN: usize = 20;
 
 impl InfoHash {
-    /// Create a new `InfoHash` from a byte slice.
-    ///
-    /// # Panics
-    ///
-    /// Will panic if byte slice does not contains the exact amount of bytes need for the `InfoHash`.
-    #[must_use]
-    pub fn from_bytes(bytes: &[u8]) -> Self {
-        assert_eq!(bytes.len(), INFO_HASH_BYTES_LEN);
-        let mut ret = Self([0u8; INFO_HASH_BYTES_LEN]);
-        ret.0.clone_from_slice(bytes);
-        ret
-    }
-
     /// Returns the `InfoHash` internal byte array.
     #[must_use]
-    pub fn bytes(&self) -> [u8; 20] {
+    pub fn bytes(&self) -> ByteArray20 {
         self.0
     }
 
@@ -57,14 +46,30 @@ impl std::fmt::Display for InfoHash {
 }
 
 impl std::str::FromStr for InfoHash {
-    type Err = binascii::ConvertError;
+    type Err = ConversionError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        const INFO_HASH_CHAR_LEN: usize = INFO_HASH_BYTES_LEN * 2;
         let mut i = Self([0u8; 20]);
-        if s.len() != 40 {
-            return Err(binascii::ConvertError::InvalidInputLength);
+
+        if s.len() < INFO_HASH_CHAR_LEN {
+            return Err(ConversionError::NotEnoughBytes {
+                location: Location::caller(),
+                message: format! {"got {} string, expected {}", s.len(), INFO_HASH_CHAR_LEN},
+            });
         }
-        binascii::hex2bin(s.as_bytes(), &mut i.0)?;
+        if s.len() > INFO_HASH_CHAR_LEN {
+            return Err(ConversionError::TooManyBytes {
+                location: Location::caller(),
+                message: format! {"got {} string, expected {}", s.len(), INFO_HASH_CHAR_LEN},
+            });
+        }
+
+        binascii::hex2bin(s.as_bytes(), &mut i.0).map_err(|e| ConversionError::HexToBinError {
+            location: Location::caller(),
+            message: format! {"got {e:?} error"},
+        })?;
+
         Ok(i)
     }
 }
@@ -89,15 +94,15 @@ impl std::convert::From<&DefaultHasher> for InfoHash {
     }
 }
 
-impl std::convert::From<&i32> for InfoHash {
-    fn from(n: &i32) -> InfoHash {
+impl std::convert::From<i32> for InfoHash {
+    fn from(n: i32) -> InfoHash {
         let n = n.to_le_bytes();
         InfoHash([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, n[0], n[1], n[2], n[3]])
     }
 }
 
-impl std::convert::From<[u8; 20]> for InfoHash {
-    fn from(val: [u8; 20]) -> Self {
+impl std::convert::From<ByteArray20> for InfoHash {
+    fn from(val: ByteArray20) -> Self {
         InfoHash(val)
     }
 }
@@ -114,6 +119,12 @@ pub enum ConversionError {
     /// Too many bytes for infohash. An infohash is 20 bytes.
     #[error("too many bytes for infohash: {message} {location}")]
     TooManyBytes {
+        location: &'static Location<'static>,
+        message: String,
+    },
+
+    #[error("hex to bin didn't parse: {message} {location}")]
+    HexToBinError {
         location: &'static Location<'static>,
         message: String,
     },
@@ -135,7 +146,7 @@ impl TryFrom<Vec<u8>> for InfoHash {
                 message: format! {"got {} bytes, expected {}", bytes.len(), INFO_HASH_BYTES_LEN},
             });
         }
-        Ok(Self::from_bytes(&bytes))
+        Ok((*bytes).into())
     }
 }
 

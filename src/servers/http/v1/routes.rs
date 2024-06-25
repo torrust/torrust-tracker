@@ -28,7 +28,7 @@ const TIMEOUT: Duration = Duration::from_secs(5);
 /// > **NOTICE**: it's added a layer to get the client IP from the connection
 /// > info. The tracker could use the connection info to get the client IP.
 #[allow(clippy::needless_pass_by_value)]
-pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
+pub fn router(tracker: Arc<Tracker>, &addr: &SocketAddr) -> Router {
     Router::new()
         // Health check
         .route("/health_check", get(health_check::handler))
@@ -57,7 +57,7 @@ pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
 
                     tracing::span!(
                         target:"HTTP TRACKER",
-                        tracing::Level::INFO, "request", server_socket_addr= %server_socket_addr, method = %method, uri = %uri, request_id = %request_id);
+                        tracing::Level::INFO, "request", server_socket_addr= %addr, method = %method, uri = %uri, request_id = %request_id);
                 })
                 .on_response(move |response: &Response, latency: Duration, _span: &Span| {
                     let status_code = response.status();
@@ -70,7 +70,7 @@ pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
 
                     tracing::span!(
                         target: "HTTP TRACKER",
-                        tracing::Level::INFO, "response", server_socket_addr= %server_socket_addr, latency = %latency_ms, status = %status_code, request_id = %request_id);
+                        tracing::Level::INFO, "response", server_socket_addr= %addr, latency = %latency_ms, status = %status_code, request_id = %request_id);
                 }),
         )
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
