@@ -22,6 +22,7 @@ use tracing::{debug, Level, Span};
 
 use crate::bootstrap::jobs::Started;
 use crate::servers::health_check_api::handlers::health_check_handler;
+use crate::servers::health_check_api::HEALTH_CHECK_API_LOG_TARGET;
 use crate::servers::registar::ServiceRegistry;
 use crate::servers::signals::{graceful_shutdown, Halted};
 
@@ -56,7 +57,7 @@ pub fn start(
                         .unwrap_or_default();
 
                     tracing::span!(
-                        target: "HEALTH CHECK API",
+                        target: HEALTH_CHECK_API_LOG_TARGET,
                         tracing::Level::INFO, "request", method = %method, uri = %uri, request_id = %request_id);
                 })
                 .on_response(|response: &Response, latency: Duration, _span: &Span| {
@@ -69,7 +70,7 @@ pub fn start(
                     let latency_ms = latency.as_millis();
 
                     tracing::span!(
-                        target: "HEALTH CHECK API",
+                        target: HEALTH_CHECK_API_LOG_TARGET,
                         tracing::Level::INFO, "response", latency = %latency_ms, status = %status_code, request_id = %request_id);
                 }),
         )
@@ -80,7 +81,7 @@ pub fn start(
 
     let handle = Handle::new();
 
-    debug!(target: "HEALTH CHECK API", "Starting service with graceful shutdown in a spawned task ...");
+    debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting service with graceful shutdown in a spawned task ...");
 
     tokio::task::spawn(graceful_shutdown(
         handle.clone(),

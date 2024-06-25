@@ -42,7 +42,7 @@ use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
 use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{shutdown_signal_with_message, Halted};
-use crate::servers::udp::handlers;
+use crate::servers::udp::{handlers, UDP_TRACKER_LOG_TARGET};
 use crate::shared::bit_torrent::tracker::udp::client::check;
 use crate::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
 
@@ -150,7 +150,7 @@ impl UdpServer<Stopped> {
             },
         };
 
-        tracing::trace!(target: "UDP TRACKER: UdpServer<Stopped>::start", local_addr, "(running)");
+        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "UdpServer<Stopped>::start (running)");
 
         Ok(running_udp_server)
     }
@@ -248,7 +248,7 @@ impl BoundSocket {
         };
 
         let local_addr = format!("udp://{addr}");
-        tracing::debug!(target: "UDP TRACKER: UdpSocket::new", local_addr, "(bound)");
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "UdpSocket::new (bound)");
 
         Ok(Self {
             socket: Arc::new(socket),
@@ -347,6 +347,8 @@ impl Udp {
             format!("Halting UDP Service Bound to Socket: {bind_to}"),
         ));
 
+        tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting on: {bind_to}");
+
         let socket = tokio::time::timeout(Duration::from_millis(5000), BoundSocket::new(bind_to))
             .await
             .expect("it should bind to the socket within five seconds");
@@ -354,7 +356,7 @@ impl Udp {
         let bound_socket = match socket {
             Ok(socket) => socket,
             Err(e) => {
-                tracing::error!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown", addr = %bind_to, err = %e, "panic! (error when building socket)" );
+                tracing::error!(target: UDP_TRACKER_LOG_TARGET, addr = %bind_to, err = %e, "Udp::run_with_graceful_shutdown panic! (error when building socket)" );
                 panic!("could not bind to socket!");
             }
         };
@@ -364,18 +366,18 @@ impl Udp {
 
         // note: this log message is parsed by our container. i.e:
         //
-        // `[UDP TRACKER][INFO] Starting on: udp://`
+        // `INFO UDP TRACKER: Started on: udp://0.0.0.0:6969`
         //
-        tracing::info!(target: "UDP TRACKER", "Starting on: {local_udp_url}");
+        tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Started on: {local_udp_url}");
 
         let receiver = Receiver::new(bound_socket.into(), tracker);
 
-        tracing::trace!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown", local_udp_url, "(spawning main loop)");
+        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (spawning main loop)");
 
         let running = {
             let local_addr = local_udp_url.clone();
             tokio::task::spawn(async move {
-                tracing::debug!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown::task", local_addr, "(listening...)");
+                tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_with_graceful_shutdown::task (listening...)");
                 let () = Self::run_udp_server_main(receiver).await;
             })
         };
@@ -384,13 +386,13 @@ impl Udp {
             .send(Started { address })
             .expect("the UDP Tracker service should not be dropped");
 
-        tracing::debug!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown", local_udp_url, "(started)");
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (started)");
 
         let stop = running.abort_handle();
 
         select! {
-            _ = running => { tracing::debug!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown", local_udp_url, "(stopped)"); },
-            _ = halt_task => { tracing::debug!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown",local_udp_url, "(halting)"); }
+            _ = running => { tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (stopped)"); },
+            _ = halt_task => { tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (halting)"); }
         }
         stop.abort();
 
@@ -405,19 +407,19 @@ impl Udp {
 
         loop {
             if let Some(req) = {
-                tracing::trace!(target: "UDP TRACKER: Udp::run_udp_server", local_addr, "(wait for request)");
+                tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server (wait for request)");
                 receiver.next().await
             } {
-                tracing::trace!(target: "UDP TRACKER: Udp::run_udp_server::loop", local_addr, "(in)");
+                tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server::loop (in)");
 
                 let req = match req {
                     Ok(req) => req,
                     Err(e) => {
                         if e.kind() == std::io::ErrorKind::Interrupted {
-                            tracing::warn!(target: "UDP TRACKER: Udp::run_udp_server::loop", local_addr, err = %e,  "(interrupted)");
+                            tracing::warn!(target: UDP_TRACKER_LOG_TARGET, local_addr, err = %e,  "Udp::run_udp_server::loop (interrupted)");
                             return;
                         }
-                        tracing::error!(target: "UDP TRACKER: Udp::run_udp_server::loop", local_addr, err = %e,  "break: (got error)");
+                        tracing::error!(target: UDP_TRACKER_LOG_TARGET, local_addr, err = %e,  "Udp::run_udp_server::loop break: (got error)");
                         break;
                     }
                 };
@@ -450,13 +452,13 @@ impl Udp {
                         continue;
                     }
 
-                    tracing::debug!(target: "UDP TRACKER: Udp::run_udp_server::loop",  local_addr, removed_count = finished, "(got unfinished task)");
+                    tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, removed_count = finished, "Udp::run_udp_server::loop (got unfinished task)");
 
                     if finished == 0 {
                         // we have _no_ finished tasks.. will abort the unfinished task to make space...
                         h.abort();
 
-                        tracing::warn!(target: "UDP TRACKER: Udp::run_udp_server::loop",  local_addr, "aborting request: (no finished tasks)");
+                        tracing::warn!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server::loop aborting request: (no finished tasks)");
                         break;
                     }
 
@@ -476,19 +478,19 @@ impl Udp {
             } else {
                 tokio::task::yield_now().await;
                 // the request iterator returned `None`.
-                tracing::error!(target: "UDP TRACKER: Udp::run_udp_server",  local_addr, "breaking: (ran dry, should not happen in production!)");
+                tracing::error!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server breaking: (ran dry, should not happen in production!)");
                 break;
             }
         }
     }
 
     async fn process_request(request: UdpRequest, tracker: Arc<Tracker>, socket: Arc<BoundSocket>) {
-        tracing::trace!(target: "UDP TRACKER: Udp::process_request", request = %request.from, "(receiving)");
+        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, request = %request.from, "Udp::process_request (receiving)");
         Self::process_valid_request(tracker, socket, request).await;
     }
 
     async fn process_valid_request(tracker: Arc<Tracker>, socket: Arc<BoundSocket>, udp_request: UdpRequest) {
-        tracing::trace!(target: "UDP TRACKER: Udp::process_valid_request", "Making Response to {udp_request:?}");
+        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, "Udp::process_valid_request. Making Response to {udp_request:?}");
         let from = udp_request.from;
         let response = handlers::handle_packet(udp_request, &tracker.clone(), socket.local_addr()).await;
         Self::send_response(&socket.clone(), from, response).await;
@@ -503,7 +505,7 @@ impl Udp {
             Response::Error(e) => format!("Error: {e:?}"),
         };
 
-        tracing::debug!(target: "UDP TRACKER: Udp::send_response", target = ?to, response_type,  "(sending)");
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, target = ?to, response_type,  "Udp::send_response (sending)");
 
         let buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(buffer);
@@ -514,21 +516,21 @@ impl Udp {
                 let position = cursor.position() as usize;
                 let inner = cursor.get_ref();
 
-                tracing::debug!(target: "UDP TRACKER: Udp::send_response", ?to, bytes_count = &inner[..position].len(), "(sending...)" );
-                tracing::trace!(target: "UDP TRACKER: Udp::send_response", ?to, bytes_count = &inner[..position].len(), payload = ?&inner[..position], "(sending...)");
+                tracing::debug!(target: UDP_TRACKER_LOG_TARGET, ?to, bytes_count = &inner[..position].len(), "Udp::send_response (sending...)" );
+                tracing::trace!(target: UDP_TRACKER_LOG_TARGET, ?to, bytes_count = &inner[..position].len(), payload = ?&inner[..position], "Udp::send_response (sending...)");
 
                 Self::send_packet(bound_socket, &to, &inner[..position]).await;
 
-                tracing::trace!(target: "UDP TRACKER: Udp::send_response", ?to, bytes_count = &inner[..position].len(), "(sent)");
+                tracing::trace!(target:UDP_TRACKER_LOG_TARGET, ?to, bytes_count = &inner[..position].len(), "Udp::send_response (sent)");
             }
             Err(e) => {
-                tracing::error!(target: "UDP TRACKER: Udp::send_response", ?to, response_type, err = %e, "(error)");
+                tracing::error!(target: UDP_TRACKER_LOG_TARGET, ?to, response_type, err = %e, "Udp::send_response (error)");
             }
         }
     }
 
     async fn send_packet(socket: &Arc<BoundSocket>, remote_addr: &SocketAddr, payload: &[u8]) {
-        tracing::trace!(target: "UDP TRACKER: Udp::send_response", to = %remote_addr, ?payload, "(sending)");
+        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, to = %remote_addr, ?payload, "Udp::send_response (sending)");
 
         // doesn't matter if it reaches or not
         drop(socket.send_to(payload, remote_addr).await);

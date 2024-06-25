@@ -2,10 +2,11 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+use crate::servers::health_check_api::HEALTH_CHECK_API_LOG_TARGET;
+use crate::servers::http::HTTP_TRACKER_LOG_TARGET;
+use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
+
 const INFO_LOG_LEVEL: &str = "INFO";
-const UDP_TRACKER_LOG_TARGET: &str = "UDP TRACKER";
-const HTTP_TRACKER_LOG_TARGET: &str = "HTTP TRACKER";
-const HEALTH_CHECK_API_LOG_TARGET: &str = "HEALTH CHECK API";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct RunningServices {

@@ -13,6 +13,8 @@ use zerocopy::network_endian::I32;
 
 use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
 
+pub const UDP_CLIENT_LOG_TARGET: &str = "UDP CLIENT";
+
 /// Default timeout for sending and receiving packets. And waiting for sockets
 /// to be readable and writable.
 pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);
@@ -82,7 +84,7 @@ impl UdpClient {
     /// - Can't write to the socket.
     /// - Can't send data.
     pub async fn send(&self, bytes: &[u8]) -> Result<usize> {
-        debug!(target: "UDP client", "sending {bytes:?} ...");
+        debug!(target: UDP_CLIENT_LOG_TARGET, "sending {bytes:?} ...");
 
         match time::timeout(self.timeout, self.socket.writable()).await {
             Ok(writable_result) => {
@@ -115,7 +117,7 @@ impl UdpClient {
     pub async fn receive(&self) -> Result<Vec<u8>> {
         let mut response_buffer = [0u8; MAX_PACKET_SIZE];
 
-        debug!(target: "UDP client", "receiving ...");
+        debug!(target: UDP_CLIENT_LOG_TARGET, "receiving ...");
 
         match time::timeout(self.timeout, self.socket.readable()).await {
             Ok(readable_result) => {
@@ -138,7 +140,7 @@ impl UdpClient {
         let mut res: Vec<u8> = response_buffer.to_vec();
         Vec::truncate(&mut res, size);
 
-        debug!(target: "UDP client", "{size} bytes received {res:?}");
+        debug!(target: UDP_CLIENT_LOG_TARGET, "{size} bytes received {res:?}");
 
         Ok(res)
     }
@@ -168,7 +170,7 @@ impl UdpTrackerClient {
     ///
     /// Will return error if can't write request to bytes.
     pub async fn send(&self, request: Request) -> Result<usize> {
-        debug!(target: "UDP tracker client", "send request {request:?}");
+        debug!(target: UDP_CLIENT_LOG_TARGET, "send request {request:?}");
 
         // Write request into a buffer
         let request_buffer = vec![0u8; MAX_PACKET_SIZE];
@@ -196,7 +198,7 @@ impl UdpTrackerClient {
     pub async fn receive(&self) -> Result<Response> {
         let payload = self.udp_client.receive().await?;
 
-        debug!(target: "UDP tracker client", "received {} bytes. Response {payload:?}", payload.len());
+        debug!(target: UDP_CLIENT_LOG_TARGET, "received {} bytes. Response {payload:?}", payload.len());
 
         let response = Response::parse_bytes(&payload, true)?;
 
