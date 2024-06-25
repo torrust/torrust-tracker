@@ -357,7 +357,7 @@ impl Udp {
 
         let socket = socket.socket;
 
-        let direct = Receiver {
+        let receiver = Receiver {
             socket,
             tracker,
             data: RefCell::new([0; MAX_PACKET_SIZE]),
@@ -368,7 +368,7 @@ impl Udp {
             let local_addr = local_addr.clone();
             tokio::task::spawn(async move {
                 tracing::debug!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown::task", local_addr, "(listening...)");
-                let () = Self::run_udp_server_main(direct).await;
+                let () = Self::run_udp_server_main(receiver).await;
             })
         };
 
