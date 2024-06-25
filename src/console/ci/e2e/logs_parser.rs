@@ -2,10 +2,12 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+use crate::servers::health_check_api::HEALTH_CHECK_API_LOG_TARGET;
+use crate::servers::http::HTTP_TRACKER_LOG_TARGET;
+use crate::servers::logging::STARTED_ON;
+use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
+
 const INFO_LOG_LEVEL: &str = "INFO";
-const UDP_TRACKER_LOG_TARGET: &str = "UDP TRACKER";
-const HTTP_TRACKER_LOG_TARGET: &str = "HTTP TRACKER";
-const HEALTH_CHECK_API_LOG_TARGET: &str = "HEALTH CHECK API";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct RunningServices {
@@ -64,9 +66,9 @@ impl RunningServices {
         let mut http_trackers: Vec<String> = Vec::new();
         let mut health_checks: Vec<String> = Vec::new();
 
-        let udp_re = Regex::new(r"Started on: udp://([0-9.]+:[0-9]+)").unwrap();
-        let http_re = Regex::new(r"Started on: (https?://[0-9.]+:[0-9]+)").unwrap(); // DevSkim: ignore DS137138
-        let health_re = Regex::new(r"Started on: (https?://[0-9.]+:[0-9]+)").unwrap(); // DevSkim: ignore DS137138
+        let udp_re = Regex::new(&format!("{STARTED_ON}: {}", r"udp://([0-9.]+:[0-9]+)")).unwrap();
+        let http_re = Regex::new(&format!("{STARTED_ON}: {}", r"(https?://[0-9.]+:[0-9]+)")).unwrap(); // DevSkim: ignore DS137138
+        let health_re = Regex::new(&format!("{STARTED_ON}: {}", r"(https?://[0-9.]+:[0-9]+)")).unwrap(); // DevSkim: ignore DS137138
         let ansi_escape_re = Regex::new(r"\x1b\[[0-9;]*m").unwrap();
 
         for line in logs.lines() {

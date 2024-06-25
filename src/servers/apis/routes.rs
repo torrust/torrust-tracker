@@ -27,6 +27,7 @@ use super::v1;
 use super::v1::context::health_check::handlers::health_check_handler;
 use super::v1::middlewares::auth::State;
 use crate::core::Tracker;
+use crate::servers::apis::API_LOG_TARGET;
 
 const TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -60,7 +61,7 @@ pub fn router(tracker: Arc<Tracker>, access_tokens: Arc<AccessTokens>) -> Router
                         .unwrap_or_default();
 
                     tracing::span!(
-                        target: "API",
+                        target: API_LOG_TARGET,
                         tracing::Level::INFO, "request", method = %method, uri = %uri, request_id = %request_id);
                 })
                 .on_response(|response: &Response, latency: Duration, _span: &Span| {
@@ -73,7 +74,7 @@ pub fn router(tracker: Arc<Tracker>, access_tokens: Arc<AccessTokens>) -> Router
                     let latency_ms = latency.as_millis();
 
                     tracing::span!(
-                        target: "API",
+                        target: API_LOG_TARGET,
                         tracing::Level::INFO, "response", latency = %latency_ms, status = %status_code, request_id = %request_id);
                 }),
         )

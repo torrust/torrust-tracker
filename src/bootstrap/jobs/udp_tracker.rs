@@ -14,7 +14,9 @@ use tracing::debug;
 
 use crate::core;
 use crate::servers::registar::ServiceRegistrationForm;
-use crate::servers::udp::server::{Launcher, UdpServer};
+use crate::servers::udp::server::spawner::Spawner;
+use crate::servers::udp::server::Server;
+use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
 
 /// It starts a new UDP server with the provided configuration.
 ///
@@ -29,14 +31,14 @@ use crate::servers::udp::server::{Launcher, UdpServer};
 pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: ServiceRegistrationForm) -> JoinHandle<()> {
     let bind_to = config.bind_address;
 
-    let server = UdpServer::new(Launcher::new(bind_to))
+    let server = Server::new(Spawner::new(bind_to))
         .start(tracker, form)
         .await
         .expect("it should be able to start the udp tracker");
 
     tokio::spawn(async move {
-        debug!(target: "UDP TRACKER", "Wait for launcher (UDP service) to finish ...");
-        debug!(target: "UDP TRACKER", "Is halt channel closed before waiting?: {}", server.state.halt_task.is_closed());
+        debug!(target: UDP_TRACKER_LOG_TARGET, "Wait for launcher (UDP service) to finish ...");
+        debug!(target: UDP_TRACKER_LOG_TARGET, "Is halt channel closed before waiting?: {}", server.state.halt_task.is_closed());
 
         assert!(
             !server.state.halt_task.is_closed(),
@@ -49,6 +51,6 @@ pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: S
             .await
             .expect("it should be able to join to the udp tracker task");
 
-        debug!(target: "UDP TRACKER", "Is halt channel closed after finishing the server?: {}", server.state.halt_task.is_closed());
+        debug!(target: UDP_TRACKER_LOG_TARGET, "Is halt channel closed after finishing the server?: {}", server.state.halt_task.is_closed());
     })
 }

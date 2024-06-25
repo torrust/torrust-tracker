@@ -309,6 +309,8 @@ pub mod percent_encoding;
 pub mod server;
 pub mod v1;
 
+pub const HTTP_TRACKER_LOG_TARGET: &str = "HTTP TRACKER";
+
 /// The version of the HTTP tracker.
 #[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Version {

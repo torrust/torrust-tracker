@@ -37,7 +37,9 @@ use tracing::{debug, error, info};
 use super::routes::router;
 use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
+use crate::servers::apis::API_LOG_TARGET;
 use crate::servers::custom_axum_server::{self, TimeoutAcceptor};
+use crate::servers::logging::STARTED_ON;
 use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{graceful_shutdown, Halted};
 
@@ -121,11 +123,11 @@ impl ApiServer<Stopped> {
         let launcher = self.state.launcher;
 
         let task = tokio::spawn(async move {
-            debug!(target: "API", "Starting with launcher in spawned task ...");
+            debug!(target: API_LOG_TARGET, "Starting with launcher in spawned task ...");
 
             let _task = launcher.start(tracker, access_tokens, tx_start, rx_halt).await;
 
-            debug!(target: "API", "Started with launcher in spawned task");
+            debug!(target: API_LOG_TARGET, "Started with launcher in spawned task");
 
             launcher
         });
@@ -231,7 +233,7 @@ impl Launcher {
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { "https" } else { "http" };
 
-        info!(target: "API", "Starting on {protocol}://{}", address);
+        info!(target: API_LOG_TARGET, "Starting on {protocol}://{}", address);
 
         let running = Box::pin(async {
             match tls {
@@ -250,7 +252,7 @@ impl Launcher {
             }
         });
 
-        info!(target: "API", "Started on {protocol}://{}", address);
+        info!(target: API_LOG_TARGET, "{STARTED_ON} {protocol}://{}", address);
 
         tx_start
             .send(Started { address })

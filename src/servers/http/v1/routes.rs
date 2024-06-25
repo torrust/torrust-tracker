@@ -20,6 +20,7 @@ use tracing::{Level, Span};
 
 use super::handlers::{announce, health_check, scrape};
 use crate::core::Tracker;
+use crate::servers::http::HTTP_TRACKER_LOG_TARGET;
 
 const TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -56,7 +57,7 @@ pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
                         .unwrap_or_default();
 
                     tracing::span!(
-                        target:"HTTP TRACKER",
+                        target: HTTP_TRACKER_LOG_TARGET,
                         tracing::Level::INFO, "request", server_socket_addr= %server_socket_addr, method = %method, uri = %uri, request_id = %request_id);
                 })
                 .on_response(move |response: &Response, latency: Duration, _span: &Span| {
@@ -69,7 +70,7 @@ pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
                     let latency_ms = latency.as_millis();
 
                     tracing::span!(
-                        target: "HTTP TRACKER",
+                        target: HTTP_TRACKER_LOG_TARGET,
                         tracing::Level::INFO, "response", server_socket_addr= %server_socket_addr, latency = %latency_ms, status = %status_code, request_id = %request_id);
                 }),
         )

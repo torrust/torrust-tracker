@@ -649,6 +649,8 @@ pub mod peer_builder;
 pub mod request;
 pub mod server;
 
+pub const UDP_TRACKER_LOG_TARGET: &str = "UDP TRACKER";
+
 /// Number of bytes.
 pub type Bytes = u64;
 /// The port the peer is listening on.
@@ -658,7 +660,7 @@ pub type Port = u16;
 pub type TransactionId = i64;
 
 #[derive(Clone, Debug)]
-pub(crate) struct UdpRequest {
+pub struct RawRequest {
     payload: Vec<u8>,
     from: SocketAddr,
 }

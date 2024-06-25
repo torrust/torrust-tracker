@@ -13,6 +13,8 @@ use super::v1::routes::router;
 use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
 use crate::servers::custom_axum_server::{self, TimeoutAcceptor};
+use crate::servers::http::HTTP_TRACKER_LOG_TARGET;
+use crate::servers::logging::STARTED_ON;
 use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{graceful_shutdown, Halted};
 
@@ -55,7 +57,7 @@ impl Launcher {
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { "https" } else { "http" };
 
-        info!(target: "HTTP TRACKER", "Starting on: {protocol}://{}", address);
+        info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{}", address);
 
         let app = router(tracker, address);
 
@@ -76,7 +78,7 @@ impl Launcher {
             }
         });
 
-        info!(target: "HTTP TRACKER", "Started on: {protocol}://{}", address);
+        info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
 
         tx_start
             .send(Started { address })
