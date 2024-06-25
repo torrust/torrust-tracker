@@ -36,6 +36,7 @@ use ringbuf::StaticRb;
 use tokio::select;
 use tokio::sync::oneshot;
 use tokio::task::{AbortHandle, JoinHandle};
+use url::Url;
 
 use super::UdpRequest;
 use crate::bootstrap::jobs::Started;
@@ -241,6 +242,9 @@ struct BoundSocket {
 
 impl BoundSocket {
     async fn new(addr: SocketAddr) -> Result<Self, Box<std::io::Error>> {
+        let bind_addr = format!("udp://{addr}");
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, bind_addr, "UdpSocket::new (binding)");
+
         let socket = tokio::net::UdpSocket::bind(addr).await;
 
         let socket = match socket {
@@ -258,6 +262,10 @@ impl BoundSocket {
 
     fn local_addr(&self) -> SocketAddr {
         self.socket.local_addr().expect("it should get local address")
+    }
+
+    fn url(&self) -> Url {
+        Url::parse(&format!("udp://{}", self.local_addr())).expect("UDP socket address should be valid")
     }
 }
 
@@ -363,7 +371,7 @@ impl Udp {
         };
 
         let address = bound_socket.local_addr();
-        let local_udp_url = format!("udp://{address}");
+        let local_udp_url = bound_socket.url().to_string();
 
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "{STARTED_ON}: {local_udp_url}");
 
