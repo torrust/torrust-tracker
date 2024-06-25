@@ -235,11 +235,11 @@ impl Drop for ActiveRequests {
 }
 
 /// Wrapper for Tokio [`UdpSocket`][`tokio::net::UdpSocket`] that is bound to a particular socket.
-struct Socket {
+struct BoundSocket {
     socket: Arc<tokio::net::UdpSocket>,
 }
 
-impl Socket {
+impl BoundSocket {
     async fn new(addr: SocketAddr) -> Result<Self, Box<std::io::Error>> {
         let socket = tokio::net::UdpSocket::bind(addr).await;
 
@@ -257,7 +257,7 @@ impl Socket {
     }
 }
 
-impl Deref for Socket {
+impl Deref for BoundSocket {
     type Target = tokio::net::UdpSocket;
 
     fn deref(&self) -> &Self::Target {
@@ -265,7 +265,7 @@ impl Deref for Socket {
     }
 }
 
-impl Debug for Socket {
+impl Debug for BoundSocket {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let local_addr = match self.socket.local_addr() {
             Ok(socket) => format!("Receiving From: {socket}"),
@@ -334,7 +334,7 @@ impl Udp {
             format!("Halting UDP Service Bound to Socket: {bind_to}"),
         ));
 
-        let socket = tokio::time::timeout(Duration::from_millis(5000), Socket::new(bind_to))
+        let socket = tokio::time::timeout(Duration::from_millis(5000), BoundSocket::new(bind_to))
             .await
             .expect("it should bind to the socket within five seconds");
 
@@ -543,17 +543,14 @@ impl Udp {
 
 #[cfg(test)]
 mod tests {
-    use std::{sync::Arc, time::Duration};
+    use std::sync::Arc;
+    use std::time::Duration;
 
     use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
 
-    use crate::{
-        bootstrap::app::initialize_with_configuration,
-        servers::{
-            registar::Registar,
-            udp::server::{Launcher, UdpServer},
-        },
-    };
+    use crate::bootstrap::app::initialize_with_configuration;
+    use crate::servers::registar::Registar;
+    use crate::servers::udp::server::{Launcher, UdpServer};
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
