@@ -16,7 +16,6 @@
 //! because we want to be able to start and stop the server multiple times, and
 //! we want to know the bound address and the current state of the server.
 //! In production, the `Udp` launcher is used directly.
-//!
 
 use std::cell::RefCell;
 use std::fmt::Debug;
