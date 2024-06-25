@@ -331,7 +331,7 @@ impl Udp {
     ) {
         let halt_task = tokio::task::spawn(shutdown_signal_with_message(
             rx_halt,
-            format!("Halting Http Service Bound to Socket: {bind_to}"),
+            format!("Halting UDP Service Bound to Socket: {bind_to}"),
         ));
 
         let socket = tokio::time::timeout(Duration::from_millis(5000), Socket::new(bind_to))
