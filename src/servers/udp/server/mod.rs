@@ -96,7 +96,7 @@ pub struct UdpServer<S> {
 /// A stopped UDP server state.
 
 pub struct Stopped {
-    launcher: Launcher,
+    launcher: Spawner,
 }
 
 /// A running UDP server state.
@@ -105,13 +105,13 @@ pub struct Running {
     /// The address where the server is bound.
     pub binding: SocketAddr,
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
-    pub task: JoinHandle<Launcher>,
+    pub task: JoinHandle<Spawner>,
 }
 
 impl UdpServer<Stopped> {
     /// Creates a new `UdpServer` instance in `stopped`state.
     #[must_use]
-    pub fn new(launcher: Launcher) -> Self {
+    pub fn new(launcher: Spawner) -> Self {
         Self {
             state: Stopped { launcher },
         }
@@ -140,7 +140,7 @@ impl UdpServer<Stopped> {
         let binding = rx_start.await.expect("it should be able to start the service").address;
         let local_addr = format!("udp://{binding}");
 
-        form.send(ServiceRegistration::new(binding, Udp::check))
+        form.send(ServiceRegistration::new(binding, Launcher::check))
             .expect("it should be able to send service registration");
 
         let running_udp_server: UdpServer<Running> = UdpServer {
@@ -186,12 +186,12 @@ impl UdpServer<Running> {
 }
 
 #[derive(Constructor, Copy, Clone, Debug)]
-pub struct Launcher {
+pub struct Spawner {
     bind_to: SocketAddr,
 }
 
-impl Launcher {
-    /// It starts the UDP server instance.
+impl Spawner {
+    /// It spawns a new tasks to run the UDP server instance.
     ///
     /// # Panics
     ///
@@ -201,10 +201,10 @@ impl Launcher {
         tracker: Arc<Tracker>,
         tx_start: oneshot::Sender<Started>,
         rx_halt: oneshot::Receiver<Halted>,
-    ) -> JoinHandle<Launcher> {
-        let launcher = Launcher::new(self.bind_to);
+    ) -> JoinHandle<Spawner> {
+        let launcher = Spawner::new(self.bind_to);
         tokio::spawn(async move {
-            Udp::run_with_graceful_shutdown(tracker, launcher.bind_to, tx_start, rx_halt).await;
+            Launcher::run_with_graceful_shutdown(tracker, launcher.bind_to, tx_start, rx_halt).await;
             launcher
         })
     }
@@ -388,9 +388,9 @@ impl Stream for Receiver {
 
 /// A UDP server instance launcher.
 #[derive(Constructor)]
-pub struct Udp;
+pub struct Launcher;
 
-impl Udp {
+impl Launcher {
     /// It starts the UDP server instance with graceful shutdown.
     ///
     /// # Panics
@@ -502,7 +502,8 @@ impl Udp {
                 */
 
                 let abort_handle =
-                    tokio::task::spawn(Udp::process_request(req, tracker.clone(), receiver.bound_socket.clone())).abort_handle();
+                    tokio::task::spawn(Launcher::process_request(req, tracker.clone(), receiver.bound_socket.clone()))
+                        .abort_handle();
 
                 if abort_handle.is_finished() {
                     continue;
@@ -589,7 +590,7 @@ mod tests {
 
     use crate::bootstrap::app::initialize_with_configuration;
     use crate::servers::registar::Registar;
-    use crate::servers::udp::server::{Launcher, UdpServer};
+    use crate::servers::udp::server::{Spawner, UdpServer};
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
@@ -600,7 +601,7 @@ mod tests {
         let bind_to = config.bind_address;
         let register = &Registar::default();
 
-        let stopped = UdpServer::new(Launcher::new(bind_to));
+        let stopped = UdpServer::new(Spawner::new(bind_to));
 
         let started = stopped
             .start(tracker, register.give_form())
@@ -622,7 +623,7 @@ mod tests {
         let bind_to = config.bind_address;
         let register = &Registar::default();
 
-        let stopped = UdpServer::new(Launcher::new(bind_to));
+        let stopped = UdpServer::new(Spawner::new(bind_to));
 
         let started = stopped
             .start(tracker, register.give_form())
