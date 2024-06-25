@@ -15,7 +15,7 @@ use crate::shared::bit_torrent::tracker::udp::{source_address, MAX_PACKET_SIZE};
 
 /// Default timeout for sending and receiving packets. And waiting for sockets
 /// to be readable and writable.
-const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);
+pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
@@ -37,7 +37,16 @@ impl UdpClient {
             .parse::<SocketAddr>()
             .context(format!("{local_address} is not a valid socket address"))?;
 
-        let socket = UdpSocket::bind(socket_addr).await?;
+        let socket = match time::timeout(DEFAULT_TIMEOUT, UdpSocket::bind(socket_addr)).await {
+            Ok(bind_result) => match bind_result {
+                Ok(socket) => {
+                    debug!("Bound to socket: {socket_addr}");
+                    Ok(socket)
+                }
+                Err(e) => Err(anyhow!("Failed to bind to socket: {socket_addr}, error: {e:?}")),
+            },
+            Err(e) => Err(anyhow!("Timeout waiting to bind to socket: {socket_addr}, error: {e:?}")),
+        }?;
 
         let udp_client = Self {
             socket: Arc::new(socket),
@@ -54,12 +63,15 @@ impl UdpClient {
             .parse::<SocketAddr>()
             .context(format!("{remote_address} is not a valid socket address"))?;
 
-        match self.socket.connect(socket_addr).await {
-            Ok(()) => {
-                debug!("Connected successfully");
-                Ok(())
-            }
-            Err(e) => Err(anyhow!("Failed to connect: {e:?}")),
+        match time::timeout(self.timeout, self.socket.connect(socket_addr)).await {
+            Ok(connect_result) => match connect_result {
+                Ok(()) => {
+                    debug!("Connected to socket {socket_addr}");
+                    Ok(())
+                }
+                Err(e) => Err(anyhow!("Failed to connect to socket {socket_addr}: {e:?}")),
+            },
+            Err(e) => Err(anyhow!("Timeout waiting to connect to socket {socket_addr}, error: {e:?}")),
         }
     }
 
@@ -100,7 +112,9 @@ impl UdpClient {
     ///
     /// # Panics
     ///
-    pub async fn receive(&self, bytes: &mut [u8]) -> Result<usize> {
+    pub async fn receive(&self) -> Result<Vec<u8>> {
+        let mut response_buffer = [0u8; MAX_PACKET_SIZE];
+
         debug!(target: "UDP client", "receiving ...");
 
         match time::timeout(self.timeout, self.socket.readable()).await {
@@ -113,21 +127,20 @@ impl UdpClient {
             Err(e) => return Err(anyhow!("Timeout waiting for the socket to become readable: {e:?}")),
         };
 
-        let size_result = match time::timeout(self.timeout, self.socket.recv(bytes)).await {
+        let size = match time::timeout(self.timeout, self.socket.recv(&mut response_buffer)).await {
             Ok(recv_result) => match recv_result {
                 Ok(size) => Ok(size),
                 Err(e) => Err(anyhow!("IO error during send: {e:?}")),
             },
             Err(e) => Err(anyhow!("Receive operation timed out: {e:?}")),
-        };
+        }?;
 
-        if size_result.is_ok() {
-            let size = size_result.as_ref().unwrap();
-            debug!(target: "UDP client", "{size} bytes received {bytes:?}");
-            size_result
-        } else {
-            size_result
-        }
+        let mut res: Vec<u8> = response_buffer.to_vec();
+        Vec::truncate(&mut res, size);
+
+        debug!(target: "UDP client", "{size} bytes received {res:?}");
+
+        Ok(res)
     }
 }
 
@@ -181,13 +194,11 @@ impl UdpTrackerClient {
     ///
     /// Will return error if can't create response from the received payload (bytes buffer).
     pub async fn receive(&self) -> Result<Response> {
-        let mut response_buffer = [0u8; MAX_PACKET_SIZE];
+        let payload = self.udp_client.receive().await?;
 
-        let payload_size = self.udp_client.receive(&mut response_buffer).await?;
+        debug!(target: "UDP tracker client", "received {} bytes. Response {payload:?}", payload.len());
 
-        debug!(target: "UDP tracker client", "received {payload_size} bytes. Response {response_buffer:?}");
-
-        let response = Response::parse_bytes(&response_buffer[..payload_size], true)?;
+        let response = Response::parse_bytes(&payload, true)?;
 
         Ok(response)
     }

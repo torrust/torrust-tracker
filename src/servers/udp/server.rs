@@ -16,19 +16,27 @@
 //! because we want to be able to start and stop the server multiple times, and
 //! we want to know the bound address and the current state of the server.
 //! In production, the `Udp` launcher is used directly.
+//!
+
+use std::cell::RefCell;
+use std::fmt::Debug;
 use std::io::Cursor;
 use std::net::SocketAddr;
+use std::ops::Deref;
+use std::pin::Pin;
 use std::sync::Arc;
+use std::task::{Context, Poll};
+use std::time::Duration;
 
 use aquatic_udp_protocol::Response;
 use derive_more::Constructor;
+use futures::{Stream, StreamExt};
 use ringbuf::traits::{Consumer, Observer, Producer};
 use ringbuf::StaticRb;
 use tokio::net::UdpSocket;
+use tokio::select;
 use tokio::sync::oneshot;
 use tokio::task::{AbortHandle, JoinHandle};
-use tokio::{select, task};
-use tracing::{debug, error, info, trace};
 
 use super::UdpRequest;
 use crate::bootstrap::jobs::Started;
@@ -50,9 +58,10 @@ use crate::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
 ///
 /// - The [`UdpServer`] cannot send the shutdown signal to the spawned UDP service thread.
 #[derive(Debug)]
-pub enum Error {
+pub enum UdpError {
     /// Any kind of error starting or stopping the server.
-    Error(String), // todo: refactor to use thiserror and add more variants for specific errors.
+    Socket(std::io::Error),
+    Error(String),
 }
 
 /// A UDP server instance controller with no UDP instance running.
@@ -119,7 +128,7 @@ impl UdpServer<Stopped> {
     ///
     /// It panics if unable to receive the bound socket address from service.
     ///
-    pub async fn start(self, tracker: Arc<Tracker>, form: ServiceRegistrationForm) -> Result<UdpServer<Running>, Error> {
+    pub async fn start(self, tracker: Arc<Tracker>, form: ServiceRegistrationForm) -> Result<UdpServer<Running>, std::io::Error> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
 
@@ -129,6 +138,7 @@ impl UdpServer<Stopped> {
         let task = self.state.launcher.start(tracker, tx_start, rx_halt);
 
         let binding = rx_start.await.expect("it should be able to start the service").address;
+        let local_addr = format!("udp://{binding}");
 
         form.send(ServiceRegistration::new(binding, Udp::check))
             .expect("it should be able to send service registration");
@@ -141,7 +151,7 @@ impl UdpServer<Stopped> {
             },
         };
 
-        trace!("Running UDP Tracker on Socket: {}", running_udp_server.state.binding);
+        tracing::trace!(target: "UDP TRACKER: UdpServer<Stopped>::start", local_addr, "(running)");
 
         Ok(running_udp_server)
     }
@@ -159,13 +169,13 @@ impl UdpServer<Running> {
     /// # Panics
     ///
     /// It panics if unable to shutdown service.
-    pub async fn stop(self) -> Result<UdpServer<Stopped>, Error> {
+    pub async fn stop(self) -> Result<UdpServer<Stopped>, UdpError> {
         self.state
             .halt_task
             .send(Halted::Normal)
-            .map_err(|e| Error::Error(e.to_string()))?;
+            .map_err(|e| UdpError::Error(e.to_string()))?;
 
-        let launcher = self.state.task.await.expect("unable to shutdown service");
+        let launcher = self.state.task.await.expect("it should shutdown service");
 
         let stopped_api_server: UdpServer<Stopped> = UdpServer {
             state: Stopped { launcher },
@@ -200,21 +210,10 @@ impl Launcher {
     }
 }
 
+/// Ring-Buffer of Active Requests
+#[derive(Default)]
 struct ActiveRequests {
     rb: StaticRb<AbortHandle, 50>, // the number of requests we handle at the same time.
-}
-
-impl ActiveRequests {
-    /// Creates a new [`ActiveRequests`] filled with finished tasks.
-    async fn new() -> Self {
-        let mut rb = StaticRb::default();
-
-        let () = while rb.try_push(tokio::task::spawn_blocking(|| ()).abort_handle()).is_ok() {};
-
-        task::yield_now().await;
-
-        Self { rb }
-    }
 }
 
 impl std::fmt::Debug for ActiveRequests {
@@ -235,6 +234,84 @@ impl Drop for ActiveRequests {
     }
 }
 
+/// Wrapper for Tokio [`UdpSocket`][`tokio::net::UdpSocket`] that is bound to a particular socket.
+struct Socket {
+    socket: Arc<tokio::net::UdpSocket>,
+}
+
+impl Socket {
+    async fn new(addr: SocketAddr) -> Result<Self, Box<std::io::Error>> {
+        let socket = tokio::net::UdpSocket::bind(addr).await;
+
+        let socket = match socket {
+            Ok(socket) => socket,
+            Err(e) => Err(e)?,
+        };
+
+        let local_addr = format!("udp://{addr}");
+        tracing::debug!(target: "UDP TRACKER: UdpSocket::new", local_addr, "(bound)");
+
+        Ok(Self {
+            socket: Arc::new(socket),
+        })
+    }
+}
+
+impl Deref for Socket {
+    type Target = tokio::net::UdpSocket;
+
+    fn deref(&self) -> &Self::Target {
+        &self.socket
+    }
+}
+
+impl Debug for Socket {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let local_addr = match self.socket.local_addr() {
+            Ok(socket) => format!("Receiving From: {socket}"),
+            Err(err) => format!("Socket Broken: {err}"),
+        };
+
+        f.debug_struct("UdpSocket").field("addr", &local_addr).finish_non_exhaustive()
+    }
+}
+
+struct Receiver {
+    socket: Arc<UdpSocket>,
+    tracker: Arc<Tracker>,
+    data: RefCell<[u8; MAX_PACKET_SIZE]>,
+}
+
+impl Stream for Receiver {
+    type Item = std::io::Result<AbortHandle>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let mut buf = *self.data.borrow_mut();
+        let mut buf = tokio::io::ReadBuf::new(&mut buf);
+
+        let Poll::Ready(ready) = self.socket.poll_recv_from(cx, &mut buf) else {
+            return Poll::Pending;
+        };
+
+        let res = match ready {
+            Ok(from) => {
+                let payload = buf.filled().to_vec();
+                let request = UdpRequest { payload, from };
+
+                Some(Ok(tokio::task::spawn(Udp::process_request(
+                    request,
+                    self.tracker.clone(),
+                    self.socket.clone(),
+                ))
+                .abort_handle()))
+            }
+            Err(err) => Some(Err(err)),
+        };
+
+        Poll::Ready(res)
+    }
+}
+
 /// A UDP server instance launcher.
 #[derive(Constructor)]
 pub struct Udp;
@@ -252,124 +329,178 @@ impl Udp {
         tx_start: oneshot::Sender<Started>,
         rx_halt: oneshot::Receiver<Halted>,
     ) {
-        let socket = Arc::new(
-            UdpSocket::bind(bind_to)
-                .await
-                .unwrap_or_else(|_| panic!("Could not bind to {bind_to}.")),
-        );
-        let address = socket
-            .local_addr()
-            .unwrap_or_else(|_| panic!("Could not get local_addr from {bind_to}."));
-        let halt = shutdown_signal_with_message(rx_halt, format!("Halting Http Service Bound to Socket: {address}"));
+        let halt_task = tokio::task::spawn(shutdown_signal_with_message(
+            rx_halt,
+            format!("Halting Http Service Bound to Socket: {bind_to}"),
+        ));
 
-        info!(target: "UDP TRACKER", "Starting on: udp://{}", address);
+        let socket = tokio::time::timeout(Duration::from_millis(5000), Socket::new(bind_to))
+            .await
+            .expect("it should bind to the socket within five seconds");
 
-        let running = tokio::task::spawn(async move {
-            debug!(target: "UDP TRACKER", "Started: Waiting for packets on socket address: udp://{address} ...");
-            Self::run_udp_server(tracker, socket).await;
-        });
+        let socket = match socket {
+            Ok(socket) => socket,
+            Err(e) => {
+                tracing::error!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown", addr = %bind_to, err = %e, "panic! (error when building socket)" );
+                panic!("could not bind to socket!");
+            }
+        };
+
+        let address = socket.local_addr().expect("it should get the locally bound address");
+        let local_addr = format!("udp://{address}");
+
+        // note: this log message is parsed by our container. i.e:
+        //
+        // `[UDP TRACKER][INFO] Starting on: udp://`
+        //
+        tracing::info!(target: "UDP TRACKER", "Starting on: {local_addr}");
+
+        let socket = socket.socket;
+
+        let direct = Receiver {
+            socket,
+            tracker,
+            data: RefCell::new([0; MAX_PACKET_SIZE]),
+        };
+
+        tracing::trace!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown", local_addr, "(spawning main loop)");
+        let running = {
+            let local_addr = local_addr.clone();
+            tokio::task::spawn(async move {
+                tracing::debug!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown::task", local_addr, "(listening...)");
+                let () = Self::run_udp_server_main(direct).await;
+            })
+        };
 
         tx_start
             .send(Started { address })
             .expect("the UDP Tracker service should not be dropped");
 
-        info!(target: "UDP TRACKER", "Started on: udp://{}", address);
+        tracing::debug!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown", local_addr, "(started)");
 
         let stop = running.abort_handle();
 
         select! {
-            _ = running => { debug!(target: "UDP TRACKER", "Socket listener stopped on address: udp://{address}"); },
-            () = halt => { debug!(target: "UDP TRACKER", "Halt signal spawned task stopped on address: udp://{address}"); }
+            _ = running => { tracing::debug!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown", local_addr, "(stopped)"); },
+            _ = halt_task => { tracing::debug!(target: "UDP TRACKER: Udp::run_with_graceful_shutdown",local_addr, "(halting)"); }
         }
         stop.abort();
 
-        task::yield_now().await; // lets allow the other threads to complete.
+        tokio::task::yield_now().await; // lets allow the other threads to complete.
     }
 
-    async fn run_udp_server(tracker: Arc<Tracker>, socket: Arc<UdpSocket>) {
-        let tracker = tracker.clone();
-        let socket = socket.clone();
+    async fn run_udp_server_main(mut direct: Receiver) {
+        let reqs = &mut ActiveRequests::default();
 
-        let reqs = &mut ActiveRequests::new().await;
+        let addr = direct.socket.local_addr().expect("it should get local address");
+        let local_addr = format!("udp://{addr}");
 
         loop {
-            task::yield_now().await;
-            for h in reqs.rb.iter_mut() {
-                if h.is_finished() {
-                    std::mem::swap(
-                        h,
-                        &mut Self::spawn_request_processor(
-                            Self::receive_request(socket.clone()).await,
-                            tracker.clone(),
-                            socket.clone(),
-                        )
-                        .abort_handle(),
-                    );
-                } else {
-                    // the task is still running, lets yield and give it a chance to flush.
+            if let Some(req) = {
+                tracing::trace!(target: "UDP TRACKER: Udp::run_udp_server", local_addr, "(wait for request)");
+                direct.next().await
+            } {
+                tracing::trace!(target: "UDP TRACKER: Udp::run_udp_server::loop", local_addr, "(in)");
+
+                let req = match req {
+                    Ok(req) => req,
+                    Err(e) => {
+                        if e.kind() == std::io::ErrorKind::Interrupted {
+                            tracing::warn!(target: "UDP TRACKER: Udp::run_udp_server::loop", local_addr, err = %e,  "(interrupted)");
+                            return;
+                        }
+                        tracing::error!(target: "UDP TRACKER: Udp::run_udp_server::loop", local_addr, err = %e,  "break: (got error)");
+                        break;
+                    }
+                };
+
+                if req.is_finished() {
+                    continue;
+                }
+
+                // fill buffer with requests
+                let Err(req) = reqs.rb.try_push(req) else {
+                    continue;
+                };
+
+                let mut finished: u64 = 0;
+                let mut unfinished_task = None;
+                // buffer is full.. lets make some space.
+                for h in reqs.rb.pop_iter() {
+                    // remove some finished tasks
+                    if h.is_finished() {
+                        finished += 1;
+                        continue;
+                    }
+
+                    // task is unfinished.. give it another chance.
                     tokio::task::yield_now().await;
 
-                    h.abort();
+                    // if now finished, we continue.
+                    if h.is_finished() {
+                        finished += 1;
+                        continue;
+                    }
 
-                    let server_socket_addr = socket.local_addr().expect("Could not get local_addr for socket.");
+                    tracing::debug!(target: "UDP TRACKER: Udp::run_udp_server::loop",  local_addr, removed_count = finished, "(got unfinished task)");
 
-                    tracing::span!(
-                        target: "UDP TRACKER",
-                        tracing::Level::WARN, "request-aborted", server_socket_addr = %server_socket_addr);
+                    if finished == 0 {
+                        // we have _no_ finished tasks.. will abort the unfinished task to make space...
+                        h.abort();
 
-                    // force-break a single thread, then loop again.
-                    break;
+                        tracing::warn!(target: "UDP TRACKER: Udp::run_udp_server::loop",  local_addr, "aborting request: (no finished tasks)");
+                        break;
+                    }
+
+                    // we have space, return unfinished task for re-entry.
+                    unfinished_task = Some(h);
                 }
+
+                // re-insert the previous unfinished task.
+                if let Some(h) = unfinished_task {
+                    reqs.rb.try_push(h).expect("it was previously inserted");
+                }
+
+                // insert the new task.
+                if !req.is_finished() {
+                    reqs.rb.try_push(req).expect("it should remove at least one element.");
+                }
+            } else {
+                tokio::task::yield_now().await;
+                // the request iterator returned `None`.
+                tracing::error!(target: "UDP TRACKER: Udp::run_udp_server",  local_addr, "breaking: (ran dry, should not happen in production!)");
+                break;
             }
         }
     }
 
-    async fn receive_request(socket: Arc<UdpSocket>) -> Result<UdpRequest, Box<std::io::Error>> {
-        // Wait for the socket to be readable
-        socket.readable().await?;
-
-        let mut buf = Vec::with_capacity(MAX_PACKET_SIZE);
-
-        match socket.recv_buf_from(&mut buf).await {
-            Ok((n, from)) => {
-                Vec::truncate(&mut buf, n);
-                trace!("GOT {buf:?}");
-                Ok(UdpRequest { payload: buf, from })
-            }
-
-            Err(e) => Err(Box::new(e)),
-        }
-    }
-
-    fn spawn_request_processor(
-        result: Result<UdpRequest, Box<std::io::Error>>,
-        tracker: Arc<Tracker>,
-        socket: Arc<UdpSocket>,
-    ) -> JoinHandle<()> {
-        tokio::task::spawn(Self::process_request(result, tracker, socket))
-    }
-
-    async fn process_request(result: Result<UdpRequest, Box<std::io::Error>>, tracker: Arc<Tracker>, socket: Arc<UdpSocket>) {
-        match result {
-            Ok(udp_request) => {
-                trace!("Received Request from: {}", udp_request.from);
-                Self::process_valid_request(tracker.clone(), socket.clone(), udp_request).await;
-            }
-            Err(error) => {
-                debug!("error: {error}");
-            }
-        }
+    async fn process_request(request: UdpRequest, tracker: Arc<Tracker>, socket: Arc<UdpSocket>) {
+        tracing::trace!(target: "UDP TRACKER: Udp::process_request", request = %request.from, "(receiving)");
+        Self::process_valid_request(tracker, socket, request).await;
     }
 
     async fn process_valid_request(tracker: Arc<Tracker>, socket: Arc<UdpSocket>, udp_request: UdpRequest) {
-        trace!("Making Response to {udp_request:?}");
+        tracing::trace!(target: "UDP TRACKER: Udp::process_valid_request", "Making Response to {udp_request:?}");
         let from = udp_request.from;
-        let response = handlers::handle_packet(udp_request, &tracker.clone(), socket.clone()).await;
+        let response = handlers::handle_packet(
+            udp_request,
+            &tracker.clone(),
+            socket.local_addr().expect("it should get the local address"),
+        )
+        .await;
         Self::send_response(&socket.clone(), from, response).await;
     }
 
     async fn send_response(socket: &Arc<UdpSocket>, to: SocketAddr, response: Response) {
-        trace!("Sending Response: {response:?} to: {to:?}");
+        let response_type = match &response {
+            Response::Connect(_) => "Connect".to_string(),
+            Response::AnnounceIpv4(_) => "AnnounceIpv4".to_string(),
+            Response::AnnounceIpv6(_) => "AnnounceIpv6".to_string(),
+            Response::Scrape(_) => "Scrape".to_string(),
+            Response::Error(e) => format!("Error: {e:?}"),
+        };
+
+        tracing::debug!(target: "UDP TRACKER: Udp::send_response", target = ?to, response_type,  "(sending)");
 
         let buffer = vec![0u8; MAX_PACKET_SIZE];
         let mut cursor = Cursor::new(buffer);
@@ -380,22 +511,21 @@ impl Udp {
                 let position = cursor.position() as usize;
                 let inner = cursor.get_ref();
 
-                debug!("Sending {} bytes ...", &inner[..position].len());
-                debug!("To: {:?}", &to);
-                debug!("Payload: {:?}", &inner[..position]);
+                tracing::debug!(target: "UDP TRACKER: Udp::send_response", ?to, bytes_count = &inner[..position].len(), "(sending...)" );
+                tracing::trace!(target: "UDP TRACKER: Udp::send_response", ?to, bytes_count = &inner[..position].len(), payload = ?&inner[..position], "(sending...)");
 
                 Self::send_packet(socket, &to, &inner[..position]).await;
 
-                debug!("{} bytes sent", &inner[..position].len());
+                tracing::trace!(target: "UDP TRACKER: Udp::send_response", ?to, bytes_count = &inner[..position].len(), "(sent)");
             }
-            Err(_) => {
-                error!("could not write response to bytes.");
+            Err(e) => {
+                tracing::error!(target: "UDP TRACKER: Udp::send_response", ?to, response_type, err = %e, "(error)");
             }
         }
     }
 
     async fn send_packet(socket: &Arc<UdpSocket>, remote_addr: &SocketAddr, payload: &[u8]) {
-        trace!("Sending Packets: {payload:?} to: {remote_addr:?}");
+        tracing::trace!(target: "UDP TRACKER: Udp::send_response", to = %remote_addr, ?payload, "(sending)");
 
         // doesn't matter if it reaches or not
         drop(socket.send_to(payload, remote_addr).await);
@@ -413,48 +543,17 @@ impl Udp {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-    use std::time::Duration;
+    use std::{sync::Arc, time::Duration};
 
-    use ringbuf::traits::{Consumer, Observer, RingBuffer};
     use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
 
-    use super::ActiveRequests;
-    use crate::bootstrap::app::initialize_with_configuration;
-    use crate::servers::registar::Registar;
-    use crate::servers::udp::server::{Launcher, UdpServer};
-
-    #[tokio::test]
-    async fn it_should_return_to_the_start_of_the_ring_buffer() {
-        let mut a_req = ActiveRequests::new().await;
-
-        tokio::time::sleep(Duration::from_millis(10)).await;
-
-        let mut count: usize = 0;
-        let cap: usize = a_req.rb.capacity().into();
-
-        // Add a single pending task to check that the ring-buffer is looping correctly.
-        a_req
-            .rb
-            .push_overwrite(tokio::task::spawn(std::future::pending::<()>()).abort_handle());
-
-        count += 1;
-
-        for _ in 0..2 {
-            for h in a_req.rb.iter() {
-                let first = count % cap;
-                println!("{count},{first},{}", h.is_finished());
-
-                if first == 0 {
-                    assert!(!h.is_finished());
-                } else {
-                    assert!(h.is_finished());
-                }
-
-                count += 1;
-            }
-        }
-    }
+    use crate::{
+        bootstrap::app::initialize_with_configuration,
+        servers::{
+            registar::Registar,
+            udp::server::{Launcher, UdpServer},
+        },
+    };
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
@@ -477,5 +576,94 @@ mod tests {
         tokio::time::sleep(Duration::from_secs(1)).await;
 
         assert_eq!(stopped.state.launcher.bind_to, bind_to);
+    }
+
+    #[tokio::test]
+    async fn it_should_be_able_to_start_and_stop_with_wait() {
+        let cfg = Arc::new(ephemeral_mode_public());
+        let tracker = initialize_with_configuration(&cfg);
+        let config = &cfg.udp_trackers.as_ref().unwrap().first().unwrap();
+        let bind_to = config.bind_address;
+        let register = &Registar::default();
+
+        let stopped = UdpServer::new(Launcher::new(bind_to));
+
+        let started = stopped
+            .start(tracker, register.give_form())
+            .await
+            .expect("it should start the server");
+
+        tokio::time::sleep(Duration::from_secs(1)).await;
+
+        let stopped = started.stop().await.expect("it should stop the server");
+
+        tokio::time::sleep(Duration::from_secs(1)).await;
+
+        assert_eq!(stopped.state.launcher.bind_to, bind_to);
+    }
+}
+
+/// Todo: submit test to tokio documentation.
+#[cfg(test)]
+mod test_tokio {
+    use std::sync::Arc;
+    use std::time::Duration;
+
+    use tokio::sync::Barrier;
+    use tokio::task::JoinSet;
+
+    #[tokio::test]
+    async fn test_barrier_with_aborted_tasks() {
+        // Create a barrier that requires 10 tasks to proceed.
+        let barrier = Arc::new(Barrier::new(10));
+        let mut tasks = JoinSet::default();
+        let mut handles = Vec::default();
+
+        // Set Barrier to 9/10.
+        for _ in 0..9 {
+            let c = barrier.clone();
+            handles.push(tasks.spawn(async move {
+                c.wait().await;
+            }));
+        }
+
+        // Abort two tasks: Barrier: 7/10.
+        for _ in 0..2 {
+            if let Some(handle) = handles.pop() {
+                handle.abort();
+            }
+        }
+
+        // Spawn a single task: Barrier 8/10.
+        let c = barrier.clone();
+        handles.push(tasks.spawn(async move {
+            c.wait().await;
+        }));
+
+        // give a chance fro the barrier to release.
+        tokio::time::sleep(Duration::from_millis(50)).await;
+
+        // assert that the barrier isn't removed, i.e. 8, not 10.
+        for h in &handles {
+            assert!(!h.is_finished());
+        }
+
+        // Spawn two more tasks to trigger the barrier release: Barrier 10/10.
+        for _ in 0..2 {
+            let c = barrier.clone();
+            handles.push(tasks.spawn(async move {
+                c.wait().await;
+            }));
+        }
+
+        // give a chance fro the barrier to release.
+        tokio::time::sleep(Duration::from_millis(50)).await;
+
+        // assert that the barrier has been triggered
+        for h in &handles {
+            assert!(h.is_finished());
+        }
+
+        tasks.shutdown().await;
     }
 }
