@@ -39,6 +39,7 @@ use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
 use crate::servers::apis::API_LOG_TARGET;
 use crate::servers::custom_axum_server::{self, TimeoutAcceptor};
+use crate::servers::logging::STARTED_ON;
 use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{graceful_shutdown, Halted};
 
@@ -251,7 +252,7 @@ impl Launcher {
             }
         });
 
-        info!(target: API_LOG_TARGET, "Started on {protocol}://{}", address);
+        info!(target: API_LOG_TARGET, "{STARTED_ON} {protocol}://{}", address);
 
         tx_start
             .send(Started { address })

@@ -40,6 +40,7 @@ use tokio::task::{AbortHandle, JoinHandle};
 use super::UdpRequest;
 use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
+use crate::servers::logging::STARTED_ON;
 use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use crate::servers::signals::{shutdown_signal_with_message, Halted};
 use crate::servers::udp::{handlers, UDP_TRACKER_LOG_TARGET};
@@ -364,11 +365,7 @@ impl Udp {
         let address = bound_socket.local_addr();
         let local_udp_url = format!("udp://{address}");
 
-        // note: this log message is parsed by our container. i.e:
-        //
-        // `INFO UDP TRACKER: Started on: udp://0.0.0.0:6969`
-        //
-        tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Started on: {local_udp_url}");
+        tracing::info!(target: UDP_TRACKER_LOG_TARGET, "{STARTED_ON}: {local_udp_url}");
 
         let receiver = Receiver::new(bound_socket.into(), tracker);
 

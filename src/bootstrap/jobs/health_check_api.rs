@@ -21,6 +21,7 @@ use tracing::info;
 
 use super::Started;
 use crate::servers::health_check_api::{server, HEALTH_CHECK_API_LOG_TARGET};
+use crate::servers::logging::STARTED_ON;
 use crate::servers::registar::ServiceRegistry;
 use crate::servers::signals::Halted;
 
@@ -55,7 +56,7 @@ pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> Jo
 
     // Wait until the server sends the started message
     match rx_start.await {
-        Ok(msg) => info!(target: HEALTH_CHECK_API_LOG_TARGET, "Started on: {protocol}://{}", msg.address),
+        Ok(msg) => info!(target: HEALTH_CHECK_API_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", msg.address),
         Err(e) => panic!("the Health Check API server was dropped: {e}"),
     }
 
