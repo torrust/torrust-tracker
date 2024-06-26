@@ -4,16 +4,12 @@ use std::time::Duration;
 use anyhow::Result;
 use hyper::StatusCode;
 use reqwest::{Client as HttpClient, Response};
+use serde::Serialize;
 use thiserror::Error;
 use url::Url;
 
-use crate::console::clients::checker::{
-    console::Console,
-    printer::Printer as _,
-    service::{CheckError, CheckResult},
-};
-
-#[derive(Debug, Clone, Error)]
+#[derive(Debug, Clone, Error, Serialize)]
+#[serde(into = "String")]
 pub enum Error {
     #[error("Failed to Build a Http Client: {err:?}")]
     ClientBuildingError { err: Arc<reqwest::Error> },
@@ -23,27 +19,39 @@ pub enum Error {
     UnsuccessfulResponse { code: StatusCode, response: Arc<Response> },
 }
 
-pub async fn run(health_checks: Vec<Url>, timeout: Duration, console: Console) -> Vec<CheckResult> {
-    let mut check_results = Vec::default();
+impl From<Error> for String {
+    fn from(value: Error) -> Self {
+        value.to_string()
+    }
+}
 
-    console.println("Health checks ...");
+#[derive(Debug, Clone, Serialize)]
+pub struct Checks {
+    url: Url,
+    result: Result<String, Error>,
+}
+
+pub async fn run(health_checks: Vec<Url>, timeout: Duration) -> Vec<Result<Checks, Checks>> {
+    let mut results = Vec::default();
+
+    tracing::debug!("Health checks ...");
 
     for url in health_checks {
-        match run_health_check(url.clone(), &timeout).await {
-            Ok(response) => {
-                console.println(&format!("{} - Health API at {} is {}", "✓", url, response.status()));
+        let result = match run_health_check(url.clone(), &timeout).await {
+            Ok(response) => Ok(response.status().to_string()),
+            Err(err) => Err(err),
+        };
 
-                check_results.push(Ok(()));
-            }
-            Err(err) => {
-                console.eprintln(&format!("{} - Health API at {} is failing: {}", "✗", url, err));
+        let check = Checks { url, result };
 
-                check_results.push(Err(CheckError::HealthCheckError { url, err }));
-            }
+        if check.result.is_err() {
+            results.push(Err(check));
+        } else {
+            results.push(Ok(check));
         }
     }
 
-    check_results
+    results
 }
 
 async fn run_health_check(url: Url, &timeout: &Duration) -> Result<Response, Error> {

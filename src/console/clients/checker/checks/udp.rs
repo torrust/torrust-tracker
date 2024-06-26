@@ -3,99 +3,75 @@ use std::num::NonZeroU16;
 use std::time::Duration;
 
 use hex_literal::hex;
+use serde::Serialize;
 use torrust_tracker_primitives::info_hash::InfoHash;
-use tracing::debug;
 
-use crate::console::clients::checker::console::Console;
-use crate::console::clients::checker::printer::Printer as _;
-use crate::console::clients::checker::service::{CheckError, CheckResult};
 use crate::console::clients::udp::checker::{self, Client};
 use crate::console::clients::udp::Error;
 
-pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration, console: Console) -> Vec<CheckResult> {
-    let mut check_results = Vec::default();
+#[derive(Debug, Clone, Serialize)]
+pub struct Checks {
+    addr: SocketAddr,
+    results: Vec<(Check, Result<(), Error>)>,
+}
 
-    console.println("UDP trackers ...");
+#[derive(Debug, Clone, Serialize)]
+pub enum Check {
+    Setup,
+    Announce,
+    Scrape,
+}
+
+pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration) -> Vec<Result<Checks, Checks>> {
+    let mut results = Vec::default();
+
+    tracing::debug!("UDP trackers ...");
 
     let info_hash = InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // # DevSkim: ignore DS173237
 
     for ref addr in udp_trackers {
-        debug!("UDP tracker: {:?}", addr);
+        let mut checks = Checks {
+            addr: *addr,
+            results: Vec::default(),
+        };
+
+        tracing::debug!("UDP tracker: {:?}", addr);
 
         // Setup Connection
-        let Ok((client, ctx)) = ({
-            let res = setup_connection(addr, &timeout).await;
-
-            check_results.push(match res {
-                Ok(_) => {
-                    console.println(&format!("{} - Setup of {} is OK", "✓", addr));
-                    Ok(())
-                }
-                Err(ref e) => {
-                    console.println(&format!("{} - Setup of {} is failing", "✗", addr));
-                    Err(CheckError::UdpCheckError {
-                        addr: *addr,
-                        err: e.clone(),
-                    })
-                }
-            });
-
-            res
-        }) else {
-            break;
+        let (client, ctx) = match setup_connection(addr, &timeout).await {
+            Ok((client, ctx)) => {
+                checks.results.push((Check::Setup, Ok(())));
+                (client, ctx)
+            }
+            Err(err) => {
+                checks.results.push((Check::Setup, Err(err)));
+                results.push(Err(checks));
+                break;
+            }
         };
 
-        // Do Announce
-        if {
-            let res = check_udp_announce(&client, &ctx, info_hash).await;
-
-            check_results.push(match res {
-                Ok(_) => {
-                    console.println(&format!("{} - Announce of {} is OK", "✓", addr));
-                    Ok(())
-                }
-                Err(ref e) => {
-                    console.println(&format!("{} - Announce of {} is failing", "✗", addr));
-                    Err(CheckError::UdpCheckError {
-                        addr: *addr,
-                        err: e.clone(),
-                    })
-                }
-            });
-
-            res
-        }
-        .is_err()
+        // Announce
         {
-            break;
-        };
+            let check = check_udp_announce(&client, &ctx, info_hash).await.map(|_| ());
 
-        // Do Scrape
-        if {
-            let res = check_udp_scrape(&client, &ctx, &[info_hash]).await;
-
-            check_results.push(match res {
-                Ok(_) => {
-                    console.println(&format!("{} - Announce of {} is OK", "✓", addr));
-                    Ok(())
-                }
-                Err(ref e) => {
-                    console.println(&format!("{} - Announce of {} is failing", "✗", addr));
-                    Err(CheckError::UdpCheckError {
-                        addr: *addr,
-                        err: e.clone(),
-                    })
-                }
-            });
-            res
+            checks.results.push((Check::Announce, check));
         }
-        .is_err()
+
+        // Scrape
         {
-            break;
-        };
+            let check = check_udp_scrape(&client, &ctx, &[info_hash]).await.map(|_| ());
+
+            checks.results.push((Check::Scrape, check));
+        }
+
+        if checks.results.iter().any(|f| f.1.is_err()) {
+            results.push(Err(checks));
+        } else {
+            results.push(Ok(checks));
+        }
     }
 
-    check_results
+    results
 }
 
 async fn setup_connection(

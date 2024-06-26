@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use serde::Serialize;
 use thiserror::Error;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
@@ -11,7 +12,8 @@ use crate::shared::bit_torrent::tracker::http::client::{responses, Client};
 
 pub mod app;
 
-#[derive(Debug, Clone, Error)]
+#[derive(Debug, Clone, Error, Serialize)]
+#[serde(into = "String")]
 pub enum Error {
     #[error("Http request did not receive a response within the timeout: {err:?}")]
     HttpClientError {
@@ -25,6 +27,12 @@ pub enum Error {
         data: hyper::body::Bytes,
         err: responses::BencodeParseError,
     },
+}
+
+impl From<Error> for String {
+    fn from(value: Error) -> Self {
+        value.to_string()
+    }
 }
 
 /// .

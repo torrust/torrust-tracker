@@ -53,7 +53,7 @@ pub async fn run() -> Result<Vec<CheckResult>> {
         console: console_printer,
     };
 
-    service.run_checks().await
+    service.run_checks().await.context("it should run the check tasks")
 }
 
 fn setup_config(args: Args) -> Result<Configuration> {
