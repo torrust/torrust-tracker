@@ -63,8 +63,8 @@ use anyhow::Context;
 use aquatic_udp_protocol::{Port, Response, TransactionId};
 use clap::{Parser, Subcommand};
 use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
+use tracing::debug;
 use tracing::level_filters::LevelFilter;
-use tracing::{debug, info};
 use url::Url;
 
 use crate::console::clients::udp::checker;
@@ -128,7 +128,7 @@ pub async fn run() -> anyhow::Result<()> {
 
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).init();
-    info!("logging initialized.");
+    debug!("logging initialized.");
 }
 
 async fn handle_announce(tracker_socket_addr: &SocketAddr, info_hash: &TorrustInfoHash) -> anyhow::Result<Response> {

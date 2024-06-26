@@ -12,12 +12,56 @@
 //! ```text
 //! TORRUST_CHECKER_CONFIG=$(cat "./share/default/config/tracker_checker.json") cargo run --bin tracker_checker
 //! ```
+//!
+//! Another real example to test the Torrust demo tracker:
+//!
+//! ```text
+//! TORRUST_CHECKER_CONFIG='{
+//!     "udp_trackers": ["144.126.245.19:6969"],
+//!     "http_trackers": ["https://tracker.torrust-demo.com"],
+//!     "health_checks": ["https://tracker.torrust-demo.com/api/health_check"]
+//! }' cargo run --bin tracker_checker
+//! ```
+//!
+//! The output should be something like the following:
+//!
+//! ```json
+//! {
+//!   "udp_trackers": [
+//!     {
+//!       "url": "144.126.245.19:6969",
+//!       "status": {
+//!         "code": "ok",
+//!         "message": ""
+//!       }
+//!     }
+//!   ],
+//!   "http_trackers": [
+//!     {
+//!       "url": "https://tracker.torrust-demo.com/",
+//!       "status": {
+//!         "code": "ok",
+//!         "message": ""
+//!       }
+//!     }
+//!   ],
+//!   "health_checks": [
+//!     {
+//!       "url": "https://tracker.torrust-demo.com/api/health_check",
+//!       "status": {
+//!         "code": "ok",
+//!         "message": ""
+//!       }
+//!     }
+//!   ]
+//! }
+//! ```
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use tracing::info;
+use tracing::debug;
 use tracing::level_filters::LevelFilter;
 
 use super::config::Configuration;
@@ -59,7 +103,7 @@ pub async fn run() -> Result<Vec<CheckResult>> {
 
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).init();
-    info!("logging initialized.");
+    debug!("logging initialized.");
 }
 
 fn setup_config(args: Args) -> Result<Configuration> {
