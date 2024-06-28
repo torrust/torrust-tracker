@@ -14,10 +14,12 @@
 //! cargo run --bin http_tracker_client scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq
 //! ```
 use std::str::FromStr;
+use std::time::Duration;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 use reqwest::Url;
+use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_primitives::info_hash::InfoHash;
 
 use crate::shared::bit_torrent::tracker::http::client::requests::announce::QueryBuilder;
@@ -46,25 +48,25 @@ pub async fn run() -> anyhow::Result<()> {
 
     match args.command {
         Command::Announce { tracker_url, info_hash } => {
-            announce_command(tracker_url, info_hash).await?;
+            announce_command(tracker_url, info_hash, DEFAULT_TIMEOUT).await?;
         }
         Command::Scrape {
             tracker_url,
             info_hashes,
         } => {
-            scrape_command(&tracker_url, &info_hashes).await?;
+            scrape_command(&tracker_url, &info_hashes, DEFAULT_TIMEOUT).await?;
         }
     }
 
     Ok(())
 }
 
-async fn announce_command(tracker_url: String, info_hash: String) -> anyhow::Result<()> {
+async fn announce_command(tracker_url: String, info_hash: String, timeout: Duration) -> anyhow::Result<()> {
     let base_url = Url::parse(&tracker_url).context("failed to parse HTTP tracker base URL")?;
     let info_hash =
         InfoHash::from_str(&info_hash).expect("Invalid infohash. Example infohash: `9c38422213e30bff212b30c360d26f9a02136422`");
 
-    let response = Client::new(base_url)?
+    let response = Client::new(base_url, timeout)?
         .announce(&QueryBuilder::with_default_values().with_info_hash(&info_hash).query())
         .await?;
 
@@ -80,12 +82,12 @@ async fn announce_command(tracker_url: String, info_hash: String) -> anyhow::Res
     Ok(())
 }
 
-async fn scrape_command(tracker_url: &str, info_hashes: &[String]) -> anyhow::Result<()> {
+async fn scrape_command(tracker_url: &str, info_hashes: &[String], timeout: Duration) -> anyhow::Result<()> {
     let base_url = Url::parse(tracker_url).context("failed to parse HTTP tracker base URL")?;
 
     let query = requests::scrape::Query::try_from(info_hashes).context("failed to parse infohashes")?;
 
-    let response = Client::new(base_url)?.scrape(&query).await?;
+    let response = Client::new(base_url, timeout)?.scrape(&query).await?;
 
     let body = response.bytes().await?;
 

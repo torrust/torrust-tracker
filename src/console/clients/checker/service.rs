@@ -1,9 +1,11 @@
-use std::net::SocketAddr;
 use std::sync::Arc;
 
-use reqwest::Url;
+use futures::FutureExt as _;
+use serde::Serialize;
+use tokio::task::{JoinError, JoinSet};
+use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 
-use super::checks::{self};
+use super::checks::{health, http, udp};
 use super::config::Configuration;
 use super::console::Console;
 use crate::console::clients::checker::printer::Printer;
@@ -13,33 +15,48 @@ pub struct Service {
     pub(crate) console: Console,
 }
 
-pub type CheckResult = Result<(), CheckError>;
-
-#[derive(Debug)]
-pub enum CheckError {
-    UdpError { socket_addr: SocketAddr },
-    HttpError { url: Url },
-    HealthCheckError { url: Url },
+#[derive(Debug, Clone, Serialize)]
+pub enum CheckResult {
+    Udp(Result<udp::Checks, udp::Checks>),
+    Http(Result<http::Checks, http::Checks>),
+    Health(Result<health::Checks, health::Checks>),
 }
 
 impl Service {
     /// # Errors
     ///
-    /// Will return OK is all checks pass or an array with the check errors.
-    #[allow(clippy::missing_panics_doc)]
-    pub async fn run_checks(&self) -> Vec<CheckResult> {
-        let mut check_results = vec![];
+    /// It will return an error if some of the tests panic or otherwise fail to run.
+    /// On success it will return a vector of `Ok(())` of [`CheckResult`].
+    ///
+    /// # Panics
+    ///
+    /// It would panic if `serde_json` produces invalid json for the `to_string_pretty` function.
+    pub async fn run_checks(self) -> Result<Vec<CheckResult>, JoinError> {
+        tracing::info!("Running checks for trackers ...");
 
-        let udp_checkers = checks::udp::run(&self.config.udp_trackers, &mut check_results).await;
+        let mut check_results = Vec::default();
 
-        let http_checkers = checks::http::run(&self.config.http_trackers, &mut check_results).await;
+        let mut checks = JoinSet::new();
+        checks.spawn(
+            udp::run(self.config.udp_trackers.clone(), DEFAULT_TIMEOUT).map(|mut f| f.drain(..).map(CheckResult::Udp).collect()),
+        );
+        checks.spawn(
+            http::run(self.config.http_trackers.clone(), DEFAULT_TIMEOUT)
+                .map(|mut f| f.drain(..).map(CheckResult::Http).collect()),
+        );
+        checks.spawn(
+            health::run(self.config.health_checks.clone(), DEFAULT_TIMEOUT)
+                .map(|mut f| f.drain(..).map(CheckResult::Health).collect()),
+        );
 
-        let health_checkers = checks::health::run(&self.config.health_checks, &mut check_results).await;
+        while let Some(results) = checks.join_next().await {
+            check_results.append(&mut results?);
+        }
 
-        let json_output =
-            serde_json::json!({ "udp_trackers": udp_checkers, "http_trackers": http_checkers, "health_checks": health_checkers });
-        self.console.println(&serde_json::to_string_pretty(&json_output).unwrap());
+        let json_output = serde_json::json!(check_results);
+        self.console
+            .println(&serde_json::to_string_pretty(&json_output).expect("it should consume valid json"));
 
-        check_results
+        Ok(check_results)
     }
 }

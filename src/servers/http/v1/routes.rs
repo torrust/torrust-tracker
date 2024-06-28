@@ -10,6 +10,7 @@ use axum::routing::get;
 use axum::{BoxError, Router};
 use axum_client_ip::SecureClientIpSource;
 use hyper::{Request, StatusCode};
+use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use tower::timeout::TimeoutLayer;
 use tower::ServiceBuilder;
 use tower_http::compression::CompressionLayer;
@@ -21,8 +22,6 @@ use tracing::{Level, Span};
 use super::handlers::{announce, health_check, scrape};
 use crate::core::Tracker;
 use crate::servers::http::HTTP_TRACKER_LOG_TARGET;
-
-const TIMEOUT: Duration = Duration::from_secs(5);
 
 /// It adds the routes to the router.
 ///
@@ -80,6 +79,6 @@ pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
                 // this middleware goes above `TimeoutLayer` because it will receive
                 // errors returned by `TimeoutLayer`
                 .layer(HandleErrorLayer::new(|_: BoxError| async { StatusCode::REQUEST_TIMEOUT }))
-                .layer(TimeoutLayer::new(TIMEOUT)),
+                .layer(TimeoutLayer::new(DEFAULT_TIMEOUT)),
         )
 }
