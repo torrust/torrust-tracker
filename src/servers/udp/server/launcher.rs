@@ -103,7 +103,7 @@ impl Launcher {
     }
 
     async fn run_udp_server_main(mut receiver: Receiver, tracker: Arc<Tracker>) {
-        let reqs = &mut ActiveRequests::default();
+        let active_requests = &mut ActiveRequests::default();
 
         let addr = receiver.bound_socket_address();
         let local_addr = format!("udp://{addr}");
@@ -127,27 +127,18 @@ impl Launcher {
                     }
                 };
 
-                /* code-review:
-
-                  Does it make sense to spawn a new request processor task when
-                  the ActiveRequests buffer is full?
-
-                  We could store the UDP request in a secondary buffer and wait
-                  until active tasks are finished. When a active request is finished
-                  we can move a new UDP request from the pending to process requests
-                  buffer to the active requests buffer.
-
-                  This forces us to define an explicit timeout for active requests.
-
-                  In the current solution the timeout is dynamic, it depends on
-                  the system load. With high load we can remove tasks without
-                  giving them enough time to be processed. With low load we could
-                  keep processing running longer than a reasonable time for
-                  the client to receive the response.
-
-                */
-
-                let abort_handle =
+                // We spawn the new task even if there active requests buffer is
+                // full. This could seem counterintuitive because we are accepting
+                // more request and consuming more memory even if the server is
+                // already busy. However, we "force_push" the new tasks in the
+                // buffer. That means, in the worst scenario we will abort a
+                // running task to make place for the new task.
+                //
+                // Once concern could be to reach an starvation point were we
+                // are only adding and removing tasks without given them the
+                // chance to finish. However, the buffer is yielding before
+                // aborting one tasks, giving it the chance to finish.
+                let abort_handle: tokio::task::AbortHandle =
                     tokio::task::spawn(Launcher::process_request(req, tracker.clone(), receiver.bound_socket.clone()))
                         .abort_handle();
 
@@ -155,9 +146,10 @@ impl Launcher {
                     continue;
                 }
 
-                reqs.force_push(abort_handle, &local_addr).await;
+                active_requests.force_push(abort_handle, &local_addr).await;
             } else {
                 tokio::task::yield_now().await;
+
                 // the request iterator returned `None`.
                 tracing::error!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server breaking: (ran dry, should not happen in production!)");
                 break;
