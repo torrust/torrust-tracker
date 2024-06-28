@@ -56,81 +56,62 @@ impl ActiveRequests {
                 // Successfully added the task, no further action needed.
             }
             Err(abort_handle) => {
-                // Buffer is full, attempt to make space.
-
-                let mut finished: u64 = 0;
-                let mut unfinished_task = None;
-
-                for removed_abort_handle in self.rb.pop_iter() {
-                    // We found a finished tasks ... increase the counter and
-                    // continue searching for more and ...
-                    if removed_abort_handle.is_finished() {
-                        finished += 1;
-                        continue;
+                // Buffer is full, remove the eldest tasks.
+                if let Some(eldest_task) = self.rb.try_pop() {
+                    // After popping there is one free place.
+                    if eldest_task.is_finished() {
+                        self.rb
+                            .try_push(abort_handle)
+                            .expect("it should have place now for a new active request.");
+                        return;
                     }
-
-                    // The current removed tasks is not finished.
 
                     // Give it a second chance to finish.
                     tokio::task::yield_now().await;
 
-                    // Recheck if it finished ... increase the counter and
-                    // continue searching for more and ...
-                    if removed_abort_handle.is_finished() {
-                        finished += 1;
-                        continue;
-                    }
+                    if !eldest_task.is_finished() {
+                        // Log unfinished task.
+                        tracing::debug!(
+                            target: UDP_TRACKER_LOG_TARGET,
+                            local_addr,
+                            "Udp::run_udp_server::loop (got unfinished task)"
+                        );
 
-                    // At this point we found a "definitive" unfinished task.
-
-                    // Log unfinished task.
-                    tracing::debug!(
-                        target: UDP_TRACKER_LOG_TARGET,
-                        local_addr,
-                        removed_count = finished,
-                        "Udp::run_udp_server::loop (got unfinished task)"
-                    );
-
-                    // If no finished tasks were found, abort the current
-                    // unfinished task.
-                    if finished == 0 {
-                        // We make place aborting this task.
-                        removed_abort_handle.abort();
+                        eldest_task.abort();
 
                         tracing::warn!(
                             target: UDP_TRACKER_LOG_TARGET,
                             local_addr,
                             "Udp::run_udp_server::loop aborting request: (no finished tasks)"
                         );
-
-                        break;
                     }
-
-                    // At this point we found at least one finished task, but the
-                    // current one is not finished and it was removed from the
-                    // buffer, so we need to re-insert in in the buffer.
-
-                    // Save the unfinished task for re-entry.
-                    unfinished_task = Some(removed_abort_handle);
-                }
-
-                // After this point there can't be a race condition because only
-                // one thread owns the active buffer. There is no way for the
-                // buffer to be full again. That means the "expects" should
-                // never happen.
-
-                // Reinsert the unfinished task if any.
-                if let Some(h) = unfinished_task {
-                    self.rb.try_push(h).expect("it was previously inserted");
-                }
-
-                // Insert the new task, ensuring there's space.
-                if !abort_handle.is_finished() {
-                    self.rb
-                        .try_push(abort_handle)
-                        .expect("it should remove at least one element.");
                 }
             }
         };
+    }
+
+    /// # Panics
+    ///
+    /// Will panic if it can't re-insert a removed unfinished tasks
+    pub fn clean_finished(&mut self) {
+        // We clean unfinished tasks until we found a finished one.
+
+        let mut unfinished_task = None;
+
+        for removed_abort_handle in self.rb.pop_iter() {
+            if removed_abort_handle.is_finished() {
+                continue;
+            }
+
+            // Save the unfinished task for re-entry.
+            unfinished_task = Some(removed_abort_handle);
+            
+            break;
+        }
+
+        // Reinsert the unfinished task if any.
+        if let Some(h) = unfinished_task {
+            self.rb.try_push(h).expect("it was previously inserted");
+        }
     }
 }

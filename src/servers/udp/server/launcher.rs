@@ -147,6 +147,8 @@ impl Launcher {
                 }
 
                 active_requests.force_push(abort_handle, &local_addr).await;
+
+                active_requests.clean_finished();
             } else {
                 tokio::task::yield_now().await;
 
