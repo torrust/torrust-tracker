@@ -3,7 +3,6 @@ use std::fmt;
 use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
-use std::time::Instant;
 
 use aquatic_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, AnnounceResponseFixedData, ConnectRequest, ConnectResponse,
@@ -20,7 +19,7 @@ use super::connection_cookie::{check, from_connection_id, into_connection_id, ma
 use super::RawRequest;
 use crate::core::{statistics, ScrapeData, Tracker};
 use crate::servers::udp::error::Error;
-use crate::servers::udp::logging::{log_bad_request, log_error_response, log_request, log_response};
+use crate::servers::udp::logging::{log_bad_request, log_error_response};
 use crate::servers::udp::peer_builder;
 use crate::servers::udp::request::AnnounceWrapper;
 use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
@@ -33,10 +32,11 @@ use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 /// - Delegating the request to the correct handler depending on the request type.
 ///
 /// It will return an `Error` response if the request is invalid.
-pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Arc<Tracker>, addr: SocketAddr) -> Response {
+#[allow(clippy::cast_possible_truncation)]
+pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Arc<Tracker>, _addr: SocketAddr) -> Response {
     debug!("Handling Packets: {udp_request:?}");
 
-    let start_time = Instant::now();
+    // let start_time = Instant::now();
 
     let request_id = RequestId::make(&udp_request);
 
@@ -46,26 +46,33 @@ pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Arc<Tracker
             location: Location::caller(),
         }
     }) {
-        Ok(request) => {
-            log_request(&request, &request_id, &addr);
-
-            let transaction_id = match &request {
-                Request::Connect(connect_request) => connect_request.transaction_id,
-                Request::Announce(announce_request) => announce_request.transaction_id,
-                Request::Scrape(scrape_request) => scrape_request.transaction_id,
-            };
-
-            let response = match handle_request(request, udp_request.from, tracker).await {
-                Ok(response) => response,
-                Err(e) => handle_error(&e, transaction_id),
-            };
-
-            let latency = start_time.elapsed();
-
-            log_response(&response, &transaction_id, &request_id, &addr, latency);
-
-            response
-        }
+        Ok(request) => match request {
+            Request::Connect(request) => {
+                match handle_request(aquatic_udp_protocol::Request::Connect(request), udp_request.from, tracker).await {
+                    Ok(response) => response,
+                    Err(e) => handle_error(&e, request.transaction_id),
+                }
+            }
+            Request::Announce(request) => {
+                let response: AnnounceResponse<Ipv4AddrBytes> = AnnounceResponse {
+                    fixed: AnnounceResponseFixedData {
+                        transaction_id: request.transaction_id,
+                        announce_interval: AnnounceInterval(I32::new(i64::from(tracker.get_announce_policy().interval) as i32)),
+                        leechers: NumberOfPeers(I32::new(0)),
+                        seeders: NumberOfPeers(I32::new(0)),
+                    },
+                    peers: vec![],
+                };
+                aquatic_udp_protocol::response::Response::from(response)
+            }
+            Request::Scrape(request) => {
+                let transaction_id = request.transaction_id;
+                match handle_request(aquatic_udp_protocol::Request::Scrape(request), udp_request.from, tracker).await {
+                    Ok(response) => response,
+                    Err(e) => handle_error(&e, transaction_id),
+                }
+            }
+        },
         Err(e) => {
             log_bad_request(&request_id);
 
