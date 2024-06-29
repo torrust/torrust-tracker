@@ -59,6 +59,10 @@ jobs:
         name: Clean Build Directory
         run: cargo clean
 
+      - id: build
+        name: Pre-build Main Project
+        run: cargo build
+
       - id: test
         name: Run Unit Tests
         run: cargo test --tests --workspace --all-targets --all-features
