@@ -61,7 +61,7 @@ jobs:
 
       - id: build
         name: Pre-build Main Project
-        run: cargo build
+        run: cargo build --jobs 2
 
       - id: test
         name: Run Unit Tests
