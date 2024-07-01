@@ -481,15 +481,26 @@ use crate::CurrentClock;
 /// > Typically, the `Tracker` is used by a higher application service that handles
 /// > the network layer.
 pub struct Tracker {
-    // The tracker configuration.
+    /// The tracker configuration.
     config: Core,
+
     /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)
     /// or [`MySQL`](crate::core::databases::mysql)
     database: Arc<Box<dyn Database>>,
+
+    /// Tracker users' keys. Only for private trackers.
     keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
+
+    /// The list of allowed torrents. Only for listed trackers.
     whitelist: tokio::sync::RwLock<std::collections::HashSet<InfoHash>>,
+
+    /// The in-memory torrents repository.
     torrents: Arc<Torrents>,
+
+    /// Service to send stats events.
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
+
+    /// The in-memory stats repo.
     stats_repository: statistics::Repo,
 }
 
