@@ -192,7 +192,7 @@ pub async fn run() {
             info!("Torrust timed shutdown..");
         },
         _ = tokio::signal::ctrl_c() => {
-            info!("Torrust shutting down via Ctrl+C..");
+            info!("Torrust shutting down via Ctrl+C ...");
             // Await for all jobs to shutdown
             futures::future::join_all(jobs).await;
         }

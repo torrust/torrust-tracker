@@ -117,7 +117,7 @@ pub fn run() -> anyhow::Result<()> {
 
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).init();
-    info!("Logging initialized.");
+    info!("Logging initialized");
 }
 
 fn load_tracker_configuration(args: &Args) -> anyhow::Result<String> {
