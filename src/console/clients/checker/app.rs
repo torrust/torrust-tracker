@@ -98,7 +98,7 @@ pub async fn run() -> Result<Vec<CheckResult>> {
         console: console_printer,
     };
 
-    Ok(service.run_checks().await)
+    service.run_checks().await.context("it should run the check tasks")
 }
 
 fn tracing_stdout_init(filter: LevelFilter) {

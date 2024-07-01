@@ -1,99 +1,46 @@
 use std::net::{Ipv4Addr, SocketAddr};
+use std::num::NonZeroU16;
+use std::time::Duration;
 
-use anyhow::Context;
 use aquatic_udp_protocol::common::InfoHash;
 use aquatic_udp_protocol::{
     AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
     PeerId, PeerKey, Port, Response, ScrapeRequest, TransactionId,
 };
-use thiserror::Error;
 use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
 use tracing::debug;
 
-use crate::shared::bit_torrent::tracker::udp::client::{UdpClient, UdpTrackerClient};
-
-#[derive(Error, Debug)]
-pub enum ClientError {
-    #[error("Local socket address is not bound yet. Try binding before connecting.")]
-    NotBound,
-    #[error("Not connected to remote tracker UDP socket. Try connecting before making requests.")]
-    NotConnected,
-    #[error("Unexpected response while connecting the the remote server.")]
-    UnexpectedConnectionResponse,
-}
+use super::Error;
+use crate::shared::bit_torrent::tracker::udp::client::UdpTrackerClient;
 
 /// A UDP Tracker client to make test requests (checks).
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Client {
-    /// Local UDP socket. It could be 0 to assign a free port.
-    local_binding_address: Option<SocketAddr>,
-
-    /// Local UDP socket after binding. It's equals to binding address if a
-    /// non- zero port was used.
-    local_bound_address: Option<SocketAddr>,
-
-    /// Remote UDP tracker socket
-    remote_socket: Option<SocketAddr>,
-
-    /// The client used to make UDP requests to the tracker.
-    udp_tracker_client: Option<UdpTrackerClient>,
+    client: UdpTrackerClient,
 }
 
 impl Client {
-    /// Binds to the local socket and connects to the remote one.
+    /// Creates a new `[Client]` for checking a UDP Tracker Service
     ///
     /// # Errors
     ///
-    /// Will return an error if
+    /// It will error if unable to bind and connect to the udp remote address.
     ///
-    /// - It can't bound to the local socket address.
-    /// - It can't make a connection request successfully to the remote UDP server.
-    pub async fn bind_and_connect(&mut self, local_port: u16, remote_socket_addr: &SocketAddr) -> anyhow::Result<SocketAddr> {
-        let bound_to = self.bind(local_port).await?;
-        self.connect(remote_socket_addr).await?;
-        Ok(bound_to)
+    pub async fn new(remote_addr: SocketAddr, timeout: Duration) -> Result<Self, Error> {
+        let client = UdpTrackerClient::new(remote_addr, timeout)
+            .await
+            .map_err(|err| Error::UnableToBindAndConnect { remote_addr, err })?;
+
+        Ok(Self { client })
     }
 
-    /// Binds local client socket.
+    /// Returns the local addr of this [`Client`].
     ///
     /// # Errors
     ///
-    /// Will return an error if it can't bound to the local address.
-    async fn bind(&mut self, local_port: u16) -> anyhow::Result<SocketAddr> {
-        let local_bind_to = format!("0.0.0.0:{local_port}");
-        let binding_address = local_bind_to.parse().context("binding local address")?;
-
-        debug!("Binding to: {local_bind_to}");
-        let udp_client = UdpClient::bind(&local_bind_to).await?;
-
-        let bound_to = udp_client.socket.local_addr().context("bound local address")?;
-        debug!("Bound to: {bound_to}");
-
-        self.local_binding_address = Some(binding_address);
-        self.local_bound_address = Some(bound_to);
-
-        self.udp_tracker_client = Some(UdpTrackerClient { udp_client });
-
-        Ok(bound_to)
-    }
-
-    /// Connects to the remote server socket.
-    ///
-    /// # Errors
-    ///
-    /// Will return and error if it can't make a connection request successfully
-    /// to the remote UDP server.
-    async fn connect(&mut self, tracker_socket_addr: &SocketAddr) -> anyhow::Result<()> {
-        debug!("Connecting to tracker: udp://{tracker_socket_addr}");
-
-        match &self.udp_tracker_client {
-            Some(client) => {
-                client.udp_client.connect(&tracker_socket_addr.to_string()).await?;
-                self.remote_socket = Some(*tracker_socket_addr);
-                Ok(())
-            }
-            None => Err(ClientError::NotBound.into()),
-        }
+    /// This function will return an error if the socket is somehow not bound.
+    pub fn local_addr(&self) -> std::io::Result<SocketAddr> {
+        self.client.client.socket.local_addr()
     }
 
     /// Sends a connection request to the UDP Tracker server.
@@ -109,25 +56,26 @@ impl Client {
     /// # Panics
     ///
     /// Will panic if it receives an unexpected response.
-    pub async fn send_connection_request(&self, transaction_id: TransactionId) -> anyhow::Result<ConnectionId> {
+    pub async fn send_connection_request(&self, transaction_id: TransactionId) -> Result<ConnectionId, Error> {
         debug!("Sending connection request with transaction id: {transaction_id:#?}");
 
         let connect_request = ConnectRequest { transaction_id };
 
-        match &self.udp_tracker_client {
-            Some(client) => {
-                client.send(connect_request.into()).await?;
+        let _ = self
+            .client
+            .send(connect_request.into())
+            .await
+            .map_err(|err| Error::UnableToSendConnectionRequest { err })?;
 
-                let response = client.receive().await?;
+        let response = self
+            .client
+            .receive()
+            .await
+            .map_err(|err| Error::UnableToReceiveConnectResponse { err })?;
 
-                debug!("connection request response:\n{response:#?}");
-
-                match response {
-                    Response::Connect(connect_response) => Ok(connect_response.connection_id),
-                    _ => Err(ClientError::UnexpectedConnectionResponse.into()),
-                }
-            }
-            None => Err(ClientError::NotConnected.into()),
+        match response {
+            Response::Connect(connect_response) => Ok(connect_response.connection_id),
+            _ => Err(Error::UnexpectedConnectionResponse { response }),
         }
     }
 
@@ -137,14 +85,27 @@ impl Client {
     ///
     /// Will return and error if the client is not connected. You have to connect
     /// before calling this function.
+    ///
+    /// # Panics
+    ///
+    /// It will panic if the `local_address` has a zero port.
     pub async fn send_announce_request(
         &self,
-        connection_id: ConnectionId,
         transaction_id: TransactionId,
+        connection_id: ConnectionId,
         info_hash: TorrustInfoHash,
-        client_port: Port,
-    ) -> anyhow::Result<Response> {
+    ) -> Result<Response, Error> {
         debug!("Sending announce request with transaction id: {transaction_id:#?}");
+
+        let port = NonZeroU16::new(
+            self.client
+                .client
+                .socket
+                .local_addr()
+                .expect("it should get the local address")
+                .port(),
+        )
+        .expect("it should no be zero");
 
         let announce_request = AnnounceRequest {
             connection_id,
@@ -159,21 +120,22 @@ impl Client {
             ip_address: Ipv4Addr::new(0, 0, 0, 0).into(),
             key: PeerKey::new(0i32),
             peers_wanted: NumberOfPeers(1i32.into()),
-            port: client_port,
+            port: Port::new(port),
         };
 
-        match &self.udp_tracker_client {
-            Some(client) => {
-                client.send(announce_request.into()).await?;
+        let _ = self
+            .client
+            .send(announce_request.into())
+            .await
+            .map_err(|err| Error::UnableToSendAnnounceRequest { err })?;
 
-                let response = client.receive().await?;
+        let response = self
+            .client
+            .receive()
+            .await
+            .map_err(|err| Error::UnableToReceiveAnnounceResponse { err })?;
 
-                debug!("announce request response:\n{response:#?}");
-
-                Ok(response)
-            }
-            None => Err(ClientError::NotConnected.into()),
-        }
+        Ok(response)
     }
 
     /// Sends a scrape request to the UDP Tracker server.
@@ -186,8 +148,8 @@ impl Client {
         &self,
         connection_id: ConnectionId,
         transaction_id: TransactionId,
-        info_hashes: Vec<TorrustInfoHash>,
-    ) -> anyhow::Result<Response> {
+        info_hashes: &[TorrustInfoHash],
+    ) -> Result<Response, Error> {
         debug!("Sending scrape request with transaction id: {transaction_id:#?}");
 
         let scrape_request = ScrapeRequest {
@@ -199,17 +161,18 @@ impl Client {
                 .collect(),
         };
 
-        match &self.udp_tracker_client {
-            Some(client) => {
-                client.send(scrape_request.into()).await?;
+        let _ = self
+            .client
+            .send(scrape_request.into())
+            .await
+            .map_err(|err| Error::UnableToSendScrapeRequest { err })?;
 
-                let response = client.receive().await?;
+        let response = self
+            .client
+            .receive()
+            .await
+            .map_err(|err| Error::UnableToReceiveScrapeResponse { err })?;
 
-                debug!("scrape request response:\n{response:#?}");
-
-                Ok(response)
-            }
-            None => Err(ClientError::NotConnected.into()),
-        }
+        Ok(response)
     }
 }

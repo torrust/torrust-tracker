@@ -6,8 +6,9 @@
 use core::panic;
 
 use aquatic_udp_protocol::{ConnectRequest, ConnectionId, Response, TransactionId};
-use torrust_tracker::shared::bit_torrent::tracker::udp::client::{new_udp_client_connected, UdpTrackerClient};
+use torrust_tracker::shared::bit_torrent::tracker::udp::client::UdpTrackerClient;
 use torrust_tracker::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
+use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_test_helpers::configuration;
 
 use crate::servers::udp::asserts::is_error_response;
@@ -40,17 +41,17 @@ async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrac
 async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
     let env = Started::new(&configuration::ephemeral().into()).await;
 
-    let client = match new_udp_client_connected(&env.bind_address().to_string()).await {
+    let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
         Ok(udp_client) => udp_client,
         Err(err) => panic!("{err}"),
     };
 
-    match client.send(&empty_udp_request()).await {
+    match client.client.send(&empty_udp_request()).await {
         Ok(_) => (),
         Err(err) => panic!("{err}"),
     };
 
-    let response = match client.receive().await {
+    let response = match client.client.receive().await {
         Ok(response) => response,
         Err(err) => panic!("{err}"),
     };
@@ -64,7 +65,8 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
 
 mod receiving_a_connection_request {
     use aquatic_udp_protocol::{ConnectRequest, TransactionId};
-    use torrust_tracker::shared::bit_torrent::tracker::udp::client::new_udp_tracker_client_connected;
+    use torrust_tracker::shared::bit_torrent::tracker::udp::client::UdpTrackerClient;
+    use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::servers::udp::asserts::is_connect_response;
@@ -74,7 +76,7 @@ mod receiving_a_connection_request {
     async fn should_return_a_connect_response() {
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = match new_udp_tracker_client_connected(&env.bind_address().to_string()).await {
+        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
             Err(err) => panic!("{err}"),
         };
@@ -106,7 +108,8 @@ mod receiving_an_announce_request {
         AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId,
         PeerKey, Port, TransactionId,
     };
-    use torrust_tracker::shared::bit_torrent::tracker::udp::client::{new_udp_tracker_client_connected, UdpTrackerClient};
+    use torrust_tracker::shared::bit_torrent::tracker::udp::client::UdpTrackerClient;
+    use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::servers::udp::asserts::is_ipv4_announce_response;
@@ -129,7 +132,7 @@ mod receiving_an_announce_request {
             ip_address: Ipv4Addr::new(0, 0, 0, 0).into(),
             key: PeerKey::new(0i32),
             peers_wanted: NumberOfPeers(1i32.into()),
-            port: Port(client.udp_client.socket.local_addr().unwrap().port().into()),
+            port: Port(client.client.socket.local_addr().unwrap().port().into()),
         };
 
         match client.send(announce_request.into()).await {
@@ -151,7 +154,7 @@ mod receiving_an_announce_request {
     async fn should_return_an_announce_response() {
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = match new_udp_tracker_client_connected(&env.bind_address().to_string()).await {
+        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
             Err(err) => panic!("{err}"),
         };
@@ -169,7 +172,7 @@ mod receiving_an_announce_request {
     async fn should_return_many_announce_response() {
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = match new_udp_tracker_client_connected(&env.bind_address().to_string()).await {
+        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
             Err(err) => panic!("{err}"),
         };
@@ -189,7 +192,8 @@ mod receiving_an_announce_request {
 
 mod receiving_an_scrape_request {
     use aquatic_udp_protocol::{ConnectionId, InfoHash, ScrapeRequest, TransactionId};
-    use torrust_tracker::shared::bit_torrent::tracker::udp::client::new_udp_tracker_client_connected;
+    use torrust_tracker::shared::bit_torrent::tracker::udp::client::UdpTrackerClient;
+    use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::servers::udp::asserts::is_scrape_response;
@@ -200,7 +204,7 @@ mod receiving_an_scrape_request {
     async fn should_return_a_scrape_response() {
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let client = match new_udp_tracker_client_connected(&env.bind_address().to_string()).await {
+        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
             Err(err) => panic!("{err}"),
         };
@@ -211,12 +215,13 @@ mod receiving_an_scrape_request {
 
         // Full scrapes are not allowed you need to pass an array of info hashes otherwise
         // it will return "bad request" error with empty vector
-        let info_hashes = vec![InfoHash([0u8; 20])];
+
+        let empty_info_hash = vec![InfoHash([0u8; 20])];
 
         let scrape_request = ScrapeRequest {
             connection_id: ConnectionId(connection_id.0),
             transaction_id: TransactionId::new(123i32),
-            info_hashes,
+            info_hashes: empty_info_hash,
         };
 
         match client.send(scrape_request.into()).await {

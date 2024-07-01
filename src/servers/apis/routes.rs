@@ -14,7 +14,7 @@ use axum::response::Response;
 use axum::routing::get;
 use axum::{middleware, BoxError, Router};
 use hyper::{Request, StatusCode};
-use torrust_tracker_configuration::AccessTokens;
+use torrust_tracker_configuration::{AccessTokens, DEFAULT_TIMEOUT};
 use tower::timeout::TimeoutLayer;
 use tower::ServiceBuilder;
 use tower_http::compression::CompressionLayer;
@@ -28,8 +28,6 @@ use super::v1::context::health_check::handlers::health_check_handler;
 use super::v1::middlewares::auth::State;
 use crate::core::Tracker;
 use crate::servers::apis::API_LOG_TARGET;
-
-const TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Add all API routes to the router.
 #[allow(clippy::needless_pass_by_value)]
@@ -84,6 +82,6 @@ pub fn router(tracker: Arc<Tracker>, access_tokens: Arc<AccessTokens>) -> Router
                 // this middleware goes above `TimeoutLayer` because it will receive
                 // errors returned by `TimeoutLayer`
                 .layer(HandleErrorLayer::new(|_: BoxError| async { StatusCode::REQUEST_TIMEOUT }))
-                .layer(TimeoutLayer::new(TIMEOUT)),
+                .layer(TimeoutLayer::new(DEFAULT_TIMEOUT)),
         )
 }
