@@ -111,17 +111,17 @@ impl Info {
         let env_var_config_toml_path = ENV_VAR_CONFIG_TOML_PATH.to_string();
 
         let config_toml = if let Ok(config_toml) = env::var(env_var_config_toml) {
-            println!("Loading configuration from environment variable:\n {config_toml}");
+            println!("Loading extra configuration from environment variable:\n {config_toml}");
             Some(config_toml)
         } else {
             None
         };
 
         let config_toml_path = if let Ok(config_toml_path) = env::var(env_var_config_toml_path) {
-            println!("Loading configuration from file: `{config_toml_path}` ...");
+            println!("Loading extra configuration from file: `{config_toml_path}` ...");
             config_toml_path
         } else {
-            println!("Loading configuration from default configuration file: `{default_config_toml_path}` ...");
+            println!("Loading extra configuration from default configuration file: `{default_config_toml_path}` ...");
             default_config_toml_path
         };
 

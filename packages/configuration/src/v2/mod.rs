@@ -346,9 +346,25 @@ impl Configuration {
     }
 
     /// Encodes the configuration to TOML.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if it can't be converted to TOML.
+    #[must_use]
     fn to_toml(&self) -> String {
         // code-review: do we need to use Figment also to serialize into toml?
         toml::to_string(self).expect("Could not encode TOML value")
+    }
+
+    /// Encodes the configuration to JSON.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if it can't be converted to JSON.
+    #[must_use]
+    pub fn to_json(&self) -> String {
+        // code-review: do we need to use Figment also to serialize into json?
+        serde_json::to_string_pretty(self).expect("Could not encode JSON value")
     }
 }
 
