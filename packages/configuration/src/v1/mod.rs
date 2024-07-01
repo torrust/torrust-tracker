@@ -366,8 +366,10 @@ mod tests {
 
                                 [core]
                                 mode = "public"
-                                tracker_usage_statistics = true
                                 inactive_peer_cleanup_interval = 600
+                                listed = false
+                                private = false
+                                tracker_usage_statistics = true
 
                                 [core.tracker_policy]
                                 max_peer_timeout = 900
