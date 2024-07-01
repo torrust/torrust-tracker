@@ -11,7 +11,10 @@ pub type Started = environment::Environment<server::Running>;
 
 /// It forces a database error by dropping all tables.
 /// That makes any query fail.
-/// code-review: alternatively we could inject a database mock in the future.
+/// code-review:
+/// Alternatively we could:
+/// - Inject a database mock in the future.
+/// - Inject directly the database reference passed to the Tracker type.
 pub fn force_database_error(tracker: &Arc<Tracker>) {
-    tracker.database.drop_database_tables().unwrap();
+    tracker.drop_database_tables().unwrap();
 }

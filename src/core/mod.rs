@@ -481,13 +481,14 @@ use crate::CurrentClock;
 /// > Typically, the `Tracker` is used by a higher application service that handles
 /// > the network layer.
 pub struct Tracker {
+    // The tracker configuration.
     config: Core,
     /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)
     /// or [`MySQL`](crate::core::databases::mysql)
-    pub database: Arc<Box<dyn Database>>,
+    database: Arc<Box<dyn Database>>,
     keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
     whitelist: tokio::sync::RwLock<std::collections::HashSet<InfoHash>>,
-    pub torrents: Arc<Torrents>,
+    torrents: Arc<Torrents>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
 }
@@ -986,6 +987,17 @@ impl Tracker {
             None => None,
             Some(stats_event_sender) => stats_event_sender.send_event(event).await,
         }
+    }
+
+    /// It drops the database tables.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if unable to drop tables.
+    pub fn drop_database_tables(&self) -> Result<(), databases::error::Error> {
+        // todo: this is only used for testing. WE have to pass the database
+        // reference directly to the tests instead of via the tracker.
+        self.database.drop_database_tables()
     }
 }
 
