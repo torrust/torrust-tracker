@@ -3,7 +3,6 @@ use std::env;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use torrust_tracker_configuration::{Configuration, HttpApi, HttpTracker, LogLevel, UdpTracker};
-use torrust_tracker_primitives::TrackerMode;
 
 use crate::random;
 
@@ -86,40 +85,41 @@ pub fn ephemeral_without_reverse_proxy() -> Configuration {
 
 /// Ephemeral configuration with `public` mode.
 #[must_use]
-pub fn ephemeral_mode_public() -> Configuration {
+pub fn ephemeral_public() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.mode = TrackerMode::Public;
+    cfg.core.private = false;
 
     cfg
 }
 
 /// Ephemeral configuration with `private` mode.
 #[must_use]
-pub fn ephemeral_mode_private() -> Configuration {
+pub fn ephemeral_private() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.mode = TrackerMode::Private;
+    cfg.core.private = true;
 
     cfg
 }
 
 /// Ephemeral configuration with `listed` mode.
 #[must_use]
-pub fn ephemeral_mode_whitelisted() -> Configuration {
+pub fn ephemeral_listed() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.mode = TrackerMode::Listed;
+    cfg.core.listed = true;
 
     cfg
 }
 
 /// Ephemeral configuration with `private_listed` mode.
 #[must_use]
-pub fn ephemeral_mode_private_whitelisted() -> Configuration {
+pub fn ephemeral_private_and_listed() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.mode = TrackerMode::PrivateListed;
+    cfg.core.private = true;
+    cfg.core.listed = true;
 
     cfg
 }

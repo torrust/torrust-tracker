@@ -5,8 +5,6 @@
 //! by the tracker server crate, but also by other crates in the Torrust
 //! ecosystem.
 use std::collections::BTreeMap;
-use std::fmt;
-use std::str::FromStr;
 use std::time::Duration;
 
 use info_hash::InfoHash;
@@ -64,70 +62,3 @@ pub enum DatabaseDriver {
 }
 
 pub type PersistentTorrents = BTreeMap<InfoHash, u32>;
-
-/// The mode the tracker will run in.
-///
-/// Refer to [Torrust Tracker Configuration](https://docs.rs/torrust-tracker-configuration)
-/// to know how to configure the tracker to run in each mode.
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
-pub enum TrackerMode {
-    /// Will track every new info hash and serve every peer.
-    #[serde(rename = "public")]
-    Public,
-
-    /// Will only track whitelisted info hashes.
-    #[serde(rename = "listed")]
-    Listed,
-
-    /// Will only serve authenticated peers
-    #[serde(rename = "private")]
-    Private,
-
-    /// Will only track whitelisted info hashes and serve authenticated peers
-    #[serde(rename = "private_listed")]
-    PrivateListed,
-}
-
-impl Default for TrackerMode {
-    fn default() -> Self {
-        Self::Public
-    }
-}
-
-impl fmt::Display for TrackerMode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let display_str = match self {
-            TrackerMode::Public => "public",
-            TrackerMode::Listed => "listed",
-            TrackerMode::Private => "private",
-            TrackerMode::PrivateListed => "private_listed",
-        };
-        write!(f, "{display_str}")
-    }
-}
-
-impl FromStr for TrackerMode {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "public" => Ok(TrackerMode::Public),
-            "listed" => Ok(TrackerMode::Listed),
-            "private" => Ok(TrackerMode::Private),
-            "private_listed" => Ok(TrackerMode::PrivateListed),
-            _ => Err(format!("Unknown tracker mode: {s}")),
-        }
-    }
-}
-
-impl TrackerMode {
-    #[must_use]
-    pub fn is_open(&self) -> bool {
-        matches!(self, TrackerMode::Public | TrackerMode::Listed)
-    }
-
-    #[must_use]
-    pub fn is_close(&self) -> bool {
-        !self.is_open()
-    }
-}

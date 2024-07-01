@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use torrust_tracker_primitives::TrackerMode;
 
 use super::network::Network;
 use crate::v1::database::Database;
@@ -21,19 +20,15 @@ pub struct Core {
     #[serde(default = "Core::default_inactive_peer_cleanup_interval")]
     pub inactive_peer_cleanup_interval: u64,
 
-    // Whe `true` only approved torrents can be announced in the tracker.
+    // When `true` only approved torrents can be announced in the tracker.
     #[serde(default = "Core::default_listed")]
     pub listed: bool,
-
-    /// Tracker mode. See [`TrackerMode`] for more information.
-    #[serde(default = "Core::default_mode")]
-    pub mode: TrackerMode,
 
     // Network configuration.
     #[serde(default = "Core::default_network")]
     pub net: Network,
 
-    // Whe `true` clients require a key to connect and use the tracker.
+    // When `true` clients require a key to connect and use the tracker.
     #[serde(default = "Core::default_private")]
     pub private: bool,
 
@@ -57,7 +52,6 @@ impl Default for Core {
             database: Self::default_database(),
             inactive_peer_cleanup_interval: Self::default_inactive_peer_cleanup_interval(),
             listed: Self::default_listed(),
-            mode: Self::default_mode(),
             net: Self::default_network(),
             private: Self::default_private(),
             tracker_policy: Self::default_tracker_policy(),
@@ -81,10 +75,6 @@ impl Core {
 
     fn default_listed() -> bool {
         false
-    }
-
-    fn default_mode() -> TrackerMode {
-        TrackerMode::Public
     }
 
     fn default_network() -> Network {

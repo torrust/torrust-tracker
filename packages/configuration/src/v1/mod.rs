@@ -199,14 +199,10 @@
 //! log_level = "info"
 //!
 //! [core]
-//! mode = "public"
-//! tracker_usage_statistics = true
 //! inactive_peer_cleanup_interval = 600
-//!
-//! [core.tracker_policy]
-//! max_peer_timeout = 900
-//! persistent_torrent_completed_stat = false
-//! remove_peerless_torrents = true
+//! listed = false
+//! private = false
+//! tracker_usage_statistics = true
 //!
 //! [core.announce_policy]
 //! interval = 120
@@ -219,6 +215,11 @@
 //! [core.net]
 //! external_ip = "0.0.0.0"
 //! on_reverse_proxy = false
+//!
+//! [core.tracker_policy]
+//! max_peer_timeout = 900
+//! persistent_torrent_completed_stat = false
+//! remove_peerless_torrents = true
 //!
 //! [http_api]
 //! bind_address = "127.0.0.1:1212"
@@ -365,16 +366,10 @@ mod tests {
                                 log_level = "info"
 
                                 [core]
-                                mode = "public"
                                 inactive_peer_cleanup_interval = 600
                                 listed = false
                                 private = false
                                 tracker_usage_statistics = true
-
-                                [core.tracker_policy]
-                                max_peer_timeout = 900
-                                persistent_torrent_completed_stat = false
-                                remove_peerless_torrents = true
 
                                 [core.announce_policy]
                                 interval = 120
@@ -387,6 +382,11 @@ mod tests {
                                 [core.net]
                                 external_ip = "0.0.0.0"
                                 on_reverse_proxy = false
+
+                                [core.tracker_policy]
+                                max_peer_timeout = 900
+                                persistent_torrent_completed_stat = false
+                                remove_peerless_torrents = true
 
                                 [health_check_api]
                                 bind_address = "127.0.0.1:1313"

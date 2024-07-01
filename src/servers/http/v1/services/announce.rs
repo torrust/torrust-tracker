@@ -57,7 +57,7 @@ mod tests {
     use crate::core::Tracker;
 
     fn public_tracker() -> Tracker {
-        tracker_factory(&configuration::ephemeral_mode_public())
+        tracker_factory(&configuration::ephemeral_public())
     }
 
     fn sample_info_hash() -> InfoHash {

@@ -51,7 +51,7 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     }
 
     // Load whitelisted torrents
-    if tracker.is_whitelisted() {
+    if tracker.is_listed() {
         tracker
             .load_whitelist_from_database()
             .await
@@ -64,8 +64,8 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
             for udp_tracker_config in udp_trackers {
                 if tracker.is_private() {
                     warn!(
-                        "Could not start UDP tracker on: {} while in {:?}. UDP is not safe for private trackers!",
-                        udp_tracker_config.bind_address, config.core.mode
+                        "Could not start UDP tracker on: {} while in private mode. UDP is not safe for private trackers!",
+                        udp_tracker_config.bind_address
                     );
                 } else {
                     jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone(), registar.give_form()).await);

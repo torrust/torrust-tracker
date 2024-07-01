@@ -121,11 +121,11 @@ mod tests {
     use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
 
     fn private_tracker() -> Tracker {
-        tracker_factory(&configuration::ephemeral_mode_private())
+        tracker_factory(&configuration::ephemeral_private())
     }
 
     fn whitelisted_tracker() -> Tracker {
-        tracker_factory(&configuration::ephemeral_mode_whitelisted())
+        tracker_factory(&configuration::ephemeral_listed())
     }
 
     fn tracker_on_reverse_proxy() -> Tracker {

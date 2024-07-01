@@ -80,12 +80,12 @@ tower-http = { version = "0", features = ["compression-full", "cors", "propagate
 trace = "0"
 tracing = "0"
 tracing-subscriber = { version = "0.3.18", features = ["json"] }
-url = {version = "2", features = ["serde"] }
+url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }
 zerocopy = "0.7.33"
 
 [package.metadata.cargo-machete]
-ignored = ["crossbeam-skiplist", "dashmap", "figment", "parking_lot", "serde_bytes"]
+ignored = ["crossbeam-skiplist", "dashmap", "figment", "parking_lot", "serde_bytes", "torrust-tracker-primitives"]
 
 [dev-dependencies]
 local-ip-address = "0"

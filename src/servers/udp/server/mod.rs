@@ -47,7 +47,7 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
-    use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
+    use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use super::spawner::Spawner;
     use super::Server;
@@ -56,7 +56,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
-        let cfg = Arc::new(ephemeral_mode_public());
+        let cfg = Arc::new(ephemeral_public());
         let tracker = initialize_with_configuration(&cfg);
         let udp_trackers = cfg.udp_trackers.clone().expect("missing UDP trackers configuration");
         let config = &udp_trackers[0];
@@ -79,7 +79,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop_with_wait() {
-        let cfg = Arc::new(ephemeral_mode_public());
+        let cfg = Arc::new(ephemeral_public());
         let tracker = initialize_with_configuration(&cfg);
         let config = &cfg.udp_trackers.as_ref().unwrap().first().unwrap();
         let bind_to = config.bind_address;

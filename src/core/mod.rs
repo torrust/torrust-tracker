@@ -316,14 +316,10 @@
 //! log_level = "debug"
 //!
 //! [core]
-//! mode = "public"
-//! tracker_usage_statistics = true
 //! inactive_peer_cleanup_interval = 600
-//!
-//! [core.tracker_policy]
-//! max_peer_timeout = 900
-//! persistent_torrent_completed_stat = false
-//! remove_peerless_torrents = true
+//! listed = false
+//! private = false
+//! tracker_usage_statistics = true
 //!
 //! [core.announce_policy]
 //! interval = 120
@@ -336,6 +332,11 @@
 //! [core.net]
 //! on_reverse_proxy = false
 //! external_ip = "2.137.87.41"
+//!
+//! [core.tracker_policy]
+//! max_peer_timeout = 900
+//! persistent_torrent_completed_stat = false
+//! remove_peerless_torrents = true
 //! ```
 //!
 //! Refer to the [`configuration` module documentation](https://docs.rs/torrust-tracker-configuration) to get more information about all options.
@@ -458,9 +459,9 @@ use torrust_tracker_clock::clock::Time;
 use torrust_tracker_configuration::v1::core::Core;
 use torrust_tracker_configuration::{AnnouncePolicy, TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
-use torrust_tracker_primitives::{peer, TrackerMode};
 use torrust_tracker_torrent_repository::entry::EntrySync;
 use torrust_tracker_torrent_repository::repository::Repository;
 use tracing::debug;
@@ -485,7 +486,8 @@ pub struct Tracker {
     /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)
     /// or [`MySQL`](crate::core::databases::mysql)
     pub database: Arc<Box<dyn Database>>,
-    mode: TrackerMode,
+    private: bool,
+    listed: bool,
     policy: TrackerPolicy,
     keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
     whitelist: tokio::sync::RwLock<std::collections::HashSet<InfoHash>>,
@@ -558,12 +560,11 @@ impl Tracker {
     ) -> Result<Tracker, databases::error::Error> {
         let database = Arc::new(databases::driver::build(&config.database.driver, &config.database.path)?);
 
-        let mode = config.mode.clone();
-
         Ok(Tracker {
             //config,
             announce_policy: config.announce_policy,
-            mode,
+            private: config.private,
+            listed: config.listed,
             keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
             whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),
             torrents: Arc::default(),
@@ -578,17 +579,17 @@ impl Tracker {
 
     /// Returns `true` is the tracker is in public mode.
     pub fn is_public(&self) -> bool {
-        self.mode == TrackerMode::Public
+        !self.private
     }
 
     /// Returns `true` is the tracker is in private mode.
     pub fn is_private(&self) -> bool {
-        self.mode == TrackerMode::Private || self.mode == TrackerMode::PrivateListed
+        self.private
     }
 
     /// Returns `true` is the tracker is in whitelisted mode.
-    pub fn is_whitelisted(&self) -> bool {
-        self.mode == TrackerMode::Listed || self.mode == TrackerMode::PrivateListed
+    pub fn is_listed(&self) -> bool {
+        self.listed
     }
 
     /// Returns `true` if the tracker requires authentication.
@@ -869,7 +870,7 @@ impl Tracker {
     /// Will return an error if the tracker is running in `listed` mode
     /// and the infohash is not whitelisted.
     pub async fn authorize(&self, info_hash: &InfoHash) -> Result<(), Error> {
-        if !self.is_whitelisted() {
+        if !self.is_listed() {
             return Ok(());
         }
 
@@ -1028,15 +1029,15 @@ mod tests {
         use crate::shared::bit_torrent::info_hash::fixture::gen_seeded_infohash;
 
         fn public_tracker() -> Tracker {
-            tracker_factory(&configuration::ephemeral_mode_public())
+            tracker_factory(&configuration::ephemeral_public())
         }
 
         fn private_tracker() -> Tracker {
-            tracker_factory(&configuration::ephemeral_mode_private())
+            tracker_factory(&configuration::ephemeral_private())
         }
 
         fn whitelisted_tracker() -> Tracker {
-            tracker_factory(&configuration::ephemeral_mode_whitelisted())
+            tracker_factory(&configuration::ephemeral_listed())
         }
 
         pub fn tracker_persisting_torrents_in_database() -> Tracker {
