@@ -168,7 +168,7 @@
 //!
 //! ```toml
 //! [logging]
-//! log_level = "info"
+//! threshold = "info"
 //!
 //! [core]
 //! inactive_peer_cleanup_interval = 600

@@ -313,7 +313,7 @@
 //!
 //! ```toml
 //! [logging]
-//! log_level = "debug"
+//! threshold = "debug"
 //!
 //! [core]
 //! inactive_peer_cleanup_interval = 600

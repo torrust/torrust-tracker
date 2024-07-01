@@ -196,7 +196,7 @@
 //!
 //! ```toml
 //! [logging]
-//! log_level = "info"
+//! threshold = "info"
 //!
 //! [core]
 //! inactive_peer_cleanup_interval = 600
@@ -379,7 +379,7 @@ mod tests {
     #[cfg(test)]
     fn default_config_toml() -> String {
         let config = r#"[logging]
-                                log_level = "info"
+                                threshold = "info"
 
                                 [core]
                                 inactive_peer_cleanup_interval = 600

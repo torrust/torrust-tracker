@@ -26,11 +26,11 @@ cargo build --release -p aquatic_udp_load_test
 
 ### Run UDP load test
 
-Run the tracker with UDP service enabled and other services disabled and set log level to `error`.
+Run the tracker with UDP service enabled and other services disabled and set log threshold to `error`.
 
 ```toml
 [logging]
-log_level = "error"
+threshold = "error"
 
 [[udp_trackers]]
 bind_address = "0.0.0.0:6969"
@@ -97,7 +97,7 @@ Announce responses per info hash:
   - p100: 361
 ```
 
-> IMPORTANT: The performance of the Torrust UDP Tracker is drastically decreased with these log levels: `info`, `debug`, `trace`.
+> IMPORTANT: The performance of the Torrust UDP Tracker is drastically decreased with these log threshold: `info`, `debug`, `trace`.
 
 ```output
 Requests out: 40719.21/second
@@ -161,11 +161,11 @@ Announce responses per info hash:
 
 #### Torrust-Actix UDP Tracker
 
-Run the tracker with UDP service enabled and other services disabled and set log level to `error`.
+Run the tracker with UDP service enabled and other services disabled and set log threshold to `error`.
 
 ```toml
 [logging]
-log_level = "error"
+threshold = "error"
 
 [[udp_trackers]]
 bind_address = "0.0.0.0:6969"

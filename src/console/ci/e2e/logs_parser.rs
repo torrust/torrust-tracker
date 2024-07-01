@@ -7,7 +7,7 @@ use crate::servers::http::HTTP_TRACKER_LOG_TARGET;
 use crate::servers::logging::STARTED_ON;
 use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
 
-const INFO_LOG_LEVEL: &str = "INFO";
+const INFO_THRESHOLD: &str = "INFO";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct RunningServices {
@@ -74,7 +74,7 @@ impl RunningServices {
         for line in logs.lines() {
             let clean_line = ansi_escape_re.replace_all(line, "");
 
-            if !line.contains(INFO_LOG_LEVEL) {
+            if !line.contains(INFO_THRESHOLD) {
                 continue;
             };
 
