@@ -85,7 +85,7 @@ uuid = { version = "1", features = ["v4"] }
 zerocopy = "0.7.33"
 
 [package.metadata.cargo-machete]
-ignored = ["crossbeam-skiplist", "dashmap", "figment", "parking_lot", "serde_bytes", "torrust-tracker-primitives"]
+ignored = ["crossbeam-skiplist", "dashmap", "figment", "parking_lot", "serde_bytes"]
 
 [dev-dependencies]
 local-ip-address = "0"
