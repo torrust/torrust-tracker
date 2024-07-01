@@ -61,11 +61,11 @@ jobs:
 
       - id: build
         name: Pre-build Main Project
-        run: cargo build --jobs 2
+        run: cargo build --workspace --all-targets --all-features --jobs 2
 
       - id: build_tests
         name: Pre-build Tests
-        run: cargo build --tests --jobs 2
+        run: cargo build --workspace --all-targets --all-features --tests --jobs 2
 
       - id: test
         name: Run Unit Tests
