@@ -2,7 +2,7 @@
 use std::env;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-use torrust_tracker_configuration::{Configuration, HttpApi, HttpTracker, LogLevel, UdpTracker};
+use torrust_tracker_configuration::{Configuration, HttpApi, HttpTracker, Threshold, UdpTracker};
 
 use crate::random;
 
@@ -14,7 +14,7 @@ use crate::random;
 /// > **NOTICE**: Port 0 is used for ephemeral ports, which means that the OS
 /// > will assign a random free port for the tracker to use.
 ///
-/// > **NOTICE**: You can change the log level to `debug` to see the logs of the
+/// > **NOTICE**: You can change the log threshold to `debug` to see the logs of the
 /// > tracker while running the tests. That can be particularly useful when
 /// > debugging tests.
 ///
@@ -28,7 +28,7 @@ pub fn ephemeral() -> Configuration {
 
     let mut config = Configuration::default();
 
-    config.logging.log_level = LogLevel::Off; // Change to `debug` for tests debugging
+    config.logging.threshold = Threshold::Off; // Change to `debug` for tests debugging
 
     // Ephemeral socket address for API
     let api_port = 0u16;

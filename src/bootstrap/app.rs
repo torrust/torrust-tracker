@@ -68,7 +68,7 @@ pub fn initialize_tracker(config: &Configuration) -> Tracker {
     tracker_factory(config)
 }
 
-/// It initializes the log level, format and channel.
+/// It initializes the log threshold, format and channel.
 ///
 /// See [the logging setup](crate::bootstrap::logging::setup) for more info about logging.
 pub fn initialize_logging(config: &Configuration) {

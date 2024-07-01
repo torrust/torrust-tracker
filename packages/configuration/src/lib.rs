@@ -41,6 +41,7 @@ pub type HttpApi = v2::tracker_api::HttpApi;
 pub type HttpTracker = v2::http_tracker::HttpTracker;
 pub type UdpTracker = v2::udp_tracker::UdpTracker;
 pub type Database = v2::database::Database;
+pub type Threshold = v2::logging::Threshold;
 
 pub type AccessTokens = HashMap<String, String>;
 
@@ -240,21 +241,4 @@ impl TslConfig {
     fn default_ssl_key_path() -> Utf8PathBuf {
         Utf8PathBuf::new()
     }
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum LogLevel {
-    /// A level lower than all log levels.
-    Off,
-    /// Corresponds to the `Error` log level.
-    Error,
-    /// Corresponds to the `Warn` log level.
-    Warn,
-    /// Corresponds to the `Info` log level.
-    Info,
-    /// Corresponds to the `Debug` log level.
-    Debug,
-    /// Corresponds to the `Trace` log level.
-    Trace,
 }
