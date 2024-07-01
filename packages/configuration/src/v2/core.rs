@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::network::Network;
-use crate::v1::database::Database;
+use crate::v2::database::Database;
 use crate::{AnnouncePolicy, TrackerPolicy};
 
 #[allow(clippy::struct_excessive_bools)]

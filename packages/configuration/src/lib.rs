@@ -4,7 +4,7 @@
 //! Torrust Tracker, which is a `BitTorrent` tracker server.
 //!
 //! The current version for configuration is [`v1`].
-pub mod v1;
+pub mod v2;
 
 use std::collections::HashMap;
 use std::env;
@@ -34,12 +34,13 @@ const ENV_VAR_CONFIG_TOML: &str = "TORRUST_TRACKER_CONFIG_TOML";
 /// The `tracker.toml` file location.
 pub const ENV_VAR_CONFIG_TOML_PATH: &str = "TORRUST_TRACKER_CONFIG_TOML_PATH";
 
-pub type Configuration = v1::Configuration;
-pub type Core = v1::core::Core;
-pub type HealthCheckApi = v1::health_check_api::HealthCheckApi;
-pub type HttpApi = v1::tracker_api::HttpApi;
-pub type HttpTracker = v1::http_tracker::HttpTracker;
-pub type UdpTracker = v1::udp_tracker::UdpTracker;
+pub type Configuration = v2::Configuration;
+pub type Core = v2::core::Core;
+pub type HealthCheckApi = v2::health_check_api::HealthCheckApi;
+pub type HttpApi = v2::tracker_api::HttpApi;
+pub type HttpTracker = v2::http_tracker::HttpTracker;
+pub type UdpTracker = v2::udp_tracker::UdpTracker;
+pub type Database = v2::database::Database;
 
 pub type AccessTokens = HashMap<String, String>;
 

@@ -357,7 +357,7 @@ mod tests {
 
     use std::net::{IpAddr, Ipv4Addr};
 
-    use crate::v1::Configuration;
+    use crate::v2::Configuration;
     use crate::Info;
 
     #[cfg(test)]
