@@ -38,6 +38,13 @@ use crate::{core, servers};
 /// - Can't retrieve tracker keys from database.
 /// - Can't load whitelist from database.
 pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<JoinHandle<()>> {
+    if config.http_api.is_none()
+        && (config.udp_trackers.is_none() || config.udp_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
+        && (config.http_trackers.is_none() || config.http_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
+    {
+        warn!("No services enabled in configuration");
+    }
+
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
     let registar = Registar::default();

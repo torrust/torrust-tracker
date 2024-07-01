@@ -103,7 +103,7 @@ pub async fn run() -> Result<Vec<CheckResult>> {
 
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).init();
-    debug!("logging initialized.");
+    debug!("Logging initialized");
 }
 
 fn setup_config(args: Args) -> Result<Configuration> {

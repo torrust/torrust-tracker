@@ -15,6 +15,7 @@ use std::sync::Arc;
 
 use torrust_tracker_clock::static_time;
 use torrust_tracker_configuration::Configuration;
+use tracing::info;
 
 use super::config::initialize_configuration;
 use crate::bootstrap;
@@ -26,7 +27,10 @@ use crate::shared::crypto::ephemeral_instance_keys;
 #[must_use]
 pub fn setup() -> (Configuration, Arc<Tracker>) {
     let configuration = initialize_configuration();
+
     let tracker = initialize_with_configuration(&configuration);
+
+    info!("Configuration:\n{}", configuration.to_json());
 
     (configuration, tracker)
 }

@@ -129,7 +129,7 @@ pub async fn run() -> anyhow::Result<()> {
 
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).init();
-    debug!("logging initialized.");
+    debug!("Logging initialized");
 }
 
 async fn handle_announce(remote_addr: SocketAddr, info_hash: &TorrustInfoHash) -> Result<Response, Error> {

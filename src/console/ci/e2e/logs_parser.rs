@@ -23,7 +23,7 @@ impl RunningServices {
     ///
     /// ```text
     /// Loading configuration from default configuration file: `./share/default/config/tracker.development.sqlite3.toml` ...
-    /// 2024-06-10T16:07:39.989540Z  INFO torrust_tracker::bootstrap::logging: logging initialized.
+    /// 2024-06-10T16:07:39.989540Z  INFO torrust_tracker::bootstrap::logging: Logging initialized
     /// 2024-06-10T16:07:39.990205Z  INFO UDP TRACKER: Starting on: udp://0.0.0.0:6868
     /// 2024-06-10T16:07:39.990215Z  INFO UDP TRACKER: Started on: udp://0.0.0.0:6868
     /// 2024-06-10T16:07:39.990244Z  INFO UDP TRACKER: Starting on: udp://0.0.0.0:6969
@@ -116,7 +116,7 @@ mod tests {
     fn it_should_parse_from_logs_with_valid_logs() {
         let logs = r"
             Loading configuration from default configuration file: `./share/default/config/tracker.development.sqlite3.toml` ...
-            2024-06-10T16:07:39.989540Z  INFO torrust_tracker::bootstrap::logging: logging initialized.
+            2024-06-10T16:07:39.989540Z  INFO torrust_tracker::bootstrap::logging: Logging initialized
             2024-06-10T16:07:39.990244Z  INFO UDP TRACKER: Starting on: udp://0.0.0.0:6969
             2024-06-10T16:07:39.990255Z  INFO UDP TRACKER: Started on: udp://0.0.0.0:6969
             2024-06-10T16:07:39.990261Z  INFO torrust_tracker::bootstrap::jobs: TLS not enabled

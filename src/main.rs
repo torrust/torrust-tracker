@@ -10,7 +10,7 @@ async fn main() {
     // handle the signals
     tokio::select! {
         _ = tokio::signal::ctrl_c() => {
-            info!("Torrust shutting down..");
+            info!("Torrust shutting down ...");
 
             // Await for all jobs to shutdown
             futures::future::join_all(jobs).await;
