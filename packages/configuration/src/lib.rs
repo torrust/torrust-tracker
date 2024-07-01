@@ -35,10 +35,11 @@ const ENV_VAR_CONFIG_TOML: &str = "TORRUST_TRACKER_CONFIG_TOML";
 pub const ENV_VAR_CONFIG_TOML_PATH: &str = "TORRUST_TRACKER_CONFIG_TOML_PATH";
 
 pub type Configuration = v1::Configuration;
-pub type UdpTracker = v1::udp_tracker::UdpTracker;
-pub type HttpTracker = v1::http_tracker::HttpTracker;
-pub type HttpApi = v1::tracker_api::HttpApi;
+pub type Core = v1::core::Core;
 pub type HealthCheckApi = v1::health_check_api::HealthCheckApi;
+pub type HttpApi = v1::tracker_api::HttpApi;
+pub type HttpTracker = v1::http_tracker::HttpTracker;
+pub type UdpTracker = v1::udp_tracker::UdpTracker;
 
 pub type AccessTokens = HashMap<String, String>;
 

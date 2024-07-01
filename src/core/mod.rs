@@ -456,8 +456,7 @@ use std::time::Duration;
 use derive_more::Constructor;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_clock::clock::Time;
-use torrust_tracker_configuration::v1::core::Core;
-use torrust_tracker_configuration::{AnnouncePolicy, TrackerPolicy, TORRENT_PEERS_LIMIT};
+use torrust_tracker_configuration::{AnnouncePolicy, Core, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
@@ -482,20 +481,15 @@ use crate::CurrentClock;
 /// > Typically, the `Tracker` is used by a higher application service that handles
 /// > the network layer.
 pub struct Tracker {
-    announce_policy: AnnouncePolicy,
+    config: Core,
     /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)
     /// or [`MySQL`](crate::core::databases::mysql)
     pub database: Arc<Box<dyn Database>>,
-    private: bool,
-    listed: bool,
-    policy: TrackerPolicy,
     keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
     whitelist: tokio::sync::RwLock<std::collections::HashSet<InfoHash>>,
     pub torrents: Arc<Torrents>,
     stats_event_sender: Option<Box<dyn statistics::EventSender>>,
     stats_repository: statistics::Repo,
-    external_ip: Option<IpAddr>,
-    on_reverse_proxy: bool,
 }
 
 /// Structure that holds the data returned by the `announce` request.
@@ -561,35 +555,29 @@ impl Tracker {
         let database = Arc::new(databases::driver::build(&config.database.driver, &config.database.path)?);
 
         Ok(Tracker {
-            //config,
-            announce_policy: config.announce_policy,
-            private: config.private,
-            listed: config.listed,
+            config: config.clone(),
             keys: tokio::sync::RwLock::new(std::collections::HashMap::new()),
             whitelist: tokio::sync::RwLock::new(std::collections::HashSet::new()),
             torrents: Arc::default(),
             stats_event_sender,
             stats_repository,
             database,
-            external_ip: config.net.external_ip,
-            policy: config.tracker_policy.clone(),
-            on_reverse_proxy: config.net.on_reverse_proxy,
         })
     }
 
     /// Returns `true` is the tracker is in public mode.
     pub fn is_public(&self) -> bool {
-        !self.private
+        !self.config.private
     }
 
     /// Returns `true` is the tracker is in private mode.
     pub fn is_private(&self) -> bool {
-        self.private
+        self.config.private
     }
 
     /// Returns `true` is the tracker is in whitelisted mode.
     pub fn is_listed(&self) -> bool {
-        self.listed
+        self.config.listed
     }
 
     /// Returns `true` if the tracker requires authentication.
@@ -599,15 +587,15 @@ impl Tracker {
 
     /// Returns `true` is the tracker is in whitelisted mode.
     pub fn is_behind_reverse_proxy(&self) -> bool {
-        self.on_reverse_proxy
+        self.config.net.on_reverse_proxy
     }
 
     pub fn get_announce_policy(&self) -> AnnouncePolicy {
-        self.announce_policy
+        self.config.announce_policy
     }
 
     pub fn get_maybe_external_ip(&self) -> Option<IpAddr> {
-        self.external_ip
+        self.config.net.external_ip
     }
 
     /// It handles an announce request.
@@ -632,7 +620,7 @@ impl Tracker {
         // responsibility into another authentication service.
 
         debug!("Before: {peer:?}");
-        peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.external_ip));
+        peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
         debug!("After: {peer:?}");
 
         let stats = self.upsert_peer_and_get_stats(info_hash, peer).await;
@@ -735,7 +723,7 @@ impl Tracker {
     ///
     /// # Context: Tracker
     async fn persist_stats(&self, info_hash: &InfoHash, swarm_metadata: &SwarmMetadata) {
-        if self.policy.persistent_torrent_completed_stat {
+        if self.config.tracker_policy.persistent_torrent_completed_stat {
             let completed = swarm_metadata.downloaded;
             let info_hash = *info_hash;
 
@@ -759,11 +747,12 @@ impl Tracker {
     /// # Context: Tracker
     pub fn cleanup_torrents(&self) {
         // If we don't need to remove torrents we will use the faster iter
-        if self.policy.remove_peerless_torrents {
-            self.torrents.remove_peerless_torrents(&self.policy);
+        if self.config.tracker_policy.remove_peerless_torrents {
+            self.torrents.remove_peerless_torrents(&self.config.tracker_policy);
         } else {
             let current_cutoff =
-                CurrentClock::now_sub(&Duration::from_secs(u64::from(self.policy.max_peer_timeout))).unwrap_or_default();
+                CurrentClock::now_sub(&Duration::from_secs(u64::from(self.config.tracker_policy.max_peer_timeout)))
+                    .unwrap_or_default();
             self.torrents.remove_inactive_peers(current_cutoff);
         }
     }
