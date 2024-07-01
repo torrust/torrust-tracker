@@ -77,7 +77,7 @@ async fn start_v1(
 mod tests {
     use std::sync::Arc;
 
-    use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
+    use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::bootstrap::app::initialize_with_configuration;
     use crate::bootstrap::jobs::http_tracker::start_job;
@@ -86,7 +86,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_start_http_tracker() {
-        let cfg = Arc::new(ephemeral_mode_public());
+        let cfg = Arc::new(ephemeral_public());
         let http_tracker = cfg.http_trackers.clone().expect("missing HTTP tracker configuration");
         let config = &http_tracker[0];
         let tracker = initialize_with_configuration(&cfg);

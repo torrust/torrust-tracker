@@ -226,7 +226,7 @@ pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
 mod tests {
     use std::sync::Arc;
 
-    use torrust_tracker_test_helpers::configuration::ephemeral_mode_public;
+    use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::bootstrap::app::initialize_with_configuration;
     use crate::bootstrap::jobs::make_rust_tls;
@@ -235,7 +235,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
-        let cfg = Arc::new(ephemeral_mode_public());
+        let cfg = Arc::new(ephemeral_public());
         let tracker = initialize_with_configuration(&cfg);
         let http_trackers = cfg.http_trackers.clone().expect("missing HTTP trackers configuration");
         let config = &http_trackers[0];

@@ -339,15 +339,15 @@ mod tests {
     }
 
     fn public_tracker() -> Arc<Tracker> {
-        initialized_tracker(&configuration::ephemeral_mode_public())
+        initialized_tracker(&configuration::ephemeral_public())
     }
 
     fn private_tracker() -> Arc<Tracker> {
-        initialized_tracker(&configuration::ephemeral_mode_private())
+        initialized_tracker(&configuration::ephemeral_private())
     }
 
     fn whitelisted_tracker() -> Arc<Tracker> {
-        initialized_tracker(&configuration::ephemeral_mode_whitelisted())
+        initialized_tracker(&configuration::ephemeral_listed())
     }
 
     fn initialized_tracker(configuration: &Configuration) -> Arc<Tracker> {

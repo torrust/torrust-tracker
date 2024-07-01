@@ -107,7 +107,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn it_should_start_and_stop() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
             env.stop().await;
         }
 
@@ -376,7 +376,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let response = Client::new(*env.bind_address())
                 .announce(
@@ -405,7 +405,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_the_list_of_previously_announced_peers() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -447,7 +447,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_the_list_of_previously_announced_peers_including_peers_using_ipv4_and_ipv6() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -499,7 +499,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_peer_id_even_if_the_ip_is_different() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
             let peer = PeerBuilder::default().build();
@@ -526,7 +526,7 @@ mod for_all_config_modes {
             // Tracker Returns Compact Peer Lists
             // https://www.bittorrent.org/beps/bep_0023.html
 
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -567,7 +567,7 @@ mod for_all_config_modes {
             // code-review: the HTTP tracker does not return the compact response by default if the "compact"
             // param is not provided in the announce URL. The BEP 23 suggest to do so.
 
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -605,7 +605,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_increase_the_number_of_tcp4_connections_handled_in_statistics() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             Client::new(*env.bind_address())
                 .announce(&QueryBuilder::default().query())
@@ -648,7 +648,7 @@ mod for_all_config_modes {
         async fn should_not_increase_the_number_of_tcp6_connections_handled_if_the_client_is_not_using_an_ipv6_ip() {
             // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             Client::new(*env.bind_address())
                 .announce(
@@ -669,7 +669,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_increase_the_number_of_tcp4_announce_requests_handled_in_statistics() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             Client::new(*env.bind_address())
                 .announce(&QueryBuilder::default().query())
@@ -712,7 +712,7 @@ mod for_all_config_modes {
         async fn should_not_increase_the_number_of_tcp6_announce_requests_handled_if_the_client_is_not_using_an_ipv6_ip() {
             // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             Client::new(*env.bind_address())
                 .announce(
@@ -733,7 +733,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_assign_to_the_peer_ip_the_remote_client_ip_instead_of_the_peer_address_in_the_request_param() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
             let client_ip = local_ip().unwrap();
@@ -905,7 +905,7 @@ mod for_all_config_modes {
         //#[tokio::test]
         #[allow(dead_code)]
         async fn should_fail_when_the_request_is_empty() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
             let response = Client::new(*env.bind_address()).get("scrape").await;
 
             assert_missing_query_params_for_scrape_request_error_response(response).await;
@@ -915,7 +915,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_fail_when_the_info_hash_param_is_invalid() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let mut params = QueryBuilder::default().query().params();
 
@@ -932,7 +932,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_the_file_with_the_incomplete_peer_when_there_is_one_peer_with_bytes_pending_to_download() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -971,7 +971,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_the_file_with_the_complete_peer_when_there_is_one_peer_with_no_bytes_pending_to_download() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1010,7 +1010,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_return_a_file_with_zeroed_values_when_there_are_no_peers() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1029,7 +1029,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_accept_multiple_infohashes() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash1 = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
             let info_hash2 = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
@@ -1055,7 +1055,7 @@ mod for_all_config_modes {
 
         #[tokio::test]
         async fn should_increase_the_number_ot_tcp4_scrape_requests_handled_in_statistics() {
-            let env = Started::new(&configuration::ephemeral_mode_public().into()).await;
+            let env = Started::new(&configuration::ephemeral_public().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1123,7 +1123,7 @@ mod configured_as_whitelisted {
 
         #[tokio::test]
         async fn should_fail_if_the_torrent_is_not_in_the_whitelist() {
-            let env = Started::new(&configuration::ephemeral_mode_whitelisted().into()).await;
+            let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1138,7 +1138,7 @@ mod configured_as_whitelisted {
 
         #[tokio::test]
         async fn should_allow_announcing_a_whitelisted_torrent() {
-            let env = Started::new(&configuration::ephemeral_mode_whitelisted().into()).await;
+            let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1172,7 +1172,7 @@ mod configured_as_whitelisted {
 
         #[tokio::test]
         async fn should_return_the_zeroed_file_when_the_requested_file_is_not_whitelisted() {
-            let env = Started::new(&configuration::ephemeral_mode_whitelisted().into()).await;
+            let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1202,7 +1202,7 @@ mod configured_as_whitelisted {
 
         #[tokio::test]
         async fn should_return_the_file_stats_when_the_requested_file_is_whitelisted() {
-            let env = Started::new(&configuration::ephemeral_mode_whitelisted().into()).await;
+            let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1263,7 +1263,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_respond_to_authenticated_peers() {
-            let env = Started::new(&configuration::ephemeral_mode_private().into()).await;
+            let env = Started::new(&configuration::ephemeral_private().into()).await;
 
             let expiring_key = env.tracker.generate_auth_key(Duration::from_secs(60)).await.unwrap();
 
@@ -1278,7 +1278,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_fail_if_the_peer_has_not_provided_the_authentication_key() {
-            let env = Started::new(&configuration::ephemeral_mode_private().into()).await;
+            let env = Started::new(&configuration::ephemeral_private().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1293,7 +1293,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
-            let env = Started::new(&configuration::ephemeral_mode_private().into()).await;
+            let env = Started::new(&configuration::ephemeral_private().into()).await;
 
             let invalid_key = "INVALID_KEY";
 
@@ -1308,7 +1308,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_fail_if_the_peer_cannot_be_authenticated_with_the_provided_key() {
-            let env = Started::new(&configuration::ephemeral_mode_private().into()).await;
+            let env = Started::new(&configuration::ephemeral_private().into()).await;
 
             // The tracker does not have this key
             let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
@@ -1341,7 +1341,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
-            let env = Started::new(&configuration::ephemeral_mode_private().into()).await;
+            let env = Started::new(&configuration::ephemeral_private().into()).await;
 
             let invalid_key = "INVALID_KEY";
 
@@ -1356,7 +1356,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_return_the_zeroed_file_when_the_client_is_not_authenticated() {
-            let env = Started::new(&configuration::ephemeral_mode_private().into()).await;
+            let env = Started::new(&configuration::ephemeral_private().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1386,7 +1386,7 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_return_the_real_file_stats_when_the_client_is_authenticated() {
-            let env = Started::new(&configuration::ephemeral_mode_private().into()).await;
+            let env = Started::new(&configuration::ephemeral_private().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 
@@ -1430,7 +1430,7 @@ mod configured_as_private {
             // There is not authentication error
             // code-review: should this really be this way?
 
-            let env = Started::new(&configuration::ephemeral_mode_private().into()).await;
+            let env = Started::new(&configuration::ephemeral_private().into()).await;
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
 

@@ -4054,7 +4054,6 @@ version = "3.0.0-alpha.12-develop"
 dependencies = [
  "rand",
  "torrust-tracker-configuration",
- "torrust-tracker-primitives",
 ]
 
 [[package]]
