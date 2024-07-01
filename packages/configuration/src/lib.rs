@@ -40,6 +40,7 @@ pub type HealthCheckApi = v2::health_check_api::HealthCheckApi;
 pub type HttpApi = v2::tracker_api::HttpApi;
 pub type HttpTracker = v2::http_tracker::HttpTracker;
 pub type UdpTracker = v2::udp_tracker::UdpTracker;
+pub type Database = v2::database::Database;
 
 pub type AccessTokens = HashMap<String, String>;
 
