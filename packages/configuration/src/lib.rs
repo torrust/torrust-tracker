@@ -12,7 +12,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use camino::Utf8PathBuf;
-use derive_more::Constructor;
+use derive_more::{Constructor, Display};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use thiserror::Error;
@@ -44,6 +44,63 @@ pub type Database = v2::database::Database;
 pub type Threshold = v2::logging::Threshold;
 
 pub type AccessTokens = HashMap<String, String>;
+
+pub const LATEST_VERSION: &str = "2";
+
+/// Info about the configuration specification.
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display)]
+pub struct Metadata {
+    #[serde(default = "Metadata::default_version")]
+    #[serde(flatten)]
+    version: Version,
+}
+
+impl Default for Metadata {
+    fn default() -> Self {
+        Self {
+            version: Self::default_version(),
+        }
+    }
+}
+
+impl Metadata {
+    fn default_version() -> Version {
+        Version::latest()
+    }
+}
+
+/// The configuration version.
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display)]
+pub struct Version {
+    #[serde(default = "Version::default_semver")]
+    version: String,
+}
+
+impl Default for Version {
+    fn default() -> Self {
+        Self {
+            version: Self::default_semver(),
+        }
+    }
+}
+
+impl Version {
+    fn new(semver: &str) -> Self {
+        Self {
+            version: semver.to_owned(),
+        }
+    }
+
+    fn latest() -> Self {
+        Self {
+            version: LATEST_VERSION.to_string(),
+        }
+    }
+
+    fn default_semver() -> String {
+        LATEST_VERSION.to_string()
+    }
+}
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Constructor)]
 pub struct TrackerPolicy {
@@ -208,6 +265,9 @@ pub enum Error {
 
     #[error("The error for errors that can never happen.")]
     Infallible,
+
+    #[error("Unsupported configuration version: {version}")]
+    UnsupportedVersion { version: Version },
 }
 
 impl From<figment::Error> for Error {

@@ -1,3 +1,5 @@
+version = "2"
+
 [[udp_trackers]]
 bind_address = "0.0.0.0:6969"
 

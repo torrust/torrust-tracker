@@ -1,3 +1,5 @@
+version = "2"
+
 [core.database]
 path = "/var/lib/torrust/tracker/database/sqlite3.db"
 

@@ -1,3 +1,5 @@
+version = "2"
+
 [logging]
 threshold = "error"
 
