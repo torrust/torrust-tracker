@@ -1,3 +1,5 @@
+version = "2"
+
 [core.database]
 driver = "MySQL"
 path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"

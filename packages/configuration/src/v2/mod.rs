@@ -251,16 +251,24 @@ use self::health_check_api::HealthCheckApi;
 use self::http_tracker::HttpTracker;
 use self::tracker_api::HttpApi;
 use self::udp_tracker::UdpTracker;
-use crate::{Error, Info};
+use crate::{Error, Info, Metadata, Version};
+
+/// This configuration version
+const VERSION_2: &str = "2";
 
 /// Prefix for env vars that overwrite configuration options.
 const CONFIG_OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
+
 /// Path separator in env var names for nested values in configuration.
 const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 
 /// Core configuration for the tracker.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
 pub struct Configuration {
+    /// Configuration metadata.
+    #[serde(flatten)]
+    pub metadata: Metadata,
+
     /// Logging configuration
     pub logging: Logging,
 
@@ -326,6 +334,12 @@ impl Configuration {
 
         let config: Configuration = figment.extract()?;
 
+        if config.metadata.version != Version::new(VERSION_2) {
+            return Err(Error::UnsupportedVersion {
+                version: config.metadata.version,
+            });
+        }
+
         Ok(config)
     }
 
@@ -378,7 +392,9 @@ mod tests {
 
     #[cfg(test)]
     fn default_config_toml() -> String {
-        let config = r#"[logging]
+        let config = r#"version = "2"
+
+                                [logging]
                                 threshold = "info"
 
                                 [core]
