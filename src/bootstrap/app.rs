@@ -30,7 +30,7 @@ pub fn setup() -> (Configuration, Arc<Tracker>) {
 
     let tracker = initialize_with_configuration(&configuration);
 
-    info!("Configuration:\n{}", configuration.to_json());
+    info!("Configuration:\n{}", configuration.clone().mask_secrets().to_json());
 
     (configuration, tracker)
 }

@@ -48,7 +48,7 @@ pub type AccessTokens = HashMap<String, String>;
 pub const LATEST_VERSION: &str = "2";
 
 /// Info about the configuration specification.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display, Clone)]
 pub struct Metadata {
     #[serde(default = "Metadata::default_version")]
     #[serde(flatten)]
@@ -70,7 +70,7 @@ impl Metadata {
 }
 
 /// The configuration version.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display, Clone)]
 pub struct Version {
     #[serde(default = "Version::default_semver")]
     version: String,

@@ -61,6 +61,12 @@ impl HttpApi {
     pub fn override_admin_token(&mut self, api_admin_token: &str) {
         self.access_tokens.insert("admin".to_string(), api_admin_token.to_string());
     }
+
+    pub fn mask_secrets(&mut self) {
+        for token in self.access_tokens.values_mut() {
+            *token = "***".to_string();
+        }
+    }
 }
 
 #[cfg(test)]
