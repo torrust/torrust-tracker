@@ -4018,6 +4018,7 @@ dependencies = [
  "toml",
  "torrust-tracker-located-error",
  "torrust-tracker-primitives",
+ "url",
  "uuid",
 ]
 

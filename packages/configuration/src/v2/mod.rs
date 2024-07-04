@@ -263,7 +263,7 @@ const CONFIG_OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
 const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 
 /// Core configuration for the tracker.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct Configuration {
     /// Configuration metadata.
     #[serde(flatten)]
@@ -379,6 +379,18 @@ impl Configuration {
     pub fn to_json(&self) -> String {
         // code-review: do we need to use Figment also to serialize into json?
         serde_json::to_string_pretty(self).expect("Could not encode JSON value")
+    }
+
+    /// Masks secrets in the configuration.
+    #[must_use]
+    pub fn mask_secrets(mut self) -> Self {
+        self.core.database.mask_secrets();
+
+        if let Some(ref mut api) = self.http_api {
+            api.mask_secrets();
+        }
+
+        self
     }
 }
 

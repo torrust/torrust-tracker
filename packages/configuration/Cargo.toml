@@ -25,6 +25,7 @@ thiserror = "1"
 toml = "0"
 torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "../located-error" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "../primitives" }
+url = "2.5.2"
 
 [dev-dependencies]
 uuid = { version = "1", features = ["v4"] }
