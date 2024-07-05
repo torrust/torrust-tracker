@@ -27,7 +27,7 @@ chmod -R 2770 /var/lib/torrust /var/log/torrust /etc/torrust
 
 # Install the database and config:
 if [ -n "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" ]; then
-    if cmp_lc "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" "Sqlite3"; then
+    if cmp_lc "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" "sqlite3"; then
 
         # Select Sqlite3 empty database
         default_database="/usr/share/torrust/default/database/tracker.sqlite3.db"
@@ -35,7 +35,7 @@ if [ -n "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" ]; then
         # Select Sqlite3 default configuration
         default_config="/usr/share/torrust/default/config/tracker.container.sqlite3.toml"
 
-    elif cmp_lc "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" "MySQL"; then
+    elif cmp_lc "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" "mysql"; then
 
         # (no database file needed for MySQL)
 
@@ -44,7 +44,7 @@ if [ -n "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" ]; then
 
     else 
         echo "Error: Unsupported Database Type: \"$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER\"."
-        echo "Please Note: Supported Database Types: \"Sqlite3\", \"MySQL\"."
+        echo "Please Note: Supported Database Types: \"sqlite3\", \"mysql\"."
         exit 1
     fi
 else

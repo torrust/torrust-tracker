@@ -326,7 +326,7 @@
 //! interval_min = 120
 //!
 //! [core.database]
-//! driver = "Sqlite3"
+//! driver = "sqlite3"
 //! path = "./storage/tracker/lib/database/sqlite3.db"
 //!
 //! [core.net]
@@ -453,9 +453,11 @@ use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
+use databases::driver::Driver;
 use derive_more::Constructor;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_clock::clock::Time;
+use torrust_tracker_configuration::v2::database;
 use torrust_tracker_configuration::{AnnouncePolicy, Core, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
@@ -564,7 +566,12 @@ impl Tracker {
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
-        let database = Arc::new(databases::driver::build(&config.database.driver, &config.database.path)?);
+        let driver = match config.database.driver {
+            database::Driver::Sqlite3 => Driver::Sqlite3,
+            database::Driver::MySQL => Driver::MySQL,
+        };
+
+        let database = Arc::new(databases::driver::build(&driver, &config.database.path)?);
 
         Ok(Tracker {
             config: config.clone(),

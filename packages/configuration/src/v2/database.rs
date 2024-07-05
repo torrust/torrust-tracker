@@ -1,17 +1,16 @@
 use serde::{Deserialize, Serialize};
-use torrust_tracker_primitives::DatabaseDriver;
 use url::Url;
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Database {
     // Database configuration
-    /// Database driver. Possible values are: `Sqlite3`, and `MySQL`.
+    /// Database driver. Possible values are: `sqlite3`, and `mysql`.
     #[serde(default = "Database::default_driver")]
-    pub driver: DatabaseDriver,
+    pub driver: Driver,
 
     /// Database connection string. The format depends on the database driver.
-    /// For `Sqlite3`, the format is `path/to/database.db`, for example:
+    /// For `sqlite3`, the format is `path/to/database.db`, for example:
     /// `./storage/tracker/lib/database/sqlite3.db`.
     /// For `Mysql`, the format is `mysql://db_user:db_user_password:port/db_name`, for
     /// example: `mysql://root:password@localhost:3306/torrust`.
@@ -29,8 +28,8 @@ impl Default for Database {
 }
 
 impl Database {
-    fn default_driver() -> DatabaseDriver {
-        DatabaseDriver::Sqlite3
+    fn default_driver() -> Driver {
+        Driver::Sqlite3
     }
 
     fn default_path() -> String {
@@ -44,10 +43,10 @@ impl Database {
     /// Will panic if the database path for `MySQL` is not a valid URL.
     pub fn mask_secrets(&mut self) {
         match self.driver {
-            DatabaseDriver::Sqlite3 => {
+            Driver::Sqlite3 => {
                 // Nothing to mask
             }
-            DatabaseDriver::MySQL => {
+            Driver::MySQL => {
                 let mut url = Url::parse(&self.path).expect("path for MySQL driver should be a valid URL");
                 url.set_password(Some("***")).expect("url password should be changed");
                 self.path = url.to_string();
@@ -56,17 +55,25 @@ impl Database {
     }
 }
 
+/// The database management system used by the tracker.
+#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum Driver {
+    /// The `Sqlite3` database driver.
+    Sqlite3,
+    /// The `MySQL` database driver.
+    MySQL,
+}
+
 #[cfg(test)]
 mod tests {
 
-    use torrust_tracker_primitives::DatabaseDriver;
-
-    use super::Database;
+    use super::{Database, Driver};
 
     #[test]
     fn it_should_allow_masking_the_mysql_user_password() {
         let mut database = Database {
-            driver: DatabaseDriver::MySQL,
+            driver: Driver::MySQL,
             path: "mysql://root:password@localhost:3306/torrust".to_string(),
         };
 

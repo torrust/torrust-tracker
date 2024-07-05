@@ -209,7 +209,7 @@
 //! interval_min = 120
 //!
 //! [core.database]
-//! driver = "Sqlite3"
+//! driver = "sqlite3"
 //! path = "./storage/tracker/lib/database/sqlite3.db"
 //!
 //! [core.net]
@@ -420,7 +420,7 @@ mod tests {
                                 interval_min = 120
 
                                 [core.database]
-                                driver = "Sqlite3"
+                                driver = "sqlite3"
                                 path = "./storage/tracker/lib/database/sqlite3.db"
 
                                 [core.net]
