@@ -456,11 +456,12 @@ use std::time::Duration;
 use derive_more::Constructor;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_clock::clock::Time;
+use torrust_tracker_configuration::v2::database;
 use torrust_tracker_configuration::{AnnouncePolicy, Core, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+use torrust_tracker_primitives::{peer, DatabaseDriver};
 use torrust_tracker_torrent_repository::entry::EntrySync;
 use torrust_tracker_torrent_repository::repository::Repository;
 use tracing::debug;
@@ -564,7 +565,12 @@ impl Tracker {
         stats_event_sender: Option<Box<dyn statistics::EventSender>>,
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
-        let database = Arc::new(databases::driver::build(&config.database.driver, &config.database.path)?);
+        let driver = match config.database.driver {
+            database::Driver::Sqlite3 => DatabaseDriver::Sqlite3,
+            database::Driver::MySQL => DatabaseDriver::MySQL,
+        };
+
+        let database = Arc::new(databases::driver::build(&driver, &config.database.path)?);
 
         Ok(Tracker {
             config: config.clone(),

@@ -52,9 +52,6 @@ pub struct NumberOfBytes(pub i64);
 /// For more information about persistence.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, derive_more::Display, Clone)]
 pub enum DatabaseDriver {
-    // TODO:
-    //   - Move to the database crate once that gets its own crate.
-    //   - Rename serialized values to lowercase: `sqlite3` and `mysql`.
     /// The Sqlite3 database driver.
     Sqlite3,
     /// The `MySQL` database driver.
