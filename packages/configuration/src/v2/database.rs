@@ -5,12 +5,12 @@ use url::Url;
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Database {
     // Database configuration
-    /// Database driver. Possible values are: `Sqlite3`, and `MySQL`.
+    /// Database driver. Possible values are: `sqlite3`, and `mysql`.
     #[serde(default = "Database::default_driver")]
     pub driver: Driver,
 
     /// Database connection string. The format depends on the database driver.
-    /// For `Sqlite3`, the format is `path/to/database.db`, for example:
+    /// For `sqlite3`, the format is `path/to/database.db`, for example:
     /// `./storage/tracker/lib/database/sqlite3.db`.
     /// For `Mysql`, the format is `mysql://db_user:db_user_password:port/db_name`, for
     /// example: `mysql://root:password@localhost:3306/torrust`.
@@ -57,10 +57,8 @@ impl Database {
 
 /// The database management system used by the tracker.
 #[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
+#[serde(rename_all = "lowercase")]
 pub enum Driver {
-    // todo:
-    //   - Rename serialized values to lowercase: `sqlite3` and `mysql`.
-    //   - Add serde default values.
     /// The `Sqlite3` database driver.
     Sqlite3,
     /// The `MySQL` database driver.

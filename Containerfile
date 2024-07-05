@@ -96,7 +96,7 @@ RUN ["/busybox/cp", "-sp", "/busybox/sh","/busybox/cat","/busybox/ls","/busybox/
 COPY --from=gcc --chmod=0555 /usr/local/bin/su-exec /bin/su-exec
 
 ARG TORRUST_TRACKER_CONFIG_TOML_PATH="/etc/torrust/tracker/tracker.toml"
-ARG TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER="Sqlite3"
+ARG TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER="sqlite3"
 ARG USER_ID=1000
 ARG UDP_PORT=6969
 ARG HTTP_PORT=7070

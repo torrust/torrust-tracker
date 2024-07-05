@@ -149,7 +149,7 @@ The following environmental variables can be set:
 
 - `TORRUST_TRACKER_CONFIG_TOML_PATH` - The in-container path to the tracker configuration file, (default: `"/etc/torrust/tracker/tracker.toml"`).
 - `TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_API__ACCESS_TOKENS__ADMIN` - Override of the admin token. If set, this value overrides any value set in the config.
-- `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER` - The database type used for the container, (options: `Sqlite3`, `MySQL`, default `Sqlite3`). Please Note: This dose not override the database configuration within the `.toml` config file.
+- `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER` - The database type used for the container, (options: `sqlite3`, `mysql`, default `sqlite3`). Please Note: This dose not override the database configuration within the `.toml` config file.
 - `TORRUST_TRACKER_CONFIG_TOML` - Load config from this environmental variable instead from a file, (i.e: `TORRUST_TRACKER_CONFIG_TOML=$(cat tracker-tracker.toml)`).
 - `USER_ID` - The user id for the runtime crated `torrust` user. Please Note: This user id should match the ownership of the host-mapped volumes, (default `1000`).
 - `UDP_PORT` - The port for the UDP tracker. This should match the port used in the configuration, (default `6969`).
@@ -244,7 +244,7 @@ The docker-compose configuration includes the MySQL service configuration. If yo
 
 ```toml
 [core.database]
-driver = "MySQL"
+driver = "mysql"
 path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
 ```
 
