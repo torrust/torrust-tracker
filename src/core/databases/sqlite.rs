@@ -8,11 +8,11 @@ use r2d2_sqlite::SqliteConnectionManager;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::{DurationSinceUnixEpoch, PersistentTorrents};
 
-use super::driver::DatabaseDriver;
+use super::driver::Driver;
 use super::{Database, Error};
 use crate::core::auth::{self, Key};
 
-const DRIVER: DatabaseDriver = DatabaseDriver::Sqlite3;
+const DRIVER: Driver = Driver::Sqlite3;
 
 pub struct Sqlite {
     pool: Pool<SqliteConnectionManager>,
@@ -29,7 +29,7 @@ impl Database for Sqlite {
     /// Will return `r2d2::Error` if `db_path` is not able to create `SqLite` database.
     fn new(db_path: &str) -> Result<Sqlite, Error> {
         let cm = SqliteConnectionManager::file(db_path);
-        Pool::new(cm).map_or_else(|err| Err((err, DatabaseDriver::Sqlite3).into()), |pool| Ok(Sqlite { pool }))
+        Pool::new(cm).map_or_else(|err| Err((err, Driver::Sqlite3).into()), |pool| Ok(Sqlite { pool }))
     }
 
     /// Refer to [`databases::Database::create_database_tables`](crate::core::databases::Database::create_database_tables).

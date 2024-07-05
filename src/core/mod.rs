@@ -453,7 +453,7 @@ use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
-use databases::driver::DatabaseDriver;
+use databases::driver::Driver;
 use derive_more::Constructor;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_clock::clock::Time;
@@ -567,8 +567,8 @@ impl Tracker {
         stats_repository: statistics::Repo,
     ) -> Result<Tracker, databases::error::Error> {
         let driver = match config.database.driver {
-            database::Driver::Sqlite3 => DatabaseDriver::Sqlite3,
-            database::Driver::MySQL => DatabaseDriver::MySQL,
+            database::Driver::Sqlite3 => Driver::Sqlite3,
+            database::Driver::MySQL => Driver::MySQL,
         };
 
         let database = Arc::new(databases::driver::build(&driver, &config.database.path)?);

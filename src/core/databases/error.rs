@@ -7,7 +7,7 @@ use std::sync::Arc;
 use r2d2_mysql::mysql::UrlError;
 use torrust_tracker_located_error::{DynError, Located, LocatedError};
 
-use super::driver::DatabaseDriver;
+use super::driver::Driver;
 
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {
@@ -15,21 +15,21 @@ pub enum Error {
     #[error("The {driver} query unexpectedly returned nothing: {source}")]
     QueryReturnedNoRows {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-        driver: DatabaseDriver,
+        driver: Driver,
     },
 
     /// The query was malformed.
     #[error("The {driver} query was malformed: {source}")]
     InvalidQuery {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-        driver: DatabaseDriver,
+        driver: Driver,
     },
 
     /// Unable to insert a record into the database
     #[error("Unable to insert record into {driver} database, {location}")]
     InsertFailed {
         location: &'static Location<'static>,
-        driver: DatabaseDriver,
+        driver: Driver,
     },
 
     /// Unable to delete a record into the database
@@ -37,21 +37,21 @@ pub enum Error {
     DeleteFailed {
         location: &'static Location<'static>,
         error_code: usize,
-        driver: DatabaseDriver,
+        driver: Driver,
     },
 
     /// Unable to connect to the database
     #[error("Failed to connect to {driver} database: {source}")]
     ConnectionError {
         source: LocatedError<'static, UrlError>,
-        driver: DatabaseDriver,
+        driver: Driver,
     },
 
     /// Unable to create a connection pool
     #[error("Failed to create r2d2 {driver} connection pool: {source}")]
     ConnectionPool {
         source: LocatedError<'static, r2d2::Error>,
-        driver: DatabaseDriver,
+        driver: Driver,
     },
 }
 
@@ -61,11 +61,11 @@ impl From<r2d2_sqlite::rusqlite::Error> for Error {
         match err {
             r2d2_sqlite::rusqlite::Error::QueryReturnedNoRows => Error::QueryReturnedNoRows {
                 source: (Arc::new(err) as DynError).into(),
-                driver: DatabaseDriver::Sqlite3,
+                driver: Driver::Sqlite3,
             },
             _ => Error::InvalidQuery {
                 source: (Arc::new(err) as DynError).into(),
-                driver: DatabaseDriver::Sqlite3,
+                driver: Driver::Sqlite3,
             },
         }
     }
@@ -77,7 +77,7 @@ impl From<r2d2_mysql::mysql::Error> for Error {
         let e: DynError = Arc::new(err);
         Error::InvalidQuery {
             source: e.into(),
-            driver: DatabaseDriver::MySQL,
+            driver: Driver::MySQL,
         }
     }
 }
@@ -87,14 +87,14 @@ impl From<UrlError> for Error {
     fn from(err: UrlError) -> Self {
         Self::ConnectionError {
             source: Located(err).into(),
-            driver: DatabaseDriver::MySQL,
+            driver: Driver::MySQL,
         }
     }
 }
 
-impl From<(r2d2::Error, DatabaseDriver)> for Error {
+impl From<(r2d2::Error, Driver)> for Error {
     #[track_caller]
-    fn from(e: (r2d2::Error, DatabaseDriver)) -> Self {
+    fn from(e: (r2d2::Error, Driver)) -> Self {
         let (err, driver) = e;
         Self::ConnectionPool {
             source: Located(err).into(),

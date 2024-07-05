@@ -17,9 +17,8 @@ use super::{Builder, Database};
 /// - [Torrust Tracker](https://docs.rs/torrust-tracker).
 ///
 /// For more information about persistence.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, derive_more::Display, Clone)]
-pub enum DatabaseDriver {
+pub enum Driver {
     /// The Sqlite3 database driver.
     Sqlite3,
     /// The `MySQL` database driver.
@@ -32,9 +31,9 @@ pub enum DatabaseDriver {
 ///
 /// ```rust,no_run
 /// use torrust_tracker::core::databases;
-/// use torrust_tracker::core::databases::driver::DatabaseDriver;
+/// use torrust_tracker::core::databases::driver::Driver;
 ///
-/// let db_driver = DatabaseDriver::Sqlite3;
+/// let db_driver = Driver::Sqlite3;
 /// let db_path = "./storage/tracker/lib/database/sqlite3.db".to_string();
 /// let database = databases::driver::build(&db_driver, &db_path);
 /// ```
@@ -43,9 +42,9 @@ pub enum DatabaseDriver {
 ///
 /// ```rust,no_run
 /// use torrust_tracker::core::databases;
-/// use torrust_tracker::core::databases::driver::DatabaseDriver;
+/// use torrust_tracker::core::databases::driver::Driver;
 ///
-/// let db_driver = DatabaseDriver::MySQL;
+/// let db_driver = Driver::MySQL;
 /// let db_path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker".to_string();
 /// let database = databases::driver::build(&db_driver, &db_path);
 /// ```
@@ -62,10 +61,10 @@ pub enum DatabaseDriver {
 /// # Panics
 ///
 /// This function will panic if unable to create database tables.
-pub fn build(driver: &DatabaseDriver, db_path: &str) -> Result<Box<dyn Database>, Error> {
+pub fn build(driver: &Driver, db_path: &str) -> Result<Box<dyn Database>, Error> {
     let database = match driver {
-        DatabaseDriver::Sqlite3 => Builder::<Sqlite>::build(db_path),
-        DatabaseDriver::MySQL => Builder::<Mysql>::build(db_path),
+        Driver::Sqlite3 => Builder::<Sqlite>::build(db_path),
+        Driver::MySQL => Builder::<Mysql>::build(db_path),
     }?;
 
     database.create_database_tables().expect("Could not create database tables.");
