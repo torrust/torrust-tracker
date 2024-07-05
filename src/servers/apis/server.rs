@@ -239,7 +239,9 @@ impl Launcher {
             match tls {
                 Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls)
                     .handle(handle)
-                    .acceptor(TimeoutAcceptor)
+                    // The TimeoutAcceptor is commented because TSL does not work with it.
+                    // See: https://github.com/torrust/torrust-index/issues/204#issuecomment-2115529214
+                    //.acceptor(TimeoutAcceptor)
                     .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
                     .expect("Axum server for tracker API crashed."),
