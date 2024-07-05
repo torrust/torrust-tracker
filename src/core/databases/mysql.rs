@@ -8,9 +8,10 @@ use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MySqlConnectionManager;
 use torrust_tracker_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::{DatabaseDriver, PersistentTorrents};
+use torrust_tracker_primitives::PersistentTorrents;
 use tracing::debug;
 
+use super::driver::DatabaseDriver;
 use super::{Database, Error};
 use crate::core::auth::{self, Key};
 use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;

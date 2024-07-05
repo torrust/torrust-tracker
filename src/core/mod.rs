@@ -453,15 +453,16 @@ use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
+use databases::driver::DatabaseDriver;
 use derive_more::Constructor;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_configuration::v2::database;
 use torrust_tracker_configuration::{AnnouncePolicy, Core, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
-use torrust_tracker_primitives::{peer, DatabaseDriver};
 use torrust_tracker_torrent_repository::entry::EntrySync;
 use torrust_tracker_torrent_repository::repository::Repository;
 use tracing::debug;

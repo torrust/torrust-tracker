@@ -42,20 +42,4 @@ pub enum IPVersion {
 #[derive(Hash, Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct NumberOfBytes(pub i64);
 
-/// The database management system used by the tracker.
-///
-/// Refer to:
-///
-/// - [Torrust Tracker Configuration](https://docs.rs/torrust-tracker-configuration).
-/// - [Torrust Tracker](https://docs.rs/torrust-tracker).
-///
-/// For more information about persistence.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, derive_more::Display, Clone)]
-pub enum DatabaseDriver {
-    /// The Sqlite3 database driver.
-    Sqlite3,
-    /// The `MySQL` database driver.
-    MySQL,
-}
-
 pub type PersistentTorrents = BTreeMap<InfoHash, u32>;

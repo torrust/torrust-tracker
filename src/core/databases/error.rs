@@ -6,7 +6,8 @@ use std::sync::Arc;
 
 use r2d2_mysql::mysql::UrlError;
 use torrust_tracker_located_error::{DynError, Located, LocatedError};
-use torrust_tracker_primitives::DatabaseDriver;
+
+use super::driver::DatabaseDriver;
 
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {

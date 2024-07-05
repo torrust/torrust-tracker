@@ -6,8 +6,9 @@ use async_trait::async_trait;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use torrust_tracker_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::{DatabaseDriver, DurationSinceUnixEpoch, PersistentTorrents};
+use torrust_tracker_primitives::{DurationSinceUnixEpoch, PersistentTorrents};
 
+use super::driver::DatabaseDriver;
 use super::{Database, Error};
 use crate::core::auth::{self, Key};
 
