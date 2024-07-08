@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::ops::Deref;
-use std::sync::Arc;
 
 use url::Url;
 
@@ -9,7 +8,7 @@ use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
 
 /// Wrapper for Tokio [`UdpSocket`][`tokio::net::UdpSocket`] that is bound to a particular socket.
 pub struct BoundSocket {
-    socket: Arc<tokio::net::UdpSocket>,
+    socket: tokio::net::UdpSocket,
 }
 
 impl BoundSocket {
@@ -30,9 +29,7 @@ impl BoundSocket {
         let local_addr = format!("udp://{addr}");
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "UdpSocket::new (bound)");
 
-        Ok(Self {
-            socket: Arc::new(socket),
-        })
+        Ok(Self { socket })
     }
 
     /// # Panics
