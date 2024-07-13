@@ -15,9 +15,9 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-derive_more = "0"
-thiserror = "1"
 binascii = "0"
+derive_more = "0"
 serde = { version = "1", features = ["derive"] }
 tdyne-peer-id = "1"
 tdyne-peer-id-registry = "0"
+thiserror = "1"

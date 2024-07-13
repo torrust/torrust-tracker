@@ -15,16 +15,16 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-camino = { version = "1.1.6", features = ["serde", "serde1"] }
+camino = { version = "1", features = ["serde", "serde1"] }
 derive_more = "0"
-figment = { version = "0.10.18", features = ["env", "test", "toml"] }
+figment = { version = "0", features = ["env", "test", "toml"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 serde_with = "3"
 thiserror = "1"
 toml = "0"
 torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "../located-error" }
-url = "2.5.2"
+url = "2"
 
 [dev-dependencies]
 uuid = { version = "1", features = ["v4"] }

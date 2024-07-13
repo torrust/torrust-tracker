@@ -16,10 +16,10 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-crossbeam-skiplist = "0.1"
-dashmap = "5.5.3"
-futures = "0.3.29"
-parking_lot = "0.12.1"
+crossbeam-skiplist = "0"
+dashmap = "5"
+futures = "0"
+parking_lot = "0"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-clock = { version = "3.0.0-alpha.12-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "../configuration" }

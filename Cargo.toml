@@ -36,29 +36,29 @@ axum = { version = "0", features = ["macros"] }
 axum-client-ip = "0"
 axum-extra = { version = "0", features = ["query"] }
 axum-server = { version = "0", features = ["tls-rustls"] }
-camino = { version = "1.1.6", features = ["serde", "serde1"] }
+camino = { version = "1", features = ["serde", "serde1"] }
 chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
-crossbeam-skiplist = "0.1"
-dashmap = "5.5.3"
+crossbeam-skiplist = "0"
+dashmap = "5"
 derive_more = "0"
-figment = "0.10.18"
+figment = "0"
 futures = "0"
-futures-util = "0.3.30"
+futures-util = "0"
 hex-literal = "0"
-http-body = "1.0.0"
+http-body = "1"
 hyper = "1"
-hyper-util = { version = "0.1.3", features = ["http1", "http2", "tokio"] }
+hyper-util = { version = "0", features = ["http1", "http2", "tokio"] }
 lazy_static = "1"
 multimap = "0"
-parking_lot = "0.12.1"
+parking_lot = "0"
 percent-encoding = "2"
-pin-project-lite = "0.2.14"
+pin-project-lite = "0"
 r2d2 = "0"
 r2d2_mysql = "24"
 r2d2_sqlite = { version = "0", features = ["bundled"] }
 rand = "0"
-regex = "1.10.5"
+regex = "1"
 reqwest = { version = "0", features = ["json"] }
 ringbuf = "0"
 serde = { version = "1", features = ["derive"] }
@@ -74,14 +74,14 @@ torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.12-develop", path = "
 torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "packages/located-error" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "packages/primitives" }
 torrust-tracker-torrent-repository = { version = "3.0.0-alpha.12-develop", path = "packages/torrent-repository" }
-tower = { version = "0.4.13", features = ["timeout"] }
+tower = { version = "0", features = ["timeout"] }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
 trace = "0"
 tracing = "0"
-tracing-subscriber = { version = "0.3.18", features = ["json"] }
+tracing-subscriber = { version = "0", features = ["json"] }
 url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }
-zerocopy = "0.7.33"
+zerocopy = "0"
 
 [package.metadata.cargo-machete]
 ignored = ["crossbeam-skiplist", "dashmap", "figment", "parking_lot", "serde_bytes"]
