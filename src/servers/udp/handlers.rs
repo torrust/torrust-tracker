@@ -33,7 +33,7 @@ use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 /// - Delegating the request to the correct handler depending on the request type.
 ///
 /// It will return an `Error` response if the request is invalid.
-pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Arc<Tracker>, addr: SocketAddr) -> Response {
+pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Tracker, local_addr: SocketAddr) -> Response {
     debug!("Handling Packets: {udp_request:?}");
 
     let start_time = Instant::now();
@@ -47,7 +47,7 @@ pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Arc<Tracker
         }
     }) {
         Ok(request) => {
-            log_request(&request, &request_id, &addr);
+            log_request(&request, &request_id, &local_addr);
 
             let transaction_id = match &request {
                 Request::Connect(connect_request) => connect_request.transaction_id,
@@ -62,7 +62,7 @@ pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Arc<Tracker
 
             let latency = start_time.elapsed();
 
-            log_response(&response, &transaction_id, &request_id, &addr, latency);
+            log_response(&response, &transaction_id, &request_id, &local_addr, latency);
 
             response
         }

@@ -1,26 +1,23 @@
-use std::io::Cursor;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use aquatic_udp_protocol::Response;
 use derive_more::Constructor;
 use futures_util::StreamExt;
 use tokio::select;
 use tokio::sync::oneshot;
 
 use super::request_buffer::ActiveRequests;
-use super::RawRequest;
 use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
 use crate::servers::logging::STARTED_ON;
 use crate::servers::registar::ServiceHealthCheckJob;
 use crate::servers::signals::{shutdown_signal_with_message, Halted};
 use crate::servers::udp::server::bound_socket::BoundSocket;
+use crate::servers::udp::server::processor::Processor;
 use crate::servers::udp::server::receiver::Receiver;
-use crate::servers::udp::{handlers, UDP_TRACKER_LOG_TARGET};
+use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
 use crate::shared::bit_torrent::tracker::udp::client::check;
-use crate::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
 
 /// A UDP server instance launcher.
 #[derive(Constructor)]
@@ -109,6 +106,8 @@ impl Launcher {
         let local_addr = format!("udp://{addr}");
 
         loop {
+            let processor = Processor::new(receiver.socket.clone(), tracker.clone());
+
             if let Some(req) = {
                 tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server (wait for request)");
                 receiver.next().await
@@ -138,9 +137,7 @@ impl Launcher {
                 // are only adding and removing tasks without given them the
                 // chance to finish. However, the buffer is yielding before
                 // aborting one tasks, giving it the chance to finish.
-                let abort_handle: tokio::task::AbortHandle =
-                    tokio::task::spawn(Launcher::process_request(req, tracker.clone(), receiver.bound_socket.clone()))
-                        .abort_handle();
+                let abort_handle: tokio::task::AbortHandle = tokio::task::spawn(processor.process_request(req)).abort_handle();
 
                 if abort_handle.is_finished() {
                     continue;
@@ -155,57 +152,5 @@ impl Launcher {
                 break;
             }
         }
-    }
-
-    async fn process_request(request: RawRequest, tracker: Arc<Tracker>, socket: Arc<BoundSocket>) {
-        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, request = %request.from, "Udp::process_request (receiving)");
-        Self::process_valid_request(tracker, socket, request).await;
-    }
-
-    async fn process_valid_request(tracker: Arc<Tracker>, socket: Arc<BoundSocket>, udp_request: RawRequest) {
-        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, "Udp::process_valid_request. Making Response to {udp_request:?}");
-        let from = udp_request.from;
-        let response = handlers::handle_packet(udp_request, &tracker.clone(), socket.address()).await;
-        Self::send_response(&socket.clone(), from, response).await;
-    }
-
-    async fn send_response(bound_socket: &Arc<BoundSocket>, to: SocketAddr, response: Response) {
-        let response_type = match &response {
-            Response::Connect(_) => "Connect".to_string(),
-            Response::AnnounceIpv4(_) => "AnnounceIpv4".to_string(),
-            Response::AnnounceIpv6(_) => "AnnounceIpv6".to_string(),
-            Response::Scrape(_) => "Scrape".to_string(),
-            Response::Error(e) => format!("Error: {e:?}"),
-        };
-
-        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, target = ?to, response_type,  "Udp::send_response (sending)");
-
-        let buffer = vec![0u8; MAX_PACKET_SIZE];
-        let mut cursor = Cursor::new(buffer);
-
-        match response.write_bytes(&mut cursor) {
-            Ok(()) => {
-                #[allow(clippy::cast_possible_truncation)]
-                let position = cursor.position() as usize;
-                let inner = cursor.get_ref();
-
-                tracing::debug!(target: UDP_TRACKER_LOG_TARGET, ?to, bytes_count = &inner[..position].len(), "Udp::send_response (sending...)" );
-                tracing::trace!(target: UDP_TRACKER_LOG_TARGET, ?to, bytes_count = &inner[..position].len(), payload = ?&inner[..position], "Udp::send_response (sending...)");
-
-                Self::send_packet(bound_socket, &to, &inner[..position]).await;
-
-                tracing::trace!(target:UDP_TRACKER_LOG_TARGET, ?to, bytes_count = &inner[..position].len(), "Udp::send_response (sent)");
-            }
-            Err(e) => {
-                tracing::error!(target: UDP_TRACKER_LOG_TARGET, ?to, response_type, err = %e, "Udp::send_response (error)");
-            }
-        }
-    }
-
-    async fn send_packet(bound_socket: &Arc<BoundSocket>, remote_addr: &SocketAddr, payload: &[u8]) {
-        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, to = %remote_addr, ?payload, "Udp::send_response (sending)");
-
-        // doesn't matter if it reaches or not
-        drop(bound_socket.send_to(payload, remote_addr).await);
     }
 }

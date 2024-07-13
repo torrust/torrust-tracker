@@ -5,6 +5,7 @@ use super::RawRequest;
 
 pub mod bound_socket;
 pub mod launcher;
+pub mod processor;
 pub mod receiver;
 pub mod request_buffer;
 pub mod spawner;

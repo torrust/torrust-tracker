@@ -11,7 +11,7 @@ use super::RawRequest;
 use crate::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
 
 pub struct Receiver {
-    pub bound_socket: Arc<BoundSocket>,
+    pub socket: Arc<BoundSocket>,
     data: RefCell<[u8; MAX_PACKET_SIZE]>,
 }
 
@@ -19,13 +19,13 @@ impl Receiver {
     #[must_use]
     pub fn new(bound_socket: Arc<BoundSocket>) -> Self {
         Receiver {
-            bound_socket,
+            socket: bound_socket,
             data: RefCell::new([0; MAX_PACKET_SIZE]),
         }
     }
 
     pub fn bound_socket_address(&self) -> SocketAddr {
-        self.bound_socket.address()
+        self.socket.address()
     }
 }
 
@@ -36,7 +36,7 @@ impl Stream for Receiver {
         let mut buf = *self.data.borrow_mut();
         let mut buf = tokio::io::ReadBuf::new(&mut buf);
 
-        let Poll::Ready(ready) = self.bound_socket.poll_recv_from(cx, &mut buf) else {
+        let Poll::Ready(ready) = self.socket.poll_recv_from(cx, &mut buf) else {
             return Poll::Pending;
         };
 

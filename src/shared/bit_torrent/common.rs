@@ -1,7 +1,6 @@
 //! `BitTorrent` protocol primitive types
 //!
 //! [BEP 3. The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-use serde::{Deserialize, Serialize};
 
 /// The maximum number of torrents that can be returned in an `scrape` response.
 ///
@@ -21,14 +20,3 @@ pub const MAX_SCRAPE_TORRENTS: u8 = 74;
 /// See function to [`generate`](crate::core::auth::generate) the
 /// [`ExpiringKeys`](crate::core::auth::ExpiringKey) for more information.
 pub const AUTH_KEY_LENGTH: usize = 32;
-
-#[repr(u32)]
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
-enum Actions {
-    // todo: it seems this enum is not used anywhere. Values match the ones in
-    // aquatic_udp_protocol::request::Request::from_bytes.
-    Connect = 0,
-    Announce = 1,
-    Scrape = 2,
-    Error = 3,
-}
