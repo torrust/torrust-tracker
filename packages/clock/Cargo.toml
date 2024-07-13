@@ -1,6 +1,6 @@
 [package]
 description = "A library to a clock for the torrust tracker."
-keywords = ["library", "clock", "torrents"]
+keywords = ["clock", "library", "torrents"]
 name = "torrust-tracker-clock"
 readme = "README.md"
 
@@ -16,8 +16,8 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-lazy_static = "1"
 chrono = { version = "0", default-features = false, features = ["clock"] }
+lazy_static = "1"
 
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "../primitives" }
 

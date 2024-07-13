@@ -1,6 +1,6 @@
 [package]
 description = "A library that provides a repository of torrents files and their peers."
-keywords = ["torrents", "repository", "library"]
+keywords = ["library", "repository", "torrents"]
 name = "torrust-tracker-torrent-repository"
 readme = "README.md"
 
@@ -16,19 +16,19 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-crossbeam-skiplist = "0.1"
-dashmap = "5.5.3"
-futures = "0.3.29"
-parking_lot = "0.12.1"
+crossbeam-skiplist = "0"
+dashmap = "6"
+futures = "0"
+parking_lot = "0"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-clock = { version = "3.0.0-alpha.12-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "../configuration" }
 torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "../primitives" }
 
 [dev-dependencies]
+async-std = { version = "1", features = ["attributes", "tokio1"] }
 criterion = { version = "0", features = ["async_tokio"] }
 rstest = "0"
-async-std = {version = "1", features = ["attributes", "tokio1"] }
 
 [[bench]]
 harness = false
