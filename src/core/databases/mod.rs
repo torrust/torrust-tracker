@@ -50,7 +50,6 @@ pub mod sqlite;
 
 use std::marker::PhantomData;
 
-use async_trait::async_trait;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::PersistentTorrents;
 
@@ -79,7 +78,6 @@ where
 }
 
 /// The persistence trait. It contains all the methods to interact with the database.
-#[async_trait]
 pub trait Database: Sync + Send {
     /// It instantiates a new database driver.
     ///
@@ -126,7 +124,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to load.
-    async fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error>;
+    fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error>;
 
     /// It saves the torrent metrics data into the database.
     ///
@@ -135,7 +133,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to save.
-    async fn save_persistent_torrent(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error>;
+    fn save_persistent_torrent(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error>;
 
     // Whitelist
 
@@ -146,7 +144,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to load.
-    async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error>;
+    fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error>;
 
     /// It checks if the torrent is whitelisted.
     ///
@@ -157,7 +155,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to load.
-    async fn get_info_hash_from_whitelist(&self, info_hash: &InfoHash) -> Result<Option<InfoHash>, Error>;
+    fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error>;
 
     /// It adds the torrent to the whitelist.
     ///
@@ -166,7 +164,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to save.
-    async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
+    fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
 
     /// It checks if the torrent is whitelisted.
     ///
@@ -175,8 +173,8 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to load.
-    async fn is_info_hash_whitelisted(&self, info_hash: &InfoHash) -> Result<bool, Error> {
-        Ok(self.get_info_hash_from_whitelist(info_hash).await?.is_some())
+    fn is_info_hash_whitelisted(&self, info_hash: InfoHash) -> Result<bool, Error> {
+        Ok(self.get_info_hash_from_whitelist(info_hash)?.is_some())
     }
 
     /// It removes the torrent from the whitelist.
@@ -186,7 +184,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to save.
-    async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
+    fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
 
     // Authentication keys
 
@@ -197,19 +195,19 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to load.
-    async fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error>;
+    fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error>;
 
     /// It gets an expiring authentication key from the database.
     ///
     /// It returns `Some(ExpiringKey)` if a [`ExpiringKey`](crate::core::auth::ExpiringKey)
-    /// with the input [`Key`](crate::core::auth::Key) exists, `None` otherwise.
+    /// with the input [`Key`] exists, `None` otherwise.
     ///
     /// # Context: Authentication Keys
     ///
     /// # Errors
     ///
     /// Will return `Err` if unable to load.
-    async fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error>;
+    fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error>;
 
     /// It adds an expiring authentication key to the database.
     ///
@@ -218,7 +216,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to save.
-    async fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error>;
+    fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error>;
 
     /// It removes an expiring authentication key from the database.
     ///
@@ -227,5 +225,5 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Will return `Err` if unable to load.
-    async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error>;
+    fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error>;
 }

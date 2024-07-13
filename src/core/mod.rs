@@ -622,7 +622,7 @@ impl Tracker {
     /// # Context: Tracker
     ///
     /// BEP 03: [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html).
-    pub async fn announce(&self, info_hash: &InfoHash, peer: &mut peer::Peer, remote_client_ip: &IpAddr) -> AnnounceData {
+    pub fn announce(&self, info_hash: &InfoHash, peer: &mut peer::Peer, remote_client_ip: &IpAddr) -> AnnounceData {
         // code-review: maybe instead of mutating the peer we could just return
         // a tuple with the new peer and the announce data: (Peer, AnnounceData).
         // It could even be a different struct: `StoredPeer` or `PublicPeer`.
@@ -642,7 +642,7 @@ impl Tracker {
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
         debug!("After: {peer:?}");
 
-        let stats = self.upsert_peer_and_get_stats(info_hash, peer).await;
+        let stats = self.upsert_peer_and_get_stats(info_hash, peer);
 
         let peers = self.get_peers_for(info_hash, peer);
 
@@ -688,8 +688,8 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to load the list of `persistent_torrents` from the database.
-    pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
-        let persistent_torrents = self.database.load_persistent_torrents().await?;
+    pub fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
+        let persistent_torrents = self.database.load_persistent_torrents()?;
 
         self.torrents.import_persistent(&persistent_torrents);
 
@@ -718,7 +718,7 @@ impl Tracker {
     /// needed for a `announce` request response.
     ///
     /// # Context: Tracker
-    pub async fn upsert_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> SwarmMetadata {
+    pub fn upsert_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> SwarmMetadata {
         let swarm_metadata_before = match self.torrents.get_swarm_metadata(info_hash) {
             Some(swarm_metadata) => swarm_metadata,
             None => SwarmMetadata::zeroed(),
@@ -732,7 +732,7 @@ impl Tracker {
         };
 
         if swarm_metadata_before != swarm_metadata_after {
-            self.persist_stats(info_hash, &swarm_metadata_after).await;
+            self.persist_stats(info_hash, &swarm_metadata_after);
         }
 
         swarm_metadata_after
@@ -741,12 +741,12 @@ impl Tracker {
     /// It stores the torrents stats into the database (if persistency is enabled).
     ///
     /// # Context: Tracker
-    async fn persist_stats(&self, info_hash: &InfoHash, swarm_metadata: &SwarmMetadata) {
+    fn persist_stats(&self, info_hash: &InfoHash, swarm_metadata: &SwarmMetadata) {
         if self.config.tracker_policy.persistent_torrent_completed_stat {
             let completed = swarm_metadata.downloaded;
             let info_hash = *info_hash;
 
-            drop(self.database.save_persistent_torrent(&info_hash, completed).await);
+            drop(self.database.save_persistent_torrent(&info_hash, completed));
         }
     }
 
@@ -804,7 +804,7 @@ impl Tracker {
     /// Will return a `database::Error` if unable to add the `auth_key` to the database.
     pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<auth::ExpiringKey, databases::error::Error> {
         let auth_key = auth::generate(lifetime);
-        self.database.add_key_to_keys(&auth_key).await?;
+        self.database.add_key_to_keys(&auth_key)?;
         self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
         Ok(auth_key)
     }
@@ -821,7 +821,7 @@ impl Tracker {
     ///
     /// Will panic if key cannot be converted into a valid `Key`.
     pub async fn remove_auth_key(&self, key: &Key) -> Result<(), databases::error::Error> {
-        self.database.remove_key_from_keys(key).await?;
+        self.database.remove_key_from_keys(key)?;
         self.keys.write().await.remove(key);
         Ok(())
     }
@@ -856,7 +856,7 @@ impl Tracker {
     ///
     /// Will return a `database::Error` if unable to `load_keys` from the database.
     pub async fn load_keys_from_database(&self) -> Result<(), databases::error::Error> {
-        let keys_from_database = self.database.load_keys().await?;
+        let keys_from_database = self.database.load_keys()?;
         let mut keys = self.keys.write().await;
 
         keys.clear();
@@ -901,20 +901,20 @@ impl Tracker {
     ///
     /// Will return a `database::Error` if unable to add the `info_hash` into the whitelist database.
     pub async fn add_torrent_to_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        self.add_torrent_to_database_whitelist(info_hash).await?;
+        self.add_torrent_to_database_whitelist(info_hash)?;
         self.add_torrent_to_memory_whitelist(info_hash).await;
         Ok(())
     }
 
     /// It adds a torrent to the whitelist if it has not been whitelisted previously
-    async fn add_torrent_to_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        let is_whitelisted = self.database.is_info_hash_whitelisted(info_hash).await?;
+    fn add_torrent_to_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
+        let is_whitelisted = self.database.is_info_hash_whitelisted(*info_hash)?;
 
         if is_whitelisted {
             return Ok(());
         }
 
-        self.database.add_info_hash_to_whitelist(*info_hash).await?;
+        self.database.add_info_hash_to_whitelist(*info_hash)?;
 
         Ok(())
     }
@@ -932,7 +932,7 @@ impl Tracker {
     ///
     /// Will return a `database::Error` if unable to remove the `info_hash` from the whitelist database.
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        self.remove_torrent_from_database_whitelist(info_hash).await?;
+        self.remove_torrent_from_database_whitelist(info_hash)?;
         self.remove_torrent_from_memory_whitelist(info_hash).await;
         Ok(())
     }
@@ -944,14 +944,14 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to remove the `info_hash` from the whitelist database.
-    pub async fn remove_torrent_from_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        let is_whitelisted = self.database.is_info_hash_whitelisted(info_hash).await?;
+    pub fn remove_torrent_from_database_whitelist(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
+        let is_whitelisted = self.database.is_info_hash_whitelisted(*info_hash)?;
 
         if !is_whitelisted {
             return Ok(());
         }
 
-        self.database.remove_info_hash_from_whitelist(*info_hash).await?;
+        self.database.remove_info_hash_from_whitelist(*info_hash)?;
 
         Ok(())
     }
@@ -978,7 +978,7 @@ impl Tracker {
     ///
     /// Will return a `database::Error` if unable to load the list whitelisted `info_hash`s from the database.
     pub async fn load_whitelist_from_database(&self) -> Result<(), databases::error::Error> {
-        let whitelisted_torrents_from_database = self.database.load_whitelist().await?;
+        let whitelisted_torrents_from_database = self.database.load_whitelist()?;
         let mut whitelist = self.whitelist.write().await;
 
         whitelist.clear();
@@ -1173,7 +1173,7 @@ mod tests {
             let info_hash = sample_info_hash();
             let peer = sample_peer();
 
-            tracker.upsert_peer_and_get_stats(&info_hash, &peer).await;
+            tracker.upsert_peer_and_get_stats(&info_hash, &peer);
 
             let peers = tracker.get_torrent_peers(&info_hash);
 
@@ -1187,7 +1187,7 @@ mod tests {
             let info_hash = sample_info_hash();
             let peer = sample_peer();
 
-            tracker.upsert_peer_and_get_stats(&info_hash, &peer).await;
+            tracker.upsert_peer_and_get_stats(&info_hash, &peer);
 
             let peers = tracker.get_peers_for(&info_hash, &peer);
 
@@ -1198,7 +1198,7 @@ mod tests {
         async fn it_should_return_the_torrent_metrics() {
             let tracker = public_tracker();
 
-            tracker.upsert_peer_and_get_stats(&sample_info_hash(), &leecher()).await;
+            tracker.upsert_peer_and_get_stats(&sample_info_hash(), &leecher());
 
             let torrent_metrics = tracker.get_torrents_metrics();
 
@@ -1219,7 +1219,7 @@ mod tests {
 
             let start_time = std::time::Instant::now();
             for i in 0..1_000_000 {
-                tracker.upsert_peer_and_get_stats(&gen_seeded_infohash(&i), &leecher()).await;
+                tracker.upsert_peer_and_get_stats(&gen_seeded_infohash(&i), &leecher());
             }
             let result_a = start_time.elapsed();
 
@@ -1353,7 +1353,7 @@ mod tests {
 
                     let mut peer = sample_peer();
 
-                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
+                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip());
 
                     assert_eq!(announce_data.peers, vec![]);
                 }
@@ -1363,12 +1363,10 @@ mod tests {
                     let tracker = public_tracker();
 
                     let mut previously_announced_peer = sample_peer_1();
-                    tracker
-                        .announce(&sample_info_hash(), &mut previously_announced_peer, &peer_ip())
-                        .await;
+                    tracker.announce(&sample_info_hash(), &mut previously_announced_peer, &peer_ip());
 
                     let mut peer = sample_peer_2();
-                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
+                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip());
 
                     assert_eq!(announce_data.peers, vec![Arc::new(previously_announced_peer)]);
                 }
@@ -1385,7 +1383,7 @@ mod tests {
 
                         let mut peer = seeder();
 
-                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip());
 
                         assert_eq!(announce_data.stats.complete, 1);
                     }
@@ -1396,7 +1394,7 @@ mod tests {
 
                         let mut peer = leecher();
 
-                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip()).await;
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip());
 
                         assert_eq!(announce_data.stats.incomplete, 1);
                     }
@@ -1407,10 +1405,10 @@ mod tests {
 
                         // We have to announce with "started" event because peer does not count if peer was not previously known
                         let mut started_peer = started_peer();
-                        tracker.announce(&sample_info_hash(), &mut started_peer, &peer_ip()).await;
+                        tracker.announce(&sample_info_hash(), &mut started_peer, &peer_ip());
 
                         let mut completed_peer = completed_peer();
-                        let announce_data = tracker.announce(&sample_info_hash(), &mut completed_peer, &peer_ip()).await;
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut completed_peer, &peer_ip());
 
                         assert_eq!(announce_data.stats.downloaded, 1);
                     }
@@ -1450,15 +1448,11 @@ mod tests {
 
                     // Announce a "complete" peer for the torrent
                     let mut complete_peer = complete_peer();
-                    tracker
-                        .announce(&info_hash, &mut complete_peer, &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 10)))
-                        .await;
+                    tracker.announce(&info_hash, &mut complete_peer, &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 10)));
 
                     // Announce an "incomplete" peer for the torrent
                     let mut incomplete_peer = incomplete_peer();
-                    tracker
-                        .announce(&info_hash, &mut incomplete_peer, &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 11)))
-                        .await;
+                    tracker.announce(&info_hash, &mut incomplete_peer, &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 11)));
 
                     // Scrape
                     let scrape_data = tracker.scrape(&vec![info_hash]).await;
@@ -1606,11 +1600,11 @@ mod tests {
                     let info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap();
 
                     let mut peer = incomplete_peer();
-                    tracker.announce(&info_hash, &mut peer, &peer_ip()).await;
+                    tracker.announce(&info_hash, &mut peer, &peer_ip());
 
                     // Announce twice to force non zeroed swarm metadata
                     let mut peer = complete_peer();
-                    tracker.announce(&info_hash, &mut peer, &peer_ip()).await;
+                    tracker.announce(&info_hash, &mut peer, &peer_ip());
 
                     let scrape_data = tracker.scrape(&vec![info_hash]).await;
 
@@ -1743,17 +1737,17 @@ mod tests {
                 let mut peer = sample_peer();
 
                 peer.event = AnnounceEvent::Started;
-                let swarm_stats = tracker.upsert_peer_and_get_stats(&info_hash, &peer).await;
+                let swarm_stats = tracker.upsert_peer_and_get_stats(&info_hash, &peer);
                 assert_eq!(swarm_stats.downloaded, 0);
 
                 peer.event = AnnounceEvent::Completed;
-                let swarm_stats = tracker.upsert_peer_and_get_stats(&info_hash, &peer).await;
+                let swarm_stats = tracker.upsert_peer_and_get_stats(&info_hash, &peer);
                 assert_eq!(swarm_stats.downloaded, 1);
 
                 // Remove the newly updated torrent from memory
                 tracker.torrents.remove(&info_hash);
 
-                tracker.load_torrents_from_database().await.unwrap();
+                tracker.load_torrents_from_database().unwrap();
 
                 let torrent_entry = tracker.torrents.get(&info_hash).expect("it should be able to get entry");
 

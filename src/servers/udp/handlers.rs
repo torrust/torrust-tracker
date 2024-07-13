@@ -164,7 +164,7 @@ pub async fn handle_announce(
 
     let mut peer = peer_builder::from_request(&wrapped_announce_request, &remote_client_ip);
 
-    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
+    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip);
 
     match remote_client_ip {
         IpAddr::V4(_) => {
@@ -722,7 +722,7 @@ mod tests {
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
             }
 
-            async fn add_a_torrent_peer_using_ipv6(tracker: Arc<core::Tracker>) {
+            fn add_a_torrent_peer_using_ipv6(tracker: &Arc<core::Tracker>) {
                 let info_hash = AquaticInfoHash([0u8; 20]);
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
@@ -735,7 +735,7 @@ mod tests {
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
-                tracker.upsert_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv6).await;
+                tracker.upsert_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv6);
             }
 
             async fn announce_a_new_peer_using_ipv4(tracker: Arc<core::Tracker>) -> Response {
@@ -751,7 +751,7 @@ mod tests {
             async fn when_the_announce_request_comes_from_a_client_using_ipv4_the_response_should_not_include_peers_using_ipv6() {
                 let tracker = public_tracker();
 
-                add_a_torrent_peer_using_ipv6(tracker.clone()).await;
+                add_a_torrent_peer_using_ipv6(&tracker);
 
                 let response = announce_a_new_peer_using_ipv4(tracker.clone()).await;
 
@@ -954,7 +954,7 @@ mod tests {
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V6(remote_client_ip), client_port));
             }
 
-            async fn add_a_torrent_peer_using_ipv4(tracker: Arc<core::Tracker>) {
+            fn add_a_torrent_peer_using_ipv4(tracker: &Arc<core::Tracker>) {
                 let info_hash = AquaticInfoHash([0u8; 20]);
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
@@ -966,7 +966,7 @@ mod tests {
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 
-                tracker.upsert_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv4).await;
+                tracker.upsert_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv4);
             }
 
             async fn announce_a_new_peer_using_ipv6(tracker: Arc<core::Tracker>) -> Response {
@@ -985,7 +985,7 @@ mod tests {
             async fn when_the_announce_request_comes_from_a_client_using_ipv6_the_response_should_not_include_peers_using_ipv4() {
                 let tracker = public_tracker();
 
-                add_a_torrent_peer_using_ipv4(tracker.clone()).await;
+                add_a_torrent_peer_using_ipv4(&tracker);
 
                 let response = announce_a_new_peer_using_ipv6(tracker.clone()).await;
 
@@ -1144,7 +1144,7 @@ mod tests {
                 .with_number_of_bytes_left(0)
                 .into();
 
-            tracker.upsert_peer_and_get_stats(&info_hash.0.into(), &peer).await;
+            tracker.upsert_peer_and_get_stats(&info_hash.0.into(), &peer);
         }
 
         fn build_scrape_request(remote_addr: &SocketAddr, info_hash: &InfoHash) -> ScrapeRequest {

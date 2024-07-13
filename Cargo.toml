@@ -32,7 +32,6 @@ version = "3.0.0-alpha.12-develop"
 [dependencies]
 anyhow = "1"
 aquatic_udp_protocol = "0"
-async-trait = "0"
 axum = { version = "0", features = ["macros"] }
 axum-client-ip = "0"
 axum-extra = { version = "0", features = ["query"] }

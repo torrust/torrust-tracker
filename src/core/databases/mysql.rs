@@ -2,7 +2,6 @@
 use std::str::FromStr;
 use std::time::Duration;
 
-use async_trait::async_trait;
 use r2d2::Pool;
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
@@ -22,7 +21,6 @@ pub struct Mysql {
     pool: Pool<MySqlConnectionManager>,
 }
 
-#[async_trait]
 impl Database for Mysql {
     /// It instantiates a new `MySQL` database driver.
     ///
@@ -106,7 +104,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
-    async fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error> {
+    fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let torrents = conn.query_map(
@@ -121,7 +119,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
-    async fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error> {
+    fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let keys = conn.query_map(
@@ -136,7 +134,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::load_whitelist`](crate::core::databases::Database::load_whitelist).
-    async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
+    fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let info_hashes = conn.query_map("SELECT info_hash FROM whitelist", |info_hash: String| {
@@ -147,7 +145,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
-    async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
+    fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
         const COMMAND : &str = "INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)";
 
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
@@ -160,7 +158,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::get_info_hash_from_whitelist`](crate::core::databases::Database::get_info_hash_from_whitelist).
-    async fn get_info_hash_from_whitelist(&self, info_hash: &InfoHash) -> Result<Option<InfoHash>, Error> {
+    fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let select = conn.exec_first::<String, _, _>(
@@ -174,7 +172,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::add_info_hash_to_whitelist`](crate::core::databases::Database::add_info_hash_to_whitelist).
-    async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
+    fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let info_hash_str = info_hash.to_string();
@@ -188,7 +186,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::remove_info_hash_from_whitelist`](crate::core::databases::Database::remove_info_hash_from_whitelist).
-    async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
+    fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let info_hash = info_hash.to_string();
@@ -199,7 +197,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::get_key_from_keys`](crate::core::databases::Database::get_key_from_keys).
-    async fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error> {
+    fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let query = conn.exec_first::<(String, i64), _, _>(
@@ -216,7 +214,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::add_key_to_keys`](crate::core::databases::Database::add_key_to_keys).
-    async fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error> {
+    fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let key = auth_key.key.to_string();
@@ -231,7 +229,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::remove_key_from_keys`](crate::core::databases::Database::remove_key_from_keys).
-    async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
+    fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         conn.exec_drop("DELETE FROM `keys` WHERE key = :key", params! { "key" => key.to_string() })?;

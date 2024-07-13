@@ -3939,7 +3939,6 @@ version = "3.0.0-alpha.12-develop"
 dependencies = [
  "anyhow",
  "aquatic_udp_protocol",
- "async-trait",
  "axum",
  "axum-client-ip",
  "axum-extra",
