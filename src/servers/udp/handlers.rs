@@ -151,7 +151,7 @@ pub async fn handle_announce(
 
     check(&remote_addr, &from_connection_id(&announce_request.connection_id))?;
 
-    let info_hash = InfoHash(announce_request.info_hash.0);
+    let info_hash = announce_request.info_hash.into();
     let remote_client_ip = remote_addr.ip();
 
     // Authorization
@@ -240,9 +240,9 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
     debug!("udp scrape request: {:#?}", request);
 
     // Convert from aquatic infohashes
-    let mut info_hashes = vec![];
+    let mut info_hashes: Vec<InfoHash> = vec![];
     for info_hash in &request.info_hashes {
-        info_hashes.push(InfoHash(info_hash.0));
+        info_hashes.push((*info_hash).into());
     }
 
     let scrape_data = if tracker.requires_authentication() {

@@ -16,7 +16,7 @@ where
     for _ in 0..samples {
         let torrent_repository = V::default();
 
-        let info_hash = InfoHash([0; 20]);
+        let info_hash = InfoHash::default();
 
         torrent_repository.upsert_peer(&info_hash, &DEFAULT_PEER).await;
 
@@ -33,13 +33,13 @@ where
     Arc<V>: Clone + Send + Sync + 'static,
 {
     let torrent_repository = Arc::<V>::default();
-    let info_hash: &'static InfoHash = &InfoHash([0; 20]);
+    let info_hash = InfoHash::default();
     let handles = FuturesUnordered::new();
 
     // Add the torrent/peer to the torrent repository
-    torrent_repository.upsert_peer(info_hash, &DEFAULT_PEER).await;
+    torrent_repository.upsert_peer(&info_hash, &DEFAULT_PEER).await;
 
-    torrent_repository.get_swarm_metadata(info_hash).await;
+    torrent_repository.get_swarm_metadata(&info_hash).await;
 
     let start = Instant::now();
 
@@ -47,9 +47,9 @@ where
         let torrent_repository_clone = torrent_repository.clone();
 
         let handle = runtime.spawn(async move {
-            torrent_repository_clone.upsert_peer(info_hash, &DEFAULT_PEER).await;
+            torrent_repository_clone.upsert_peer(&info_hash, &DEFAULT_PEER).await;
 
-            torrent_repository_clone.get_swarm_metadata(info_hash).await;
+            torrent_repository_clone.get_swarm_metadata(&info_hash).await;
 
             if let Some(sleep_time) = sleep {
                 let start_time = std::time::Instant::now();

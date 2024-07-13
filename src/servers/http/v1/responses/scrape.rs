@@ -17,7 +17,7 @@ use crate::core::ScrapeData;
 /// use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 /// use torrust_tracker::core::ScrapeData;
 ///
-/// let info_hash = InfoHash([0x69; 20]);
+/// let info_hash = InfoHash::from_bytes(&[0x69; 20]);
 /// let mut scrape_data = ScrapeData::empty();
 /// scrape_data.add_file(
 ///     &info_hash,
@@ -99,7 +99,7 @@ mod tests {
         use crate::servers::http::v1::responses::scrape::Bencoded;
 
         fn sample_scrape_data() -> ScrapeData {
-            let info_hash = InfoHash([0x69; 20]);
+            let info_hash = InfoHash::from_bytes(&[0x69; 20]);
             let mut scrape_data = ScrapeData::empty();
             scrape_data.add_file(
                 &info_hash,

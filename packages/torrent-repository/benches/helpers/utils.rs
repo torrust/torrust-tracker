@@ -30,7 +30,7 @@ pub fn generate_unique_info_hashes(size: usize) -> Vec<InfoHash> {
         bytes[2] = ((i >> 16) & 0xFF) as u8;
         bytes[3] = ((i >> 24) & 0xFF) as u8;
 
-        let info_hash = InfoHash(bytes);
+        let info_hash = InfoHash::from_bytes(&bytes);
         result.insert(info_hash);
     }
 

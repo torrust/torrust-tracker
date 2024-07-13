@@ -4036,12 +4036,14 @@ dependencies = [
 name = "torrust-tracker-primitives"
 version = "3.0.0-beta-develop"
 dependencies = [
+ "aquatic_udp_protocol",
  "binascii",
  "derive_more",
  "serde",
  "tdyne-peer-id",
  "tdyne-peer-id-registry",
  "thiserror",
+ "zerocopy",
 ]
 
 [[package]]
