@@ -61,9 +61,6 @@
 //! UDP packet -> Aquatic Struct Request -> [Torrust Struct Request] ->  Tracker -> Aquatic Struct Response -> UDP packet
 //! ```
 //!
-//! For the `Announce` request there is a wrapper struct [`AnnounceWrapper`](crate::servers::udp::request::AnnounceWrapper).
-//! It was added to add an extra field with the internal [`InfoHash`](torrust_tracker_primitives::info_hash::InfoHash) struct.
-//!
 //! ### Connect
 //!
 //! `Connect` requests are used to get a connection ID which must be provided on
@@ -646,7 +643,6 @@ pub mod error;
 pub mod handlers;
 pub mod logging;
 pub mod peer_builder;
-pub mod request;
 pub mod server;
 
 pub const UDP_TRACKER_LOG_TARGET: &str = "UDP TRACKER";

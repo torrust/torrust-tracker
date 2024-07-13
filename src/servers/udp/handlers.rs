@@ -22,7 +22,6 @@ use crate::core::{statistics, ScrapeData, Tracker};
 use crate::servers::udp::error::Error;
 use crate::servers::udp::logging::{log_bad_request, log_error_response, log_request, log_response};
 use crate::servers::udp::peer_builder;
-use crate::servers::udp::request::AnnounceWrapper;
 use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 
 /// It handles the incoming UDP packets.
@@ -152,9 +151,7 @@ pub async fn handle_announce(
 
     check(&remote_addr, &from_connection_id(&announce_request.connection_id))?;
 
-    let wrapped_announce_request = AnnounceWrapper::new(announce_request);
-
-    let info_hash = wrapped_announce_request.info_hash;
+    let info_hash = InfoHash(announce_request.info_hash.0);
     let remote_client_ip = remote_addr.ip();
 
     // Authorization
@@ -162,7 +159,7 @@ pub async fn handle_announce(
         source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
     })?;
 
-    let mut peer = peer_builder::from_request(&wrapped_announce_request, &remote_client_ip);
+    let mut peer = peer_builder::from_request(announce_request, &remote_client_ip);
 
     let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip);
 
@@ -179,7 +176,7 @@ pub async fn handle_announce(
     if remote_addr.is_ipv4() {
         let announce_response = AnnounceResponse {
             fixed: AnnounceResponseFixedData {
-                transaction_id: wrapped_announce_request.announce_request.transaction_id,
+                transaction_id: announce_request.transaction_id,
                 announce_interval: AnnounceInterval(I32::new(i64::from(tracker.get_announce_policy().interval) as i32)),
                 leechers: NumberOfPeers(I32::new(i64::from(response.stats.incomplete) as i32)),
                 seeders: NumberOfPeers(I32::new(i64::from(response.stats.complete) as i32)),
@@ -206,7 +203,7 @@ pub async fn handle_announce(
     } else {
         let announce_response = AnnounceResponse {
             fixed: AnnounceResponseFixedData {
-                transaction_id: wrapped_announce_request.announce_request.transaction_id,
+                transaction_id: announce_request.transaction_id,
                 announce_interval: AnnounceInterval(I32::new(i64::from(tracker.get_announce_policy().interval) as i32)),
                 leechers: NumberOfPeers(I32::new(i64::from(response.stats.incomplete) as i32)),
                 seeders: NumberOfPeers(I32::new(i64::from(response.stats.complete) as i32)),
