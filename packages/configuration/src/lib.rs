@@ -3,7 +3,7 @@
 //! This module contains the configuration data structures for the
 //! Torrust Tracker, which is a `BitTorrent` tracker server.
 //!
-//! The current version for configuration is [`v1`].
+//! The current version for configuration is [`v2`].
 pub mod v2;
 
 use std::collections::HashMap;
