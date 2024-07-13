@@ -44,11 +44,12 @@
 //! > specifications specify any HTTP status code for authentication errors.
 use std::panic::Location;
 
-use axum::async_trait;
 use axum::extract::rejection::PathRejection;
 use axum::extract::{FromRequestParts, Path};
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
+use futures::future::BoxFuture;
+use futures::FutureExt;
 use serde::Deserialize;
 
 use crate::core::auth::Key;
@@ -68,21 +69,32 @@ impl KeyParam {
     }
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for Extract
 where
     S: Send + Sync,
 {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        // Extract `key` from URL path with Axum `Path` extractor
-        let maybe_path_with_key = Path::<KeyParam>::from_request_parts(parts, state).await;
+    #[must_use]
+    fn from_request_parts<'life0, 'life1, 'async_trait>(
+        parts: &'life0 mut Parts,
+        state: &'life1 S,
+    ) -> BoxFuture<'async_trait, Result<Self, Self::Rejection>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        Self: 'async_trait,
+    {
+        async {
+            // Extract `key` from URL path with Axum `Path` extractor
+            let maybe_path_with_key = Path::<KeyParam>::from_request_parts(parts, state).await;
 
-        match extract_key(maybe_path_with_key) {
-            Ok(key) => Ok(Extract(key)),
-            Err(error) => Err(error.into_response()),
+            match extract_key(maybe_path_with_key) {
+                Ok(key) => Ok(Extract(key)),
+                Err(error) => Err(error.into_response()),
+            }
         }
+        .boxed()
     }
 }
 

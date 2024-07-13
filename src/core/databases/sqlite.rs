@@ -2,7 +2,6 @@
 use std::panic::Location;
 use std::str::FromStr;
 
-use async_trait::async_trait;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use torrust_tracker_primitives::info_hash::InfoHash;
@@ -18,7 +17,6 @@ pub struct Sqlite {
     pool: Pool<SqliteConnectionManager>,
 }
 
-#[async_trait]
 impl Database for Sqlite {
     /// It instantiates a new `SQLite3` database driver.
     ///
@@ -90,7 +88,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
-    async fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error> {
+    fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
@@ -106,7 +104,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
-    async fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error> {
+    fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys")?;
@@ -127,7 +125,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_whitelist`](crate::core::databases::Database::load_whitelist).
-    async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
+    fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT info_hash FROM whitelist")?;
@@ -144,7 +142,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
-    async fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
+    fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let insert = conn.execute(
@@ -163,7 +161,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::get_info_hash_from_whitelist`](crate::core::databases::Database::get_info_hash_from_whitelist).
-    async fn get_info_hash_from_whitelist(&self, info_hash: &InfoHash) -> Result<Option<InfoHash>, Error> {
+    fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT info_hash FROM whitelist WHERE info_hash = ?")?;
@@ -176,7 +174,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::add_info_hash_to_whitelist`](crate::core::databases::Database::add_info_hash_to_whitelist).
-    async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
+    fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let insert = conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", [info_hash.to_string()])?;
@@ -192,7 +190,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::remove_info_hash_from_whitelist`](crate::core::databases::Database::remove_info_hash_from_whitelist).
-    async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
+    fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let deleted = conn.execute("DELETE FROM whitelist WHERE info_hash = ?", [info_hash.to_string()])?;
@@ -210,7 +208,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::get_key_from_keys`](crate::core::databases::Database::get_key_from_keys).
-    async fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error> {
+    fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys WHERE key = ?")?;
@@ -230,7 +228,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::add_key_to_keys`](crate::core::databases::Database::add_key_to_keys).
-    async fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error> {
+    fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let insert = conn.execute(
@@ -249,7 +247,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::remove_key_from_keys`](crate::core::databases::Database::remove_key_from_keys).
-    async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
+    fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let deleted = conn.execute("DELETE FROM keys WHERE key = ?", [key.to_string()])?;

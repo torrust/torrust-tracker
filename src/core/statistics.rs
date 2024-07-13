@@ -19,7 +19,8 @@
 //! See the [`statistics::Event`](crate::core::statistics::Event) enum to check which events are available.
 use std::sync::Arc;
 
-use async_trait::async_trait;
+use futures::future::BoxFuture;
+use futures::FutureExt;
 #[cfg(test)]
 use mockall::{automock, predicate::str};
 use tokio::sync::mpsc::error::SendError;
@@ -185,10 +186,9 @@ async fn event_handler(event: Event, stats_repository: &Repo) {
 }
 
 /// A trait to allow sending statistics events
-#[async_trait]
 #[cfg_attr(test, automock)]
 pub trait EventSender: Sync + Send {
-    async fn send_event(&self, event: Event) -> Option<Result<(), SendError<Event>>>;
+    fn send_event(&self, event: Event) -> BoxFuture<'_, Option<Result<(), SendError<Event>>>>;
 }
 
 /// An [`statistics::EventSender`](crate::core::statistics::EventSender) implementation.
@@ -199,10 +199,9 @@ pub struct Sender {
     sender: mpsc::Sender<Event>,
 }
 
-#[async_trait]
 impl EventSender for Sender {
-    async fn send_event(&self, event: Event) -> Option<Result<(), SendError<Event>>> {
-        Some(self.sender.send(event).await)
+    fn send_event(&self, event: Event) -> BoxFuture<'_, Option<Result<(), SendError<Event>>>> {
+        async move { Some(self.sender.send(event).await) }.boxed()
     }
 }
 
