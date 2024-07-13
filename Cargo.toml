@@ -40,7 +40,7 @@ camino = { version = "1", features = ["serde", "serde1"] }
 chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
 crossbeam-skiplist = "0"
-dashmap = "5"
+dashmap = "6"
 derive_more = "0"
 figment = "0"
 futures = "0"
@@ -55,7 +55,7 @@ parking_lot = "0"
 percent-encoding = "2"
 pin-project-lite = "0"
 r2d2 = "0"
-r2d2_mysql = "24"
+r2d2_mysql = "25"
 r2d2_sqlite = { version = "0", features = ["bundled"] }
 rand = "0"
 regex = "1"
