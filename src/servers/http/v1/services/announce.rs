@@ -48,7 +48,7 @@ pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut peer:
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-    use torrust_tracker_primitives::announce_event::AnnounceEvent;
+    use aquatic_udp_protocol::AnnounceEvent;
     use torrust_tracker_primitives::info_hash::InfoHash;
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
     use torrust_tracker_test_helpers::configuration;

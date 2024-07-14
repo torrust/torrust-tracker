@@ -1,8 +1,7 @@
 use std::net::SocketAddr;
 
 use torrust_tracker_clock::clock::Time;
-use torrust_tracker_primitives::announce_event::AnnounceEvent;
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
+use torrust_tracker_primitives::{peer, AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes};
 
 use crate::CurrentClock;
 

@@ -9,10 +9,10 @@ use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
 
+use aquatic_udp_protocol::AnnounceEvent;
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use torrust_tracker_clock::clock::Time;
-use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::{peer, NumberOfBytes};
 use tracing::debug;
 

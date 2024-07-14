@@ -55,15 +55,15 @@
 //! Once you have instantiated the `Tracker` you can `announce` a new [`peer::Peer`] with:
 //!
 //! ```rust,no_run
-//! use torrust_tracker_primitives::peer;
-//! use torrust_tracker_primitives::info_hash::InfoHash;
-//! use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfBytes};
-//! use torrust_tracker_primitives::announce_event::AnnounceEvent;
 //! use std::net::SocketAddr;
 //! use std::net::IpAddr;
 //! use std::net::Ipv4Addr;
 //! use std::str::FromStr;
 //!
+//! use aquatic_udp_protocol::AnnounceEvent;
+//! use torrust_tracker_primitives::peer;
+//! use torrust_tracker_primitives::info_hash::InfoHash;
+//! use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfBytes};
 //!
 //! let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
 //!
@@ -1198,7 +1198,7 @@ mod tests {
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use torrust_tracker_primitives::announce_event::AnnounceEvent;
+        use aquatic_udp_protocol::AnnounceEvent;
         use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfBytes};
         use torrust_tracker_test_helpers::configuration;
@@ -2035,7 +2035,7 @@ mod tests {
 
         mod handling_torrent_persistence {
 
-            use torrust_tracker_primitives::announce_event::AnnounceEvent;
+            use aquatic_udp_protocol::AnnounceEvent;
             use torrust_tracker_torrent_repository::entry::EntrySync;
             use torrust_tracker_torrent_repository::repository::Repository;
 

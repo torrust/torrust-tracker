@@ -1,10 +1,9 @@
 use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer::{Id, Peer};
-use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfBytes};
+use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes};
 
 pub const DEFAULT_PEER: Peer = Peer {
     peer_id: Id([0; 20]),

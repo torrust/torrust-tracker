@@ -105,7 +105,7 @@ pub async fn get_torrents(tracker: Arc<Tracker>, info_hashes: &[InfoHash]) -> Ve
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use torrust_tracker_primitives::announce_event::AnnounceEvent;
+    use aquatic_udp_protocol::AnnounceEvent;
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
 
     fn sample_peer() -> peer::Peer {

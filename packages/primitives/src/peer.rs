@@ -24,10 +24,10 @@
 use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 
+use aquatic_udp_protocol::AnnounceEvent;
 use serde::Serialize;
 
-use crate::announce_event::AnnounceEvent;
-use crate::{ser_unix_time_value, DurationSinceUnixEpoch, IPVersion, NumberOfBytes};
+use crate::{ser_announce_event, ser_unix_time_value, DurationSinceUnixEpoch, IPVersion, NumberOfBytes};
 
 /// Peer struct used by the core `Tracker`.
 ///
@@ -51,7 +51,7 @@ use crate::{ser_unix_time_value, DurationSinceUnixEpoch, IPVersion, NumberOfByte
 ///     event: AnnounceEvent::Started,
 /// };
 /// ```
-#[derive(Debug, Clone, Serialize, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Serialize, Copy, PartialEq, Eq, Hash)]
 pub struct Peer {
     /// ID used by the downloader peer
     pub peer_id: Id,
@@ -67,7 +67,20 @@ pub struct Peer {
     /// The number of bytes this peer still has to download
     pub left: NumberOfBytes,
     /// This is an optional key which maps to started, completed, or stopped (or empty, which is the same as not being present).
+    #[serde(serialize_with = "ser_announce_event")]
     pub event: AnnounceEvent,
+}
+
+impl Ord for Peer {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.peer_id.cmp(&other.peer_id)
+    }
+}
+
+impl PartialOrd for Peer {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.peer_id.cmp(&other.peer_id))
+    }
 }
 
 pub trait ReadInfo {
@@ -344,8 +357,9 @@ impl<P: Encoding> FromIterator<Peer> for Vec<P> {
 pub mod fixture {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+    use aquatic_udp_protocol::AnnounceEvent;
+
     use super::{Id, Peer};
-    use crate::announce_event::AnnounceEvent;
     use crate::{DurationSinceUnixEpoch, NumberOfBytes};
 
     #[derive(PartialEq, Debug)]

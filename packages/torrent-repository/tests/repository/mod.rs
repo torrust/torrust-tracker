@@ -3,11 +3,10 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use rstest::{fixture, rstest};
 use torrust_tracker_configuration::TrackerPolicy;
-use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::{NumberOfBytes, PersistentTorrents};
+use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PersistentTorrents};
 use torrust_tracker_torrent_repository::entry::Entry as _;
 use torrust_tracker_torrent_repository::repository::dash_map_mutex_std::XacrimonDashMap;
 use torrust_tracker_torrent_repository::repository::rw_lock_std::RwLockStd;

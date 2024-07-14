@@ -6,9 +6,8 @@ use rstest::{fixture, rstest};
 use torrust_tracker_clock::clock::stopped::Stopped as _;
 use torrust_tracker_clock::clock::{self, Time as _};
 use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
-use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_primitives::{peer, NumberOfBytes};
+use torrust_tracker_primitives::{peer, AnnounceEvent, NumberOfBytes};
 use torrust_tracker_torrent_repository::{
     EntryMutexParkingLot, EntryMutexStd, EntryMutexTokio, EntryRwLockParkingLot, EntrySingle,
 };

@@ -7,10 +7,10 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
+pub use aquatic_udp_protocol::{AnnounceEvent, AnnounceEventBytes};
 use info_hash::InfoHash;
 use serde::{Deserialize, Serialize};
 
-pub mod announce_event;
 pub mod info_hash;
 pub mod pagination;
 pub mod peer;
@@ -27,6 +27,29 @@ pub type DurationSinceUnixEpoch = Duration;
 pub fn ser_unix_time_value<S: serde::Serializer>(unix_time_value: &DurationSinceUnixEpoch, ser: S) -> Result<S::Ok, S::Error> {
     #[allow(clippy::cast_possible_truncation)]
     ser.serialize_u64(unix_time_value.as_millis() as u64)
+}
+
+#[derive(Serialize)]
+pub enum AnnounceEventSer {
+    Started,
+    Stopped,
+    Completed,
+    None,
+}
+
+/// Serializes a `DurationSinceUnixEpoch` as a Unix timestamp in milliseconds.
+/// # Errors
+///
+/// Will return `serde::Serializer::Error` if unable to serialize the `unix_time_value`.
+pub fn ser_announce_event<S: serde::Serializer>(announce_event: &AnnounceEvent, ser: S) -> Result<S::Ok, S::Error> {
+    let event_ser = match announce_event {
+        AnnounceEvent::Started => AnnounceEventSer::Started,
+        AnnounceEvent::Stopped => AnnounceEventSer::Stopped,
+        AnnounceEvent::Completed => AnnounceEventSer::Completed,
+        AnnounceEvent::None => AnnounceEventSer::None,
+    };
+
+    ser.serialize_some(&event_ser)
 }
 
 /// IP version used by the peer to connect to the tracker: IPv4 or IPv6

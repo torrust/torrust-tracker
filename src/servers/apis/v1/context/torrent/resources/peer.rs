@@ -22,7 +22,7 @@ pub struct Peer {
     /// The peer's left bytes (pending to download).
     pub left: i64,
     /// The peer's event: `started`, `stopped`, `completed`.
-    /// See [`AnnounceEvent`](torrust_tracker_primitives::announce_event::AnnounceEvent).
+    /// See [`AnnounceEvent`](aquatic_udp_protocol::AnnounceEvent).
     pub event: String,
 }
 
