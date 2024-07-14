@@ -2,10 +2,10 @@
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use aquatic_udp_protocol::AnnounceEvent;
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use torrust_tracker_clock::clock::stopped::Stopped as _;
 use torrust_tracker_clock::clock::{self, Time};
-use torrust_tracker_primitives::{peer, NumberOfBytes};
+use torrust_tracker_primitives::peer;
 
 use crate::CurrentClock;
 
@@ -17,9 +17,9 @@ fn it_should_be_serializable() {
         peer_id: peer::Id(*b"-qB0000-000000000000"),
         peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
         updated: CurrentClock::now(),
-        uploaded: NumberOfBytes(0),
-        downloaded: NumberOfBytes(0),
-        left: NumberOfBytes(0),
+        uploaded: NumberOfBytes::new(0),
+        downloaded: NumberOfBytes::new(0),
+        left: NumberOfBytes::new(0),
         event: AnnounceEvent::Started,
     };
 

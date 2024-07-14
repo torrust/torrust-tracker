@@ -1,7 +1,8 @@
 use std::net::SocketAddr;
 
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use torrust_tracker_clock::clock::Time;
-use torrust_tracker_primitives::{peer, AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
 use crate::CurrentClock;
 
@@ -48,7 +49,7 @@ impl TorrentPeerBuilder {
 
     #[must_use]
     fn with_number_of_bytes_left(mut self, left: i64) -> Self {
-        self.peer.left = NumberOfBytes(left);
+        self.peer.left = NumberOfBytes::new(left);
         self
     }
 

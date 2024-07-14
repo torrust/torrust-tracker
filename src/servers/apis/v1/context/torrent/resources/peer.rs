@@ -52,9 +52,9 @@ impl From<peer::Peer> for Peer {
             peer_addr: value.peer_addr.to_string(),
             updated: value.updated.as_millis(),
             updated_milliseconds_ago: value.updated.as_millis(),
-            uploaded: value.uploaded.0,
-            downloaded: value.downloaded.0,
-            left: value.left.0,
+            uploaded: value.uploaded.0.get(),
+            downloaded: value.downloaded.0.get(),
+            left: value.left.0.get(),
             event: format!("{:?}", value.event),
         }
     }

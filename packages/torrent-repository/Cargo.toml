@@ -16,6 +16,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
+aquatic_udp_protocol = "0"
 crossbeam-skiplist = "0"
 dashmap = "6"
 futures = "0"
@@ -24,6 +25,7 @@ tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal
 torrust-tracker-clock = { version = "3.0.0-beta-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-beta-develop", path = "../configuration" }
 torrust-tracker-primitives = { version = "3.0.0-beta-develop", path = "../primitives" }
+zerocopy = "0"
 
 [dev-dependencies]
 async-std = { version = "1", features = ["attributes", "tokio1"] }

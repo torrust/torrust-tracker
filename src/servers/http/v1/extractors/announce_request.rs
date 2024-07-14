@@ -95,6 +95,7 @@ fn extract_announce_from(maybe_raw_query: Option<&str>) -> Result<Announce, resp
 mod tests {
     use std::str::FromStr;
 
+    use aquatic_udp_protocol::NumberOfBytes;
     use torrust_tracker_primitives::info_hash::InfoHash;
     use torrust_tracker_primitives::peer;
 
@@ -121,9 +122,9 @@ mod tests {
                 info_hash: InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap(),
                 peer_id: peer::Id(*b"-qB00000000000000001"),
                 port: 17548,
-                downloaded: Some(0),
-                uploaded: Some(0),
-                left: Some(0),
+                downloaded: Some(NumberOfBytes::new(0)),
+                uploaded: Some(NumberOfBytes::new(0)),
+                left: Some(NumberOfBytes::new(0)),
                 event: Some(Event::Completed),
                 compact: Some(Compact::NotAccepted),
             }

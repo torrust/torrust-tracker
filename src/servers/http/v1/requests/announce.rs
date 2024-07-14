@@ -5,6 +5,7 @@ use std::fmt;
 use std::panic::Location;
 use std::str::FromStr;
 
+use aquatic_udp_protocol::NumberOfBytes;
 use thiserror::Error;
 use torrust_tracker_located_error::{Located, LocatedError};
 use torrust_tracker_primitives::info_hash::{self, InfoHash};
@@ -13,10 +14,6 @@ use torrust_tracker_primitives::peer;
 use crate::servers::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::servers::http::v1::query::{ParseQueryError, Query};
 use crate::servers::http::v1::responses;
-
-/// The number of bytes `downloaded`, `uploaded` or `left`. It's used in the
-/// `Announce` request for parameters that represent a number of bytes.
-pub type NumberOfBytes = i64;
 
 // Query param names
 const INFO_HASH: &str = "info_hash";
@@ -32,6 +29,7 @@ const COMPACT: &str = "compact";
 /// query params of the request.
 ///
 /// ```rust
+/// use aquatic_udp_protocol::NumberOfBytes;
 /// use torrust_tracker::servers::http::v1::requests::announce::{Announce, Compact, Event};
 /// use torrust_tracker_primitives::info_hash::InfoHash;
 /// use torrust_tracker_primitives::peer;
@@ -42,9 +40,9 @@ const COMPACT: &str = "compact";
 ///     peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
 ///     port: 17548,
 ///     // Optional params
-///     downloaded: Some(1),
-///     uploaded: Some(2),
-///     left: Some(3),
+///     downloaded: Some(NumberOfBytes::new(1)),
+///     uploaded: Some(NumberOfBytes::new(2)),
+///     left: Some(NumberOfBytes::new(3)),
 ///     event: Some(Event::Started),
 ///     compact: Some(Compact::NotAccepted)
 /// };
@@ -324,13 +322,16 @@ fn extract_number_of_bytes_from_param(param_name: &str, query: &Query) -> Result
                 location: Location::caller(),
             })?;
 
-            Ok(Some(i64::try_from(number_of_bytes).map_err(|_e| {
-                ParseAnnounceQueryError::NumberOfBytesOverflow {
+            let number_of_bytes =
+                i64::try_from(number_of_bytes).map_err(|_e| ParseAnnounceQueryError::NumberOfBytesOverflow {
                     param_name: param_name.to_owned(),
                     param_value: raw_param.clone(),
                     location: Location::caller(),
-                }
-            })?))
+                })?;
+
+            let number_of_bytes = NumberOfBytes::new(number_of_bytes);
+
+            Ok(Some(number_of_bytes))
         }
         None => Ok(None),
     }
@@ -355,6 +356,7 @@ mod tests {
 
     mod announce_request {
 
+        use aquatic_udp_protocol::NumberOfBytes;
         use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_primitives::peer;
 
@@ -415,9 +417,9 @@ mod tests {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
                     peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
                     port: 17548,
-                    downloaded: Some(1),
-                    uploaded: Some(2),
-                    left: Some(3),
+                    downloaded: Some(NumberOfBytes::new(1)),
+                    uploaded: Some(NumberOfBytes::new(2)),
+                    left: Some(NumberOfBytes::new(3)),
                     event: Some(Event::Started),
                     compact: Some(Compact::NotAccepted),
                 }

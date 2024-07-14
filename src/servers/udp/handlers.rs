@@ -318,9 +318,10 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
+    use aquatic_udp_protocol::NumberOfBytes;
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_configuration::Configuration;
-    use torrust_tracker_primitives::{peer, NumberOfBytes};
+    use torrust_tracker_primitives::peer;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::core::services::tracker_factory;
@@ -397,7 +398,7 @@ mod tests {
 
         #[must_use]
         pub fn with_number_of_bytes_left(mut self, left: i64) -> Self {
-            self.peer.left = NumberOfBytes(left);
+            self.peer.left = NumberOfBytes::new(left);
             self
         }
 

@@ -1,12 +1,13 @@
 use std::collections::{BTreeMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use rstest::{fixture, rstest};
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PersistentTorrents};
+use torrust_tracker_primitives::PersistentTorrents;
 use torrust_tracker_torrent_repository::entry::Entry as _;
 use torrust_tracker_torrent_repository::repository::dash_map_mutex_std::XacrimonDashMap;
 use torrust_tracker_torrent_repository::repository::rw_lock_std::RwLockStd;
@@ -99,7 +100,7 @@ fn downloaded() -> Entries {
     let mut peer = a_started_peer(3);
     torrent.upsert_peer(&peer);
     peer.event = AnnounceEvent::Completed;
-    peer.left = NumberOfBytes(0);
+    peer.left = NumberOfBytes::new(0);
     torrent.upsert_peer(&peer);
     vec![(InfoHash::default(), torrent)]
 }
@@ -121,7 +122,7 @@ fn three() -> Entries {
     let mut downloaded_peer = a_started_peer(3);
     downloaded.upsert_peer(&downloaded_peer);
     downloaded_peer.event = AnnounceEvent::Completed;
-    downloaded_peer.left = NumberOfBytes(0);
+    downloaded_peer.left = NumberOfBytes::new(0);
     downloaded.upsert_peer(&downloaded_peer);
     downloaded.hash(downloaded_h);
 

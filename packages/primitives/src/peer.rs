@@ -14,9 +14,9 @@
 //!     peer_id: peer::Id(*b"-qB00000000000000000"),
 //!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
 //!     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
-//!     uploaded: NumberOfBytes(0),
-//!     downloaded: NumberOfBytes(0),
-//!     left: NumberOfBytes(0),
+//!     uploaded: NumberOfBytes::new(0),
+//!     downloaded: NumberOfBytes::new(0),
+//!     left: NumberOfBytes::new(0),
 //!     event: AnnounceEvent::Started,
 //! };
 //! ```
@@ -24,10 +24,10 @@
 use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 
-use aquatic_udp_protocol::AnnounceEvent;
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use serde::Serialize;
 
-use crate::{ser_announce_event, ser_unix_time_value, DurationSinceUnixEpoch, IPVersion, NumberOfBytes};
+use crate::{ser_announce_event, ser_number_of_bytes, ser_unix_time_value, DurationSinceUnixEpoch, IPVersion};
 
 /// Peer struct used by the core `Tracker`.
 ///
@@ -45,9 +45,9 @@ use crate::{ser_announce_event, ser_unix_time_value, DurationSinceUnixEpoch, IPV
 ///     peer_id: peer::Id(*b"-qB00000000000000000"),
 ///     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
 ///     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
-///     uploaded: NumberOfBytes(0),
-///     downloaded: NumberOfBytes(0),
-///     left: NumberOfBytes(0),
+///     uploaded: NumberOfBytes::new(0),
+///     downloaded: NumberOfBytes::new(0),
+///     left: NumberOfBytes::new(0),
 ///     event: AnnounceEvent::Started,
 /// };
 /// ```
@@ -61,10 +61,13 @@ pub struct Peer {
     #[serde(serialize_with = "ser_unix_time_value")]
     pub updated: DurationSinceUnixEpoch,
     /// The total amount of bytes uploaded by this peer so far
+    #[serde(serialize_with = "ser_number_of_bytes")]
     pub uploaded: NumberOfBytes,
     /// The total amount of bytes downloaded by this peer so far
+    #[serde(serialize_with = "ser_number_of_bytes")]
     pub downloaded: NumberOfBytes,
     /// The number of bytes this peer still has to download
+    #[serde(serialize_with = "ser_number_of_bytes")]
     pub left: NumberOfBytes,
     /// This is an optional key which maps to started, completed, or stopped (or empty, which is the same as not being present).
     #[serde(serialize_with = "ser_announce_event")]
@@ -93,7 +96,7 @@ pub trait ReadInfo {
 
 impl ReadInfo for Peer {
     fn is_seeder(&self) -> bool {
-        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+        self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
     }
 
     fn get_event(&self) -> AnnounceEvent {
@@ -115,7 +118,7 @@ impl ReadInfo for Peer {
 
 impl ReadInfo for Arc<Peer> {
     fn is_seeder(&self) -> bool {
-        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+        self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
     }
 
     fn get_event(&self) -> AnnounceEvent {
@@ -138,7 +141,7 @@ impl ReadInfo for Arc<Peer> {
 impl Peer {
     #[must_use]
     pub fn is_seeder(&self) -> bool {
-        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+        self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
     }
 
     pub fn ip(&mut self) -> IpAddr {
@@ -357,10 +360,10 @@ impl<P: Encoding> FromIterator<Peer> for Vec<P> {
 pub mod fixture {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use aquatic_udp_protocol::AnnounceEvent;
+    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 
     use super::{Id, Peer};
-    use crate::{DurationSinceUnixEpoch, NumberOfBytes};
+    use crate::DurationSinceUnixEpoch;
 
     #[derive(PartialEq, Debug)]
 
@@ -383,9 +386,9 @@ pub mod fixture {
                 peer_id: Id(*b"-qB00000000000000001"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
-                uploaded: NumberOfBytes(0),
-                downloaded: NumberOfBytes(0),
-                left: NumberOfBytes(0),
+                uploaded: NumberOfBytes::new(0),
+                downloaded: NumberOfBytes::new(0),
+                left: NumberOfBytes::new(0),
                 event: AnnounceEvent::Completed,
             };
 
@@ -399,9 +402,9 @@ pub mod fixture {
                 peer_id: Id(*b"-qB00000000000000002"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
-                uploaded: NumberOfBytes(0),
-                downloaded: NumberOfBytes(0),
-                left: NumberOfBytes(10),
+                uploaded: NumberOfBytes::new(0),
+                downloaded: NumberOfBytes::new(0),
+                left: NumberOfBytes::new(10),
                 event: AnnounceEvent::Started,
             };
 
@@ -425,14 +428,14 @@ pub mod fixture {
         #[allow(dead_code)]
         #[must_use]
         pub fn with_bytes_pending_to_download(mut self, left: i64) -> Self {
-            self.peer.left = NumberOfBytes(left);
+            self.peer.left = NumberOfBytes::new(left);
             self
         }
 
         #[allow(dead_code)]
         #[must_use]
         pub fn with_no_bytes_pending_to_download(mut self) -> Self {
-            self.peer.left = NumberOfBytes(0);
+            self.peer.left = NumberOfBytes::new(0);
             self
         }
 
@@ -462,9 +465,9 @@ pub mod fixture {
                 peer_id: Id::default(),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
-                uploaded: NumberOfBytes(0),
-                downloaded: NumberOfBytes(0),
-                left: NumberOfBytes(0),
+                uploaded: NumberOfBytes::new(0),
+                downloaded: NumberOfBytes::new(0),
+                left: NumberOfBytes::new(0),
                 event: AnnounceEvent::Started,
             }
         }

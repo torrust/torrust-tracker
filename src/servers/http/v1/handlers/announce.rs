@@ -9,11 +9,11 @@ use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::AnnounceEvent;
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use torrust_tracker_clock::clock::Time;
-use torrust_tracker_primitives::{peer, NumberOfBytes};
+use torrust_tracker_primitives::peer;
 use tracing::debug;
 
 use crate::core::auth::Key;
@@ -136,9 +136,9 @@ fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> peer::Pee
         peer_id: announce_request.peer_id,
         peer_addr: SocketAddr::new(*peer_ip, announce_request.port),
         updated: CurrentClock::now(),
-        uploaded: NumberOfBytes(announce_request.uploaded.unwrap_or(0)),
-        downloaded: NumberOfBytes(announce_request.downloaded.unwrap_or(0)),
-        left: NumberOfBytes(announce_request.left.unwrap_or(0)),
+        uploaded: announce_request.uploaded.unwrap_or(NumberOfBytes::new(0)),
+        downloaded: announce_request.downloaded.unwrap_or(NumberOfBytes::new(0)),
+        left: announce_request.left.unwrap_or(NumberOfBytes::new(0)),
         event: map_to_torrust_event(&announce_request.event),
     }
 }
