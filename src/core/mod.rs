@@ -60,15 +60,15 @@
 //! use std::net::Ipv4Addr;
 //! use std::str::FromStr;
 //!
-//! use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+//! use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+//! use torrust_tracker_primitives::DurationSinceUnixEpoch;
 //! use torrust_tracker_primitives::peer;
 //! use torrust_tracker_primitives::info_hash::InfoHash;
-//! use torrust_tracker_primitives::{DurationSinceUnixEpoch};
 //!
 //! let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
 //!
 //! let peer = peer::Peer {
-//!     peer_id: peer::Id(*b"-qB00000000000000001"),
+//!     peer_id: PeerId(*b"-qB00000000000000001"),
 //!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081),
 //!     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
 //!     uploaded: NumberOfBytes::new(0),
@@ -246,14 +246,15 @@
 //! A `Peer` is the struct used by the `Tracker` to keep peers data:
 //!
 //! ```rust,no_run
-//! use torrust_tracker_primitives::peer;
 //! use std::net::SocketAddr;
+
+//! use aquatic_udp_protocol::PeerId;
 //! use torrust_tracker_primitives::DurationSinceUnixEpoch;
 //! use aquatic_udp_protocol::NumberOfBytes;
 //! use aquatic_udp_protocol::AnnounceEvent;
 //!
 //! pub struct Peer {
-//!     pub peer_id: peer::Id,                     // The peer ID
+//!     pub peer_id: PeerId,                     // The peer ID
 //!     pub peer_addr: SocketAddr,           // Peer socket address
 //!     pub updated: DurationSinceUnixEpoch, // Last time (timestamp) when the peer was updated
 //!     pub uploaded: NumberOfBytes,         // Number of bytes the peer has uploaded so far
@@ -1198,12 +1199,12 @@ mod tests {
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+        use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
         use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::core::peer::{self, Peer};
+        use crate::core::peer::Peer;
         use crate::core::services::tracker_factory;
         use crate::core::{TorrentsMetrics, Tracker};
         use crate::shared::bit_torrent::info_hash::fixture::gen_seeded_infohash;
@@ -1243,7 +1244,7 @@ mod tests {
         /// Sample peer when for tests that need more than one peer
         fn sample_peer_1() -> Peer {
             Peer {
-                peer_id: peer::Id(*b"-qB00000000000000001"),
+                peer_id: PeerId(*b"-qB00000000000000001"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
@@ -1256,7 +1257,7 @@ mod tests {
         /// Sample peer when for tests that need more than one peer
         fn sample_peer_2() -> Peer {
             Peer {
-                peer_id: peer::Id(*b"-qB00000000000000002"),
+                peer_id: PeerId(*b"-qB00000000000000002"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2)), 8082),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
@@ -1287,7 +1288,7 @@ mod tests {
         /// announcing the `AnnounceEvent::Completed` event.
         fn complete_peer() -> Peer {
             Peer {
-                peer_id: peer::Id(*b"-qB00000000000000000"),
+                peer_id: PeerId(*b"-qB00000000000000000"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
@@ -1300,7 +1301,7 @@ mod tests {
         /// A peer that counts as `incomplete` is swarm metadata
         fn incomplete_peer() -> Peer {
             Peer {
-                peer_id: peer::Id(*b"-qB00000000000000000"),
+                peer_id: PeerId(*b"-qB00000000000000000"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),

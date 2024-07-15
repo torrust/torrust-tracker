@@ -95,9 +95,8 @@ fn extract_announce_from(maybe_raw_query: Option<&str>) -> Result<Announce, resp
 mod tests {
     use std::str::FromStr;
 
-    use aquatic_udp_protocol::NumberOfBytes;
+    use aquatic_udp_protocol::{NumberOfBytes, PeerId};
     use torrust_tracker_primitives::info_hash::InfoHash;
-    use torrust_tracker_primitives::peer;
 
     use super::extract_announce_from;
     use crate::servers::http::v1::requests::announce::{Announce, Compact, Event};
@@ -120,7 +119,7 @@ mod tests {
             announce,
             Announce {
                 info_hash: InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap(),
-                peer_id: peer::Id(*b"-qB00000000000000001"),
+                peer_id: PeerId(*b"-qB00000000000000001"),
                 port: 17548,
                 downloaded: Some(NumberOfBytes::new(0)),
                 uploaded: Some(NumberOfBytes::new(0)),

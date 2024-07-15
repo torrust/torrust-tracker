@@ -170,8 +170,8 @@ pub fn map_to_torrust_event(event: &Option<Event>) -> AnnounceEvent {
 #[cfg(test)]
 mod tests {
 
+    use aquatic_udp_protocol::PeerId;
     use torrust_tracker_primitives::info_hash::InfoHash;
-    use torrust_tracker_primitives::peer;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::core::services::tracker_factory;
@@ -199,7 +199,7 @@ mod tests {
     fn sample_announce_request() -> Announce {
         Announce {
             info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
-            peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
+            peer_id: PeerId(*b"-qB00000000000000001"),
             port: 17548,
             downloaded: None,
             uploaded: None,

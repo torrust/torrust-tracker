@@ -1,14 +1,14 @@
 use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use torrust_tracker_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::peer::{Id, Peer};
+use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use zerocopy::I64;
 
 pub const DEFAULT_PEER: Peer = Peer {
-    peer_id: Id([0; 20]),
+    peer_id: PeerId([0; 20]),
     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
     updated: DurationSinceUnixEpoch::from_secs(0),
     uploaded: NumberOfBytes(I64::ZERO),

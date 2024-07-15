@@ -61,7 +61,7 @@ mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use torrust_tracker_primitives::info_hash::InfoHash;
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
     use torrust_tracker_test_helpers::configuration;
@@ -83,7 +83,7 @@ mod tests {
 
     fn sample_peer() -> peer::Peer {
         peer::Peer {
-            peer_id: peer::Id(*b"-qB00000000000000000"),
+            peer_id: PeerId(*b"-qB00000000000000000"),
             peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
             updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
             uploaded: NumberOfBytes::new(0),

@@ -1,4 +1,5 @@
 //! `Peer` and Peer `Id` API resources.
+use aquatic_udp_protocol::PeerId;
 use derive_more::From;
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::peer;
@@ -35,8 +36,9 @@ pub struct Id {
     pub client: Option<String>,
 }
 
-impl From<peer::Id> for Id {
-    fn from(peer_id: peer::Id) -> Self {
+impl From<PeerId> for Id {
+    fn from(peer_id: PeerId) -> Self {
+        let peer_id = peer::Id::from(peer_id);
         Id {
             id: peer_id.to_hex_string(),
             client: peer_id.get_client_name(),

@@ -15,7 +15,7 @@ use crate::CurrentClock;
 #[must_use]
 pub fn from_request(announce_request: &aquatic_udp_protocol::AnnounceRequest, peer_ip: &IpAddr) -> peer::Peer {
     peer::Peer {
-        peer_id: peer::Id(announce_request.peer_id.0),
+        peer_id: announce_request.peer_id,
         peer_addr: SocketAddr::new(*peer_ip, announce_request.port.0.into()),
         updated: CurrentClock::now(),
         uploaded: announce_request.bytes_uploaded,

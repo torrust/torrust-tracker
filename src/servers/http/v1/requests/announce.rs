@@ -5,7 +5,7 @@ use std::fmt;
 use std::panic::Location;
 use std::str::FromStr;
 
-use aquatic_udp_protocol::NumberOfBytes;
+use aquatic_udp_protocol::{NumberOfBytes, PeerId};
 use thiserror::Error;
 use torrust_tracker_located_error::{Located, LocatedError};
 use torrust_tracker_primitives::info_hash::{self, InfoHash};
@@ -29,20 +29,19 @@ const COMPACT: &str = "compact";
 /// query params of the request.
 ///
 /// ```rust
-/// use aquatic_udp_protocol::NumberOfBytes;
+/// use aquatic_udp_protocol::{NumberOfBytes, PeerId};
 /// use torrust_tracker::servers::http::v1::requests::announce::{Announce, Compact, Event};
 /// use torrust_tracker_primitives::info_hash::InfoHash;
-/// use torrust_tracker_primitives::peer;
 ///
 /// let request = Announce {
 ///     // Mandatory params
 ///     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
-///     peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
+///     peer_id: PeerId(*b"-qB00000000000000001"),
 ///     port: 17548,
 ///     // Optional params
 ///     downloaded: Some(NumberOfBytes::new(1)),
-///     uploaded: Some(NumberOfBytes::new(2)),
-///     left: Some(NumberOfBytes::new(3)),
+///     uploaded: Some(NumberOfBytes::new(1)),
+///     left: Some(NumberOfBytes::new(1)),
 ///     event: Some(Event::Started),
 ///     compact: Some(Compact::NotAccepted)
 /// };
@@ -60,8 +59,8 @@ pub struct Announce {
     // Mandatory params
     /// The `InfoHash` of the torrent.
     pub info_hash: InfoHash,
-    /// The `peer::Id` of the peer.
-    pub peer_id: peer::Id,
+    /// The `PeerId` of the peer.
+    pub peer_id: PeerId,
     /// The port of the peer.
     pub port: u16,
 
@@ -269,7 +268,7 @@ fn extract_info_hash(query: &Query) -> Result<InfoHash, ParseAnnounceQueryError>
     }
 }
 
-fn extract_peer_id(query: &Query) -> Result<peer::Id, ParseAnnounceQueryError> {
+fn extract_peer_id(query: &Query) -> Result<PeerId, ParseAnnounceQueryError> {
     match query.get_param(PEER_ID) {
         Some(raw_param) => Ok(
             percent_decode_peer_id(&raw_param).map_err(|err| ParseAnnounceQueryError::InvalidPeerIdParam {
@@ -356,9 +355,8 @@ mod tests {
 
     mod announce_request {
 
-        use aquatic_udp_protocol::NumberOfBytes;
+        use aquatic_udp_protocol::{NumberOfBytes, PeerId};
         use torrust_tracker_primitives::info_hash::InfoHash;
-        use torrust_tracker_primitives::peer;
 
         use crate::servers::http::v1::query::Query;
         use crate::servers::http::v1::requests::announce::{
@@ -382,7 +380,7 @@ mod tests {
                 announce_request,
                 Announce {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
-                    peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
+                    peer_id: PeerId(*b"-qB00000000000000001"),
                     port: 17548,
                     downloaded: None,
                     uploaded: None,
@@ -415,7 +413,7 @@ mod tests {
                 announce_request,
                 Announce {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
-                    peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
+                    peer_id: PeerId(*b"-qB00000000000000001"),
                     port: 17548,
                     downloaded: Some(NumberOfBytes::new(1)),
                     uploaded: Some(NumberOfBytes::new(2)),

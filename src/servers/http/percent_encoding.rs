@@ -15,6 +15,7 @@
 //! - <https://datatracker.ietf.org/doc/html/rfc3986#section-2.1>
 //! - <https://en.wikipedia.org/wiki/URL_encoding>
 //! - <https://developer.mozilla.org/en-US/docs/Glossary/percent-encoding>
+use aquatic_udp_protocol::PeerId;
 use torrust_tracker_primitives::info_hash::{self, InfoHash};
 use torrust_tracker_primitives::peer;
 
@@ -49,7 +50,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_ha
     InfoHash::try_from(bytes)
 }
 
-/// Percent decodes a percent encoded peer id. Internally a peer [`Id`](peer::Id)
+/// Percent decodes a percent encoded peer id. Internally a peer [`Id`](PeerId)
 /// is a 20-byte array.
 ///
 /// For example, given the peer id `*b"-qB00000000000000000"`,
@@ -57,31 +58,32 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_ha
 ///
 /// ```rust
 /// use std::str::FromStr;
+///
+/// use aquatic_udp_protocol::PeerId;
 /// use torrust_tracker::servers::http::percent_encoding::percent_decode_peer_id;
 /// use torrust_tracker_primitives::info_hash::InfoHash;
-/// use torrust_tracker_primitives::peer;
 ///
 /// let encoded_peer_id = "%2DqB00000000000000000";
 ///
 /// let peer_id = percent_decode_peer_id(encoded_peer_id).unwrap();
 ///
-/// assert_eq!(peer_id, peer::Id(*b"-qB00000000000000000"));
+/// assert_eq!(peer_id, PeerId(*b"-qB00000000000000000"));
 /// ```
 ///
 /// # Errors
 ///
-/// Will return `Err` if if the decoded bytes do not represent a valid [`peer::Id`].
-pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<peer::Id, peer::IdConversionError> {
+/// Will return `Err` if if the decoded bytes do not represent a valid [`PeerId`].
+pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<PeerId, peer::IdConversionError> {
     let bytes = percent_encoding::percent_decode_str(raw_peer_id).collect::<Vec<u8>>();
-    peer::Id::try_from(bytes)
+    Ok(*peer::Id::try_from(bytes)?)
 }
 
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
+    use aquatic_udp_protocol::PeerId;
     use torrust_tracker_primitives::info_hash::InfoHash;
-    use torrust_tracker_primitives::peer;
 
     use crate::servers::http::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 
@@ -112,7 +114,7 @@ mod tests {
 
         let peer_id = percent_decode_peer_id(encoded_peer_id).unwrap();
 
-        assert_eq!(peer_id, peer::Id(*b"-qB00000000000000000"));
+        assert_eq!(peer_id, PeerId(*b"-qB00000000000000000"));
     }
 
     #[test]
