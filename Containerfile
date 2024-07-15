@@ -3,13 +3,13 @@
 # Torrust Tracker
 
 ## Builder Image
-FROM docker.io/library/rust:bookworm as chef
+FROM docker.io/library/rust:bookworm AS chef
 WORKDIR /tmp
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall --no-confirm cargo-chef cargo-nextest
 
 ## Tester Image
-FROM docker.io/library/rust:slim-bookworm as tester
+FROM docker.io/library/rust:slim-bookworm AS tester
 WORKDIR /tmp
 
 RUN apt-get update; apt-get install -y curl sqlite3; apt-get autoclean
@@ -21,7 +21,7 @@ RUN mkdir -p /app/share/torrust/default/database/; \
     sqlite3 /app/share/torrust/default/database/tracker.sqlite3.db  "VACUUM;"
 
 ## Su Exe Compile
-FROM docker.io/library/gcc:bookworm as gcc
+FROM docker.io/library/gcc:bookworm AS gcc
 COPY ./contrib/dev-tools/su-exec/ /usr/local/src/su-exec/
 RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec; chmod +x /usr/local/bin/su-exec
 
@@ -62,7 +62,7 @@ RUN cargo nextest archive --tests --benches --examples --workspace --all-targets
 
 
 # Extract and Test (debug)
-FROM tester as test_debug
+FROM tester AS test_debug
 WORKDIR /test
 COPY . /test/src/
 COPY --from=build_debug \
@@ -76,7 +76,7 @@ RUN mkdir /app/lib/; cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "lib
 RUN chown -R root:root /app; chmod -R u=rw,go=r,a+X /app; chmod -R a+x /app/bin
 
 # Extract and Test (release)
-FROM tester as test
+FROM tester AS test
 WORKDIR /test
 COPY . /test/src
 COPY --from=build \
@@ -91,7 +91,7 @@ RUN chown -R root:root /app; chmod -R u=rw,go=r,a+X /app; chmod -R a+x /app/bin
 
 
 ## Runtime
-FROM gcr.io/distroless/cc-debian12:debug as runtime
+FROM gcr.io/distroless/cc-debian12:debug AS runtime
 RUN ["/busybox/cp", "-sp", "/busybox/sh","/busybox/cat","/busybox/ls","/busybox/env", "/bin/"]
 COPY --from=gcc --chmod=0555 /usr/local/bin/su-exec /bin/su-exec
 
@@ -129,14 +129,14 @@ ENTRYPOINT ["/usr/local/bin/entry.sh"]
 
 
 ## Torrust-Tracker (debug)
-FROM runtime as debug
+FROM runtime AS debug
 ENV RUNTIME="debug"
 COPY --from=test_debug /app/ /usr/
 RUN env
 CMD ["sh"]
 
 ## Torrust-Tracker (release) (default)
-FROM runtime as release
+FROM runtime AS release
 ENV RUNTIME="release"
 COPY --from=test /app/ /usr/
 HEALTHCHECK --interval=5s --timeout=5s --start-period=3s --retries=3 \  
