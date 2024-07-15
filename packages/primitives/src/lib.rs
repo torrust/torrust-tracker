@@ -18,13 +18,4 @@ pub mod torrent_metrics;
 /// Duration since the Unix Epoch.
 pub type DurationSinceUnixEpoch = Duration;
 
-/// IP version used by the peer to connect to the tracker: IPv4 or IPv6
-#[derive(PartialEq, Eq, Debug)]
-pub enum IPVersion {
-    /// <https://en.wikipedia.org/wiki/Internet_Protocol_version_4>
-    IPv4,
-    /// <https://en.wikipedia.org/wiki/IPv6>
-    IPv6,
-}
-
 pub type PersistentTorrents = BTreeMap<InfoHash, u32>;

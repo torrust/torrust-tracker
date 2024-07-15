@@ -400,7 +400,7 @@ async fn it_should_limit_the_number_of_peers_returned(
     // We add one more peer than the scrape limit
     for peer_number in 1..=74 + 1 {
         let mut peer = a_started_peer(1);
-        peer.peer_id = *peer::Id::from(peer_number);
+        peer.peer_id = *peer::Id::new(peer_number);
         torrent.upsert_peer(&peer).await;
     }
 

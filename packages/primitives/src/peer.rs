@@ -30,7 +30,7 @@ use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use serde::Serialize;
 use zerocopy::FromBytes as _;
 
-use crate::{DurationSinceUnixEpoch, IPVersion};
+use crate::DurationSinceUnixEpoch;
 
 /// Peer struct used by the core `Tracker`.
 ///
@@ -208,15 +208,6 @@ impl Peer {
     pub fn change_ip(&mut self, new_ip: &IpAddr) {
         self.peer_addr = SocketAddr::new(*new_ip, self.peer_addr.port());
     }
-
-    /// The IP version used by the peer: IPV4 or IPV6
-    #[must_use]
-    pub fn ip_version(&self) -> IPVersion {
-        if self.peer_addr.is_ipv4() {
-            return IPVersion::IPv4;
-        }
-        IPVersion::IPv6
-    }
 }
 
 use std::panic::Location;
@@ -264,22 +255,21 @@ impl DerefMut for Id {
     }
 }
 
-impl From<[u8; 20]> for Id {
-    fn from(bytes: [u8; 20]) -> Self {
-        let data = PeerId(bytes);
-        Self { data }
-    }
-}
-
-impl From<i32> for Id {
-    fn from(number: i32) -> Self {
+impl Id {
+    #[must_use]
+    pub fn new<T>(number: T) -> Self
+    where
+        T: Into<i128>,
+    {
+        let number: i128 = number.into();
         let number = number.to_le_bytes();
         let bytes = [
-            0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, number[0], number[1], number[2],
-            number[3],
+            0u8, 0u8, 0u8, 0u8, number[0], number[1], number[2], number[3], number[4], number[5], number[6], number[7],
+            number[8], number[9], number[10], number[11], number[12], number[13], number[14], number[15],
         ];
 
-        Id::from(bytes)
+        let data = PeerId(bytes);
+        Id { data }
     }
 }
 

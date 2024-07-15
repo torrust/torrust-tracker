@@ -73,7 +73,7 @@ impl Ord for InfoHash {
     }
 }
 
-impl std::cmp::PartialOrd<InfoHash> for InfoHash {
+impl PartialOrd<InfoHash> for InfoHash {
     fn partial_cmp(&self, other: &InfoHash) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
