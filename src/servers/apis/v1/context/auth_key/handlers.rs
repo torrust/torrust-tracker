@@ -3,17 +3,66 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use axum::extract::{Path, State};
+use axum::extract::{self, Path, State};
 use axum::response::Response;
 use serde::Deserialize;
+use torrust_tracker_clock::clock::Time;
 
+use super::forms::AddKeyForm;
 use super::responses::{
-    auth_key_response, failed_to_delete_key_response, failed_to_generate_key_response, failed_to_reload_keys_response,
+    auth_key_response, failed_to_add_key_response, failed_to_delete_key_response, failed_to_generate_key_response,
+    failed_to_reload_keys_response, invalid_auth_key_duration_response, invalid_auth_key_response,
 };
 use crate::core::auth::Key;
 use crate::core::Tracker;
 use crate::servers::apis::v1::context::auth_key::resources::AuthKey;
 use crate::servers::apis::v1::responses::{invalid_auth_key_param_response, ok_response};
+use crate::CurrentClock;
+
+/// It handles the request to add a new authentication key.
+///
+/// It returns these types of responses:
+///
+/// - `200` with a json [`AuthKey`]
+///    resource. If the key was generated successfully.
+/// - `400` with an error if the key couldn't been added because of an invalid
+///    request.
+/// - `500` with serialized error in debug format. If the key couldn't be
+///    generated.
+///
+/// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::auth_key#generate-a-new-authentication-key)
+/// for more information about this endpoint.
+pub async fn add_auth_key_handler(
+    State(tracker): State<Arc<Tracker>>,
+    extract::Json(add_key_form): extract::Json<AddKeyForm>,
+) -> Response {
+    match add_key_form.opt_key {
+        Some(pre_existing_key) => {
+            let Some(valid_until) = CurrentClock::now_add(&Duration::from_secs(add_key_form.seconds_valid)) else {
+                return invalid_auth_key_duration_response(add_key_form.seconds_valid);
+            };
+
+            let key = pre_existing_key.parse::<Key>();
+
+            match key {
+                Ok(key) => match tracker.add_auth_key(key, valid_until).await {
+                    Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
+                    Err(e) => failed_to_add_key_response(e),
+                },
+                Err(e) => invalid_auth_key_response(&pre_existing_key, &e),
+            }
+        }
+        None => {
+            match tracker
+                .generate_auth_key(Duration::from_secs(add_key_form.seconds_valid))
+                .await
+            {
+                Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
+                Err(e) => failed_to_generate_key_response(e),
+            }
+        }
+    }
+}
 
 /// It handles the request to generate a new authentication key.
 ///

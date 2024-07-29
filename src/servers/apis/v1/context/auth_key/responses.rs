@@ -4,8 +4,9 @@ use std::error::Error;
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 
+use crate::core::auth::ParseKeyError;
 use crate::servers::apis::v1::context::auth_key::resources::AuthKey;
-use crate::servers::apis::v1::responses::unhandled_rejection_response;
+use crate::servers::apis::v1::responses::{bad_request_response, unhandled_rejection_response};
 
 /// `200` response that contains the `AuthKey` resource as json.
 ///
@@ -22,10 +23,18 @@ pub fn auth_key_response(auth_key: &AuthKey) -> Response {
         .into_response()
 }
 
+// Error responses
+
 /// `500` error response when a new authentication key cannot be generated.
 #[must_use]
 pub fn failed_to_generate_key_response<E: Error>(e: E) -> Response {
     unhandled_rejection_response(format!("failed to generate key: {e}"))
+}
+
+/// `500` error response when the provide key cannot be added.
+#[must_use]
+pub fn failed_to_add_key_response<E: Error>(e: E) -> Response {
+    unhandled_rejection_response(format!("failed to add key: {e}"))
 }
 
 /// `500` error response when an authentication key cannot be deleted.
@@ -39,4 +48,14 @@ pub fn failed_to_delete_key_response<E: Error>(e: E) -> Response {
 #[must_use]
 pub fn failed_to_reload_keys_response<E: Error>(e: E) -> Response {
     unhandled_rejection_response(format!("failed to reload keys: {e}"))
+}
+
+#[must_use]
+pub fn invalid_auth_key_response(auth_key: &str, error: &ParseKeyError) -> Response {
+    bad_request_response(&format!("Invalid URL: invalid auth key: string \"{auth_key}\", {error}"))
+}
+
+#[must_use]
+pub fn invalid_auth_key_duration_response(duration: u64) -> Response {
+    bad_request_response(&format!("Invalid URL: invalid auth key duration: \"{duration}\""))
 }
