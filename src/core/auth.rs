@@ -146,11 +146,11 @@ impl Key {
     /// Valid keys can only contain 32 chars including 0-9, a-z and A-Z.
     pub fn new(value: &str) -> Result<Self, ParseKeyError> {
         if value.len() != AUTH_KEY_LENGTH {
-            return Err(ParseKeyError);
+            return Err(ParseKeyError::InvalidKeyLength);
         }
 
         if !value.chars().all(|c| c.is_ascii_alphanumeric()) {
-            return Err(ParseKeyError);
+            return Err(ParseKeyError::InvalidChars);
         }
 
         Ok(Self(value.to_owned()))
@@ -175,9 +175,15 @@ impl Key {
 /// assert_eq!(key.unwrap().to_string(), key_string);
 /// ```
 ///
-/// If the string does not contains a valid key, the parser function will return this error.
-#[derive(Debug, PartialEq, Eq, Display)]
-pub struct ParseKeyError;
+/// If the string does not contains a valid key, the parser function will return
+/// this error.
+#[derive(Debug, Error)]
+pub enum ParseKeyError {
+    #[error("Invalid key length. Key must be have 32 chars")]
+    InvalidKeyLength,
+    #[error("Invalid chars for key. Key can only alphanumeric chars (0-9, a-z, A-Z)")]
+    InvalidChars,
+}
 
 impl FromStr for Key {
     type Err = ParseKeyError;
@@ -188,8 +194,8 @@ impl FromStr for Key {
     }
 }
 
-/// Verification error. Error returned when an [`ExpiringKey`] cannot be verified with the [`verify(...)`](crate::core::auth::verify) function.
-///
+/// Verification error. Error returned when an [`ExpiringKey`] cannot be
+/// verified with the [`verify(...)`](crate::core::auth::verify) function.
 #[derive(Debug, Error)]
 #[allow(dead_code)]
 pub enum Error {
