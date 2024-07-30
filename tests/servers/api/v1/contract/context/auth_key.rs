@@ -136,10 +136,10 @@ async fn should_fail_generating_a_new_auth_key_when_the_provided_key_is_invalid(
     let invalid_keys = [
         // "", it returns 404
         // " ", it returns 404
-        "-1",      // Not a string
-        "invalid", // Invalid string
-        "GQEs2ZNcCm9cwEV9dBpcPB5OwNFWFiR", // Not a 32-char string
-                   // "%QEs2ZNcCm9cwEV9dBpcPB5OwNFWFiRd", // Invalid char. todo: this doesn't fail
+        "-1",                               // Not a string
+        "invalid",                          // Invalid string
+        "GQEs2ZNcCm9cwEV9dBpcPB5OwNFWFiR",  // Not a 32-char string
+        "%QEs2ZNcCm9cwEV9dBpcPB5OwNFWFiRd", // Invalid char.
     ];
 
     for invalid_key in invalid_keys {
