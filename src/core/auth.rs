@@ -131,12 +131,36 @@ impl ExpiringKey {
     }
 }
 
-/// A randomly generated token used for authentication.
+/// A token used for authentication.
 ///
-/// It contains lower and uppercase letters and numbers.
-/// It's a 32-char string.
+/// - It contains only ascii alphanumeric chars: lower and uppercase letters and
+///   numbers.
+/// - It's a 32-char string.
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Display, Hash)]
 pub struct Key(String);
+
+impl Key {
+    /// # Errors
+    ///
+    /// Will return an error is the string represents an invalid key.
+    /// Valid keys can only contain 32 chars including 0-9, a-z and A-Z.
+    pub fn new(value: &str) -> Result<Self, ParseKeyError> {
+        if value.len() != AUTH_KEY_LENGTH {
+            return Err(ParseKeyError);
+        }
+
+        if !value.chars().all(|c| c.is_ascii_alphanumeric()) {
+            return Err(ParseKeyError);
+        }
+
+        Ok(Self(value.to_owned()))
+    }
+
+    #[must_use]
+    pub fn value(&self) -> &str {
+        &self.0
+    }
+}
 
 /// Error returned when a key cannot be parsed from a string.
 ///
@@ -159,10 +183,7 @@ impl FromStr for Key {
     type Err = ParseKeyError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() != AUTH_KEY_LENGTH {
-            return Err(ParseKeyError);
-        }
-
+        Key::new(s)?;
         Ok(Self(s.to_string()))
     }
 }
@@ -208,6 +229,22 @@ mod tests {
 
             assert!(key.is_ok());
             assert_eq!(key.unwrap().to_string(), key_string);
+        }
+
+        #[test]
+        fn length_should_be_32() {
+            let key = Key::new("");
+            assert!(key.is_err());
+
+            let string_longer_than_32 = "012345678901234567890123456789012"; // DevSkim: ignore  DS173237
+            let key = Key::new(string_longer_than_32);
+            assert!(key.is_err());
+        }
+
+        #[test]
+        fn should_only_include_alphanumeric_chars() {
+            let key = Key::new("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+            assert!(key.is_err());
         }
     }
 
