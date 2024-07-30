@@ -61,6 +61,12 @@ pub async fn assert_bad_request(response: Response, body: &str) {
     assert_eq!(response.text().await.unwrap(), body);
 }
 
+pub async fn assert_unprocessable_content(response: Response, text: &str) {
+    assert_eq!(response.status(), 422);
+    assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
+    assert!(response.text().await.unwrap().contains(text));
+}
+
 pub async fn assert_not_found(response: Response) {
     assert_eq!(response.status(), 404);
     // todo: missing header in the response
@@ -82,8 +88,35 @@ pub async fn assert_invalid_infohash_param(response: Response, invalid_infohash:
     .await;
 }
 
-pub async fn assert_invalid_auth_key_param(response: Response, invalid_auth_key: &str) {
+pub async fn assert_invalid_auth_key_get_param(response: Response, invalid_auth_key: &str) {
     assert_bad_request(response, &format!("Invalid auth key id param \"{}\"", &invalid_auth_key)).await;
+}
+
+pub async fn assert_invalid_auth_key_post_param(response: Response, invalid_auth_key: &str) {
+    assert_bad_request(
+        response,
+        &format!(
+            "Invalid URL: invalid auth key: string \"{}\", ParseKeyError",
+            &invalid_auth_key
+        ),
+    )
+    .await;
+}
+
+pub async fn _assert_unprocessable_auth_key_param(response: Response, _invalid_value: &str) {
+    assert_unprocessable_content(
+        response,
+        "Failed to deserialize the JSON body into the target type: seconds_valid: invalid type",
+    )
+    .await;
+}
+
+pub async fn assert_unprocessable_auth_key_duration_param(response: Response, _invalid_value: &str) {
+    assert_unprocessable_content(
+        response,
+        "Failed to deserialize the JSON body into the target type: seconds_valid: invalid type",
+    )
+    .await;
 }
 
 pub async fn assert_invalid_key_duration_param(response: Response, invalid_key_duration: &str) {
