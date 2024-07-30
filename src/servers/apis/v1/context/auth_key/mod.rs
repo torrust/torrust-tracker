@@ -3,8 +3,8 @@
 //! Authentication keys are used to authenticate HTTP tracker `announce` and
 //! `scrape` requests.
 //!
-//! When the tracker is running in `private` or `private_listed` mode, the
-//! authentication keys are required to announce and scrape torrents.
+//! When the tracker is running in `private` mode, the authentication keys are
+//! required to announce and scrape torrents.
 //!
 //! A sample `announce` request **without** authentication key:
 //!
@@ -22,22 +22,31 @@
 //!
 //! # Generate a new authentication key
 //!
-//! `POST /key/:seconds_valid`
+//! `POST /keys`
 //!
-//! It generates a new authentication key.
+//! It generates a new authentication key or upload a pre-generated key.
 //!
 //! > **NOTICE**: keys expire after a certain amount of time.
 //!
-//! **Path parameters**
+//! **POST parameters**
 //!
 //! Name | Type | Description | Required | Example
 //! ---|---|---|---|---
+//! `key` | 32-char string (0-9, a-z, A-Z) | The optional pre-generated key. | No | `Xc1L4PbQJSFGlrgSRZl8wxSFAuMa21z7`
 //! `seconds_valid` | positive integer | The number of seconds the key will be valid. | Yes | `3600`
+//!
+//! > **NOTICE**: the `key` field is optional. If is not provided the tracker
+//! > will generated a random one.
 //!
 //! **Example request**
 //!
 //! ```bash
-//! curl -X POST "http://127.0.0.1:1212/api/v1/key/120?token=MyAccessToken"
+//! curl -X POST http://localhost:1212/api/v1/keys?token=MyAccessToken \
+//!      -H "Content-Type: application/json" \
+//!      -d '{
+//!            "key": "xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6",
+//!            "seconds_valid": 7200
+//!          }'
 //! ```
 //!
 //! **Example response** `200`

@@ -21,8 +21,12 @@ pub fn add(prefix: &str, router: Router, tracker: Arc<Tracker>) -> Router {
         .route(
             // code-review: Axum does not allow two routes with the same path but different path variable name.
             // In the new major API version, `seconds_valid` should be a POST form field so that we will have two paths:
-            // POST /key
-            // DELETE /key/:key
+            //
+            // POST /keys
+            // DELETE /keys/:key
+            //
+            // The POST /key/:seconds_valid has been deprecated and it will removed in the future.
+            // Use POST /keys
             &format!("{prefix}/key/:seconds_valid_or_key"),
             post(generate_auth_key_handler)
                 .with_state(tracker.clone())

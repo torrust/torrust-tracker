@@ -75,6 +75,8 @@ pub async fn add_auth_key_handler(
 ///
 /// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::auth_key#generate-a-new-authentication-key)
 /// for more information about this endpoint.
+///
+/// This endpoint has been deprecated. Use [`add_auth_key_handler`].
 pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path(seconds_valid_or_key): Path<u64>) -> Response {
     let seconds_valid = seconds_valid_or_key;
     match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
