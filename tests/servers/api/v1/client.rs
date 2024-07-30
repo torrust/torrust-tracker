@@ -1,4 +1,5 @@
 use reqwest::Response;
+use serde::Serialize;
 
 use crate::common::http::{Query, QueryParam, ReqwestQuery};
 use crate::servers::api::connection_info::ConnectionInfo;
@@ -18,7 +19,11 @@ impl Client {
     }
 
     pub async fn generate_auth_key(&self, seconds_valid: i32) -> Response {
-        self.post(&format!("key/{}", &seconds_valid)).await
+        self.post_empty(&format!("key/{}", &seconds_valid)).await
+    }
+
+    pub async fn add_auth_key(&self, add_key_form: AddKeyForm) -> Response {
+        self.post_form("keys", &add_key_form).await
     }
 
     pub async fn delete_auth_key(&self, key: &str) -> Response {
@@ -30,7 +35,7 @@ impl Client {
     }
 
     pub async fn whitelist_a_torrent(&self, info_hash: &str) -> Response {
-        self.post(&format!("whitelist/{}", &info_hash)).await
+        self.post_empty(&format!("whitelist/{}", &info_hash)).await
     }
 
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &str) -> Response {
@@ -63,10 +68,20 @@ impl Client {
         self.get_request_with_query(path, query).await
     }
 
-    pub async fn post(&self, path: &str) -> Response {
+    pub async fn post_empty(&self, path: &str) -> Response {
         reqwest::Client::new()
             .post(self.base_url(path).clone())
             .query(&ReqwestQuery::from(self.query_with_token()))
+            .send()
+            .await
+            .unwrap()
+    }
+
+    pub async fn post_form<T: Serialize + ?Sized>(&self, path: &str, form: &T) -> Response {
+        reqwest::Client::new()
+            .post(self.base_url(path).clone())
+            .query(&ReqwestQuery::from(self.query_with_token()))
+            .json(&form)
             .send()
             .await
             .unwrap()
@@ -113,4 +128,11 @@ pub async fn get(path: &str, query: Option<Query>) -> Response {
             .unwrap(),
         None => reqwest::Client::builder().build().unwrap().get(path).send().await.unwrap(),
     }
+}
+
+#[derive(Serialize, Debug)]
+pub struct AddKeyForm {
+    #[serde(rename = "key")]
+    pub opt_key: Option<String>,
+    pub seconds_valid: u64,
 }

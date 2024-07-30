@@ -152,7 +152,7 @@ pub struct Key(String);
 /// ```
 ///
 /// If the string does not contains a valid key, the parser function will return this error.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Display)]
 pub struct ParseKeyError;
 
 impl FromStr for Key {

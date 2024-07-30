@@ -453,6 +453,7 @@ use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
+use auth::ExpiringKey;
 use databases::driver::Driver;
 use derive_more::Constructor;
 use tokio::sync::mpsc::error::SendError;
@@ -460,9 +461,9 @@ use torrust_tracker_clock::clock::Time;
 use torrust_tracker_configuration::v2::database;
 use torrust_tracker_configuration::{AnnouncePolicy, Core, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 use torrust_tracker_torrent_repository::entry::EntrySync;
 use torrust_tracker_torrent_repository::repository::Repository;
 use tracing::debug;
@@ -804,6 +805,37 @@ impl Tracker {
     /// Will return a `database::Error` if unable to add the `auth_key` to the database.
     pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<auth::ExpiringKey, databases::error::Error> {
         let auth_key = auth::generate(lifetime);
+
+        self.database.add_key_to_keys(&auth_key)?;
+        self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
+        Ok(auth_key)
+    }
+
+    /// It adds a pre-generated authentication key.
+    ///
+    /// Authentication keys are used by HTTP trackers.
+    ///
+    /// # Context: Authentication
+    ///
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to add the `auth_key` to the
+    /// database. For example, if the key already exist.
+    ///
+    /// # Arguments
+    ///
+    /// * `lifetime` - The duration in seconds for the new key. The key will be
+    ///   no longer valid after `lifetime` seconds.
+    pub async fn add_auth_key(
+        &self,
+        key: Key,
+        valid_until: DurationSinceUnixEpoch,
+    ) -> Result<auth::ExpiringKey, databases::error::Error> {
+        let auth_key = ExpiringKey { key, valid_until };
+
+        // code-review: should we return a friendly error instead of the DB
+        // constrain error when the key already exist? For now, it's returning
+        // the specif error for each DB driver when a UNIQUE constrain fails.
         self.database.add_key_to_keys(&auth_key)?;
         self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
         Ok(auth_key)
@@ -816,10 +848,6 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to remove the `key` to the database.
-    ///
-    /// # Panics
-    ///
-    /// Will panic if key cannot be converted into a valid `Key`.
     pub async fn remove_auth_key(&self, key: &Key) -> Result<(), databases::error::Error> {
         self.database.remove_key_from_keys(key)?;
         self.keys.write().await.remove(key);

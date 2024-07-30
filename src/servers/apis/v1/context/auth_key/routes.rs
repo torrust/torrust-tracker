@@ -11,7 +11,7 @@ use std::sync::Arc;
 use axum::routing::{get, post};
 use axum::Router;
 
-use super::handlers::{delete_auth_key_handler, generate_auth_key_handler, reload_keys_handler};
+use super::handlers::{add_auth_key_handler, delete_auth_key_handler, generate_auth_key_handler, reload_keys_handler};
 use crate::core::Tracker;
 
 /// It adds the routes to the router for the [`auth_key`](crate::servers::apis::v1::context::auth_key) API context.
@@ -21,8 +21,12 @@ pub fn add(prefix: &str, router: Router, tracker: Arc<Tracker>) -> Router {
         .route(
             // code-review: Axum does not allow two routes with the same path but different path variable name.
             // In the new major API version, `seconds_valid` should be a POST form field so that we will have two paths:
-            // POST /key
-            // DELETE /key/:key
+            //
+            // POST /keys
+            // DELETE /keys/:key
+            //
+            // The POST /key/:seconds_valid has been deprecated and it will removed in the future.
+            // Use POST /keys
             &format!("{prefix}/key/:seconds_valid_or_key"),
             post(generate_auth_key_handler)
                 .with_state(tracker.clone())
@@ -30,5 +34,9 @@ pub fn add(prefix: &str, router: Router, tracker: Arc<Tracker>) -> Router {
                 .with_state(tracker.clone()),
         )
         // Keys command
-        .route(&format!("{prefix}/keys/reload"), get(reload_keys_handler).with_state(tracker))
+        .route(
+            &format!("{prefix}/keys/reload"),
+            get(reload_keys_handler).with_state(tracker.clone()),
+        )
+        .route(&format!("{prefix}/keys"), post(add_auth_key_handler).with_state(tracker))
 }
