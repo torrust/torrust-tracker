@@ -6,18 +6,16 @@ use std::time::Duration;
 use axum::extract::{self, Path, State};
 use axum::response::Response;
 use serde::Deserialize;
-use torrust_tracker_clock::clock::Time;
 
 use super::forms::AddKeyForm;
 use super::responses::{
-    auth_key_response, failed_to_add_key_response, failed_to_delete_key_response, failed_to_generate_key_response,
-    failed_to_reload_keys_response, invalid_auth_key_duration_response, invalid_auth_key_response,
+    auth_key_response, failed_to_delete_key_response, failed_to_generate_key_response, failed_to_reload_keys_response,
+    invalid_auth_key_duration_response, invalid_auth_key_response,
 };
 use crate::core::auth::Key;
-use crate::core::Tracker;
+use crate::core::{AddKeyRequest, Tracker};
 use crate::servers::apis::v1::context::auth_key::resources::AuthKey;
 use crate::servers::apis::v1::responses::{invalid_auth_key_param_response, ok_response};
-use crate::CurrentClock;
 
 /// It handles the request to add a new authentication key.
 ///
@@ -36,31 +34,21 @@ pub async fn add_auth_key_handler(
     State(tracker): State<Arc<Tracker>>,
     extract::Json(add_key_form): extract::Json<AddKeyForm>,
 ) -> Response {
-    match add_key_form.opt_key {
-        Some(pre_existing_key) => {
-            let Some(valid_until) = CurrentClock::now_add(&Duration::from_secs(add_key_form.seconds_valid)) else {
-                return invalid_auth_key_duration_response(add_key_form.seconds_valid);
-            };
-
-            let key = pre_existing_key.parse::<Key>();
-
-            match key {
-                Ok(key) => match tracker.add_auth_key(key, valid_until).await {
-                    Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
-                    Err(e) => failed_to_add_key_response(e),
-                },
-                Err(e) => invalid_auth_key_response(&pre_existing_key, &e),
+    match tracker
+        .add_peer_key(AddKeyRequest {
+            opt_key: add_key_form.opt_key.clone(),
+            opt_seconds_valid: add_key_form.opt_seconds_valid,
+        })
+        .await
+    {
+        Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
+        Err(err) => match err {
+            crate::core::error::PeerKeyError::DurationOverflow { seconds_valid } => {
+                invalid_auth_key_duration_response(seconds_valid)
             }
-        }
-        None => {
-            match tracker
-                .generate_auth_key(Duration::from_secs(add_key_form.seconds_valid))
-                .await
-            {
-                Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
-                Err(e) => failed_to_generate_key_response(e),
-            }
-        }
+            crate::core::error::PeerKeyError::InvalidKey { key, source } => invalid_auth_key_response(&key, source),
+            crate::core::error::PeerKeyError::DatabaseError { source } => failed_to_generate_key_response(source),
+        },
     }
 }
 
@@ -79,7 +67,7 @@ pub async fn add_auth_key_handler(
 /// This endpoint has been deprecated. Use [`add_auth_key_handler`].
 pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path(seconds_valid_or_key): Path<u64>) -> Response {
     let seconds_valid = seconds_valid_or_key;
-    match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
+    match tracker.generate_auth_key(Some(Duration::from_secs(seconds_valid))).await {
         Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
         Err(e) => failed_to_generate_key_response(e),
     }

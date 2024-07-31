@@ -60,7 +60,7 @@ impl Database for Mysql {
         CREATE TABLE IF NOT EXISTS `keys` (
           `id` INT NOT NULL AUTO_INCREMENT,
           `key` VARCHAR({}) NOT NULL,
-          `valid_until` INT(10) NOT NULL,
+          `valid_until` INT(10),
           PRIMARY KEY (`id`),
           UNIQUE (`key`)
         );",
@@ -119,14 +119,20 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
-    fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error> {
+    fn load_keys(&self) -> Result<Vec<auth::PeerKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let keys = conn.query_map(
             "SELECT `key`, valid_until FROM `keys`",
-            |(key, valid_until): (String, i64)| auth::ExpiringKey {
-                key: key.parse::<Key>().unwrap(),
-                valid_until: Duration::from_secs(valid_until.unsigned_abs()),
+            |(key, valid_until): (String, Option<i64>)| match valid_until {
+                Some(valid_until) => auth::PeerKey {
+                    key: key.parse::<Key>().unwrap(),
+                    valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
+                },
+                None => auth::PeerKey {
+                    key: key.parse::<Key>().unwrap(),
+                    valid_until: None,
+                },
             },
         )?;
 
@@ -197,28 +203,37 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::get_key_from_keys`](crate::core::databases::Database::get_key_from_keys).
-    fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error> {
+    fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::PeerKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let query = conn.exec_first::<(String, i64), _, _>(
+        let query = conn.exec_first::<(String, Option<i64>), _, _>(
             "SELECT `key`, valid_until FROM `keys` WHERE `key` = :key",
             params! { "key" => key.to_string() },
         );
 
         let key = query?;
 
-        Ok(key.map(|(key, expiry)| auth::ExpiringKey {
-            key: key.parse::<Key>().unwrap(),
-            valid_until: Duration::from_secs(expiry.unsigned_abs()),
+        Ok(key.map(|(key, opt_valid_until)| match opt_valid_until {
+            Some(valid_until) => auth::PeerKey {
+                key: key.parse::<Key>().unwrap(),
+                valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
+            },
+            None => auth::PeerKey {
+                key: key.parse::<Key>().unwrap(),
+                valid_until: None,
+            },
         }))
     }
 
     /// Refer to [`databases::Database::add_key_to_keys`](crate::core::databases::Database::add_key_to_keys).
-    fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error> {
+    fn add_key_to_keys(&self, auth_key: &auth::PeerKey) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let key = auth_key.key.to_string();
-        let valid_until = auth_key.valid_until.as_secs().to_string();
+        let valid_until = match auth_key.valid_until {
+            Some(valid_until) => valid_until.as_secs().to_string(),
+            None => todo!(),
+        };
 
         conn.exec_drop(
             "INSERT INTO `keys` (`key`, valid_until) VALUES (:key, :valid_until)",

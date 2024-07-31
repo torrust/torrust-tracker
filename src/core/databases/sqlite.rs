@@ -3,6 +3,8 @@ use std::panic::Location;
 use std::str::FromStr;
 
 use r2d2::Pool;
+use r2d2_sqlite::rusqlite::params;
+use r2d2_sqlite::rusqlite::types::Null;
 use r2d2_sqlite::SqliteConnectionManager;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::{DurationSinceUnixEpoch, PersistentTorrents};
@@ -51,7 +53,7 @@ impl Database for Sqlite {
         CREATE TABLE IF NOT EXISTS keys (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             key TEXT NOT NULL UNIQUE,
-            valid_until INTEGER NOT NULL
+            valid_until INTEGER
          );"
         .to_string();
 
@@ -104,22 +106,28 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
-    fn load_keys(&self) -> Result<Vec<auth::ExpiringKey>, Error> {
+    fn load_keys(&self) -> Result<Vec<auth::PeerKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys")?;
 
         let keys_iter = stmt.query_map([], |row| {
             let key: String = row.get(0)?;
-            let valid_until: i64 = row.get(1)?;
+            let opt_valid_until: Option<i64> = row.get(1)?;
 
-            Ok(auth::ExpiringKey {
-                key: key.parse::<Key>().unwrap(),
-                valid_until: DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs()),
-            })
+            match opt_valid_until {
+                Some(valid_until) => Ok(auth::PeerKey {
+                    key: key.parse::<Key>().unwrap(),
+                    valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs())),
+                }),
+                None => Ok(auth::PeerKey {
+                    key: key.parse::<Key>().unwrap(),
+                    valid_until: None,
+                }),
+            }
         })?;
 
-        let keys: Vec<auth::ExpiringKey> = keys_iter.filter_map(std::result::Result::ok).collect();
+        let keys: Vec<auth::PeerKey> = keys_iter.filter_map(std::result::Result::ok).collect();
 
         Ok(keys)
     }
@@ -208,7 +216,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::get_key_from_keys`](crate::core::databases::Database::get_key_from_keys).
-    fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::ExpiringKey>, Error> {
+    fn get_key_from_keys(&self, key: &Key) -> Result<Option<auth::PeerKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT key, valid_until FROM keys WHERE key = ?")?;
@@ -218,23 +226,36 @@ impl Database for Sqlite {
         let key = rows.next()?;
 
         Ok(key.map(|f| {
-            let expiry: i64 = f.get(1).unwrap();
+            let valid_until: Option<i64> = f.get(1).unwrap();
             let key: String = f.get(0).unwrap();
-            auth::ExpiringKey {
-                key: key.parse::<Key>().unwrap(),
-                valid_until: DurationSinceUnixEpoch::from_secs(expiry.unsigned_abs()),
+
+            match valid_until {
+                Some(valid_until) => auth::PeerKey {
+                    key: key.parse::<Key>().unwrap(),
+                    valid_until: Some(DurationSinceUnixEpoch::from_secs(valid_until.unsigned_abs())),
+                },
+                None => auth::PeerKey {
+                    key: key.parse::<Key>().unwrap(),
+                    valid_until: None,
+                },
             }
         }))
     }
 
     /// Refer to [`databases::Database::add_key_to_keys`](crate::core::databases::Database::add_key_to_keys).
-    fn add_key_to_keys(&self, auth_key: &auth::ExpiringKey) -> Result<usize, Error> {
+    fn add_key_to_keys(&self, auth_key: &auth::PeerKey) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let insert = conn.execute(
-            "INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
-            [auth_key.key.to_string(), auth_key.valid_until.as_secs().to_string()],
-        )?;
+        let insert = match auth_key.valid_until {
+            Some(valid_until) => conn.execute(
+                "INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
+                [auth_key.key.to_string(), valid_until.as_secs().to_string()],
+            )?,
+            None => conn.execute(
+                "INSERT INTO keys (key, valid_until) VALUES (?1, ?2)",
+                params![auth_key.key.to_string(), Null],
+            )?,
+        };
 
         if insert == 0 {
             Err(Error::InsertFailed {

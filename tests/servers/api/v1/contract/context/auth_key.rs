@@ -20,7 +20,7 @@ async fn should_allow_generating_a_new_random_auth_key() {
     let response = Client::new(env.get_connection_info())
         .add_auth_key(AddKeyForm {
             opt_key: None,
-            seconds_valid: 60,
+            seconds_valid: Some(60),
         })
         .await;
 
@@ -43,7 +43,7 @@ async fn should_allow_uploading_a_preexisting_auth_key() {
     let response = Client::new(env.get_connection_info())
         .add_auth_key(AddKeyForm {
             opt_key: Some("Xc1L4PbQJSFGlrgSRZl8wxSFAuMa21z5".to_string()),
-            seconds_valid: 60,
+            seconds_valid: Some(60),
         })
         .await;
 
@@ -66,7 +66,7 @@ async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() 
     let response = Client::new(connection_with_invalid_token(env.get_connection_info().bind_address.as_str()))
         .add_auth_key(AddKeyForm {
             opt_key: None,
-            seconds_valid: 60,
+            seconds_valid: Some(60),
         })
         .await;
 
@@ -75,7 +75,7 @@ async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() 
     let response = Client::new(connection_with_no_token(env.get_connection_info().bind_address.as_str()))
         .add_auth_key(AddKeyForm {
             opt_key: None,
-            seconds_valid: 60,
+            seconds_valid: Some(60),
         })
         .await;
 
@@ -93,7 +93,7 @@ async fn should_fail_when_the_auth_key_cannot_be_generated() {
     let response = Client::new(env.get_connection_info())
         .add_auth_key(AddKeyForm {
             opt_key: None,
-            seconds_valid: 60,
+            seconds_valid: Some(60),
         })
         .await;
 
@@ -109,7 +109,7 @@ async fn should_allow_deleting_an_auth_key() {
     let seconds_valid = 60;
     let auth_key = env
         .tracker
-        .generate_auth_key(Duration::from_secs(seconds_valid))
+        .generate_auth_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
@@ -223,7 +223,7 @@ async fn should_fail_when_the_auth_key_cannot_be_deleted() {
     let seconds_valid = 60;
     let auth_key = env
         .tracker
-        .generate_auth_key(Duration::from_secs(seconds_valid))
+        .generate_auth_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
@@ -247,7 +247,7 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     // Generate new auth key
     let auth_key = env
         .tracker
-        .generate_auth_key(Duration::from_secs(seconds_valid))
+        .generate_auth_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
@@ -260,7 +260,7 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     // Generate new auth key
     let auth_key = env
         .tracker
-        .generate_auth_key(Duration::from_secs(seconds_valid))
+        .generate_auth_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
@@ -279,7 +279,7 @@ async fn should_allow_reloading_keys() {
 
     let seconds_valid = 60;
     env.tracker
-        .generate_auth_key(Duration::from_secs(seconds_valid))
+        .generate_auth_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
@@ -296,7 +296,7 @@ async fn should_fail_when_keys_cannot_be_reloaded() {
 
     let seconds_valid = 60;
     env.tracker
-        .generate_auth_key(Duration::from_secs(seconds_valid))
+        .generate_auth_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
@@ -315,7 +315,7 @@ async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
 
     let seconds_valid = 60;
     env.tracker
-        .generate_auth_key(Duration::from_secs(seconds_valid))
+        .generate_auth_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 

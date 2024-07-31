@@ -453,13 +453,15 @@ use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
-use auth::ExpiringKey;
+use auth::PeerKey;
 use databases::driver::Driver;
 use derive_more::Constructor;
+use error::PeerKeyError;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_configuration::v2::database;
 use torrust_tracker_configuration::{AnnouncePolicy, Core, TORRENT_PEERS_LIMIT};
+use torrust_tracker_located_error::Located;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
@@ -492,7 +494,7 @@ pub struct Tracker {
     database: Arc<Box<dyn Database>>,
 
     /// Tracker users' keys. Only for private trackers.
-    keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::ExpiringKey>>,
+    keys: tokio::sync::RwLock<std::collections::HashMap<Key, auth::PeerKey>>,
 
     /// The list of allowed torrents. Only for listed trackers.
     whitelist: tokio::sync::RwLock<std::collections::HashSet<InfoHash>>,
@@ -554,6 +556,20 @@ impl ScrapeData {
     pub fn add_file_with_zeroed_metadata(&mut self, info_hash: &InfoHash) {
         self.files.insert(*info_hash, SwarmMetadata::zeroed());
     }
+}
+
+/// This type contains the info needed to add a new tracker key.
+///
+/// You can upload a pre-generated key or let the app to generate a new one.
+/// You can also set an expiration date or leave it empty (`None`) if you want
+/// to create a permanent key that does not expire.
+#[derive(Debug)]
+pub struct AddKeyRequest {
+    /// The pre-generated key. Use `None` to generate a random key.
+    pub opt_key: Option<String>,
+
+    /// How long the key will be valid in seconds. Use `None` for permanent keys.
+    pub opt_seconds_valid: Option<u64>,
 }
 
 impl Tracker {
@@ -793,9 +809,83 @@ impl Tracker {
         }
     }
 
-    /// It generates a new expiring authentication key.
-    /// `lifetime` param is the duration in seconds for the new key.
-    /// The key will be no longer valid after `lifetime` seconds.
+    /// Adds new peer keys to the tracker.
+    ///
+    /// Keys can be pre-generated or randomly created. They can also be permanent or expire.
+    ///
+    /// # Errors
+    ///
+    /// Will return an error if:
+    ///
+    /// - The key duration overflows the duration type maximum value.
+    /// - The provided pre-generated key is invalid.
+    /// - The key could not been persisted due to database issues.
+    pub async fn add_peer_key(&self, add_key_req: AddKeyRequest) -> Result<auth::PeerKey, PeerKeyError> {
+        // code-review: all methods related to keys should be moved to a new independent "keys" service.
+
+        match add_key_req.opt_key {
+            // Upload pre-generated key
+            Some(pre_existing_key) => {
+                if let Some(seconds_valid) = add_key_req.opt_seconds_valid {
+                    // Expiring key
+                    let Some(valid_until) = CurrentClock::now_add(&Duration::from_secs(seconds_valid)) else {
+                        return Err(PeerKeyError::DurationOverflow { seconds_valid });
+                    };
+
+                    let key = pre_existing_key.parse::<Key>();
+
+                    match key {
+                        Ok(key) => match self.add_auth_key(key, Some(valid_until)).await {
+                            Ok(auth_key) => Ok(auth_key),
+                            Err(err) => Err(PeerKeyError::DatabaseError {
+                                source: Located(err).into(),
+                            }),
+                        },
+                        Err(err) => Err(PeerKeyError::InvalidKey {
+                            key: pre_existing_key,
+                            source: Located(err).into(),
+                        }),
+                    }
+                } else {
+                    // Permanent key
+                    let key = pre_existing_key.parse::<Key>();
+
+                    match key {
+                        Ok(key) => match self.add_permanent_auth_key(key).await {
+                            Ok(auth_key) => Ok(auth_key),
+                            Err(err) => Err(PeerKeyError::DatabaseError {
+                                source: Located(err).into(),
+                            }),
+                        },
+                        Err(err) => Err(PeerKeyError::InvalidKey {
+                            key: pre_existing_key,
+                            source: Located(err).into(),
+                        }),
+                    }
+                }
+            }
+            // Generate a new random key
+            None => match add_key_req.opt_seconds_valid {
+                // Expiring key
+                Some(seconds_valid) => match self.generate_auth_key(Some(Duration::from_secs(seconds_valid))).await {
+                    Ok(auth_key) => Ok(auth_key),
+                    Err(err) => Err(PeerKeyError::DatabaseError {
+                        source: Located(err).into(),
+                    }),
+                },
+                // Permanent key
+                None => match self.generate_permanent_auth_key().await {
+                    Ok(auth_key) => Ok(auth_key),
+                    Err(err) => Err(PeerKeyError::DatabaseError {
+                        source: Located(err).into(),
+                    }),
+                },
+            },
+        }
+    }
+
+    /// It generates a new permanent authentication key.
+    ///
     /// Authentication keys are used by HTTP trackers.
     ///
     /// # Context: Authentication
@@ -803,12 +893,48 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `database::Error` if unable to add the `auth_key` to the database.
-    pub async fn generate_auth_key(&self, lifetime: Duration) -> Result<auth::ExpiringKey, databases::error::Error> {
-        let auth_key = auth::generate(lifetime);
+    pub async fn generate_permanent_auth_key(&self) -> Result<auth::PeerKey, databases::error::Error> {
+        self.generate_auth_key(None).await
+    }
+
+    /// It generates a new expiring authentication key.
+    ///
+    /// Authentication keys are used by HTTP trackers.
+    ///
+    /// # Context: Authentication
+    ///
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to add the `auth_key` to the database.
+    ///
+    /// # Arguments
+    ///
+    /// * `lifetime` - The duration in seconds for the new key. The key will be
+    ///   no longer valid after `lifetime` seconds.
+    pub async fn generate_auth_key(&self, lifetime: Option<Duration>) -> Result<auth::PeerKey, databases::error::Error> {
+        let auth_key = auth::generate_key(lifetime);
 
         self.database.add_key_to_keys(&auth_key)?;
         self.keys.write().await.insert(auth_key.key.clone(), auth_key.clone());
         Ok(auth_key)
+    }
+
+    /// It adds a pre-generated permanent authentication key.
+    ///
+    /// Authentication keys are used by HTTP trackers.
+    ///
+    /// # Context: Authentication
+    ///
+    /// # Errors
+    ///
+    /// Will return a `database::Error` if unable to add the `auth_key` to the
+    /// database. For example, if the key already exist.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - The pre-generated key.
+    pub async fn add_permanent_auth_key(&self, key: Key) -> Result<auth::PeerKey, databases::error::Error> {
+        self.add_auth_key(key, None).await
     }
 
     /// It adds a pre-generated authentication key.
@@ -824,14 +950,15 @@ impl Tracker {
     ///
     /// # Arguments
     ///
+    /// * `key` - The pre-generated key.
     /// * `lifetime` - The duration in seconds for the new key. The key will be
     ///   no longer valid after `lifetime` seconds.
     pub async fn add_auth_key(
         &self,
         key: Key,
-        valid_until: DurationSinceUnixEpoch,
-    ) -> Result<auth::ExpiringKey, databases::error::Error> {
-        let auth_key = ExpiringKey { key, valid_until };
+        valid_until: Option<DurationSinceUnixEpoch>,
+    ) -> Result<auth::PeerKey, databases::error::Error> {
+        let auth_key = PeerKey { key, valid_until };
 
         // code-review: should we return a friendly error instead of the DB
         // constrain error when the key already exist? For now, it's returning
@@ -869,7 +996,7 @@ impl Tracker {
                 location: Location::caller(),
                 key: Box::new(key.clone()),
             }),
-            Some(key) => auth::verify(key),
+            Some(key) => auth::verify_key(key),
         }
     }
 
@@ -1661,16 +1788,19 @@ mod tests {
                 async fn it_should_generate_the_expiring_authentication_keys() {
                     let tracker = private_tracker();
 
-                    let key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+                    let key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
 
-                    assert_eq!(key.valid_until, CurrentClock::now_add(&Duration::from_secs(100)).unwrap());
+                    assert_eq!(
+                        key.valid_until,
+                        Some(CurrentClock::now_add(&Duration::from_secs(100)).unwrap())
+                    );
                 }
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_by_using_a_key() {
                     let tracker = private_tracker();
 
-                    let expiring_key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+                    let expiring_key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
 
                     let result = tracker.authenticate(&expiring_key.key()).await;
 
@@ -1694,7 +1824,7 @@ mod tests {
                     // `verify_auth_key` should be a private method.
                     let tracker = private_tracker();
 
-                    let expiring_key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+                    let expiring_key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
 
                     assert!(tracker.verify_auth_key(&expiring_key.key()).await.is_ok());
                 }
@@ -1712,7 +1842,7 @@ mod tests {
                 async fn it_should_remove_an_authentication_key() {
                     let tracker = private_tracker();
 
-                    let expiring_key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+                    let expiring_key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
 
                     let result = tracker.remove_auth_key(&expiring_key.key()).await;
 
@@ -1724,7 +1854,7 @@ mod tests {
                 async fn it_should_load_authentication_keys_from_the_database() {
                     let tracker = private_tracker();
 
-                    let expiring_key = tracker.generate_auth_key(Duration::from_secs(100)).await.unwrap();
+                    let expiring_key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
 
                     // Remove the newly generated key in memory
                     tracker.keys.write().await.remove(&expiring_key.key());
