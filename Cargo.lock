@@ -3886,6 +3886,7 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "serde_repr",
+ "serde_with",
  "thiserror",
  "tokio",
  "torrust-tracker-clock",
