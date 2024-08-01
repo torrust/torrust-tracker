@@ -4,7 +4,7 @@
 //! Tracker keys are tokens used to authenticate the tracker clients when the tracker runs
 //! in `private` or `private_listed` modes.
 //!
-//! There are services to [`generate_key`]  and [`verify_key`]  authentication keys.
+//! There are services to [`generate_key`]  and [`verify_key_expiration`]  authentication keys.
 //!
 //! Authentication keys are used only by [`HTTP`](crate::servers::http) trackers. All keys have an expiration time, that means
 //! they are only valid during a period of time. After that time the expiring key will no longer be valid.

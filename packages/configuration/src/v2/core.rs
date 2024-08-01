@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::network::Network;
 use crate::v2::database::Database;
+use crate::validator::{SemanticValidationError, Validator};
 use crate::{AnnouncePolicy, TrackerPolicy};
 
 #[allow(clippy::struct_excessive_bools)]
@@ -129,5 +130,15 @@ impl Default for PrivateMode {
 impl PrivateMode {
     fn default_check_keys_expiration() -> bool {
         true
+    }
+}
+
+impl Validator for Core {
+    fn validate(&self) -> Result<(), SemanticValidationError> {
+        if self.private_mode.is_some() && !self.private {
+            return Err(SemanticValidationError::UselessPrivateModeSection);
+        }
+
+        Ok(())
     }
 }
