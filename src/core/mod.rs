@@ -988,9 +988,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `key::Error` if unable to get any `auth_key`.
-    pub async fn verify_auth_key(&self, key: &Key) -> Result<(), auth::Error> {
-        // code-review: this function is public only because it's used in a test.
-        // We should change the test and make it private.
+    async fn verify_auth_key(&self, key: &Key) -> Result<(), auth::Error> {
         match self.keys.read().await.get(key) {
             None => Err(auth::Error::UnableToReadKey {
                 location: Location::caller(),
@@ -1830,13 +1828,11 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_verify_a_valid_authentication_key() {
-                    // todo: this should not be tested directly because
-                    // `verify_auth_key` should be a private method.
                     let tracker = private_tracker();
 
                     let expiring_key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
 
-                    assert!(tracker.verify_auth_key(&expiring_key.key()).await.is_ok());
+                    assert!(tracker.authenticate(&expiring_key.key()).await.is_ok());
                 }
 
                 #[tokio::test]

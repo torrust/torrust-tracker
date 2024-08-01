@@ -26,10 +26,9 @@ async fn should_allow_generating_a_new_random_auth_key() {
 
     let auth_key_resource = assert_auth_key_utf8(response).await;
 
-    // Verify the key with the tracker
     assert!(env
         .tracker
-        .verify_auth_key(&auth_key_resource.key.parse::<Key>().unwrap())
+        .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
         .await
         .is_ok());
 
@@ -49,10 +48,9 @@ async fn should_allow_uploading_a_preexisting_auth_key() {
 
     let auth_key_resource = assert_auth_key_utf8(response).await;
 
-    // Verify the key with the tracker
     assert!(env
         .tracker
-        .verify_auth_key(&auth_key_resource.key.parse::<Key>().unwrap())
+        .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
         .await
         .is_ok());
 
@@ -357,10 +355,9 @@ mod deprecated_generate_key_endpoint {
 
         let auth_key_resource = assert_auth_key_utf8(response).await;
 
-        // Verify the key with the tracker
         assert!(env
             .tracker
-            .verify_auth_key(&auth_key_resource.key.parse::<Key>().unwrap())
+            .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
             .await
             .is_ok());
 
