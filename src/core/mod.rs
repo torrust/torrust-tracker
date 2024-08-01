@@ -988,9 +988,7 @@ impl Tracker {
     /// # Errors
     ///
     /// Will return a `key::Error` if unable to get any `auth_key`.
-    pub async fn verify_auth_key(&self, key: &Key) -> Result<(), auth::Error> {
-        // code-review: this function is public only because it's used in a test.
-        // We should change the test and make it private.
+    async fn verify_auth_key(&self, key: &Key) -> Result<(), auth::Error> {
         match self.keys.read().await.get(key) {
             None => Err(auth::Error::UnableToReadKey {
                 location: Location::caller(),
@@ -1787,35 +1785,8 @@ mod tests {
                 use std::str::FromStr;
                 use std::time::Duration;
 
-                use torrust_tracker_clock::clock::Time;
-                use torrust_tracker_configuration::v2::core::PrivateMode;
-
-                use crate::core::auth::{self, Key};
+                use crate::core::auth::{self};
                 use crate::core::tests::the_tracker::private_tracker;
-                use crate::CurrentClock;
-
-                #[tokio::test]
-                async fn it_should_generate_the_expiring_authentication_keys() {
-                    let tracker = private_tracker();
-
-                    let key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
-
-                    assert_eq!(
-                        key.valid_until,
-                        Some(CurrentClock::now_add(&Duration::from_secs(100)).unwrap())
-                    );
-                }
-
-                #[tokio::test]
-                async fn it_should_authenticate_a_peer_by_using_a_key() {
-                    let tracker = private_tracker();
-
-                    let expiring_key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
-
-                    let result = tracker.authenticate(&expiring_key.key()).await;
-
-                    assert!(result.is_ok());
-                }
 
                 #[tokio::test]
                 async fn it_should_fail_authenticating_a_peer_when_it_uses_an_unregistered_key() {
@@ -1826,35 +1797,6 @@ mod tests {
                     let result = tracker.authenticate(&unregistered_key).await;
 
                     assert!(result.is_err());
-                }
-
-                #[tokio::test]
-                async fn it_should_verify_a_valid_authentication_key() {
-                    // todo: this should not be tested directly because
-                    // `verify_auth_key` should be a private method.
-                    let tracker = private_tracker();
-
-                    let expiring_key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
-
-                    assert!(tracker.verify_auth_key(&expiring_key.key()).await.is_ok());
-                }
-
-                #[tokio::test]
-                async fn it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration() {
-                    let mut tracker = private_tracker();
-
-                    tracker.config.private_mode = Some(PrivateMode {
-                        check_keys_expiration: false,
-                    });
-
-                    let past_time = Some(Duration::ZERO);
-
-                    let expiring_key = tracker
-                        .add_auth_key(Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap(), past_time)
-                        .await
-                        .unwrap();
-
-                    assert!(tracker.authenticate(&expiring_key.key()).await.is_ok());
                 }
 
                 #[tokio::test]
@@ -1891,6 +1833,192 @@ mod tests {
 
                     assert!(result.is_ok());
                     assert!(tracker.verify_auth_key(&expiring_key.key()).await.is_ok());
+                }
+
+                mod with_expiring_and {
+
+                    mod randomly_generated_keys {
+                        use std::time::Duration;
+
+                        use torrust_tracker_clock::clock::Time;
+                        use torrust_tracker_configuration::v2::core::PrivateMode;
+
+                        use crate::core::auth::Key;
+                        use crate::core::tests::the_tracker::private_tracker;
+                        use crate::CurrentClock;
+
+                        #[tokio::test]
+                        async fn it_should_generate_the_key() {
+                            let tracker = private_tracker();
+
+                            let peer_key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
+
+                            assert_eq!(
+                                peer_key.valid_until,
+                                Some(CurrentClock::now_add(&Duration::from_secs(100)).unwrap())
+                            );
+                        }
+
+                        #[tokio::test]
+                        async fn it_should_authenticate_a_peer_with_the_key() {
+                            let tracker = private_tracker();
+
+                            let peer_key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
+
+                            let result = tracker.authenticate(&peer_key.key()).await;
+
+                            assert!(result.is_ok());
+                        }
+
+                        #[tokio::test]
+                        async fn it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration() {
+                            let mut tracker = private_tracker();
+
+                            tracker.config.private_mode = Some(PrivateMode {
+                                check_keys_expiration: false,
+                            });
+
+                            let past_timestamp = Duration::ZERO;
+
+                            let peer_key = tracker
+                                .add_auth_key(Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap(), Some(past_timestamp))
+                                .await
+                                .unwrap();
+
+                            assert!(tracker.authenticate(&peer_key.key()).await.is_ok());
+                        }
+                    }
+
+                    mod pre_generated_keys {
+                        use std::time::Duration;
+
+                        use torrust_tracker_clock::clock::Time;
+                        use torrust_tracker_configuration::v2::core::PrivateMode;
+
+                        use crate::core::auth::Key;
+                        use crate::core::tests::the_tracker::private_tracker;
+                        use crate::core::AddKeyRequest;
+                        use crate::CurrentClock;
+
+                        #[tokio::test]
+                        async fn it_should_add_a_pre_generated_key() {
+                            let tracker = private_tracker();
+
+                            let peer_key = tracker
+                                .add_peer_key(AddKeyRequest {
+                                    opt_key: Some(Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap().to_string()),
+                                    opt_seconds_valid: Some(100),
+                                })
+                                .await
+                                .unwrap();
+
+                            assert_eq!(
+                                peer_key.valid_until,
+                                Some(CurrentClock::now_add(&Duration::from_secs(100)).unwrap())
+                            );
+                        }
+
+                        #[tokio::test]
+                        async fn it_should_authenticate_a_peer_with_the_key() {
+                            let tracker = private_tracker();
+
+                            let peer_key = tracker
+                                .add_peer_key(AddKeyRequest {
+                                    opt_key: Some(Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap().to_string()),
+                                    opt_seconds_valid: Some(100),
+                                })
+                                .await
+                                .unwrap();
+
+                            let result = tracker.authenticate(&peer_key.key()).await;
+
+                            assert!(result.is_ok());
+                        }
+
+                        #[tokio::test]
+                        async fn it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration() {
+                            let mut tracker = private_tracker();
+
+                            tracker.config.private_mode = Some(PrivateMode {
+                                check_keys_expiration: false,
+                            });
+
+                            let peer_key = tracker
+                                .add_peer_key(AddKeyRequest {
+                                    opt_key: Some(Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap().to_string()),
+                                    opt_seconds_valid: Some(0),
+                                })
+                                .await
+                                .unwrap();
+
+                            assert!(tracker.authenticate(&peer_key.key()).await.is_ok());
+                        }
+                    }
+                }
+
+                mod with_permanent_and {
+
+                    mod randomly_generated_keys {
+                        use crate::core::tests::the_tracker::private_tracker;
+
+                        #[tokio::test]
+                        async fn it_should_generate_the_key() {
+                            let tracker = private_tracker();
+
+                            let peer_key = tracker.generate_permanent_auth_key().await.unwrap();
+
+                            assert_eq!(peer_key.valid_until, None);
+                        }
+
+                        #[tokio::test]
+                        async fn it_should_authenticate_a_peer_with_the_key() {
+                            let tracker = private_tracker();
+
+                            let peer_key = tracker.generate_permanent_auth_key().await.unwrap();
+
+                            let result = tracker.authenticate(&peer_key.key()).await;
+
+                            assert!(result.is_ok());
+                        }
+                    }
+
+                    mod pre_generated_keys {
+                        use crate::core::auth::Key;
+                        use crate::core::tests::the_tracker::private_tracker;
+                        use crate::core::AddKeyRequest;
+
+                        #[tokio::test]
+                        async fn it_should_add_a_pre_generated_key() {
+                            let tracker = private_tracker();
+
+                            let peer_key = tracker
+                                .add_peer_key(AddKeyRequest {
+                                    opt_key: Some(Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap().to_string()),
+                                    opt_seconds_valid: None,
+                                })
+                                .await
+                                .unwrap();
+
+                            assert_eq!(peer_key.valid_until, None);
+                        }
+
+                        #[tokio::test]
+                        async fn it_should_authenticate_a_peer_with_the_key() {
+                            let tracker = private_tracker();
+
+                            let peer_key = tracker
+                                .add_peer_key(AddKeyRequest {
+                                    opt_key: Some(Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap().to_string()),
+                                    opt_seconds_valid: None,
+                                })
+                                .await
+                                .unwrap();
+
+                            let result = tracker.authenticate(&peer_key.key()).await;
+
+                            assert!(result.is_ok());
+                        }
+                    }
                 }
             }
 
