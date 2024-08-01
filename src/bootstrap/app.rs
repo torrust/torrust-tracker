@@ -14,6 +14,7 @@
 use std::sync::Arc;
 
 use torrust_tracker_clock::static_time;
+use torrust_tracker_configuration::validator::Validator;
 use torrust_tracker_configuration::Configuration;
 use tracing::info;
 
@@ -24,9 +25,17 @@ use crate::core::Tracker;
 use crate::shared::crypto::ephemeral_instance_keys;
 
 /// It loads the configuration from the environment and builds the main domain [`Tracker`] struct.
+///
+/// # Panics
+///
+/// Setup can file if the configuration is invalid.
 #[must_use]
 pub fn setup() -> (Configuration, Arc<Tracker>) {
     let configuration = initialize_configuration();
+
+    if let Err(e) = configuration.validate() {
+        panic!("Configuration error: {e}");
+    }
 
     let tracker = initialize_with_configuration(&configuration);
 

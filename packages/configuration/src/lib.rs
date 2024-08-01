@@ -5,6 +5,7 @@
 //!
 //! The current version for configuration is [`v2`].
 pub mod v2;
+pub mod validator;
 
 use std::collections::HashMap;
 use std::env;

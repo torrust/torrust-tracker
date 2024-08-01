@@ -251,6 +251,7 @@ use self::health_check_api::HealthCheckApi;
 use self::http_tracker::HttpTracker;
 use self::tracker_api::HttpApi;
 use self::udp_tracker::UdpTracker;
+use crate::validator::{SemanticValidationError, Validator};
 use crate::{Error, Info, Metadata, Version};
 
 /// This configuration version
@@ -391,6 +392,12 @@ impl Configuration {
         }
 
         self
+    }
+}
+
+impl Validator for Configuration {
+    fn validate(&self) -> Result<(), SemanticValidationError> {
+        self.core.validate()
     }
 }
 

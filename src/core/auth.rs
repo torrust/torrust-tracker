@@ -4,7 +4,7 @@
 //! Tracker keys are tokens used to authenticate the tracker clients when the tracker runs
 //! in `private` or `private_listed` modes.
 //!
-//! There are services to [`generate_key`]  and [`verify_key`]  authentication keys.
+//! There are services to [`generate_key`]  and [`verify_key_expiration`]  authentication keys.
 //!
 //! Authentication keys are used only by [`HTTP`](crate::servers::http) trackers. All keys have an expiration time, that means
 //! they are only valid during a period of time. After that time the expiring key will no longer be valid.
@@ -33,7 +33,7 @@
 //!
 //! // And you can later verify it with:
 //!
-//! assert!(auth::verify_key(&expiring_key).is_ok());
+//! assert!(auth::verify_key_expiration(&expiring_key).is_ok());
 //! ```
 
 use std::panic::Location;
@@ -106,7 +106,7 @@ pub fn generate_key(lifetime: Option<Duration>) -> PeerKey {
 ///
 /// - `Error::KeyExpired` if `auth_key.valid_until` is past the `current_time`.
 /// - `Error::KeyInvalid` if `auth_key.valid_until` is past the `None`.
-pub fn verify_key(auth_key: &PeerKey) -> Result<(), Error> {
+pub fn verify_key_expiration(auth_key: &PeerKey) -> Result<(), Error> {
     let current_time: DurationSinceUnixEpoch = CurrentClock::now();
 
     match auth_key.valid_until {
@@ -322,7 +322,7 @@ mod tests {
         fn should_be_generated_with_a_expiration_time() {
             let expiring_key = auth::generate_key(Some(Duration::new(9999, 0)));
 
-            assert!(auth::verify_key(&expiring_key).is_ok());
+            assert!(auth::verify_key_expiration(&expiring_key).is_ok());
         }
 
         #[test]
@@ -336,12 +336,12 @@ mod tests {
             // Mock the time has passed 10 sec.
             clock::Stopped::local_add(&Duration::from_secs(10)).unwrap();
 
-            assert!(auth::verify_key(&expiring_key).is_ok());
+            assert!(auth::verify_key_expiration(&expiring_key).is_ok());
 
             // Mock the time has passed another 10 sec.
             clock::Stopped::local_add(&Duration::from_secs(10)).unwrap();
 
-            assert!(auth::verify_key(&expiring_key).is_err());
+            assert!(auth::verify_key_expiration(&expiring_key).is_err());
         }
     }
 }

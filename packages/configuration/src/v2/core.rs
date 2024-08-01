@@ -1,7 +1,9 @@
+use derive_more::{Constructor, Display};
 use serde::{Deserialize, Serialize};
 
 use super::network::Network;
 use crate::v2::database::Database;
+use crate::validator::{SemanticValidationError, Validator};
 use crate::{AnnouncePolicy, TrackerPolicy};
 
 #[allow(clippy::struct_excessive_bools)]
@@ -32,6 +34,10 @@ pub struct Core {
     #[serde(default = "Core::default_private")]
     pub private: bool,
 
+    // Configuration specific when the tracker is running in private mode.
+    #[serde(default = "Core::default_private_mode")]
+    pub private_mode: Option<PrivateMode>,
+
     // Tracker policy configuration.
     #[serde(default = "Core::default_tracker_policy")]
     pub tracker_policy: TrackerPolicy,
@@ -54,6 +60,7 @@ impl Default for Core {
             listed: Self::default_listed(),
             net: Self::default_network(),
             private: Self::default_private(),
+            private_mode: Self::default_private_mode(),
             tracker_policy: Self::default_tracker_policy(),
             tracker_usage_statistics: Self::default_tracker_usage_statistics(),
         }
@@ -85,10 +92,53 @@ impl Core {
         false
     }
 
+    fn default_private_mode() -> Option<PrivateMode> {
+        if Self::default_private() {
+            Some(PrivateMode::default())
+        } else {
+            None
+        }
+    }
+
     fn default_tracker_policy() -> TrackerPolicy {
         TrackerPolicy::default()
     }
     fn default_tracker_usage_statistics() -> bool {
         true
+    }
+}
+
+/// Configuration specific when the tracker is running in private mode.
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy, Constructor, Display)]
+pub struct PrivateMode {
+    /// A flag to disable expiration date for peer keys.
+    ///
+    /// When true, if the keys is not permanent the expiration date will be
+    /// ignored. The key will be accepted even if it has expired.
+    #[serde(default = "PrivateMode::default_check_keys_expiration")]
+    pub check_keys_expiration: bool,
+}
+
+impl Default for PrivateMode {
+    fn default() -> Self {
+        Self {
+            check_keys_expiration: Self::default_check_keys_expiration(),
+        }
+    }
+}
+
+impl PrivateMode {
+    fn default_check_keys_expiration() -> bool {
+        true
+    }
+}
+
+impl Validator for Core {
+    fn validate(&self) -> Result<(), SemanticValidationError> {
+        if self.private_mode.is_some() && !self.private {
+            return Err(SemanticValidationError::UselessPrivateModeSection);
+        }
+
+        Ok(())
     }
 }
