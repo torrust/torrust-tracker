@@ -996,7 +996,16 @@ impl Tracker {
                 location: Location::caller(),
                 key: Box::new(key.clone()),
             }),
-            Some(key) => auth::verify_key(key),
+            Some(key) => match self.config.private_mode {
+                Some(private_mode) => {
+                    if private_mode.check_keys_expiration {
+                        return auth::verify_key_expiration(key);
+                    }
+
+                    Ok(())
+                }
+                None => auth::verify_key_expiration(key),
+            },
         }
     }
 
@@ -1779,8 +1788,9 @@ mod tests {
                 use std::time::Duration;
 
                 use torrust_tracker_clock::clock::Time;
+                use torrust_tracker_configuration::v2::core::PrivateMode;
 
-                use crate::core::auth;
+                use crate::core::auth::{self, Key};
                 use crate::core::tests::the_tracker::private_tracker;
                 use crate::CurrentClock;
 
@@ -1827,6 +1837,24 @@ mod tests {
                     let expiring_key = tracker.generate_auth_key(Some(Duration::from_secs(100))).await.unwrap();
 
                     assert!(tracker.verify_auth_key(&expiring_key.key()).await.is_ok());
+                }
+
+                #[tokio::test]
+                async fn it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration() {
+                    let mut tracker = private_tracker();
+
+                    tracker.config.private_mode = Some(PrivateMode {
+                        check_keys_expiration: false,
+                    });
+
+                    let past_time = Some(Duration::ZERO);
+
+                    let expiring_key = tracker
+                        .add_auth_key(Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap(), past_time)
+                        .await
+                        .unwrap();
+
+                    assert!(tracker.authenticate(&expiring_key.key()).await.is_ok());
                 }
 
                 #[tokio::test]
