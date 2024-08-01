@@ -26,17 +26,15 @@
 //!
 //! It generates a new authentication key or upload a pre-generated key.
 //!
-//! > **NOTICE**: keys expire after a certain amount of time.
-//!
 //! **POST parameters**
 //!
 //! Name | Type | Description | Required | Example
 //! ---|---|---|---|---
-//! `key` | 32-char string (0-9, a-z, A-Z) | The optional pre-generated key. | No | `Xc1L4PbQJSFGlrgSRZl8wxSFAuMa21z7`
-//! `seconds_valid` | positive integer | The number of seconds the key will be valid. | Yes | `3600`
+//! `key` | 32-char string (0-9, a-z, A-Z) or `null` | The optional pre-generated key. | Yes | `Xc1L4PbQJSFGlrgSRZl8wxSFAuMa21z7` or `null`
+//! `seconds_valid` | positive integer or `null` | The number of seconds the key will be valid. | Yes | `3600` or `null`
 //!
-//! > **NOTICE**: the `key` field is optional. If is not provided the tracker
-//! > will generated a random one.
+//! > **NOTICE**: the `key` and `seconds_valid` fields are optional. If `key` is not provided the tracker
+//! > will generated a random one. If `seconds_valid` field is not provided the key will be permanent. You can use the `null` value.
 //!
 //! **Example request**
 //!

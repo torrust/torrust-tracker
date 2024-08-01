@@ -4,7 +4,6 @@ use std::error::Error;
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 
-use crate::core::auth::ParseKeyError;
 use crate::servers::apis::v1::context::auth_key::resources::AuthKey;
 use crate::servers::apis::v1::responses::{bad_request_response, unhandled_rejection_response};
 
@@ -51,8 +50,8 @@ pub fn failed_to_reload_keys_response<E: Error>(e: E) -> Response {
 }
 
 #[must_use]
-pub fn invalid_auth_key_response(auth_key: &str, error: &ParseKeyError) -> Response {
-    bad_request_response(&format!("Invalid URL: invalid auth key: string \"{auth_key}\", {error}"))
+pub fn invalid_auth_key_response<E: Error>(auth_key: &str, e: E) -> Response {
+    bad_request_response(&format!("Invalid URL: invalid auth key: string \"{auth_key}\", {e}"))
 }
 
 #[must_use]

@@ -134,5 +134,5 @@ pub async fn get(path: &str, query: Option<Query>) -> Response {
 pub struct AddKeyForm {
     #[serde(rename = "key")]
     pub opt_key: Option<String>,
-    pub seconds_valid: u64,
+    pub seconds_valid: Option<u64>,
 }

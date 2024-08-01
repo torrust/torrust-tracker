@@ -11,6 +11,9 @@ use std::panic::Location;
 use torrust_tracker_located_error::LocatedError;
 use torrust_tracker_primitives::info_hash::InfoHash;
 
+use super::auth::ParseKeyError;
+use super::databases;
+
 /// Authentication or authorization error returned by the core `Tracker`
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {
@@ -20,6 +23,7 @@ pub enum Error {
         key: super::auth::Key,
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
+
     #[error("The peer is not authenticated, {location}")]
     PeerNotAuthenticated { location: &'static Location<'static> },
 
@@ -28,5 +32,24 @@ pub enum Error {
     TorrentNotWhitelisted {
         info_hash: InfoHash,
         location: &'static Location<'static>,
+    },
+}
+
+/// Errors related to peers keys.
+#[allow(clippy::module_name_repetitions)]
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum PeerKeyError {
+    #[error("Invalid peer key duration: {seconds_valid:?}, is not valid")]
+    DurationOverflow { seconds_valid: u64 },
+
+    #[error("Invalid key: {key}")]
+    InvalidKey {
+        key: String,
+        source: LocatedError<'static, ParseKeyError>,
+    },
+
+    #[error("Can't persist key: {source}")]
+    DatabaseError {
+        source: LocatedError<'static, databases::error::Error>,
     },
 }

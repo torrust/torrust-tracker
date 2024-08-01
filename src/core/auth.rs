@@ -4,7 +4,7 @@
 //! Tracker keys are tokens used to authenticate the tracker clients when the tracker runs
 //! in `private` or `private_listed` modes.
 //!
-//! There are services to [`generate`]  and [`verify`]  authentication keys.
+//! There are services to [`generate_key`]  and [`verify_key`]  authentication keys.
 //!
 //! Authentication keys are used only by [`HTTP`](crate::servers::http) trackers. All keys have an expiration time, that means
 //! they are only valid during a period of time. After that time the expiring key will no longer be valid.
@@ -19,7 +19,7 @@
 //!     /// Random 32-char string. For example: `YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ`
 //!     pub key: Key,
 //!     /// Timestamp, the key will be no longer valid after this timestamp
-//!     pub valid_until: DurationSinceUnixEpoch,
+//!     pub valid_until: Option<DurationSinceUnixEpoch>,
 //! }
 //! ```
 //!
@@ -29,11 +29,11 @@
 //! use torrust_tracker::core::auth;
 //! use std::time::Duration;
 //!
-//! let expiring_key = auth::generate(Duration::new(9999, 0));
+//! let expiring_key = auth::generate_key(Some(Duration::new(9999, 0)));
 //!
 //! // And you can later verify it with:
 //!
-//! assert!(auth::verify(&expiring_key).is_ok());
+//! assert!(auth::verify_key(&expiring_key).is_ok());
 //! ```
 
 use std::panic::Location;
@@ -55,63 +55,96 @@ use tracing::debug;
 use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
 use crate::CurrentClock;
 
+/// It generates a new permanent random key [`PeerKey`].
 #[must_use]
-/// It generates a new random 32-char authentication [`ExpiringKey`]
+pub fn generate_permanent_key() -> PeerKey {
+    generate_key(None)
+}
+
+/// It generates a new random 32-char authentication [`PeerKey`].
+///
+/// It can be an expiring or permanent key.
 ///
 /// # Panics
 ///
 /// It would panic if the `lifetime: Duration` + Duration is more than `Duration::MAX`.
-pub fn generate(lifetime: Duration) -> ExpiringKey {
+///
+/// # Arguments
+///
+/// * `lifetime`: if `None` the key will be permanent.
+#[must_use]
+pub fn generate_key(lifetime: Option<Duration>) -> PeerKey {
     let random_id: String = thread_rng()
         .sample_iter(&Alphanumeric)
         .take(AUTH_KEY_LENGTH)
         .map(char::from)
         .collect();
 
-    debug!("Generated key: {}, valid for: {:?} seconds", random_id, lifetime);
+    if let Some(lifetime) = lifetime {
+        debug!("Generated key: {}, valid for: {:?} seconds", random_id, lifetime);
 
-    ExpiringKey {
-        key: random_id.parse::<Key>().unwrap(),
-        valid_until: CurrentClock::now_add(&lifetime).unwrap(),
+        PeerKey {
+            key: random_id.parse::<Key>().unwrap(),
+            valid_until: Some(CurrentClock::now_add(&lifetime).unwrap()),
+        }
+    } else {
+        debug!("Generated key: {}, permanent", random_id);
+
+        PeerKey {
+            key: random_id.parse::<Key>().unwrap(),
+            valid_until: None,
+        }
     }
 }
 
-/// It verifies an [`ExpiringKey`]. It checks if the expiration date has passed.
+/// It verifies an [`PeerKey`]. It checks if the expiration date has passed.
+/// Permanent keys without duration (`None`) do not expire.
 ///
 /// # Errors
 ///
-/// Will return `Error::KeyExpired` if `auth_key.valid_until` is past the `current_time`.
+/// Will return:
 ///
-/// Will return `Error::KeyInvalid` if `auth_key.valid_until` is past the `None`.
-pub fn verify(auth_key: &ExpiringKey) -> Result<(), Error> {
+/// - `Error::KeyExpired` if `auth_key.valid_until` is past the `current_time`.
+/// - `Error::KeyInvalid` if `auth_key.valid_until` is past the `None`.
+pub fn verify_key(auth_key: &PeerKey) -> Result<(), Error> {
     let current_time: DurationSinceUnixEpoch = CurrentClock::now();
 
-    if auth_key.valid_until < current_time {
-        Err(Error::KeyExpired {
-            location: Location::caller(),
-        })
-    } else {
-        Ok(())
+    match auth_key.valid_until {
+        Some(valid_until) => {
+            if valid_until < current_time {
+                Err(Error::KeyExpired {
+                    location: Location::caller(),
+                })
+            } else {
+                Ok(())
+            }
+        }
+        None => Ok(()), // Permanent key
     }
 }
 
-/// An authentication key which has an expiration time.
+/// An authentication key which can potentially have an expiration time.
 /// After that time is will automatically become invalid.
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
-pub struct ExpiringKey {
+pub struct PeerKey {
     /// Random 32-char string. For example: `YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ`
     pub key: Key,
-    /// Timestamp, the key will be no longer valid after this timestamp
-    pub valid_until: DurationSinceUnixEpoch,
+
+    /// Timestamp, the key will be no longer valid after this timestamp.
+    /// If `None` the keys will not expire (permanent key).
+    pub valid_until: Option<DurationSinceUnixEpoch>,
 }
 
-impl std::fmt::Display for ExpiringKey {
+impl std::fmt::Display for PeerKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "key: `{}`, valid until `{}`", self.key, self.expiry_time())
+        match self.expiry_time() {
+            Some(expire_time) => write!(f, "key: `{}`, valid until `{}`", self.key, expire_time),
+            None => write!(f, "key: `{}`, permanent", self.key),
+        }
     }
 }
 
-impl ExpiringKey {
+impl PeerKey {
     #[must_use]
     pub fn key(&self) -> Key {
         self.key.clone()
@@ -126,8 +159,8 @@ impl ExpiringKey {
     /// Will panic when the key timestamp overflows the internal i64 type.
     /// (this will naturally happen in 292.5 billion years)
     #[must_use]
-    pub fn expiry_time(&self) -> chrono::DateTime<chrono::Utc> {
-        convert_from_timestamp_to_datetime_utc(self.valid_until)
+    pub fn expiry_time(&self) -> Option<chrono::DateTime<chrono::Utc>> {
+        self.valid_until.map(convert_from_timestamp_to_datetime_utc)
     }
 }
 
@@ -194,8 +227,8 @@ impl FromStr for Key {
     }
 }
 
-/// Verification error. Error returned when an [`ExpiringKey`] cannot be
-/// verified with the [`verify(...)`](crate::core::auth::verify) function.
+/// Verification error. Error returned when an [`PeerKey`] cannot be
+/// verified with the (`crate::core::auth::verify_key`) function.
 #[derive(Debug, Error)]
 #[allow(dead_code)]
 pub enum Error {
@@ -277,7 +310,7 @@ mod tests {
             // Set the time to the current time.
             clock::Stopped::local_set_to_unix_epoch();
 
-            let expiring_key = auth::generate(Duration::from_secs(0));
+            let expiring_key = auth::generate_key(Some(Duration::from_secs(0)));
 
             assert_eq!(
                 expiring_key.to_string(),
@@ -287,9 +320,9 @@ mod tests {
 
         #[test]
         fn should_be_generated_with_a_expiration_time() {
-            let expiring_key = auth::generate(Duration::new(9999, 0));
+            let expiring_key = auth::generate_key(Some(Duration::new(9999, 0)));
 
-            assert!(auth::verify(&expiring_key).is_ok());
+            assert!(auth::verify_key(&expiring_key).is_ok());
         }
 
         #[test]
@@ -298,17 +331,17 @@ mod tests {
             clock::Stopped::local_set_to_system_time_now();
 
             // Make key that is valid for 19 seconds.
-            let expiring_key = auth::generate(Duration::from_secs(19));
+            let expiring_key = auth::generate_key(Some(Duration::from_secs(19)));
 
             // Mock the time has passed 10 sec.
             clock::Stopped::local_add(&Duration::from_secs(10)).unwrap();
 
-            assert!(auth::verify(&expiring_key).is_ok());
+            assert!(auth::verify_key(&expiring_key).is_ok());
 
             // Mock the time has passed another 10 sec.
             clock::Stopped::local_add(&Duration::from_secs(10)).unwrap();
 
-            assert!(auth::verify(&expiring_key).is_err());
+            assert!(auth::verify_key(&expiring_key).is_err());
         }
     }
 }
