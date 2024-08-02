@@ -303,6 +303,9 @@ pub enum Error {
 
     #[error("Unsupported configuration version: {version}")]
     UnsupportedVersion { version: Version },
+
+    #[error("Missing mandatory configuration option. Option path: {path}")]
+    MissingMandatoryOption { path: String },
 }
 
 impl From<figment::Error> for Error {
