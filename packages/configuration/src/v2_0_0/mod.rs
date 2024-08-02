@@ -313,27 +313,33 @@ impl Configuration {
     }
 
     /// Loads the configuration from the `Info` struct. The whole
-    /// configuration in toml format is included in the `info.tracker_toml` string.
+    /// configuration in toml format is included in the `info.tracker_toml`
+    /// string.
     ///
-    /// Optionally will override the admin api token.
+    /// Configuration provided via env var has priority over config file path.
     ///
     /// # Errors
     ///
     /// Will return `Err` if the environment variable does not exist or has a bad configuration.
     pub fn load(info: &Info) -> Result<Configuration, Error> {
+        // Load configuration provided by the user, prioritizing env vars
         let figment = if let Some(config_toml) = &info.config_toml {
-            // Config in env var has priority over config file path
-            Figment::from(Serialized::defaults(Configuration::default()))
-                .merge(Toml::string(config_toml))
-                .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
+            Figment::from(Toml::string(config_toml)).merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
         } else {
-            Figment::from(Serialized::defaults(Configuration::default()))
-                .merge(Toml::file(&info.config_toml_path))
+            Figment::from(Toml::file(&info.config_toml_path))
                 .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
         };
 
+        // Make sure user has provided the mandatory options.
+        Self::check_mandatory_options(&figment)?;
+
+        // Fill missing options with default values.
+        let figment = figment.join(Serialized::defaults(Configuration::default()));
+
+        // Build final configuration.
         let config: Configuration = figment.extract()?;
 
+        // Make sure the provided schema version matches this version.
         if config.metadata.schema_version != Version::new(VERSION_2_0_0) {
             return Err(Error::UnsupportedVersion {
                 version: config.metadata.schema_version,
@@ -341,6 +347,28 @@ impl Configuration {
         }
 
         Ok(config)
+    }
+
+    /// Some configuration options are mandatory. The tracker will panic if
+    /// the user doesn't provide an explicit value for them from one of the
+    /// configuration sources: TOML or ENV VARS.
+    ///
+    /// # Errors
+    ///
+    /// Will return an error if a mandatory configuration option is only
+    /// obtained by default value (code), meaning the user hasn't overridden it.
+    fn check_mandatory_options(figment: &Figment) -> Result<(), Error> {
+        let mandatory_options = ["metadata.schema_version", "logging.threshold", "core.private", "core.listed"];
+
+        for mandatory_option in mandatory_options {
+            figment
+                .find_value(mandatory_option)
+                .map_err(|_err| Error::MissingMandatoryOption {
+                    path: mandatory_option.to_owned(),
+                })?;
+        }
+
+        Ok(())
     }
 
     /// Saves the configuration to the configuration file.
@@ -496,15 +524,55 @@ mod tests {
     }
 
     #[test]
-    fn configuration_should_use_the_default_values_when_an_empty_configuration_is_provided_by_the_user() {
+    fn configuration_should_use_the_default_values_when_only_the_mandatory_options_are_provided_by_the_user_via_toml_file() {
         figment::Jail::expect_with(|jail| {
-            jail.create_file("tracker.toml", "")?;
+            jail.create_file(
+                "tracker.toml",
+                r#"
+                [metadata]
+                schema_version = "2.0.0"
 
-            let empty_configuration = String::new();
+                [logging]
+                threshold = "info"
+
+                [core]
+                listed = false
+                private = false
+            "#,
+            )?;
 
             let info = Info {
-                config_toml: Some(empty_configuration),
+                config_toml: None,
                 config_toml_path: "tracker.toml".to_string(),
+            };
+
+            let configuration = Configuration::load(&info).expect("Could not load configuration from file");
+
+            assert_eq!(configuration, Configuration::default());
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn configuration_should_use_the_default_values_when_only_the_mandatory_options_are_provided_by_the_user_via_toml_content() {
+        figment::Jail::expect_with(|_jail| {
+            let config_toml = r#"
+                [metadata]
+                schema_version = "2.0.0"
+
+                [logging]
+                threshold = "info"
+
+                [core]
+                listed = false
+                private = false
+            "#
+            .to_string();
+
+            let info = Info {
+                config_toml: Some(config_toml),
+                config_toml_path: String::new(),
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
@@ -519,6 +587,16 @@ mod tests {
     fn default_configuration_could_be_overwritten_from_a_single_env_var_with_toml_contents() {
         figment::Jail::expect_with(|_jail| {
             let config_toml = r#"
+                [metadata]
+                schema_version = "2.0.0"
+
+                [logging]
+                threshold = "info"
+
+                [core]
+                listed = false
+                private = false
+
                 [core.database]
                 path = "OVERWRITTEN DEFAULT DB PATH"
             "#
@@ -543,6 +621,16 @@ mod tests {
             jail.create_file(
                 "tracker.toml",
                 r#"
+                [metadata]
+                schema_version = "2.0.0"
+
+                [logging]
+                threshold = "info"
+
+                [core]
+                listed = false
+                private = false
+
                 [core.database]
                 path = "OVERWRITTEN DEFAULT DB PATH"
             "#,

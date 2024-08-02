@@ -7,6 +7,8 @@ schema_version = "2.0.0"
 threshold = "error"
 
 [core]
+listed = false
+private = false
 remove_peerless_torrents = false
 tracker_usage_statistics = false
 
