@@ -2,18 +2,18 @@ use derive_more::{Constructor, Display};
 use serde::{Deserialize, Serialize};
 
 use super::network::Network;
-use crate::v2::database::Database;
+use crate::v2_0_0::database::Database;
 use crate::validator::{SemanticValidationError, Validator};
 use crate::{AnnouncePolicy, TrackerPolicy};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Core {
-    // Announce policy configuration.
+    /// Announce policy configuration.
     #[serde(default = "Core::default_announce_policy")]
     pub announce_policy: AnnouncePolicy,
 
-    // Database configuration.
+    /// Database configuration.
     #[serde(default = "Core::default_database")]
     pub database: Database,
 
@@ -22,23 +22,23 @@ pub struct Core {
     #[serde(default = "Core::default_inactive_peer_cleanup_interval")]
     pub inactive_peer_cleanup_interval: u64,
 
-    // When `true` only approved torrents can be announced in the tracker.
+    /// When `true` only approved torrents can be announced in the tracker.
     #[serde(default = "Core::default_listed")]
     pub listed: bool,
 
-    // Network configuration.
+    /// Network configuration.
     #[serde(default = "Core::default_network")]
     pub net: Network,
 
-    // When `true` clients require a key to connect and use the tracker.
+    /// When `true` clients require a key to connect and use the tracker.
     #[serde(default = "Core::default_private")]
     pub private: bool,
 
-    // Configuration specific when the tracker is running in private mode.
+    /// Configuration specific when the tracker is running in private mode.
     #[serde(default = "Core::default_private_mode")]
     pub private_mode: Option<PrivateMode>,
 
-    // Tracker policy configuration.
+    /// Tracker policy configuration.
     #[serde(default = "Core::default_tracker_policy")]
     pub tracker_policy: TrackerPolicy,
 

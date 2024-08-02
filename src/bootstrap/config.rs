@@ -24,7 +24,7 @@ pub const DEFAULT_PATH_CONFIG: &str = "./share/default/config/tracker.developmen
 #[must_use]
 pub fn initialize_configuration() -> Configuration {
     let info = Info::new(DEFAULT_PATH_CONFIG.to_string()).expect("info to load configuration is not valid");
-    Configuration::load(&info).expect("configuration should be loaded from provided info")
+    Configuration::load(&info).expect("error loading configuration from sources")
 }
 
 #[cfg(test)]

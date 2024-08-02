@@ -71,7 +71,7 @@ impl HttpApi {
 
 #[cfg(test)]
 mod tests {
-    use crate::v2::tracker_api::HttpApi;
+    use crate::v2_0_0::tracker_api::HttpApi;
 
     #[test]
     fn http_api_configuration_should_check_if_it_contains_a_token() {

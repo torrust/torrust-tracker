@@ -4,7 +4,7 @@
 //! Torrust Tracker, which is a `BitTorrent` tracker server.
 //!
 //! The current version for configuration is [`v2`].
-pub mod v2;
+pub mod v2_0_0;
 pub mod validator;
 
 use std::collections::HashMap;
@@ -35,53 +35,86 @@ const ENV_VAR_CONFIG_TOML: &str = "TORRUST_TRACKER_CONFIG_TOML";
 /// The `tracker.toml` file location.
 pub const ENV_VAR_CONFIG_TOML_PATH: &str = "TORRUST_TRACKER_CONFIG_TOML_PATH";
 
-pub type Configuration = v2::Configuration;
-pub type Core = v2::core::Core;
-pub type HealthCheckApi = v2::health_check_api::HealthCheckApi;
-pub type HttpApi = v2::tracker_api::HttpApi;
-pub type HttpTracker = v2::http_tracker::HttpTracker;
-pub type UdpTracker = v2::udp_tracker::UdpTracker;
-pub type Database = v2::database::Database;
-pub type Driver = v2::database::Driver;
-pub type Threshold = v2::logging::Threshold;
+pub type Configuration = v2_0_0::Configuration;
+pub type Core = v2_0_0::core::Core;
+pub type HealthCheckApi = v2_0_0::health_check_api::HealthCheckApi;
+pub type HttpApi = v2_0_0::tracker_api::HttpApi;
+pub type HttpTracker = v2_0_0::http_tracker::HttpTracker;
+pub type UdpTracker = v2_0_0::udp_tracker::UdpTracker;
+pub type Database = v2_0_0::database::Database;
+pub type Driver = v2_0_0::database::Driver;
+pub type Threshold = v2_0_0::logging::Threshold;
 
 pub type AccessTokens = HashMap<String, String>;
 
-pub const LATEST_VERSION: &str = "2";
+pub const LATEST_VERSION: &str = "2.0.0";
 
 /// Info about the configuration specification.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display, Clone)]
+#[display(fmt = "Metadata(app: {app}, purpose: {purpose}, schema_version: {schema_version})")]
 pub struct Metadata {
-    #[serde(default = "Metadata::default_version")]
+    /// The application this configuration is valid for.
+    #[serde(default = "Metadata::default_app")]
+    app: App,
+
+    /// The purpose of this parsed file.
+    #[serde(default = "Metadata::default_purpose")]
+    purpose: Purpose,
+
+    /// The schema version for the configuration.
+    #[serde(default = "Metadata::default_schema_version")]
     #[serde(flatten)]
-    version: Version,
+    schema_version: Version,
 }
 
 impl Default for Metadata {
     fn default() -> Self {
         Self {
-            version: Self::default_version(),
+            app: Self::default_app(),
+            purpose: Self::default_purpose(),
+            schema_version: Self::default_schema_version(),
         }
     }
 }
 
 impl Metadata {
-    fn default_version() -> Version {
+    fn default_app() -> App {
+        App::TorrustTracker
+    }
+
+    fn default_purpose() -> Purpose {
+        Purpose::Configuration
+    }
+
+    fn default_schema_version() -> Version {
         Version::latest()
     }
 }
 
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display, Clone)]
+#[serde(rename_all = "kebab-case")]
+pub enum App {
+    TorrustTracker,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum Purpose {
+    Configuration,
+}
+
 /// The configuration version.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display, Clone)]
+#[serde(rename_all = "lowercase")]
 pub struct Version {
     #[serde(default = "Version::default_semver")]
-    version: String,
+    schema_version: String,
 }
 
 impl Default for Version {
     fn default() -> Self {
         Self {
-            version: Self::default_semver(),
+            schema_version: Self::default_semver(),
         }
     }
 }
@@ -89,13 +122,13 @@ impl Default for Version {
 impl Version {
     fn new(semver: &str) -> Self {
         Self {
-            version: semver.to_owned(),
+            schema_version: semver.to_owned(),
         }
     }
 
     fn latest() -> Self {
         Self {
-            version: LATEST_VERSION.to_string(),
+            schema_version: LATEST_VERSION.to_string(),
         }
     }
 

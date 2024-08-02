@@ -255,7 +255,7 @@ use crate::validator::{SemanticValidationError, Validator};
 use crate::{Error, Info, Metadata, Version};
 
 /// This configuration version
-const VERSION_2: &str = "2";
+const VERSION_2_0_0: &str = "2.0.0";
 
 /// Prefix for env vars that overwrite configuration options.
 const CONFIG_OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
@@ -267,7 +267,6 @@ const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
 pub struct Configuration {
     /// Configuration metadata.
-    #[serde(flatten)]
     pub metadata: Metadata,
 
     /// Logging configuration
@@ -335,9 +334,9 @@ impl Configuration {
 
         let config: Configuration = figment.extract()?;
 
-        if config.metadata.version != Version::new(VERSION_2) {
+        if config.metadata.schema_version != Version::new(VERSION_2_0_0) {
             return Err(Error::UnsupportedVersion {
-                version: config.metadata.version,
+                version: config.metadata.schema_version,
             });
         }
 
@@ -406,12 +405,15 @@ mod tests {
 
     use std::net::{IpAddr, Ipv4Addr};
 
-    use crate::v2::Configuration;
+    use crate::v2_0_0::Configuration;
     use crate::Info;
 
     #[cfg(test)]
     fn default_config_toml() -> String {
-        let config = r#"version = "2"
+        let config = r#"[metadata]
+                                app = "torrust-tracker"
+                                purpose = "configuration"
+                                schema_version = "2.0.0"
 
                                 [logging]
                                 threshold = "info"

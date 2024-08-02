@@ -459,7 +459,7 @@ use derive_more::Constructor;
 use error::PeerKeyError;
 use tokio::sync::mpsc::error::SendError;
 use torrust_tracker_clock::clock::Time;
-use torrust_tracker_configuration::v2::database;
+use torrust_tracker_configuration::v2_0_0::database;
 use torrust_tracker_configuration::{AnnouncePolicy, Core, TORRENT_PEERS_LIMIT};
 use torrust_tracker_located_error::Located;
 use torrust_tracker_primitives::info_hash::InfoHash;
@@ -1841,7 +1841,7 @@ mod tests {
                         use std::time::Duration;
 
                         use torrust_tracker_clock::clock::Time;
-                        use torrust_tracker_configuration::v2::core::PrivateMode;
+                        use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
 
                         use crate::core::auth::Key;
                         use crate::core::tests::the_tracker::private_tracker;
@@ -1893,7 +1893,7 @@ mod tests {
                         use std::time::Duration;
 
                         use torrust_tracker_clock::clock::Time;
-                        use torrust_tracker_configuration::v2::core::PrivateMode;
+                        use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
 
                         use crate::core::auth::Key;
                         use crate::core::tests::the_tracker::private_tracker;
