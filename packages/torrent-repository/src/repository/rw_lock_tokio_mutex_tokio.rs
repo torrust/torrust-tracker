@@ -130,7 +130,7 @@ where
         let mut not_good = Vec::<InfoHash>::default();
 
         for (&infohash, torrent) in db.iter() {
-            if !torrent.clone().check_good(policy).await {
+            if !torrent.clone().meets_retaining_policy(policy).await {
                 not_good.push(infohash);
             }
         }

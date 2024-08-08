@@ -22,7 +22,7 @@ pub trait Entry {
     fn get_swarm_metadata(&self) -> SwarmMetadata;
 
     /// Returns True if Still a Valid Entry according to the Tracker Policy
-    fn is_good(&self, policy: &TrackerPolicy) -> bool;
+    fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool;
 
     /// Returns True if the Peers is Empty
     fn peers_is_empty(&self) -> bool;
@@ -53,7 +53,7 @@ pub trait Entry {
 #[allow(clippy::module_name_repetitions)]
 pub trait EntrySync {
     fn get_swarm_metadata(&self) -> SwarmMetadata;
-    fn is_good(&self, policy: &TrackerPolicy) -> bool;
+    fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool;
     fn peers_is_empty(&self) -> bool;
     fn get_peers_len(&self) -> usize;
     fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>>;
@@ -65,7 +65,7 @@ pub trait EntrySync {
 #[allow(clippy::module_name_repetitions)]
 pub trait EntryAsync {
     fn get_swarm_metadata(&self) -> impl std::future::Future<Output = SwarmMetadata> + Send;
-    fn check_good(self, policy: &TrackerPolicy) -> impl std::future::Future<Output = bool> + Send;
+    fn meets_retaining_policy(self, policy: &TrackerPolicy) -> impl std::future::Future<Output = bool> + Send;
     fn peers_is_empty(&self) -> impl std::future::Future<Output = bool> + Send;
     fn get_peers_len(&self) -> impl std::future::Future<Output = usize> + Send;
     fn get_peers(&self, limit: Option<usize>) -> impl std::future::Future<Output = Vec<Arc<peer::Peer>>> + Send;
