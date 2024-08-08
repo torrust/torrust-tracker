@@ -13,8 +13,8 @@ impl EntrySync for EntryMutexStd {
         self.lock().expect("it should get a lock").get_swarm_metadata()
     }
 
-    fn is_good(&self, policy: &TrackerPolicy) -> bool {
-        self.lock().expect("it should get a lock").is_good(policy)
+    fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool {
+        self.lock().expect("it should get a lock").meets_retaining_policy(policy)
     }
 
     fn peers_is_empty(&self) -> bool {

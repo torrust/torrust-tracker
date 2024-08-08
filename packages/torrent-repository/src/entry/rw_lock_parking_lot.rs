@@ -13,8 +13,8 @@ impl EntrySync for EntryRwLockParkingLot {
         self.read().get_swarm_metadata()
     }
 
-    fn is_good(&self, policy: &TrackerPolicy) -> bool {
-        self.read().is_good(policy)
+    fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool {
+        self.read().meets_retaining_policy(policy)
     }
 
     fn peers_is_empty(&self) -> bool {

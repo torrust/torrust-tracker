@@ -126,6 +126,6 @@ where
     fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         let mut db = self.get_torrents_mut();
 
-        db.retain(|_, e| e.is_good(policy));
+        db.retain(|_, e| e.meets_retaining_policy(policy));
     }
 }

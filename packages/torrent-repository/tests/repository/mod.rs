@@ -634,6 +634,6 @@ async fn it_should_remove_peerless_torrents(
     let torrents = repo.get_paginated(None).await;
 
     for (_, entry) in torrents {
-        assert!(entry.is_good(&policy));
+        assert!(entry.meets_retaining_policy(&policy));
     }
 }

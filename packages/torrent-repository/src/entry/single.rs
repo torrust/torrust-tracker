@@ -22,7 +22,7 @@ impl Entry for EntrySingle {
         }
     }
 
-    fn is_good(&self, policy: &TrackerPolicy) -> bool {
+    fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool {
         if policy.persistent_torrent_completed_stat && self.downloaded > 0 {
             return true;
         }

@@ -100,7 +100,7 @@ where
 
     fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         for entry in &self.torrents {
-            if entry.value().is_good(policy) {
+            if entry.value().meets_retaining_policy(policy) {
                 continue;
             }
 
@@ -191,7 +191,7 @@ where
 
     fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         for entry in &self.torrents {
-            if entry.value().is_good(policy) {
+            if entry.value().meets_retaining_policy(policy) {
                 continue;
             }
 
@@ -282,7 +282,7 @@ where
 
     fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         for entry in &self.torrents {
-            if entry.value().is_good(policy) {
+            if entry.value().meets_retaining_policy(policy) {
                 continue;
             }
 

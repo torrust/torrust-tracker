@@ -126,7 +126,7 @@ async fn it_should_be_empty_by_default(
 #[case::downloaded(&Makes::Downloaded)]
 #[case::three(&Makes::Three)]
 #[tokio::test]
-async fn it_should_check_if_entry_is_good(
+async fn it_should_check_if_entry_should_be_retained_based_on_the_tracker_policy(
     #[values(single(), mutex_std(), mutex_tokio(), mutex_parking_lot(), rw_lock_parking_lot())] mut torrent: Torrent,
     #[case] makes: &Makes,
     #[values(policy_none(), policy_persist(), policy_remove(), policy_remove_persist())] policy: TrackerPolicy,
@@ -141,19 +141,19 @@ async fn it_should_check_if_entry_is_good(
         (true, true) => match (has_peers, has_downloads) {
             // no peers, but has downloads
             // peers, with or without downloads
-            (false, true) | (true, true | false) => assert!(torrent.is_good(&policy).await),
+            (false, true) | (true, true | false) => assert!(torrent.meets_retaining_policy(&policy).await),
             // no peers and no downloads
-            (false, false) => assert!(!torrent.is_good(&policy).await),
+            (false, false) => assert!(!torrent.meets_retaining_policy(&policy).await),
         },
         // remove torrents without peers and drop completed download stats
         (true, false) => match (has_peers, has_downloads) {
             // peers, with or without downloads
-            (true, true | false) => assert!(torrent.is_good(&policy).await),
+            (true, true | false) => assert!(torrent.meets_retaining_policy(&policy).await),
             // no peers and with or without downloads
-            (false, true | false) => assert!(!torrent.is_good(&policy).await),
+            (false, true | false) => assert!(!torrent.meets_retaining_policy(&policy).await),
         },
         // keep torrents without peers, but keep or drop completed download stats
-        (false, true | false) => assert!(torrent.is_good(&policy).await),
+        (false, true | false) => assert!(torrent.meets_retaining_policy(&policy).await),
     }
 }
 

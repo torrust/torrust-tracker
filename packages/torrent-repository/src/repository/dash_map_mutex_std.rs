@@ -103,6 +103,6 @@ where
     }
 
     fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
-        self.torrents.retain(|_, entry| entry.is_good(policy));
+        self.torrents.retain(|_, entry| entry.meets_retaining_policy(policy));
     }
 }

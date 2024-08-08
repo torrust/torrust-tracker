@@ -13,8 +13,8 @@ impl EntryAsync for EntryMutexTokio {
         self.lock().await.get_swarm_metadata()
     }
 
-    async fn check_good(self, policy: &TrackerPolicy) -> bool {
-        self.lock().await.is_good(policy)
+    async fn meets_retaining_policy(self, policy: &TrackerPolicy) -> bool {
+        self.lock().await.meets_retaining_policy(policy)
     }
 
     async fn peers_is_empty(&self) -> bool {

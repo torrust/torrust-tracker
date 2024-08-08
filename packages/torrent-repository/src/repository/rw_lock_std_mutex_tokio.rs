@@ -143,8 +143,8 @@ where
             handles = zip(db.keys().copied(), db.values().cloned())
                 .map(|(infohash, torrent)| {
                     torrent
-                        .check_good(policy)
-                        .map(move |good| if good { None } else { Some(infohash) })
+                        .meets_retaining_policy(policy)
+                        .map(move |should_be_retained| if should_be_retained { None } else { Some(infohash) })
                         .boxed()
                 })
                 .collect::<Vec<_>>();

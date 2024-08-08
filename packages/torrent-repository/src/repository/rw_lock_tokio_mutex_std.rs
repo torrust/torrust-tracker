@@ -124,6 +124,6 @@ where
     async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         let mut db = self.get_torrents_mut().await;
 
-        db.retain(|_, e| e.lock().expect("it should lock entry").is_good(policy));
+        db.retain(|_, e| e.lock().expect("it should lock entry").meets_retaining_policy(policy));
     }
 }

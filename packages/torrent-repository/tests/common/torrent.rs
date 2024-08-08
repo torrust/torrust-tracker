@@ -29,13 +29,13 @@ impl Torrent {
         }
     }
 
-    pub(crate) async fn is_good(&self, policy: &TrackerPolicy) -> bool {
+    pub(crate) async fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool {
         match self {
-            Torrent::Single(entry) => entry.is_good(policy),
-            Torrent::MutexStd(entry) => entry.is_good(policy),
-            Torrent::MutexTokio(entry) => entry.clone().check_good(policy).await,
-            Torrent::MutexParkingLot(entry) => entry.is_good(policy),
-            Torrent::RwLockParkingLot(entry) => entry.is_good(policy),
+            Torrent::Single(entry) => entry.meets_retaining_policy(policy),
+            Torrent::MutexStd(entry) => entry.meets_retaining_policy(policy),
+            Torrent::MutexTokio(entry) => entry.clone().meets_retaining_policy(policy).await,
+            Torrent::MutexParkingLot(entry) => entry.meets_retaining_policy(policy),
+            Torrent::RwLockParkingLot(entry) => entry.meets_retaining_policy(policy),
         }
     }
 
