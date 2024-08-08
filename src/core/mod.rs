@@ -778,18 +778,17 @@ impl Tracker {
         self.torrents.get_metrics()
     }
 
-    /// Remove inactive peers and (optionally) peerless torrents
+    /// Remove inactive peers and (optionally) peerless torrents.
     ///
     /// # Context: Tracker
     pub fn cleanup_torrents(&self) {
-        // If we don't need to remove torrents we will use the faster iter
+        let current_cutoff = CurrentClock::now_sub(&Duration::from_secs(u64::from(self.config.tracker_policy.max_peer_timeout)))
+            .unwrap_or_default();
+
+        self.torrents.remove_inactive_peers(current_cutoff);
+
         if self.config.tracker_policy.remove_peerless_torrents {
             self.torrents.remove_peerless_torrents(&self.config.tracker_policy);
-        } else {
-            let current_cutoff =
-                CurrentClock::now_sub(&Duration::from_secs(u64::from(self.config.tracker_policy.max_peer_timeout)))
-                    .unwrap_or_default();
-            self.torrents.remove_inactive_peers(current_cutoff);
         }
     }
 
