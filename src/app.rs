@@ -66,56 +66,53 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     }
 
     // Start the UDP blocks
-    match &config.udp_trackers {
-        Some(udp_trackers) => {
-            for udp_tracker_config in udp_trackers {
-                if tracker.is_private() {
-                    warn!(
-                        "Could not start UDP tracker on: {} while in private mode. UDP is not safe for private trackers!",
-                        udp_tracker_config.bind_address
-                    );
-                } else {
-                    jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone(), registar.give_form()).await);
-                }
+    if let Some(udp_trackers) = &config.udp_trackers {
+        for udp_tracker_config in udp_trackers {
+            if tracker.is_private() {
+                warn!(
+                    "Could not start UDP tracker on: {} while in private mode. UDP is not safe for private trackers!",
+                    udp_tracker_config.bind_address
+                );
+            } else {
+                jobs.push(udp_tracker::start_job(udp_tracker_config, tracker.clone(), registar.give_form()).await);
             }
         }
-        None => info!("No UDP blocks in configuration"),
+    } else {
+        info!("No UDP blocks in configuration");
     }
 
     // Start the HTTP blocks
-    match &config.http_trackers {
-        Some(http_trackers) => {
-            for http_tracker_config in http_trackers {
-                if let Some(job) = http_tracker::start_job(
-                    http_tracker_config,
-                    tracker.clone(),
-                    registar.give_form(),
-                    servers::http::Version::V1,
-                )
-                .await
-                {
-                    jobs.push(job);
-                };
-            }
-        }
-        None => info!("No HTTP blocks in configuration"),
-    }
-
-    // Start HTTP API
-    match &config.http_api {
-        Some(http_api_config) => {
-            if let Some(job) = tracker_apis::start_job(
-                http_api_config,
+    if let Some(http_trackers) = &config.http_trackers {
+        for http_tracker_config in http_trackers {
+            if let Some(job) = http_tracker::start_job(
+                http_tracker_config,
                 tracker.clone(),
                 registar.give_form(),
-                servers::apis::Version::V1,
+                servers::http::Version::V1,
             )
             .await
             {
                 jobs.push(job);
             };
         }
-        None => info!("No API block in configuration"),
+    } else {
+        info!("No HTTP blocks in configuration");
+    }
+
+    // Start HTTP API
+    if let Some(http_api_config) = &config.http_api {
+        if let Some(job) = tracker_apis::start_job(
+            http_api_config,
+            tracker.clone(),
+            registar.give_form(),
+            servers::apis::Version::V1,
+        )
+        .await
+        {
+            jobs.push(job);
+        };
+    } else {
+        info!("No API block in configuration");
     }
 
     // Start runners to remove torrents without peers, every interval

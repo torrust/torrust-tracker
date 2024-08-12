@@ -32,10 +32,12 @@ pub fn ephemeral() -> Configuration {
 
     // Ephemeral socket address for API
     let api_port = 0u16;
-    config.http_api = Some(HttpApi {
+    let mut http_api = HttpApi {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), api_port),
         ..Default::default()
-    });
+    };
+    http_api.add_token("admin", "MyAccessToken");
+    config.http_api = Some(http_api);
 
     // Ephemeral socket address for Health Check API
     let health_check_api_port = 0u16;

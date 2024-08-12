@@ -105,14 +105,11 @@ impl TrackerContainer {
     ///
     /// Will panic if it can't remove the container.
     pub fn remove(&self) {
-        match &self.running {
-            Some(_running_container) => {
-                error!("Can't remove running container: {} ...", self.name);
-            }
-            None => {
-                info!("Removing docker tracker container: {} ...", self.name);
-                Docker::remove(&self.name).expect("Container should be removed");
-            }
+        if let Some(_running_container) = &self.running {
+            error!("Can't remove running container: {} ...", self.name);
+        } else {
+            info!("Removing docker tracker container: {} ...", self.name);
+            Docker::remove(&self.name).expect("Container should be removed");
         }
     }
 
