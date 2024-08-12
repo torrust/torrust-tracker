@@ -52,14 +52,11 @@ impl HttpApi {
     }
 
     fn default_access_tokens() -> AccessTokens {
-        [(String::from("admin"), String::from("MyAccessToken"))]
-            .iter()
-            .cloned()
-            .collect()
+        [].iter().cloned().collect()
     }
 
-    pub fn override_admin_token(&mut self, api_admin_token: &str) {
-        self.access_tokens.insert("admin".to_string(), api_admin_token.to_string());
+    pub fn add_token(&mut self, key: &str, token: &str) {
+        self.access_tokens.insert(key.to_string(), token.to_string());
     }
 
     pub fn mask_secrets(&mut self) {
@@ -74,10 +71,18 @@ mod tests {
     use crate::v2_0_0::tracker_api::HttpApi;
 
     #[test]
-    fn http_api_configuration_should_check_if_it_contains_a_token() {
+    fn default_http_api_configuration_should_not_contains_any_token() {
         let configuration = HttpApi::default();
 
+        assert_eq!(configuration.access_tokens.values().len(), 0);
+    }
+
+    #[test]
+    fn http_api_configuration_should_allow_adding_tokens() {
+        let mut configuration = HttpApi::default();
+
+        configuration.add_token("admin", "MyAccessToken");
+
         assert!(configuration.access_tokens.values().any(|t| t == "MyAccessToken"));
-        assert!(!configuration.access_tokens.values().any(|t| t == "NonExistingToken"));
     }
 }
