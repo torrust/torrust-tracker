@@ -54,6 +54,8 @@ jobs:
           cargo publish -p torrust-tracker-contrib-bencode
           cargo publish -p torrust-tracker-located-error
           cargo publish -p torrust-tracker-primitives
+          cargo publish -p torrust-tracker-clock
           cargo publish -p torrust-tracker-configuration
+          cargo publish -p torrust-tracker-torrent-repository
           cargo publish -p torrust-tracker-test-helpers
           cargo publish -p torrust-tracker
