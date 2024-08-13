@@ -3,13 +3,13 @@
 # Torrust Tracker
 
 ## Builder Image
-FROM rust:bookworm as chef
+FROM docker.io/library/rust:bookworm AS chef
 WORKDIR /tmp
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall --no-confirm cargo-chef cargo-nextest
 
 ## Tester Image
-FROM rust:slim-bookworm as tester
+FROM docker.io/library/rust:slim-bookworm AS tester
 WORKDIR /tmp
 
 RUN apt-get update; apt-get install -y curl sqlite3; apt-get autoclean
@@ -21,7 +21,7 @@ RUN mkdir -p /app/share/torrust/default/database/; \
     sqlite3 /app/share/torrust/default/database/tracker.sqlite3.db  "VACUUM;"
 
 ## Su Exe Compile
-FROM docker.io/library/gcc:bookworm as gcc
+FROM docker.io/library/gcc:bookworm AS gcc
 COPY ./contrib/dev-tools/su-exec/ /usr/local/src/su-exec/
 RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec; chmod +x /usr/local/bin/su-exec
 
@@ -62,7 +62,7 @@ RUN cargo nextest archive --tests --benches --examples --workspace --all-targets
 
 
 # Extract and Test (debug)
-FROM tester as test_debug
+FROM tester AS test_debug
 WORKDIR /test
 COPY . /test/src/
 COPY --from=build_debug \
@@ -76,7 +76,7 @@ RUN mkdir /app/lib/; cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "lib
 RUN chown -R root:root /app; chmod -R u=rw,go=r,a+X /app; chmod -R a+x /app/bin
 
 # Extract and Test (release)
-FROM tester as test
+FROM tester AS test
 WORKDIR /test
 COPY . /test/src
 COPY --from=build \
@@ -85,34 +85,37 @@ COPY --from=build \
 RUN cargo nextest run --workspace-remap /test/src/ --extract-to /test/src/ --no-run --archive-file /test/torrust-tracker.tar.zst
 RUN cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
 
-RUN mkdir -p /app/bin/; cp -l /test/src/target/release/torrust-tracker /app/bin/torrust-tracker
+RUN mkdir -p /app/bin/; cp -l /test/src/target/release/torrust-tracker /app/bin/torrust-tracker; cp -l /test/src/target/release/http_health_check /app/bin/http_health_check
 RUN mkdir -p /app/lib/; cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "libz\.so\.1" | awk '{print $3}')) /app/lib/libz.so.1
 RUN chown -R root:root /app; chmod -R u=rw,go=r,a+X /app; chmod -R a+x /app/bin
 
 
 ## Runtime
-FROM gcr.io/distroless/cc-debian12:debug as runtime
+FROM gcr.io/distroless/cc-debian12:debug AS runtime
 RUN ["/busybox/cp", "-sp", "/busybox/sh","/busybox/cat","/busybox/ls","/busybox/env", "/bin/"]
 COPY --from=gcc --chmod=0555 /usr/local/bin/su-exec /bin/su-exec
 
-ARG TORRUST_TRACKER_PATH_CONFIG="/etc/torrust/tracker/tracker.toml"
-ARG TORRUST_TRACKER_DATABASE_DRIVER="sqlite3"
+ARG TORRUST_TRACKER_CONFIG_TOML_PATH="/etc/torrust/tracker/tracker.toml"
+ARG TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER="sqlite3"
 ARG USER_ID=1000
 ARG UDP_PORT=6969
 ARG HTTP_PORT=7070
 ARG API_PORT=1212
+ARG HEALTH_CHECK_API_PORT=1313
 
-ENV TORRUST_TRACKER_PATH_CONFIG=${TORRUST_TRACKER_PATH_CONFIG}
-ENV TORRUST_TRACKER_DATABASE_DRIVER=${TORRUST_TRACKER_DATABASE_DRIVER}
+ENV TORRUST_TRACKER_CONFIG_TOML_PATH=${TORRUST_TRACKER_CONFIG_TOML_PATH}
+ENV TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER=${TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER}
 ENV USER_ID=${USER_ID}
 ENV UDP_PORT=${UDP_PORT}
 ENV HTTP_PORT=${HTTP_PORT}
 ENV API_PORT=${API_PORT}
+ENV HEALTH_CHECK_API_PORT=${HEALTH_CHECK_API_PORT}
 ENV TZ=Etc/UTC
 
 EXPOSE ${UDP_PORT}/udp
 EXPOSE ${HTTP_PORT}/tcp
 EXPOSE ${API_PORT}/tcp
+EXPOSE ${HEALTH_CHECK_API_PORT}/tcp
 
 RUN mkdir -p /var/lib/torrust/tracker /var/log/torrust/tracker /etc/torrust/tracker
 
@@ -126,15 +129,17 @@ ENTRYPOINT ["/usr/local/bin/entry.sh"]
 
 
 ## Torrust-Tracker (debug)
-FROM runtime as debug
+FROM runtime AS debug
 ENV RUNTIME="debug"
 COPY --from=test_debug /app/ /usr/
 RUN env
 CMD ["sh"]
 
 ## Torrust-Tracker (release) (default)
-FROM runtime as release
+FROM runtime AS release
 ENV RUNTIME="release"
 COPY --from=test /app/ /usr/
-# HEALTHCHECK CMD ["/usr/bin/wget", "--no-verbose", "--tries=1", "--spider", "localhost:${API_PORT}/version"]
+HEALTHCHECK --interval=5s --timeout=5s --start-period=3s --retries=3 \  
+  CMD /usr/bin/http_health_check http://localhost:${HEALTH_CHECK_API_PORT}/health_check \
+    || exit 1
 CMD ["/usr/bin/torrust-tracker"]

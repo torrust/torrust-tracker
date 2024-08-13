@@ -1,9 +1,7 @@
-pub mod asserts;
-pub mod client;
-pub mod contract;
-pub mod test_environment;
+use torrust_tracker::servers::udp::server::states::Running;
 
-/// Generates the source address for the UDP client
-fn source_address(port: u16) -> String {
-    format!("127.0.0.1:{port}")
-}
+pub mod asserts;
+pub mod contract;
+pub mod environment;
+
+pub type Started = environment::Environment<Running>;

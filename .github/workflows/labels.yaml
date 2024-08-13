@@ -1,0 +1,36 @@
+name: Labels
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+    paths:
+      - "/.github/labels.json"
+
+jobs:
+  export:
+    name: Export Existing Labels
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: backup
+        name: Export to Workflow Artifact
+        uses: EndBug/export-label-config@v1
+
+  sync:
+    name: Synchronize Labels from Repo
+    needs: export
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - id: sync
+        name: Apply Labels from File
+        uses: EndBug/label-sync@v2
+        with:
+          config-file: .github/labels.json
+          delete-other-labels: true
+          token: ${{ secrets.UPDATE_LABELS }}

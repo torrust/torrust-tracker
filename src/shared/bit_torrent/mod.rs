@@ -69,3 +69,4 @@
 //!Bencode & bdecode in your browser | <https://github.com/Chocobo1/bencode_online>
 pub mod common;
 pub mod info_hash;
+pub mod tracker;

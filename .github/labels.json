@@ -1,0 +1,260 @@
+[
+  {
+    "name": "- Admin -",
+    "color": "FFFFFF",
+    "description": "Enjoyable to Install and Setup our Software",
+    "aliases": []
+  },
+  {
+    "name": "- Contributor -",
+    "color": "FFFFFF",
+    "description": "Nice to support Torrust",
+    "aliases": []
+  },
+  {
+    "name": "- Developer -",
+    "color": "FFFFFF",
+    "description": "Torrust Improvement Experience",
+    "aliases": []
+  },
+  {
+    "name": "- User -",
+    "color": "FFFFFF",
+    "description": "Enjoyable to Use our Software",
+    "aliases": []
+  },
+  {
+    "name": "Blocked",
+    "color": "000000",
+    "description": "Has Unsatisfied Dependency",
+    "aliases": []
+  },
+  {
+    "name": "Bug",
+    "color": "a80506",
+    "description": "Incorrect Behavior",
+    "aliases": []
+  },
+  {
+    "name": "Build | Project System",
+    "color": "99AAAA",
+    "description": "Compiling and Packaging",
+    "aliases": ["Rust"]
+  },
+  {
+    "name": "Cannot Reproduce",
+    "color": "D3D3D3",
+    "description": "Inconsistent Observations",
+    "aliases": []
+  },
+  {
+    "name": "Code Cleanup / Refactoring",
+    "color": "055a8b",
+    "description": "Tidying and Making Neat",
+    "aliases": []
+  },
+  {
+    "name": "Continuous Integration",
+    "color": "41c6b3",
+    "description": "Workflows and Automation",
+    "aliases": []
+  },
+  {
+    "name": "Dependencies",
+    "color": "d4f8f6",
+    "description": "Related to Dependencies",
+    "aliases": []
+  },
+  {
+    "name": "Documentation",
+    "color": "3d2133",
+    "description": "Improves Instructions, Guides, and Notices",
+    "aliases": []
+  },
+  {
+    "name": "Duplicate",
+    "color": "cfd3d7",
+    "description": "Not Unique",
+    "aliases": []
+  },
+  {
+    "name": "Easy",
+    "color": "f0cff0",
+    "description": "Good for Newcomers",
+    "aliases": []
+  },
+  {
+    "name": "Enhancement / Feature Request",
+    "color": "c9ecbf",
+    "description": "Something New",
+    "aliases": []
+  },
+  {
+    "name": "External Tools",
+    "color": "a6006b",
+    "description": "3rd Party Systems",
+    "aliases": []
+  },
+  {
+    "name": "First Time Contribution",
+    "color": "f1e0e6",
+    "description": "Welcome to Torrust",
+    "aliases": []
+  },
+  {
+    "name": "Fixed",
+    "color": "8e4c42",
+    "description": "Not a Concern Anymore",
+    "aliases": []
+  },
+  {
+    "name": "Hard",
+    "color": "2c2c2c",
+    "description": "Non-Trivial",
+    "aliases": []
+  },
+  {
+    "name": "Help Wanted",
+    "color": "00896b",
+    "description": "More Contributions are Appreciated",
+    "aliases": []
+  },
+  {
+    "name": "High Priority",
+    "color": "ba3fbc",
+    "description": "Focus Required",
+    "aliases": []
+  },
+  {
+    "name": "Hold Merge",
+    "color": "9aafbe",
+    "description": "We are not Ready Yet",
+    "aliases": []
+  },
+  {
+    "name": "Installer | Package",
+    "color": "ed8b24",
+    "description": "Distribution to Users",
+    "aliases": []
+  },
+  {
+    "name": "Invalid",
+    "color": "c1c1c1",
+    "description": "This doesn't seem right",
+    "aliases": []
+  },
+  {
+    "name": "Legal",
+    "color": "463e60",
+    "description": "Licenses and other Official Documents",
+    "aliases": []
+  },
+  {
+    "name": "Low Priority",
+    "color": "43536b",
+    "description": "Not our Focus Now",
+    "aliases": []
+  },
+  {
+    "name": "Needs Feedback",
+    "color": "d6946c",
+    "description": "What dose the Community Think?",
+    "aliases": []
+  },
+  {
+    "name": "Needs Rebase",
+    "color": "FBC002",
+    "description": "Base Branch has Incompatibilities",
+    "aliases": []
+  },
+  {
+    "name": "Needs Research",
+    "color": "4bc021",
+    "description": "We Need to Know More About This",
+    "aliases": []
+  },
+  {
+    "name": "Optimization",
+    "color": "faeba8",
+    "description": "Make it Faster",
+    "aliases": []
+  },
+  {
+    "name": "Portability",
+    "color": "95de82",
+    "description": "Distribution to More Places",
+    "aliases": []
+  },
+  {
+    "name": "Postponed",
+    "color": "dadada",
+    "description": "For Later",
+    "aliases": []
+  },
+  {
+    "name": "Quality & Assurance",
+    "color": "eea2e8",
+    "description": "Relates to QA, Testing, and CI",
+    "aliases": []
+  },
+  {
+    "name": "Question / Discussion",
+    "color": "f89d00",
+    "description": "Community Feedback",
+    "aliases": []
+  },
+  {
+    "name": "Regression",
+    "color": "d10588",
+    "description": "It dose not work anymore",
+    "aliases": []
+  },
+  {
+    "name": "Reviewed",
+    "color": "f4f4ea",
+    "description": "This Looks Good",
+    "aliases": []
+  },
+  {
+    "name": "Security",
+    "color": "650606",
+    "description": "Publicly Connected to Security",
+    "aliases": []
+  },
+  {
+    "name": "Testing",
+    "color": "c5def5",
+    "description": "Checking Torrust",
+    "aliases": []
+  },
+  {
+    "name": "Translations",
+    "color": "0c86af",
+    "description": "Localization and Cultural Adaptions",
+    "aliases": []
+  },
+  {
+    "name": "Trivial",
+    "color": "5f9685",
+    "description": "Something Easy",
+    "aliases": []
+  },
+  {
+    "name": "Won't Fix",
+    "color": "070003",
+    "description": "Something Not Relevant",
+    "aliases": []
+  },
+  {
+    "name": "Workaround Possible",
+    "color": "eae3e7",
+    "description": "You can still do it another way",
+    "aliases": []
+  },
+  {
+    "name": "good first issue",
+    "color": "b0fc38",
+    "description": "Feel free to seek assistance when needed",
+    "aliases": []
+  }
+]

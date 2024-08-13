@@ -9,16 +9,16 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
-use log::debug;
+use tracing::debug;
 
+use crate::core::auth::Key;
+use crate::core::{ScrapeData, Tracker};
 use crate::servers::http::v1::extractors::authentication_key::Extract as ExtractKey;
 use crate::servers::http::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
 use crate::servers::http::v1::extractors::scrape_request::ExtractRequest;
 use crate::servers::http::v1::requests::scrape::Scrape;
 use crate::servers::http::v1::services::peer_ip_resolver::{self, ClientIpSources};
 use crate::servers::http::v1::{responses, services};
-use crate::tracker::auth::Key;
-use crate::tracker::{ScrapeData, Tracker};
 
 /// It handles the `scrape` request when the HTTP tracker is configured
 /// to run in `public` mode.
@@ -90,7 +90,7 @@ async fn handle_scrape(
     // Authorization for scrape requests is handled at the `Tracker` level
     // for each torrent.
 
-    let peer_ip = match peer_ip_resolver::invoke(tracker.config.on_reverse_proxy, client_ip_sources) {
+    let peer_ip = match peer_ip_resolver::invoke(tracker.is_behind_reverse_proxy(), client_ip_sources) {
         Ok(peer_ip) => peer_ip,
         Err(error) => return Err(responses::error::Error::from(error)),
     };
@@ -111,29 +111,29 @@ mod tests {
     use std::net::IpAddr;
     use std::str::FromStr;
 
+    use torrust_tracker_primitives::info_hash::InfoHash;
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::core::services::tracker_factory;
+    use crate::core::Tracker;
     use crate::servers::http::v1::requests::scrape::Scrape;
     use crate::servers::http::v1::responses;
     use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
-    use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::tracker::services::tracker_factory;
-    use crate::tracker::Tracker;
 
     fn private_tracker() -> Tracker {
-        tracker_factory(configuration::ephemeral_mode_private().into())
+        tracker_factory(&configuration::ephemeral_private())
     }
 
     fn whitelisted_tracker() -> Tracker {
-        tracker_factory(configuration::ephemeral_mode_whitelisted().into())
+        tracker_factory(&configuration::ephemeral_listed())
     }
 
     fn tracker_on_reverse_proxy() -> Tracker {
-        tracker_factory(configuration::ephemeral_with_reverse_proxy().into())
+        tracker_factory(&configuration::ephemeral_with_reverse_proxy())
     }
 
     fn tracker_not_on_reverse_proxy() -> Tracker {
-        tracker_factory(configuration::ephemeral_without_reverse_proxy().into())
+        tracker_factory(&configuration::ephemeral_without_reverse_proxy())
     }
 
     fn sample_scrape_request() -> Scrape {
@@ -161,8 +161,8 @@ mod tests {
         use std::sync::Arc;
 
         use super::{private_tracker, sample_client_ip_sources, sample_scrape_request};
+        use crate::core::{auth, ScrapeData};
         use crate::servers::http::v1::handlers::scrape::handle_scrape;
-        use crate::tracker::{auth, ScrapeData};
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_missing() {
@@ -203,8 +203,8 @@ mod tests {
         use std::sync::Arc;
 
         use super::{sample_client_ip_sources, sample_scrape_request, whitelisted_tracker};
+        use crate::core::ScrapeData;
         use crate::servers::http::v1::handlers::scrape::handle_scrape;
-        use crate::tracker::ScrapeData;
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_torrent_is_not_whitelisted() {

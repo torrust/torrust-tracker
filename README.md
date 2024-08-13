@@ -2,16 +2,14 @@
 
 [![container_wf_b]][container_wf] [![coverage_wf_b]][coverage_wf] [![deployment_wf_b]][deployment_wf] [![testing_wf_b]][testing_wf]
 
-__Torrust Tracker__, is a [BitTorrent][bittorrent] Tracker (a service that matchmakes peers and collects statistics) written in [Rust Language][rust] and [axum] (a modern web application framework). ___This tracker aims to be respectful to established standards, (both [formal][BEP 00] and [otherwise][torrent_source_felid]).___
+**Torrust Tracker** is a [BitTorrent][bittorrent] Tracker that matchmakes peers and collects statistics. Written in [Rust Language][rust] with the [Axum] web framework. **This tracker aims to be respectful to established standards, (both [formal][BEP 00] and [otherwise][torrent_source_felid]).**
 
 > This is a [Torrust][torrust] project and is in active development. It is community supported as well as sponsored by [Nautilus Cyberneering][nautilus].
-
-- _We have a [container guide][containers.md] for those who wish to get started with __Docker__ or __Podman___
 
 ## Key Features
 
 - [x] High Quality and Modern Rust Codebase.
-- [x] [Documentation] Generated from Code Comments.
+- [x] [Documentation][docs] Generated from Code Comments.
 - [x] [Comprehensive Suit][coverage] of Unit and Functional Tests.
 - [x] Good Performance in Busy Conditions.
 - [x] Support for `UDP`, `HTTP`, and `TLS` Sockets.
@@ -21,43 +19,80 @@ __Torrust Tracker__, is a [BitTorrent][bittorrent] Tracker (a service that match
 - [x] Support [newTrackon][newtrackon] checks.
 - [x] Persistent `SQLite3` or `MySQL` Databases.
 
+## Roadmap
+
+Core:
+
+- [ ] New option `want_ip_from_query_string`. See <https://github.com/torrust/torrust-tracker/discussions/532#issuecomment-1836642956>.
+- [ ] Peer and torrents specific statistics. See <https://github.com/torrust/torrust-tracker/discussions/139>.
+
+Persistence:
+
+- [ ] Support other databases like PostgreSQL.
+
+Performance:
+
+- [ ] More optimizations. See <https://github.com/torrust/torrust-tracker/discussions/774>.
+
+Protocols:
+
+- [ ] WebTorrent.
+
+Integrations:
+
+- [ ] Monitoring (Prometheus).
+
+Utils:
+
+- [ ] Tracker client.
+- [ ] Tracker checker.
+
+Others:
+
+- [ ] Support for Windows.
+- [ ] Docker images for other architectures.
+
+<https://github.com/orgs/torrust/projects/10/views/6>
+
 ## Implemented BitTorrent Enhancement Proposals (BEPs)
+>
 > _[Learn more about BitTorrent Enhancement Proposals][BEP 00]_
 
-- [BEP 03] : The BitTorrent Protocol.
-- [BEP 07] : IPv6 Support.
-- [BEP 15] : UDP Tracker Protocol for BitTorrent.
-- [BEP 23] : Tracker Returns Compact Peer Lists.
-- [BEP 27] : Private Torrents.
-- [BEP 48] : Tracker Protocol Extension: Scrape.
-
+- [BEP 03]: The BitTorrent Protocol.
+- [BEP 07]: IPv6 Support.
+- [BEP 15]: UDP Tracker Protocol for BitTorrent.
+- [BEP 23]: Tracker Returns Compact Peer Lists.
+- [BEP 27]: Private Torrents.
+- [BEP 48]: Tracker Protocol Extension: Scrape.
 
 ## Getting Started
 
 ### Container Version
 
-The Torrust Tracker is [deployed to DockerHub][dockerhub_torrust_tracker], you can run a demo immediately with the following commands:
+The Torrust Tracker is [deployed to DockerHub][dockerhub], you can run a demo immediately with the following commands:
 
-#### Docker:
+#### Docker
 
 ```sh
 docker run -it torrust/tracker:develop
 ```
+
 > Please read our [container guide][containers.md] for more information.
 
-#### Podman:
+#### Podman
 
 ```sh
-podman run -it torrust/tracker:develop
+podman run -it docker.io/torrust/tracker:develop
 ```
+
 > Please read our [container guide][containers.md] for more information.
 
 ### Development Version
 
-- Please assure you have the ___[latest stable (or nightly) version of rust][rust]___.
-- Please assure that you computer has enough ram. ___Recommended 16GB.___
+- Please ensure you have the _**[latest stable (or nightly) version of rust][rust]___.
+- Please ensure that your computer has enough RAM. _**Recommended 16GB.___
 
-#### Checkout, Test and Run:
+#### Checkout, Test and Run
 
 ```sh
 # Checkout repository into a new folder:
@@ -74,7 +109,8 @@ cargo test --tests --benches --examples --workspace --all-targets --all-features
 # Run the tracker:
 cargo run
 ```
-#### Customization:
+
+#### Customization
 
 ```sh
 # Copy the default configuration into the standard location:
@@ -85,17 +121,17 @@ cp ./share/default/config/tracker.development.sqlite3.toml ./storage/tracker/etc
 vim ./storage/tracker/etc/tracker.toml
 
 # Run the tracker with the updated configuration:
-TORRUST_TRACKER_PATH_CONFIG="./storage/tracker/etc/tracker.toml" cargo run
+TORRUST_TRACKER_CONFIG_TOML_PATH="./storage/tracker/etc/tracker.toml" cargo run
 ```
 
 _Optionally, you may choose to supply the entire configuration as an environmental variable:_
 
 ```sh
 # Use a configuration supplied on an environmental variable:
-TORRUST_TRACKER_CONFIG=$(cat "./storage/tracker/etc/tracker.toml") cargo run
+TORRUST_TRACKER_CONFIG_TOML=$(cat "./storage/tracker/etc/tracker.toml") cargo run
 ```
 
-_For deployment you __should__ override the `api_admin_token` by using an environmental variable:_
+_For deployment, you **should** override the `api_admin_token` by using an environmental variable:_
 
 ```sh
 # Generate a Secret Token:
@@ -103,51 +139,82 @@ gpg --armor --gen-random 1 10 | tee ./storage/tracker/lib/tracker_api_admin_toke
 chmod go-rwx ./storage/tracker/lib/tracker_api_admin_token.secret
 
 # Override secret in configuration using an environmental variable:
-TORRUST_TRACKER_CONFIG=$(cat "./storage/tracker/etc/tracker.toml") \
-  TORRUST_TRACKER_API_ADMIN_TOKEN=$(cat "./storage/tracker/lib/tracker_api_admin_token.secret") \
+TORRUST_TRACKER_CONFIG_TOML=$(cat "./storage/tracker/etc/tracker.toml") \
+  TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_API__ACCESS_TOKENS__ADMIN=$(cat "./storage/tracker/lib/tracker_api_admin_token.secret") \
   cargo run
 ```
 
-> Please view our [crate documentation][documentation] for more detailed instructions.
+> Please view our [crate documentation][docs] for more detailed instructions.
 
 ### Services
+
 The following services are provided by the default configuration:
 
 - UDP _(tracker)_
   - `udp://127.0.0.1:6969/announce`.
 - HTTP _(tracker)_
-  - `http://127.0.0.1:6969/announce`.
+  - `http://127.0.0.1:7070/announce`.
 - API _(management)_
   - `http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken`.
 
-
 ## Documentation
 
-- [Management API (Version 1)][api]
-- [Tracker (HTTP/TLS)][http]
-- [Tracker (UDP)][udp]
+You can read the [latest documentation][docs] from <https://docs.rs/>.
+
+Some specific sections:
+
+- [Management API (Version 1)][API]
+- [Tracker (HTTP/TLS)][HTTP]
+- [Tracker (UDP)][UDP]
+
+## Benchmarking
+
+- [Benchmarking](./docs/benchmarking.md)
 
 ## Contributing
 
-This is an open-source community supported project.</br>
-We welcome contributions from the community!
+We are happy to support and welcome new people to our project. Please consider our [contributor guide][guide.md].</br>
+This is an open-source community-supported project. We welcome contributions from the community!
 
-__How can you contribute?__
+**How can you contribute?**
 
 - Bug reports and feature requests.
 - Code contributions. You can start by looking at the issues labeled "[good first issues]".
-- Documentation improvements. Check the [documentation] and [API documentation] for typos, errors, or missing information.
+- Documentation improvements. Check the [documentation][docs] and [API documentation][API] for typos, errors, or missing information.
 - Participation in the community. You can help by answering questions in the [discussions].
 
 ## License
 
-The project is licensed under a dual license. See [COPYRIGHT].
+**Copyright (c) 2023 The Torrust Developers.**
+
+This program is free software: you can redistribute it and/or modify it under the terms of the [GNU Affero General Public License][AGPL_3_0] as published by the [Free Software Foundation][FSF], version 3.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU Affero General Public License][AGPL_3_0] for more details.
+
+You should have received a copy of the *GNU Affero General Public License* along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+Some files include explicit copyright notices and/or license notices.
+
+### Legacy Exception
+
+For prosperity, versions of Torrust Tracker that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [AGPL-3.0-only][AGPL_3_0] license.
+
+## Contributor Agreement
+
+The copyright of the Torrust Tracker is retained by the respective authors.
+
+**Contributors agree:**
+
+- That all their contributions be granted a license(s) **compatible** with the [Torrust Trackers License](#license).
+- That all contributors signal **clearly** and **explicitly** any other compilable licenses if they are not: _[AGPL-3.0-only with the legacy MIT-0 exception](#license)_.
+
+**The Torrust-Tracker project has no copyright assignment agreement.**
+
+_We kindly ask you to take time and consider The Torrust Project [Contributor Agreement][agreement.md] in full._
 
 ## Acknowledgments
 
 This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [Dutch Bits]. Also thanks to [Naim A.] and [greatest-ape] for some parts of the code. Further added features and functions thanks to [Power2All].
-
-
 
 [container_wf]: ../../actions/workflows/container.yaml
 [container_wf_b]: ../../actions/workflows/container.yaml/badge.svg
@@ -165,7 +232,7 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 [coverage]: https://app.codecov.io/gh/torrust/torrust-tracker
 [torrust]: https://torrust.com/
 
-[dockerhub_torrust_tracker]: https://hub.docker.com/r/torrust/tracker/tags
+[dockerhub]: https://hub.docker.com/r/torrust/tracker/tags
 
 [torrent_source_felid]: https://github.com/qbittorrent/qBittorrent/discussions/19406
 
@@ -179,16 +246,20 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 
 [containers.md]: ./docs/containers.md
 
-[api]: https://docs.rs/torrust-tracker/3.0.0-alpha.11/torrust_tracker/servers/apis/v1
-[http]: https://docs.rs/torrust-tracker/3.0.0-alpha.11/torrust_tracker/servers/http
-[udp]: https://docs.rs/torrust-tracker/3.0.0-alpha.11/torrust_tracker/servers/udp
+[docs]: https://docs.rs/torrust-tracker/latest/
+[api]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/apis/v1
+[http]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/http
+[udp]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/udp
 
 [good first issues]: https://github.com/torrust/torrust-tracker/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
-[documentation]: https://docs.rs/torrust-tracker/
-[API documentation]: https://docs.rs/torrust-tracker/3.0.0-alpha.11/torrust_tracker/servers/apis/v1
 [discussions]: https://github.com/torrust/torrust-tracker/discussions
 
-[COPYRIGHT]: ./COPYRIGHT
+[guide.md]: https://github.com/torrust/.github/blob/main/info/contributing.md
+[agreement.md]: https://github.com/torrust/.github/blob/main/info/licensing/contributor_agreement_v01.md
+
+[AGPL_3_0]: ./docs/licenses/LICENSE-AGPL_3_0
+[MIT_0]: ./docs/licenses/LICENSE-MIT_0
+[FSF]: https://www.fsf.org/
 
 [nautilus]: https://github.com/orgs/Nautilus-Cyberneering/
 [Dutch Bits]: https://dutchbits.nl

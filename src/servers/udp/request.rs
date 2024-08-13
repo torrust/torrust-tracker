@@ -6,12 +6,11 @@
 //! Some of the type in this module are wrappers around the types in the
 //! `aquatic_udp_protocol` crate.
 use aquatic_udp_protocol::AnnounceRequest;
+use torrust_tracker_primitives::info_hash::InfoHash;
 
-use crate::shared::bit_torrent::info_hash::InfoHash;
-
-/// Wrapper around [`AnnounceRequest`](aquatic_udp_protocol::request::AnnounceRequest).
+/// Wrapper around [`AnnounceRequest`].
 pub struct AnnounceWrapper {
-    /// [`AnnounceRequest`](aquatic_udp_protocol::request::AnnounceRequest) to wrap.
+    /// [`AnnounceRequest`] to wrap.
     pub announce_request: AnnounceRequest,
     /// Info hash of the torrent.
     pub info_hash: InfoHash,
@@ -22,7 +21,7 @@ impl AnnounceWrapper {
     #[must_use]
     pub fn new(announce_request: &AnnounceRequest) -> Self {
         AnnounceWrapper {
-            announce_request: announce_request.clone(),
+            announce_request: *announce_request,
             info_hash: InfoHash(announce_request.info_hash.0),
         }
     }

@@ -1,11 +1,8 @@
 //! `BitTorrent` protocol primitive types
 //!
 //! [BEP 3. The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-use serde::{Deserialize, Serialize};
 
 /// The maximum number of torrents that can be returned in an `scrape` response.
-/// It's also the maximum number of peers returned in an `announce` response.
 ///
 /// The [BEP 15. UDP Tracker Protocol for `BitTorrent`](https://www.bittorrent.org/beps/bep_0015.html)
 /// defines this limit:
@@ -20,37 +17,6 @@ pub const MAX_SCRAPE_TORRENTS: u8 = 74;
 
 /// HTTP tracker authentication key length.
 ///
-/// See function to [`generate`](crate::tracker::auth::generate) the
-/// [`ExpiringKeys`](crate::tracker::auth::ExpiringKey) for more information.
+/// For more information see function [`generate_key`](crate::core::auth::generate_key) to generate the
+/// [`PeerKey`](crate::core::auth::PeerKey).
 pub const AUTH_KEY_LENGTH: usize = 32;
-
-#[repr(u32)]
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
-enum Actions {
-    // todo: it seems this enum is not used anywhere. Values match the ones in
-    // aquatic_udp_protocol::request::Request::from_bytes.
-    Connect = 0,
-    Announce = 1,
-    Scrape = 2,
-    Error = 3,
-}
-
-/// Announce events. Described on  the
-/// [BEP 3. The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-#[derive(Serialize, Deserialize)]
-#[serde(remote = "AnnounceEvent")]
-pub enum AnnounceEventDef {
-    /// The peer has started downloading the torrent.
-    Started,
-    /// The peer has ceased downloading the torrent.
-    Stopped,
-    /// The peer has completed downloading the torrent.
-    Completed,
-    /// This is one of the announcements done at regular intervals.
-    None,
-}
-
-/// Number of bytes downloaded, uploaded or pending to download (left) by the peer.
-#[derive(Serialize, Deserialize)]
-#[serde(remote = "NumberOfBytes")]
-pub struct NumberOfBytesDef(pub i64);

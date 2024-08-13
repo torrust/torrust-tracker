@@ -1,6 +1,6 @@
 //! Setup for the main tracker application.
 //!
-//! The [`setup`](bootstrap::app::setup) only builds the application and its dependencies but it does not start the application.
+//! The [`setup`] only builds the application and its dependencies but it does not start the application.
 //! In fact, there is no such thing as the main application process. When the application starts, the only thing it does is
 //! starting a bunch of independent jobs. If you are looking for how things are started you should read [`app::start`](crate::app::start)
 //! function documentation.
@@ -13,20 +13,33 @@
 //! 4. Initialize the domain tracker.
 use std::sync::Arc;
 
+use torrust_tracker_clock::static_time;
+use torrust_tracker_configuration::validator::Validator;
 use torrust_tracker_configuration::Configuration;
+use tracing::info;
 
 use super::config::initialize_configuration;
 use crate::bootstrap;
-use crate::shared::clock::static_time;
+use crate::core::services::tracker_factory;
+use crate::core::Tracker;
 use crate::shared::crypto::ephemeral_instance_keys;
-use crate::tracker::services::tracker_factory;
-use crate::tracker::Tracker;
 
-/// It loads the configuration from the environment and builds the main domain [`tracker`](crate::tracker::Tracker) struct.
+/// It loads the configuration from the environment and builds the main domain [`Tracker`] struct.
+///
+/// # Panics
+///
+/// Setup can file if the configuration is invalid.
 #[must_use]
-pub fn setup() -> (Arc<Configuration>, Arc<Tracker>) {
-    let configuration = Arc::new(initialize_configuration());
+pub fn setup() -> (Configuration, Arc<Tracker>) {
+    let configuration = initialize_configuration();
+
+    if let Err(e) = configuration.validate() {
+        panic!("Configuration error: {e}");
+    }
+
     let tracker = initialize_with_configuration(&configuration);
+
+    info!("Configuration:\n{}", configuration.clone().mask_secrets().to_json());
 
     (configuration, tracker)
 }
@@ -35,7 +48,7 @@ pub fn setup() -> (Arc<Configuration>, Arc<Tracker>) {
 ///
 /// The configuration may be obtained from the environment (via config file or env vars).
 #[must_use]
-pub fn initialize_with_configuration(configuration: &Arc<Configuration>) -> Arc<Tracker> {
+pub fn initialize_with_configuration(configuration: &Configuration) -> Arc<Tracker> {
     initialize_static();
     initialize_logging(configuration);
     Arc::new(initialize_tracker(configuration))
@@ -60,13 +73,13 @@ pub fn initialize_static() {
 /// The tracker is the domain layer service. It's the entrypoint to make requests to the domain layer.
 /// It's used by other higher-level components like the UDP and HTTP trackers or the tracker API.
 #[must_use]
-pub fn initialize_tracker(config: &Arc<Configuration>) -> Tracker {
-    tracker_factory(config.clone())
+pub fn initialize_tracker(config: &Configuration) -> Tracker {
+    tracker_factory(config)
 }
 
-/// It initializes the log level, format and channel.
+/// It initializes the log threshold, format and channel.
 ///
 /// See [the logging setup](crate::bootstrap::logging::setup) for more info about logging.
-pub fn initialize_logging(config: &Arc<Configuration>) {
+pub fn initialize_logging(config: &Configuration) {
     bootstrap::logging::setup(config);
 }

@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CARGO_INCREMENTAL: "0"
-      RUSTFLAGS: "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests"
-      RUSTDOCFLAGS: "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests"
+      RUSTFLAGS: "-Z profile -C codegen-units=1 -C opt-level=0 -C link-dead-code -C overflow-checks=off -Z panic_abort_tests -C panic=abort"
+      RUSTDOCFLAGS: "-Z profile -C codegen-units=1 -C opt-level=0 -C link-dead-code -C overflow-checks=off -Z panic_abort_tests -C panic=abort"
 
     steps:
       - id: checkout_push
@@ -36,7 +36,7 @@ jobs:
 
       - id: setup
         name: Setup Toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
         with:
           toolchain: nightly
           components: llvm-tools-preview
@@ -53,11 +53,23 @@ jobs:
 
       - id: check
         name: Run Build Checks
-        run: cargo check --workspace --all-targets --all-features
+        run: cargo check --tests --benches --examples --workspace --all-targets --all-features
+
+      - id: clean
+        name: Clean Build Directory
+        run: cargo clean
+
+      - id: build
+        name: Pre-build Main Project
+        run: cargo build --workspace --all-targets --all-features --jobs 2
+
+      - id: build_tests
+        name: Pre-build Tests
+        run: cargo build --workspace --all-targets --all-features --tests --jobs 2
 
       - id: test
         name: Run Unit Tests
-        run: cargo test --workspace --all-targets --all-features
+        run: cargo test --tests --workspace --all-targets --all-features
 
       - id: coverage
         name: Generate Coverage Report

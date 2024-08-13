@@ -2,12 +2,11 @@
 //!
 //! - `Torrent` is the full torrent resource.
 //! - `ListItem` is a list item resource on a torrent list. `ListItem` does
-//! include a `peers` field but it is always `None` in the struct and `null` in
-//! the JSON response.
+//!   include a `peers` field but it is always `None` in the struct and `null` in
+//!   the JSON response.
 use serde::{Deserialize, Serialize};
 
-use super::peer;
-use crate::tracker::services::torrent::{BasicInfo, Info};
+use crate::core::services::torrent::{BasicInfo, Info};
 
 /// `Torrent` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -44,9 +43,6 @@ pub struct ListItem {
     /// The torrent's leechers counter. Active peers that are downloading the
     /// torrent.
     pub leechers: u64,
-    /// The torrent's peers. It's always `None` in the struct and `null` in the
-    /// JSON response.
-    pub peers: Option<Vec<super::peer::Peer>>, // todo: this is always None. Remove field from endpoint?
 }
 
 impl ListItem {
@@ -59,8 +55,8 @@ impl ListItem {
     }
 }
 
-/// Maps an array of the domain type [`BasicInfo`](crate::tracker::services::torrent::BasicInfo)
-/// to the API resource type [`ListItem`](crate::servers::apis::v1::context::torrent::resources::torrent::ListItem).
+/// Maps an array of the domain type [`BasicInfo`]
+/// to the API resource type [`ListItem`].
 #[must_use]
 pub fn to_resource(basic_info_vec: &[BasicInfo]) -> Vec<ListItem> {
     basic_info_vec
@@ -71,14 +67,16 @@ pub fn to_resource(basic_info_vec: &[BasicInfo]) -> Vec<ListItem> {
 
 impl From<Info> for Torrent {
     fn from(info: Info) -> Self {
+        let peers: Option<super::peer::Vector> = info.peers.map(|peers| peers.into_iter().collect());
+
+        let peers: Option<Vec<super::peer::Peer>> = peers.map(|peers| peers.0);
+
         Self {
             info_hash: info.info_hash.to_string(),
             seeders: info.seeders,
             completed: info.completed,
             leechers: info.leechers,
-            peers: info
-                .peers
-                .map(|peers| peers.iter().map(|peer| peer::Peer::from(*peer)).collect()),
+            peers,
         }
     }
 }
@@ -90,7 +88,6 @@ impl From<BasicInfo> for ListItem {
             seeders: basic_info.seeders,
             completed: basic_info.completed,
             leechers: basic_info.leechers,
-            peers: None,
         }
     }
 }
@@ -100,15 +97,14 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::str::FromStr;
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use torrust_tracker_primitives::announce_event::AnnounceEvent;
+    use torrust_tracker_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
 
     use super::Torrent;
+    use crate::core::services::torrent::{BasicInfo, Info};
     use crate::servers::apis::v1::context::torrent::resources::peer::Peer;
     use crate::servers::apis::v1::context::torrent::resources::torrent::ListItem;
-    use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::shared::clock::DurationSinceUnixEpoch;
-    use crate::tracker::peer;
-    use crate::tracker::services::torrent::{BasicInfo, Info};
 
     fn sample_peer() -> peer::Peer {
         peer::Peer {
@@ -156,7 +152,6 @@ mod tests {
                 seeders: 1,
                 completed: 2,
                 leechers: 3,
-                peers: None,
             }
         );
     }

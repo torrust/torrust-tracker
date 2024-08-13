@@ -1,0 +1,30 @@
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "2.0.0"
+
+[logging]
+threshold = "info"
+
+[core]
+listed = false
+private = false
+
+[core.database]
+path = "/var/lib/torrust/tracker/database/sqlite3.db"
+
+[[udp_trackers]]
+bind_address = "0.0.0.0:6969"
+
+[[http_trackers]]
+bind_address = "0.0.0.0:7070"
+
+[http_api]
+bind_address = "0.0.0.0:1212"
+
+[http_api.access_tokens]
+admin = "MyAccessToken"
+
+[health_check_api]
+# Must be bound to wildcard IP to be accessible from outside the container
+bind_address = "0.0.0.0:1313"

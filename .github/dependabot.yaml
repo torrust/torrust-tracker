@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: "develop"
+    labels:
+      - "Continuous Integration"
+      - "Dependencies"
+
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: "develop"
+    labels:
+      - "Build | Project System"
+      - "Dependencies"

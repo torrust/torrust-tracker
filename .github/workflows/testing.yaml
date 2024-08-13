@@ -39,7 +39,7 @@ jobs:
 
     strategy:
       matrix:
-        toolchain: [stable, nightly]
+        toolchain: [nightly, stable]
 
     steps:
       - id: checkout
@@ -57,6 +57,12 @@ jobs:
         name: Enable Workflow Cache
         uses: Swatinem/rust-cache@v2
 
+      - id: tools
+        name: Install Tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-machete
+
       - id: check
         name: Run Build Checks
         run: cargo check --tests --benches --examples --workspace --all-targets --all-features
@@ -65,9 +71,20 @@ jobs:
         name: Run Lint Checks
         run: cargo clippy --tests --benches --examples --workspace --all-targets --all-features -- -D clippy::correctness -D clippy::suspicious -D clippy::complexity -D clippy::perf -D clippy::style -D clippy::pedantic
 
-      - id: doc
-        name: Run Documentation Checks
-        run: cargo test --doc
+      - id: docs
+        name: Lint Documentation
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+        run: cargo doc --no-deps --bins --examples --workspace --all-features
+
+      - id: clean
+        name: Clean Build Directory
+        run: cargo clean
+
+      - id: deps
+        name: Check Unused Dependencies
+        run: cargo machete
+
 
   unit:
     name: Units
@@ -76,7 +93,7 @@ jobs:
 
     strategy:
       matrix:
-        toolchain: [stable, nightly]
+        toolchain: [nightly, stable]
 
     steps:
       - id: checkout
@@ -100,11 +117,39 @@ jobs:
         with:
           tool: cargo-llvm-cov, cargo-nextest
 
+      - id: test-docs
+        name: Run Documentation Tests
+        run: cargo test --doc
+
       - id: test
         name: Run Unit Tests
         run: cargo test --tests --benches --examples --workspace --all-targets --all-features
 
-      # Temporary Disable https://github.com/time-rs/time/issues/618
-      # - id: coverage
-      #   name: Generate Coverage Report
-      #   run: cargo llvm-cov nextest --tests --benches --examples --workspace --all-targets --all-features
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    needs: unit
+
+    strategy:
+      matrix:
+        toolchain: [nightly, stable]
+
+    steps:
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: llvm-tools-preview
+
+      - id: cache
+        name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - id: test
+        name: Run E2E Tests
+        run: cargo run --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"

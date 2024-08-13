@@ -61,7 +61,8 @@ pub fn invalid_auth_key_param_response(invalid_key: &str) -> Response {
     bad_request_response(&format!("Invalid auth key id param \"{invalid_key}\""))
 }
 
-fn bad_request_response(body: &str) -> Response {
+#[must_use]
+pub fn bad_request_response(body: &str) -> Response {
     (
         StatusCode::BAD_REQUEST,
         [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],

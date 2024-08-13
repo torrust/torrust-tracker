@@ -9,23 +9,24 @@ use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
-use log::debug;
+use torrust_tracker_clock::clock::Time;
+use torrust_tracker_primitives::announce_event::AnnounceEvent;
+use torrust_tracker_primitives::{peer, NumberOfBytes};
+use tracing::debug;
 
+use crate::core::auth::Key;
+use crate::core::{AnnounceData, Tracker};
 use crate::servers::http::v1::extractors::announce_request::ExtractRequest;
 use crate::servers::http::v1::extractors::authentication_key::Extract as ExtractKey;
 use crate::servers::http::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
 use crate::servers::http::v1::handlers::common::auth;
 use crate::servers::http::v1::requests::announce::{Announce, Compact, Event};
-use crate::servers::http::v1::responses::{self, announce};
+use crate::servers::http::v1::responses::{self};
 use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
 use crate::servers::http::v1::services::{self, peer_ip_resolver};
-use crate::shared::clock::{Current, Time};
-use crate::tracker::auth::Key;
-use crate::tracker::peer::Peer;
-use crate::tracker::{AnnounceData, Tracker};
+use crate::CurrentClock;
 
 /// It handles the `announce` request when the HTTP tracker does not require
 /// authentication (no PATH `key` parameter required).
@@ -104,7 +105,7 @@ async fn handle_announce(
         Err(error) => return Err(responses::error::Error::from(error)),
     }
 
-    let peer_ip = match peer_ip_resolver::invoke(tracker.config.on_reverse_proxy, client_ip_sources) {
+    let peer_ip = match peer_ip_resolver::invoke(tracker.is_behind_reverse_proxy(), client_ip_sources) {
         Ok(peer_ip) => peer_ip,
         Err(error) => return Err(responses::error::Error::from(error)),
     };
@@ -117,13 +118,12 @@ async fn handle_announce(
 }
 
 fn build_response(announce_request: &Announce, announce_data: AnnounceData) -> Response {
-    match &announce_request.compact {
-        Some(compact) => match compact {
-            Compact::Accepted => announce::Compact::from(announce_data).into_response(),
-            Compact::NotAccepted => announce::NonCompact::from(announce_data).into_response(),
-        },
-        // Default response format non compact
-        None => announce::NonCompact::from(announce_data).into_response(),
+    if announce_request.compact.as_ref().is_some_and(|f| *f == Compact::Accepted) {
+        let response: responses::Announce<responses::Compact> = announce_data.into();
+        response.into_response()
+    } else {
+        let response: responses::Announce<responses::Normal> = announce_data.into();
+        response.into_response()
     }
 }
 
@@ -131,19 +131,20 @@ fn build_response(announce_request: &Announce, announce_data: AnnounceData) -> R
 ///
 /// It ignores the peer address in the announce request params.
 #[must_use]
-fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> Peer {
-    Peer {
+fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> peer::Peer {
+    peer::Peer {
         peer_id: announce_request.peer_id,
         peer_addr: SocketAddr::new(*peer_ip, announce_request.port),
-        updated: Current::now(),
+        updated: CurrentClock::now(),
         uploaded: NumberOfBytes(announce_request.uploaded.unwrap_or(0)),
         downloaded: NumberOfBytes(announce_request.downloaded.unwrap_or(0)),
         left: NumberOfBytes(announce_request.left.unwrap_or(0)),
-        event: map_to_aquatic_event(&announce_request.event),
+        event: map_to_torrust_event(&announce_request.event),
     }
 }
 
-fn map_to_aquatic_event(event: &Option<Event>) -> AnnounceEvent {
+#[must_use]
+pub fn map_to_aquatic_event(event: &Option<Event>) -> aquatic_udp_protocol::AnnounceEvent {
     match event {
         Some(event) => match &event {
             Event::Started => aquatic_udp_protocol::AnnounceEvent::Started,
@@ -154,32 +155,45 @@ fn map_to_aquatic_event(event: &Option<Event>) -> AnnounceEvent {
     }
 }
 
+#[must_use]
+pub fn map_to_torrust_event(event: &Option<Event>) -> AnnounceEvent {
+    match event {
+        Some(event) => match &event {
+            Event::Started => AnnounceEvent::Started,
+            Event::Stopped => AnnounceEvent::Stopped,
+            Event::Completed => AnnounceEvent::Completed,
+        },
+        None => AnnounceEvent::None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
+    use torrust_tracker_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::peer;
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::core::services::tracker_factory;
+    use crate::core::Tracker;
     use crate::servers::http::v1::requests::announce::Announce;
     use crate::servers::http::v1::responses;
     use crate::servers::http::v1::services::peer_ip_resolver::ClientIpSources;
-    use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::tracker::services::tracker_factory;
-    use crate::tracker::{peer, Tracker};
 
     fn private_tracker() -> Tracker {
-        tracker_factory(configuration::ephemeral_mode_private().into())
+        tracker_factory(&configuration::ephemeral_private())
     }
 
     fn whitelisted_tracker() -> Tracker {
-        tracker_factory(configuration::ephemeral_mode_whitelisted().into())
+        tracker_factory(&configuration::ephemeral_listed())
     }
 
     fn tracker_on_reverse_proxy() -> Tracker {
-        tracker_factory(configuration::ephemeral_with_reverse_proxy().into())
+        tracker_factory(&configuration::ephemeral_with_reverse_proxy())
     }
 
     fn tracker_not_on_reverse_proxy() -> Tracker {
-        tracker_factory(configuration::ephemeral_without_reverse_proxy().into())
+        tracker_factory(&configuration::ephemeral_without_reverse_proxy())
     }
 
     fn sample_announce_request() -> Announce {
@@ -215,9 +229,9 @@ mod tests {
         use std::sync::Arc;
 
         use super::{private_tracker, sample_announce_request, sample_client_ip_sources};
+        use crate::core::auth;
         use crate::servers::http::v1::handlers::announce::handle_announce;
         use crate::servers::http::v1::handlers::announce::tests::assert_error_response;
-        use crate::tracker::auth;
 
         #[tokio::test]
         async fn it_should_fail_when_the_authentication_key_is_missing() {

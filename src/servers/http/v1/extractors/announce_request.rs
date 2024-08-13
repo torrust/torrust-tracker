@@ -1,7 +1,7 @@
-//! Axum [`extractor`](axum::extract) for the [`Announce`](crate::servers::http::v1::requests::announce::Announce)
+//! Axum [`extractor`](axum::extract) for the [`Announce`]
 //! request.
 //!
-//! It parses the query parameters returning an [`Announce`](crate::servers::http::v1::requests::announce::Announce)
+//! It parses the query parameters returning an [`Announce`]
 //! request.
 //!
 //! Refer to [`Announce`](crate::servers::http::v1::requests::announce) for more
@@ -29,31 +29,43 @@
 //! ```
 use std::panic::Location;
 
-use axum::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
+use futures::future::BoxFuture;
+use futures::FutureExt;
 
 use crate::servers::http::v1::query::Query;
 use crate::servers::http::v1::requests::announce::{Announce, ParseAnnounceQueryError};
 use crate::servers::http::v1::responses;
 
-/// Extractor for the [`Announce`](crate::servers::http::v1::requests::announce::Announce)
+/// Extractor for the [`Announce`]
 /// request.
 pub struct ExtractRequest(pub Announce);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for ExtractRequest
 where
     S: Send + Sync,
 {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        match extract_announce_from(parts.uri.query()) {
-            Ok(announce_request) => Ok(ExtractRequest(announce_request)),
-            Err(error) => Err(error.into_response()),
+    #[must_use]
+    fn from_request_parts<'life0, 'life1, 'async_trait>(
+        parts: &'life0 mut Parts,
+        _state: &'life1 S,
+    ) -> BoxFuture<'async_trait, Result<Self, Self::Rejection>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        Self: 'async_trait,
+    {
+        async {
+            match extract_announce_from(parts.uri.query()) {
+                Ok(announce_request) => Ok(ExtractRequest(announce_request)),
+                Err(error) => Err(error.into_response()),
+            }
         }
+        .boxed()
     }
 }
 
@@ -83,11 +95,12 @@ fn extract_announce_from(maybe_raw_query: Option<&str>) -> Result<Announce, resp
 mod tests {
     use std::str::FromStr;
 
+    use torrust_tracker_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::peer;
+
     use super::extract_announce_from;
     use crate::servers::http::v1::requests::announce::{Announce, Compact, Event};
     use crate::servers::http::v1::responses::error::Error;
-    use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::tracker::peer;
 
     fn assert_error_response(error: &Error, error_message: &str) {
         assert!(

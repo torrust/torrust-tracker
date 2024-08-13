@@ -2,18 +2,19 @@
 //!
 //! The service is responsible for handling the `announce` requests.
 //!
-//! It delegates the `announce` logic to the [`Tracker`](crate::tracker::Tracker::announce)
-//! and it returns the [`AnnounceData`](crate::tracker::AnnounceData) returned
-//! by the [`Tracker`](crate::tracker::Tracker).
+//! It delegates the `announce` logic to the [`Tracker`](crate::core::Tracker::announce)
+//! and it returns the [`AnnounceData`] returned
+//! by the [`Tracker`].
 //!
-//! It also sends an [`statistics::Event`](crate::tracker::statistics::Event)
+//! It also sends an [`statistics::Event`]
 //! because events are specific for the HTTP tracker.
 use std::net::IpAddr;
 use std::sync::Arc;
 
-use crate::shared::bit_torrent::info_hash::InfoHash;
-use crate::tracker::peer::Peer;
-use crate::tracker::{statistics, AnnounceData, Tracker};
+use torrust_tracker_primitives::info_hash::InfoHash;
+use torrust_tracker_primitives::peer;
+
+use crate::core::{statistics, AnnounceData, Tracker};
 
 /// The HTTP tracker `announce` service.
 ///
@@ -23,13 +24,13 @@ use crate::tracker::{statistics, AnnounceData, Tracker};
 /// - The number of TCP `announce` requests handled by the HTTP tracker.
 ///
 /// > **NOTICE**: as the HTTP tracker does not requires a connection request
-/// like the UDP tracker, the number of TCP connections is incremented for
-/// each `announce` request.
-pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut Peer) -> AnnounceData {
+/// > like the UDP tracker, the number of TCP connections is incremented for
+/// > each `announce` request.
+pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut peer::Peer) -> AnnounceData {
     let original_peer_ip = peer.peer_addr.ip();
 
     // The tracker could change the original peer ip
-    let announce_data = tracker.announce(&info_hash, peer, &original_peer_ip).await;
+    let announce_data = tracker.announce(&info_hash, peer, &original_peer_ip);
 
     match original_peer_ip {
         IpAddr::V4(_) => {
@@ -47,16 +48,16 @@ pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut Peer)
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use torrust_tracker_primitives::announce_event::AnnounceEvent;
+    use torrust_tracker_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::shared::clock::DurationSinceUnixEpoch;
-    use crate::tracker::services::tracker_factory;
-    use crate::tracker::{peer, Tracker};
+    use crate::core::services::tracker_factory;
+    use crate::core::Tracker;
 
     fn public_tracker() -> Tracker {
-        tracker_factory(configuration::ephemeral_mode_public().into())
+        tracker_factory(&configuration::ephemeral_public())
     }
 
     fn sample_info_hash() -> InfoHash {
@@ -94,14 +95,14 @@ mod tests {
         use std::sync::Arc;
 
         use mockall::predicate::eq;
+        use torrust_tracker_primitives::peer;
+        use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
+        use crate::core::{statistics, AnnounceData, Tracker};
         use crate::servers::http::v1::services::announce::invoke;
         use crate::servers::http::v1::services::announce::tests::{public_tracker, sample_info_hash, sample_peer};
-        use crate::tracker::peer::Peer;
-        use crate::tracker::torrent::SwarmStats;
-        use crate::tracker::{statistics, AnnounceData, Tracker};
 
         #[tokio::test]
         async fn it_should_return_the_announce_data() {
@@ -113,13 +114,12 @@ mod tests {
 
             let expected_announce_data = AnnounceData {
                 peers: vec![],
-                swarm_stats: SwarmStats {
-                    completed: 0,
-                    seeders: 1,
-                    leechers: 0,
+                stats: SwarmMetadata {
+                    downloaded: 0,
+                    complete: 1,
+                    incomplete: 0,
                 },
-                interval: tracker.config.announce_interval,
-                interval_min: tracker.config.min_announce_interval,
+                policy: tracker.get_announce_policy(),
             };
 
             assert_eq!(announce_data, expected_announce_data);
@@ -137,7 +137,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    Arc::new(configuration::ephemeral()),
+                    &configuration::ephemeral().core,
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )
@@ -151,13 +151,14 @@ mod tests {
 
         fn tracker_with_an_ipv6_external_ip(stats_event_sender: Box<dyn statistics::EventSender>) -> Tracker {
             let mut configuration = configuration::ephemeral();
-            configuration.external_ip =
-                Some(IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)).to_string());
+            configuration.core.net.external_ip = Some(IpAddr::V6(Ipv6Addr::new(
+                0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
+            )));
 
-            Tracker::new(Arc::new(configuration), Some(stats_event_sender), statistics::Repo::new()).unwrap()
+            Tracker::new(&configuration.core, Some(stats_event_sender), statistics::Repo::new()).unwrap()
         }
 
-        fn peer_with_the_ipv4_loopback_ip() -> Peer {
+        fn peer_with_the_ipv4_loopback_ip() -> peer::Peer {
             let loopback_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
             let mut peer = sample_peer();
             peer.peer_addr = SocketAddr::new(loopback_ip, 8080);
@@ -201,7 +202,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    Arc::new(configuration::ephemeral()),
+                    &configuration::ephemeral().core,
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )

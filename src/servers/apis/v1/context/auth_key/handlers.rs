@@ -3,32 +3,71 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use axum::extract::{Path, State};
+use axum::extract::{self, Path, State};
 use axum::response::Response;
 use serde::Deserialize;
 
+use super::forms::AddKeyForm;
 use super::responses::{
     auth_key_response, failed_to_delete_key_response, failed_to_generate_key_response, failed_to_reload_keys_response,
+    invalid_auth_key_duration_response, invalid_auth_key_response,
 };
+use crate::core::auth::Key;
+use crate::core::{AddKeyRequest, Tracker};
 use crate::servers::apis::v1::context::auth_key::resources::AuthKey;
 use crate::servers::apis::v1::responses::{invalid_auth_key_param_response, ok_response};
-use crate::tracker::auth::Key;
-use crate::tracker::Tracker;
+
+/// It handles the request to add a new authentication key.
+///
+/// It returns these types of responses:
+///
+/// - `200` with a json [`AuthKey`]
+///    resource. If the key was generated successfully.
+/// - `400` with an error if the key couldn't been added because of an invalid
+///    request.
+/// - `500` with serialized error in debug format. If the key couldn't be
+///    generated.
+///
+/// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::auth_key#generate-a-new-authentication-key)
+/// for more information about this endpoint.
+pub async fn add_auth_key_handler(
+    State(tracker): State<Arc<Tracker>>,
+    extract::Json(add_key_form): extract::Json<AddKeyForm>,
+) -> Response {
+    match tracker
+        .add_peer_key(AddKeyRequest {
+            opt_key: add_key_form.opt_key.clone(),
+            opt_seconds_valid: add_key_form.opt_seconds_valid,
+        })
+        .await
+    {
+        Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
+        Err(err) => match err {
+            crate::core::error::PeerKeyError::DurationOverflow { seconds_valid } => {
+                invalid_auth_key_duration_response(seconds_valid)
+            }
+            crate::core::error::PeerKeyError::InvalidKey { key, source } => invalid_auth_key_response(&key, source),
+            crate::core::error::PeerKeyError::DatabaseError { source } => failed_to_generate_key_response(source),
+        },
+    }
+}
 
 /// It handles the request to generate a new authentication key.
 ///
 /// It returns two types of responses:
 ///
-/// - `200` with an json [`AuthKey`](crate::servers::apis::v1::context::auth_key::resources::AuthKey)
+/// - `200` with an json [`AuthKey`]
 ///    resource. If the key was generated successfully.
 /// - `500` with serialized error in debug format. If the key couldn't be
 ///    generated.
 ///
 /// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::auth_key#generate-a-new-authentication-key)
 /// for more information about this endpoint.
+///
+/// This endpoint has been deprecated. Use [`add_auth_key_handler`].
 pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path(seconds_valid_or_key): Path<u64>) -> Response {
     let seconds_valid = seconds_valid_or_key;
-    match tracker.generate_auth_key(Duration::from_secs(seconds_valid)).await {
+    match tracker.generate_auth_key(Some(Duration::from_secs(seconds_valid))).await {
         Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
         Err(e) => failed_to_generate_key_response(e),
     }
@@ -46,7 +85,7 @@ pub async fn generate_auth_key_handler(State(tracker): State<Arc<Tracker>>, Path
 ///
 /// - `POST /api/v1/key/120`. It will generate a new key valid for two minutes.
 /// - `DELETE /api/v1/key/xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6`. It will delete the
-/// key `xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6`.
+///   key `xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6`.
 ///
 /// > **NOTICE**: this may change in the future, in the [API v2](https://github.com/torrust/torrust-tracker/issues/144).
 #[derive(Deserialize)]

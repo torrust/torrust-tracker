@@ -1,4 +1,4 @@
-#  Torrust Tracker Release Process (v2.2.1)
+#  Torrust Tracker Release Process (v2.2.2)
 
 ## Version:
 > **The `[semantic version]` is bumped according to releases, new features, and breaking changes.**
@@ -6,6 +6,20 @@
 > *The `develop` branch uses the (semantic version) suffix `-develop`.*
 
 ## Process:
+
+**Note**: this guide assumes that the your git `torrust` remote is like this:
+
+```sh
+git remote show torrust
+```
+
+```s
+* remote torrust
+  Fetch URL: git@github.com:torrust/torrust-tracker.git
+  Push  URL: git@github.com:torrust/torrust-tracker.git
+...
+```
+
 
 ### 1. The `develop` branch is ready for a release.
 The `develop` branch should have the version `[semantic version]-develop` that is ready to be released.
@@ -22,6 +36,7 @@ git push --force torrust develop:staging/main
 ```sh
 git stash
 git switch staging/main
+git reset --hard torrust/staging/main
 # change `[semantic version]-develop` to `[semantic version]`.
 git add -A
 git commit -m "release: version [semantic version]"
@@ -65,7 +80,8 @@ git push --force torrust main:staging/develop
 
 ```sh
 git stash
-git switch staging/main
+git switch staging/develop
+git reset --hard torrust/staging/develop
 # change `[semantic version]` to `(next)[semantic version]-develop`.
 git add -A
 git commit -m "develop: bump to version (next)[semantic version]-develop"

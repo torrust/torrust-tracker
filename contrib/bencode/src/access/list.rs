@@ -45,6 +45,14 @@ impl<'a, V: 'a> IndexMut<usize> for &'a mut dyn BListAccess<V> {
     }
 }
 
+impl<'a, V: 'a> dyn BListAccess<V> {
+    pub fn iter(&'a self) -> impl Iterator<Item = &'a V> {
+        self.into_iter()
+    }
+}
+
+#[allow(unknown_lints)]
+#[allow(clippy::into_iter_without_iter)]
 impl<'a, V: 'a> IntoIterator for &'a dyn BListAccess<V> {
     type Item = &'a V;
     type IntoIter = BListIter<'a, V>;

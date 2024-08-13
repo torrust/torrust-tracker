@@ -3,8 +3,8 @@
 //! Authentication keys are used to authenticate HTTP tracker `announce` and
 //! `scrape` requests.
 //!
-//! When the tracker is running in `private` or `private_listed` mode, the
-//! authentication keys are required to announce and scrape torrents.
+//! When the tracker is running in `private` mode, the authentication keys are
+//! required to announce and scrape torrents.
 //!
 //! A sample `announce` request **without** authentication key:
 //!
@@ -22,22 +22,29 @@
 //!
 //! # Generate a new authentication key
 //!
-//! `POST /key/:seconds_valid`
+//! `POST /keys`
 //!
-//! It generates a new authentication key.
+//! It generates a new authentication key or upload a pre-generated key.
 //!
-//! > **NOTICE**: keys expire after a certain amount of time.
-//!
-//! **Path parameters**
+//! **POST parameters**
 //!
 //! Name | Type | Description | Required | Example
 //! ---|---|---|---|---
-//! `seconds_valid` | positive integer | The number of seconds the key will be valid. | Yes | `3600`
+//! `key` | 32-char string (0-9, a-z, A-Z) or `null` | The optional pre-generated key. | Yes | `Xc1L4PbQJSFGlrgSRZl8wxSFAuMa21z7` or `null`
+//! `seconds_valid` | positive integer or `null` | The number of seconds the key will be valid. | Yes | `3600` or `null`
+//!
+//! > **NOTICE**: the `key` and `seconds_valid` fields are optional. If `key` is not provided the tracker
+//! > will generated a random one. If `seconds_valid` field is not provided the key will be permanent. You can use the `null` value.
 //!
 //! **Example request**
 //!
 //! ```bash
-//! curl -X POST "http://127.0.0.1:1212/api/v1/key/120?token=MyAccessToken"
+//! curl -X POST http://localhost:1212/api/v1/keys?token=MyAccessToken \
+//!      -H "Content-Type: application/json" \
+//!      -d '{
+//!            "key": "xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6",
+//!            "seconds_valid": 7200
+//!          }'
 //! ```
 //!
 //! **Example response** `200`
@@ -51,9 +58,9 @@
 //! ```
 //!
 //! > **NOTICE**: `valid_until` and `expiry_time` represent the same time.
-//! `valid_until` is the number of seconds since the Unix epoch
-//! ([timestamp](https://en.wikipedia.org/wiki/Timestamp)), while `expiry_time`
-//! is the human-readable time ([ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html)).
+//! > `valid_until` is the number of seconds since the Unix epoch
+//! > ([timestamp](https://en.wikipedia.org/wiki/Timestamp)), while `expiry_time`
+//! > is the human-readable time ([ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html)).
 //!
 //! **Resource**
 //!
@@ -96,8 +103,8 @@
 //! ```
 //!
 //! > **NOTICE**: a `500` status code will be returned and the body is not a
-//! valid JSON. It's a text body containing the serialized-to-display error
-//! message.
+//! > valid JSON. It's a text body containing the serialized-to-display error
+//! > message.
 //!
 //! # Reload authentication keys
 //!
@@ -119,6 +126,7 @@
 //!     "status": "ok"
 //! }
 //! ```
+pub mod forms;
 pub mod handlers;
 pub mod resources;
 pub mod responses;

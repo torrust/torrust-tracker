@@ -11,12 +11,12 @@
 //! torrents in the whitelist. The whitelist can be updated using the API.
 //!
 //! > **NOTICE**: the whitelist is only used when the tracker is configured to
-//! in `listed` or `private_listed` modes. Refer to the
-//! [configuration crate documentation](https://docs.rs/torrust-tracker-configuration)
-//! to know how to enable the those modes.
+//! > in `listed` or `private_listed` modes. Refer to the
+//! > [configuration crate documentation](https://docs.rs/torrust-tracker-configuration)
+//! > to know how to enable the those modes.
 //!
 //! > **NOTICE**: if the tracker is not running in `listed` or `private_listed`
-//! modes the requests to the whitelist API will be ignored.
+//! > modes the requests to the whitelist API will be ignored.
 //!
 //! # Endpoints
 //!

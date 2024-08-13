@@ -1,0 +1,21 @@
+[metadata]
+schema_version = "2.0.0"
+
+[logging]
+threshold = "error"
+
+[core]
+listed = false
+private = false
+tracker_usage_statistics = false
+
+[core.database]
+driver = "sqlite3"
+path = "./sqlite3.db"
+
+[core.tracker_policy]
+persistent_torrent_completed_stat = false
+remove_peerless_torrents = false
+
+[[udp_trackers]]
+bind_address = "0.0.0.0:6969"

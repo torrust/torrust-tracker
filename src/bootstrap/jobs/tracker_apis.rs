@@ -4,14 +4,14 @@
 //! function starts a the HTTP tracker REST API.
 //!
 //! > **NOTICE**: that even thought there is only one job the API has different
-//! versions. API consumers can choose which version to use. The API version is
-//! part of the URL, for example: `http://localhost:1212/api/v1/stats`.
+//! > versions. API consumers can choose which version to use. The API version is
+//! > part of the URL, for example: `http://localhost:1212/api/v1/stats`.
 //!
 //! The [`tracker_apis::start_job`](crate::bootstrap::jobs::tracker_apis::start_job)  
 //! function spawns a new asynchronous task, that tasks is the "**launcher**".
 //! The "**launcher**" starts the actual server and sends a message back
 //! to the main application. The main application waits until receives
-//! the message [`ApiServerJobStarted`](crate::bootstrap::jobs::tracker_apis::ApiServerJobStarted)
+//! the message [`ApiServerJobStarted`]
 //! from the "**launcher**".
 //!
 //! The "**launcher**" is an intermediary thread that decouples the API server
@@ -20,23 +20,25 @@
 //!
 //! Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
 //! for the API configuration options.
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
-use log::info;
-use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
-use torrust_tracker_configuration::HttpApi;
+use torrust_tracker_configuration::{AccessTokens, HttpApi};
 
-use crate::servers::apis::server;
-use crate::tracker;
+use super::make_rust_tls;
+use crate::core;
+use crate::servers::apis::server::{ApiServer, Launcher};
+use crate::servers::apis::Version;
+use crate::servers::registar::ServiceRegistrationForm;
 
 /// This is the message that the "launcher" spawned task sends to the main
 /// application process to notify the API server was successfully started.
 ///
 /// > **NOTICE**: it does not mean the API server is ready to receive requests.
-/// It only means the new server started. It might take some time to the server
-/// to be ready to accept request.
+/// > It only means the new server started. It might take some time to the server
+/// > to be ready to accept request.
 #[derive(Debug)]
 pub struct ApiServerJobStarted();
 
@@ -49,51 +51,65 @@ pub struct ApiServerJobStarted();
 /// # Panics
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
-pub async fn start_job(config: &HttpApi, tracker: Arc<tracker::Tracker>) -> JoinHandle<()> {
-    let bind_addr = config
-        .bind_address
-        .parse::<std::net::SocketAddr>()
-        .expect("Tracker API bind_address invalid.");
-    let ssl_enabled = config.ssl_enabled;
-    let ssl_cert_path = config.ssl_cert_path.clone();
-    let ssl_key_path = config.ssl_key_path.clone();
+///
+///
+pub async fn start_job(
+    config: &HttpApi,
+    tracker: Arc<core::Tracker>,
+    form: ServiceRegistrationForm,
+    version: Version,
+) -> Option<JoinHandle<()>> {
+    let bind_to = config.bind_address;
 
-    let (tx, rx) = oneshot::channel::<ApiServerJobStarted>();
+    let tls = make_rust_tls(&config.tsl_config)
+        .await
+        .map(|tls| tls.expect("it should have a valid tracker api tls configuration"));
 
-    // Run the API server
-    let join_handle = tokio::spawn(async move {
-        if !ssl_enabled {
-            info!("Starting Torrust APIs server on: http://{}", bind_addr);
+    let access_tokens = Arc::new(config.access_tokens.clone());
 
-            let handle = server::start(bind_addr, tracker);
-
-            tx.send(ApiServerJobStarted()).expect("the API server should not be dropped");
-
-            if let Ok(()) = handle.await {
-                info!("Torrust APIs server on http://{} stopped", bind_addr);
-            }
-        } else if ssl_enabled && ssl_cert_path.is_some() && ssl_key_path.is_some() {
-            info!("Starting Torrust APIs server on: https://{}", bind_addr);
-
-            let ssl_config = RustlsConfig::from_pem_file(ssl_cert_path.unwrap(), ssl_key_path.unwrap())
-                .await
-                .unwrap();
-
-            let handle = server::start_tls(bind_addr, ssl_config, tracker);
-
-            tx.send(ApiServerJobStarted()).expect("the API server should not be dropped");
-
-            if let Ok(()) = handle.await {
-                info!("Torrust APIs server on https://{} stopped", bind_addr);
-            }
-        }
-    });
-
-    // Wait until the APIs server job is running
-    match rx.await {
-        Ok(_msg) => info!("Torrust APIs server started"),
-        Err(e) => panic!("the API server was dropped: {e}"),
+    match version {
+        Version::V1 => Some(start_v1(bind_to, tls, tracker.clone(), form, access_tokens).await),
     }
+}
 
-    join_handle
+async fn start_v1(
+    socket: SocketAddr,
+    tls: Option<RustlsConfig>,
+    tracker: Arc<core::Tracker>,
+    form: ServiceRegistrationForm,
+    access_tokens: Arc<AccessTokens>,
+) -> JoinHandle<()> {
+    let server = ApiServer::new(Launcher::new(socket, tls))
+        .start(tracker, form, access_tokens)
+        .await
+        .expect("it should be able to start to the tracker api");
+
+    tokio::spawn(async move {
+        assert!(!server.state.halt_task.is_closed(), "Halt channel should be open");
+        server.state.task.await.expect("failed to close service");
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use torrust_tracker_test_helpers::configuration::ephemeral_public;
+
+    use crate::bootstrap::app::initialize_with_configuration;
+    use crate::bootstrap::jobs::tracker_apis::start_job;
+    use crate::servers::apis::Version;
+    use crate::servers::registar::Registar;
+
+    #[tokio::test]
+    async fn it_should_start_http_tracker() {
+        let cfg = Arc::new(ephemeral_public());
+        let config = &cfg.http_api.clone().unwrap();
+        let tracker = initialize_with_configuration(&cfg);
+        let version = Version::V1;
+
+        start_job(config, tracker, Registar::default().give_form(), version)
+            .await
+            .expect("it should be able to join to the tracker api start-job");
+    }
 }

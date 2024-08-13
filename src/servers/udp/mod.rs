@@ -5,7 +5,7 @@
 //! The UDP tracker is a simple UDP server that responds to these requests:
 //!
 //! - `Connect`: used to get a connection ID which must be provided on each
-//! request in order to avoid spoofing the source address of the UDP packets.
+//!   request in order to avoid spoofing the source address of the UDP packets.
 //! - `Announce`: used to announce the presence of a peer to the tracker.
 //! - `Scrape`: used to get information about a torrent.
 //!
@@ -22,10 +22,10 @@
 //! for more information about the UDP tracker protocol.
 //!
 //! > **NOTICE**: [BEP-41](https://www.bittorrent.org/beps/bep_0041.html) is not
-//! implemented yet.
+//! > implemented yet.
 //!
 //! > **NOTICE**: we are using the [`aquatic_udp_protocol`](https://crates.io/crates/aquatic_udp_protocol)
-//! crate so requests and responses are handled by it.
+//! > crate so requests and responses are handled by it.
 //!
 //! > **NOTICE**: all values are send in network byte order ([big endian](https://en.wikipedia.org/wiki/Endianness)).
 //!
@@ -53,7 +53,7 @@
 //! supports only three types of requests: `Connect`, `Announce` and `Scrape`.
 //!
 //! Request are parsed from UDP packets using the [`aquatic_udp_protocol`](https://crates.io/crates/aquatic_udp_protocol)
-//! crate and then handled by the [`Tracker`](crate::tracker::Tracker) struct.
+//! crate and then handled by the [`Tracker`](crate::core::Tracker) struct.
 //! And then the response is also build using the [`aquatic_udp_protocol`](https://crates.io/crates/aquatic_udp_protocol)
 //! and converted to a UDP packet.
 //!
@@ -62,7 +62,7 @@
 //! ```
 //!
 //! For the `Announce` request there is a wrapper struct [`AnnounceWrapper`](crate::servers::udp::request::AnnounceWrapper).
-//! It was added to add an extra field with the internal [`InfoHash`](crate::shared::bit_torrent::info_hash::InfoHash) struct.
+//! It was added to add an extra field with the internal [`InfoHash`](torrust_tracker_primitives::info_hash::InfoHash) struct.
 //!
 //! ### Connect
 //!
@@ -83,23 +83,23 @@
 //! spoofing can be explained as follows:
 //!
 //! 1. No connection state: Unlike TCP, UDP is a connectionless protocol,
-//! meaning that it does not establish a connection between two endpoints before
-//! exchanging data. As a result, it is more susceptible to IP spoofing, where
-//! an attacker sends packets with a forged source IP address, tricking the
-//! receiver into believing that they are coming from a legitimate source.
+//!    meaning that it does not establish a connection between two endpoints before
+//!    exchanging data. As a result, it is more susceptible to IP spoofing, where
+//!    an attacker sends packets with a forged source IP address, tricking the
+//!    receiver into believing that they are coming from a legitimate source.
 //!
 //! 2. Mitigating IP spoofing: To mitigate IP spoofing in the UDP tracker
-//! protocol, a connection ID is used. When a client wants to interact with a
-//! tracker, it sends a "connect" request to the tracker, which, in turn,
-//! responds with a unique connection ID. This connection ID must be included in
-//! all subsequent requests from the client to the tracker.
+//!    protocol, a connection ID is used. When a client wants to interact with a
+//!    tracker, it sends a "connect" request to the tracker, which, in turn,
+//!    responds with a unique connection ID. This connection ID must be included in
+//!    all subsequent requests from the client to the tracker.
 //!
 //! 3. Validating requests: By requiring the connection ID, the tracker can
-//! verify that the requests are coming from the same client that initially sent
-//! the "connect" request. If an attacker attempts to spoof the client's IP
-//! address, they would also need to know the valid connection ID to be accepted
-//! by the tracker. This makes it significantly more challenging for an attacker
-//! to spoof IP addresses and disrupt the P2P network.
+//!    verify that the requests are coming from the same client that initially sent
+//!    the "connect" request. If an attacker attempts to spoof the client's IP
+//!    address, they would also need to know the valid connection ID to be accepted
+//!    by the tracker. This makes it significantly more challenging for an attacker
+//!    to spoof IP addresses and disrupt the P2P network.
 //!
 //! There are different ways to generate a connection ID. The most common way is
 //! to generate a time bound secret. The secret is generated using a time based
@@ -109,7 +109,7 @@
 //! connection ID = hash(client IP + current time slot + secret seed)
 //! ```
 //!
-//! The BEP-15 recommends a two-minute time slot. Refer to [`connection_cookie`](crate::servers::udp::connection_cookie)
+//! The BEP-15 recommends a two-minute time slot. Refer to [`connection_cookie`]
 //! for more information about the connection ID generation with this method.
 //!
 //! #### Connect Request
@@ -161,9 +161,9 @@
 //! 8      | [`i32`](std::i64) | `connection_id`  | Generated by the tracker to authenticate the client.  | `0xC5_58_7C_09_08_48_D8_37` | `-4226491872051668937`
 //!
 //! > **NOTICE**: the `connection_id` is used when further information is
-//! exchanged with the tracker, to identify the client. This `connection_id` can
-//! be reused for multiple requests, but if it's cached for too long, it will
-//! not be valid anymore.
+//! > exchanged with the tracker, to identify the client. This `connection_id` can
+//! > be reused for multiple requests, but if it's cached for too long, it will
+//! > not be valid anymore.
 //!
 //! > **NOTICE**: `Hex` column is a signed 2's complement.
 //!
@@ -243,41 +243,41 @@
 //! circumstances might include:
 //!
 //! 1. Network Address Translation (NAT): In cases where a peer is behind a NAT,
-//! the private IP address of the peer is not directly routable over the
-//! internet. The NAT device translates the private IP address to a public one
-//! when sending packets to the tracker. The public IP address is what the
-//! tracker sees as the source IP of the incoming request. However, if the peer
-//! provides its private IP address in the announce request, the tracker can use
-//! this information to facilitate communication between peers in the same
-//! private network.
+//!    the private IP address of the peer is not directly routable over the
+//!    internet. The NAT device translates the private IP address to a public one
+//!    when sending packets to the tracker. The public IP address is what the
+//!    tracker sees as the source IP of the incoming request. However, if the peer
+//!    provides its private IP address in the announce request, the tracker can use
+//!    this information to facilitate communication between peers in the same
+//!    private network.
 //!
 //! 2. Proxy or VPN usage: If a peer uses a proxy or VPN service to connect to
-//! the tracker, the source IP address seen by the tracker will be the one
-//! assigned by the proxy or VPN server. In this case, if the peer provides its
-//! actual IP address in the announce request, the tracker can use it to
-//! establish a direct connection with other peers, bypassing the proxy or VPN
-//! server. This might improve performance or help in cases where some peers
-//! cannot connect to the proxy or VPN server.
+//!    the tracker, the source IP address seen by the tracker will be the one
+//!    assigned by the proxy or VPN server. In this case, if the peer provides its
+//!    actual IP address in the announce request, the tracker can use it to
+//!    establish a direct connection with other peers, bypassing the proxy or VPN
+//!    server. This might improve performance or help in cases where some peers
+//!    cannot connect to the proxy or VPN server.
 //!
 //! 3. Tracker is behind a NAT, firewall, proxy, VPN, or load balancer: In cases
-//! where the tracker is behind a NAT, firewall, proxy, VPN, or load balancer,
-//! the source IP address of the incoming request will be the public IP address
-//! of the NAT, firewall, proxy, VPN, or load balancer. If the peer provides its
-//! private IP address in the announce request, the tracker can use this
-//! information to establish a direct connection with the peer.
+//!    where the tracker is behind a NAT, firewall, proxy, VPN, or load balancer,
+//!    the source IP address of the incoming request will be the public IP address
+//!    of the NAT, firewall, proxy, VPN, or load balancer. If the peer provides its
+//!    private IP address in the announce request, the tracker can use this
+//!    information to establish a direct connection with the peer.
 //!
 //! It's important to note that using the provided IP address can pose security
 //! risks, as malicious peers might spoof their IP addresses in the announce
 //! request to perform various types of attacks.
 //!
 //! > **NOTICE**: The current tracker behavior is to ignore the IP address
-//! provided by the peer, and use the source IP address of the incoming request,
-//! when the tracker is not running behind a proxy, and to use the right-most IP
-//! address in the `X-Forwarded-For` header when the tracker is running behind a
-//! proxy.
+//! > provided by the peer, and use the source IP address of the incoming request,
+//! > when the tracker is not running behind a proxy, and to use the right-most IP
+//! > address in the `X-Forwarded-For` header when the tracker is running behind a
+//! > proxy.
 //!
 //! > **NOTICE**: The tracker also changes the peer IP address to the tracker
-//! external IP when the peer is using a loopback IP address.
+//! > external IP when the peer is using a loopback IP address.
 //!
 //! **Sample announce request (UDP packet)**
 //!
@@ -317,11 +317,11 @@
 //! 101    | N bytes           |                   |                                                                          |                                                                 |
 //!
 //! > **NOTICE**: bytes after offset 98 are part of the [BEP-41. UDP Tracker Protocol Extensions](https://www.bittorrent.org/beps/bep_0041.html).
-//! There are three options defined for byte 98: `0x0` (`EndOfOptions`), `0x1` (`NOP`) and `0x2` (`URLData`).
+//! > There are three options defined for byte 98: `0x0` (`EndOfOptions`), `0x1` (`NOP`) and `0x2` (`URLData`).
 //!
 //! > **NOTICE**: `num_want` is being ignored by the tracker. Refer to
-//! [issue 262](https://github.com/torrust/torrust-tracker/issues/262) for more
-//! information.
+//! > [issue 262](https://github.com/torrust/torrust-tracker/issues/262) for more
+//! > information.
 //!
 //! **Announce request (parsed struct)**
 //!
@@ -342,10 +342,10 @@
 //! `port`             | [`Port`](aquatic_udp_protocol::common::Port)                    | `17548`
 //!
 //! > **NOTICE**: the `peers_wanted` field is the `num_want` field in the UDP
-//! packet.
+//! > packet.
 //!
 //! We are using a wrapper struct for the aquatic [`AnnounceRequest`](aquatic_udp_protocol::request::AnnounceRequest)
-//! struct, because we have our internal [`InfoHash`](crate::shared::bit_torrent::info_hash::InfoHash)
+//! struct, because we have our internal [`InfoHash`](torrust_tracker_primitives::info_hash::InfoHash)
 //! struct.
 //!
 //! ```text
@@ -374,7 +374,7 @@
 //! > **NOTICE**: `Hex` column is a signed 2's complement.
 //!
 //! > **NOTICE**: `IP address` should always be set to 0 when the peer is using
-//! `IPv6`.
+//! > `IPv6`.
 //!
 //! **Sample announce response (UDP packet)**
 //!
@@ -413,7 +413,7 @@
 //! ```
 //!
 //! > **NOTICE**: there are 6 bytes per peer (4 bytes for the `IPv4` address and
-//! 2 bytes for the TCP port).
+//! > 2 bytes for the TCP port).
 //!
 //! UDP packet fields (`IPv4` peer list):
 //!
@@ -433,7 +433,7 @@
 //! ```
 //!
 //! > **NOTICE**: there are 18 bytes per peer (16 bytes for the `IPv6` address and
-//! 2 bytes for the TCP port).
+//! > 2 bytes for the TCP port).
 //!
 //! UDP packet fields (`IPv6` peer list):
 //!
@@ -446,7 +446,7 @@
 //! > **NOTICE**: `Hex` column is a signed 2's complement.
 //!
 //! > **NOTICE**: the peer list does not include the peer that sent the announce
-//! request.
+//! > request.
 //!
 //! **Announce response (struct)**
 //!
@@ -467,21 +467,21 @@
 //!
 //! ### Scrape
 //!
-//! The `scrape` request allows a peer to get [swarm metadata](crate::tracker::torrent::SwarmMetadata)
+//! The `scrape` request allows a peer to get [swarm metadata](torrust_tracker_primitives::swarm_metadata::SwarmMetadata)
 //! for multiple torrents at the same time.
 //!
-//! The response contains the [swarm metadata](crate::tracker::torrent::SwarmMetadata)
+//! The response contains the [swarm metadata](torrust_tracker_primitives::swarm_metadata::SwarmMetadata)
 //! for that torrent:
 //!
-//! - [complete](crate::tracker::torrent::SwarmMetadata::complete)
-//! - [downloaded](crate::tracker::torrent::SwarmMetadata::downloaded)
-//! - [incomplete](crate::tracker::torrent::SwarmMetadata::incomplete)
+//! - [complete](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::complete)
+//! - [downloaded](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::downloaded)
+//! - [incomplete](torrust_tracker_primitives::swarm_metadata::SwarmMetadata::incomplete)
 //!
 //! > **NOTICE**: up to about 74 torrents can be scraped at once. A full scrape
-//! can't be done with this protocol. This is a limitation of the UDP protocol.
-//! Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS).
-//! Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
-//! for more information about this limitation.
+//! > can't be done with this protocol. This is a limitation of the UDP protocol.
+//! > Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS).
+//! > Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
+//! > for more information about this limitation.
 //!
 //! #### Scrape Request
 //!
@@ -638,12 +638,18 @@
 //! documentation by [Arvid Norberg](https://github.com/arvidn) was very
 //! supportive in the development of this documentation. Some descriptions were
 //! taken from the [libtorrent](https://www.rasterbar.com/products/libtorrent/udp_tracker_protocol.html).
+
+use std::net::SocketAddr;
+
 pub mod connection_cookie;
 pub mod error;
 pub mod handlers;
+pub mod logging;
 pub mod peer_builder;
 pub mod request;
 pub mod server;
+
+pub const UDP_TRACKER_LOG_TARGET: &str = "UDP TRACKER";
 
 /// Number of bytes.
 pub type Bytes = u64;
@@ -653,8 +659,8 @@ pub type Port = u16;
 /// match requests and responses.
 pub type TransactionId = i64;
 
-/// The maximum number of bytes in a UDP packet.
-pub const MAX_PACKET_SIZE: usize = 1496;
-/// A magic 64-bit integer constant defined in the protocol that is used to
-/// identify the protocol.
-pub const PROTOCOL_ID: i64 = 0x0417_2710_1980;
+#[derive(Clone, Debug)]
+pub struct RawRequest {
+    payload: Vec<u8>,
+    from: SocketAddr,
+}

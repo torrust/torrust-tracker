@@ -8,14 +8,12 @@ authors.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
-license-file.workspace = true
+license.workspace = true
 publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-lazy_static = "1.4"
-rand = "0.8.5"
-torrust-tracker-configuration = { version = "3.0.0-alpha.11", path = "../configuration" }
-torrust-tracker-primitives = { version = "3.0.0-alpha.11", path = "../primitives" }
+rand = "0"
+torrust-tracker-configuration = { version = "3.0.0-alpha.12", path = "../configuration" }

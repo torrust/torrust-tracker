@@ -1,9 +1,9 @@
 //! The tracker REST API with all its versions.
 //!
 //! > **NOTICE**: This API should not be exposed directly to the internet, it is
-//! intended for internal use only.
+//! > intended for internal use only.
 //!
-//! Endpoints for the latest API: [v1](crate::servers::apis::v1).
+//! Endpoints for the latest API: [v1].
 //!
 //! All endpoints require an authorization token which must be set in the
 //! configuration before running the tracker. The default configuration uses
@@ -25,9 +25,9 @@
 //!
 //! ```toml
 //! [http_api]
-//! enabled = true
 //! bind_address = "0.0.0.0:1212"
-//! ssl_enabled = false
+//!
+//! [http_api.tsl_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!
@@ -42,7 +42,7 @@
 //!
 //! ```text
 //! Loading configuration from config file ./tracker.toml
-//! 023-03-28T12:19:24.963054069+01:00 [torrust_tracker::bootstrap::logging][INFO] logging initialized.
+//! 023-03-28T12:19:24.963054069+01:00 [torrust_tracker::bootstrap::logging][INFO] Logging initialized
 //! ...
 //! 023-03-28T12:19:24.964138723+01:00 [torrust_tracker::bootstrap::jobs::tracker_apis][INFO] Starting Torrust APIs server on: http://0.0.0.0:1212
 //! ```
@@ -106,16 +106,14 @@
 //!
 //! # Setup SSL (optional)
 //!
-//! The API server supports SSL. You can enable it by setting the
-//! [`ssl_enabled`](torrust_tracker_configuration::HttpApi::ssl_enabled) option
-//! to `true` in the configuration file
-//! ([`http_api`](torrust_tracker_configuration::HttpApi) section).
+//! The API server supports SSL. You can enable it by adding the `tsl_config`
+//! section to the configuration.
 //!
 //! ```toml
 //! [http_api]
-//! enabled = true
 //! bind_address = "0.0.0.0:1212"
-//! ssl_enabled = true
+//!
+//! [http_api.tsl_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!
@@ -124,28 +122,28 @@
 //! ```
 //!
 //! > **NOTICE**: If you are using a reverse proxy like NGINX, you can skip this
-//! step and use NGINX for the SSL instead. See
-//! [other alternatives to Nginx/certbot](https://github.com/torrust/torrust-tracker/discussions/131)
+//! > step and use NGINX for the SSL instead. See
+//! > [other alternatives to Nginx/certbot](https://github.com/torrust/torrust-tracker/discussions/131)
 //!
 //! > **NOTICE**: You can generate a self-signed certificate for localhost using
-//! OpenSSL. See [Let's Encrypt](https://letsencrypt.org/docs/certificates-for-localhost/).
-//! That's particularly useful for testing purposes. Once you have the certificate
-//! you need to set the [`ssl_cert_path`](torrust_tracker_configuration::HttpApi::ssl_cert_path)
-//! and [`ssl_key_path`](torrust_tracker_configuration::HttpApi::ssl_key_path)
-//! options in the configuration file with the paths to the certificate
-//! (`localhost.crt`) and key (`localhost.key`) files.
+//! > OpenSSL. See [Let's Encrypt](https://letsencrypt.org/docs/certificates-for-localhost/).
+//! > That's particularly useful for testing purposes. Once you have the certificate
+//! > you need to set the [`ssl_cert_path`](torrust_tracker_configuration::HttpApi::tsl_config.ssl_cert_path)
+//! > and [`ssl_key_path`](torrust_tracker_configuration::HttpApi::tsl_config.ssl_key_path)
+//! > options in the configuration file with the paths to the certificate
+//! > (`localhost.crt`) and key (`localhost.key`) files.
 //!
 //! # Versioning
 //!
 //! The API is versioned and each version has its own module.
 //! The API server runs all the API versions on the same server using
-//! the same port. Currently there is only one API version: [v1](crate::servers::apis::v1)
+//! the same port. Currently there is only one API version: [v1]
 //! but a version [`v2`](https://github.com/torrust/torrust-tracker/issues/144)
 //! is planned.
 //!
 //! # Endpoints
 //!
-//! Refer to the [v1](crate::servers::apis::v1) module for the list of available
+//! Refer to the [v1] module for the list of available
 //! API endpoints.
 //!
 //! # Documentation
@@ -153,13 +151,15 @@
 //! If you want to contribute to this documentation you can [open a new pull request](https://github.com/torrust/torrust-tracker/pulls).
 //!
 //! > **NOTICE**: we are using [curl](https://curl.se/) in the API examples.
-//! And you have to use quotes around the URL in order to avoid unexpected
-//! errors. For example: `curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken"`.
+//! > And you have to use quotes around the URL in order to avoid unexpected
+//! > errors. For example: `curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken"`.
 pub mod routes;
 pub mod server;
 pub mod v1;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+
+pub const API_LOG_TARGET: &str = "API";
 
 /// The info hash URL path parameter.
 ///
@@ -172,3 +172,10 @@ use serde::Deserialize;
 /// in order to provide a more specific error message.
 #[derive(Deserialize)]
 pub struct InfoHashParam(pub String);
+
+/// The version of the HTTP Api.
+#[derive(Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
+pub enum Version {
+    /// The `v1` version of the HTTP Api.
+    V1,
+}

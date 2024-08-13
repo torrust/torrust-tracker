@@ -1,12 +1,12 @@
 //! `Peer` and Peer `Id` API resources.
+use derive_more::From;
 use serde::{Deserialize, Serialize};
-
-use crate::tracker;
+use torrust_tracker_primitives::peer;
 
 /// `Peer` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Peer {
-    /// The peer's ID. See [`Id`](crate::servers::apis::v1::context::torrent::resources::peer::Id).
+    /// The peer's ID. See [`Id`].
     pub peer_id: Id,
     /// The peer's socket address. For example: `192.168.1.88:17548`.
     pub peer_addr: String,
@@ -22,7 +22,7 @@ pub struct Peer {
     /// The peer's left bytes (pending to download).
     pub left: i64,
     /// The peer's event: `started`, `stopped`, `completed`.
-    /// See [`AnnounceEventDef`](crate::shared::bit_torrent::common::AnnounceEventDef).
+    /// See [`AnnounceEvent`](torrust_tracker_primitives::announce_event::AnnounceEvent).
     pub event: String,
 }
 
@@ -35,27 +35,41 @@ pub struct Id {
     pub client: Option<String>,
 }
 
-impl From<tracker::peer::Id> for Id {
-    fn from(peer_id: tracker::peer::Id) -> Self {
+impl From<peer::Id> for Id {
+    fn from(peer_id: peer::Id) -> Self {
         Id {
             id: peer_id.to_hex_string(),
-            client: peer_id.get_client_name().map(std::string::ToString::to_string),
+            client: peer_id.get_client_name(),
         }
     }
 }
 
-impl From<tracker::peer::Peer> for Peer {
-    #[allow(deprecated)]
-    fn from(peer: tracker::peer::Peer) -> Self {
+impl From<peer::Peer> for Peer {
+    fn from(value: peer::Peer) -> Self {
+        #[allow(deprecated)]
         Peer {
-            peer_id: Id::from(peer.peer_id),
-            peer_addr: peer.peer_addr.to_string(),
-            updated: peer.updated.as_millis(),
-            updated_milliseconds_ago: peer.updated.as_millis(),
-            uploaded: peer.uploaded.0,
-            downloaded: peer.downloaded.0,
-            left: peer.left.0,
-            event: format!("{:?}", peer.event),
+            peer_id: Id::from(value.peer_id),
+            peer_addr: value.peer_addr.to_string(),
+            updated: value.updated.as_millis(),
+            updated_milliseconds_ago: value.updated.as_millis(),
+            uploaded: value.uploaded.0,
+            downloaded: value.downloaded.0,
+            left: value.left.0,
+            event: format!("{:?}", value.event),
         }
+    }
+}
+
+#[derive(From, PartialEq, Default)]
+pub struct Vector(pub Vec<Peer>);
+
+impl FromIterator<peer::Peer> for Vector {
+    fn from_iter<T: IntoIterator<Item = peer::Peer>>(iter: T) -> Self {
+        let mut peers = Vector::default();
+
+        for i in iter {
+            peers.0.push(i.into());
+        }
+        peers
     }
 }

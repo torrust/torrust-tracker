@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::str;
 
-use serde::{self, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_bencode::value::Value;
 
 use crate::servers::http::{ByteArray20, InfoHash};
@@ -73,9 +73,13 @@ impl ResponseBuilder {
 
 #[derive(Debug)]
 pub enum BencodeParseError {
+    #[allow(dead_code)]
     InvalidValueExpectedDict { value: Value },
+    #[allow(dead_code)]
     InvalidValueExpectedInt { value: Value },
+    #[allow(dead_code)]
     InvalidFileField { value: Value },
+    #[allow(dead_code)]
     MissingFileField { field_name: String },
 }
 

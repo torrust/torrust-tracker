@@ -2,17 +2,18 @@
 //!
 //! The service is responsible for handling the `scrape` requests.
 //!
-//! It delegates the `scrape` logic to the [`Tracker`](crate::tracker::Tracker::scrape)
-//! and it returns the [`ScrapeData`](crate::tracker::ScrapeData) returned
-//! by the [`Tracker`](crate::tracker::Tracker).
+//! It delegates the `scrape` logic to the [`Tracker`](crate::core::Tracker::scrape)
+//! and it returns the [`ScrapeData`] returned
+//! by the [`Tracker`].
 //!
-//! It also sends an [`statistics::Event`](crate::tracker::statistics::Event)
+//! It also sends an [`statistics::Event`]
 //! because events are specific for the HTTP tracker.
 use std::net::IpAddr;
 use std::sync::Arc;
 
-use crate::shared::bit_torrent::info_hash::InfoHash;
-use crate::tracker::{statistics, ScrapeData, Tracker};
+use torrust_tracker_primitives::info_hash::InfoHash;
+
+use crate::core::{statistics, ScrapeData, Tracker};
 
 /// The HTTP tracker `scrape` service.
 ///
@@ -22,8 +23,8 @@ use crate::tracker::{statistics, ScrapeData, Tracker};
 /// - The number of TCP `scrape` requests handled by the HTTP tracker.
 ///
 /// > **NOTICE**: as the HTTP tracker does not requires a connection request
-/// like the UDP tracker, the number of TCP connections is incremented for
-/// each `scrape` request.
+/// > like the UDP tracker, the number of TCP connections is incremented for
+/// > each `scrape` request.
 pub async fn invoke(tracker: &Arc<Tracker>, info_hashes: &Vec<InfoHash>, original_peer_ip: &IpAddr) -> ScrapeData {
     let scrape_data = tracker.scrape(info_hashes).await;
 
@@ -60,16 +61,16 @@ mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use torrust_tracker_primitives::announce_event::AnnounceEvent;
+    use torrust_tracker_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::shared::bit_torrent::info_hash::InfoHash;
-    use crate::shared::clock::DurationSinceUnixEpoch;
-    use crate::tracker::services::tracker_factory;
-    use crate::tracker::{peer, Tracker};
+    use crate::core::services::tracker_factory;
+    use crate::core::Tracker;
 
     fn public_tracker() -> Tracker {
-        tracker_factory(configuration::ephemeral_mode_public().into())
+        tracker_factory(&configuration::ephemeral_public())
     }
 
     fn sample_info_hashes() -> Vec<InfoHash> {
@@ -99,14 +100,14 @@ mod tests {
         use std::sync::Arc;
 
         use mockall::predicate::eq;
+        use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
+        use crate::core::{statistics, ScrapeData, Tracker};
         use crate::servers::http::v1::services::scrape::invoke;
         use crate::servers::http::v1::services::scrape::tests::{
             public_tracker, sample_info_hash, sample_info_hashes, sample_peer,
         };
-        use crate::tracker::torrent::SwarmMetadata;
-        use crate::tracker::{statistics, ScrapeData, Tracker};
 
         #[tokio::test]
         async fn it_should_return_the_scrape_data_for_a_torrent() {
@@ -118,7 +119,7 @@ mod tests {
             // Announce a new peer to force scrape data to contain not zeroed data
             let mut peer = sample_peer();
             let original_peer_ip = peer.ip();
-            tracker.announce(&info_hash, &mut peer, &original_peer_ip).await;
+            tracker.announce(&info_hash, &mut peer, &original_peer_ip);
 
             let scrape_data = invoke(&tracker, &info_hashes, &original_peer_ip).await;
 
@@ -147,7 +148,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    Arc::new(configuration::ephemeral()),
+                    &configuration::ephemeral().core,
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )
@@ -171,7 +172,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    Arc::new(configuration::ephemeral()),
+                    &configuration::ephemeral().core,
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )
@@ -193,11 +194,11 @@ mod tests {
         use mockall::predicate::eq;
         use torrust_tracker_test_helpers::configuration;
 
+        use crate::core::{statistics, ScrapeData, Tracker};
         use crate::servers::http::v1::services::scrape::fake;
         use crate::servers::http::v1::services::scrape::tests::{
             public_tracker, sample_info_hash, sample_info_hashes, sample_peer,
         };
-        use crate::tracker::{statistics, ScrapeData, Tracker};
 
         #[tokio::test]
         async fn it_should_always_return_the_zeroed_scrape_data_for_a_torrent() {
@@ -209,7 +210,7 @@ mod tests {
             // Announce a new peer to force scrape data to contain not zeroed data
             let mut peer = sample_peer();
             let original_peer_ip = peer.ip();
-            tracker.announce(&info_hash, &mut peer, &original_peer_ip).await;
+            tracker.announce(&info_hash, &mut peer, &original_peer_ip);
 
             let scrape_data = fake(&tracker, &info_hashes, &original_peer_ip).await;
 
@@ -230,7 +231,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    Arc::new(configuration::ephemeral()),
+                    &configuration::ephemeral().core,
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )
@@ -254,7 +255,7 @@ mod tests {
 
             let tracker = Arc::new(
                 Tracker::new(
-                    Arc::new(configuration::ephemeral()),
+                    &configuration::ephemeral().core,
                     Some(stats_event_sender),
                     statistics::Repo::new(),
                 )

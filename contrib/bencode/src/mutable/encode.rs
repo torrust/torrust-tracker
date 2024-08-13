@@ -1,5 +1,3 @@
-use std::iter::Extend;
-
 use crate::access::bencode::{BRefAccess, RefKind};
 use crate::access::dict::BDictAccess;
 use crate::access::list::BListAccess;

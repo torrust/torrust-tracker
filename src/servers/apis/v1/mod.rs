@@ -12,7 +12,7 @@
 //! > **NOTICE**:
 //! - The authentication keys are only used by the HTTP tracker.
 //! - The whitelist is only used when the tracker is running in `listed` or
-//! `private_listed` mode.
+//!   `private_listed` mode.
 //!
 //! Refer to the [authentication middleware](crate::servers::apis::v1::middlewares::auth)
 //! for more information about the authentication process.

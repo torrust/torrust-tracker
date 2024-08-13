@@ -1,38 +1,28 @@
-announce_interval = 120
-db_driver = "Sqlite3"
-db_path = "/var/lib/torrust/tracker/database/sqlite3.db"
-external_ip = "0.0.0.0"
-inactive_peer_cleanup_interval = 600
-log_level = "info"
-max_peer_timeout = 900
-min_announce_interval = 120
-mode = "public"
-on_reverse_proxy = false
-persistent_torrent_completed_stat = false
-remove_peerless_torrents = true
-tracker_usage_statistics = true
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "2.0.0"
 
-[[udp_trackers]]
-bind_address = "0.0.0.0:6969"
-enabled = false
+[logging]
+threshold = "info"
 
-[[http_trackers]]
-bind_address = "0.0.0.0:7070"
-enabled = false
-ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
-ssl_enabled = false
-ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
+[core]
+listed = false
+private = false
 
-[http_api]
-bind_address = "0.0.0.0:1212"
-enabled = true
-ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
-ssl_enabled = false
-ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
+[core.database]
+path = "/var/lib/torrust/tracker/database/sqlite3.db"
 
-# Please override the admin token setting the
-#    `TORRUST_TRACKER_API_ADMIN_TOKEN`
-#                     environmental variable!
+# Uncomment to enable services
 
-[http_api.access_tokens]
-admin = "MyAccessToken"
+#[[udp_trackers]]
+#bind_address = "0.0.0.0:6969"
+
+#[[http_trackers]]
+#bind_address = "0.0.0.0:7070"
+
+#[http_api]
+#bind_address = "0.0.0.0:1212"
+
+#[http_api.access_tokens]
+#admin = "MyAccessToken"

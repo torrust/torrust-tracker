@@ -8,21 +8,23 @@ authors.workspace = true
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
-license-file.workspace = true
+license.workspace = true
 publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-config = "0.13"
-log = { version = "0.4", features = ["release_max_level_info"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_with = "3.2"
-thiserror = "1.0"
-toml = "0.8"
-torrust-tracker-located-error = { version = "3.0.0-alpha.11", path = "../located-error" }
-torrust-tracker-primitives = { version = "3.0.0-alpha.11", path = "../primitives" }
+camino = { version = "1", features = ["serde", "serde1"] }
+derive_more = "0"
+figment = { version = "0", features = ["env", "test", "toml"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+serde_with = "3"
+thiserror = "1"
+toml = "0"
+torrust-tracker-located-error = { version = "3.0.0-alpha.12", path = "../located-error" }
+url = "2"
 
 [dev-dependencies]
 uuid = { version = "1", features = ["v4"] }

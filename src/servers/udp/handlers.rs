@@ -1,55 +1,85 @@
 //! Handlers for the UDP server.
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::fmt;
+use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
+use std::time::Instant;
 
 use aquatic_udp_protocol::{
-    AnnounceInterval, AnnounceRequest, AnnounceResponse, ConnectRequest, ConnectResponse, ErrorResponse, NumberOfDownloads,
-    NumberOfPeers, Port, Request, Response, ResponsePeer, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
+    AnnounceInterval, AnnounceRequest, AnnounceResponse, AnnounceResponseFixedData, ConnectRequest, ConnectResponse,
+    ErrorResponse, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfDownloads, NumberOfPeers, Port, Request, Response, ResponsePeer,
+    ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
-use log::debug;
+use torrust_tracker_located_error::DynError;
+use torrust_tracker_primitives::info_hash::InfoHash;
+use tracing::debug;
+use uuid::Uuid;
+use zerocopy::network_endian::I32;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
+use super::RawRequest;
+use crate::core::{statistics, ScrapeData, Tracker};
 use crate::servers::udp::error::Error;
+use crate::servers::udp::logging::{log_bad_request, log_error_response, log_request, log_response};
 use crate::servers::udp::peer_builder;
 use crate::servers::udp::request::AnnounceWrapper;
 use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
-use crate::shared::bit_torrent::info_hash::InfoHash;
-use crate::tracker::{statistics, Tracker};
 
 /// It handles the incoming UDP packets.
 ///
 /// It's responsible for:
 ///
 /// - Parsing the incoming packet.
-/// - Delegating the request to the correct handler depending on the request
-/// type.
+/// - Delegating the request to the correct handler depending on the request type.
 ///
 /// It will return an `Error` response if the request is invalid.
-pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: &Tracker) -> Response {
-    match Request::from_bytes(&payload[..payload.len()], MAX_SCRAPE_TORRENTS).map_err(|e| Error::InternalServer {
-        message: format!("{e:?}"),
-        location: Location::caller(),
+pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Tracker, local_addr: SocketAddr) -> Response {
+    debug!("Handling Packets: {udp_request:?}");
+
+    let start_time = Instant::now();
+
+    let request_id = RequestId::make(&udp_request);
+
+    match Request::parse_bytes(&udp_request.payload[..udp_request.payload.len()], MAX_SCRAPE_TORRENTS).map_err(|e| {
+        Error::InternalServer {
+            message: format!("{e:?}"),
+            location: Location::caller(),
+        }
     }) {
         Ok(request) => {
+            log_request(&request, &request_id, &local_addr);
+
             let transaction_id = match &request {
                 Request::Connect(connect_request) => connect_request.transaction_id,
                 Request::Announce(announce_request) => announce_request.transaction_id,
                 Request::Scrape(scrape_request) => scrape_request.transaction_id,
             };
 
-            match handle_request(request, remote_addr, tracker).await {
+            let response = match handle_request(request, udp_request.from, tracker).await {
                 Ok(response) => response,
                 Err(e) => handle_error(&e, transaction_id),
-            }
+            };
+
+            let latency = start_time.elapsed();
+
+            log_response(&response, &transaction_id, &request_id, &local_addr, latency);
+
+            response
         }
-        // bad request
-        Err(e) => handle_error(
-            &Error::BadRequest {
-                source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
-            },
-            TransactionId(0),
-        ),
+        Err(e) => {
+            log_bad_request(&request_id);
+
+            let response = handle_error(
+                &Error::BadRequest {
+                    source: (Arc::new(e) as DynError).into(),
+                },
+                TransactionId(I32::new(0)),
+            );
+
+            log_error_response(&request_id);
+
+            response
+        }
     }
 }
 
@@ -59,6 +89,8 @@ pub async fn handle_packet(remote_addr: SocketAddr, payload: Vec<u8>, tracker: &
 ///
 /// If a error happens in the `handle_request` function, it will just return the  `ServerError`.
 pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: &Tracker) -> Result<Response, Error> {
+    debug!("Handling Request: {request:?} to: {remote_addr:?}");
+
     match request {
         Request::Connect(connect_request) => handle_connect(remote_addr, &connect_request, tracker).await,
         Request::Announce(announce_request) => handle_announce(remote_addr, &announce_request, tracker).await,
@@ -98,22 +130,6 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
     Ok(Response::from(response))
 }
 
-/// It authenticates the request. It returns an error if the peer is not allowed
-/// to make the request.
-///
-/// # Errors
-///
-/// Will return `Error` if unable to `authenticate_request`.
-#[allow(deprecated)]
-pub async fn authenticate(info_hash: &InfoHash, tracker: &Tracker) -> Result<(), Error> {
-    tracker
-        .authenticate_request(info_hash, &None)
-        .await
-        .map_err(|e| Error::TrackerError {
-            source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
-        })
-}
-
 /// It handles the `Announce` request. Refer to [`Announce`](crate::servers::udp#announce)
 /// request for more information.
 ///
@@ -127,6 +143,13 @@ pub async fn handle_announce(
 ) -> Result<Response, Error> {
     debug!("udp announce request: {:#?}", announce_request);
 
+    // Authentication
+    if tracker.requires_authentication() {
+        return Err(Error::TrackerAuthenticationRequired {
+            location: Location::caller(),
+        });
+    }
+
     check(&remote_addr, &from_connection_id(&announce_request.connection_id))?;
 
     let wrapped_announce_request = AnnounceWrapper::new(announce_request);
@@ -134,11 +157,14 @@ pub async fn handle_announce(
     let info_hash = wrapped_announce_request.info_hash;
     let remote_client_ip = remote_addr.ip();
 
-    authenticate(&info_hash, tracker).await?;
+    // Authorization
+    tracker.authorize(&info_hash).await.map_err(|e| Error::TrackerError {
+        source: (Arc::new(e) as Arc<dyn std::error::Error + Send + Sync>).into(),
+    })?;
 
     let mut peer = peer_builder::from_request(&wrapped_announce_request, &remote_client_ip);
 
-    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip).await;
+    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip);
 
     match remote_client_ip {
         IpAddr::V4(_) => {
@@ -152,18 +178,20 @@ pub async fn handle_announce(
     #[allow(clippy::cast_possible_truncation)]
     if remote_addr.is_ipv4() {
         let announce_response = AnnounceResponse {
-            transaction_id: wrapped_announce_request.announce_request.transaction_id,
-            announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
-            leechers: NumberOfPeers(i64::from(response.swarm_stats.leechers) as i32),
-            seeders: NumberOfPeers(i64::from(response.swarm_stats.seeders) as i32),
+            fixed: AnnounceResponseFixedData {
+                transaction_id: wrapped_announce_request.announce_request.transaction_id,
+                announce_interval: AnnounceInterval(I32::new(i64::from(tracker.get_announce_policy().interval) as i32)),
+                leechers: NumberOfPeers(I32::new(i64::from(response.stats.incomplete) as i32)),
+                seeders: NumberOfPeers(I32::new(i64::from(response.stats.complete) as i32)),
+            },
             peers: response
                 .peers
                 .iter()
                 .filter_map(|peer| {
                     if let IpAddr::V4(ip) = peer.peer_addr.ip() {
-                        Some(ResponsePeer::<Ipv4Addr> {
-                            ip_address: ip,
-                            port: Port(peer.peer_addr.port()),
+                        Some(ResponsePeer::<Ipv4AddrBytes> {
+                            ip_address: ip.into(),
+                            port: Port(peer.peer_addr.port().into()),
                         })
                     } else {
                         None
@@ -177,18 +205,20 @@ pub async fn handle_announce(
         Ok(Response::from(announce_response))
     } else {
         let announce_response = AnnounceResponse {
-            transaction_id: wrapped_announce_request.announce_request.transaction_id,
-            announce_interval: AnnounceInterval(i64::from(tracker.config.announce_interval) as i32),
-            leechers: NumberOfPeers(i64::from(response.swarm_stats.leechers) as i32),
-            seeders: NumberOfPeers(i64::from(response.swarm_stats.seeders) as i32),
+            fixed: AnnounceResponseFixedData {
+                transaction_id: wrapped_announce_request.announce_request.transaction_id,
+                announce_interval: AnnounceInterval(I32::new(i64::from(tracker.get_announce_policy().interval) as i32)),
+                leechers: NumberOfPeers(I32::new(i64::from(response.stats.incomplete) as i32)),
+                seeders: NumberOfPeers(I32::new(i64::from(response.stats.complete) as i32)),
+            },
             peers: response
                 .peers
                 .iter()
                 .filter_map(|peer| {
                     if let IpAddr::V6(ip) = peer.peer_addr.ip() {
-                        Some(ResponsePeer::<Ipv6Addr> {
-                            ip_address: ip,
-                            port: Port(peer.peer_addr.port()),
+                        Some(ResponsePeer::<Ipv6AddrBytes> {
+                            ip_address: ip.into(),
+                            port: Port(peer.peer_addr.port().into()),
                         })
                     } else {
                         None
@@ -218,27 +248,23 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
         info_hashes.push(InfoHash(info_hash.0));
     }
 
-    let scrape_data = tracker.scrape(&info_hashes).await;
+    let scrape_data = if tracker.requires_authentication() {
+        ScrapeData::zeroed(&info_hashes)
+    } else {
+        tracker.scrape(&info_hashes).await
+    };
 
     let mut torrent_stats: Vec<TorrentScrapeStatistics> = Vec::new();
 
     for file in &scrape_data.files {
-        let info_hash = file.0;
         let swarm_metadata = file.1;
 
-        #[allow(deprecated)]
-        let scrape_entry = if tracker.authenticate_request(info_hash, &None).await.is_ok() {
-            #[allow(clippy::cast_possible_truncation)]
+        #[allow(clippy::cast_possible_truncation)]
+        let scrape_entry = {
             TorrentScrapeStatistics {
-                seeders: NumberOfPeers(i64::from(swarm_metadata.complete) as i32),
-                completed: NumberOfDownloads(i64::from(swarm_metadata.downloaded) as i32),
-                leechers: NumberOfPeers(i64::from(swarm_metadata.incomplete) as i32),
-            }
-        } else {
-            TorrentScrapeStatistics {
-                seeders: NumberOfPeers(0),
-                completed: NumberOfDownloads(0),
-                leechers: NumberOfPeers(0),
+                seeders: NumberOfPeers(I32::new(i64::from(swarm_metadata.complete) as i32)),
+                completed: NumberOfDownloads(I32::new(i64::from(swarm_metadata.downloaded) as i32)),
+                leechers: NumberOfPeers(I32::new(i64::from(swarm_metadata.incomplete) as i32)),
             }
         };
 
@@ -273,22 +299,39 @@ fn handle_error(e: &Error, transaction_id: TransactionId) -> Response {
     })
 }
 
+/// An identifier for a request.
+#[derive(Debug, Clone)]
+pub struct RequestId(Uuid);
+
+impl RequestId {
+    fn make(_request: &RawRequest) -> RequestId {
+        RequestId(Uuid::new_v4())
+    }
+}
+
+impl fmt::Display for RequestId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use torrust_tracker_clock::clock::Time;
     use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_primitives::{peer, NumberOfBytes};
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::shared::clock::{Current, Time};
-    use crate::tracker::services::tracker_factory;
-    use crate::tracker::{peer, Tracker};
+    use crate::core::services::tracker_factory;
+    use crate::core::Tracker;
+    use crate::CurrentClock;
 
-    fn tracker_configuration() -> Arc<Configuration> {
-        Arc::new(default_testing_tracker_configuration())
+    fn tracker_configuration() -> Configuration {
+        default_testing_tracker_configuration()
     }
 
     fn default_testing_tracker_configuration() -> Configuration {
@@ -296,18 +339,18 @@ mod tests {
     }
 
     fn public_tracker() -> Arc<Tracker> {
-        initialized_tracker(configuration::ephemeral_mode_public().into())
+        initialized_tracker(&configuration::ephemeral_public())
     }
 
     fn private_tracker() -> Arc<Tracker> {
-        initialized_tracker(configuration::ephemeral_mode_private().into())
+        initialized_tracker(&configuration::ephemeral_private())
     }
 
     fn whitelisted_tracker() -> Arc<Tracker> {
-        initialized_tracker(configuration::ephemeral_mode_whitelisted().into())
+        initialized_tracker(&configuration::ephemeral_listed())
     }
 
-    fn initialized_tracker(configuration: Arc<Configuration>) -> Arc<Tracker> {
+    fn initialized_tracker(configuration: &Configuration) -> Arc<Tracker> {
         tracker_factory(configuration).into()
     }
 
@@ -327,39 +370,41 @@ mod tests {
         SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 8080)
     }
 
-    struct TorrentPeerBuilder {
+    #[derive(Debug, Default)]
+    pub struct TorrentPeerBuilder {
         peer: peer::Peer,
     }
 
     impl TorrentPeerBuilder {
-        pub fn default() -> TorrentPeerBuilder {
-            let default_peer = peer::Peer {
-                peer_id: peer::Id([255u8; 20]),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-                updated: Current::now(),
-                uploaded: NumberOfBytes(0),
-                downloaded: NumberOfBytes(0),
-                left: NumberOfBytes(0),
-                event: AnnounceEvent::Started,
-            };
-            TorrentPeerBuilder { peer: default_peer }
+        #[must_use]
+        pub fn new() -> Self {
+            Self {
+                peer: peer::Peer {
+                    updated: CurrentClock::now(),
+                    ..Default::default()
+                },
+            }
         }
 
+        #[must_use]
+        pub fn with_peer_address(mut self, peer_addr: SocketAddr) -> Self {
+            self.peer.peer_addr = peer_addr;
+            self
+        }
+
+        #[must_use]
         pub fn with_peer_id(mut self, peer_id: peer::Id) -> Self {
             self.peer.peer_id = peer_id;
             self
         }
 
-        pub fn with_peer_addr(mut self, peer_addr: SocketAddr) -> Self {
-            self.peer.peer_addr = peer_addr;
-            self
-        }
-
-        pub fn with_bytes_left(mut self, left: i64) -> Self {
+        #[must_use]
+        pub fn with_number_of_bytes_left(mut self, left: i64) -> Self {
             self.peer.left = NumberOfBytes(left);
             self
         }
 
+        #[must_use]
         pub fn into(self) -> peer::Peer {
             self.peer
         }
@@ -378,7 +423,7 @@ mod tests {
         }
 
         pub fn with_external_ip(mut self, external_ip: &str) -> Self {
-            self.configuration.external_ip = Some(external_ip.to_owned());
+            self.configuration.core.net.external_ip = Some(external_ip.to_owned().parse().expect("valid IP address"));
             self
         }
 
@@ -396,21 +441,21 @@ mod tests {
         use mockall::predicate::eq;
 
         use super::{sample_ipv4_socket_address, sample_ipv6_remote_addr, tracker_configuration};
+        use crate::core::{self, statistics};
         use crate::servers::udp::connection_cookie::{into_connection_id, make};
         use crate::servers::udp::handlers::handle_connect;
         use crate::servers::udp::handlers::tests::{public_tracker, sample_ipv4_remote_addr};
-        use crate::tracker::{self, statistics};
 
         fn sample_connect_request() -> ConnectRequest {
             ConnectRequest {
-                transaction_id: TransactionId(0i32),
+                transaction_id: TransactionId(0i32.into()),
             }
         }
 
         #[tokio::test]
         async fn a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request() {
             let request = ConnectRequest {
-                transaction_id: TransactionId(0i32),
+                transaction_id: TransactionId(0i32.into()),
             };
 
             let response = handle_connect(sample_ipv4_remote_addr(), &request, &public_tracker())
@@ -429,7 +474,7 @@ mod tests {
         #[tokio::test]
         async fn a_connect_response_should_contain_a_new_connection_id() {
             let request = ConnectRequest {
-                transaction_id: TransactionId(0i32),
+                transaction_id: TransactionId(0i32.into()),
             };
 
             let response = handle_connect(sample_ipv4_remote_addr(), &request, &public_tracker())
@@ -458,7 +503,12 @@ mod tests {
             let client_socket_address = sample_ipv4_socket_address();
 
             let torrent_tracker = Arc::new(
-                tracker::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                core::Tracker::new(
+                    &tracker_configuration().core,
+                    Some(stats_event_sender),
+                    statistics::Repo::new(),
+                )
+                .unwrap(),
             );
             handle_connect(client_socket_address, &sample_connect_request(), &torrent_tracker)
                 .await
@@ -476,7 +526,12 @@ mod tests {
             let stats_event_sender = Box::new(stats_event_sender_mock);
 
             let torrent_tracker = Arc::new(
-                tracker::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                core::Tracker::new(
+                    &tracker_configuration().core,
+                    Some(stats_event_sender),
+                    statistics::Repo::new(),
+                )
+                .unwrap(),
             );
             handle_connect(sample_ipv6_remote_addr(), &sample_connect_request(), &torrent_tracker)
                 .await
@@ -487,10 +542,11 @@ mod tests {
     mod announce_request {
 
         use std::net::Ipv4Addr;
+        use std::num::NonZeroU16;
 
         use aquatic_udp_protocol::{
-            AnnounceEvent, AnnounceRequest, ConnectionId, NumberOfBytes, NumberOfPeers, PeerId as AquaticPeerId, PeerKey, Port,
-            TransactionId,
+            AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
+            PeerId as AquaticPeerId, PeerKey, Port, TransactionId,
         };
 
         use crate::servers::udp::connection_cookie::{into_connection_id, make};
@@ -508,17 +564,18 @@ mod tests {
 
                 let default_request = AnnounceRequest {
                     connection_id: into_connection_id(&make(&sample_ipv4_remote_addr())),
-                    transaction_id: TransactionId(0i32),
+                    action_placeholder: AnnounceActionPlaceholder::default(),
+                    transaction_id: TransactionId(0i32.into()),
                     info_hash: info_hash_aquatic,
                     peer_id: AquaticPeerId([255u8; 20]),
-                    bytes_downloaded: NumberOfBytes(0i64),
-                    bytes_uploaded: NumberOfBytes(0i64),
-                    bytes_left: NumberOfBytes(0i64),
-                    event: AnnounceEvent::Started,
-                    ip_address: Some(client_ip),
-                    key: PeerKey(0u32),
-                    peers_wanted: NumberOfPeers(1i32),
-                    port: Port(client_port),
+                    bytes_downloaded: NumberOfBytes(0i64.into()),
+                    bytes_uploaded: NumberOfBytes(0i64.into()),
+                    bytes_left: NumberOfBytes(0i64.into()),
+                    event: AnnounceEvent::Started.into(),
+                    ip_address: client_ip.into(),
+                    key: PeerKey::new(0i32),
+                    peers_wanted: NumberOfPeers::new(1i32),
+                    port: Port::new(NonZeroU16::new(client_port).expect("a non-zero client port")),
                 };
                 AnnounceRequestBuilder {
                     request: default_request,
@@ -541,12 +598,12 @@ mod tests {
             }
 
             pub fn with_ip_address(mut self, ip_address: Ipv4Addr) -> Self {
-                self.request.ip_address = Some(ip_address);
+                self.request.ip_address = ip_address.into();
                 self
             }
 
             pub fn with_port(mut self, port: u16) -> Self {
-                self.request.port = Port(port);
+                self.request.port = Port(port.into());
                 self
             }
 
@@ -558,22 +615,23 @@ mod tests {
         mod using_ipv4 {
 
             use std::future;
-            use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+            use std::net::{IpAddr, Ipv4Addr, SocketAddr};
             use std::sync::Arc;
 
             use aquatic_udp_protocol::{
-                AnnounceInterval, AnnounceResponse, InfoHash as AquaticInfoHash, NumberOfPeers, PeerId as AquaticPeerId,
-                Response, ResponsePeer,
+                AnnounceInterval, AnnounceResponse, InfoHash as AquaticInfoHash, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers,
+                PeerId as AquaticPeerId, Response, ResponsePeer,
             };
             use mockall::predicate::eq;
+            use torrust_tracker_primitives::peer;
 
+            use crate::core::{self, statistics};
             use crate::servers::udp::connection_cookie::{into_connection_id, make};
-            use crate::servers::udp::handlers::handle_announce;
             use crate::servers::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
             use crate::servers::udp::handlers::tests::{
                 public_tracker, sample_ipv4_socket_address, tracker_configuration, TorrentPeerBuilder,
             };
-            use crate::tracker::{self, peer, statistics};
+            use crate::servers::udp::handlers::{handle_announce, AnnounceResponseFixedData};
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
@@ -596,14 +654,14 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
-                let expected_peer = TorrentPeerBuilder::default()
+                let expected_peer = TorrentPeerBuilder::new()
                     .with_peer_id(peer::Id(peer_id.0))
-                    .with_peer_addr(SocketAddr::new(IpAddr::V4(client_ip), client_port))
+                    .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip), client_port))
                     .into();
 
-                assert_eq!(peers[0], expected_peer);
+                assert_eq!(peers[0], Arc::new(expected_peer));
             }
 
             #[tokio::test]
@@ -616,14 +674,16 @@ mod tests {
 
                 let response = handle_announce(remote_addr, &request, &public_tracker()).await.unwrap();
 
-                let empty_peer_vector: Vec<ResponsePeer<Ipv4Addr>> = vec![];
+                let empty_peer_vector: Vec<ResponsePeer<Ipv4AddrBytes>> = vec![];
                 assert_eq!(
                     response,
                     Response::from(AnnounceResponse {
-                        transaction_id: request.transaction_id,
-                        announce_interval: AnnounceInterval(120i32),
-                        leechers: NumberOfPeers(0i32),
-                        seeders: NumberOfPeers(1i32),
+                        fixed: AnnounceResponseFixedData {
+                            transaction_id: request.transaction_id,
+                            announce_interval: AnnounceInterval(120i32.into()),
+                            leechers: NumberOfPeers(0i32.into()),
+                            seeders: NumberOfPeers(1i32.into()),
+                        },
                         peers: empty_peer_vector
                     })
                 );
@@ -657,12 +717,12 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
             }
 
-            async fn add_a_torrent_peer_using_ipv6(tracker: Arc<tracker::Tracker>) {
+            fn add_a_torrent_peer_using_ipv6(tracker: &Arc<core::Tracker>) {
                 let info_hash = AquaticInfoHash([0u8; 20]);
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
@@ -670,17 +730,15 @@ mod tests {
                 let client_port = 8080;
                 let peer_id = AquaticPeerId([255u8; 20]);
 
-                let peer_using_ipv6 = TorrentPeerBuilder::default()
+                let peer_using_ipv6 = TorrentPeerBuilder::new()
                     .with_peer_id(peer::Id(peer_id.0))
-                    .with_peer_addr(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
+                    .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
-                tracker
-                    .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv6)
-                    .await;
+                tracker.upsert_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv6);
             }
 
-            async fn announce_a_new_peer_using_ipv4(tracker: Arc<tracker::Tracker>) -> Response {
+            async fn announce_a_new_peer_using_ipv4(tracker: Arc<core::Tracker>) -> Response {
                 let remote_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(into_connection_id(&make(&remote_addr)))
@@ -693,12 +751,12 @@ mod tests {
             async fn when_the_announce_request_comes_from_a_client_using_ipv4_the_response_should_not_include_peers_using_ipv6() {
                 let tracker = public_tracker();
 
-                add_a_torrent_peer_using_ipv6(tracker.clone()).await;
+                add_a_torrent_peer_using_ipv6(&tracker);
 
                 let response = announce_a_new_peer_using_ipv4(tracker.clone()).await;
 
                 // The response should not contain the peer using IPV6
-                let peers: Option<Vec<ResponsePeer<Ipv6Addr>>> = match response {
+                let peers: Option<Vec<ResponsePeer<Ipv6AddrBytes>>> = match response {
                     Response::AnnounceIpv6(announce_response) => Some(announce_response.peers),
                     _ => None,
                 };
@@ -717,7 +775,12 @@ mod tests {
                 let stats_event_sender = Box::new(stats_event_sender_mock);
 
                 let tracker = Arc::new(
-                    tracker::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    core::Tracker::new(
+                        &tracker_configuration().core,
+                        Some(stats_event_sender),
+                        statistics::Repo::new(),
+                    )
+                    .unwrap(),
                 );
 
                 handle_announce(
@@ -731,14 +794,15 @@ mod tests {
 
             mod from_a_loopback_ip {
                 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+                use std::sync::Arc;
 
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
+                use torrust_tracker_primitives::peer;
 
                 use crate::servers::udp::connection_cookie::{into_connection_id, make};
                 use crate::servers::udp::handlers::handle_announce;
                 use crate::servers::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
                 use crate::servers::udp::handlers::tests::{public_tracker, TorrentPeerBuilder};
-                use crate::tracker::peer;
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration_if_defined() {
@@ -761,17 +825,16 @@ mod tests {
 
                     handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                    let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                    let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
-                    let external_ip_in_tracker_configuration =
-                        tracker.config.external_ip.clone().unwrap().parse::<Ipv4Addr>().unwrap();
+                    let external_ip_in_tracker_configuration = tracker.get_maybe_external_ip().unwrap();
 
-                    let expected_peer = TorrentPeerBuilder::default()
+                    let expected_peer = TorrentPeerBuilder::new()
                         .with_peer_id(peer::Id(peer_id.0))
-                        .with_peer_addr(SocketAddr::new(IpAddr::V4(external_ip_in_tracker_configuration), client_port))
+                        .with_peer_address(SocketAddr::new(external_ip_in_tracker_configuration, client_port))
                         .into();
 
-                    assert_eq!(peers[0], expected_peer);
+                    assert_eq!(peers[0], Arc::new(expected_peer));
                 }
             }
         }
@@ -779,22 +842,23 @@ mod tests {
         mod using_ipv6 {
 
             use std::future;
-            use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+            use std::net::{IpAddr, Ipv4Addr, SocketAddr};
             use std::sync::Arc;
 
             use aquatic_udp_protocol::{
-                AnnounceInterval, AnnounceResponse, InfoHash as AquaticInfoHash, NumberOfPeers, PeerId as AquaticPeerId,
-                Response, ResponsePeer,
+                AnnounceInterval, AnnounceResponse, InfoHash as AquaticInfoHash, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers,
+                PeerId as AquaticPeerId, Response, ResponsePeer,
             };
             use mockall::predicate::eq;
+            use torrust_tracker_primitives::peer;
 
+            use crate::core::{self, statistics};
             use crate::servers::udp::connection_cookie::{into_connection_id, make};
-            use crate::servers::udp::handlers::handle_announce;
             use crate::servers::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
             use crate::servers::udp::handlers::tests::{
                 public_tracker, sample_ipv6_remote_addr, tracker_configuration, TorrentPeerBuilder,
             };
-            use crate::tracker::{self, peer, statistics};
+            use crate::servers::udp::handlers::{handle_announce, AnnounceResponseFixedData};
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
@@ -818,14 +882,14 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
-                let expected_peer = TorrentPeerBuilder::default()
+                let expected_peer = TorrentPeerBuilder::new()
                     .with_peer_id(peer::Id(peer_id.0))
-                    .with_peer_addr(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
+                    .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
-                assert_eq!(peers[0], expected_peer);
+                assert_eq!(peers[0], Arc::new(expected_peer));
             }
 
             #[tokio::test]
@@ -841,14 +905,16 @@ mod tests {
 
                 let response = handle_announce(remote_addr, &request, &public_tracker()).await.unwrap();
 
-                let empty_peer_vector: Vec<ResponsePeer<Ipv6Addr>> = vec![];
+                let empty_peer_vector: Vec<ResponsePeer<Ipv6AddrBytes>> = vec![];
                 assert_eq!(
                     response,
                     Response::from(AnnounceResponse {
-                        transaction_id: request.transaction_id,
-                        announce_interval: AnnounceInterval(120i32),
-                        leechers: NumberOfPeers(0i32),
-                        seeders: NumberOfPeers(1i32),
+                        fixed: AnnounceResponseFixedData {
+                            transaction_id: request.transaction_id,
+                            announce_interval: AnnounceInterval(120i32.into()),
+                            leechers: NumberOfPeers(0i32.into()),
+                            seeders: NumberOfPeers(1i32.into()),
+                        },
                         peers: empty_peer_vector
                     })
                 );
@@ -882,30 +948,28 @@ mod tests {
 
                 handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
                 // When using IPv6 the tracker converts the remote client ip into a IPv4 address
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V6(remote_client_ip), client_port));
             }
 
-            async fn add_a_torrent_peer_using_ipv4(tracker: Arc<tracker::Tracker>) {
+            fn add_a_torrent_peer_using_ipv4(tracker: &Arc<core::Tracker>) {
                 let info_hash = AquaticInfoHash([0u8; 20]);
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_port = 8080;
                 let peer_id = AquaticPeerId([255u8; 20]);
 
-                let peer_using_ipv4 = TorrentPeerBuilder::default()
+                let peer_using_ipv4 = TorrentPeerBuilder::new()
                     .with_peer_id(peer::Id(peer_id.0))
-                    .with_peer_addr(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
+                    .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 
-                tracker
-                    .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv4)
-                    .await;
+                tracker.upsert_peer_and_get_stats(&info_hash.0.into(), &peer_using_ipv4);
             }
 
-            async fn announce_a_new_peer_using_ipv6(tracker: Arc<tracker::Tracker>) -> Response {
+            async fn announce_a_new_peer_using_ipv6(tracker: Arc<core::Tracker>) -> Response {
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
                 let client_port = 8080;
@@ -921,12 +985,12 @@ mod tests {
             async fn when_the_announce_request_comes_from_a_client_using_ipv6_the_response_should_not_include_peers_using_ipv4() {
                 let tracker = public_tracker();
 
-                add_a_torrent_peer_using_ipv4(tracker.clone()).await;
+                add_a_torrent_peer_using_ipv4(&tracker);
 
                 let response = announce_a_new_peer_using_ipv6(tracker.clone()).await;
 
                 // The response should not contain the peer using IPV4
-                let peers: Option<Vec<ResponsePeer<Ipv4Addr>>> = match response {
+                let peers: Option<Vec<ResponsePeer<Ipv4AddrBytes>>> = match response {
                     Response::AnnounceIpv4(announce_response) => Some(announce_response.peers),
                     _ => None,
                 };
@@ -945,7 +1009,12 @@ mod tests {
                 let stats_event_sender = Box::new(stats_event_sender_mock);
 
                 let tracker = Arc::new(
-                    tracker::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    core::Tracker::new(
+                        &tracker_configuration().core,
+                        Some(stats_event_sender),
+                        statistics::Repo::new(),
+                    )
+                    .unwrap(),
                 );
 
                 let remote_addr = sample_ipv6_remote_addr();
@@ -963,19 +1032,19 @@ mod tests {
 
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
 
+                use crate::core;
+                use crate::core::statistics::Keeper;
                 use crate::servers::udp::connection_cookie::{into_connection_id, make};
                 use crate::servers::udp::handlers::handle_announce;
                 use crate::servers::udp::handlers::tests::announce_request::AnnounceRequestBuilder;
                 use crate::servers::udp::handlers::tests::TrackerConfigurationBuilder;
-                use crate::tracker;
-                use crate::tracker::statistics::Keeper;
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
                     let configuration = Arc::new(TrackerConfigurationBuilder::default().with_external_ip("::126.0.0.1").into());
                     let (stats_event_sender, stats_repository) = Keeper::new_active_instance();
                     let tracker =
-                        Arc::new(tracker::Tracker::new(configuration, Some(stats_event_sender), stats_repository).unwrap());
+                        Arc::new(core::Tracker::new(&configuration.core, Some(stats_event_sender), stats_repository).unwrap());
 
                     let loopback_ipv4 = Ipv4Addr::new(127, 0, 0, 1);
                     let loopback_ipv6 = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
@@ -999,10 +1068,11 @@ mod tests {
 
                     handle_announce(remote_addr, &request, &tracker).await.unwrap();
 
-                    let peers = tracker.get_all_torrent_peers(&info_hash.0.into()).await;
+                    let peers = tracker.get_torrent_peers(&info_hash.0.into());
 
-                    let _external_ip_in_tracker_configuration =
-                        tracker.config.external_ip.clone().unwrap().parse::<Ipv6Addr>().unwrap();
+                    let external_ip_in_tracker_configuration = tracker.get_maybe_external_ip().unwrap();
+
+                    assert!(external_ip_in_tracker_configuration.is_ipv6());
 
                     // There's a special type of IPv6 addresses that provide compatibility with IPv4.
                     // The last 32 bits of these addresses represent an IPv4, and are represented like this:
@@ -1023,18 +1093,19 @@ mod tests {
             InfoHash, NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
             TransactionId,
         };
+        use torrust_tracker_primitives::peer;
 
         use super::TorrentPeerBuilder;
+        use crate::core::{self};
         use crate::servers::udp::connection_cookie::{into_connection_id, make};
         use crate::servers::udp::handlers::handle_scrape;
         use crate::servers::udp::handlers::tests::{public_tracker, sample_ipv4_remote_addr};
-        use crate::tracker::{self, peer};
 
         fn zeroed_torrent_statistics() -> TorrentScrapeStatistics {
             TorrentScrapeStatistics {
-                seeders: NumberOfPeers(0),
-                completed: NumberOfDownloads(0),
-                leechers: NumberOfPeers(0),
+                seeders: NumberOfPeers(0.into()),
+                completed: NumberOfDownloads(0.into()),
+                leechers: NumberOfPeers(0.into()),
             }
         }
 
@@ -1047,7 +1118,7 @@ mod tests {
 
             let request = ScrapeRequest {
                 connection_id: into_connection_id(&make(&remote_addr)),
-                transaction_id: TransactionId(0i32),
+                transaction_id: TransactionId(0i32.into()),
                 info_hashes,
             };
 
@@ -1064,18 +1135,16 @@ mod tests {
             );
         }
 
-        async fn add_a_seeder(tracker: Arc<tracker::Tracker>, remote_addr: &SocketAddr, info_hash: &InfoHash) {
+        async fn add_a_seeder(tracker: Arc<core::Tracker>, remote_addr: &SocketAddr, info_hash: &InfoHash) {
             let peer_id = peer::Id([255u8; 20]);
 
-            let peer = TorrentPeerBuilder::default()
+            let peer = TorrentPeerBuilder::new()
                 .with_peer_id(peer::Id(peer_id.0))
-                .with_peer_addr(*remote_addr)
-                .with_bytes_left(0)
+                .with_peer_address(*remote_addr)
+                .with_number_of_bytes_left(0)
                 .into();
 
-            tracker
-                .update_torrent_with_peer_and_get_stats(&info_hash.0.into(), &peer)
-                .await;
+            tracker.upsert_peer_and_get_stats(&info_hash.0.into(), &peer);
         }
 
         fn build_scrape_request(remote_addr: &SocketAddr, info_hash: &InfoHash) -> ScrapeRequest {
@@ -1083,12 +1152,12 @@ mod tests {
 
             ScrapeRequest {
                 connection_id: into_connection_id(&make(remote_addr)),
-                transaction_id: TransactionId(0i32),
+                transaction_id: TransactionId::new(0i32),
                 info_hashes,
             }
         }
 
-        async fn add_a_sample_seeder_and_scrape(tracker: Arc<tracker::Tracker>) -> Response {
+        async fn add_a_sample_seeder_and_scrape(tracker: Arc<core::Tracker>) -> Response {
             let remote_addr = sample_ipv4_remote_addr();
             let info_hash = InfoHash([0u8; 20]);
 
@@ -1119,9 +1188,9 @@ mod tests {
                 let torrent_stats = match_scrape_response(add_a_sample_seeder_and_scrape(tracker.clone()).await);
 
                 let expected_torrent_stats = vec![TorrentScrapeStatistics {
-                    seeders: NumberOfPeers(1),
-                    completed: NumberOfDownloads(0),
-                    leechers: NumberOfPeers(0),
+                    seeders: NumberOfPeers(1.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
                 }];
 
                 assert_eq!(torrent_stats.unwrap().torrent_stats, expected_torrent_stats);
@@ -1192,9 +1261,9 @@ mod tests {
                 let torrent_stats = match_scrape_response(handle_scrape(remote_addr, &request, &tracker).await.unwrap()).unwrap();
 
                 let expected_torrent_stats = vec![TorrentScrapeStatistics {
-                    seeders: NumberOfPeers(1),
-                    completed: NumberOfDownloads(0),
-                    leechers: NumberOfPeers(0),
+                    seeders: NumberOfPeers(1.into()),
+                    completed: NumberOfDownloads(0.into()),
+                    leechers: NumberOfPeers(0.into()),
                 }];
 
                 assert_eq!(torrent_stats.torrent_stats, expected_torrent_stats);
@@ -1225,7 +1294,7 @@ mod tests {
 
             ScrapeRequest {
                 connection_id: into_connection_id(&make(remote_addr)),
-                transaction_id: TransactionId(0i32),
+                transaction_id: TransactionId(0i32.into()),
                 info_hashes,
             }
         }
@@ -1237,9 +1306,9 @@ mod tests {
             use mockall::predicate::eq;
 
             use super::sample_scrape_request;
+            use crate::core::{self, statistics};
             use crate::servers::udp::handlers::handle_scrape;
             use crate::servers::udp::handlers::tests::{sample_ipv4_remote_addr, tracker_configuration};
-            use crate::tracker::{self, statistics};
 
             #[tokio::test]
             async fn should_send_the_upd4_scrape_event() {
@@ -1253,7 +1322,12 @@ mod tests {
 
                 let remote_addr = sample_ipv4_remote_addr();
                 let tracker = Arc::new(
-                    tracker::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    core::Tracker::new(
+                        &tracker_configuration().core,
+                        Some(stats_event_sender),
+                        statistics::Repo::new(),
+                    )
+                    .unwrap(),
                 );
 
                 handle_scrape(remote_addr, &sample_scrape_request(&remote_addr), &tracker)
@@ -1269,9 +1343,9 @@ mod tests {
             use mockall::predicate::eq;
 
             use super::sample_scrape_request;
+            use crate::core::{self, statistics};
             use crate::servers::udp::handlers::handle_scrape;
             use crate::servers::udp::handlers::tests::{sample_ipv6_remote_addr, tracker_configuration};
-            use crate::tracker::{self, statistics};
 
             #[tokio::test]
             async fn should_send_the_upd6_scrape_event() {
@@ -1285,7 +1359,12 @@ mod tests {
 
                 let remote_addr = sample_ipv6_remote_addr();
                 let tracker = Arc::new(
-                    tracker::Tracker::new(tracker_configuration(), Some(stats_event_sender), statistics::Repo::new()).unwrap(),
+                    core::Tracker::new(
+                        &tracker_configuration().core,
+                        Some(stats_event_sender),
+                        statistics::Repo::new(),
+                    )
+                    .unwrap(),
                 );
 
                 handle_scrape(remote_addr, &sample_scrape_request(&remote_addr), &tracker)

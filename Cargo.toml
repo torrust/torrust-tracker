@@ -1,4 +1,5 @@
 [package]
+default-run = "torrust-tracker"
 name = "torrust-tracker"
 readme = "README.md"
 
@@ -8,7 +9,7 @@ documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
-license-file.workspace = true
+license.workspace = true
 publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true
@@ -22,65 +23,95 @@ documentation = "https://docs.rs/crate/torrust-tracker/"
 edition = "2021"
 homepage = "https://torrust.com/"
 keywords = ["bittorrent", "file-sharing", "peer-to-peer", "torrent", "tracker"]
-license-file = "COPYRIGHT"
+license = "AGPL-3.0-only"
 publish = true
 repository = "https://github.com/torrust/torrust-tracker"
 rust-version = "1.72"
-version = "3.0.0-alpha.11"
+version = "3.0.0-alpha.12"
 
 [dependencies]
-aquatic_udp_protocol = "0.8"
-async-trait = "0.1"
-axum = "0.6"
-axum-client-ip = "0.4"
-axum-server = { version = "0.5", features = ["tls-rustls"] }
-binascii = "0.1"
-chrono = { version = "0.4", default-features = false, features = ["clock"] }
-config = "0.13"
-derive_more = "0.99"
-fern = "0.6"
-futures = "0.3"
-hyper = "0.14"
-lazy_static = "1.4"
-log = { version = "0.4", features = ["release_max_level_info"] }
-multimap = "0.9"
-openssl = { version = "0.10", features = ["vendored"] }
-percent-encoding = "2.2"
-r2d2 = "0.8"
-r2d2_mysql = "24.0"
-r2d2_sqlite = { version = "0.22", features = ["bundled"] }
-rand = "0.8"
-serde = { version = "1.0", features = ["derive"] }
-serde_bencode = "^0.2"
-serde_json = "1.0"
-serde_with = "3.2"
-thiserror = "1.0"
-tokio = { version = "1.29", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
-torrust-tracker-configuration = { version = "3.0.0-alpha.11", path = "packages/configuration" }
-torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.11", path = "contrib/bencode" }
-torrust-tracker-located-error = { version = "3.0.0-alpha.11", path = "packages/located-error" }
-torrust-tracker-primitives = { version = "3.0.0-alpha.11", path = "packages/primitives" }
-tower-http = { version = "0.4", features = ["compression-full"] }
+anyhow = "1"
+aquatic_udp_protocol = "0"
+axum = { version = "0", features = ["macros"] }
+axum-client-ip = "0"
+axum-extra = { version = "0", features = ["query"] }
+axum-server = { version = "0", features = ["tls-rustls"] }
+camino = { version = "1", features = ["serde", "serde1"] }
+chrono = { version = "0", default-features = false, features = ["clock"] }
+clap = { version = "4", features = ["derive", "env"] }
+crossbeam-skiplist = "0"
+dashmap = "6"
+derive_more = "0"
+figment = "0"
+futures = "0"
+futures-util = "0"
+hex-literal = "0"
+http-body = "1"
+hyper = "1"
+hyper-util = { version = "0", features = ["http1", "http2", "tokio"] }
+lazy_static = "1"
+multimap = "0"
+parking_lot = "0"
+percent-encoding = "2"
+pin-project-lite = "0"
+r2d2 = "0"
+r2d2_mysql = "25"
+r2d2_sqlite = { version = "0", features = ["bundled"] }
+rand = "0"
+regex = "1"
+reqwest = { version = "0", features = ["json"] }
+ringbuf = "0"
+serde = { version = "1", features = ["derive"] }
+serde_bencode = "0"
+serde_bytes = "0"
+serde_json = { version = "1", features = ["preserve_order"] }
+serde_repr = "0"
+serde_with = { version = "3.9.0", features = ["json"] }
+thiserror = "1"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+torrust-tracker-clock = { version = "3.0.0-alpha.12", path = "packages/clock" }
+torrust-tracker-configuration = { version = "3.0.0-alpha.12", path = "packages/configuration" }
+torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.12", path = "contrib/bencode" }
+torrust-tracker-located-error = { version = "3.0.0-alpha.12", path = "packages/located-error" }
+torrust-tracker-primitives = { version = "3.0.0-alpha.12", path = "packages/primitives" }
+torrust-tracker-torrent-repository = { version = "3.0.0-alpha.12", path = "packages/torrent-repository" }
+tower = { version = "0", features = ["timeout"] }
+tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
+trace = "0"
+tracing = "0"
+tracing-subscriber = { version = "0", features = ["json"] }
+url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }
+zerocopy = "0"
+
+[package.metadata.cargo-machete]
+ignored = ["crossbeam-skiplist", "dashmap", "figment", "parking_lot", "serde_bytes"]
 
 [dev-dependencies]
-local-ip-address = "0.5"
-mockall = "0.11"
-reqwest = { version = "0.11.18", features = ["json"] }
-serde_bytes = "0.11"
-serde_repr = "0.1"
-serde_urlencoded = "0.7"
-torrust-tracker-test-helpers = { version = "3.0.0-alpha.11", path = "packages/test-helpers" }
+local-ip-address = "0"
+mockall = "0"
+torrust-tracker-test-helpers = { version = "3.0.0-alpha.12", path = "packages/test-helpers" }
 
 [workspace]
-members = ["contrib/bencode", "packages/configuration", "packages/located-error", "packages/primitives", "packages/test-helpers"]
+members = [
+    "contrib/bencode",
+    "packages/configuration",
+    "packages/located-error",
+    "packages/primitives",
+    "packages/test-helpers",
+    "packages/torrent-repository",
+]
 
 [profile.dev]
 debug = 1
-lto = "thin"
+lto = "fat"
 opt-level = 1
 
 [profile.release]
 debug = 1
 lto = "fat"
 opt-level = 3
+
+[profile.release-debug]
+debug = true
+inherits = "release"

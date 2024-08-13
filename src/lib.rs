@@ -103,35 +103,53 @@
 //! ```
 //!
 //! > **NOTICE**: those are the commands for `Ubuntu`. If you are using a
-//! different OS, you will need to install the equivalent packages. Please
-//! refer to the documentation of your OS.
+//! > different OS, you will need to install the equivalent packages. Please
+//! > refer to the documentation of your OS.
 //!
 //! With the default configuration you will need to create the `storage` directory:
 //!
 //! ```text
-//! storage/
-//! ├── database
-//! │   └── data.db
-//! └── tls
-//!     ├── localhost.crt
-//!     └── localhost.key
+//! ./storage/
+//! └── tracker
+//!     ├── etc
+//!     ├── lib
+//!     │   ├── database
+//!     │   │   └── sqlite3.db
+//!     │   └── tls
+//!     └── log
 //! ```
 //!
 //! The default configuration expects a directory `./storage/tracker/lib/database` to be writable by the tracker process.
 //!
-//! By default the tracker uses `SQLite` and the database file name `data.db`.
+//! By default the tracker uses `SQLite` and the database file name `sqlite3.db`.
 //!
 //! You only need the `tls` directory in case you are setting up SSL for the HTTP tracker or the tracker API.
 //! Visit [`HTTP`](crate::servers::http) or [`API`](crate::servers::apis) if you want to know how you can use HTTPS.
 //!
 //! ## Install from sources
 //!
+//! First, you need to create a folder to clone the repository.
+//!
+//! ```text
+//! cd /tmp
+//! mkdir torrust
+//! ```
+//!
 //! ```text
 //! git clone https://github.com/torrust/torrust-tracker.git \
 //!   && cd torrust-tracker \
 //!   && cargo build --release \
+//!   && mkdir -p ./storage/tracker/etc \
 //!   && mkdir -p ./storage/tracker/lib/database \
-//!   && mkdir -p ./storage/tracker/lib/tls
+//!   && mkdir -p ./storage/tracker/lib/tls \
+//!   && mkdir -p ./storage/tracker/log
+//! ```
+//!
+//! To run the tracker we will have to use the command "cargo run" this will
+//! compile and after being compiled it will start running the tracker.
+//!
+//! ```text
+//! cargo run
 //! ```
 //!
 //! ## Run with docker
@@ -141,69 +159,75 @@
 //!
 //! # Configuration
 //!
-//! In order to run the tracker you need to provide the configuration. If you run the tracker without providing the configuration,
-//! the tracker will generate the default configuration the first time you run it. It will generate a `tracker.toml` file with
-//! in the root directory.
+//! In order to run the tracker you need to provide the configuration. If you
+//! run the tracker without providing the configuration, the tracker will
+//! generate the default configuration the first time you run it. It will
+//! generate a `tracker.toml` file with in the root directory.
 //!
 //! The default configuration is:
 //!
 //! ```toml
-//! log_level = "info"
-//! mode = "public"
-//! db_driver = "Sqlite3"
-//! db_path = "./storage/tracker/lib/database/sqlite3.db"
-//! announce_interval = 120
-//! min_announce_interval = 120
-//! max_peer_timeout = 900
-//! on_reverse_proxy = false
-//! external_ip = "0.0.0.0"
-//! tracker_usage_statistics = true
-//! persistent_torrent_completed_stat = false
+//! [logging]
+//! threshold = "info"
+//!
+//! [core]
 //! inactive_peer_cleanup_interval = 600
+//! listed = false
+//! private = false
+//! tracker_usage_statistics = true
+//!
+//! [core.announce_policy]
+//! interval = 120
+//! interval_min = 120
+//!
+//! [core.database]
+//! driver = "sqlite3"
+//! path = "./storage/tracker/lib/database/sqlite3.db"
+//!
+//! [core.net]
+//! external_ip = "0.0.0.0"
+//! on_reverse_proxy = false
+//!
+//! [core.tracker_policy]
+//! max_peer_timeout = 900
+//! persistent_torrent_completed_stat = false
 //! remove_peerless_torrents = true
 //!
-//! [[udp_trackers]]
-//! enabled = false
-//! bind_address = "0.0.0.0:6969"
+//! [health_check_api]
+//! bind_address = "127.0.0.1:1313"
+//!```
 //!
-//! [[http_trackers]]
-//! enabled = false
-//! bind_address = "0.0.0.0:7070"
-//! ssl_enabled = false
-//! ssl_cert_path = ""
-//! ssl_key_path = ""
+//! The default configuration includes one disabled UDP server, one disabled
+//! HTTP server and the enabled API.
 //!
-//! [http_api]
-//! enabled = true
-//! bind_address = "127.0.0.1:1212"
-//! ssl_enabled = false
-//! ssl_cert_path = ""
-//! ssl_key_path = ""
+//! For more information about each service and options you can visit the
+//! documentation for the [torrust-tracker-configuration crate](https://docs.rs/torrust-tracker-configuration).
 //!
-//! [http_api.access_tokens]
-//! admin = "MyAccessToken"
-//! ```
-//!
-//! The default configuration includes one disabled UDP server, one disabled HTTP server and the enabled API.
-//!
-//! For more information about each service and options you can visit the documentation for the [torrust-tracker-configuration crate](https://docs.rs/torrust-tracker-configuration).
-//!
-//! Alternatively to the `tracker.toml` file you can use one environment variable `TORRUST_TRACKER_CONFIG` to pass the configuration to the tracker:
+//! Alternatively to the `tracker.toml` file you can use one environment
+//! variable `TORRUST_TRACKER_CONFIG_TOML` to pass the configuration to the tracker:
 //!
 //! ```text
-//! TORRUST_TRACKER_CONFIG=$(cat tracker.toml)
-//! cargo run
+//! TORRUST_TRACKER_CONFIG_TOML=$(cat ./share/default/config/tracker.development.sqlite3.toml) ./target/release/torrust-tracker
 //! ```
 //!
-//! In the previous example you are just setting the env var with the contents of the `tracker.toml` file.
+//! In the previous example you are just setting the env var with the contents
+//! of the `tracker.toml` file.
 //!
-//! The env var contains the same data as the `tracker.toml`. It's particularly useful in you are [running the tracker with docker](https://github.com/torrust/torrust-tracker/tree/develop/docker).
+//! The env var contains the same data as the `tracker.toml`. It's particularly
+//! useful in you are [running the tracker with docker](https://github.com/torrust/torrust-tracker/tree/develop/docker).
 //!
-//! > NOTE: The `TORRUST_TRACKER_CONFIG` env var has priority over the `tracker.toml` file.
+//! > NOTICE: The `TORRUST_TRACKER_CONFIG_TOML` env var has priority over the `tracker.toml` file.
+//!
+//! By default, if you don’t specify any `tracker.toml` file, the application
+//! will use `./share/default/config/tracker.development.sqlite3.toml`.
+//!
+//! > IMPORTANT: Every time you change the configuration you need to restart the
+//! > service.
 //!
 //! # Usage
 //!
-//! Running the tracker with the default configuration and enabling the UDP and HTTP trackers will expose the services on these URLs:
+//! Running the tracker with the default configuration and enabling the UDP and
+//! HTTP trackers will expose the services on these URLs:
 //!
 //! - REST API: <http://localhost:1212>
 //! - UDP tracker: <http://localhost:6969>
@@ -215,11 +239,10 @@
 //!
 //! ```toml
 //! [http_api]
-//! enabled = true
 //! bind_address = "127.0.0.1:1212"
-//! ssl_enabled = false
-//! ssl_cert_path = ""
-//! ssl_key_path = ""
+//!
+//! [http_api.access_tokens]
+//! admin = "MyAccessToken"
 //! ```
 //!
 //! By default it's enabled on port `1212`. You also need to add access tokens in the configuration:
@@ -275,7 +298,6 @@
 //!
 //! ```toml
 //! [[http_trackers]]
-//! enabled = true
 //! bind_address = "0.0.0.0:7070"
 //! ```
 //!
@@ -370,7 +392,6 @@
 //!
 //! ```toml
 //! [[udp_trackers]]
-//! enabled = true
 //! bind_address = "0.0.0.0:6969"
 //! ```
 //!
@@ -384,7 +405,7 @@
 //!
 //! Torrust Tracker has four main components:
 //!
-//! - The core [`tracker`](crate::tracker)
+//! - The core tracker [`core`]
 //! - The tracker REST [`API`](crate::servers::apis)
 //! - The [`UDP`](crate::servers::udp) tracker
 //! - The [`HTTP`](crate::servers::http) tracker
@@ -402,7 +423,7 @@
 //! - Statistics
 //! - Persistence
 //!
-//! See [`tracker`](crate::tracker) for more details on the  [`tracker`](crate::tracker) module.
+//! See [`core`] for more details on the  [`core`] module.
 //!
 //! ## Tracker API
 //!
@@ -466,11 +487,36 @@
 //!
 //! In addition to the production code documentation you can find a lot of
 //! examples on the integration and unit tests.
+
+use torrust_tracker_clock::{clock, time_extent};
+
 pub mod app;
 pub mod bootstrap;
+pub mod console;
+pub mod core;
 pub mod servers;
 pub mod shared;
-pub mod tracker;
 
 #[macro_use]
 extern crate lazy_static;
+
+/// This code needs to be copied into each crate.
+/// Working version, for production.
+#[cfg(not(test))]
+#[allow(dead_code)]
+pub(crate) type CurrentClock = clock::Working;
+
+/// Stopped version, for testing.
+#[cfg(test)]
+#[allow(dead_code)]
+pub(crate) type CurrentClock = clock::Stopped;
+
+/// Working version, for production.
+#[cfg(not(test))]
+#[allow(dead_code)]
+pub(crate) type DefaultTimeExtentMaker = time_extent::WorkingTimeExtentMaker;
+
+/// Stopped version, for testing.
+#[cfg(test)]
+#[allow(dead_code)]
+pub(crate) type DefaultTimeExtentMaker = time_extent::StoppedTimeExtentMaker;

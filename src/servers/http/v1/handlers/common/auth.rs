@@ -1,12 +1,12 @@
 //! HTTP server authentication error and conversion to
-//! [`responses::error::Error`](crate::servers::http::v1::responses::error::Error)
+//! [`responses::error::Error`]
 //! response.
 use std::panic::Location;
 
 use thiserror::Error;
 
+use crate::core::auth;
 use crate::servers::http::v1::responses;
-use crate::tracker::auth;
 
 /// Authentication error.
 ///

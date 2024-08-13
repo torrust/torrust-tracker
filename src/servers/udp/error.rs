@@ -13,7 +13,7 @@ pub enum Error {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
-    /// Error returned from a third-party library (aquatic_udp_protocol).
+    /// Error returned from a third-party library (`aquatic_udp_protocol`).
     #[error("internal server error: {message}, {location}")]
     InternalServer {
         location: &'static Location<'static>,
@@ -29,4 +29,8 @@ pub enum Error {
     BadRequest {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
+
+    /// Error returned when tracker requires authentication.
+    #[error("domain tracker requires authentication but is not supported in current UDP implementation. Location: {location}")]
+    TrackerAuthenticationRequired { location: &'static Location<'static> },
 }
