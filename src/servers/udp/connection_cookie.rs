@@ -178,15 +178,16 @@ mod tests {
 
     #[test]
     fn it_should_make_a_connection_cookie() {
-        // Note: This constant may need to be updated in the future as the hash is not guaranteed to to be stable between versions.
-        const ID_COOKIE_OLD: Cookie = [23, 204, 198, 29, 48, 180, 62, 19];
-        const ID_COOKIE_NEW: Cookie = [41, 166, 45, 246, 249, 24, 108, 203];
+        // Note: This constant may need to be updated in the future as the hash
+        // is not guaranteed to to be stable between versions.
+        const ID_COOKIE_OLD_HASHER: Cookie = [41, 166, 45, 246, 249, 24, 108, 203];
+        const ID_COOKIE_NEW_HASHER: Cookie = [185, 122, 191, 238, 6, 43, 2, 198];
 
         clock::Stopped::local_set_to_unix_epoch();
 
         let cookie = make(&SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0));
 
-        assert!(cookie == ID_COOKIE_OLD || cookie == ID_COOKIE_NEW);
+        assert!(cookie == ID_COOKIE_OLD_HASHER || cookie == ID_COOKIE_NEW_HASHER);
     }
 
     #[test]
