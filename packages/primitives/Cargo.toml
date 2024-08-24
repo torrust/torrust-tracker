@@ -17,7 +17,7 @@ version.workspace = true
 [dependencies]
 aquatic_udp_protocol = "0"
 binascii = "0"
-derive_more = "0"
+derive_more = "1"
 serde = { version = "1", features = ["derive"] }
 tdyne-peer-id = "1"
 tdyne-peer-id-registry = "0"
