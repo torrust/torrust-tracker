@@ -16,7 +16,6 @@ use std::sync::Arc;
 use torrust_tracker_clock::static_time;
 use torrust_tracker_configuration::validator::Validator;
 use torrust_tracker_configuration::Configuration;
-use tracing::info;
 
 use super::config::initialize_configuration;
 use crate::bootstrap;
@@ -39,7 +38,7 @@ pub fn setup() -> (Configuration, Arc<Tracker>) {
 
     let tracker = initialize_with_configuration(&configuration);
 
-    info!("Configuration:\n{}", configuration.clone().mask_secrets().to_json());
+    tracing::info!("Configuration:\n{}", configuration.clone().mask_secrets().to_json());
 
     (configuration, tracker)
 }

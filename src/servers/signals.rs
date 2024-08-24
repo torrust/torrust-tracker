@@ -3,7 +3,6 @@ use std::time::Duration;
 
 use derive_more::Display;
 use tokio::time::sleep;
-use tracing::info;
 
 /// This is the message that the "launcher" spawned task receives from the main
 /// application process to notify the service to shutdown.
@@ -54,8 +53,8 @@ pub async fn shutdown_signal(rx_halt: tokio::sync::oneshot::Receiver<Halted>) {
     };
 
     tokio::select! {
-        signal = halt => { info!("Halt signal processed: {}", signal) },
-        () = global_shutdown_signal() => { info!("Global shutdown signal processed") }
+        signal = halt => { tracing::info!("Halt signal processed: {}", signal) },
+        () = global_shutdown_signal() => { tracing::info!("Global shutdown signal processed") }
     }
 }
 
@@ -63,13 +62,13 @@ pub async fn shutdown_signal(rx_halt: tokio::sync::oneshot::Receiver<Halted>) {
 pub async fn shutdown_signal_with_message(rx_halt: tokio::sync::oneshot::Receiver<Halted>, message: String) {
     shutdown_signal(rx_halt).await;
 
-    info!("{message}");
+    tracing::info!("{message}");
 }
 
 pub async fn graceful_shutdown(handle: axum_server::Handle, rx_halt: tokio::sync::oneshot::Receiver<Halted>, message: String) {
     shutdown_signal_with_message(rx_halt, message).await;
 
-    info!("Sending graceful shutdown signal");
+    tracing::info!("Sending graceful shutdown signal");
     handle.graceful_shutdown(Some(Duration::from_secs(90)));
 
     println!("!! shuting down in 90 seconds !!");
@@ -77,6 +76,6 @@ pub async fn graceful_shutdown(handle: axum_server::Handle, rx_halt: tokio::sync
     loop {
         sleep(Duration::from_secs(1)).await;
 
-        info!("remaining alive connections: {}", handle.connection_count());
+        tracing::info!("remaining alive connections: {}", handle.connection_count());
     }
 }

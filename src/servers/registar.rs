@@ -7,7 +7,6 @@ use std::sync::Arc;
 use derive_more::Constructor;
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
-use tracing::debug;
 
 /// A [`ServiceHeathCheckResult`] is returned by a completed health check.
 pub type ServiceHeathCheckResult = Result<String, String>;
@@ -82,7 +81,7 @@ impl Registar {
 
     /// Inserts a listing into the registry.
     async fn insert(&self, rx: tokio::sync::oneshot::Receiver<ServiceRegistration>) {
-        debug!("Waiting for the started service to send registration data ...");
+        tracing::debug!("Waiting for the started service to send registration data ...");
 
         let service_registration = rx
             .await

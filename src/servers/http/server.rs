@@ -7,7 +7,6 @@ use axum_server::Handle;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
 use tokio::sync::oneshot::{Receiver, Sender};
-use tracing::info;
 
 use super::v1::routes::router;
 use crate::bootstrap::jobs::Started;
@@ -57,7 +56,7 @@ impl Launcher {
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { "https" } else { "http" };
 
-        info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{}", address);
+        tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{}", address);
 
         let app = router(tracker, address);
 
@@ -80,7 +79,7 @@ impl Launcher {
             }
         });
 
-        info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
+        tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
 
         tx_start
             .send(Started { address })

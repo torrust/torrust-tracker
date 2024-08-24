@@ -11,7 +11,6 @@ use serde::{de, Deserialize, Deserializer};
 use thiserror::Error;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
-use tracing::debug;
 
 use super::responses::{torrent_info_response, torrent_list_response, torrent_not_known_response};
 use crate::core::services::torrent::{get_torrent_info, get_torrents, get_torrents_page};
@@ -77,7 +76,7 @@ pub struct QueryParams {
 /// Refer to the [API endpoint documentation](crate::servers::apis::v1::context::torrent#list-torrents)
 /// for more information about this endpoint.
 pub async fn get_torrents_handler(State(tracker): State<Arc<Tracker>>, pagination: Query<QueryParams>) -> Response {
-    debug!("pagination: {:?}", pagination);
+    tracing::debug!("pagination: {:?}", pagination);
 
     if pagination.0.info_hashes.is_empty() {
         torrent_list_response(

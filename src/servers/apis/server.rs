@@ -32,7 +32,6 @@ use derive_more::Constructor;
 use futures::future::BoxFuture;
 use tokio::sync::oneshot::{Receiver, Sender};
 use torrust_tracker_configuration::AccessTokens;
-use tracing::{debug, error, info};
 
 use super::routes::router;
 use crate::bootstrap::jobs::Started;
@@ -123,11 +122,11 @@ impl ApiServer<Stopped> {
         let launcher = self.state.launcher;
 
         let task = tokio::spawn(async move {
-            debug!(target: API_LOG_TARGET, "Starting with launcher in spawned task ...");
+            tracing::debug!(target: API_LOG_TARGET, "Starting with launcher in spawned task ...");
 
             let _task = launcher.start(tracker, access_tokens, tx_start, rx_halt).await;
 
-            debug!(target: API_LOG_TARGET, "Started with launcher in spawned task");
+            tracing::debug!(target: API_LOG_TARGET, "Started with launcher in spawned task");
 
             launcher
         });
@@ -143,7 +142,7 @@ impl ApiServer<Stopped> {
             }
             Err(err) => {
                 let msg = format!("Unable to start API server: {err}");
-                error!("{}", msg);
+                tracing::error!("{}", msg);
                 panic!("{}", msg);
             }
         };
@@ -233,7 +232,7 @@ impl Launcher {
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { "https" } else { "http" };
 
-        info!(target: API_LOG_TARGET, "Starting on {protocol}://{}", address);
+        tracing::info!(target: API_LOG_TARGET, "Starting on {protocol}://{}", address);
 
         let running = Box::pin(async {
             match tls {
@@ -254,7 +253,7 @@ impl Launcher {
             }
         });
 
-        info!(target: API_LOG_TARGET, "{STARTED_ON} {protocol}://{}", address);
+        tracing::info!(target: API_LOG_TARGET, "{STARTED_ON} {protocol}://{}", address);
 
         tx_start
             .send(Started { address })

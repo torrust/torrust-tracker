@@ -9,7 +9,6 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
-use tracing::debug;
 
 use crate::core::auth::Key;
 use crate::core::{ScrapeData, Tracker};
@@ -28,7 +27,7 @@ pub async fn handle_without_key(
     ExtractRequest(scrape_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
 ) -> Response {
-    debug!("http scrape request: {:#?}", &scrape_request);
+    tracing::debug!("http scrape request: {:#?}", &scrape_request);
 
     handle(&tracker, &scrape_request, &client_ip_sources, None).await
 }
@@ -44,7 +43,7 @@ pub async fn handle_with_key(
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
     ExtractKey(key): ExtractKey,
 ) -> Response {
-    debug!("http scrape request: {:#?}", &scrape_request);
+    tracing::debug!("http scrape request: {:#?}", &scrape_request);
 
     handle(&tracker, &scrape_request, &client_ip_sources, Some(key)).await
 }

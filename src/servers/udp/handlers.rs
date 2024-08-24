@@ -12,7 +12,6 @@ use aquatic_udp_protocol::{
 };
 use torrust_tracker_located_error::DynError;
 use torrust_tracker_primitives::info_hash::InfoHash;
-use tracing::debug;
 use uuid::Uuid;
 use zerocopy::network_endian::I32;
 
@@ -33,7 +32,7 @@ use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 ///
 /// It will return an `Error` response if the request is invalid.
 pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Tracker, local_addr: SocketAddr) -> Response {
-    debug!("Handling Packets: {udp_request:?}");
+    tracing::debug!("Handling Packets: {udp_request:?}");
 
     let start_time = Instant::now();
 
@@ -88,7 +87,7 @@ pub(crate) async fn handle_packet(udp_request: RawRequest, tracker: &Tracker, lo
 ///
 /// If a error happens in the `handle_request` function, it will just return the  `ServerError`.
 pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: &Tracker) -> Result<Response, Error> {
-    debug!("Handling Request: {request:?} to: {remote_addr:?}");
+    tracing::debug!("Handling Request: {request:?} to: {remote_addr:?}");
 
     match request {
         Request::Connect(connect_request) => handle_connect(remote_addr, &connect_request, tracker).await,
@@ -104,7 +103,7 @@ pub async fn handle_request(request: Request, remote_addr: SocketAddr, tracker: 
 ///
 /// This function does not ever return an error.
 pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, tracker: &Tracker) -> Result<Response, Error> {
-    debug!("udp connect request: {:#?}", request);
+    tracing::debug!("udp connect request: {:#?}", request);
 
     let connection_cookie = make(&remote_addr);
     let connection_id = into_connection_id(&connection_cookie);
@@ -114,7 +113,7 @@ pub async fn handle_connect(remote_addr: SocketAddr, request: &ConnectRequest, t
         connection_id,
     };
 
-    debug!("udp connect response: {:#?}", response);
+    tracing::debug!("udp connect response: {:#?}", response);
 
     // send stats event
     match remote_addr {
@@ -140,7 +139,7 @@ pub async fn handle_announce(
     announce_request: &AnnounceRequest,
     tracker: &Tracker,
 ) -> Result<Response, Error> {
-    debug!("udp announce request: {:#?}", announce_request);
+    tracing::debug!("udp announce request: {:#?}", announce_request);
 
     // Authentication
     if tracker.requires_authentication() {
@@ -197,7 +196,7 @@ pub async fn handle_announce(
                 .collect(),
         };
 
-        debug!("udp announce response: {:#?}", announce_response);
+        tracing::debug!("udp announce response: {:#?}", announce_response);
 
         Ok(Response::from(announce_response))
     } else {
@@ -224,7 +223,7 @@ pub async fn handle_announce(
                 .collect(),
         };
 
-        debug!("udp announce response: {:#?}", announce_response);
+        tracing::debug!("udp announce response: {:#?}", announce_response);
 
         Ok(Response::from(announce_response))
     }
@@ -237,7 +236,7 @@ pub async fn handle_announce(
 ///
 /// This function does not ever return an error.
 pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tracker: &Tracker) -> Result<Response, Error> {
-    debug!("udp scrape request: {:#?}", request);
+    tracing::debug!("udp scrape request: {:#?}", request);
 
     // Convert from aquatic infohashes
     let mut info_hashes: Vec<InfoHash> = vec![];
@@ -283,7 +282,7 @@ pub async fn handle_scrape(remote_addr: SocketAddr, request: &ScrapeRequest, tra
         torrent_stats,
     };
 
-    debug!("udp scrape response: {:#?}", response);
+    tracing::debug!("udp scrape response: {:#?}", response);
 
     Ok(Response::from(response))
 }

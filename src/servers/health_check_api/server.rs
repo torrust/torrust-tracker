@@ -18,7 +18,7 @@ use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tracing::{debug, Level, Span};
+use tracing::{Level, Span};
 
 use crate::bootstrap::jobs::Started;
 use crate::servers::health_check_api::handlers::health_check_handler;
@@ -81,7 +81,7 @@ pub fn start(
 
     let handle = Handle::new();
 
-    debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting service with graceful shutdown in a spawned task ...");
+    tracing::debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting service with graceful shutdown in a spawned task ...");
 
     tokio::task::spawn(graceful_shutdown(
         handle.clone(),
