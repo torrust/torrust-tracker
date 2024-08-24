@@ -1,16 +1,14 @@
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
-use std::str::{self};
+use std::str;
 
-use crate::error::{BencodeParseError, BencodeParseErrorKind, BencodeParseResult};
+use crate::error::{BencodeParseError, BencodeParseResult};
 use crate::reference::bencode_ref::{BencodeRef, Inner};
 use crate::reference::decode_opt::BDecodeOpt;
 
 pub fn decode(bytes: &[u8], pos: usize, opts: BDecodeOpt, depth: usize) -> BencodeParseResult<(BencodeRef<'_>, usize)> {
     if depth >= opts.max_recursion() {
-        return Err(BencodeParseError::from_kind(
-            BencodeParseErrorKind::InvalidRecursionExceeded { pos, max: depth },
-        ));
+        return Err(BencodeParseError::InvalidRecursionExceeded { pos, max: depth });
     }
     let curr_byte = peek_byte(bytes, pos)?;
 
@@ -32,7 +30,7 @@ pub fn decode(bytes: &[u8], pos: usize, opts: BDecodeOpt, depth: usize) -> Benco
             // Include the length digit, don't increment position
             Ok((Inner::Bytes(bencode, &bytes[pos..next_pos]).into(), next_pos))
         }
-        _ => Err(BencodeParseError::from_kind(BencodeParseErrorKind::InvalidByte { pos })),
+        _ => Err(BencodeParseError::InvalidByte { pos }),
     }
 }
 
@@ -40,32 +38,24 @@ fn decode_int(bytes: &[u8], pos: usize, delim: u8) -> BencodeParseResult<(i64, u
     let (_, begin_decode) = bytes.split_at(pos);
 
     let Some(relative_end_pos) = begin_decode.iter().position(|n| *n == delim) else {
-        return Err(BencodeParseError::from_kind(BencodeParseErrorKind::InvalidIntNoDelimiter {
-            pos,
-        }));
+        return Err(BencodeParseError::InvalidIntNoDelimiter { pos });
     };
     let int_byte_slice = &begin_decode[..relative_end_pos];
 
     if int_byte_slice.len() > 1 {
         // Negative zero is not allowed (this would not be caught when converting)
         if int_byte_slice[0] == b'-' && int_byte_slice[1] == b'0' {
-            return Err(BencodeParseError::from_kind(BencodeParseErrorKind::InvalidIntNegativeZero {
-                pos,
-            }));
+            return Err(BencodeParseError::InvalidIntNegativeZero { pos });
         }
 
         // Zero padding is illegal, and unspecified for key lengths (we disallow both)
         if int_byte_slice[0] == b'0' {
-            return Err(BencodeParseError::from_kind(BencodeParseErrorKind::InvalidIntZeroPadding {
-                pos,
-            }));
+            return Err(BencodeParseError::InvalidIntZeroPadding { pos });
         }
     }
 
     let Ok(int_str) = str::from_utf8(int_byte_slice) else {
-        return Err(BencodeParseError::from_kind(BencodeParseErrorKind::InvalidIntParseError {
-            pos,
-        }));
+        return Err(BencodeParseError::InvalidIntParseError { pos });
     };
 
     // Position of end of integer type, next byte is the start of the next value
@@ -73,31 +63,24 @@ fn decode_int(bytes: &[u8], pos: usize, delim: u8) -> BencodeParseResult<(i64, u
     let next_pos = absolute_end_pos + 1;
     match int_str.parse::<i64>() {
         Ok(n) => Ok((n, next_pos)),
-        Err(_) => Err(BencodeParseError::from_kind(BencodeParseErrorKind::InvalidIntParseError {
-            pos,
-        })),
+        Err(_) => Err(BencodeParseError::InvalidIntParseError { pos }),
     }
 }
+
+use std::convert::TryFrom;
 
 fn decode_bytes(bytes: &[u8], pos: usize) -> BencodeParseResult<(&[u8], usize)> {
     let (num_bytes, start_pos) = decode_int(bytes, pos, crate::BYTE_LEN_END)?;
 
     if num_bytes < 0 {
-        return Err(BencodeParseError::from_kind(BencodeParseErrorKind::InvalidLengthNegative {
-            pos,
-        }));
+        return Err(BencodeParseError::InvalidLengthNegative { pos });
     }
 
-    // Should be safe to cast to usize (TODO: Check if cast would overflow to provide
-    // a more helpful error message, otherwise, parsing will probably fail with an
-    // unrelated message).
-    let num_bytes =
-        usize::try_from(num_bytes).map_err(|_| BencodeParseErrorKind::Msg(format!("input length is too long: {num_bytes}")))?;
+    // Use usize::try_from to handle potential overflow
+    let num_bytes = usize::try_from(num_bytes).map_err(|_| BencodeParseError::InvalidLengthOverflow { pos })?;
 
     if num_bytes > bytes[start_pos..].len() {
-        return Err(BencodeParseError::from_kind(BencodeParseErrorKind::InvalidLengthOverflow {
-            pos,
-        }));
+        return Err(BencodeParseError::InvalidLengthOverflow { pos });
     }
 
     let next_pos = start_pos + num_bytes;
@@ -140,10 +123,10 @@ fn decode_dict(
         // Spec says that the keys must be in alphabetical order
         match (bencode_dict.keys().last(), opts.check_key_sort()) {
             (Some(last_key), true) if key_bytes < *last_key => {
-                return Err(BencodeParseError::from_kind(BencodeParseErrorKind::InvalidKeyOrdering {
+                return Err(BencodeParseError::InvalidKeyOrdering {
                     pos: curr_pos,
                     key: key_bytes.to_vec(),
-                }))
+                })
             }
             _ => (),
         };
@@ -153,10 +136,10 @@ fn decode_dict(
         match bencode_dict.entry(key_bytes) {
             Entry::Vacant(n) => n.insert(value),
             Entry::Occupied(_) => {
-                return Err(BencodeParseError::from_kind(BencodeParseErrorKind::InvalidKeyDuplicates {
+                return Err(BencodeParseError::InvalidKeyDuplicates {
                     pos: curr_pos,
                     key: key_bytes.to_vec(),
-                }))
+                })
             }
         };
 
@@ -169,14 +152,12 @@ fn decode_dict(
 }
 
 fn peek_byte(bytes: &[u8], pos: usize) -> BencodeParseResult<u8> {
-    bytes
-        .get(pos)
-        .copied()
-        .ok_or_else(|| BencodeParseError::from_kind(BencodeParseErrorKind::BytesEmpty { pos }))
+    bytes.get(pos).copied().ok_or(BencodeParseError::BytesEmpty { pos })
 }
 
 #[cfg(test)]
 mod tests {
+
     use crate::access::bencode::BRefAccess;
     use crate::reference::bencode_ref::BencodeRef;
     use crate::reference::decode_opt::BDecodeOpt;
@@ -327,13 +308,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic = "BencodeParseError(InvalidByte { pos: 0 }"]
+    #[should_panic = "InvalidByte { pos: 0 }"]
     fn negative_decode_bytes_neg_len() {
         BencodeRef::decode(BYTES_NEG_LEN, BDecodeOpt::default()).unwrap();
     }
 
     #[test]
-    #[should_panic = "BencodeParseError(BytesEmpty { pos: 20 }"]
+    #[should_panic = "BytesEmpty { pos: 20 }"]
     fn negative_decode_bytes_extra() {
         BencodeRef::decode(BYTES_EXTRA, BDecodeOpt::default()).unwrap();
     }
@@ -346,49 +327,49 @@ mod tests {
     }
 
     #[test]
-    #[should_panic = "BencodeParseError(InvalidIntParseError { pos: 1 }"]
+    #[should_panic = "InvalidIntParseError { pos: 1 }"]
     fn negative_decode_int_nan() {
         super::decode_int(INT_NAN, 1, crate::BEN_END).unwrap();
     }
 
     #[test]
-    #[should_panic = "BencodeParseError(InvalidIntZeroPadding { pos: 1 }"]
+    #[should_panic = "InvalidIntZeroPadding { pos: 1 }"]
     fn negative_decode_int_leading_zero() {
         super::decode_int(INT_LEADING_ZERO, 1, crate::BEN_END).unwrap();
     }
 
     #[test]
-    #[should_panic = "BencodeParseError(InvalidIntZeroPadding { pos: 1 }"]
+    #[should_panic = "InvalidIntZeroPadding { pos: 1 }"]
     fn negative_decode_int_double_zero() {
         super::decode_int(INT_DOUBLE_ZERO, 1, crate::BEN_END).unwrap();
     }
 
     #[test]
-    #[should_panic = "BencodeParseError(InvalidIntNegativeZero { pos: 1 }"]
+    #[should_panic = "InvalidIntNegativeZero { pos: 1 }"]
     fn negative_decode_int_negative_zero() {
         super::decode_int(INT_NEGATIVE_ZERO, 1, crate::BEN_END).unwrap();
     }
 
     #[test]
-    #[should_panic = " BencodeParseError(InvalidIntParseError { pos: 1 }"]
+    #[should_panic = " InvalidIntParseError { pos: 1 }"]
     fn negative_decode_int_double_negative() {
         super::decode_int(INT_DOUBLE_NEGATIVE, 1, crate::BEN_END).unwrap();
     }
 
     #[test]
-    #[should_panic = "BencodeParseError(InvalidKeyOrdering { pos: 15, key: [97, 95, 107, 101, 121] }"]
+    #[should_panic = "InvalidKeyOrdering { pos: 15, key: [97, 95, 107, 101, 121] }"]
     fn negative_decode_dict_unordered_keys() {
         BencodeRef::decode(DICT_UNORDERED_KEYS, BDecodeOpt::new(5, true, true)).unwrap();
     }
 
     #[test]
-    #[should_panic = "BencodeParseError(InvalidKeyDuplicates { pos: 18, key: [97, 95, 107, 101, 121] }"]
+    #[should_panic = "InvalidKeyDuplicates { pos: 18, key: [97, 95, 107, 101, 121] }"]
     fn negative_decode_dict_dup_keys_same_data() {
         BencodeRef::decode(DICT_DUP_KEYS_SAME_DATA, BDecodeOpt::default()).unwrap();
     }
 
     #[test]
-    #[should_panic = "BencodeParseError(InvalidKeyDuplicates { pos: 18, key: [97, 95, 107, 101, 121] }"]
+    #[should_panic = "InvalidKeyDuplicates { pos: 18, key: [97, 95, 107, 101, 121] }"]
     fn negative_decode_dict_dup_keys_diff_data() {
         BencodeRef::decode(DICT_DUP_KEYS_DIFF_DATA, BDecodeOpt::default()).unwrap();
     }

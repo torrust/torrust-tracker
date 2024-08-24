@@ -16,14 +16,10 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-error-chain = "0"
+thiserror = "1"
 
 [dev-dependencies]
 criterion = "0"
-
-[[test]]
-name = "test"
-path = "test/mod.rs"
 
 [[bench]]
 harness = false
