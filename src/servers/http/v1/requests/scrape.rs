@@ -11,8 +11,6 @@ use crate::servers::http::percent_encoding::percent_decode_info_hash;
 use crate::servers::http::v1::query::Query;
 use crate::servers::http::v1::responses;
 
-pub type NumberOfBytes = i64;
-
 // Query param names
 const INFO_HASH: &str = "info_hash";
 

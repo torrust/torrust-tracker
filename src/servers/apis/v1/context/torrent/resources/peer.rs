@@ -1,4 +1,5 @@
 //! `Peer` and Peer `Id` API resources.
+use aquatic_udp_protocol::PeerId;
 use derive_more::From;
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::peer;
@@ -22,7 +23,7 @@ pub struct Peer {
     /// The peer's left bytes (pending to download).
     pub left: i64,
     /// The peer's event: `started`, `stopped`, `completed`.
-    /// See [`AnnounceEvent`](torrust_tracker_primitives::announce_event::AnnounceEvent).
+    /// See [`AnnounceEvent`](aquatic_udp_protocol::AnnounceEvent).
     pub event: String,
 }
 
@@ -35,8 +36,9 @@ pub struct Id {
     pub client: Option<String>,
 }
 
-impl From<peer::Id> for Id {
-    fn from(peer_id: peer::Id) -> Self {
+impl From<PeerId> for Id {
+    fn from(peer_id: PeerId) -> Self {
+        let peer_id = peer::Id::from(peer_id);
         Id {
             id: peer_id.to_hex_string(),
             client: peer_id.get_client_name(),
@@ -52,9 +54,9 @@ impl From<peer::Peer> for Peer {
             peer_addr: value.peer_addr.to_string(),
             updated: value.updated.as_millis(),
             updated_milliseconds_ago: value.updated.as_millis(),
-            uploaded: value.uploaded.0,
-            downloaded: value.downloaded.0,
-            left: value.left.0,
+            uploaded: value.uploaded.0.get(),
+            downloaded: value.downloaded.0.get(),
+            left: value.left.0.get(),
             event: format!("{:?}", value.event),
         }
     }

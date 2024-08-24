@@ -1,8 +1,8 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use aquatic_udp_protocol::AnnounceEvent;
 use torrust_tracker_configuration::TrackerPolicy;
-use torrust_tracker_primitives::announce_event::AnnounceEvent;
 use torrust_tracker_primitives::peer::{self};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;

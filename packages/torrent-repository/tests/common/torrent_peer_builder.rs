@@ -1,8 +1,8 @@
 use std::net::SocketAddr;
 
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use torrust_tracker_clock::clock::Time;
-use torrust_tracker_primitives::announce_event::AnnounceEvent;
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfBytes};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
 use crate::CurrentClock;
 
@@ -42,14 +42,14 @@ impl TorrentPeerBuilder {
     }
 
     #[must_use]
-    fn with_peer_id(mut self, peer_id: peer::Id) -> Self {
+    fn with_peer_id(mut self, peer_id: PeerId) -> Self {
         self.peer.peer_id = peer_id;
         self
     }
 
     #[must_use]
     fn with_number_of_bytes_left(mut self, left: i64) -> Self {
-        self.peer.left = NumberOfBytes(left);
+        self.peer.left = NumberOfBytes::new(left);
         self
     }
 
@@ -69,10 +69,11 @@ impl TorrentPeerBuilder {
 /// has not announced it has stopped
 #[must_use]
 pub fn a_completed_peer(id: i32) -> peer::Peer {
+    let peer_id = peer::Id::new(id);
     TorrentPeerBuilder::new()
         .with_number_of_bytes_left(0)
         .with_event_completed()
-        .with_peer_id(id.into())
+        .with_peer_id(*peer_id)
         .into()
 }
 
@@ -80,9 +81,10 @@ pub fn a_completed_peer(id: i32) -> peer::Peer {
 /// Leecher: left > 0 OR event = Stopped
 #[must_use]
 pub fn a_started_peer(id: i32) -> peer::Peer {
+    let peer_id = peer::Id::new(id);
     TorrentPeerBuilder::new()
         .with_number_of_bytes_left(1)
         .with_event_started()
-        .with_peer_id(id.into())
+        .with_peer_id(*peer_id)
         .into()
 }

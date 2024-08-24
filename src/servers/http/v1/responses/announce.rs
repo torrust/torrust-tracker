@@ -178,7 +178,7 @@ impl peer::Encoding for NormalPeer {}
 impl From<peer::Peer> for NormalPeer {
     fn from(peer: peer::Peer) -> Self {
         NormalPeer {
-            peer_id: peer.peer_id.to_bytes(),
+            peer_id: peer.peer_id.0,
             ip: peer.peer_addr.ip(),
             port: peer.peer_addr.port(),
         }
@@ -300,8 +300,8 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
+    use aquatic_udp_protocol::PeerId;
     use torrust_tracker_configuration::AnnouncePolicy;
-    use torrust_tracker_primitives::peer;
     use torrust_tracker_primitives::peer::fixture::PeerBuilder;
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
@@ -324,12 +324,12 @@ mod tests {
         let policy = AnnouncePolicy::new(111, 222);
 
         let peer_ipv4 = PeerBuilder::default()
-            .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+            .with_peer_id(&PeerId(*b"-qB00000000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 0x7070))
             .build();
 
         let peer_ipv6 = PeerBuilder::default()
-            .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
+            .with_peer_id(&PeerId(*b"-qB00000000000000002"))
             .with_peer_addr(&SocketAddr::new(
                 IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                 0x7070,
