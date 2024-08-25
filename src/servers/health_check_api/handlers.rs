@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 
 use axum::extract::State;
 use axum::Json;
+use tracing::{instrument, Level};
 
 use super::resources::{CheckReport, Report};
 use super::responses;
@@ -11,6 +12,7 @@ use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, Servi
 ///
 /// Creates a vector [`CheckReport`] from the input set of [`CheckJob`], and then builds a report from the results.
 ///
+#[instrument(skip(register), ret(level = Level::DEBUG))]
 pub(crate) async fn health_check_handler(State(register): State<ServiceRegistry>) -> Json<Report> {
     #[allow(unused_assignments)]
     let mut checks: VecDeque<ServiceHealthCheckJob> = VecDeque::new();

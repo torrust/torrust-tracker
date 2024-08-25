@@ -6,6 +6,7 @@ use derive_more::Constructor;
 use futures_util::StreamExt;
 use tokio::select;
 use tokio::sync::oneshot;
+use tracing::instrument;
 
 use super::request_buffer::ActiveRequests;
 use crate::bootstrap::jobs::Started;
@@ -30,17 +31,13 @@ impl Launcher {
     ///
     /// It panics if unable to bind to udp socket, and get the address from the udp socket.
     /// It also panics if unable to send address of socket.
+    #[instrument(skip(tracker, bind_to, tx_start, rx_halt))]
     pub async fn run_with_graceful_shutdown(
         tracker: Arc<Tracker>,
         bind_to: SocketAddr,
         tx_start: oneshot::Sender<Started>,
         rx_halt: oneshot::Receiver<Halted>,
     ) {
-        let halt_task = tokio::task::spawn(shutdown_signal_with_message(
-            rx_halt,
-            format!("Halting UDP Service Bound to Socket: {bind_to}"),
-        ));
-
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting on: {bind_to}");
 
         let socket = tokio::time::timeout(Duration::from_millis(5000), BoundSocket::new(bind_to))
@@ -80,6 +77,11 @@ impl Launcher {
 
         let stop = running.abort_handle();
 
+        let halt_task = tokio::task::spawn(shutdown_signal_with_message(
+            rx_halt,
+            format!("Halting UDP Service Bound to Socket: {address}"),
+        ));
+
         select! {
             _ = running => { tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (stopped)"); },
             _ = halt_task => { tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (halting)"); }
@@ -90,6 +92,7 @@ impl Launcher {
     }
 
     #[must_use]
+    #[instrument(skip(binding))]
     pub fn check(binding: &SocketAddr) -> ServiceHealthCheckJob {
         let binding = *binding;
         let info = format!("checking the udp tracker health check at: {binding}");
@@ -99,6 +102,7 @@ impl Launcher {
         ServiceHealthCheckJob::new(binding, info, job)
     }
 
+    #[instrument(skip(receiver, tracker))]
     async fn run_udp_server_main(mut receiver: Receiver, tracker: Arc<Tracker>) {
         let active_requests = &mut ActiveRequests::default();
 

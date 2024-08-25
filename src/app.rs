@@ -25,6 +25,7 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
+use tracing::instrument;
 
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
 use crate::servers::registar::Registar;
@@ -36,6 +37,7 @@ use crate::{core, servers};
 ///
 /// - Can't retrieve tracker keys from database.
 /// - Can't load whitelist from database.
+#[instrument(skip(config, tracker))]
 pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<JoinHandle<()>> {
     if config.http_api.is_none()
         && (config.udp_trackers.is_none() || config.udp_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))

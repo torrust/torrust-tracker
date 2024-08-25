@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use derive_more::Display;
 use tokio::time::sleep;
+use tracing::instrument;
 
 /// This is the message that the "launcher" spawned task receives from the main
 /// application process to notify the service to shutdown.
@@ -17,6 +18,7 @@ pub enum Halted {
 /// # Panics
 ///
 /// Will panic if the `ctrl_c` or `terminate` signal resolves with an error.
+#[instrument(skip())]
 pub async fn global_shutdown_signal() {
     let ctrl_c = async {
         tokio::signal::ctrl_c().await.expect("failed to install Ctrl+C handler");
@@ -34,8 +36,8 @@ pub async fn global_shutdown_signal() {
     let terminate = std::future::pending::<()>();
 
     tokio::select! {
-        () = ctrl_c => {},
-        () = terminate => {}
+        () = ctrl_c => {tracing::warn!("caught interrupt signal (ctrl-c), halting...");},
+        () = terminate => {tracing::warn!("caught interrupt signal (terminate), halting...");}
     }
 }
 
@@ -44,6 +46,7 @@ pub async fn global_shutdown_signal() {
 /// # Panics
 ///
 /// Will panic if the `stop_receiver` resolves with an error.
+#[instrument(skip(rx_halt))]
 pub async fn shutdown_signal(rx_halt: tokio::sync::oneshot::Receiver<Halted>) {
     let halt = async {
         match rx_halt.await {
@@ -53,22 +56,24 @@ pub async fn shutdown_signal(rx_halt: tokio::sync::oneshot::Receiver<Halted>) {
     };
 
     tokio::select! {
-        signal = halt => { tracing::info!("Halt signal processed: {}", signal) },
-        () = global_shutdown_signal() => { tracing::info!("Global shutdown signal processed") }
+        signal = halt => { tracing::debug!("Halt signal processed: {}", signal) },
+        () = global_shutdown_signal() => { tracing::debug!("Global shutdown signal processed") }
     }
 }
 
 /// Same as `shutdown_signal()`, but shows a message when it resolves.
+#[instrument(skip(rx_halt))]
 pub async fn shutdown_signal_with_message(rx_halt: tokio::sync::oneshot::Receiver<Halted>, message: String) {
     shutdown_signal(rx_halt).await;
 
     tracing::info!("{message}");
 }
 
+#[instrument(skip(handle, rx_halt, message))]
 pub async fn graceful_shutdown(handle: axum_server::Handle, rx_halt: tokio::sync::oneshot::Receiver<Halted>, message: String) {
     shutdown_signal_with_message(rx_halt, message).await;
 
-    tracing::info!("Sending graceful shutdown signal");
+    tracing::debug!("Sending graceful shutdown signal");
     handle.graceful_shutdown(Some(Duration::from_secs(90)));
 
     println!("!! shuting down in 90 seconds !!");

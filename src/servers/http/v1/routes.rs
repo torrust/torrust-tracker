@@ -17,7 +17,7 @@ use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tracing::{Level, Span};
+use tracing::{instrument, Level, Span};
 
 use super::handlers::{announce, health_check, scrape};
 use crate::core::Tracker;
@@ -28,6 +28,7 @@ use crate::servers::http::HTTP_TRACKER_LOG_TARGET;
 /// > **NOTICE**: it's added a layer to get the client IP from the connection
 /// > info. The tracker could use the connection info to get the client IP.
 #[allow(clippy::needless_pass_by_value)]
+#[instrument(skip(tracker, server_socket_addr))]
 pub fn router(tracker: Arc<Tracker>, server_socket_addr: SocketAddr) -> Router {
     Router::new()
         // Health check

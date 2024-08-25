@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::UdpTracker;
+use tracing::instrument;
 
 use crate::core;
 use crate::servers::registar::ServiceRegistrationForm;
@@ -27,6 +28,8 @@ use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
 /// It will panic if it is unable to start the UDP service.
 /// It will panic if the task did not finish successfully.
 #[must_use]
+#[allow(clippy::async_yields_async)]
+#[instrument(skip(config, tracker, form))]
 pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: ServiceRegistrationForm) -> JoinHandle<()> {
     let bind_to = config.bind_address;
 

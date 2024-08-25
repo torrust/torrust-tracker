@@ -16,6 +16,7 @@ use std::sync::Arc;
 use torrust_tracker_clock::static_time;
 use torrust_tracker_configuration::validator::Validator;
 use torrust_tracker_configuration::Configuration;
+use tracing::instrument;
 
 use super::config::initialize_configuration;
 use crate::bootstrap;
@@ -29,6 +30,7 @@ use crate::shared::crypto::ephemeral_instance_keys;
 ///
 /// Setup can file if the configuration is invalid.
 #[must_use]
+#[instrument(skip())]
 pub fn setup() -> (Configuration, Arc<Tracker>) {
     let configuration = initialize_configuration();
 
@@ -47,6 +49,7 @@ pub fn setup() -> (Configuration, Arc<Tracker>) {
 ///
 /// The configuration may be obtained from the environment (via config file or env vars).
 #[must_use]
+#[instrument(skip())]
 pub fn initialize_with_configuration(configuration: &Configuration) -> Arc<Tracker> {
     initialize_static();
     initialize_logging(configuration);
@@ -59,6 +62,7 @@ pub fn initialize_with_configuration(configuration: &Configuration) -> Arc<Track
 ///
 /// - The time when the application started.
 /// - An ephemeral instance random seed. This seed is used for encryption and it's changed when the main application process is restarted.
+#[instrument(skip())]
 pub fn initialize_static() {
     // Set the time of Torrust app starting
     lazy_static::initialize(&static_time::TIME_AT_APP_START);
@@ -72,6 +76,7 @@ pub fn initialize_static() {
 /// The tracker is the domain layer service. It's the entrypoint to make requests to the domain layer.
 /// It's used by other higher-level components like the UDP and HTTP trackers or the tracker API.
 #[must_use]
+#[instrument(skip(config))]
 pub fn initialize_tracker(config: &Configuration) -> Tracker {
     tracker_factory(config)
 }
@@ -79,6 +84,7 @@ pub fn initialize_tracker(config: &Configuration) -> Tracker {
 /// It initializes the log threshold, format and channel.
 ///
 /// See [the logging setup](crate::bootstrap::logging::setup) for more info about logging.
+#[instrument(skip(config))]
 pub fn initialize_logging(config: &Configuration) {
     bootstrap::logging::setup(config);
 }

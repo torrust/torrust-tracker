@@ -15,6 +15,7 @@ use std::sync::Arc;
 use chrono::Utc;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Core;
+use tracing::instrument;
 
 use crate::core;
 
@@ -24,6 +25,7 @@ use crate::core;
 ///
 /// Refer to [`torrust-tracker-configuration documentation`](https://docs.rs/torrust-tracker-configuration) for more info about that option.
 #[must_use]
+#[instrument(skip(config, tracker))]
 pub fn start_job(config: &Core, tracker: &Arc<core::Tracker>) -> JoinHandle<()> {
     let weak_tracker = std::sync::Arc::downgrade(tracker);
     let interval = config.inactive_peer_cleanup_interval;

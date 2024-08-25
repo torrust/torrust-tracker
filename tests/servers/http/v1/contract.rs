@@ -1639,6 +1639,10 @@ mod configured_as_private {
 
         #[tokio::test]
         async fn should_return_the_zeroed_file_when_the_authentication_key_provided_by_the_client_is_invalid() {
+            INIT.call_once(|| {
+                tracing_stderr_init(LevelFilter::ERROR);
+            });
+
             // There is not authentication error
             // code-review: should this really be this way?
 

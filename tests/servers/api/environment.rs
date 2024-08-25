@@ -13,14 +13,20 @@ use torrust_tracker_primitives::peer;
 
 use super::connection_info::ConnectionInfo;
 
-pub struct Environment<S> {
+pub struct Environment<S>
+where
+    S: std::fmt::Debug + std::fmt::Display,
+{
     pub config: Arc<HttpApi>,
     pub tracker: Arc<Tracker>,
     pub registar: Registar,
     pub server: ApiServer<S>,
 }
 
-impl<S> Environment<S> {
+impl<S> Environment<S>
+where
+    S: std::fmt::Debug + std::fmt::Display,
+{
     /// Add a torrent to the tracker
     pub fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         self.tracker.upsert_peer_and_get_stats(info_hash, peer);
@@ -79,12 +85,12 @@ impl Environment<Running> {
 
     pub fn get_connection_info(&self) -> ConnectionInfo {
         ConnectionInfo {
-            bind_address: self.server.state.binding.to_string(),
+            bind_address: self.server.state.local_addr.to_string(),
             api_token: self.config.access_tokens.get("admin").cloned(),
         }
     }
 
     pub fn bind_address(&self) -> SocketAddr {
-        self.server.state.binding
+        self.server.state.local_addr
     }
 }

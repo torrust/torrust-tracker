@@ -17,6 +17,7 @@
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HealthCheckApi;
+use tracing::instrument;
 
 use super::Started;
 use crate::servers::health_check_api::{server, HEALTH_CHECK_API_LOG_TARGET};
@@ -34,6 +35,8 @@ use crate::servers::signals::Halted;
 /// # Panics
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
+#[allow(clippy::async_yields_async)]
+#[instrument(skip(config, register))]
 pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> JoinHandle<()> {
     let bind_addr = config.bind_address;
 

@@ -28,10 +28,13 @@ use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
+use derive_more::derive::Display;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
+use thiserror::Error;
 use tokio::sync::oneshot::{Receiver, Sender};
 use torrust_tracker_configuration::AccessTokens;
+use tracing::{instrument, Level};
 
 use super::routes::router;
 use crate::bootstrap::jobs::Started;
@@ -43,9 +46,10 @@ use crate::servers::registar::{ServiceHealthCheckJob, ServiceRegistration, Servi
 use crate::servers::signals::{graceful_shutdown, Halted};
 
 /// Errors that can occur when starting or stopping the API server.
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum Error {
-    Error(String),
+    #[error("Error when starting or stopping the API server")]
+    FailedToStartOrStop(String),
 }
 
 /// An alias for the `ApiServer` struct with the `Stopped` state.
@@ -62,18 +66,26 @@ pub type RunningApiServer = ApiServer<Running>;
 /// It's a state machine that can be in one of two
 /// states: `Stopped` or `Running`.
 #[allow(clippy::module_name_repetitions)]
-pub struct ApiServer<S> {
+#[derive(Debug, Display)]
+pub struct ApiServer<S>
+where
+    S: std::fmt::Debug + std::fmt::Display,
+{
     pub state: S,
 }
 
 /// The `Stopped` state of the `ApiServer` struct.
+#[derive(Debug, Display)]
+#[display("Stopped: {launcher}")]
 pub struct Stopped {
     launcher: Launcher,
 }
 
 /// The `Running` state of the `ApiServer` struct.
+#[derive(Debug, Display)]
+#[display("Running (with local address): {local_addr}")]
 pub struct Running {
-    pub binding: SocketAddr,
+    pub local_addr: SocketAddr,
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
     pub task: tokio::task::JoinHandle<Launcher>,
 }
@@ -81,12 +93,12 @@ pub struct Running {
 impl Running {
     #[must_use]
     pub fn new(
-        binding: SocketAddr,
+        local_addr: SocketAddr,
         halt_task: tokio::sync::oneshot::Sender<Halted>,
         task: tokio::task::JoinHandle<Launcher>,
     ) -> Self {
         Self {
-            binding,
+            local_addr,
             halt_task,
             task,
         }
@@ -110,6 +122,7 @@ impl ApiServer<Stopped> {
     /// # Panics
     ///
     /// It would panic if the bound socket address cannot be sent back to this starter.
+    #[instrument(skip(self, tracker, form, access_tokens), err, ret(Display, level = Level::INFO))]
     pub async fn start(
         self,
         tracker: Arc<Tracker>,
@@ -157,13 +170,14 @@ impl ApiServer<Running> {
     /// # Errors
     ///
     /// It would return an error if the channel for the task killer signal was closed.
+    #[instrument(skip(self), err, ret(Display, level = Level::INFO))]
     pub async fn stop(self) -> Result<ApiServer<Stopped>, Error> {
         self.state
             .halt_task
             .send(Halted::Normal)
-            .map_err(|_| Error::Error("Task killer channel was closed.".to_string()))?;
+            .map_err(|_| Error::FailedToStartOrStop("Task killer channel was closed.".to_string()))?;
 
-        let launcher = self.state.task.await.map_err(|e| Error::Error(e.to_string()))?;
+        let launcher = self.state.task.await.map_err(|e| Error::FailedToStartOrStop(e.to_string()))?;
 
         Ok(ApiServer {
             state: Stopped { launcher },
@@ -178,6 +192,7 @@ impl ApiServer<Running> {
 /// This function will return an error if unable to connect.
 /// Or if there request returns an error code.
 #[must_use]
+#[instrument(skip())]
 pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
     let url = format!("http://{binding}/api/health_check"); // DevSkim: ignore DS137138
 
@@ -199,6 +214,16 @@ pub struct Launcher {
     tls: Option<RustlsConfig>,
 }
 
+impl std::fmt::Display for Launcher {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.tls.is_some() {
+            write!(f, "(with socket): {}, using TLS", self.bind_to,)
+        } else {
+            write!(f, "(with socket): {}, without TLS", self.bind_to,)
+        }
+    }
+}
+
 impl Launcher {
     /// Starts the API server with graceful shutdown.
     ///
@@ -210,6 +235,7 @@ impl Launcher {
     ///
     /// Will panic if unable to bind to the socket, or unable to get the address of the bound socket.
     /// Will also panic if unable to send message regarding the bound socket address.
+    #[instrument(skip(self, tracker, access_tokens, tx_start, rx_halt))]
     pub fn start(
         &self,
         tracker: Arc<Tracker>,
