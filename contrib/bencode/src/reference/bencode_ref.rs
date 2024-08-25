@@ -4,7 +4,7 @@ use std::str;
 use crate::access::bencode::{BRefAccess, BRefAccessExt, RefKind};
 use crate::access::dict::BDictAccess;
 use crate::access::list::BListAccess;
-use crate::error::{BencodeParseError, BencodeParseErrorKind, BencodeParseResult};
+use crate::error::{BencodeParseError, BencodeParseResult};
 use crate::reference::decode;
 use crate::reference::decode_opt::BDecodeOpt;
 
@@ -41,9 +41,7 @@ impl<'a> BencodeRef<'a> {
         let (bencode, end_pos) = decode::decode(bytes, 0, opts, 0)?;
 
         if end_pos != bytes.len() && opts.enforce_full_decode() {
-            return Err(BencodeParseError::from_kind(BencodeParseErrorKind::BytesEmpty {
-                pos: end_pos,
-            }));
+            return Err(BencodeParseError::BytesEmpty { pos: end_pos });
         }
 
         Ok(bencode)
@@ -125,6 +123,7 @@ impl<'a> BRefAccessExt<'a> for BencodeRef<'a> {
 
 #[cfg(test)]
 mod tests {
+
     use crate::access::bencode::BRefAccess;
     use crate::reference::bencode_ref::BencodeRef;
     use crate::reference::decode_opt::BDecodeOpt;

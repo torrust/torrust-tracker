@@ -51,7 +51,7 @@ pub const LATEST_VERSION: &str = "2.0.0";
 
 /// Info about the configuration specification.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display, Clone)]
-#[display(fmt = "Metadata(app: {app}, purpose: {purpose}, schema_version: {schema_version})")]
+#[display("Metadata(app: {app}, purpose: {purpose}, schema_version: {schema_version})")]
 pub struct Metadata {
     /// The application this configuration is valid for.
     #[serde(default = "Metadata::default_app")]
