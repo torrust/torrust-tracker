@@ -16,6 +16,7 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HttpTracker;
+use tracing::instrument;
 
 use super::make_rust_tls;
 use crate::core;
@@ -32,6 +33,7 @@ use crate::servers::registar::ServiceRegistrationForm;
 ///
 /// It would panic if the `config::HttpTracker` struct would contain inappropriate values.
 ///
+#[instrument(skip(config, tracker, form))]
 pub async fn start_job(
     config: &HttpTracker,
     tracker: Arc<core::Tracker>,
@@ -49,6 +51,8 @@ pub async fn start_job(
     }
 }
 
+#[allow(clippy::async_yields_async)]
+#[instrument(skip(socket, tls, tracker, form))]
 async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,

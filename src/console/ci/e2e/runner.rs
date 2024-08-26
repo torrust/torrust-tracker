@@ -21,7 +21,6 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::Parser;
-use tracing::info;
 use tracing::level_filters::LevelFilter;
 
 use super::tracker_container::TrackerContainer;
@@ -68,7 +67,7 @@ pub fn run() -> anyhow::Result<()> {
 
     let tracker_config = load_tracker_configuration(&args)?;
 
-    info!("tracker config:\n{tracker_config}");
+    tracing::info!("tracker config:\n{tracker_config}");
 
     let mut tracker_container = TrackerContainer::new(CONTAINER_IMAGE, CONTAINER_NAME_PREFIX);
 
@@ -91,7 +90,7 @@ pub fn run() -> anyhow::Result<()> {
 
     let running_services = tracker_container.running_services();
 
-    info!(
+    tracing::info!(
         "Running services:\n {}",
         serde_json::to_string_pretty(&running_services).expect("running services to be serializable to JSON")
     );
@@ -110,27 +109,27 @@ pub fn run() -> anyhow::Result<()> {
 
     tracker_container.remove();
 
-    info!("Tracker container final state:\n{:#?}", tracker_container);
+    tracing::info!("Tracker container final state:\n{:#?}", tracker_container);
 
     Ok(())
 }
 
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).init();
-    info!("Logging initialized");
+    tracing::info!("Logging initialized");
 }
 
 fn load_tracker_configuration(args: &Args) -> anyhow::Result<String> {
     match (args.config_toml_path.clone(), args.config_toml.clone()) {
         (Some(config_path), _) => {
-            info!(
+            tracing::info!(
                 "Reading tracker configuration from file: {} ...",
                 config_path.to_string_lossy()
             );
             load_config_from_file(&config_path)
         }
         (_, Some(config_content)) => {
-            info!("Reading tracker configuration from env var ...");
+            tracing::info!("Reading tracker configuration from env var ...");
             Ok(config_content)
         }
         _ => Err(anyhow::anyhow!("No configuration provided")),

@@ -8,7 +8,6 @@ use aquatic_udp_protocol::{
     PeerId, PeerKey, Port, Response, ScrapeRequest, TransactionId,
 };
 use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
-use tracing::debug;
 
 use super::Error;
 use crate::shared::bit_torrent::tracker::udp::client::UdpTrackerClient;
@@ -57,7 +56,7 @@ impl Client {
     ///
     /// Will panic if it receives an unexpected response.
     pub async fn send_connection_request(&self, transaction_id: TransactionId) -> Result<ConnectionId, Error> {
-        debug!("Sending connection request with transaction id: {transaction_id:#?}");
+        tracing::debug!("Sending connection request with transaction id: {transaction_id:#?}");
 
         let connect_request = ConnectRequest { transaction_id };
 
@@ -95,7 +94,7 @@ impl Client {
         connection_id: ConnectionId,
         info_hash: TorrustInfoHash,
     ) -> Result<Response, Error> {
-        debug!("Sending announce request with transaction id: {transaction_id:#?}");
+        tracing::debug!("Sending announce request with transaction id: {transaction_id:#?}");
 
         let port = NonZeroU16::new(
             self.client
@@ -150,7 +149,7 @@ impl Client {
         transaction_id: TransactionId,
         info_hashes: &[TorrustInfoHash],
     ) -> Result<Response, Error> {
-        debug!("Sending scrape request with transaction id: {transaction_id:#?}");
+        tracing::debug!("Sending scrape request with transaction id: {transaction_id:#?}");
 
         let scrape_request = ScrapeRequest {
             connection_id,

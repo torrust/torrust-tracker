@@ -26,6 +26,7 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::{AccessTokens, HttpApi};
+use tracing::instrument;
 
 use super::make_rust_tls;
 use crate::core;
@@ -53,6 +54,7 @@ pub struct ApiServerJobStarted();
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
 ///
 ///
+#[instrument(skip(config, tracker, form))]
 pub async fn start_job(
     config: &HttpApi,
     tracker: Arc<core::Tracker>,
@@ -72,6 +74,8 @@ pub async fn start_job(
     }
 }
 
+#[allow(clippy::async_yields_async)]
+#[instrument(skip(socket, tls, tracker, form, access_tokens))]
 async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,

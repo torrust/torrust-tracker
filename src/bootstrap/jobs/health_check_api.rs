@@ -17,7 +17,7 @@
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::HealthCheckApi;
-use tracing::info;
+use tracing::instrument;
 
 use super::Started;
 use crate::servers::health_check_api::{server, HEALTH_CHECK_API_LOG_TARGET};
@@ -35,6 +35,8 @@ use crate::servers::signals::Halted;
 /// # Panics
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
+#[allow(clippy::async_yields_async)]
+#[instrument(skip(config, register))]
 pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> JoinHandle<()> {
     let bind_addr = config.bind_address;
 
@@ -45,18 +47,18 @@ pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> Jo
 
     // Run the API server
     let join_handle = tokio::spawn(async move {
-        info!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting on: {protocol}://{}", bind_addr);
+        tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting on: {protocol}://{}", bind_addr);
 
         let handle = server::start(bind_addr, tx_start, rx_halt, register);
 
         if let Ok(()) = handle.await {
-            info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: {protocol}://{}", bind_addr);
+            tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: {protocol}://{}", bind_addr);
         }
     });
 
     // Wait until the server sends the started message
     match rx_start.await {
-        Ok(msg) => info!(target: HEALTH_CHECK_API_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", msg.address),
+        Ok(msg) => tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", msg.address),
         Err(e) => panic!("the Health Check API server was dropped: {e}"),
     }
 

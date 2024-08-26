@@ -1,12 +1,18 @@
 use torrust_tracker::servers::health_check_api::resources::{Report, Status};
 use torrust_tracker::servers::registar::Registar;
 use torrust_tracker_test_helpers::configuration;
+use tracing::level_filters::LevelFilter;
 
+use crate::common::logging::{tracing_stderr_init, INIT};
 use crate::servers::health_check_api::client::get;
 use crate::servers::health_check_api::Started;
 
 #[tokio::test]
 async fn health_check_endpoint_should_return_status_ok_when_there_is_no_services_registered() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let configuration = configuration::ephemeral_with_no_services();
 
     let env = Started::new(&configuration.health_check_api.into(), Registar::default()).await;
@@ -31,13 +37,19 @@ mod api {
 
     use torrust_tracker::servers::health_check_api::resources::{Report, Status};
     use torrust_tracker_test_helpers::configuration;
+    use tracing::level_filters::LevelFilter;
 
+    use crate::common::logging::{tracing_stderr_init, INIT};
     use crate::servers::api;
     use crate::servers::health_check_api::client::get;
     use crate::servers::health_check_api::Started;
 
     #[tokio::test]
     pub(crate) async fn it_should_return_good_health_for_api_service() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let configuration = Arc::new(configuration::ephemeral());
 
         let service = api::Started::new(&configuration).await;
@@ -83,6 +95,10 @@ mod api {
 
     #[tokio::test]
     pub(crate) async fn it_should_return_error_when_api_service_was_stopped_after_registration() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let configuration = Arc::new(configuration::ephemeral());
 
         let service = api::Started::new(&configuration).await;
@@ -136,13 +152,19 @@ mod http {
 
     use torrust_tracker::servers::health_check_api::resources::{Report, Status};
     use torrust_tracker_test_helpers::configuration;
+    use tracing::level_filters::LevelFilter;
 
+    use crate::common::logging::{tracing_stderr_init, INIT};
     use crate::servers::health_check_api::client::get;
     use crate::servers::health_check_api::Started;
     use crate::servers::http;
 
     #[tokio::test]
     pub(crate) async fn it_should_return_good_health_for_http_service() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let configuration = Arc::new(configuration::ephemeral());
 
         let service = http::Started::new(&configuration).await;
@@ -187,6 +209,10 @@ mod http {
 
     #[tokio::test]
     pub(crate) async fn it_should_return_error_when_http_service_was_stopped_after_registration() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let configuration = Arc::new(configuration::ephemeral());
 
         let service = http::Started::new(&configuration).await;
@@ -240,13 +266,19 @@ mod udp {
 
     use torrust_tracker::servers::health_check_api::resources::{Report, Status};
     use torrust_tracker_test_helpers::configuration;
+    use tracing::level_filters::LevelFilter;
 
+    use crate::common::logging::{tracing_stderr_init, INIT};
     use crate::servers::health_check_api::client::get;
     use crate::servers::health_check_api::Started;
     use crate::servers::udp;
 
     #[tokio::test]
     pub(crate) async fn it_should_return_good_health_for_udp_service() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let configuration = Arc::new(configuration::ephemeral());
 
         let service = udp::Started::new(&configuration).await;
@@ -288,6 +320,10 @@ mod udp {
 
     #[tokio::test]
     pub(crate) async fn it_should_return_error_when_udp_service_was_stopped_after_registration() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let configuration = Arc::new(configuration::ephemeral());
 
         let service = udp::Started::new(&configuration).await;

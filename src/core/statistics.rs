@@ -25,7 +25,6 @@ use futures::FutureExt;
 use mockall::{automock, predicate::str};
 use tokio::sync::mpsc::error::SendError;
 use tokio::sync::{mpsc, RwLock, RwLockReadGuard};
-use tracing::debug;
 
 const CHANNEL_BUFFER_SIZE: usize = 65_535;
 
@@ -182,7 +181,7 @@ async fn event_handler(event: Event, stats_repository: &Repo) {
         }
     }
 
-    debug!("stats: {:?}", stats_repository.get_stats().await);
+    tracing::debug!("stats: {:?}", stats_repository.get_stats().await);
 }
 
 /// A trait to allow sending statistics events

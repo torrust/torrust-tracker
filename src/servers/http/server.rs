@@ -7,7 +7,7 @@ use axum_server::Handle;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
 use tokio::sync::oneshot::{Receiver, Sender};
-use tracing::info;
+use tracing::instrument;
 
 use super::v1::routes::router;
 use crate::bootstrap::jobs::Started;
@@ -42,6 +42,7 @@ pub struct Launcher {
 }
 
 impl Launcher {
+    #[instrument(skip(self, tracker, tx_start, rx_halt))]
     fn start(&self, tracker: Arc<Tracker>, tx_start: Sender<Started>, rx_halt: Receiver<Halted>) -> BoxFuture<'static, ()> {
         let socket = std::net::TcpListener::bind(self.bind_to).expect("Could not bind tcp_listener to address.");
         let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
@@ -57,7 +58,7 @@ impl Launcher {
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { "https" } else { "http" };
 
-        info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{}", address);
+        tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{}", address);
 
         let app = router(tracker, address);
 
@@ -80,7 +81,7 @@ impl Launcher {
             }
         });
 
-        info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
+        tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
 
         tx_start
             .send(Started { address })

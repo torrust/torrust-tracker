@@ -8,7 +8,6 @@ use torrust_tracker::servers::health_check_api::{server, HEALTH_CHECK_API_LOG_TA
 use torrust_tracker::servers::registar::Registar;
 use torrust_tracker::servers::signals::{self, Halted};
 use torrust_tracker_configuration::HealthCheckApi;
-use tracing::debug;
 
 #[derive(Debug)]
 pub enum Error {
@@ -49,21 +48,21 @@ impl Environment<Stopped> {
 
         let register = self.registar.entries();
 
-        debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Spawning task to launch the service ...");
+        tracing::debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Spawning task to launch the service ...");
 
         let server = tokio::spawn(async move {
-            debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting the server in a spawned task ...");
+            tracing::debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting the server in a spawned task ...");
 
             server::start(self.state.bind_to, tx_start, rx_halt, register)
                 .await
                 .expect("it should start the health check service");
 
-            debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Server started. Sending the binding {} ...", self.state.bind_to);
+            tracing::debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Server started. Sending the binding {} ...", self.state.bind_to);
 
             self.state.bind_to
         });
 
-        debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Waiting for spawning task to send the binding ...");
+        tracing::debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Waiting for spawning task to send the binding ...");
 
         let binding = rx_start.await.expect("it should send service binding").address;
 

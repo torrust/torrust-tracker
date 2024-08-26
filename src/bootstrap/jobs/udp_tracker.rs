@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::UdpTracker;
-use tracing::debug;
+use tracing::instrument;
 
 use crate::core;
 use crate::servers::registar::ServiceRegistrationForm;
@@ -28,6 +28,8 @@ use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
 /// It will panic if it is unable to start the UDP service.
 /// It will panic if the task did not finish successfully.
 #[must_use]
+#[allow(clippy::async_yields_async)]
+#[instrument(skip(config, tracker, form))]
 pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: ServiceRegistrationForm) -> JoinHandle<()> {
     let bind_to = config.bind_address;
 
@@ -37,8 +39,8 @@ pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: S
         .expect("it should be able to start the udp tracker");
 
     tokio::spawn(async move {
-        debug!(target: UDP_TRACKER_LOG_TARGET, "Wait for launcher (UDP service) to finish ...");
-        debug!(target: UDP_TRACKER_LOG_TARGET, "Is halt channel closed before waiting?: {}", server.state.halt_task.is_closed());
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Wait for launcher (UDP service) to finish ...");
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Is halt channel closed before waiting?: {}", server.state.halt_task.is_closed());
 
         assert!(
             !server.state.halt_task.is_closed(),
@@ -51,6 +53,6 @@ pub async fn start_job(config: &UdpTracker, tracker: Arc<core::Tracker>, form: S
             .await
             .expect("it should be able to join to the udp tracker task");
 
-        debug!(target: UDP_TRACKER_LOG_TARGET, "Is halt channel closed after finishing the server?: {}", server.state.halt_task.is_closed());
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Is halt channel closed after finishing the server?: {}", server.state.halt_task.is_closed());
     })
 }

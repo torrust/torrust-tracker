@@ -5,8 +5,10 @@ use torrust_tracker::servers::apis::v1::context::torrent::resources::torrent::{s
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 use torrust_tracker_test_helpers::configuration;
+use tracing::level_filters::LevelFilter;
 
 use crate::common::http::{Query, QueryParam};
+use crate::common::logging::{tracing_stderr_init, INIT};
 use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
 use crate::servers::api::v1::asserts::{
     assert_bad_request, assert_invalid_infohash_param, assert_not_found, assert_token_not_valid, assert_torrent_info,
@@ -20,6 +22,10 @@ use crate::servers::api::Started;
 
 #[tokio::test]
 async fn should_allow_getting_all_torrents() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
@@ -44,6 +50,10 @@ async fn should_allow_getting_all_torrents() {
 
 #[tokio::test]
 async fn should_allow_limiting_the_torrents_in_the_result() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     // torrents are ordered alphabetically by infohashes
@@ -73,6 +83,10 @@ async fn should_allow_limiting_the_torrents_in_the_result() {
 
 #[tokio::test]
 async fn should_allow_the_torrents_result_pagination() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     // torrents are ordered alphabetically by infohashes
@@ -102,6 +116,10 @@ async fn should_allow_the_torrents_result_pagination() {
 
 #[tokio::test]
 async fn should_allow_getting_a_list_of_torrents_providing_infohashes() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(); // DevSkim: ignore DS173237
@@ -144,6 +162,10 @@ async fn should_allow_getting_a_list_of_torrents_providing_infohashes() {
 
 #[tokio::test]
 async fn should_fail_getting_torrents_when_the_offset_query_parameter_cannot_be_parsed() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let invalid_offsets = [" ", "-1", "1.1", "INVALID OFFSET"];
@@ -161,6 +183,10 @@ async fn should_fail_getting_torrents_when_the_offset_query_parameter_cannot_be_
 
 #[tokio::test]
 async fn should_fail_getting_torrents_when_the_limit_query_parameter_cannot_be_parsed() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let invalid_limits = [" ", "-1", "1.1", "INVALID LIMIT"];
@@ -178,6 +204,10 @@ async fn should_fail_getting_torrents_when_the_limit_query_parameter_cannot_be_p
 
 #[tokio::test]
 async fn should_fail_getting_torrents_when_the_info_hash_parameter_is_invalid() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let invalid_info_hashes = [" ", "-1", "1.1", "INVALID INFO_HASH"];
@@ -199,6 +229,10 @@ async fn should_fail_getting_torrents_when_the_info_hash_parameter_is_invalid() 
 
 #[tokio::test]
 async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let response = Client::new(connection_with_invalid_token(env.get_connection_info().bind_address.as_str()))
@@ -218,6 +252,10 @@ async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
 
 #[tokio::test]
 async fn should_allow_getting_a_torrent_info() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
@@ -247,6 +285,10 @@ async fn should_allow_getting_a_torrent_info() {
 
 #[tokio::test]
 async fn should_fail_while_getting_a_torrent_info_when_the_torrent_does_not_exist() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();
@@ -262,6 +304,10 @@ async fn should_fail_while_getting_a_torrent_info_when_the_torrent_does_not_exis
 
 #[tokio::test]
 async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_is_invalid() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     for invalid_infohash in &invalid_infohashes_returning_bad_request() {
@@ -281,6 +327,10 @@ async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_is_invali
 
 #[tokio::test]
 async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap();

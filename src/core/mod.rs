@@ -469,7 +469,6 @@ use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 use torrust_tracker_torrent_repository::entry::EntrySync;
 use torrust_tracker_torrent_repository::repository::Repository;
-use tracing::debug;
 
 use self::auth::Key;
 use self::error::Error;
@@ -656,9 +655,9 @@ impl Tracker {
         // we are actually handling authentication at the handlers level. So I would extract that
         // responsibility into another authentication service.
 
-        debug!("Before: {peer:?}");
+        tracing::debug!("Before: {peer:?}");
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
-        debug!("After: {peer:?}");
+        tracing::debug!("After: {peer:?}");
 
         let stats = self.upsert_peer_and_get_stats(info_hash, peer);
 

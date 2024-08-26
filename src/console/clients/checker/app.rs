@@ -61,7 +61,6 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use tracing::debug;
 use tracing::level_filters::LevelFilter;
 
 use super::config::Configuration;
@@ -103,7 +102,7 @@ pub async fn run() -> Result<Vec<CheckResult>> {
 
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).init();
-    debug!("Logging initialized");
+    tracing::debug!("Logging initialized");
 }
 
 fn setup_config(args: Args) -> Result<Configuration> {

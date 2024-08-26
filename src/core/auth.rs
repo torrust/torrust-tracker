@@ -50,7 +50,6 @@ use torrust_tracker_clock::clock::Time;
 use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_tracker_located_error::{DynError, LocatedError};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
-use tracing::debug;
 
 use crate::shared::bit_torrent::common::AUTH_KEY_LENGTH;
 use crate::CurrentClock;
@@ -81,14 +80,14 @@ pub fn generate_key(lifetime: Option<Duration>) -> PeerKey {
         .collect();
 
     if let Some(lifetime) = lifetime {
-        debug!("Generated key: {}, valid for: {:?} seconds", random_id, lifetime);
+        tracing::debug!("Generated key: {}, valid for: {:?} seconds", random_id, lifetime);
 
         PeerKey {
             key: random_id.parse::<Key>().unwrap(),
             valid_until: Some(CurrentClock::now_add(&lifetime).unwrap()),
         }
     } else {
-        debug!("Generated key: {}, permanent", random_id);
+        tracing::debug!("Generated key: {}, permanent", random_id);
 
         PeerKey {
             key: random_id.parse::<Key>().unwrap(),

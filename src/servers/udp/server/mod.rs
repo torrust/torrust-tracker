@@ -1,6 +1,9 @@
 //! Module to handle the UDP server instances.
 use std::fmt::Debug;
 
+use derive_more::derive::Display;
+use thiserror::Error;
+
 use super::RawRequest;
 
 pub mod bound_socket;
@@ -21,11 +24,13 @@ pub mod states;
 /// Some errors triggered while stopping the server are:
 ///
 /// - The [`Server`] cannot send the shutdown signal to the spawned UDP service thread.
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum UdpError {
-    /// Any kind of error starting or stopping the server.
-    Socket(std::io::Error),
-    Error(String),
+    #[error("Any error to do with the socket")]
+    FailedToBindSocket(std::io::Error),
+
+    #[error("Any error to do with starting or stopping the sever")]
+    FailedToStartOrStopServer(String),
 }
 
 /// A UDP server.
@@ -38,7 +43,11 @@ pub enum UdpError {
 /// > reset to the initial value after stopping the server. This struct is not
 /// > intended to persist configurations between runs.
 #[allow(clippy::module_name_repetitions)]
-pub struct Server<S> {
+#[derive(Debug, Display)]
+pub struct Server<S>
+where
+    S: std::fmt::Debug + std::fmt::Display,
+{
     /// The state of the server: `running` or `stopped`.
     pub state: S,
 }

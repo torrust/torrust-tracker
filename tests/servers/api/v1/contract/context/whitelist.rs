@@ -2,7 +2,9 @@ use std::str::FromStr;
 
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_test_helpers::configuration;
+use tracing::level_filters::LevelFilter;
 
+use crate::common::logging::{tracing_stderr_init, INIT};
 use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
 use crate::servers::api::v1::asserts::{
     assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist, assert_failed_to_whitelist_torrent,
@@ -16,6 +18,10 @@ use crate::servers::api::{force_database_error, Started};
 
 #[tokio::test]
 async fn should_allow_whitelisting_a_torrent() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -34,6 +40,10 @@ async fn should_allow_whitelisting_a_torrent() {
 
 #[tokio::test]
 async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -51,6 +61,10 @@ async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted()
 
 #[tokio::test]
 async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -72,6 +86,10 @@ async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
 
 #[tokio::test]
 async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -87,6 +105,10 @@ async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
 
 #[tokio::test]
 async fn should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invalid() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     for invalid_infohash in &invalid_infohashes_returning_bad_request() {
@@ -110,6 +132,10 @@ async fn should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invali
 
 #[tokio::test]
 async fn should_allow_removing_a_torrent_from_the_whitelist() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -128,6 +154,10 @@ async fn should_allow_removing_a_torrent_from_the_whitelist() {
 
 #[tokio::test]
 async fn should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whitelist() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let non_whitelisted_torrent_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -143,6 +173,10 @@ async fn should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whi
 
 #[tokio::test]
 async fn should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_infohash_is_invalid() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     for invalid_infohash in &invalid_infohashes_returning_bad_request() {
@@ -166,6 +200,10 @@ async fn should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_inf
 
 #[tokio::test]
 async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -185,6 +223,10 @@ async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
 
 #[tokio::test]
 async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthenticated_users() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -209,6 +251,10 @@ async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthentica
 
 #[tokio::test]
 async fn should_allow_reload_the_whitelist_from_the_database() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();
@@ -234,6 +280,10 @@ async fn should_allow_reload_the_whitelist_from_the_database() {
 
 #[tokio::test]
 async fn should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned();

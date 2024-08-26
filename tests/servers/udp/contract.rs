@@ -10,7 +10,9 @@ use torrust_tracker::shared::bit_torrent::tracker::udp::client::UdpTrackerClient
 use torrust_tracker::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_test_helpers::configuration;
+use tracing::level_filters::LevelFilter;
 
+use crate::common::logging::{tracing_stderr_init, INIT};
 use crate::servers::udp::asserts::is_error_response;
 use crate::servers::udp::Started;
 
@@ -39,6 +41,10 @@ async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrac
 
 #[tokio::test]
 async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_request() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
@@ -68,12 +74,18 @@ mod receiving_a_connection_request {
     use torrust_tracker::shared::bit_torrent::tracker::udp::client::UdpTrackerClient;
     use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::configuration;
+    use tracing::level_filters::LevelFilter;
 
+    use crate::common::logging::{tracing_stderr_init, INIT};
     use crate::servers::udp::asserts::is_connect_response;
     use crate::servers::udp::Started;
 
     #[tokio::test]
     async fn should_return_a_connect_response() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let env = Started::new(&configuration::ephemeral().into()).await;
 
         let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
@@ -111,7 +123,9 @@ mod receiving_an_announce_request {
     use torrust_tracker::shared::bit_torrent::tracker::udp::client::UdpTrackerClient;
     use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::configuration;
+    use tracing::level_filters::LevelFilter;
 
+    use crate::common::logging::{tracing_stderr_init, INIT};
     use crate::servers::udp::asserts::is_ipv4_announce_response;
     use crate::servers::udp::contract::send_connection_request;
     use crate::servers::udp::Started;
@@ -152,6 +166,10 @@ mod receiving_an_announce_request {
 
     #[tokio::test]
     async fn should_return_an_announce_response() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let env = Started::new(&configuration::ephemeral().into()).await;
 
         let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
@@ -170,6 +188,10 @@ mod receiving_an_announce_request {
 
     #[tokio::test]
     async fn should_return_many_announce_response() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let env = Started::new(&configuration::ephemeral().into()).await;
 
         let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
@@ -195,13 +217,19 @@ mod receiving_an_scrape_request {
     use torrust_tracker::shared::bit_torrent::tracker::udp::client::UdpTrackerClient;
     use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::configuration;
+    use tracing::level_filters::LevelFilter;
 
+    use crate::common::logging::{tracing_stderr_init, INIT};
     use crate::servers::udp::asserts::is_scrape_response;
     use crate::servers::udp::contract::send_connection_request;
     use crate::servers::udp::Started;
 
     #[tokio::test]
     async fn should_return_a_scrape_response() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let env = Started::new(&configuration::ephemeral().into()).await;
 
         let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {

@@ -25,7 +25,7 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Configuration;
-use tracing::{info, warn};
+use tracing::instrument;
 
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
 use crate::servers::registar::Registar;
@@ -37,12 +37,13 @@ use crate::{core, servers};
 ///
 /// - Can't retrieve tracker keys from database.
 /// - Can't load whitelist from database.
+#[instrument(skip(config, tracker))]
 pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<JoinHandle<()>> {
     if config.http_api.is_none()
         && (config.udp_trackers.is_none() || config.udp_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
         && (config.http_trackers.is_none() || config.http_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
     {
-        warn!("No services enabled in configuration");
+        tracing::warn!("No services enabled in configuration");
     }
 
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
@@ -69,7 +70,7 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
     if let Some(udp_trackers) = &config.udp_trackers {
         for udp_tracker_config in udp_trackers {
             if tracker.is_private() {
-                warn!(
+                tracing::warn!(
                     "Could not start UDP tracker on: {} while in private mode. UDP is not safe for private trackers!",
                     udp_tracker_config.bind_address
                 );
@@ -78,7 +79,7 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
             }
         }
     } else {
-        info!("No UDP blocks in configuration");
+        tracing::info!("No UDP blocks in configuration");
     }
 
     // Start the HTTP blocks
@@ -96,7 +97,7 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
             };
         }
     } else {
-        info!("No HTTP blocks in configuration");
+        tracing::info!("No HTTP blocks in configuration");
     }
 
     // Start HTTP API
@@ -112,7 +113,7 @@ pub async fn start(config: &Configuration, tracker: Arc<core::Tracker>) -> Vec<J
             jobs.push(job);
         };
     } else {
-        info!("No API block in configuration");
+        tracing::info!("No API block in configuration");
     }
 
     // Start runners to remove torrents without peers, every interval

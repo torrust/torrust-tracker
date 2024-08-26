@@ -14,7 +14,6 @@
 use std::sync::Once;
 
 use torrust_tracker_configuration::{Configuration, Threshold};
-use tracing::info;
 use tracing::level_filters::LevelFilter;
 
 static INIT: Once = Once::new();
@@ -54,7 +53,7 @@ fn tracing_stdout_init(filter: LevelFilter, style: &TraceStyle) {
         TraceStyle::Json => builder.json().init(),
     };
 
-    info!("Logging initialized");
+    tracing::info!("Logging initialized");
 }
 
 #[derive(Debug)]

@@ -14,7 +14,6 @@ use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_primitives::peer;
-use tracing::debug;
 
 use crate::core::auth::Key;
 use crate::core::{AnnounceData, Tracker};
@@ -36,7 +35,7 @@ pub async fn handle_without_key(
     ExtractRequest(announce_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
 ) -> Response {
-    debug!("http announce request: {:#?}", announce_request);
+    tracing::debug!("http announce request: {:#?}", announce_request);
 
     handle(&tracker, &announce_request, &client_ip_sources, None).await
 }
@@ -50,7 +49,7 @@ pub async fn handle_with_key(
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
     ExtractKey(key): ExtractKey,
 ) -> Response {
-    debug!("http announce request: {:#?}", announce_request);
+    tracing::debug!("http announce request: {:#?}", announce_request);
 
     handle(&tracker, &announce_request, &client_ip_sources, Some(key)).await
 }

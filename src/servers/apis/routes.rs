@@ -21,7 +21,7 @@ use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tracing::{Level, Span};
+use tracing::{instrument, Level, Span};
 
 use super::v1;
 use super::v1::context::health_check::handlers::health_check_handler;
@@ -31,6 +31,7 @@ use crate::servers::apis::API_LOG_TARGET;
 
 /// Add all API routes to the router.
 #[allow(clippy::needless_pass_by_value)]
+#[instrument(skip(tracker, access_tokens))]
 pub fn router(tracker: Arc<Tracker>, access_tokens: Arc<AccessTokens>) -> Router {
     let router = Router::new();
 
