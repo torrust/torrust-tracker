@@ -22,9 +22,9 @@ dashmap = "6"
 futures = "0"
 parking_lot = "0"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
-torrust-tracker-clock = { version = "3.0.0-beta-develop", path = "../clock" }
-torrust-tracker-configuration = { version = "3.0.0-beta-develop", path = "../configuration" }
-torrust-tracker-primitives = { version = "3.0.0-beta-develop", path = "../primitives" }
+torrust-tracker-clock = { version = "3.0.0-rc.1-develop", path = "../clock" }
+torrust-tracker-configuration = { version = "3.0.0-rc.1-develop", path = "../configuration" }
+torrust-tracker-primitives = { version = "3.0.0-rc.1-develop", path = "../primitives" }
 zerocopy = "0"
 
 [dev-dependencies]
