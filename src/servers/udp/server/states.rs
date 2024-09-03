@@ -2,8 +2,10 @@ use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use derive_more::derive::Display;
 use derive_more::Constructor;
 use tokio::task::JoinHandle;
+use tracing::{instrument, Level};
 
 use super::spawner::Spawner;
 use super::{Server, UdpError};
@@ -23,16 +25,18 @@ pub type StoppedUdpServer = Server<Stopped>;
 pub type RunningUdpServer = Server<Running>;
 
 /// A stopped UDP server state.
-
+#[derive(Debug, Display)]
+#[display("Stopped: {spawner}")]
 pub struct Stopped {
     pub spawner: Spawner,
 }
 
 /// A running UDP server state.
-#[derive(Debug, Constructor)]
+#[derive(Debug, Display, Constructor)]
+#[display("Running (with local address): {local_addr}")]
 pub struct Running {
     /// The address where the server is bound.
-    pub binding: SocketAddr,
+    pub local_addr: SocketAddr,
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
     pub task: JoinHandle<Spawner>,
 }
@@ -57,6 +61,7 @@ impl Server<Stopped> {
     ///
     /// It panics if unable to receive the bound socket address from service.
     ///
+    #[instrument(skip(self, tracker, form), err, ret(Display, level = Level::INFO))]
     pub async fn start(self, tracker: Arc<Tracker>, form: ServiceRegistrationForm) -> Result<Server<Running>, std::io::Error> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
@@ -66,20 +71,20 @@ impl Server<Stopped> {
         // May need to wrap in a task to about a tokio bug.
         let task = self.state.spawner.spawn_launcher(tracker, tx_start, rx_halt);
 
-        let binding = rx_start.await.expect("it should be able to start the service").address;
-        let local_addr = format!("udp://{binding}");
+        let local_addr = rx_start.await.expect("it should be able to start the service").address;
 
-        form.send(ServiceRegistration::new(binding, Launcher::check))
+        form.send(ServiceRegistration::new(local_addr, Launcher::check))
             .expect("it should be able to send service registration");
 
         let running_udp_server: Server<Running> = Server {
             state: Running {
-                binding,
+                local_addr,
                 halt_task: tx_halt,
                 task,
             },
         };
 
+        let local_addr = format!("udp://{local_addr}");
         tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "UdpServer<Stopped>::start (running)");
 
         Ok(running_udp_server)
@@ -98,11 +103,12 @@ impl Server<Running> {
     /// # Panics
     ///
     /// It panics if unable to shutdown service.
+    #[instrument(skip(self), err, ret(Display, level = Level::INFO))]
     pub async fn stop(self) -> Result<Server<Stopped>, UdpError> {
         self.state
             .halt_task
             .send(Halted::Normal)
-            .map_err(|e| UdpError::Error(e.to_string()))?;
+            .map_err(|e| UdpError::FailedToStartOrStopServer(e.to_string()))?;
 
         let launcher = self.state.task.await.expect("it should shutdown service");
 

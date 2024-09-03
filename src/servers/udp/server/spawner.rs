@@ -2,6 +2,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use derive_more::derive::Display;
 use derive_more::Constructor;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
@@ -11,7 +12,8 @@ use crate::bootstrap::jobs::Started;
 use crate::core::Tracker;
 use crate::servers::signals::Halted;
 
-#[derive(Constructor, Copy, Clone, Debug)]
+#[derive(Constructor, Copy, Clone, Debug, Display)]
+#[display("(with socket): {bind_to}")]
 pub struct Spawner {
     pub bind_to: SocketAddr,
 }

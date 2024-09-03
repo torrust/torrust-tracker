@@ -2,13 +2,13 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::ops::Sub;
 use std::time::Duration;
 
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use rstest::{fixture, rstest};
 use torrust_tracker_clock::clock::stopped::Stopped as _;
 use torrust_tracker_clock::clock::{self, Time as _};
 use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
-use torrust_tracker_primitives::announce_event::AnnounceEvent;
+use torrust_tracker_primitives::peer;
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_primitives::{peer, NumberOfBytes};
 use torrust_tracker_torrent_repository::{
     EntryMutexParkingLot, EntryMutexStd, EntryMutexTokio, EntryRwLockParkingLot, EntrySingle,
 };
@@ -86,7 +86,7 @@ async fn make(torrent: &mut Torrent, makes: &Makes) -> Vec<Peer> {
             let mut peer = a_started_peer(3);
             torrent.upsert_peer(&peer).await;
             peer.event = AnnounceEvent::Completed;
-            peer.left = NumberOfBytes(0);
+            peer.left = NumberOfBytes::new(0);
             torrent.upsert_peer(&peer).await;
             vec![peer]
         }
@@ -100,7 +100,7 @@ async fn make(torrent: &mut Torrent, makes: &Makes) -> Vec<Peer> {
             let mut peer_3 = a_started_peer(3);
             torrent.upsert_peer(&peer_3).await;
             peer_3.event = AnnounceEvent::Completed;
-            peer_3.left = NumberOfBytes(0);
+            peer_3.left = NumberOfBytes::new(0);
             torrent.upsert_peer(&peer_3).await;
             vec![peer_1, peer_2, peer_3]
         }
@@ -305,10 +305,10 @@ async fn it_should_update_a_peer_as_a_seeder(
     let peers = torrent.get_peers(None).await;
     let mut peer = **peers.first().expect("there should be a peer");
 
-    let is_already_non_left = peer.left == NumberOfBytes(0);
+    let is_already_non_left = peer.left == NumberOfBytes::new(0);
 
     // Set Bytes Left to Zero
-    peer.left = NumberOfBytes(0);
+    peer.left = NumberOfBytes::new(0);
     torrent.upsert_peer(&peer).await;
     let stats = torrent.get_stats().await;
 
@@ -337,10 +337,10 @@ async fn it_should_update_a_peer_as_incomplete(
     let peers = torrent.get_peers(None).await;
     let mut peer = **peers.first().expect("there should be a peer");
 
-    let completed_already = peer.left == NumberOfBytes(0);
+    let completed_already = peer.left == NumberOfBytes::new(0);
 
     // Set Bytes Left to no Zero
-    peer.left = NumberOfBytes(1);
+    peer.left = NumberOfBytes::new(1);
     torrent.upsert_peer(&peer).await;
     let stats = torrent.get_stats().await;
 
@@ -400,7 +400,7 @@ async fn it_should_limit_the_number_of_peers_returned(
     // We add one more peer than the scrape limit
     for peer_number in 1..=74 + 1 {
         let mut peer = a_started_peer(1);
-        peer.peer_id = peer::Id::from(peer_number);
+        peer.peer_id = *peer::Id::new(peer_number);
         torrent.upsert_peer(&peer).await;
     }
 

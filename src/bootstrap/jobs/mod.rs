@@ -20,6 +20,7 @@ pub struct Started {
     pub address: std::net::SocketAddr,
 }
 
+#[instrument(skip(opt_tsl_config))]
 pub async fn make_rust_tls(opt_tsl_config: &Option<TslConfig>) -> Option<Result<RustlsConfig, Error>> {
     match opt_tsl_config {
         Some(tsl_config) => {
@@ -32,8 +33,8 @@ pub async fn make_rust_tls(opt_tsl_config: &Option<TslConfig>) -> Option<Result<
                 }));
             }
 
-            info!("Using https: cert path: {cert}.");
-            info!("Using https: key path: {key}.");
+            tracing::info!("Using https: cert path: {cert}.");
+            tracing::info!("Using https: key path: {key}.");
 
             Some(
                 RustlsConfig::from_pem_file(cert, key)
@@ -89,7 +90,7 @@ use axum_server::tls_rustls::RustlsConfig;
 use thiserror::Error;
 use torrust_tracker_configuration::TslConfig;
 use torrust_tracker_located_error::{DynError, LocatedError};
-use tracing::info;
+use tracing::instrument;
 
 /// Error returned by the Bootstrap Process.
 #[derive(Error, Debug)]

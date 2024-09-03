@@ -21,8 +21,7 @@ pub trait BDictAccess<K, V> {
 
 impl<'a, V> BDictAccess<&'a [u8], V> for BTreeMap<&'a [u8], V> {
     fn to_list(&self) -> Vec<(&&'a [u8], &V)> {
-        #[allow(clippy::map_identity)]
-        self.iter().map(|(k, v)| (k, v)).collect()
+        self.iter().collect()
     }
 
     fn lookup(&self, key: &[u8]) -> Option<&V> {
@@ -44,8 +43,7 @@ impl<'a, V> BDictAccess<&'a [u8], V> for BTreeMap<&'a [u8], V> {
 
 impl<'a, V> BDictAccess<Cow<'a, [u8]>, V> for BTreeMap<Cow<'a, [u8]>, V> {
     fn to_list(&self) -> Vec<(&Cow<'a, [u8]>, &V)> {
-        #[allow(clippy::map_identity)]
-        self.iter().map(|(k, v)| (k, v)).collect()
+        self.iter().collect()
     }
 
     fn lookup(&self, key: &[u8]) -> Option<&V> {

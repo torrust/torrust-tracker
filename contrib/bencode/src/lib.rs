@@ -7,7 +7,6 @@
 //! ```rust
 //!     extern crate bencode;
 //!
-//!     use std::default::Default;
 //!     use bencode::{BencodeRef, BRefAccess, BDecodeOpt};
 //!
 //!     fn main() {
@@ -63,10 +62,7 @@ pub use crate::access::bencode::{BMutAccess, BRefAccess, MutKind, RefKind};
 pub use crate::access::convert::BConvert;
 pub use crate::access::dict::BDictAccess;
 pub use crate::access::list::BListAccess;
-pub use crate::error::{
-    BencodeConvertError, BencodeConvertErrorKind, BencodeConvertResult, BencodeParseError, BencodeParseErrorKind,
-    BencodeParseResult,
-};
+pub use crate::error::{BencodeConvertError, BencodeConvertResult, BencodeParseError, BencodeParseResult};
 pub use crate::mutable::bencode_mut::BencodeMut;
 pub use crate::reference::bencode_ref::BencodeRef;
 pub use crate::reference::decode_opt::BDecodeOpt;

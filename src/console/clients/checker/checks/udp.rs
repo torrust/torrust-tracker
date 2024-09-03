@@ -4,7 +4,6 @@ use std::time::Duration;
 use aquatic_udp_protocol::TransactionId;
 use hex_literal::hex;
 use serde::Serialize;
-use torrust_tracker_primitives::info_hash::InfoHash;
 
 use crate::console::clients::udp::checker::Client;
 use crate::console::clients::udp::Error;
@@ -29,7 +28,7 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration) -> Vec<Result
 
     tracing::debug!("UDP trackers ...");
 
-    let info_hash = InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // # DevSkim: ignore DS173237
+    let info_hash = aquatic_udp_protocol::InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // # DevSkim: ignore DS173237
 
     for remote_addr in udp_trackers {
         let mut checks = Checks {
@@ -70,7 +69,7 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration) -> Vec<Result
         // Announce
         {
             let check = client
-                .send_announce_request(transaction_id, connection_id, info_hash)
+                .send_announce_request(transaction_id, connection_id, info_hash.into())
                 .await
                 .map(|_| ());
 
@@ -80,7 +79,7 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration) -> Vec<Result
         // Scrape
         {
             let check = client
-                .send_scrape_request(connection_id, transaction_id, &[info_hash])
+                .send_scrape_request(connection_id, transaction_id, &[info_hash.into()])
                 .await
                 .map(|_| ());
 

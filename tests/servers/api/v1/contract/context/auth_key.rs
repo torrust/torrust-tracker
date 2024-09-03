@@ -3,7 +3,9 @@ use std::time::Duration;
 use serde::Serialize;
 use torrust_tracker::core::auth::Key;
 use torrust_tracker_test_helpers::configuration;
+use tracing::level_filters::LevelFilter;
 
+use crate::common::logging::{tracing_stderr_init, INIT};
 use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
 use crate::servers::api::v1::asserts::{
     assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
@@ -15,6 +17,10 @@ use crate::servers::api::{force_database_error, Started};
 
 #[tokio::test]
 async fn should_allow_generating_a_new_random_auth_key() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let response = Client::new(env.get_connection_info())
@@ -37,6 +43,10 @@ async fn should_allow_generating_a_new_random_auth_key() {
 
 #[tokio::test]
 async fn should_allow_uploading_a_preexisting_auth_key() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let response = Client::new(env.get_connection_info())
@@ -59,6 +69,10 @@ async fn should_allow_uploading_a_preexisting_auth_key() {
 
 #[tokio::test]
 async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let response = Client::new(connection_with_invalid_token(env.get_connection_info().bind_address.as_str()))
@@ -84,6 +98,10 @@ async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() 
 
 #[tokio::test]
 async fn should_fail_when_the_auth_key_cannot_be_generated() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     force_database_error(&env.tracker);
@@ -102,6 +120,10 @@ async fn should_fail_when_the_auth_key_cannot_be_generated() {
 
 #[tokio::test]
 async fn should_allow_deleting_an_auth_key() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let seconds_valid = 60;
@@ -128,6 +150,10 @@ async fn should_fail_generating_a_new_auth_key_when_the_provided_key_is_invalid(
         pub opt_key: Option<String>,
         pub seconds_valid: u64,
     }
+
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
 
     let env = Started::new(&configuration::ephemeral().into()).await;
 
@@ -166,6 +192,10 @@ async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid(
         pub seconds_valid: String,
     }
 
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let invalid_key_durations = [
@@ -193,6 +223,10 @@ async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid(
 
 #[tokio::test]
 async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let invalid_auth_keys = [
@@ -216,6 +250,10 @@ async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
 
 #[tokio::test]
 async fn should_fail_when_the_auth_key_cannot_be_deleted() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let seconds_valid = 60;
@@ -238,6 +276,10 @@ async fn should_fail_when_the_auth_key_cannot_be_deleted() {
 
 #[tokio::test]
 async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let seconds_valid = 60;
@@ -273,6 +315,10 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
 
 #[tokio::test]
 async fn should_allow_reloading_keys() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let seconds_valid = 60;
@@ -290,6 +336,10 @@ async fn should_allow_reloading_keys() {
 
 #[tokio::test]
 async fn should_fail_when_keys_cannot_be_reloaded() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let seconds_valid = 60;
@@ -309,6 +359,10 @@ async fn should_fail_when_keys_cannot_be_reloaded() {
 
 #[tokio::test]
 async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
+    INIT.call_once(|| {
+        tracing_stderr_init(LevelFilter::ERROR);
+    });
+
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let seconds_valid = 60;
@@ -336,7 +390,9 @@ mod deprecated_generate_key_endpoint {
 
     use torrust_tracker::core::auth::Key;
     use torrust_tracker_test_helpers::configuration;
+    use tracing::level_filters::LevelFilter;
 
+    use crate::common::logging::{tracing_stderr_init, INIT};
     use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
     use crate::servers::api::v1::asserts::{
         assert_auth_key_utf8, assert_failed_to_generate_key, assert_invalid_key_duration_param, assert_token_not_valid,
@@ -347,6 +403,10 @@ mod deprecated_generate_key_endpoint {
 
     #[tokio::test]
     async fn should_allow_generating_a_new_auth_key() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let env = Started::new(&configuration::ephemeral().into()).await;
 
         let seconds_valid = 60;
@@ -366,6 +426,10 @@ mod deprecated_generate_key_endpoint {
 
     #[tokio::test]
     async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let env = Started::new(&configuration::ephemeral().into()).await;
 
         let seconds_valid = 60;
@@ -387,6 +451,10 @@ mod deprecated_generate_key_endpoint {
 
     #[tokio::test]
     async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let env = Started::new(&configuration::ephemeral().into()).await;
 
         let invalid_key_durations = [
@@ -408,6 +476,10 @@ mod deprecated_generate_key_endpoint {
 
     #[tokio::test]
     async fn should_fail_when_the_auth_key_cannot_be_generated() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let env = Started::new(&configuration::ephemeral().into()).await;
 
         force_database_error(&env.tracker);

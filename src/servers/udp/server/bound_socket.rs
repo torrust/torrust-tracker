@@ -26,7 +26,7 @@ impl BoundSocket {
             Err(e) => Err(e)?,
         };
 
-        let local_addr = format!("udp://{addr}");
+        let local_addr = format!("udp://{}", socket.local_addr()?);
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "UdpSocket::new (bound)");
 
         Ok(Self { socket })

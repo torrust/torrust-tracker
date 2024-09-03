@@ -9,12 +9,11 @@ use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::sync::Arc;
 
+use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use torrust_tracker_clock::clock::Time;
-use torrust_tracker_primitives::announce_event::AnnounceEvent;
-use torrust_tracker_primitives::{peer, NumberOfBytes};
-use tracing::debug;
+use torrust_tracker_primitives::peer;
 
 use crate::core::auth::Key;
 use crate::core::{AnnounceData, Tracker};
@@ -36,7 +35,7 @@ pub async fn handle_without_key(
     ExtractRequest(announce_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
 ) -> Response {
-    debug!("http announce request: {:#?}", announce_request);
+    tracing::debug!("http announce request: {:#?}", announce_request);
 
     handle(&tracker, &announce_request, &client_ip_sources, None).await
 }
@@ -50,7 +49,7 @@ pub async fn handle_with_key(
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
     ExtractKey(key): ExtractKey,
 ) -> Response {
-    debug!("http announce request: {:#?}", announce_request);
+    tracing::debug!("http announce request: {:#?}", announce_request);
 
     handle(&tracker, &announce_request, &client_ip_sources, Some(key)).await
 }
@@ -136,9 +135,9 @@ fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> peer::Pee
         peer_id: announce_request.peer_id,
         peer_addr: SocketAddr::new(*peer_ip, announce_request.port),
         updated: CurrentClock::now(),
-        uploaded: NumberOfBytes(announce_request.uploaded.unwrap_or(0)),
-        downloaded: NumberOfBytes(announce_request.downloaded.unwrap_or(0)),
-        left: NumberOfBytes(announce_request.left.unwrap_or(0)),
+        uploaded: announce_request.uploaded.unwrap_or(NumberOfBytes::new(0)),
+        downloaded: announce_request.downloaded.unwrap_or(NumberOfBytes::new(0)),
+        left: announce_request.left.unwrap_or(NumberOfBytes::new(0)),
         event: map_to_torrust_event(&announce_request.event),
     }
 }
@@ -170,8 +169,8 @@ pub fn map_to_torrust_event(event: &Option<Event>) -> AnnounceEvent {
 #[cfg(test)]
 mod tests {
 
+    use aquatic_udp_protocol::PeerId;
     use torrust_tracker_primitives::info_hash::InfoHash;
-    use torrust_tracker_primitives::peer;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::core::services::tracker_factory;
@@ -199,7 +198,7 @@ mod tests {
     fn sample_announce_request() -> Announce {
         Announce {
             info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
-            peer_id: "-qB00000000000000001".parse::<peer::Id>().unwrap(),
+            peer_id: PeerId(*b"-qB00000000000000001"),
             port: 17548,
             downloaded: None,
             uploaded: None,

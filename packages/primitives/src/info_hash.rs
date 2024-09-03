@@ -1,11 +1,15 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::ops::{Deref, DerefMut};
 use std::panic::Location;
 
 use thiserror::Error;
+use zerocopy::FromBytes;
 
 /// `BitTorrent` Info Hash v1
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Default, Debug)]
-pub struct InfoHash(pub [u8; 20]);
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+pub struct InfoHash {
+    data: aquatic_udp_protocol::InfoHash,
+}
 
 pub const INFO_HASH_BYTES_LEN: usize = 20;
 
@@ -17,10 +21,9 @@ impl InfoHash {
     /// Will panic if byte slice does not contains the exact amount of bytes need for the `InfoHash`.
     #[must_use]
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        assert_eq!(bytes.len(), INFO_HASH_BYTES_LEN);
-        let mut ret = Self([0u8; INFO_HASH_BYTES_LEN]);
-        ret.0.clone_from_slice(bytes);
-        ret
+        let data = aquatic_udp_protocol::InfoHash::read_from(bytes).expect("it should have the exact amount of bytes");
+
+        Self { data }
     }
 
     /// Returns the `InfoHash` internal byte array.
@@ -36,13 +39,41 @@ impl InfoHash {
     }
 }
 
+impl Default for InfoHash {
+    fn default() -> Self {
+        Self {
+            data: aquatic_udp_protocol::InfoHash(Default::default()),
+        }
+    }
+}
+
+impl From<aquatic_udp_protocol::InfoHash> for InfoHash {
+    fn from(data: aquatic_udp_protocol::InfoHash) -> Self {
+        Self { data }
+    }
+}
+
+impl Deref for InfoHash {
+    type Target = aquatic_udp_protocol::InfoHash;
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
+    }
+}
+
+impl DerefMut for InfoHash {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.data
+    }
+}
+
 impl Ord for InfoHash {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.0.cmp(&other.0)
     }
 }
 
-impl std::cmp::PartialOrd<InfoHash> for InfoHash {
+impl PartialOrd<InfoHash> for InfoHash {
     fn partial_cmp(&self, other: &InfoHash) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
@@ -60,7 +91,7 @@ impl std::str::FromStr for InfoHash {
     type Err = binascii::ConvertError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut i = Self([0u8; 20]);
+        let mut i = Self::default();
         if s.len() != 40 {
             return Err(binascii::ConvertError::InvalidInputLength);
         }
@@ -72,7 +103,7 @@ impl std::str::FromStr for InfoHash {
 impl std::convert::From<&[u8]> for InfoHash {
     fn from(data: &[u8]) -> InfoHash {
         assert_eq!(data.len(), 20);
-        let mut ret = InfoHash([0u8; 20]);
+        let mut ret = Self::default();
         ret.0.clone_from_slice(data);
         ret
     }
@@ -82,23 +113,28 @@ impl std::convert::From<&[u8]> for InfoHash {
 impl std::convert::From<&DefaultHasher> for InfoHash {
     fn from(data: &DefaultHasher) -> InfoHash {
         let n = data.finish().to_le_bytes();
-        InfoHash([
+        let bytes = [
             n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[0], n[1], n[2],
             n[3],
-        ])
+        ];
+        let data = aquatic_udp_protocol::InfoHash(bytes);
+        Self { data }
     }
 }
 
 impl std::convert::From<&i32> for InfoHash {
     fn from(n: &i32) -> InfoHash {
         let n = n.to_le_bytes();
-        InfoHash([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, n[0], n[1], n[2], n[3]])
+        let bytes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, n[0], n[1], n[2], n[3]];
+        let data = aquatic_udp_protocol::InfoHash(bytes);
+        Self { data }
     }
 }
 
 impl std::convert::From<[u8; 20]> for InfoHash {
-    fn from(val: [u8; 20]) -> Self {
-        InfoHash(val)
+    fn from(bytes: [u8; 20]) -> Self {
+        let data = aquatic_udp_protocol::InfoHash(bytes);
+        Self { data }
     }
 }
 
@@ -171,7 +207,7 @@ impl<'v> serde::de::Visitor<'v> for InfoHashVisitor {
             ));
         }
 
-        let mut res = InfoHash([0u8; 20]);
+        let mut res = InfoHash::default();
 
         if binascii::hex2bin(v.as_bytes(), &mut res.0).is_err() {
             return Err(serde::de::Error::invalid_value(

@@ -27,7 +27,7 @@ license = "AGPL-3.0-only"
 publish = true
 repository = "https://github.com/torrust/torrust-tracker"
 rust-version = "1.72"
-version = "3.0.0-alpha.12-develop"
+version = "3.0.0-beta"
 
 [dependencies]
 anyhow = "1"
@@ -41,7 +41,7 @@ chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
 crossbeam-skiplist = "0"
 dashmap = "6"
-derive_more = "0"
+derive_more = { version = "1", features = ["as_ref", "constructor", "from"] }
 figment = "0"
 futures = "0"
 futures-util = "0"
@@ -66,15 +66,15 @@ serde_bencode = "0"
 serde_bytes = "0"
 serde_json = { version = "1", features = ["preserve_order"] }
 serde_repr = "0"
-serde_with = { version = "3.9.0", features = ["json"] }
+serde_with = { version = "3", features = ["json"] }
 thiserror = "1"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
-torrust-tracker-clock = { version = "3.0.0-alpha.12-develop", path = "packages/clock" }
-torrust-tracker-configuration = { version = "3.0.0-alpha.12-develop", path = "packages/configuration" }
-torrust-tracker-contrib-bencode = { version = "3.0.0-alpha.12-develop", path = "contrib/bencode" }
-torrust-tracker-located-error = { version = "3.0.0-alpha.12-develop", path = "packages/located-error" }
-torrust-tracker-primitives = { version = "3.0.0-alpha.12-develop", path = "packages/primitives" }
-torrust-tracker-torrent-repository = { version = "3.0.0-alpha.12-develop", path = "packages/torrent-repository" }
+torrust-tracker-clock = { version = "3.0.0-beta", path = "packages/clock" }
+torrust-tracker-configuration = { version = "3.0.0-beta", path = "packages/configuration" }
+torrust-tracker-contrib-bencode = { version = "3.0.0-beta", path = "contrib/bencode" }
+torrust-tracker-located-error = { version = "3.0.0-beta", path = "packages/located-error" }
+torrust-tracker-primitives = { version = "3.0.0-beta", path = "packages/primitives" }
+torrust-tracker-torrent-repository = { version = "3.0.0-beta", path = "packages/torrent-repository" }
 tower = { version = "0", features = ["timeout"] }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
 trace = "0"
@@ -90,7 +90,7 @@ ignored = ["crossbeam-skiplist", "dashmap", "figment", "parking_lot", "serde_byt
 [dev-dependencies]
 local-ip-address = "0"
 mockall = "0"
-torrust-tracker-test-helpers = { version = "3.0.0-alpha.12-develop", path = "packages/test-helpers" }
+torrust-tracker-test-helpers = { version = "3.0.0-beta", path = "packages/test-helpers" }
 
 [workspace]
 members = [

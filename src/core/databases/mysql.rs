@@ -8,7 +8,6 @@ use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MySqlConnectionManager;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::PersistentTorrents;
-use tracing::debug;
 
 use super::driver::Driver;
 use super::{Database, Error};
@@ -158,7 +157,7 @@ impl Database for Mysql {
 
         let info_hash_str = info_hash.to_string();
 
-        debug!("{}", info_hash_str);
+        tracing::debug!("{}", info_hash_str);
 
         Ok(conn.exec_drop(COMMAND, params! { info_hash_str, completed })?)
     }

@@ -4,8 +4,6 @@ use std::process::{Command, Output};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use tracing::{debug, info};
-
 /// Docker command wrapper.
 pub struct Docker {}
 
@@ -20,7 +18,7 @@ impl Drop for RunningContainer {
     /// Ensures that the temporary container is stopped when the struct goes out
     /// of scope.
     fn drop(&mut self) {
-        info!("Dropping running container: {}", self.name);
+        tracing::info!("Dropping running container: {}", self.name);
         if Docker::is_container_running(&self.name) {
             let _unused = Docker::stop(self);
         }
@@ -89,7 +87,7 @@ impl Docker {
 
         let args = [initial_args, env_var_args, port_args, [image.to_string()].to_vec()].concat();
 
-        debug!("Docker run args: {:?}", args);
+        tracing::debug!("Docker run args: {:?}", args);
 
         let output = Command::new("docker").args(args).output()?;
 
@@ -176,7 +174,7 @@ impl Docker {
 
             let output_str = String::from_utf8_lossy(&output.stdout);
 
-            info!("Waiting until container is healthy: {:?}", output_str);
+            tracing::info!("Waiting until container is healthy: {:?}", output_str);
 
             if output_str.contains("(healthy)") {
                 return true;

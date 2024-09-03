@@ -160,7 +160,6 @@ use std::env;
 use std::time::Duration;
 
 use tokio::time::sleep;
-use tracing::info;
 
 use crate::{app, bootstrap};
 
@@ -189,10 +188,10 @@ pub async fn run() {
 
     tokio::select! {
         () = run_duration => {
-            info!("Torrust timed shutdown..");
+            tracing::info!("Torrust timed shutdown..");
         },
         _ = tokio::signal::ctrl_c() => {
-            info!("Torrust shutting down via Ctrl+C ...");
+            tracing::info!("Torrust shutting down via Ctrl+C ...");
             // Await for all jobs to shutdown
             futures::future::join_all(jobs).await;
         }

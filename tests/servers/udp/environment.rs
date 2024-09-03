@@ -11,14 +11,20 @@ use torrust_tracker_configuration::{Configuration, UdpTracker, DEFAULT_TIMEOUT};
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
 
-pub struct Environment<S> {
+pub struct Environment<S>
+where
+    S: std::fmt::Debug + std::fmt::Display,
+{
     pub config: Arc<UdpTracker>,
     pub tracker: Arc<Tracker>,
     pub registar: Registar,
     pub server: Server<S>,
 }
 
-impl<S> Environment<S> {
+impl<S> Environment<S>
+where
+    S: std::fmt::Debug + std::fmt::Display,
+{
     /// Add a torrent to the tracker
     #[allow(dead_code)]
     pub fn add_torrent(&self, info_hash: &InfoHash, peer: &peer::Peer) {
@@ -80,7 +86,7 @@ impl Environment<Running> {
     }
 
     pub fn bind_address(&self) -> SocketAddr {
-        self.server.state.binding
+        self.server.state.local_addr
     }
 }
 
@@ -90,11 +96,17 @@ mod tests {
 
     use tokio::time::sleep;
     use torrust_tracker_test_helpers::configuration;
+    use tracing::level_filters::LevelFilter;
 
+    use crate::common::logging::{tracing_stderr_init, INIT};
     use crate::servers::udp::Started;
 
     #[tokio::test]
     async fn it_should_make_and_stop_udp_server() {
+        INIT.call_once(|| {
+            tracing_stderr_init(LevelFilter::ERROR);
+        });
+
         let env = Started::new(&configuration::ephemeral().into()).await;
         sleep(Duration::from_secs(1)).await;
         env.stop().await;

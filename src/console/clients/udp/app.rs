@@ -64,7 +64,6 @@ use aquatic_udp_protocol::{Response, TransactionId};
 use clap::{Parser, Subcommand};
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_primitives::info_hash::InfoHash as TorrustInfoHash;
-use tracing::debug;
 use tracing::level_filters::LevelFilter;
 use url::Url;
 
@@ -129,7 +128,7 @@ pub async fn run() -> anyhow::Result<()> {
 
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).init();
-    debug!("Logging initialized");
+    tracing::debug!("Logging initialized");
 }
 
 async fn handle_announce(remote_addr: SocketAddr, info_hash: &TorrustInfoHash) -> Result<Response, Error> {
@@ -153,11 +152,11 @@ async fn handle_scrape(remote_addr: SocketAddr, info_hashes: &[TorrustInfoHash])
 }
 
 fn parse_socket_addr(tracker_socket_addr_str: &str) -> anyhow::Result<SocketAddr> {
-    debug!("Tracker socket address: {tracker_socket_addr_str:#?}");
+    tracing::debug!("Tracker socket address: {tracker_socket_addr_str:#?}");
 
     // Check if the address is a valid URL. If so, extract the host and port.
     let resolved_addr = if let Ok(url) = Url::parse(tracker_socket_addr_str) {
-        debug!("Tracker socket address URL: {url:?}");
+        tracing::debug!("Tracker socket address URL: {url:?}");
 
         let host = url
             .host_str()
@@ -192,7 +191,7 @@ fn parse_socket_addr(tracker_socket_addr_str: &str) -> anyhow::Result<SocketAddr
         (host, port)
     };
 
-    debug!("Resolved address: {resolved_addr:#?}");
+    tracing::debug!("Resolved address: {resolved_addr:#?}");
 
     // Perform DNS resolution.
     let socket_addrs: Vec<_> = resolved_addr.to_socket_addrs()?.collect();

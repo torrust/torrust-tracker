@@ -2,6 +2,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use aquatic_udp_protocol::PeerId;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
 // code-review: the current implementation uses the peer Id as the ``BTreeMap``
@@ -11,7 +12,7 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PeerList {
-    peers: std::collections::BTreeMap<peer::Id, Arc<peer::Peer>>,
+    peers: std::collections::BTreeMap<PeerId, Arc<peer::Peer>>,
 }
 
 impl PeerList {
@@ -29,7 +30,7 @@ impl PeerList {
         self.peers.insert(value.peer_id, value)
     }
 
-    pub fn remove(&mut self, key: &peer::Id) -> Option<Arc<peer::Peer>> {
+    pub fn remove(&mut self, key: &PeerId) -> Option<Arc<peer::Peer>> {
         self.peers.remove(key)
     }
 
@@ -39,7 +40,7 @@ impl PeerList {
     }
 
     #[must_use]
-    pub fn get(&self, peer_id: &peer::Id) -> Option<&Arc<peer::Peer>> {
+    pub fn get(&self, peer_id: &PeerId) -> Option<&Arc<peer::Peer>> {
         self.peers.get(peer_id)
     }
 
@@ -89,8 +90,8 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
 
+        use aquatic_udp_protocol::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-        use torrust_tracker_primitives::peer::{self};
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
         use crate::entry::peer_list::PeerList;
@@ -193,13 +194,13 @@ mod tests {
             let mut peer_list = PeerList::default();
 
             let peer1 = PeerBuilder::default()
-                .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
+                .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                 .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
                 .build();
             peer_list.upsert(peer1.into());
 
             let peer2 = PeerBuilder::default()
-                .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
+                .with_peer_id(&PeerId(*b"-qB00000000000000002"))
                 .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
                 .build();
             peer_list.upsert(peer2.into());
@@ -273,14 +274,10 @@ mod tests {
         fn allow_inserting_two_identical_peers_except_for_the_id() {
             let mut peer_list = PeerList::default();
 
-            let peer1 = PeerBuilder::default()
-                .with_peer_id(&peer::Id(*b"-qB00000000000000001"))
-                .build();
+            let peer1 = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
             peer_list.upsert(peer1.into());
 
-            let peer2 = PeerBuilder::default()
-                .with_peer_id(&peer::Id(*b"-qB00000000000000002"))
-                .build();
+            let peer2 = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000002")).build();
             peer_list.upsert(peer2.into());
 
             assert_eq!(peer_list.len(), 2);
