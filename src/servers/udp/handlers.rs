@@ -18,7 +18,7 @@ use zerocopy::network_endian::I32;
 
 use super::connection_cookie::{check, from_connection_id, into_connection_id, make};
 use super::RawRequest;
-use crate::core::{statistics, ScrapeData, Tracker};
+use crate::core::{statistics, PeersWanted, ScrapeData, Tracker};
 use crate::servers::udp::error::Error;
 use crate::servers::udp::logging::{log_bad_request, log_error_response, log_request, log_response};
 use crate::servers::udp::peer_builder;
@@ -162,8 +162,9 @@ pub async fn handle_announce(
     })?;
 
     let mut peer = peer_builder::from_request(announce_request, &remote_client_ip);
+    let peers_wanted: PeersWanted = i32::from(announce_request.peers_wanted.0).into();
 
-    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip);
+    let response = tracker.announce(&info_hash, &mut peer, &remote_client_ip, &peers_wanted);
 
     match remote_client_ip {
         IpAddr::V4(_) => {

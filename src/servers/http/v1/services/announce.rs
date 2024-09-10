@@ -14,7 +14,7 @@ use std::sync::Arc;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
 
-use crate::core::{statistics, AnnounceData, Tracker};
+use crate::core::{statistics, AnnounceData, PeersWanted, Tracker};
 
 /// The HTTP tracker `announce` service.
 ///
@@ -30,7 +30,7 @@ pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut peer:
     let original_peer_ip = peer.peer_addr.ip();
 
     // The tracker could change the original peer ip
-    let announce_data = tracker.announce(&info_hash, peer, &original_peer_ip);
+    let announce_data = tracker.announce(&info_hash, peer, &original_peer_ip, &PeersWanted::All);
 
     match original_peer_ip {
         IpAddr::V4(_) => {

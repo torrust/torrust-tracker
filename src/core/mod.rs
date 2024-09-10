@@ -448,6 +448,7 @@ pub mod torrent;
 
 pub mod peer_tests;
 
+use std::cmp::max;
 use std::collections::HashMap;
 use std::net::IpAddr;
 use std::panic::Location;
@@ -518,6 +519,38 @@ pub struct AnnounceData {
     /// Swarm statistics
     pub stats: SwarmMetadata,
     pub policy: AnnouncePolicy,
+}
+
+/// How many peers the peer announcing wants in the announce response.
+#[derive(Clone, Debug, PartialEq, Default)]
+pub enum PeersWanted {
+    /// The peer wants as many peers as possible in the announce response.
+    #[default]
+    All,
+    /// The peer only wants a certain amount of peers in the announce response.
+    Only { amount: usize },
+}
+
+impl PeersWanted {
+    fn limit(&self) -> usize {
+        match self {
+            PeersWanted::All => TORRENT_PEERS_LIMIT,
+            PeersWanted::Only { amount } => *amount,
+        }
+    }
+}
+
+impl From<i32> for PeersWanted {
+    fn from(value: i32) -> Self {
+        if value > 0 {
+            match value.try_into() {
+                Ok(peers_wanted) => Self::Only { amount: peers_wanted },
+                Err(_) => Self::All,
+            }
+        } else {
+            Self::All
+        }
+    }
 }
 
 /// Structure that holds the data returned by the `scrape` request.
@@ -639,7 +672,13 @@ impl Tracker {
     /// # Context: Tracker
     ///
     /// BEP 03: [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html).
-    pub fn announce(&self, info_hash: &InfoHash, peer: &mut peer::Peer, remote_client_ip: &IpAddr) -> AnnounceData {
+    pub fn announce(
+        &self,
+        info_hash: &InfoHash,
+        peer: &mut peer::Peer,
+        remote_client_ip: &IpAddr,
+        peers_wanted: &PeersWanted,
+    ) -> AnnounceData {
         // code-review: maybe instead of mutating the peer we could just return
         // a tuple with the new peer and the announce data: (Peer, AnnounceData).
         // It could even be a different struct: `StoredPeer` or `PublicPeer`.
@@ -661,7 +700,7 @@ impl Tracker {
 
         let stats = self.upsert_peer_and_get_stats(info_hash, peer);
 
-        let peers = self.get_peers_for(info_hash, peer);
+        let peers = self.get_peers_for(info_hash, peer, peers_wanted.limit());
 
         AnnounceData {
             peers,
@@ -713,16 +752,21 @@ impl Tracker {
         Ok(())
     }
 
-    fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer) -> Vec<Arc<peer::Peer>> {
+    /// # Context: Tracker
+    ///
+    /// Get torrent peers for a given torrent and client.
+    ///
+    /// It filters out the client making the request.
+    fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.torrents.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_peers_for_client(&peer.peer_addr, Some(TORRENT_PEERS_LIMIT)),
+            Some(entry) => entry.get_peers_for_client(&peer.peer_addr, Some(max(limit, TORRENT_PEERS_LIMIT))),
         }
     }
 
     /// # Context: Tracker
     ///
-    /// Get all torrent peers for a given torrent
+    /// Get torrent peers for a given torrent.
     pub fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<Arc<peer::Peer>> {
         match self.torrents.get(info_hash) {
             None => vec![],
@@ -1199,6 +1243,7 @@ mod tests {
         use std::sync::Arc;
 
         use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+        use torrust_tracker_configuration::TORRENT_PEERS_LIMIT;
         use torrust_tracker_primitives::info_hash::InfoHash;
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
         use torrust_tracker_test_helpers::configuration;
@@ -1328,7 +1373,7 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn it_should_return_all_the_peers_for_a_given_torrent() {
+        async fn it_should_return_the_peers_for_a_given_torrent() {
             let tracker = public_tracker();
 
             let info_hash = sample_info_hash();
@@ -1341,8 +1386,51 @@ mod tests {
             assert_eq!(peers, vec![Arc::new(peer)]);
         }
 
+        /// It generates a peer id from a number where the number is the last
+        /// part of the peer ID. For example, for `12` it returns
+        /// `-qB00000000000000012`.
+        fn numeric_peer_id(two_digits_value: i32) -> PeerId {
+            // Format idx as a string with leading zeros, ensuring it has exactly 2 digits
+            let idx_str = format!("{two_digits_value:02}");
+
+            // Create the base part of the peer ID.
+            let base = b"-qB00000000000000000";
+
+            // Concatenate the base with idx bytes, ensuring the total length is 20 bytes.
+            let mut peer_id_bytes = [0u8; 20];
+            peer_id_bytes[..base.len()].copy_from_slice(base);
+            peer_id_bytes[base.len() - idx_str.len()..].copy_from_slice(idx_str.as_bytes());
+
+            PeerId(peer_id_bytes)
+        }
+
         #[tokio::test]
-        async fn it_should_return_all_the_peers_for_a_given_torrent_excluding_a_given_peer() {
+        async fn it_should_return_74_peers_at_the_most_for_a_given_torrent() {
+            let tracker = public_tracker();
+
+            let info_hash = sample_info_hash();
+
+            for idx in 1..=75 {
+                let peer = Peer {
+                    peer_id: numeric_peer_id(idx),
+                    peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, idx.try_into().unwrap())), 8080),
+                    updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+                    uploaded: NumberOfBytes::new(0),
+                    downloaded: NumberOfBytes::new(0),
+                    left: NumberOfBytes::new(0), // No bytes left to download
+                    event: AnnounceEvent::Completed,
+                };
+
+                tracker.upsert_peer_and_get_stats(&info_hash, &peer);
+            }
+
+            let peers = tracker.get_torrent_peers(&info_hash);
+
+            assert_eq!(peers.len(), 74);
+        }
+
+        #[tokio::test]
+        async fn it_should_return_the_peers_for_a_given_torrent_excluding_a_given_peer() {
             let tracker = public_tracker();
 
             let info_hash = sample_info_hash();
@@ -1350,9 +1438,39 @@ mod tests {
 
             tracker.upsert_peer_and_get_stats(&info_hash, &peer);
 
-            let peers = tracker.get_peers_for(&info_hash, &peer);
+            let peers = tracker.get_peers_for(&info_hash, &peer, TORRENT_PEERS_LIMIT);
 
             assert_eq!(peers, vec![]);
+        }
+
+        #[tokio::test]
+        async fn it_should_return_74_peers_at_the_most_for_a_given_torrent_when_it_filters_out_a_given_peer() {
+            let tracker = public_tracker();
+
+            let info_hash = sample_info_hash();
+
+            let excluded_peer = sample_peer();
+
+            tracker.upsert_peer_and_get_stats(&info_hash, &excluded_peer);
+
+            // Add 74 peers
+            for idx in 2..=75 {
+                let peer = Peer {
+                    peer_id: numeric_peer_id(idx),
+                    peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, idx.try_into().unwrap())), 8080),
+                    updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+                    uploaded: NumberOfBytes::new(0),
+                    downloaded: NumberOfBytes::new(0),
+                    left: NumberOfBytes::new(0), // No bytes left to download
+                    event: AnnounceEvent::Completed,
+                };
+
+                tracker.upsert_peer_and_get_stats(&info_hash, &peer);
+            }
+
+            let peers = tracker.get_peers_for(&info_hash, &excluded_peer, TORRENT_PEERS_LIMIT);
+
+            assert_eq!(peers.len(), 74);
         }
 
         #[tokio::test]
@@ -1409,6 +1527,7 @@ mod tests {
                 use crate::core::tests::the_tracker::{
                     peer_ip, public_tracker, sample_info_hash, sample_peer, sample_peer_1, sample_peer_2,
                 };
+                use crate::core::PeersWanted;
 
                 mod should_assign_the_ip_to_the_peer {
 
@@ -1514,7 +1633,7 @@ mod tests {
 
                     let mut peer = sample_peer();
 
-                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip());
+                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::All);
 
                     assert_eq!(announce_data.peers, vec![]);
                 }
@@ -1524,10 +1643,15 @@ mod tests {
                     let tracker = public_tracker();
 
                     let mut previously_announced_peer = sample_peer_1();
-                    tracker.announce(&sample_info_hash(), &mut previously_announced_peer, &peer_ip());
+                    tracker.announce(
+                        &sample_info_hash(),
+                        &mut previously_announced_peer,
+                        &peer_ip(),
+                        &PeersWanted::All,
+                    );
 
                     let mut peer = sample_peer_2();
-                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip());
+                    let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::All);
 
                     assert_eq!(announce_data.peers, vec![Arc::new(previously_announced_peer)]);
                 }
@@ -1537,6 +1661,7 @@ mod tests {
                     use crate::core::tests::the_tracker::{
                         completed_peer, leecher, peer_ip, public_tracker, sample_info_hash, seeder, started_peer,
                     };
+                    use crate::core::PeersWanted;
 
                     #[tokio::test]
                     async fn when_the_peer_is_a_seeder() {
@@ -1544,7 +1669,7 @@ mod tests {
 
                         let mut peer = seeder();
 
-                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip());
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::All);
 
                         assert_eq!(announce_data.stats.complete, 1);
                     }
@@ -1555,7 +1680,7 @@ mod tests {
 
                         let mut peer = leecher();
 
-                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip());
+                        let announce_data = tracker.announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::All);
 
                         assert_eq!(announce_data.stats.incomplete, 1);
                     }
@@ -1566,10 +1691,11 @@ mod tests {
 
                         // We have to announce with "started" event because peer does not count if peer was not previously known
                         let mut started_peer = started_peer();
-                        tracker.announce(&sample_info_hash(), &mut started_peer, &peer_ip());
+                        tracker.announce(&sample_info_hash(), &mut started_peer, &peer_ip(), &PeersWanted::All);
 
                         let mut completed_peer = completed_peer();
-                        let announce_data = tracker.announce(&sample_info_hash(), &mut completed_peer, &peer_ip());
+                        let announce_data =
+                            tracker.announce(&sample_info_hash(), &mut completed_peer, &peer_ip(), &PeersWanted::All);
 
                         assert_eq!(announce_data.stats.downloaded, 1);
                     }
@@ -1583,7 +1709,7 @@ mod tests {
                 use torrust_tracker_primitives::info_hash::InfoHash;
 
                 use crate::core::tests::the_tracker::{complete_peer, incomplete_peer, public_tracker};
-                use crate::core::{ScrapeData, SwarmMetadata};
+                use crate::core::{PeersWanted, ScrapeData, SwarmMetadata};
 
                 #[tokio::test]
                 async fn it_should_return_a_zeroed_swarm_metadata_for_the_requested_file_if_the_tracker_does_not_have_that_torrent(
@@ -1609,11 +1735,21 @@ mod tests {
 
                     // Announce a "complete" peer for the torrent
                     let mut complete_peer = complete_peer();
-                    tracker.announce(&info_hash, &mut complete_peer, &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 10)));
+                    tracker.announce(
+                        &info_hash,
+                        &mut complete_peer,
+                        &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 10)),
+                        &PeersWanted::All,
+                    );
 
                     // Announce an "incomplete" peer for the torrent
                     let mut incomplete_peer = incomplete_peer();
-                    tracker.announce(&info_hash, &mut incomplete_peer, &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 11)));
+                    tracker.announce(
+                        &info_hash,
+                        &mut incomplete_peer,
+                        &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 11)),
+                        &PeersWanted::All,
+                    );
 
                     // Scrape
                     let scrape_data = tracker.scrape(&vec![info_hash]).await;
@@ -1740,7 +1876,7 @@ mod tests {
                 use crate::core::tests::the_tracker::{
                     complete_peer, incomplete_peer, peer_ip, sample_info_hash, whitelisted_tracker,
                 };
-                use crate::core::ScrapeData;
+                use crate::core::{PeersWanted, ScrapeData};
 
                 #[test]
                 fn it_should_be_able_to_build_a_zeroed_scrape_data_for_a_list_of_info_hashes() {
@@ -1761,11 +1897,11 @@ mod tests {
                     let info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap();
 
                     let mut peer = incomplete_peer();
-                    tracker.announce(&info_hash, &mut peer, &peer_ip());
+                    tracker.announce(&info_hash, &mut peer, &peer_ip(), &PeersWanted::All);
 
                     // Announce twice to force non zeroed swarm metadata
                     let mut peer = complete_peer();
-                    tracker.announce(&info_hash, &mut peer, &peer_ip());
+                    tracker.announce(&info_hash, &mut peer, &peer_ip(), &PeersWanted::All);
 
                     let scrape_data = tracker.scrape(&vec![info_hash]).await;
 
