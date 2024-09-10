@@ -449,6 +449,29 @@ mod for_all_config_modes {
         }
 
         #[tokio::test]
+        async fn should_fail_when_the_numwant_param_is_invalid() {
+            INIT.call_once(|| {
+                tracing_stderr_init(LevelFilter::ERROR);
+            });
+
+            let env = Started::new(&configuration::ephemeral().into()).await;
+
+            let mut params = QueryBuilder::default().query().params();
+
+            let invalid_values = ["-1", "1.1", "a"];
+
+            for invalid_value in invalid_values {
+                params.set("numwant", invalid_value);
+
+                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+
+                assert_bad_announce_request_error_response(response, "invalid param value").await;
+            }
+
+            env.stop().await;
+        }
+
+        #[tokio::test]
         async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
             INIT.call_once(|| {
                 tracing_stderr_init(LevelFilter::ERROR);

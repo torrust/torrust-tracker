@@ -18,6 +18,7 @@ pub struct Query {
     pub left: BaseTenASCII,
     pub event: Option<Event>,
     pub compact: Option<Compact>,
+    pub numwant: Option<u32>,
 }
 
 impl fmt::Display for Query {
@@ -98,6 +99,7 @@ impl QueryBuilder {
             left: 0,
             event: Some(Event::Completed),
             compact: Some(Compact::NotAccepted),
+            numwant: None,
         };
         Self {
             announce_query: default_announce_query,
@@ -149,7 +151,9 @@ impl QueryBuilder {
 ///     left=0
 ///     event=completed
 ///     compact=0
+///     numwant=50
 /// ```
+#[derive(Debug)]
 pub struct QueryParams {
     pub info_hash: Option<String>,
     pub peer_addr: Option<String>,
@@ -160,6 +164,7 @@ pub struct QueryParams {
     pub left: Option<String>,
     pub event: Option<String>,
     pub compact: Option<String>,
+    pub numwant: Option<String>,
 }
 
 impl std::fmt::Display for QueryParams {
@@ -193,6 +198,9 @@ impl std::fmt::Display for QueryParams {
         if let Some(compact) = &self.compact {
             params.push(("compact", compact));
         }
+        if let Some(numwant) = &self.numwant {
+            params.push(("numwant", numwant));
+        }
 
         let query = params
             .iter()
@@ -208,6 +216,7 @@ impl QueryParams {
     pub fn from(announce_query: &Query) -> Self {
         let event = announce_query.event.as_ref().map(std::string::ToString::to_string);
         let compact = announce_query.compact.as_ref().map(std::string::ToString::to_string);
+        let numwant = announce_query.numwant.map(|numwant| numwant.to_string());
 
         Self {
             info_hash: Some(percent_encode_byte_array(&announce_query.info_hash)),
@@ -219,6 +228,7 @@ impl QueryParams {
             left: Some(announce_query.left.to_string()),
             event,
             compact,
+            numwant,
         }
     }
 
@@ -241,6 +251,7 @@ impl QueryParams {
         self.left = None;
         self.event = None;
         self.compact = None;
+        self.numwant = None;
     }
 
     pub fn set(&mut self, param_name: &str, param_value: &str) {
@@ -254,6 +265,7 @@ impl QueryParams {
             "left" => self.left = Some(param_value.to_string()),
             "event" => self.event = Some(param_value.to_string()),
             "compact" => self.compact = Some(param_value.to_string()),
+            "numwant" => self.numwant = Some(param_value.to_string()),
             &_ => panic!("Invalid param name for announce query"),
         }
     }

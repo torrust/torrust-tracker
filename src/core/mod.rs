@@ -532,6 +532,16 @@ pub enum PeersWanted {
 }
 
 impl PeersWanted {
+    #[must_use]
+    pub fn only(limit: u32) -> Self {
+        let amount: usize = match limit.try_into() {
+            Ok(amount) => amount,
+            Err(_) => TORRENT_PEERS_LIMIT,
+        };
+
+        Self::Only { amount }
+    }
+
     fn limit(&self) -> usize {
         match self {
             PeersWanted::All => TORRENT_PEERS_LIMIT,
