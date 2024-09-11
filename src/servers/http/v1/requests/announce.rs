@@ -360,8 +360,6 @@ fn extract_compact(query: &Query) -> Result<Option<Compact>, ParseAnnounceQueryE
 }
 
 fn extract_numwant(query: &Query) -> Result<Option<u32>, ParseAnnounceQueryError> {
-    print!("numwant {query:#?}");
-
     match query.get_param(NUMWANT) {
         Some(raw_param) => match u32::from_str(&raw_param) {
             Ok(numwant) => Ok(Some(numwant)),
