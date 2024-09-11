@@ -103,7 +103,7 @@ mod tests {
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::core::{statistics, ScrapeData, Tracker};
+        use crate::core::{statistics, PeersWanted, ScrapeData, Tracker};
         use crate::servers::http::v1::services::scrape::invoke;
         use crate::servers::http::v1::services::scrape::tests::{
             public_tracker, sample_info_hash, sample_info_hashes, sample_peer,
@@ -119,7 +119,7 @@ mod tests {
             // Announce a new peer to force scrape data to contain not zeroed data
             let mut peer = sample_peer();
             let original_peer_ip = peer.ip();
-            tracker.announce(&info_hash, &mut peer, &original_peer_ip);
+            tracker.announce(&info_hash, &mut peer, &original_peer_ip, &PeersWanted::All);
 
             let scrape_data = invoke(&tracker, &info_hashes, &original_peer_ip).await;
 
@@ -194,7 +194,7 @@ mod tests {
         use mockall::predicate::eq;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::core::{statistics, ScrapeData, Tracker};
+        use crate::core::{statistics, PeersWanted, ScrapeData, Tracker};
         use crate::servers::http::v1::services::scrape::fake;
         use crate::servers::http::v1::services::scrape::tests::{
             public_tracker, sample_info_hash, sample_info_hashes, sample_peer,
@@ -210,7 +210,7 @@ mod tests {
             // Announce a new peer to force scrape data to contain not zeroed data
             let mut peer = sample_peer();
             let original_peer_ip = peer.ip();
-            tracker.announce(&info_hash, &mut peer, &original_peer_ip);
+            tracker.announce(&info_hash, &mut peer, &original_peer_ip, &PeersWanted::All);
 
             let scrape_data = fake(&tracker, &info_hashes, &original_peer_ip).await;
 

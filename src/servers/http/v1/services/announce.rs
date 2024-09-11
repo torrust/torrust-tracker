@@ -14,7 +14,7 @@ use std::sync::Arc;
 use torrust_tracker_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer;
 
-use crate::core::{statistics, AnnounceData, Tracker};
+use crate::core::{statistics, AnnounceData, PeersWanted, Tracker};
 
 /// The HTTP tracker `announce` service.
 ///
@@ -26,11 +26,16 @@ use crate::core::{statistics, AnnounceData, Tracker};
 /// > **NOTICE**: as the HTTP tracker does not requires a connection request
 /// > like the UDP tracker, the number of TCP connections is incremented for
 /// > each `announce` request.
-pub async fn invoke(tracker: Arc<Tracker>, info_hash: InfoHash, peer: &mut peer::Peer) -> AnnounceData {
+pub async fn invoke(
+    tracker: Arc<Tracker>,
+    info_hash: InfoHash,
+    peer: &mut peer::Peer,
+    peers_wanted: &PeersWanted,
+) -> AnnounceData {
     let original_peer_ip = peer.peer_addr.ip();
 
     // The tracker could change the original peer ip
-    let announce_data = tracker.announce(&info_hash, peer, &original_peer_ip);
+    let announce_data = tracker.announce(&info_hash, peer, &original_peer_ip, peers_wanted);
 
     match original_peer_ip {
         IpAddr::V4(_) => {
@@ -100,7 +105,7 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
-        use crate::core::{statistics, AnnounceData, Tracker};
+        use crate::core::{statistics, AnnounceData, PeersWanted, Tracker};
         use crate::servers::http::v1::services::announce::invoke;
         use crate::servers::http::v1::services::announce::tests::{public_tracker, sample_info_hash, sample_peer};
 
@@ -110,7 +115,7 @@ mod tests {
 
             let mut peer = sample_peer();
 
-            let announce_data = invoke(tracker.clone(), sample_info_hash(), &mut peer).await;
+            let announce_data = invoke(tracker.clone(), sample_info_hash(), &mut peer, &PeersWanted::All).await;
 
             let expected_announce_data = AnnounceData {
                 peers: vec![],
@@ -146,7 +151,7 @@ mod tests {
 
             let mut peer = sample_peer_using_ipv4();
 
-            let _announce_data = invoke(tracker, sample_info_hash(), &mut peer).await;
+            let _announce_data = invoke(tracker, sample_info_hash(), &mut peer, &PeersWanted::All).await;
         }
 
         fn tracker_with_an_ipv6_external_ip(stats_event_sender: Box<dyn statistics::EventSender>) -> Tracker {
@@ -185,6 +190,7 @@ mod tests {
                 tracker_with_an_ipv6_external_ip(stats_event_sender).into(),
                 sample_info_hash(),
                 &mut peer,
+                &PeersWanted::All,
             )
             .await;
         }
@@ -211,7 +217,7 @@ mod tests {
 
             let mut peer = sample_peer_using_ipv6();
 
-            let _announce_data = invoke(tracker, sample_info_hash(), &mut peer).await;
+            let _announce_data = invoke(tracker, sample_info_hash(), &mut peer, &PeersWanted::All).await;
         }
     }
 }
