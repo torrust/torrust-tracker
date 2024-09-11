@@ -83,7 +83,7 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration) -> Vec<Result
                 .await
                 .map(|_| ());
 
-            checks.results.push((Check::Announce, check));
+            checks.results.push((Check::Scrape, check));
         }
 
         if checks.results.iter().any(|f| f.1.is_err()) {
