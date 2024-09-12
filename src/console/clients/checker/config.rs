@@ -215,7 +215,7 @@ mod tests {
         }
 
         mod http_trackers {
-            use crate::console::clients::checker::config::{Configuration, PlainConfiguration};
+            use crate::console::clients::checker::config::{Configuration, PlainConfiguration, ServiceUrl};
 
             #[test]
             fn it_should_fail_when_a_tracker_http_url_is_invalid() {
@@ -226,6 +226,41 @@ mod tests {
                 };
 
                 assert!(Configuration::try_from(plain_config).is_err());
+            }
+
+            #[test]
+            fn it_should_allow_the_url_to_contain_a_path() {
+                // This is the common format for HTTP tracker URLs:
+                // http://domain.com:7070/announce
+
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec![],
+                    http_trackers: vec!["http://127.0.0.1:7070/announce".to_string()],
+                    health_checks: vec![],
+                };
+
+                let config = Configuration::try_from(plain_config).expect("Invalid plain configuration");
+
+                assert_eq!(
+                    config.http_trackers[0],
+                    "http://127.0.0.1:7070/announce".parse::<ServiceUrl>().unwrap()
+                );
+            }
+
+            #[test]
+            fn it_should_allow_the_url_to_contain_an_empty_path() {
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec![],
+                    http_trackers: vec!["http://127.0.0.1:7070/".to_string()],
+                    health_checks: vec![],
+                };
+
+                let config = Configuration::try_from(plain_config).expect("Invalid plain configuration");
+
+                assert_eq!(
+                    config.http_trackers[0],
+                    "http://127.0.0.1:7070/".parse::<ServiceUrl>().unwrap()
+                );
             }
         }
 

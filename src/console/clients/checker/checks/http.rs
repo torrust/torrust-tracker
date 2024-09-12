@@ -28,6 +28,9 @@ pub async fn run(http_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Check
     tracing::debug!("HTTP trackers ...");
 
     for ref url in http_trackers {
+        let mut base_url = url.clone();
+        base_url.set_path("");
+
         let mut checks = Checks {
             url: url.clone(),
             results: Vec::default(),
@@ -35,14 +38,14 @@ pub async fn run(http_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Check
 
         // Announce
         {
-            let check = check_http_announce(url, timeout).await.map(|_| ());
+            let check = check_http_announce(&base_url, timeout).await.map(|_| ());
 
             checks.results.push((Check::Announce, check));
         }
 
         // Scrape
         {
-            let check = check_http_scrape(url, timeout).await.map(|_| ());
+            let check = check_http_scrape(&base_url, timeout).await.map(|_| ());
 
             checks.results.push((Check::Scrape, check));
         }
