@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt;
-use std::net::SocketAddr;
 
 use reqwest::Url as ServiceUrl;
 use serde::Deserialize;
@@ -31,7 +30,7 @@ struct PlainConfiguration {
 
 /// Validated configuration
 pub struct Configuration {
-    pub udp_trackers: Vec<SocketAddr>,
+    pub udp_trackers: Vec<ServiceUrl>,
     pub http_trackers: Vec<ServiceUrl>,
     pub health_checks: Vec<ServiceUrl>,
 }
@@ -62,7 +61,8 @@ impl TryFrom<PlainConfiguration> for Configuration {
         let udp_trackers = plain_config
             .udp_trackers
             .into_iter()
-            .map(|s| s.parse::<SocketAddr>().map_err(ConfigurationError::InvalidUdpAddress))
+            .map(|s| if s.starts_with("udp://") { s } else { format!("udp://{s}") })
+            .map(|s| s.parse::<ServiceUrl>().map_err(ConfigurationError::InvalidUrl))
             .collect::<Result<Vec<_>, _>>()?;
 
         let http_trackers = plain_config
@@ -87,68 +87,161 @@ impl TryFrom<PlainConfiguration> for Configuration {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr};
-
     use super::*;
 
     #[test]
     fn configuration_should_be_build_from_plain_serializable_configuration() {
         let dto = PlainConfiguration {
-            udp_trackers: vec!["127.0.0.1:8080".to_string()],
+            udp_trackers: vec!["udp://127.0.0.1:8080".to_string()],
             http_trackers: vec!["http://127.0.0.1:8080".to_string()],
             health_checks: vec!["http://127.0.0.1:8080/health".to_string()],
         };
 
         let config = Configuration::try_from(dto).expect("A valid configuration");
 
-        assert_eq!(
-            config.udp_trackers,
-            vec![SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)]
-        );
+        assert_eq!(config.udp_trackers, vec![ServiceUrl::parse("udp://127.0.0.1:8080").unwrap()]);
+
         assert_eq!(
             config.http_trackers,
             vec![ServiceUrl::parse("http://127.0.0.1:8080").unwrap()]
         );
+
         assert_eq!(
             config.health_checks,
             vec![ServiceUrl::parse("http://127.0.0.1:8080/health").unwrap()]
         );
     }
 
-    mod building_configuration_from_plan_configuration {
-        use crate::console::clients::checker::config::{Configuration, PlainConfiguration};
+    mod building_configuration_from_plain_configuration_for {
 
-        #[test]
-        fn it_should_fail_when_a_tracker_udp_address_is_invalid() {
-            let plain_config = PlainConfiguration {
-                udp_trackers: vec!["invalid_address".to_string()],
-                http_trackers: vec![],
-                health_checks: vec![],
-            };
+        mod udp_trackers {
+            use crate::console::clients::checker::config::{Configuration, PlainConfiguration, ServiceUrl};
 
-            assert!(Configuration::try_from(plain_config).is_err());
+            /* The plain configuration should allow UDP URLs with:
+
+            - IP or domain.
+            - With or without scheme.
+            - With or without `announce` suffix.
+            - With or without `/` at the end of the authority section (with empty path).
+
+            For example:
+
+            127.0.0.1:6969
+            127.0.0.1:6969/
+            127.0.0.1:6969/announce
+
+            localhost:6969
+            localhost:6969/
+            localhost:6969/announce
+
+            udp://127.0.0.1:6969
+            udp://127.0.0.1:6969/
+            udp://127.0.0.1:6969/announce
+
+            udp://localhost:6969
+            udp://localhost:6969/
+            udp://localhost:6969/announce
+
+            */
+
+            #[test]
+            fn it_should_fail_when_a_tracker_udp_url_is_invalid() {
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec!["invalid URL".to_string()],
+                    http_trackers: vec![],
+                    health_checks: vec![],
+                };
+
+                assert!(Configuration::try_from(plain_config).is_err());
+            }
+
+            #[test]
+            fn it_should_add_the_udp_scheme_to_the_udp_url_when_it_is_missing() {
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec!["127.0.0.1:6969".to_string()],
+                    http_trackers: vec![],
+                    health_checks: vec![],
+                };
+
+                let config = Configuration::try_from(plain_config).expect("Invalid plain configuration");
+
+                assert_eq!(config.udp_trackers[0], "udp://127.0.0.1:6969".parse::<ServiceUrl>().unwrap());
+            }
+
+            #[test]
+            fn it_should_allow_using_domains() {
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec!["udp://localhost:6969".to_string()],
+                    http_trackers: vec![],
+                    health_checks: vec![],
+                };
+
+                let config = Configuration::try_from(plain_config).expect("Invalid plain configuration");
+
+                assert_eq!(config.udp_trackers[0], "udp://localhost:6969".parse::<ServiceUrl>().unwrap());
+            }
+
+            #[test]
+            fn it_should_allow_the_url_to_have_an_empty_path() {
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec!["127.0.0.1:6969/".to_string()],
+                    http_trackers: vec![],
+                    health_checks: vec![],
+                };
+
+                let config = Configuration::try_from(plain_config).expect("Invalid plain configuration");
+
+                assert_eq!(config.udp_trackers[0], "udp://127.0.0.1:6969/".parse::<ServiceUrl>().unwrap());
+            }
+
+            #[test]
+            fn it_should_allow_the_url_to_contain_a_path() {
+                // This is the common format for UDP tracker URLs:
+                // udp://domain.com:6969/announce
+
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec!["127.0.0.1:6969/announce".to_string()],
+                    http_trackers: vec![],
+                    health_checks: vec![],
+                };
+
+                let config = Configuration::try_from(plain_config).expect("Invalid plain configuration");
+
+                assert_eq!(
+                    config.udp_trackers[0],
+                    "udp://127.0.0.1:6969/announce".parse::<ServiceUrl>().unwrap()
+                );
+            }
         }
 
-        #[test]
-        fn it_should_fail_when_a_tracker_http_address_is_invalid() {
-            let plain_config = PlainConfiguration {
-                udp_trackers: vec![],
-                http_trackers: vec!["not_a_url".to_string()],
-                health_checks: vec![],
-            };
+        mod http_trackers {
+            use crate::console::clients::checker::config::{Configuration, PlainConfiguration};
 
-            assert!(Configuration::try_from(plain_config).is_err());
+            #[test]
+            fn it_should_fail_when_a_tracker_http_url_is_invalid() {
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec![],
+                    http_trackers: vec!["invalid URL".to_string()],
+                    health_checks: vec![],
+                };
+
+                assert!(Configuration::try_from(plain_config).is_err());
+            }
         }
 
-        #[test]
-        fn it_should_fail_when_a_health_check_http_address_is_invalid() {
-            let plain_config = PlainConfiguration {
-                udp_trackers: vec![],
-                http_trackers: vec![],
-                health_checks: vec!["not_a_url".to_string()],
-            };
+        mod health_checks {
+            use crate::console::clients::checker::config::{Configuration, PlainConfiguration};
 
-            assert!(Configuration::try_from(plain_config).is_err());
+            #[test]
+            fn it_should_fail_when_a_health_check_http_url_is_invalid() {
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec![],
+                    http_trackers: vec![],
+                    health_checks: vec!["invalid URL".to_string()],
+                };
+
+                assert!(Configuration::try_from(plain_config).is_err());
+            }
         }
     }
 }

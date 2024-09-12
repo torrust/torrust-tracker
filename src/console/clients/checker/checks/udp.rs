@@ -4,6 +4,7 @@ use std::time::Duration;
 use aquatic_udp_protocol::TransactionId;
 use hex_literal::hex;
 use serde::Serialize;
+use url::Url;
 
 use crate::console::clients::udp::checker::Client;
 use crate::console::clients::udp::Error;
@@ -23,20 +24,22 @@ pub enum Check {
 }
 
 #[allow(clippy::missing_panics_doc)]
-pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration) -> Vec<Result<Checks, Checks>> {
+pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks, Checks>> {
     let mut results = Vec::default();
 
     tracing::debug!("UDP trackers ...");
 
     let info_hash = aquatic_udp_protocol::InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // # DevSkim: ignore DS173237
 
-    for remote_addr in udp_trackers {
+    for remote_url in udp_trackers {
+        let remote_addr = resolve_socket_addr(&remote_url);
+
         let mut checks = Checks {
             remote_addr,
             results: Vec::default(),
         };
 
-        tracing::debug!("UDP tracker: {:?}", remote_addr);
+        tracing::debug!("UDP tracker: {:?}", remote_url);
 
         // Setup
         let client = match Client::new(remote_addr, timeout).await {
@@ -94,4 +97,38 @@ pub async fn run(udp_trackers: Vec<SocketAddr>, timeout: Duration) -> Vec<Result
     }
 
     results
+}
+
+fn resolve_socket_addr(url: &Url) -> SocketAddr {
+    let socket_addr = url.socket_addrs(|| None).unwrap();
+    *socket_addr.first().unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+
+    use url::Url;
+
+    use crate::console::clients::checker::checks::udp::resolve_socket_addr;
+
+    #[test]
+    fn it_should_resolve_the_socket_address_for_udp_scheme_urls_containing_a_domain() {
+        let socket_addr = resolve_socket_addr(&Url::parse("udp://localhost:8080").unwrap());
+
+        assert!(
+            socket_addr == SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
+                || socket_addr == SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 8080)
+        );
+    }
+
+    #[test]
+    fn it_should_resolve_the_socket_address_for_udp_scheme_urls_containing_an_ip() {
+        let socket_addr = resolve_socket_addr(&Url::parse("udp://localhost:8080").unwrap());
+
+        assert!(
+            socket_addr == SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
+                || socket_addr == SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 8080)
+        );
+    }
 }
