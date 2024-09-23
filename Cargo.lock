@@ -3774,7 +3774,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker"
-version = "3.0.0-rc.1-develop"
+version = "3.0.0-develop"
 dependencies = [
  "anyhow",
  "aquatic_udp_protocol",
@@ -3824,7 +3824,7 @@ dependencies = [
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
  "torrust-tracker-torrent-repository",
- "tower 0.5.1",
+ "tower 0.4.13",
  "tower-http",
  "trace",
  "tracing",
@@ -3836,7 +3836,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-clock"
-version = "3.0.0-rc.1-develop"
+version = "3.0.0-develop"
 dependencies = [
  "chrono",
  "lazy_static",
@@ -3845,7 +3845,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-configuration"
-version = "3.0.0-rc.1-develop"
+version = "3.0.0-develop"
 dependencies = [
  "camino",
  "derive_more",
@@ -3862,7 +3862,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-contrib-bencode"
-version = "3.0.0-rc.1-develop"
+version = "3.0.0-develop"
 dependencies = [
  "criterion",
  "thiserror",
@@ -3870,7 +3870,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-located-error"
-version = "3.0.0-rc.1-develop"
+version = "3.0.0-develop"
 dependencies = [
  "thiserror",
  "tracing",
@@ -3878,7 +3878,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-primitives"
-version = "3.0.0-rc.1-develop"
+version = "3.0.0-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "binascii",
@@ -3892,7 +3892,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-test-helpers"
-version = "3.0.0-rc.1-develop"
+version = "3.0.0-develop"
 dependencies = [
  "rand",
  "torrust-tracker-configuration",
@@ -3900,7 +3900,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-torrent-repository"
-version = "3.0.0-rc.1-develop"
+version = "3.0.0-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "async-std",
