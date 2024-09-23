@@ -159,7 +159,7 @@ mod receiving_an_announce_request {
             Err(err) => panic!("{err}"),
         };
 
-        println!("test response {response:?}");
+        // println!("test response {response:?}");
 
         assert!(is_ipv4_announce_response(&response));
     }

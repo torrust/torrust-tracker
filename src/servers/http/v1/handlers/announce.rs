@@ -16,7 +16,7 @@ use torrust_tracker_clock::clock::Time;
 use torrust_tracker_primitives::peer;
 
 use crate::core::auth::Key;
-use crate::core::{AnnounceData, Tracker};
+use crate::core::{AnnounceData, PeersWanted, Tracker};
 use crate::servers::http::v1::extractors::announce_request::ExtractRequest;
 use crate::servers::http::v1::extractors::authentication_key::Extract as ExtractKey;
 use crate::servers::http::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
@@ -110,8 +110,12 @@ async fn handle_announce(
     };
 
     let mut peer = peer_from_request(announce_request, &peer_ip);
+    let peers_wanted = match announce_request.numwant {
+        Some(numwant) => PeersWanted::only(numwant),
+        None => PeersWanted::All,
+    };
 
-    let announce_data = services::announce::invoke(tracker.clone(), announce_request.info_hash, &mut peer).await;
+    let announce_data = services::announce::invoke(tracker.clone(), announce_request.info_hash, &mut peer, &peers_wanted).await;
 
     Ok(announce_data)
 }
@@ -205,6 +209,7 @@ mod tests {
             left: None,
             event: None,
             compact: None,
+            numwant: None,
         }
     }
 

@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 /// It converts a string in ISO 8601 format to a timestamp.
+///
 /// For example, the string `1970-01-01T00:00:00.000Z` which is the Unix Epoch
 /// will be converted to a timestamp of 0: `DurationSinceUnixEpoch::ZERO`.
 ///

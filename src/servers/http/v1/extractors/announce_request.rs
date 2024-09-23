@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn it_should_extract_the_announce_request_from_the_url_query_params() {
-        let raw_query = "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0";
+        let raw_query = "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0&numwant=50";
 
         let announce = extract_announce_from(Some(raw_query)).unwrap();
 
@@ -126,6 +126,7 @@ mod tests {
                 left: Some(NumberOfBytes::new(0)),
                 event: Some(Event::Completed),
                 compact: Some(Compact::NotAccepted),
+                numwant: Some(50),
             }
         );
     }

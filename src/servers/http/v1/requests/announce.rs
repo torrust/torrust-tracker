@@ -24,6 +24,7 @@ const UPLOADED: &str = "uploaded";
 const LEFT: &str = "left";
 const EVENT: &str = "event";
 const COMPACT: &str = "compact";
+const NUMWANT: &str = "numwant";
 
 /// The `Announce` request. Fields use the domain types after parsing the
 /// query params of the request.
@@ -43,7 +44,8 @@ const COMPACT: &str = "compact";
 ///     uploaded: Some(NumberOfBytes::new(1)),
 ///     left: Some(NumberOfBytes::new(1)),
 ///     event: Some(Event::Started),
-///     compact: Some(Compact::NotAccepted)
+///     compact: Some(Compact::NotAccepted),
+///     numwant: Some(50)
 /// };
 /// ```
 ///
@@ -59,8 +61,10 @@ pub struct Announce {
     // Mandatory params
     /// The `InfoHash` of the torrent.
     pub info_hash: InfoHash,
+
     /// The `PeerId` of the peer.
     pub peer_id: PeerId,
+
     /// The port of the peer.
     pub port: u16,
 
@@ -80,6 +84,10 @@ pub struct Announce {
 
     /// Whether the response should be in compact mode or not.
     pub compact: Option<Compact>,
+
+    /// Number of peers that the client would receive from the tracker. The
+    /// value is permitted to be zero.
+    pub numwant: Option<u32>,
 }
 
 /// Errors that can occur when parsing the `Announce` request.
@@ -244,6 +252,7 @@ impl TryFrom<Query> for Announce {
             left: extract_left(&query)?,
             event: extract_event(&query)?,
             compact: extract_compact(&query)?,
+            numwant: extract_numwant(&query)?,
         })
     }
 }
@@ -350,6 +359,20 @@ fn extract_compact(query: &Query) -> Result<Option<Compact>, ParseAnnounceQueryE
     }
 }
 
+fn extract_numwant(query: &Query) -> Result<Option<u32>, ParseAnnounceQueryError> {
+    match query.get_param(NUMWANT) {
+        Some(raw_param) => match u32::from_str(&raw_param) {
+            Ok(numwant) => Ok(Some(numwant)),
+            Err(_) => Err(ParseAnnounceQueryError::InvalidParam {
+                param_name: NUMWANT.to_owned(),
+                param_value: raw_param.clone(),
+                location: Location::caller(),
+            }),
+        },
+        None => Ok(None),
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -360,7 +383,7 @@ mod tests {
 
         use crate::servers::http::v1::query::Query;
         use crate::servers::http::v1::requests::announce::{
-            Announce, Compact, Event, COMPACT, DOWNLOADED, EVENT, INFO_HASH, LEFT, PEER_ID, PORT, UPLOADED,
+            Announce, Compact, Event, COMPACT, DOWNLOADED, EVENT, INFO_HASH, LEFT, NUMWANT, PEER_ID, PORT, UPLOADED,
         };
 
         #[test]
@@ -387,6 +410,7 @@ mod tests {
                     left: None,
                     event: None,
                     compact: None,
+                    numwant: None,
                 }
             );
         }
@@ -402,6 +426,7 @@ mod tests {
                 (LEFT, "3"),
                 (EVENT, "started"),
                 (COMPACT, "0"),
+                (NUMWANT, "50"),
             ])
             .to_string();
 
@@ -420,6 +445,7 @@ mod tests {
                     left: Some(NumberOfBytes::new(3)),
                     event: Some(Event::Started),
                     compact: Some(Compact::NotAccepted),
+                    numwant: Some(50),
                 }
             );
         }
@@ -428,7 +454,7 @@ mod tests {
 
             use crate::servers::http::v1::query::Query;
             use crate::servers::http::v1::requests::announce::{
-                Announce, COMPACT, DOWNLOADED, EVENT, INFO_HASH, LEFT, PEER_ID, PORT, UPLOADED,
+                Announce, COMPACT, DOWNLOADED, EVENT, INFO_HASH, LEFT, NUMWANT, PEER_ID, PORT, UPLOADED,
             };
 
             #[test]
@@ -542,6 +568,19 @@ mod tests {
                     (PEER_ID, "-qB00000000000000001"),
                     (PORT, "17548"),
                     (COMPACT, "INVALID_COMPACT_VALUE"),
+                ])
+                .to_string();
+
+                assert!(Announce::try_from(raw_query.parse::<Query>().unwrap()).is_err());
+            }
+
+            #[test]
+            fn it_should_fail_if_the_numwant_param_is_invalid() {
+                let raw_query = Query::from(vec![
+                    (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
+                    (PEER_ID, "-qB00000000000000001"),
+                    (PORT, "17548"),
+                    (NUMWANT, "-1"),
                 ])
                 .to_string();
 
