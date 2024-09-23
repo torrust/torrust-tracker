@@ -23,7 +23,7 @@ serde_json = { version = "1", features = ["preserve_order"] }
 serde_with = "3"
 thiserror = "1"
 toml = "0"
-torrust-tracker-located-error = { version = "3.0.0-rc.1", path = "../located-error" }
+torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
 url = "2"
 
 [dev-dependencies]
