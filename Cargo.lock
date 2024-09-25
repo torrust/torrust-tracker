@@ -2957,9 +2957,9 @@ dependencies = [
 
 [[package]]
 name = "ringbuf"
-version = "0.4.4"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46f7f1b88601a8ee13cabf203611ccdf64345dc1c5d24de8b11e1a678ee619b6"
+checksum = "2ae512e1fe4e25fbe102408d9927385bd26f54f9cae48ae2bb9cf72f2707410f"
 dependencies = [
  "crossbeam-utils",
 ]
@@ -3824,7 +3824,7 @@ dependencies = [
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
  "torrust-tracker-torrent-repository",
- "tower 0.4.13",
+ "tower 0.5.1",
  "tower-http",
  "trace",
  "tracing",
