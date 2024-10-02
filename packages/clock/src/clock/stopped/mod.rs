@@ -1,6 +1,5 @@
 /// Trait for types that can be used as a timestamp clock stopped
 /// at a given time.
-
 #[allow(clippy::module_name_repetitions)]
 pub struct StoppedClock {}
 
