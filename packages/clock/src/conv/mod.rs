@@ -48,7 +48,6 @@ pub fn convert_from_timestamp_to_datetime_utc(duration: DurationSinceUnixEpoch) 
 }
 
 #[cfg(test)]
-
 mod tests {
     use chrono::DateTime;
     use torrust_tracker_primitives::DurationSinceUnixEpoch;
