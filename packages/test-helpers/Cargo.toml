@@ -16,4 +16,4 @@ version.workspace = true
 
 [dependencies]
 rand = "0"
-torrust-tracker-configuration = { version = "3.0.0-rc.1", path = "../configuration" }
+torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }

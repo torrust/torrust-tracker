@@ -155,7 +155,7 @@
 //! ## Run with docker
 //!
 //! You can run the tracker with a pre-built docker image. Please refer to the
-//! [tracker docker documentation](https://github.com/torrust/torrust-tracker/tree/develop/docker).
+//! [tracker docker documentation](https://github.com/torrust/torrust-tracker/blob/develop/docs/containers.md).
 //!
 //! # Configuration
 //!
@@ -214,7 +214,7 @@
 //! of the `tracker.toml` file.
 //!
 //! The env var contains the same data as the `tracker.toml`. It's particularly
-//! useful in you are [running the tracker with docker](https://github.com/torrust/torrust-tracker/tree/develop/docker).
+//! useful in you are [running the tracker with docker](https://github.com/torrust/torrust-tracker/blob/develop/docs/containers.md).
 //!
 //! > NOTICE: The `TORRUST_TRACKER_CONFIG_TOML` env var has priority over the `tracker.toml` file.
 //!
