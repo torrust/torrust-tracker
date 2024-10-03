@@ -35,6 +35,10 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        toolchain: [stable]
+
     steps:
       - id: checkout
         name: Checkout Repository

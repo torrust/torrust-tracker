@@ -77,7 +77,6 @@ torrust-tracker-primitives = { version = "3.0.0-develop", path = "packages/primi
 torrust-tracker-torrent-repository = { version = "3.0.0-develop", path = "packages/torrent-repository" }
 tower = { version = "0", features = ["timeout"] }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
-trace = "0"
 tracing = "0"
 tracing-subscriber = { version = "0", features = ["json"] }
 url = { version = "2", features = ["serde"] }
@@ -115,3 +114,14 @@ opt-level = 3
 [profile.release-debug]
 debug = true
 inherits = "release"
+
+[lints.clippy]
+complexity = { level = "deny", priority = -1 }
+correctness = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+style = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+
+# temp allow this lint
+needless_return = "allow"

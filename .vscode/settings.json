@@ -2,34 +2,20 @@
   "[rust]": {
     "editor.formatOnSave": true
   },
-  "[ignore]": { "rust-analyzer.cargo.extraEnv" : {
-    "RUSTFLAGS": "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests",
-    "RUSTDOCFLAGS": "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests",
-    "CARGO_INCREMENTAL": "0",
-    "RUST_BACKTRACE": "1"
-  }},
+  "[ignore]": {
+    "rust-analyzer.cargo.extraEnv": {
+      "RUSTFLAGS": "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests",
+      "RUSTDOCFLAGS": "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests",
+      "CARGO_INCREMENTAL": "0",
+      "RUST_BACKTRACE": "1"
+    }
+  },
   "rust-analyzer.checkOnSave": true,
   "rust-analyzer.check.command": "clippy",
   "rust-analyzer.check.allTargets": true,
-  "rust-analyzer.check.extraArgs": [
-    "--",
-    "-D",
-    "clippy::correctness",
-    "-D",
-    "clippy::suspicious",
-    "-W",
-    "clippy::complexity",
-    "-W",
-    "clippy::perf",
-    "-W",
-    "clippy::style",
-    "-W",
-    "clippy::pedantic"
-  ],
   "evenBetterToml.formatter.allowedBlankLines": 1,
   "evenBetterToml.formatter.columnWidth": 130,
   "evenBetterToml.formatter.trailingNewline": true,
   "evenBetterToml.formatter.reorderKeys": true,
   "evenBetterToml.formatter.reorderArrays": true,
-
 }
