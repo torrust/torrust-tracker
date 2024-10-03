@@ -115,3 +115,14 @@ opt-level = 3
 [profile.release-debug]
 debug = true
 inherits = "release"
+
+[lints.clippy]
+complexity = { level = "deny", priority = -1 }
+correctness = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+style = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+
+# temp allow this lint
+needless_return = "allow"
