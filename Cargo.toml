@@ -77,7 +77,6 @@ torrust-tracker-primitives = { version = "3.0.0-develop", path = "packages/primi
 torrust-tracker-torrent-repository = { version = "3.0.0-develop", path = "packages/torrent-repository" }
 tower = { version = "0", features = ["timeout"] }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
-trace = "0"
 tracing = "0"
 tracing-subscriber = { version = "0", features = ["json"] }
 url = { version = "2", features = ["serde"] }
