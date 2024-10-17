@@ -50,7 +50,7 @@ pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks
             Err(err) => {
                 checks.results.push((Check::Setup, Err(err)));
                 results.push(Err(checks));
-                break;
+                continue;
             }
         };
 
@@ -65,7 +65,7 @@ pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks
             Err(err) => {
                 checks.results.push((Check::Connect, Err(err)));
                 results.push(Err(checks));
-                break;
+                continue;
             }
         };
 
