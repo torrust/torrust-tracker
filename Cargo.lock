@@ -542,7 +542,7 @@ version = "3.0.0-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "bittorrent-primitives",
- "derive_more",
+ "derive_more 1.0.0",
  "multimap",
  "percent-encoding",
  "serde",
@@ -574,7 +574,7 @@ version = "3.0.0-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "bittorrent-primitives",
- "derive_more",
+ "derive_more 2.0.0",
  "hyper",
  "percent-encoding",
  "reqwest",
@@ -599,7 +599,7 @@ dependencies = [
  "bittorrent-http-protocol",
  "bittorrent-primitives",
  "chrono",
- "derive_more",
+ "derive_more 2.0.0",
  "local-ip-address",
  "mockall",
  "r2d2",
@@ -1191,7 +1191,16 @@ version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a9b99b9cbbe49445b21764dc0625032a89b145a2642e67603e1c936f5458d05"
 dependencies = [
- "derive_more-impl",
+ "derive_more-impl 1.0.0",
+]
+
+[[package]]
+name = "derive_more"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71158d5e914dec8a242751a3fc516b03ed3e6772ce9de79e1aeea6420663cad4"
+dependencies = [
+ "derive_more-impl 2.0.0",
 ]
 
 [[package]]
@@ -1199,6 +1208,17 @@ name = "derive_more-impl"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb7330aeadfbe296029522e6c40f315320aba36fc43a5b3632f3795348f3bd22"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.96",
+]
+
+[[package]]
+name = "derive_more-impl"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e04e066e440d7973a852a3acdc25b0ae712bb6d311755fbf773d6a4518b2226"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4012,7 +4032,7 @@ dependencies = [
  "clap",
  "crossbeam-skiplist",
  "dashmap",
- "derive_more",
+ "derive_more 2.0.0",
  "figment",
  "futures",
  "futures-util",
@@ -4107,7 +4127,7 @@ name = "torrust-tracker-configuration"
 version = "3.0.0-develop"
 dependencies = [
  "camino",
- "derive_more",
+ "derive_more 2.0.0",
  "figment",
  "serde",
  "serde_json",
@@ -4142,7 +4162,7 @@ dependencies = [
  "aquatic_udp_protocol",
  "binascii",
  "bittorrent-primitives",
- "derive_more",
+ "derive_more 2.0.0",
  "serde",
  "tdyne-peer-id",
  "tdyne-peer-id-registry",

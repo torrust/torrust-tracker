@@ -16,7 +16,7 @@ version.workspace = true
 
 [dependencies]
 camino = { version = "1", features = ["serde", "serde1"] }
-derive_more = { version = "1", features = ["constructor", "display"] }
+derive_more = { version = "2", features = ["constructor", "display"] }
 figment = { version = "0", features = ["env", "test", "toml"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
