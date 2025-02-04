@@ -93,6 +93,39 @@ mod tests {
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
+    async fn should_increase_the_number_of_aborted_requests_when_it_receives_a_udp_request_aborted_event() {
+        let stats_repository = Repository::new();
+
+        handle_event(Event::UdpRequestAborted, &stats_repository).await;
+
+        let stats = stats_repository.get_stats().await;
+
+        assert_eq!(stats.udp_requests_aborted, 1);
+    }
+
+    #[tokio::test]
+    async fn should_increase_the_number_of_banned_requests_when_it_receives_a_udp_request_banned_event() {
+        let stats_repository = Repository::new();
+
+        handle_event(Event::UdpRequestBanned, &stats_repository).await;
+
+        let stats = stats_repository.get_stats().await;
+
+        assert_eq!(stats.udp_requests_banned, 1);
+    }
+
+    #[tokio::test]
+    async fn should_increase_the_number_of_incoming_requests_when_it_receives_a_udp4_incoming_request_event() {
+        let stats_repository = Repository::new();
+
+        handle_event(Event::Udp4IncomingRequest, &stats_repository).await;
+
+        let stats = stats_repository.get_stats().await;
+
+        assert_eq!(stats.udp4_requests, 1);
+    }
+
+    #[tokio::test]
     async fn should_increase_the_udp_abort_counter_when_it_receives_a_udp_abort_event() {
         let stats_repository = Repository::new();
 
@@ -110,14 +143,54 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_increase_the_udp4_requests_counter_when_it_receives_a_udp4_request_event() {
+    async fn should_increase_the_udp4_connect_requests_counter_when_it_receives_a_udp4_request_event_of_connect_kind() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::Udp4IncomingRequest, &stats_repository).await;
+        handle_event(
+            Event::Udp4Request {
+                kind: crate::statistics::event::UdpResponseKind::Connect,
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_requests, 1);
+        assert_eq!(stats.udp4_connections_handled, 1);
+    }
+
+    #[tokio::test]
+    async fn should_increase_the_udp4_announce_requests_counter_when_it_receives_a_udp4_request_event_of_announce_kind() {
+        let stats_repository = Repository::new();
+
+        handle_event(
+            Event::Udp4Request {
+                kind: crate::statistics::event::UdpResponseKind::Announce,
+            },
+            &stats_repository,
+        )
+        .await;
+
+        let stats = stats_repository.get_stats().await;
+
+        assert_eq!(stats.udp4_announces_handled, 1);
+    }
+
+    #[tokio::test]
+    async fn should_increase_the_udp4_scrape_requests_counter_when_it_receives_a_udp4_request_event_of_scrape_kind() {
+        let stats_repository = Repository::new();
+
+        handle_event(
+            Event::Udp4Request {
+                kind: crate::statistics::event::UdpResponseKind::Scrape,
+            },
+            &stats_repository,
+        )
+        .await;
+
+        let stats = stats_repository.get_stats().await;
+
+        assert_eq!(stats.udp4_scrapes_handled, 1);
     }
 
     #[tokio::test]
@@ -150,14 +223,54 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn should_increase_the_udp6_requests_counter_when_it_receives_a_udp6_request_event() {
+    async fn should_increase_the_udp6_connect_requests_counter_when_it_receives_a_udp6_request_event_of_connect_kind() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::Udp6IncomingRequest, &stats_repository).await;
+        handle_event(
+            Event::Udp6Request {
+                kind: crate::statistics::event::UdpResponseKind::Connect,
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp6_requests, 1);
+        assert_eq!(stats.udp6_connections_handled, 1);
+    }
+
+    #[tokio::test]
+    async fn should_increase_the_udp6_announce_requests_counter_when_it_receives_a_udp6_request_event_of_announce_kind() {
+        let stats_repository = Repository::new();
+
+        handle_event(
+            Event::Udp6Request {
+                kind: crate::statistics::event::UdpResponseKind::Announce,
+            },
+            &stats_repository,
+        )
+        .await;
+
+        let stats = stats_repository.get_stats().await;
+
+        assert_eq!(stats.udp6_announces_handled, 1);
+    }
+
+    #[tokio::test]
+    async fn should_increase_the_udp6_scrape_requests_counter_when_it_receives_a_udp6_request_event_of_scrape_kind() {
+        let stats_repository = Repository::new();
+
+        handle_event(
+            Event::Udp6Request {
+                kind: crate::statistics::event::UdpResponseKind::Scrape,
+            },
+            &stats_repository,
+        )
+        .await;
+
+        let stats = stats_repository.get_stats().await;
+
+        assert_eq!(stats.udp6_scrapes_handled, 1);
     }
 
     #[tokio::test]

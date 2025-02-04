@@ -1,0 +1,21 @@
+use std::sync::Arc;
+use std::time::{Duration, Instant};
+
+use bittorrent_udp_tracker_core::services::connect::ConnectService;
+use bittorrent_udp_tracker_core::statistics;
+
+use crate::helpers::utils::{sample_ipv4_remote_addr, sample_issue_time};
+
+#[allow(clippy::unused_async)]
+pub async fn connect_once(samples: u64) -> Duration {
+    let (udp_core_stats_event_sender, _udp_core_stats_repository) = statistics::setup::factory(false);
+    let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
+    let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+    let start = Instant::now();
+
+    for _ in 0..samples {
+        let _response = connect_service.handle_connect(sample_ipv4_remote_addr(), sample_issue_time());
+    }
+
+    start.elapsed()
+}

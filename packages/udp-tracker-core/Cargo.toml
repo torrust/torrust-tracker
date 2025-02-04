@@ -21,6 +21,7 @@ bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-pr
 bloom = "0.3.2"
 blowfish = "0"
 cipher = "0"
+criterion = { version = "0.5.1", features = ["async_tokio"] }
 futures = "0"
 lazy_static = "1"
 rand = "0"
@@ -34,3 +35,8 @@ zerocopy = "0.7"
 [dev-dependencies]
 mockall = "0"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
+
+[[bench]]
+harness = false
+name = "udp_tracker_core_benchmark"
+

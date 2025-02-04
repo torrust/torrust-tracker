@@ -18,6 +18,7 @@ aquatic_udp_protocol = "0"
 bittorrent-http-tracker-protocol = { version = "3.0.0-develop", path = "../http-protocol" }
 bittorrent-primitives = "0.1.0"
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+criterion = { version = "0.5.1", features = ["async_tokio"] }
 futures = "0"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
@@ -28,3 +29,8 @@ tracing = "0"
 [dev-dependencies]
 mockall = "0"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
+
+[[bench]]
+harness = false
+name = "http_tracker_core_benchmark"
+
