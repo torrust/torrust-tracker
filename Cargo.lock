@@ -601,7 +601,7 @@ dependencies = [
  "torrust-tracker-located-error",
  "torrust-tracker-primitives",
  "tracing",
- "zerocopy 0.7.35",
+ "zerocopy 0.8.17",
 ]
 
 [[package]]
@@ -4357,7 +4357,7 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "uuid",
- "zerocopy 0.7.35",
+ "zerocopy 0.8.17",
 ]
 
 [[package]]
@@ -4452,7 +4452,7 @@ dependencies = [
  "tdyne-peer-id-registry",
  "thiserror 2.0.11",
  "torrust-tracker-configuration",
- "zerocopy 0.7.35",
+ "zerocopy 0.8.17",
 ]
 
 [[package]]
@@ -4480,7 +4480,7 @@ dependencies = [
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
- "zerocopy 0.7.35",
+ "zerocopy 0.8.17",
 ]
 
 [[package]]
