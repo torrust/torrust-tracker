@@ -45,5 +45,5 @@ local-ip-address = "0"
 mockall = "0"
 torrust-tracker-api-client = { version = "3.0.0-develop", path = "../tracker-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
-testcontainers = "0.17.0"
+testcontainers = "0.23.3"
 url = "2.5.4"
