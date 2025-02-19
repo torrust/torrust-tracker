@@ -17,7 +17,7 @@ version.workspace = true
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
 chrono = { version = "0", default-features = false, features = ["clock"] }
-derive_more = { version = "1", features = ["as_ref", "constructor", "from"] }
+derive_more = { version = "2", features = ["as_ref", "constructor", "from"] }
 mockall = "0"
 r2d2 = "0"
 r2d2_mysql = "25"

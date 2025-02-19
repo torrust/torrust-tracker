@@ -47,7 +47,7 @@ chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
 crossbeam-skiplist = "0"
 dashmap = "6"
-derive_more = { version = "1", features = ["as_ref", "constructor", "from"] }
+derive_more = { version = "2", features = ["as_ref", "constructor", "from"] }
 figment = "0"
 futures = "0"
 futures-util = "0"
