@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
+use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
 use tokio::sync::oneshot::{Receiver, Sender};
@@ -15,7 +16,6 @@ use torrust_server_lib::signals::{Halted, Started};
 use tracing::instrument;
 
 use super::v1::routes::router;
-use crate::container::HttpTrackerContainer;
 use crate::HTTP_TRACKER_LOG_TARGET;
 
 /// Error that can occur when starting or stopping the HTTP server.
@@ -45,7 +45,7 @@ impl Launcher {
     #[instrument(skip(self, http_tracker_container, tx_start, rx_halt))]
     fn start(
         &self,
-        http_tracker_container: Arc<HttpTrackerContainer>,
+        http_tracker_container: Arc<HttpTrackerCoreContainer>,
         tx_start: Sender<Started>,
         rx_halt: Receiver<Halted>,
     ) -> BoxFuture<'static, ()> {
@@ -160,7 +160,7 @@ impl HttpServer<Stopped> {
     /// back to the main thread.
     pub async fn start(
         self,
-        http_tracker_container: Arc<HttpTrackerContainer>,
+        http_tracker_container: Arc<HttpTrackerCoreContainer>,
         form: ServiceRegistrationForm,
     ) -> Result<HttpServer<Running>, Error> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
@@ -238,6 +238,7 @@ pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
 mod tests {
     use std::sync::Arc;
 
+    use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
     use bittorrent_tracker_core::announce_handler::AnnounceHandler;
     use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use bittorrent_tracker_core::authentication::service;
@@ -252,10 +253,9 @@ mod tests {
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
-    use crate::container::HttpTrackerContainer;
     use crate::server::{HttpServer, Launcher};
 
-    pub fn initialize_container(configuration: &Configuration) -> HttpTrackerContainer {
+    pub fn initialize_container(configuration: &Configuration) -> HttpTrackerCoreContainer {
         let core_config = Arc::new(configuration.core.clone());
 
         let http_trackers = configuration
@@ -268,9 +268,10 @@ mod tests {
         let http_tracker_config = Arc::new(http_tracker_config.clone());
 
         // HTTP stats
-        let (http_stats_event_sender, _http_stats_repository) =
+        let (http_stats_event_sender, http_stats_repository) =
             bittorrent_http_tracker_core::statistics::setup::factory(configuration.core.tracker_usage_statistics);
         let http_stats_event_sender = Arc::new(http_stats_event_sender);
+        let http_stats_repository = Arc::new(http_stats_repository);
 
         let database = initialize_database(&configuration.core);
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -292,14 +293,16 @@ mod tests {
 
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
-        HttpTrackerContainer {
+        HttpTrackerCoreContainer {
             core_config,
-            http_tracker_config,
             announce_handler,
             scrape_handler,
             whitelist_authorization,
-            http_stats_event_sender,
             authentication_service,
+
+            http_tracker_config,
+            http_stats_event_sender,
+            http_stats_repository,
         }
     }
 

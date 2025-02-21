@@ -2,12 +2,12 @@
 use std::sync::Arc;
 
 use axum::Router;
+use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
 
 use super::context::{auth_key, stats, torrent, whitelist};
-use crate::container::HttpApiContainer;
 
 /// Add the routes for the v1 API.
-pub fn add(prefix: &str, router: Router, http_api_container: &Arc<HttpApiContainer>) -> Router {
+pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApiCoreContainer>) -> Router {
     let v1_prefix = format!("{prefix}/v1");
 
     let router = auth_key::routes::add(&v1_prefix, router, &http_api_container.keys_handler.clone());

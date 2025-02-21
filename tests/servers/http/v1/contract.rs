@@ -444,12 +444,12 @@ mod for_all_config_modes {
             let response = Client::new(*env.bind_address())
                 .announce(
                     &QueryBuilder::default()
-                        .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap())
+                        .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap()) // DevSkim: ignore DS173237
                         .query(),
                 )
                 .await;
 
-            let announce_policy = env.http_tracker_container.core_config.announce_policy;
+            let announce_policy = env.container.tracker_core_container.core_config.announce_policy;
 
             assert_announce_response(
                 response,
@@ -472,7 +472,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             // Peer 1
             let previously_announced_peer = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
@@ -490,7 +490,7 @@ mod for_all_config_modes {
                 )
                 .await;
 
-            let announce_policy = env.http_tracker_container.core_config.announce_policy;
+            let announce_policy = env.container.tracker_core_container.core_config.announce_policy;
 
             // It should only contain the previously announced peer
             assert_announce_response(
@@ -514,7 +514,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             // Announce a peer using IPV4
             let peer_using_ipv4 = PeerBuilder::default()
@@ -543,7 +543,7 @@ mod for_all_config_modes {
                 )
                 .await;
 
-            let announce_policy = env.http_tracker_container.core_config.announce_policy;
+            let announce_policy = env.container.tracker_core_container.core_config.announce_policy;
 
             // The newly announced peer is not included on the response peer list,
             // but all the previously announced peers should be included regardless the IP version they are using.
@@ -568,7 +568,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
             let peer = PeerBuilder::default().build();
 
             // Add a peer
@@ -597,7 +597,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             // Peer 1
             let previously_announced_peer = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
@@ -638,7 +638,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             // Peer 1
             let previously_announced_peer = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
@@ -680,7 +680,12 @@ mod for_all_config_modes {
                 .announce(&QueryBuilder::default().query())
                 .await;
 
-            let stats = env.http_stats_repository.get_stats().await;
+            let stats = env
+                .container
+                .http_tracker_core_container
+                .http_stats_repository
+                .get_stats()
+                .await;
 
             assert_eq!(stats.tcp4_connections_handled, 1);
 
@@ -706,7 +711,12 @@ mod for_all_config_modes {
                 .announce(&QueryBuilder::default().query())
                 .await;
 
-            let stats = env.http_stats_repository.get_stats().await;
+            let stats = env
+                .container
+                .http_tracker_core_container
+                .http_stats_repository
+                .get_stats()
+                .await;
 
             assert_eq!(stats.tcp6_connections_handled, 1);
 
@@ -731,7 +741,12 @@ mod for_all_config_modes {
                 )
                 .await;
 
-            let stats = env.http_stats_repository.get_stats().await;
+            let stats = env
+                .container
+                .http_tracker_core_container
+                .http_stats_repository
+                .get_stats()
+                .await;
 
             assert_eq!(stats.tcp6_connections_handled, 0);
 
@@ -750,7 +765,12 @@ mod for_all_config_modes {
                 .announce(&QueryBuilder::default().query())
                 .await;
 
-            let stats = env.http_stats_repository.get_stats().await;
+            let stats = env
+                .container
+                .http_tracker_core_container
+                .http_stats_repository
+                .get_stats()
+                .await;
 
             assert_eq!(stats.tcp4_announces_handled, 1);
 
@@ -776,7 +796,12 @@ mod for_all_config_modes {
                 .announce(&QueryBuilder::default().query())
                 .await;
 
-            let stats = env.http_stats_repository.get_stats().await;
+            let stats = env
+                .container
+                .http_tracker_core_container
+                .http_stats_repository
+                .get_stats()
+                .await;
 
             assert_eq!(stats.tcp6_announces_handled, 1);
 
@@ -801,7 +826,12 @@ mod for_all_config_modes {
                 )
                 .await;
 
-            let stats = env.http_stats_repository.get_stats().await;
+            let stats = env
+                .container
+                .http_tracker_core_container
+                .http_stats_repository
+                .get_stats()
+                .await;
 
             assert_eq!(stats.tcp6_announces_handled, 0);
 
@@ -816,7 +846,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
             let client_ip = local_ip().unwrap();
 
             let announce_query = QueryBuilder::default()
@@ -831,7 +861,11 @@ mod for_all_config_modes {
                 assert_eq!(status, StatusCode::OK);
             }
 
-            let peers = env.in_memory_torrent_repository.get_torrent_peers(&info_hash);
+            let peers = env
+                .container
+                .tracker_core_container
+                .in_memory_torrent_repository
+                .get_torrent_peers(&info_hash);
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(peer_addr.ip(), client_ip);
@@ -853,7 +887,7 @@ mod for_all_config_modes {
             let env =
                 Started::new(&configuration::ephemeral_with_external_ip(IpAddr::from_str("2.137.87.41").unwrap()).into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
             let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
             let client_ip = loopback_ip;
 
@@ -869,12 +903,16 @@ mod for_all_config_modes {
                 assert_eq!(status, StatusCode::OK);
             }
 
-            let peers = env.in_memory_torrent_repository.get_torrent_peers(&info_hash);
+            let peers = env
+                .container
+                .tracker_core_container
+                .in_memory_torrent_repository
+                .get_torrent_peers(&info_hash);
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(
                 peer_addr.ip(),
-                env.http_tracker_container.core_config.net.external_ip.unwrap()
+                env.container.tracker_core_container.core_config.net.external_ip.unwrap()
             );
             assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
 
@@ -898,7 +936,7 @@ mod for_all_config_modes {
             )
             .await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
             let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
             let client_ip = loopback_ip;
 
@@ -914,12 +952,16 @@ mod for_all_config_modes {
                 assert_eq!(status, StatusCode::OK);
             }
 
-            let peers = env.in_memory_torrent_repository.get_torrent_peers(&info_hash);
+            let peers = env
+                .container
+                .tracker_core_container
+                .in_memory_torrent_repository
+                .get_torrent_peers(&info_hash);
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(
                 peer_addr.ip(),
-                env.http_tracker_container.core_config.net.external_ip.unwrap()
+                env.container.tracker_core_container.core_config.net.external_ip.unwrap()
             );
             assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
 
@@ -939,7 +981,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_with_reverse_proxy().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
 
@@ -957,7 +999,11 @@ mod for_all_config_modes {
                 assert_eq!(status, StatusCode::OK);
             }
 
-            let peers = env.in_memory_torrent_repository.get_torrent_peers(&info_hash);
+            let peers = env
+                .container
+                .tracker_core_container
+                .in_memory_torrent_repository
+                .get_torrent_peers(&info_hash);
             let peer_addr = peers[0].peer_addr;
 
             assert_eq!(peer_addr.ip(), IpAddr::from_str("150.172.238.178").unwrap());
@@ -1034,7 +1080,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             env.add_torrent_peer(
                 &info_hash,
@@ -1074,7 +1120,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             env.add_torrent_peer(
                 &info_hash,
@@ -1114,7 +1160,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             let response = Client::new(*env.bind_address())
                 .scrape(
@@ -1135,8 +1181,8 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash1 = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
-            let info_hash2 = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
+            let info_hash1 = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
+            let info_hash2 = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap(); // DevSkim: ignore DS173237
 
             let response = Client::new(*env.bind_address())
                 .scrape(
@@ -1163,7 +1209,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             Client::new(*env.bind_address())
                 .scrape(
@@ -1173,7 +1219,12 @@ mod for_all_config_modes {
                 )
                 .await;
 
-            let stats = env.http_stats_repository.get_stats().await;
+            let stats = env
+                .container
+                .http_tracker_core_container
+                .http_stats_repository
+                .get_stats()
+                .await;
 
             assert_eq!(stats.tcp4_scrapes_handled, 1);
 
@@ -1195,7 +1246,7 @@ mod for_all_config_modes {
 
             let env = Started::new(&configuration::ephemeral_ipv6().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             Client::bind(*env.bind_address(), IpAddr::from_str("::1").unwrap())
                 .scrape(
@@ -1205,7 +1256,12 @@ mod for_all_config_modes {
                 )
                 .await;
 
-            let stats = env.http_stats_repository.get_stats().await;
+            let stats = env
+                .container
+                .http_tracker_core_container
+                .http_stats_repository
+                .get_stats()
+                .await;
 
             assert_eq!(stats.tcp6_scrapes_handled, 1);
 
@@ -1265,9 +1321,11 @@ mod configured_as_whitelisted {
 
             let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
-            env.whitelist_manager
+            env.container
+                .tracker_core_container
+                .whitelist_manager
                 .add_torrent_to_whitelist(&info_hash)
                 .await
                 .expect("should add the torrent to the whitelist");
@@ -1339,7 +1397,7 @@ mod configured_as_whitelisted {
 
             let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             env.add_torrent_peer(
                 &info_hash,
@@ -1349,7 +1407,9 @@ mod configured_as_whitelisted {
                     .build(),
             );
 
-            env.whitelist_manager
+            env.container
+                .tracker_core_container
+                .whitelist_manager
                 .add_torrent_to_whitelist(&info_hash)
                 .await
                 .expect("should add the torrent to the whitelist");
@@ -1403,6 +1463,8 @@ mod configured_as_private {
             let env = Started::new(&configuration::ephemeral_private().into()).await;
 
             let expiring_key = env
+                .container
+                .tracker_core_container
                 .keys_handler
                 .generate_expiring_peer_key(Some(Duration::from_secs(60)))
                 .await
@@ -1423,7 +1485,7 @@ mod configured_as_private {
 
             let env = Started::new(&configuration::ephemeral_private().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             let response = Client::new(*env.bind_address())
                 .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
@@ -1510,7 +1572,7 @@ mod configured_as_private {
 
             let env = Started::new(&configuration::ephemeral_private().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             env.add_torrent_peer(
                 &info_hash,
@@ -1541,7 +1603,7 @@ mod configured_as_private {
 
             let env = Started::new(&configuration::ephemeral_private().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             env.add_torrent_peer(
                 &info_hash,
@@ -1552,6 +1614,8 @@ mod configured_as_private {
             );
 
             let expiring_key = env
+                .container
+                .tracker_core_container
                 .keys_handler
                 .generate_expiring_peer_key(Some(Duration::from_secs(60)))
                 .await
@@ -1590,7 +1654,7 @@ mod configured_as_private {
 
             let env = Started::new(&configuration::ephemeral_private().into()).await;
 
-            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap();
+            let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             env.add_torrent_peer(
                 &info_hash,

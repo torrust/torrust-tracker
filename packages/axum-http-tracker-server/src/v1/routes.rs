@@ -9,6 +9,7 @@ use axum::response::Response;
 use axum::routing::get;
 use axum::{BoxError, Router};
 use axum_client_ip::SecureClientIpSource;
+use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use hyper::{Request, StatusCode};
 use torrust_server_lib::logging::Latency;
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;
@@ -23,7 +24,6 @@ use tower_http::LatencyUnit;
 use tracing::{instrument, Level, Span};
 
 use super::handlers::{announce, health_check, scrape};
-use crate::container::HttpTrackerContainer;
 use crate::HTTP_TRACKER_LOG_TARGET;
 
 /// It adds the routes to the router.
@@ -31,7 +31,7 @@ use crate::HTTP_TRACKER_LOG_TARGET;
 /// > **NOTICE**: it's added a layer to get the client IP from the connection
 /// > info. The tracker could use the connection info to get the client IP.
 #[instrument(skip(http_tracker_container, server_socket_addr))]
-pub fn router(http_tracker_container: Arc<HttpTrackerContainer>, server_socket_addr: SocketAddr) -> Router {
+pub fn router(http_tracker_container: Arc<HttpTrackerCoreContainer>, server_socket_addr: SocketAddr) -> Router {
     Router::new()
         // Health check
         .route("/health_check", get(health_check::handler))

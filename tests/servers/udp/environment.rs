@@ -2,13 +2,11 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_tracker_core::databases::Database;
-use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-use bittorrent_udp_tracker_core::statistics;
+use bittorrent_tracker_core::container::TrackerCoreContainer;
+use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Configuration, DEFAULT_TIMEOUT};
-use torrust_tracker_lib::bootstrap::app::{initialize_app_container, initialize_global_services};
-use torrust_tracker_lib::container::UdpTrackerContainer;
+use torrust_tracker_lib::bootstrap::app::initialize_global_services;
 use torrust_tracker_lib::servers::udp::server::spawner::Spawner;
 use torrust_tracker_lib::servers::udp::server::states::{Running, Stopped};
 use torrust_tracker_lib::servers::udp::server::Server;
@@ -18,12 +16,7 @@ pub struct Environment<S>
 where
     S: std::fmt::Debug + std::fmt::Display,
 {
-    pub udp_tracker_container: Arc<UdpTrackerContainer>,
-
-    pub database: Arc<Box<dyn Database>>,
-    pub in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
-    pub udp_stats_repository: Arc<statistics::repository::Repository>,
-
+    pub container: Arc<EnvContainer>,
     pub registar: Registar,
     pub server: Server<S>,
 }
@@ -35,7 +28,11 @@ where
     /// Add a torrent to the tracker
     #[allow(dead_code)]
     pub fn add_torrent(&self, info_hash: &InfoHash, peer: &peer::Peer) {
-        let () = self.in_memory_torrent_repository.upsert_peer(info_hash, peer);
+        let () = self
+            .container
+            .tracker_core_container
+            .in_memory_torrent_repository
+            .upsert_peer(info_hash, peer);
     }
 }
 
@@ -44,33 +41,14 @@ impl Environment<Stopped> {
     pub fn new(configuration: &Arc<Configuration>) -> Self {
         initialize_global_services(configuration);
 
-        let app_container = initialize_app_container(configuration);
+        let container = Arc::new(EnvContainer::initialize(configuration));
 
-        let udp_tracker_configurations = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
-
-        let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
-
-        let bind_to = udp_tracker_config.bind_address;
+        let bind_to = container.udp_tracker_core_container.udp_tracker_config.bind_address;
 
         let server = Server::new(Spawner::new(bind_to));
 
-        let udp_tracker_container = Arc::new(UdpTrackerContainer {
-            udp_tracker_config: udp_tracker_config.clone(),
-            core_config: app_container.core_config.clone(),
-            announce_handler: app_container.announce_handler.clone(),
-            scrape_handler: app_container.scrape_handler.clone(),
-            whitelist_authorization: app_container.whitelist_authorization.clone(),
-            udp_stats_event_sender: app_container.udp_stats_event_sender.clone(),
-            ban_service: app_container.ban_service.clone(),
-        });
-
         Self {
-            udp_tracker_container,
-
-            database: app_container.database.clone(),
-            in_memory_torrent_repository: app_container.in_memory_torrent_repository.clone(),
-            udp_stats_repository: app_container.udp_stats_repository.clone(),
-
+            container,
             registar: Registar::default(),
             server,
         }
@@ -78,19 +56,18 @@ impl Environment<Stopped> {
 
     #[allow(dead_code)]
     pub async fn start(self) -> Environment<Running> {
-        let cookie_lifetime = self.udp_tracker_container.udp_tracker_config.cookie_lifetime;
+        let cookie_lifetime = self.container.udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
 
         Environment {
-            udp_tracker_container: self.udp_tracker_container.clone(),
-
-            database: self.database.clone(),
-            in_memory_torrent_repository: self.in_memory_torrent_repository.clone(),
-            udp_stats_repository: self.udp_stats_repository.clone(),
-
+            container: self.container.clone(),
             registar: self.registar.clone(),
             server: self
                 .server
-                .start(self.udp_tracker_container, self.registar.give_form(), cookie_lifetime)
+                .start(
+                    self.container.udp_tracker_core_container.clone(),
+                    self.registar.give_form(),
+                    cookie_lifetime,
+                )
                 .await
                 .unwrap(),
         }
@@ -111,12 +88,7 @@ impl Environment<Running> {
             .expect("it should stop the environment within the timeout");
 
         Environment {
-            udp_tracker_container: self.udp_tracker_container,
-
-            database: self.database,
-            in_memory_torrent_repository: self.in_memory_torrent_repository,
-            udp_stats_repository: self.udp_stats_repository,
-
+            container: self.container,
             registar: Registar::default(),
             server: stopped.expect("it stop the udp tracker service"),
         }
@@ -124,6 +96,27 @@ impl Environment<Running> {
 
     pub fn bind_address(&self) -> SocketAddr {
         self.server.state.local_addr
+    }
+}
+
+pub struct EnvContainer {
+    pub tracker_core_container: Arc<TrackerCoreContainer>,
+    pub udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+}
+
+impl EnvContainer {
+    pub fn initialize(configuration: &Configuration) -> Self {
+        let core_config = Arc::new(configuration.core.clone());
+        let udp_tracker_configurations = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
+        let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
+
+        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
+        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from(&tracker_core_container, &udp_tracker_config);
+
+        Self {
+            tracker_core_container,
+            udp_tracker_core_container,
+        }
     }
 }
 

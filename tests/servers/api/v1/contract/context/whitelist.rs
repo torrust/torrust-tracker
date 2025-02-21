@@ -31,7 +31,9 @@ async fn should_allow_whitelisting_a_torrent() {
 
     assert_ok(response).await;
     assert!(
-        env.in_memory_whitelist
+        env.container
+            .tracker_core_container
+            .in_memory_whitelist
             .contains(&InfoHash::from_str(&info_hash).unwrap())
             .await
     );
@@ -111,7 +113,7 @@ async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
 
-    force_database_error(&env.database);
+    force_database_error(&env.container.tracker_core_container.database);
 
     let request_id = Uuid::new_v4();
 
@@ -167,7 +169,8 @@ async fn should_allow_removing_a_torrent_from_the_whitelist() {
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();
 
-    env.http_api_container
+    env.container
+        .tracker_core_container
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
@@ -180,7 +183,13 @@ async fn should_allow_removing_a_torrent_from_the_whitelist() {
         .await;
 
     assert_ok(response).await;
-    assert!(!env.in_memory_whitelist.contains(&info_hash).await);
+    assert!(
+        !env.container
+            .tracker_core_container
+            .in_memory_whitelist
+            .contains(&info_hash)
+            .await
+    );
 
     env.stop().await;
 }
@@ -241,13 +250,14 @@ async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();
-    env.http_api_container
+    env.container
+        .tracker_core_container
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
         .unwrap();
 
-    force_database_error(&env.database);
+    force_database_error(&env.container.tracker_core_container.database);
 
     let request_id = Uuid::new_v4();
 
@@ -274,7 +284,8 @@ async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthentica
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();
 
-    env.http_api_container
+    env.container
+        .tracker_core_container
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
@@ -293,7 +304,8 @@ async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthentica
         "Expected logs to contain: ERROR ... API ... request_id={request_id}"
     );
 
-    env.http_api_container
+    env.container
+        .tracker_core_container
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
@@ -323,7 +335,8 @@ async fn should_allow_reload_the_whitelist_from_the_database() {
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();
-    env.http_api_container
+    env.container
+        .tracker_core_container
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
@@ -358,13 +371,14 @@ async fn should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database() {
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();
-    env.http_api_container
+    env.container
+        .tracker_core_container
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
         .unwrap();
 
-    force_database_error(&env.database);
+    force_database_error(&env.container.tracker_core_container.database);
 
     let request_id = Uuid::new_v4();
 

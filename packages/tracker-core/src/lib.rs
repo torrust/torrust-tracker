@@ -120,6 +120,7 @@
 //! Please refer to the [`whitelist`] documentation.
 pub mod announce_handler;
 pub mod authentication;
+pub mod container;
 pub mod databases;
 pub mod error;
 pub mod scrape_handler;

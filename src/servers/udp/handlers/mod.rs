@@ -11,6 +11,7 @@ use std::time::Instant;
 
 use announce::handle_announce;
 use aquatic_udp_protocol::{Request, Response, TransactionId};
+use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use bittorrent_udp_tracker_core::services::announce::UdpAnnounceError;
 use connect::handle_connect;
 use error::handle_error;
@@ -20,7 +21,6 @@ use tracing::{instrument, Level};
 use uuid::Uuid;
 
 use super::RawRequest;
-use crate::container::UdpTrackerContainer;
 use crate::servers::udp::error::Error;
 use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
 use crate::CurrentClock;
@@ -55,7 +55,7 @@ impl CookieTimeValues {
 #[instrument(fields(request_id), skip(udp_request, udp_tracker_container, cookie_time_values), ret(level = Level::TRACE))]
 pub(crate) async fn handle_packet(
     udp_request: RawRequest,
-    udp_tracker_container: Arc<UdpTrackerContainer>,
+    udp_tracker_container: Arc<UdpTrackerCoreContainer>,
     local_addr: SocketAddr,
     cookie_time_values: CookieTimeValues,
 ) -> Response {
@@ -128,7 +128,7 @@ pub(crate) async fn handle_packet(
 pub async fn handle_request(
     request: Request,
     remote_addr: SocketAddr,
-    udp_tracker_container: Arc<UdpTrackerContainer>,
+    udp_tracker_container: Arc<UdpTrackerCoreContainer>,
     cookie_time_values: CookieTimeValues,
 ) -> Result<Response, (Error, TransactionId)> {
     tracing::trace!("handle request");

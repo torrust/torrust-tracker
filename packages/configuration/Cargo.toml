@@ -24,6 +24,8 @@ serde_with = "3"
 thiserror = "2"
 toml = "0"
 torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
+tracing = "0"
+tracing-subscriber = { version = "0", features = ["json"] }
 url = "2"
 
 [dev-dependencies]

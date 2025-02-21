@@ -4547,6 +4547,8 @@ dependencies = [
  "thiserror 2.0.11",
  "toml",
  "torrust-tracker-located-error",
+ "tracing",
+ "tracing-subscriber",
  "url",
  "uuid",
 ]

@@ -57,21 +57,28 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
+    use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use super::spawner::Spawner;
     use super::Server;
-    use crate::bootstrap::app::{initialize_app_container, initialize_global_services};
-    use crate::container::UdpTrackerContainer;
+    use crate::bootstrap::app::initialize_global_services;
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
         let cfg = Arc::new(ephemeral_public());
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(
+            cfg.udp_trackers
+                .clone()
+                .expect("no UDP services array config provided")
+                .first()
+                .expect("no UDP test service config provided")
+                .clone(),
+        );
 
         initialize_global_services(&cfg);
-
-        let app_container = Arc::new(initialize_app_container(&cfg));
 
         let udp_trackers = cfg.udp_trackers.clone().expect("missing UDP trackers configuration");
         let config = &udp_trackers[0];
@@ -80,8 +87,7 @@ mod tests {
 
         let stopped = Server::new(Spawner::new(bind_to));
 
-        let udp_tracker_config = Arc::new(config.clone());
-        let udp_tracker_container = Arc::new(UdpTrackerContainer::from_app_container(&udp_tracker_config, &app_container));
+        let udp_tracker_container = UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config);
 
         let started = stopped
             .start(udp_tracker_container, register.give_form(), config.cookie_lifetime)
@@ -98,22 +104,31 @@ mod tests {
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop_with_wait() {
         let cfg = Arc::new(ephemeral_public());
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(
+            cfg.udp_trackers
+                .clone()
+                .expect("no UDP services array config provided")
+                .first()
+                .expect("no UDP test service config provided")
+                .clone(),
+        );
 
         initialize_global_services(&cfg);
 
-        let app_container = Arc::new(initialize_app_container(&cfg));
-
-        let config = cfg.udp_trackers.as_ref().unwrap().first().unwrap();
-        let bind_to = config.bind_address;
+        let bind_to = udp_tracker_config.bind_address;
         let register = &Registar::default();
 
         let stopped = Server::new(Spawner::new(bind_to));
 
-        let udp_tracker_config = Arc::new(config.clone());
-        let udp_tracker_container = Arc::new(UdpTrackerContainer::from_app_container(&udp_tracker_config, &app_container));
+        let udp_tracker_container = UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config);
 
         let started = stopped
-            .start(udp_tracker_container, register.give_form(), config.cookie_lifetime)
+            .start(
+                udp_tracker_container,
+                register.give_form(),
+                udp_tracker_config.cookie_lifetime,
+            )
             .await
             .expect("it should start the server");
 

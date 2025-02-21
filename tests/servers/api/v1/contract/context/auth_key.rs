@@ -36,6 +36,8 @@ async fn should_allow_generating_a_new_random_auth_key() {
     let auth_key_resource = assert_auth_key_utf8(response).await;
 
     assert!(env
+        .container
+        .tracker_core_container
         .authentication_service
         .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
         .await
@@ -65,6 +67,8 @@ async fn should_allow_uploading_a_preexisting_auth_key() {
     let auth_key_resource = assert_auth_key_utf8(response).await;
 
     assert!(env
+        .container
+        .tracker_core_container
         .authentication_service
         .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
         .await
@@ -126,7 +130,7 @@ async fn should_fail_when_the_auth_key_cannot_be_generated() {
 
     let env = Started::new(&configuration::ephemeral().into()).await;
 
-    force_database_error(&env.database);
+    force_database_error(&env.container.tracker_core_container.database);
 
     let request_id = Uuid::new_v4();
 
@@ -158,7 +162,8 @@ async fn should_allow_deleting_an_auth_key() {
 
     let seconds_valid = 60;
     let auth_key = env
-        .http_api_container
+        .container
+        .tracker_core_container
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -293,13 +298,14 @@ async fn should_fail_when_the_auth_key_cannot_be_deleted() {
 
     let seconds_valid = 60;
     let auth_key = env
-        .http_api_container
+        .container
+        .tracker_core_container
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
-    force_database_error(&env.database);
+    force_database_error(&env.container.tracker_core_container.database);
 
     let request_id = Uuid::new_v4();
 
@@ -327,7 +333,8 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
 
     // Generate new auth key
     let auth_key = env
-        .http_api_container
+        .container
+        .tracker_core_container
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -348,7 +355,8 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
 
     // Generate new auth key
     let auth_key = env
-        .http_api_container
+        .container
+        .tracker_core_container
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -377,7 +385,8 @@ async fn should_allow_reloading_keys() {
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let seconds_valid = 60;
-    env.http_api_container
+    env.container
+        .tracker_core_container
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -403,13 +412,14 @@ async fn should_fail_when_keys_cannot_be_reloaded() {
     let request_id = Uuid::new_v4();
     let seconds_valid = 60;
 
-    env.http_api_container
+    env.container
+        .tracker_core_container
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
-    force_database_error(&env.database);
+    force_database_error(&env.container.tracker_core_container.database);
 
     let response = Client::new(env.get_connection_info())
         .reload_keys(Some(headers_with_request_id(request_id)))
@@ -432,7 +442,8 @@ async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
     let env = Started::new(&configuration::ephemeral().into()).await;
 
     let seconds_valid = 60;
-    env.http_api_container
+    env.container
+        .tracker_core_container
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -497,6 +508,8 @@ mod deprecated_generate_key_endpoint {
         let auth_key_resource = assert_auth_key_utf8(response).await;
 
         assert!(env
+            .container
+            .tracker_core_container
             .authentication_service
             .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
             .await
@@ -563,7 +576,7 @@ mod deprecated_generate_key_endpoint {
 
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        force_database_error(&env.database);
+        force_database_error(&env.container.tracker_core_container.database);
 
         let request_id = Uuid::new_v4();
         let seconds_valid = 60;

@@ -1,3 +1,4 @@
+pub mod container;
 pub mod services;
 pub mod statistics;
 
