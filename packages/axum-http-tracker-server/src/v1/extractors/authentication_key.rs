@@ -49,12 +49,10 @@ use axum::extract::rejection::PathRejection;
 use axum::extract::{FromRequestParts, Path};
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
-use bittorrent_http_tracker_protocol::v1::responses;
+use bittorrent_http_tracker_protocol::v1::{auth, responses};
 use bittorrent_tracker_core::authentication::Key;
 use hyper::StatusCode;
 use serde::Deserialize;
-
-use crate::v1::handlers::common::auth;
 
 /// Extractor for the [`Key`] struct.
 pub struct Extract(pub Key);

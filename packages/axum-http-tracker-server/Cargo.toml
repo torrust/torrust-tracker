@@ -27,7 +27,6 @@ futures = "0"
 hyper = "1"
 reqwest = { version = "0", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
-thiserror = "2"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
