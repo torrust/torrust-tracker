@@ -7,8 +7,7 @@ use futures::executor::block_on;
 use torrust_axum_http_tracker_server::server::{HttpServer, Launcher, Running, Stopped};
 use torrust_axum_server::tsl::make_rust_tls;
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_configuration::Configuration;
-use torrust_tracker_lib::bootstrap::app::initialize_global_services;
+use torrust_tracker_configuration::{logging, Configuration};
 use torrust_tracker_primitives::peer;
 
 pub struct Environment<S> {
@@ -105,4 +104,13 @@ impl EnvContainer {
             http_tracker_core_container: http_tracker_container,
         }
     }
+}
+
+fn initialize_global_services(configuration: &Configuration) {
+    initialize_static();
+    logging::setup(&configuration.logging);
+}
+
+fn initialize_static() {
+    torrust_tracker_clock::initialize_static();
 }

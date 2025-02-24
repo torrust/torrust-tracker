@@ -4373,6 +4373,7 @@ dependencies = [
  "tokio",
  "torrust-axum-server",
  "torrust-server-lib",
+ "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",

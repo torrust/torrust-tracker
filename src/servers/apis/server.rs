@@ -297,10 +297,20 @@ mod tests {
     use torrust_axum_server::tsl::make_rust_tls;
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
+    use torrust_tracker_configuration::{logging, Configuration};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
-    use crate::bootstrap::app::initialize_global_services;
     use crate::servers::apis::server::{ApiServer, Launcher};
+
+    fn initialize_global_services(configuration: &Configuration) {
+        initialize_static();
+        logging::setup(&configuration.logging);
+    }
+
+    fn initialize_static() {
+        torrust_tracker_clock::initialize_static();
+        bittorrent_udp_tracker_core::initialize_static();
+    }
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
