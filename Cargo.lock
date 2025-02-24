@@ -4434,7 +4434,6 @@ dependencies = [
  "futures",
  "futures-util",
  "hyper",
- "lazy_static",
  "local-ip-address",
  "mockall",
  "parking_lot",
@@ -4532,6 +4531,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "torrust-tracker-primitives",
+ "tracing",
 ]
 
 [[package]]
