@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use bittorrent_tracker_core::databases::Database;
-use torrust_tracker_lib::servers::apis::server;
+use torrust_axum_tracker_api_server::server;
 
 pub mod connection_info;
 pub mod environment;

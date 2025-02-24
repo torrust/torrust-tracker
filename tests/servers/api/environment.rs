@@ -7,11 +7,11 @@ use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use futures::executor::block_on;
 use torrust_axum_server::tsl::make_rust_tls;
+use torrust_axum_tracker_api_server::server::{ApiServer, Launcher, Running, Stopped};
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_configuration::{logging, Configuration};
-use torrust_tracker_lib::servers::apis::server::{ApiServer, Launcher, Running, Stopped};
 use torrust_tracker_primitives::peer;
 
 pub struct Environment<S>

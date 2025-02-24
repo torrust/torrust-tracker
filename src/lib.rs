@@ -55,7 +55,7 @@
 //!
 //! From the end-user perspective the Torrust Tracker exposes three different services.
 //!
-//! - A REST [`API`](crate::servers::apis)
+//! - A REST [`API`](torrust_axum_tracker_api_server)
 //! - One or more [`UDP`](torrust_udp_tracker_server) trackers
 //! - One or more [`HTTP`](torrust_axum_http_tracker_server) trackers
 //!
@@ -124,7 +124,7 @@
 //! By default the tracker uses `SQLite` and the database file name `sqlite3.db`.
 //!
 //! You only need the `tls` directory in case you are setting up SSL for the HTTP tracker or the tracker API.
-//! Visit [`HTTP`](torrust_axum_http_tracker_server) or [`API`](crate::servers::apis) if you want to know how you can use HTTPS.
+//! Visit [`HTTP`](torrust_axum_http_tracker_server) or [`API`](torrust_axum_tracker_api_server) if you want to know how you can use HTTPS.
 //!
 //! ## Install from sources
 //!
@@ -280,7 +280,7 @@
 //! }
 //! ```
 //!
-//! Refer to the [`API`](crate::servers::apis) documentation for more information about the [`API`](crate::servers::apis) endpoints.
+//! Refer to the [`API`](torrust_axum_tracker_api_server) documentation for more information about the [`API`](torrust_axum_tracker_api_server) endpoints.
 //!
 //! ## HTTP tracker
 //!
@@ -359,7 +359,7 @@
 //!
 //! If the tracker is running in `private` or `private_listed` mode you will need to provide a valid authentication key.
 //!
-//! Right now the only way to add new keys is via the REST [`API`](crate::servers::apis). The endpoint `POST /api/vi/key/:duration_in_seconds`
+//! Right now the only way to add new keys is via the REST [`API`](torrust_axum_tracker_api_server). The endpoint `POST /api/vi/key/:duration_in_seconds`
 //! will return an expiring key that will be valid for `duration_in_seconds` seconds.
 //!
 //! Using `curl` you can create a 2-minute valid auth key:
@@ -379,7 +379,7 @@
 //! ```
 //!
 //! You can also use the Torrust Tracker together with the [Torrust Index](https://github.com/torrust/torrust-index). If that's the case,
-//! the Index will create the keys by using the tracker [API](crate::servers::apis).
+//! the Index will create the keys by using the tracker [API](torrust_axum_tracker_api_server).
 //!
 //! ## UDP tracker
 //!
@@ -406,7 +406,7 @@
 //! Torrust Tracker has four main components:
 //!
 //! - The core tracker [`core`]
-//! - The tracker REST [`API`](crate::servers::apis)
+//! - The tracker REST [`API`](torrust_axum_tracker_api_server)
 //! - The [`UDP`](torrust_udp_tracker_server) tracker
 //! - The [`HTTP`](torrust_axum_http_tracker_server) tracker
 //!
@@ -434,7 +434,7 @@
 //! - Torrents: to get peers for a torrent
 //! - Whitelist: to handle the torrent whitelist when the tracker runs on `listed` or `private_listed` mode
 //!
-//! See [`API`](crate::servers::apis) for more details on the REST API.
+//! See [`API`](torrust_axum_tracker_api_server) for more details on the REST API.
 //!
 //! ## UDP tracker
 //!
@@ -494,7 +494,6 @@ pub mod app;
 pub mod bootstrap;
 pub mod console;
 pub mod container;
-pub mod servers;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.

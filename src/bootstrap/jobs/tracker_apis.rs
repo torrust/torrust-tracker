@@ -26,13 +26,12 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
 use torrust_axum_server::tsl::make_rust_tls;
+use torrust_axum_tracker_api_server::server::{ApiServer, Launcher};
+use torrust_axum_tracker_api_server::Version;
 use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_configuration::AccessTokens;
 use tracing::instrument;
-
-use crate::servers::apis::server::{ApiServer, Launcher};
-use crate::servers::apis::Version;
 
 /// This is the message that the "launcher" spawned task sends to the main
 /// application process to notify the API server was successfully started.
@@ -97,13 +96,13 @@ async fn start_v1(
 mod tests {
     use std::sync::Arc;
 
+    use torrust_axum_tracker_api_server::Version;
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::bootstrap::app::initialize_global_services;
     use crate::bootstrap::jobs::tracker_apis::start_job;
-    use crate::servers::apis::Version;
 
     #[tokio::test]
     async fn it_should_start_http_tracker() {
