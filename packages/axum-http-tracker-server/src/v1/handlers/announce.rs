@@ -1,8 +1,5 @@
 //! Axum [`handlers`](axum#handlers) for the `announce` requests.
 //!
-//! Refer to [HTTP server](crate::servers::http) for more information about the
-//! `announce` request.
-//!
 //! The handlers perform the authentication and authorization of the request,
 //! and resolve the client IP address.
 use std::sync::Arc;

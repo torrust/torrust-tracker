@@ -16,9 +16,9 @@ use torrust_server_lib::signals::{shutdown_signal_with_message, Halted, Started}
 use tracing::instrument;
 
 use super::request_buffer::ActiveRequests;
-use crate::servers::udp::server::bound_socket::BoundSocket;
-use crate::servers::udp::server::processor::Processor;
-use crate::servers::udp::server::receiver::Receiver;
+use crate::server::bound_socket::BoundSocket;
+use crate::server::processor::Processor;
+use crate::server::receiver::Receiver;
 
 const IP_BANS_RESET_INTERVAL_IN_SECS: u64 = 3600;
 

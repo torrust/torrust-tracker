@@ -4433,7 +4433,6 @@ dependencies = [
  "derive_more",
  "figment",
  "futures",
- "futures-util",
  "hyper",
  "local-ip-address",
  "mockall",
@@ -4445,7 +4444,6 @@ dependencies = [
  "rand 0.9.0",
  "regex",
  "reqwest",
- "ringbuf",
  "serde",
  "serde_bencode",
  "serde_bytes",
@@ -4462,10 +4460,10 @@ dependencies = [
  "torrust-tracker-api-core",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
- "torrust-tracker-located-error",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
  "torrust-tracker-torrent-repository",
+ "torrust-udp-tracker-server",
  "tower 0.5.2",
  "tower-http",
  "tracing",
@@ -4611,6 +4609,35 @@ dependencies = [
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
+ "zerocopy 0.7.35",
+]
+
+[[package]]
+name = "torrust-udp-tracker-server"
+version = "3.0.0-develop"
+dependencies = [
+ "aquatic_udp_protocol",
+ "bittorrent-primitives",
+ "bittorrent-tracker-client",
+ "bittorrent-tracker-core",
+ "bittorrent-udp-tracker-core",
+ "derive_more",
+ "futures",
+ "futures-util",
+ "local-ip-address",
+ "mockall",
+ "ringbuf",
+ "thiserror 2.0.11",
+ "tokio",
+ "torrust-server-lib",
+ "torrust-tracker-clock",
+ "torrust-tracker-configuration",
+ "torrust-tracker-located-error",
+ "torrust-tracker-primitives",
+ "torrust-tracker-test-helpers",
+ "tracing",
+ "url",
+ "uuid",
  "zerocopy 0.7.35",
 ]
 

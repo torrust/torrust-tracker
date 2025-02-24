@@ -13,10 +13,9 @@ use torrust_tracker_primitives::core::ScrapeData;
 use tracing::{instrument, Level};
 use zerocopy::network_endian::I32;
 
-use crate::servers::udp::error::Error;
+use crate::error::Error;
 
-/// It handles the `Scrape` request. Refer to [`Scrape`](crate::servers::udp#scrape)
-/// request for more information.
+/// It handles the `Scrape` request.
 ///
 /// # Errors
 ///
@@ -89,8 +88,8 @@ mod tests {
         use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
         use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
 
-        use crate::servers::udp::handlers::handle_scrape;
-        use crate::servers::udp::handlers::tests::{
+        use crate::handlers::handle_scrape;
+        use crate::handlers::tests::{
             initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv4_remote_addr,
             sample_issue_time, TorrentPeerBuilder,
         };
@@ -200,10 +199,8 @@ mod tests {
         mod with_a_public_tracker {
             use aquatic_udp_protocol::{NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
-            use crate::servers::udp::handlers::scrape::tests::scrape_request::{
-                add_a_sample_seeder_and_scrape, match_scrape_response,
-            };
-            use crate::servers::udp::handlers::tests::initialize_core_tracker_services_for_public_tracker;
+            use crate::handlers::scrape::tests::scrape_request::{add_a_sample_seeder_and_scrape, match_scrape_response};
+            use crate::handlers::tests::initialize_core_tracker_services_for_public_tracker;
 
             #[tokio::test]
             async fn should_return_torrent_statistics_when_the_tracker_has_the_requested_torrent() {
@@ -230,11 +227,11 @@ mod tests {
         mod with_a_whitelisted_tracker {
             use aquatic_udp_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
-            use crate::servers::udp::handlers::handle_scrape;
-            use crate::servers::udp::handlers::scrape::tests::scrape_request::{
+            use crate::handlers::handle_scrape;
+            use crate::handlers::scrape::tests::scrape_request::{
                 add_a_seeder, build_scrape_request, match_scrape_response, zeroed_torrent_statistics,
             };
-            use crate::servers::udp::handlers::tests::{
+            use crate::handlers::tests::{
                 initialize_core_tracker_services_for_listed_tracker, sample_cookie_valid_range, sample_ipv4_remote_addr,
             };
 
@@ -332,8 +329,8 @@ mod tests {
             use mockall::predicate::eq;
 
             use super::sample_scrape_request;
-            use crate::servers::udp::handlers::handle_scrape;
-            use crate::servers::udp::handlers::tests::{
+            use crate::handlers::handle_scrape;
+            use crate::handlers::tests::{
                 initialize_core_tracker_services_for_default_tracker_configuration, sample_cookie_valid_range,
                 sample_ipv4_remote_addr, MockUdpStatsEventSender,
             };
@@ -374,8 +371,8 @@ mod tests {
             use mockall::predicate::eq;
 
             use super::sample_scrape_request;
-            use crate::servers::udp::handlers::handle_scrape;
-            use crate::servers::udp::handlers::tests::{
+            use crate::handlers::handle_scrape;
+            use crate::handlers::tests::{
                 initialize_core_tracker_services_for_default_tracker_configuration, sample_cookie_valid_range,
                 sample_ipv6_remote_addr, MockUdpStatsEventSender,
             };

@@ -6,10 +6,10 @@ use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration, DEFAULT_TIMEOUT};
-use torrust_tracker_lib::servers::udp::server::spawner::Spawner;
-use torrust_tracker_lib::servers::udp::server::states::{Running, Stopped};
-use torrust_tracker_lib::servers::udp::server::Server;
 use torrust_tracker_primitives::peer;
+use torrust_udp_tracker_server::server::spawner::Spawner;
+use torrust_udp_tracker_server::server::states::{Running, Stopped};
+use torrust_udp_tracker_server::server::Server;
 
 pub struct Environment<S>
 where

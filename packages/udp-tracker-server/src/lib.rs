@@ -475,7 +475,7 @@
 //!
 //! > **NOTICE**: up to about 74 torrents can be scraped at once. A full scrape
 //! > can't be done with this protocol. This is a limitation of the UDP protocol.
-//! > Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS).
+//! > Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_udp_tracker_server::MAX_SCRAPE_TORRENTS).
 //! > Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
 //! > for more information about this limitation.
 //!
@@ -637,9 +637,25 @@
 
 use std::net::SocketAddr;
 
+use torrust_tracker_clock::clock;
+
 pub mod error;
 pub mod handlers;
 pub mod server;
+
+/// The maximum number of bytes in a UDP packet.
+pub const MAX_PACKET_SIZE: usize = 1496;
+
+/// This code needs to be copied into each crate.
+/// Working version, for production.
+#[cfg(not(test))]
+#[allow(dead_code)]
+pub(crate) type CurrentClock = clock::Working;
+
+/// Stopped version, for testing.
+#[cfg(test)]
+#[allow(dead_code)]
+pub(crate) type CurrentClock = clock::Stopped;
 
 /// Number of bytes.
 pub type Bytes = u64;

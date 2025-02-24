@@ -10,8 +10,8 @@ use tokio::time::Instant;
 use tracing::{instrument, Level};
 
 use super::bound_socket::BoundSocket;
-use crate::servers::udp::handlers::CookieTimeValues;
-use crate::servers::udp::{handlers, RawRequest};
+use crate::handlers::CookieTimeValues;
+use crate::{handlers, RawRequest};
 
 pub struct Processor {
     socket: Arc<BoundSocket>,
