@@ -495,7 +495,6 @@ pub mod bootstrap;
 pub mod console;
 pub mod container;
 pub mod servers;
-pub mod shared;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.
