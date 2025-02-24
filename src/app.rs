@@ -30,7 +30,6 @@ use tracing::instrument;
 
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
 use crate::container::AppContainer;
-use crate::servers;
 
 /// # Panics
 ///
@@ -113,7 +112,13 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
         let http_api_config = Arc::new(http_api_config.clone());
         let http_api_container = Arc::new(app_container.tracker_http_api_container(&http_api_config));
 
-        if let Some(job) = tracker_apis::start_job(http_api_container, registar.give_form(), servers::apis::Version::V1).await {
+        if let Some(job) = tracker_apis::start_job(
+            http_api_container,
+            registar.give_form(),
+            torrust_axum_tracker_api_server::Version::V1,
+        )
+        .await
+        {
             jobs.push(job);
         }
     } else {

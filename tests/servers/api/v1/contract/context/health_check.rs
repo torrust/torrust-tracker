@@ -1,5 +1,5 @@
+use torrust_axum_tracker_api_server::v1::context::health_check::resources::{Report, Status};
 use torrust_tracker_api_client::v1::client::get;
-use torrust_tracker_lib::servers::apis::v1::context::health_check::resources::{Report, Status};
 use torrust_tracker_test_helpers::configuration;
 use url::Url;
 

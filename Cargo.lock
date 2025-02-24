@@ -4403,6 +4403,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-axum-tracker-api-server"
+version = "3.0.0-develop"
+dependencies = [
+ "aquatic_udp_protocol",
+ "axum",
+ "axum-extra",
+ "axum-server",
+ "bittorrent-http-tracker-core",
+ "bittorrent-primitives",
+ "bittorrent-tracker-core",
+ "bittorrent-udp-tracker-core",
+ "derive_more",
+ "futures",
+ "hyper",
+ "local-ip-address",
+ "mockall",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror 2.0.11",
+ "tokio",
+ "torrust-axum-server",
+ "torrust-server-lib",
+ "torrust-tracker-api-client",
+ "torrust-tracker-api-core",
+ "torrust-tracker-clock",
+ "torrust-tracker-configuration",
+ "torrust-tracker-primitives",
+ "torrust-tracker-test-helpers",
+ "tower 0.5.2",
+ "tower-http",
+ "tracing",
+]
+
+[[package]]
 name = "torrust-server-lib"
 version = "3.0.0-develop"
 dependencies = [
@@ -4418,8 +4454,6 @@ version = "3.0.0-develop"
 dependencies = [
  "anyhow",
  "aquatic_udp_protocol",
- "axum",
- "axum-extra",
  "axum-server",
  "bittorrent-http-tracker-core",
  "bittorrent-primitives",
@@ -4430,10 +4464,8 @@ dependencies = [
  "clap",
  "crossbeam-skiplist",
  "dashmap",
- "derive_more",
  "figment",
  "futures",
- "hyper",
  "local-ip-address",
  "mockall",
  "parking_lot",
@@ -4449,12 +4481,11 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "serde_repr",
- "serde_with",
- "thiserror 2.0.11",
  "tokio",
  "torrust-axum-health-check-api-server",
  "torrust-axum-http-tracker-server",
  "torrust-axum-server",
+ "torrust-axum-tracker-api-server",
  "torrust-server-lib",
  "torrust-tracker-api-client",
  "torrust-tracker-api-core",
@@ -4464,8 +4495,6 @@ dependencies = [
  "torrust-tracker-test-helpers",
  "torrust-tracker-torrent-repository",
  "torrust-udp-tracker-server",
- "tower 0.5.2",
- "tower-http",
  "tracing",
  "tracing-subscriber",
  "url",

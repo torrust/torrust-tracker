@@ -64,6 +64,7 @@ jobs:
           cargo publish -p torrust-axum-health-check-api-server
           cargo publish -p torrust-axum-http-tracker-server
           cargo publish -p torrust-axum-server
+          cargo publish -p torrust-axum-tracker-api-server
           cargo publish -p torrust-torrust-server-lib
           cargo publish -p torrust-tracker
           cargo publish -p torrust-tracker-api-client
