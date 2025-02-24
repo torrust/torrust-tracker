@@ -1,7 +1,7 @@
-use torrust_tracker_lib::servers::udp::server::states::Running;
-
 pub mod asserts;
 pub mod contract;
 pub mod environment;
+
+use torrust_udp_tracker_server::server::states::Running;
 
 pub type Started = environment::Environment<Running>;

@@ -11,18 +11,18 @@ use std::time::Instant;
 
 use announce::handle_announce;
 use aquatic_udp_protocol::{Request, Response, TransactionId};
+use bittorrent_tracker_core::MAX_SCRAPE_TORRENTS;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use bittorrent_udp_tracker_core::services::announce::UdpAnnounceError;
 use connect::handle_connect;
 use error::handle_error;
 use scrape::handle_scrape;
-use torrust_tracker_clock::clock::Time as _;
+use torrust_tracker_clock::clock::Time;
 use tracing::{instrument, Level};
 use uuid::Uuid;
 
 use super::RawRequest;
-use crate::servers::udp::error::Error;
-use crate::shared::bit_torrent::common::MAX_SCRAPE_TORRENTS;
+use crate::error::Error;
 use crate::CurrentClock;
 
 #[derive(Debug, Clone, PartialEq)]

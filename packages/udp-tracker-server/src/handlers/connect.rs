@@ -6,8 +6,7 @@ use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Respon
 use bittorrent_udp_tracker_core::{services, statistics};
 use tracing::{instrument, Level};
 
-/// It handles the `Connect` request. Refer to [`Connect`](crate::servers::udp#connect)
-/// request for more information.
+/// It handles the `Connect` request.
 #[instrument(fields(transaction_id), skip(opt_udp_stats_event_sender), ret(level = Level::TRACE))]
 pub async fn handle_connect(
     remote_addr: SocketAddr,
@@ -45,8 +44,8 @@ mod tests {
         use bittorrent_udp_tracker_core::statistics;
         use mockall::predicate::eq;
 
-        use crate::servers::udp::handlers::handle_connect;
-        use crate::servers::udp::handlers::tests::{
+        use crate::handlers::handle_connect;
+        use crate::handlers::tests::{
             sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint, sample_ipv4_socket_address, sample_ipv6_remote_addr,
             sample_ipv6_remote_addr_fingerprint, sample_issue_time, MockUdpStatsEventSender,
         };

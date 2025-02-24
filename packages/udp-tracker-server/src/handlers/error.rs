@@ -10,7 +10,7 @@ use tracing::{instrument, Level};
 use uuid::Uuid;
 use zerocopy::network_endian::I32;
 
-use crate::servers::udp::error::Error;
+use crate::error::Error;
 
 #[allow(clippy::too_many_arguments)]
 #[instrument(fields(transaction_id), skip(opt_udp_stats_event_sender), ret(level = Level::TRACE))]

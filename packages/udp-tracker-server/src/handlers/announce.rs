@@ -16,10 +16,9 @@ use torrust_tracker_primitives::core::AnnounceData;
 use tracing::{instrument, Level};
 use zerocopy::network_endian::I32;
 
-use crate::servers::udp::error::Error;
+use crate::error::Error;
 
-/// It handles the `Announce` request. Refer to [`Announce`](crate::servers::udp#announce)
-/// request for more information.
+/// It handles the `Announce` request.
 ///
 /// # Errors
 ///
@@ -130,7 +129,7 @@ mod tests {
         };
         use bittorrent_udp_tracker_core::connection_cookie::make;
 
-        use crate::servers::udp::handlers::tests::{sample_ipv4_remote_addr_fingerprint, sample_issue_time};
+        use crate::handlers::tests::{sample_ipv4_remote_addr_fingerprint, sample_issue_time};
 
         struct AnnounceRequestBuilder {
             request: AnnounceRequest,
@@ -210,9 +209,9 @@ mod tests {
             use mockall::predicate::eq;
             use torrust_tracker_configuration::Core;
 
-            use crate::servers::udp::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
-            use crate::servers::udp::handlers::handle_announce;
-            use crate::servers::udp::handlers::tests::{
+            use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
+            use crate::handlers::handle_announce;
+            use crate::handlers::tests::{
                 initialize_core_tracker_services_for_default_tracker_configuration,
                 initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv4_socket_address,
                 sample_issue_time, MockUdpStatsEventSender, TorrentPeerBuilder,
@@ -443,9 +442,9 @@ mod tests {
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
                 use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
 
-                use crate::servers::udp::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
-                use crate::servers::udp::handlers::handle_announce;
-                use crate::servers::udp::handlers::tests::{
+                use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
+                use crate::handlers::handle_announce;
+                use crate::handlers::tests::{
                     initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_issue_time,
                     TorrentPeerBuilder,
                 };
@@ -517,9 +516,9 @@ mod tests {
             use mockall::predicate::eq;
             use torrust_tracker_configuration::Core;
 
-            use crate::servers::udp::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
-            use crate::servers::udp::handlers::handle_announce;
-            use crate::servers::udp::handlers::tests::{
+            use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
+            use crate::handlers::handle_announce;
+            use crate::handlers::tests::{
                 initialize_core_tracker_services_for_default_tracker_configuration,
                 initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv6_remote_addr,
                 sample_issue_time, MockUdpStatsEventSender, TorrentPeerBuilder,
@@ -772,9 +771,9 @@ mod tests {
                 use bittorrent_udp_tracker_core::{self, statistics};
                 use mockall::predicate::eq;
 
-                use crate::servers::udp::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
-                use crate::servers::udp::handlers::handle_announce;
-                use crate::servers::udp::handlers::tests::{
+                use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
+                use crate::handlers::handle_announce;
+                use crate::handlers::tests::{
                     sample_cookie_valid_range, sample_issue_time, MockUdpStatsEventSender, TrackerConfigurationBuilder,
                 };
 

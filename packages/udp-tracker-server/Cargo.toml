@@ -1,0 +1,41 @@
+[package]
+authors.workspace = true
+description = "The Torrust Bittorrent UDP tracker."
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords = ["axum", "bittorrent", "server", "torrust", "tracker", "udp"]
+license.workspace = true
+name = "torrust-udp-tracker-server"
+publish.workspace = true
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+aquatic_udp_protocol = "0"
+bittorrent-primitives = "0.1.0"
+bittorrent-tracker-client = { version = "3.0.0-develop", path = "../tracker-client" }
+bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "../udp-tracker-core" }
+derive_more = { version = "2", features = ["as_ref", "constructor", "from"] }
+futures = "0"
+futures-util = "0"
+ringbuf = "0"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
+torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
+torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+tracing = "0"
+url = { version = "2", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+zerocopy = "0.7"
+
+[dev-dependencies]
+local-ip-address = "0"
+mockall = "0"
+torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }

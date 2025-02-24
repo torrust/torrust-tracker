@@ -56,7 +56,7 @@
 //! From the end-user perspective the Torrust Tracker exposes three different services.
 //!
 //! - A REST [`API`](crate::servers::apis)
-//! - One or more [`UDP`](crate::servers::udp) trackers
+//! - One or more [`UDP`](torrust_udp_tracker_server) trackers
 //! - One or more [`HTTP`](torrust_axum_http_tracker_server) trackers
 //!
 //! # Installation
@@ -395,7 +395,7 @@
 //! bind_address = "0.0.0.0:6969"
 //! ```
 //!
-//! Refer to the [`UDP`](crate::servers::udp) documentation for more information about the [`UDP`](crate::servers::udp) tracker.
+//! Refer to the [`UDP`](torrust_udp_tracker_server) documentation for more information about the [`UDP`](torrust_udp_tracker_server) tracker.
 //!
 //! If you want to know more about the UDP tracker protocol:
 //!
@@ -407,7 +407,7 @@
 //!
 //! - The core tracker [`core`]
 //! - The tracker REST [`API`](crate::servers::apis)
-//! - The [`UDP`](crate::servers::udp) tracker
+//! - The [`UDP`](torrust_udp_tracker_server) tracker
 //! - The [`HTTP`](torrust_axum_http_tracker_server) tracker
 //!
 //! ![Torrust Tracker Components](https://raw.githubusercontent.com/torrust/torrust-tracker/main/docs/media/torrust-tracker-components.png)
@@ -446,7 +446,7 @@
 //! - [Wikipedia: UDP tracker](https://en.wikipedia.org/wiki/UDP_tracker)
 //! - [BEP 15: UDP Tracker Protocol for `BitTorrent`](https://www.bittorrent.org/beps/bep_0015.html)
 //!
-//! See [`UDP`](crate::servers::udp) for more details on the UDP tracker.
+//! See [`UDP`](torrust_udp_tracker_server) for more details on the UDP tracker.
 //!
 //! ## HTTP tracker
 //!
@@ -495,7 +495,6 @@ pub mod bootstrap;
 pub mod console;
 pub mod container;
 pub mod servers;
-pub mod shared;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.

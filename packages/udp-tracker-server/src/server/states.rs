@@ -14,7 +14,7 @@ use tracing::{instrument, Level};
 
 use super::spawner::Spawner;
 use super::{Server, UdpError};
-use crate::servers::udp::server::launcher::Launcher;
+use crate::server::launcher::Launcher;
 
 /// A UDP server instance controller with no UDP instance running.
 #[allow(clippy::module_name_repetitions)]

@@ -8,7 +8,7 @@ use futures::Stream;
 
 use super::bound_socket::BoundSocket;
 use super::RawRequest;
-use crate::shared::bit_torrent::tracker::udp::MAX_PACKET_SIZE;
+use crate::MAX_PACKET_SIZE;
 
 pub struct Receiver {
     pub socket: Arc<BoundSocket>,
