@@ -10,8 +10,7 @@ use torrust_axum_server::tsl::make_rust_tls;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
-use torrust_tracker_configuration::Configuration;
-use torrust_tracker_lib::bootstrap::app::initialize_global_services;
+use torrust_tracker_configuration::{logging, Configuration};
 use torrust_tracker_lib::servers::apis::server::{ApiServer, Launcher, Running, Stopped};
 use torrust_tracker_primitives::peer;
 
@@ -161,4 +160,14 @@ impl EnvContainer {
             tracker_http_api_core_container,
         }
     }
+}
+
+fn initialize_global_services(configuration: &Configuration) {
+    initialize_static();
+    logging::setup(&configuration.logging);
+}
+
+fn initialize_static() {
+    torrust_tracker_clock::initialize_static();
+    bittorrent_udp_tracker_core::initialize_static();
 }

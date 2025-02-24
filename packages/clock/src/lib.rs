@@ -22,13 +22,14 @@
 //! > **NOTICE**: the timestamp does not depend on the time zone. That gives you
 //! > the ability to use the clock regardless of the underlying system time zone
 //! > configuration. See [Unix time Wikipedia entry](https://en.wikipedia.org/wiki/Unix_time).
-
 pub mod clock;
 pub mod conv;
 pub mod static_time;
 
 #[macro_use]
 extern crate lazy_static;
+
+use tracing::instrument;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.
@@ -40,3 +41,16 @@ pub(crate) type CurrentClock = clock::Working;
 #[cfg(test)]
 #[allow(dead_code)]
 pub(crate) type CurrentClock = clock::Stopped;
+
+/// It initializes the application static values.
+///
+/// These values are accessible throughout the entire application:
+///
+/// - The time when the application started.
+/// - An ephemeral instance random seed. This seed is used for encryption and
+///   it's changed when the main application process is restarted.
+#[instrument(skip())]
+pub fn initialize_static() {
+    // Set the time of Torrust app starting
+    lazy_static::initialize(&static_time::TIME_AT_APP_START);
+}

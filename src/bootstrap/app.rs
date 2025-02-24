@@ -11,9 +11,7 @@
 //! 2. Initialize static variables.
 //! 3. Initialize logging.
 //! 4. Initialize the domain tracker.
-use bittorrent_udp_tracker_core::crypto::ephemeral_instance_keys;
 use bittorrent_udp_tracker_core::crypto::keys::{self, Keeper as _};
-use torrust_tracker_clock::static_time;
 use torrust_tracker_configuration::validator::Validator;
 use torrust_tracker_configuration::{logging, Configuration};
 use tracing::instrument;
@@ -71,18 +69,10 @@ pub fn initialize_global_services(configuration: &Configuration) {
 /// These values are accessible throughout the entire application:
 ///
 /// - The time when the application started.
-/// - An ephemeral instance random seed. This seed is used for encryption and it's changed when the main application process is restarted.
+/// - An ephemeral instance random seed. This seed is used for encryption and
+///   it's changed when the main application process is restarted.
 #[instrument(skip())]
 pub fn initialize_static() {
-    // Set the time of Torrust app starting
-    lazy_static::initialize(&static_time::TIME_AT_APP_START);
-
-    // Initialize the Ephemeral Instance Random Seed
-    lazy_static::initialize(&ephemeral_instance_keys::RANDOM_SEED);
-
-    // Initialize the Ephemeral Instance Random Cipher
-    lazy_static::initialize(&ephemeral_instance_keys::RANDOM_CIPHER_BLOWFISH);
-
-    // Initialize the Zeroed Cipher
-    lazy_static::initialize(&ephemeral_instance_keys::ZEROED_TEST_CIPHER_BLOWFISH);
+    torrust_tracker_clock::initialize_static();
+    bittorrent_udp_tracker_core::initialize_static();
 }

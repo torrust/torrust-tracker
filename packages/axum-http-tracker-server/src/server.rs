@@ -250,7 +250,7 @@ mod tests {
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use torrust_axum_server::tsl::make_rust_tls;
     use torrust_server_lib::registar::Registar;
-    use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_configuration::{logging, Configuration};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::server::{HttpServer, Launcher};
@@ -306,6 +306,15 @@ mod tests {
         }
     }
 
+    fn initialize_global_services(configuration: &Configuration) {
+        initialize_static();
+        logging::setup(&configuration.logging);
+    }
+
+    fn initialize_static() {
+        torrust_tracker_clock::initialize_static();
+    }
+
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
         let configuration = Arc::new(ephemeral_public());
@@ -317,7 +326,7 @@ mod tests {
 
         let http_tracker_config = &http_trackers[0];
 
-        //initialize_global_services(&cfg); // not needed for this test
+        initialize_global_services(&configuration);
 
         let http_tracker_container = Arc::new(initialize_container(&configuration));
 

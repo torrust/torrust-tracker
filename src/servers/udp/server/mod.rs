@@ -59,11 +59,21 @@ mod tests {
 
     use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
     use torrust_server_lib::registar::Registar;
+    use torrust_tracker_configuration::{logging, Configuration};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use super::spawner::Spawner;
     use super::Server;
-    use crate::bootstrap::app::initialize_global_services;
+
+    fn initialize_global_services(configuration: &Configuration) {
+        initialize_static();
+        logging::setup(&configuration.logging);
+    }
+
+    fn initialize_static() {
+        torrust_tracker_clock::initialize_static();
+        bittorrent_udp_tracker_core::initialize_static();
+    }
 
     #[tokio::test]
     async fn it_should_be_able_to_start_and_stop() {
