@@ -4369,7 +4369,6 @@ dependencies = [
  "hyper",
  "reqwest",
  "serde",
- "thiserror 2.0.11",
  "tokio",
  "torrust-axum-server",
  "torrust-server-lib",
