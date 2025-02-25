@@ -166,7 +166,7 @@ pub fn verify_key_expiration(auth_key: &PeerKey) -> Result<(), Error> {
 
 /// Verification error. Error returned when an [`PeerKey`] cannot be
 /// verified with the [`crate::authentication::key::verify_key_expiration`] function.
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Clone)]
 #[allow(dead_code)]
 pub enum Error {
     /// Wraps an underlying error encountered during key verification.

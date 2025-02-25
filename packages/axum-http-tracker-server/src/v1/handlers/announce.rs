@@ -7,6 +7,7 @@ use std::sync::Arc;
 use aquatic_udp_protocol::AnnounceEvent;
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
+use bittorrent_http_tracker_core::services::announce::HttpAnnounceError;
 use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
 use bittorrent_http_tracker_protocol::v1::responses::{self};
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
@@ -111,7 +112,12 @@ async fn handle(
     .await
     {
         Ok(announce_data) => announce_data,
-        Err(error) => return (StatusCode::OK, error.write()).into_response(),
+        Err(error) => {
+            let error_response = responses::error::Error {
+                failure_reason: error.to_string(),
+            };
+            return (StatusCode::OK, error_response.write()).into_response();
+        }
     };
     build_response(announce_request, announce_data)
 }
@@ -126,7 +132,7 @@ async fn handle_announce(
     announce_request: &Announce,
     client_ip_sources: &ClientIpSources,
     maybe_key: Option<Key>,
-) -> Result<AnnounceData, responses::error::Error> {
+) -> Result<AnnounceData, HttpAnnounceError> {
     bittorrent_http_tracker_core::services::announce::handle_announce(
         &core_config.clone(),
         &announce_handler.clone(),
@@ -290,6 +296,7 @@ mod tests {
 
         use std::str::FromStr;
 
+        use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_tracker_core::authentication;
 
         use super::{initialize_private_tracker, sample_announce_request, sample_client_ip_sources};
@@ -315,7 +322,14 @@ mod tests {
             .await
             .unwrap_err();
 
-            assert_error_response(&response, "Tracker authentication error: Missing authentication key");
+            let error_response = responses::error::Error {
+                failure_reason: response.to_string(),
+            };
+
+            assert_error_response(
+                &error_response,
+                "Tracker core error: Tracker core authentication error: Missing authentication key",
+            );
         }
 
         #[tokio::test]
@@ -339,14 +353,20 @@ mod tests {
             .await
             .unwrap_err();
 
+            let error_response = responses::error::Error {
+                failure_reason: response.to_string(),
+            };
+
             assert_error_response(
-                &response,
-                "Tracker authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ",
+                &error_response,
+                "Tracker core error: Tracker core authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ",
             );
         }
     }
 
     mod with_tracker_in_listed_mode {
+
+        use bittorrent_http_tracker_protocol::v1::responses;
 
         use super::{initialize_listed_tracker, sample_announce_request, sample_client_ip_sources};
         use crate::v1::handlers::announce::handle_announce;
@@ -371,10 +391,14 @@ mod tests {
             .await
             .unwrap_err();
 
+            let error_response = responses::error::Error {
+                failure_reason: response.to_string(),
+            };
+
             assert_error_response(
-                &response,
+                &error_response,
                 &format!(
-                    "Tracker whitelist error: The torrent: {}, is not whitelisted",
+                    "Tracker core error: Tracker core whitelist error: The torrent: {}, is not whitelisted",
                     announce_request.info_hash
                 ),
             );
@@ -383,6 +407,7 @@ mod tests {
 
     mod with_tracker_on_reverse_proxy {
 
+        use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
         use super::{initialize_tracker_on_reverse_proxy, sample_announce_request};
@@ -411,8 +436,12 @@ mod tests {
             .await
             .unwrap_err();
 
+            let error_response = responses::error::Error {
+                failure_reason: response.to_string(),
+            };
+
             assert_error_response(
-                &response,
+                &error_response,
                 "Error resolving peer IP: missing or invalid the right most X-Forwarded-For IP",
             );
         }
@@ -420,6 +449,7 @@ mod tests {
 
     mod with_tracker_not_on_reverse_proxy {
 
+        use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
         use super::{initialize_tracker_not_on_reverse_proxy, sample_announce_request};
@@ -448,8 +478,12 @@ mod tests {
             .await
             .unwrap_err();
 
+            let error_response = responses::error::Error {
+                failure_reason: response.to_string(),
+            };
+
             assert_error_response(
-                &response,
+                &error_response,
                 "Error resolving peer IP: cannot get the client IP from the connection info",
             );
         }

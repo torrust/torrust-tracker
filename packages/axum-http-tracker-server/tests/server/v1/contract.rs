@@ -1448,7 +1448,9 @@ mod configured_as_private {
         use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_test_helpers::{configuration, logging};
 
-        use crate::server::asserts::{assert_authentication_error_response, assert_is_announce_response};
+        use crate::server::asserts::{
+            assert_authentication_error_response, assert_is_announce_response, assert_tracker_core_authentication_error_response,
+        };
         use crate::server::client::Client;
         use crate::server::requests::announce::QueryBuilder;
 
@@ -1487,7 +1489,7 @@ mod configured_as_private {
                 .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
                 .await;
 
-            assert_authentication_error_response(response).await;
+            assert_tracker_core_authentication_error_response(response).await;
 
             env.stop().await;
         }
@@ -1522,7 +1524,7 @@ mod configured_as_private {
                 .announce(&QueryBuilder::default().query())
                 .await;
 
-            assert_authentication_error_response(response).await;
+            assert_tracker_core_authentication_error_response(response).await;
 
             env.stop().await;
         }

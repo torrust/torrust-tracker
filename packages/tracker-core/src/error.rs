@@ -14,6 +14,51 @@ use torrust_tracker_located_error::LocatedError;
 
 use super::authentication::key::ParseKeyError;
 use super::databases;
+use crate::authentication;
+
+/// Wrapper for all errors returned by the tracker core.
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum TrackerCoreError {
+    /// Error returned when there was an error with the tracker core announce handler.
+    #[error("Tracker core announce error: {source}")]
+    AnnounceError { source: AnnounceError },
+
+    /// Error returned when there was an error with the tracker core scrape handler.
+    #[error("Tracker core scrape error: {source}")]
+    ScrapeError { source: ScrapeError },
+
+    /// Error returned when there was an error with the tracker core whitelist.
+    #[error("Tracker core whitelist error: {source}")]
+    WhitelistError { source: WhitelistError },
+
+    /// Error returned when there was an error with the authentication in the tracker core.
+    #[error("Tracker core authentication error: {source}")]
+    AuthenticationError { source: authentication::key::Error },
+}
+
+impl From<AnnounceError> for TrackerCoreError {
+    fn from(announce_error: AnnounceError) -> Self {
+        Self::AnnounceError { source: announce_error }
+    }
+}
+
+impl From<ScrapeError> for TrackerCoreError {
+    fn from(scrape_error: ScrapeError) -> Self {
+        Self::ScrapeError { source: scrape_error }
+    }
+}
+
+impl From<WhitelistError> for TrackerCoreError {
+    fn from(whitelist_error: WhitelistError) -> Self {
+        Self::WhitelistError { source: whitelist_error }
+    }
+}
+
+impl From<authentication::key::Error> for TrackerCoreError {
+    fn from(whitelist_error: authentication::key::Error) -> Self {
+        Self::AuthenticationError { source: whitelist_error }
+    }
+}
 
 /// Errors related to announce requests.
 #[derive(thiserror::Error, Debug, Clone)]
