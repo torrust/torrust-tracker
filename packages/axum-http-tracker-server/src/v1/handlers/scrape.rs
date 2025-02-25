@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
+use bittorrent_http_tracker_core::services::scrape::HttpScrapeError;
 use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
 use bittorrent_http_tracker_protocol::v1::responses;
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
@@ -101,7 +102,12 @@ async fn handle(
     .await
     {
         Ok(scrape_data) => scrape_data,
-        Err(error) => return (StatusCode::OK, error.write()).into_response(),
+        Err(error) => {
+            let error_response = responses::error::Error {
+                failure_reason: error.to_string(),
+            };
+            return (StatusCode::OK, error_response.write()).into_response();
+        }
     };
 
     build_response(scrape_data)
@@ -116,7 +122,7 @@ async fn handle_scrape(
     scrape_request: &Scrape,
     client_ip_sources: &ClientIpSources,
     maybe_key: Option<Key>,
-) -> Result<ScrapeData, responses::error::Error> {
+) -> Result<ScrapeData, HttpScrapeError> {
     bittorrent_http_tracker_core::services::scrape::handle_scrape(
         core_config,
         scrape_handler,
@@ -316,6 +322,7 @@ mod tests {
 
     mod with_tracker_on_reverse_proxy {
 
+        use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
         use super::{initialize_tracker_on_reverse_proxy, sample_scrape_request};
@@ -343,8 +350,12 @@ mod tests {
             .await
             .unwrap_err();
 
+            let error_response = responses::error::Error {
+                failure_reason: response.to_string(),
+            };
+
             assert_error_response(
-                &response,
+                &error_response,
                 "Error resolving peer IP: missing or invalid the right most X-Forwarded-For IP",
             );
         }
@@ -352,6 +363,7 @@ mod tests {
 
     mod with_tracker_not_on_reverse_proxy {
 
+        use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
         use super::{initialize_tracker_not_on_reverse_proxy, sample_scrape_request};
@@ -379,8 +391,12 @@ mod tests {
             .await
             .unwrap_err();
 
+            let error_response = responses::error::Error {
+                failure_reason: response.to_string(),
+            };
+
             assert_error_response(
-                &response,
+                &error_response,
                 "Error resolving peer IP: cannot get the client IP from the connection info",
             );
         }

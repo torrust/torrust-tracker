@@ -23,6 +23,10 @@ pub enum TrackerCoreError {
     #[error("Tracker core announce error: {source}")]
     AnnounceError { source: AnnounceError },
 
+    /// Error returned when there was an error with the tracker core scrape handler.
+    #[error("Tracker core scrape error: {source}")]
+    ScrapeError { source: ScrapeError },
+
     /// Error returned when there was an error with the tracker core whitelist.
     #[error("Tracker core whitelist error: {source}")]
     WhitelistError { source: WhitelistError },
@@ -35,6 +39,12 @@ pub enum TrackerCoreError {
 impl From<AnnounceError> for TrackerCoreError {
     fn from(announce_error: AnnounceError) -> Self {
         Self::AnnounceError { source: announce_error }
+    }
+}
+
+impl From<ScrapeError> for TrackerCoreError {
+    fn from(scrape_error: ScrapeError) -> Self {
+        Self::ScrapeError { source: scrape_error }
     }
 }
 
