@@ -29,6 +29,10 @@ tracing = "0"
 
 [dev-dependencies]
 reqwest = { version = "0", features = ["json"] }
+torrust-axum-health-check-api-server = { version = "3.0.0-develop", path = "../axum-health-check-api-server" }
+torrust-axum-http-tracker-server = { version = "3.0.0-develop", path = "../axum-http-tracker-server" }
+torrust-axum-tracker-api-server = { version = "3.0.0-develop", path = "../axum-tracker-api-server" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
+torrust-udp-tracker-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }
 tracing-subscriber = { version = "0", features = ["json"] }

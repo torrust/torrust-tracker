@@ -6,7 +6,6 @@
 
 use torrust_tracker_clock::clock;
 mod common;
-mod servers;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.
