@@ -634,14 +634,14 @@
 //! documentation by [Arvid Norberg](https://github.com/arvidn) was very
 //! supportive in the development of this documentation. Some descriptions were
 //! taken from the [libtorrent](https://www.rasterbar.com/products/libtorrent/udp_tracker_protocol.html).
+pub mod environment;
+pub mod error;
+pub mod handlers;
+pub mod server;
 
 use std::net::SocketAddr;
 
 use torrust_tracker_clock::clock;
-
-pub mod error;
-pub mod handlers;
-pub mod server;
 
 /// The maximum number of bytes in a UDP packet.
 pub const MAX_PACKET_SIZE: usize = 1496;

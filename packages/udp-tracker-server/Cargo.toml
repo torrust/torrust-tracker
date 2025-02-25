@@ -38,4 +38,5 @@ zerocopy = "0.7"
 [dev-dependencies]
 local-ip-address = "0"
 mockall = "0"
+rand = "0"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
