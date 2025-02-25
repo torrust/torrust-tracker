@@ -225,7 +225,6 @@ mod udp {
 
     use crate::common::logging;
     use crate::servers::health_check_api::client::get;
-    use crate::servers::udp;
 
     #[tokio::test]
     pub(crate) async fn it_should_return_good_health_for_udp_service() {
@@ -233,7 +232,7 @@ mod udp {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = udp::Started::new(&configuration).await;
+        let service = torrust_udp_tracker_server::environment::Started::new(&configuration).await;
 
         let registar = service.registar.clone();
 
@@ -276,7 +275,7 @@ mod udp {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = udp::Started::new(&configuration).await;
+        let service = torrust_udp_tracker_server::environment::Started::new(&configuration).await;
 
         let binding = service.bind_address();
 

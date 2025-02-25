@@ -7,9 +7,12 @@ use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration, DEFAULT_TIMEOUT};
 use torrust_tracker_primitives::peer;
-use torrust_udp_tracker_server::server::spawner::Spawner;
-use torrust_udp_tracker_server::server::states::{Running, Stopped};
-use torrust_udp_tracker_server::server::Server;
+
+use crate::server::spawner::Spawner;
+use crate::server::states::{Running, Stopped};
+use crate::server::Server;
+
+pub type Started = Environment<Running>;
 
 pub struct Environment<S>
 where
@@ -37,6 +40,7 @@ where
 
 impl Environment<Stopped> {
     #[allow(dead_code)]
+    #[must_use]
     pub fn new(configuration: &Arc<Configuration>) -> Self {
         initialize_global_services(configuration);
 
@@ -53,6 +57,9 @@ impl Environment<Stopped> {
         }
     }
 
+    /// # Panics
+    ///
+    /// Will panic if it cannot start the server.
     #[allow(dead_code)]
     pub async fn start(self) -> Environment<Running> {
         let cookie_lifetime = self.container.udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
@@ -74,12 +81,18 @@ impl Environment<Stopped> {
 }
 
 impl Environment<Running> {
+    /// # Panics
+    ///
+    /// Will panic if it cannot start the server within the timeout.
     pub async fn new(configuration: &Arc<Configuration>) -> Self {
         tokio::time::timeout(DEFAULT_TIMEOUT, Environment::<Stopped>::new(configuration).start())
             .await
             .expect("it should create an environment within the timeout")
     }
 
+    /// # Panics
+    ///
+    /// Will panic if it cannot stop the service within the timeout.
     #[allow(dead_code)]
     pub async fn stop(self) -> Environment<Stopped> {
         let stopped = tokio::time::timeout(DEFAULT_TIMEOUT, self.server.stop())
@@ -89,10 +102,11 @@ impl Environment<Running> {
         Environment {
             container: self.container,
             registar: Registar::default(),
-            server: stopped.expect("it stop the udp tracker service"),
+            server: stopped.expect("it should stop the udp tracker service"),
         }
     }
 
+    #[must_use]
     pub fn bind_address(&self) -> SocketAddr {
         self.server.state.local_addr
     }
@@ -104,6 +118,10 @@ pub struct EnvContainer {
 }
 
 impl EnvContainer {
+    /// # Panics
+    ///
+    /// Will panic if the configuration is missing the UDP tracker configuration.
+    #[must_use]
     pub fn initialize(configuration: &Configuration) -> Self {
         let core_config = Arc::new(configuration.core.clone());
         let udp_tracker_configurations = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
@@ -134,10 +152,9 @@ mod tests {
     use std::time::Duration;
 
     use tokio::time::sleep;
-    use torrust_tracker_test_helpers::configuration;
+    use torrust_tracker_test_helpers::{configuration, logging};
 
-    use crate::common::logging;
-    use crate::servers::udp::Started;
+    use crate::environment::Started;
 
     #[tokio::test]
     async fn it_should_make_and_stop_udp_server() {

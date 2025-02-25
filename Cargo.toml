@@ -38,7 +38,6 @@ aquatic_udp_protocol = "0"
 axum-server = { version = "0", features = ["tls-rustls-no-provider"] }
 bittorrent-http-tracker-core = { version = "3.0.0-develop", path = "packages/http-tracker-core" }
 bittorrent-primitives = "0.1.0"
-bittorrent-tracker-client = { version = "3.0.0-develop", path = "packages/tracker-client" }
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "packages/tracker-core" }
 bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "packages/udp-tracker-core" }
 chrono = { version = "0", default-features = false, features = ["clock"] }
