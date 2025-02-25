@@ -12,16 +12,66 @@ use std::panic::Location;
 use std::sync::Arc;
 
 use bittorrent_http_tracker_protocol::v1::requests::announce::{peer_from_request, Announce};
-use bittorrent_http_tracker_protocol::v1::responses;
-use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{self, ClientIpSources};
+use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{self, ClientIpSources, PeerIpResolutionError};
 use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use bittorrent_tracker_core::authentication::service::AuthenticationService;
 use bittorrent_tracker_core::authentication::{self, Key};
+use bittorrent_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistError};
 use bittorrent_tracker_core::whitelist;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::AnnounceData;
 
 use crate::statistics;
+
+/// Errors related to announce requests.
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum HttpAnnounceError {
+    #[error("Error resolving peer IP: {source}")]
+    PeerIpResolutionError { source: PeerIpResolutionError },
+
+    #[error("Tracker core error: {source}")]
+    TrackerCoreError { source: TrackerCoreError },
+}
+
+impl From<PeerIpResolutionError> for HttpAnnounceError {
+    fn from(peer_ip_resolution_error: PeerIpResolutionError) -> Self {
+        Self::PeerIpResolutionError {
+            source: peer_ip_resolution_error,
+        }
+    }
+}
+
+impl From<TrackerCoreError> for HttpAnnounceError {
+    fn from(tracker_core_error: TrackerCoreError) -> Self {
+        Self::TrackerCoreError {
+            source: tracker_core_error,
+        }
+    }
+}
+
+impl From<AnnounceError> for HttpAnnounceError {
+    fn from(announce_error: AnnounceError) -> Self {
+        Self::TrackerCoreError {
+            source: announce_error.into(),
+        }
+    }
+}
+
+impl From<WhitelistError> for HttpAnnounceError {
+    fn from(whitelist_error: WhitelistError) -> Self {
+        Self::TrackerCoreError {
+            source: whitelist_error.into(),
+        }
+    }
+}
+
+impl From<authentication::key::Error> for HttpAnnounceError {
+    fn from(whitelist_error: authentication::key::Error) -> Self {
+        Self::TrackerCoreError {
+            source: whitelist_error.into(),
+        }
+    }
+}
 
 /// The HTTP tracker `announce` service.
 ///
@@ -50,7 +100,7 @@ pub async fn handle_announce(
     announce_request: &Announce,
     client_ip_sources: &ClientIpSources,
     maybe_key: Option<Key>,
-) -> Result<AnnounceData, responses::error::Error> {
+) -> Result<AnnounceData, HttpAnnounceError> {
     // Authentication
     if core_config.private {
         match maybe_key {
@@ -59,9 +109,10 @@ pub async fn handle_announce(
                 Err(error) => return Err(error.into()),
             },
             None => {
-                return Err(responses::error::Error::from(authentication::key::Error::MissingAuthKey {
+                return Err(authentication::key::Error::MissingAuthKey {
                     location: Location::caller(),
-                }))
+                }
+                .into())
             }
         }
     }
@@ -69,12 +120,12 @@ pub async fn handle_announce(
     // Authorization
     match whitelist_authorization.authorize(&announce_request.info_hash).await {
         Ok(()) => (),
-        Err(error) => return Err(responses::error::Error::from(error)),
+        Err(error) => return Err(error.into()),
     }
 
     let peer_ip = match peer_ip_resolver::invoke(core_config.net.on_reverse_proxy, client_ip_sources) {
         Ok(peer_ip) => peer_ip,
-        Err(error) => return Err(responses::error::Error::from(error)),
+        Err(error) => return Err(error.into()),
     };
 
     let mut peer = peer_from_request(announce_request, &peer_ip);

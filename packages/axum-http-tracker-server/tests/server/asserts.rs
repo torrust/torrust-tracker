@@ -147,3 +147,13 @@ pub async fn assert_authentication_error_response(response: Response) {
         Location::caller(),
     );
 }
+
+pub async fn assert_tracker_core_authentication_error_response(response: Response) {
+    assert_eq!(response.status(), 200);
+
+    assert_bencoded_error(
+        &response.text().await.unwrap(),
+        "Tracker core error: Tracker core authentication error",
+        Location::caller(),
+    );
+}

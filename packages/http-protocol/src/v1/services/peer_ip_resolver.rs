@@ -36,7 +36,7 @@ pub struct ClientIpSources {
 }
 
 /// The error that can occur when resolving the peer IP.
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum PeerIpResolutionError {
     /// The peer IP cannot be obtained because the tracker is configured as a
     /// reverse proxy but the `X-Forwarded-For` HTTP header is missing or
