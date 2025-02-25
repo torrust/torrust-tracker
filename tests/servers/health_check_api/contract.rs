@@ -6,7 +6,6 @@ mod api {
     use torrust_tracker_test_helpers::configuration;
 
     use crate::common::logging;
-    use crate::servers::api;
     use crate::servers::health_check_api::client::get;
 
     #[tokio::test]
@@ -15,7 +14,7 @@ mod api {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = api::Started::new(&configuration).await;
+        let service = torrust_axum_tracker_api_server::environment::Started::new(&configuration).await;
 
         let registar = service.registar.clone();
 
@@ -62,7 +61,7 @@ mod api {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = api::Started::new(&configuration).await;
+        let service = torrust_axum_tracker_api_server::environment::Started::new(&configuration).await;
 
         let binding = service.bind_address();
 

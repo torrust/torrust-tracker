@@ -1,13 +1,9 @@
+pub mod connection_info;
+pub mod v1;
+
 use std::sync::Arc;
 
 use bittorrent_tracker_core::databases::Database;
-use torrust_axum_tracker_api_server::server;
-
-pub mod connection_info;
-pub mod environment;
-pub mod v1;
-
-pub type Started = environment::Environment<server::Running>;
 
 /// It forces a database error by dropping all tables. That makes all queries
 /// fail.

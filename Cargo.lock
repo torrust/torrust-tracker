@@ -4440,6 +4440,8 @@ dependencies = [
  "tower 0.5.2",
  "tower-http",
  "tracing",
+ "url",
+ "uuid",
 ]
 
 [[package]]
@@ -4501,7 +4503,6 @@ dependencies = [
  "torrust-udp-tracker-server",
  "tracing",
  "tracing-subscriber",
- "url",
  "uuid",
  "zerocopy 0.7.35",
 ]

@@ -1,11 +1,11 @@
+use torrust_axum_tracker_api_server::environment::Started;
 use torrust_tracker_api_client::common::http::{Query, QueryParam};
 use torrust_tracker_api_client::v1::client::{headers_with_request_id, Client};
-use torrust_tracker_test_helpers::configuration;
+use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
+use torrust_tracker_test_helpers::{configuration, logging};
 use uuid::Uuid;
 
-use crate::common::logging::{self, logs_contains_a_line_with};
-use crate::servers::api::v1::asserts::{assert_token_not_valid, assert_unauthorized};
-use crate::servers::api::Started;
+use crate::server::v1::asserts::{assert_token_not_valid, assert_unauthorized};
 
 #[tokio::test]
 async fn should_authenticate_requests_by_using_a_token_query_param() {

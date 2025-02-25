@@ -1,20 +1,19 @@
 use std::str::FromStr;
 
 use bittorrent_primitives::info_hash::InfoHash;
+use torrust_axum_tracker_api_server::environment::Started;
 use torrust_tracker_api_client::v1::client::{headers_with_request_id, Client};
-use torrust_tracker_test_helpers::configuration;
+use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
+use torrust_tracker_test_helpers::{configuration, logging};
 use uuid::Uuid;
 
-use crate::common::logging::{self, logs_contains_a_line_with};
-use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
-use crate::servers::api::v1::asserts::{
+use crate::server::connection_info::{connection_with_invalid_token, connection_with_no_token};
+use crate::server::force_database_error;
+use crate::server::v1::asserts::{
     assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist, assert_failed_to_whitelist_torrent,
     assert_invalid_infohash_param, assert_not_found, assert_ok, assert_token_not_valid, assert_unauthorized,
 };
-use crate::servers::api::v1::contract::fixtures::{
-    invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found,
-};
-use crate::servers::api::{force_database_error, Started};
+use crate::server::v1::contract::fixtures::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
 
 #[tokio::test]
 async fn should_allow_whitelisting_a_torrent() {

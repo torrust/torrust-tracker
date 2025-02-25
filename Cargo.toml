@@ -74,7 +74,6 @@ torrust-tracker-torrent-repository = { version = "3.0.0-develop", path = "packag
 torrust-udp-tracker-server = { version = "3.0.0-develop", path = "packages/udp-tracker-server" }
 tracing = "0"
 tracing-subscriber = { version = "0", features = ["json"] }
-url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }
 zerocopy = "0.7"
 

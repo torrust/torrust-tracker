@@ -7,12 +7,15 @@ use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use futures::executor::block_on;
 use torrust_axum_server::tsl::make_rust_tls;
-use torrust_axum_tracker_api_server::server::{ApiServer, Launcher, Running, Stopped};
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_configuration::{logging, Configuration};
 use torrust_tracker_primitives::peer;
+
+use crate::server::{ApiServer, Launcher, Running, Stopped};
+
+pub type Started = Environment<Running>;
 
 pub struct Environment<S>
 where
@@ -38,6 +41,11 @@ where
 }
 
 impl Environment<Stopped> {
+    /// # Panics
+    ///
+    /// Will panic if it cannot make the TSL configuration from the provided
+    /// configuration.
+    #[must_use]
     pub fn new(configuration: &Arc<Configuration>) -> Self {
         initialize_global_services(configuration);
 
@@ -59,6 +67,9 @@ impl Environment<Stopped> {
         }
     }
 
+    /// # Panics
+    ///
+    /// Will panic if the server cannot be started.
     pub async fn start(self) -> Environment<Running> {
         let access_tokens = Arc::new(
             self.container
@@ -89,6 +100,9 @@ impl Environment<Running> {
         Environment::<Stopped>::new(configuration).start().await
     }
 
+    /// # Panics
+    ///
+    /// Will panic if the server cannot be stopped.
     pub async fn stop(self) -> Environment<Stopped> {
         Environment {
             container: self.container,
@@ -97,6 +111,11 @@ impl Environment<Running> {
         }
     }
 
+    /// # Panics
+    ///
+    /// Will panic if it cannot build the origin for the connection info from the
+    /// server local socket address.
+    #[must_use]
     pub fn get_connection_info(&self) -> ConnectionInfo {
         let origin = Origin::new(&format!("http://{}/", self.server.state.local_addr)).unwrap(); // DevSkim: ignore DS137138
 
@@ -112,6 +131,7 @@ impl Environment<Running> {
         }
     }
 
+    #[must_use]
     pub fn bind_address(&self) -> SocketAddr {
         self.server.state.local_addr
     }
@@ -123,6 +143,14 @@ pub struct EnvContainer {
 }
 
 impl EnvContainer {
+    /// # Panics
+    ///
+    /// Will panic if:
+    ///
+    /// - The configuration does not contain a HTTP tracker configuration.
+    /// - The configuration does not contain a UDP tracker configuration.
+    /// - The configuration does not contain a HTTP API configuration.
+    #[must_use]
     pub fn initialize(configuration: &Configuration) -> Self {
         let core_config = Arc::new(configuration.core.clone());
 

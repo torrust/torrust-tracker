@@ -1,16 +1,16 @@
 use std::str::FromStr;
 
 use bittorrent_primitives::info_hash::InfoHash;
+use torrust_axum_tracker_api_server::environment::Started;
 use torrust_axum_tracker_api_server::v1::context::stats::resources::Stats;
 use torrust_tracker_api_client::v1::client::{headers_with_request_id, Client};
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-use torrust_tracker_test_helpers::configuration;
+use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
+use torrust_tracker_test_helpers::{configuration, logging};
 use uuid::Uuid;
 
-use crate::common::logging::{self, logs_contains_a_line_with};
-use crate::servers::api::connection_info::{connection_with_invalid_token, connection_with_no_token};
-use crate::servers::api::v1::asserts::{assert_stats, assert_token_not_valid, assert_unauthorized};
-use crate::servers::api::Started;
+use crate::server::connection_info::{connection_with_invalid_token, connection_with_no_token};
+use crate::server::v1::asserts::{assert_stats, assert_token_not_valid, assert_unauthorized};
 
 #[tokio::test]
 async fn should_allow_getting_tracker_statistics() {
