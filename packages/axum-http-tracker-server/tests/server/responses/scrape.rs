@@ -4,7 +4,7 @@ use std::str;
 use serde::{Deserialize, Serialize};
 use serde_bencode::value::Value;
 
-use crate::servers::http::{ByteArray20, InfoHash};
+use crate::server::{ByteArray20, InfoHash};
 
 #[derive(Debug, PartialEq, Default)]
 pub struct Response {

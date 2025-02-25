@@ -4,11 +4,14 @@ use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use futures::executor::block_on;
-use torrust_axum_http_tracker_server::server::{HttpServer, Launcher, Running, Stopped};
 use torrust_axum_server::tsl::make_rust_tls;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration};
 use torrust_tracker_primitives::peer;
+
+use crate::server::{HttpServer, Launcher, Running, Stopped};
+
+pub type Started = Environment<Running>;
 
 pub struct Environment<S> {
     pub container: Arc<EnvContainer>,
@@ -28,7 +31,11 @@ impl<S> Environment<S> {
 }
 
 impl Environment<Stopped> {
+    /// # Panics
+    ///
+    /// Will panic if it fails to make the TSL config from the configuration.
     #[allow(dead_code)]
+    #[must_use]
     pub fn new(configuration: &Arc<Configuration>) -> Self {
         initialize_global_services(configuration);
 
@@ -50,6 +57,9 @@ impl Environment<Stopped> {
         }
     }
 
+    /// # Panics
+    ///
+    /// Will panic if the server fails to start.    
     #[allow(dead_code)]
     pub async fn start(self) -> Environment<Running> {
         Environment {
@@ -69,6 +79,9 @@ impl Environment<Running> {
         Environment::<Stopped>::new(configuration).start().await
     }
 
+    /// # Panics
+    ///
+    /// Will panic if the server fails to stop.
     pub async fn stop(self) -> Environment<Stopped> {
         Environment {
             container: self.container,
@@ -77,6 +90,7 @@ impl Environment<Running> {
         }
     }
 
+    #[must_use]
     pub fn bind_address(&self) -> &std::net::SocketAddr {
         &self.server.state.binding
     }
@@ -88,6 +102,10 @@ pub struct EnvContainer {
 }
 
 impl EnvContainer {
+    /// # Panics
+    ///
+    /// Will panic if the configuration is missing the HTTP tracker configuration.
+    #[must_use]
     pub fn initialize(configuration: &Configuration) -> Self {
         let core_config = Arc::new(configuration.core.clone());
         let http_tracker_config = configuration

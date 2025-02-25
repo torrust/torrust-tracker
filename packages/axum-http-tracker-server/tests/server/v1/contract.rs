@@ -1,7 +1,5 @@
-use torrust_tracker_test_helpers::configuration;
-
-use crate::common::logging;
-use crate::servers::http::Started;
+use torrust_axum_http_tracker_server::environment::Started;
+use torrust_tracker_test_helpers::{configuration, logging};
 
 #[tokio::test]
 async fn environment_should_be_started_and_stopped() {
@@ -14,12 +12,11 @@ async fn environment_should_be_started_and_stopped() {
 
 mod for_all_config_modes {
 
+    use torrust_axum_http_tracker_server::environment::Started;
     use torrust_axum_http_tracker_server::v1::handlers::health_check::{Report, Status};
-    use torrust_tracker_test_helpers::configuration;
+    use torrust_tracker_test_helpers::{configuration, logging};
 
-    use crate::common::logging;
-    use crate::servers::http::client::Client;
-    use crate::servers::http::Started;
+    use crate::server::client::Client;
 
     #[tokio::test]
     async fn health_check_endpoint_should_return_ok_if_the_http_tracker_is_running() {
@@ -37,13 +34,12 @@ mod for_all_config_modes {
     }
 
     mod and_running_on_reverse_proxy {
-        use torrust_tracker_test_helpers::configuration;
+        use torrust_axum_http_tracker_server::environment::Started;
+        use torrust_tracker_test_helpers::{configuration, logging};
 
-        use crate::common::logging;
-        use crate::servers::http::asserts::assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response;
-        use crate::servers::http::client::Client;
-        use crate::servers::http::requests::announce::QueryBuilder;
-        use crate::servers::http::Started;
+        use crate::server::asserts::assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response;
+        use crate::server::client::Client;
+        use crate::server::requests::announce::QueryBuilder;
 
         #[tokio::test]
         async fn should_fail_when_the_http_request_does_not_include_the_xff_http_request_header() {
@@ -102,20 +98,20 @@ mod for_all_config_modes {
         use local_ip_address::local_ip;
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
+        use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-        use torrust_tracker_test_helpers::configuration;
+        use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::common::fixtures::invalid_info_hashes;
-        use crate::common::logging;
-        use crate::servers::http::asserts::{
+        use crate::server::asserts::{
             assert_announce_response, assert_bad_announce_request_error_response, assert_cannot_parse_query_param_error_response,
             assert_cannot_parse_query_params_error_response, assert_compact_announce_response, assert_empty_announce_response,
             assert_is_announce_response, assert_missing_query_params_for_announce_request_error_response,
         };
-        use crate::servers::http::client::Client;
-        use crate::servers::http::requests::announce::{Compact, QueryBuilder};
-        use crate::servers::http::responses::announce::{Announce, CompactPeer, CompactPeerList, DictionaryPeer};
-        use crate::servers::http::{responses, Started};
+        use crate::server::client::Client;
+        use crate::server::requests::announce::{Compact, QueryBuilder};
+        use crate::server::responses;
+        use crate::server::responses::announce::{Announce, CompactPeer, CompactPeerList, DictionaryPeer};
 
         #[tokio::test]
         async fn it_should_start_and_stop() {
@@ -1028,19 +1024,19 @@ mod for_all_config_modes {
         use aquatic_udp_protocol::PeerId;
         use bittorrent_primitives::info_hash::InfoHash;
         use tokio::net::TcpListener;
+        use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-        use torrust_tracker_test_helpers::configuration;
+        use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::common::fixtures::invalid_info_hashes;
-        use crate::common::logging;
-        use crate::servers::http::asserts::{
+        use crate::server::asserts::{
             assert_cannot_parse_query_params_error_response, assert_missing_query_params_for_scrape_request_error_response,
             assert_scrape_response,
         };
-        use crate::servers::http::client::Client;
-        use crate::servers::http::requests::scrape::QueryBuilder;
-        use crate::servers::http::responses::scrape::{self, File, ResponseBuilder};
-        use crate::servers::http::{requests, Started};
+        use crate::server::client::Client;
+        use crate::server::requests;
+        use crate::server::requests::scrape::QueryBuilder;
+        use crate::server::responses::scrape::{self, File, ResponseBuilder};
 
         #[tokio::test]
         #[allow(dead_code)]
@@ -1278,15 +1274,15 @@ mod configured_as_whitelisted {
         use std::str::FromStr;
 
         use bittorrent_primitives::info_hash::InfoHash;
-        use torrust_tracker_test_helpers::configuration;
+        use torrust_axum_http_tracker_server::environment::Started;
+        use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
+        use torrust_tracker_test_helpers::{configuration, logging};
         use uuid::Uuid;
 
         use crate::common::fixtures::random_info_hash;
-        use crate::common::logging::{self, logs_contains_a_line_with};
-        use crate::servers::http::asserts::{assert_is_announce_response, assert_torrent_not_in_whitelist_error_response};
-        use crate::servers::http::client::Client;
-        use crate::servers::http::requests::announce::QueryBuilder;
-        use crate::servers::http::Started;
+        use crate::server::asserts::{assert_is_announce_response, assert_torrent_not_in_whitelist_error_response};
+        use crate::server::client::Client;
+        use crate::server::requests::announce::QueryBuilder;
 
         #[tokio::test]
         async fn should_fail_if_the_torrent_is_not_in_the_whitelist() {
@@ -1345,15 +1341,16 @@ mod configured_as_whitelisted {
 
         use aquatic_udp_protocol::PeerId;
         use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-        use torrust_tracker_test_helpers::configuration;
+        use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
+        use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::common::fixtures::random_info_hash;
-        use crate::common::logging::{self, logs_contains_a_line_with};
-        use crate::servers::http::asserts::assert_scrape_response;
-        use crate::servers::http::client::Client;
-        use crate::servers::http::responses::scrape::{File, ResponseBuilder};
-        use crate::servers::http::{requests, Started};
+        use crate::server::asserts::assert_scrape_response;
+        use crate::server::client::Client;
+        use crate::server::requests;
+        use crate::server::responses::scrape::{File, ResponseBuilder};
 
         #[tokio::test]
         async fn should_return_the_zeroed_file_when_the_requested_file_is_not_whitelisted() {
@@ -1448,13 +1445,12 @@ mod configured_as_private {
 
         use bittorrent_primitives::info_hash::InfoHash;
         use bittorrent_tracker_core::authentication::Key;
-        use torrust_tracker_test_helpers::configuration;
+        use torrust_axum_http_tracker_server::environment::Started;
+        use torrust_tracker_test_helpers::{configuration, logging};
 
-        use crate::common::logging;
-        use crate::servers::http::asserts::{assert_authentication_error_response, assert_is_announce_response};
-        use crate::servers::http::client::Client;
-        use crate::servers::http::requests::announce::QueryBuilder;
-        use crate::servers::http::Started;
+        use crate::server::asserts::{assert_authentication_error_response, assert_is_announce_response};
+        use crate::server::client::Client;
+        use crate::server::requests::announce::QueryBuilder;
 
         #[tokio::test]
         async fn should_respond_to_authenticated_peers() {
@@ -1540,14 +1536,14 @@ mod configured_as_private {
         use aquatic_udp_protocol::PeerId;
         use bittorrent_primitives::info_hash::InfoHash;
         use bittorrent_tracker_core::authentication::Key;
+        use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-        use torrust_tracker_test_helpers::configuration;
+        use torrust_tracker_test_helpers::{configuration, logging};
 
-        use crate::common::logging;
-        use crate::servers::http::asserts::{assert_authentication_error_response, assert_scrape_response};
-        use crate::servers::http::client::Client;
-        use crate::servers::http::responses::scrape::{File, ResponseBuilder};
-        use crate::servers::http::{requests, Started};
+        use crate::server::asserts::{assert_authentication_error_response, assert_scrape_response};
+        use crate::server::client::Client;
+        use crate::server::requests;
+        use crate::server::responses::scrape::{File, ResponseBuilder};
 
         #[tokio::test]
         async fn should_fail_if_the_key_query_param_cannot_be_parsed() {

@@ -34,10 +34,8 @@ version = "3.0.0-develop"
 
 [dependencies]
 anyhow = "1"
-aquatic_udp_protocol = "0"
 axum-server = { version = "0", features = ["tls-rustls-no-provider"] }
 bittorrent-http-tracker-core = { version = "3.0.0-develop", path = "packages/http-tracker-core" }
-bittorrent-primitives = "0.1.0"
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "packages/tracker-core" }
 bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "packages/udp-tracker-core" }
 chrono = { version = "0", default-features = false, features = ["clock"] }
@@ -47,7 +45,6 @@ dashmap = "6"
 figment = "0"
 futures = "0"
 parking_lot = "0"
-percent-encoding = "2"
 r2d2 = "0"
 r2d2_mysql = "25"
 r2d2_sqlite = { version = "0", features = ["bundled"] }
@@ -55,10 +52,8 @@ rand = "0"
 regex = "1"
 reqwest = { version = "0", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
-serde_bencode = "0"
 serde_bytes = "0"
 serde_json = { version = "1", features = ["preserve_order"] }
-serde_repr = "0"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-axum-health-check-api-server = { version = "3.0.0-develop", path = "packages/axum-health-check-api-server" }
 torrust-axum-http-tracker-server = { version = "3.0.0-develop", path = "packages/axum-http-tracker-server" }
@@ -68,13 +63,10 @@ torrust-server-lib = { version = "3.0.0-develop", path = "packages/server-lib" }
 torrust-tracker-api-core = { version = "3.0.0-develop", path = "packages/tracker-api-core" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "packages/clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "packages/configuration" }
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "packages/primitives" }
 torrust-tracker-torrent-repository = { version = "3.0.0-develop", path = "packages/torrent-repository" }
 torrust-udp-tracker-server = { version = "3.0.0-develop", path = "packages/udp-tracker-server" }
 tracing = "0"
 tracing-subscriber = { version = "0", features = ["json"] }
-uuid = { version = "1", features = ["v4"] }
-zerocopy = "0.7"
 
 [package.metadata.cargo-machete]
 ignored = [

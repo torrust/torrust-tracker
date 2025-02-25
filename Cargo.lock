@@ -4372,8 +4372,14 @@ dependencies = [
  "derive_more",
  "futures",
  "hyper",
+ "local-ip-address",
+ "percent-encoding",
+ "rand 0.8.5",
  "reqwest",
  "serde",
+ "serde_bencode",
+ "serde_bytes",
+ "serde_repr",
  "tokio",
  "torrust-axum-server",
  "torrust-server-lib",
@@ -4384,6 +4390,8 @@ dependencies = [
  "tower 0.5.2",
  "tower-http",
  "tracing",
+ "uuid",
+ "zerocopy 0.7.35",
 ]
 
 [[package]]
@@ -4459,10 +4467,8 @@ name = "torrust-tracker"
 version = "3.0.0-develop"
 dependencies = [
  "anyhow",
- "aquatic_udp_protocol",
  "axum-server",
  "bittorrent-http-tracker-core",
- "bittorrent-primitives",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-core",
  "chrono",
@@ -4474,7 +4480,6 @@ dependencies = [
  "local-ip-address",
  "mockall",
  "parking_lot",
- "percent-encoding",
  "r2d2",
  "r2d2_mysql",
  "r2d2_sqlite",
@@ -4482,10 +4487,8 @@ dependencies = [
  "regex",
  "reqwest",
  "serde",
- "serde_bencode",
  "serde_bytes",
  "serde_json",
- "serde_repr",
  "tokio",
  "torrust-axum-health-check-api-server",
  "torrust-axum-http-tracker-server",
@@ -4496,14 +4499,11 @@ dependencies = [
  "torrust-tracker-api-core",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
- "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
  "torrust-tracker-torrent-repository",
  "torrust-udp-tracker-server",
  "tracing",
  "tracing-subscriber",
- "uuid",
- "zerocopy 0.7.35",
 ]
 
 [[package]]

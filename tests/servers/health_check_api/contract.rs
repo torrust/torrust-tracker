@@ -116,7 +116,6 @@ mod http {
 
     use crate::common::logging;
     use crate::servers::health_check_api::client::get;
-    use crate::servers::http;
 
     #[tokio::test]
     pub(crate) async fn it_should_return_good_health_for_http_service() {
@@ -124,7 +123,7 @@ mod http {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = http::Started::new(&configuration).await;
+        let service = torrust_axum_http_tracker_server::environment::Started::new(&configuration).await;
 
         let registar = service.registar.clone();
 
@@ -170,7 +169,7 @@ mod http {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = http::Started::new(&configuration).await;
+        let service = torrust_axum_http_tracker_server::environment::Started::new(&configuration).await;
 
         let binding = *service.bind_address();
 

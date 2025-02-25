@@ -1,6 +1,6 @@
 use bittorrent_primitives::info_hash::InfoHash;
+use rand::prelude::*;
 
-#[allow(dead_code)]
 pub fn invalid_info_hashes() -> Vec<String> {
     [
         "0".to_string(),
@@ -15,8 +15,8 @@ pub fn invalid_info_hashes() -> Vec<String> {
 
 /// Returns a random info hash.
 pub fn random_info_hash() -> InfoHash {
-    let mut rng = rand::rng();
-    let random_bytes: [u8; 20] = rand::Rng::random(&mut rng);
+    let mut rng = rand::thread_rng();
+    let random_bytes: [u8; 20] = rng.gen();
 
     InfoHash::from_bytes(&random_bytes)
 }
