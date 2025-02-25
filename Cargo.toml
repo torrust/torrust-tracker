@@ -40,19 +40,11 @@ bittorrent-tracker-core = { version = "3.0.0-develop", path = "packages/tracker-
 bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "packages/udp-tracker-core" }
 chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
-crossbeam-skiplist = "0"
-dashmap = "6"
-figment = "0"
 futures = "0"
-parking_lot = "0"
-r2d2 = "0"
-r2d2_mysql = "25"
-r2d2_sqlite = { version = "0", features = ["bundled"] }
 rand = "0"
 regex = "1"
 reqwest = { version = "0", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
-serde_bytes = "0"
 serde_json = { version = "1", features = ["preserve_order"] }
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-axum-health-check-api-server = { version = "3.0.0-develop", path = "packages/axum-health-check-api-server" }
@@ -63,23 +55,9 @@ torrust-server-lib = { version = "3.0.0-develop", path = "packages/server-lib" }
 torrust-tracker-api-core = { version = "3.0.0-develop", path = "packages/tracker-api-core" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "packages/clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "packages/configuration" }
-torrust-tracker-torrent-repository = { version = "3.0.0-develop", path = "packages/torrent-repository" }
 torrust-udp-tracker-server = { version = "3.0.0-develop", path = "packages/udp-tracker-server" }
 tracing = "0"
 tracing-subscriber = { version = "0", features = ["json"] }
-
-[package.metadata.cargo-machete]
-ignored = [
-    "crossbeam-skiplist",
-    "dashmap",
-    "figment",
-    "parking_lot",
-    "r2d2",
-    "r2d2_mysql",
-    "r2d2_sqlite",
-    "serde_bytes",
-    "torrust-tracker-torrent-repository",
-]
 
 [dev-dependencies]
 local-ip-address = "0"
