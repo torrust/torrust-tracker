@@ -4343,13 +4343,18 @@ dependencies = [
  "axum-server",
  "futures",
  "hyper",
+ "reqwest",
  "serde",
  "serde_json",
  "tokio",
  "torrust-axum-server",
  "torrust-server-lib",
+ "torrust-tracker-clock",
+ "torrust-tracker-configuration",
+ "torrust-tracker-test-helpers",
  "tower-http",
  "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -4618,6 +4623,8 @@ version = "3.0.0-develop"
 dependencies = [
  "rand 0.9.0",
  "torrust-tracker-configuration",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

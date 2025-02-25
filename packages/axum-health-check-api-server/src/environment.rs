@@ -3,10 +3,13 @@ use std::sync::Arc;
 
 use tokio::sync::oneshot::{self, Sender};
 use tokio::task::JoinHandle;
-use torrust_axum_health_check_api_server::{server, HEALTH_CHECK_API_LOG_TARGET};
 use torrust_server_lib::registar::Registar;
-use torrust_server_lib::signals::{self, Halted, Started};
+use torrust_server_lib::signals::{self, Halted as SignalHalted, Started as SignalStarted};
 use torrust_tracker_configuration::HealthCheckApi;
+
+use crate::{server, HEALTH_CHECK_API_LOG_TARGET};
+
+pub type Started = Environment<Running>;
 
 #[derive(Debug)]
 pub enum Error {
@@ -30,6 +33,7 @@ pub struct Environment<S> {
 }
 
 impl Environment<Stopped> {
+    #[must_use]
     pub fn new(config: &Arc<HealthCheckApi>, registar: Registar) -> Self {
         let bind_to = config.bind_address;
 
@@ -41,9 +45,13 @@ impl Environment<Stopped> {
 
     /// Start the test environment for the Health Check API.
     /// It runs the API server.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if it cannot start the service in a spawned task.
     pub async fn start(self) -> Environment<Running> {
-        let (tx_start, rx_start) = oneshot::channel::<Started>();
-        let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
+        let (tx_start, rx_start) = oneshot::channel::<SignalStarted>();
+        let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<SignalHalted>();
 
         let register = self.registar.entries();
 
@@ -81,10 +89,17 @@ impl Environment<Running> {
         Environment::<Stopped>::new(config, registar).start().await
     }
 
+    /// # Errors
+    ///
+    /// Will return an error if it cannot send the halt signal.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if it cannot shutdown the service.
     pub async fn stop(self) -> Result<Environment<Stopped>, Error> {
         self.state
             .halt_task
-            .send(Halted::Normal)
+            .send(SignalHalted::Normal)
             .map_err(|e| Error::Error(e.to_string()))?;
 
         let bind_to = self.state.task.await.expect("it should shutdown the service");

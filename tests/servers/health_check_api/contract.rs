@@ -1,44 +1,13 @@
-use torrust_axum_health_check_api_server::resources::{Report, Status};
-use torrust_server_lib::registar::Registar;
-use torrust_tracker_test_helpers::configuration;
-
-use crate::common::logging;
-use crate::servers::health_check_api::client::get;
-use crate::servers::health_check_api::Started;
-
-#[tokio::test]
-async fn health_check_endpoint_should_return_status_ok_when_there_is_no_services_registered() {
-    logging::setup();
-
-    let configuration = configuration::ephemeral_with_no_services();
-
-    let env = Started::new(&configuration.health_check_api.into(), Registar::default()).await;
-
-    let response = get(&format!("http://{}/health_check", env.state.binding)).await; // DevSkim: ignore DS137138
-
-    assert_eq!(response.status(), 200);
-    assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
-
-    let report = response
-        .json::<Report>()
-        .await
-        .expect("it should be able to get the report as json");
-
-    assert_eq!(report.status, Status::None);
-
-    env.stop().await.expect("it should stop the service");
-}
-
 mod api {
     use std::sync::Arc;
 
+    use torrust_axum_health_check_api_server::environment::Started;
     use torrust_axum_health_check_api_server::resources::{Report, Status};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::common::logging;
     use crate::servers::api;
     use crate::servers::health_check_api::client::get;
-    use crate::servers::health_check_api::Started;
 
     #[tokio::test]
     pub(crate) async fn it_should_return_good_health_for_api_service() {
@@ -142,12 +111,12 @@ mod api {
 mod http {
     use std::sync::Arc;
 
+    use torrust_axum_health_check_api_server::environment::Started;
     use torrust_axum_health_check_api_server::resources::{Report, Status};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::common::logging;
     use crate::servers::health_check_api::client::get;
-    use crate::servers::health_check_api::Started;
     use crate::servers::http;
 
     #[tokio::test]
@@ -251,12 +220,12 @@ mod http {
 mod udp {
     use std::sync::Arc;
 
+    use torrust_axum_health_check_api_server::environment::Started;
     use torrust_axum_health_check_api_server::resources::{Report, Status};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::common::logging;
     use crate::servers::health_check_api::client::get;
-    use crate::servers::health_check_api::Started;
     use crate::servers::udp;
 
     #[tokio::test]
