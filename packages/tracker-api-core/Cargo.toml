@@ -20,6 +20,7 @@ bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "../udp-tracke
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+torrust-udp-tracker-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }
 
 [dev-dependencies]
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }

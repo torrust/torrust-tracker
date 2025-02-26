@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 pub mod handler;
 pub mod listener;
 pub mod sender;
@@ -16,32 +14,10 @@ pub mod sender;
 pub enum Event {
     // code-review: consider one single event for request type with data: Event::Announce { scheme: HTTPorUDP, ip_version: V4orV6 }
     // Attributes are enums too.
-    UdpRequestAborted,
-    UdpRequestBanned,
-    Udp4Request,
     Udp4Connect,
     Udp4Announce,
     Udp4Scrape,
-    Udp4Response {
-        kind: UdpResponseKind,
-        req_processing_time: Duration,
-    },
-    Udp4Error,
-    Udp6Request,
     Udp6Connect,
     Udp6Announce,
     Udp6Scrape,
-    Udp6Response {
-        kind: UdpResponseKind,
-        req_processing_time: Duration,
-    },
-    Udp6Error,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum UdpResponseKind {
-    Connect,
-    Announce,
-    Scrape,
-    Error,
 }

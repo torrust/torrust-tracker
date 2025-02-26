@@ -10,6 +10,7 @@ use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
 use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
+use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 
 pub struct TrackerHttpApiCoreContainer {
     // todo: replace with TrackerCoreContainer
@@ -23,7 +24,10 @@ pub struct TrackerHttpApiCoreContainer {
 
     // todo: replace with UdpTrackerCoreContainer
     pub ban_service: Arc<RwLock<BanService>>,
-    pub udp_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
+    pub udp_core_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
+
+    // todo: replace with UdpTrackerServerContainer
+    pub udp_server_stats_repository: Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
 
     pub http_api_config: Arc<HttpApi>,
 }
@@ -39,11 +43,13 @@ impl TrackerHttpApiCoreContainer {
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(core_config));
         let http_tracker_core_container = HttpTrackerCoreContainer::initialize_from(&tracker_core_container, http_tracker_config);
         let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from(&tracker_core_container, udp_tracker_config);
+        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(core_config);
 
         Self::initialize_from(
             &tracker_core_container,
             &http_tracker_core_container,
             &udp_tracker_core_container,
+            &udp_tracker_server_container,
             http_api_config,
         )
     }
@@ -53,6 +59,7 @@ impl TrackerHttpApiCoreContainer {
         tracker_core_container: &Arc<TrackerCoreContainer>,
         http_tracker_core_container: &Arc<HttpTrackerCoreContainer>,
         udp_tracker_core_container: &Arc<UdpTrackerCoreContainer>,
+        udp_tracker_server_container: &Arc<UdpTrackerServerContainer>,
         http_api_config: &Arc<HttpApi>,
     ) -> Arc<TrackerHttpApiCoreContainer> {
         Arc::new(TrackerHttpApiCoreContainer {
@@ -64,7 +71,9 @@ impl TrackerHttpApiCoreContainer {
             http_stats_repository: http_tracker_core_container.http_stats_repository.clone(),
 
             ban_service: udp_tracker_core_container.ban_service.clone(),
-            udp_stats_repository: udp_tracker_core_container.udp_stats_repository.clone(),
+            udp_core_stats_repository: udp_tracker_core_container.udp_core_stats_repository.clone(),
+
+            udp_server_stats_repository: udp_tracker_server_container.udp_server_stats_repository.clone(),
 
             http_api_config: http_api_config.clone(),
         })

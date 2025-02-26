@@ -5,25 +5,33 @@ use std::time::Duration;
 
 use aquatic_udp_protocol::Response;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
-use bittorrent_udp_tracker_core::{self, statistics};
+use bittorrent_udp_tracker_core::{self};
 use tokio::time::Instant;
 use tracing::{instrument, Level};
 
 use super::bound_socket::BoundSocket;
+use crate::container::UdpTrackerServerContainer;
 use crate::handlers::CookieTimeValues;
-use crate::{handlers, RawRequest};
+use crate::{handlers, statistics, RawRequest};
 
 pub struct Processor {
     socket: Arc<BoundSocket>,
-    udp_tracker_container: Arc<UdpTrackerCoreContainer>,
+    udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+    udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     cookie_lifetime: f64,
 }
 
 impl Processor {
-    pub fn new(socket: Arc<BoundSocket>, udp_tracker_container: Arc<UdpTrackerCoreContainer>, cookie_lifetime: f64) -> Self {
+    pub fn new(
+        socket: Arc<BoundSocket>,
+        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
+        cookie_lifetime: f64,
+    ) -> Self {
         Self {
             socket,
-            udp_tracker_container,
+            udp_tracker_core_container,
+            udp_tracker_server_container,
             cookie_lifetime,
         }
     }
@@ -36,7 +44,8 @@ impl Processor {
 
         let response = handlers::handle_packet(
             request,
-            self.udp_tracker_container.clone(),
+            self.udp_tracker_core_container.clone(),
+            self.udp_tracker_server_container.clone(),
             self.socket.address(),
             CookieTimeValues::new(self.cookie_lifetime),
         )
@@ -81,10 +90,12 @@ impl Processor {
                             tracing::debug!(%bytes_count, %sent_bytes, "sent {response_type}");
                         }
 
-                        if let Some(udp_stats_event_sender) = self.udp_tracker_container.udp_stats_event_sender.as_deref() {
+                        if let Some(udp_server_stats_event_sender) =
+                            self.udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
+                        {
                             match target.ip() {
                                 IpAddr::V4(_) => {
-                                    udp_stats_event_sender
+                                    udp_server_stats_event_sender
                                         .send_event(statistics::event::Event::Udp4Response {
                                             kind: udp_response_kind,
                                             req_processing_time,
@@ -92,7 +103,7 @@ impl Processor {
                                         .await;
                                 }
                                 IpAddr::V6(_) => {
-                                    udp_stats_event_sender
+                                    udp_server_stats_event_sender
                                         .send_event(statistics::event::Event::Udp6Response {
                                             kind: udp_response_kind,
                                             req_processing_time,

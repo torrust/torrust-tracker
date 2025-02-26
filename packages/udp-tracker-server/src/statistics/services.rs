@@ -125,13 +125,14 @@ mod tests {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
-        let (_udp_stats_event_sender, udp_stats_repository) = statistics::setup::factory(config.core.tracker_usage_statistics);
-        let udp_stats_repository = Arc::new(udp_stats_repository);
+        let (_udp_server_stats_event_sender, udp_server_stats_repository) =
+            statistics::setup::factory(config.core.tracker_usage_statistics);
+        let udp_server_stats_repository = Arc::new(udp_server_stats_repository);
 
         let tracker_metrics = get_metrics(
             in_memory_torrent_repository.clone(),
             ban_service.clone(),
-            udp_stats_repository.clone(),
+            udp_server_stats_repository.clone(),
         )
         .await;
 

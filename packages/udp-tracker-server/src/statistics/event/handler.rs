@@ -12,21 +12,21 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
         }
 
         // UDP4
-        Event::Udp4Request { kind } => {
+        Event::Udp4IncomingRequest => {
             stats_repository.increase_udp4_requests().await;
-            match kind {
-                UdpResponseKind::Connect => {
-                    stats_repository.increase_udp4_connections().await;
-                }
-                UdpResponseKind::Announce => {
-                    stats_repository.increase_udp4_announces().await;
-                }
-                UdpResponseKind::Scrape => {
-                    stats_repository.increase_udp4_scrapes().await;
-                }
-                UdpResponseKind::Error => {}
-            }
         }
+        Event::Udp4Request { kind } => match kind {
+            UdpResponseKind::Connect => {
+                stats_repository.increase_udp4_connections().await;
+            }
+            UdpResponseKind::Announce => {
+                stats_repository.increase_udp4_announces().await;
+            }
+            UdpResponseKind::Scrape => {
+                stats_repository.increase_udp4_scrapes().await;
+            }
+            UdpResponseKind::Error => {}
+        },
         Event::Udp4Response {
             kind,
             req_processing_time,
@@ -57,9 +57,21 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
         }
 
         // UDP6
-        Event::Udp6Request => {
+        Event::Udp6IncomingRequest => {
             stats_repository.increase_udp6_requests().await;
         }
+        Event::Udp6Request { kind } => match kind {
+            UdpResponseKind::Connect => {
+                stats_repository.increase_udp6_connections().await;
+            }
+            UdpResponseKind::Announce => {
+                stats_repository.increase_udp6_announces().await;
+            }
+            UdpResponseKind::Scrape => {
+                stats_repository.increase_udp6_scrapes().await;
+            }
+            UdpResponseKind::Error => {}
+        },
         Event::Udp6Response {
             kind: _,
             req_processing_time: _,
@@ -77,7 +89,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
 #[cfg(test)]
 mod tests {
     use crate::statistics::event::handler::handle_event;
-    use crate::statistics::event::{Event, UdpResponseKind};
+    use crate::statistics::event::Event;
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
@@ -101,13 +113,7 @@ mod tests {
     async fn should_increase_the_udp4_requests_counter_when_it_receives_a_udp4_request_event() {
         let stats_repository = Repository::new();
 
-        handle_event(
-            Event::Udp4Request {
-                kind: UdpResponseKind::Connect,
-            },
-            &stats_repository,
-        )
-        .await;
+        handle_event(Event::Udp4IncomingRequest, &stats_repository).await;
 
         let stats = stats_repository.get_stats().await;
 
@@ -147,7 +153,7 @@ mod tests {
     async fn should_increase_the_udp6_requests_counter_when_it_receives_a_udp6_request_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::Udp6Request, &stats_repository).await;
+        handle_event(Event::Udp6IncomingRequest, &stats_repository).await;
 
         let stats = stats_repository.get_stats().await;
 

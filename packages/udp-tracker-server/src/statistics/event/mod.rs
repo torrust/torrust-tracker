@@ -18,6 +18,9 @@ pub enum Event {
     // Attributes are enums too.
     UdpRequestAborted,
     UdpRequestBanned,
+
+    // UDP4
+    Udp4IncomingRequest,
     Udp4Request {
         kind: UdpResponseKind,
     },
@@ -26,7 +29,12 @@ pub enum Event {
         req_processing_time: Duration,
     },
     Udp4Error,
-    Udp6Request,
+
+    // UDP6
+    Udp6IncomingRequest,
+    Udp6Request {
+        kind: UdpResponseKind,
+    },
     Udp6Response {
         kind: UdpResponseKind,
         req_processing_time: Duration,

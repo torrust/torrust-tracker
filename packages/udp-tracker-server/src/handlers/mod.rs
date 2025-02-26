@@ -22,6 +22,7 @@ use tracing::{instrument, Level};
 use uuid::Uuid;
 
 use super::RawRequest;
+use crate::container::UdpTrackerServerContainer;
 use crate::error::Error;
 use crate::CurrentClock;
 
@@ -52,10 +53,11 @@ impl CookieTimeValues {
 /// - Delegating the request to the correct handler depending on the request type.
 ///
 /// It will return an `Error` response if the request is invalid.
-#[instrument(fields(request_id), skip(udp_request, udp_tracker_container, cookie_time_values), ret(level = Level::TRACE))]
+#[instrument(fields(request_id), skip(udp_request, udp_tracker_core_container, udp_tracker_server_container, cookie_time_values), ret(level = Level::TRACE))]
 pub(crate) async fn handle_packet(
     udp_request: RawRequest,
-    udp_tracker_container: Arc<UdpTrackerCoreContainer>,
+    udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+    udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     local_addr: SocketAddr,
     cookie_time_values: CookieTimeValues,
 ) -> Response {
@@ -71,7 +73,8 @@ pub(crate) async fn handle_packet(
             Ok(request) => match handle_request(
                 request,
                 udp_request.from,
-                udp_tracker_container.clone(),
+                udp_tracker_core_container.clone(),
+                udp_tracker_server_container.clone(),
                 cookie_time_values.clone(),
             )
             .await
@@ -83,7 +86,7 @@ pub(crate) async fn handle_packet(
                     } = error
                     {
                         // code-review: should we include `RequestParseError` and `BadRequest`?
-                        let mut ban_service = udp_tracker_container.ban_service.write().await;
+                        let mut ban_service = udp_tracker_core_container.ban_service.write().await;
                         ban_service.increase_counter(&udp_request.from.ip());
                     }
 
@@ -91,7 +94,7 @@ pub(crate) async fn handle_packet(
                         udp_request.from,
                         local_addr,
                         request_id,
-                        &udp_tracker_container.udp_stats_event_sender,
+                        &udp_tracker_server_container.udp_server_stats_event_sender,
                         cookie_time_values.valid_range.clone(),
                         &error,
                         Some(transaction_id),
@@ -104,7 +107,7 @@ pub(crate) async fn handle_packet(
                     udp_request.from,
                     local_addr,
                     request_id,
-                    &udp_tracker_container.udp_stats_event_sender,
+                    &udp_tracker_server_container.udp_server_stats_event_sender,
                     cookie_time_values.valid_range.clone(),
                     &e,
                     None,
@@ -124,11 +127,18 @@ pub(crate) async fn handle_packet(
 /// # Errors
 ///
 /// If a error happens in the `handle_request` function, it will just return the  `ServerError`.
-#[instrument(skip(request, remote_addr, udp_tracker_container, cookie_time_values))]
+#[instrument(skip(
+    request,
+    remote_addr,
+    udp_tracker_core_container,
+    udp_tracker_server_container,
+    cookie_time_values
+))]
 pub async fn handle_request(
     request: Request,
     remote_addr: SocketAddr,
-    udp_tracker_container: Arc<UdpTrackerCoreContainer>,
+    udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+    udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     cookie_time_values: CookieTimeValues,
 ) -> Result<Response, (Error, TransactionId)> {
     tracing::trace!("handle request");
@@ -137,7 +147,8 @@ pub async fn handle_request(
         Request::Connect(connect_request) => Ok(handle_connect(
             remote_addr,
             &connect_request,
-            &udp_tracker_container.udp_stats_event_sender,
+            &udp_tracker_core_container.udp_core_stats_event_sender,
+            &udp_tracker_server_container.udp_server_stats_event_sender,
             cookie_time_values.issue_time,
         )
         .await),
@@ -145,10 +156,11 @@ pub async fn handle_request(
             handle_announce(
                 remote_addr,
                 &announce_request,
-                &udp_tracker_container.core_config,
-                &udp_tracker_container.announce_handler,
-                &udp_tracker_container.whitelist_authorization,
-                &udp_tracker_container.udp_stats_event_sender,
+                &udp_tracker_core_container.core_config,
+                &udp_tracker_core_container.announce_handler,
+                &udp_tracker_core_container.whitelist_authorization,
+                &udp_tracker_core_container.udp_core_stats_event_sender,
+                &udp_tracker_server_container.udp_server_stats_event_sender,
                 cookie_time_values.valid_range,
             )
             .await
@@ -157,8 +169,9 @@ pub async fn handle_request(
             handle_scrape(
                 remote_addr,
                 &scrape_request,
-                &udp_tracker_container.scrape_handler,
-                &udp_tracker_container.udp_stats_event_sender,
+                &udp_tracker_core_container.scrape_handler,
+                &udp_tracker_core_container.udp_core_stats_event_sender,
+                &udp_tracker_server_container.udp_server_stats_event_sender,
                 cookie_time_values.valid_range,
             )
             .await
@@ -183,7 +196,7 @@ pub(crate) mod tests {
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use bittorrent_udp_tracker_core::connection_cookie::gen_remote_fingerprint;
-    use bittorrent_udp_tracker_core::{self, statistics};
+    use bittorrent_udp_tracker_core::{self, statistics as core_statistics};
     use futures::future::BoxFuture;
     use mockall::mock;
     use tokio::sync::mpsc::error::SendError;
@@ -192,7 +205,7 @@ pub(crate) mod tests {
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::CurrentClock;
+    use crate::{statistics as server_statistics, CurrentClock};
 
     pub(crate) struct CoreTrackerServices {
         pub core_config: Arc<Core>,
@@ -204,7 +217,11 @@ pub(crate) mod tests {
     }
 
     pub(crate) struct CoreUdpTrackerServices {
-        pub udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+        pub udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>>,
+    }
+
+    pub(crate) struct ServerUdpTrackerServices {
+        pub udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
     }
 
     fn default_testing_tracker_configuration() -> Configuration {
@@ -212,19 +229,23 @@ pub(crate) mod tests {
     }
 
     pub(crate) fn initialize_core_tracker_services_for_default_tracker_configuration(
-    ) -> (CoreTrackerServices, CoreUdpTrackerServices) {
+    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(&default_testing_tracker_configuration())
     }
 
-    pub(crate) fn initialize_core_tracker_services_for_public_tracker() -> (CoreTrackerServices, CoreUdpTrackerServices) {
+    pub(crate) fn initialize_core_tracker_services_for_public_tracker(
+    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(&configuration::ephemeral_public())
     }
 
-    pub(crate) fn initialize_core_tracker_services_for_listed_tracker() -> (CoreTrackerServices, CoreUdpTrackerServices) {
+    pub(crate) fn initialize_core_tracker_services_for_listed_tracker(
+    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(&configuration::ephemeral_listed())
     }
 
-    fn initialize_core_tracker_services(config: &Configuration) -> (CoreTrackerServices, CoreUdpTrackerServices) {
+    fn initialize_core_tracker_services(
+        config: &Configuration,
+    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         let core_config = Arc::new(config.core.clone());
         let database = initialize_database(&config.core);
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -239,8 +260,12 @@ pub(crate) mod tests {
         ));
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
-        let (udp_stats_event_sender, _udp_stats_repository) = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-        let udp_stats_event_sender = Arc::new(udp_stats_event_sender);
+        let (udp_core_stats_event_sender, _udp_core_stats_repository) =
+            bittorrent_udp_tracker_core::statistics::setup::factory(false);
+        let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
+
+        let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
+        let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
 
         (
             CoreTrackerServices {
@@ -251,7 +276,12 @@ pub(crate) mod tests {
                 in_memory_whitelist,
                 whitelist_authorization,
             },
-            CoreUdpTrackerServices { udp_stats_event_sender },
+            CoreUdpTrackerServices {
+                udp_core_stats_event_sender,
+            },
+            ServerUdpTrackerServices {
+                udp_server_stats_event_sender,
+            },
         )
     }
 
@@ -356,9 +386,16 @@ pub(crate) mod tests {
     }
 
     mock! {
-        pub(crate) UdpStatsEventSender {}
-        impl statistics::event::sender::Sender for UdpStatsEventSender {
-             fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<(),SendError<statistics::event::Event> > > > ;
+        pub(crate) UdpCoreStatsEventSender {}
+        impl core_statistics::event::sender::Sender for UdpCoreStatsEventSender {
+             fn send_event(&self, event: core_statistics::event::Event) -> BoxFuture<'static,Option<Result<(),SendError<core_statistics::event::Event> > > > ;
+        }
+    }
+
+    mock! {
+        pub(crate) UdpServerStatsEventSender {}
+        impl server_statistics::event::sender::Sender for UdpServerStatsEventSender {
+             fn send_event(&self, event: server_statistics::event::Event) -> BoxFuture<'static,Option<Result<(),SendError<server_statistics::event::Event> > > > ;
         }
     }
 }

@@ -51,7 +51,7 @@ impl Keeper {
 
 #[cfg(test)]
 mod tests {
-    use crate::statistics::event::{Event, UdpResponseKind};
+    use crate::statistics::event::Event;
     use crate::statistics::keeper::Keeper;
     use crate::statistics::metrics::Metrics;
 
@@ -70,11 +70,7 @@ mod tests {
 
         let event_sender = stats_tracker.run_event_listener();
 
-        let result = event_sender
-            .send_event(Event::Udp4Request {
-                kind: UdpResponseKind::Connect,
-            })
-            .await;
+        let result = event_sender.send_event(Event::Udp4IncomingRequest).await;
 
         assert!(result.is_some());
     }

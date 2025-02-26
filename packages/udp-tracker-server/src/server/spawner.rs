@@ -11,6 +11,7 @@ use tokio::task::JoinHandle;
 use torrust_server_lib::signals::{Halted, Started};
 
 use super::launcher::Launcher;
+use crate::container::UdpTrackerServerContainer;
 
 #[derive(Constructor, Copy, Clone, Debug, Display)]
 #[display("(with socket): {bind_to}")]
@@ -27,7 +28,8 @@ impl Spawner {
     #[must_use]
     pub fn spawn_launcher(
         &self,
-        udp_tracker_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         cookie_lifetime: Duration,
         tx_start: oneshot::Sender<Started>,
         rx_halt: oneshot::Receiver<Halted>,
@@ -35,8 +37,15 @@ impl Spawner {
         let spawner = Self::new(self.bind_to);
 
         tokio::spawn(async move {
-            Launcher::run_with_graceful_shutdown(udp_tracker_container, spawner.bind_to, cookie_lifetime, tx_start, rx_halt)
-                .await;
+            Launcher::run_with_graceful_shutdown(
+                udp_tracker_core_container,
+                udp_tracker_server_container,
+                spawner.bind_to,
+                cookie_lifetime,
+                tx_start,
+                rx_halt,
+            )
+            .await;
             spawner
         })
     }

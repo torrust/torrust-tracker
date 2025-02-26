@@ -8,6 +8,7 @@ use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration, DEFAULT_TIMEOUT};
 use torrust_tracker_primitives::peer;
 
+use crate::container::UdpTrackerServerContainer;
 use crate::server::spawner::Spawner;
 use crate::server::states::{Running, Stopped};
 use crate::server::Server;
@@ -71,6 +72,7 @@ impl Environment<Stopped> {
                 .server
                 .start(
                     self.container.udp_tracker_core_container.clone(),
+                    self.container.udp_tracker_server_container.clone(),
                     self.registar.give_form(),
                     cookie_lifetime,
                 )
@@ -115,6 +117,7 @@ impl Environment<Running> {
 pub struct EnvContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
     pub udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+    pub udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
 }
 
 impl EnvContainer {
@@ -129,10 +132,12 @@ impl EnvContainer {
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
         let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from(&tracker_core_container, &udp_tracker_config);
+        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         Self {
             tracker_core_container,
             udp_tracker_core_container,
+            udp_tracker_server_container,
         }
     }
 }
