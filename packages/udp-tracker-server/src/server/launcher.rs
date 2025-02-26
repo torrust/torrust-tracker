@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use bittorrent_tracker_client::udp::client::check;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
-use bittorrent_udp_tracker_core::{self, statistics, UDP_TRACKER_LOG_TARGET};
+use bittorrent_udp_tracker_core::{self, UDP_TRACKER_LOG_TARGET};
 use derive_more::Constructor;
 use futures_util::StreamExt;
 use tokio::select;
@@ -16,9 +16,11 @@ use torrust_server_lib::signals::{shutdown_signal_with_message, Halted, Started}
 use tracing::instrument;
 
 use super::request_buffer::ActiveRequests;
+use crate::container::UdpTrackerServerContainer;
 use crate::server::bound_socket::BoundSocket;
 use crate::server::processor::Processor;
 use crate::server::receiver::Receiver;
+use crate::statistics;
 
 const IP_BANS_RESET_INTERVAL_IN_SECS: u64 = 3600;
 
@@ -34,9 +36,10 @@ impl Launcher {
     /// It panics if unable to bind to udp socket, and get the address from the udp socket.
     /// It panics if unable to send address of socket.
     /// It panics if the udp server is loaded when the tracker is private.
-    #[instrument(skip(udp_tracker_container, bind_to, tx_start, rx_halt))]
+    #[instrument(skip(udp_tracker_core_container, udp_tracker_server_container, bind_to, tx_start, rx_halt))]
     pub async fn run_with_graceful_shutdown(
-        udp_tracker_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         bind_to: SocketAddr,
         cookie_lifetime: Duration,
         tx_start: oneshot::Sender<Started>,
@@ -44,7 +47,7 @@ impl Launcher {
     ) {
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting on: {bind_to}");
 
-        if udp_tracker_container.core_config.private {
+        if udp_tracker_core_container.core_config.private {
             tracing::error!("udp services cannot be used for private trackers");
             panic!("it should not use udp if using authentication");
         }
@@ -74,7 +77,13 @@ impl Launcher {
             let local_addr = local_udp_url.clone();
             tokio::task::spawn(async move {
                 tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_with_graceful_shutdown::task (listening...)");
-                let () = Self::run_udp_server_main(receiver, udp_tracker_container, cookie_lifetime).await;
+                let () = Self::run_udp_server_main(
+                    receiver,
+                    udp_tracker_core_container,
+                    udp_tracker_server_container,
+                    cookie_lifetime,
+                )
+                .await;
             })
         };
 
@@ -111,10 +120,11 @@ impl Launcher {
         ServiceHealthCheckJob::new(binding, info, job)
     }
 
-    #[instrument(skip(receiver, udp_tracker_container))]
+    #[instrument(skip(receiver, udp_tracker_core_container, udp_tracker_server_container))]
     async fn run_udp_server_main(
         mut receiver: Receiver,
-        udp_tracker_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         cookie_lifetime: Duration,
     ) {
         let active_requests = &mut ActiveRequests::default();
@@ -125,7 +135,7 @@ impl Launcher {
 
         let cookie_lifetime = cookie_lifetime.as_secs_f64();
 
-        let ban_cleaner = udp_tracker_container.ban_service.clone();
+        let ban_cleaner = udp_tracker_core_container.ban_service.clone();
 
         tokio::spawn(async move {
             let mut cleaner_interval = interval(Duration::from_secs(IP_BANS_RESET_INTERVAL_IN_SECS));
@@ -157,22 +167,29 @@ impl Launcher {
                     }
                 };
 
-                if let Some(udp_stats_event_sender) = udp_tracker_container.udp_stats_event_sender.as_deref() {
+                if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
+                {
                     match req.from.ip() {
                         IpAddr::V4(_) => {
-                            udp_stats_event_sender.send_event(statistics::event::Event::Udp4Request).await;
+                            udp_server_stats_event_sender
+                                .send_event(statistics::event::Event::Udp4IncomingRequest)
+                                .await;
                         }
                         IpAddr::V6(_) => {
-                            udp_stats_event_sender.send_event(statistics::event::Event::Udp6Request).await;
+                            udp_server_stats_event_sender
+                                .send_event(statistics::event::Event::Udp6IncomingRequest)
+                                .await;
                         }
                     }
                 }
 
-                if udp_tracker_container.ban_service.read().await.is_banned(&req.from.ip()) {
+                if udp_tracker_core_container.ban_service.read().await.is_banned(&req.from.ip()) {
                     tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr,  "Udp::run_udp_server::loop continue: (banned ip)");
 
-                    if let Some(udp_stats_event_sender) = udp_tracker_container.udp_stats_event_sender.as_deref() {
-                        udp_stats_event_sender
+                    if let Some(udp_server_stats_event_sender) =
+                        udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
+                    {
+                        udp_server_stats_event_sender
                             .send_event(statistics::event::Event::UdpRequestBanned)
                             .await;
                     }
@@ -180,7 +197,12 @@ impl Launcher {
                     continue;
                 }
 
-                let processor = Processor::new(receiver.socket.clone(), udp_tracker_container.clone(), cookie_lifetime);
+                let processor = Processor::new(
+                    receiver.socket.clone(),
+                    udp_tracker_core_container.clone(),
+                    udp_tracker_server_container.clone(),
+                    cookie_lifetime,
+                );
 
                 /* We spawn the new task even if the active requests buffer is
                 full. This could seem counterintuitive because we are accepting
@@ -204,8 +226,10 @@ impl Launcher {
                 if old_request_aborted {
                     // Evicted task from active requests buffer was aborted.
 
-                    if let Some(udp_stats_event_sender) = udp_tracker_container.udp_stats_event_sender.as_deref() {
-                        udp_stats_event_sender
+                    if let Some(udp_server_stats_event_sender) =
+                        udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
+                    {
+                        udp_server_stats_event_sender
                             .send_event(statistics::event::Event::UdpRequestAborted)
                             .await;
                     }

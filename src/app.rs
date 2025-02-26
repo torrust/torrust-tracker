@@ -79,8 +79,11 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
             } else {
                 let udp_tracker_config = Arc::new(udp_tracker_config.clone());
                 let udp_tracker_container = Arc::new(app_container.udp_tracker_container(&udp_tracker_config));
+                let udp_tracker_server_container = Arc::new(app_container.udp_tracker_server_container());
 
-                jobs.push(udp_tracker::start_job(udp_tracker_container, registar.give_form()).await);
+                jobs.push(
+                    udp_tracker::start_job(udp_tracker_container, udp_tracker_server_container, registar.give_form()).await,
+                );
             }
         }
     } else {

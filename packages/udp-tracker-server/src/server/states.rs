@@ -14,6 +14,7 @@ use tracing::{instrument, Level};
 
 use super::spawner::Spawner;
 use super::{Server, UdpError};
+use crate::container::UdpTrackerServerContainer;
 use crate::server::launcher::Launcher;
 
 /// A UDP server instance controller with no UDP instance running.
@@ -60,10 +61,11 @@ impl Server<Stopped> {
     /// # Panics
     ///
     /// It panics if unable to receive the bound socket address from service.
-    #[instrument(skip(self, udp_tracker_container, form), err, ret(Display, level = Level::INFO))]
+    #[instrument(skip(self, udp_tracker_core_container, udp_tracker_server_container, form), err, ret(Display, level = Level::INFO))]
     pub async fn start(
         self,
-        udp_tracker_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         form: ServiceRegistrationForm,
         cookie_lifetime: Duration,
     ) -> Result<Server<Running>, std::io::Error> {
@@ -73,10 +75,13 @@ impl Server<Stopped> {
         assert!(!tx_halt.is_closed(), "Halt channel for UDP tracker should be open");
 
         // May need to wrap in a task to about a tokio bug.
-        let task = self
-            .state
-            .spawner
-            .spawn_launcher(udp_tracker_container, cookie_lifetime, tx_start, rx_halt);
+        let task = self.state.spawner.spawn_launcher(
+            udp_tracker_core_container,
+            udp_tracker_server_container,
+            cookie_lifetime,
+            tx_start,
+            rx_halt,
+        );
 
         let local_addr = rx_start.await.expect("it should be able to start the service").address;
 

@@ -18,8 +18,8 @@ pub struct UdpTrackerCoreContainer {
     pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
 
     pub udp_tracker_config: Arc<UdpTracker>,
-    pub udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
-    pub udp_stats_repository: Arc<statistics::repository::Repository>,
+    pub udp_core_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    pub udp_core_stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<BanService>>,
 }
 
@@ -35,10 +35,10 @@ impl UdpTrackerCoreContainer {
         tracker_core_container: &Arc<TrackerCoreContainer>,
         udp_tracker_config: &Arc<UdpTracker>,
     ) -> Arc<UdpTrackerCoreContainer> {
-        let (udp_stats_event_sender, udp_stats_repository) =
+        let (udp_core_stats_event_sender, udp_core_stats_repository) =
             statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
-        let udp_stats_event_sender = Arc::new(udp_stats_event_sender);
-        let udp_stats_repository = Arc::new(udp_stats_repository);
+        let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
+        let udp_core_stats_repository = Arc::new(udp_core_stats_repository);
 
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
@@ -49,8 +49,8 @@ impl UdpTrackerCoreContainer {
             whitelist_authorization: tracker_core_container.whitelist_authorization.clone(),
 
             udp_tracker_config: udp_tracker_config.clone(),
-            udp_stats_event_sender: udp_stats_event_sender.clone(),
-            udp_stats_repository: udp_stats_repository.clone(),
+            udp_core_stats_event_sender: udp_core_stats_event_sender.clone(),
+            udp_core_stats_repository: udp_core_stats_repository.clone(),
             ban_service: ban_service.clone(),
         })
     }

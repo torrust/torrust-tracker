@@ -1,5 +1,5 @@
 //! UDP tracker scrape handler.
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::ops::Range;
 use std::sync::Arc;
 
@@ -7,25 +7,27 @@ use aquatic_udp_protocol::{
     NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
 use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
-use bittorrent_udp_tracker_core::statistics::{self};
-use bittorrent_udp_tracker_core::{self, services};
+use bittorrent_udp_tracker_core::{self, services, statistics as core_statistics};
 use torrust_tracker_primitives::core::ScrapeData;
 use tracing::{instrument, Level};
 use zerocopy::network_endian::I32;
 
 use crate::error::Error;
+use crate::statistics as server_statistics;
+use crate::statistics::event::UdpResponseKind;
 
 /// It handles the `Scrape` request.
 ///
 /// # Errors
 ///
 /// This function does not ever return an error.
-#[instrument(fields(transaction_id, connection_id), skip(scrape_handler, opt_udp_stats_event_sender),  ret(level = Level::TRACE))]
+#[instrument(fields(transaction_id, connection_id), skip(scrape_handler, opt_udp_core_stats_event_sender, opt_udp_server_stats_event_sender),  ret(level = Level::TRACE))]
 pub async fn handle_scrape(
     remote_addr: SocketAddr,
     request: &ScrapeRequest,
     scrape_handler: &Arc<ScrapeHandler>,
-    opt_udp_stats_event_sender: &Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    opt_udp_core_stats_event_sender: &Arc<Option<Box<dyn core_statistics::event::sender::Sender>>>,
+    opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
     cookie_valid_range: Range<f64>,
 ) -> Result<Response, (Error, TransactionId)> {
     tracing::Span::current()
@@ -34,11 +36,30 @@ pub async fn handle_scrape(
 
     tracing::trace!("handle scrape");
 
+    if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
+        match remote_addr.ip() {
+            IpAddr::V4(_) => {
+                udp_server_stats_event_sender
+                    .send_event(server_statistics::event::Event::Udp4Request {
+                        kind: UdpResponseKind::Scrape,
+                    })
+                    .await;
+            }
+            IpAddr::V6(_) => {
+                udp_server_stats_event_sender
+                    .send_event(server_statistics::event::Event::Udp6Request {
+                        kind: UdpResponseKind::Scrape,
+                    })
+                    .await;
+            }
+        }
+    }
+
     let scrape_data = services::scrape::handle_scrape(
         remote_addr,
         request,
         scrape_handler,
-        opt_udp_stats_event_sender,
+        opt_udp_core_stats_event_sender,
         cookie_valid_range,
     )
     .await
@@ -104,7 +125,8 @@ mod tests {
 
         #[tokio::test]
         async fn should_return_no_stats_when_the_tracker_does_not_have_any_torrent() {
-            let (core_tracker_services, core_udp_tracker_services) = initialize_core_tracker_services_for_public_tracker();
+            let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
+                initialize_core_tracker_services_for_public_tracker();
 
             let remote_addr = sample_ipv4_remote_addr();
 
@@ -121,7 +143,8 @@ mod tests {
                 remote_addr,
                 &request,
                 &core_tracker_services.scrape_handler,
-                &core_udp_tracker_services.udp_stats_event_sender,
+                &core_udp_tracker_services.udp_core_stats_event_sender,
+                &server_udp_tracker_services.udp_server_stats_event_sender,
                 sample_cookie_valid_range(),
             )
             .await
@@ -168,8 +191,12 @@ mod tests {
             in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
             scrape_handler: Arc<ScrapeHandler>,
         ) -> Response {
-            let (udp_stats_event_sender, _udp_stats_repository) = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-            let udp_stats_event_sender = Arc::new(udp_stats_event_sender);
+            let (udp_core_stats_event_sender, _udp_core_stats_repository) =
+                bittorrent_udp_tracker_core::statistics::setup::factory(false);
+            let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
+
+            let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
+            let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
 
             let remote_addr = sample_ipv4_remote_addr();
             let info_hash = InfoHash([0u8; 20]);
@@ -182,7 +209,8 @@ mod tests {
                 remote_addr,
                 &request,
                 &scrape_handler,
-                &udp_stats_event_sender,
+                &udp_core_stats_event_sender,
+                &udp_server_stats_event_sender,
                 sample_cookie_valid_range(),
             )
             .await
@@ -204,7 +232,8 @@ mod tests {
 
             #[tokio::test]
             async fn should_return_torrent_statistics_when_the_tracker_has_the_requested_torrent() {
-                let (core_tracker_services, _core_udp_tracker_services) = initialize_core_tracker_services_for_public_tracker();
+                let (core_tracker_services, _core_udp_tracker_services, _server_udp_tracker_services) =
+                    initialize_core_tracker_services_for_public_tracker();
 
                 let torrent_stats = match_scrape_response(
                     add_a_sample_seeder_and_scrape(
@@ -237,7 +266,8 @@ mod tests {
 
             #[tokio::test]
             async fn should_return_the_torrent_statistics_when_the_requested_torrent_is_whitelisted() {
-                let (core_tracker_services, core_udp_tracker_services) = initialize_core_tracker_services_for_listed_tracker();
+                let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
+                    initialize_core_tracker_services_for_listed_tracker();
 
                 let remote_addr = sample_ipv4_remote_addr();
                 let info_hash = InfoHash([0u8; 20]);
@@ -258,7 +288,8 @@ mod tests {
                         remote_addr,
                         &request,
                         &core_tracker_services.scrape_handler,
-                        &core_udp_tracker_services.udp_stats_event_sender,
+                        &core_udp_tracker_services.udp_core_stats_event_sender,
+                        &server_udp_tracker_services.udp_server_stats_event_sender,
                         sample_cookie_valid_range(),
                     )
                     .await
@@ -277,7 +308,8 @@ mod tests {
 
             #[tokio::test]
             async fn should_return_zeroed_statistics_when_the_requested_torrent_is_not_whitelisted() {
-                let (core_tracker_services, core_udp_tracker_services) = initialize_core_tracker_services_for_listed_tracker();
+                let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
+                    initialize_core_tracker_services_for_listed_tracker();
 
                 let remote_addr = sample_ipv4_remote_addr();
                 let info_hash = InfoHash([0u8; 20]);
@@ -296,7 +328,8 @@ mod tests {
                         remote_addr,
                         &request,
                         &core_tracker_services.scrape_handler,
-                        &core_udp_tracker_services.udp_stats_event_sender,
+                        &core_udp_tracker_services.udp_core_stats_event_sender,
+                        &server_udp_tracker_services.udp_server_stats_event_sender,
                         sample_cookie_valid_range(),
                     )
                     .await
@@ -325,37 +358,50 @@ mod tests {
             use std::future;
             use std::sync::Arc;
 
-            use bittorrent_udp_tracker_core::statistics;
+            use bittorrent_udp_tracker_core::statistics as core_statistics;
             use mockall::predicate::eq;
 
             use super::sample_scrape_request;
             use crate::handlers::handle_scrape;
             use crate::handlers::tests::{
                 initialize_core_tracker_services_for_default_tracker_configuration, sample_cookie_valid_range,
-                sample_ipv4_remote_addr, MockUdpStatsEventSender,
+                sample_ipv4_remote_addr, MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender,
             };
+            use crate::statistics as server_statistics;
 
             #[tokio::test]
             async fn should_send_the_upd4_scrape_event() {
-                let mut udp_stats_event_sender_mock = MockUdpStatsEventSender::new();
-                udp_stats_event_sender_mock
+                let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
+                udp_core_stats_event_sender_mock
                     .expect_send_event()
-                    .with(eq(statistics::event::Event::Udp4Scrape))
+                    .with(eq(core_statistics::event::Event::Udp4Scrape))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(())))));
-                let udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
-                    Arc::new(Some(Box::new(udp_stats_event_sender_mock)));
+                let udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>> =
+                    Arc::new(Some(Box::new(udp_core_stats_event_sender_mock)));
+
+                let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
+                udp_server_stats_event_sender_mock
+                    .expect_send_event()
+                    .with(eq(server_statistics::event::Event::Udp4Request {
+                        kind: server_statistics::event::UdpResponseKind::Scrape,
+                    }))
+                    .times(1)
+                    .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
+                    Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
                 let remote_addr = sample_ipv4_remote_addr();
 
-                let (core_tracker_services, _core_udp_tracker_services) =
+                let (core_tracker_services, _core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
 
                 handle_scrape(
                     remote_addr,
                     &sample_scrape_request(&remote_addr),
                     &core_tracker_services.scrape_handler,
-                    &udp_stats_event_sender,
+                    &udp_core_stats_event_sender,
+                    &udp_server_stats_event_sender,
                     sample_cookie_valid_range(),
                 )
                 .await
@@ -367,37 +413,50 @@ mod tests {
             use std::future;
             use std::sync::Arc;
 
-            use bittorrent_udp_tracker_core::statistics;
+            use bittorrent_udp_tracker_core::statistics as core_statistics;
             use mockall::predicate::eq;
 
             use super::sample_scrape_request;
             use crate::handlers::handle_scrape;
             use crate::handlers::tests::{
                 initialize_core_tracker_services_for_default_tracker_configuration, sample_cookie_valid_range,
-                sample_ipv6_remote_addr, MockUdpStatsEventSender,
+                sample_ipv6_remote_addr, MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender,
             };
+            use crate::statistics as server_statistics;
 
             #[tokio::test]
             async fn should_send_the_upd6_scrape_event() {
-                let mut udp_stats_event_sender_mock = MockUdpStatsEventSender::new();
-                udp_stats_event_sender_mock
+                let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
+                udp_core_stats_event_sender_mock
                     .expect_send_event()
-                    .with(eq(statistics::event::Event::Udp6Scrape))
+                    .with(eq(core_statistics::event::Event::Udp6Scrape))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(())))));
-                let udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
-                    Arc::new(Some(Box::new(udp_stats_event_sender_mock)));
+                let udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>> =
+                    Arc::new(Some(Box::new(udp_core_stats_event_sender_mock)));
+
+                let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
+                udp_server_stats_event_sender_mock
+                    .expect_send_event()
+                    .with(eq(server_statistics::event::Event::Udp6Request {
+                        kind: server_statistics::event::UdpResponseKind::Scrape,
+                    }))
+                    .times(1)
+                    .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
+                    Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
                 let remote_addr = sample_ipv6_remote_addr();
 
-                let (core_tracker_services, _core_udp_tracker_services) =
+                let (core_tracker_services, _core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
 
                 handle_scrape(
                     remote_addr,
                     &sample_scrape_request(&remote_addr),
                     &core_tracker_services.scrape_handler,
-                    &udp_stats_event_sender,
+                    &udp_core_stats_event_sender,
+                    &udp_server_stats_event_sender,
                     sample_cookie_valid_range(),
                 )
                 .await

@@ -4450,6 +4450,7 @@ dependencies = [
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
+ "torrust-udp-tracker-server",
  "tower 0.5.2",
  "tower-http",
  "tracing",
@@ -4525,6 +4526,7 @@ dependencies = [
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
+ "torrust-udp-tracker-server",
 ]
 
 [[package]]

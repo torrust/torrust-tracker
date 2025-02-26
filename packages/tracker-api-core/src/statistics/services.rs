@@ -2,9 +2,10 @@ use std::sync::Arc;
 
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use bittorrent_udp_tracker_core::services::banning::BanService;
-use bittorrent_udp_tracker_core::{self, statistics};
+use bittorrent_udp_tracker_core::{self, statistics as udp_core_statistics};
 use tokio::sync::RwLock;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+use torrust_udp_tracker_server::statistics as udp_server_statistics;
 
 use crate::statistics::metrics::Metrics;
 
@@ -27,12 +28,14 @@ pub async fn get_metrics(
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     ban_service: Arc<RwLock<BanService>>,
     http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
-    udp_stats_repository: Arc<statistics::repository::Repository>,
+    udp_core_stats_repository: Arc<udp_core_statistics::repository::Repository>,
+    udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
 ) -> TrackerMetrics {
     let torrents_metrics = in_memory_torrent_repository.get_torrents_metrics();
     let udp_banned_ips_total = ban_service.read().await.get_banned_ips_total();
     let http_stats = http_stats_repository.get_stats().await;
-    let udp_stats = udp_stats_repository.get_stats().await;
+    let udp_core_stats = udp_core_stats_repository.get_stats().await;
+    let udp_server_stats = udp_server_stats_repository.get_stats().await;
 
     TrackerMetrics {
         torrents_metrics,
@@ -46,26 +49,26 @@ pub async fn get_metrics(
             tcp6_announces_handled: http_stats.tcp6_announces_handled,
             tcp6_scrapes_handled: http_stats.tcp6_scrapes_handled,
             // UDP
-            udp_requests_aborted: udp_stats.udp_requests_aborted,
-            udp_requests_banned: udp_stats.udp_requests_banned,
+            udp_requests_aborted: udp_server_stats.udp_requests_aborted,
+            udp_requests_banned: udp_server_stats.udp_requests_banned,
             udp_banned_ips_total: udp_banned_ips_total as u64,
-            udp_avg_connect_processing_time_ns: udp_stats.udp_avg_connect_processing_time_ns,
-            udp_avg_announce_processing_time_ns: udp_stats.udp_avg_announce_processing_time_ns,
-            udp_avg_scrape_processing_time_ns: udp_stats.udp_avg_scrape_processing_time_ns,
+            udp_avg_connect_processing_time_ns: udp_server_stats.udp_avg_connect_processing_time_ns,
+            udp_avg_announce_processing_time_ns: udp_server_stats.udp_avg_announce_processing_time_ns,
+            udp_avg_scrape_processing_time_ns: udp_server_stats.udp_avg_scrape_processing_time_ns,
             // UDPv4
-            udp4_requests: udp_stats.udp4_requests,
-            udp4_connections_handled: udp_stats.udp4_connections_handled,
-            udp4_announces_handled: udp_stats.udp4_announces_handled,
-            udp4_scrapes_handled: udp_stats.udp4_scrapes_handled,
-            udp4_responses: udp_stats.udp4_responses,
-            udp4_errors_handled: udp_stats.udp4_errors_handled,
+            udp4_requests: udp_server_stats.udp4_requests,
+            udp4_connections_handled: udp_core_stats.udp4_connections_handled,
+            udp4_announces_handled: udp_core_stats.udp4_announces_handled,
+            udp4_scrapes_handled: udp_core_stats.udp4_scrapes_handled,
+            udp4_responses: udp_server_stats.udp4_responses,
+            udp4_errors_handled: udp_server_stats.udp4_errors_handled,
             // UDPv6
-            udp6_requests: udp_stats.udp6_requests,
-            udp6_connections_handled: udp_stats.udp6_connections_handled,
-            udp6_announces_handled: udp_stats.udp6_announces_handled,
-            udp6_scrapes_handled: udp_stats.udp6_scrapes_handled,
-            udp6_responses: udp_stats.udp6_responses,
-            udp6_errors_handled: udp_stats.udp6_errors_handled,
+            udp6_requests: udp_server_stats.udp6_requests,
+            udp6_connections_handled: udp_core_stats.udp6_connections_handled,
+            udp6_announces_handled: udp_core_stats.udp6_announces_handled,
+            udp6_scrapes_handled: udp_core_stats.udp6_scrapes_handled,
+            udp6_responses: udp_server_stats.udp6_responses,
+            udp6_errors_handled: udp_server_stats.udp6_errors_handled,
         },
     }
 }
@@ -97,21 +100,27 @@ mod tests {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
-        // HTTP stats
+        // HTTP core stats
         let (_http_stats_event_sender, http_stats_repository) =
             bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
         let http_stats_repository = Arc::new(http_stats_repository);
 
-        // UDP stats
+        // UDP core stats
         let (_udp_stats_event_sender, udp_stats_repository) =
             bittorrent_udp_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
         let udp_stats_repository = Arc::new(udp_stats_repository);
+
+        // UDP server stats
+        let (_udp_server_stats_event_sender, udp_server_stats_repository) =
+            torrust_udp_tracker_server::statistics::setup::factory(config.core.tracker_usage_statistics);
+        let udp_server_stats_repository = Arc::new(udp_server_stats_repository);
 
         let tracker_metrics = get_metrics(
             in_memory_torrent_repository.clone(),
             ban_service.clone(),
             http_stats_repository.clone(),
             udp_stats_repository.clone(),
+            udp_server_stats_repository.clone(),
         )
         .await;
 

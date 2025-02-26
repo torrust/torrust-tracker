@@ -64,6 +64,7 @@ mod tests {
 
     use super::spawner::Spawner;
     use super::Server;
+    use crate::container::UdpTrackerServerContainer;
 
     fn initialize_global_services(configuration: &Configuration) {
         initialize_static();
@@ -97,10 +98,16 @@ mod tests {
 
         let stopped = Server::new(Spawner::new(bind_to));
 
-        let udp_tracker_container = UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config);
+        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config);
+        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         let started = stopped
-            .start(udp_tracker_container, register.give_form(), config.cookie_lifetime)
+            .start(
+                udp_tracker_core_container,
+                udp_tracker_server_container,
+                register.give_form(),
+                config.cookie_lifetime,
+            )
             .await
             .expect("it should start the server");
 
@@ -131,11 +138,13 @@ mod tests {
 
         let stopped = Server::new(Spawner::new(bind_to));
 
-        let udp_tracker_container = UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config);
+        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config);
+        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         let started = stopped
             .start(
-                udp_tracker_container,
+                udp_tracker_core_container,
+                udp_tracker_server_container,
                 register.give_form(),
                 udp_tracker_config.cookie_lifetime,
             )

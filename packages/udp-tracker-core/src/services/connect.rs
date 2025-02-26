@@ -55,10 +55,10 @@ mod tests {
 
         #[tokio::test]
         async fn a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request() {
-            let (udp_stats_event_sender, _udp_stats_repository) = statistics::setup::factory(false);
-            let udp_stats_event_sender = Arc::new(udp_stats_event_sender);
+            let (udp_core_stats_event_sender, _udp_core_stats_repository) = statistics::setup::factory(false);
+            let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
 
-            let response = handle_connect(sample_ipv4_remote_addr(), &udp_stats_event_sender, sample_issue_time()).await;
+            let response = handle_connect(sample_ipv4_remote_addr(), &udp_core_stats_event_sender, sample_issue_time()).await;
 
             assert_eq!(
                 response,
@@ -68,10 +68,10 @@ mod tests {
 
         #[tokio::test]
         async fn a_connect_response_should_contain_a_new_connection_id() {
-            let (udp_stats_event_sender, _udp_stats_repository) = statistics::setup::factory(false);
-            let udp_stats_event_sender = Arc::new(udp_stats_event_sender);
+            let (udp_core_stats_event_sender, _udp_core_stats_repository) = statistics::setup::factory(false);
+            let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
 
-            let response = handle_connect(sample_ipv4_remote_addr(), &udp_stats_event_sender, sample_issue_time()).await;
+            let response = handle_connect(sample_ipv4_remote_addr(), &udp_core_stats_event_sender, sample_issue_time()).await;
 
             assert_eq!(
                 response,
@@ -81,10 +81,10 @@ mod tests {
 
         #[tokio::test]
         async fn a_connect_response_should_contain_a_new_connection_id_ipv6() {
-            let (udp_stats_event_sender, _udp_stats_repository) = statistics::setup::factory(false);
-            let udp_stats_event_sender = Arc::new(udp_stats_event_sender);
+            let (udp_core_stats_event_sender, _udp_core_stats_repository) = statistics::setup::factory(false);
+            let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
 
-            let response = handle_connect(sample_ipv6_remote_addr(), &udp_stats_event_sender, sample_issue_time()).await;
+            let response = handle_connect(sample_ipv6_remote_addr(), &udp_core_stats_event_sender, sample_issue_time()).await;
 
             assert_eq!(
                 response,

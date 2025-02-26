@@ -12,6 +12,7 @@ use torrust_tracker_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_configuration::{logging, Configuration};
 use torrust_tracker_primitives::peer;
+use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 
 use crate::server::{ApiServer, Launcher, Running, Stopped};
 
@@ -175,11 +176,13 @@ impl EnvContainer {
         let http_tracker_core_container =
             HttpTrackerCoreContainer::initialize_from(&tracker_core_container, &http_tracker_config);
         let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from(&tracker_core_container, &udp_tracker_config);
+        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         let tracker_http_api_core_container = TrackerHttpApiCoreContainer::initialize_from(
             &tracker_core_container,
             &http_tracker_core_container,
             &udp_tracker_core_container,
+            &udp_tracker_server_container,
             &http_api_config,
         );
 
