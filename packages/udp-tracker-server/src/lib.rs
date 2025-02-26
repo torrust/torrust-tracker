@@ -638,6 +638,7 @@ pub mod environment;
 pub mod error;
 pub mod handlers;
 pub mod server;
+pub mod statistics;
 
 use std::net::SocketAddr;
 
