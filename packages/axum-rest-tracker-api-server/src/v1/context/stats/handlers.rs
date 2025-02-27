@@ -9,7 +9,7 @@ use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepo
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use serde::Deserialize;
 use tokio::sync::RwLock;
-use torrust_tracker_api_core::statistics::services::get_metrics;
+use torrust_rest_tracker_api_core::statistics::services::get_metrics;
 
 use super::responses::{metrics_response, stats_response};
 

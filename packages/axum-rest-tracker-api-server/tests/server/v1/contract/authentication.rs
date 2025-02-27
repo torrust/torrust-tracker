@@ -1,6 +1,6 @@
-use torrust_axum_tracker_api_server::environment::Started;
-use torrust_tracker_api_client::common::http::{Query, QueryParam};
-use torrust_tracker_api_client::v1::client::{headers_with_request_id, Client};
+use torrust_axum_rest_tracker_api_server::environment::Started;
+use torrust_rest_tracker_api_client::common::http::{Query, QueryParam};
+use torrust_rest_tracker_api_client::v1::client::{headers_with_request_id, Client};
 use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
 use torrust_tracker_test_helpers::{configuration, logging};
 use uuid::Uuid;

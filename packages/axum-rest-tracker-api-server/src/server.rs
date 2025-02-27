@@ -35,10 +35,10 @@ use thiserror::Error;
 use tokio::sync::oneshot::{Receiver, Sender};
 use torrust_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_axum_server::signals::graceful_shutdown;
+use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use torrust_server_lib::signals::{Halted, Started};
-use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_configuration::AccessTokens;
 use tracing::{instrument, Level};
 
@@ -295,8 +295,8 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_axum_server::tsl::make_rust_tls;
+    use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
     use torrust_server_lib::registar::Registar;
-    use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_configuration::{logging, Configuration};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 

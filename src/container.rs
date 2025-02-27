@@ -17,7 +17,7 @@ use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self, MAX_CONNECTION_ID_ERRORS_PER_IP};
 use tokio::sync::RwLock;
-use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
+use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_configuration::{Configuration, Core, HttpApi, HttpTracker, UdpTracker};
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 use tracing::instrument;

@@ -2,7 +2,7 @@
 description = "A library to interact with the Torrust Tracker REST API."
 keywords = ["bittorrent", "client", "tracker"]
 license = "LGPL-3.0"
-name = "torrust-tracker-api-client"
+name = "torrust-rest-tracker-api-client"
 readme = "README.md"
 
 authors.workspace = true
