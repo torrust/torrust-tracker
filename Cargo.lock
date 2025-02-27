@@ -641,7 +641,7 @@ dependencies = [
  "r2d2",
  "r2d2_mysql",
  "r2d2_sqlite",
- "rand 0.9.0",
+ "rand 0.8.5",
  "serde",
  "serde_json",
  "testcontainers",
@@ -672,7 +672,7 @@ dependencies = [
  "futures",
  "lazy_static",
  "mockall",
- "rand 0.9.0",
+ "rand 0.8.5",
  "thiserror 2.0.11",
  "tokio",
  "torrust-tracker-configuration",
@@ -2355,7 +2355,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.6",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -4508,7 +4508,7 @@ dependencies = [
  "futures",
  "local-ip-address",
  "mockall",
- "rand 0.9.0",
+ "rand 0.8.5",
  "regex",
  "reqwest",
  "serde",
@@ -4619,7 +4619,7 @@ dependencies = [
 name = "torrust-tracker-test-helpers"
 version = "3.0.0-develop"
 dependencies = [
- "rand 0.9.0",
+ "rand 0.8.5",
  "torrust-tracker-configuration",
  "tracing",
  "tracing-subscriber",
@@ -4893,9 +4893,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.13.2"
+version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c1f41ffb7cf259f1ecc2876861a17e7142e63ead296f671f81f6ae85903e0d6"
+checksum = "e0f540e3240398cce6128b64ba83fdbdd86129c16a3aa1a3a252efd66eb3d587"
 dependencies = [
  "getrandom 0.3.1",
  "rand 0.9.0",
