@@ -145,15 +145,21 @@ pub enum ParseAnnounceQueryError {
 ///
 /// Refer to [BEP 03. The `BitTorrent Protocol` Specification](https://www.bittorrent.org/beps/bep_0003.html)
 /// for more information.
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Event {
     /// Event sent when a download first begins.
     Started,
+
     /// Event sent when the downloader cease downloading.
     Stopped,
+
     /// Event sent when the download is complete.
-    /// No `completed` is sent if the file was complete when started
+    /// No `completed` is sent if the file was complete when started.
     Completed,
+
+    /// It is the same as not being present. If not present, this is one of the
+    /// announcements done at regular intervals.
+    Empty,
 }
 
 impl FromStr for Event {
@@ -164,6 +170,7 @@ impl FromStr for Event {
             "started" => Ok(Self::Started),
             "stopped" => Ok(Self::Stopped),
             "completed" => Ok(Self::Completed),
+            "empty" => Ok(Self::Empty),
             _ => Err(ParseAnnounceQueryError::InvalidParam {
                 param_name: EVENT.to_owned(),
                 param_value: raw_param.to_owned(),
@@ -179,17 +186,29 @@ impl fmt::Display for Event {
             Event::Started => write!(f, "started"),
             Event::Stopped => write!(f, "stopped"),
             Event::Completed => write!(f, "completed"),
+            Event::Empty => write!(f, "empty"),
         }
     }
 }
 
 impl From<aquatic_udp_protocol::request::AnnounceEvent> for Event {
-    fn from(value: aquatic_udp_protocol::request::AnnounceEvent) -> Self {
-        match value {
+    fn from(event: aquatic_udp_protocol::request::AnnounceEvent) -> Self {
+        match event {
             AnnounceEvent::Started => Self::Started,
             AnnounceEvent::Stopped => Self::Stopped,
             AnnounceEvent::Completed => Self::Completed,
-            AnnounceEvent::None => panic!("can't convert announce event from aquatic for None variant"),
+            AnnounceEvent::None => Self::Empty,
+        }
+    }
+}
+
+impl From<Event> for aquatic_udp_protocol::request::AnnounceEvent {
+    fn from(event: Event) -> Self {
+        match event {
+            Event::Started => Self::Started,
+            Event::Stopped => Self::Stopped,
+            Event::Completed => Self::Completed,
+            Event::Empty => Self::None,
         }
     }
 }
@@ -399,19 +418,10 @@ pub fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> peer:
         uploaded: announce_request.uploaded.unwrap_or(NumberOfBytes::new(0)),
         downloaded: announce_request.downloaded.unwrap_or(NumberOfBytes::new(0)),
         left: announce_request.left.unwrap_or(NumberOfBytes::new(0)),
-        event: convert_to_aquatic_event(&announce_request.event),
-    }
-}
-
-#[must_use]
-pub fn convert_to_aquatic_event(event: &Option<Event>) -> aquatic_udp_protocol::request::AnnounceEvent {
-    match event {
-        Some(event) => match &event {
-            Event::Started => AnnounceEvent::Started,
-            Event::Stopped => AnnounceEvent::Stopped,
-            Event::Completed => AnnounceEvent::Completed,
+        event: match &announce_request.event {
+            Some(event) => event.clone().into(),
+            None => AnnounceEvent::None,
         },
-        None => AnnounceEvent::None,
     }
 }
 
