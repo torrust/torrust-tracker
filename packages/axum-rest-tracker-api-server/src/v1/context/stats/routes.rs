@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use axum::routing::get;
 use axum::Router;
-use torrust_tracker_api_core::container::TrackerHttpApiCoreContainer;
+use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 
 use super::handlers::get_stats_handler;
 

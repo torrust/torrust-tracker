@@ -118,7 +118,7 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
         if let Some(job) = tracker_apis::start_job(
             http_api_container,
             registar.give_form(),
-            torrust_axum_tracker_api_server::Version::V1,
+            torrust_axum_rest_tracker_api_server::Version::V1,
         )
         .await
         {

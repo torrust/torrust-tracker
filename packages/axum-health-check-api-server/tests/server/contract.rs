@@ -43,7 +43,7 @@ mod api {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = torrust_axum_tracker_api_server::environment::Started::new(&configuration).await;
+        let service = torrust_axum_rest_tracker_api_server::environment::Started::new(&configuration).await;
 
         let registar = service.registar.clone();
 
@@ -90,7 +90,7 @@ mod api {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = torrust_axum_tracker_api_server::environment::Started::new(&configuration).await;
+        let service = torrust_axum_rest_tracker_api_server::environment::Started::new(&configuration).await;
 
         let binding = service.bind_address();
 

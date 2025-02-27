@@ -647,7 +647,7 @@ dependencies = [
  "testcontainers",
  "thiserror 2.0.11",
  "tokio",
- "torrust-tracker-api-client",
+ "torrust-rest-tracker-api-client",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-located-error",
@@ -4350,8 +4350,8 @@ dependencies = [
  "tokio",
  "torrust-axum-health-check-api-server",
  "torrust-axum-http-tracker-server",
+ "torrust-axum-rest-tracker-api-server",
  "torrust-axum-server",
- "torrust-axum-tracker-api-server",
  "torrust-server-lib",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
@@ -4400,27 +4400,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "torrust-axum-server"
-version = "3.0.0-develop"
-dependencies = [
- "axum-server",
- "camino",
- "futures-util",
- "http-body",
- "hyper",
- "hyper-util",
- "pin-project-lite",
- "thiserror 2.0.11",
- "tokio",
- "torrust-server-lib",
- "torrust-tracker-configuration",
- "torrust-tracker-located-error",
- "tower 0.5.2",
- "tracing",
-]
-
-[[package]]
-name = "torrust-axum-tracker-api-server"
+name = "torrust-axum-rest-tracker-api-server"
 version = "3.0.0-develop"
 dependencies = [
  "aquatic_udp_protocol",
@@ -4443,19 +4423,65 @@ dependencies = [
  "thiserror 2.0.11",
  "tokio",
  "torrust-axum-server",
+ "torrust-rest-tracker-api-client",
+ "torrust-rest-tracker-api-core",
  "torrust-server-lib",
- "torrust-tracker-api-client",
- "torrust-tracker-api-core",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
  "torrust-udp-tracker-server",
- "tower 0.5.2",
+ "tower 0.4.13",
  "tower-http",
  "tracing",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "torrust-axum-server"
+version = "3.0.0-develop"
+dependencies = [
+ "axum-server",
+ "camino",
+ "futures-util",
+ "http-body",
+ "hyper",
+ "hyper-util",
+ "pin-project-lite",
+ "thiserror 2.0.11",
+ "tokio",
+ "torrust-server-lib",
+ "torrust-tracker-configuration",
+ "torrust-tracker-located-error",
+ "tower 0.5.2",
+ "tracing",
+]
+
+[[package]]
+name = "torrust-rest-tracker-api-client"
+version = "3.0.0-develop"
+dependencies = [
+ "hyper",
+ "reqwest",
+ "serde",
+ "thiserror 2.0.11",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "torrust-rest-tracker-api-core"
+version = "3.0.0-develop"
+dependencies = [
+ "bittorrent-http-tracker-core",
+ "bittorrent-tracker-core",
+ "bittorrent-udp-tracker-core",
+ "tokio",
+ "torrust-tracker-configuration",
+ "torrust-tracker-primitives",
+ "torrust-tracker-test-helpers",
+ "torrust-udp-tracker-server",
 ]
 
 [[package]]
@@ -4490,43 +4516,17 @@ dependencies = [
  "tokio",
  "torrust-axum-health-check-api-server",
  "torrust-axum-http-tracker-server",
+ "torrust-axum-rest-tracker-api-server",
  "torrust-axum-server",
- "torrust-axum-tracker-api-server",
+ "torrust-rest-tracker-api-client",
+ "torrust-rest-tracker-api-core",
  "torrust-server-lib",
- "torrust-tracker-api-client",
- "torrust-tracker-api-core",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-test-helpers",
  "torrust-udp-tracker-server",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "torrust-tracker-api-client"
-version = "3.0.0-develop"
-dependencies = [
- "hyper",
- "reqwest",
- "serde",
- "thiserror 2.0.11",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "torrust-tracker-api-core"
-version = "3.0.0-develop"
-dependencies = [
- "bittorrent-http-tracker-core",
- "bittorrent-tracker-core",
- "bittorrent-udp-tracker-core",
- "tokio",
- "torrust-tracker-configuration",
- "torrust-tracker-primitives",
- "torrust-tracker-test-helpers",
- "torrust-udp-tracker-server",
 ]
 
 [[package]]
@@ -4685,6 +4685,7 @@ dependencies = [
  "futures-util",
  "pin-project",
  "pin-project-lite",
+ "tokio",
  "tower-layer",
  "tower-service",
  "tracing",

@@ -63,12 +63,12 @@ jobs:
           cargo publish -p bittorrent-udp-tracker-protocol
           cargo publish -p torrust-axum-health-check-api-server
           cargo publish -p torrust-axum-http-tracker-server
+          cargo publish -p torrust-axum-rest-tracker-api-server
           cargo publish -p torrust-axum-server
-          cargo publish -p torrust-axum-tracker-api-server
+          cargo publish -p torrust-rest-tracker-api-client
+          cargo publish -p torrust-rest-tracker-api-core
           cargo publish -p torrust-torrust-server-lib
           cargo publish -p torrust-tracker
-          cargo publish -p torrust-tracker-api-client
-          cargo publish -p torrust-tracker-api-core
           cargo publish -p torrust-tracker-client
           cargo publish -p torrust-tracker-clock
           cargo publish -p torrust-tracker-configuration
