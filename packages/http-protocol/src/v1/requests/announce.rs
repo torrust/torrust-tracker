@@ -399,12 +399,12 @@ pub fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> peer:
         uploaded: announce_request.uploaded.unwrap_or(NumberOfBytes::new(0)),
         downloaded: announce_request.downloaded.unwrap_or(NumberOfBytes::new(0)),
         left: announce_request.left.unwrap_or(NumberOfBytes::new(0)),
-        event: map_to_torrust_event(&announce_request.event),
+        event: convert_to_aquatic_event(&announce_request.event),
     }
 }
 
 #[must_use]
-pub fn map_to_torrust_event(event: &Option<Event>) -> AnnounceEvent {
+pub fn convert_to_aquatic_event(event: &Option<Event>) -> aquatic_udp_protocol::request::AnnounceEvent {
     match event {
         Some(event) => match &event {
             Event::Started => AnnounceEvent::Started,
@@ -444,7 +444,7 @@ mod tests {
             assert_eq!(
                 announce_request,
                 Announce {
-                    info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
+                    info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
                     peer_id: PeerId(*b"-qB00000000000000001"),
                     port: 17548,
                     downloaded: None,
@@ -479,7 +479,7 @@ mod tests {
             assert_eq!(
                 announce_request,
                 Announce {
-                    info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
+                    info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
                     peer_id: PeerId(*b"-qB00000000000000001"),
                     port: 17548,
                     downloaded: Some(NumberOfBytes::new(1)),

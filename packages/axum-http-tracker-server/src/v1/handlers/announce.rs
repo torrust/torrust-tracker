@@ -4,11 +4,10 @@
 //! and resolve the client IP address.
 use std::sync::Arc;
 
-use aquatic_udp_protocol::AnnounceEvent;
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
 use bittorrent_http_tracker_core::services::announce::HttpAnnounceError;
-use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
+use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, Compact};
 use bittorrent_http_tracker_protocol::v1::responses::{self};
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use bittorrent_tracker_core::announce_handler::AnnounceHandler;
@@ -155,30 +154,6 @@ fn build_response(announce_request: &Announce, announce_data: AnnounceData) -> R
         let response: responses::Announce<responses::Normal> = announce_data.into();
         let bytes: Vec<u8> = response.data.into();
         (StatusCode::OK, bytes).into_response()
-    }
-}
-
-#[must_use]
-pub fn map_to_aquatic_event(event: &Option<Event>) -> aquatic_udp_protocol::AnnounceEvent {
-    match event {
-        Some(event) => match &event {
-            Event::Started => aquatic_udp_protocol::AnnounceEvent::Started,
-            Event::Stopped => aquatic_udp_protocol::AnnounceEvent::Stopped,
-            Event::Completed => aquatic_udp_protocol::AnnounceEvent::Completed,
-        },
-        None => aquatic_udp_protocol::AnnounceEvent::None,
-    }
-}
-
-#[must_use]
-pub fn map_to_torrust_event(event: &Option<Event>) -> AnnounceEvent {
-    match event {
-        Some(event) => match &event {
-            Event::Started => AnnounceEvent::Started,
-            Event::Stopped => AnnounceEvent::Stopped,
-            Event::Completed => AnnounceEvent::Completed,
-        },
-        None => AnnounceEvent::None,
     }
 }
 
