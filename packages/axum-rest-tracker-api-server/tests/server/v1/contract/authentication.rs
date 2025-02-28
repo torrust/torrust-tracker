@@ -16,6 +16,7 @@ async fn should_authenticate_requests_by_using_a_token_query_param() {
     let token = env.get_connection_info().api_token.unwrap();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .get_request_with_query("stats", Query::params([QueryParam::new("token", &token)].to_vec()), None)
         .await;
 
@@ -33,6 +34,7 @@ async fn should_not_authenticate_requests_when_the_token_is_missing() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .get_request_with_query("stats", Query::default(), Some(headers_with_request_id(request_id)))
         .await;
 
@@ -55,6 +57,7 @@ async fn should_not_authenticate_requests_when_the_token_is_empty() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .get_request_with_query(
             "stats",
             Query::params([QueryParam::new("token", "")].to_vec()),
@@ -81,6 +84,7 @@ async fn should_not_authenticate_requests_when_the_token_is_invalid() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .get_request_with_query(
             "stats",
             Query::params([QueryParam::new("token", "INVALID TOKEN")].to_vec()),
@@ -108,6 +112,7 @@ async fn should_allow_the_token_query_param_to_be_at_any_position_in_the_url_que
 
     // At the beginning of the query component
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .get_request(&format!("torrents?token={token}&limit=1"))
         .await;
 
@@ -115,6 +120,7 @@ async fn should_allow_the_token_query_param_to_be_at_any_position_in_the_url_que
 
     // At the end of the query component
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .get_request(&format!("torrents?limit=1&token={token}"))
         .await;
 
