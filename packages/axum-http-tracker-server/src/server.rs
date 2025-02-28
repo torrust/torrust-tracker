@@ -238,8 +238,9 @@ pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
 mod tests {
     use std::sync::Arc;
 
+    use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
     use bittorrent_http_tracker_core::services::announce::AnnounceService;
-    use bittorrent_http_tracker_core::{container::HttpTrackerCoreContainer, services::scrape::ScrapeService};
+    use bittorrent_http_tracker_core::services::scrape::ScrapeService;
     use bittorrent_tracker_core::announce_handler::AnnounceHandler;
     use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use bittorrent_tracker_core::authentication::service;
