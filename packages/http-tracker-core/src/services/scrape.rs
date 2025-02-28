@@ -71,7 +71,6 @@ impl From<authentication::key::Error> for HttpScrapeError {
         }
     }
 }
-
 /// The HTTP tracker `scrape` service.
 ///
 /// The service sends an statistics event that increments:
@@ -88,46 +87,71 @@ impl From<authentication::key::Error> for HttpScrapeError {
 /// This function will return an error if:
 ///
 /// - There is an error when resolving the client IP address.
-#[allow(clippy::too_many_arguments)]
-pub async fn handle_scrape(
-    core_config: &Arc<Core>,
-    scrape_handler: &Arc<ScrapeHandler>,
-    authentication_service: &Arc<AuthenticationService>,
-    opt_http_stats_event_sender: &Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
-    scrape_request: &Scrape,
-    client_ip_sources: &ClientIpSources,
-    maybe_key: Option<Key>,
-) -> Result<ScrapeData, HttpScrapeError> {
-    // Authentication
-    let return_fake_scrape_data = if core_config.private {
-        match maybe_key {
-            Some(key) => match authentication_service.authenticate(&key).await {
-                Ok(()) => false,
-                Err(_error) => true,
-            },
-            None => true,
+pub struct ScrapeService {
+    core_config: Arc<Core>,
+    scrape_handler: Arc<ScrapeHandler>,
+    authentication_service: Arc<AuthenticationService>,
+    opt_http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+}
+
+impl ScrapeService {
+    #[must_use]
+    pub fn new(
+        core_config: Arc<Core>,
+        scrape_handler: Arc<ScrapeHandler>,
+        authentication_service: Arc<AuthenticationService>,
+        opt_http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    ) -> Self {
+        Self {
+            core_config,
+            scrape_handler,
+            authentication_service,
+            opt_http_stats_event_sender,
         }
-    } else {
-        false
-    };
-
-    // Authorization for scrape requests is handled at the `bittorrent_tracker_core`
-    // level for each torrent.
-
-    let peer_ip = match peer_ip_resolver::invoke(core_config.net.on_reverse_proxy, client_ip_sources) {
-        Ok(peer_ip) => peer_ip,
-        Err(error) => return Err(error.into()),
-    };
-
-    if return_fake_scrape_data {
-        return Ok(fake(opt_http_stats_event_sender, &scrape_request.info_hashes, &peer_ip).await);
     }
 
-    let scrape_data = scrape_handler.scrape(&scrape_request.info_hashes).await?;
+    /// # Errors
+    ///
+    /// This function will return an error if:
+    ///
+    /// - There is an error when resolving the client IP address.
+    pub async fn handle_scrape(
+        &self,
+        scrape_request: &Scrape,
+        client_ip_sources: &ClientIpSources,
+        maybe_key: Option<Key>,
+    ) -> Result<ScrapeData, HttpScrapeError> {
+        // Authentication
+        let return_fake_scrape_data = if self.core_config.private {
+            match maybe_key {
+                Some(key) => match self.authentication_service.authenticate(&key).await {
+                    Ok(()) => false,
+                    Err(_error) => true,
+                },
+                None => true,
+            }
+        } else {
+            false
+        };
 
-    send_scrape_event(&peer_ip, opt_http_stats_event_sender).await;
+        // Authorization for scrape requests is handled at the `bittorrent_tracker_core`
+        // level for each torrent.
 
-    Ok(scrape_data)
+        let peer_ip = match peer_ip_resolver::invoke(self.core_config.net.on_reverse_proxy, client_ip_sources) {
+            Ok(peer_ip) => peer_ip,
+            Err(error) => return Err(error.into()),
+        };
+
+        if return_fake_scrape_data {
+            return Ok(fake(&self.opt_http_stats_event_sender, &scrape_request.info_hashes, &peer_ip).await);
+        }
+
+        let scrape_data = self.scrape_handler.scrape(&scrape_request.info_hashes).await?;
+
+        send_scrape_event(&peer_ip, &self.opt_http_stats_event_sender).await;
+
+        Ok(scrape_data)
+    }
 }
 
 /// The HTTP tracker fake `scrape` service. It returns zeroed stats.
@@ -261,10 +285,10 @@ mod tests {
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::services::scrape::handle_scrape;
         use crate::services::scrape::tests::{
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
+        use crate::services::scrape::ScrapeService;
         use crate::statistics;
         use crate::tests::sample_info_hash;
 
@@ -299,17 +323,17 @@ mod tests {
                 connection_info_ip: Some(original_peer_ip),
             };
 
-            let scrape_data = handle_scrape(
-                &core_config,
-                &container.scrape_handler,
-                &container.authentication_service,
-                &http_stats_event_sender,
-                &scrape_request,
-                &client_ip_sources,
-                None,
-            )
-            .await
-            .unwrap();
+            let scrape_service = Arc::new(ScrapeService::new(
+                core_config.clone(),
+                container.scrape_handler.clone(),
+                container.authentication_service.clone(),
+                http_stats_event_sender.clone(),
+            ));
+
+            let scrape_data = scrape_service
+                .handle_scrape(&scrape_request, &client_ip_sources, None)
+                .await
+                .unwrap();
 
             let mut expected_scrape_data = ScrapeData::empty();
             expected_scrape_data.add_file(
@@ -350,17 +374,17 @@ mod tests {
                 connection_info_ip: Some(peer_ip),
             };
 
-            handle_scrape(
-                &Arc::new(config.core),
-                &container.scrape_handler,
-                &container.authentication_service,
-                &http_stats_event_sender,
-                &scrape_request,
-                &client_ip_sources,
-                None,
-            )
-            .await
-            .unwrap();
+            let scrape_service = Arc::new(ScrapeService::new(
+                Arc::new(config.core),
+                container.scrape_handler.clone(),
+                container.authentication_service.clone(),
+                http_stats_event_sender.clone(),
+            ));
+
+            scrape_service
+                .handle_scrape(&scrape_request, &client_ip_sources, None)
+                .await
+                .unwrap();
         }
 
         #[tokio::test]
@@ -389,17 +413,17 @@ mod tests {
                 connection_info_ip: Some(peer_ip),
             };
 
-            handle_scrape(
-                &Arc::new(config.core),
-                &container.scrape_handler,
-                &container.authentication_service,
-                &http_stats_event_sender,
-                &scrape_request,
-                &client_ip_sources,
-                None,
-            )
-            .await
-            .unwrap();
+            let scrape_service = Arc::new(ScrapeService::new(
+                Arc::new(config.core),
+                container.scrape_handler.clone(),
+                container.authentication_service.clone(),
+                http_stats_event_sender.clone(),
+            ));
+
+            scrape_service
+                .handle_scrape(&scrape_request, &client_ip_sources, None)
+                .await
+                .unwrap();
         }
     }
 

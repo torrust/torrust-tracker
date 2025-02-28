@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use bittorrent_http_tracker_core::services::announce::AnnounceService;
+use bittorrent_http_tracker_core::services::scrape::ScrapeService;
 use bittorrent_tracker_core::announce_handler::AnnounceHandler;
 use bittorrent_tracker_core::authentication::handler::KeysHandler;
 use bittorrent_tracker_core::authentication::service::AuthenticationService;
@@ -47,6 +48,7 @@ pub struct AppContainer {
     pub http_stats_event_sender: Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
     pub http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
     pub http_announce_service: Arc<bittorrent_http_tracker_core::services::announce::AnnounceService>,
+    pub http_scrape_service: Arc<bittorrent_http_tracker_core::services::scrape::ScrapeService>,
 
     // UDP Tracker Server Services
     pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::statistics::event::sender::Sender>>>,
@@ -70,6 +72,12 @@ impl AppContainer {
             tracker_core_container.announce_handler.clone(),
             tracker_core_container.authentication_service.clone(),
             tracker_core_container.whitelist_authorization.clone(),
+            http_stats_event_sender.clone(),
+        ));
+        let http_scrape_service = Arc::new(ScrapeService::new(
+            tracker_core_container.core_config.clone(),
+            tracker_core_container.scrape_handler.clone(),
+            tracker_core_container.authentication_service.clone(),
             http_stats_event_sender.clone(),
         ));
 
@@ -111,6 +119,7 @@ impl AppContainer {
             http_stats_event_sender,
             http_stats_repository,
             http_announce_service,
+            http_scrape_service,
 
             // UDP Tracker Server Services
             udp_server_stats_event_sender,
@@ -131,6 +140,7 @@ impl AppContainer {
             http_stats_event_sender: self.http_stats_event_sender.clone(),
             http_stats_repository: self.http_stats_repository.clone(),
             announce_service: self.http_announce_service.clone(),
+            scrape_service: self.http_scrape_service.clone(),
         }
     }
 

@@ -6,15 +6,12 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
-use bittorrent_http_tracker_core::services::scrape::HttpScrapeError;
+use bittorrent_http_tracker_core::services::scrape::ScrapeService;
 use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
 use bittorrent_http_tracker_protocol::v1::responses;
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-use bittorrent_tracker_core::authentication::service::AuthenticationService;
 use bittorrent_tracker_core::authentication::Key;
-use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
 use hyper::StatusCode;
-use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::ScrapeData;
 
 use crate::v1::extractors::authentication_key::Extract as ExtractKey;
@@ -24,29 +21,14 @@ use crate::v1::extractors::scrape_request::ExtractRequest;
 /// It handles the `scrape` request when the HTTP tracker is configured
 /// to run in `public` mode.
 #[allow(clippy::unused_async)]
-#[allow(clippy::type_complexity)]
 pub async fn handle_without_key(
-    State(state): State<(
-        Arc<Core>,
-        Arc<ScrapeHandler>,
-        Arc<AuthenticationService>,
-        Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
-    )>,
+    State(state): State<Arc<ScrapeService>>,
     ExtractRequest(scrape_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
 ) -> Response {
     tracing::debug!("http scrape request: {:#?}", &scrape_request);
 
-    handle(
-        &state.0,
-        &state.1,
-        &state.2,
-        &state.3,
-        &scrape_request,
-        &client_ip_sources,
-        None,
-    )
-    .await
+    handle(&state, &scrape_request, &client_ip_sources, None).await
 }
 
 /// It handles the `scrape` request when the HTTP tracker is configured
@@ -54,52 +36,26 @@ pub async fn handle_without_key(
 ///
 /// In this case, the authentication `key` parameter is required.
 #[allow(clippy::unused_async)]
-#[allow(clippy::type_complexity)]
 pub async fn handle_with_key(
-    State(state): State<(
-        Arc<Core>,
-        Arc<ScrapeHandler>,
-        Arc<AuthenticationService>,
-        Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
-    )>,
+    State(state): State<Arc<ScrapeService>>,
     ExtractRequest(scrape_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
     ExtractKey(key): ExtractKey,
 ) -> Response {
     tracing::debug!("http scrape request: {:#?}", &scrape_request);
 
-    handle(
-        &state.0,
-        &state.1,
-        &state.2,
-        &state.3,
-        &scrape_request,
-        &client_ip_sources,
-        Some(key),
-    )
-    .await
+    handle(&state, &scrape_request, &client_ip_sources, Some(key)).await
 }
 
-#[allow(clippy::too_many_arguments)]
 async fn handle(
-    core_config: &Arc<Core>,
-    scrape_handler: &Arc<ScrapeHandler>,
-    authentication_service: &Arc<AuthenticationService>,
-    http_stats_event_sender: &Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
+    scrape_service: &Arc<ScrapeService>,
     scrape_request: &Scrape,
     client_ip_sources: &ClientIpSources,
     maybe_key: Option<Key>,
 ) -> Response {
-    let scrape_data = match handle_scrape(
-        core_config,
-        scrape_handler,
-        authentication_service,
-        http_stats_event_sender,
-        scrape_request,
-        client_ip_sources,
-        maybe_key,
-    )
-    .await
+    let scrape_data = match scrape_service
+        .handle_scrape(scrape_request, client_ip_sources, maybe_key)
+        .await
     {
         Ok(scrape_data) => scrape_data,
         Err(error) => {
@@ -111,28 +67,6 @@ async fn handle(
     };
 
     build_response(scrape_data)
-}
-
-#[allow(clippy::too_many_arguments)]
-async fn handle_scrape(
-    core_config: &Arc<Core>,
-    scrape_handler: &Arc<ScrapeHandler>,
-    authentication_service: &Arc<AuthenticationService>,
-    opt_http_stats_event_sender: &Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
-    scrape_request: &Scrape,
-    client_ip_sources: &ClientIpSources,
-    maybe_key: Option<Key>,
-) -> Result<ScrapeData, HttpScrapeError> {
-    bittorrent_http_tracker_core::services::scrape::handle_scrape(
-        core_config,
-        scrape_handler,
-        authentication_service,
-        opt_http_stats_event_sender,
-        scrape_request,
-        client_ip_sources,
-        maybe_key,
-    )
-    .await
 }
 
 fn build_response(scrape_data: ScrapeData) -> Response {
@@ -233,11 +167,11 @@ mod tests {
     mod with_tracker_in_private_mode {
         use std::str::FromStr;
 
+        use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use bittorrent_tracker_core::authentication;
         use torrust_tracker_primitives::core::ScrapeData;
 
         use super::{initialize_private_tracker, sample_client_ip_sources, sample_scrape_request};
-        use crate::v1::handlers::scrape::handle_scrape;
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_missing() {
@@ -246,17 +180,17 @@ mod tests {
             let scrape_request = sample_scrape_request();
             let maybe_key = None;
 
-            let scrape_data = handle_scrape(
-                &core_tracker_services.core_config,
-                &core_tracker_services.scrape_handler,
-                &core_tracker_services.authentication_service,
-                &core_http_tracker_services.http_stats_event_sender,
-                &scrape_request,
-                &sample_client_ip_sources(),
-                maybe_key,
-            )
-            .await
-            .unwrap();
+            let scrape_service = ScrapeService::new(
+                core_tracker_services.core_config.clone(),
+                core_tracker_services.scrape_handler.clone(),
+                core_tracker_services.authentication_service.clone(),
+                core_http_tracker_services.http_stats_event_sender.clone(),
+            );
+
+            let scrape_data = scrape_service
+                .handle_scrape(&scrape_request, &sample_client_ip_sources(), maybe_key)
+                .await
+                .unwrap();
 
             let expected_scrape_data = ScrapeData::zeroed(&scrape_request.info_hashes);
 
@@ -271,17 +205,17 @@ mod tests {
             let unregistered_key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
             let maybe_key = Some(unregistered_key);
 
-            let scrape_data = handle_scrape(
-                &core_tracker_services.core_config,
-                &core_tracker_services.scrape_handler,
-                &core_tracker_services.authentication_service,
-                &core_http_tracker_services.http_stats_event_sender,
-                &scrape_request,
-                &sample_client_ip_sources(),
-                maybe_key,
-            )
-            .await
-            .unwrap();
+            let scrape_service = ScrapeService::new(
+                core_tracker_services.core_config.clone(),
+                core_tracker_services.scrape_handler.clone(),
+                core_tracker_services.authentication_service.clone(),
+                core_http_tracker_services.http_stats_event_sender.clone(),
+            );
+
+            let scrape_data = scrape_service
+                .handle_scrape(&scrape_request, &sample_client_ip_sources(), maybe_key)
+                .await
+                .unwrap();
 
             let expected_scrape_data = ScrapeData::zeroed(&scrape_request.info_hashes);
 
@@ -291,10 +225,10 @@ mod tests {
 
     mod with_tracker_in_listed_mode {
 
+        use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use torrust_tracker_primitives::core::ScrapeData;
 
         use super::{initialize_listed_tracker, sample_client_ip_sources, sample_scrape_request};
-        use crate::v1::handlers::scrape::handle_scrape;
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_torrent_is_not_whitelisted() {
@@ -302,17 +236,17 @@ mod tests {
 
             let scrape_request = sample_scrape_request();
 
-            let scrape_data = handle_scrape(
-                &core_tracker_services.core_config,
-                &core_tracker_services.scrape_handler,
-                &core_tracker_services.authentication_service,
-                &core_http_tracker_services.http_stats_event_sender,
-                &scrape_request,
-                &sample_client_ip_sources(),
-                None,
-            )
-            .await
-            .unwrap();
+            let scrape_service = ScrapeService::new(
+                core_tracker_services.core_config.clone(),
+                core_tracker_services.scrape_handler.clone(),
+                core_tracker_services.authentication_service.clone(),
+                core_http_tracker_services.http_stats_event_sender.clone(),
+            );
+
+            let scrape_data = scrape_service
+                .handle_scrape(&scrape_request, &sample_client_ip_sources(), None)
+                .await
+                .unwrap();
 
             let expected_scrape_data = ScrapeData::zeroed(&scrape_request.info_hashes);
 
@@ -322,11 +256,11 @@ mod tests {
 
     mod with_tracker_on_reverse_proxy {
 
+        use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
         use super::{initialize_tracker_on_reverse_proxy, sample_scrape_request};
-        use crate::v1::handlers::scrape::handle_scrape;
         use crate::v1::handlers::scrape::tests::assert_error_response;
 
         #[tokio::test]
@@ -338,17 +272,17 @@ mod tests {
                 connection_info_ip: None,
             };
 
-            let response = handle_scrape(
-                &core_tracker_services.core_config,
-                &core_tracker_services.scrape_handler,
-                &core_tracker_services.authentication_service,
-                &core_http_tracker_services.http_stats_event_sender,
-                &sample_scrape_request(),
-                &client_ip_sources,
-                None,
-            )
-            .await
-            .unwrap_err();
+            let scrape_service = ScrapeService::new(
+                core_tracker_services.core_config.clone(),
+                core_tracker_services.scrape_handler.clone(),
+                core_tracker_services.authentication_service.clone(),
+                core_http_tracker_services.http_stats_event_sender.clone(),
+            );
+
+            let response = scrape_service
+                .handle_scrape(&sample_scrape_request(), &client_ip_sources, None)
+                .await
+                .unwrap_err();
 
             let error_response = responses::error::Error {
                 failure_reason: response.to_string(),
@@ -363,11 +297,11 @@ mod tests {
 
     mod with_tracker_not_on_reverse_proxy {
 
+        use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
         use super::{initialize_tracker_not_on_reverse_proxy, sample_scrape_request};
-        use crate::v1::handlers::scrape::handle_scrape;
         use crate::v1::handlers::scrape::tests::assert_error_response;
 
         #[tokio::test]
@@ -379,17 +313,17 @@ mod tests {
                 connection_info_ip: None,
             };
 
-            let response = handle_scrape(
-                &core_tracker_services.core_config,
-                &core_tracker_services.scrape_handler,
-                &core_tracker_services.authentication_service,
-                &core_http_tracker_services.http_stats_event_sender,
-                &sample_scrape_request(),
-                &client_ip_sources,
-                None,
-            )
-            .await
-            .unwrap_err();
+            let scrape_service = ScrapeService::new(
+                core_tracker_services.core_config.clone(),
+                core_tracker_services.scrape_handler.clone(),
+                core_tracker_services.authentication_service.clone(),
+                core_http_tracker_services.http_stats_event_sender.clone(),
+            );
+
+            let response = scrape_service
+                .handle_scrape(&sample_scrape_request(), &client_ip_sources, None)
+                .await
+                .unwrap_err();
 
             let error_response = responses::error::Error {
                 failure_reason: response.to_string(),

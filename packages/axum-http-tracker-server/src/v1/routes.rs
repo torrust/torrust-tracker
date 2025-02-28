@@ -47,21 +47,11 @@ pub fn router(http_tracker_container: Arc<HttpTrackerCoreContainer>, server_sock
         // Scrape request
         .route(
             "/scrape",
-            get(scrape::handle_without_key).with_state((
-                http_tracker_container.core_config.clone(),
-                http_tracker_container.scrape_handler.clone(),
-                http_tracker_container.authentication_service.clone(),
-                http_tracker_container.http_stats_event_sender.clone(),
-            )),
+            get(scrape::handle_without_key).with_state(http_tracker_container.scrape_service.clone()),
         )
         .route(
             "/scrape/{key}",
-            get(scrape::handle_with_key).with_state((
-                http_tracker_container.core_config.clone(),
-                http_tracker_container.scrape_handler.clone(),
-                http_tracker_container.authentication_service.clone(),
-                http_tracker_container.http_stats_event_sender.clone(),
-            )),
+            get(scrape::handle_with_key).with_state(http_tracker_container.scrape_service.clone()),
         )
         // Add extension to get the client IP from the connection info
         .layer(SecureClientIpSource::ConnectInfo.into_extension())

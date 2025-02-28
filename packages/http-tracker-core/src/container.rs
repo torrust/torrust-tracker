@@ -8,6 +8,7 @@ use bittorrent_tracker_core::whitelist;
 use torrust_tracker_configuration::{Core, HttpTracker};
 
 use crate::services::announce::AnnounceService;
+use crate::services::scrape::ScrapeService;
 use crate::statistics;
 
 pub struct HttpTrackerCoreContainer {
@@ -22,6 +23,7 @@ pub struct HttpTrackerCoreContainer {
     pub http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
     pub http_stats_repository: Arc<statistics::repository::Repository>,
     pub announce_service: Arc<AnnounceService>,
+    pub scrape_service: Arc<ScrapeService>,
 }
 
 impl HttpTrackerCoreContainer {
@@ -49,6 +51,13 @@ impl HttpTrackerCoreContainer {
             http_stats_event_sender.clone(),
         ));
 
+        let scrape_service = Arc::new(ScrapeService::new(
+            tracker_core_container.core_config.clone(),
+            tracker_core_container.scrape_handler.clone(),
+            tracker_core_container.authentication_service.clone(),
+            http_stats_event_sender.clone(),
+        ));
+
         Arc::new(Self {
             core_config: tracker_core_container.core_config.clone(),
             announce_handler: tracker_core_container.announce_handler.clone(),
@@ -60,6 +69,7 @@ impl HttpTrackerCoreContainer {
             http_stats_event_sender: http_stats_event_sender.clone(),
             http_stats_repository: http_stats_repository.clone(),
             announce_service: announce_service.clone(),
+            scrape_service: scrape_service.clone(),
         })
     }
 }
