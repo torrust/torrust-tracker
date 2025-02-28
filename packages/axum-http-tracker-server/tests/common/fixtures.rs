@@ -15,8 +15,8 @@ pub fn invalid_info_hashes() -> Vec<String> {
 
 /// Returns a random info hash.
 pub fn random_info_hash() -> InfoHash {
-    let mut rng = rand::thread_rng();
-    let random_bytes: [u8; 20] = rng.gen();
+    let mut rng = rand::rng();
+    let random_bytes: [u8; 20] = rng.random();
 
     InfoHash::from_bytes(&random_bytes)
 }
