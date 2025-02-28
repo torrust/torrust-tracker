@@ -10,6 +10,7 @@ use torrust_tracker_configuration::{Core, UdpTracker};
 use crate::services::announce::AnnounceService;
 use crate::services::banning::BanService;
 use crate::services::connect::ConnectService;
+use crate::services::scrape::ScrapeService;
 use crate::{statistics, MAX_CONNECTION_ID_ERRORS_PER_IP};
 
 pub struct UdpTrackerCoreContainer {
@@ -25,6 +26,7 @@ pub struct UdpTrackerCoreContainer {
     pub ban_service: Arc<RwLock<BanService>>,
     pub connect_service: Arc<ConnectService>,
     pub announce_service: Arc<AnnounceService>,
+    pub scrape_service: Arc<ScrapeService>,
 }
 
 impl UdpTrackerCoreContainer {
@@ -50,6 +52,10 @@ impl UdpTrackerCoreContainer {
             tracker_core_container.whitelist_authorization.clone(),
             udp_core_stats_event_sender.clone(),
         ));
+        let scrape_service = Arc::new(ScrapeService::new(
+            tracker_core_container.scrape_handler.clone(),
+            udp_core_stats_event_sender.clone(),
+        ));
 
         Arc::new(UdpTrackerCoreContainer {
             core_config: tracker_core_container.core_config.clone(),
@@ -63,6 +69,7 @@ impl UdpTrackerCoreContainer {
             ban_service: ban_service.clone(),
             connect_service: connect_service.clone(),
             announce_service: announce_service.clone(),
+            scrape_service: scrape_service.clone(),
         })
     }
 }

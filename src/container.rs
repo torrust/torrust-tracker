@@ -45,6 +45,7 @@ pub struct AppContainer {
     pub ban_service: Arc<RwLock<BanService>>,
     pub connect_service: Arc<bittorrent_udp_tracker_core::services::connect::ConnectService>,
     pub announce_service: Arc<bittorrent_udp_tracker_core::services::announce::AnnounceService>,
+    pub scrape_service: Arc<bittorrent_udp_tracker_core::services::scrape::ScrapeService>,
 
     // HTTP Tracker Core Services
     pub http_stats_event_sender: Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
@@ -97,6 +98,10 @@ impl AppContainer {
             tracker_core_container.whitelist_authorization.clone(),
             udp_core_stats_event_sender.clone(),
         ));
+        let scrape_service = Arc::new(bittorrent_udp_tracker_core::services::scrape::ScrapeService::new(
+            tracker_core_container.scrape_handler.clone(),
+            udp_core_stats_event_sender.clone(),
+        ));
 
         // UDP Tracker Server Services
         let (udp_server_stats_event_sender, udp_server_stats_repository) =
@@ -125,6 +130,7 @@ impl AppContainer {
             ban_service,
             connect_service,
             announce_service,
+            scrape_service,
 
             // HTTP Tracker Core Services
             http_stats_event_sender,
@@ -169,6 +175,7 @@ impl AppContainer {
             ban_service: self.ban_service.clone(),
             connect_service: self.connect_service.clone(),
             announce_service: self.announce_service.clone(),
+            scrape_service: self.scrape_service.clone(),
         }
     }
 
