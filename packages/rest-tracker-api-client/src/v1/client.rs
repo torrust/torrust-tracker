@@ -1,5 +1,7 @@
+use std::time::Duration;
+
 use hyper::HeaderMap;
-use reqwest::Response;
+use reqwest::{Error, Response};
 use serde::Serialize;
 use url::Url;
 use uuid::Uuid;
@@ -7,19 +9,31 @@ use uuid::Uuid;
 use crate::common::http::{Query, QueryParam, ReqwestQuery};
 use crate::connection_info::ConnectionInfo;
 
+const TOKEN_PARAM_NAME: &str = "token";
+const API_PATH: &str = "api/v1/";
+const DEFAULT_REQUEST_TIMEOUT_IN_SECS: u64 = 5;
+
 /// API Client
 pub struct Client {
     connection_info: ConnectionInfo,
     base_path: String,
+    client: reqwest::Client,
 }
 
 impl Client {
-    #[must_use]
-    pub fn new(connection_info: ConnectionInfo) -> Self {
-        Self {
+    /// # Errors
+    ///
+    /// Will return an error if the HTTP client can't be created.
+    pub fn new(connection_info: ConnectionInfo) -> Result<Self, Error> {
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(DEFAULT_REQUEST_TIMEOUT_IN_SECS))
+            .build()?;
+
+        Ok(Self {
             connection_info,
-            base_path: "api/v1/".to_string(),
-        }
+            base_path: API_PATH.to_string(),
+            client,
+        })
     }
 
     pub async fn generate_auth_key(&self, seconds_valid: i32, headers: Option<HeaderMap>) -> Response {
@@ -66,7 +80,7 @@ impl Client {
         let mut query: Query = params;
 
         if let Some(token) = &self.connection_info.api_token {
-            query.add_param(QueryParam::new("token", token));
+            query.add_param(QueryParam::new(TOKEN_PARAM_NAME, token));
         }
 
         self.get_request_with_query(path, query, headers).await
@@ -76,7 +90,8 @@ impl Client {
     ///
     /// Will panic if the request can't be sent
     pub async fn post_empty(&self, path: &str, headers: Option<HeaderMap>) -> Response {
-        let builder = reqwest::Client::new()
+        let builder = self
+            .client
             .post(self.base_url(path).clone())
             .query(&ReqwestQuery::from(self.query_with_token()));
 
@@ -92,7 +107,8 @@ impl Client {
     ///
     /// Will panic if the request can't be sent
     pub async fn post_form<T: Serialize + ?Sized>(&self, path: &str, form: &T, headers: Option<HeaderMap>) -> Response {
-        let builder = reqwest::Client::new()
+        let builder = self
+            .client
             .post(self.base_url(path).clone())
             .query(&ReqwestQuery::from(self.query_with_token()))
             .json(&form);
@@ -109,7 +125,8 @@ impl Client {
     ///
     /// Will panic if the request can't be sent
     async fn delete(&self, path: &str, headers: Option<HeaderMap>) -> Response {
-        let builder = reqwest::Client::new()
+        let builder = self
+            .client
             .delete(self.base_url(path).clone())
             .query(&ReqwestQuery::from(self.query_with_token()));
 
@@ -145,7 +162,10 @@ impl Client {
 ///
 /// Will panic if the request can't be sent
 pub async fn get(path: Url, query: Option<Query>, headers: Option<HeaderMap>) -> Response {
-    let builder = reqwest::Client::builder().build().unwrap();
+    let builder = reqwest::Client::builder()
+        .timeout(Duration::from_secs(DEFAULT_REQUEST_TIMEOUT_IN_SECS))
+        .build()
+        .unwrap();
 
     let builder = match query {
         Some(params) => builder.get(path).query(&ReqwestQuery::from(params)),

@@ -25,6 +25,7 @@ async fn should_allow_whitelisting_a_torrent() {
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .whitelist_a_torrent(&info_hash, Some(headers_with_request_id(request_id)))
         .await;
 
@@ -48,7 +49,7 @@ async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted()
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
 
-    let api_client = Client::new(env.get_connection_info());
+    let api_client = Client::new(env.get_connection_info()).unwrap();
 
     let request_id = Uuid::new_v4();
 
@@ -78,6 +79,7 @@ async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+        .unwrap()
         .whitelist_a_torrent(&info_hash, Some(headers_with_request_id(request_id)))
         .await;
 
@@ -91,6 +93,7 @@ async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+        .unwrap()
         .whitelist_a_torrent(&info_hash, Some(headers_with_request_id(request_id)))
         .await;
 
@@ -117,6 +120,7 @@ async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .whitelist_a_torrent(&info_hash, Some(headers_with_request_id(request_id)))
         .await;
 
@@ -140,6 +144,7 @@ async fn should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invali
 
     for invalid_infohash in &invalid_infohashes_returning_bad_request() {
         let response = Client::new(env.get_connection_info())
+            .unwrap()
             .whitelist_a_torrent(invalid_infohash, Some(headers_with_request_id(request_id)))
             .await;
 
@@ -150,6 +155,7 @@ async fn should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invali
 
     for invalid_infohash in &invalid_infohashes_returning_not_found() {
         let response = Client::new(env.get_connection_info())
+            .unwrap()
             .whitelist_a_torrent(invalid_infohash, Some(headers_with_request_id(request_id)))
             .await;
 
@@ -178,6 +184,7 @@ async fn should_allow_removing_a_torrent_from_the_whitelist() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .remove_torrent_from_whitelist(&hash, Some(headers_with_request_id(request_id)))
         .await;
 
@@ -204,6 +211,7 @@ async fn should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whi
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .remove_torrent_from_whitelist(&non_whitelisted_torrent_hash, Some(headers_with_request_id(request_id)))
         .await;
 
@@ -222,6 +230,7 @@ async fn should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_inf
         let request_id = Uuid::new_v4();
 
         let response = Client::new(env.get_connection_info())
+            .unwrap()
             .remove_torrent_from_whitelist(invalid_infohash, Some(headers_with_request_id(request_id)))
             .await;
 
@@ -232,6 +241,7 @@ async fn should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_inf
         let request_id = Uuid::new_v4();
 
         let response = Client::new(env.get_connection_info())
+            .unwrap()
             .remove_torrent_from_whitelist(invalid_infohash, Some(headers_with_request_id(request_id)))
             .await;
 
@@ -261,6 +271,7 @@ async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .remove_torrent_from_whitelist(&hash, Some(headers_with_request_id(request_id)))
         .await;
 
@@ -293,6 +304,7 @@ async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthentica
     let request_id = Uuid::new_v4();
 
     let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+        .unwrap()
         .remove_torrent_from_whitelist(&hash, Some(headers_with_request_id(request_id)))
         .await;
 
@@ -313,6 +325,7 @@ async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthentica
     let request_id = Uuid::new_v4();
 
     let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+        .unwrap()
         .remove_torrent_from_whitelist(&hash, Some(headers_with_request_id(request_id)))
         .await;
 
@@ -334,6 +347,7 @@ async fn should_allow_reload_the_whitelist_from_the_database() {
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();
+
     env.container
         .tracker_core_container
         .whitelist_manager
@@ -344,6 +358,7 @@ async fn should_allow_reload_the_whitelist_from_the_database() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .reload_whitelist(Some(headers_with_request_id(request_id)))
         .await;
 
@@ -382,6 +397,7 @@ async fn should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .reload_whitelist(Some(headers_with_request_id(request_id)))
         .await;
 

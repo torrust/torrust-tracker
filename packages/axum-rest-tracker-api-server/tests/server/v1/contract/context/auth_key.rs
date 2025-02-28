@@ -25,6 +25,7 @@ async fn should_allow_generating_a_new_random_auth_key() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .add_auth_key(
             AddKeyForm {
                 opt_key: None,
@@ -56,6 +57,7 @@ async fn should_allow_uploading_a_preexisting_auth_key() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .add_auth_key(
             AddKeyForm {
                 opt_key: Some("Xc1L4PbQJSFGlrgSRZl8wxSFAuMa21z5".to_string()),
@@ -87,6 +89,7 @@ async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() 
     let request_id = Uuid::new_v4();
 
     let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+        .unwrap()
         .add_auth_key(
             AddKeyForm {
                 opt_key: None,
@@ -106,6 +109,7 @@ async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() 
     let request_id = Uuid::new_v4();
 
     let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+        .unwrap()
         .add_auth_key(
             AddKeyForm {
                 opt_key: None,
@@ -136,6 +140,7 @@ async fn should_fail_when_the_auth_key_cannot_be_generated() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .add_auth_key(
             AddKeyForm {
                 opt_key: None,
@@ -173,6 +178,7 @@ async fn should_allow_deleting_an_auth_key() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
         .await;
 
@@ -207,6 +213,7 @@ async fn should_fail_generating_a_new_auth_key_when_the_provided_key_is_invalid(
         let request_id = Uuid::new_v4();
 
         let response = Client::new(env.get_connection_info())
+            .unwrap()
             .post_form(
                 "keys",
                 &InvalidAddKeyForm {
@@ -246,6 +253,7 @@ async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid(
         let request_id = Uuid::new_v4();
 
         let response = Client::new(env.get_connection_info())
+            .unwrap()
             .post_form(
                 "keys",
                 &InvalidAddKeyForm {
@@ -282,6 +290,7 @@ async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
         let request_id = Uuid::new_v4();
 
         let response = Client::new(env.get_connection_info())
+            .unwrap()
             .delete_auth_key(invalid_auth_key, Some(headers_with_request_id(request_id)))
             .await;
 
@@ -311,6 +320,7 @@ async fn should_fail_when_the_auth_key_cannot_be_deleted() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
         .await;
 
@@ -344,6 +354,7 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+        .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
         .await;
 
@@ -366,6 +377,7 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+        .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
         .await;
 
@@ -396,6 +408,7 @@ async fn should_allow_reloading_keys() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
         .await;
 
@@ -423,6 +436,7 @@ async fn should_fail_when_keys_cannot_be_reloaded() {
     force_database_error(&env.container.tracker_core_container.database);
 
     let response = Client::new(env.get_connection_info())
+        .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
         .await;
 
@@ -453,6 +467,7 @@ async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+        .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
         .await;
 
@@ -466,6 +481,7 @@ async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
     let request_id = Uuid::new_v4();
 
     let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+        .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
         .await;
 
@@ -504,6 +520,7 @@ mod deprecated_generate_key_endpoint {
         let seconds_valid = 60;
 
         let response = Client::new(env.get_connection_info())
+            .unwrap()
             .generate_auth_key(seconds_valid, None)
             .await;
 
@@ -530,12 +547,14 @@ mod deprecated_generate_key_endpoint {
         let seconds_valid = 60;
 
         let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+            .unwrap()
             .generate_auth_key(seconds_valid, Some(headers_with_request_id(request_id)))
             .await;
 
         assert_token_not_valid(response).await;
 
         let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+            .unwrap()
             .generate_auth_key(seconds_valid, None)
             .await;
 
@@ -563,6 +582,7 @@ mod deprecated_generate_key_endpoint {
 
         for invalid_key_duration in invalid_key_durations {
             let response = Client::new(env.get_connection_info())
+                .unwrap()
                 .post_empty(&format!("key/{invalid_key_duration}"), None)
                 .await;
 
@@ -583,6 +603,7 @@ mod deprecated_generate_key_endpoint {
         let request_id = Uuid::new_v4();
         let seconds_valid = 60;
         let response = Client::new(env.get_connection_info())
+            .unwrap()
             .generate_auth_key(seconds_valid, Some(headers_with_request_id(request_id)))
             .await;
 
