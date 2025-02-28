@@ -147,7 +147,7 @@ pub async fn handle_request(
         Request::Connect(connect_request) => Ok(handle_connect(
             remote_addr,
             &connect_request,
-            &udp_tracker_core_container.udp_core_stats_event_sender,
+            &udp_tracker_core_container.connect_service,
             &udp_tracker_server_container.udp_server_stats_event_sender,
             cookie_time_values.issue_time,
         )

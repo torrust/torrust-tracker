@@ -3,18 +3,18 @@ use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Response};
-use bittorrent_udp_tracker_core::{services, statistics as core_statistics};
+use bittorrent_udp_tracker_core::services::connect::ConnectService;
 use tracing::{instrument, Level};
 
 use crate::statistics as server_statistics;
 use crate::statistics::event::UdpResponseKind;
 
 /// It handles the `Connect` request.
-#[instrument(fields(transaction_id), skip(opt_udp_core_stats_event_sender, opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
+#[instrument(fields(transaction_id), skip(connect_service, opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
 pub async fn handle_connect(
     remote_addr: SocketAddr,
     request: &ConnectRequest,
-    opt_udp_core_stats_event_sender: &Arc<Option<Box<dyn core_statistics::event::sender::Sender>>>,
+    connect_service: &Arc<ConnectService>,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
     cookie_issue_time: f64,
 ) -> Response {
@@ -40,7 +40,7 @@ pub async fn handle_connect(
         }
     }
 
-    let connection_id = services::connect::handle_connect(remote_addr, opt_udp_core_stats_event_sender, cookie_issue_time).await;
+    let connection_id = connect_service.handle_connect(remote_addr, cookie_issue_time).await;
 
     build_response(*request, connection_id)
 }
@@ -64,6 +64,7 @@ mod tests {
 
         use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
         use bittorrent_udp_tracker_core::connection_cookie::make;
+        use bittorrent_udp_tracker_core::services::connect::ConnectService;
         use bittorrent_udp_tracker_core::statistics as core_statistics;
         use mockall::predicate::eq;
 
@@ -94,10 +95,12 @@ mod tests {
                 transaction_id: TransactionId(0i32.into()),
             };
 
+            let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+
             let response = handle_connect(
                 sample_ipv4_remote_addr(),
                 &request,
-                &udp_core_stats_event_sender,
+                &connect_service,
                 &udp_server_stats_event_sender,
                 sample_issue_time(),
             )
@@ -125,10 +128,12 @@ mod tests {
                 transaction_id: TransactionId(0i32.into()),
             };
 
+            let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+
             let response = handle_connect(
                 sample_ipv4_remote_addr(),
                 &request,
-                &udp_core_stats_event_sender,
+                &connect_service,
                 &udp_server_stats_event_sender,
                 sample_issue_time(),
             )
@@ -156,10 +161,12 @@ mod tests {
                 transaction_id: TransactionId(0i32.into()),
             };
 
+            let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+
             let response = handle_connect(
                 sample_ipv6_remote_addr(),
                 &request,
-                &udp_core_stats_event_sender,
+                &connect_service,
                 &udp_server_stats_event_sender,
                 sample_issue_time(),
             )
@@ -198,10 +205,12 @@ mod tests {
 
             let client_socket_address = sample_ipv4_socket_address();
 
+            let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+
             handle_connect(
                 client_socket_address,
                 &sample_connect_request(),
-                &udp_core_stats_event_sender,
+                &connect_service,
                 &udp_server_stats_event_sender,
                 sample_issue_time(),
             )
@@ -230,10 +239,12 @@ mod tests {
             let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                 Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
+            let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+
             handle_connect(
                 sample_ipv6_remote_addr(),
                 &sample_connect_request(),
-                &udp_core_stats_event_sender,
+                &connect_service,
                 &udp_server_stats_event_sender,
                 sample_issue_time(),
             )
