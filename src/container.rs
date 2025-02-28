@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
+use bittorrent_http_tracker_core::services::announce::AnnounceService;
 use bittorrent_tracker_core::announce_handler::AnnounceHandler;
 use bittorrent_tracker_core::authentication::handler::KeysHandler;
 use bittorrent_tracker_core::authentication::service::AuthenticationService;
@@ -45,6 +46,7 @@ pub struct AppContainer {
     // HTTP Tracker Core Services
     pub http_stats_event_sender: Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
     pub http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
+    pub http_announce_service: Arc<bittorrent_http_tracker_core::services::announce::AnnounceService>,
 
     // UDP Tracker Server Services
     pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::statistics::event::sender::Sender>>>,
@@ -58,13 +60,20 @@ impl AppContainer {
 
         let tracker_core_container = TrackerCoreContainer::initialize(&core_config);
 
-        // HTTP core stats
+        // HTTP Tracker Core Services
         let (http_stats_event_sender, http_stats_repository) =
             bittorrent_http_tracker_core::statistics::setup::factory(configuration.core.tracker_usage_statistics);
         let http_stats_event_sender = Arc::new(http_stats_event_sender);
         let http_stats_repository = Arc::new(http_stats_repository);
+        let http_announce_service = Arc::new(AnnounceService::new(
+            tracker_core_container.core_config.clone(),
+            tracker_core_container.announce_handler.clone(),
+            tracker_core_container.authentication_service.clone(),
+            tracker_core_container.whitelist_authorization.clone(),
+            http_stats_event_sender.clone(),
+        ));
 
-        // UDP core stats
+        // UDP Tracker Core Services
         let (udp_core_stats_event_sender, udp_core_stats_repository) =
             bittorrent_udp_tracker_core::statistics::setup::factory(configuration.core.tracker_usage_statistics);
         let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
@@ -72,13 +81,14 @@ impl AppContainer {
 
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
-        // UDP server stats
+        // UDP Tracker Server Services
         let (udp_server_stats_event_sender, udp_server_stats_repository) =
             torrust_udp_tracker_server::statistics::setup::factory(configuration.core.tracker_usage_statistics);
         let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
         let udp_server_stats_repository = Arc::new(udp_server_stats_repository);
 
         AppContainer {
+            // Tracker Core Services
             core_config,
             database: tracker_core_container.database,
             announce_handler: tracker_core_container.announce_handler,
@@ -91,11 +101,18 @@ impl AppContainer {
             in_memory_torrent_repository: tracker_core_container.in_memory_torrent_repository,
             db_torrent_repository: tracker_core_container.db_torrent_repository,
             torrents_manager: tracker_core_container.torrents_manager,
+
+            // UDP Tracker Core Services
             ban_service,
-            http_stats_event_sender,
             udp_core_stats_event_sender,
-            http_stats_repository,
             udp_core_stats_repository,
+
+            // HTTP Tracker Core Services
+            http_stats_event_sender,
+            http_stats_repository,
+            http_announce_service,
+
+            // UDP Tracker Server Services
             udp_server_stats_event_sender,
             udp_server_stats_repository,
         }
@@ -113,6 +130,7 @@ impl AppContainer {
             http_tracker_config: http_tracker_config.clone(),
             http_stats_event_sender: self.http_stats_event_sender.clone(),
             http_stats_repository: self.http_stats_repository.clone(),
+            announce_service: self.http_announce_service.clone(),
         }
     }
 

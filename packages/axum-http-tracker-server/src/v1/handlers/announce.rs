@@ -6,16 +6,12 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use axum::response::{IntoResponse, Response};
-use bittorrent_http_tracker_core::services::announce::HttpAnnounceError;
+use bittorrent_http_tracker_core::services::announce::{AnnounceService, HttpAnnounceError};
 use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, Compact};
 use bittorrent_http_tracker_protocol::v1::responses::{self};
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-use bittorrent_tracker_core::announce_handler::AnnounceHandler;
-use bittorrent_tracker_core::authentication::service::AuthenticationService;
 use bittorrent_tracker_core::authentication::Key;
-use bittorrent_tracker_core::whitelist;
 use hyper::StatusCode;
-use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::AnnounceData;
 
 use crate::v1::extractors::announce_request::ExtractRequest;
@@ -25,91 +21,41 @@ use crate::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
 /// It handles the `announce` request when the HTTP tracker does not require
 /// authentication (no PATH `key` parameter required).
 #[allow(clippy::unused_async)]
-#[allow(clippy::type_complexity)]
 pub async fn handle_without_key(
-    State(state): State<(
-        Arc<Core>,
-        Arc<AnnounceHandler>,
-        Arc<AuthenticationService>,
-        Arc<whitelist::authorization::WhitelistAuthorization>,
-        Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
-    )>,
+    State(state): State<Arc<AnnounceService>>,
     ExtractRequest(announce_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
 ) -> Response {
     tracing::debug!("http announce request: {:#?}", announce_request);
 
-    handle(
-        &state.0,
-        &state.1,
-        &state.2,
-        &state.3,
-        &state.4,
-        &announce_request,
-        &client_ip_sources,
-        None,
-    )
-    .await
+    handle(&state, &announce_request, &client_ip_sources, None).await
 }
 
 /// It handles the `announce` request when the HTTP tracker requires
 /// authentication (PATH `key` parameter required).
 #[allow(clippy::unused_async)]
-#[allow(clippy::type_complexity)]
 pub async fn handle_with_key(
-    State(state): State<(
-        Arc<Core>,
-        Arc<AnnounceHandler>,
-        Arc<AuthenticationService>,
-        Arc<whitelist::authorization::WhitelistAuthorization>,
-        Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
-    )>,
+    State(state): State<Arc<AnnounceService>>,
     ExtractRequest(announce_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
     ExtractKey(key): ExtractKey,
 ) -> Response {
     tracing::debug!("http announce request: {:#?}", announce_request);
 
-    handle(
-        &state.0,
-        &state.1,
-        &state.2,
-        &state.3,
-        &state.4,
-        &announce_request,
-        &client_ip_sources,
-        Some(key),
-    )
-    .await
+    handle(&state, &announce_request, &client_ip_sources, Some(key)).await
 }
 
 /// It handles the `announce` request.
 ///
 /// Internal implementation that handles both the `authenticated` and
 /// `unauthenticated` modes.
-#[allow(clippy::too_many_arguments)]
 async fn handle(
-    config: &Arc<Core>,
-    announce_handler: &Arc<AnnounceHandler>,
-    authentication_service: &Arc<AuthenticationService>,
-    whitelist_authorization: &Arc<whitelist::authorization::WhitelistAuthorization>,
-    opt_http_stats_event_sender: &Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
+    announce_service: &Arc<AnnounceService>,
     announce_request: &Announce,
     client_ip_sources: &ClientIpSources,
     maybe_key: Option<Key>,
 ) -> Response {
-    let announce_data = match handle_announce(
-        config,
-        announce_handler,
-        authentication_service,
-        whitelist_authorization,
-        opt_http_stats_event_sender,
-        announce_request,
-        client_ip_sources,
-        maybe_key,
-    )
-    .await
-    {
+    let announce_data = match handle_announce(announce_service, announce_request, client_ip_sources, maybe_key).await {
         Ok(announce_data) => announce_data,
         Err(error) => {
             let error_response = responses::error::Error {
@@ -121,28 +67,15 @@ async fn handle(
     build_response(announce_request, announce_data)
 }
 
-#[allow(clippy::too_many_arguments)]
 async fn handle_announce(
-    core_config: &Arc<Core>,
-    announce_handler: &Arc<AnnounceHandler>,
-    authentication_service: &Arc<AuthenticationService>,
-    whitelist_authorization: &Arc<whitelist::authorization::WhitelistAuthorization>,
-    opt_http_stats_event_sender: &Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
+    announce_service: &Arc<AnnounceService>,
     announce_request: &Announce,
     client_ip_sources: &ClientIpSources,
     maybe_key: Option<Key>,
 ) -> Result<AnnounceData, HttpAnnounceError> {
-    bittorrent_http_tracker_core::services::announce::handle_announce(
-        &core_config.clone(),
-        &announce_handler.clone(),
-        &authentication_service.clone(),
-        &whitelist_authorization.clone(),
-        &opt_http_stats_event_sender.clone(),
-        announce_request,
-        client_ip_sources,
-        maybe_key,
-    )
-    .await
+    announce_service
+        .handle_announce(announce_request, client_ip_sources, maybe_key)
+        .await
 }
 
 fn build_response(announce_request: &Announce, announce_data: AnnounceData) -> Response {
@@ -163,6 +96,7 @@ mod tests {
     use std::sync::Arc;
 
     use aquatic_udp_protocol::PeerId;
+    use bittorrent_http_tracker_core::services::announce::AnnounceService;
     use bittorrent_http_tracker_protocol::v1::requests::announce::Announce;
     use bittorrent_http_tracker_protocol::v1::responses;
     use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
@@ -174,39 +108,32 @@ mod tests {
     use bittorrent_tracker_core::torrent::repository::persisted::DatabasePersistentTorrentRepository;
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use torrust_tracker_configuration::{Configuration, Core};
+    use torrust_tracker_configuration::Configuration;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::tests::helpers::sample_info_hash;
 
-    struct CoreTrackerServices {
-        pub core_config: Arc<Core>,
-        pub announce_handler: Arc<AnnounceHandler>,
-        pub whitelist_authorization: Arc<WhitelistAuthorization>,
-        pub authentication_service: Arc<AuthenticationService>,
-    }
-
     struct CoreHttpTrackerServices {
-        pub http_stats_event_sender: Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
+        pub announce_service: Arc<AnnounceService>,
     }
 
-    fn initialize_private_tracker() -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    fn initialize_private_tracker() -> CoreHttpTrackerServices {
         initialize_core_tracker_services(&configuration::ephemeral_private())
     }
 
-    fn initialize_listed_tracker() -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    fn initialize_listed_tracker() -> CoreHttpTrackerServices {
         initialize_core_tracker_services(&configuration::ephemeral_listed())
     }
 
-    fn initialize_tracker_on_reverse_proxy() -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    fn initialize_tracker_on_reverse_proxy() -> CoreHttpTrackerServices {
         initialize_core_tracker_services(&configuration::ephemeral_with_reverse_proxy())
     }
 
-    fn initialize_tracker_not_on_reverse_proxy() -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    fn initialize_tracker_not_on_reverse_proxy() -> CoreHttpTrackerServices {
         initialize_core_tracker_services(&configuration::ephemeral_without_reverse_proxy())
     }
 
-    fn initialize_core_tracker_services(config: &Configuration) -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    fn initialize_core_tracker_services(config: &Configuration) -> CoreHttpTrackerServices {
         let core_config = Arc::new(config.core.clone());
         let database = initialize_database(&config.core);
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -228,15 +155,15 @@ mod tests {
         let http_stats_event_sender = Arc::new(http_stats_event_sender);
         let _http_stats_repository = Arc::new(http_stats_repository);
 
-        (
-            CoreTrackerServices {
-                core_config,
-                announce_handler,
-                whitelist_authorization,
-                authentication_service,
-            },
-            CoreHttpTrackerServices { http_stats_event_sender },
-        )
+        let announce_service = Arc::new(AnnounceService::new(
+            core_config.clone(),
+            announce_handler.clone(),
+            authentication_service.clone(),
+            whitelist_authorization.clone(),
+            http_stats_event_sender.clone(),
+        ));
+
+        CoreHttpTrackerServices { announce_service }
     }
 
     fn sample_announce_request() -> Announce {
@@ -280,16 +207,12 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_fail_when_the_authentication_key_is_missing() {
-            let (core_tracker_services, http_core_tracker_services) = initialize_private_tracker();
+            let http_core_tracker_services = initialize_private_tracker();
 
             let maybe_key = None;
 
             let response = handle_announce(
-                &core_tracker_services.core_config,
-                &core_tracker_services.announce_handler,
-                &core_tracker_services.authentication_service,
-                &core_tracker_services.whitelist_authorization,
-                &http_core_tracker_services.http_stats_event_sender,
+                &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &sample_client_ip_sources(),
                 maybe_key,
@@ -309,18 +232,14 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_fail_when_the_authentication_key_is_invalid() {
-            let (core_tracker_services, http_core_tracker_services) = initialize_private_tracker();
+            let http_core_tracker_services = initialize_private_tracker();
 
             let unregistered_key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
             let maybe_key = Some(unregistered_key);
 
             let response = handle_announce(
-                &core_tracker_services.core_config,
-                &core_tracker_services.announce_handler,
-                &core_tracker_services.authentication_service,
-                &core_tracker_services.whitelist_authorization,
-                &http_core_tracker_services.http_stats_event_sender,
+                &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &sample_client_ip_sources(),
                 maybe_key,
@@ -349,16 +268,12 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_fail_when_the_announced_torrent_is_not_whitelisted() {
-            let (core_tracker_services, http_core_tracker_services) = initialize_listed_tracker();
+            let http_core_tracker_services = initialize_listed_tracker();
 
             let announce_request = sample_announce_request();
 
             let response = handle_announce(
-                &core_tracker_services.core_config,
-                &core_tracker_services.announce_handler,
-                &core_tracker_services.authentication_service,
-                &core_tracker_services.whitelist_authorization,
-                &http_core_tracker_services.http_stats_event_sender,
+                &http_core_tracker_services.announce_service,
                 &announce_request,
                 &sample_client_ip_sources(),
                 None,
@@ -391,7 +306,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_fail_when_the_right_most_x_forwarded_for_header_ip_is_not_available() {
-            let (core_tracker_services, http_core_tracker_services) = initialize_tracker_on_reverse_proxy();
+            let http_core_tracker_services = initialize_tracker_on_reverse_proxy();
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
@@ -399,11 +314,7 @@ mod tests {
             };
 
             let response = handle_announce(
-                &core_tracker_services.core_config,
-                &core_tracker_services.announce_handler,
-                &core_tracker_services.authentication_service,
-                &core_tracker_services.whitelist_authorization,
-                &http_core_tracker_services.http_stats_event_sender,
+                &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &client_ip_sources,
                 None,
@@ -433,7 +344,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_fail_when_the_client_ip_from_the_connection_info_is_not_available() {
-            let (core_tracker_services, http_core_tracker_services) = initialize_tracker_not_on_reverse_proxy();
+            let http_core_tracker_services = initialize_tracker_not_on_reverse_proxy();
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
@@ -441,11 +352,7 @@ mod tests {
             };
 
             let response = handle_announce(
-                &core_tracker_services.core_config,
-                &core_tracker_services.announce_handler,
-                &core_tracker_services.authentication_service,
-                &core_tracker_services.whitelist_authorization,
-                &http_core_tracker_services.http_stats_event_sender,
+                &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &client_ip_sources,
                 None,

@@ -239,6 +239,7 @@ mod tests {
     use std::sync::Arc;
 
     use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
+    use bittorrent_http_tracker_core::services::announce::AnnounceService;
     use bittorrent_tracker_core::announce_handler::AnnounceHandler;
     use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use bittorrent_tracker_core::authentication::service;
@@ -293,6 +294,14 @@ mod tests {
 
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
+        let announce_service = Arc::new(AnnounceService::new(
+            core_config.clone(),
+            announce_handler.clone(),
+            authentication_service.clone(),
+            whitelist_authorization.clone(),
+            http_stats_event_sender.clone(),
+        ));
+
         HttpTrackerCoreContainer {
             core_config,
             announce_handler,
@@ -303,6 +312,7 @@ mod tests {
             http_tracker_config,
             http_stats_event_sender,
             http_stats_repository,
+            announce_service,
         }
     }
 

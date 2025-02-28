@@ -83,81 +83,105 @@ impl From<authentication::key::Error> for HttpAnnounceError {
 /// > **NOTICE**: as the HTTP tracker does not requires a connection request
 /// > like the UDP tracker, the number of TCP connections is incremented for
 /// > each `announce` request.
-///
-/// # Errors
-///
-/// This function will return an error if:
-///
-/// - The tracker is running in `listed` mode and the torrent is not whitelisted.
-/// - There is an error when resolving the client IP address.
-#[allow(clippy::too_many_arguments)]
-pub async fn handle_announce(
-    core_config: &Arc<Core>,
-    announce_handler: &Arc<AnnounceHandler>,
-    authentication_service: &Arc<AuthenticationService>,
-    whitelist_authorization: &Arc<whitelist::authorization::WhitelistAuthorization>,
-    opt_http_stats_event_sender: &Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
-    announce_request: &Announce,
-    client_ip_sources: &ClientIpSources,
-    maybe_key: Option<Key>,
-) -> Result<AnnounceData, HttpAnnounceError> {
-    // Authentication
-    if core_config.private {
-        match maybe_key {
-            Some(key) => match authentication_service.authenticate(&key).await {
-                Ok(()) => (),
-                Err(error) => return Err(error.into()),
-            },
-            None => {
-                return Err(authentication::key::Error::MissingAuthKey {
-                    location: Location::caller(),
+pub struct AnnounceService {
+    core_config: Arc<Core>,
+    announce_handler: Arc<AnnounceHandler>,
+    authentication_service: Arc<AuthenticationService>,
+    whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+    opt_http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+}
+
+impl AnnounceService {
+    #[must_use]
+    pub fn new(
+        core_config: Arc<Core>,
+        announce_handler: Arc<AnnounceHandler>,
+        authentication_service: Arc<AuthenticationService>,
+        whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+        opt_http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    ) -> Self {
+        Self {
+            core_config,
+            announce_handler,
+            authentication_service,
+            whitelist_authorization,
+            opt_http_stats_event_sender,
+        }
+    }
+
+    /// Handles an announce request.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if:
+    ///
+    /// - The tracker is running in `listed` mode and the torrent is not whitelisted.
+    /// - There is an error when resolving the client IP address.
+    pub async fn handle_announce(
+        &self,
+        announce_request: &Announce,
+        client_ip_sources: &ClientIpSources,
+        maybe_key: Option<Key>,
+    ) -> Result<AnnounceData, HttpAnnounceError> {
+        // Authentication
+        if self.core_config.private {
+            match maybe_key {
+                Some(key) => match self.authentication_service.authenticate(&key).await {
+                    Ok(()) => (),
+                    Err(error) => return Err(error.into()),
+                },
+                None => {
+                    return Err(authentication::key::Error::MissingAuthKey {
+                        location: Location::caller(),
+                    }
+                    .into())
                 }
-                .into())
             }
         }
-    }
 
-    // Authorization
-    match whitelist_authorization.authorize(&announce_request.info_hash).await {
-        Ok(()) => (),
-        Err(error) => return Err(error.into()),
-    }
+        // Authorization
+        match self.whitelist_authorization.authorize(&announce_request.info_hash).await {
+            Ok(()) => (),
+            Err(error) => return Err(error.into()),
+        }
 
-    let peer_ip = match peer_ip_resolver::invoke(core_config.net.on_reverse_proxy, client_ip_sources) {
-        Ok(peer_ip) => peer_ip,
-        Err(error) => return Err(error.into()),
-    };
+        let peer_ip = match peer_ip_resolver::invoke(self.core_config.net.on_reverse_proxy, client_ip_sources) {
+            Ok(peer_ip) => peer_ip,
+            Err(error) => return Err(error.into()),
+        };
 
-    let mut peer = peer_from_request(announce_request, &peer_ip);
+        let mut peer = peer_from_request(announce_request, &peer_ip);
 
-    let peers_wanted = match announce_request.numwant {
-        Some(numwant) => PeersWanted::only(numwant),
-        None => PeersWanted::AsManyAsPossible,
-    };
+        let peers_wanted = match announce_request.numwant {
+            Some(numwant) => PeersWanted::only(numwant),
+            None => PeersWanted::AsManyAsPossible,
+        };
 
-    let original_peer_ip = peer.peer_addr.ip();
+        let original_peer_ip = peer.peer_addr.ip();
 
-    // The tracker could change the original peer ip
-    let announce_data = announce_handler
-        .announce(&announce_request.info_hash, &mut peer, &original_peer_ip, &peers_wanted)
-        .await?;
+        // The tracker could change the original peer ip
+        let announce_data = self
+            .announce_handler
+            .announce(&announce_request.info_hash, &mut peer, &original_peer_ip, &peers_wanted)
+            .await?;
 
-    if let Some(http_stats_event_sender) = opt_http_stats_event_sender.as_deref() {
-        match original_peer_ip {
-            IpAddr::V4(_) => {
-                http_stats_event_sender
-                    .send_event(statistics::event::Event::Tcp4Announce)
-                    .await;
-            }
-            IpAddr::V6(_) => {
-                http_stats_event_sender
-                    .send_event(statistics::event::Event::Tcp6Announce)
-                    .await;
+        if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
+            match original_peer_ip {
+                IpAddr::V4(_) => {
+                    http_stats_event_sender
+                        .send_event(statistics::event::Event::Tcp4Announce)
+                        .await;
+                }
+                IpAddr::V6(_) => {
+                    http_stats_event_sender
+                        .send_event(statistics::event::Event::Tcp6Announce)
+                        .await;
+                }
             }
         }
-    }
 
-    Ok(announce_data)
+        Ok(announce_data)
+    }
 }
 
 #[cfg(test)]
@@ -302,11 +326,11 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
-        use crate::services::announce::handle_announce;
         use crate::services::announce::tests::{
             initialize_core_tracker_services, initialize_core_tracker_services_with_config, sample_announce_request_for_peer,
             sample_peer, MockHttpStatsEventSender,
         };
+        use crate::services::announce::AnnounceService;
         use crate::statistics;
 
         #[tokio::test]
@@ -317,18 +341,18 @@ mod tests {
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
 
-            let announce_data = handle_announce(
-                &core_tracker_services.core_config,
-                &core_tracker_services.announce_handler,
-                &core_tracker_services.authentication_service,
-                &core_tracker_services.whitelist_authorization,
-                &core_http_tracker_services.http_stats_event_sender,
-                &announce_request,
-                &client_ip_sources,
-                None,
-            )
-            .await
-            .unwrap();
+            let announce_service = AnnounceService::new(
+                core_tracker_services.core_config.clone(),
+                core_tracker_services.announce_handler.clone(),
+                core_tracker_services.authentication_service.clone(),
+                core_tracker_services.whitelist_authorization.clone(),
+                core_http_tracker_services.http_stats_event_sender.clone(),
+            );
+
+            let announce_data = announce_service
+                .handle_announce(&announce_request, &client_ip_sources, None)
+                .await
+                .unwrap();
 
             let expected_announce_data = AnnounceData {
                 peers: vec![],
@@ -361,18 +385,18 @@ mod tests {
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
 
-            let _announce_data = handle_announce(
-                &core_tracker_services.core_config,
-                &core_tracker_services.announce_handler,
-                &core_tracker_services.authentication_service,
-                &core_tracker_services.whitelist_authorization,
-                &core_http_tracker_services.http_stats_event_sender,
-                &announce_request,
-                &client_ip_sources,
-                None,
-            )
-            .await
-            .unwrap();
+            let announce_service = AnnounceService::new(
+                core_tracker_services.core_config.clone(),
+                core_tracker_services.announce_handler.clone(),
+                core_tracker_services.authentication_service.clone(),
+                core_tracker_services.whitelist_authorization.clone(),
+                core_http_tracker_services.http_stats_event_sender.clone(),
+            );
+
+            let _announce_data = announce_service
+                .handle_announce(&announce_request, &client_ip_sources, None)
+                .await
+                .unwrap();
         }
 
         fn tracker_with_an_ipv6_external_ip() -> Configuration {
@@ -413,18 +437,18 @@ mod tests {
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
 
-            let _announce_data = handle_announce(
-                &core_tracker_services.core_config,
-                &core_tracker_services.announce_handler,
-                &core_tracker_services.authentication_service,
-                &core_tracker_services.whitelist_authorization,
-                &core_http_tracker_services.http_stats_event_sender,
-                &announce_request,
-                &client_ip_sources,
-                None,
-            )
-            .await
-            .unwrap();
+            let announce_service = AnnounceService::new(
+                core_tracker_services.core_config.clone(),
+                core_tracker_services.announce_handler.clone(),
+                core_tracker_services.authentication_service.clone(),
+                core_tracker_services.whitelist_authorization.clone(),
+                core_http_tracker_services.http_stats_event_sender.clone(),
+            );
+
+            let _announce_data = announce_service
+                .handle_announce(&announce_request, &client_ip_sources, None)
+                .await
+                .unwrap();
         }
 
         #[tokio::test]
@@ -446,18 +470,18 @@ mod tests {
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
 
-            let _announce_data = handle_announce(
-                &core_tracker_services.core_config,
-                &core_tracker_services.announce_handler,
-                &core_tracker_services.authentication_service,
-                &core_tracker_services.whitelist_authorization,
-                &core_http_tracker_services.http_stats_event_sender,
-                &announce_request,
-                &client_ip_sources,
-                None,
-            )
-            .await
-            .unwrap();
+            let announce_service = AnnounceService::new(
+                core_tracker_services.core_config.clone(),
+                core_tracker_services.announce_handler.clone(),
+                core_tracker_services.authentication_service.clone(),
+                core_tracker_services.whitelist_authorization.clone(),
+                core_http_tracker_services.http_stats_event_sender.clone(),
+            );
+
+            let _announce_data = announce_service
+                .handle_announce(&announce_request, &client_ip_sources, None)
+                .await
+                .unwrap();
         }
     }
 }
