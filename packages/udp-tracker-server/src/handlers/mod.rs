@@ -154,12 +154,10 @@ pub async fn handle_request(
         .await),
         Request::Announce(announce_request) => {
             handle_announce(
+                &udp_tracker_core_container.announce_service,
                 remote_addr,
                 &announce_request,
                 &udp_tracker_core_container.core_config,
-                &udp_tracker_core_container.announce_handler,
-                &udp_tracker_core_container.whitelist_authorization,
-                &udp_tracker_core_container.udp_core_stats_event_sender,
                 &udp_tracker_server_container.udp_server_stats_event_sender,
                 cookie_time_values.valid_range,
             )
@@ -196,6 +194,7 @@ pub(crate) mod tests {
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use bittorrent_udp_tracker_core::connection_cookie::gen_remote_fingerprint;
+    use bittorrent_udp_tracker_core::services::announce::AnnounceService;
     use bittorrent_udp_tracker_core::{self, statistics as core_statistics};
     use futures::future::BoxFuture;
     use mockall::mock;
@@ -218,6 +217,7 @@ pub(crate) mod tests {
 
     pub(crate) struct CoreUdpTrackerServices {
         pub udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>>,
+        pub announce_service: Arc<AnnounceService>,
     }
 
     pub(crate) struct ServerUdpTrackerServices {
@@ -267,6 +267,12 @@ pub(crate) mod tests {
         let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
         let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
 
+        let announce_service = Arc::new(AnnounceService::new(
+            announce_handler.clone(),
+            whitelist_authorization.clone(),
+            udp_core_stats_event_sender.clone(),
+        ));
+
         (
             CoreTrackerServices {
                 core_config,
@@ -278,6 +284,7 @@ pub(crate) mod tests {
             },
             CoreUdpTrackerServices {
                 udp_core_stats_event_sender,
+                announce_service,
             },
             ServerUdpTrackerServices {
                 udp_server_stats_event_sender,
