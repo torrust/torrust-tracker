@@ -147,19 +147,17 @@ pub async fn handle_request(
         Request::Connect(connect_request) => Ok(handle_connect(
             remote_addr,
             &connect_request,
-            &udp_tracker_core_container.udp_core_stats_event_sender,
+            &udp_tracker_core_container.connect_service,
             &udp_tracker_server_container.udp_server_stats_event_sender,
             cookie_time_values.issue_time,
         )
         .await),
         Request::Announce(announce_request) => {
             handle_announce(
+                &udp_tracker_core_container.announce_service,
                 remote_addr,
                 &announce_request,
                 &udp_tracker_core_container.core_config,
-                &udp_tracker_core_container.announce_handler,
-                &udp_tracker_core_container.whitelist_authorization,
-                &udp_tracker_core_container.udp_core_stats_event_sender,
                 &udp_tracker_server_container.udp_server_stats_event_sender,
                 cookie_time_values.valid_range,
             )
@@ -167,10 +165,9 @@ pub async fn handle_request(
         }
         Request::Scrape(scrape_request) => {
             handle_scrape(
+                &udp_tracker_core_container.scrape_service,
                 remote_addr,
                 &scrape_request,
-                &udp_tracker_core_container.scrape_handler,
-                &udp_tracker_core_container.udp_core_stats_event_sender,
                 &udp_tracker_server_container.udp_server_stats_event_sender,
                 cookie_time_values.valid_range,
             )
@@ -196,6 +193,8 @@ pub(crate) mod tests {
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use bittorrent_udp_tracker_core::connection_cookie::gen_remote_fingerprint;
+    use bittorrent_udp_tracker_core::services::announce::AnnounceService;
+    use bittorrent_udp_tracker_core::services::scrape::ScrapeService;
     use bittorrent_udp_tracker_core::{self, statistics as core_statistics};
     use futures::future::BoxFuture;
     use mockall::mock;
@@ -210,14 +209,14 @@ pub(crate) mod tests {
     pub(crate) struct CoreTrackerServices {
         pub core_config: Arc<Core>,
         pub announce_handler: Arc<AnnounceHandler>,
-        pub scrape_handler: Arc<ScrapeHandler>,
         pub in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
         pub in_memory_whitelist: Arc<InMemoryWhitelist>,
         pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
     }
 
     pub(crate) struct CoreUdpTrackerServices {
-        pub udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>>,
+        pub announce_service: Arc<AnnounceService>,
+        pub scrape_service: Arc<ScrapeService>,
     }
 
     pub(crate) struct ServerUdpTrackerServices {
@@ -267,17 +266,28 @@ pub(crate) mod tests {
         let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
         let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
 
+        let announce_service = Arc::new(AnnounceService::new(
+            announce_handler.clone(),
+            whitelist_authorization.clone(),
+            udp_core_stats_event_sender.clone(),
+        ));
+
+        let scrape_service = Arc::new(ScrapeService::new(
+            scrape_handler.clone(),
+            udp_core_stats_event_sender.clone(),
+        ));
+
         (
             CoreTrackerServices {
                 core_config,
                 announce_handler,
-                scrape_handler,
                 in_memory_torrent_repository,
                 in_memory_whitelist,
                 whitelist_authorization,
             },
             CoreUdpTrackerServices {
-                udp_core_stats_event_sender,
+                announce_service,
+                scrape_service,
             },
             ServerUdpTrackerServices {
                 udp_server_stats_event_sender,

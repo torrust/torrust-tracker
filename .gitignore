@@ -16,3 +16,4 @@ callgrind.out
 codecov.json
 lcov.info
 perf.data*
+rustc-ice-*.txt

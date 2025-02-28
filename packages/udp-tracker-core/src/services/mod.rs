@@ -44,8 +44,8 @@ pub(crate) mod tests {
     }
 
     mock! {
-        pub(crate) UdpStatsEventSender {}
-        impl statistics::event::sender::Sender for UdpStatsEventSender {
+        pub(crate) UdpCoreStatsEventSender {}
+        impl statistics::event::sender::Sender for UdpCoreStatsEventSender {
              fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<(),SendError<statistics::event::Event> > > > ;
         }
     }

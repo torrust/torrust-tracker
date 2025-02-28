@@ -12,13 +12,11 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::AnnounceRequest;
-use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use bittorrent_tracker_core::error::{AnnounceError, WhitelistError};
 use bittorrent_tracker_core::whitelist;
 use bittorrent_udp_tracker_protocol::peer_builder;
 use torrust_tracker_primitives::core::AnnounceData;
-use torrust_tracker_primitives::peer;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
 use crate::statistics;
@@ -59,97 +57,81 @@ impl From<WhitelistError> for UdpAnnounceError {
     }
 }
 
-/// It handles the `Announce` request.
-///
-/// # Errors
-///
-/// It will return an error if:
-///
-/// - The tracker is running in listed mode and the torrent is not in the
-///   whitelist.
-#[allow(clippy::too_many_arguments)]
-pub async fn handle_announce(
-    remote_addr: SocketAddr,
-    request: &AnnounceRequest,
-    announce_handler: &Arc<AnnounceHandler>,
-    whitelist_authorization: &Arc<whitelist::authorization::WhitelistAuthorization>,
-    opt_udp_stats_event_sender: &Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
-    cookie_valid_range: Range<f64>,
-) -> Result<AnnounceData, UdpAnnounceError> {
-    // todo: return a UDP response like the HTTP tracker instead of raw AnnounceData.
-
-    // Authentication
-    check(
-        &request.connection_id,
-        gen_remote_fingerprint(&remote_addr),
-        cookie_valid_range,
-    )?;
-
-    let info_hash = request.info_hash.into();
-    let remote_client_ip = remote_addr.ip();
-
-    // Authorization
-    whitelist_authorization.authorize(&info_hash).await?;
-
-    let mut peer = peer_builder::from_request(request, &remote_client_ip);
-    let peers_wanted: PeersWanted = i32::from(request.peers_wanted.0).into();
-
-    let original_peer_ip = peer.peer_addr.ip();
-
-    // The tracker could change the original peer ip
-    let announce_data = announce_handler
-        .announce(&info_hash, &mut peer, &original_peer_ip, &peers_wanted)
-        .await?;
-
-    if let Some(udp_stats_event_sender) = opt_udp_stats_event_sender.as_deref() {
-        match original_peer_ip {
-            IpAddr::V4(_) => {
-                udp_stats_event_sender
-                    .send_event(statistics::event::Event::Udp4Announce)
-                    .await;
-            }
-            IpAddr::V6(_) => {
-                udp_stats_event_sender
-                    .send_event(statistics::event::Event::Udp6Announce)
-                    .await;
-            }
-        }
-    }
-
-    Ok(announce_data)
+/// The `AnnounceService` is responsible for handling the `announce` requests.
+pub struct AnnounceService {
+    pub announce_handler: Arc<AnnounceHandler>,
+    pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+    pub opt_udp_core_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
 }
 
-/// # Errors
-///
-/// It will return an error if the announce request fails.
-pub async fn invoke(
-    announce_handler: Arc<AnnounceHandler>,
-    opt_udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
-    info_hash: InfoHash,
-    peer: &mut peer::Peer,
-    peers_wanted: &PeersWanted,
-) -> Result<AnnounceData, AnnounceError> {
-    let original_peer_ip = peer.peer_addr.ip();
-
-    // The tracker could change the original peer ip
-    let announce_data = announce_handler
-        .announce(&info_hash, peer, &original_peer_ip, peers_wanted)
-        .await?;
-
-    if let Some(udp_stats_event_sender) = opt_udp_stats_event_sender.as_deref() {
-        match original_peer_ip {
-            IpAddr::V4(_) => {
-                udp_stats_event_sender
-                    .send_event(statistics::event::Event::Udp4Announce)
-                    .await;
-            }
-            IpAddr::V6(_) => {
-                udp_stats_event_sender
-                    .send_event(statistics::event::Event::Udp6Announce)
-                    .await;
-            }
+impl AnnounceService {
+    #[must_use]
+    pub fn new(
+        announce_handler: Arc<AnnounceHandler>,
+        whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+        opt_udp_core_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    ) -> Self {
+        Self {
+            announce_handler,
+            whitelist_authorization,
+            opt_udp_core_stats_event_sender,
         }
     }
 
-    Ok(announce_data)
+    /// It handles the `Announce` request.
+    ///
+    /// # Errors
+    ///
+    /// It will return an error if:
+    ///
+    /// - The tracker is running in listed mode and the torrent is not in the
+    ///   whitelist.
+    #[allow(clippy::too_many_arguments)]
+    pub async fn handle_announce(
+        &self,
+        remote_addr: SocketAddr,
+        request: &AnnounceRequest,
+        cookie_valid_range: Range<f64>,
+    ) -> Result<AnnounceData, UdpAnnounceError> {
+        // Authentication
+        check(
+            &request.connection_id,
+            gen_remote_fingerprint(&remote_addr),
+            cookie_valid_range,
+        )?;
+
+        let info_hash = request.info_hash.into();
+        let remote_client_ip = remote_addr.ip();
+
+        // Authorization
+        self.whitelist_authorization.authorize(&info_hash).await?;
+
+        let mut peer = peer_builder::from_request(request, &remote_client_ip);
+        let peers_wanted: PeersWanted = i32::from(request.peers_wanted.0).into();
+
+        let original_peer_ip = peer.peer_addr.ip();
+
+        // The tracker could change the original peer ip
+        let announce_data = self
+            .announce_handler
+            .announce(&info_hash, &mut peer, &original_peer_ip, &peers_wanted)
+            .await?;
+
+        if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
+            match original_peer_ip {
+                IpAddr::V4(_) => {
+                    udp_stats_event_sender
+                        .send_event(statistics::event::Event::Udp4Announce)
+                        .await;
+                }
+                IpAddr::V6(_) => {
+                    udp_stats_event_sender
+                        .send_event(statistics::event::Event::Udp6Announce)
+                        .await;
+                }
+            }
+        }
+
+        Ok(announce_data)
+    }
 }

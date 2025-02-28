@@ -56,41 +56,58 @@ impl From<WhitelistError> for UdpScrapeError {
     }
 }
 
-/// It handles the `Scrape` request.
-///
-/// # Errors
-///
-/// It will return an error if the tracker core scrape handler returns an error.
-pub async fn handle_scrape(
-    remote_addr: SocketAddr,
-    request: &ScrapeRequest,
-    scrape_handler: &Arc<ScrapeHandler>,
-    opt_udp_stats_event_sender: &Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
-    cookie_valid_range: Range<f64>,
-) -> Result<ScrapeData, UdpScrapeError> {
-    // todo: return a UDP response like the HTTP tracker instead of raw ScrapeData.
+/// The `ScrapeService` is responsible for handling the `scrape` requests.
+pub struct ScrapeService {
+    scrape_handler: Arc<ScrapeHandler>,
+    opt_udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+}
 
-    check(
-        &request.connection_id,
-        gen_remote_fingerprint(&remote_addr),
-        cookie_valid_range,
-    )?;
-
-    // Convert from aquatic infohashes
-    let info_hashes: Vec<InfoHash> = request.info_hashes.iter().map(|&x| x.into()).collect();
-
-    let scrape_data = scrape_handler.scrape(&info_hashes).await?;
-
-    if let Some(udp_stats_event_sender) = opt_udp_stats_event_sender.as_deref() {
-        match remote_addr {
-            SocketAddr::V4(_) => {
-                udp_stats_event_sender.send_event(statistics::event::Event::Udp4Scrape).await;
-            }
-            SocketAddr::V6(_) => {
-                udp_stats_event_sender.send_event(statistics::event::Event::Udp6Scrape).await;
-            }
+impl ScrapeService {
+    /// Creates a new `ScrapeService`.
+    #[must_use]
+    pub fn new(
+        scrape_handler: Arc<ScrapeHandler>,
+        opt_udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    ) -> Self {
+        Self {
+            scrape_handler,
+            opt_udp_stats_event_sender,
         }
     }
 
-    Ok(scrape_data)
+    /// It handles the `Scrape` request.
+    ///
+    /// # Errors
+    ///
+    /// It will return an error if the tracker core scrape handler returns an error.
+    pub async fn handle_scrape(
+        &self,
+        remote_addr: SocketAddr,
+        request: &ScrapeRequest,
+        cookie_valid_range: Range<f64>,
+    ) -> Result<ScrapeData, UdpScrapeError> {
+        check(
+            &request.connection_id,
+            gen_remote_fingerprint(&remote_addr),
+            cookie_valid_range,
+        )?;
+
+        // Convert from aquatic infohashes
+        let info_hashes: Vec<InfoHash> = request.info_hashes.iter().map(|&x| x.into()).collect();
+
+        let scrape_data = self.scrape_handler.scrape(&info_hashes).await?;
+
+        if let Some(udp_stats_event_sender) = self.opt_udp_stats_event_sender.as_deref() {
+            match remote_addr {
+                SocketAddr::V4(_) => {
+                    udp_stats_event_sender.send_event(statistics::event::Event::Udp4Scrape).await;
+                }
+                SocketAddr::V6(_) => {
+                    udp_stats_event_sender.send_event(statistics::event::Event::Udp6Scrape).await;
+                }
+            }
+        }
+
+        Ok(scrape_data)
+    }
 }
