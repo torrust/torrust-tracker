@@ -68,8 +68,6 @@ pub async fn handle_scrape(
     opt_udp_stats_event_sender: &Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
     cookie_valid_range: Range<f64>,
 ) -> Result<ScrapeData, UdpScrapeError> {
-    // todo: return a UDP response like the HTTP tracker instead of raw ScrapeData.
-
     check(
         &request.connection_id,
         gen_remote_fingerprint(&remote_addr),

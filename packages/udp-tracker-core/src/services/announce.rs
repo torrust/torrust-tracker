@@ -76,8 +76,6 @@ pub async fn handle_announce(
     opt_udp_stats_event_sender: &Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
     cookie_valid_range: Range<f64>,
 ) -> Result<AnnounceData, UdpAnnounceError> {
-    // todo: return a UDP response like the HTTP tracker instead of raw AnnounceData.
-
     // Authentication
     check(
         &request.connection_id,

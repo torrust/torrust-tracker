@@ -17,8 +17,6 @@ pub async fn handle_connect(
     opt_udp_stats_event_sender: &Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
     cookie_issue_time: f64,
 ) -> ConnectionId {
-    // todo: return a UDP response like the HTTP tracker instead of raw ConnectionId.
-
     let connection_id = make(gen_remote_fingerprint(&remote_addr), cookie_issue_time).expect("it should be a normal value");
 
     if let Some(udp_stats_event_sender) = opt_udp_stats_event_sender.as_deref() {
