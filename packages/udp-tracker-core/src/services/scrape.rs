@@ -20,42 +20,6 @@ use torrust_tracker_primitives::core::ScrapeData;
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
 use crate::statistics;
 
-/// Errors related to scrape requests.
-#[derive(thiserror::Error, Debug, Clone)]
-pub enum UdpScrapeError {
-    /// Error returned when there was an error with the connection cookie.
-    #[error("Connection cookie error: {source}")]
-    ConnectionCookieError { source: ConnectionCookieError },
-
-    /// Error returned when there was an error with the tracker core scrape handler.
-    #[error("Tracker core scrape error: {source}")]
-    TrackerCoreScrapeError { source: ScrapeError },
-
-    /// Error returned when there was an error with the tracker core whitelist.
-    #[error("Tracker core whitelist error: {source}")]
-    TrackerCoreWhitelistError { source: WhitelistError },
-}
-
-impl From<ConnectionCookieError> for UdpScrapeError {
-    fn from(connection_cookie_error: ConnectionCookieError) -> Self {
-        Self::ConnectionCookieError {
-            source: connection_cookie_error,
-        }
-    }
-}
-
-impl From<ScrapeError> for UdpScrapeError {
-    fn from(scrape_error: ScrapeError) -> Self {
-        Self::TrackerCoreScrapeError { source: scrape_error }
-    }
-}
-
-impl From<WhitelistError> for UdpScrapeError {
-    fn from(whitelist_error: WhitelistError) -> Self {
-        Self::TrackerCoreWhitelistError { source: whitelist_error }
-    }
-}
-
 /// The `ScrapeService` is responsible for handling the `scrape` requests.
 pub struct ScrapeService {
     scrape_handler: Arc<ScrapeHandler>,
@@ -109,5 +73,41 @@ impl ScrapeService {
         }
 
         Ok(scrape_data)
+    }
+}
+
+/// Errors related to scrape requests.
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum UdpScrapeError {
+    /// Error returned when there was an error with the connection cookie.
+    #[error("Connection cookie error: {source}")]
+    ConnectionCookieError { source: ConnectionCookieError },
+
+    /// Error returned when there was an error with the tracker core scrape handler.
+    #[error("Tracker core scrape error: {source}")]
+    TrackerCoreScrapeError { source: ScrapeError },
+
+    /// Error returned when there was an error with the tracker core whitelist.
+    #[error("Tracker core whitelist error: {source}")]
+    TrackerCoreWhitelistError { source: WhitelistError },
+}
+
+impl From<ConnectionCookieError> for UdpScrapeError {
+    fn from(connection_cookie_error: ConnectionCookieError) -> Self {
+        Self::ConnectionCookieError {
+            source: connection_cookie_error,
+        }
+    }
+}
+
+impl From<ScrapeError> for UdpScrapeError {
+    fn from(scrape_error: ScrapeError) -> Self {
+        Self::TrackerCoreScrapeError { source: scrape_error }
+    }
+}
+
+impl From<WhitelistError> for UdpScrapeError {
+    fn from(whitelist_error: WhitelistError) -> Self {
+        Self::TrackerCoreWhitelistError { source: whitelist_error }
     }
 }
