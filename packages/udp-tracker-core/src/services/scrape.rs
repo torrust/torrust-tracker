@@ -21,13 +21,16 @@ use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieEr
 use crate::statistics;
 
 /// The `ScrapeService` is responsible for handling the `scrape` requests.
+///
+/// The service sends an statistics event that increments:
+///
+/// - The number of UDP `scrape` requests handled by the UDP tracker.
 pub struct ScrapeService {
     scrape_handler: Arc<ScrapeHandler>,
     opt_udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
 }
 
 impl ScrapeService {
-    /// Creates a new `ScrapeService`.
     #[must_use]
     pub fn new(
         scrape_handler: Arc<ScrapeHandler>,
@@ -46,33 +49,46 @@ impl ScrapeService {
     /// It will return an error if the tracker core scrape handler returns an error.
     pub async fn handle_scrape(
         &self,
-        remote_addr: SocketAddr,
+        remote_client_addr: SocketAddr,
         request: &ScrapeRequest,
         cookie_valid_range: Range<f64>,
     ) -> Result<ScrapeData, UdpScrapeError> {
+        Self::authenticate(remote_client_addr, request, cookie_valid_range)?;
+
+        let scrape_data = self
+            .scrape_handler
+            .scrape(&Self::convert_from_aquatic(&request.info_hashes))
+            .await?;
+
+        self.send_stats_event(remote_client_addr).await;
+
+        Ok(scrape_data)
+    }
+
+    fn authenticate(
+        remote_addr: SocketAddr,
+        request: &ScrapeRequest,
+        cookie_valid_range: Range<f64>,
+    ) -> Result<f64, ConnectionCookieError> {
         check(
             &request.connection_id,
             gen_remote_fingerprint(&remote_addr),
             cookie_valid_range,
-        )?;
+        )
+    }
 
-        // Convert from aquatic infohashes
-        let info_hashes: Vec<InfoHash> = request.info_hashes.iter().map(|&x| x.into()).collect();
+    fn convert_from_aquatic(aquatic_infohashes: &[aquatic_udp_protocol::common::InfoHash]) -> Vec<InfoHash> {
+        aquatic_infohashes.iter().map(|&x| x.into()).collect()
+    }
 
-        let scrape_data = self.scrape_handler.scrape(&info_hashes).await?;
-
+    async fn send_stats_event(&self, remote_addr: SocketAddr) {
         if let Some(udp_stats_event_sender) = self.opt_udp_stats_event_sender.as_deref() {
-            match remote_addr {
-                SocketAddr::V4(_) => {
-                    udp_stats_event_sender.send_event(statistics::event::Event::Udp4Scrape).await;
-                }
-                SocketAddr::V6(_) => {
-                    udp_stats_event_sender.send_event(statistics::event::Event::Udp6Scrape).await;
-                }
-            }
+            let event = match remote_addr {
+                SocketAddr::V4(_) => statistics::event::Event::Udp4Scrape,
+                SocketAddr::V6(_) => statistics::event::Event::Udp6Scrape,
+            };
+            udp_stats_event_sender.send_event(event).await;
         }
-
-        Ok(scrape_data)
     }
 }
 
