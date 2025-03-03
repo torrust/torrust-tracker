@@ -12,6 +12,7 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::AnnounceRequest;
+use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use bittorrent_tracker_core::error::{AnnounceError, WhitelistError};
 use bittorrent_tracker_core::whitelist;
@@ -60,46 +61,53 @@ impl AnnounceService {
         request: &AnnounceRequest,
         cookie_valid_range: Range<f64>,
     ) -> Result<AnnounceData, UdpAnnounceError> {
-        // Authentication
+        Self::authenticate(remote_addr, request, cookie_valid_range)?;
+
+        let info_hash = request.info_hash.into();
+
+        self.authorize(&info_hash).await?;
+
+        let remote_client_ip = remote_addr.ip();
+
+        let mut peer = peer_builder::from_request(request, &remote_client_ip);
+
+        let peers_wanted: PeersWanted = i32::from(request.peers_wanted.0).into();
+
+        let announce_data = self
+            .announce_handler
+            .announce(&info_hash, &mut peer, &remote_client_ip, &peers_wanted)
+            .await?;
+
+        self.send_stats_event(remote_client_ip).await;
+
+        Ok(announce_data)
+    }
+
+    fn authenticate(
+        remote_addr: SocketAddr,
+        request: &AnnounceRequest,
+        cookie_valid_range: Range<f64>,
+    ) -> Result<f64, ConnectionCookieError> {
         check(
             &request.connection_id,
             gen_remote_fingerprint(&remote_addr),
             cookie_valid_range,
-        )?;
+        )
+    }
 
-        let info_hash = request.info_hash.into();
-        let remote_client_ip = remote_addr.ip();
+    async fn authorize(&self, info_hash: &InfoHash) -> Result<(), WhitelistError> {
+        self.whitelist_authorization.authorize(info_hash).await
+    }
 
-        // Authorization
-        self.whitelist_authorization.authorize(&info_hash).await?;
-
-        let mut peer = peer_builder::from_request(request, &remote_client_ip);
-        let peers_wanted: PeersWanted = i32::from(request.peers_wanted.0).into();
-
-        let original_peer_ip = peer.peer_addr.ip();
-
-        // The tracker could change the original peer ip
-        let announce_data = self
-            .announce_handler
-            .announce(&info_hash, &mut peer, &original_peer_ip, &peers_wanted)
-            .await?;
-
+    async fn send_stats_event(&self, peer_ip: IpAddr) {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
-            match original_peer_ip {
-                IpAddr::V4(_) => {
-                    udp_stats_event_sender
-                        .send_event(statistics::event::Event::Udp4Announce)
-                        .await;
-                }
-                IpAddr::V6(_) => {
-                    udp_stats_event_sender
-                        .send_event(statistics::event::Event::Udp6Announce)
-                        .await;
-                }
-            }
-        }
+            let event = match peer_ip {
+                IpAddr::V4(_) => statistics::event::Event::Udp4Announce,
+                IpAddr::V6(_) => statistics::event::Event::Udp6Announce,
+            };
 
-        Ok(announce_data)
+            udp_stats_event_sender.send_event(event).await;
+        }
     }
 }
 
