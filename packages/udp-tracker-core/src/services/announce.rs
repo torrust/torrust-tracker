@@ -22,6 +22,10 @@ use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieEr
 use crate::statistics;
 
 /// The `AnnounceService` is responsible for handling the `announce` requests.
+///
+/// The service sends an statistics event that increments:
+///
+/// - The number of UDP `announce` requests handled by the UDP tracker.
 pub struct AnnounceService {
     announce_handler: Arc<AnnounceHandler>,
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
@@ -50,7 +54,6 @@ impl AnnounceService {
     ///
     /// - The tracker is running in listed mode and the torrent is not in the
     ///   whitelist.
-    #[allow(clippy::too_many_arguments)]
     pub async fn handle_announce(
         &self,
         remote_addr: SocketAddr,
