@@ -21,42 +21,6 @@ use torrust_tracker_primitives::core::AnnounceData;
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
 use crate::statistics;
 
-/// Errors related to announce requests.
-#[derive(thiserror::Error, Debug, Clone)]
-pub enum UdpAnnounceError {
-    /// Error returned when there was an error with the connection cookie.
-    #[error("Connection cookie error: {source}")]
-    ConnectionCookieError { source: ConnectionCookieError },
-
-    /// Error returned when there was an error with the tracker core announce handler.
-    #[error("Tracker core announce error: {source}")]
-    TrackerCoreAnnounceError { source: AnnounceError },
-
-    /// Error returned when there was an error with the tracker core whitelist.
-    #[error("Tracker core whitelist error: {source}")]
-    TrackerCoreWhitelistError { source: WhitelistError },
-}
-
-impl From<ConnectionCookieError> for UdpAnnounceError {
-    fn from(connection_cookie_error: ConnectionCookieError) -> Self {
-        Self::ConnectionCookieError {
-            source: connection_cookie_error,
-        }
-    }
-}
-
-impl From<AnnounceError> for UdpAnnounceError {
-    fn from(announce_error: AnnounceError) -> Self {
-        Self::TrackerCoreAnnounceError { source: announce_error }
-    }
-}
-
-impl From<WhitelistError> for UdpAnnounceError {
-    fn from(whitelist_error: WhitelistError) -> Self {
-        Self::TrackerCoreWhitelistError { source: whitelist_error }
-    }
-}
-
 /// The `AnnounceService` is responsible for handling the `announce` requests.
 pub struct AnnounceService {
     pub announce_handler: Arc<AnnounceHandler>,
@@ -133,5 +97,41 @@ impl AnnounceService {
         }
 
         Ok(announce_data)
+    }
+}
+
+/// Errors related to announce requests.
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum UdpAnnounceError {
+    /// Error returned when there was an error with the connection cookie.
+    #[error("Connection cookie error: {source}")]
+    ConnectionCookieError { source: ConnectionCookieError },
+
+    /// Error returned when there was an error with the tracker core announce handler.
+    #[error("Tracker core announce error: {source}")]
+    TrackerCoreAnnounceError { source: AnnounceError },
+
+    /// Error returned when there was an error with the tracker core whitelist.
+    #[error("Tracker core whitelist error: {source}")]
+    TrackerCoreWhitelistError { source: WhitelistError },
+}
+
+impl From<ConnectionCookieError> for UdpAnnounceError {
+    fn from(connection_cookie_error: ConnectionCookieError) -> Self {
+        Self::ConnectionCookieError {
+            source: connection_cookie_error,
+        }
+    }
+}
+
+impl From<AnnounceError> for UdpAnnounceError {
+    fn from(announce_error: AnnounceError) -> Self {
+        Self::TrackerCoreAnnounceError { source: announce_error }
+    }
+}
+
+impl From<WhitelistError> for UdpAnnounceError {
+    fn from(whitelist_error: WhitelistError) -> Self {
+        Self::TrackerCoreWhitelistError { source: whitelist_error }
     }
 }
