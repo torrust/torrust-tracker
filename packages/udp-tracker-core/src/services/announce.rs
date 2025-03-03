@@ -23,9 +23,9 @@ use crate::statistics;
 
 /// The `AnnounceService` is responsible for handling the `announce` requests.
 pub struct AnnounceService {
-    pub announce_handler: Arc<AnnounceHandler>,
-    pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-    pub opt_udp_core_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    announce_handler: Arc<AnnounceHandler>,
+    whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+    opt_udp_core_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
 }
 
 impl AnnounceService {
