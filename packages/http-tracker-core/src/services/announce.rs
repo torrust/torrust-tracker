@@ -23,56 +23,6 @@ use torrust_tracker_primitives::core::AnnounceData;
 
 use crate::statistics;
 
-/// Errors related to announce requests.
-#[derive(thiserror::Error, Debug, Clone)]
-pub enum HttpAnnounceError {
-    #[error("Error resolving peer IP: {source}")]
-    PeerIpResolutionError { source: PeerIpResolutionError },
-
-    #[error("Tracker core error: {source}")]
-    TrackerCoreError { source: TrackerCoreError },
-}
-
-impl From<PeerIpResolutionError> for HttpAnnounceError {
-    fn from(peer_ip_resolution_error: PeerIpResolutionError) -> Self {
-        Self::PeerIpResolutionError {
-            source: peer_ip_resolution_error,
-        }
-    }
-}
-
-impl From<TrackerCoreError> for HttpAnnounceError {
-    fn from(tracker_core_error: TrackerCoreError) -> Self {
-        Self::TrackerCoreError {
-            source: tracker_core_error,
-        }
-    }
-}
-
-impl From<AnnounceError> for HttpAnnounceError {
-    fn from(announce_error: AnnounceError) -> Self {
-        Self::TrackerCoreError {
-            source: announce_error.into(),
-        }
-    }
-}
-
-impl From<WhitelistError> for HttpAnnounceError {
-    fn from(whitelist_error: WhitelistError) -> Self {
-        Self::TrackerCoreError {
-            source: whitelist_error.into(),
-        }
-    }
-}
-
-impl From<authentication::key::Error> for HttpAnnounceError {
-    fn from(whitelist_error: authentication::key::Error) -> Self {
-        Self::TrackerCoreError {
-            source: whitelist_error.into(),
-        }
-    }
-}
-
 /// The HTTP tracker `announce` service.
 ///
 /// The service sends an statistics event that increments:
@@ -181,6 +131,56 @@ impl AnnounceService {
         }
 
         Ok(announce_data)
+    }
+}
+
+/// Errors related to announce requests.
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum HttpAnnounceError {
+    #[error("Error resolving peer IP: {source}")]
+    PeerIpResolutionError { source: PeerIpResolutionError },
+
+    #[error("Tracker core error: {source}")]
+    TrackerCoreError { source: TrackerCoreError },
+}
+
+impl From<PeerIpResolutionError> for HttpAnnounceError {
+    fn from(peer_ip_resolution_error: PeerIpResolutionError) -> Self {
+        Self::PeerIpResolutionError {
+            source: peer_ip_resolution_error,
+        }
+    }
+}
+
+impl From<TrackerCoreError> for HttpAnnounceError {
+    fn from(tracker_core_error: TrackerCoreError) -> Self {
+        Self::TrackerCoreError {
+            source: tracker_core_error,
+        }
+    }
+}
+
+impl From<AnnounceError> for HttpAnnounceError {
+    fn from(announce_error: AnnounceError) -> Self {
+        Self::TrackerCoreError {
+            source: announce_error.into(),
+        }
+    }
+}
+
+impl From<WhitelistError> for HttpAnnounceError {
+    fn from(whitelist_error: WhitelistError) -> Self {
+        Self::TrackerCoreError {
+            source: whitelist_error.into(),
+        }
+    }
+}
+
+impl From<authentication::key::Error> for HttpAnnounceError {
+    fn from(whitelist_error: authentication::key::Error) -> Self {
+        Self::TrackerCoreError {
+            source: whitelist_error.into(),
+        }
     }
 }
 
