@@ -137,7 +137,7 @@ fn load_tracker_configuration(args: &Args) -> anyhow::Result<String> {
 }
 
 fn load_config_from_file(path: &PathBuf) -> anyhow::Result<String> {
-    let config = std::fs::read_to_string(path).with_context(|| format!("CSan't read config file {path:?}"))?;
+    let config = std::fs::read_to_string(path).with_context(|| format!("CSan't read config file {}", path.display()))?;
 
     Ok(config)
 }
