@@ -36,7 +36,7 @@
 //!     - [API](#api)
 //!     - [HTTP Tracker](#http-tracker)
 //!     - [UDP Tracker](#udp-tracker)
-//! - [Components](#components)
+//! - [Packages](#packages)
 //! - [Implemented BEPs](#implemented-beps)
 //! - [Contributing](#contributing)
 //! - [Documentation](#documentation)
@@ -401,16 +401,9 @@
 //!
 //! - [BEP 15. UDP Tracker Protocol for `BitTorrent`](https://www.bittorrent.org/beps/bep_0015.html)
 //!
-//! # Components
+//! # Packages
 //!
-//! Torrust Tracker has four main components:
-//!
-//! - The core tracker [`core`]
-//! - The tracker REST [`API`](torrust_axum_rest_tracker_api_server)
-//! - The [`UDP`](torrust_udp_tracker_server) tracker
-//! - The [`HTTP`](torrust_axum_http_tracker_server) tracker
-//!
-//! ![Torrust Tracker Components](https://raw.githubusercontent.com/torrust/torrust-tracker/main/docs/media/torrust-tracker-components.png)
+//! ![Torrust Tracker Layers with Main Packages](https://raw.githubusercontent.com/torrust/torrust-tracker/main/docs/media/packages/torrust-tracker-layers-with-packages.png)
 //!
 //! ## Core tracker
 //!
