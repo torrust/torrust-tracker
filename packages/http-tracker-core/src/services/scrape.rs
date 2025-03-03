@@ -22,55 +22,6 @@ use torrust_tracker_primitives::core::ScrapeData;
 
 use crate::statistics;
 
-/// Errors related to announce requests.
-#[derive(thiserror::Error, Debug, Clone)]
-pub enum HttpScrapeError {
-    #[error("Error resolving peer IP: {source}")]
-    PeerIpResolutionError { source: PeerIpResolutionError },
-
-    #[error("Tracker core error: {source}")]
-    TrackerCoreError { source: TrackerCoreError },
-}
-
-impl From<PeerIpResolutionError> for HttpScrapeError {
-    fn from(peer_ip_resolution_error: PeerIpResolutionError) -> Self {
-        Self::PeerIpResolutionError {
-            source: peer_ip_resolution_error,
-        }
-    }
-}
-
-impl From<TrackerCoreError> for HttpScrapeError {
-    fn from(tracker_core_error: TrackerCoreError) -> Self {
-        Self::TrackerCoreError {
-            source: tracker_core_error,
-        }
-    }
-}
-
-impl From<ScrapeError> for HttpScrapeError {
-    fn from(announce_error: ScrapeError) -> Self {
-        Self::TrackerCoreError {
-            source: announce_error.into(),
-        }
-    }
-}
-
-impl From<WhitelistError> for HttpScrapeError {
-    fn from(whitelist_error: WhitelistError) -> Self {
-        Self::TrackerCoreError {
-            source: whitelist_error.into(),
-        }
-    }
-}
-
-impl From<authentication::key::Error> for HttpScrapeError {
-    fn from(whitelist_error: authentication::key::Error) -> Self {
-        Self::TrackerCoreError {
-            source: whitelist_error.into(),
-        }
-    }
-}
 /// The HTTP tracker `scrape` service.
 ///
 /// The service sends an statistics event that increments:
@@ -110,6 +61,8 @@ impl ScrapeService {
         }
     }
 
+    /// Handles a scrape request.
+    ///
     /// # Errors
     ///
     /// This function will return an error if:
@@ -182,6 +135,56 @@ async fn send_scrape_event(
             IpAddr::V6(_) => {
                 http_stats_event_sender.send_event(statistics::event::Event::Tcp6Scrape).await;
             }
+        }
+    }
+}
+
+/// Errors related to announce requests.
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum HttpScrapeError {
+    #[error("Error resolving peer IP: {source}")]
+    PeerIpResolutionError { source: PeerIpResolutionError },
+
+    #[error("Tracker core error: {source}")]
+    TrackerCoreError { source: TrackerCoreError },
+}
+
+impl From<PeerIpResolutionError> for HttpScrapeError {
+    fn from(peer_ip_resolution_error: PeerIpResolutionError) -> Self {
+        Self::PeerIpResolutionError {
+            source: peer_ip_resolution_error,
+        }
+    }
+}
+
+impl From<TrackerCoreError> for HttpScrapeError {
+    fn from(tracker_core_error: TrackerCoreError) -> Self {
+        Self::TrackerCoreError {
+            source: tracker_core_error,
+        }
+    }
+}
+
+impl From<ScrapeError> for HttpScrapeError {
+    fn from(announce_error: ScrapeError) -> Self {
+        Self::TrackerCoreError {
+            source: announce_error.into(),
+        }
+    }
+}
+
+impl From<WhitelistError> for HttpScrapeError {
+    fn from(whitelist_error: WhitelistError) -> Self {
+        Self::TrackerCoreError {
+            source: whitelist_error.into(),
+        }
+    }
+}
+
+impl From<authentication::key::Error> for HttpScrapeError {
+    fn from(whitelist_error: authentication::key::Error) -> Self {
+        Self::TrackerCoreError {
+            source: whitelist_error.into(),
         }
     }
 }
