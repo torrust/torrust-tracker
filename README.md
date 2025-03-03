@@ -40,12 +40,12 @@ Protocols:
 
 Integrations:
 
-- [ ] Monitoring (Prometheus).
+- [x] Monitoring (Prometheus).
 
 Utils:
 
-- [ ] Tracker client.
-- [ ] Tracker checker.
+- [ ] Tracker client. WIP.
+- [ ] Tracker checker. WIP.
 
 Others:
 
@@ -64,6 +64,10 @@ Others:
 - [BEP 23]: Tracker Returns Compact Peer Lists.
 - [BEP 27]: Private Torrents.
 - [BEP 48]: Tracker Protocol Extension: Scrape.
+
+## Architecture
+
+![Torrust Tracker Layers with main packages](./docs/media/packages/torrust-tracker-layers-with-packages.png)
 
 ## Getting Started
 
@@ -166,6 +170,8 @@ Some specific sections:
 - [Management API (Version 1)][API]
 - [Tracker (HTTP/TLS)][HTTP]
 - [Tracker (UDP)][UDP]
+
+There is also extra documentation in the [docs](./docs) folder.
 
 ## Benchmarking
 
