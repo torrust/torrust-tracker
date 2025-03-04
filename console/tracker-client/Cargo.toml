@@ -21,7 +21,7 @@ bittorrent-primitives = "0.1.0"
 bittorrent-tracker-client = { version = "3.0.0-develop", path = "../../packages/tracker-client" }
 clap = { version = "4", features = ["derive", "env"] }
 futures = "0"
-hex-literal = "0"
+hex-literal = "1"
 hyper = "1"
 reqwest = { version = "0", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
