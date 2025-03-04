@@ -185,11 +185,11 @@ impl AnnounceHandler {
     /// returns the updated swarm stats.
     #[must_use]
     fn upsert_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> SwarmMetadata {
-        let stats_updated = self.in_memory_torrent_repository.upsert_peer(info_hash, peer);
+        let number_of_downloads_increased = self.in_memory_torrent_repository.upsert_peer(info_hash, peer);
 
         let swarm_metadata = self.in_memory_torrent_repository.get_swarm_metadata(info_hash);
 
-        if stats_updated {
+        if number_of_downloads_increased {
             self.persist_stats(info_hash, &swarm_metadata);
         }
 
