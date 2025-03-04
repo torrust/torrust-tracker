@@ -13,7 +13,7 @@ use r2d2::Pool;
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MySqlConnectionManager;
-use torrust_tracker_primitives::PersistentTorrents;
+use torrust_tracker_primitives::{PersistentTorrent, PersistentTorrents};
 
 use super::{Database, Driver, Error};
 use crate::authentication::key::AUTH_KEY_LENGTH;
@@ -127,6 +127,20 @@ impl Database for Mysql {
         )?;
 
         Ok(torrents.iter().copied().collect())
+    }
+
+    /// Refer to [`databases::Database::load_persistent_torrent`](crate::core::databases::Database::load_persistent_torrent).
+    fn load_persistent_torrent(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let query = conn.exec_first::<u32, _, _>(
+            "SELECT completed FROM torrents WHERE info_hash = :info_hash",
+            params! { "info_hash" => info_hash.to_hex_string() },
+        );
+
+        let persistent_torrent = query?;
+
+        Ok(persistent_torrent)
     }
 
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).

@@ -98,6 +98,7 @@ pub(crate) mod tests {
         // Persistent torrents (stats)
 
         handling_torrent_persistence::it_should_save_and_load_persistent_torrents(driver);
+        handling_torrent_persistence::it_should_load_all_persistent_torrents(driver);
 
         // Authentication keys (for private trackers)
 
@@ -153,6 +154,18 @@ pub(crate) mod tests {
         use crate::test_helpers::tests::sample_info_hash;
 
         pub fn it_should_save_and_load_persistent_torrents(driver: &Arc<Box<dyn Database>>) {
+            let infohash = sample_info_hash();
+
+            let number_of_downloads = 1;
+
+            driver.save_persistent_torrent(&infohash, number_of_downloads).unwrap();
+
+            let number_of_downloads = driver.load_persistent_torrent(&infohash).unwrap().unwrap();
+
+            assert_eq!(number_of_downloads, 1);
+        }
+
+        pub fn it_should_load_all_persistent_torrents(driver: &Arc<Box<dyn Database>>) {
             let infohash = sample_info_hash();
 
             let number_of_downloads = 1;

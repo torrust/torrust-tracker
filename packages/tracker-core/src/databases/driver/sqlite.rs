@@ -13,7 +13,7 @@ use r2d2::Pool;
 use r2d2_sqlite::rusqlite::params;
 use r2d2_sqlite::rusqlite::types::Null;
 use r2d2_sqlite::SqliteConnectionManager;
-use torrust_tracker_primitives::{DurationSinceUnixEpoch, PersistentTorrents};
+use torrust_tracker_primitives::{DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use super::{Database, Driver, Error};
 use crate::authentication::{self, Key};
@@ -123,6 +123,22 @@ impl Database for Sqlite {
         })?;
 
         Ok(torrent_iter.filter_map(std::result::Result::ok).collect())
+    }
+
+    /// Refer to [`databases::Database::load_persistent_torrent`](crate::core::databases::Database::load_persistent_torrent).
+    fn load_persistent_torrent(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let mut stmt = conn.prepare("SELECT completed FROM torrents WHERE info_hash = ?")?;
+
+        let mut rows = stmt.query([info_hash.to_hex_string()])?;
+
+        let persistent_torrent = rows.next()?;
+
+        Ok(persistent_torrent.map(|f| {
+            let completed: i64 = f.get(0).unwrap();
+            u32::try_from(completed).unwrap()
+        }))
     }
 
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).

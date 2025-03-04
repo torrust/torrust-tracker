@@ -2,7 +2,7 @@
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::PersistentTorrents;
+use torrust_tracker_primitives::{PersistentTorrent, PersistentTorrents};
 
 use crate::databases::error::Error;
 use crate::databases::Database;
@@ -57,6 +57,19 @@ impl DatabasePersistentTorrentRepository {
     /// Returns an [`Error`] if the underlying database query fails.
     pub(crate) fn load_all(&self) -> Result<PersistentTorrents, Error> {
         self.database.load_persistent_torrents()
+    }
+
+    /// Loads one persistent torrent metrics from the database.
+    ///
+    /// This function retrieves the torrent metrics (e.g., download counts) from the persistent store
+    /// and returns them as a [`PersistentTorrents`] map.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the underlying database query fails.
+    #[allow(dead_code)]
+    pub(crate) fn load(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
+        self.database.load_persistent_torrent(info_hash)
     }
 
     /// Saves the persistent torrent metric into the database.
