@@ -37,7 +37,7 @@ where
     EntryMutexTokio: EntryAsync,
     EntrySingle: Entry,
 {
-    async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> bool {
         let maybe_entry = self.get_torrents().get(info_hash).cloned();
 
         let entry = if let Some(entry) = maybe_entry {
@@ -48,7 +48,7 @@ where
             entry.clone()
         };
 
-        entry.upsert_peer(peer).await;
+        entry.upsert_peer(peer).await
     }
 
     async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {

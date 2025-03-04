@@ -23,13 +23,15 @@ where
     EntryMutexStd: EntrySync,
     EntrySingle: Entry,
 {
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> bool {
         if let Some(entry) = self.torrents.get(info_hash) {
-            entry.upsert_peer(peer);
+            entry.upsert_peer(peer)
         } else {
             let _unused = self.torrents.insert(*info_hash, Arc::default());
             if let Some(entry) = self.torrents.get(info_hash) {
-                entry.upsert_peer(peer);
+                entry.upsert_peer(peer)
+            } else {
+                false
             }
         }
     }

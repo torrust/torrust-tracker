@@ -187,7 +187,7 @@ impl AnnounceHandler {
     fn upsert_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> SwarmMetadata {
         let swarm_metadata_before = self.in_memory_torrent_repository.get_swarm_metadata(info_hash);
 
-        self.in_memory_torrent_repository.upsert_peer(info_hash, peer);
+        let _stats_updated = self.in_memory_torrent_repository.upsert_peer(info_hash, peer);
 
         let swarm_metadata_after = self.in_memory_torrent_repository.get_swarm_metadata(info_hash);
 

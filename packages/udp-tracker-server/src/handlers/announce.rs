@@ -366,7 +366,7 @@ mod tests {
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
-                let () = in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv6);
+                let _stats_updated = in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv6);
             }
 
             async fn announce_a_new_peer_using_ipv4(
@@ -677,7 +677,7 @@ mod tests {
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 
-                let () = in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv4);
+                let _stats_updated = in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv4);
             }
 
             async fn announce_a_new_peer_using_ipv6(

@@ -33,7 +33,7 @@ where
 {
     /// Add a torrent to the tracker
     pub fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
-        let () = self
+        let _stats_updated = self
             .container
             .tracker_core_container
             .in_memory_torrent_repository

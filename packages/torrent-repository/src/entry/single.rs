@@ -66,6 +66,8 @@ impl Entry for EntrySingle {
                 }
             }
             _ => {
+                // `Started` event (first announced event) or
+                // `None` event (announcements done at regular intervals).
                 drop(self.swarm.upsert(Arc::new(*peer)));
             }
         }

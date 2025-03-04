@@ -47,12 +47,12 @@ impl RepositoryAsync<EntrySingle> for TorrentsRwLockTokio
 where
     EntrySingle: Entry,
 {
-    async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> bool {
         let mut db = self.get_torrents_mut().await;
 
         let entry = db.entry(*info_hash).or_insert(EntrySingle::default());
 
-        entry.upsert_peer(peer);
+        entry.upsert_peer(peer)
     }
 
     async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {

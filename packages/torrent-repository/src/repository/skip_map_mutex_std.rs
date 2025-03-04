@@ -23,9 +23,9 @@ where
     EntryMutexStd: EntrySync,
     EntrySingle: Entry,
 {
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> bool {
         let entry = self.torrents.get_or_insert(*info_hash, Arc::default());
-        entry.value().upsert_peer(peer);
+        entry.value().upsert_peer(peer)
     }
 
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
@@ -114,9 +114,9 @@ where
     EntryRwLockParkingLot: EntrySync,
     EntrySingle: Entry,
 {
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> bool {
         let entry = self.torrents.get_or_insert(*info_hash, Arc::default());
-        entry.value().upsert_peer(peer);
+        entry.value().upsert_peer(peer)
     }
 
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
@@ -205,9 +205,9 @@ where
     EntryMutexParkingLot: EntrySync,
     EntrySingle: Entry,
 {
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> bool {
         let entry = self.torrents.get_or_insert(*info_hash, Arc::default());
-        entry.value().upsert_peer(peer);
+        entry.value().upsert_peer(peer)
     }
 
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {

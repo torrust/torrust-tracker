@@ -26,7 +26,7 @@ pub(crate) enum Repo {
 }
 
 impl Repo {
-    pub(crate) async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    pub(crate) async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> bool {
         match self {
             Repo::RwLockStd(repo) => repo.upsert_peer(info_hash, peer),
             Repo::RwLockStdMutexStd(repo) => repo.upsert_peer(info_hash, peer),
