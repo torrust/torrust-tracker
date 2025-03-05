@@ -126,6 +126,19 @@ pub trait Database: Sync + Send {
     /// Returns an [`Error`] if the metrics cannot be saved.
     fn save_persistent_torrent(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error>;
 
+    /// Increases the number of downloads for a given torrent.
+    ///
+    /// # Arguments
+    ///
+    /// * `info_hash` - A reference to the torrent's info hash.
+    ///
+    /// # Context: Torrent Metrics
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the query failed.
+    fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error>;
+
     // Whitelist
 
     /// Loads the whitelisted torrents from the database.

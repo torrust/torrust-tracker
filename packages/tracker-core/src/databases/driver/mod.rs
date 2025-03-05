@@ -99,6 +99,7 @@ pub(crate) mod tests {
 
         handling_torrent_persistence::it_should_save_and_load_persistent_torrents(driver);
         handling_torrent_persistence::it_should_load_all_persistent_torrents(driver);
+        handling_torrent_persistence::it_should_increase_the_number_of_downloads_for_a_given_torrent(driver);
 
         // Authentication keys (for private trackers)
 
@@ -176,6 +177,20 @@ pub(crate) mod tests {
 
             assert_eq!(torrents.len(), 1);
             assert_eq!(torrents.get(&infohash), Some(number_of_downloads).as_ref());
+        }
+
+        pub fn it_should_increase_the_number_of_downloads_for_a_given_torrent(driver: &Arc<Box<dyn Database>>) {
+            let infohash = sample_info_hash();
+
+            let number_of_downloads = 1;
+
+            driver.save_persistent_torrent(&infohash, number_of_downloads).unwrap();
+
+            driver.increase_number_of_downloads(&infohash).unwrap();
+
+            let number_of_downloads = driver.load_persistent_torrent(&infohash).unwrap().unwrap();
+
+            assert_eq!(number_of_downloads, 2);
         }
     }
 

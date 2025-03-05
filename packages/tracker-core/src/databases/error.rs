@@ -49,6 +49,15 @@ pub enum Error {
         driver: Driver,
     },
 
+    /// Indicates a failure to update a record into the database.
+    ///
+    /// This error is raised when an insertion operation fails.
+    #[error("Unable to update record into {driver} database, {location}")]
+    UpdateFailed {
+        location: &'static Location<'static>,
+        driver: Driver,
+    },
+
     /// Indicates a failure to delete a record from the database.
     ///
     /// This error includes an error code that may be returned by the database

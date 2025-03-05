@@ -143,6 +143,31 @@ impl Database for Mysql {
         Ok(persistent_torrent)
     }
 
+    /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
+    fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
+        const COMMAND : &str = "INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)";
+
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let info_hash_str = info_hash.to_string();
+
+        Ok(conn.exec_drop(COMMAND, params! { info_hash_str, completed })?)
+    }
+
+    /// Refer to [`databases::Database::increase_number_of_downloads`](crate::core::databases::Database::increase_number_of_downloads).
+    fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error> {
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let info_hash_str = info_hash.to_string();
+
+        conn.exec_drop(
+            "UPDATE torrents SET completed = completed + 1 WHERE info_hash = :info_hash_str",
+            params! { info_hash_str },
+        )?;
+
+        Ok(())
+    }
+
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
     fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
@@ -173,19 +198,6 @@ impl Database for Mysql {
         })?;
 
         Ok(info_hashes)
-    }
-
-    /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
-    fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
-        const COMMAND : &str = "INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)";
-
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let info_hash_str = info_hash.to_string();
-
-        tracing::debug!("{}", info_hash_str);
-
-        Ok(conn.exec_drop(COMMAND, params! { info_hash_str, completed })?)
     }
 
     /// Refer to [`databases::Database::get_info_hash_from_whitelist`](crate::core::databases::Database::get_info_hash_from_whitelist).
