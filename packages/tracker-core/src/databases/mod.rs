@@ -128,6 +128,9 @@ pub trait Database: Sync + Send {
 
     /// Increases the number of downloads for a given torrent.
     ///
+    /// It does not create a new entry if the torrent is not found and it does
+    /// not return an error.
+    ///
     /// # Arguments
     ///
     /// * `info_hash` - A reference to the torrent's info hash.

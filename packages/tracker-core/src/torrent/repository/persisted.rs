@@ -47,6 +47,26 @@ impl DatabasePersistentTorrentRepository {
         }
     }
 
+    /// Increases the number of downloads for a given torrent.
+    ///
+    /// If the torrent is not found, it creates a new entry.
+    ///
+    /// # Arguments
+    ///
+    /// * `info_hash` - The info hash of the torrent.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the database operation fails.
+    pub(crate) fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error> {
+        let torrent = self.load(info_hash)?;
+
+        match torrent {
+            Some(_number_of_downloads) => self.database.increase_number_of_downloads(info_hash),
+            None => self.save(info_hash, 1),
+        }
+    }
+
     /// Loads all persistent torrent metrics from the database.
     ///
     /// This function retrieves the torrent metrics (e.g., download counts) from the persistent store
@@ -67,7 +87,6 @@ impl DatabasePersistentTorrentRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    #[allow(dead_code)]
     pub(crate) fn load(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
         self.database.load_persistent_torrent(info_hash)
     }
@@ -112,6 +131,19 @@ mod tests {
         let infohash = sample_info_hash();
 
         repository.save(&infohash, 1).unwrap();
+
+        let torrents = repository.load_all().unwrap();
+
+        assert_eq!(torrents.get(&infohash), Some(1).as_ref());
+    }
+
+    #[test]
+    fn it_increases_the_numbers_of_downloads_for_a_torrent_into_the_database() {
+        let repository = initialize_db_persistent_torrent_repository();
+
+        let infohash = sample_info_hash();
+
+        repository.increase_number_of_downloads(&infohash).unwrap();
 
         let torrents = repository.load_all().unwrap();
 

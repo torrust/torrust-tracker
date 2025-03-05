@@ -66,6 +66,10 @@ pub enum AnnounceError {
     /// Wraps errors related to torrent whitelisting.
     #[error("Whitelist error: {0}")]
     Whitelist(#[from] WhitelistError),
+
+    /// Wraps errors related to database.
+    #[error("Database error: {0}")]
+    Database(#[from] databases::error::Error),
 }
 
 /// Errors related to scrape requests.

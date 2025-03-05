@@ -97,7 +97,6 @@ use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::{Core, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::peer;
-use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use super::torrent::repository::persisted::DatabasePersistentTorrentRepository;
@@ -164,45 +163,29 @@ impl AnnounceHandler {
     ) -> Result<AnnounceData, AnnounceError> {
         self.whitelist_authorization.authorize(info_hash).await?;
 
-        tracing::debug!("Before: {peer:?}");
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
-        tracing::debug!("After: {peer:?}");
 
-        let stats = self.upsert_peer_and_get_stats(info_hash, peer);
+        let number_of_downloads_increased = self.in_memory_torrent_repository.upsert_peer(info_hash, peer);
 
+        if self.config.tracker_policy.persistent_torrent_completed_stat && number_of_downloads_increased {
+            self.db_torrent_repository.increase_number_of_downloads(info_hash)?;
+        }
+
+        Ok(self.build_announce_data(info_hash, peer, peers_wanted))
+    }
+
+    /// Builds the announce data for the peer making the request.
+    fn build_announce_data(&self, info_hash: &InfoHash, peer: &peer::Peer, peers_wanted: &PeersWanted) -> AnnounceData {
         let peers = self
             .in_memory_torrent_repository
             .get_peers_for(info_hash, peer, peers_wanted.limit());
 
-        Ok(AnnounceData {
-            peers,
-            stats,
-            policy: self.config.announce_policy,
-        })
-    }
-
-    /// Updates the torrent data in memory, persists statistics if needed, and
-    /// returns the updated swarm stats.
-    #[must_use]
-    fn upsert_peer_and_get_stats(&self, info_hash: &InfoHash, peer: &peer::Peer) -> SwarmMetadata {
-        let number_of_downloads_increased = self.in_memory_torrent_repository.upsert_peer(info_hash, peer);
-
         let swarm_metadata = self.in_memory_torrent_repository.get_swarm_metadata(info_hash);
 
-        if number_of_downloads_increased {
-            self.persist_stats(info_hash, &swarm_metadata);
-        }
-
-        swarm_metadata
-    }
-
-    /// Persists torrent statistics to the database if persistence is enabled.
-    fn persist_stats(&self, info_hash: &InfoHash, swarm_metadata: &SwarmMetadata) {
-        if self.config.tracker_policy.persistent_torrent_completed_stat {
-            let completed = swarm_metadata.downloaded;
-            let info_hash = *info_hash;
-
-            drop(self.db_torrent_repository.save(&info_hash, completed));
+        AnnounceData {
+            peers,
+            stats: swarm_metadata,
+            policy: self.config.announce_policy,
         }
     }
 }

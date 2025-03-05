@@ -164,19 +164,12 @@ impl Database for Sqlite {
     fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let update = conn.execute(
+        let _ = conn.execute(
             "UPDATE torrents SET completed = completed + 1 WHERE info_hash = ?",
             [info_hash.to_string()],
         )?;
 
-        if update == 0 {
-            Err(Error::UpdateFailed {
-                location: Location::caller(),
-                driver: DRIVER,
-            })
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
