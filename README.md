@@ -69,6 +69,8 @@ Others:
 
 ![Torrust Tracker Layers with main packages](./docs/media/packages/torrust-tracker-layers-with-packages.png)
 
+There is also extra [documentation about the packages](./docs/packages.md).
+
 ## Getting Started
 
 ### Container Version
