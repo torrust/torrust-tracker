@@ -37,7 +37,7 @@ where
             .container
             .tracker_core_container
             .in_memory_torrent_repository
-            .upsert_peer(info_hash, peer);
+            .upsert_peer(info_hash, peer, None);
     }
 }
 

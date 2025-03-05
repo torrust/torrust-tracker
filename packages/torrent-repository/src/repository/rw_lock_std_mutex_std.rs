@@ -5,7 +5,7 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use super::Repository;
 use crate::entry::peer_list::PeerList;
@@ -33,7 +33,9 @@ where
     EntryMutexStd: EntrySync,
     EntrySingle: Entry,
 {
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> bool {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, _opt_persistent_torrent: Option<PersistentTorrent>) -> bool {
+        // todo: load persistent torrent data if provided
+
         let maybe_entry = self.get_torrents().get(info_hash).cloned();
 
         let entry = if let Some(entry) = maybe_entry {

@@ -166,7 +166,7 @@ mod tests {
                 .with_number_of_bytes_left(0)
                 .into();
 
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer);
+            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer, None);
         }
 
         fn build_scrape_request(remote_addr: &SocketAddr, info_hash: &InfoHash) -> ScrapeRequest {

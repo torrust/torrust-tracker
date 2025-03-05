@@ -3,7 +3,7 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use super::RepositoryAsync;
 use crate::entry::peer_list::PeerList;
@@ -47,7 +47,14 @@ impl RepositoryAsync<EntrySingle> for TorrentsRwLockTokio
 where
     EntrySingle: Entry,
 {
-    async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> bool {
+    async fn upsert_peer(
+        &self,
+        info_hash: &InfoHash,
+        peer: &peer::Peer,
+        _opt_persistent_torrent: Option<PersistentTorrent>,
+    ) -> bool {
+        // todo: load persistent torrent data if provided
+
         let mut db = self.get_torrents_mut().await;
 
         let entry = db.entry(*info_hash).or_insert(EntrySingle::default());

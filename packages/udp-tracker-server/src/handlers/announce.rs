@@ -367,7 +367,7 @@ mod tests {
                     .into();
 
                 let _number_of_downloads_increased =
-                    in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv6);
+                    in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv6, None);
             }
 
             async fn announce_a_new_peer_using_ipv4(
@@ -679,7 +679,7 @@ mod tests {
                     .into();
 
                 let _number_of_downloads_increased =
-                    in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv4);
+                    in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv4, None);
             }
 
             async fn announce_a_new_peer_using_ipv6(

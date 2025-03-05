@@ -195,7 +195,7 @@ mod tests {
             // Add a peer to the torrent
             let mut peer = sample_peer();
             peer.updated = DurationSinceUnixEpoch::new(0, 0);
-            let _number_of_downloads_increased = services.in_memory_torrent_repository.upsert_peer(&infohash, &peer);
+            let _number_of_downloads_increased = services.in_memory_torrent_repository.upsert_peer(&infohash, &peer, None);
 
             // Simulate the time has passed 1 second more than the max peer timeout.
             clock::Stopped::local_add(&Duration::from_secs(
@@ -212,7 +212,7 @@ mod tests {
             // Add a peer to the torrent
             let mut peer = sample_peer();
             peer.updated = DurationSinceUnixEpoch::new(0, 0);
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(infohash, &peer);
+            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(infohash, &peer, None);
 
             // Remove the peer. The torrent is now peerless.
             in_memory_torrent_repository.remove_inactive_peers(peer.updated.add(Duration::from_secs(1)));
