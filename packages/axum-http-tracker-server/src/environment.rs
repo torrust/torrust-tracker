@@ -22,11 +22,11 @@ pub struct Environment<S> {
 impl<S> Environment<S> {
     /// Add a torrent to the tracker
     pub fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
-        let () = self
+        let _number_of_downloads_increased = self
             .container
             .tracker_core_container
             .in_memory_torrent_repository
-            .upsert_peer(info_hash, peer);
+            .upsert_peer(info_hash, peer, None);
     }
 }
 

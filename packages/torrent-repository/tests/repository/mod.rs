@@ -562,14 +562,14 @@ async fn it_should_remove_inactive_peers(
     // Insert the infohash and peer into the repository
     // and verify there is an extra torrent entry.
     {
-        repo.upsert_peer(&info_hash, &peer).await;
+        repo.upsert_peer(&info_hash, &peer, None).await;
         assert_eq!(repo.get_metrics().await.torrents, entries.len() as u64 + 1);
     }
 
     // Insert the infohash and peer into the repository
     // and verify the swarm metadata was updated.
     {
-        repo.upsert_peer(&info_hash, &peer).await;
+        repo.upsert_peer(&info_hash, &peer, None).await;
         let stats = repo.get_swarm_metadata(&info_hash).await;
         assert_eq!(
             stats,

@@ -7,7 +7,7 @@ use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 use torrust_tracker_torrent_repository::entry::EntrySync;
 use torrust_tracker_torrent_repository::repository::Repository;
 use torrust_tracker_torrent_repository::EntryMutexStd;
@@ -40,8 +40,18 @@ impl InMemoryTorrentRepository {
     ///
     /// * `info_hash` - The unique identifier of the torrent.
     /// * `peer` - The peer to insert or update in the torrent entry.
-    pub fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
-        self.torrents.upsert_peer(info_hash, peer);
+    ///
+    /// # Returns
+    ///
+    /// `true` if the peer stats were updated.
+    #[must_use]
+    pub fn upsert_peer(
+        &self,
+        info_hash: &InfoHash,
+        peer: &peer::Peer,
+        opt_persistent_torrent: Option<PersistentTorrent>,
+    ) -> bool {
+        self.torrents.upsert_peer(info_hash, peer, opt_persistent_torrent)
     }
 
     /// Removes a torrent entry from the repository.
@@ -263,7 +273,7 @@ mod tests {
 
                 let info_hash = sample_info_hash();
 
-                let () = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer());
+                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
 
                 assert!(in_memory_torrent_repository.get(&info_hash).is_some());
             }
@@ -274,8 +284,8 @@ mod tests {
 
                 let info_hash = sample_info_hash();
 
-                let () = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer());
-                let () = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer());
+                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
 
                 assert!(in_memory_torrent_repository.get(&info_hash).is_some());
             }
@@ -301,7 +311,7 @@ mod tests {
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
 
-                let () = in_memory_torrent_repository.upsert_peer(&info_hash, &peer);
+                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
 
                 let peers = in_memory_torrent_repository.get_torrent_peers(&info_hash);
 
@@ -334,7 +344,7 @@ mod tests {
                         event: AnnounceEvent::Completed,
                     };
 
-                    let () = in_memory_torrent_repository.upsert_peer(&info_hash, &peer);
+                    let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
                 }
 
                 let peers = in_memory_torrent_repository.get_torrent_peers(&info_hash);
@@ -373,7 +383,7 @@ mod tests {
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
 
-                    let () = in_memory_torrent_repository.upsert_peer(&info_hash, &peer);
+                    let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
 
                     let peers = in_memory_torrent_repository.get_peers_for(&info_hash, &peer, TORRENT_PEERS_LIMIT);
 
@@ -388,7 +398,8 @@ mod tests {
 
                     let excluded_peer = sample_peer();
 
-                    let () = in_memory_torrent_repository.upsert_peer(&info_hash, &excluded_peer);
+                    let _number_of_downloads_increased =
+                        in_memory_torrent_repository.upsert_peer(&info_hash, &excluded_peer, None);
 
                     // Add 74 peers
                     for idx in 2..=75 {
@@ -402,7 +413,7 @@ mod tests {
                             event: AnnounceEvent::Completed,
                         };
 
-                        let () = in_memory_torrent_repository.upsert_peer(&info_hash, &peer);
+                        let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
                     }
 
                     let peers = in_memory_torrent_repository.get_peers_for(&info_hash, &excluded_peer, TORRENT_PEERS_LIMIT);
@@ -430,7 +441,7 @@ mod tests {
                 let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
                 let info_hash = sample_info_hash();
-                let () = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer());
+                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
 
                 let _unused = in_memory_torrent_repository.remove(&info_hash);
 
@@ -445,7 +456,7 @@ mod tests {
                 let mut peer = sample_peer();
                 peer.updated = DurationSinceUnixEpoch::new(0, 0);
 
-                let () = in_memory_torrent_repository.upsert_peer(&info_hash, &peer);
+                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
 
                 // Cut off time is 1 second after the peer was updated
                 in_memory_torrent_repository.remove_inactive_peers(peer.updated.add(Duration::from_secs(1)));
@@ -461,7 +472,7 @@ mod tests {
                 // Insert a sample peer for the torrent to force adding the torrent entry
                 let mut peer = sample_peer();
                 peer.updated = DurationSinceUnixEpoch::new(0, 0);
-                let () = in_memory_torrent_repository.upsert_peer(info_hash, &peer);
+                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(info_hash, &peer, None);
 
                 // Remove the peer
                 in_memory_torrent_repository.remove_inactive_peers(peer.updated.add(Duration::from_secs(1)));
@@ -525,7 +536,7 @@ mod tests {
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
 
-                let () = in_memory_torrent_repository.upsert_peer(&info_hash, &peer);
+                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
 
                 let torrent_entry = in_memory_torrent_repository.get(&info_hash).unwrap();
 
@@ -558,7 +569,7 @@ mod tests {
 
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
-                    let () = in_memory_torrent_repository.upsert_peer(&info_hash, &peer);
+                    let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
 
                     let torrent_entries = in_memory_torrent_repository.get_paginated(None);
 
@@ -600,12 +611,14 @@ mod tests {
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        let () = in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_one);
+                        let _number_of_downloads_increased =
+                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_one, None);
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        let () = in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_two);
+                        let _number_of_downloads_increased =
+                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_two, None);
 
                         // Get only the first page where page size is 1
                         let torrent_entries =
@@ -636,12 +649,14 @@ mod tests {
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        let () = in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_one);
+                        let _number_of_downloads_increased =
+                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_one, None);
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        let () = in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_two);
+                        let _number_of_downloads_increased =
+                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_two, None);
 
                         // Get only the first page where page size is 1
                         let torrent_entries =
@@ -672,12 +687,14 @@ mod tests {
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        let () = in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_one);
+                        let _number_of_downloads_increased =
+                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_one, None);
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        let () = in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_two);
+                        let _number_of_downloads_increased =
+                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_two, None);
 
                         // Get only the first page where page size is 1
                         let torrent_entries =
@@ -722,7 +739,8 @@ mod tests {
             async fn it_should_return_the_torrent_metrics_when_there_is_a_leecher() {
                 let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-                let () = in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &leecher());
+                let _number_of_downloads_increased =
+                    in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &leecher(), None);
 
                 let torrent_metrics = in_memory_torrent_repository.get_torrents_metrics();
 
@@ -741,7 +759,8 @@ mod tests {
             async fn it_should_return_the_torrent_metrics_when_there_is_a_seeder() {
                 let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-                let () = in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &seeder());
+                let _number_of_downloads_increased =
+                    in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &seeder(), None);
 
                 let torrent_metrics = in_memory_torrent_repository.get_torrents_metrics();
 
@@ -760,7 +779,8 @@ mod tests {
             async fn it_should_return_the_torrent_metrics_when_there_is_a_completed_peer() {
                 let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-                let () = in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &complete_peer());
+                let _number_of_downloads_increased =
+                    in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &complete_peer(), None);
 
                 let torrent_metrics = in_memory_torrent_repository.get_torrents_metrics();
 
@@ -781,7 +801,8 @@ mod tests {
 
                 let start_time = std::time::Instant::now();
                 for i in 0..1_000_000 {
-                    let () = in_memory_torrent_repository.upsert_peer(&gen_seeded_infohash(&i), &leecher());
+                    let _number_of_downloads_increased =
+                        in_memory_torrent_repository.upsert_peer(&gen_seeded_infohash(&i), &leecher(), None);
                 }
                 let result_a = start_time.elapsed();
 
@@ -817,7 +838,7 @@ mod tests {
 
                 let infohash = sample_info_hash();
 
-                let () = in_memory_torrent_repository.upsert_peer(&infohash, &leecher());
+                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&infohash, &leecher(), None);
 
                 let swarm_metadata = in_memory_torrent_repository.get_swarm_metadata(&infohash);
 

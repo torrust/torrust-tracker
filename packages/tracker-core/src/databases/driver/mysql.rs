@@ -13,7 +13,7 @@ use r2d2::Pool;
 use r2d2_mysql::mysql::prelude::Queryable;
 use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MySqlConnectionManager;
-use torrust_tracker_primitives::PersistentTorrents;
+use torrust_tracker_primitives::{PersistentTorrent, PersistentTorrents};
 
 use super::{Database, Driver, Error};
 use crate::authentication::key::AUTH_KEY_LENGTH;
@@ -129,6 +129,45 @@ impl Database for Mysql {
         Ok(torrents.iter().copied().collect())
     }
 
+    /// Refer to [`databases::Database::load_persistent_torrent`](crate::core::databases::Database::load_persistent_torrent).
+    fn load_persistent_torrent(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let query = conn.exec_first::<u32, _, _>(
+            "SELECT completed FROM torrents WHERE info_hash = :info_hash",
+            params! { "info_hash" => info_hash.to_hex_string() },
+        );
+
+        let persistent_torrent = query?;
+
+        Ok(persistent_torrent)
+    }
+
+    /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
+    fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
+        const COMMAND : &str = "INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)";
+
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let info_hash_str = info_hash.to_string();
+
+        Ok(conn.exec_drop(COMMAND, params! { info_hash_str, completed })?)
+    }
+
+    /// Refer to [`databases::Database::increase_number_of_downloads`](crate::core::databases::Database::increase_number_of_downloads).
+    fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error> {
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let info_hash_str = info_hash.to_string();
+
+        conn.exec_drop(
+            "UPDATE torrents SET completed = completed + 1 WHERE info_hash = :info_hash_str",
+            params! { info_hash_str },
+        )?;
+
+        Ok(())
+    }
+
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
     fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
@@ -159,19 +198,6 @@ impl Database for Mysql {
         })?;
 
         Ok(info_hashes)
-    }
-
-    /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
-    fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
-        const COMMAND : &str = "INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)";
-
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let info_hash_str = info_hash.to_string();
-
-        tracing::debug!("{}", info_hash_str);
-
-        Ok(conn.exec_drop(COMMAND, params! { info_hash_str, completed })?)
     }
 
     /// Refer to [`databases::Database::get_info_hash_from_whitelist`](crate::core::databases::Database::get_info_hash_from_whitelist).
