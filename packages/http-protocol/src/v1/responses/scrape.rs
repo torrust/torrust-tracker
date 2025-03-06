@@ -9,7 +9,7 @@ use torrust_tracker_primitives::core::ScrapeData;
 /// The `Scrape` response for the HTTP tracker.
 ///
 /// ```rust
-/// use bittorrent_http_protocol::v1::responses::scrape::Bencoded;
+/// use bittorrent_http_tracker_protocol::v1::responses::scrape::Bencoded;
 /// use bittorrent_primitives::info_hash::InfoHash;
 /// use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 /// use torrust_tracker_primitives::core::ScrapeData;

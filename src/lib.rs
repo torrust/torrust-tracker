@@ -36,7 +36,7 @@
 //!     - [API](#api)
 //!     - [HTTP Tracker](#http-tracker)
 //!     - [UDP Tracker](#udp-tracker)
-//! - [Components](#components)
+//! - [Packages](#packages)
 //! - [Implemented BEPs](#implemented-beps)
 //! - [Contributing](#contributing)
 //! - [Documentation](#documentation)
@@ -55,9 +55,9 @@
 //!
 //! From the end-user perspective the Torrust Tracker exposes three different services.
 //!
-//! - A REST [`API`](crate::servers::apis)
-//! - One or more [`UDP`](crate::servers::udp) trackers
-//! - One or more [`HTTP`](crate::servers::http) trackers
+//! - A REST [`API`](torrust_axum_rest_tracker_api_server)
+//! - One or more [`UDP`](torrust_udp_tracker_server) trackers
+//! - One or more [`HTTP`](torrust_axum_http_tracker_server) trackers
 //!
 //! # Installation
 //!
@@ -124,7 +124,7 @@
 //! By default the tracker uses `SQLite` and the database file name `sqlite3.db`.
 //!
 //! You only need the `tls` directory in case you are setting up SSL for the HTTP tracker or the tracker API.
-//! Visit [`HTTP`](crate::servers::http) or [`API`](crate::servers::apis) if you want to know how you can use HTTPS.
+//! Visit [`HTTP`](torrust_axum_http_tracker_server) or [`API`](torrust_axum_rest_tracker_api_server) if you want to know how you can use HTTPS.
 //!
 //! ## Install from sources
 //!
@@ -280,7 +280,7 @@
 //! }
 //! ```
 //!
-//! Refer to the [`API`](crate::servers::apis) documentation for more information about the [`API`](crate::servers::apis) endpoints.
+//! Refer to the [`API`](torrust_axum_rest_tracker_api_server) documentation for more information about the [`API`](torrust_axum_rest_tracker_api_server) endpoints.
 //!
 //! ## HTTP tracker
 //!
@@ -301,7 +301,7 @@
 //! bind_address = "0.0.0.0:7070"
 //! ```
 //!
-//! Refer to the [`HTTP`](crate::servers::http) documentation for more information about the [`HTTP`](crate::servers::http) tracker.
+//! Refer to the [`HTTP`](torrust_axum_http_tracker_server) documentation for more information about the [`HTTP`](torrust_axum_http_tracker_server) tracker.
 //!
 //! ### Announce
 //!
@@ -359,7 +359,7 @@
 //!
 //! If the tracker is running in `private` or `private_listed` mode you will need to provide a valid authentication key.
 //!
-//! Right now the only way to add new keys is via the REST [`API`](crate::servers::apis). The endpoint `POST /api/vi/key/:duration_in_seconds`
+//! Right now the only way to add new keys is via the REST [`API`](torrust_axum_rest_tracker_api_server). The endpoint `POST /api/vi/key/:duration_in_seconds`
 //! will return an expiring key that will be valid for `duration_in_seconds` seconds.
 //!
 //! Using `curl` you can create a 2-minute valid auth key:
@@ -379,7 +379,7 @@
 //! ```
 //!
 //! You can also use the Torrust Tracker together with the [Torrust Index](https://github.com/torrust/torrust-index). If that's the case,
-//! the Index will create the keys by using the tracker [API](crate::servers::apis).
+//! the Index will create the keys by using the tracker [API](torrust_axum_rest_tracker_api_server).
 //!
 //! ## UDP tracker
 //!
@@ -395,22 +395,15 @@
 //! bind_address = "0.0.0.0:6969"
 //! ```
 //!
-//! Refer to the [`UDP`](crate::servers::udp) documentation for more information about the [`UDP`](crate::servers::udp) tracker.
+//! Refer to the [`UDP`](torrust_udp_tracker_server) documentation for more information about the [`UDP`](torrust_udp_tracker_server) tracker.
 //!
 //! If you want to know more about the UDP tracker protocol:
 //!
 //! - [BEP 15. UDP Tracker Protocol for `BitTorrent`](https://www.bittorrent.org/beps/bep_0015.html)
 //!
-//! # Components
+//! # Packages
 //!
-//! Torrust Tracker has four main components:
-//!
-//! - The core tracker [`core`]
-//! - The tracker REST [`API`](crate::servers::apis)
-//! - The [`UDP`](crate::servers::udp) tracker
-//! - The [`HTTP`](crate::servers::http) tracker
-//!
-//! ![Torrust Tracker Components](https://raw.githubusercontent.com/torrust/torrust-tracker/main/docs/media/torrust-tracker-components.png)
+//! ![Torrust Tracker Layers with Main Packages](https://raw.githubusercontent.com/torrust/torrust-tracker/main/docs/media/packages/torrust-tracker-layers-with-packages.png)
 //!
 //! ## Core tracker
 //!
@@ -434,7 +427,7 @@
 //! - Torrents: to get peers for a torrent
 //! - Whitelist: to handle the torrent whitelist when the tracker runs on `listed` or `private_listed` mode
 //!
-//! See [`API`](crate::servers::apis) for more details on the REST API.
+//! See [`API`](torrust_axum_rest_tracker_api_server) for more details on the REST API.
 //!
 //! ## UDP tracker
 //!
@@ -446,13 +439,13 @@
 //! - [Wikipedia: UDP tracker](https://en.wikipedia.org/wiki/UDP_tracker)
 //! - [BEP 15: UDP Tracker Protocol for `BitTorrent`](https://www.bittorrent.org/beps/bep_0015.html)
 //!
-//! See [`UDP`](crate::servers::udp) for more details on the UDP tracker.
+//! See [`UDP`](torrust_udp_tracker_server) for more details on the UDP tracker.
 //!
 //! ## HTTP tracker
 //!
 //! HTTP tracker was the original tracker specification defined on the [BEP 3]((https://www.bittorrent.org/beps/bep_0003.html)).
 //!
-//! See [`HTTP`](crate::servers::http) for more details on the HTTP tracker.
+//! See [`HTTP`](torrust_axum_http_tracker_server) for more details on the HTTP tracker.
 //!
 //! You can find more information about UDP tracker on:
 //!
@@ -494,12 +487,6 @@ pub mod app;
 pub mod bootstrap;
 pub mod console;
 pub mod container;
-pub mod packages;
-pub mod servers;
-pub mod shared;
-
-#[macro_use]
-extern crate lazy_static;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.

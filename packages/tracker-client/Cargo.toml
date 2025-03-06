@@ -17,7 +17,7 @@ version.workspace = true
 [dependencies]
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
-derive_more = { version = "1", features = ["as_ref", "constructor", "from"] }
+derive_more = { version = "2", features = ["as_ref", "constructor", "from"] }
 hyper = "1"
 percent-encoding = "2"
 reqwest = { version = "0", features = ["json"] }

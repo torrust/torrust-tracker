@@ -1,0 +1,36 @@
+[package]
+authors.workspace = true
+description = "A library with the core functionality needed to implement a BitTorrent UDP tracker."
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords = ["api", "bittorrent", "core", "library", "tracker"]
+license.workspace = true
+name = "bittorrent-udp-tracker-core"
+publish.workspace = true
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+aquatic_udp_protocol = "0"
+bittorrent-primitives = "0.1.0"
+bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
+bloom = "0.3.2"
+blowfish = "0"
+cipher = "0"
+futures = "0"
+lazy_static = "1"
+rand = "0"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+tracing = "0"
+zerocopy = "0.7"
+
+[dev-dependencies]
+mockall = "0"
+torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }

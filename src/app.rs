@@ -24,13 +24,12 @@
 use std::sync::Arc;
 
 use tokio::task::JoinHandle;
+use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::Configuration;
 use tracing::instrument;
 
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
-use crate::container::{AppContainer, HttpApiContainer, HttpTrackerContainer, UdpTrackerContainer};
-use crate::servers;
-use crate::servers::registar::Registar;
+use crate::container::AppContainer;
 
 /// # Panics
 ///
@@ -79,9 +78,12 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
                 );
             } else {
                 let udp_tracker_config = Arc::new(udp_tracker_config.clone());
-                let udp_tracker_container = Arc::new(UdpTrackerContainer::from_app_container(&udp_tracker_config, app_container));
+                let udp_tracker_container = Arc::new(app_container.udp_tracker_container(&udp_tracker_config));
+                let udp_tracker_server_container = Arc::new(app_container.udp_tracker_server_container());
 
-                jobs.push(udp_tracker::start_job(udp_tracker_container, registar.give_form()).await);
+                jobs.push(
+                    udp_tracker::start_job(udp_tracker_container, udp_tracker_server_container, registar.give_form()).await,
+                );
             }
         }
     } else {
@@ -92,10 +94,14 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
     if let Some(http_trackers) = &config.http_trackers {
         for http_tracker_config in http_trackers {
             let http_tracker_config = Arc::new(http_tracker_config.clone());
-            let http_tracker_container = Arc::new(HttpTrackerContainer::from_app_container(&http_tracker_config, app_container));
+            let http_tracker_container = Arc::new(app_container.http_tracker_container(&http_tracker_config));
 
-            if let Some(job) =
-                http_tracker::start_job(http_tracker_container, registar.give_form(), servers::http::Version::V1).await
+            if let Some(job) = http_tracker::start_job(
+                http_tracker_container,
+                registar.give_form(),
+                torrust_axum_http_tracker_server::Version::V1,
+            )
+            .await
             {
                 jobs.push(job);
             }
@@ -107,9 +113,15 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
     // Start HTTP API
     if let Some(http_api_config) = &config.http_api {
         let http_api_config = Arc::new(http_api_config.clone());
-        let http_api_container = Arc::new(HttpApiContainer::from_app_container(&http_api_config, app_container));
+        let http_api_container = Arc::new(app_container.tracker_http_api_container(&http_api_config));
 
-        if let Some(job) = tracker_apis::start_job(http_api_container, registar.give_form(), servers::apis::Version::V1).await {
+        if let Some(job) = tracker_apis::start_job(
+            http_api_container,
+            registar.give_form(),
+            torrust_axum_rest_tracker_api_server::Version::V1,
+        )
+        .await
+        {
             jobs.push(job);
         }
     } else {

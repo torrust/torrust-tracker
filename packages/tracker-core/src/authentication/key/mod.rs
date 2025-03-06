@@ -166,7 +166,7 @@ pub fn verify_key_expiration(auth_key: &PeerKey) -> Result<(), Error> {
 
 /// Verification error. Error returned when an [`PeerKey`] cannot be
 /// verified with the [`crate::authentication::key::verify_key_expiration`] function.
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Clone)]
 #[allow(dead_code)]
 pub enum Error {
     /// Wraps an underlying error encountered during key verification.
@@ -185,6 +185,10 @@ pub enum Error {
     /// Indicates that the key has expired.
     #[error("Key has expired, {location}")]
     KeyExpired { location: &'static Location<'static> },
+
+    /// Indicates that the required key for authentication was not provided.
+    #[error("Missing authentication key, {location}")]
+    MissingAuthKey { location: &'static Location<'static> },
 }
 
 impl From<r2d2_sqlite::rusqlite::Error> for Error {

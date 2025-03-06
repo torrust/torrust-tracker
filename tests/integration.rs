@@ -1,12 +1,14 @@
-//! Integration tests.
+//! Scaffolding for integration tests.
 //!
 //! ```text
 //! cargo test --test integration
 //! ```
+mod servers;
+
+// todo: there is only one test example that was copied from other package.
+// We have to add tests for the whole app.
 
 use torrust_tracker_clock::clock;
-mod common;
-mod servers;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.

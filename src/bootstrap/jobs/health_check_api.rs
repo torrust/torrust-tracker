@@ -16,14 +16,12 @@
 
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
+use torrust_axum_health_check_api_server::{server, HEALTH_CHECK_API_LOG_TARGET};
+use torrust_server_lib::logging::STARTED_ON;
+use torrust_server_lib::registar::ServiceRegistry;
+use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_configuration::HealthCheckApi;
 use tracing::instrument;
-
-use super::Started;
-use crate::servers::health_check_api::{server, HEALTH_CHECK_API_LOG_TARGET};
-use crate::servers::logging::STARTED_ON;
-use crate::servers::registar::ServiceRegistry;
-use crate::servers::signals::Halted;
 
 /// This function starts a new Health Check API server with the provided
 /// configuration.

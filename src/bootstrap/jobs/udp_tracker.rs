@@ -8,14 +8,14 @@
 //! > for the configuration options.
 use std::sync::Arc;
 
+use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
+use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
 use tokio::task::JoinHandle;
+use torrust_server_lib::registar::ServiceRegistrationForm;
+use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
+use torrust_udp_tracker_server::server::spawner::Spawner;
+use torrust_udp_tracker_server::server::Server;
 use tracing::instrument;
-
-use crate::container::UdpTrackerContainer;
-use crate::servers::registar::ServiceRegistrationForm;
-use crate::servers::udp::server::spawner::Spawner;
-use crate::servers::udp::server::Server;
-use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
 
 /// It starts a new UDP server with the provided configuration.
 ///
@@ -28,13 +28,22 @@ use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
 /// It will panic if the task did not finish successfully.
 #[must_use]
 #[allow(clippy::async_yields_async)]
-#[instrument(skip(udp_tracker_container, form))]
-pub async fn start_job(udp_tracker_container: Arc<UdpTrackerContainer>, form: ServiceRegistrationForm) -> JoinHandle<()> {
-    let bind_to = udp_tracker_container.udp_tracker_config.bind_address;
-    let cookie_lifetime = udp_tracker_container.udp_tracker_config.cookie_lifetime;
+#[instrument(skip(udp_tracker_core_container, udp_tracker_server_container, form))]
+pub async fn start_job(
+    udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+    udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
+    form: ServiceRegistrationForm,
+) -> JoinHandle<()> {
+    let bind_to = udp_tracker_core_container.udp_tracker_config.bind_address;
+    let cookie_lifetime = udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
 
     let server = Server::new(Spawner::new(bind_to))
-        .start(udp_tracker_container, form, cookie_lifetime)
+        .start(
+            udp_tracker_core_container,
+            udp_tracker_server_container,
+            form,
+            cookie_lifetime,
+        )
         .await
         .expect("it should be able to start the udp tracker");
 

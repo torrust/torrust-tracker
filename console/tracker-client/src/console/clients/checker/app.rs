@@ -114,7 +114,7 @@ fn setup_config(args: Args) -> Result<Configuration> {
 }
 
 fn load_config_from_file(path: &PathBuf) -> Result<Configuration> {
-    let file_content = std::fs::read_to_string(path).with_context(|| format!("can't read config file {path:?}"))?;
+    let file_content = std::fs::read_to_string(path).with_context(|| format!("can't read config file {}", path.display()))?;
 
     parse_from_json(&file_content).context("invalid config format")
 }

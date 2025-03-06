@@ -1,11 +1,10 @@
 //! Utilities to parse Torrust Tracker logs.
+use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-
-use crate::servers::health_check_api::HEALTH_CHECK_API_LOG_TARGET;
-use crate::servers::http::HTTP_TRACKER_LOG_TARGET;
-use crate::servers::logging::STARTED_ON;
-use crate::servers::udp::UDP_TRACKER_LOG_TARGET;
+use torrust_axum_health_check_api_server::HEALTH_CHECK_API_LOG_TARGET;
+use torrust_axum_http_tracker_server::HTTP_TRACKER_LOG_TARGET;
+use torrust_server_lib::logging::STARTED_ON;
 
 const INFO_THRESHOLD: &str = "INFO";
 

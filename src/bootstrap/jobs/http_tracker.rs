@@ -14,14 +14,13 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
+use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use tokio::task::JoinHandle;
+use torrust_axum_http_tracker_server::server::{HttpServer, Launcher};
+use torrust_axum_http_tracker_server::Version;
+use torrust_axum_server::tsl::make_rust_tls;
+use torrust_server_lib::registar::ServiceRegistrationForm;
 use tracing::instrument;
-
-use super::make_rust_tls;
-use crate::container::HttpTrackerContainer;
-use crate::servers::http::server::{HttpServer, Launcher};
-use crate::servers::http::Version;
-use crate::servers::registar::ServiceRegistrationForm;
 
 /// It starts a new HTTP server with the provided configuration and version.
 ///
@@ -33,7 +32,7 @@ use crate::servers::registar::ServiceRegistrationForm;
 /// It would panic if the `config::HttpTracker` struct would contain inappropriate values.
 #[instrument(skip(http_tracker_container, form))]
 pub async fn start_job(
-    http_tracker_container: Arc<HttpTrackerContainer>,
+    http_tracker_container: Arc<HttpTrackerCoreContainer>,
     form: ServiceRegistrationForm,
     version: Version,
 ) -> Option<JoinHandle<()>> {
@@ -53,7 +52,7 @@ pub async fn start_job(
 async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,
-    http_tracker_container: Arc<HttpTrackerContainer>,
+    http_tracker_container: Arc<HttpTrackerCoreContainer>,
     form: ServiceRegistrationForm,
 ) -> JoinHandle<()> {
     let server = HttpServer::new(Launcher::new(socket, tls))
@@ -78,25 +77,24 @@ async fn start_v1(
 mod tests {
     use std::sync::Arc;
 
+    use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
+    use torrust_axum_http_tracker_server::Version;
+    use torrust_server_lib::registar::Registar;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
-    use crate::bootstrap::app::{initialize_app_container, initialize_global_services};
+    use crate::bootstrap::app::initialize_global_services;
     use crate::bootstrap::jobs::http_tracker::start_job;
-    use crate::container::HttpTrackerContainer;
-    use crate::servers::http::Version;
-    use crate::servers::registar::Registar;
 
     #[tokio::test]
     async fn it_should_start_http_tracker() {
         let cfg = Arc::new(ephemeral_public());
+        let core_config = Arc::new(cfg.core.clone());
         let http_tracker = cfg.http_trackers.clone().expect("missing HTTP tracker configuration");
         let http_tracker_config = Arc::new(http_tracker[0].clone());
 
         initialize_global_services(&cfg);
 
-        let app_container = Arc::new(initialize_app_container(&cfg));
-
-        let http_tracker_container = Arc::new(HttpTrackerContainer::from_app_container(&http_tracker_config, &app_container));
+        let http_tracker_container = HttpTrackerCoreContainer::initialize(&core_config, &http_tracker_config);
 
         let version = Version::V1;
 

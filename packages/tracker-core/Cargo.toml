@@ -1,14 +1,14 @@
 [package]
-description = "A library with the core functionality needed to implement a BitTorrent tracker."
-keywords = ["api", "bittorrent", "core", "library", "tracker"]
-name = "bittorrent-tracker-core"
-readme = "README.md"
 authors.workspace = true
+description = "A library with the core functionality needed to implement a BitTorrent tracker."
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
+keywords = ["api", "bittorrent", "core", "library", "tracker"]
 license.workspace = true
+name = "bittorrent-tracker-core"
 publish.workspace = true
+readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
@@ -17,7 +17,7 @@ version.workspace = true
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
 chrono = { version = "0", default-features = false, features = ["clock"] }
-derive_more = { version = "1", features = ["as_ref", "constructor", "from"] }
+derive_more = { version = "2", features = ["as_ref", "constructor", "from"] }
 mockall = "0"
 r2d2 = "0"
 r2d2_mysql = "25"
@@ -26,13 +26,7 @@ rand = "0"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "2"
-tokio = { version = "1", features = [
-    "macros",
-    "net",
-    "rt-multi-thread",
-    "signal",
-    "sync",
-] }
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
@@ -43,7 +37,7 @@ tracing = "0"
 [dev-dependencies]
 local-ip-address = "0"
 mockall = "0"
-torrust-tracker-api-client = { version = "3.0.0-develop", path = "../tracker-api-client" }
+testcontainers = "0"
+torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "../rest-tracker-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
-testcontainers = "0.17.0"
 url = "2.5.4"

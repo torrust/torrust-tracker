@@ -55,11 +55,20 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: "${{ secrets.TORRUST_UPDATE_CARGO_REGISTRY_TOKEN }}"
         run: |
-          cargo publish -p bittorrent-http-protocol
+          cargo publish -p bittorrent-http-tracker-core
+          cargo publish -p bittorrent-http-tracker-protocol
           cargo publish -p bittorrent-tracker-client
           cargo publish -p bittorrent-tracker-core
+          cargo publish -p bittorrent-udp-tracker-core
+          cargo publish -p bittorrent-udp-tracker-protocol
+          cargo publish -p torrust-axum-health-check-api-server
+          cargo publish -p torrust-axum-http-tracker-server
+          cargo publish -p torrust-axum-rest-tracker-api-server
+          cargo publish -p torrust-axum-server
+          cargo publish -p torrust-rest-tracker-api-client
+          cargo publish -p torrust-rest-tracker-api-core
+          cargo publish -p torrust-torrust-server-lib
           cargo publish -p torrust-tracker
-          cargo publish -p torrust-tracker-api-client
           cargo publish -p torrust-tracker-client
           cargo publish -p torrust-tracker-clock
           cargo publish -p torrust-tracker-configuration
@@ -68,3 +77,4 @@ jobs:
           cargo publish -p torrust-tracker-primitives
           cargo publish -p torrust-tracker-test-helpers
           cargo publish -p torrust-tracker-torrent-repository
+          cargo publish -p torrust-udp-tracker-server

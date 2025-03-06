@@ -36,7 +36,7 @@ pub struct ClientIpSources {
 }
 
 /// The error that can occur when resolving the peer IP.
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum PeerIpResolutionError {
     /// The peer IP cannot be obtained because the tracker is configured as a
     /// reverse proxy but the `X-Forwarded-For` HTTP header is missing or
@@ -63,7 +63,7 @@ pub enum PeerIpResolutionError {
 /// use std::net::IpAddr;
 /// use std::str::FromStr;
 ///
-/// use bittorrent_http_protocol::v1::services::peer_ip_resolver::{invoke, ClientIpSources, PeerIpResolutionError};
+/// use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{invoke, ClientIpSources, PeerIpResolutionError};
 ///
 /// let on_reverse_proxy = true;
 ///
@@ -85,7 +85,7 @@ pub enum PeerIpResolutionError {
 /// use std::net::IpAddr;
 /// use std::str::FromStr;
 ///
-/// use bittorrent_http_protocol::v1::services::peer_ip_resolver::{invoke, ClientIpSources, PeerIpResolutionError};
+/// use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{invoke, ClientIpSources, PeerIpResolutionError};
 ///
 /// let on_reverse_proxy = false;
 ///

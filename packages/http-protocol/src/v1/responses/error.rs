@@ -13,6 +13,7 @@
 //! > code.
 use serde::Serialize;
 
+use crate::v1::auth;
 use crate::v1::services::peer_ip_resolver::PeerIpResolutionError;
 
 /// `Error` response for the HTTP tracker.
@@ -27,7 +28,7 @@ impl Error {
     /// Returns the bencoded representation of the `Error` struct.
     ///
     /// ```rust
-    /// use bittorrent_http_protocol::v1::responses::error::Error;
+    /// use bittorrent_http_tracker_protocol::v1::responses::error::Error;
     ///
     /// let err = Error {
     ///    failure_reason: "error message".to_owned(),
@@ -47,6 +48,14 @@ impl Error {
     }
 }
 
+impl From<auth::Error> for Error {
+    fn from(err: auth::Error) -> Self {
+        Self {
+            failure_reason: format!("Tracker authentication error: {err}"),
+        }
+    }
+}
+
 impl From<PeerIpResolutionError> for Error {
     fn from(err: PeerIpResolutionError) -> Self {
         Self {
@@ -55,18 +64,45 @@ impl From<PeerIpResolutionError> for Error {
     }
 }
 
+impl From<bittorrent_tracker_core::error::AnnounceError> for Error {
+    fn from(err: bittorrent_tracker_core::error::AnnounceError) -> Self {
+        Error {
+            failure_reason: format!("Tracker announce error: {err}"),
+        }
+    }
+}
+
+impl From<bittorrent_tracker_core::error::ScrapeError> for Error {
+    fn from(err: bittorrent_tracker_core::error::ScrapeError) -> Self {
+        Error {
+            failure_reason: format!("Tracker scrape error: {err}"),
+        }
+    }
+}
+
 impl From<bittorrent_tracker_core::error::WhitelistError> for Error {
     fn from(err: bittorrent_tracker_core::error::WhitelistError) -> Self {
         Error {
-            failure_reason: format!("Tracker error: {err}"),
+            failure_reason: format!("Tracker whitelist error: {err}"),
+        }
+    }
+}
+
+impl From<bittorrent_tracker_core::authentication::Error> for Error {
+    fn from(err: bittorrent_tracker_core::authentication::Error) -> Self {
+        Error {
+            failure_reason: format!("Tracker authentication error: {err}"),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::panic::Location;
 
     use super::Error;
+    use crate::v1::responses;
+    use crate::v1::services::peer_ip_resolver::PeerIpResolutionError;
 
     #[test]
     fn http_tracker_errors_can_be_bencoded() {
@@ -75,5 +111,21 @@ mod tests {
         };
 
         assert_eq!(err.write(), "d14:failure reason13:error messagee"); // cspell:disable-line
+    }
+
+    fn assert_error_response(error: &responses::error::Error, error_message: &str) {
+        assert!(
+            error.failure_reason.contains(error_message),
+            "Error response does not contain message: '{error_message}'. Error: {error:?}"
+        );
+    }
+
+    #[test]
+    fn it_should_map_a_peer_ip_resolution_error_into_an_error_response() {
+        let response = responses::error::Error::from(PeerIpResolutionError::MissingRightMostXForwardedForIp {
+            location: Location::caller(),
+        });
+
+        assert_error_response(&response, "Error resolving peer IP");
     }
 }

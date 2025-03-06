@@ -52,7 +52,7 @@ pub mod setup;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use mockall::automock;
-use torrust_tracker_primitives::PersistentTorrents;
+use torrust_tracker_primitives::{PersistentTorrent, PersistentTorrents};
 
 use self::error::Error;
 use crate::authentication::{self, Key};
@@ -90,7 +90,7 @@ pub trait Database: Sync + Send {
 
     // Torrent Metrics
 
-    /// Loads torrent metrics data from the database.
+    /// Loads torrent metrics data from the database for all torrents.
     ///
     /// This function returns the persistent torrent metrics as a collection of
     /// tuples, where each tuple contains an [`InfoHash`] and the `downloaded`
@@ -102,6 +102,15 @@ pub trait Database: Sync + Send {
     ///
     /// Returns an [`Error`] if the metrics cannot be loaded.
     fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error>;
+
+    /// Loads torrent metrics data from the database for one torrent.
+    ///
+    /// # Context: Torrent Metrics
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the metrics cannot be loaded.
+    fn load_persistent_torrent(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error>;
 
     /// Saves torrent metrics data into the database.
     ///
@@ -116,6 +125,22 @@ pub trait Database: Sync + Send {
     ///
     /// Returns an [`Error`] if the metrics cannot be saved.
     fn save_persistent_torrent(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error>;
+
+    /// Increases the number of downloads for a given torrent.
+    ///
+    /// It does not create a new entry if the torrent is not found and it does
+    /// not return an error.
+    ///
+    /// # Arguments
+    ///
+    /// * `info_hash` - A reference to the torrent's info hash.
+    ///
+    /// # Context: Torrent Metrics
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the query failed.
+    fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error>;
 
     // Whitelist
 

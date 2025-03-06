@@ -25,14 +25,13 @@ use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
+use torrust_axum_rest_tracker_api_server::server::{ApiServer, Launcher};
+use torrust_axum_rest_tracker_api_server::Version;
+use torrust_axum_server::tsl::make_rust_tls;
+use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
+use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_configuration::AccessTokens;
 use tracing::instrument;
-
-use super::make_rust_tls;
-use crate::container::HttpApiContainer;
-use crate::servers::apis::server::{ApiServer, Launcher};
-use crate::servers::apis::Version;
-use crate::servers::registar::ServiceRegistrationForm;
 
 /// This is the message that the "launcher" spawned task sends to the main
 /// application process to notify the API server was successfully started.
@@ -56,7 +55,7 @@ pub struct ApiServerJobStarted();
 ///
 #[instrument(skip(http_api_container, form))]
 pub async fn start_job(
-    http_api_container: Arc<HttpApiContainer>,
+    http_api_container: Arc<TrackerHttpApiCoreContainer>,
     form: ServiceRegistrationForm,
     version: Version,
 ) -> Option<JoinHandle<()>> {
@@ -78,7 +77,7 @@ pub async fn start_job(
 async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,
-    http_api_container: Arc<HttpApiContainer>,
+    http_api_container: Arc<TrackerHttpApiCoreContainer>,
     form: ServiceRegistrationForm,
     access_tokens: Arc<AccessTokens>,
 ) -> JoinHandle<()> {
@@ -97,24 +96,32 @@ async fn start_v1(
 mod tests {
     use std::sync::Arc;
 
+    use torrust_axum_rest_tracker_api_server::Version;
+    use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
+    use torrust_server_lib::registar::Registar;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
-    use crate::bootstrap::app::{initialize_app_container, initialize_global_services};
+    use crate::bootstrap::app::initialize_global_services;
     use crate::bootstrap::jobs::tracker_apis::start_job;
-    use crate::container::HttpApiContainer;
-    use crate::servers::apis::Version;
-    use crate::servers::registar::Registar;
 
     #[tokio::test]
     async fn it_should_start_http_tracker() {
         let cfg = Arc::new(ephemeral_public());
-        let http_api_config = Arc::new(cfg.http_api.clone().unwrap());
+
+        let core_config = Arc::new(cfg.core.clone());
+
+        let http_tracker_config = cfg.http_trackers.clone().expect("missing HTTP tracker configuration");
+        let http_tracker_config = Arc::new(http_tracker_config[0].clone());
+
+        let udp_tracker_configurations = cfg.udp_trackers.clone().expect("missing UDP tracker configuration");
+        let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
+
+        let http_api_config = Arc::new(cfg.http_api.clone().expect("missing HTTP API configuration").clone());
 
         initialize_global_services(&cfg);
 
-        let app_container = Arc::new(initialize_app_container(&cfg));
-
-        let http_api_container = Arc::new(HttpApiContainer::from_app_container(&http_api_config, &app_container));
+        let http_api_container =
+            TrackerHttpApiCoreContainer::initialize(&core_config, &http_tracker_config, &udp_tracker_config, &http_api_config);
 
         let version = Version::V1;
 

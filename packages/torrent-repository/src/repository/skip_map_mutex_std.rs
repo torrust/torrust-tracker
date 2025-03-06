@@ -6,7 +6,7 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use super::Repository;
 use crate::entry::peer_list::PeerList;
@@ -23,9 +23,42 @@ where
     EntryMutexStd: EntrySync,
     EntrySingle: Entry,
 {
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
-        let entry = self.torrents.get_or_insert(*info_hash, Arc::default());
-        entry.value().upsert_peer(peer);
+    /// Upsert a peer into the swarm of a torrent.
+    ///
+    /// Optionally, it can also preset the number of downloads of the torrent
+    /// only if it's the first time the torrent is being inserted.
+    ///
+    /// # Arguments
+    ///
+    /// * `info_hash` - The info hash of the torrent.
+    /// * `peer` - The peer to upsert.
+    /// * `opt_persistent_torrent` - The optional persisted data about a torrent
+    ///   (number of downloads for the torrent).
+    ///
+    /// # Returns
+    ///
+    /// Returns `true` if the number of downloads was increased because the peer
+    /// completed the download.
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, opt_persistent_torrent: Option<PersistentTorrent>) -> bool {
+        if let Some(existing_entry) = self.torrents.get(info_hash) {
+            existing_entry.value().upsert_peer(peer)
+        } else {
+            let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
+                EntryMutexStd::new(
+                    EntrySingle {
+                        swarm: PeerList::default(),
+                        downloaded: number_of_downloads,
+                    }
+                    .into(),
+                )
+            } else {
+                EntryMutexStd::default()
+            };
+
+            let inserted_entry = self.torrents.get_or_insert(*info_hash, new_entry);
+
+            inserted_entry.value().upsert_peer(peer)
+        }
     }
 
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
@@ -114,9 +147,11 @@ where
     EntryRwLockParkingLot: EntrySync,
     EntrySingle: Entry,
 {
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, _opt_persistent_torrent: Option<PersistentTorrent>) -> bool {
+        // todo: load persistent torrent data if provided
+
         let entry = self.torrents.get_or_insert(*info_hash, Arc::default());
-        entry.value().upsert_peer(peer);
+        entry.value().upsert_peer(peer)
     }
 
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
@@ -205,9 +240,11 @@ where
     EntryMutexParkingLot: EntrySync,
     EntrySingle: Entry,
 {
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, _opt_persistent_torrent: Option<PersistentTorrent>) -> bool {
+        // todo: load persistent torrent data if provided
+
         let entry = self.torrents.get_or_insert(*info_hash, Arc::default());
-        entry.value().upsert_peer(peer);
+        entry.value().upsert_peer(peer)
     }
 
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {

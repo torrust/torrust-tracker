@@ -76,6 +76,7 @@ impl Container {
         ));
         let announce_handler = Arc::new(AnnounceHandler::new(
             config,
+            &whitelist_authorization,
             &in_memory_torrent_repository,
             &db_torrent_repository,
         ));
@@ -102,10 +103,11 @@ async fn test_announce_and_scrape_requests() {
 
     // First announce: download started
     peer.event = AnnounceEvent::Started;
-    let announce_data =
-        container
-            .announce_handler
-            .announce(&info_hash, &mut peer, &remote_client_ip(), &PeersWanted::AsManyAsPossible);
+    let announce_data = container
+        .announce_handler
+        .announce(&info_hash, &mut peer, &remote_client_ip(), &PeersWanted::AsManyAsPossible)
+        .await
+        .unwrap();
 
     // NOTICE: you don't get back the peer making the request.
     assert_eq!(announce_data.peers.len(), 0);
@@ -113,17 +115,18 @@ async fn test_announce_and_scrape_requests() {
 
     // Second announce: download completed
     peer.event = AnnounceEvent::Completed;
-    let announce_data =
-        container
-            .announce_handler
-            .announce(&info_hash, &mut peer, &remote_client_ip(), &PeersWanted::AsManyAsPossible);
+    let announce_data = container
+        .announce_handler
+        .announce(&info_hash, &mut peer, &remote_client_ip(), &PeersWanted::AsManyAsPossible)
+        .await
+        .unwrap();
 
     assert_eq!(announce_data.peers.len(), 0);
     assert_eq!(announce_data.stats.downloaded, 1);
 
     // Scrape
 
-    let scrape_data = container.scrape_handler.scrape(&vec![info_hash]).await;
+    let scrape_data = container.scrape_handler.scrape(&vec![info_hash]).await.unwrap();
 
     assert!(scrape_data.files.contains_key(&info_hash));
 }

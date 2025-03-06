@@ -20,7 +20,7 @@ where
 
         let info_hash = InfoHash::default();
 
-        torrent_repository.upsert_peer(&info_hash, &DEFAULT_PEER);
+        torrent_repository.upsert_peer(&info_hash, &DEFAULT_PEER, None);
 
         torrent_repository.get_swarm_metadata(&info_hash);
     }
@@ -39,7 +39,7 @@ where
     let handles = FuturesUnordered::new();
 
     // Add the torrent/peer to the torrent repository
-    torrent_repository.upsert_peer(&info_hash, &DEFAULT_PEER);
+    torrent_repository.upsert_peer(&info_hash, &DEFAULT_PEER, None);
 
     torrent_repository.get_swarm_metadata(&info_hash);
 
@@ -49,7 +49,7 @@ where
         let torrent_repository_clone = torrent_repository.clone();
 
         let handle = runtime.spawn(async move {
-            torrent_repository_clone.upsert_peer(&info_hash, &DEFAULT_PEER);
+            torrent_repository_clone.upsert_peer(&info_hash, &DEFAULT_PEER, None);
 
             torrent_repository_clone.get_swarm_metadata(&info_hash);
 
@@ -89,7 +89,7 @@ where
         let torrent_repository_clone = torrent_repository.clone();
 
         let handle = runtime.spawn(async move {
-            torrent_repository_clone.upsert_peer(&info_hash, &DEFAULT_PEER);
+            torrent_repository_clone.upsert_peer(&info_hash, &DEFAULT_PEER, None);
 
             torrent_repository_clone.get_swarm_metadata(&info_hash);
 
@@ -125,7 +125,7 @@ where
 
     // Add the torrents/peers to the torrent repository
     for info_hash in &info_hashes {
-        torrent_repository.upsert_peer(info_hash, &DEFAULT_PEER);
+        torrent_repository.upsert_peer(info_hash, &DEFAULT_PEER, None);
         torrent_repository.get_swarm_metadata(info_hash);
     }
 
@@ -135,7 +135,7 @@ where
         let torrent_repository_clone = torrent_repository.clone();
 
         let handle = runtime.spawn(async move {
-            torrent_repository_clone.upsert_peer(&info_hash, &DEFAULT_PEER);
+            torrent_repository_clone.upsert_peer(&info_hash, &DEFAULT_PEER, None);
             torrent_repository_clone.get_swarm_metadata(&info_hash);
 
             if let Some(sleep_time) = sleep {

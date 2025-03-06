@@ -3,7 +3,7 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 use torrust_tracker_torrent_repository::repository::{Repository as _, RepositoryAsync as _};
 use torrust_tracker_torrent_repository::{
     EntrySingle, TorrentsDashMapMutexStd, TorrentsRwLockStd, TorrentsRwLockStdMutexStd, TorrentsRwLockStdMutexTokio,
@@ -26,18 +26,23 @@ pub(crate) enum Repo {
 }
 
 impl Repo {
-    pub(crate) async fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
+    pub(crate) async fn upsert_peer(
+        &self,
+        info_hash: &InfoHash,
+        peer: &peer::Peer,
+        opt_persistent_torrent: Option<PersistentTorrent>,
+    ) -> bool {
         match self {
-            Repo::RwLockStd(repo) => repo.upsert_peer(info_hash, peer),
-            Repo::RwLockStdMutexStd(repo) => repo.upsert_peer(info_hash, peer),
-            Repo::RwLockStdMutexTokio(repo) => repo.upsert_peer(info_hash, peer).await,
-            Repo::RwLockTokio(repo) => repo.upsert_peer(info_hash, peer).await,
-            Repo::RwLockTokioMutexStd(repo) => repo.upsert_peer(info_hash, peer).await,
-            Repo::RwLockTokioMutexTokio(repo) => repo.upsert_peer(info_hash, peer).await,
-            Repo::SkipMapMutexStd(repo) => repo.upsert_peer(info_hash, peer),
-            Repo::SkipMapMutexParkingLot(repo) => repo.upsert_peer(info_hash, peer),
-            Repo::SkipMapRwLockParkingLot(repo) => repo.upsert_peer(info_hash, peer),
-            Repo::DashMapMutexStd(repo) => repo.upsert_peer(info_hash, peer),
+            Repo::RwLockStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Repo::RwLockStdMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Repo::RwLockStdMutexTokio(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
+            Repo::RwLockTokio(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
+            Repo::RwLockTokioMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
+            Repo::RwLockTokioMutexTokio(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
+            Repo::SkipMapMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Repo::SkipMapMutexParkingLot(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Repo::SkipMapRwLockParkingLot(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Repo::DashMapMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
         }
     }
 

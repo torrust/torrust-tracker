@@ -51,7 +51,7 @@ impl Entry for EntrySingle {
     }
 
     fn upsert_peer(&mut self, peer: &peer::Peer) -> bool {
-        let mut downloaded_stats_updated: bool = false;
+        let mut number_of_downloads_increased: bool = false;
 
         match peer::ReadInfo::get_event(peer) {
             AnnounceEvent::Stopped => {
@@ -62,15 +62,17 @@ impl Entry for EntrySingle {
                 // Don't count if peer was not previously known and not already completed.
                 if previous.is_some_and(|p| p.event != AnnounceEvent::Completed) {
                     self.downloaded += 1;
-                    downloaded_stats_updated = true;
+                    number_of_downloads_increased = true;
                 }
             }
             _ => {
+                // `Started` event (first announced event) or
+                // `None` event (announcements done at regular intervals).
                 drop(self.swarm.upsert(Arc::new(*peer)));
             }
         }
 
-        downloaded_stats_updated
+        number_of_downloads_increased
     }
 
     fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {

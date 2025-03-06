@@ -67,6 +67,7 @@ use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use super::whitelist;
+use crate::error::ScrapeError;
 
 /// Handles scrape requests, providing torrent swarm metadata.
 pub struct ScrapeHandler {
@@ -95,10 +96,18 @@ impl ScrapeHandler {
     /// - Returns metadata for each requested torrent.
     /// - If a torrent isn't whitelisted or doesn't exist, returns zeroed stats.
     ///
+    /// # Errors
+    ///
+    /// It does not return any errors for the time being. The error is returned
+    /// to avoid breaking changes in the future if we decide to return errors.
+    /// For example, a new tracker configuration option could be added to return
+    /// an error if a torrent is not whitelisted instead of returning zeroed
+    /// stats.
+    ///
     /// # BEP Reference:
     ///
     /// [BEP 48: Scrape Protocol](https://www.bittorrent.org/beps/bep_0048.html)
-    pub async fn scrape(&self, info_hashes: &Vec<InfoHash>) -> ScrapeData {
+    pub async fn scrape(&self, info_hashes: &Vec<InfoHash>) -> Result<ScrapeData, ScrapeError> {
         let mut scrape_data = ScrapeData::empty();
 
         for info_hash in info_hashes {
@@ -109,7 +118,7 @@ impl ScrapeHandler {
             scrape_data.add_file(info_hash, swarm_metadata);
         }
 
-        scrape_data
+        Ok(scrape_data)
     }
 }
 
@@ -145,7 +154,7 @@ mod tests {
 
         let info_hashes = vec!["3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap()]; // DevSkim: ignore DS173237
 
-        let scrape_data = scrape_handler.scrape(&info_hashes).await;
+        let scrape_data = scrape_handler.scrape(&info_hashes).await.unwrap();
 
         let mut expected_scrape_data = ScrapeData::empty();
 
@@ -163,7 +172,7 @@ mod tests {
             "99c82bb73505a3c0b453f9fa0e881d6e5a32a0c1".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
         ];
 
-        let scrape_data = scrape_handler.scrape(&info_hashes).await;
+        let scrape_data = scrape_handler.scrape(&info_hashes).await.unwrap();
 
         let mut expected_scrape_data = ScrapeData::empty();
         expected_scrape_data.add_file_with_zeroed_metadata(&info_hashes[0]);

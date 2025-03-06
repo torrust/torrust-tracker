@@ -4,7 +4,7 @@ A library with the primitive types and functions used by BitTorrent HTTP tracker
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/bittorrent-http-protocol).
+[Crate documentation](https://docs.rs/bittorrent-http-tracker-protocol).
 
 ## License
 

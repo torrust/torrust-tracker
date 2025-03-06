@@ -31,7 +31,7 @@ impl Query {
     /// input `name` exists. For example:
     ///
     /// ```rust
-    /// use bittorrent_http_protocol::v1::query::Query;
+    /// use bittorrent_http_tracker_protocol::v1::query::Query;
     ///
     /// let raw_query = "param1=value1&param2=value2";
     ///
@@ -44,7 +44,7 @@ impl Query {
     /// It returns only the first param value even if it has multiple values:
     ///
     /// ```rust
-    /// use bittorrent_http_protocol::v1::query::Query;
+    /// use bittorrent_http_tracker_protocol::v1::query::Query;
     ///
     /// let raw_query = "param1=value1&param1=value2";
     ///
@@ -60,7 +60,7 @@ impl Query {
     /// Returns all the param values as a vector.
     ///
     /// ```rust
-    /// use bittorrent_http_protocol::v1::query::Query;
+    /// use bittorrent_http_tracker_protocol::v1::query::Query;
     ///
     /// let query = "param1=value1&param1=value2".parse::<Query>().unwrap();
     ///
@@ -73,7 +73,7 @@ impl Query {
     /// Returns all the param values as a vector even if it has only one value.
     ///
     /// ```rust
-    /// use bittorrent_http_protocol::v1::query::Query;
+    /// use bittorrent_http_tracker_protocol::v1::query::Query;
     ///
     /// let query = "param1=value1".parse::<Query>().unwrap();
     ///

@@ -13,7 +13,7 @@ use r2d2::Pool;
 use r2d2_sqlite::rusqlite::params;
 use r2d2_sqlite::rusqlite::types::Null;
 use r2d2_sqlite::SqliteConnectionManager;
-use torrust_tracker_primitives::{DurationSinceUnixEpoch, PersistentTorrents};
+use torrust_tracker_primitives::{DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use super::{Database, Driver, Error};
 use crate::authentication::{self, Key};
@@ -125,6 +125,53 @@ impl Database for Sqlite {
         Ok(torrent_iter.filter_map(std::result::Result::ok).collect())
     }
 
+    /// Refer to [`databases::Database::load_persistent_torrent`](crate::core::databases::Database::load_persistent_torrent).
+    fn load_persistent_torrent(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let mut stmt = conn.prepare("SELECT completed FROM torrents WHERE info_hash = ?")?;
+
+        let mut rows = stmt.query([info_hash.to_hex_string()])?;
+
+        let persistent_torrent = rows.next()?;
+
+        Ok(persistent_torrent.map(|f| {
+            let completed: i64 = f.get(0).unwrap();
+            u32::try_from(completed).unwrap()
+        }))
+    }
+
+    /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
+    fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let insert = conn.execute(
+            "INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2",
+            [info_hash.to_string(), completed.to_string()],
+        )?;
+
+        if insert == 0 {
+            Err(Error::InsertFailed {
+                location: Location::caller(),
+                driver: DRIVER,
+            })
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Refer to [`databases::Database::increase_number_of_downloads`](crate::core::databases::Database::increase_number_of_downloads).
+    fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let _ = conn.execute(
+            "UPDATE torrents SET completed = completed + 1 WHERE info_hash = ?",
+            [info_hash.to_string()],
+        )?;
+
+        Ok(())
+    }
+
     /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
     fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
@@ -167,25 +214,6 @@ impl Database for Sqlite {
         let info_hashes: Vec<InfoHash> = info_hash_iter.filter_map(std::result::Result::ok).collect();
 
         Ok(info_hashes)
-    }
-
-    /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
-    fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
-        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let insert = conn.execute(
-            "INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2",
-            [info_hash.to_string(), completed.to_string()],
-        )?;
-
-        if insert == 0 {
-            Err(Error::InsertFailed {
-                location: Location::caller(),
-                driver: DRIVER,
-            })
-        } else {
-            Ok(())
-        }
     }
 
     /// Refer to [`databases::Database::get_info_hash_from_whitelist`](crate::core::databases::Database::get_info_hash_from_whitelist).
