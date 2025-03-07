@@ -25,12 +25,8 @@ use crate::statistics;
 ///
 /// The service sends an statistics event that increments:
 ///
-/// - The number of TCP connections handled by the HTTP tracker.
+/// - The number of TCP `announce` requests handled by the HTTP tracker.
 /// - The number of TCP `scrape` requests handled by the HTTP tracker.
-///
-/// > **NOTICE**: as the HTTP tracker does not requires a connection request
-/// > like the UDP tracker, the number of TCP connections is incremented for
-/// > each `scrape` request.
 ///
 /// # Errors
 ///

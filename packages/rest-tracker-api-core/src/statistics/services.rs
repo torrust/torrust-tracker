@@ -24,6 +24,7 @@ pub struct TrackerMetrics {
 }
 
 /// It returns all the [`TrackerMetrics`]
+#[allow(deprecated)]
 pub async fn get_metrics(
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     ban_service: Arc<RwLock<BanService>>,
@@ -37,15 +38,20 @@ pub async fn get_metrics(
     let udp_core_stats = udp_core_stats_repository.get_stats().await;
     let udp_server_stats = udp_server_stats_repository.get_stats().await;
 
+    // For backward compatibility we keep the `tcp4_connections_handled` and
+    // `tcp6_connections_handled` metrics. They don't make sense for the HTTP
+    // tracker, but we keep them for now. In new major versions we should remove
+    // them.
+
     TrackerMetrics {
         torrents_metrics,
         protocol_metrics: Metrics {
             // TCPv4
-            tcp4_connections_handled: http_stats.tcp4_connections_handled,
+            tcp4_connections_handled: http_stats.tcp4_announces_handled + http_stats.tcp4_scrapes_handled,
             tcp4_announces_handled: http_stats.tcp4_announces_handled,
             tcp4_scrapes_handled: http_stats.tcp4_scrapes_handled,
             // TCPv6
-            tcp6_connections_handled: http_stats.tcp6_connections_handled,
+            tcp6_connections_handled: http_stats.tcp6_announces_handled + http_stats.tcp6_scrapes_handled,
             tcp6_announces_handled: http_stats.tcp6_announces_handled,
             tcp6_scrapes_handled: http_stats.tcp6_scrapes_handled,
             // UDP
