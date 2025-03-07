@@ -16,10 +16,10 @@ pub fn stats_response(tracker_metrics: TrackerMetrics) -> Response {
 pub fn metrics_response(tracker_metrics: &TrackerMetrics) -> Response {
     let mut lines = vec![];
 
-    lines.push(format!("torrents {}", tracker_metrics.torrents_metrics.torrents));
-    lines.push(format!("seeders {}", tracker_metrics.torrents_metrics.complete));
-    lines.push(format!("completed {}", tracker_metrics.torrents_metrics.downloaded));
-    lines.push(format!("leechers {}", tracker_metrics.torrents_metrics.incomplete));
+    lines.push(format!("torrents {}", tracker_metrics.torrents_metrics.total_torrents));
+    lines.push(format!("seeders {}", tracker_metrics.torrents_metrics.total_complete));
+    lines.push(format!("completed {}", tracker_metrics.torrents_metrics.total_downloaded));
+    lines.push(format!("leechers {}", tracker_metrics.torrents_metrics.total_incomplete));
 
     // TCP
 
