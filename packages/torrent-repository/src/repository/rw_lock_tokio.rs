@@ -1,8 +1,7 @@
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
-use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use super::RepositoryAsync;
@@ -85,15 +84,15 @@ where
         }
     }
 
-    async fn get_metrics(&self) -> TorrentsMetrics {
-        let mut metrics = TorrentsMetrics::default();
+    async fn get_metrics(&self) -> AggregateSwarmMetadata {
+        let mut metrics = AggregateSwarmMetadata::default();
 
         for entry in self.get_torrents().await.values() {
             let stats = entry.get_swarm_metadata();
-            metrics.complete += u64::from(stats.complete);
-            metrics.downloaded += u64::from(stats.downloaded);
-            metrics.incomplete += u64::from(stats.incomplete);
-            metrics.torrents += 1;
+            metrics.total_complete += u64::from(stats.complete);
+            metrics.total_downloaded += u64::from(stats.downloaded);
+            metrics.total_incomplete += u64::from(stats.incomplete);
+            metrics.total_torrents += 1;
         }
 
         metrics

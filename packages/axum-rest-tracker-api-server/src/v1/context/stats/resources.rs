@@ -79,10 +79,10 @@ pub struct Stats {
 impl From<TrackerMetrics> for Stats {
     fn from(metrics: TrackerMetrics) -> Self {
         Self {
-            torrents: metrics.torrents_metrics.torrents,
-            seeders: metrics.torrents_metrics.complete,
-            completed: metrics.torrents_metrics.downloaded,
-            leechers: metrics.torrents_metrics.incomplete,
+            torrents: metrics.torrents_metrics.total_torrents,
+            seeders: metrics.torrents_metrics.total_complete,
+            completed: metrics.torrents_metrics.total_downloaded,
+            leechers: metrics.torrents_metrics.total_incomplete,
             // TCP
             tcp4_connections_handled: metrics.protocol_metrics.tcp4_connections_handled,
             tcp4_announces_handled: metrics.protocol_metrics.tcp4_announces_handled,
@@ -119,7 +119,7 @@ impl From<TrackerMetrics> for Stats {
 mod tests {
     use torrust_rest_tracker_api_core::statistics::metrics::Metrics;
     use torrust_rest_tracker_api_core::statistics::services::TrackerMetrics;
-    use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+    use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
 
     use super::Stats;
 
@@ -127,11 +127,11 @@ mod tests {
     fn stats_resource_should_be_converted_from_tracker_metrics() {
         assert_eq!(
             Stats::from(TrackerMetrics {
-                torrents_metrics: TorrentsMetrics {
-                    complete: 1,
-                    downloaded: 2,
-                    incomplete: 3,
-                    torrents: 4
+                torrents_metrics: AggregateSwarmMetadata {
+                    total_complete: 1,
+                    total_downloaded: 2,
+                    total_incomplete: 3,
+                    total_torrents: 4
                 },
                 protocol_metrics: Metrics {
                     // TCP

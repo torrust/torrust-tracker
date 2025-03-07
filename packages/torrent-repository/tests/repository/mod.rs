@@ -402,19 +402,19 @@ async fn it_should_get_metrics(
     repo: Repo,
     #[case] entries: Entries,
 ) {
-    use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+    use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
 
     make(&repo, &entries).await;
 
-    let mut metrics = TorrentsMetrics::default();
+    let mut metrics = AggregateSwarmMetadata::default();
 
     for (_, torrent) in entries {
         let stats = torrent.get_swarm_metadata();
 
-        metrics.torrents += 1;
-        metrics.incomplete += u64::from(stats.incomplete);
-        metrics.complete += u64::from(stats.complete);
-        metrics.downloaded += u64::from(stats.downloaded);
+        metrics.total_torrents += 1;
+        metrics.total_incomplete += u64::from(stats.incomplete);
+        metrics.total_complete += u64::from(stats.complete);
+        metrics.total_downloaded += u64::from(stats.downloaded);
     }
 
     assert_eq!(repo.get_metrics().await, metrics);
@@ -449,12 +449,12 @@ async fn it_should_import_persistent_torrents(
 ) {
     make(&repo, &entries).await;
 
-    let mut downloaded = repo.get_metrics().await.downloaded;
+    let mut downloaded = repo.get_metrics().await.total_downloaded;
     persistent_torrents.iter().for_each(|(_, d)| downloaded += u64::from(*d));
 
     repo.import_persistent(&persistent_torrents).await;
 
-    assert_eq!(repo.get_metrics().await.downloaded, downloaded);
+    assert_eq!(repo.get_metrics().await.total_downloaded, downloaded);
 
     for (entry, _) in persistent_torrents {
         assert!(repo.get(&entry).await.is_some());
@@ -497,7 +497,7 @@ async fn it_should_remove_an_entry(
         assert_eq!(repo.remove(&info_hash).await, None);
     }
 
-    assert_eq!(repo.get_metrics().await.torrents, 0);
+    assert_eq!(repo.get_metrics().await.total_torrents, 0);
 }
 
 #[rstest]
@@ -563,7 +563,7 @@ async fn it_should_remove_inactive_peers(
     // and verify there is an extra torrent entry.
     {
         repo.upsert_peer(&info_hash, &peer, None).await;
-        assert_eq!(repo.get_metrics().await.torrents, entries.len() as u64 + 1);
+        assert_eq!(repo.get_metrics().await.total_torrents, entries.len() as u64 + 1);
     }
 
     // Insert the infohash and peer into the repository

@@ -5,8 +5,7 @@ use std::sync::Arc;
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::pagination::Pagination;
-use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 use torrust_tracker_torrent_repository::entry::EntrySync;
 use torrust_tracker_torrent_repository::repository::Repository;
@@ -208,7 +207,7 @@ impl InMemoryTorrentRepository {
     ///
     /// A [`TorrentsMetrics`] struct with the aggregated metrics.
     #[must_use]
-    pub fn get_torrents_metrics(&self) -> TorrentsMetrics {
+    pub fn get_torrents_metrics(&self) -> AggregateSwarmMetadata {
         self.torrents.get_metrics()
     }
 
@@ -706,12 +705,12 @@ mod tests {
             }
         }
 
-        mod returning_torrent_metrics {
+        mod returning_aggregate_swarm_metadata {
 
             use std::sync::Arc;
 
             use bittorrent_primitives::info_hash::fixture::gen_seeded_infohash;
-            use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+            use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
 
             use crate::test_helpers::tests::{complete_peer, leecher, sample_info_hash, seeder};
             use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
@@ -719,84 +718,84 @@ mod tests {
             // todo: refactor to use test parametrization
 
             #[tokio::test]
-            async fn it_should_get_empty_torrent_metrics_when_there_are_no_torrents() {
+            async fn it_should_get_empty_aggregate_swarm_metadata_when_there_are_no_torrents() {
                 let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-                let torrents_metrics = in_memory_torrent_repository.get_torrents_metrics();
+                let aggregate_swarm_metadata = in_memory_torrent_repository.get_torrents_metrics();
 
                 assert_eq!(
-                    torrents_metrics,
-                    TorrentsMetrics {
-                        complete: 0,
-                        downloaded: 0,
-                        incomplete: 0,
-                        torrents: 0
+                    aggregate_swarm_metadata,
+                    AggregateSwarmMetadata {
+                        total_complete: 0,
+                        total_downloaded: 0,
+                        total_incomplete: 0,
+                        total_torrents: 0
                     }
                 );
             }
 
             #[tokio::test]
-            async fn it_should_return_the_torrent_metrics_when_there_is_a_leecher() {
+            async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_leecher() {
                 let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
                 let _number_of_downloads_increased =
                     in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &leecher(), None);
 
-                let torrent_metrics = in_memory_torrent_repository.get_torrents_metrics();
+                let aggregate_swarm_metadata = in_memory_torrent_repository.get_torrents_metrics();
 
                 assert_eq!(
-                    torrent_metrics,
-                    TorrentsMetrics {
-                        complete: 0,
-                        downloaded: 0,
-                        incomplete: 1,
-                        torrents: 1,
+                    aggregate_swarm_metadata,
+                    AggregateSwarmMetadata {
+                        total_complete: 0,
+                        total_downloaded: 0,
+                        total_incomplete: 1,
+                        total_torrents: 1,
                     }
                 );
             }
 
             #[tokio::test]
-            async fn it_should_return_the_torrent_metrics_when_there_is_a_seeder() {
+            async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_seeder() {
                 let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
                 let _number_of_downloads_increased =
                     in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &seeder(), None);
 
-                let torrent_metrics = in_memory_torrent_repository.get_torrents_metrics();
+                let aggregate_swarm_metadata = in_memory_torrent_repository.get_torrents_metrics();
 
                 assert_eq!(
-                    torrent_metrics,
-                    TorrentsMetrics {
-                        complete: 1,
-                        downloaded: 0,
-                        incomplete: 0,
-                        torrents: 1,
+                    aggregate_swarm_metadata,
+                    AggregateSwarmMetadata {
+                        total_complete: 1,
+                        total_downloaded: 0,
+                        total_incomplete: 0,
+                        total_torrents: 1,
                     }
                 );
             }
 
             #[tokio::test]
-            async fn it_should_return_the_torrent_metrics_when_there_is_a_completed_peer() {
+            async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_completed_peer() {
                 let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
                 let _number_of_downloads_increased =
                     in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &complete_peer(), None);
 
-                let torrent_metrics = in_memory_torrent_repository.get_torrents_metrics();
+                let aggregate_swarm_metadata = in_memory_torrent_repository.get_torrents_metrics();
 
                 assert_eq!(
-                    torrent_metrics,
-                    TorrentsMetrics {
-                        complete: 1,
-                        downloaded: 0,
-                        incomplete: 0,
-                        torrents: 1,
+                    aggregate_swarm_metadata,
+                    AggregateSwarmMetadata {
+                        total_complete: 1,
+                        total_downloaded: 0,
+                        total_incomplete: 0,
+                        total_torrents: 1,
                     }
                 );
             }
 
             #[tokio::test]
-            async fn it_should_return_the_torrent_metrics_when_there_are_multiple_torrents() {
+            async fn it_should_return_the_aggregate_swarm_metadata_when_there_are_multiple_torrents() {
                 let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
                 let start_time = std::time::Instant::now();
@@ -807,16 +806,16 @@ mod tests {
                 let result_a = start_time.elapsed();
 
                 let start_time = std::time::Instant::now();
-                let torrent_metrics = in_memory_torrent_repository.get_torrents_metrics();
+                let aggregate_swarm_metadata = in_memory_torrent_repository.get_torrents_metrics();
                 let result_b = start_time.elapsed();
 
                 assert_eq!(
-                    (torrent_metrics),
-                    (TorrentsMetrics {
-                        complete: 0,
-                        downloaded: 0,
-                        incomplete: 1_000_000,
-                        torrents: 1_000_000,
+                    (aggregate_swarm_metadata),
+                    (AggregateSwarmMetadata {
+                        total_complete: 0,
+                        total_downloaded: 0,
+                        total_incomplete: 1_000_000,
+                        total_torrents: 1_000_000,
                     }),
                     "{result_a:?} {result_b:?}"
                 );
