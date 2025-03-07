@@ -11,6 +11,7 @@ pub struct Metrics {
     /// Total number of TCP (HTTP tracker) connections from IPv4 peers.
     /// Since the HTTP tracker spec does not require a handshake, this metric
     /// increases for every HTTP request.
+    #[deprecated(since = "3.1.0")]
     pub tcp4_connections_handled: u64,
 
     /// Total number of TCP (HTTP tracker) `announce` requests from IPv4 peers.
@@ -20,6 +21,7 @@ pub struct Metrics {
     pub tcp4_scrapes_handled: u64,
 
     /// Total number of TCP (HTTP tracker) connections from IPv6 peers.
+    #[deprecated(since = "3.1.0")]
     pub tcp6_connections_handled: u64,
 
     /// Total number of TCP (HTTP tracker) `announce` requests from IPv6 peers.

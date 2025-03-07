@@ -41,7 +41,7 @@ use std::sync::Arc;
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use tokio::sync::RwLock;
-use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
 
 use crate::statistics::metrics::Metrics;
 use crate::statistics::repository::Repository;
@@ -52,7 +52,7 @@ pub struct TrackerMetrics {
     /// Domain level metrics.
     ///
     /// General metrics for all torrents (number of seeders, leechers, etcetera)
-    pub torrents_metrics: TorrentsMetrics,
+    pub torrents_metrics: AggregateSwarmMetadata,
 
     /// Application level metrics. Usage statistics/metrics.
     ///
@@ -108,7 +108,7 @@ mod tests {
     use bittorrent_udp_tracker_core::MAX_CONNECTION_ID_ERRORS_PER_IP;
     use tokio::sync::RwLock;
     use torrust_tracker_configuration::Configuration;
-    use torrust_tracker_primitives::torrent_metrics::TorrentsMetrics;
+    use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::statistics;
@@ -139,7 +139,7 @@ mod tests {
         assert_eq!(
             tracker_metrics,
             TrackerMetrics {
-                torrents_metrics: TorrentsMetrics::default(),
+                torrents_metrics: AggregateSwarmMetadata::default(),
                 protocol_metrics: statistics::metrics::Metrics::default(),
             }
         );

@@ -8,7 +8,6 @@ pub mod core;
 pub mod pagination;
 pub mod peer;
 pub mod swarm_metadata;
-pub mod torrent_metrics;
 
 use std::collections::BTreeMap;
 use std::time::Duration;
