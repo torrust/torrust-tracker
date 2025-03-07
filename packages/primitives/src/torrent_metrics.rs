@@ -5,12 +5,16 @@ use std::ops::AddAssign;
 /// Metrics are aggregate values for all torrents.
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct TorrentsMetrics {
-    /// Total number of seeders for all torrents
-    pub complete: u64,
-    /// Total number of peers that have ever completed downloading for all torrents.
+    /// Total number of peers that have ever completed downloading for all
+    /// torrents.
     pub downloaded: u64,
+
+    /// Total number of seeders for all torrents.
+    pub complete: u64,
+
     /// Total number of leechers for all torrents.
     pub incomplete: u64,
+
     /// Total number of torrents.
     pub torrents: u64,
 }

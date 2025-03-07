@@ -6,11 +6,16 @@ use derive_more::Constructor;
 /// See [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
 #[derive(Copy, Clone, Debug, PartialEq, Default, Constructor)]
 pub struct SwarmMetadata {
-    /// (i.e `completed`): The number of peers that have ever completed downloading
-    pub downloaded: u32, //
-    /// (i.e `seeders`): The number of active peers that have completed downloading (seeders)
-    pub complete: u32, //seeders
-    /// (i.e `leechers`): The number of active peers that have not completed downloading (leechers)
+    /// (i.e `completed`): The number of peers that have ever completed 
+    /// downloading a given torrent.
+    pub downloaded: u32,
+
+    /// (i.e `seeders`): The number of active peers that have completed 
+    /// downloading (seeders) a given torrent.
+    pub complete: u32,
+
+    /// (i.e `leechers`): The number of active peers that have not completed 
+    /// downloading (leechers) a given torrent.
     pub incomplete: u32,
 }
 
