@@ -77,6 +77,7 @@ pub struct Stats {
 }
 
 impl From<TrackerMetrics> for Stats {
+    #[allow(deprecated)]
     fn from(metrics: TrackerMetrics) -> Self {
         Self {
             torrents: metrics.torrents_metrics.total_torrents,
@@ -124,6 +125,7 @@ mod tests {
     use super::Stats;
 
     #[test]
+    #[allow(deprecated)]
     fn stats_resource_should_be_converted_from_tracker_metrics() {
         assert_eq!(
             Stats::from(TrackerMetrics {

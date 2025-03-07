@@ -12,6 +12,7 @@ pub fn stats_response(tracker_metrics: TrackerMetrics) -> Response {
 }
 
 /// `200` response that contains the [`Stats`] resource in Prometheus Text Exposition Format .
+#[allow(deprecated)]
 #[must_use]
 pub fn metrics_response(tracker_metrics: &TrackerMetrics) -> Response {
     let mut lines = vec![];
