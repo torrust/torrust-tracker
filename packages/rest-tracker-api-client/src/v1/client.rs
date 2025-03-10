@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use hyper::HeaderMap;
+use hyper::{header, HeaderMap};
 use reqwest::{Error, Response};
 use serde::Serialize;
 use url::Url;
@@ -9,7 +9,9 @@ use uuid::Uuid;
 use crate::common::http::{Query, QueryParam, ReqwestQuery};
 use crate::connection_info::ConnectionInfo;
 
-const TOKEN_PARAM_NAME: &str = "token";
+pub const TOKEN_PARAM_NAME: &str = "token";
+pub const AUTH_BEARER_TOKEN_HEADER_PREFIX: &str = "Bearer";
+
 const API_PATH: &str = "api/v1/";
 const DEFAULT_REQUEST_TIMEOUT_IN_SECS: u64 = 5;
 
@@ -90,13 +92,15 @@ impl Client {
     ///
     /// Will panic if the request can't be sent
     pub async fn post_empty(&self, path: &str, headers: Option<HeaderMap>) -> Response {
-        let builder = self
-            .client
-            .post(self.base_url(path).clone())
-            .query(&ReqwestQuery::from(self.query_with_token()));
+        let builder = self.client.post(self.base_url(path).clone());
 
         let builder = match headers {
             Some(headers) => builder.headers(headers),
+            None => builder,
+        };
+
+        let builder = match &self.connection_info.api_token {
+            Some(token) => builder.header(header::AUTHORIZATION, format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")),
             None => builder,
         };
 
@@ -107,14 +111,15 @@ impl Client {
     ///
     /// Will panic if the request can't be sent
     pub async fn post_form<T: Serialize + ?Sized>(&self, path: &str, form: &T, headers: Option<HeaderMap>) -> Response {
-        let builder = self
-            .client
-            .post(self.base_url(path).clone())
-            .query(&ReqwestQuery::from(self.query_with_token()))
-            .json(&form);
+        let builder = self.client.post(self.base_url(path).clone()).json(&form);
 
         let builder = match headers {
             Some(headers) => builder.headers(headers),
+            None => builder,
+        };
+
+        let builder = match &self.connection_info.api_token {
+            Some(token) => builder.header(header::AUTHORIZATION, format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")),
             None => builder,
         };
 
@@ -125,32 +130,68 @@ impl Client {
     ///
     /// Will panic if the request can't be sent
     async fn delete(&self, path: &str, headers: Option<HeaderMap>) -> Response {
-        let builder = self
-            .client
-            .delete(self.base_url(path).clone())
-            .query(&ReqwestQuery::from(self.query_with_token()));
+        let builder = self.client.delete(self.base_url(path).clone());
 
         let builder = match headers {
             Some(headers) => builder.headers(headers),
             None => builder,
         };
 
+        let builder = match &self.connection_info.api_token {
+            Some(token) => builder.header(header::AUTHORIZATION, format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")),
+            None => builder,
+        };
+
         builder.send().await.unwrap()
     }
 
+    /// # Panics
+    ///
+    /// Will panic if it can't convert the authentication token to a `HeaderValue`.
     pub async fn get_request_with_query(&self, path: &str, params: Query, headers: Option<HeaderMap>) -> Response {
-        get(self.base_url(path), Some(params), headers).await
+        match &self.connection_info.api_token {
+            Some(token) => {
+                let headers = if let Some(headers) = headers {
+                    // Headers provided -> add auth token if not already present
+
+                    if headers.get(header::AUTHORIZATION).is_some() {
+                        // Auth token already present -> use provided
+                        headers
+                    } else {
+                        let mut headers = headers;
+
+                        headers.insert(
+                            header::AUTHORIZATION,
+                            format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")
+                                .parse()
+                                .expect("the auth token is not a valid header value"),
+                        );
+
+                        headers
+                    }
+                } else {
+                    // No headers provided -> create headers with auth token
+
+                    let mut headers = HeaderMap::new();
+
+                    headers.insert(
+                        header::AUTHORIZATION,
+                        format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")
+                            .parse()
+                            .expect("the auth token is not a valid header value"),
+                    );
+
+                    headers
+                };
+
+                get(self.base_url(path), Some(params), Some(headers)).await
+            }
+            None => get(self.base_url(path), Some(params), headers).await,
+        }
     }
 
     pub async fn get_request(&self, path: &str) -> Response {
         get(self.base_url(path), None, None).await
-    }
-
-    fn query_with_token(&self) -> Query {
-        match &self.connection_info.api_token {
-            Some(token) => Query::params([QueryParam::new("token", token)].to_vec()),
-            None => Query::default(),
-        }
     }
 
     fn base_url(&self, path: &str) -> Url {
@@ -180,15 +221,38 @@ pub async fn get(path: Url, query: Option<Query>, headers: Option<HeaderMap>) ->
     builder.send().await.unwrap()
 }
 
-/// Returns a `HeaderMap` with a request id header
+/// Returns a `HeaderMap` with a request id header.
 ///
 /// # Panics
 ///
-/// Will panic if the request ID can't be parsed into a string.
+/// Will panic if the request ID can't be parsed into a `HeaderValue`.
 #[must_use]
 pub fn headers_with_request_id(request_id: Uuid) -> HeaderMap {
     let mut headers = HeaderMap::new();
-    headers.insert("x-request-id", request_id.to_string().parse().unwrap());
+    headers.insert(
+        "x-request-id",
+        request_id
+            .to_string()
+            .parse()
+            .expect("the request ID is not a valid header value"),
+    );
+    headers
+}
+
+/// Returns a `HeaderMap` with an authorization token.
+///
+/// # Panics
+///
+/// Will panic if the token can't be parsed into a `HeaderValue`.
+#[must_use]
+pub fn headers_with_auth_token(token: &str) -> HeaderMap {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        header::AUTHORIZATION,
+        format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")
+            .parse()
+            .expect("the auth token is not a valid header value"),
+    );
     headers
 }
 
