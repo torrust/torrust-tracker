@@ -104,7 +104,7 @@ podman run -it docker.io/torrust/tracker:develop
 # Checkout repository into a new folder:
 git clone https://github.com/torrust/torrust-tracker.git
 
-# Change into directory and create a empty database file:
+# Change into directory and create an empty database file:
 cd torrust-tracker
 mkdir -p ./storage/tracker/lib/database/
 touch ./storage/tracker/lib/database/sqlite3.db
