@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use hyper::HeaderMap;
+use hyper::{header, HeaderMap};
 use reqwest::{Error, Response};
 use serde::Serialize;
 use url::Url;
@@ -9,7 +9,9 @@ use uuid::Uuid;
 use crate::common::http::{Query, QueryParam, ReqwestQuery};
 use crate::connection_info::ConnectionInfo;
 
-const TOKEN_PARAM_NAME: &str = "token";
+pub const TOKEN_PARAM_NAME: &str = "token";
+pub const AUTH_BEARER_TOKEN_HEADER_PREFIX: &str = "Bearer";
+
 const API_PATH: &str = "api/v1/";
 const DEFAULT_REQUEST_TIMEOUT_IN_SECS: u64 = 5;
 
@@ -180,15 +182,38 @@ pub async fn get(path: Url, query: Option<Query>, headers: Option<HeaderMap>) ->
     builder.send().await.unwrap()
 }
 
-/// Returns a `HeaderMap` with a request id header
+/// Returns a `HeaderMap` with a request id header.
 ///
 /// # Panics
 ///
-/// Will panic if the request ID can't be parsed into a string.
+/// Will panic if the request ID can't be parsed into a `HeaderValue`.
 #[must_use]
 pub fn headers_with_request_id(request_id: Uuid) -> HeaderMap {
     let mut headers = HeaderMap::new();
-    headers.insert("x-request-id", request_id.to_string().parse().unwrap());
+    headers.insert(
+        "x-request-id",
+        request_id
+            .to_string()
+            .parse()
+            .expect("the request ID is not a valid header value"),
+    );
+    headers
+}
+
+/// Returns a `HeaderMap` with an authorization token.
+///
+/// # Panics
+///
+/// Will panic if the token can't be parsed into a `HeaderValue`.
+#[must_use]
+pub fn headers_with_auth_token(token: &str) -> HeaderMap {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        header::AUTHORIZATION,
+        format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")
+            .parse()
+            .expect("the auth token is not a valid header value"),
+    );
     headers
 }
 
