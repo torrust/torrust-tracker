@@ -2,6 +2,7 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
     use hyper::header;
     use torrust_axum_rest_tracker_api_server::environment::Started;
     use torrust_rest_tracker_api_client::common::http::Query;
+    use torrust_rest_tracker_api_client::connection_info::ConnectionInfo;
     use torrust_rest_tracker_api_client::v1::client::{
         headers_with_auth_token, headers_with_request_id, Client, AUTH_BEARER_TOKEN_HEADER_PREFIX,
     };
@@ -80,7 +81,9 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
                 .expect("the auth token is not a valid header value"),
         );
 
-        let response = Client::new(env.get_connection_info())
+        let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
+
+        let response = Client::new(connection_info)
             .unwrap()
             .get_request_with_query("stats", Query::default(), Some(headers))
             .await;
@@ -99,7 +102,8 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
 
     use torrust_axum_rest_tracker_api_server::environment::Started;
     use torrust_rest_tracker_api_client::common::http::{Query, QueryParam};
-    use torrust_rest_tracker_api_client::v1::client::{headers_with_request_id, Client};
+    use torrust_rest_tracker_api_client::connection_info::ConnectionInfo;
+    use torrust_rest_tracker_api_client::v1::client::{headers_with_request_id, Client, TOKEN_PARAM_NAME};
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
     use uuid::Uuid;
@@ -114,9 +118,15 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
 
         let token = env.get_connection_info().api_token.unwrap();
 
-        let response = Client::new(env.get_connection_info())
+        let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
+
+        let response = Client::new(connection_info)
             .unwrap()
-            .get_request_with_query("stats", Query::params([QueryParam::new("token", &token)].to_vec()), None)
+            .get_request_with_query(
+                "stats",
+                Query::params([QueryParam::new(TOKEN_PARAM_NAME, &token)].to_vec()),
+                None,
+            )
             .await;
 
         assert_eq!(response.status(), 200);
@@ -132,11 +142,13 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
 
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
+
+        let response = Client::new(connection_info)
             .unwrap()
             .get_request_with_query(
                 "stats",
-                Query::params([QueryParam::new("token", "")].to_vec()),
+                Query::params([QueryParam::new(TOKEN_PARAM_NAME, "")].to_vec()),
                 Some(headers_with_request_id(request_id)),
             )
             .await;
@@ -159,11 +171,13 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
 
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
+
+        let response = Client::new(connection_info)
             .unwrap()
             .get_request_with_query(
                 "stats",
-                Query::params([QueryParam::new("token", "INVALID TOKEN")].to_vec()),
+                Query::params([QueryParam::new(TOKEN_PARAM_NAME, "INVALID TOKEN")].to_vec()),
                 Some(headers_with_request_id(request_id)),
             )
             .await;
@@ -186,8 +200,10 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
 
         let token = env.get_connection_info().api_token.unwrap();
 
+        let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
+
         // At the beginning of the query component
-        let response = Client::new(env.get_connection_info())
+        let response = Client::new(connection_info)
             .unwrap()
             .get_request(&format!("torrents?token={token}&limit=1"))
             .await;
@@ -210,6 +226,7 @@ mod given_that_not_token_is_provided {
 
     use torrust_axum_rest_tracker_api_server::environment::Started;
     use torrust_rest_tracker_api_client::common::http::Query;
+    use torrust_rest_tracker_api_client::connection_info::ConnectionInfo;
     use torrust_rest_tracker_api_client::v1::client::{headers_with_request_id, Client};
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
@@ -225,7 +242,9 @@ mod given_that_not_token_is_provided {
 
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
+
+        let response = Client::new(connection_info)
             .unwrap()
             .get_request_with_query("stats", Query::default(), Some(headers_with_request_id(request_id)))
             .await;
