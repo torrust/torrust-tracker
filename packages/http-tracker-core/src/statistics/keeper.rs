@@ -51,7 +51,9 @@ impl Keeper {
 
 #[cfg(test)]
 mod tests {
-    use crate::statistics::event::Event;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    use crate::statistics::event::{ConnectionContext, Event};
     use crate::statistics::keeper::Keeper;
     use crate::statistics::metrics::Metrics;
 
@@ -70,7 +72,14 @@ mod tests {
 
         let event_sender = stats_tracker.run_event_listener();
 
-        let result = event_sender.send_event(Event::Tcp4Announce).await;
+        let result = event_sender
+            .send_event(Event::Tcp4Announce {
+                connection: ConnectionContext {
+                    client_ip_addr: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
+                    server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                },
+            })
+            .await;
 
         assert!(result.is_some());
     }

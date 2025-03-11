@@ -2,6 +2,7 @@
 //!
 //! The handlers perform the authentication and authorization of the request,
 //! and resolve the client IP address.
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum::extract::State;
@@ -22,13 +23,13 @@ use crate::v1::extractors::scrape_request::ExtractRequest;
 /// to run in `public` mode.
 #[allow(clippy::unused_async)]
 pub async fn handle_without_key(
-    State(state): State<Arc<ScrapeService>>,
+    State(state): State<(Arc<ScrapeService>, SocketAddr)>,
     ExtractRequest(scrape_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
 ) -> Response {
     tracing::debug!("http scrape request: {:#?}", &scrape_request);
 
-    handle(&state, &scrape_request, &client_ip_sources, None).await
+    handle(&state.0, &scrape_request, &client_ip_sources, &state.1, None).await
 }
 
 /// It handles the `scrape` request when the HTTP tracker is configured
@@ -37,24 +38,25 @@ pub async fn handle_without_key(
 /// In this case, the authentication `key` parameter is required.
 #[allow(clippy::unused_async)]
 pub async fn handle_with_key(
-    State(state): State<Arc<ScrapeService>>,
+    State(state): State<(Arc<ScrapeService>, SocketAddr)>,
     ExtractRequest(scrape_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
     ExtractKey(key): ExtractKey,
 ) -> Response {
     tracing::debug!("http scrape request: {:#?}", &scrape_request);
 
-    handle(&state, &scrape_request, &client_ip_sources, Some(key)).await
+    handle(&state.0, &scrape_request, &client_ip_sources, &state.1, Some(key)).await
 }
 
 async fn handle(
     scrape_service: &Arc<ScrapeService>,
     scrape_request: &Scrape,
     client_ip_sources: &ClientIpSources,
+    server_socket_addr: &SocketAddr,
     maybe_key: Option<Key>,
 ) -> Response {
     let scrape_data = match scrape_service
-        .handle_scrape(scrape_request, client_ip_sources, maybe_key)
+        .handle_scrape(scrape_request, client_ip_sources, server_socket_addr, maybe_key)
         .await
     {
         Ok(scrape_data) => scrape_data,
@@ -165,6 +167,7 @@ mod tests {
     }
 
     mod with_tracker_in_private_mode {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::str::FromStr;
 
         use bittorrent_http_tracker_core::services::scrape::ScrapeService;
@@ -175,6 +178,8 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_missing() {
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
             let (core_tracker_services, core_http_tracker_services) = initialize_private_tracker();
 
             let scrape_request = sample_scrape_request();
@@ -188,7 +193,7 @@ mod tests {
             );
 
             let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &sample_client_ip_sources(), maybe_key)
+                .handle_scrape(&scrape_request, &sample_client_ip_sources(), &server_socket_addr, maybe_key)
                 .await
                 .unwrap();
 
@@ -199,6 +204,8 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_invalid() {
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
             let (core_tracker_services, core_http_tracker_services) = initialize_private_tracker();
 
             let scrape_request = sample_scrape_request();
@@ -213,7 +220,7 @@ mod tests {
             );
 
             let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &sample_client_ip_sources(), maybe_key)
+                .handle_scrape(&scrape_request, &sample_client_ip_sources(), &server_socket_addr, maybe_key)
                 .await
                 .unwrap();
 
@@ -224,6 +231,8 @@ mod tests {
     }
 
     mod with_tracker_in_listed_mode {
+
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use torrust_tracker_primitives::core::ScrapeData;
@@ -236,6 +245,8 @@ mod tests {
 
             let scrape_request = sample_scrape_request();
 
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
             let scrape_service = ScrapeService::new(
                 core_tracker_services.core_config.clone(),
                 core_tracker_services.scrape_handler.clone(),
@@ -244,7 +255,7 @@ mod tests {
             );
 
             let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &sample_client_ip_sources(), None)
+                .handle_scrape(&scrape_request, &sample_client_ip_sources(), &server_socket_addr, None)
                 .await
                 .unwrap();
 
@@ -255,6 +266,8 @@ mod tests {
     }
 
     mod with_tracker_on_reverse_proxy {
+
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use bittorrent_http_tracker_protocol::v1::responses;
@@ -272,6 +285,8 @@ mod tests {
                 connection_info_ip: None,
             };
 
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
             let scrape_service = ScrapeService::new(
                 core_tracker_services.core_config.clone(),
                 core_tracker_services.scrape_handler.clone(),
@@ -280,7 +295,7 @@ mod tests {
             );
 
             let response = scrape_service
-                .handle_scrape(&sample_scrape_request(), &client_ip_sources, None)
+                .handle_scrape(&sample_scrape_request(), &client_ip_sources, &server_socket_addr, None)
                 .await
                 .unwrap_err();
 
@@ -296,6 +311,8 @@ mod tests {
     }
 
     mod with_tracker_not_on_reverse_proxy {
+
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use bittorrent_http_tracker_protocol::v1::responses;
@@ -313,6 +330,8 @@ mod tests {
                 connection_info_ip: None,
             };
 
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
             let scrape_service = ScrapeService::new(
                 core_tracker_services.core_config.clone(),
                 core_tracker_services.scrape_handler.clone(),
@@ -321,7 +340,7 @@ mod tests {
             );
 
             let response = scrape_service
-                .handle_scrape(&sample_scrape_request(), &client_ip_sources, None)
+                .handle_scrape(&sample_scrape_request(), &client_ip_sources, &server_socket_addr, None)
                 .await
                 .unwrap_err();
 

@@ -2,6 +2,7 @@
 //!
 //! The handlers perform the authentication and authorization of the request,
 //! and resolve the client IP address.
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum::extract::State;
@@ -22,27 +23,27 @@ use crate::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
 /// authentication (no PATH `key` parameter required).
 #[allow(clippy::unused_async)]
 pub async fn handle_without_key(
-    State(state): State<Arc<AnnounceService>>,
+    State(state): State<(Arc<AnnounceService>, SocketAddr)>,
     ExtractRequest(announce_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
 ) -> Response {
     tracing::debug!("http announce request: {:#?}", announce_request);
 
-    handle(&state, &announce_request, &client_ip_sources, None).await
+    handle(&state.0, &announce_request, &client_ip_sources, &state.1, None).await
 }
 
 /// It handles the `announce` request when the HTTP tracker requires
 /// authentication (PATH `key` parameter required).
 #[allow(clippy::unused_async)]
 pub async fn handle_with_key(
-    State(state): State<Arc<AnnounceService>>,
+    State(state): State<(Arc<AnnounceService>, SocketAddr)>,
     ExtractRequest(announce_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
     ExtractKey(key): ExtractKey,
 ) -> Response {
     tracing::debug!("http announce request: {:#?}", announce_request);
 
-    handle(&state, &announce_request, &client_ip_sources, Some(key)).await
+    handle(&state.0, &announce_request, &client_ip_sources, &state.1, Some(key)).await
 }
 
 /// It handles the `announce` request.
@@ -53,9 +54,18 @@ async fn handle(
     announce_service: &Arc<AnnounceService>,
     announce_request: &Announce,
     client_ip_sources: &ClientIpSources,
+    server_socket_addr: &SocketAddr,
     maybe_key: Option<Key>,
 ) -> Response {
-    let announce_data = match handle_announce(announce_service, announce_request, client_ip_sources, maybe_key).await {
+    let announce_data = match handle_announce(
+        announce_service,
+        announce_request,
+        client_ip_sources,
+        server_socket_addr,
+        maybe_key,
+    )
+    .await
+    {
         Ok(announce_data) => announce_data,
         Err(error) => {
             let error_response = responses::error::Error {
@@ -71,10 +81,11 @@ async fn handle_announce(
     announce_service: &Arc<AnnounceService>,
     announce_request: &Announce,
     client_ip_sources: &ClientIpSources,
+    server_socket_addr: &SocketAddr,
     maybe_key: Option<Key>,
 ) -> Result<AnnounceData, HttpAnnounceError> {
     announce_service
-        .handle_announce(announce_request, client_ip_sources, maybe_key)
+        .handle_announce(announce_request, client_ip_sources, server_socket_addr, maybe_key)
         .await
 }
 
@@ -196,6 +207,7 @@ mod tests {
 
     mod with_tracker_in_private_mode {
 
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::str::FromStr;
 
         use bittorrent_http_tracker_protocol::v1::responses;
@@ -209,12 +221,15 @@ mod tests {
         async fn it_should_fail_when_the_authentication_key_is_missing() {
             let http_core_tracker_services = initialize_private_tracker();
 
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
             let maybe_key = None;
 
             let response = handle_announce(
                 &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &sample_client_ip_sources(),
+                &server_socket_addr,
                 maybe_key,
             )
             .await
@@ -236,12 +251,15 @@ mod tests {
 
             let unregistered_key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
             let maybe_key = Some(unregistered_key);
 
             let response = handle_announce(
                 &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &sample_client_ip_sources(),
+                &server_socket_addr,
                 maybe_key,
             )
             .await
@@ -260,6 +278,8 @@ mod tests {
 
     mod with_tracker_in_listed_mode {
 
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
         use bittorrent_http_tracker_protocol::v1::responses;
 
         use super::{initialize_listed_tracker, sample_announce_request, sample_client_ip_sources};
@@ -272,10 +292,13 @@ mod tests {
 
             let announce_request = sample_announce_request();
 
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
             let response = handle_announce(
                 &http_core_tracker_services.announce_service,
                 &announce_request,
                 &sample_client_ip_sources(),
+                &server_socket_addr,
                 None,
             )
             .await
@@ -297,6 +320,8 @@ mod tests {
 
     mod with_tracker_on_reverse_proxy {
 
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
         use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
@@ -313,10 +338,13 @@ mod tests {
                 connection_info_ip: None,
             };
 
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
             let response = handle_announce(
                 &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &client_ip_sources,
+                &server_socket_addr,
                 None,
             )
             .await
@@ -335,6 +363,8 @@ mod tests {
 
     mod with_tracker_not_on_reverse_proxy {
 
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
         use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
@@ -351,10 +381,13 @@ mod tests {
                 connection_info_ip: None,
             };
 
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
             let response = handle_announce(
                 &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &client_ip_sources,
+                &server_socket_addr,
                 None,
             )
             .await
