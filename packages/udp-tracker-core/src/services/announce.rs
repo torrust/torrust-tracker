@@ -7,7 +7,7 @@
 //!
 //! It also sends an [`udp_tracker_core::statistics::event::Event`]
 //! because events are specific for the HTTP tracker.
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::ops::Range;
 use std::sync::Arc;
 
@@ -21,6 +21,7 @@ use torrust_tracker_primitives::core::AnnounceData;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
 use crate::statistics;
+use crate::statistics::event::ConnectionContext;
 
 /// The `AnnounceService` is responsible for handling the `announce` requests.
 ///
@@ -57,17 +58,18 @@ impl AnnounceService {
     ///   whitelist.
     pub async fn handle_announce(
         &self,
-        remote_addr: SocketAddr,
+        client_socket_addr: SocketAddr,
+        server_socket_addr: SocketAddr,
         request: &AnnounceRequest,
         cookie_valid_range: Range<f64>,
     ) -> Result<AnnounceData, UdpAnnounceError> {
-        Self::authenticate(remote_addr, request, cookie_valid_range)?;
+        Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
 
         let info_hash = request.info_hash.into();
 
         self.authorize(&info_hash).await?;
 
-        let remote_client_ip = remote_addr.ip();
+        let remote_client_ip = client_socket_addr.ip();
 
         let mut peer = peer_builder::from_request(request, &remote_client_ip);
 
@@ -78,7 +80,7 @@ impl AnnounceService {
             .announce(&info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
-        self.send_stats_event(remote_client_ip).await;
+        self.send_stats_event(client_socket_addr, server_socket_addr).await;
 
         Ok(announce_data)
     }
@@ -99,14 +101,13 @@ impl AnnounceService {
         self.whitelist_authorization.authorize(info_hash).await
     }
 
-    async fn send_stats_event(&self, peer_ip: IpAddr) {
+    async fn send_stats_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
-            let event = match peer_ip {
-                IpAddr::V4(_) => statistics::event::Event::Udp4Announce,
-                IpAddr::V6(_) => statistics::event::Event::Udp6Announce,
-            };
-
-            udp_stats_event_sender.send_event(event).await;
+            udp_stats_event_sender
+                .send_event(statistics::event::Event::UdpAnnounce {
+                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                })
+                .await;
         }
     }
 }

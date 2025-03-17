@@ -13,6 +13,7 @@ use crate::statistics::event::UdpResponseKind;
 #[instrument(fields(transaction_id), skip(connect_service, opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
 pub async fn handle_connect(
     remote_addr: SocketAddr,
+    server_addr: SocketAddr,
     request: &ConnectRequest,
     connect_service: &Arc<ConnectService>,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
@@ -40,7 +41,9 @@ pub async fn handle_connect(
         }
     }
 
-    let connection_id = connect_service.handle_connect(remote_addr, cookie_issue_time).await;
+    let connection_id = connect_service
+        .handle_connect(remote_addr, server_addr, cookie_issue_time)
+        .await;
 
     build_response(*request, connection_id)
 }
@@ -60,12 +63,14 @@ mod tests {
     mod connect_request {
 
         use std::future;
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
 
         use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
         use bittorrent_udp_tracker_core::connection_cookie::make;
         use bittorrent_udp_tracker_core::services::connect::ConnectService;
         use bittorrent_udp_tracker_core::statistics as core_statistics;
+        use bittorrent_udp_tracker_core::statistics::event::ConnectionContext;
         use mockall::predicate::eq;
 
         use crate::handlers::handle_connect;
@@ -84,6 +89,8 @@ mod tests {
 
         #[tokio::test]
         async fn a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request() {
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
             let (udp_core_stats_event_sender, _udp_core_stats_repository) =
                 bittorrent_udp_tracker_core::statistics::setup::factory(false);
             let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
@@ -99,6 +106,7 @@ mod tests {
 
             let response = handle_connect(
                 sample_ipv4_remote_addr(),
+                server_socket_addr,
                 &request,
                 &connect_service,
                 &udp_server_stats_event_sender,
@@ -117,6 +125,8 @@ mod tests {
 
         #[tokio::test]
         async fn a_connect_response_should_contain_a_new_connection_id() {
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
             let (udp_core_stats_event_sender, _udp_core_stats_repository) =
                 bittorrent_udp_tracker_core::statistics::setup::factory(false);
             let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
@@ -132,6 +142,7 @@ mod tests {
 
             let response = handle_connect(
                 sample_ipv4_remote_addr(),
+                server_socket_addr,
                 &request,
                 &connect_service,
                 &udp_server_stats_event_sender,
@@ -150,6 +161,8 @@ mod tests {
 
         #[tokio::test]
         async fn a_connect_response_should_contain_a_new_connection_id_ipv6() {
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
             let (udp_core_stats_event_sender, _udp_core_stats_repository) =
                 bittorrent_udp_tracker_core::statistics::setup::factory(false);
             let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
@@ -165,6 +178,7 @@ mod tests {
 
             let response = handle_connect(
                 sample_ipv6_remote_addr(),
+                server_socket_addr,
                 &request,
                 &connect_service,
                 &udp_server_stats_event_sender,
@@ -183,10 +197,15 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_send_the_upd4_connect_event_when_a_client_tries_to_connect_using_a_ip4_socket_address() {
+            let client_socket_addr = sample_ipv4_socket_address();
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
             let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_core_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(core_statistics::event::Event::Udp4Connect))
+                .with(eq(core_statistics::event::Event::UdpConnect {
+                    context: core_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>> =
@@ -203,12 +222,11 @@ mod tests {
             let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                 Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
-            let client_socket_address = sample_ipv4_socket_address();
-
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
 
             handle_connect(
-                client_socket_address,
+                client_socket_addr,
+                server_socket_addr,
                 &sample_connect_request(),
                 &connect_service,
                 &udp_server_stats_event_sender,
@@ -219,10 +237,15 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_send_the_upd6_connect_event_when_a_client_tries_to_connect_using_a_ip6_socket_address() {
+            let client_socket_addr = sample_ipv6_remote_addr();
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
             let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_core_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(core_statistics::event::Event::Udp6Connect))
+                .with(eq(core_statistics::event::Event::UdpConnect {
+                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
             let udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>> =
@@ -242,7 +265,8 @@ mod tests {
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
 
             handle_connect(
-                sample_ipv6_remote_addr(),
+                client_socket_addr,
+                server_socket_addr,
                 &sample_connect_request(),
                 &connect_service,
                 &udp_server_stats_event_sender,
