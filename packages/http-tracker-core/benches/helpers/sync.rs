@@ -1,3 +1,4 @@
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::{Duration, Instant};
 
 use bittorrent_http_tracker_core::services::announce::AnnounceService;
@@ -20,12 +21,16 @@ pub async fn return_announce_data_once(samples: u64) -> Duration {
         core_http_tracker_services.http_stats_event_sender.clone(),
     );
 
+    let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+
     let start = Instant::now();
+
     for _ in 0..samples {
         let _announce_data = announce_service
-            .handle_announce(&announce_request, &client_ip_sources, None)
+            .handle_announce(&announce_request, &client_ip_sources, &server_socket_addr, None)
             .await
             .unwrap();
     }
+
     start.elapsed()
 }

@@ -1,23 +1,30 @@
+use std::net::IpAddr;
+
 use crate::statistics::event::Event;
 use crate::statistics::repository::Repository;
 
+/// # Panics
+///
+/// This function panics if the client IP address is not the same as the IP
+/// version of the event.
 pub async fn handle_event(event: Event, stats_repository: &Repository) {
     match event {
-        // TCP4
-        Event::Tcp4Announce => {
-            stats_repository.increase_tcp4_announces().await;
-        }
-        Event::Tcp4Scrape => {
-            stats_repository.increase_tcp4_scrapes().await;
-        }
-
-        // TCP6
-        Event::Tcp6Announce => {
-            stats_repository.increase_tcp6_announces().await;
-        }
-        Event::Tcp6Scrape => {
-            stats_repository.increase_tcp6_scrapes().await;
-        }
+        Event::TcpAnnounce { connection } => match connection.client_ip_addr() {
+            IpAddr::V4(_) => {
+                stats_repository.increase_tcp4_announces().await;
+            }
+            IpAddr::V6(_) => {
+                stats_repository.increase_tcp6_announces().await;
+            }
+        },
+        Event::TcpScrape { connection } => match connection.client_ip_addr() {
+            IpAddr::V4(_) => {
+                stats_repository.increase_tcp4_scrapes().await;
+            }
+            IpAddr::V6(_) => {
+                stats_repository.increase_tcp6_scrapes().await;
+            }
+        },
     }
 
     tracing::debug!("stats: {:?}", stats_repository.get_stats().await);
@@ -25,15 +32,27 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
 
 #[cfg(test)]
 mod tests {
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+
     use crate::statistics::event::handler::handle_event;
-    use crate::statistics::event::Event;
+    use crate::statistics::event::{ConnectionContext, Event};
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
     async fn should_increase_the_tcp4_announces_counter_when_it_receives_a_tcp4_announce_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::Tcp4Announce, &stats_repository).await;
+        handle_event(
+            Event::TcpAnnounce {
+                connection: ConnectionContext::new(
+                    IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
+                    Some(8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 
@@ -44,7 +63,17 @@ mod tests {
     async fn should_increase_the_tcp4_scrapes_counter_when_it_receives_a_tcp4_scrape_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::Tcp4Scrape, &stats_repository).await;
+        handle_event(
+            Event::TcpScrape {
+                connection: ConnectionContext::new(
+                    IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
+                    Some(8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 
@@ -55,7 +84,17 @@ mod tests {
     async fn should_increase_the_tcp6_announces_counter_when_it_receives_a_tcp6_announce_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::Tcp6Announce, &stats_repository).await;
+        handle_event(
+            Event::TcpAnnounce {
+                connection: ConnectionContext::new(
+                    IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                    Some(8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 
@@ -66,7 +105,17 @@ mod tests {
     async fn should_increase_the_tcp6_scrapes_counter_when_it_receives_a_tcp6_scrape_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::Tcp6Scrape, &stats_repository).await;
+        handle_event(
+            Event::TcpScrape {
+                connection: ConnectionContext::new(
+                    IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                    Some(8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 

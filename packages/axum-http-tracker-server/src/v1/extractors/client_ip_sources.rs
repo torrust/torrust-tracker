@@ -63,13 +63,13 @@ where
             };
 
             let connection_info_ip = match ConnectInfo::<SocketAddr>::from_request_parts(parts, state).await {
-                Ok(connection_info_socket_addr) => Some(connection_info_socket_addr.0.ip()),
+                Ok(connection_info_socket_addr) => Some(connection_info_socket_addr.0),
                 Err(_) => None,
             };
 
             Ok(Extract(ClientIpSources {
                 right_most_x_forwarded_for,
-                connection_info_ip,
+                connection_info_socket_address: connection_info_ip,
             }))
         }
     }
