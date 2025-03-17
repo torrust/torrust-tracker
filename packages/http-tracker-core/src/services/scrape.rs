@@ -80,9 +80,10 @@ impl ScrapeService {
             self.scrape_handler.scrape(&scrape_request.info_hashes).await?
         };
 
-        let remote_client_ip = self.resolve_remote_client_ip(client_ip_sources)?;
+        let (remote_client_ip, opt_client_port) = self.resolve_remote_client_ip(client_ip_sources)?;
 
-        self.send_stats_event(remote_client_ip, *server_socket_addr).await;
+        self.send_stats_event(remote_client_ip, opt_client_port, *server_socket_addr)
+            .await;
 
         Ok(scrape_data)
     }
@@ -100,18 +101,33 @@ impl ScrapeService {
     }
 
     /// Resolves the client's real IP address considering proxy headers.
-    fn resolve_remote_client_ip(&self, client_ip_sources: &ClientIpSources) -> Result<IpAddr, PeerIpResolutionError> {
-        peer_ip_resolver::invoke(self.core_config.net.on_reverse_proxy, client_ip_sources)
+    fn resolve_remote_client_ip(
+        &self,
+        client_ip_sources: &ClientIpSources,
+    ) -> Result<(IpAddr, Option<u16>), PeerIpResolutionError> {
+        let ip = peer_ip_resolver::invoke(self.core_config.net.on_reverse_proxy, client_ip_sources)?;
+
+        let port = if client_ip_sources.connection_info_socket_address.is_some() {
+            client_ip_sources
+                .connection_info_socket_address
+                .map(|socket_addr| socket_addr.port())
+        } else {
+            None
+        };
+
+        Ok((ip, port))
     }
 
-    async fn send_stats_event(&self, original_peer_ip: IpAddr, server_socket_addr: SocketAddr) {
+    async fn send_stats_event(
+        &self,
+        original_peer_ip: IpAddr,
+        opt_original_peer_port: Option<u16>,
+        server_socket_addr: SocketAddr,
+    ) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             http_stats_event_sender
                 .send_event(statistics::event::Event::TcpScrape {
-                    connection: ConnectionContext {
-                        client_ip_addr: original_peer_ip,
-                        server_socket_addr,
-                    },
+                    connection: ConnectionContext::new(original_peer_ip, opt_original_peer_port, server_socket_addr),
                 })
                 .await;
         }
@@ -336,10 +352,11 @@ mod tests {
             http_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(statistics::event::Event::TcpScrape {
-                    connection: ConnectionContext {
-                        client_ip_addr: IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
-                        server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
-                    },
+                    connection: ConnectionContext::new(
+                        IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
+                        Some(8080),
+                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                    ),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -384,10 +401,11 @@ mod tests {
             http_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(statistics::event::Event::TcpScrape {
-                    connection: ConnectionContext {
-                        client_ip_addr: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                    connection: ConnectionContext::new(
+                        IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                        Some(8080),
                         server_socket_addr,
-                    },
+                    ),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -504,10 +522,11 @@ mod tests {
             http_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(statistics::event::Event::TcpScrape {
-                    connection: ConnectionContext {
-                        client_ip_addr: IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
-                        server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
-                    },
+                    connection: ConnectionContext::new(
+                        IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
+                        Some(8080),
+                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                    ),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -552,10 +571,11 @@ mod tests {
             http_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(statistics::event::Event::TcpScrape {
-                    connection: ConnectionContext {
-                        client_ip_addr: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                    connection: ConnectionContext::new(
+                        IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                        Some(8080),
                         server_socket_addr,
-                    },
+                    ),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));

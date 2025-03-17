@@ -75,7 +75,7 @@ impl AnnounceService {
 
         self.authorize(announce_request.info_hash).await?;
 
-        let remote_client_ip = self.resolve_remote_client_ip(client_ip_sources)?;
+        let (remote_client_ip, opt_remote_client_port) = self.resolve_remote_client_address(client_ip_sources)?;
 
         let mut peer = peer_from_request(announce_request, &remote_client_ip);
 
@@ -86,7 +86,8 @@ impl AnnounceService {
             .announce(&announce_request.info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
-        self.send_stats_event(remote_client_ip, *server_socket_addr).await;
+        self.send_stats_event(remote_client_ip, opt_remote_client_port, *server_socket_addr)
+            .await;
 
         Ok(announce_data)
     }
@@ -108,11 +109,24 @@ impl AnnounceService {
     }
 
     /// Resolves the client's real IP address considering proxy headers
-    fn resolve_remote_client_ip(&self, client_ip_sources: &ClientIpSources) -> Result<IpAddr, PeerIpResolutionError> {
-        match peer_ip_resolver::invoke(self.core_config.net.on_reverse_proxy, client_ip_sources) {
+    fn resolve_remote_client_address(
+        &self,
+        client_ip_sources: &ClientIpSources,
+    ) -> Result<(IpAddr, Option<u16>), PeerIpResolutionError> {
+        let ip = match peer_ip_resolver::invoke(self.core_config.net.on_reverse_proxy, client_ip_sources) {
             Ok(peer_ip) => Ok(peer_ip),
             Err(error) => Err(error),
-        }
+        }?;
+
+        let port = if client_ip_sources.connection_info_socket_address.is_some() {
+            client_ip_sources
+                .connection_info_socket_address
+                .map(|socket_addr| socket_addr.port())
+        } else {
+            None
+        };
+
+        Ok((ip, port))
     }
 
     /// Determines how many peers the client wants in the response
@@ -123,14 +137,11 @@ impl AnnounceService {
         }
     }
 
-    async fn send_stats_event(&self, peer_ip: IpAddr, server_socket_addr: SocketAddr) {
+    async fn send_stats_event(&self, peer_ip: IpAddr, opt_peer_ip_port: Option<u16>, server_socket_addr: SocketAddr) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             http_stats_event_sender
                 .send_event(statistics::event::Event::TcpAnnounce {
-                    connection: statistics::event::ConnectionContext {
-                        client_ip_addr: peer_ip,
-                        server_socket_addr,
-                    },
+                    connection: statistics::event::ConnectionContext::new(peer_ip, opt_peer_ip_port, server_socket_addr),
                 })
                 .await;
         }
@@ -381,10 +392,7 @@ mod tests {
             http_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(statistics::event::Event::TcpAnnounce {
-                    connection: ConnectionContext {
-                        client_ip_addr: IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
-                        server_socket_addr,
-                    },
+                    connection: ConnectionContext::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), Some(8080), server_socket_addr),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -440,10 +448,7 @@ mod tests {
             http_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(statistics::event::Event::TcpAnnounce {
-                    connection: ConnectionContext {
-                        client_ip_addr: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-                        server_socket_addr,
-                    },
+                    connection: ConnectionContext::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), Some(8080), server_socket_addr),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -482,10 +487,11 @@ mod tests {
             http_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(statistics::event::Event::TcpAnnounce {
-                    connection: ConnectionContext {
-                        client_ip_addr: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                    connection: ConnectionContext::new(
+                        IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                        Some(8080),
                         server_socket_addr,
-                    },
+                    ),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));

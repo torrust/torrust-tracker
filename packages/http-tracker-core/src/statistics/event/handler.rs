@@ -9,7 +9,7 @@ use crate::statistics::repository::Repository;
 /// version of the event.
 pub async fn handle_event(event: Event, stats_repository: &Repository) {
     match event {
-        Event::TcpAnnounce { connection } => match connection.client_ip_addr {
+        Event::TcpAnnounce { connection } => match connection.client_ip_addr() {
             IpAddr::V4(_) => {
                 stats_repository.increase_tcp4_announces().await;
             }
@@ -17,7 +17,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
                 stats_repository.increase_tcp6_announces().await;
             }
         },
-        Event::TcpScrape { connection } => match connection.client_ip_addr {
+        Event::TcpScrape { connection } => match connection.client_ip_addr() {
             IpAddr::V4(_) => {
                 stats_repository.increase_tcp4_scrapes().await;
             }
@@ -44,10 +44,11 @@ mod tests {
 
         handle_event(
             Event::TcpAnnounce {
-                connection: ConnectionContext {
-                    client_ip_addr: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
-                    server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
-                },
+                connection: ConnectionContext::new(
+                    IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
+                    Some(8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                ),
             },
             &stats_repository,
         )
@@ -64,10 +65,11 @@ mod tests {
 
         handle_event(
             Event::TcpScrape {
-                connection: ConnectionContext {
-                    client_ip_addr: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
-                    server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
-                },
+                connection: ConnectionContext::new(
+                    IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
+                    Some(8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                ),
             },
             &stats_repository,
         )
@@ -84,10 +86,11 @@ mod tests {
 
         handle_event(
             Event::TcpAnnounce {
-                connection: ConnectionContext {
-                    client_ip_addr: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                    server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
-                },
+                connection: ConnectionContext::new(
+                    IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                    Some(8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                ),
             },
             &stats_repository,
         )
@@ -104,10 +107,11 @@ mod tests {
 
         handle_event(
             Event::TcpScrape {
-                connection: ConnectionContext {
-                    client_ip_addr: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                    server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
-                },
+                connection: ConnectionContext::new(
+                    IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                    Some(8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                ),
             },
             &stats_repository,
         )
