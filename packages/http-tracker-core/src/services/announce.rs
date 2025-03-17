@@ -125,28 +125,14 @@ impl AnnounceService {
 
     async fn send_stats_event(&self, peer_ip: IpAddr, server_socket_addr: SocketAddr) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
-            match peer_ip {
-                IpAddr::V4(_) => {
-                    http_stats_event_sender
-                        .send_event(statistics::event::Event::Tcp4Announce {
-                            connection: statistics::event::ConnectionContext {
-                                client_ip_addr: peer_ip,
-                                server_socket_addr,
-                            },
-                        })
-                        .await;
-                }
-                IpAddr::V6(_) => {
-                    http_stats_event_sender
-                        .send_event(statistics::event::Event::Tcp6Announce {
-                            connection: statistics::event::ConnectionContext {
-                                client_ip_addr: peer_ip,
-                                server_socket_addr,
-                            },
-                        })
-                        .await;
-                }
-            }
+            http_stats_event_sender
+                .send_event(statistics::event::Event::TcpAnnounce {
+                    connection: statistics::event::ConnectionContext {
+                        client_ip_addr: peer_ip,
+                        server_socket_addr,
+                    },
+                })
+                .await;
         }
     }
 }
@@ -394,7 +380,7 @@ mod tests {
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::Tcp4Announce {
+                .with(eq(statistics::event::Event::TcpAnnounce {
                     connection: ConnectionContext {
                         client_ip_addr: IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
                         server_socket_addr,
@@ -453,7 +439,7 @@ mod tests {
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::Tcp4Announce {
+                .with(eq(statistics::event::Event::TcpAnnounce {
                     connection: ConnectionContext {
                         client_ip_addr: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
                         server_socket_addr,
@@ -495,7 +481,7 @@ mod tests {
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::Tcp6Announce {
+                .with(eq(statistics::event::Event::TcpAnnounce {
                     connection: ConnectionContext {
                         client_ip_addr: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                         server_socket_addr,

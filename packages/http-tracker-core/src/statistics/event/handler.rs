@@ -9,35 +9,17 @@ use crate::statistics::repository::Repository;
 /// version of the event.
 pub async fn handle_event(event: Event, stats_repository: &Repository) {
     match event {
-        // TCP4
-        Event::Tcp4Announce { connection } => match connection.client_ip_addr {
+        Event::TcpAnnounce { connection } => match connection.client_ip_addr {
             IpAddr::V4(_) => {
                 stats_repository.increase_tcp4_announces().await;
-            }
-            IpAddr::V6(_) => {
-                panic!("A client IPv6 address was received in a TCP4 announce event");
-            }
-        },
-        Event::Tcp4Scrape { connection } => match connection.client_ip_addr {
-            IpAddr::V4(_) => {
-                stats_repository.increase_tcp4_scrapes().await;
-            }
-            IpAddr::V6(_) => {
-                panic!("A client IPv6 address was received in a TCP4 scrape event");
-            }
-        },
-        // TCP6
-        Event::Tcp6Announce { connection } => match connection.client_ip_addr {
-            IpAddr::V4(_) => {
-                panic!("A client IPv4 address was received in a TCP6 announce event");
             }
             IpAddr::V6(_) => {
                 stats_repository.increase_tcp6_announces().await;
             }
         },
-        Event::Tcp6Scrape { connection } => match connection.client_ip_addr {
+        Event::TcpScrape { connection } => match connection.client_ip_addr {
             IpAddr::V4(_) => {
-                panic!("A client IPv4 address was received in a TCP6 scrape event");
+                stats_repository.increase_tcp4_scrapes().await;
             }
             IpAddr::V6(_) => {
                 stats_repository.increase_tcp6_scrapes().await;
@@ -61,7 +43,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Tcp4Announce {
+            Event::TcpAnnounce {
                 connection: ConnectionContext {
                     client_ip_addr: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
                     server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
@@ -81,7 +63,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Tcp4Scrape {
+            Event::TcpScrape {
                 connection: ConnectionContext {
                     client_ip_addr: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
                     server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
@@ -101,7 +83,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Tcp6Announce {
+            Event::TcpAnnounce {
                 connection: ConnectionContext {
                     client_ip_addr: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                     server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
@@ -121,7 +103,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Tcp6Scrape {
+            Event::TcpScrape {
                 connection: ConnectionContext {
                     client_ip_addr: IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                     server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),

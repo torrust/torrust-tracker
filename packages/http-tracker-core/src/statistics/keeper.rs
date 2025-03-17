@@ -73,7 +73,7 @@ mod tests {
         let event_sender = stats_tracker.run_event_listener();
 
         let result = event_sender
-            .send_event(Event::Tcp4Announce {
+            .send_event(Event::TcpAnnounce {
                 connection: ConnectionContext {
                     client_ip_addr: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
                     server_socket_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
