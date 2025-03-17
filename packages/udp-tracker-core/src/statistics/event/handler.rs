@@ -6,52 +6,25 @@ use crate::statistics::repository::Repository;
 /// This function panics if the IP version does not match the event type.
 pub async fn handle_event(event: Event, stats_repository: &Repository) {
     match event {
-        // UDP4
-        Event::Udp4Connect { context } => match context.client_socket_addr.ip() {
+        Event::UdpConnect { context } => match context.client_socket_addr.ip() {
             std::net::IpAddr::V4(_) => {
                 stats_repository.increase_udp4_connections().await;
-            }
-            std::net::IpAddr::V6(_) => {
-                panic!("IP Version 6 does not match the event type for connect");
-            }
-        },
-        Event::Udp4Announce { context } => match context.client_socket_addr.ip() {
-            std::net::IpAddr::V4(_) => {
-                stats_repository.increase_udp4_announces().await;
-            }
-            std::net::IpAddr::V6(_) => {
-                panic!("IP Version 6 does not match the event type for announce");
-            }
-        },
-        Event::Udp4Scrape { context } => match context.client_socket_addr.ip() {
-            std::net::IpAddr::V4(_) => {
-                stats_repository.increase_udp4_scrapes().await;
-            }
-            std::net::IpAddr::V6(_) => {
-                panic!("IP Version 6 does not match the event type for scrape");
-            }
-        },
-
-        // UDP6
-        Event::Udp6Connect { context } => match context.client_socket_addr.ip() {
-            std::net::IpAddr::V4(_) => {
-                panic!("IP Version 4 does not match the event type for connect");
             }
             std::net::IpAddr::V6(_) => {
                 stats_repository.increase_udp6_connections().await;
             }
         },
-        Event::Udp6Announce { context } => match context.client_socket_addr.ip() {
+        Event::UdpAnnounce { context } => match context.client_socket_addr.ip() {
             std::net::IpAddr::V4(_) => {
-                panic!("IP Version 4 does not match the event type for announce");
+                stats_repository.increase_udp4_announces().await;
             }
             std::net::IpAddr::V6(_) => {
                 stats_repository.increase_udp6_announces().await;
             }
         },
-        Event::Udp6Scrape { context } => match context.client_socket_addr.ip() {
+        Event::UdpScrape { context } => match context.client_socket_addr.ip() {
             std::net::IpAddr::V4(_) => {
-                panic!("IP Version 4 does not match the event type for scrape");
+                stats_repository.increase_udp4_scrapes().await;
             }
             std::net::IpAddr::V6(_) => {
                 stats_repository.increase_udp6_scrapes().await;
@@ -75,7 +48,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp4Connect {
+            Event::UdpConnect {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -95,7 +68,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp4Announce {
+            Event::UdpAnnounce {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -115,7 +88,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp4Scrape {
+            Event::UdpScrape {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -135,7 +108,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp6Connect {
+            Event::UdpConnect {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
@@ -155,7 +128,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp6Announce {
+            Event::UdpAnnounce {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
@@ -175,7 +148,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp6Scrape {
+            Event::UdpScrape {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),

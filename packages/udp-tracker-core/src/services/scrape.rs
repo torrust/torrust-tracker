@@ -85,15 +85,11 @@ impl ScrapeService {
 
     async fn send_stats_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
         if let Some(udp_stats_event_sender) = self.opt_udp_stats_event_sender.as_deref() {
-            let event = match client_socket_addr {
-                SocketAddr::V4(_) => statistics::event::Event::Udp4Scrape {
+            udp_stats_event_sender
+                .send_event(statistics::event::Event::UdpScrape {
                     context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                },
-                SocketAddr::V6(_) => statistics::event::Event::Udp6Scrape {
-                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                },
-            };
-            udp_stats_event_sender.send_event(event).await;
+                })
+                .await;
         }
     }
 }

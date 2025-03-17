@@ -203,7 +203,7 @@ mod tests {
             let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_core_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(core_statistics::event::Event::Udp4Connect {
+                .with(eq(core_statistics::event::Event::UdpConnect {
                     context: core_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                 }))
                 .times(1)
@@ -243,7 +243,7 @@ mod tests {
             let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_core_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(core_statistics::event::Event::Udp6Connect {
+                .with(eq(core_statistics::event::Event::UdpConnect {
                     context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 }))
                 .times(1)

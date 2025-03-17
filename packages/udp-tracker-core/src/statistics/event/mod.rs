@@ -6,17 +6,13 @@ pub mod sender;
 
 /// An statistics event. It is used to collect tracker metrics.
 ///
-/// - `Udp` prefix means the event was triggered by the UDP tracker
-/// - `4` or `6` prefixes means the IP version used by the peer
-/// - Finally the event suffix is the type of request: `announce`, `scrape` or `connection`
+/// - `Udp` prefix means the event was triggered by the UDP tracker.
+/// - The event suffix is the type of request: `announce`, `scrape` or `connection`.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Event {
-    Udp4Connect { context: ConnectionContext },
-    Udp4Announce { context: ConnectionContext },
-    Udp4Scrape { context: ConnectionContext },
-    Udp6Connect { context: ConnectionContext },
-    Udp6Announce { context: ConnectionContext },
-    Udp6Scrape { context: ConnectionContext },
+    UdpConnect { context: ConnectionContext },
+    UdpAnnounce { context: ConnectionContext },
+    UdpScrape { context: ConnectionContext },
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -32,5 +28,13 @@ impl ConnectionContext {
             client_socket_addr,
             server_socket_addr,
         }
+    }
+
+    pub fn client_socket_addr(&self) -> SocketAddr {
+        self.client_socket_addr
+    }
+
+    pub fn server_socket_addr(&self) -> SocketAddr {
+        self.server_socket_addr
     }
 }

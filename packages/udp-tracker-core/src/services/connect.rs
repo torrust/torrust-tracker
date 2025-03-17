@@ -41,22 +41,11 @@ impl ConnectService {
             make(gen_remote_fingerprint(&client_socket_addr), cookie_issue_time).expect("it should be a normal value");
 
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
-            match client_socket_addr {
-                SocketAddr::V4(_) => {
-                    udp_stats_event_sender
-                        .send_event(statistics::event::Event::Udp4Connect {
-                            context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                        })
-                        .await;
-                }
-                SocketAddr::V6(_) => {
-                    udp_stats_event_sender
-                        .send_event(statistics::event::Event::Udp6Connect {
-                            context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                        })
-                        .await;
-                }
-            }
+            udp_stats_event_sender
+                .send_event(statistics::event::Event::UdpConnect {
+                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                })
+                .await;
         }
 
         connection_id
@@ -149,7 +138,7 @@ mod tests {
             let mut udp_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::Udp4Connect {
+                .with(eq(statistics::event::Event::UdpConnect {
                     context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 }))
                 .times(1)
@@ -172,7 +161,7 @@ mod tests {
             let mut udp_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::Udp6Connect {
+                .with(eq(statistics::event::Event::UdpConnect {
                     context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 }))
                 .times(1)

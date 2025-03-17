@@ -73,7 +73,7 @@ mod tests {
         let event_sender = stats_tracker.run_event_listener();
 
         let result = event_sender
-            .send_event(Event::Udp4Connect {
+            .send_event(Event::UdpConnect {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
