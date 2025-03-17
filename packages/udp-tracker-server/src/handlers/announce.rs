@@ -16,7 +16,7 @@ use zerocopy::network_endian::I32;
 
 use crate::error::Error;
 use crate::statistics as server_statistics;
-use crate::statistics::event::UdpResponseKind;
+use crate::statistics::event::UdpRequestKind;
 
 /// It handles the `Announce` request.
 ///
@@ -45,14 +45,14 @@ pub async fn handle_announce(
             IpAddr::V4(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp4Request {
-                        kind: UdpResponseKind::Announce,
+                        kind: UdpRequestKind::Announce,
                     })
                     .await;
             }
             IpAddr::V6(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp6Request {
-                        kind: UdpResponseKind::Announce,
+                        kind: UdpRequestKind::Announce,
                     })
                     .await;
             }
@@ -226,7 +226,7 @@ mod tests {
                 TorrentPeerBuilder,
             };
             use crate::statistics as server_statistics;
-            use crate::statistics::event::UdpResponseKind;
+            use crate::statistics::event::UdpRequestKind;
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
@@ -433,7 +433,7 @@ mod tests {
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(server_statistics::event::Event::Udp4Request {
-                        kind: UdpResponseKind::Announce,
+                        kind: UdpRequestKind::Announce,
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -549,7 +549,7 @@ mod tests {
                 sample_issue_time, MockUdpServerStatsEventSender, TorrentPeerBuilder,
             };
             use crate::statistics as server_statistics;
-            use crate::statistics::event::UdpResponseKind;
+            use crate::statistics::event::UdpRequestKind;
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
@@ -775,7 +775,7 @@ mod tests {
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(server_statistics::event::Event::Udp6Request {
-                        kind: UdpResponseKind::Announce,
+                        kind: UdpRequestKind::Announce,
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -830,7 +830,7 @@ mod tests {
                     TrackerConfigurationBuilder,
                 };
                 use crate::statistics as server_statistics;
-                use crate::statistics::event::UdpResponseKind;
+                use crate::statistics::event::UdpRequestKind;
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
@@ -871,7 +871,7 @@ mod tests {
                     udp_server_stats_event_sender_mock
                         .expect_send_event()
                         .with(eq(server_statistics::event::Event::Udp6Request {
-                            kind: UdpResponseKind::Announce,
+                            kind: UdpRequestKind::Announce,
                         }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(())))));

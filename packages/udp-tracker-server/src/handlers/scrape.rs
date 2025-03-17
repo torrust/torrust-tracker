@@ -14,7 +14,7 @@ use zerocopy::network_endian::I32;
 
 use crate::error::Error;
 use crate::statistics as server_statistics;
-use crate::statistics::event::UdpResponseKind;
+use crate::statistics::event::UdpRequestKind;
 
 /// It handles the `Scrape` request.
 ///
@@ -41,14 +41,14 @@ pub async fn handle_scrape(
             IpAddr::V4(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp4Request {
-                        kind: UdpResponseKind::Scrape,
+                        kind: UdpRequestKind::Scrape,
                     })
                     .await;
             }
             IpAddr::V6(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp6Request {
-                        kind: UdpResponseKind::Scrape,
+                        kind: UdpRequestKind::Scrape,
                     })
                     .await;
             }
@@ -375,7 +375,7 @@ mod tests {
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(server_statistics::event::Event::Udp4Request {
-                        kind: server_statistics::event::UdpResponseKind::Scrape,
+                        kind: server_statistics::event::UdpRequestKind::Scrape,
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -422,7 +422,7 @@ mod tests {
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(server_statistics::event::Event::Udp6Request {
-                        kind: server_statistics::event::UdpResponseKind::Scrape,
+                        kind: server_statistics::event::UdpRequestKind::Scrape,
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(())))));

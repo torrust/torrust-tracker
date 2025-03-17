@@ -30,10 +30,12 @@ impl ConnectionContext {
         }
     }
 
+    #[must_use]
     pub fn client_socket_addr(&self) -> SocketAddr {
         self.client_socket_addr
     }
 
+    #[must_use]
     pub fn server_socket_addr(&self) -> SocketAddr {
         self.server_socket_addr
     }

@@ -7,7 +7,7 @@ use bittorrent_udp_tracker_core::services::connect::ConnectService;
 use tracing::{instrument, Level};
 
 use crate::statistics as server_statistics;
-use crate::statistics::event::UdpResponseKind;
+use crate::statistics::event::UdpRequestKind;
 
 /// It handles the `Connect` request.
 #[instrument(fields(transaction_id), skip(connect_service, opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
@@ -27,14 +27,14 @@ pub async fn handle_connect(
             IpAddr::V4(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp4Request {
-                        kind: UdpResponseKind::Connect,
+                        kind: UdpRequestKind::Connect,
                     })
                     .await;
             }
             IpAddr::V6(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp6Request {
-                        kind: UdpResponseKind::Connect,
+                        kind: UdpRequestKind::Connect,
                     })
                     .await;
             }
@@ -79,7 +79,7 @@ mod tests {
             sample_ipv6_remote_addr_fingerprint, sample_issue_time, MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender,
         };
         use crate::statistics as server_statistics;
-        use crate::statistics::event::UdpResponseKind;
+        use crate::statistics::event::UdpRequestKind;
 
         fn sample_connect_request() -> ConnectRequest {
             ConnectRequest {
@@ -215,7 +215,7 @@ mod tests {
             udp_server_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(server_statistics::event::Event::Udp4Request {
-                    kind: UdpResponseKind::Connect,
+                    kind: UdpRequestKind::Connect,
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -255,7 +255,7 @@ mod tests {
             udp_server_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(server_statistics::event::Event::Udp6Request {
-                    kind: UdpResponseKind::Connect,
+                    kind: UdpRequestKind::Connect,
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));

@@ -22,7 +22,7 @@ pub enum Event {
     // UDP4
     Udp4IncomingRequest,
     Udp4Request {
-        kind: UdpResponseKind,
+        kind: UdpRequestKind,
     },
     Udp4Response {
         kind: UdpResponseKind,
@@ -33,7 +33,7 @@ pub enum Event {
     // UDP6
     Udp6IncomingRequest,
     Udp6Request {
-        kind: UdpResponseKind,
+        kind: UdpRequestKind,
     },
     Udp6Response {
         kind: UdpResponseKind,
@@ -43,9 +43,14 @@ pub enum Event {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum UdpResponseKind {
+pub enum UdpRequestKind {
     Connect,
     Announce,
     Scrape,
-    Error,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum UdpResponseKind {
+    Ok { req_kind: UdpRequestKind },
+    Error, // todo: add the request kind `{ req_kind: Option(UdpRequestKind) }` when we know it.
 }

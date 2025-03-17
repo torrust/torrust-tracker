@@ -69,9 +69,15 @@ impl Processor {
         };
 
         let udp_response_kind = match &response {
-            Response::Connect(_) => statistics::event::UdpResponseKind::Connect,
-            Response::AnnounceIpv4(_) | Response::AnnounceIpv6(_) => statistics::event::UdpResponseKind::Announce,
-            Response::Scrape(_) => statistics::event::UdpResponseKind::Scrape,
+            Response::Connect(_) => statistics::event::UdpResponseKind::Ok {
+                req_kind: statistics::event::UdpRequestKind::Connect,
+            },
+            Response::AnnounceIpv4(_) | Response::AnnounceIpv6(_) => statistics::event::UdpResponseKind::Ok {
+                req_kind: statistics::event::UdpRequestKind::Announce,
+            },
+            Response::Scrape(_) => statistics::event::UdpResponseKind::Ok {
+                req_kind: statistics::event::UdpRequestKind::Scrape,
+            },
             Response::Error(_e) => statistics::event::UdpResponseKind::Error,
         };
 

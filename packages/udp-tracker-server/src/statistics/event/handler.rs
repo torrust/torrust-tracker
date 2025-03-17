@@ -1,4 +1,4 @@
-use crate::statistics::event::{Event, UdpResponseKind};
+use crate::statistics::event::{Event, UdpRequestKind, UdpResponseKind};
 use crate::statistics::repository::Repository;
 
 pub async fn handle_event(event: Event, stats_repository: &Repository) {
@@ -16,16 +16,15 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
             stats_repository.increase_udp4_requests().await;
         }
         Event::Udp4Request { kind } => match kind {
-            UdpResponseKind::Connect => {
+            UdpRequestKind::Connect => {
                 stats_repository.increase_udp4_connections().await;
             }
-            UdpResponseKind::Announce => {
+            UdpRequestKind::Announce => {
                 stats_repository.increase_udp4_announces().await;
             }
-            UdpResponseKind::Scrape => {
+            UdpRequestKind::Scrape => {
                 stats_repository.increase_udp4_scrapes().await;
             }
-            UdpResponseKind::Error => {}
         },
         Event::Udp4Response {
             kind,
@@ -34,21 +33,23 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
             stats_repository.increase_udp4_responses().await;
 
             match kind {
-                UdpResponseKind::Connect => {
-                    stats_repository
-                        .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
-                        .await;
-                }
-                UdpResponseKind::Announce => {
-                    stats_repository
-                        .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
-                        .await;
-                }
-                UdpResponseKind::Scrape => {
-                    stats_repository
-                        .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
-                        .await;
-                }
+                UdpResponseKind::Ok { req_kind } => match req_kind {
+                    UdpRequestKind::Connect => {
+                        stats_repository
+                            .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
+                            .await;
+                    }
+                    UdpRequestKind::Announce => {
+                        stats_repository
+                            .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
+                            .await;
+                    }
+                    UdpRequestKind::Scrape => {
+                        stats_repository
+                            .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
+                            .await;
+                    }
+                },
                 UdpResponseKind::Error => {}
             }
         }
@@ -61,16 +62,15 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
             stats_repository.increase_udp6_requests().await;
         }
         Event::Udp6Request { kind } => match kind {
-            UdpResponseKind::Connect => {
+            UdpRequestKind::Connect => {
                 stats_repository.increase_udp6_connections().await;
             }
-            UdpResponseKind::Announce => {
+            UdpRequestKind::Announce => {
                 stats_repository.increase_udp6_announces().await;
             }
-            UdpResponseKind::Scrape => {
+            UdpRequestKind::Scrape => {
                 stats_repository.increase_udp6_scrapes().await;
             }
-            UdpResponseKind::Error => {}
         },
         Event::Udp6Response {
             kind: _,
@@ -89,7 +89,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
 #[cfg(test)]
 mod tests {
     use crate::statistics::event::handler::handle_event;
-    use crate::statistics::event::Event;
+    use crate::statistics::event::{Event, UdpRequestKind};
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
@@ -148,7 +148,7 @@ mod tests {
 
         handle_event(
             Event::Udp4Request {
-                kind: crate::statistics::event::UdpResponseKind::Connect,
+                kind: crate::statistics::event::UdpRequestKind::Connect,
             },
             &stats_repository,
         )
@@ -165,7 +165,7 @@ mod tests {
 
         handle_event(
             Event::Udp4Request {
-                kind: crate::statistics::event::UdpResponseKind::Announce,
+                kind: crate::statistics::event::UdpRequestKind::Announce,
             },
             &stats_repository,
         )
@@ -182,7 +182,7 @@ mod tests {
 
         handle_event(
             Event::Udp4Request {
-                kind: crate::statistics::event::UdpResponseKind::Scrape,
+                kind: crate::statistics::event::UdpRequestKind::Scrape,
             },
             &stats_repository,
         )
@@ -199,7 +199,9 @@ mod tests {
 
         handle_event(
             Event::Udp4Response {
-                kind: crate::statistics::event::UdpResponseKind::Announce,
+                kind: crate::statistics::event::UdpResponseKind::Ok {
+                    req_kind: UdpRequestKind::Announce,
+                },
                 req_processing_time: std::time::Duration::from_secs(1),
             },
             &stats_repository,
@@ -228,7 +230,7 @@ mod tests {
 
         handle_event(
             Event::Udp6Request {
-                kind: crate::statistics::event::UdpResponseKind::Connect,
+                kind: crate::statistics::event::UdpRequestKind::Connect,
             },
             &stats_repository,
         )
@@ -245,7 +247,7 @@ mod tests {
 
         handle_event(
             Event::Udp6Request {
-                kind: crate::statistics::event::UdpResponseKind::Announce,
+                kind: crate::statistics::event::UdpRequestKind::Announce,
             },
             &stats_repository,
         )
@@ -262,7 +264,7 @@ mod tests {
 
         handle_event(
             Event::Udp6Request {
-                kind: crate::statistics::event::UdpResponseKind::Scrape,
+                kind: crate::statistics::event::UdpRequestKind::Scrape,
             },
             &stats_repository,
         )
@@ -279,7 +281,9 @@ mod tests {
 
         handle_event(
             Event::Udp6Response {
-                kind: crate::statistics::event::UdpResponseKind::Announce,
+                kind: crate::statistics::event::UdpResponseKind::Ok {
+                    req_kind: UdpRequestKind::Announce,
+                },
                 req_processing_time: std::time::Duration::from_secs(1),
             },
             &stats_repository,
