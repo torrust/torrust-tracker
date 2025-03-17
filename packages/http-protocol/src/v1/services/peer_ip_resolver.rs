@@ -20,7 +20,7 @@
 //! ```
 //!
 //! Depending on the tracker configuration.
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 
 use serde::{Deserialize, Serialize};
@@ -31,8 +31,9 @@ use thiserror::Error;
 pub struct ClientIpSources {
     /// The right most IP from the `X-Forwarded-For` HTTP header.
     pub right_most_x_forwarded_for: Option<IpAddr>,
-    /// The IP from the connection info.
-    pub connection_info_ip: Option<IpAddr>,
+
+    /// The client's socket address from the connection info.
+    pub connection_info_socket_address: Option<SocketAddr>,
 }
 
 /// The error that can occur when resolving the peer IP.
@@ -45,6 +46,7 @@ pub enum PeerIpResolutionError {
         "missing or invalid the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration) in {location}"
     )]
     MissingRightMostXForwardedForIp { location: &'static Location<'static> },
+
     /// The peer IP cannot be obtained because the tracker is not configured as
     /// a reverse proxy but the connection info was not provided to the Axum
     /// framework via a route extension.
@@ -71,7 +73,7 @@ pub enum PeerIpResolutionError {
 ///     on_reverse_proxy,
 ///     &ClientIpSources {
 ///         right_most_x_forwarded_for: Some(IpAddr::from_str("203.0.113.195").unwrap()),
-///         connection_info_ip: None,
+///         connection_info_socket_address: None,
 ///     },
 /// )
 /// .unwrap();
@@ -82,7 +84,7 @@ pub enum PeerIpResolutionError {
 /// With the tracker non running on reverse proxy mode:
 ///
 /// ```rust
-/// use std::net::IpAddr;
+/// use std::net::{IpAddr,Ipv4Addr,SocketAddr};
 /// use std::str::FromStr;
 ///
 /// use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{invoke, ClientIpSources, PeerIpResolutionError};
@@ -93,7 +95,7 @@ pub enum PeerIpResolutionError {
 ///     on_reverse_proxy,
 ///     &ClientIpSources {
 ///         right_most_x_forwarded_for: None,
-///         connection_info_ip: Some(IpAddr::from_str("203.0.113.195").unwrap()),
+///         connection_info_socket_address: Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080))
 ///     },
 /// )
 /// .unwrap();
@@ -114,8 +116,8 @@ pub fn invoke(on_reverse_proxy: bool, client_ip_sources: &ClientIpSources) -> Re
 }
 
 fn resolve_peer_ip_without_reverse_proxy(remote_client_ip: &ClientIpSources) -> Result<IpAddr, PeerIpResolutionError> {
-    if let Some(ip) = remote_client_ip.connection_info_ip {
-        Ok(ip)
+    if let Some(socket_addr) = remote_client_ip.connection_info_socket_address {
+        Ok(socket_addr.ip())
     } else {
         Err(PeerIpResolutionError::MissingClientIp {
             location: Location::caller(),
@@ -138,7 +140,7 @@ mod tests {
     use super::invoke;
 
     mod working_without_reverse_proxy {
-        use std::net::IpAddr;
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::str::FromStr;
 
         use super::invoke;
@@ -152,7 +154,7 @@ mod tests {
                 on_reverse_proxy,
                 &ClientIpSources {
                     right_most_x_forwarded_for: None,
-                    connection_info_ip: Some(IpAddr::from_str("203.0.113.195").unwrap()),
+                    connection_info_socket_address: Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080)),
                 },
             )
             .unwrap();
@@ -168,7 +170,7 @@ mod tests {
                 on_reverse_proxy,
                 &ClientIpSources {
                     right_most_x_forwarded_for: None,
-                    connection_info_ip: None,
+                    connection_info_socket_address: None,
                 },
             )
             .unwrap_err();
@@ -191,7 +193,7 @@ mod tests {
                 on_reverse_proxy,
                 &ClientIpSources {
                     right_most_x_forwarded_for: Some(IpAddr::from_str("203.0.113.195").unwrap()),
-                    connection_info_ip: None,
+                    connection_info_socket_address: None,
                 },
             )
             .unwrap();
@@ -207,7 +209,7 @@ mod tests {
                 on_reverse_proxy,
                 &ClientIpSources {
                     right_most_x_forwarded_for: None,
-                    connection_info_ip: None,
+                    connection_info_socket_address: None,
                 },
             )
             .unwrap_err();

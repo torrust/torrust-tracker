@@ -194,7 +194,7 @@ mod tests {
     fn sample_client_ip_sources() -> ClientIpSources {
         ClientIpSources {
             right_most_x_forwarded_for: None,
-            connection_info_ip: None,
+            connection_info_socket_address: None,
         }
     }
 
@@ -335,7 +335,7 @@ mod tests {
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
-                connection_info_ip: None,
+                connection_info_socket_address: None,
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
@@ -378,7 +378,7 @@ mod tests {
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
-                connection_info_ip: None,
+                connection_info_socket_address: None,
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);

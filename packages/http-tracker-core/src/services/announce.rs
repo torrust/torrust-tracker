@@ -296,7 +296,7 @@ mod tests {
 
         let client_ip_sources = ClientIpSources {
             right_most_x_forwarded_for: None,
-            connection_info_ip: Some(peer.peer_addr.ip()),
+            connection_info_socket_address: Some(SocketAddr::new(peer.peer_addr.ip(), 8080)),
         };
 
         (announce_request, client_ip_sources)

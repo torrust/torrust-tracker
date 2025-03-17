@@ -79,7 +79,7 @@ fn build_response(scrape_data: ScrapeData) -> Response {
 
 #[cfg(test)]
 mod tests {
-    use std::net::IpAddr;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::str::FromStr;
     use std::sync::Arc;
 
@@ -155,7 +155,7 @@ mod tests {
     fn sample_client_ip_sources() -> ClientIpSources {
         ClientIpSources {
             right_most_x_forwarded_for: Some(IpAddr::from_str("203.0.113.195").unwrap()),
-            connection_info_ip: Some(IpAddr::from_str("203.0.113.196").unwrap()),
+            connection_info_socket_address: Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 8080)),
         }
     }
 
@@ -282,7 +282,7 @@ mod tests {
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
-                connection_info_ip: None,
+                connection_info_socket_address: None,
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
@@ -327,7 +327,7 @@ mod tests {
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
-                connection_info_ip: None,
+                connection_info_socket_address: None,
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);

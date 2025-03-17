@@ -298,7 +298,7 @@ mod tests {
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
-                connection_info_ip: Some(original_peer_ip),
+                connection_info_socket_address: Some(SocketAddr::new(original_peer_ip, 8080)),
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
@@ -356,7 +356,7 @@ mod tests {
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
-                connection_info_ip: Some(peer_ip),
+                connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
@@ -404,7 +404,7 @@ mod tests {
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
-                connection_info_ip: Some(peer_ip),
+                connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
@@ -472,7 +472,7 @@ mod tests {
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
-                connection_info_ip: Some(original_peer_ip),
+                connection_info_socket_address: Some(SocketAddr::new(original_peer_ip, 8080)),
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
@@ -522,7 +522,7 @@ mod tests {
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
-                connection_info_ip: Some(peer_ip),
+                connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
@@ -570,7 +570,7 @@ mod tests {
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
-                connection_info_ip: Some(peer_ip),
+                connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);

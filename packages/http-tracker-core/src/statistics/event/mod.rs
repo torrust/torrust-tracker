@@ -5,9 +5,6 @@ pub mod listener;
 pub mod sender;
 
 /// An statistics event. It is used to collect tracker metrics.
-///
-/// - `Tcp` prefix means the event was triggered by the HTTP tracker.
-/// - The event suffix is the type of request: `announce` or `scrape`.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Event {
     TcpAnnounce { connection: ConnectionContext },
