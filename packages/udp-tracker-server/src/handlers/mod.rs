@@ -58,7 +58,7 @@ pub(crate) async fn handle_packet(
     udp_request: RawRequest,
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-    local_addr: SocketAddr,
+    server_socket_addr: SocketAddr,
     cookie_time_values: CookieTimeValues,
 ) -> Response {
     let request_id = Uuid::new_v4();
@@ -73,6 +73,7 @@ pub(crate) async fn handle_packet(
             Ok(request) => match handle_request(
                 request,
                 udp_request.from,
+                server_socket_addr,
                 udp_tracker_core_container.clone(),
                 udp_tracker_server_container.clone(),
                 cookie_time_values.clone(),
@@ -92,7 +93,7 @@ pub(crate) async fn handle_packet(
 
                     handle_error(
                         udp_request.from,
-                        local_addr,
+                        server_socket_addr,
                         request_id,
                         &udp_tracker_server_container.udp_server_stats_event_sender,
                         cookie_time_values.valid_range.clone(),
@@ -105,7 +106,7 @@ pub(crate) async fn handle_packet(
             Err(e) => {
                 handle_error(
                     udp_request.from,
-                    local_addr,
+                    server_socket_addr,
                     request_id,
                     &udp_tracker_server_container.udp_server_stats_event_sender,
                     cookie_time_values.valid_range.clone(),
@@ -129,14 +130,16 @@ pub(crate) async fn handle_packet(
 /// If a error happens in the `handle_request` function, it will just return the  `ServerError`.
 #[instrument(skip(
     request,
-    remote_addr,
+    client_socket_addr,
+    server_socket_addr,
     udp_tracker_core_container,
     udp_tracker_server_container,
     cookie_time_values
 ))]
 pub async fn handle_request(
     request: Request,
-    remote_addr: SocketAddr,
+    client_socket_addr: SocketAddr,
+    server_socket_addr: SocketAddr,
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     cookie_time_values: CookieTimeValues,
@@ -145,7 +148,8 @@ pub async fn handle_request(
 
     match request {
         Request::Connect(connect_request) => Ok(handle_connect(
-            remote_addr,
+            client_socket_addr,
+            server_socket_addr,
             &connect_request,
             &udp_tracker_core_container.connect_service,
             &udp_tracker_server_container.udp_server_stats_event_sender,
@@ -155,7 +159,8 @@ pub async fn handle_request(
         Request::Announce(announce_request) => {
             handle_announce(
                 &udp_tracker_core_container.announce_service,
-                remote_addr,
+                client_socket_addr,
+                server_socket_addr,
                 &announce_request,
                 &udp_tracker_core_container.core_config,
                 &udp_tracker_server_container.udp_server_stats_event_sender,
@@ -166,7 +171,8 @@ pub async fn handle_request(
         Request::Scrape(scrape_request) => {
             handle_scrape(
                 &udp_tracker_core_container.scrape_service,
-                remote_addr,
+                client_socket_addr,
+                server_socket_addr,
                 &scrape_request,
                 &udp_tracker_server_container.udp_server_stats_event_sender,
                 cookie_time_values.valid_range,

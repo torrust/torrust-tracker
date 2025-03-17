@@ -1,3 +1,4 @@
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -8,13 +9,16 @@ use crate::helpers::utils::{sample_ipv4_remote_addr, sample_issue_time};
 
 #[allow(clippy::unused_async)]
 pub async fn connect_once(samples: u64) -> Duration {
+    let client_socket_addr = sample_ipv4_remote_addr();
+    let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
     let (udp_core_stats_event_sender, _udp_core_stats_repository) = statistics::setup::factory(false);
     let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
     let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
     let start = Instant::now();
 
     for _ in 0..samples {
-        let _response = connect_service.handle_connect(sample_ipv4_remote_addr(), sample_issue_time());
+        let _response = connect_service.handle_connect(client_socket_addr, server_socket_addr, sample_issue_time());
     }
 
     start.elapsed()

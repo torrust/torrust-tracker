@@ -19,6 +19,7 @@ use torrust_tracker_primitives::core::ScrapeData;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
 use crate::statistics;
+use crate::statistics::event::ConnectionContext;
 
 /// The `ScrapeService` is responsible for handling the `scrape` requests.
 ///
@@ -49,18 +50,19 @@ impl ScrapeService {
     /// It will return an error if the tracker core scrape handler returns an error.
     pub async fn handle_scrape(
         &self,
-        remote_client_addr: SocketAddr,
+        client_socket_addr: SocketAddr,
+        server_socket_addr: SocketAddr,
         request: &ScrapeRequest,
         cookie_valid_range: Range<f64>,
     ) -> Result<ScrapeData, UdpScrapeError> {
-        Self::authenticate(remote_client_addr, request, cookie_valid_range)?;
+        Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
 
         let scrape_data = self
             .scrape_handler
             .scrape(&Self::convert_from_aquatic(&request.info_hashes))
             .await?;
 
-        self.send_stats_event(remote_client_addr).await;
+        self.send_stats_event(client_socket_addr, server_socket_addr).await;
 
         Ok(scrape_data)
     }
@@ -81,11 +83,15 @@ impl ScrapeService {
         aquatic_infohashes.iter().map(|&x| x.into()).collect()
     }
 
-    async fn send_stats_event(&self, remote_addr: SocketAddr) {
+    async fn send_stats_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
         if let Some(udp_stats_event_sender) = self.opt_udp_stats_event_sender.as_deref() {
-            let event = match remote_addr {
-                SocketAddr::V4(_) => statistics::event::Event::Udp4Scrape,
-                SocketAddr::V6(_) => statistics::event::Event::Udp6Scrape,
+            let event = match client_socket_addr {
+                SocketAddr::V4(_) => statistics::event::Event::Udp4Scrape {
+                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                },
+                SocketAddr::V6(_) => statistics::event::Event::Udp6Scrape {
+                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                },
             };
             udp_stats_event_sender.send_event(event).await;
         }

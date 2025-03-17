@@ -24,7 +24,8 @@ use crate::statistics::event::UdpResponseKind;
 #[instrument(fields(transaction_id, connection_id), skip(scrape_service, opt_udp_server_stats_event_sender),  ret(level = Level::TRACE))]
 pub async fn handle_scrape(
     scrape_service: &Arc<ScrapeService>,
-    remote_addr: SocketAddr,
+    client_socket_addr: SocketAddr,
+    server_socket_addr: SocketAddr,
     request: &ScrapeRequest,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
     cookie_valid_range: Range<f64>,
@@ -36,7 +37,7 @@ pub async fn handle_scrape(
     tracing::trace!("handle scrape");
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
-        match remote_addr.ip() {
+        match client_socket_addr.ip() {
             IpAddr::V4(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp4Request {
@@ -55,7 +56,7 @@ pub async fn handle_scrape(
     }
 
     let scrape_data = scrape_service
-        .handle_scrape(remote_addr, request, cookie_valid_range)
+        .handle_scrape(client_socket_addr, server_socket_addr, request, cookie_valid_range)
         .await
         .map_err(|e| (e.into(), request.transaction_id))?;
 
@@ -92,7 +93,7 @@ fn build_response(request: &ScrapeRequest, scrape_data: &ScrapeData) -> Response
 mod tests {
 
     mod scrape_request {
-        use std::net::SocketAddr;
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
 
         use aquatic_udp_protocol::{
@@ -121,20 +122,22 @@ mod tests {
             let (_core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
                 initialize_core_tracker_services_for_public_tracker();
 
-            let remote_addr = sample_ipv4_remote_addr();
+            let client_socket_addr = sample_ipv4_remote_addr();
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
 
             let info_hash = InfoHash([0u8; 20]);
             let info_hashes = vec![info_hash];
 
             let request = ScrapeRequest {
-                connection_id: make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap(),
+                connection_id: make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap(),
                 transaction_id: TransactionId(0i32.into()),
                 info_hashes,
             };
 
             let response = handle_scrape(
                 &core_udp_tracker_services.scrape_service,
-                remote_addr,
+                client_socket_addr,
+                server_socket_addr,
                 &request,
                 &server_udp_tracker_services.udp_server_stats_event_sender,
                 sample_cookie_valid_range(),
@@ -186,21 +189,24 @@ mod tests {
             let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
             let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
 
-            let remote_addr = sample_ipv4_remote_addr();
+            let client_socket_addr = sample_ipv4_remote_addr();
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
             let info_hash = InfoHash([0u8; 20]);
 
             add_a_seeder(
                 core_tracker_services.in_memory_torrent_repository.clone(),
-                &remote_addr,
+                &client_socket_addr,
                 &info_hash,
             )
             .await;
 
-            let request = build_scrape_request(&remote_addr, &info_hash);
+            let request = build_scrape_request(&client_socket_addr, &info_hash);
 
             handle_scrape(
                 &core_udp_tracker_services.scrape_service,
-                remote_addr,
+                client_socket_addr,
+                server_socket_addr,
                 &request,
                 &udp_server_stats_event_sender,
                 sample_cookie_valid_range(),
@@ -242,6 +248,8 @@ mod tests {
         }
 
         mod with_a_whitelisted_tracker {
+            use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
             use aquatic_udp_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
             use crate::handlers::handle_scrape;
@@ -257,24 +265,27 @@ mod tests {
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
                     initialize_core_tracker_services_for_listed_tracker();
 
-                let remote_addr = sample_ipv4_remote_addr();
+                let client_socket_addr = sample_ipv4_remote_addr();
+                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
                 let info_hash = InfoHash([0u8; 20]);
 
                 add_a_seeder(
                     core_tracker_services.in_memory_torrent_repository.clone(),
-                    &remote_addr,
+                    &client_socket_addr,
                     &info_hash,
                 )
                 .await;
 
                 core_tracker_services.in_memory_whitelist.add(&info_hash.0.into()).await;
 
-                let request = build_scrape_request(&remote_addr, &info_hash);
+                let request = build_scrape_request(&client_socket_addr, &info_hash);
 
                 let torrent_stats = match_scrape_response(
                     handle_scrape(
                         &core_udp_tracker_services.scrape_service,
-                        remote_addr,
+                        client_socket_addr,
+                        server_socket_addr,
                         &request,
                         &server_udp_tracker_services.udp_server_stats_event_sender,
                         sample_cookie_valid_range(),
@@ -298,22 +309,25 @@ mod tests {
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
                     initialize_core_tracker_services_for_listed_tracker();
 
-                let remote_addr = sample_ipv4_remote_addr();
+                let client_socket_addr = sample_ipv4_remote_addr();
+                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
                 let info_hash = InfoHash([0u8; 20]);
 
                 add_a_seeder(
                     core_tracker_services.in_memory_torrent_repository.clone(),
-                    &remote_addr,
+                    &client_socket_addr,
                     &info_hash,
                 )
                 .await;
 
-                let request = build_scrape_request(&remote_addr, &info_hash);
+                let request = build_scrape_request(&client_socket_addr, &info_hash);
 
                 let torrent_stats = match_scrape_response(
                     handle_scrape(
                         &core_udp_tracker_services.scrape_service,
-                        remote_addr,
+                        client_socket_addr,
+                        server_socket_addr,
                         &request,
                         &server_udp_tracker_services.udp_server_stats_event_sender,
                         sample_cookie_valid_range(),
@@ -342,6 +356,7 @@ mod tests {
 
         mod using_ipv4 {
             use std::future;
+            use std::net::{IpAddr, Ipv6Addr, SocketAddr};
             use std::sync::Arc;
 
             use mockall::predicate::eq;
@@ -367,15 +382,17 @@ mod tests {
                 let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
-                let remote_addr = sample_ipv4_remote_addr();
+                let client_socket_addr = sample_ipv4_remote_addr();
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
 
                 handle_scrape(
                     &core_udp_tracker_services.scrape_service,
-                    remote_addr,
-                    &sample_scrape_request(&remote_addr),
+                    client_socket_addr,
+                    server_socket_addr,
+                    &sample_scrape_request(&client_socket_addr),
                     &udp_server_stats_event_sender,
                     sample_cookie_valid_range(),
                 )
@@ -386,6 +403,7 @@ mod tests {
 
         mod using_ipv6 {
             use std::future;
+            use std::net::{IpAddr, Ipv6Addr, SocketAddr};
             use std::sync::Arc;
 
             use mockall::predicate::eq;
@@ -411,15 +429,17 @@ mod tests {
                 let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
-                let remote_addr = sample_ipv6_remote_addr();
+                let client_socket_addr = sample_ipv6_remote_addr();
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
 
                 handle_scrape(
                     &core_udp_tracker_services.scrape_service,
-                    remote_addr,
-                    &sample_scrape_request(&remote_addr),
+                    client_socket_addr,
+                    server_socket_addr,
+                    &sample_scrape_request(&client_socket_addr),
                     &udp_server_stats_event_sender,
                     sample_cookie_valid_range(),
                 )

@@ -26,7 +26,8 @@ use crate::statistics::event::UdpResponseKind;
 #[instrument(fields(transaction_id, connection_id, info_hash), skip(announce_service, opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
 pub async fn handle_announce(
     announce_service: &Arc<AnnounceService>,
-    remote_addr: SocketAddr,
+    client_socket_addr: SocketAddr,
+    server_socket_addr: SocketAddr,
     request: &AnnounceRequest,
     core_config: &Arc<Core>,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
@@ -40,7 +41,7 @@ pub async fn handle_announce(
     tracing::trace!("handle announce");
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
-        match remote_addr.ip() {
+        match client_socket_addr.ip() {
             IpAddr::V4(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp4Request {
@@ -59,11 +60,11 @@ pub async fn handle_announce(
     }
 
     let announce_data = announce_service
-        .handle_announce(remote_addr, request, cookie_valid_range)
+        .handle_announce(client_socket_addr, server_socket_addr, request, cookie_valid_range)
         .await
         .map_err(|e| (e.into(), request.transaction_id))?;
 
-    Ok(build_response(remote_addr, request, core_config, &announce_data))
+    Ok(build_response(client_socket_addr, request, core_config, &announce_data))
 }
 
 fn build_response(
@@ -237,10 +238,11 @@ mod tests {
                 let info_hash = AquaticInfoHash([0u8; 20]);
                 let peer_id = AquaticPeerId([255u8; 20]);
 
-                let remote_addr = SocketAddr::new(IpAddr::V4(client_ip), client_port);
+                let client_socket_addr = SocketAddr::new(IpAddr::V4(client_ip), client_port);
+                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(client_ip)
@@ -249,7 +251,8 @@ mod tests {
 
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
-                    remote_addr,
+                    client_socket_addr,
+                    server_socket_addr,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -276,15 +279,17 @@ mod tests {
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
                     initialize_core_tracker_services_for_public_tracker();
 
-                let remote_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
+                let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
+                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                     .into();
 
                 let response = handle_announce(
                     &core_udp_tracker_services.announce_service,
-                    remote_addr,
+                    client_socket_addr,
+                    server_socket_addr,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -325,10 +330,11 @@ mod tests {
                 let remote_client_port = 8081;
                 let peer_address = Ipv4Addr::new(126, 0, 0, 2);
 
-                let remote_addr = SocketAddr::new(IpAddr::V4(remote_client_ip), remote_client_port);
+                let client_socket_addr = SocketAddr::new(IpAddr::V4(remote_client_ip), remote_client_port);
+                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(peer_address)
@@ -337,7 +343,8 @@ mod tests {
 
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
-                    remote_addr,
+                    client_socket_addr,
+                    server_socket_addr,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -381,14 +388,17 @@ mod tests {
                 let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
                 let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
 
-                let remote_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
+                let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
+                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                     .into();
 
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
-                    remote_addr,
+                    client_socket_addr,
+                    server_socket_addr,
                     &request,
                     &core_tracker_services.core_config,
                     &udp_server_stats_event_sender,
@@ -433,9 +443,13 @@ mod tests {
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
 
+                let client_socket_addr = sample_ipv4_socket_address();
+                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
-                    sample_ipv4_socket_address(),
+                    client_socket_addr,
+                    server_socket_addr,
                     &AnnounceRequestBuilder::default().into(),
                     &core_tracker_services.core_config,
                     &udp_server_stats_event_sender,
@@ -469,10 +483,11 @@ mod tests {
                     let info_hash = AquaticInfoHash([0u8; 20]);
                     let peer_id = AquaticPeerId([255u8; 20]);
 
-                    let remote_addr = SocketAddr::new(IpAddr::V4(client_ip), client_port);
+                    let client_socket_addr = SocketAddr::new(IpAddr::V4(client_ip), client_port);
+                    let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
 
                     let request = AnnounceRequestBuilder::default()
-                        .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                        .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                         .with_info_hash(info_hash)
                         .with_peer_id(peer_id)
                         .with_ip_address(client_ip)
@@ -481,7 +496,8 @@ mod tests {
 
                     handle_announce(
                         &core_udp_tracker_services.announce_service,
-                        remote_addr,
+                        client_socket_addr,
+                        server_socket_addr,
                         &request,
                         &core_tracker_services.core_config,
                         &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -510,7 +526,7 @@ mod tests {
         mod using_ipv6 {
 
             use std::future;
-            use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+            use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
             use std::sync::Arc;
 
             use aquatic_udp_protocol::{
@@ -546,10 +562,11 @@ mod tests {
                 let info_hash = AquaticInfoHash([0u8; 20]);
                 let peer_id = AquaticPeerId([255u8; 20]);
 
-                let remote_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
+                let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(client_ip_v4)
@@ -558,7 +575,8 @@ mod tests {
 
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
-                    remote_addr,
+                    client_socket_addr,
+                    server_socket_addr,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -588,15 +606,17 @@ mod tests {
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
 
-                let remote_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), 8080);
+                let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), 8080);
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                     .into();
 
                 let response = handle_announce(
                     &core_udp_tracker_services.announce_service,
-                    remote_addr,
+                    client_socket_addr,
+                    server_socket_addr,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -637,10 +657,11 @@ mod tests {
                 let remote_client_port = 8081;
                 let peer_address = "126.0.0.1".parse().unwrap();
 
-                let remote_addr = SocketAddr::new(IpAddr::V6(remote_client_ip), remote_client_port);
+                let client_socket_addr = SocketAddr::new(IpAddr::V6(remote_client_ip), remote_client_port);
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                     .with_info_hash(info_hash)
                     .with_peer_id(peer_id)
                     .with_ip_address(peer_address)
@@ -649,7 +670,8 @@ mod tests {
 
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
-                    remote_addr,
+                    client_socket_addr,
+                    server_socket_addr,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_service.udp_server_stats_event_sender,
@@ -697,9 +719,12 @@ mod tests {
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
                 let client_port = 8080;
-                let remote_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
+
+                let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+
                 let request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                     .into();
 
                 let announce_service = Arc::new(AnnounceService::new(
@@ -710,7 +735,8 @@ mod tests {
 
                 handle_announce(
                     &announce_service,
-                    remote_addr,
+                    client_socket_addr,
+                    server_socket_addr,
                     &request,
                     &core_config,
                     &udp_server_stats_event_sender,
@@ -759,15 +785,17 @@ mod tests {
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
 
-                let remote_addr = sample_ipv6_remote_addr();
+                let client_socket_addr = sample_ipv6_remote_addr();
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let announce_request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                     .into();
 
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
-                    remote_addr,
+                    client_socket_addr,
+                    server_socket_addr,
                     &announce_request,
                     &core_tracker_services.core_config,
                     &udp_server_stats_event_sender,
@@ -791,6 +819,7 @@ mod tests {
                 use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
                 use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
                 use bittorrent_udp_tracker_core::services::announce::AnnounceService;
+                use bittorrent_udp_tracker_core::statistics::event::ConnectionContext;
                 use bittorrent_udp_tracker_core::{self, statistics as core_statistics};
                 use mockall::predicate::eq;
 
@@ -807,6 +836,19 @@ mod tests {
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
                     let config = Arc::new(TrackerConfigurationBuilder::default().with_external_ip("::126.0.0.1").into());
 
+                    let loopback_ipv4 = Ipv4Addr::new(127, 0, 0, 1);
+                    let loopback_ipv6 = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
+
+                    let client_ip_v4 = loopback_ipv4;
+                    let client_ip_v6 = loopback_ipv6;
+                    let client_port = 8080;
+
+                    let info_hash = AquaticInfoHash([0u8; 20]);
+                    let peer_id = AquaticPeerId([255u8; 20]);
+
+                    let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
+                    let server_socket_addr = config.udp_trackers.clone().unwrap()[0].bind_address;
+
                     let database = initialize_database(&config.core);
                     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
                     let whitelist_authorization =
@@ -817,7 +859,9 @@ mod tests {
                     let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
                     udp_core_stats_event_sender_mock
                         .expect_send_event()
-                        .with(eq(core_statistics::event::Event::Udp6Announce))
+                        .with(eq(core_statistics::event::Event::Udp6Announce {
+                            context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                        }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(())))));
                     let udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>> =
@@ -841,20 +885,8 @@ mod tests {
                         &db_torrent_repository,
                     ));
 
-                    let loopback_ipv4 = Ipv4Addr::new(127, 0, 0, 1);
-                    let loopback_ipv6 = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
-
-                    let client_ip_v4 = loopback_ipv4;
-                    let client_ip_v6 = loopback_ipv6;
-                    let client_port = 8080;
-
-                    let info_hash = AquaticInfoHash([0u8; 20]);
-                    let peer_id = AquaticPeerId([255u8; 20]);
-
-                    let remote_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
-
                     let request = AnnounceRequestBuilder::default()
-                        .with_connection_id(make(gen_remote_fingerprint(&remote_addr), sample_issue_time()).unwrap())
+                        .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                         .with_info_hash(info_hash)
                         .with_peer_id(peer_id)
                         .with_ip_address(client_ip_v4)
@@ -871,7 +903,8 @@ mod tests {
 
                     handle_announce(
                         &announce_service,
-                        remote_addr,
+                        client_socket_addr,
+                        server_socket_addr,
                         &request,
                         &core_config,
                         &udp_server_stats_event_sender,
