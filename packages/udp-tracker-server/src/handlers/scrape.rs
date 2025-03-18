@@ -14,7 +14,7 @@ use zerocopy::network_endian::I32;
 
 use crate::error::Error;
 use crate::statistics as server_statistics;
-use crate::statistics::event::UdpRequestKind;
+use crate::statistics::event::{ConnectionContext, UdpRequestKind};
 
 /// It handles the `Scrape` request.
 ///
@@ -41,6 +41,7 @@ pub async fn handle_scrape(
             IpAddr::V4(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp4Request {
+                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: UdpRequestKind::Scrape,
                     })
                     .await;
@@ -48,6 +49,7 @@ pub async fn handle_scrape(
             IpAddr::V6(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp6Request {
+                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: UdpRequestKind::Scrape,
                     })
                     .await;
@@ -368,22 +370,24 @@ mod tests {
                 sample_ipv4_remote_addr, MockUdpServerStatsEventSender,
             };
             use crate::statistics as server_statistics;
+            use crate::statistics::event::ConnectionContext;
 
             #[tokio::test]
             async fn should_send_the_upd4_scrape_event() {
+                let client_socket_addr = sample_ipv4_remote_addr();
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(server_statistics::event::Event::Udp4Request {
+                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: server_statistics::event::UdpRequestKind::Scrape,
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(())))));
                 let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
-
-                let client_socket_addr = sample_ipv4_remote_addr();
-                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
@@ -415,22 +419,24 @@ mod tests {
                 sample_ipv6_remote_addr, MockUdpServerStatsEventSender,
             };
             use crate::statistics as server_statistics;
+            use crate::statistics::event::ConnectionContext;
 
             #[tokio::test]
             async fn should_send_the_upd6_scrape_event() {
+                let client_socket_addr = sample_ipv6_remote_addr();
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(server_statistics::event::Event::Udp6Request {
+                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: server_statistics::event::UdpRequestKind::Scrape,
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(())))));
                 let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
-
-                let client_socket_addr = sample_ipv6_remote_addr();
-                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();

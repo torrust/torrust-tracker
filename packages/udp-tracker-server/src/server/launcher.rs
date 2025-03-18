@@ -21,6 +21,7 @@ use crate::server::bound_socket::BoundSocket;
 use crate::server::processor::Processor;
 use crate::server::receiver::Receiver;
 use crate::statistics;
+use crate::statistics::event::ConnectionContext;
 
 const IP_BANS_RESET_INTERVAL_IN_SECS: u64 = 3600;
 
@@ -129,9 +130,9 @@ impl Launcher {
     ) {
         let active_requests = &mut ActiveRequests::default();
 
-        let addr = receiver.bound_socket_address();
+        let server_socket_addr = receiver.bound_socket_address();
 
-        let local_addr = format!("udp://{addr}");
+        let local_addr = format!("udp://{server_socket_addr}");
 
         let cookie_lifetime = cookie_lifetime.as_secs_f64();
 
@@ -167,17 +168,23 @@ impl Launcher {
                     }
                 };
 
+                let client_socket_addr = req.from;
+
                 if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                 {
                     match req.from.ip() {
                         IpAddr::V4(_) => {
                             udp_server_stats_event_sender
-                                .send_event(statistics::event::Event::Udp4IncomingRequest)
+                                .send_event(statistics::event::Event::Udp4IncomingRequest {
+                                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                                })
                                 .await;
                         }
                         IpAddr::V6(_) => {
                             udp_server_stats_event_sender
-                                .send_event(statistics::event::Event::Udp6IncomingRequest)
+                                .send_event(statistics::event::Event::Udp6IncomingRequest {
+                                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                                })
                                 .await;
                         }
                     }
@@ -190,7 +197,9 @@ impl Launcher {
                         udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                     {
                         udp_server_stats_event_sender
-                            .send_event(statistics::event::Event::UdpRequestBanned)
+                            .send_event(statistics::event::Event::UdpRequestBanned {
+                                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                            })
                             .await;
                     }
 
@@ -230,7 +239,9 @@ impl Launcher {
                         udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                     {
                         udp_server_stats_event_sender
-                            .send_event(statistics::event::Event::UdpRequestAborted)
+                            .send_event(statistics::event::Event::UdpRequestAborted {
+                                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                            })
                             .await;
                     }
                 }

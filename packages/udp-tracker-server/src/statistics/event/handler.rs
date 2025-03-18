@@ -1,85 +1,161 @@
 use crate::statistics::event::{Event, UdpRequestKind, UdpResponseKind};
 use crate::statistics::repository::Repository;
 
+/// # Panics
+///
+/// This function panics if the client IP version does not match the expected
+/// version.
+#[allow(clippy::too_many_lines)]
 pub async fn handle_event(event: Event, stats_repository: &Repository) {
     match event {
         // UDP
-        Event::UdpRequestAborted => {
+        Event::UdpRequestAborted { .. } => {
             stats_repository.increase_udp_requests_aborted().await;
         }
-        Event::UdpRequestBanned => {
+        Event::UdpRequestBanned { .. } => {
             stats_repository.increase_udp_requests_banned().await;
         }
 
         // UDP4
-        Event::Udp4IncomingRequest => {
-            stats_repository.increase_udp4_requests().await;
+        Event::Udp4IncomingRequest { context } => {
+            if context.client_socket_addr.is_ipv4() {
+                stats_repository.increase_udp4_requests().await;
+            } else {
+                panic!("Client IP version does not match the expected version IPv4 for incoming request");
+            }
         }
-        Event::Udp4Request { kind } => match kind {
+        Event::Udp4Request { context, kind } => match kind {
             UdpRequestKind::Connect => {
-                stats_repository.increase_udp4_connections().await;
+                if context.client_socket_addr.is_ipv4() {
+                    stats_repository.increase_udp4_connections().await;
+                } else {
+                    panic!("Client IP version does not match the expected version IPv4 for connect request");
+                }
             }
             UdpRequestKind::Announce => {
-                stats_repository.increase_udp4_announces().await;
+                if context.client_socket_addr.is_ipv4() {
+                    stats_repository.increase_udp4_announces().await;
+                } else {
+                    panic!("Client IP version does not match the expected version IPv4 for announce request");
+                }
             }
             UdpRequestKind::Scrape => {
-                stats_repository.increase_udp4_scrapes().await;
+                if context.client_socket_addr.is_ipv4() {
+                    stats_repository.increase_udp4_scrapes().await;
+                } else {
+                    panic!("Client IP version does not match the expected version IPv4 for scrape request");
+                }
             }
         },
         Event::Udp4Response {
+            context,
             kind,
             req_processing_time,
         } => {
-            stats_repository.increase_udp4_responses().await;
+            if context.client_socket_addr.is_ipv4() {
+                stats_repository.increase_udp4_responses().await;
 
-            match kind {
-                UdpResponseKind::Ok { req_kind } => match req_kind {
-                    UdpRequestKind::Connect => {
-                        stats_repository
-                            .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
-                            .await;
-                    }
-                    UdpRequestKind::Announce => {
-                        stats_repository
-                            .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
-                            .await;
-                    }
-                    UdpRequestKind::Scrape => {
-                        stats_repository
-                            .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
-                            .await;
-                    }
-                },
-                UdpResponseKind::Error => {}
+                match kind {
+                    UdpResponseKind::Ok { req_kind } => match req_kind {
+                        UdpRequestKind::Connect => {
+                            stats_repository
+                                .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
+                                .await;
+                        }
+                        UdpRequestKind::Announce => {
+                            stats_repository
+                                .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
+                                .await;
+                        }
+                        UdpRequestKind::Scrape => {
+                            stats_repository
+                                .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
+                                .await;
+                        }
+                    },
+                    UdpResponseKind::Error => {}
+                }
+            } else {
+                panic!("Client IP version does not match the expected version IPv4 for response");
             }
         }
-        Event::Udp4Error => {
-            stats_repository.increase_udp4_errors().await;
+        Event::Udp4Error { context } => {
+            if context.client_socket_addr.is_ipv4() {
+                stats_repository.increase_udp4_errors().await;
+            } else {
+                panic!("Client IP version does not match the expected version IPv4 for error");
+            }
         }
 
         // UDP6
-        Event::Udp6IncomingRequest => {
-            stats_repository.increase_udp6_requests().await;
+        Event::Udp6IncomingRequest { context } => {
+            if context.client_socket_addr.is_ipv6() {
+                stats_repository.increase_udp6_requests().await;
+            } else {
+                panic!("Client IP version does not match the expected version IPv6 for incoming request");
+            }
         }
-        Event::Udp6Request { kind } => match kind {
+        Event::Udp6Request { context, kind } => match kind {
             UdpRequestKind::Connect => {
-                stats_repository.increase_udp6_connections().await;
+                if context.client_socket_addr.is_ipv6() {
+                    stats_repository.increase_udp6_connections().await;
+                } else {
+                    panic!("Client IP version does not match the expected version IPv6 for connect request");
+                }
             }
             UdpRequestKind::Announce => {
-                stats_repository.increase_udp6_announces().await;
+                if context.client_socket_addr.is_ipv6() {
+                    stats_repository.increase_udp6_announces().await;
+                } else {
+                    panic!("Client IP version does not match the expected version IPv6 for announce request");
+                }
             }
             UdpRequestKind::Scrape => {
-                stats_repository.increase_udp6_scrapes().await;
+                if context.client_socket_addr.is_ipv6() {
+                    stats_repository.increase_udp6_scrapes().await;
+                } else {
+                    panic!("Client IP version does not match the expected version IPv6 for scrape request");
+                }
             }
         },
         Event::Udp6Response {
-            kind: _,
-            req_processing_time: _,
+            context,
+            kind,
+            req_processing_time,
         } => {
-            stats_repository.increase_udp6_responses().await;
+            if context.client_socket_addr.is_ipv6() {
+                stats_repository.increase_udp6_responses().await;
+
+                match kind {
+                    UdpResponseKind::Ok { req_kind } => match req_kind {
+                        UdpRequestKind::Connect => {
+                            stats_repository
+                                .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
+                                .await;
+                        }
+                        UdpRequestKind::Announce => {
+                            stats_repository
+                                .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
+                                .await;
+                        }
+                        UdpRequestKind::Scrape => {
+                            stats_repository
+                                .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
+                                .await;
+                        }
+                    },
+                    UdpResponseKind::Error => {}
+                }
+            } else {
+                panic!("Client IP version does not match the expected version IPv6 for response");
+            }
         }
-        Event::Udp6Error => {
-            stats_repository.increase_udp6_errors().await;
+        Event::Udp6Error { context } => {
+            if context.client_socket_addr.is_ipv6() {
+                stats_repository.increase_udp6_errors().await;
+            } else {
+                panic!("Client IP version does not match the expected version IPv6 for error");
+            }
         }
     }
 
@@ -88,15 +164,26 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
 
 #[cfg(test)]
 mod tests {
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+
     use crate::statistics::event::handler::handle_event;
-    use crate::statistics::event::{Event, UdpRequestKind};
+    use crate::statistics::event::{ConnectionContext, Event, UdpRequestKind};
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
     async fn should_increase_the_number_of_aborted_requests_when_it_receives_a_udp_request_aborted_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::UdpRequestAborted, &stats_repository).await;
+        handle_event(
+            Event::UdpRequestAborted {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 
@@ -107,7 +194,16 @@ mod tests {
     async fn should_increase_the_number_of_banned_requests_when_it_receives_a_udp_request_banned_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::UdpRequestBanned, &stats_repository).await;
+        handle_event(
+            Event::UdpRequestBanned {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 
@@ -118,7 +214,16 @@ mod tests {
     async fn should_increase_the_number_of_incoming_requests_when_it_receives_a_udp4_incoming_request_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::Udp4IncomingRequest, &stats_repository).await;
+        handle_event(
+            Event::Udp4IncomingRequest {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 
@@ -129,7 +234,16 @@ mod tests {
     async fn should_increase_the_udp_abort_counter_when_it_receives_a_udp_abort_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::UdpRequestAborted, &stats_repository).await;
+        handle_event(
+            Event::UdpRequestAborted {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
         let stats = stats_repository.get_stats().await;
         assert_eq!(stats.udp_requests_aborted, 1);
     }
@@ -137,7 +251,16 @@ mod tests {
     async fn should_increase_the_udp_ban_counter_when_it_receives_a_udp_banned_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::UdpRequestBanned, &stats_repository).await;
+        handle_event(
+            Event::UdpRequestBanned {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
         let stats = stats_repository.get_stats().await;
         assert_eq!(stats.udp_requests_banned, 1);
     }
@@ -148,6 +271,10 @@ mod tests {
 
         handle_event(
             Event::Udp4Request {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                ),
                 kind: crate::statistics::event::UdpRequestKind::Connect,
             },
             &stats_repository,
@@ -165,6 +292,10 @@ mod tests {
 
         handle_event(
             Event::Udp4Request {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                ),
                 kind: crate::statistics::event::UdpRequestKind::Announce,
             },
             &stats_repository,
@@ -182,6 +313,10 @@ mod tests {
 
         handle_event(
             Event::Udp4Request {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                ),
                 kind: crate::statistics::event::UdpRequestKind::Scrape,
             },
             &stats_repository,
@@ -199,6 +334,10 @@ mod tests {
 
         handle_event(
             Event::Udp4Response {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                ),
                 kind: crate::statistics::event::UdpResponseKind::Ok {
                     req_kind: UdpRequestKind::Announce,
                 },
@@ -217,7 +356,16 @@ mod tests {
     async fn should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::Udp4Error, &stats_repository).await;
+        handle_event(
+            Event::Udp4Error {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 
@@ -230,6 +378,10 @@ mod tests {
 
         handle_event(
             Event::Udp6Request {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                ),
                 kind: crate::statistics::event::UdpRequestKind::Connect,
             },
             &stats_repository,
@@ -247,6 +399,10 @@ mod tests {
 
         handle_event(
             Event::Udp6Request {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                ),
                 kind: crate::statistics::event::UdpRequestKind::Announce,
             },
             &stats_repository,
@@ -264,6 +420,10 @@ mod tests {
 
         handle_event(
             Event::Udp6Request {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                ),
                 kind: crate::statistics::event::UdpRequestKind::Scrape,
             },
             &stats_repository,
@@ -281,6 +441,10 @@ mod tests {
 
         handle_event(
             Event::Udp6Response {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                ),
                 kind: crate::statistics::event::UdpResponseKind::Ok {
                     req_kind: UdpRequestKind::Announce,
                 },
@@ -298,7 +462,16 @@ mod tests {
     async fn should_increase_the_udp6_errors_counter_when_it_receives_a_udp6_error_event() {
         let stats_repository = Repository::new();
 
-        handle_event(Event::Udp6Error, &stats_repository).await;
+        handle_event(
+            Event::Udp6Error {
+                context: ConnectionContext::new(
+                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
+                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                ),
+            },
+            &stats_repository,
+        )
+        .await;
 
         let stats = stats_repository.get_stats().await;
 

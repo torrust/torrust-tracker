@@ -16,7 +16,7 @@ use zerocopy::network_endian::I32;
 
 use crate::error::Error;
 use crate::statistics as server_statistics;
-use crate::statistics::event::UdpRequestKind;
+use crate::statistics::event::{ConnectionContext, UdpRequestKind};
 
 /// It handles the `Announce` request.
 ///
@@ -45,6 +45,7 @@ pub async fn handle_announce(
             IpAddr::V4(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp4Request {
+                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: UdpRequestKind::Announce,
                     })
                     .await;
@@ -52,6 +53,7 @@ pub async fn handle_announce(
             IpAddr::V6(_) => {
                 udp_server_stats_event_sender
                     .send_event(server_statistics::event::Event::Udp6Request {
+                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: UdpRequestKind::Announce,
                     })
                     .await;
@@ -429,10 +431,14 @@ mod tests {
 
             #[tokio::test]
             async fn should_send_the_upd4_announce_event() {
+                let client_socket_addr = sample_ipv4_socket_address();
+                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(server_statistics::event::Event::Udp4Request {
+                        context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: UdpRequestKind::Announce,
                     }))
                     .times(1)
@@ -442,9 +448,6 @@ mod tests {
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
-
-                let client_socket_addr = sample_ipv4_socket_address();
-                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
 
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
@@ -771,10 +774,14 @@ mod tests {
 
             #[tokio::test]
             async fn should_send_the_upd6_announce_event() {
+                let client_socket_addr = sample_ipv6_remote_addr();
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(server_statistics::event::Event::Udp6Request {
+                        context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: UdpRequestKind::Announce,
                     }))
                     .times(1)
@@ -784,9 +791,6 @@ mod tests {
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
-
-                let client_socket_addr = sample_ipv6_remote_addr();
-                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let announce_request = AnnounceRequestBuilder::default()
                     .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
@@ -819,7 +823,6 @@ mod tests {
                 use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
                 use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
                 use bittorrent_udp_tracker_core::services::announce::AnnounceService;
-                use bittorrent_udp_tracker_core::statistics::event::ConnectionContext;
                 use bittorrent_udp_tracker_core::{self, statistics as core_statistics};
                 use mockall::predicate::eq;
 
@@ -860,7 +863,7 @@ mod tests {
                     udp_core_stats_event_sender_mock
                         .expect_send_event()
                         .with(eq(core_statistics::event::Event::UdpAnnounce {
-                            context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                            context: core_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                         }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -871,6 +874,7 @@ mod tests {
                     udp_server_stats_event_sender_mock
                         .expect_send_event()
                         .with(eq(server_statistics::event::Event::Udp6Request {
+                            context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                             kind: UdpRequestKind::Announce,
                         }))
                         .times(1)

@@ -12,6 +12,7 @@ use tracing::{instrument, Level};
 use super::bound_socket::BoundSocket;
 use crate::container::UdpTrackerServerContainer;
 use crate::handlers::CookieTimeValues;
+use crate::statistics::event::ConnectionContext;
 use crate::{handlers, statistics, RawRequest};
 
 pub struct Processor {
@@ -38,7 +39,7 @@ impl Processor {
 
     #[instrument(skip(self, request))]
     pub async fn process_request(self, request: RawRequest) {
-        let from = request.from;
+        let client_socket_addr = request.from;
 
         let start_time = Instant::now();
 
@@ -53,11 +54,11 @@ impl Processor {
 
         let elapsed_time = start_time.elapsed();
 
-        self.send_response(from, response, elapsed_time).await;
+        self.send_response(client_socket_addr, response, elapsed_time).await;
     }
 
     #[instrument(skip(self))]
-    async fn send_response(self, target: SocketAddr, response: Response, req_processing_time: Duration) {
+    async fn send_response(self, client_socket_addr: SocketAddr, response: Response, req_processing_time: Duration) {
         tracing::debug!("send response");
 
         let response_type = match &response {
@@ -88,7 +89,7 @@ impl Processor {
                 let bytes_count = writer.get_ref().len();
                 let payload = writer.get_ref();
 
-                let () = match self.send_packet(&target, payload).await {
+                let () = match self.send_packet(&client_socket_addr, payload).await {
                     Ok(sent_bytes) => {
                         if tracing::event_enabled!(Level::TRACE) {
                             tracing::debug!(%bytes_count, %sent_bytes, ?payload, "sent {response_type}");
@@ -99,10 +100,11 @@ impl Processor {
                         if let Some(udp_server_stats_event_sender) =
                             self.udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                         {
-                            match target.ip() {
+                            match client_socket_addr.ip() {
                                 IpAddr::V4(_) => {
                                     udp_server_stats_event_sender
                                         .send_event(statistics::event::Event::Udp4Response {
+                                            context: ConnectionContext::new(client_socket_addr, self.socket.address()),
                                             kind: udp_response_kind,
                                             req_processing_time,
                                         })
@@ -111,6 +113,7 @@ impl Processor {
                                 IpAddr::V6(_) => {
                                     udp_server_stats_event_sender
                                         .send_event(statistics::event::Event::Udp6Response {
+                                            context: ConnectionContext::new(client_socket_addr, self.socket.address()),
                                             kind: udp_response_kind,
                                             req_processing_time,
                                         })
