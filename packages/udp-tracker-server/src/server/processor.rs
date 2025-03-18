@@ -108,7 +108,7 @@ impl Processor {
                             self.udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                         {
                             udp_server_stats_event_sender
-                                .send_event(statistics::event::Event::UdpResponse {
+                                .send_event(statistics::event::Event::UdpResponseSent {
                                     context: ConnectionContext::new(client_socket_addr, self.socket.address()),
                                     kind: udp_response_kind,
                                     req_processing_time,

@@ -173,7 +173,7 @@ impl Launcher {
                 if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                 {
                     udp_server_stats_event_sender
-                        .send_event(statistics::event::Event::UdpIncomingRequest {
+                        .send_event(statistics::event::Event::UdpRequestReceived {
                             context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         })
                         .await;

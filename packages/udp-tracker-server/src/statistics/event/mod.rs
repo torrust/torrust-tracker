@@ -8,7 +8,7 @@ pub mod sender;
 /// An statistics event. It is used to collect tracker metrics.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
-    UdpIncomingRequest {
+    UdpRequestReceived {
         context: ConnectionContext,
     },
     UdpRequestAborted {
@@ -21,7 +21,7 @@ pub enum Event {
         context: ConnectionContext,
         kind: UdpRequestKind,
     },
-    UdpResponse {
+    UdpResponseSent {
         context: ConnectionContext,
         kind: UdpResponseKind,
         req_processing_time: Duration,
@@ -44,7 +44,7 @@ pub enum UdpResponseKind {
         req_kind: UdpRequestKind,
     },
 
-    /// There was an error handling the requests. The error contains the request
+    /// There was an error handling the request. The error contains the request
     /// kind if the request was parsed successfully.
     Error {
         opt_req_kind: Option<UdpRequestKind>,

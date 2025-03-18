@@ -14,7 +14,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
         Event::UdpRequestBanned { .. } => {
             stats_repository.increase_udp_requests_banned().await;
         }
-        Event::UdpIncomingRequest { context } => match context.client_socket_addr().ip() {
+        Event::UdpRequestReceived { context } => match context.client_socket_addr().ip() {
             std::net::IpAddr::V4(_) => {
                 stats_repository.increase_udp4_requests().await;
             }
@@ -48,7 +48,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
                 }
             },
         },
-        Event::UdpResponse {
+        Event::UdpResponseSent {
             context,
             kind,
             req_processing_time,
@@ -149,7 +149,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::UdpIncomingRequest {
+            Event::UdpRequestReceived {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -267,7 +267,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::UdpResponse {
+            Event::UdpResponseSent {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -374,7 +374,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::UdpResponse {
+            Event::UdpResponseSent {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
