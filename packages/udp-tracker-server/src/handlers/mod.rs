@@ -24,6 +24,7 @@ use uuid::Uuid;
 use super::RawRequest;
 use crate::container::UdpTrackerServerContainer;
 use crate::error::Error;
+use crate::statistics::event::UdpRequestKind;
 use crate::CurrentClock;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -60,7 +61,7 @@ pub(crate) async fn handle_packet(
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     server_socket_addr: SocketAddr,
     cookie_time_values: CookieTimeValues,
-) -> Response {
+) -> (Response, Option<UdpRequestKind>) {
     let request_id = Uuid::new_v4();
 
     tracing::Span::current().record("request_id", request_id.to_string());
@@ -68,7 +69,7 @@ pub(crate) async fn handle_packet(
 
     let start_time = Instant::now();
 
-    let response =
+    let (response, opt_req_kind) =
         match Request::parse_bytes(&udp_request.payload[..udp_request.payload.len()], MAX_SCRAPE_TORRENTS).map_err(Error::from) {
             Ok(request) => match handle_request(
                 request,
@@ -80,8 +81,8 @@ pub(crate) async fn handle_packet(
             )
             .await
             {
-                Ok(response) => return response,
-                Err((error, transaction_id)) => {
+                Ok((response, req_kid)) => return (response, Some(req_kid)),
+                Err((error, transaction_id, req_kind)) => {
                     if let Error::UdpAnnounceError {
                         source: UdpAnnounceError::ConnectionCookieError { .. },
                     } = error
@@ -91,7 +92,8 @@ pub(crate) async fn handle_packet(
                         ban_service.increase_counter(&udp_request.from.ip());
                     }
 
-                    handle_error(
+                    let response = handle_error(
+                        Some(req_kind.clone()),
                         udp_request.from,
                         server_socket_addr,
                         request_id,
@@ -100,11 +102,14 @@ pub(crate) async fn handle_packet(
                         &error,
                         Some(transaction_id),
                     )
-                    .await
+                    .await;
+
+                    (response, Some(req_kind))
                 }
             },
             Err(e) => {
-                handle_error(
+                let response = handle_error(
+                    None,
                     udp_request.from,
                     server_socket_addr,
                     request_id,
@@ -113,14 +118,16 @@ pub(crate) async fn handle_packet(
                     &e,
                     None,
                 )
-                .await
+                .await;
+
+                (response, None)
             }
         };
 
     let latency = start_time.elapsed();
     tracing::trace!(?latency, "responded");
 
-    response
+    (response, opt_req_kind)
 }
 
 /// It dispatches the request to the correct handler.
@@ -143,21 +150,24 @@ pub async fn handle_request(
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     cookie_time_values: CookieTimeValues,
-) -> Result<Response, (Error, TransactionId)> {
+) -> Result<(Response, UdpRequestKind), (Error, TransactionId, UdpRequestKind)> {
     tracing::trace!("handle request");
 
     match request {
-        Request::Connect(connect_request) => Ok(handle_connect(
-            client_socket_addr,
-            server_socket_addr,
-            &connect_request,
-            &udp_tracker_core_container.connect_service,
-            &udp_tracker_server_container.udp_server_stats_event_sender,
-            cookie_time_values.issue_time,
-        )
-        .await),
+        Request::Connect(connect_request) => Ok((
+            handle_connect(
+                client_socket_addr,
+                server_socket_addr,
+                &connect_request,
+                &udp_tracker_core_container.connect_service,
+                &udp_tracker_server_container.udp_server_stats_event_sender,
+                cookie_time_values.issue_time,
+            )
+            .await,
+            UdpRequestKind::Connect,
+        )),
         Request::Announce(announce_request) => {
-            handle_announce(
+            match handle_announce(
                 &udp_tracker_core_container.announce_service,
                 client_socket_addr,
                 server_socket_addr,
@@ -167,9 +177,13 @@ pub async fn handle_request(
                 cookie_time_values.valid_range,
             )
             .await
+            {
+                Ok(response) => Ok((response, UdpRequestKind::Announce)),
+                Err(err) => Err(err),
+            }
         }
         Request::Scrape(scrape_request) => {
-            handle_scrape(
+            match handle_scrape(
                 &udp_tracker_core_container.scrape_service,
                 client_socket_addr,
                 server_socket_addr,
@@ -178,6 +192,10 @@ pub async fn handle_request(
                 cookie_time_values.valid_range,
             )
             .await
+            {
+                Ok(response) => Ok((response, UdpRequestKind::Scrape)),
+                Err(err) => Err(err),
+            }
         }
     }
 }

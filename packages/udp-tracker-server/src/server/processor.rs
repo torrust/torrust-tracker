@@ -12,7 +12,7 @@ use tracing::{instrument, Level};
 use super::bound_socket::BoundSocket;
 use crate::container::UdpTrackerServerContainer;
 use crate::handlers::CookieTimeValues;
-use crate::statistics::event::ConnectionContext;
+use crate::statistics::event::{ConnectionContext, UdpRequestKind};
 use crate::{handlers, statistics, RawRequest};
 
 pub struct Processor {
@@ -43,7 +43,7 @@ impl Processor {
 
         let start_time = Instant::now();
 
-        let response = handlers::handle_packet(
+        let (response, opt_req_kind) = handlers::handle_packet(
             request,
             self.udp_tracker_core_container.clone(),
             self.udp_tracker_server_container.clone(),
@@ -54,11 +54,18 @@ impl Processor {
 
         let elapsed_time = start_time.elapsed();
 
-        self.send_response(client_socket_addr, response, elapsed_time).await;
+        self.send_response(client_socket_addr, response, opt_req_kind, elapsed_time)
+            .await;
     }
 
     #[instrument(skip(self))]
-    async fn send_response(self, client_socket_addr: SocketAddr, response: Response, req_processing_time: Duration) {
+    async fn send_response(
+        self,
+        client_socket_addr: SocketAddr,
+        response: Response,
+        opt_req_kind: Option<UdpRequestKind>,
+        req_processing_time: Duration,
+    ) {
         tracing::debug!("send response");
 
         let response_type = match &response {
@@ -79,7 +86,7 @@ impl Processor {
             Response::Scrape(_) => statistics::event::UdpResponseKind::Ok {
                 req_kind: statistics::event::UdpRequestKind::Scrape,
             },
-            Response::Error(_e) => statistics::event::UdpResponseKind::Error,
+            Response::Error(_e) => statistics::event::UdpResponseKind::Error { opt_req_kind: None },
         };
 
         let mut writer = Cursor::new(Vec::with_capacity(200));

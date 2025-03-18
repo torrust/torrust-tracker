@@ -80,7 +80,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
                             .await;
                     }
                 },
-                UdpResponseKind::Error => {}
+                UdpResponseKind::Error { opt_req_kind: _ } => {}
             }
         }
         Event::UdpError { context } => match context.client_socket_addr().ip() {

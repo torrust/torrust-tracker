@@ -6,7 +6,7 @@ pub mod listener;
 pub mod sender;
 
 /// An statistics event. It is used to collect tracker metrics.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
     UdpIncomingRequest {
         context: ConnectionContext,
@@ -31,20 +31,27 @@ pub enum Event {
     },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum UdpRequestKind {
     Connect,
     Announce,
     Scrape,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum UdpResponseKind {
-    Ok { req_kind: UdpRequestKind },
-    Error, // todo: add the request kind `{ req_kind: Option(UdpRequestKind) }` when we know it.
+    Ok {
+        req_kind: UdpRequestKind,
+    },
+
+    /// There was an error handling the requests. The error contains the request
+    /// kind if the request was parsed successfully.
+    Error {
+        opt_req_kind: Option<UdpRequestKind>,
+    },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ConnectionContext {
     client_socket_addr: SocketAddr,
     server_socket_addr: SocketAddr,

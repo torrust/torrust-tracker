@@ -12,11 +12,12 @@ use zerocopy::network_endian::I32;
 
 use crate::error::Error;
 use crate::statistics as server_statistics;
-use crate::statistics::event::ConnectionContext;
+use crate::statistics::event::{ConnectionContext, UdpRequestKind};
 
 #[allow(clippy::too_many_arguments)]
 #[instrument(fields(transaction_id), skip(opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
 pub async fn handle_error(
+    req_kind: Option<UdpRequestKind>,
     client_socket_addr: SocketAddr,
     server_socket_addr: SocketAddr,
     request_id: Uuid,

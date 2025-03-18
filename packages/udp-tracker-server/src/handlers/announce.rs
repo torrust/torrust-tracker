@@ -32,7 +32,7 @@ pub async fn handle_announce(
     core_config: &Arc<Core>,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
     cookie_valid_range: Range<f64>,
-) -> Result<Response, (Error, TransactionId)> {
+) -> Result<Response, (Error, TransactionId, UdpRequestKind)> {
     tracing::Span::current()
         .record("transaction_id", request.transaction_id.0.to_string())
         .record("connection_id", request.connection_id.0.to_string())
@@ -52,7 +52,7 @@ pub async fn handle_announce(
     let announce_data = announce_service
         .handle_announce(client_socket_addr, server_socket_addr, request, cookie_valid_range)
         .await
-        .map_err(|e| (e.into(), request.transaction_id))?;
+        .map_err(|e| (e.into(), request.transaction_id, UdpRequestKind::Announce))?;
 
     Ok(build_response(client_socket_addr, request, core_config, &announce_data))
 }
