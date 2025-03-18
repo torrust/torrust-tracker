@@ -12,12 +12,14 @@ use zerocopy::network_endian::I32;
 
 use crate::error::Error;
 use crate::statistics as server_statistics;
+use crate::statistics::event::{ConnectionContext, UdpRequestKind};
 
 #[allow(clippy::too_many_arguments)]
 #[instrument(fields(transaction_id), skip(opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
 pub async fn handle_error(
-    remote_addr: SocketAddr,
-    local_addr: SocketAddr,
+    req_kind: Option<UdpRequestKind>,
+    client_socket_addr: SocketAddr,
+    server_socket_addr: SocketAddr,
     request_id: Uuid,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
     cookie_valid_range: Range<f64>,
@@ -29,10 +31,10 @@ pub async fn handle_error(
     match transaction_id {
         Some(transaction_id) => {
             let transaction_id = transaction_id.0.to_string();
-            tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %e, %remote_addr, %local_addr, %request_id, %transaction_id, "response error");
+            tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %e, %client_socket_addr, %server_socket_addr, %request_id, %transaction_id, "response error");
         }
         None => {
-            tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %e, %remote_addr, %local_addr, %request_id, "response error");
+            tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %e, %client_socket_addr, %server_socket_addr, %request_id, "response error");
         }
     }
 
@@ -43,7 +45,7 @@ pub async fn handle_error(
                 transaction_id,
                 err,
             } => {
-                if let Err(e) = check(connection_id, gen_remote_fingerprint(&remote_addr), cookie_valid_range) {
+                if let Err(e) = check(connection_id, gen_remote_fingerprint(&client_socket_addr), cookie_valid_range) {
                     (e.to_string(), Some(*transaction_id))
                 } else {
                     ((*err).to_string(), Some(*transaction_id))
@@ -57,18 +59,11 @@ pub async fn handle_error(
 
     if e.1.is_some() {
         if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
-            match remote_addr {
-                SocketAddr::V4(_) => {
-                    udp_server_stats_event_sender
-                        .send_event(server_statistics::event::Event::Udp4Error)
-                        .await;
-                }
-                SocketAddr::V6(_) => {
-                    udp_server_stats_event_sender
-                        .send_event(server_statistics::event::Event::Udp6Error)
-                        .await;
-                }
-            }
+            udp_server_stats_event_sender
+                .send_event(server_statistics::event::Event::UdpError {
+                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                })
+                .await;
         }
     }
 

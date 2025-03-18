@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use std::time::Duration;
 
 pub mod handler;
@@ -5,47 +6,73 @@ pub mod listener;
 pub mod sender;
 
 /// An statistics event. It is used to collect tracker metrics.
-///
-/// - `Tcp` prefix means the event was triggered by the HTTP tracker
-/// - `Udp` prefix means the event was triggered by the UDP tracker
-/// - `4` or `6` prefixes means the IP version used by the peer
-/// - Finally the event suffix is the type of request: `announce`, `scrape` or `connection`
-///
-/// > NOTE: HTTP trackers do not use `connection` requests.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
-    // code-review: consider one single event for request type with data: Event::Announce { scheme: HTTPorUDP, ip_version: V4orV6 }
-    // Attributes are enums too.
-    UdpRequestAborted,
-    UdpRequestBanned,
-
-    // UDP4
-    Udp4IncomingRequest,
-    Udp4Request {
-        kind: UdpResponseKind,
+    UdpRequestReceived {
+        context: ConnectionContext,
     },
-    Udp4Response {
-        kind: UdpResponseKind,
-        req_processing_time: Duration,
+    UdpRequestAborted {
+        context: ConnectionContext,
     },
-    Udp4Error,
-
-    // UDP6
-    Udp6IncomingRequest,
-    Udp6Request {
-        kind: UdpResponseKind,
+    UdpRequestBanned {
+        context: ConnectionContext,
     },
-    Udp6Response {
+    UdpRequestAccepted {
+        context: ConnectionContext,
+        kind: UdpRequestKind,
+    },
+    UdpResponseSent {
+        context: ConnectionContext,
         kind: UdpResponseKind,
         req_processing_time: Duration,
     },
-    Udp6Error,
+    UdpError {
+        context: ConnectionContext,
+    },
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum UdpResponseKind {
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum UdpRequestKind {
     Connect,
     Announce,
     Scrape,
-    Error,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum UdpResponseKind {
+    Ok {
+        req_kind: UdpRequestKind,
+    },
+
+    /// There was an error handling the request. The error contains the request
+    /// kind if the request was parsed successfully.
+    Error {
+        opt_req_kind: Option<UdpRequestKind>,
+    },
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct ConnectionContext {
+    client_socket_addr: SocketAddr,
+    server_socket_addr: SocketAddr,
+}
+
+impl ConnectionContext {
+    #[must_use]
+    pub fn new(client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) -> Self {
+        Self {
+            client_socket_addr,
+            server_socket_addr,
+        }
+    }
+
+    #[must_use]
+    pub fn client_socket_addr(&self) -> SocketAddr {
+        self.client_socket_addr
+    }
+
+    #[must_use]
+    pub fn server_socket_addr(&self) -> SocketAddr {
+        self.server_socket_addr
+    }
 }

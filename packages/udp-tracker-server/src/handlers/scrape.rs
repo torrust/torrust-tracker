@@ -1,5 +1,5 @@
 //! UDP tracker scrape handler.
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::ops::Range;
 use std::sync::Arc;
 
@@ -14,7 +14,7 @@ use zerocopy::network_endian::I32;
 
 use crate::error::Error;
 use crate::statistics as server_statistics;
-use crate::statistics::event::UdpResponseKind;
+use crate::statistics::event::{ConnectionContext, UdpRequestKind};
 
 /// It handles the `Scrape` request.
 ///
@@ -29,7 +29,7 @@ pub async fn handle_scrape(
     request: &ScrapeRequest,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
     cookie_valid_range: Range<f64>,
-) -> Result<Response, (Error, TransactionId)> {
+) -> Result<Response, (Error, TransactionId, UdpRequestKind)> {
     tracing::Span::current()
         .record("transaction_id", request.transaction_id.0.to_string())
         .record("connection_id", request.connection_id.0.to_string());
@@ -37,28 +37,18 @@ pub async fn handle_scrape(
     tracing::trace!("handle scrape");
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
-        match client_socket_addr.ip() {
-            IpAddr::V4(_) => {
-                udp_server_stats_event_sender
-                    .send_event(server_statistics::event::Event::Udp4Request {
-                        kind: UdpResponseKind::Scrape,
-                    })
-                    .await;
-            }
-            IpAddr::V6(_) => {
-                udp_server_stats_event_sender
-                    .send_event(server_statistics::event::Event::Udp6Request {
-                        kind: UdpResponseKind::Scrape,
-                    })
-                    .await;
-            }
-        }
+        udp_server_stats_event_sender
+            .send_event(server_statistics::event::Event::UdpRequestAccepted {
+                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                kind: UdpRequestKind::Scrape,
+            })
+            .await;
     }
 
     let scrape_data = scrape_service
         .handle_scrape(client_socket_addr, server_socket_addr, request, cookie_valid_range)
         .await
-        .map_err(|e| (e.into(), request.transaction_id))?;
+        .map_err(|e| (e.into(), request.transaction_id, UdpRequestKind::Scrape))?;
 
     Ok(build_response(request, &scrape_data))
 }
@@ -368,22 +358,24 @@ mod tests {
                 sample_ipv4_remote_addr, MockUdpServerStatsEventSender,
             };
             use crate::statistics as server_statistics;
+            use crate::statistics::event::ConnectionContext;
 
             #[tokio::test]
             async fn should_send_the_upd4_scrape_event() {
+                let client_socket_addr = sample_ipv4_remote_addr();
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
-                    .with(eq(server_statistics::event::Event::Udp4Request {
-                        kind: server_statistics::event::UdpResponseKind::Scrape,
+                    .with(eq(server_statistics::event::Event::UdpRequestAccepted {
+                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                        kind: server_statistics::event::UdpRequestKind::Scrape,
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(())))));
                 let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
-
-                let client_socket_addr = sample_ipv4_remote_addr();
-                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
@@ -415,22 +407,24 @@ mod tests {
                 sample_ipv6_remote_addr, MockUdpServerStatsEventSender,
             };
             use crate::statistics as server_statistics;
+            use crate::statistics::event::ConnectionContext;
 
             #[tokio::test]
             async fn should_send_the_upd6_scrape_event() {
+                let client_socket_addr = sample_ipv6_remote_addr();
+                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
-                    .with(eq(server_statistics::event::Event::Udp6Request {
-                        kind: server_statistics::event::UdpResponseKind::Scrape,
+                    .with(eq(server_statistics::event::Event::UdpRequestAccepted {
+                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                        kind: server_statistics::event::UdpRequestKind::Scrape,
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(())))));
                 let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
-
-                let client_socket_addr = sample_ipv6_remote_addr();
-                let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();

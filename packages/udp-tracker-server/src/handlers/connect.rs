@@ -1,5 +1,5 @@
 //! UDP tracker connect handler.
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Response};
@@ -7,13 +7,13 @@ use bittorrent_udp_tracker_core::services::connect::ConnectService;
 use tracing::{instrument, Level};
 
 use crate::statistics as server_statistics;
-use crate::statistics::event::UdpResponseKind;
+use crate::statistics::event::{ConnectionContext, UdpRequestKind};
 
 /// It handles the `Connect` request.
 #[instrument(fields(transaction_id), skip(connect_service, opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
 pub async fn handle_connect(
-    remote_addr: SocketAddr,
-    server_addr: SocketAddr,
+    client_socket_addr: SocketAddr,
+    server_socket_addr: SocketAddr,
     request: &ConnectRequest,
     connect_service: &Arc<ConnectService>,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
@@ -23,26 +23,16 @@ pub async fn handle_connect(
     tracing::trace!("handle connect");
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
-        match remote_addr.ip() {
-            IpAddr::V4(_) => {
-                udp_server_stats_event_sender
-                    .send_event(server_statistics::event::Event::Udp4Request {
-                        kind: UdpResponseKind::Connect,
-                    })
-                    .await;
-            }
-            IpAddr::V6(_) => {
-                udp_server_stats_event_sender
-                    .send_event(server_statistics::event::Event::Udp6Request {
-                        kind: UdpResponseKind::Connect,
-                    })
-                    .await;
-            }
-        }
+        udp_server_stats_event_sender
+            .send_event(server_statistics::event::Event::UdpRequestAccepted {
+                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                kind: UdpRequestKind::Connect,
+            })
+            .await;
     }
 
     let connection_id = connect_service
-        .handle_connect(remote_addr, server_addr, cookie_issue_time)
+        .handle_connect(client_socket_addr, server_socket_addr, cookie_issue_time)
         .await;
 
     build_response(*request, connection_id)
@@ -70,7 +60,6 @@ mod tests {
         use bittorrent_udp_tracker_core::connection_cookie::make;
         use bittorrent_udp_tracker_core::services::connect::ConnectService;
         use bittorrent_udp_tracker_core::statistics as core_statistics;
-        use bittorrent_udp_tracker_core::statistics::event::ConnectionContext;
         use mockall::predicate::eq;
 
         use crate::handlers::handle_connect;
@@ -79,7 +68,7 @@ mod tests {
             sample_ipv6_remote_addr_fingerprint, sample_issue_time, MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender,
         };
         use crate::statistics as server_statistics;
-        use crate::statistics::event::UdpResponseKind;
+        use crate::statistics::event::UdpRequestKind;
 
         fn sample_connect_request() -> ConnectRequest {
             ConnectRequest {
@@ -214,8 +203,9 @@ mod tests {
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
             udp_server_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(server_statistics::event::Event::Udp4Request {
-                    kind: UdpResponseKind::Connect,
+                .with(eq(server_statistics::event::Event::UdpRequestAccepted {
+                    context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    kind: UdpRequestKind::Connect,
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -244,7 +234,7 @@ mod tests {
             udp_core_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(core_statistics::event::Event::UdpConnect {
-                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    context: core_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));
@@ -254,8 +244,9 @@ mod tests {
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
             udp_server_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(server_statistics::event::Event::Udp6Request {
-                    kind: UdpResponseKind::Connect,
+                .with(eq(server_statistics::event::Event::UdpRequestAccepted {
+                    context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    kind: UdpRequestKind::Connect,
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(())))));

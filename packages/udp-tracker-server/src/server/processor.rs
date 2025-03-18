@@ -1,5 +1,5 @@
 use std::io::Cursor;
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -12,6 +12,7 @@ use tracing::{instrument, Level};
 use super::bound_socket::BoundSocket;
 use crate::container::UdpTrackerServerContainer;
 use crate::handlers::CookieTimeValues;
+use crate::statistics::event::{ConnectionContext, UdpRequestKind};
 use crate::{handlers, statistics, RawRequest};
 
 pub struct Processor {
@@ -38,11 +39,11 @@ impl Processor {
 
     #[instrument(skip(self, request))]
     pub async fn process_request(self, request: RawRequest) {
-        let from = request.from;
+        let client_socket_addr = request.from;
 
         let start_time = Instant::now();
 
-        let response = handlers::handle_packet(
+        let (response, opt_req_kind) = handlers::handle_packet(
             request,
             self.udp_tracker_core_container.clone(),
             self.udp_tracker_server_container.clone(),
@@ -53,11 +54,18 @@ impl Processor {
 
         let elapsed_time = start_time.elapsed();
 
-        self.send_response(from, response, elapsed_time).await;
+        self.send_response(client_socket_addr, response, opt_req_kind, elapsed_time)
+            .await;
     }
 
     #[instrument(skip(self))]
-    async fn send_response(self, target: SocketAddr, response: Response, req_processing_time: Duration) {
+    async fn send_response(
+        self,
+        client_socket_addr: SocketAddr,
+        response: Response,
+        opt_req_kind: Option<UdpRequestKind>,
+        req_processing_time: Duration,
+    ) {
         tracing::debug!("send response");
 
         let response_type = match &response {
@@ -69,10 +77,16 @@ impl Processor {
         };
 
         let udp_response_kind = match &response {
-            Response::Connect(_) => statistics::event::UdpResponseKind::Connect,
-            Response::AnnounceIpv4(_) | Response::AnnounceIpv6(_) => statistics::event::UdpResponseKind::Announce,
-            Response::Scrape(_) => statistics::event::UdpResponseKind::Scrape,
-            Response::Error(_e) => statistics::event::UdpResponseKind::Error,
+            Response::Connect(_) => statistics::event::UdpResponseKind::Ok {
+                req_kind: statistics::event::UdpRequestKind::Connect,
+            },
+            Response::AnnounceIpv4(_) | Response::AnnounceIpv6(_) => statistics::event::UdpResponseKind::Ok {
+                req_kind: statistics::event::UdpRequestKind::Announce,
+            },
+            Response::Scrape(_) => statistics::event::UdpResponseKind::Ok {
+                req_kind: statistics::event::UdpRequestKind::Scrape,
+            },
+            Response::Error(_e) => statistics::event::UdpResponseKind::Error { opt_req_kind: None },
         };
 
         let mut writer = Cursor::new(Vec::with_capacity(200));
@@ -82,7 +96,7 @@ impl Processor {
                 let bytes_count = writer.get_ref().len();
                 let payload = writer.get_ref();
 
-                let () = match self.send_packet(&target, payload).await {
+                let () = match self.send_packet(&client_socket_addr, payload).await {
                     Ok(sent_bytes) => {
                         if tracing::event_enabled!(Level::TRACE) {
                             tracing::debug!(%bytes_count, %sent_bytes, ?payload, "sent {response_type}");
@@ -93,24 +107,13 @@ impl Processor {
                         if let Some(udp_server_stats_event_sender) =
                             self.udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                         {
-                            match target.ip() {
-                                IpAddr::V4(_) => {
-                                    udp_server_stats_event_sender
-                                        .send_event(statistics::event::Event::Udp4Response {
-                                            kind: udp_response_kind,
-                                            req_processing_time,
-                                        })
-                                        .await;
-                                }
-                                IpAddr::V6(_) => {
-                                    udp_server_stats_event_sender
-                                        .send_event(statistics::event::Event::Udp6Response {
-                                            kind: udp_response_kind,
-                                            req_processing_time,
-                                        })
-                                        .await;
-                                }
-                            }
+                            udp_server_stats_event_sender
+                                .send_event(statistics::event::Event::UdpResponseSent {
+                                    context: ConnectionContext::new(client_socket_addr, self.socket.address()),
+                                    kind: udp_response_kind,
+                                    req_processing_time,
+                                })
+                                .await;
                         }
                     }
                     Err(error) => tracing::warn!(%bytes_count, %error, ?payload, "failed to send"),
