@@ -22,7 +22,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
                 stats_repository.increase_udp6_requests().await;
             }
         },
-        Event::UdpRequest { context, kind } => match kind {
+        Event::UdpRequestAccepted { context, kind } => match kind {
             UdpRequestKind::Connect => match context.client_socket_addr().ip() {
                 std::net::IpAddr::V4(_) => {
                     stats_repository.increase_udp4_connections().await;
@@ -204,7 +204,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::UdpRequest {
+            Event::UdpRequestAccepted {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -225,7 +225,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::UdpRequest {
+            Event::UdpRequestAccepted {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -246,7 +246,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::UdpRequest {
+            Event::UdpRequestAccepted {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -311,7 +311,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::UdpRequest {
+            Event::UdpRequestAccepted {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
@@ -332,7 +332,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::UdpRequest {
+            Event::UdpRequestAccepted {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
@@ -353,7 +353,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::UdpRequest {
+            Event::UdpRequestAccepted {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),

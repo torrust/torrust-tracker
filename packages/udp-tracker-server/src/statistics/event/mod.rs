@@ -17,7 +17,7 @@ pub enum Event {
     UdpRequestBanned {
         context: ConnectionContext,
     },
-    UdpRequest {
+    UdpRequestAccepted {
         context: ConnectionContext,
         kind: UdpRequestKind,
     },

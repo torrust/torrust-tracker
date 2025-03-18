@@ -42,7 +42,7 @@ pub async fn handle_announce(
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
-            .send_event(server_statistics::event::Event::UdpRequest {
+            .send_event(server_statistics::event::Event::UdpRequestAccepted {
                 context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 kind: UdpRequestKind::Announce,
             })
@@ -425,7 +425,7 @@ mod tests {
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
-                    .with(eq(server_statistics::event::Event::UdpRequest {
+                    .with(eq(server_statistics::event::Event::UdpRequestAccepted {
                         context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: UdpRequestKind::Announce,
                     }))
@@ -768,7 +768,7 @@ mod tests {
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
-                    .with(eq(server_statistics::event::Event::UdpRequest {
+                    .with(eq(server_statistics::event::Event::UdpRequestAccepted {
                         context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: UdpRequestKind::Announce,
                     }))
@@ -861,7 +861,7 @@ mod tests {
                     let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                     udp_server_stats_event_sender_mock
                         .expect_send_event()
-                        .with(eq(server_statistics::event::Event::UdpRequest {
+                        .with(eq(server_statistics::event::Event::UdpRequestAccepted {
                             context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                             kind: UdpRequestKind::Announce,
                         }))
