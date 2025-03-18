@@ -5,13 +5,13 @@ pub mod listener;
 pub mod sender;
 
 /// An statistics event. It is used to collect tracker metrics.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
     TcpAnnounce { connection: ConnectionContext },
     TcpScrape { connection: ConnectionContext },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ConnectionContext {
     client: ClientConnectionContext,
     server: ServerConnectionContext,
@@ -35,9 +35,19 @@ impl ConnectionContext {
     pub fn client_ip_addr(&self) -> IpAddr {
         self.client.ip_addr
     }
+
+    #[must_use]
+    pub fn client_port(&self) -> Option<u16> {
+        self.client.port
+    }
+
+    #[must_use]
+    pub fn server_socket_addr(&self) -> SocketAddr {
+        self.server.socket_addr
+    }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ClientConnectionContext {
     ip_addr: IpAddr,
 
@@ -45,7 +55,7 @@ pub struct ClientConnectionContext {
     port: Option<u16>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ServerConnectionContext {
     socket_addr: SocketAddr,
 }

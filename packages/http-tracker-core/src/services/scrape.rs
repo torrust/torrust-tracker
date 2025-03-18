@@ -203,7 +203,7 @@ mod tests {
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::mpsc::error::SendError;
+    use tokio::sync::broadcast::error::SendError;
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
@@ -260,7 +260,7 @@ mod tests {
     mock! {
         HttpStatsEventSender {}
         impl statistics::event::sender::Sender for HttpStatsEventSender {
-             fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<(),SendError<statistics::event::Event> > > > ;
+             fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<statistics::event::Event> > > > ;
         }
     }
 
@@ -359,7 +359,7 @@ mod tests {
                     ),
                 }))
                 .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
@@ -408,7 +408,7 @@ mod tests {
                     ),
                 }))
                 .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
@@ -529,7 +529,7 @@ mod tests {
                     ),
                 }))
                 .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
@@ -578,7 +578,7 @@ mod tests {
                     ),
                 }))
                 .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
