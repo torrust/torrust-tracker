@@ -43,19 +43,11 @@ pub async fn get_stats_handler(
         Arc<InMemoryTorrentRepository>,
         Arc<RwLock<BanService>>,
         Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
-        Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
         Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
     )>,
     params: Query<QueryParams>,
 ) -> Response {
-    let metrics = get_metrics(
-        state.0.clone(),
-        state.1.clone(),
-        state.2.clone(),
-        state.3.clone(),
-        state.4.clone(),
-    )
-    .await;
+    let metrics = get_metrics(state.0.clone(), state.1.clone(), state.2.clone(), state.3.clone()).await;
 
     match params.0.format {
         Some(format) => match format {
