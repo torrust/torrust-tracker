@@ -8,155 +8,89 @@ use crate::statistics::repository::Repository;
 #[allow(clippy::too_many_lines)]
 pub async fn handle_event(event: Event, stats_repository: &Repository) {
     match event {
-        // UDP
         Event::UdpRequestAborted { .. } => {
             stats_repository.increase_udp_requests_aborted().await;
         }
         Event::UdpRequestBanned { .. } => {
             stats_repository.increase_udp_requests_banned().await;
         }
-
-        // UDP4
-        Event::Udp4IncomingRequest { context } => {
-            if context.client_socket_addr.is_ipv4() {
+        Event::UdpIncomingRequest { context } => match context.client_socket_addr().ip() {
+            std::net::IpAddr::V4(_) => {
                 stats_repository.increase_udp4_requests().await;
-            } else {
-                panic!("Client IP version does not match the expected version IPv4 for incoming request");
             }
-        }
-        Event::Udp4Request { context, kind } => match kind {
-            UdpRequestKind::Connect => {
-                if context.client_socket_addr.is_ipv4() {
-                    stats_repository.increase_udp4_connections().await;
-                } else {
-                    panic!("Client IP version does not match the expected version IPv4 for connect request");
-                }
-            }
-            UdpRequestKind::Announce => {
-                if context.client_socket_addr.is_ipv4() {
-                    stats_repository.increase_udp4_announces().await;
-                } else {
-                    panic!("Client IP version does not match the expected version IPv4 for announce request");
-                }
-            }
-            UdpRequestKind::Scrape => {
-                if context.client_socket_addr.is_ipv4() {
-                    stats_repository.increase_udp4_scrapes().await;
-                } else {
-                    panic!("Client IP version does not match the expected version IPv4 for scrape request");
-                }
-            }
-        },
-        Event::Udp4Response {
-            context,
-            kind,
-            req_processing_time,
-        } => {
-            if context.client_socket_addr.is_ipv4() {
-                stats_repository.increase_udp4_responses().await;
-
-                match kind {
-                    UdpResponseKind::Ok { req_kind } => match req_kind {
-                        UdpRequestKind::Connect => {
-                            stats_repository
-                                .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
-                                .await;
-                        }
-                        UdpRequestKind::Announce => {
-                            stats_repository
-                                .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
-                                .await;
-                        }
-                        UdpRequestKind::Scrape => {
-                            stats_repository
-                                .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
-                                .await;
-                        }
-                    },
-                    UdpResponseKind::Error => {}
-                }
-            } else {
-                panic!("Client IP version does not match the expected version IPv4 for response");
-            }
-        }
-        Event::Udp4Error { context } => {
-            if context.client_socket_addr.is_ipv4() {
-                stats_repository.increase_udp4_errors().await;
-            } else {
-                panic!("Client IP version does not match the expected version IPv4 for error");
-            }
-        }
-
-        // UDP6
-        Event::Udp6IncomingRequest { context } => {
-            if context.client_socket_addr.is_ipv6() {
+            std::net::IpAddr::V6(_) => {
                 stats_repository.increase_udp6_requests().await;
-            } else {
-                panic!("Client IP version does not match the expected version IPv6 for incoming request");
-            }
-        }
-        Event::Udp6Request { context, kind } => match kind {
-            UdpRequestKind::Connect => {
-                if context.client_socket_addr.is_ipv6() {
-                    stats_repository.increase_udp6_connections().await;
-                } else {
-                    panic!("Client IP version does not match the expected version IPv6 for connect request");
-                }
-            }
-            UdpRequestKind::Announce => {
-                if context.client_socket_addr.is_ipv6() {
-                    stats_repository.increase_udp6_announces().await;
-                } else {
-                    panic!("Client IP version does not match the expected version IPv6 for announce request");
-                }
-            }
-            UdpRequestKind::Scrape => {
-                if context.client_socket_addr.is_ipv6() {
-                    stats_repository.increase_udp6_scrapes().await;
-                } else {
-                    panic!("Client IP version does not match the expected version IPv6 for scrape request");
-                }
             }
         },
-        Event::Udp6Response {
+        Event::UdpRequest { context, kind } => match kind {
+            UdpRequestKind::Connect => match context.client_socket_addr().ip() {
+                std::net::IpAddr::V4(_) => {
+                    stats_repository.increase_udp4_connections().await;
+                }
+                std::net::IpAddr::V6(_) => {
+                    stats_repository.increase_udp6_connections().await;
+                }
+            },
+            UdpRequestKind::Announce => match context.client_socket_addr().ip() {
+                std::net::IpAddr::V4(_) => {
+                    stats_repository.increase_udp4_announces().await;
+                }
+                std::net::IpAddr::V6(_) => {
+                    stats_repository.increase_udp6_announces().await;
+                }
+            },
+            UdpRequestKind::Scrape => match context.client_socket_addr().ip() {
+                std::net::IpAddr::V4(_) => {
+                    stats_repository.increase_udp4_scrapes().await;
+                }
+                std::net::IpAddr::V6(_) => {
+                    stats_repository.increase_udp6_scrapes().await;
+                }
+            },
+        },
+        Event::UdpResponse {
             context,
             kind,
             req_processing_time,
         } => {
-            if context.client_socket_addr.is_ipv6() {
-                stats_repository.increase_udp6_responses().await;
-
-                match kind {
-                    UdpResponseKind::Ok { req_kind } => match req_kind {
-                        UdpRequestKind::Connect => {
-                            stats_repository
-                                .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
-                                .await;
-                        }
-                        UdpRequestKind::Announce => {
-                            stats_repository
-                                .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
-                                .await;
-                        }
-                        UdpRequestKind::Scrape => {
-                            stats_repository
-                                .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
-                                .await;
-                        }
-                    },
-                    UdpResponseKind::Error => {}
+            match context.client_socket_addr().ip() {
+                std::net::IpAddr::V4(_) => {
+                    stats_repository.increase_udp4_responses().await;
                 }
-            } else {
-                panic!("Client IP version does not match the expected version IPv6 for response");
+                std::net::IpAddr::V6(_) => {
+                    stats_repository.increase_udp6_responses().await;
+                }
+            }
+
+            match kind {
+                UdpResponseKind::Ok { req_kind } => match req_kind {
+                    UdpRequestKind::Connect => {
+                        stats_repository
+                            .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
+                            .await;
+                    }
+                    UdpRequestKind::Announce => {
+                        stats_repository
+                            .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
+                            .await;
+                    }
+                    UdpRequestKind::Scrape => {
+                        stats_repository
+                            .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
+                            .await;
+                    }
+                },
+                UdpResponseKind::Error => {}
             }
         }
-        Event::Udp6Error { context } => {
-            if context.client_socket_addr.is_ipv6() {
+        Event::UdpError { context } => match context.client_socket_addr().ip() {
+            std::net::IpAddr::V4(_) => {
+                stats_repository.increase_udp4_errors().await;
+            }
+            std::net::IpAddr::V6(_) => {
                 stats_repository.increase_udp6_errors().await;
-            } else {
-                panic!("Client IP version does not match the expected version IPv6 for error");
             }
-        }
+        },
     }
 
     tracing::debug!("stats: {:?}", stats_repository.get_stats().await);
@@ -215,7 +149,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp4IncomingRequest {
+            Event::UdpIncomingRequest {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -270,7 +204,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp4Request {
+            Event::UdpRequest {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -291,7 +225,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp4Request {
+            Event::UdpRequest {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -312,7 +246,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp4Request {
+            Event::UdpRequest {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -333,7 +267,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp4Response {
+            Event::UdpResponse {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -357,7 +291,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp4Error {
+            Event::UdpError {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
@@ -377,7 +311,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp6Request {
+            Event::UdpRequest {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
@@ -398,7 +332,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp6Request {
+            Event::UdpRequest {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
@@ -419,7 +353,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp6Request {
+            Event::UdpRequest {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
@@ -440,7 +374,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp6Response {
+            Event::UdpResponse {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
@@ -463,7 +397,7 @@ mod tests {
         let stats_repository = Repository::new();
 
         handle_event(
-            Event::Udp6Error {
+            Event::UdpError {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),

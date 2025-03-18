@@ -6,50 +6,27 @@ pub mod listener;
 pub mod sender;
 
 /// An statistics event. It is used to collect tracker metrics.
-///
-/// - `Udp` prefix means the event was triggered by the UDP tracker
-/// - `4` or `6` prefixes means the IP version used by the peer
-/// - Finally the event suffix is the type of request: `announce`, `scrape` or `connection`
 #[derive(Debug, PartialEq, Eq)]
 pub enum Event {
+    UdpIncomingRequest {
+        context: ConnectionContext,
+    },
     UdpRequestAborted {
         context: ConnectionContext,
     },
     UdpRequestBanned {
         context: ConnectionContext,
     },
-
-    // UDP4
-    Udp4IncomingRequest {
-        context: ConnectionContext,
-    },
-    Udp4Request {
+    UdpRequest {
         context: ConnectionContext,
         kind: UdpRequestKind,
     },
-    Udp4Response {
+    UdpResponse {
         context: ConnectionContext,
         kind: UdpResponseKind,
         req_processing_time: Duration,
     },
-    Udp4Error {
-        context: ConnectionContext,
-    },
-
-    // UDP6
-    Udp6IncomingRequest {
-        context: ConnectionContext,
-    },
-    Udp6Request {
-        context: ConnectionContext,
-        kind: UdpRequestKind,
-    },
-    Udp6Response {
-        context: ConnectionContext,
-        kind: UdpResponseKind,
-        req_processing_time: Duration,
-    },
-    Udp6Error {
+    UdpError {
         context: ConnectionContext,
     },
 }

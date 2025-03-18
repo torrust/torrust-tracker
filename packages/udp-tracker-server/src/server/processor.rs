@@ -1,5 +1,5 @@
 use std::io::Cursor;
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -100,26 +100,13 @@ impl Processor {
                         if let Some(udp_server_stats_event_sender) =
                             self.udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                         {
-                            match client_socket_addr.ip() {
-                                IpAddr::V4(_) => {
-                                    udp_server_stats_event_sender
-                                        .send_event(statistics::event::Event::Udp4Response {
-                                            context: ConnectionContext::new(client_socket_addr, self.socket.address()),
-                                            kind: udp_response_kind,
-                                            req_processing_time,
-                                        })
-                                        .await;
-                                }
-                                IpAddr::V6(_) => {
-                                    udp_server_stats_event_sender
-                                        .send_event(statistics::event::Event::Udp6Response {
-                                            context: ConnectionContext::new(client_socket_addr, self.socket.address()),
-                                            kind: udp_response_kind,
-                                            req_processing_time,
-                                        })
-                                        .await;
-                                }
-                            }
+                            udp_server_stats_event_sender
+                                .send_event(statistics::event::Event::UdpResponse {
+                                    context: ConnectionContext::new(client_socket_addr, self.socket.address()),
+                                    kind: udp_response_kind,
+                                    req_processing_time,
+                                })
+                                .await;
                         }
                     }
                     Err(error) => tracing::warn!(%bytes_count, %error, ?payload, "failed to send"),

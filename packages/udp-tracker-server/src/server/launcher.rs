@@ -1,4 +1,4 @@
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -172,22 +172,11 @@ impl Launcher {
 
                 if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                 {
-                    match req.from.ip() {
-                        IpAddr::V4(_) => {
-                            udp_server_stats_event_sender
-                                .send_event(statistics::event::Event::Udp4IncomingRequest {
-                                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                                })
-                                .await;
-                        }
-                        IpAddr::V6(_) => {
-                            udp_server_stats_event_sender
-                                .send_event(statistics::event::Event::Udp6IncomingRequest {
-                                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                                })
-                                .await;
-                        }
-                    }
+                    udp_server_stats_event_sender
+                        .send_event(statistics::event::Event::UdpIncomingRequest {
+                            context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                        })
+                        .await;
                 }
 
                 if udp_tracker_core_container.ban_service.read().await.is_banned(&req.from.ip()) {

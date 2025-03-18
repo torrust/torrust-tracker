@@ -1,5 +1,5 @@
 //! UDP tracker connect handler.
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Response};
@@ -23,24 +23,12 @@ pub async fn handle_connect(
     tracing::trace!("handle connect");
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
-        match client_socket_addr.ip() {
-            IpAddr::V4(_) => {
-                udp_server_stats_event_sender
-                    .send_event(server_statistics::event::Event::Udp4Request {
-                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                        kind: UdpRequestKind::Connect,
-                    })
-                    .await;
-            }
-            IpAddr::V6(_) => {
-                udp_server_stats_event_sender
-                    .send_event(server_statistics::event::Event::Udp6Request {
-                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                        kind: UdpRequestKind::Connect,
-                    })
-                    .await;
-            }
-        }
+        udp_server_stats_event_sender
+            .send_event(server_statistics::event::Event::UdpRequest {
+                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                kind: UdpRequestKind::Connect,
+            })
+            .await;
     }
 
     let connection_id = connect_service
@@ -215,7 +203,7 @@ mod tests {
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
             udp_server_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(server_statistics::event::Event::Udp4Request {
+                .with(eq(server_statistics::event::Event::UdpRequest {
                     context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                     kind: UdpRequestKind::Connect,
                 }))
@@ -256,7 +244,7 @@ mod tests {
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
             udp_server_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(server_statistics::event::Event::Udp6Request {
+                .with(eq(server_statistics::event::Event::UdpRequest {
                     context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                     kind: UdpRequestKind::Connect,
                 }))

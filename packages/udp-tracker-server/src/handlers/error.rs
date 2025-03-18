@@ -58,22 +58,11 @@ pub async fn handle_error(
 
     if e.1.is_some() {
         if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
-            match client_socket_addr {
-                SocketAddr::V4(_) => {
-                    udp_server_stats_event_sender
-                        .send_event(server_statistics::event::Event::Udp4Error {
-                            context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                        })
-                        .await;
-                }
-                SocketAddr::V6(_) => {
-                    udp_server_stats_event_sender
-                        .send_event(server_statistics::event::Event::Udp6Error {
-                            context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                        })
-                        .await;
-                }
-            }
+            udp_server_stats_event_sender
+                .send_event(server_statistics::event::Event::UdpError {
+                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                })
+                .await;
         }
     }
 

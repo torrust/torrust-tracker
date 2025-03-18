@@ -1,5 +1,5 @@
 //! UDP tracker scrape handler.
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::ops::Range;
 use std::sync::Arc;
 
@@ -37,24 +37,12 @@ pub async fn handle_scrape(
     tracing::trace!("handle scrape");
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
-        match client_socket_addr.ip() {
-            IpAddr::V4(_) => {
-                udp_server_stats_event_sender
-                    .send_event(server_statistics::event::Event::Udp4Request {
-                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                        kind: UdpRequestKind::Scrape,
-                    })
-                    .await;
-            }
-            IpAddr::V6(_) => {
-                udp_server_stats_event_sender
-                    .send_event(server_statistics::event::Event::Udp6Request {
-                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
-                        kind: UdpRequestKind::Scrape,
-                    })
-                    .await;
-            }
-        }
+        udp_server_stats_event_sender
+            .send_event(server_statistics::event::Event::UdpRequest {
+                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                kind: UdpRequestKind::Scrape,
+            })
+            .await;
     }
 
     let scrape_data = scrape_service
@@ -380,7 +368,7 @@ mod tests {
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
-                    .with(eq(server_statistics::event::Event::Udp4Request {
+                    .with(eq(server_statistics::event::Event::UdpRequest {
                         context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: server_statistics::event::UdpRequestKind::Scrape,
                     }))
@@ -429,7 +417,7 @@ mod tests {
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
-                    .with(eq(server_statistics::event::Event::Udp6Request {
+                    .with(eq(server_statistics::event::Event::UdpRequest {
                         context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: server_statistics::event::UdpRequestKind::Scrape,
                     }))
