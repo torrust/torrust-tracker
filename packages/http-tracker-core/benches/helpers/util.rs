@@ -108,11 +108,11 @@ pub fn sample_info_hash() -> InfoHash {
 use bittorrent_http_tracker_core::statistics;
 use futures::future::BoxFuture;
 use mockall::mock;
-use tokio::sync::mpsc::error::SendError;
+use tokio::sync::broadcast::error::SendError;
 
 mock! {
     HttpStatsEventSender {}
     impl statistics::event::sender::Sender for HttpStatsEventSender {
-         fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<(),SendError<statistics::event::Event> > > > ;
+         fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<statistics::event::Event> > > > ;
     }
 }

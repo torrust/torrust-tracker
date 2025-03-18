@@ -315,7 +315,7 @@ mod tests {
 
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::mpsc::error::SendError;
+    use tokio::sync::broadcast::error::SendError;
 
     use crate::statistics;
     use crate::tests::sample_info_hash;
@@ -323,7 +323,7 @@ mod tests {
     mock! {
         HttpStatsEventSender {}
         impl statistics::event::sender::Sender for HttpStatsEventSender {
-             fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<(),SendError<statistics::event::Event> > > > ;
+             fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<statistics::event::Event> > > > ;
         }
     }
 
@@ -395,7 +395,7 @@ mod tests {
                     connection: ConnectionContext::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), Some(8080), server_socket_addr),
                 }))
                 .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
@@ -451,7 +451,7 @@ mod tests {
                     connection: ConnectionContext::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), Some(8080), server_socket_addr),
                 }))
                 .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
@@ -494,7 +494,7 @@ mod tests {
                     ),
                 }))
                 .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
