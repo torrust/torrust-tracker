@@ -430,7 +430,7 @@ mod tests {
                         kind: UdpRequestKind::Announce,
                     }))
                     .times(1)
-                    .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                    .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                 let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
@@ -773,7 +773,7 @@ mod tests {
                         kind: UdpRequestKind::Announce,
                     }))
                     .times(1)
-                    .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                    .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                 let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
@@ -866,7 +866,7 @@ mod tests {
                             kind: UdpRequestKind::Announce,
                         }))
                         .times(1)
-                        .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                        .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                     let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
                         Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
