@@ -58,8 +58,8 @@ mod tests {
 
         use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
         use bittorrent_udp_tracker_core::connection_cookie::make;
+        use bittorrent_udp_tracker_core::event as core_event;
         use bittorrent_udp_tracker_core::services::connect::ConnectService;
-        use bittorrent_udp_tracker_core::statistics as core_statistics;
         use mockall::predicate::eq;
 
         use crate::handlers::handle_connect;
@@ -192,12 +192,12 @@ mod tests {
             let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_core_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(core_statistics::event::Event::UdpConnect {
-                    context: core_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                .with(eq(core_event::Event::UdpConnect {
+                    context: core_event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>> =
+            let udp_core_stats_event_sender: Arc<Option<Box<dyn core_event::sender::Sender>>> =
                 Arc::new(Some(Box::new(udp_core_stats_event_sender_mock)));
 
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
@@ -233,12 +233,12 @@ mod tests {
             let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_core_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(core_statistics::event::Event::UdpConnect {
-                    context: core_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                .with(eq(core_event::Event::UdpConnect {
+                    context: core_event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>> =
+            let udp_core_stats_event_sender: Arc<Option<Box<dyn core_event::sender::Sender>>> =
                 Arc::new(Some(Box::new(udp_core_stats_event_sender_mock)));
 
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();

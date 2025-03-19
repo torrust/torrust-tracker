@@ -219,7 +219,7 @@ pub(crate) mod tests {
     use bittorrent_udp_tracker_core::connection_cookie::gen_remote_fingerprint;
     use bittorrent_udp_tracker_core::services::announce::AnnounceService;
     use bittorrent_udp_tracker_core::services::scrape::ScrapeService;
-    use bittorrent_udp_tracker_core::{self, statistics as core_statistics};
+    use bittorrent_udp_tracker_core::{self, event as core_event};
     use futures::future::BoxFuture;
     use mockall::mock;
     use tokio::sync::broadcast::error::SendError;
@@ -421,8 +421,8 @@ pub(crate) mod tests {
 
     mock! {
         pub(crate) UdpCoreStatsEventSender {}
-        impl core_statistics::event::sender::Sender for UdpCoreStatsEventSender {
-             fn send_event(&self, event: core_statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_statistics::event::Event> > > > ;
+        impl core_event::sender::Sender for UdpCoreStatsEventSender {
+             fn send_event(&self, event: core_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_event::Event> > > > ;
         }
     }
 

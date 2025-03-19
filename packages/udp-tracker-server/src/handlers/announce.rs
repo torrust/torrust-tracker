@@ -811,7 +811,7 @@ mod tests {
                 use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
                 use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
                 use bittorrent_udp_tracker_core::services::announce::AnnounceService;
-                use bittorrent_udp_tracker_core::{self, statistics as core_statistics};
+                use bittorrent_udp_tracker_core::{self, event as core_event};
                 use mockall::predicate::eq;
 
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
@@ -850,12 +850,12 @@ mod tests {
                     let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
                     udp_core_stats_event_sender_mock
                         .expect_send_event()
-                        .with(eq(core_statistics::event::Event::UdpAnnounce {
-                            context: core_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                        .with(eq(core_event::Event::UdpAnnounce {
+                            context: core_event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                         }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                    let udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>> =
+                    let udp_core_stats_event_sender: Arc<Option<Box<dyn core_event::sender::Sender>>> =
                         Arc::new(Some(Box::new(udp_core_stats_event_sender_mock)));
 
                     let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();

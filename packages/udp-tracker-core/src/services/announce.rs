@@ -20,8 +20,7 @@ use bittorrent_udp_tracker_protocol::peer_builder;
 use torrust_tracker_primitives::core::AnnounceData;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
-use crate::statistics;
-use crate::statistics::event::ConnectionContext;
+use crate::event::{self, ConnectionContext, Event};
 
 /// The `AnnounceService` is responsible for handling the `announce` requests.
 ///
@@ -31,7 +30,7 @@ use crate::statistics::event::ConnectionContext;
 pub struct AnnounceService {
     announce_handler: Arc<AnnounceHandler>,
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-    opt_udp_core_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    opt_udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
 }
 
 impl AnnounceService {
@@ -39,7 +38,7 @@ impl AnnounceService {
     pub fn new(
         announce_handler: Arc<AnnounceHandler>,
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-        opt_udp_core_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+        opt_udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     ) -> Self {
         Self {
             announce_handler,
@@ -104,7 +103,7 @@ impl AnnounceService {
     async fn send_stats_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             udp_stats_event_sender
-                .send_event(statistics::event::Event::UdpAnnounce {
+                .send_event(Event::UdpAnnounce {
                     context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 })
                 .await;

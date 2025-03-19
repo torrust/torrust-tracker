@@ -1,6 +1,7 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use bittorrent_udp_tracker_core::statistics;
+use bittorrent_udp_tracker_core::event;
+use bittorrent_udp_tracker_core::event::Event;
 use futures::future::BoxFuture;
 use mockall::mock;
 use tokio::sync::broadcast::error::SendError;
@@ -19,7 +20,7 @@ pub(crate) fn sample_issue_time() -> f64 {
 
 mock! {
     pub(crate) UdpCoreStatsEventSender {}
-    impl statistics::event::sender::Sender for UdpCoreStatsEventSender {
-         fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<statistics::event::Event> > > > ;
+    impl event::sender::Sender for UdpCoreStatsEventSender {
+         fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
     }
 }

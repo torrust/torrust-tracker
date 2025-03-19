@@ -52,7 +52,7 @@ pub struct AppContainer {
     pub torrents_manager: Arc<TorrentsManager>,
 
     // UDP Tracker Core Services
-    pub udp_core_stats_event_sender: Arc<Option<Box<dyn bittorrent_udp_tracker_core::statistics::event::sender::Sender>>>,
+    pub udp_core_stats_event_sender: Arc<Option<Box<dyn bittorrent_udp_tracker_core::event::sender::Sender>>>,
     pub udp_core_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
     pub udp_ban_service: Arc<RwLock<BanService>>,
     pub udp_connect_service: Arc<bittorrent_udp_tracker_core::services::connect::ConnectService>,
