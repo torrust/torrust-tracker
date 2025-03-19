@@ -1,39 +1,36 @@
 //! Setup for the tracker statistics.
 //!
 //! The [`factory`] function builds the structs needed for handling the tracker metrics.
-use tokio::sync::broadcast;
-
-use crate::event::sender::ChannelSender;
+use crate::event::sender::Broadcaster;
 use crate::{event, statistics};
-
-const CHANNEL_CAPACITY: usize = 1024;
 
 /// It builds the structs needed for handling the tracker metrics.
 ///
 /// It returns:
 ///
-/// - An statistics event [`Sender`](crate::statistics::event::sender::Sender) that allows you to send events related to statistics.
-/// - An statistics [`Repository`](crate::statistics::repository::Repository) which is an in-memory repository for the tracker metrics.
+/// - An event [`Sender`](crate::event::sender::Sender) that allows you to send
+///   events related to statistics.
+/// - An statistics [`Repository`](crate::statistics::repository::Repository)
+///   which is an in-memory repository for the tracker metrics.
 ///
-/// When the input argument `tracker_usage_statistics`is false the setup does not run the event listeners, consequently the statistics
-/// events are sent are received but not dispatched to the handler.
+/// When the input argument `tracker_usage_statistics`is false the setup does
+/// not run the event listeners, consequently the statistics events are sent are
+/// received but not dispatched to the handler.
 #[must_use]
 pub fn factory(tracker_usage_statistics: bool) -> (Option<Box<dyn event::sender::Sender>>, statistics::repository::Repository) {
-    let mut stats_event_sender: Option<Box<dyn event::sender::Sender>> = None;
-
     let mut keeper = statistics::keeper::Keeper::new();
 
-    if tracker_usage_statistics {
-        let (sender, _) = broadcast::channel(CHANNEL_CAPACITY);
+    let opt_event_sender: Option<Box<dyn event::sender::Sender>> = if tracker_usage_statistics {
+        let broadcaster = Broadcaster::default();
 
-        let receiver = sender.subscribe();
+        keeper.run_event_listener(broadcaster.subscribe());
 
-        stats_event_sender = Some(Box::new(ChannelSender { sender }));
+        Some(Box::new(broadcaster))
+    } else {
+        None
+    };
 
-        keeper.run_event_listener(receiver);
-    }
-
-    (stats_event_sender, keeper.repository)
+    (opt_event_sender, keeper.repository)
 }
 
 #[cfg(test)]
