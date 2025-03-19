@@ -9,7 +9,7 @@
 //!
 //! The factory function builds two structs:
 //!
-//! - An statistics event [`Sender`](crate::statistics::event::sender::Sender)
+//! - An event [`Sender`](crate::event::sender::Sender)
 //! - An statistics [`Repository`]
 //!
 //! ```text

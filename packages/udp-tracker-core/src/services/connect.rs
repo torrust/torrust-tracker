@@ -7,20 +7,19 @@ use std::sync::Arc;
 use aquatic_udp_protocol::ConnectionId;
 
 use crate::connection_cookie::{gen_remote_fingerprint, make};
-use crate::statistics;
-use crate::statistics::event::ConnectionContext;
+use crate::event::{self, ConnectionContext, Event};
 
 /// The `ConnectService` is responsible for handling the `connect` requests.
 ///
 /// It is responsible for generating the connection cookie and sending the
 /// appropriate statistics events.
 pub struct ConnectService {
-    pub opt_udp_core_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    pub opt_udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
 }
 
 impl ConnectService {
     #[must_use]
-    pub fn new(opt_udp_core_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>) -> Self {
+    pub fn new(opt_udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>) -> Self {
         Self {
             opt_udp_core_stats_event_sender,
         }
@@ -42,7 +41,7 @@ impl ConnectService {
 
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             udp_stats_event_sender
-                .send_event(statistics::event::Event::UdpConnect {
+                .send_event(Event::UdpConnect {
                     context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 })
                 .await;
@@ -64,13 +63,13 @@ mod tests {
         use mockall::predicate::eq;
 
         use crate::connection_cookie::make;
+        use crate::event::{ConnectionContext, Event};
         use crate::services::connect::ConnectService;
         use crate::services::tests::{
             sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint, sample_ipv4_socket_address, sample_ipv6_remote_addr,
             sample_ipv6_remote_addr_fingerprint, sample_issue_time, MockUdpCoreStatsEventSender,
         };
-        use crate::statistics;
-        use crate::statistics::event::ConnectionContext;
+        use crate::{event, statistics};
 
         #[tokio::test]
         async fn a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request() {
@@ -138,12 +137,12 @@ mod tests {
             let mut udp_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::UdpConnect {
+                .with(eq(Event::UdpConnect {
                     context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let opt_udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
+            let opt_udp_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(udp_stats_event_sender_mock)));
 
             let connect_service = Arc::new(ConnectService::new(opt_udp_stats_event_sender));
@@ -161,12 +160,12 @@ mod tests {
             let mut udp_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::UdpConnect {
+                .with(eq(Event::UdpConnect {
                     context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let opt_udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
+            let opt_udp_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(udp_stats_event_sender_mock)));
 
             let connect_service = Arc::new(ConnectService::new(opt_udp_stats_event_sender));

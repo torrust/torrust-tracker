@@ -17,11 +17,10 @@ use tracing::instrument;
 
 use super::request_buffer::ActiveRequests;
 use crate::container::UdpTrackerServerContainer;
+use crate::event::{ConnectionContext, Event};
 use crate::server::bound_socket::BoundSocket;
 use crate::server::processor::Processor;
 use crate::server::receiver::Receiver;
-use crate::statistics;
-use crate::statistics::event::ConnectionContext;
 
 const IP_BANS_RESET_INTERVAL_IN_SECS: u64 = 3600;
 
@@ -173,7 +172,7 @@ impl Launcher {
                 if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                 {
                     udp_server_stats_event_sender
-                        .send_event(statistics::event::Event::UdpRequestReceived {
+                        .send_event(Event::UdpRequestReceived {
                             context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         })
                         .await;
@@ -186,7 +185,7 @@ impl Launcher {
                         udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                     {
                         udp_server_stats_event_sender
-                            .send_event(statistics::event::Event::UdpRequestBanned {
+                            .send_event(Event::UdpRequestBanned {
                                 context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                             })
                             .await;
@@ -228,7 +227,7 @@ impl Launcher {
                         udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                     {
                         udp_server_stats_event_sender
-                            .send_event(statistics::event::Event::UdpRequestAborted {
+                            .send_event(Event::UdpRequestAborted {
                                 context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                             })
                             .await;

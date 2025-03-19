@@ -1,4 +1,4 @@
-use crate::statistics::event::{Event, UdpRequestKind, UdpResponseKind};
+use crate::event::{Event, UdpRequestKind, UdpResponseKind};
 use crate::statistics::repository::Repository;
 
 /// # Panics
@@ -100,8 +100,8 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use crate::event::{ConnectionContext, Event, UdpRequestKind};
     use crate::statistics::event::handler::handle_event;
-    use crate::statistics::event::{ConnectionContext, Event, UdpRequestKind};
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
@@ -209,7 +209,7 @@ mod tests {
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
                 ),
-                kind: crate::statistics::event::UdpRequestKind::Connect,
+                kind: crate::event::UdpRequestKind::Connect,
             },
             &stats_repository,
         )
@@ -230,7 +230,7 @@ mod tests {
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
                 ),
-                kind: crate::statistics::event::UdpRequestKind::Announce,
+                kind: crate::event::UdpRequestKind::Announce,
             },
             &stats_repository,
         )
@@ -251,7 +251,7 @@ mod tests {
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
                 ),
-                kind: crate::statistics::event::UdpRequestKind::Scrape,
+                kind: crate::event::UdpRequestKind::Scrape,
             },
             &stats_repository,
         )
@@ -272,7 +272,7 @@ mod tests {
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
                 ),
-                kind: crate::statistics::event::UdpResponseKind::Ok {
+                kind: crate::event::UdpResponseKind::Ok {
                     req_kind: UdpRequestKind::Announce,
                 },
                 req_processing_time: std::time::Duration::from_secs(1),
@@ -316,7 +316,7 @@ mod tests {
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
                 ),
-                kind: crate::statistics::event::UdpRequestKind::Connect,
+                kind: crate::event::UdpRequestKind::Connect,
             },
             &stats_repository,
         )
@@ -337,7 +337,7 @@ mod tests {
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
                 ),
-                kind: crate::statistics::event::UdpRequestKind::Announce,
+                kind: crate::event::UdpRequestKind::Announce,
             },
             &stats_repository,
         )
@@ -358,7 +358,7 @@ mod tests {
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
                 ),
-                kind: crate::statistics::event::UdpRequestKind::Scrape,
+                kind: crate::event::UdpRequestKind::Scrape,
             },
             &stats_repository,
         )
@@ -379,7 +379,7 @@ mod tests {
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
                 ),
-                kind: crate::statistics::event::UdpResponseKind::Ok {
+                kind: crate::event::UdpResponseKind::Ok {
                     req_kind: UdpRequestKind::Announce,
                 },
                 req_processing_time: std::time::Duration::from_secs(1),

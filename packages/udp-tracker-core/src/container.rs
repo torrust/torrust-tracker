@@ -11,7 +11,7 @@ use crate::services::announce::AnnounceService;
 use crate::services::banning::BanService;
 use crate::services::connect::ConnectService;
 use crate::services::scrape::ScrapeService;
-use crate::{statistics, MAX_CONNECTION_ID_ERRORS_PER_IP};
+use crate::{event, statistics, MAX_CONNECTION_ID_ERRORS_PER_IP};
 
 pub struct UdpTrackerCoreContainer {
     // todo: replace with TrackerCoreContainer
@@ -21,7 +21,7 @@ pub struct UdpTrackerCoreContainer {
     pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
 
     pub udp_tracker_config: Arc<UdpTracker>,
-    pub udp_core_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    pub udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub udp_core_stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<BanService>>,
     pub connect_service: Arc<ConnectService>,

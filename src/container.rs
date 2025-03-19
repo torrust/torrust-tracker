@@ -52,7 +52,7 @@ pub struct AppContainer {
     pub torrents_manager: Arc<TorrentsManager>,
 
     // UDP Tracker Core Services
-    pub udp_core_stats_event_sender: Arc<Option<Box<dyn bittorrent_udp_tracker_core::statistics::event::sender::Sender>>>,
+    pub udp_core_stats_event_sender: Arc<Option<Box<dyn bittorrent_udp_tracker_core::event::sender::Sender>>>,
     pub udp_core_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
     pub udp_ban_service: Arc<RwLock<BanService>>,
     pub udp_connect_service: Arc<bittorrent_udp_tracker_core::services::connect::ConnectService>,
@@ -60,13 +60,13 @@ pub struct AppContainer {
     pub udp_scrape_service: Arc<bittorrent_udp_tracker_core::services::scrape::ScrapeService>,
 
     // HTTP Tracker Core Services
-    pub http_stats_event_sender: Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
+    pub http_stats_event_sender: Arc<Option<Box<dyn bittorrent_http_tracker_core::event::sender::Sender>>>,
     pub http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
     pub http_announce_service: Arc<bittorrent_http_tracker_core::services::announce::AnnounceService>,
     pub http_scrape_service: Arc<bittorrent_http_tracker_core::services::scrape::ScrapeService>,
 
     // UDP Tracker Server Services
-    pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::statistics::event::sender::Sender>>>,
+    pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::event::sender::Sender>>>,
     pub udp_server_stats_repository: Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
 }
 

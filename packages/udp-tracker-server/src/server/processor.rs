@@ -11,9 +11,9 @@ use tracing::{instrument, Level};
 
 use super::bound_socket::BoundSocket;
 use crate::container::UdpTrackerServerContainer;
+use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
 use crate::handlers::CookieTimeValues;
-use crate::statistics::event::{ConnectionContext, UdpRequestKind};
-use crate::{handlers, statistics, RawRequest};
+use crate::{handlers, RawRequest};
 
 pub struct Processor {
     socket: Arc<BoundSocket>,
@@ -77,16 +77,16 @@ impl Processor {
         };
 
         let udp_response_kind = match &response {
-            Response::Connect(_) => statistics::event::UdpResponseKind::Ok {
-                req_kind: statistics::event::UdpRequestKind::Connect,
+            Response::Connect(_) => event::UdpResponseKind::Ok {
+                req_kind: event::UdpRequestKind::Connect,
             },
-            Response::AnnounceIpv4(_) | Response::AnnounceIpv6(_) => statistics::event::UdpResponseKind::Ok {
-                req_kind: statistics::event::UdpRequestKind::Announce,
+            Response::AnnounceIpv4(_) | Response::AnnounceIpv6(_) => event::UdpResponseKind::Ok {
+                req_kind: event::UdpRequestKind::Announce,
             },
-            Response::Scrape(_) => statistics::event::UdpResponseKind::Ok {
-                req_kind: statistics::event::UdpRequestKind::Scrape,
+            Response::Scrape(_) => event::UdpResponseKind::Ok {
+                req_kind: event::UdpRequestKind::Scrape,
             },
-            Response::Error(_e) => statistics::event::UdpResponseKind::Error { opt_req_kind: None },
+            Response::Error(_e) => event::UdpResponseKind::Error { opt_req_kind: None },
         };
 
         let mut writer = Cursor::new(Vec::with_capacity(200));
@@ -108,7 +108,7 @@ impl Processor {
                             self.udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
                         {
                             udp_server_stats_event_sender
-                                .send_event(statistics::event::Event::UdpResponseSent {
+                                .send_event(Event::UdpResponseSent {
                                     context: ConnectionContext::new(client_socket_addr, self.socket.address()),
                                     kind: udp_response_kind,
                                     req_processing_time,

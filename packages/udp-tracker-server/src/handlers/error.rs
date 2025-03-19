@@ -11,8 +11,7 @@ use uuid::Uuid;
 use zerocopy::network_endian::I32;
 
 use crate::error::Error;
-use crate::statistics as server_statistics;
-use crate::statistics::event::{ConnectionContext, UdpRequestKind};
+use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
 
 #[allow(clippy::too_many_arguments)]
 #[instrument(fields(transaction_id), skip(opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
@@ -21,7 +20,7 @@ pub async fn handle_error(
     client_socket_addr: SocketAddr,
     server_socket_addr: SocketAddr,
     request_id: Uuid,
-    opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
+    opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn event::sender::Sender>>>,
     cookie_valid_range: Range<f64>,
     e: &Error,
     transaction_id: Option<TransactionId>,
@@ -60,7 +59,7 @@ pub async fn handle_error(
     if e.1.is_some() {
         if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
             udp_server_stats_event_sender
-                .send_event(server_statistics::event::Event::UdpError {
+                .send_event(Event::UdpError {
                     context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 })
                 .await;

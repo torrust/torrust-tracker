@@ -1,8 +1,8 @@
 use tokio::sync::broadcast::Receiver;
 
 use super::event::listener::dispatch_events;
-use super::event::Event;
 use super::repository::Repository;
+use crate::event::Event;
 
 /// The service responsible for keeping tracker metrics (listening to statistics events and handle them).
 ///

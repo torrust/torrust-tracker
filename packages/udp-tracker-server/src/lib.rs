@@ -637,6 +637,7 @@
 pub mod container;
 pub mod environment;
 pub mod error;
+pub mod event;
 pub mod handlers;
 pub mod server;
 pub mod statistics;

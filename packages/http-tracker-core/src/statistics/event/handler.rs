@@ -1,6 +1,6 @@
 use std::net::IpAddr;
 
-use crate::statistics::event::Event;
+use crate::event::Event;
 use crate::statistics::repository::Repository;
 
 /// # Panics
@@ -34,8 +34,8 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
-    use crate::statistics::event::{ConnectionContext, Event};
     use crate::statistics::repository::Repository;
 
     #[tokio::test]

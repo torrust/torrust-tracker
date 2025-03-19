@@ -24,7 +24,7 @@ use uuid::Uuid;
 use super::RawRequest;
 use crate::container::UdpTrackerServerContainer;
 use crate::error::Error;
-use crate::statistics::event::UdpRequestKind;
+use crate::event::UdpRequestKind;
 use crate::CurrentClock;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -219,7 +219,7 @@ pub(crate) mod tests {
     use bittorrent_udp_tracker_core::connection_cookie::gen_remote_fingerprint;
     use bittorrent_udp_tracker_core::services::announce::AnnounceService;
     use bittorrent_udp_tracker_core::services::scrape::ScrapeService;
-    use bittorrent_udp_tracker_core::{self, statistics as core_statistics};
+    use bittorrent_udp_tracker_core::{self, event as core_event};
     use futures::future::BoxFuture;
     use mockall::mock;
     use tokio::sync::broadcast::error::SendError;
@@ -228,7 +228,7 @@ pub(crate) mod tests {
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::{statistics as server_statistics, CurrentClock};
+    use crate::{event as server_event, CurrentClock};
 
     pub(crate) struct CoreTrackerServices {
         pub core_config: Arc<Core>,
@@ -244,7 +244,7 @@ pub(crate) mod tests {
     }
 
     pub(crate) struct ServerUdpTrackerServices {
-        pub udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
+        pub udp_server_stats_event_sender: Arc<Option<Box<dyn server_event::sender::Sender>>>,
     }
 
     fn default_testing_tracker_configuration() -> Configuration {
@@ -421,15 +421,15 @@ pub(crate) mod tests {
 
     mock! {
         pub(crate) UdpCoreStatsEventSender {}
-        impl core_statistics::event::sender::Sender for UdpCoreStatsEventSender {
-             fn send_event(&self, event: core_statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_statistics::event::Event> > > > ;
+        impl core_event::sender::Sender for UdpCoreStatsEventSender {
+             fn send_event(&self, event: core_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_event::Event> > > > ;
         }
     }
 
     mock! {
         pub(crate) UdpServerStatsEventSender {}
-        impl server_statistics::event::sender::Sender for UdpServerStatsEventSender {
-             fn send_event(&self, event: server_statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<server_statistics::event::Event> > > > ;
+        impl server_event::sender::Sender for UdpServerStatsEventSender {
+             fn send_event(&self, event: server_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<server_event::Event> > > > ;
         }
     }
 }

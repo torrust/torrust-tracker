@@ -19,8 +19,8 @@ use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::ScrapeData;
 
-use crate::statistics;
-use crate::statistics::event::ConnectionContext;
+use crate::event;
+use crate::event::{ConnectionContext, Event};
 
 /// The HTTP tracker `scrape` service.
 ///
@@ -38,7 +38,7 @@ pub struct ScrapeService {
     core_config: Arc<Core>,
     scrape_handler: Arc<ScrapeHandler>,
     authentication_service: Arc<AuthenticationService>,
-    opt_http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    opt_http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
 }
 
 impl ScrapeService {
@@ -47,7 +47,7 @@ impl ScrapeService {
         core_config: Arc<Core>,
         scrape_handler: Arc<ScrapeHandler>,
         authentication_service: Arc<AuthenticationService>,
-        opt_http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+        opt_http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     ) -> Self {
         Self {
             core_config,
@@ -82,8 +82,7 @@ impl ScrapeService {
 
         let (remote_client_ip, opt_client_port) = self.resolve_remote_client_ip(client_ip_sources)?;
 
-        self.send_stats_event(remote_client_ip, opt_client_port, *server_socket_addr)
-            .await;
+        self.send_event(remote_client_ip, opt_client_port, *server_socket_addr).await;
 
         Ok(scrape_data)
     }
@@ -118,15 +117,10 @@ impl ScrapeService {
         Ok((ip, port))
     }
 
-    async fn send_stats_event(
-        &self,
-        original_peer_ip: IpAddr,
-        opt_original_peer_port: Option<u16>,
-        server_socket_addr: SocketAddr,
-    ) {
+    async fn send_event(&self, original_peer_ip: IpAddr, opt_original_peer_port: Option<u16>, server_socket_addr: SocketAddr) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             http_stats_event_sender
-                .send_event(statistics::event::Event::TcpScrape {
+                .send_event(Event::TcpScrape {
                     connection: ConnectionContext::new(original_peer_ip, opt_original_peer_port, server_socket_addr),
                 })
                 .await;
@@ -207,7 +201,7 @@ mod tests {
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
-    use crate::statistics;
+    use crate::event::{self, Event};
     use crate::tests::sample_info_hash;
 
     struct Container {
@@ -259,8 +253,8 @@ mod tests {
 
     mock! {
         HttpStatsEventSender {}
-        impl statistics::event::sender::Sender for HttpStatsEventSender {
-             fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<statistics::event::Event> > > > ;
+        impl event::sender::Sender for HttpStatsEventSender {
+             fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
         }
     }
 
@@ -278,13 +272,13 @@ mod tests {
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
+        use crate::event::{ConnectionContext, Event};
         use crate::services::scrape::tests::{
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
-        use crate::statistics;
-        use crate::statistics::event::ConnectionContext;
         use crate::tests::sample_info_hash;
+        use crate::{event, statistics};
 
         #[tokio::test]
         async fn it_should_return_the_scrape_data_for_a_torrent() {
@@ -351,7 +345,7 @@ mod tests {
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::TcpScrape {
+                .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
                         IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
                         Some(8080),
@@ -360,7 +354,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
+            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let container = initialize_services_with_configuration(&config);
@@ -400,7 +394,7 @@ mod tests {
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::TcpScrape {
+                .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
                         IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                         Some(8080),
@@ -409,7 +403,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
+            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let container = initialize_services_with_configuration(&config);
@@ -454,13 +448,13 @@ mod tests {
         use torrust_tracker_primitives::core::ScrapeData;
         use torrust_tracker_test_helpers::configuration;
 
+        use crate::event::{ConnectionContext, Event};
         use crate::services::scrape::tests::{
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
-        use crate::statistics;
-        use crate::statistics::event::ConnectionContext;
         use crate::tests::sample_info_hash;
+        use crate::{event, statistics};
 
         #[tokio::test]
         async fn it_should_return_the_zeroed_scrape_data_when_the_tracker_is_running_in_private_mode_and_the_peer_is_not_authenticated(
@@ -521,7 +515,7 @@ mod tests {
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::TcpScrape {
+                .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
                         IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
                         Some(8080),
@@ -530,7 +524,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
+            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let peer_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
@@ -570,7 +564,7 @@ mod tests {
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::TcpScrape {
+                .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
                         IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                         Some(8080),
@@ -579,7 +573,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
+            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let peer_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));

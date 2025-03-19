@@ -5,7 +5,7 @@
 //! It delegates the `announce` logic to the [`AnnounceHandler`] and it returns
 //! the [`AnnounceData`].
 //!
-//! It also sends an [`http_tracker_core::statistics::event::Event`]
+//! It also sends an [`http_tracker_core::event::Event`]
 //! because events are specific for the HTTP tracker.
 use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
@@ -22,7 +22,8 @@ use bittorrent_tracker_core::whitelist;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::AnnounceData;
 
-use crate::statistics;
+use crate::event;
+use crate::event::Event;
 
 /// The HTTP tracker `announce` service.
 ///
@@ -35,7 +36,7 @@ pub struct AnnounceService {
     announce_handler: Arc<AnnounceHandler>,
     authentication_service: Arc<AuthenticationService>,
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-    opt_http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    opt_http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
 }
 
 impl AnnounceService {
@@ -45,7 +46,7 @@ impl AnnounceService {
         announce_handler: Arc<AnnounceHandler>,
         authentication_service: Arc<AuthenticationService>,
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-        opt_http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+        opt_http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     ) -> Self {
         Self {
             core_config,
@@ -86,7 +87,7 @@ impl AnnounceService {
             .announce(&announce_request.info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
-        self.send_stats_event(remote_client_ip, opt_remote_client_port, *server_socket_addr)
+        self.send_event(remote_client_ip, opt_remote_client_port, *server_socket_addr)
             .await;
 
         Ok(announce_data)
@@ -137,11 +138,11 @@ impl AnnounceService {
         }
     }
 
-    async fn send_stats_event(&self, peer_ip: IpAddr, opt_peer_ip_port: Option<u16>, server_socket_addr: SocketAddr) {
+    async fn send_event(&self, peer_ip: IpAddr, opt_peer_ip_port: Option<u16>, server_socket_addr: SocketAddr) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             http_stats_event_sender
-                .send_event(statistics::event::Event::TcpAnnounce {
-                    connection: statistics::event::ConnectionContext::new(peer_ip, opt_peer_ip_port, server_socket_addr),
+                .send_event(Event::TcpAnnounce {
+                    connection: event::ConnectionContext::new(peer_ip, opt_peer_ip_port, server_socket_addr),
                 })
                 .await;
         }
@@ -227,7 +228,7 @@ mod tests {
     }
 
     struct CoreHttpTrackerServices {
-        pub http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+        pub http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     }
 
     fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {
@@ -317,13 +318,14 @@ mod tests {
     use mockall::mock;
     use tokio::sync::broadcast::error::SendError;
 
-    use crate::statistics;
+    use crate::event::Event;
     use crate::tests::sample_info_hash;
+    use crate::{event, statistics};
 
     mock! {
         HttpStatsEventSender {}
-        impl statistics::event::sender::Sender for HttpStatsEventSender {
-             fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<statistics::event::Event> > > > ;
+        impl event::sender::Sender for HttpStatsEventSender {
+             fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
         }
     }
 
@@ -340,13 +342,13 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
+        use crate::event;
+        use crate::event::{ConnectionContext, Event};
         use crate::services::announce::tests::{
             initialize_core_tracker_services, initialize_core_tracker_services_with_config, sample_announce_request_for_peer,
             sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::announce::AnnounceService;
-        use crate::statistics;
-        use crate::statistics::event::ConnectionContext;
 
         #[tokio::test]
         async fn it_should_return_the_announce_data() {
@@ -391,12 +393,12 @@ mod tests {
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::TcpAnnounce {
+                .with(eq(Event::TcpAnnounce {
                     connection: ConnectionContext::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), Some(8080), server_socket_addr),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
+            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services();
@@ -447,12 +449,12 @@ mod tests {
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::TcpAnnounce {
+                .with(eq(Event::TcpAnnounce {
                     connection: ConnectionContext::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), Some(8080), server_socket_addr),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
+            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let (core_tracker_services, mut core_http_tracker_services) =
@@ -486,7 +488,7 @@ mod tests {
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(statistics::event::Event::TcpAnnounce {
+                .with(eq(Event::TcpAnnounce {
                     connection: ConnectionContext::new(
                         IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                         Some(8080),
@@ -495,7 +497,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>> =
+            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services();

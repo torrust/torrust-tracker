@@ -18,8 +18,7 @@ use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_tracker_primitives::core::ScrapeData;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
-use crate::statistics;
-use crate::statistics::event::ConnectionContext;
+use crate::event::{self, ConnectionContext, Event};
 
 /// The `ScrapeService` is responsible for handling the `scrape` requests.
 ///
@@ -28,14 +27,14 @@ use crate::statistics::event::ConnectionContext;
 /// - The number of UDP `scrape` requests handled by the UDP tracker.
 pub struct ScrapeService {
     scrape_handler: Arc<ScrapeHandler>,
-    opt_udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    opt_udp_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
 }
 
 impl ScrapeService {
     #[must_use]
     pub fn new(
         scrape_handler: Arc<ScrapeHandler>,
-        opt_udp_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+        opt_udp_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     ) -> Self {
         Self {
             scrape_handler,
@@ -62,7 +61,7 @@ impl ScrapeService {
             .scrape(&Self::convert_from_aquatic(&request.info_hashes))
             .await?;
 
-        self.send_stats_event(client_socket_addr, server_socket_addr).await;
+        self.send_event(client_socket_addr, server_socket_addr).await;
 
         Ok(scrape_data)
     }
@@ -83,10 +82,10 @@ impl ScrapeService {
         aquatic_infohashes.iter().map(|&x| x.into()).collect()
     }
 
-    async fn send_stats_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
+    async fn send_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
         if let Some(udp_stats_event_sender) = self.opt_udp_stats_event_sender.as_deref() {
             udp_stats_event_sender
-                .send_event(statistics::event::Event::UdpScrape {
+                .send_event(Event::UdpScrape {
                     context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 })
                 .await;
