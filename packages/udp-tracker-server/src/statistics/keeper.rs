@@ -1,11 +1,8 @@
-use tokio::sync::mpsc;
+use tokio::sync::broadcast::Receiver;
 
 use super::event::listener::dispatch_events;
-use super::event::sender::{ChannelSender, Sender};
 use super::event::Event;
 use super::repository::Repository;
-
-const CHANNEL_BUFFER_SIZE: usize = 65_535;
 
 /// The service responsible for keeping tracker metrics (listening to statistics events and handle them).
 ///
@@ -29,31 +26,15 @@ impl Keeper {
         }
     }
 
-    #[must_use]
-    pub fn new_active_instance() -> (Box<dyn Sender>, Repository) {
-        let mut stats_tracker = Self::new();
-
-        let stats_event_sender = stats_tracker.run_event_listener();
-
-        (stats_event_sender, stats_tracker.repository)
-    }
-
-    pub fn run_event_listener(&mut self) -> Box<dyn Sender> {
-        let (sender, receiver) = mpsc::channel::<Event>(CHANNEL_BUFFER_SIZE);
-
+    pub fn run_event_listener(&mut self, receiver: Receiver<Event>) {
         let stats_repository = self.repository.clone();
 
         tokio::spawn(async move { dispatch_events(receiver, stats_repository).await });
-
-        Box::new(ChannelSender { sender })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv6Addr, SocketAddr};
-
-    use crate::statistics::event::{ConnectionContext, Event};
     use crate::statistics::keeper::Keeper;
     use crate::statistics::metrics::Metrics;
 
@@ -64,23 +45,5 @@ mod tests {
         let stats = stats_tracker.repository.get_stats().await;
 
         assert_eq!(stats.udp4_requests, Metrics::default().udp4_requests);
-    }
-
-    #[tokio::test]
-    async fn should_create_an_event_sender_to_send_statistical_events() {
-        let mut stats_tracker = Keeper::new();
-
-        let event_sender = stats_tracker.run_event_listener();
-
-        let result = event_sender
-            .send_event(Event::UdpRequestReceived {
-                context: ConnectionContext::new(
-                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
-                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
-                ),
-            })
-            .await;
-
-        assert!(result.is_some());
     }
 }

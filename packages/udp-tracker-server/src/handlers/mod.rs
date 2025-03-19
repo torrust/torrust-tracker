@@ -223,7 +223,6 @@ pub(crate) mod tests {
     use futures::future::BoxFuture;
     use mockall::mock;
     use tokio::sync::broadcast::error::SendError;
-    use tokio::sync::mpsc::error::SendError as MpscSendError;
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_configuration::{Configuration, Core};
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
@@ -430,7 +429,7 @@ pub(crate) mod tests {
     mock! {
         pub(crate) UdpServerStatsEventSender {}
         impl server_statistics::event::sender::Sender for UdpServerStatsEventSender {
-             fn send_event(&self, event: server_statistics::event::Event) -> BoxFuture<'static,Option<Result<(),MpscSendError<server_statistics::event::Event> > > > ;
+             fn send_event(&self, event: server_statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<server_statistics::event::Event> > > > ;
         }
     }
 }
