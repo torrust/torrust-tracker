@@ -2,10 +2,7 @@ use std::net::SocketAddr;
 
 pub mod sender;
 
-/// An statistics event. It is used to collect tracker metrics.
-///
-/// - `Udp` prefix means the event was triggered by the UDP tracker.
-/// - The event suffix is the type of request: `announce`, `scrape` or `connection`.
+/// A UDP core event.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
     UdpConnect { context: ConnectionContext },

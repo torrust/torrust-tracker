@@ -3,7 +3,7 @@ use std::time::Duration;
 
 pub mod sender;
 
-/// An statistics event. It is used to collect tracker metrics.
+/// A UDP server event.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
     UdpRequestReceived {

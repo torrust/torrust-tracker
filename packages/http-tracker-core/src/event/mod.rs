@@ -2,7 +2,7 @@ use std::net::{IpAddr, SocketAddr};
 
 pub mod sender;
 
-/// An event.
+/// A HTTP core event.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
     TcpAnnounce { connection: ConnectionContext },
