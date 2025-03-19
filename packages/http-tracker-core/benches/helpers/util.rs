@@ -26,7 +26,7 @@ pub struct CoreTrackerServices {
 }
 
 pub struct CoreHttpTrackerServices {
-    pub http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    pub http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
 }
 
 pub fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {
@@ -105,14 +105,15 @@ pub fn sample_info_hash() -> InfoHash {
         .expect("String should be a valid info hash")
 }
 
-use bittorrent_http_tracker_core::statistics;
+use bittorrent_http_tracker_core::event::Event;
+use bittorrent_http_tracker_core::{event, statistics};
 use futures::future::BoxFuture;
 use mockall::mock;
 use tokio::sync::broadcast::error::SendError;
 
 mock! {
     HttpStatsEventSender {}
-    impl statistics::event::sender::Sender for HttpStatsEventSender {
-         fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<statistics::event::Event> > > > ;
+    impl event::sender::Sender for HttpStatsEventSender {
+         fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
     }
 }

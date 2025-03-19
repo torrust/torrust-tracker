@@ -3,8 +3,8 @@
 //! The [`factory`] function builds the structs needed for handling the tracker metrics.
 use tokio::sync::broadcast;
 
-use super::event::sender::ChannelSender;
-use crate::statistics;
+use crate::event::sender::ChannelSender;
+use crate::{event, statistics};
 
 const CHANNEL_CAPACITY: usize = 1024;
 
@@ -18,13 +18,8 @@ const CHANNEL_CAPACITY: usize = 1024;
 /// When the input argument `tracker_usage_statistics`is false the setup does not run the event listeners, consequently the statistics
 /// events are sent are received but not dispatched to the handler.
 #[must_use]
-pub fn factory(
-    tracker_usage_statistics: bool,
-) -> (
-    Option<Box<dyn statistics::event::sender::Sender>>,
-    statistics::repository::Repository,
-) {
-    let mut stats_event_sender: Option<Box<dyn statistics::event::sender::Sender>> = None;
+pub fn factory(tracker_usage_statistics: bool) -> (Option<Box<dyn event::sender::Sender>>, statistics::repository::Repository) {
+    let mut stats_event_sender: Option<Box<dyn event::sender::Sender>> = None;
 
     let mut keeper = statistics::keeper::Keeper::new();
 

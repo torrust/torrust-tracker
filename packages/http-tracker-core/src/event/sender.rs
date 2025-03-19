@@ -7,16 +7,13 @@ use tokio::sync::broadcast::error::SendError;
 
 use super::Event;
 
-/// A trait to allow sending statistics events
+/// A trait to allow sending events.
 #[cfg_attr(test, automock)]
 pub trait Sender: Sync + Send {
     fn send_event(&self, event: Event) -> BoxFuture<'_, Option<Result<usize, SendError<Event>>>>;
 }
 
-/// An [`statistics::EventSender`](crate::statistics::event::sender::Sender) implementation.
-///
-/// It uses a channel sender to send the statistic events. The channel is created by a
-/// [`statistics::Keeper`](crate::statistics::keeper::Keeper)
+/// An event sender implementation using a broadcast channel.
 #[allow(clippy::module_name_repetitions)]
 pub struct ChannelSender {
     pub(crate) sender: broadcast::Sender<Event>,

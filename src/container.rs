@@ -60,7 +60,7 @@ pub struct AppContainer {
     pub udp_scrape_service: Arc<bittorrent_udp_tracker_core::services::scrape::ScrapeService>,
 
     // HTTP Tracker Core Services
-    pub http_stats_event_sender: Arc<Option<Box<dyn bittorrent_http_tracker_core::statistics::event::sender::Sender>>>,
+    pub http_stats_event_sender: Arc<Option<Box<dyn bittorrent_http_tracker_core::event::sender::Sender>>>,
     pub http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
     pub http_announce_service: Arc<bittorrent_http_tracker_core::services::announce::AnnounceService>,
     pub http_scrape_service: Arc<bittorrent_http_tracker_core::services::scrape::ScrapeService>,

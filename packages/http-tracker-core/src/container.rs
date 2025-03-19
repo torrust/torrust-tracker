@@ -9,7 +9,7 @@ use torrust_tracker_configuration::{Core, HttpTracker};
 
 use crate::services::announce::AnnounceService;
 use crate::services::scrape::ScrapeService;
-use crate::statistics;
+use crate::{event, statistics};
 
 pub struct HttpTrackerCoreContainer {
     // todo: replace with TrackerCoreContainer
@@ -20,7 +20,7 @@ pub struct HttpTrackerCoreContainer {
     pub authentication_service: Arc<AuthenticationService>,
 
     pub http_tracker_config: Arc<HttpTracker>,
-    pub http_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    pub http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub http_stats_repository: Arc<statistics::repository::Repository>,
     pub announce_service: Arc<AnnounceService>,
     pub scrape_service: Arc<ScrapeService>,
