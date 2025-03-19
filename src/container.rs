@@ -66,7 +66,7 @@ pub struct AppContainer {
     pub http_scrape_service: Arc<bittorrent_http_tracker_core::services::scrape::ScrapeService>,
 
     // UDP Tracker Server Services
-    pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::statistics::event::sender::Sender>>>,
+    pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::event::sender::Sender>>>,
     pub udp_server_stats_repository: Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
 }
 

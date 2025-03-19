@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use torrust_tracker_configuration::Core;
 
-use crate::statistics;
+use crate::{event, statistics};
 
 pub struct UdpTrackerServerContainer {
-    pub udp_server_stats_event_sender: Arc<Option<Box<dyn statistics::event::sender::Sender>>>,
+    pub udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub udp_server_stats_repository: Arc<statistics::repository::Repository>,
 }
 

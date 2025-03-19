@@ -6,8 +6,7 @@ use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Respon
 use bittorrent_udp_tracker_core::services::connect::ConnectService;
 use tracing::{instrument, Level};
 
-use crate::statistics as server_statistics;
-use crate::statistics::event::{ConnectionContext, UdpRequestKind};
+use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
 
 /// It handles the `Connect` request.
 #[instrument(fields(transaction_id), skip(connect_service, opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
@@ -16,7 +15,7 @@ pub async fn handle_connect(
     server_socket_addr: SocketAddr,
     request: &ConnectRequest,
     connect_service: &Arc<ConnectService>,
-    opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
+    opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn event::sender::Sender>>>,
     cookie_issue_time: f64,
 ) -> Response {
     tracing::Span::current().record("transaction_id", request.transaction_id.0.to_string());
@@ -24,7 +23,7 @@ pub async fn handle_connect(
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
-            .send_event(server_statistics::event::Event::UdpRequestAccepted {
+            .send_event(Event::UdpRequestAccepted {
                 context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 kind: UdpRequestKind::Connect,
             })
@@ -62,13 +61,12 @@ mod tests {
         use bittorrent_udp_tracker_core::services::connect::ConnectService;
         use mockall::predicate::eq;
 
+        use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
         use crate::handlers::handle_connect;
         use crate::handlers::tests::{
             sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint, sample_ipv4_socket_address, sample_ipv6_remote_addr,
             sample_ipv6_remote_addr_fingerprint, sample_issue_time, MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender,
         };
-        use crate::statistics as server_statistics;
-        use crate::statistics::event::UdpRequestKind;
 
         fn sample_connect_request() -> ConnectRequest {
             ConnectRequest {
@@ -203,13 +201,13 @@ mod tests {
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
             udp_server_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(server_statistics::event::Event::UdpRequestAccepted {
-                    context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                .with(eq(Event::UdpRequestAccepted {
+                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                     kind: UdpRequestKind::Connect,
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
+            let udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
@@ -244,13 +242,13 @@ mod tests {
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
             udp_server_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(server_statistics::event::Event::UdpRequestAccepted {
-                    context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                .with(eq(Event::UdpRequestAccepted {
+                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                     kind: UdpRequestKind::Connect,
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
+            let udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));

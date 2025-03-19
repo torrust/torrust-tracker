@@ -15,8 +15,7 @@ use tracing::{instrument, Level};
 use zerocopy::network_endian::I32;
 
 use crate::error::Error;
-use crate::statistics as server_statistics;
-use crate::statistics::event::{ConnectionContext, UdpRequestKind};
+use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
 
 /// It handles the `Announce` request.
 ///
@@ -30,7 +29,7 @@ pub async fn handle_announce(
     server_socket_addr: SocketAddr,
     request: &AnnounceRequest,
     core_config: &Arc<Core>,
-    opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn server_statistics::event::sender::Sender>>>,
+    opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn event::sender::Sender>>>,
     cookie_valid_range: Range<f64>,
 ) -> Result<Response, (Error, TransactionId, UdpRequestKind)> {
     tracing::Span::current()
@@ -42,7 +41,7 @@ pub async fn handle_announce(
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
-            .send_event(server_statistics::event::Event::UdpRequestAccepted {
+            .send_event(Event::UdpRequestAccepted {
                 context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                 kind: UdpRequestKind::Announce,
             })
@@ -207,6 +206,7 @@ mod tests {
             use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
             use mockall::predicate::eq;
 
+            use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
@@ -215,8 +215,6 @@ mod tests {
                 sample_issue_time, CoreTrackerServices, CoreUdpTrackerServices, MockUdpServerStatsEventSender,
                 TorrentPeerBuilder,
             };
-            use crate::statistics as server_statistics;
-            use crate::statistics::event::UdpRequestKind;
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
@@ -425,13 +423,13 @@ mod tests {
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
-                    .with(eq(server_statistics::event::Event::UdpRequestAccepted {
-                        context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    .with(eq(Event::UdpRequestAccepted {
+                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: UdpRequestKind::Announce,
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
+                let udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
@@ -532,6 +530,7 @@ mod tests {
             use mockall::predicate::eq;
             use torrust_tracker_configuration::Core;
 
+            use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
@@ -539,8 +538,6 @@ mod tests {
                 initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv6_remote_addr,
                 sample_issue_time, MockUdpServerStatsEventSender, TorrentPeerBuilder,
             };
-            use crate::statistics as server_statistics;
-            use crate::statistics::event::UdpRequestKind;
 
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
@@ -768,13 +765,13 @@ mod tests {
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
-                    .with(eq(server_statistics::event::Event::UdpRequestAccepted {
-                        context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    .with(eq(Event::UdpRequestAccepted {
+                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                         kind: UdpRequestKind::Announce,
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
+                let udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
@@ -814,14 +811,13 @@ mod tests {
                 use bittorrent_udp_tracker_core::{self, event as core_event};
                 use mockall::predicate::eq;
 
+                use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
                     sample_cookie_valid_range, sample_issue_time, MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender,
                     TrackerConfigurationBuilder,
                 };
-                use crate::statistics as server_statistics;
-                use crate::statistics::event::UdpRequestKind;
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
@@ -861,13 +857,13 @@ mod tests {
                     let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                     udp_server_stats_event_sender_mock
                         .expect_send_event()
-                        .with(eq(server_statistics::event::Event::UdpRequestAccepted {
-                            context: server_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                        .with(eq(Event::UdpRequestAccepted {
+                            context: ConnectionContext::new(client_socket_addr, server_socket_addr),
                             kind: UdpRequestKind::Announce,
                         }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                    let udp_server_stats_event_sender: Arc<Option<Box<dyn server_statistics::event::sender::Sender>>> =
+                    let udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                         Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
                     let announce_handler = Arc::new(AnnounceHandler::new(
