@@ -79,7 +79,7 @@ impl AnnounceService {
             .announce(&info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
-        self.send_stats_event(client_socket_addr, server_socket_addr).await;
+        self.send_event(client_socket_addr, server_socket_addr).await;
 
         Ok(announce_data)
     }
@@ -100,7 +100,7 @@ impl AnnounceService {
         self.whitelist_authorization.authorize(info_hash).await
     }
 
-    async fn send_stats_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
+    async fn send_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             udp_stats_event_sender
                 .send_event(Event::UdpAnnounce {

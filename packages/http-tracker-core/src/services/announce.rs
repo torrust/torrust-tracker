@@ -87,7 +87,7 @@ impl AnnounceService {
             .announce(&announce_request.info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
-        self.send_stats_event(remote_client_ip, opt_remote_client_port, *server_socket_addr)
+        self.send_event(remote_client_ip, opt_remote_client_port, *server_socket_addr)
             .await;
 
         Ok(announce_data)
@@ -138,7 +138,7 @@ impl AnnounceService {
         }
     }
 
-    async fn send_stats_event(&self, peer_ip: IpAddr, opt_peer_ip_port: Option<u16>, server_socket_addr: SocketAddr) {
+    async fn send_event(&self, peer_ip: IpAddr, opt_peer_ip_port: Option<u16>, server_socket_addr: SocketAddr) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             http_stats_event_sender
                 .send_event(Event::TcpAnnounce {

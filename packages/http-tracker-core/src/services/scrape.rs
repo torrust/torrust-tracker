@@ -82,8 +82,7 @@ impl ScrapeService {
 
         let (remote_client_ip, opt_client_port) = self.resolve_remote_client_ip(client_ip_sources)?;
 
-        self.send_stats_event(remote_client_ip, opt_client_port, *server_socket_addr)
-            .await;
+        self.send_event(remote_client_ip, opt_client_port, *server_socket_addr).await;
 
         Ok(scrape_data)
     }
@@ -118,12 +117,7 @@ impl ScrapeService {
         Ok((ip, port))
     }
 
-    async fn send_stats_event(
-        &self,
-        original_peer_ip: IpAddr,
-        opt_original_peer_port: Option<u16>,
-        server_socket_addr: SocketAddr,
-    ) {
+    async fn send_event(&self, original_peer_ip: IpAddr, opt_original_peer_port: Option<u16>, server_socket_addr: SocketAddr) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             http_stats_event_sender
                 .send_event(Event::TcpScrape {

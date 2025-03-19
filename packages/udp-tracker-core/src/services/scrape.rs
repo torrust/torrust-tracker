@@ -61,7 +61,7 @@ impl ScrapeService {
             .scrape(&Self::convert_from_aquatic(&request.info_hashes))
             .await?;
 
-        self.send_stats_event(client_socket_addr, server_socket_addr).await;
+        self.send_event(client_socket_addr, server_socket_addr).await;
 
         Ok(scrape_data)
     }
@@ -82,7 +82,7 @@ impl ScrapeService {
         aquatic_infohashes.iter().map(|&x| x.into()).collect()
     }
 
-    async fn send_stats_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
+    async fn send_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
         if let Some(udp_stats_event_sender) = self.opt_udp_stats_event_sender.as_deref() {
             udp_stats_event_sender
                 .send_event(Event::UdpScrape {
