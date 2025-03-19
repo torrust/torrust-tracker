@@ -854,7 +854,7 @@ mod tests {
                             context: core_statistics::event::ConnectionContext::new(client_socket_addr, server_socket_addr),
                         }))
                         .times(1)
-                        .returning(|_| Box::pin(future::ready(Some(Ok(())))));
+                        .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                     let udp_core_stats_event_sender: Arc<Option<Box<dyn core_statistics::event::sender::Sender>>> =
                         Arc::new(Some(Box::new(udp_core_stats_event_sender_mock)));
 

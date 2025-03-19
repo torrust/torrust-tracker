@@ -8,14 +8,14 @@ pub mod sender;
 ///
 /// - `Udp` prefix means the event was triggered by the UDP tracker.
 /// - The event suffix is the type of request: `announce`, `scrape` or `connection`.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
     UdpConnect { context: ConnectionContext },
     UdpAnnounce { context: ConnectionContext },
     UdpScrape { context: ConnectionContext },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ConnectionContext {
     client_socket_addr: SocketAddr,
     server_socket_addr: SocketAddr,

@@ -10,7 +10,7 @@ pub(crate) mod tests {
 
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::mpsc::error::SendError;
+    use tokio::sync::broadcast::error::SendError;
 
     use crate::connection_cookie::gen_remote_fingerprint;
     use crate::statistics;
@@ -46,7 +46,7 @@ pub(crate) mod tests {
     mock! {
         pub(crate) UdpCoreStatsEventSender {}
         impl statistics::event::sender::Sender for UdpCoreStatsEventSender {
-             fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<(),SendError<statistics::event::Event> > > > ;
+             fn send_event(&self, event: statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<statistics::event::Event> > > > ;
         }
     }
 }
