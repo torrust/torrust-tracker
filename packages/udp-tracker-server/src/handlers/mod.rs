@@ -222,7 +222,8 @@ pub(crate) mod tests {
     use bittorrent_udp_tracker_core::{self, statistics as core_statistics};
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::mpsc::error::SendError;
+    use tokio::sync::broadcast::error::SendError;
+    use tokio::sync::mpsc::error::SendError as MpscSendError;
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_configuration::{Configuration, Core};
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
@@ -422,14 +423,14 @@ pub(crate) mod tests {
     mock! {
         pub(crate) UdpCoreStatsEventSender {}
         impl core_statistics::event::sender::Sender for UdpCoreStatsEventSender {
-             fn send_event(&self, event: core_statistics::event::Event) -> BoxFuture<'static,Option<Result<(),SendError<core_statistics::event::Event> > > > ;
+             fn send_event(&self, event: core_statistics::event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_statistics::event::Event> > > > ;
         }
     }
 
     mock! {
         pub(crate) UdpServerStatsEventSender {}
         impl server_statistics::event::sender::Sender for UdpServerStatsEventSender {
-             fn send_event(&self, event: server_statistics::event::Event) -> BoxFuture<'static,Option<Result<(),SendError<server_statistics::event::Event> > > > ;
+             fn send_event(&self, event: server_statistics::event::Event) -> BoxFuture<'static,Option<Result<(),MpscSendError<server_statistics::event::Event> > > > ;
         }
     }
 }
