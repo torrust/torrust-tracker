@@ -38,7 +38,7 @@ use crate::container::AppContainer;
 /// - Can't retrieve tracker keys from database.
 /// - Can't load whitelist from database.
 #[instrument(skip(config, app_container))]
-pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) -> Vec<JoinHandle<()>> {
+pub async fn start(config: &Configuration, mut app_container: AppContainer) -> Vec<JoinHandle<()>> {
     if config.http_api.is_none()
         && (config.udp_trackers.is_none() || config.udp_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
         && (config.http_trackers.is_none() || config.http_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
@@ -94,7 +94,7 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
     if let Some(http_trackers) = &config.http_trackers {
         for http_tracker_config in http_trackers {
             let http_tracker_config = Arc::new(http_tracker_config.clone());
-            let http_tracker_container = Arc::new(app_container.http_tracker_container(&http_tracker_config));
+            let http_tracker_container = Arc::new(app_container.http_tracker_container(&http_tracker_config).await);
 
             if let Some(job) = http_tracker::start_job(
                 http_tracker_container,

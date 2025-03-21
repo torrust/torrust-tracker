@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
@@ -65,6 +67,9 @@ pub struct AppContainer {
     pub http_announce_service: Arc<bittorrent_http_tracker_core::services::announce::AnnounceService>,
     pub http_scrape_service: Arc<bittorrent_http_tracker_core::services::scrape::ScrapeService>,
 
+    // HTTP Tracker Server Containers (one container per HTTP Tracker)
+    pub http_server_instance_containers: Arc<RwLock<HttpTrackerInstanceContainers>>,
+
     // UDP Tracker Server Services
     pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::event::sender::Sender>>>,
     pub udp_server_stats_repository: Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
@@ -95,6 +100,9 @@ impl AppContainer {
             tracker_core_container.authentication_service.clone(),
             http_stats_event_sender.clone(),
         ));
+
+        // HTTP Tracker Server Containers (one container per HTTP Tracker)
+        let http_server_instance_containers = Arc::new(RwLock::new(HttpTrackerInstanceContainers::default()));
 
         // UDP Tracker Core Services
         let (udp_core_stats_event_sender, udp_core_stats_repository) =
@@ -150,6 +158,9 @@ impl AppContainer {
             http_announce_service,
             http_scrape_service,
 
+            // HTTP Tracker Server Containers
+            http_server_instance_containers,
+
             // UDP Tracker Server Services
             udp_server_stats_event_sender,
             udp_server_stats_repository,
@@ -157,7 +168,27 @@ impl AppContainer {
     }
 
     #[must_use]
-    pub fn http_tracker_container(&self, http_tracker_config: &Arc<HttpTracker>) -> HttpTrackerCoreContainer {
+    pub async fn http_tracker_container(&mut self, http_tracker_config: &Arc<HttpTracker>) -> HttpTrackerCoreContainer {
+        let http_tracker_instance_container = if let Some(http_tracker_instance_container) = self
+            .http_server_instance_containers
+            .read()
+            .await
+            .get(&http_tracker_config.bind_address)
+            .await
+        {
+            http_tracker_instance_container
+        } else {
+            let http_server_instance_container = Arc::new(HttpTrackerInstanceContainer::initialize(http_tracker_config));
+
+            self.http_server_instance_containers
+                .write()
+                .await
+                .insert(http_tracker_config, http_server_instance_container.clone())
+                .await;
+
+            http_server_instance_container
+        };
+
         HttpTrackerCoreContainer {
             core_config: self.core_config.clone(),
             announce_handler: self.announce_handler.clone(),
@@ -166,8 +197,8 @@ impl AppContainer {
             authentication_service: self.authentication_service.clone(),
 
             http_tracker_config: http_tracker_config.clone(),
-            http_stats_event_sender: self.http_stats_event_sender.clone(),
-            http_stats_repository: self.http_stats_repository.clone(),
+            http_stats_event_sender: http_tracker_instance_container.http_core_stats_event_sender.clone(),
+            http_stats_repository: http_tracker_instance_container.http_core_stats_repository.clone(),
             announce_service: self.http_announce_service.clone(),
             scrape_service: self.http_scrape_service.clone(),
         }
@@ -211,6 +242,56 @@ impl AppContainer {
         UdpTrackerServerContainer {
             udp_server_stats_event_sender: self.udp_server_stats_event_sender.clone(),
             udp_server_stats_repository: self.udp_server_stats_repository.clone(),
+        }
+    }
+}
+
+/// Container for each HTTP Tracker Server instance.
+///
+/// Each instance runs on a different socket address. These services are not
+/// shared between instances.
+#[derive(Default)]
+pub struct HttpTrackerInstanceContainers {
+    instances: RwLock<HashMap<SocketAddr, Arc<HttpTrackerInstanceContainer>>>,
+}
+
+impl HttpTrackerInstanceContainers {
+    pub async fn insert(
+        &mut self,
+        http_tracker_config: &Arc<HttpTracker>,
+        http_server_instance_container: Arc<HttpTrackerInstanceContainer>,
+    ) {
+        self.instances
+            .write()
+            .await
+            .insert(http_tracker_config.bind_address, http_server_instance_container);
+    }
+
+    #[must_use]
+    pub async fn get(&self, socket_addr: &SocketAddr) -> Option<Arc<HttpTrackerInstanceContainer>> {
+        self.instances.read().await.get(socket_addr).cloned()
+    }
+}
+
+/// Container for HTTP Tracker Server instances.
+#[derive(Clone, Default)]
+pub struct HttpTrackerInstanceContainer {
+    pub http_core_stats_event_sender: Arc<Option<Box<dyn bittorrent_http_tracker_core::event::sender::Sender>>>,
+    pub http_core_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
+}
+
+impl HttpTrackerInstanceContainer {
+    #[must_use]
+    pub fn initialize(configuration: &HttpTracker) -> Self {
+        let (http_core_stats_event_sender, http_core_stats_repository) =
+            bittorrent_http_tracker_core::statistics::setup::factory(configuration.tracker_usage_statistics);
+
+        let http_core_stats_event_sender = Arc::new(http_core_stats_event_sender);
+        let http_core_stats_repository = Arc::new(http_core_stats_repository);
+
+        Self {
+            http_core_stats_event_sender,
+            http_core_stats_repository,
         }
     }
 }
