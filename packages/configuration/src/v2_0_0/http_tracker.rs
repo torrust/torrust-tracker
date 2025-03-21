@@ -19,6 +19,10 @@ pub struct HttpTracker {
     /// TSL config.
     #[serde(default = "HttpTracker::default_tsl_config")]
     pub tsl_config: Option<TslConfig>,
+
+    /// Weather the tracker should collect statistics about tracker usage.
+    #[serde(default = "HttpTracker::default_tracker_usage_statistics")]
+    pub tracker_usage_statistics: bool,
 }
 
 impl Default for HttpTracker {
@@ -26,6 +30,7 @@ impl Default for HttpTracker {
         Self {
             bind_address: Self::default_bind_address(),
             tsl_config: Self::default_tsl_config(),
+            tracker_usage_statistics: Self::default_tracker_usage_statistics(),
         }
     }
 }
@@ -37,5 +42,9 @@ impl HttpTracker {
 
     fn default_tsl_config() -> Option<TslConfig> {
         None
+    }
+
+    fn default_tracker_usage_statistics() -> bool {
+        false
     }
 }
