@@ -11,11 +11,19 @@ listed = false
 private = false
 
 [[udp_trackers]]
+bind_address = "0.0.0.0:6868"
+tracker_usage_statistics = true
+
+[[udp_trackers]]
 bind_address = "0.0.0.0:6969"
 tracker_usage_statistics = true
 
 [[http_trackers]]
 bind_address = "0.0.0.0:7070"
+tracker_usage_statistics = true
+
+[[http_trackers]]
+bind_address = "0.0.0.0:7171"
 tracker_usage_statistics = true
 
 [http_api]
