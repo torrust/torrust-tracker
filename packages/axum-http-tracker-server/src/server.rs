@@ -241,15 +241,7 @@ mod tests {
     use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
     use bittorrent_http_tracker_core::services::announce::AnnounceService;
     use bittorrent_http_tracker_core::services::scrape::ScrapeService;
-    use bittorrent_tracker_core::announce_handler::AnnounceHandler;
-    use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
-    use bittorrent_tracker_core::authentication::service;
-    use bittorrent_tracker_core::databases::setup::initialize_database;
-    use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
-    use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-    use bittorrent_tracker_core::torrent::repository::persisted::DatabasePersistentTorrentRepository;
-    use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
-    use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
+    use bittorrent_tracker_core::container::TrackerCoreContainer;
     use torrust_axum_server::tsl::make_rust_tls;
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_configuration::{logging, Configuration};
@@ -275,48 +267,25 @@ mod tests {
         let http_stats_event_sender = Arc::new(http_stats_event_sender);
         let http_stats_repository = Arc::new(http_stats_repository);
 
-        let database = initialize_database(&configuration.core);
-        let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-        let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&configuration.core, &in_memory_whitelist.clone()));
-        let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
-        let authentication_service = Arc::new(service::AuthenticationService::new(
-            &configuration.core,
-            &in_memory_key_repository,
-        ));
-        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let db_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
-
-        let announce_handler = Arc::new(AnnounceHandler::new(
-            &configuration.core,
-            &whitelist_authorization,
-            &in_memory_torrent_repository,
-            &db_torrent_repository,
-        ));
-
-        let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
+        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
 
         let announce_service = Arc::new(AnnounceService::new(
-            core_config.clone(),
-            announce_handler.clone(),
-            authentication_service.clone(),
-            whitelist_authorization.clone(),
+            tracker_core_container.core_config.clone(),
+            tracker_core_container.announce_handler.clone(),
+            tracker_core_container.authentication_service.clone(),
+            tracker_core_container.whitelist_authorization.clone(),
             http_stats_event_sender.clone(),
         ));
 
         let scrape_service = Arc::new(ScrapeService::new(
-            core_config.clone(),
-            scrape_handler.clone(),
-            authentication_service.clone(),
+            tracker_core_container.core_config.clone(),
+            tracker_core_container.scrape_handler.clone(),
+            tracker_core_container.authentication_service.clone(),
             http_stats_event_sender.clone(),
         ));
 
         HttpTrackerCoreContainer {
-            core_config,
-            announce_handler,
-            scrape_handler,
-            whitelist_authorization,
-            authentication_service,
-
+            tracker_core_container,
             http_tracker_config,
             http_stats_event_sender,
             http_stats_repository,

@@ -25,7 +25,7 @@ use tracing::instrument;
 */
 
 pub struct AppContainer {
-    pub tracker_core_container: TrackerCoreContainer,
+    pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // UDP Tracker Core Services
     pub udp_core_stats_event_sender: Arc<Option<Box<dyn bittorrent_udp_tracker_core::event::sender::Sender>>>,
@@ -51,7 +51,7 @@ impl AppContainer {
     pub fn initialize(configuration: &Configuration) -> AppContainer {
         let core_config = Arc::new(configuration.core.clone());
 
-        let tracker_core_container = TrackerCoreContainer::initialize(&core_config);
+        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
 
         // HTTP Tracker Core Services
         let (http_stats_event_sender, http_stats_repository) =
@@ -123,12 +123,7 @@ impl AppContainer {
     #[must_use]
     pub fn http_tracker_container(&self, http_tracker_config: &Arc<HttpTracker>) -> HttpTrackerCoreContainer {
         HttpTrackerCoreContainer {
-            core_config: self.tracker_core_container.core_config.clone(),
-            announce_handler: self.tracker_core_container.announce_handler.clone(),
-            scrape_handler: self.tracker_core_container.scrape_handler.clone(),
-            whitelist_authorization: self.tracker_core_container.whitelist_authorization.clone(),
-            authentication_service: self.tracker_core_container.authentication_service.clone(),
-
+            tracker_core_container: self.tracker_core_container.clone(),
             http_tracker_config: http_tracker_config.clone(),
             http_stats_event_sender: self.http_stats_event_sender.clone(),
             http_stats_repository: self.http_stats_repository.clone(),
