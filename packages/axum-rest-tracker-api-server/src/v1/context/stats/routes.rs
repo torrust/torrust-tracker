@@ -16,7 +16,7 @@ pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApi
     router.route(
         &format!("{prefix}/stats"),
         get(get_stats_handler).with_state((
-            http_api_container.in_memory_torrent_repository.clone(),
+            http_api_container.tracker_core_container.in_memory_torrent_repository.clone(),
             http_api_container.ban_service.clone(),
             http_api_container.http_stats_repository.clone(),
             http_api_container.udp_server_stats_repository.clone(),

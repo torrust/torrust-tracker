@@ -13,17 +13,6 @@ use torrust_tracker_configuration::{Configuration, HttpApi, HttpTracker, UdpTrac
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 use tracing::instrument;
 
-/* todo: remove duplicate code.
-
-   Use containers from packages as AppContainer fields:
-
-   - bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer
-   - bittorrent_http_tracker_core::container::HttpTrackerCoreContainer
-   - torrust_udp_tracker_server::container::UdpTrackerServerContainer
-
-   Container initialization is duplicated.
-*/
-
 pub struct AppContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
@@ -149,11 +138,7 @@ impl AppContainer {
     #[must_use]
     pub fn tracker_http_api_container(&self, http_api_config: &Arc<HttpApi>) -> TrackerHttpApiCoreContainer {
         TrackerHttpApiCoreContainer {
-            core_config: self.tracker_core_container.core_config.clone(),
-            in_memory_torrent_repository: self.tracker_core_container.in_memory_torrent_repository.clone(),
-            keys_handler: self.tracker_core_container.keys_handler.clone(),
-            whitelist_manager: self.tracker_core_container.whitelist_manager.clone(),
-
+            tracker_core_container: self.tracker_core_container.clone(),
             http_api_config: http_api_config.clone(),
             ban_service: self.udp_ban_service.clone(),
             http_stats_repository: self.http_stats_repository.clone(),

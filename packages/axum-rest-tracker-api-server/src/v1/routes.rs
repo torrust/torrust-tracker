@@ -10,9 +10,21 @@ use super::context::{auth_key, stats, torrent, whitelist};
 pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApiCoreContainer>) -> Router {
     let v1_prefix = format!("{prefix}/v1");
 
-    let router = auth_key::routes::add(&v1_prefix, router, &http_api_container.keys_handler.clone());
+    let router = auth_key::routes::add(
+        &v1_prefix,
+        router,
+        &http_api_container.tracker_core_container.keys_handler.clone(),
+    );
     let router = stats::routes::add(&v1_prefix, router, http_api_container);
-    let router = whitelist::routes::add(&v1_prefix, router, &http_api_container.whitelist_manager);
+    let router = whitelist::routes::add(
+        &v1_prefix,
+        router,
+        &http_api_container.tracker_core_container.whitelist_manager,
+    );
 
-    torrent::routes::add(&v1_prefix, router, &http_api_container.in_memory_torrent_repository.clone())
+    torrent::routes::add(
+        &v1_prefix,
+        router,
+        &http_api_container.tracker_core_container.in_memory_torrent_repository.clone(),
+    )
 }
