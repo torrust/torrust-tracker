@@ -103,6 +103,7 @@ impl Core {
     fn default_tracker_policy() -> TrackerPolicy {
         TrackerPolicy::default()
     }
+
     fn default_tracker_usage_statistics() -> bool {
         true
     }

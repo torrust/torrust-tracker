@@ -55,6 +55,7 @@ pub fn ephemeral() -> Configuration {
     config.udp_trackers = Some(vec![UdpTracker {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), udp_port),
         cookie_lifetime: Duration::from_secs(120),
+        tracker_usage_statistics: true,
     }]);
 
     // Ephemeral socket address for HTTP tracker
@@ -62,6 +63,7 @@ pub fn ephemeral() -> Configuration {
     config.http_trackers = Some(vec![HttpTracker {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), http_port),
         tsl_config: None,
+        tracker_usage_statistics: true,
     }]);
 
     let temp_file = ephemeral_sqlite_database();

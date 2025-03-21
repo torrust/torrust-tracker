@@ -16,12 +16,17 @@ pub struct UdpTracker {
     /// the client as the `ConnectionId`.
     #[serde(default = "UdpTracker::default_cookie_lifetime")]
     pub cookie_lifetime: Duration,
+
+    /// Weather the tracker should collect statistics about tracker usage.
+    #[serde(default = "UdpTracker::default_tracker_usage_statistics")]
+    pub tracker_usage_statistics: bool,
 }
 impl Default for UdpTracker {
     fn default() -> Self {
         Self {
             bind_address: Self::default_bind_address(),
             cookie_lifetime: Self::default_cookie_lifetime(),
+            tracker_usage_statistics: Self::default_tracker_usage_statistics(),
         }
     }
 }
@@ -33,5 +38,9 @@ impl UdpTracker {
 
     fn default_cookie_lifetime() -> Duration {
         Duration::from_secs(120)
+    }
+
+    fn default_tracker_usage_statistics() -> bool {
+        false
     }
 }
