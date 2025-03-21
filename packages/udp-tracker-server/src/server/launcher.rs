@@ -47,7 +47,7 @@ impl Launcher {
     ) {
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting on: {bind_to}");
 
-        if udp_tracker_core_container.core_config.private {
+        if udp_tracker_core_container.tracker_core_container.core_config.private {
             tracing::error!("udp services cannot be used for private trackers");
             panic!("it should not use udp if using authentication");
         }

@@ -172,7 +172,7 @@ pub async fn handle_request(
                 client_socket_addr,
                 server_socket_addr,
                 &announce_request,
-                &udp_tracker_core_container.core_config,
+                &udp_tracker_core_container.tracker_core_container.core_config,
                 &udp_tracker_server_container.udp_server_stats_event_sender,
                 cookie_time_values.valid_range,
             )

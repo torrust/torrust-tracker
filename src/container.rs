@@ -135,11 +135,7 @@ impl AppContainer {
     #[must_use]
     pub fn udp_tracker_container(&self, udp_tracker_config: &Arc<UdpTracker>) -> UdpTrackerCoreContainer {
         UdpTrackerCoreContainer {
-            core_config: self.tracker_core_container.core_config.clone(),
-            announce_handler: self.tracker_core_container.announce_handler.clone(),
-            scrape_handler: self.tracker_core_container.scrape_handler.clone(),
-            whitelist_authorization: self.tracker_core_container.whitelist_authorization.clone(),
-
+            tracker_core_container: self.tracker_core_container.clone(),
             udp_tracker_config: udp_tracker_config.clone(),
             udp_core_stats_event_sender: self.udp_core_stats_event_sender.clone(),
             udp_core_stats_repository: self.udp_core_stats_repository.clone(),
