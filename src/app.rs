@@ -53,6 +53,7 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
     // Load peer keys
     if config.core.private {
         app_container
+            .tracker_core_container
             .keys_handler
             .load_peer_keys_from_database()
             .await
@@ -62,6 +63,7 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
     // Load whitelisted torrents
     if config.core.listed {
         app_container
+            .tracker_core_container
             .whitelist_manager
             .load_whitelist_from_database()
             .await
@@ -130,7 +132,10 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
 
     // Start runners to remove torrents without peers, every interval
     if config.core.inactive_peer_cleanup_interval > 0 {
-        jobs.push(torrent_cleanup::start_job(&config.core, &app_container.torrents_manager));
+        jobs.push(torrent_cleanup::start_job(
+            &config.core,
+            &app_container.tracker_core_container.torrents_manager,
+        ));
     }
 
     // Start Health Check API
