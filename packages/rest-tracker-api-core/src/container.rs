@@ -1,10 +1,7 @@
 use std::sync::Arc;
 
 use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
-use bittorrent_tracker_core::authentication::handler::KeysHandler;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
-use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-use bittorrent_tracker_core::whitelist::manager::WhitelistManager;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
@@ -13,22 +10,11 @@ use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 
 pub struct TrackerHttpApiCoreContainer {
-    // todo: replace with TrackerCoreContainer
-    pub core_config: Arc<Core>,
-    pub in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
-    pub keys_handler: Arc<KeysHandler>,
-    pub whitelist_manager: Arc<WhitelistManager>,
-
-    // todo: replace with HttpTrackerCoreContainer
+    pub tracker_core_container: Arc<TrackerCoreContainer>,
     pub http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
-
-    // todo: replace with UdpTrackerCoreContainer
     pub ban_service: Arc<RwLock<BanService>>,
     pub udp_core_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
-
-    // todo: replace with UdpTrackerServerContainer
     pub udp_server_stats_repository: Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
-
     pub http_api_config: Arc<HttpApi>,
 }
 
@@ -63,10 +49,7 @@ impl TrackerHttpApiCoreContainer {
         http_api_config: &Arc<HttpApi>,
     ) -> Arc<TrackerHttpApiCoreContainer> {
         Arc::new(TrackerHttpApiCoreContainer {
-            core_config: tracker_core_container.core_config.clone(),
-            in_memory_torrent_repository: tracker_core_container.in_memory_torrent_repository.clone(),
-            keys_handler: tracker_core_container.keys_handler.clone(),
-            whitelist_manager: tracker_core_container.whitelist_manager.clone(),
+            tracker_core_container: tracker_core_container.clone(),
 
             http_stats_repository: http_tracker_core_container.http_stats_repository.clone(),
 

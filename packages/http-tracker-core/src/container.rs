@@ -1,10 +1,6 @@
 use std::sync::Arc;
 
-use bittorrent_tracker_core::announce_handler::AnnounceHandler;
-use bittorrent_tracker_core::authentication::service::AuthenticationService;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
-use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
-use bittorrent_tracker_core::whitelist;
 use torrust_tracker_configuration::{Core, HttpTracker};
 
 use crate::services::announce::AnnounceService;
@@ -12,13 +8,7 @@ use crate::services::scrape::ScrapeService;
 use crate::{event, statistics};
 
 pub struct HttpTrackerCoreContainer {
-    // todo: replace with TrackerCoreContainer
-    pub core_config: Arc<Core>,
-    pub announce_handler: Arc<AnnounceHandler>,
-    pub scrape_handler: Arc<ScrapeHandler>,
-    pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-    pub authentication_service: Arc<AuthenticationService>,
-
+    pub tracker_core_container: Arc<TrackerCoreContainer>,
     pub http_tracker_config: Arc<HttpTracker>,
     pub http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub http_stats_repository: Arc<statistics::repository::Repository>,
@@ -59,12 +49,7 @@ impl HttpTrackerCoreContainer {
         ));
 
         Arc::new(Self {
-            core_config: tracker_core_container.core_config.clone(),
-            announce_handler: tracker_core_container.announce_handler.clone(),
-            scrape_handler: tracker_core_container.scrape_handler.clone(),
-            whitelist_authorization: tracker_core_container.whitelist_authorization.clone(),
-            authentication_service: tracker_core_container.authentication_service.clone(),
-
+            tracker_core_container: tracker_core_container.clone(),
             http_tracker_config: http_tracker_config.clone(),
             http_stats_event_sender: http_stats_event_sender.clone(),
             http_stats_repository: http_stats_repository.clone(),
