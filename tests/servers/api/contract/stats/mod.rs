@@ -52,9 +52,9 @@ async fn the_stats_api_endpoint_should_return_the_global_stats() {
     announce_to_tracker("http://127.0.0.1:7272").await;
     announce_to_tracker("http://127.0.0.1:7373").await;
 
-    let partial_metrics = get_partial_metrics("http://127.0.0.1:1414", "MyAccessToken").await;
+    let global_stats = get_tracker_statistics("http://127.0.0.1:1414", "MyAccessToken").await;
 
-    assert_eq!(partial_metrics.tcp4_announces_handled, 2);
+    assert_eq!(global_stats.tcp4_announces_handled, 2);
 }
 
 /// Make a sample announce request to the tracker.
@@ -71,20 +71,20 @@ async fn announce_to_tracker(tracker_url: &str) {
     assert!(response.is_ok());
 }
 
-/// Metrics only relevant to the test.
+/// Global statistics with only metrics relevant to the test.
 #[derive(Deserialize)]
-struct PartialMetrics {
+struct PartialGlobalStatistics {
     tcp4_announces_handled: u64,
 }
 
-async fn get_partial_metrics(aip_url: &str, token: &str) -> PartialMetrics {
+async fn get_tracker_statistics(aip_url: &str, token: &str) -> PartialGlobalStatistics {
     let response = TrackerApiClient::new(ConnectionInfo::authenticated(Origin::new(aip_url).unwrap(), token))
         .unwrap()
         .get_tracker_statistics(None)
         .await;
 
     response
-        .json::<PartialMetrics>()
+        .json::<PartialGlobalStatistics>()
         .await
         .expect("Failed to parse JSON response")
 }
