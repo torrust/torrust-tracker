@@ -3,7 +3,7 @@
 //! The [`health_check_api::start_job`](crate::bootstrap::jobs::health_check_api::start_job)
 //! function starts the Health Check REST API.
 //!
-//! The [`health_check_api::start_job`](crate::bootstrap::jobs::health_check_api::start_job)  
+//! The [`health_check_api::start_job`](crate::bootstrap::jobs::health_check_api::start_job)
 //! function spawns a new asynchronous task, that tasks is the "**launcher**".
 //! The "**launcher**" starts the actual server and sends a message back
 //! to the main application.

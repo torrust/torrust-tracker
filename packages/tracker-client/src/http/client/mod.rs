@@ -23,8 +23,9 @@ pub enum Error {
 }
 
 /// HTTP Tracker Client
+#[allow(clippy::struct_field_names)]
 pub struct Client {
-    client: reqwest::Client,
+    http_client: reqwest::Client,
     base_url: Url,
     key: Option<Key>,
 }
@@ -49,7 +50,7 @@ impl Client {
 
         Ok(Self {
             base_url,
-            client,
+            http_client: client,
             key: None,
         })
     }
@@ -68,7 +69,7 @@ impl Client {
 
         Ok(Self {
             base_url,
-            client,
+            http_client: client,
             key: None,
         })
     }
@@ -84,7 +85,7 @@ impl Client {
 
         Ok(Self {
             base_url,
-            client,
+            http_client: client,
             key: Some(key),
         })
     }
@@ -159,7 +160,7 @@ impl Client {
     ///
     /// This method fails if there was an error while sending request.
     pub async fn get(&self, path: &str) -> Result<Response, Error> {
-        self.client
+        self.http_client
             .get(self.build_url(path))
             .send()
             .await
@@ -170,7 +171,7 @@ impl Client {
     ///
     /// This method fails if there was an error while sending request.
     pub async fn get_with_header(&self, path: &str, key: &str, value: &str) -> Result<Response, Error> {
-        self.client
+        self.http_client
             .get(self.build_url(path))
             .header(key, value)
             .send()

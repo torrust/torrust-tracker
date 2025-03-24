@@ -7,7 +7,7 @@
 //! > versions. API consumers can choose which version to use. The API version is
 //! > part of the URL, for example: `http://localhost:1212/api/v1/stats`.
 //!
-//! The [`tracker_apis::start_job`](crate::bootstrap::jobs::tracker_apis::start_job)  
+//! The [`tracker_apis::start_job`](crate::bootstrap::jobs::tracker_apis::start_job)
 //! function spawns a new asynchronous task, that tasks is the "**launcher**".
 //! The "**launcher**" starts the actual server and sends a message back
 //! to the main application. The main application waits until receives

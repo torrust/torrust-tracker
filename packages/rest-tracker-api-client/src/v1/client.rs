@@ -16,10 +16,11 @@ const API_PATH: &str = "api/v1/";
 const DEFAULT_REQUEST_TIMEOUT_IN_SECS: u64 = 5;
 
 /// API Client
+#[allow(clippy::struct_field_names)]
 pub struct Client {
     connection_info: ConnectionInfo,
     base_path: String,
-    client: reqwest::Client,
+    http_client: reqwest::Client,
 }
 
 impl Client {
@@ -34,7 +35,7 @@ impl Client {
         Ok(Self {
             connection_info,
             base_path: API_PATH.to_string(),
-            client,
+            http_client: client,
         })
     }
 
@@ -92,7 +93,7 @@ impl Client {
     ///
     /// Will panic if the request can't be sent
     pub async fn post_empty(&self, path: &str, headers: Option<HeaderMap>) -> Response {
-        let builder = self.client.post(self.base_url(path).clone());
+        let builder = self.http_client.post(self.base_url(path).clone());
 
         let builder = match headers {
             Some(headers) => builder.headers(headers),
@@ -111,7 +112,7 @@ impl Client {
     ///
     /// Will panic if the request can't be sent
     pub async fn post_form<T: Serialize + ?Sized>(&self, path: &str, form: &T, headers: Option<HeaderMap>) -> Response {
-        let builder = self.client.post(self.base_url(path).clone()).json(&form);
+        let builder = self.http_client.post(self.base_url(path).clone()).json(&form);
 
         let builder = match headers {
             Some(headers) => builder.headers(headers),
@@ -130,7 +131,7 @@ impl Client {
     ///
     /// Will panic if the request can't be sent
     async fn delete(&self, path: &str, headers: Option<HeaderMap>) -> Response {
-        let builder = self.client.delete(self.base_url(path).clone());
+        let builder = self.http_client.delete(self.base_url(path).clone());
 
         let builder = match headers {
             Some(headers) => builder.headers(headers),
