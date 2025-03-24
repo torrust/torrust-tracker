@@ -138,6 +138,8 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
         ));
     }
 
+    println!("Registar entries: {:?}", registar.entries());
+
     // Start Health Check API
     jobs.push(health_check_api::start_job(&config.health_check_api, registar.entries()).await);
 

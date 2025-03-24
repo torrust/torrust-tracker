@@ -4521,6 +4521,8 @@ dependencies = [
  "anyhow",
  "axum-server",
  "bittorrent-http-tracker-core",
+ "bittorrent-primitives",
+ "bittorrent-tracker-client",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-core",
  "chrono",
