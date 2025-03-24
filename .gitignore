@@ -14,6 +14,7 @@
 /tracker.toml
 callgrind.out
 codecov.json
+integration_tests_sqlite3.db
 lcov.info
 perf.data*
 rustc-ice-*.txt

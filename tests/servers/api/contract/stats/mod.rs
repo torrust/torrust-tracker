@@ -30,6 +30,10 @@ async fn the_stats_api_endpoint_should_return_the_global_stats() {
         listed = false
         private = false
 
+        [core.database]
+        driver = "sqlite3"
+        path = "./integration_tests_sqlite3.db"
+
         [[http_trackers]]
         bind_address = "0.0.0.0:7272"
         tracker_usage_statistics = true
