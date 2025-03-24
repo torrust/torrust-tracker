@@ -157,12 +157,11 @@
 //! kcachegrind callgrind.out
 //! ```
 use std::env;
-use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::time::sleep;
 
-use crate::{app, bootstrap};
+use crate::app;
 
 pub async fn run() {
     // Parse command line arguments
@@ -180,11 +179,7 @@ pub async fn run() {
         return;
     };
 
-    let (config, app_container) = bootstrap::app::setup();
-
-    let app_container = Arc::new(app_container);
-
-    let (jobs, _registar) = app::start(&config, &app_container).await;
+    let (_app_container, jobs, _registar) = app::run().await;
 
     // Run the tracker for a fixed duration
     let run_duration = sleep(Duration::from_secs(duration_secs));
