@@ -1,12 +1,13 @@
 //! Scaffolding for integration tests.
 //!
+//! Integration tests are used to test the interaction between multiple modules,
+//! multiple running trackers, etc. Tests for one specific module should be in
+//! the corresponding package.
+//!
 //! ```text
 //! cargo test --test integration
 //! ```
 mod servers;
-
-// todo: there is only one test example that was copied from other package.
-// We have to add tests for the whole app.
 
 use torrust_tracker_clock::clock;
 

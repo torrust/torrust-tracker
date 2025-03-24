@@ -1,14 +1,8 @@
-use std::sync::Arc;
-
-use torrust_tracker_lib::{app, bootstrap};
+use torrust_tracker_lib::app;
 
 #[tokio::main]
 async fn main() {
-    let (config, app_container) = bootstrap::app::setup();
-
-    let app_container = Arc::new(app_container);
-
-    let jobs = app::start(&config, &app_container).await;
+    let (_app_container, jobs, _registar) = app::run().await;
 
     // handle the signals
     tokio::select! {
