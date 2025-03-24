@@ -28,8 +28,19 @@ use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::Configuration;
 use tracing::instrument;
 
+use crate::bootstrap;
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
 use crate::container::AppContainer;
+
+pub async fn run() -> (Arc<AppContainer>, Vec<JoinHandle<()>>, Registar) {
+    let (config, app_container) = bootstrap::app::setup();
+
+    let app_container = Arc::new(app_container);
+
+    let (jobs, registar) = start(&config, &app_container).await;
+
+    (app_container, jobs, registar)
+}
 
 /// # Panics
 ///
@@ -38,7 +49,7 @@ use crate::container::AppContainer;
 /// - Can't retrieve tracker keys from database.
 /// - Can't load whitelist from database.
 #[instrument(skip(config, app_container))]
-pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) -> Vec<JoinHandle<()>> {
+pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) -> (Vec<JoinHandle<()>>, Registar) {
     if config.http_api.is_none()
         && (config.udp_trackers.is_none() || config.udp_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
         && (config.http_trackers.is_none() || config.http_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
@@ -143,5 +154,5 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
     // Start Health Check API
     jobs.push(health_check_api::start_job(&config.health_check_api, registar.entries()).await);
 
-    jobs
+    (jobs, registar)
 }

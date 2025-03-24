@@ -184,7 +184,7 @@ pub async fn run() {
 
     let app_container = Arc::new(app_container);
 
-    let jobs = app::start(&config, &app_container).await;
+    let (jobs, _registar) = app::start(&config, &app_container).await;
 
     // Run the tracker for a fixed duration
     let run_duration = sleep(Duration::from_secs(duration_secs));

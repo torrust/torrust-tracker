@@ -1,6 +1,5 @@
 use std::env;
 use std::str::FromStr as _;
-use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_client::http::client::requests::announce::QueryBuilder;
@@ -10,7 +9,7 @@ use serde::Deserialize;
 use tokio::time::Duration;
 use torrust_rest_tracker_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_rest_tracker_api_client::v1::client::Client as TrackerApiClient;
-use torrust_tracker_lib::{app, bootstrap};
+use torrust_tracker_lib::app;
 
 #[tokio::test]
 async fn the_stats_api_endpoint_should_return_the_global_stats() {
@@ -48,11 +47,7 @@ async fn the_stats_api_endpoint_should_return_the_global_stats() {
 
     env::set_var("TORRUST_TRACKER_CONFIG_TOML", config_with_two_http_trackers);
 
-    let (config, app_container) = bootstrap::app::setup();
-
-    let app_container = Arc::new(app_container);
-
-    let _jobs = app::start(&config, &app_container).await;
+    let (_app_container, _jobs, _registar) = app::run().await;
 
     announce_to_tracker("http://127.0.0.1:7272").await;
     announce_to_tracker("http://127.0.0.1:7373").await;
