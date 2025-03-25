@@ -21,42 +21,44 @@ pub enum Error {
 }
 
 pub struct AppContainer {
+    // Configuration
     pub http_api_config: Arc<Option<HttpApi>>,
 
+    // Core
     pub tracker_core_container: Arc<TrackerCoreContainer>,
+
+    // HTTP
     pub http_tracker_core_services: Arc<HttpTrackerCoreServices>,
+    pub http_tracker_instance_containers: Arc<HashMap<SocketAddr, Arc<HttpTrackerCoreContainer>>>,
+
+    // UDP
     pub udp_tracker_core_services: Arc<UdpTrackerCoreServices>,
-
-    // UDP Tracker Server Container
     pub udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-
-    // Tracker Instance Containers
-    pub http_tracker_containers: Arc<HashMap<SocketAddr, Arc<HttpTrackerCoreContainer>>>,
-    pub udp_tracker_containers: Arc<HashMap<SocketAddr, Arc<UdpTrackerCoreContainer>>>,
+    pub udp_tracker_instance_containers: Arc<HashMap<SocketAddr, Arc<UdpTrackerCoreContainer>>>,
 }
 
 impl AppContainer {
     #[instrument(skip())]
     pub fn initialize(configuration: &Configuration) -> AppContainer {
+        // Configuration
+
         let core_config = Arc::new(configuration.core.clone());
 
         let http_api_config = Arc::new(configuration.http_api.clone());
 
+        // Core
+
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
+
+        // HTTP
 
         let http_tracker_core_services = HttpTrackerCoreServices::initialize_from(&tracker_core_container);
 
-        let udp_tracker_core_services = UdpTrackerCoreServices::initialize_from(&tracker_core_container);
-
-        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
-
-        // Tracker Instance Containers
-
-        let mut http_tracker_containers = HashMap::new();
+        let mut http_tracker_instance_containers = HashMap::new();
 
         if let Some(http_trackers) = &configuration.http_trackers {
             for http_tracker_config in http_trackers {
-                http_tracker_containers.insert(
+                http_tracker_instance_containers.insert(
                     http_tracker_config.bind_address,
                     HttpTrackerCoreContainer::initialize_from_services(
                         &tracker_core_container,
@@ -67,13 +69,19 @@ impl AppContainer {
             }
         }
 
-        let http_tracker_containers = Arc::new(http_tracker_containers);
+        let http_tracker_instance_containers = Arc::new(http_tracker_instance_containers);
 
-        let mut udp_tracker_containers = HashMap::new();
+        // UDP
+
+        let udp_tracker_core_services = UdpTrackerCoreServices::initialize_from(&tracker_core_container);
+
+        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
+
+        let mut udp_tracker_instance_containers = HashMap::new();
 
         if let Some(udp_trackers) = &configuration.udp_trackers {
             for udp_tracker_config in udp_trackers {
-                udp_tracker_containers.insert(
+                udp_tracker_instance_containers.insert(
                     udp_tracker_config.bind_address,
                     UdpTrackerCoreContainer::initialize_from_services(
                         &tracker_core_container,
@@ -84,21 +92,23 @@ impl AppContainer {
             }
         }
 
-        let udp_tracker_containers = Arc::new(udp_tracker_containers);
+        let udp_tracker_instance_containers = Arc::new(udp_tracker_instance_containers);
 
         AppContainer {
+            // Configuration
             http_api_config,
 
+            // Core
             tracker_core_container,
+
+            // HTTP
             http_tracker_core_services,
+            http_tracker_instance_containers,
+
+            // UDP
             udp_tracker_core_services,
-
-            // UDP Tracker Server Container
             udp_tracker_server_container,
-
-            // Tracker Instance Containers
-            http_tracker_containers,
-            udp_tracker_containers,
+            udp_tracker_instance_containers,
         }
     }
 
@@ -112,7 +122,7 @@ impl AppContainer {
     /// Return an error if there is no HTTP tracker server instance bound to the
     /// socket address.
     pub fn http_tracker_container(&self, bind_address: SocketAddr) -> Result<Arc<HttpTrackerCoreContainer>, Error> {
-        match self.http_tracker_containers.get(&bind_address) {
+        match self.http_tracker_instance_containers.get(&bind_address) {
             Some(http_tracker_container) => Ok(http_tracker_container.clone()),
             None => Err(Error::MissingHttpTrackerCoreContainer { bind_address }),
         }
@@ -123,7 +133,7 @@ impl AppContainer {
     /// Return an error if there is no UDP tracker server instance bound to the
     /// socket address.
     pub fn udp_tracker_container(&self, bind_address: SocketAddr) -> Result<Arc<UdpTrackerCoreContainer>, Error> {
-        match self.udp_tracker_containers.get(&bind_address) {
+        match self.udp_tracker_instance_containers.get(&bind_address) {
             Some(udp_tracker_container) => Ok(udp_tracker_container.clone()),
             None => Err(Error::MissingUdpTrackerCoreContainer { bind_address }),
         }
