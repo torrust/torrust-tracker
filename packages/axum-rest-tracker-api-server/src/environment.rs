@@ -174,8 +174,9 @@ impl EnvContainer {
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
         let http_tracker_core_container =
-            HttpTrackerCoreContainer::initialize_from(&tracker_core_container, &http_tracker_config);
-        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from(&tracker_core_container, &udp_tracker_config);
+            HttpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &http_tracker_config);
+        let udp_tracker_core_container =
+            UdpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &udp_tracker_config);
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         let tracker_http_api_core_container = TrackerHttpApiCoreContainer::initialize_from(

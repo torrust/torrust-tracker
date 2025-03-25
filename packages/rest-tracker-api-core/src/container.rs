@@ -10,12 +10,12 @@ use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 
 pub struct TrackerHttpApiCoreContainer {
+    pub http_api_config: Arc<HttpApi>,
     pub tracker_core_container: Arc<TrackerCoreContainer>,
     pub http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<BanService>>,
     pub udp_core_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
     pub udp_server_stats_repository: Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
-    pub http_api_config: Arc<HttpApi>,
 }
 
 impl TrackerHttpApiCoreContainer {
@@ -27,8 +27,10 @@ impl TrackerHttpApiCoreContainer {
         http_api_config: &Arc<HttpApi>,
     ) -> Arc<TrackerHttpApiCoreContainer> {
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(core_config));
-        let http_tracker_core_container = HttpTrackerCoreContainer::initialize_from(&tracker_core_container, http_tracker_config);
-        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from(&tracker_core_container, udp_tracker_config);
+        let http_tracker_core_container =
+            HttpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, http_tracker_config);
+        let udp_tracker_core_container =
+            UdpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, udp_tracker_config);
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(core_config);
 
         Self::initialize_from(

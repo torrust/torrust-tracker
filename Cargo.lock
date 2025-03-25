@@ -4535,6 +4535,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "thiserror 2.0.12",
  "tokio",
  "torrust-axum-health-check-api-server",
  "torrust-axum-http-tracker-server",
