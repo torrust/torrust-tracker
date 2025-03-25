@@ -59,6 +59,8 @@ pub async fn get_metrics(
             // TCPv6
             tcp6_announces_handled: stats.tcp6_announces_handled,
             tcp6_scrapes_handled: stats.tcp6_scrapes_handled,
+            // Samples
+            labeled_metrics: stats.labeled_metrics.clone(),
         },
     }
 }

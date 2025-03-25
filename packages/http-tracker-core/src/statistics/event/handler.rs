@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::net::IpAddr;
 
 use crate::event::Event;
@@ -9,22 +10,66 @@ use crate::statistics::repository::Repository;
 /// version of the event.
 pub async fn handle_event(event: Event, stats_repository: &Repository) {
     match event {
-        Event::TcpAnnounce { connection } => match connection.client_ip_addr() {
-            IpAddr::V4(_) => {
-                stats_repository.increase_tcp4_announces().await;
+        Event::TcpAnnounce { connection } => {
+            // Global fixed metrics
+
+            match connection.client_ip_addr() {
+                IpAddr::V4(_) => {
+                    stats_repository.increase_tcp4_announces().await;
+                }
+                IpAddr::V6(_) => {
+                    stats_repository.increase_tcp6_announces().await;
+                }
             }
-            IpAddr::V6(_) => {
-                stats_repository.increase_tcp6_announces().await;
+
+            // Extendable metrics
+
+            let ip_version = match connection.client_ip_addr() {
+                IpAddr::V4(_) => "ipv4".to_string(),
+                IpAddr::V6(_) => "ipv6".to_string(),
+            };
+
+            stats_repository
+                .increase_counter(
+                    "announce_requests_received_total",
+                    &BTreeMap::from([
+                        ("ip_version".to_string(), ip_version),
+                        ("protocol".to_string(), "http".to_string()),
+                        ("url".to_string(), format!("http://{}", connection.server_socket_addr())), // todo: use the actual scheme
+                    ]),
+                )
+                .await;
+        }
+        Event::TcpScrape { connection } => {
+            // Global fixed metrics
+
+            match connection.client_ip_addr() {
+                IpAddr::V4(_) => {
+                    stats_repository.increase_tcp4_scrapes().await;
+                }
+                IpAddr::V6(_) => {
+                    stats_repository.increase_tcp6_scrapes().await;
+                }
             }
-        },
-        Event::TcpScrape { connection } => match connection.client_ip_addr() {
-            IpAddr::V4(_) => {
-                stats_repository.increase_tcp4_scrapes().await;
-            }
-            IpAddr::V6(_) => {
-                stats_repository.increase_tcp6_scrapes().await;
-            }
-        },
+
+            // Extendable metrics
+
+            let ip_version = match connection.client_ip_addr() {
+                IpAddr::V4(_) => "ipv4".to_string(),
+                IpAddr::V6(_) => "ipv6".to_string(),
+            };
+
+            stats_repository
+                .increase_counter(
+                    "scrape_requests_received_total",
+                    &BTreeMap::from([
+                        ("ip_version".to_string(), ip_version),
+                        ("protocol".to_string(), "http".to_string()),
+                        ("url".to_string(), format!("http://{}", connection.server_socket_addr())), // todo: use the actual scheme
+                    ]),
+                )
+                .await;
+        }
     }
 
     tracing::debug!("stats: {:?}", stats_repository.get_stats().await);

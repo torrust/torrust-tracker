@@ -20,6 +20,7 @@ bittorrent-primitives = "0.1.0"
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 criterion = { version = "0.5.1", features = ["async_tokio"] }
 futures = "0"
+serde = "1.0.219"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
@@ -27,7 +28,9 @@ torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives"
 tracing = "0"
 
 [dev-dependencies]
+formatjson = "0.3.1"
 mockall = "0"
+serde_json = "1.0.140"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 
 [[bench]]

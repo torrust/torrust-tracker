@@ -1,14 +1,20 @@
 //! API responses for the [`stats`](crate::v1::context::stats)
 //! API context.
 use axum::response::{IntoResponse, Json, Response};
-use torrust_rest_tracker_api_core::statistics::services::TrackerMetrics;
+use torrust_rest_tracker_api_core::statistics::services::{TrackerLabeledMetrics, TrackerMetrics};
 
-use super::resources::Stats;
+use super::resources::{LabeledStats, Stats};
 
 /// `200` response that contains the [`Stats`] resource as json.
 #[must_use]
 pub fn stats_response(tracker_metrics: TrackerMetrics) -> Response {
     Json(Stats::from(tracker_metrics)).into_response()
+}
+
+/// `200` response that contains the [`LabeledStats`] resource as json.
+#[must_use]
+pub fn labeled_stats_response(tracker_metrics: TrackerLabeledMetrics) -> Response {
+    Json(LabeledStats::from(tracker_metrics)).into_response()
 }
 
 /// `200` response that contains the [`Stats`] resource in Prometheus Text Exposition Format .

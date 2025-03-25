@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use bittorrent_http_tracker_core::statistics::metrics::LabeledMetric;
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
@@ -74,6 +75,31 @@ pub async fn get_metrics(
             udp6_responses: udp_server_stats.udp6_responses,
             udp6_errors_handled: udp_server_stats.udp6_errors_handled,
         },
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct TrackerLabeledMetrics {
+    // Extendable metrics
+    pub labeled_metrics: Vec<LabeledMetric>,
+}
+
+/// It returns all the [`TrackerLabeledMetrics`]
+#[allow(deprecated)]
+pub async fn get_labeled_metrics(
+    in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
+    ban_service: Arc<RwLock<BanService>>,
+    http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
+    udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
+) -> TrackerLabeledMetrics {
+    let _torrents_metrics = in_memory_torrent_repository.get_torrents_metrics();
+    let _udp_banned_ips_total = ban_service.read().await.get_banned_ips_total();
+    let _udp_server_stats = udp_server_stats_repository.get_stats().await;
+
+    let http_stats = http_stats_repository.get_stats().await;
+
+    TrackerLabeledMetrics {
+        labeled_metrics: http_stats.labeled_metrics.clone(),
     }
 }
 
