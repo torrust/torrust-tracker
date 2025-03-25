@@ -115,7 +115,8 @@ impl EnvContainer {
         let http_tracker_config = Arc::new(http_tracker_config[0].clone());
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
-        let http_tracker_container = HttpTrackerCoreContainer::initialize_from(&tracker_core_container, &http_tracker_config);
+        let http_tracker_container =
+            HttpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &http_tracker_config);
 
         Self {
             tracker_core_container,

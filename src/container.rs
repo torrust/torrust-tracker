@@ -2,9 +2,7 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
-use bittorrent_http_tracker_core::services::announce::AnnounceService;
-use bittorrent_http_tracker_core::services::scrape::ScrapeService;
+use bittorrent_http_tracker_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use bittorrent_udp_tracker_core::services::banning::BanService;
@@ -27,6 +25,7 @@ pub enum Error {
 pub struct AppContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
     pub http_api_config: Arc<Option<HttpApi>>,
+    pub http_tracker_core_services: Arc<HttpTrackerCoreServices>,
 
     // UDP Tracker Core Services
     pub udp_core_stats_event_sender: Arc<Option<Box<dyn bittorrent_udp_tracker_core::event::sender::Sender>>>,
@@ -35,12 +34,6 @@ pub struct AppContainer {
     pub udp_connect_service: Arc<bittorrent_udp_tracker_core::services::connect::ConnectService>,
     pub udp_announce_service: Arc<bittorrent_udp_tracker_core::services::announce::AnnounceService>,
     pub udp_scrape_service: Arc<bittorrent_udp_tracker_core::services::scrape::ScrapeService>,
-
-    // HTTP Tracker Core Services
-    pub http_stats_event_sender: Arc<Option<Box<dyn bittorrent_http_tracker_core::event::sender::Sender>>>,
-    pub http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
-    pub http_announce_service: Arc<bittorrent_http_tracker_core::services::announce::AnnounceService>,
-    pub http_scrape_service: Arc<bittorrent_http_tracker_core::services::scrape::ScrapeService>,
 
     // UDP Tracker Server Services
     pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::event::sender::Sender>>>,
@@ -63,24 +56,7 @@ impl AppContainer {
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
 
-        // HTTP Tracker Core Services
-        let (http_stats_event_sender, http_stats_repository) =
-            bittorrent_http_tracker_core::statistics::setup::factory(configuration.core.tracker_usage_statistics);
-        let http_stats_event_sender = Arc::new(http_stats_event_sender);
-        let http_stats_repository = Arc::new(http_stats_repository);
-        let http_announce_service = Arc::new(AnnounceService::new(
-            tracker_core_container.core_config.clone(),
-            tracker_core_container.announce_handler.clone(),
-            tracker_core_container.authentication_service.clone(),
-            tracker_core_container.whitelist_authorization.clone(),
-            http_stats_event_sender.clone(),
-        ));
-        let http_scrape_service = Arc::new(ScrapeService::new(
-            tracker_core_container.core_config.clone(),
-            tracker_core_container.scrape_handler.clone(),
-            tracker_core_container.authentication_service.clone(),
-            http_stats_event_sender.clone(),
-        ));
+        let http_tracker_core_services = HttpTrackerCoreServices::initialize_from(&tracker_core_container);
 
         // UDP Tracker Core Services
         let (udp_core_stats_event_sender, udp_core_stats_repository) =
@@ -121,14 +97,11 @@ impl AppContainer {
             for http_tracker_config in http_trackers {
                 http_tracker_containers.insert(
                     http_tracker_config.bind_address,
-                    Arc::new(HttpTrackerCoreContainer {
-                        tracker_core_container: tracker_core_container.clone(),
-                        http_tracker_config: Arc::new(http_tracker_config.clone()),
-                        http_stats_event_sender: http_stats_event_sender.clone(),
-                        http_stats_repository: http_stats_repository.clone(),
-                        announce_service: http_announce_service.clone(),
-                        scrape_service: http_scrape_service.clone(),
-                    }),
+                    HttpTrackerCoreContainer::initialize_from_services(
+                        &tracker_core_container,
+                        &http_tracker_core_services,
+                        &Arc::new(http_tracker_config.clone()),
+                    ),
                 );
             }
         }
@@ -160,6 +133,7 @@ impl AppContainer {
         AppContainer {
             tracker_core_container,
             http_api_config,
+            http_tracker_core_services,
 
             // UDP Tracker Core Services
             udp_core_stats_event_sender,
@@ -168,12 +142,6 @@ impl AppContainer {
             udp_connect_service,
             udp_announce_service,
             udp_scrape_service,
-
-            // HTTP Tracker Core Services
-            http_stats_event_sender,
-            http_stats_repository,
-            http_announce_service,
-            http_scrape_service,
 
             // UDP Tracker Server Services
             udp_server_stats_event_sender,
@@ -221,7 +189,7 @@ impl AppContainer {
             tracker_core_container: self.tracker_core_container.clone(),
             http_api_config: http_api_config.clone(),
             ban_service: self.udp_ban_service.clone(),
-            http_stats_repository: self.http_stats_repository.clone(),
+            http_stats_repository: self.http_tracker_core_services.http_stats_repository.clone(),
             udp_core_stats_repository: self.udp_core_stats_repository.clone(),
             udp_server_stats_repository: self.udp_server_stats_repository.clone(),
         }
