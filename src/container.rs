@@ -21,14 +21,11 @@ pub enum Error {
 }
 
 pub struct AppContainer {
-    pub tracker_core_container: Arc<TrackerCoreContainer>,
     pub http_api_config: Arc<Option<HttpApi>>,
+
+    pub tracker_core_container: Arc<TrackerCoreContainer>,
     pub http_tracker_core_services: Arc<HttpTrackerCoreServices>,
     pub udp_tracker_core_services: Arc<UdpTrackerCoreServices>,
-
-    // UDP Tracker Server Services
-    pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::event::sender::Sender>>>,
-    pub udp_server_stats_repository: Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
 
     // UDP Tracker Server Container
     pub udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
@@ -51,17 +48,7 @@ impl AppContainer {
 
         let udp_tracker_core_services = UdpTrackerCoreServices::initialize_from(&tracker_core_container);
 
-        // UDP Tracker Server Services
-        let (udp_server_stats_event_sender, udp_server_stats_repository) =
-            torrust_udp_tracker_server::statistics::setup::factory(configuration.core.tracker_usage_statistics);
-        let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
-        let udp_server_stats_repository = Arc::new(udp_server_stats_repository);
-
-        // UDP Tracker Server Container
-        let udp_tracker_server_container = Arc::new(UdpTrackerServerContainer {
-            udp_server_stats_event_sender: udp_server_stats_event_sender.clone(),
-            udp_server_stats_repository: udp_server_stats_repository.clone(),
-        });
+        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         // Tracker Instance Containers
 
@@ -100,14 +87,11 @@ impl AppContainer {
         let udp_tracker_containers = Arc::new(udp_tracker_containers);
 
         AppContainer {
-            tracker_core_container,
             http_api_config,
+
+            tracker_core_container,
             http_tracker_core_services,
             udp_tracker_core_services,
-
-            // UDP Tracker Server Services
-            udp_server_stats_event_sender,
-            udp_server_stats_repository,
 
             // UDP Tracker Server Container
             udp_tracker_server_container,
@@ -153,7 +137,7 @@ impl AppContainer {
             ban_service: self.udp_tracker_core_services.udp_ban_service.clone(),
             http_stats_repository: self.http_tracker_core_services.http_stats_repository.clone(),
             udp_core_stats_repository: self.udp_tracker_core_services.udp_core_stats_repository.clone(),
-            udp_server_stats_repository: self.udp_server_stats_repository.clone(),
+            udp_server_stats_repository: self.udp_tracker_server_container.udp_server_stats_repository.clone(),
         }
         .into()
     }
