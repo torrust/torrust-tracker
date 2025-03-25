@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
@@ -9,12 +11,22 @@ use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self, MAX_CONNECTION_ID_ERRORS_PER_IP};
 use tokio::sync::RwLock;
 use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
-use torrust_tracker_configuration::{Configuration, HttpApi, HttpTracker, UdpTracker};
+use torrust_tracker_configuration::{Configuration, HttpApi};
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 use tracing::instrument;
 
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum Error {
+    #[error("There is not a HTTP tracker server instance bound to the socket address: {bind_address}")]
+    MissingHttpTrackerCoreContainer { bind_address: SocketAddr },
+
+    #[error("There is not a UDP tracker server instance bound to the socket address: {bind_address}")]
+    MissingUdpTrackerCoreContainer { bind_address: SocketAddr },
+}
+
 pub struct AppContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
+    pub http_api_config: Arc<Option<HttpApi>>,
 
     // UDP Tracker Core Services
     pub udp_core_stats_event_sender: Arc<Option<Box<dyn bittorrent_udp_tracker_core::event::sender::Sender>>>,
@@ -33,12 +45,21 @@ pub struct AppContainer {
     // UDP Tracker Server Services
     pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::event::sender::Sender>>>,
     pub udp_server_stats_repository: Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
+
+    // UDP Tracker Server Container
+    pub udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
+
+    // Tracker Instance Containers
+    pub http_tracker_containers: Arc<HashMap<SocketAddr, Arc<HttpTrackerCoreContainer>>>,
+    pub udp_tracker_containers: Arc<HashMap<SocketAddr, Arc<UdpTrackerCoreContainer>>>,
 }
 
 impl AppContainer {
     #[instrument(skip())]
     pub fn initialize(configuration: &Configuration) -> AppContainer {
         let core_config = Arc::new(configuration.core.clone());
+
+        let http_api_config = Arc::new(configuration.http_api.clone());
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
 
@@ -86,8 +107,59 @@ impl AppContainer {
         let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
         let udp_server_stats_repository = Arc::new(udp_server_stats_repository);
 
+        // UDP Tracker Server Container
+        let udp_tracker_server_container = Arc::new(UdpTrackerServerContainer {
+            udp_server_stats_event_sender: udp_server_stats_event_sender.clone(),
+            udp_server_stats_repository: udp_server_stats_repository.clone(),
+        });
+
+        // Tracker Instance Containers
+
+        let mut http_tracker_containers = HashMap::new();
+
+        if let Some(http_trackers) = &configuration.http_trackers {
+            for http_tracker_config in http_trackers {
+                http_tracker_containers.insert(
+                    http_tracker_config.bind_address,
+                    Arc::new(HttpTrackerCoreContainer {
+                        tracker_core_container: tracker_core_container.clone(),
+                        http_tracker_config: Arc::new(http_tracker_config.clone()),
+                        http_stats_event_sender: http_stats_event_sender.clone(),
+                        http_stats_repository: http_stats_repository.clone(),
+                        announce_service: http_announce_service.clone(),
+                        scrape_service: http_scrape_service.clone(),
+                    }),
+                );
+            }
+        }
+
+        let http_tracker_containers = Arc::new(http_tracker_containers);
+
+        let mut udp_tracker_containers = HashMap::new();
+
+        if let Some(udp_trackers) = &configuration.udp_trackers {
+            for udp_tracker_config in udp_trackers {
+                udp_tracker_containers.insert(
+                    udp_tracker_config.bind_address,
+                    Arc::new(UdpTrackerCoreContainer {
+                        tracker_core_container: tracker_core_container.clone(),
+                        udp_tracker_config: Arc::new(udp_tracker_config.clone()),
+                        udp_core_stats_event_sender: udp_core_stats_event_sender.clone(),
+                        udp_core_stats_repository: udp_core_stats_repository.clone(),
+                        ban_service: udp_ban_service.clone(),
+                        connect_service: udp_connect_service.clone(),
+                        announce_service: udp_announce_service.clone(),
+                        scrape_service: udp_scrape_service.clone(),
+                    }),
+                );
+            }
+        }
+
+        let udp_tracker_containers = Arc::new(udp_tracker_containers);
+
         AppContainer {
             tracker_core_container,
+            http_api_config,
 
             // UDP Tracker Core Services
             udp_core_stats_event_sender,
@@ -106,37 +178,45 @@ impl AppContainer {
             // UDP Tracker Server Services
             udp_server_stats_event_sender,
             udp_server_stats_repository,
+
+            // UDP Tracker Server Container
+            udp_tracker_server_container,
+
+            // Tracker Instance Containers
+            http_tracker_containers,
+            udp_tracker_containers,
         }
     }
 
     #[must_use]
-    pub fn http_tracker_container(&self, http_tracker_config: &Arc<HttpTracker>) -> HttpTrackerCoreContainer {
-        HttpTrackerCoreContainer {
-            tracker_core_container: self.tracker_core_container.clone(),
-            http_tracker_config: http_tracker_config.clone(),
-            http_stats_event_sender: self.http_stats_event_sender.clone(),
-            http_stats_repository: self.http_stats_repository.clone(),
-            announce_service: self.http_announce_service.clone(),
-            scrape_service: self.http_scrape_service.clone(),
+    pub fn udp_tracker_server_container(&self) -> Arc<UdpTrackerServerContainer> {
+        self.udp_tracker_server_container.clone()
+    }
+
+    /// # Errors
+    ///
+    /// Return an error if there is no HTTP tracker server instance bound to the
+    /// socket address.
+    pub fn http_tracker_container(&self, bind_address: SocketAddr) -> Result<Arc<HttpTrackerCoreContainer>, Error> {
+        match self.http_tracker_containers.get(&bind_address) {
+            Some(http_tracker_container) => Ok(http_tracker_container.clone()),
+            None => Err(Error::MissingHttpTrackerCoreContainer { bind_address }),
+        }
+    }
+
+    /// # Errors
+    ///
+    /// Return an error if there is no UDP tracker server instance bound to the
+    /// socket address.
+    pub fn udp_tracker_container(&self, bind_address: SocketAddr) -> Result<Arc<UdpTrackerCoreContainer>, Error> {
+        match self.udp_tracker_containers.get(&bind_address) {
+            Some(udp_tracker_container) => Ok(udp_tracker_container.clone()),
+            None => Err(Error::MissingUdpTrackerCoreContainer { bind_address }),
         }
     }
 
     #[must_use]
-    pub fn udp_tracker_container(&self, udp_tracker_config: &Arc<UdpTracker>) -> UdpTrackerCoreContainer {
-        UdpTrackerCoreContainer {
-            tracker_core_container: self.tracker_core_container.clone(),
-            udp_tracker_config: udp_tracker_config.clone(),
-            udp_core_stats_event_sender: self.udp_core_stats_event_sender.clone(),
-            udp_core_stats_repository: self.udp_core_stats_repository.clone(),
-            ban_service: self.udp_ban_service.clone(),
-            connect_service: self.udp_connect_service.clone(),
-            announce_service: self.udp_announce_service.clone(),
-            scrape_service: self.udp_scrape_service.clone(),
-        }
-    }
-
-    #[must_use]
-    pub fn tracker_http_api_container(&self, http_api_config: &Arc<HttpApi>) -> TrackerHttpApiCoreContainer {
+    pub fn tracker_http_api_container(&self, http_api_config: &Arc<HttpApi>) -> Arc<TrackerHttpApiCoreContainer> {
         TrackerHttpApiCoreContainer {
             tracker_core_container: self.tracker_core_container.clone(),
             http_api_config: http_api_config.clone(),
@@ -145,13 +225,6 @@ impl AppContainer {
             udp_core_stats_repository: self.udp_core_stats_repository.clone(),
             udp_server_stats_repository: self.udp_server_stats_repository.clone(),
         }
-    }
-
-    #[must_use]
-    pub fn udp_tracker_server_container(&self) -> UdpTrackerServerContainer {
-        UdpTrackerServerContainer {
-            udp_server_stats_event_sender: self.udp_server_stats_event_sender.clone(),
-            udp_server_stats_repository: self.udp_server_stats_repository.clone(),
-        }
+        .into()
     }
 }

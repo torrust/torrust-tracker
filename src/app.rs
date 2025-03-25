@@ -90,9 +90,10 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
                     udp_tracker_config.bind_address
                 );
             } else {
-                let udp_tracker_config = Arc::new(udp_tracker_config.clone());
-                let udp_tracker_container = Arc::new(app_container.udp_tracker_container(&udp_tracker_config));
-                let udp_tracker_server_container = Arc::new(app_container.udp_tracker_server_container());
+                let udp_tracker_container = app_container
+                    .udp_tracker_container(udp_tracker_config.bind_address)
+                    .expect("Could not create UDP tracker container");
+                let udp_tracker_server_container = app_container.udp_tracker_server_container();
 
                 jobs.push(
                     udp_tracker::start_job(udp_tracker_container, udp_tracker_server_container, registar.give_form()).await,
@@ -106,8 +107,9 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
     // Start the HTTP blocks
     if let Some(http_trackers) = &config.http_trackers {
         for http_tracker_config in http_trackers {
-            let http_tracker_config = Arc::new(http_tracker_config.clone());
-            let http_tracker_container = Arc::new(app_container.http_tracker_container(&http_tracker_config));
+            let http_tracker_container = app_container
+                .http_tracker_container(http_tracker_config.bind_address)
+                .expect("Could not create HTTP tracker container");
 
             if let Some(job) = http_tracker::start_job(
                 http_tracker_container,
@@ -126,7 +128,7 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
     // Start HTTP API
     if let Some(http_api_config) = &config.http_api {
         let http_api_config = Arc::new(http_api_config.clone());
-        let http_api_container = Arc::new(app_container.tracker_http_api_container(&http_api_config));
+        let http_api_container = app_container.tracker_http_api_container(&http_api_config);
 
         if let Some(job) = tracker_apis::start_job(
             http_api_container,
@@ -148,8 +150,6 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
             &app_container.tracker_core_container.torrents_manager,
         ));
     }
-
-    println!("Registar entries: {:?}", registar.entries());
 
     // Start Health Check API
     jobs.push(health_check_api::start_job(&config.health_check_api, registar.entries()).await);
