@@ -54,22 +54,11 @@ impl AppContainer {
 
         let http_tracker_core_services = HttpTrackerCoreServices::initialize_from(&tracker_core_container);
 
-        let mut http_tracker_instance_containers = HashMap::new();
-
-        if let Some(http_trackers) = &configuration.http_trackers {
-            for http_tracker_config in http_trackers {
-                http_tracker_instance_containers.insert(
-                    http_tracker_config.bind_address,
-                    HttpTrackerCoreContainer::initialize_from_services(
-                        &tracker_core_container,
-                        &http_tracker_core_services,
-                        &Arc::new(http_tracker_config.clone()),
-                    ),
-                );
-            }
-        }
-
-        let http_tracker_instance_containers = Arc::new(http_tracker_instance_containers);
+        let http_tracker_instance_containers = Self::initialize_http_tracker_instance_containers(
+            configuration,
+            &tracker_core_container,
+            &http_tracker_core_services,
+        );
 
         // UDP
 
@@ -77,22 +66,8 @@ impl AppContainer {
 
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
-        let mut udp_tracker_instance_containers = HashMap::new();
-
-        if let Some(udp_trackers) = &configuration.udp_trackers {
-            for udp_tracker_config in udp_trackers {
-                udp_tracker_instance_containers.insert(
-                    udp_tracker_config.bind_address,
-                    UdpTrackerCoreContainer::initialize_from_services(
-                        &tracker_core_container,
-                        &udp_tracker_core_services,
-                        &Arc::new(udp_tracker_config.clone()),
-                    ),
-                );
-            }
-        }
-
-        let udp_tracker_instance_containers = Arc::new(udp_tracker_instance_containers);
+        let udp_tracker_instance_containers =
+            Self::initialize_udp_tracker_instance_containers(configuration, &tracker_core_container, &udp_tracker_core_services);
 
         AppContainer {
             // Configuration
@@ -150,5 +125,53 @@ impl AppContainer {
             udp_server_stats_repository: self.udp_tracker_server_container.udp_server_stats_repository.clone(),
         }
         .into()
+    }
+
+    #[must_use]
+    fn initialize_http_tracker_instance_containers(
+        configuration: &Configuration,
+        tracker_core_container: &Arc<TrackerCoreContainer>,
+        http_tracker_core_services: &Arc<HttpTrackerCoreServices>,
+    ) -> Arc<HashMap<SocketAddr, Arc<HttpTrackerCoreContainer>>> {
+        let mut http_tracker_instance_containers = HashMap::new();
+
+        if let Some(http_trackers) = &configuration.http_trackers {
+            for http_tracker_config in http_trackers {
+                http_tracker_instance_containers.insert(
+                    http_tracker_config.bind_address,
+                    HttpTrackerCoreContainer::initialize_from_services(
+                        tracker_core_container,
+                        http_tracker_core_services,
+                        &Arc::new(http_tracker_config.clone()),
+                    ),
+                );
+            }
+        }
+
+        Arc::new(http_tracker_instance_containers)
+    }
+
+    #[must_use]
+    fn initialize_udp_tracker_instance_containers(
+        configuration: &Configuration,
+        tracker_core_container: &Arc<TrackerCoreContainer>,
+        udp_tracker_core_services: &Arc<UdpTrackerCoreServices>,
+    ) -> Arc<HashMap<SocketAddr, Arc<UdpTrackerCoreContainer>>> {
+        let mut udp_tracker_instance_containers = HashMap::new();
+
+        if let Some(udp_trackers) = &configuration.udp_trackers {
+            for udp_tracker_config in udp_trackers {
+                udp_tracker_instance_containers.insert(
+                    udp_tracker_config.bind_address,
+                    UdpTrackerCoreContainer::initialize_from_services(
+                        tracker_core_container,
+                        udp_tracker_core_services,
+                        &Arc::new(udp_tracker_config.clone()),
+                    ),
+                );
+            }
+        }
+
+        Arc::new(udp_tracker_instance_containers)
     }
 }
