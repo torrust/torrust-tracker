@@ -45,6 +45,8 @@ use tracing::{instrument, Level};
 use super::routes::router;
 use crate::API_LOG_TARGET;
 
+const TYPE_STRING: &str = "tracker_rest_api";
+
 /// Errors that can occur when starting or stopping the API server.
 #[derive(Debug, Error)]
 pub enum Error {
@@ -204,7 +206,7 @@ pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
             Err(err) => Err(err.to_string()),
         }
     });
-    ServiceHealthCheckJob::new(*binding, info, job)
+    ServiceHealthCheckJob::new(*binding, info, TYPE_STRING.to_string(), job)
 }
 
 /// A struct responsible for starting the API server.

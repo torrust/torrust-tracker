@@ -24,6 +24,7 @@ use crate::server::receiver::Receiver;
 
 const IP_BANS_RESET_INTERVAL_IN_SECS: u64 = 3600;
 
+const TYPE_STRING: &str = "udp_tracker";
 /// A UDP server instance launcher.
 #[derive(Constructor)]
 pub struct Launcher;
@@ -117,7 +118,7 @@ impl Launcher {
 
         let job = tokio::spawn(async move { check(&binding).await });
 
-        ServiceHealthCheckJob::new(binding, info, job)
+        ServiceHealthCheckJob::new(binding, info, TYPE_STRING.to_string(), job)
     }
 
     #[instrument(skip(receiver, udp_tracker_core_container, udp_tracker_server_container))]
