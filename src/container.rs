@@ -4,10 +4,8 @@ use std::sync::Arc;
 
 use bittorrent_http_tracker_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
 use bittorrent_tracker_core::container::TrackerCoreContainer;
-use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
-use bittorrent_udp_tracker_core::services::banning::BanService;
-use bittorrent_udp_tracker_core::{self, MAX_CONNECTION_ID_ERRORS_PER_IP};
-use tokio::sync::RwLock;
+use bittorrent_udp_tracker_core::container::{UdpTrackerCoreContainer, UdpTrackerCoreServices};
+use bittorrent_udp_tracker_core::{self};
 use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_configuration::{Configuration, HttpApi};
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
@@ -26,14 +24,7 @@ pub struct AppContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
     pub http_api_config: Arc<Option<HttpApi>>,
     pub http_tracker_core_services: Arc<HttpTrackerCoreServices>,
-
-    // UDP Tracker Core Services
-    pub udp_core_stats_event_sender: Arc<Option<Box<dyn bittorrent_udp_tracker_core::event::sender::Sender>>>,
-    pub udp_core_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
-    pub udp_ban_service: Arc<RwLock<BanService>>,
-    pub udp_connect_service: Arc<bittorrent_udp_tracker_core::services::connect::ConnectService>,
-    pub udp_announce_service: Arc<bittorrent_udp_tracker_core::services::announce::AnnounceService>,
-    pub udp_scrape_service: Arc<bittorrent_udp_tracker_core::services::scrape::ScrapeService>,
+    pub udp_tracker_core_services: Arc<UdpTrackerCoreServices>,
 
     // UDP Tracker Server Services
     pub udp_server_stats_event_sender: Arc<Option<Box<dyn torrust_udp_tracker_server::event::sender::Sender>>>,
@@ -58,24 +49,7 @@ impl AppContainer {
 
         let http_tracker_core_services = HttpTrackerCoreServices::initialize_from(&tracker_core_container);
 
-        // UDP Tracker Core Services
-        let (udp_core_stats_event_sender, udp_core_stats_repository) =
-            bittorrent_udp_tracker_core::statistics::setup::factory(configuration.core.tracker_usage_statistics);
-        let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
-        let udp_core_stats_repository = Arc::new(udp_core_stats_repository);
-        let udp_ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
-        let udp_connect_service = Arc::new(bittorrent_udp_tracker_core::services::connect::ConnectService::new(
-            udp_core_stats_event_sender.clone(),
-        ));
-        let udp_announce_service = Arc::new(bittorrent_udp_tracker_core::services::announce::AnnounceService::new(
-            tracker_core_container.announce_handler.clone(),
-            tracker_core_container.whitelist_authorization.clone(),
-            udp_core_stats_event_sender.clone(),
-        ));
-        let udp_scrape_service = Arc::new(bittorrent_udp_tracker_core::services::scrape::ScrapeService::new(
-            tracker_core_container.scrape_handler.clone(),
-            udp_core_stats_event_sender.clone(),
-        ));
+        let udp_tracker_core_services = UdpTrackerCoreServices::initialize_from(&tracker_core_container);
 
         // UDP Tracker Server Services
         let (udp_server_stats_event_sender, udp_server_stats_repository) =
@@ -114,16 +88,11 @@ impl AppContainer {
             for udp_tracker_config in udp_trackers {
                 udp_tracker_containers.insert(
                     udp_tracker_config.bind_address,
-                    Arc::new(UdpTrackerCoreContainer {
-                        tracker_core_container: tracker_core_container.clone(),
-                        udp_tracker_config: Arc::new(udp_tracker_config.clone()),
-                        udp_core_stats_event_sender: udp_core_stats_event_sender.clone(),
-                        udp_core_stats_repository: udp_core_stats_repository.clone(),
-                        ban_service: udp_ban_service.clone(),
-                        connect_service: udp_connect_service.clone(),
-                        announce_service: udp_announce_service.clone(),
-                        scrape_service: udp_scrape_service.clone(),
-                    }),
+                    UdpTrackerCoreContainer::initialize_from_services(
+                        &tracker_core_container,
+                        &udp_tracker_core_services,
+                        &Arc::new(udp_tracker_config.clone()),
+                    ),
                 );
             }
         }
@@ -134,14 +103,7 @@ impl AppContainer {
             tracker_core_container,
             http_api_config,
             http_tracker_core_services,
-
-            // UDP Tracker Core Services
-            udp_core_stats_event_sender,
-            udp_core_stats_repository,
-            udp_ban_service,
-            udp_connect_service,
-            udp_announce_service,
-            udp_scrape_service,
+            udp_tracker_core_services,
 
             // UDP Tracker Server Services
             udp_server_stats_event_sender,
@@ -188,9 +150,9 @@ impl AppContainer {
         TrackerHttpApiCoreContainer {
             tracker_core_container: self.tracker_core_container.clone(),
             http_api_config: http_api_config.clone(),
-            ban_service: self.udp_ban_service.clone(),
+            ban_service: self.udp_tracker_core_services.udp_ban_service.clone(),
             http_stats_repository: self.http_tracker_core_services.http_stats_repository.clone(),
-            udp_core_stats_repository: self.udp_core_stats_repository.clone(),
+            udp_core_stats_repository: self.udp_tracker_core_services.udp_core_stats_repository.clone(),
             udp_server_stats_repository: self.udp_server_stats_repository.clone(),
         }
         .into()

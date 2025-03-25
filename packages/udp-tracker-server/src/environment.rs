@@ -131,7 +131,8 @@ impl EnvContainer {
         let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
-        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from(&tracker_core_container, &udp_tracker_config);
+        let udp_tracker_core_container =
+            UdpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &udp_tracker_config);
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         Self {
