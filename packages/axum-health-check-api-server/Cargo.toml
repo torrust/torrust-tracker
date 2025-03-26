@@ -26,6 +26,7 @@ torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
 tracing = "0"
+url = "2.5.4"
 
 [dev-dependencies]
 reqwest = { version = "0", features = ["json"] }

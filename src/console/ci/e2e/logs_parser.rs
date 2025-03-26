@@ -31,8 +31,8 @@ impl RunningServices {
     /// 2024-06-10T16:07:39.990303Z  INFO HTTP TRACKER: Starting on: http://0.0.0.0:7070
     /// 2024-06-10T16:07:39.990439Z  INFO HTTP TRACKER: Started on: http://0.0.0.0:7070
     /// 2024-06-10T16:07:39.990448Z  INFO torrust_tracker::bootstrap::jobs: TLS not enabled
-    /// 2024-06-10T16:07:39.990563Z  INFO API: Starting on http://127.0.0.1:1212
-    /// 2024-06-10T16:07:39.990565Z  INFO API: Started on http://127.0.0.1:1212
+    /// 2024-06-10T16:07:39.990563Z  INFO API: Starting on: http://127.0.0.1:1212
+    /// 2024-06-10T16:07:39.990565Z  INFO API: Started on: http://127.0.0.1:1212
     /// 2024-06-10T16:07:39.990577Z  INFO HEALTH CHECK API: Starting on: http://127.0.0.1:1313
     /// 2024-06-10T16:07:39.990638Z  INFO HEALTH CHECK API: Started on: http://127.0.0.1:1313
     /// ```
@@ -122,8 +122,8 @@ mod tests {
             2024-06-10T16:07:39.990303Z  INFO HTTP TRACKER: Starting on: http://0.0.0.0:7070
             2024-06-10T16:07:39.990439Z  INFO HTTP TRACKER: Started on: http://0.0.0.0:7070
             2024-06-10T16:07:39.990448Z  INFO torrust_tracker::bootstrap::jobs: TLS not enabled
-            2024-06-10T16:07:39.990563Z  INFO API: Starting on http://127.0.0.1:1212
-            2024-06-10T16:07:39.990565Z  INFO API: Started on http://127.0.0.1:1212
+            2024-06-10T16:07:39.990563Z  INFO API: Starting on: http://127.0.0.1:1212
+            2024-06-10T16:07:39.990565Z  INFO API: Started on: http://127.0.0.1:1212
             2024-06-10T16:07:39.990577Z  INFO HEALTH CHECK API: Starting on: http://127.0.0.1:1313
             2024-06-10T16:07:39.990638Z  INFO HEALTH CHECK API: Started on: http://127.0.0.1:1313
             ";

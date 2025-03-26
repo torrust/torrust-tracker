@@ -41,6 +41,7 @@ use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, S
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_configuration::AccessTokens;
 use tracing::{instrument, Level};
+use url::Url;
 
 use super::routes::router;
 use crate::API_LOG_TARGET;
@@ -148,7 +149,7 @@ impl ApiServer<Stopped> {
 
         let api_server = match rx_start.await {
             Ok(started) => {
-                form.send(ServiceRegistration::new(started.address, check_fn))
+                form.send(ServiceRegistration::new(started.listen_url, started.address, check_fn))
                     .expect("it should be able to send service registration");
 
                 ApiServer {
@@ -195,7 +196,7 @@ impl ApiServer<Running> {
 /// Or if there request returns an error code.
 #[must_use]
 #[instrument(skip())]
-pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
+pub fn check_fn(listen_url: &Url, binding: &SocketAddr) -> ServiceHealthCheckJob {
     let url = format!("http://{binding}/api/health_check"); // DevSkim: ignore DS137138
 
     let info = format!("checking api health check at: {url}");
@@ -206,7 +207,7 @@ pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
             Err(err) => Err(err.to_string()),
         }
     });
-    ServiceHealthCheckJob::new(*binding, info, TYPE_STRING.to_string(), job)
+    ServiceHealthCheckJob::new(listen_url.clone(), *binding, info, TYPE_STRING.to_string(), job)
 }
 
 /// A struct responsible for starting the API server.
@@ -260,8 +261,10 @@ impl Launcher {
 
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { "https" } else { "http" };
+        let listen_url =
+            Url::parse(&format!("{protocol}://{address}")).expect("Could not parse internal service url for tracker API.");
 
-        tracing::info!(target: API_LOG_TARGET, "Starting on {protocol}://{}", address);
+        tracing::info!(target: API_LOG_TARGET, "Starting on: {protocol}://{address}");
 
         let running = Box::pin(async {
             match tls {
@@ -282,10 +285,10 @@ impl Launcher {
             }
         });
 
-        tracing::info!(target: API_LOG_TARGET, "{STARTED_ON} {protocol}://{}", address);
+        tracing::info!(target: API_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
 
         tx_start
-            .send(Started { address })
+            .send(Started { listen_url, address })
             .expect("the HTTP(s) Tracker API service should not be dropped");
 
         running

@@ -31,6 +31,7 @@ pub(crate) async fn health_check_handler(State(register): State<ServiceRegistry>
     let jobs = checks.drain(..).map(|c| {
         tokio::spawn(async move {
             CheckReport {
+                listen_url: c.listen_url.clone(),
                 binding: c.binding,
                 info: c.info.clone(),
                 service_type: c.service_type,

@@ -7,6 +7,7 @@ use std::sync::Arc;
 use derive_more::Constructor;
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
+use url::Url;
 
 /// A [`ServiceHeathCheckResult`] is returned by a completed health check.
 pub type ServiceHeathCheckResult = Result<String, String>;
@@ -16,6 +17,7 @@ pub type ServiceHeathCheckResult = Result<String, String>;
 /// The `job` awaits a [`ServiceHeathCheckResult`].
 #[derive(Debug, Constructor)]
 pub struct ServiceHealthCheckJob {
+    pub listen_url: Url,
     pub binding: SocketAddr,
     pub info: String,
     pub service_type: String,
@@ -25,13 +27,14 @@ pub struct ServiceHealthCheckJob {
 /// The function specification [`FnSpawnServiceHeathCheck`].
 ///
 /// A function fulfilling this specification will spawn a new [`ServiceHealthCheckJob`].
-pub type FnSpawnServiceHeathCheck = fn(&SocketAddr) -> ServiceHealthCheckJob;
+pub type FnSpawnServiceHeathCheck = fn(&Url, &SocketAddr) -> ServiceHealthCheckJob;
 
 /// A [`ServiceRegistration`] is provided to the [`Registar`] for registration.
 ///
 /// Each registration includes a function that fulfils the [`FnSpawnServiceHeathCheck`] specification.
 #[derive(Clone, Debug, Constructor)]
 pub struct ServiceRegistration {
+    listen_url: Url,
     binding: SocketAddr,
     check_fn: FnSpawnServiceHeathCheck,
 }
@@ -39,7 +42,7 @@ pub struct ServiceRegistration {
 impl ServiceRegistration {
     #[must_use]
     pub fn spawn_check(&self) -> ServiceHealthCheckJob {
-        (self.check_fn)(&self.binding)
+        (self.check_fn)(&self.listen_url, &self.binding)
     }
 }
 

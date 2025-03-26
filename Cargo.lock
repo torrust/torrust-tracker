@@ -4380,6 +4380,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "url",
 ]
 
 [[package]]
@@ -4512,6 +4513,7 @@ dependencies = [
  "tokio",
  "tower-http",
  "tracing",
+ "url",
 ]
 
 [[package]]

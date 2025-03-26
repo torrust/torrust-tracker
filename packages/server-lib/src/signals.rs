@@ -1,12 +1,14 @@
 //! This module contains functions to handle signals.
 use derive_more::Display;
 use tracing::instrument;
+use url::Url;
 
 /// This is the message that the "launcher" spawned task sends to the main
 /// application process to notify the service was successfully started.
 ///
 #[derive(Debug)]
 pub struct Started {
+    pub listen_url: Url,
     pub address: std::net::SocketAddr,
 }
 

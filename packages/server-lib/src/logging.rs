@@ -10,7 +10,7 @@ use tower_http::LatencyUnit;
 /// ```text
 /// 2024-06-25T12:36:25.025312Z  INFO UDP TRACKER: Started on: udp://0.0.0.0:6969
 /// 2024-06-25T12:36:25.025445Z  INFO HTTP TRACKER: Started on: http://0.0.0.0:7070
-/// 2024-06-25T12:36:25.025527Z  INFO API: Started on http://0.0.0.0:1212
+/// 2024-06-25T12:36:25.025527Z  INFO API: Started on: http://0.0.0.0:1212
 /// 2024-06-25T12:36:25.025580Z  INFO HEALTH CHECK API: Started on: http://127.0.0.1:1313
 /// ```
 pub const STARTED_ON: &str = "Started on";

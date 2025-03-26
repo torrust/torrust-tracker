@@ -14,6 +14,7 @@ use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
 use torrust_server_lib::signals::{shutdown_signal_with_message, Halted, Started};
 use tracing::instrument;
+use url::Url;
 
 use super::request_buffer::ActiveRequests;
 use crate::container::UdpTrackerServerContainer;
@@ -65,6 +66,7 @@ impl Launcher {
             }
         };
 
+        let listen_url = bound_socket.url().clone();
         let address = bound_socket.address();
         let local_udp_url = bound_socket.url().to_string();
 
@@ -89,7 +91,7 @@ impl Launcher {
         };
 
         tx_start
-            .send(Started { address })
+            .send(Started { listen_url, address })
             .expect("the UDP Tracker service should not be dropped");
 
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (started)");
@@ -112,13 +114,13 @@ impl Launcher {
 
     #[must_use]
     #[instrument(skip(binding))]
-    pub fn check(binding: &SocketAddr) -> ServiceHealthCheckJob {
+    pub fn check(listen_url: &Url, binding: &SocketAddr) -> ServiceHealthCheckJob {
         let binding = *binding;
         let info = format!("checking the udp tracker health check at: {binding}");
 
         let job = tokio::spawn(async move { check(&binding).await });
 
-        ServiceHealthCheckJob::new(binding, info, TYPE_STRING.to_string(), job)
+        ServiceHealthCheckJob::new(listen_url.clone(), binding, info, TYPE_STRING.to_string(), job)
     }
 
     #[instrument(skip(receiver, udp_tracker_core_container, udp_tracker_server_container))]

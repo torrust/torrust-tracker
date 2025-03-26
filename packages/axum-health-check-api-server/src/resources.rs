@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum Status {
@@ -11,6 +12,7 @@ pub enum Status {
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct CheckReport {
+    pub listen_url: Url,
     pub binding: SocketAddr,
     pub service_type: String,
     pub info: String,
