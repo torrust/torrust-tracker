@@ -42,6 +42,7 @@ torrust-udp-tracker-server = { version = "3.0.0-develop", path = "../udp-tracker
 tower = { version = "0", features = ["timeout"] }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
 tracing = "0"
+url = "2"
 
 [dev-dependencies]
 local-ip-address = "0"
