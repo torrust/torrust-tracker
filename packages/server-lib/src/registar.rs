@@ -18,6 +18,7 @@ pub type ServiceHeathCheckResult = Result<String, String>;
 pub struct ServiceHealthCheckJob {
     pub binding: SocketAddr,
     pub info: String,
+    pub service_type: String,
     pub job: JoinHandle<ServiceHeathCheckResult>,
 }
 

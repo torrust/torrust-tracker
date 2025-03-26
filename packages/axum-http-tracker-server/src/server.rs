@@ -18,6 +18,7 @@ use tracing::instrument;
 use super::v1::routes::router;
 use crate::HTTP_TRACKER_LOG_TARGET;
 
+const TYPE_STRING: &str = "http_tracker";
 /// Error that can occur when starting or stopping the HTTP server.
 ///
 /// Some errors triggered while starting the server are:
@@ -231,7 +232,7 @@ pub fn check_fn(binding: &SocketAddr) -> ServiceHealthCheckJob {
         }
     });
 
-    ServiceHealthCheckJob::new(*binding, info, job)
+    ServiceHealthCheckJob::new(*binding, info, TYPE_STRING.to_string(), job)
 }
 
 #[cfg(test)]

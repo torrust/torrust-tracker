@@ -33,6 +33,7 @@ pub(crate) async fn health_check_handler(State(register): State<ServiceRegistry>
             CheckReport {
                 binding: c.binding,
                 info: c.info.clone(),
+                service_type: c.service_type,
                 result: c.job.await.expect("it should be able to join into the checking function"),
             }
         })
