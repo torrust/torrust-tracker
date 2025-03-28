@@ -13,8 +13,8 @@ use tokio::time::interval;
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
 use torrust_server_lib::signals::{shutdown_signal_with_message, Halted, Started};
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::instrument;
-use url::Url;
 
 use super::request_buffer::ActiveRequests;
 use crate::container::UdpTrackerServerContainer;
@@ -66,7 +66,7 @@ impl Launcher {
             }
         };
 
-        let listen_url = bound_socket.url().clone();
+        let service_binding = bound_socket.service_binding().clone();
         let address = bound_socket.address();
         let local_udp_url = bound_socket.url().to_string();
 
@@ -91,7 +91,10 @@ impl Launcher {
         };
 
         tx_start
-            .send(Started { listen_url, address })
+            .send(Started {
+                service_binding,
+                address,
+            })
             .expect("the UDP Tracker service should not be dropped");
 
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (started)");
@@ -113,14 +116,15 @@ impl Launcher {
     }
 
     #[must_use]
-    #[instrument(skip(binding))]
-    pub fn check(listen_url: &Url, binding: &SocketAddr) -> ServiceHealthCheckJob {
-        let binding = *binding;
-        let info = format!("checking the udp tracker health check at: {binding}");
+    #[instrument(skip(service_binding))]
+    pub fn check(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
+        let info = format!("checking the udp tracker health check at: {}", service_binding.bind_address());
 
-        let job = tokio::spawn(async move { check(&binding).await });
+        let service_binding_clone = service_binding.clone();
 
-        ServiceHealthCheckJob::new(listen_url.clone(), binding, info, TYPE_STRING.to_string(), job)
+        let job = tokio::spawn(async move { check(&service_binding_clone).await });
+
+        ServiceHealthCheckJob::new(service_binding.clone(), info, TYPE_STRING.to_string(), job)
     }
 
     #[instrument(skip(receiver, udp_tracker_core_container, udp_tracker_server_container))]

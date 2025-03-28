@@ -12,7 +12,7 @@ pub enum Status {
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct CheckReport {
-    pub listen_url: Url,
+    pub service_binding: Url,
     pub binding: SocketAddr,
     pub service_type: String,
     pub info: String,
