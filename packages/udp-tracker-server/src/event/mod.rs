@@ -1,6 +1,8 @@
 use std::net::SocketAddr;
 use std::time::Duration;
 
+use torrust_tracker_primitives::service_binding::ServiceBinding;
+
 pub mod sender;
 
 /// A UDP server event.
@@ -52,15 +54,15 @@ pub enum UdpResponseKind {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ConnectionContext {
     client_socket_addr: SocketAddr,
-    server_socket_addr: SocketAddr,
+    server_service_binding: ServiceBinding,
 }
 
 impl ConnectionContext {
     #[must_use]
-    pub fn new(client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) -> Self {
+    pub fn new(client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) -> Self {
         Self {
             client_socket_addr,
-            server_socket_addr,
+            server_service_binding,
         }
     }
 
@@ -71,6 +73,6 @@ impl ConnectionContext {
 
     #[must_use]
     pub fn server_socket_addr(&self) -> SocketAddr {
-        self.server_socket_addr
+        self.server_service_binding.bind_address()
     }
 }

@@ -18,6 +18,7 @@ use connect::handle_connect;
 use error::handle_error;
 use scrape::handle_scrape;
 use torrust_tracker_clock::clock::Time;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{instrument, Level};
 use uuid::Uuid;
 
@@ -59,7 +60,7 @@ pub(crate) async fn handle_packet(
     udp_request: RawRequest,
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-    server_socket_addr: SocketAddr,
+    server_service_binding: ServiceBinding,
     cookie_time_values: CookieTimeValues,
 ) -> (Response, Option<UdpRequestKind>) {
     let request_id = Uuid::new_v4();
@@ -74,7 +75,7 @@ pub(crate) async fn handle_packet(
             Ok(request) => match handle_request(
                 request,
                 udp_request.from,
-                server_socket_addr,
+                server_service_binding.clone(),
                 udp_tracker_core_container.clone(),
                 udp_tracker_server_container.clone(),
                 cookie_time_values.clone(),
@@ -95,7 +96,7 @@ pub(crate) async fn handle_packet(
                     let response = handle_error(
                         Some(req_kind.clone()),
                         udp_request.from,
-                        server_socket_addr,
+                        server_service_binding,
                         request_id,
                         &udp_tracker_server_container.udp_server_stats_event_sender,
                         cookie_time_values.valid_range.clone(),
@@ -111,7 +112,7 @@ pub(crate) async fn handle_packet(
                 let response = handle_error(
                     None,
                     udp_request.from,
-                    server_socket_addr,
+                    server_service_binding,
                     request_id,
                     &udp_tracker_server_container.udp_server_stats_event_sender,
                     cookie_time_values.valid_range.clone(),
@@ -138,7 +139,7 @@ pub(crate) async fn handle_packet(
 #[instrument(skip(
     request,
     client_socket_addr,
-    server_socket_addr,
+    server_service_binding,
     udp_tracker_core_container,
     udp_tracker_server_container,
     cookie_time_values
@@ -146,7 +147,7 @@ pub(crate) async fn handle_packet(
 pub async fn handle_request(
     request: Request,
     client_socket_addr: SocketAddr,
-    server_socket_addr: SocketAddr,
+    server_service_binding: ServiceBinding,
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     cookie_time_values: CookieTimeValues,
@@ -157,7 +158,7 @@ pub async fn handle_request(
         Request::Connect(connect_request) => Ok((
             handle_connect(
                 client_socket_addr,
-                server_socket_addr,
+                server_service_binding,
                 &connect_request,
                 &udp_tracker_core_container.connect_service,
                 &udp_tracker_server_container.udp_server_stats_event_sender,
@@ -170,7 +171,7 @@ pub async fn handle_request(
             match handle_announce(
                 &udp_tracker_core_container.announce_service,
                 client_socket_addr,
-                server_socket_addr,
+                server_service_binding,
                 &announce_request,
                 &udp_tracker_core_container.tracker_core_container.core_config,
                 &udp_tracker_server_container.udp_server_stats_event_sender,
@@ -186,7 +187,7 @@ pub async fn handle_request(
             match handle_scrape(
                 &udp_tracker_core_container.scrape_service,
                 client_socket_addr,
-                server_socket_addr,
+                server_service_binding,
                 &scrape_request,
                 &udp_tracker_server_container.udp_server_stats_event_sender,
                 cookie_time_values.valid_range,

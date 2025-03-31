@@ -39,6 +39,8 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
@@ -51,7 +53,11 @@ mod tests {
             Event::UdpConnect {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                    ServiceBinding::new(
+                        Protocol::UDP,
+                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                    )
+                    .unwrap(),
                 ),
             },
             &stats_repository,
@@ -71,7 +77,11 @@ mod tests {
             Event::UdpAnnounce {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                    ServiceBinding::new(
+                        Protocol::UDP,
+                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                    )
+                    .unwrap(),
                 ),
             },
             &stats_repository,
@@ -91,7 +101,11 @@ mod tests {
             Event::UdpScrape {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                    ServiceBinding::new(
+                        Protocol::UDP,
+                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+                    )
+                    .unwrap(),
                 ),
             },
             &stats_repository,
@@ -111,7 +125,11 @@ mod tests {
             Event::UdpConnect {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
-                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                    ServiceBinding::new(
+                        Protocol::UDP,
+                        SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                    )
+                    .unwrap(),
                 ),
             },
             &stats_repository,
@@ -131,7 +149,11 @@ mod tests {
             Event::UdpAnnounce {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
-                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                    ServiceBinding::new(
+                        Protocol::UDP,
+                        SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                    )
+                    .unwrap(),
                 ),
             },
             &stats_repository,
@@ -151,7 +173,11 @@ mod tests {
             Event::UdpScrape {
                 context: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
-                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                    ServiceBinding::new(
+                        Protocol::UDP,
+                        SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
+                    )
+                    .unwrap(),
                 ),
             },
             &stats_repository,

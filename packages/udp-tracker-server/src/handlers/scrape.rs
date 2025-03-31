@@ -9,6 +9,7 @@ use aquatic_udp_protocol::{
 use bittorrent_udp_tracker_core::services::scrape::ScrapeService;
 use bittorrent_udp_tracker_core::{self};
 use torrust_tracker_primitives::core::ScrapeData;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{instrument, Level};
 use zerocopy::network_endian::I32;
 
@@ -24,7 +25,7 @@ use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
 pub async fn handle_scrape(
     scrape_service: &Arc<ScrapeService>,
     client_socket_addr: SocketAddr,
-    server_socket_addr: SocketAddr,
+    server_service_binding: ServiceBinding,
     request: &ScrapeRequest,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn event::sender::Sender>>>,
     cookie_valid_range: Range<f64>,
@@ -38,14 +39,14 @@ pub async fn handle_scrape(
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send_event(Event::UdpRequestAccepted {
-                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 kind: UdpRequestKind::Scrape,
             })
             .await;
     }
 
     let scrape_data = scrape_service
-        .handle_scrape(client_socket_addr, server_socket_addr, request, cookie_valid_range)
+        .handle_scrape(client_socket_addr, server_service_binding, request, cookie_valid_range)
         .await
         .map_err(|e| (e.into(), request.transaction_id, UdpRequestKind::Scrape))?;
 
@@ -91,6 +92,7 @@ mod tests {
         };
         use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
         use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
+        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use crate::handlers::handle_scrape;
         use crate::handlers::tests::{
@@ -113,6 +115,7 @@ mod tests {
 
             let client_socket_addr = sample_ipv4_remote_addr();
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let info_hash = InfoHash([0u8; 20]);
             let info_hashes = vec![info_hash];
@@ -126,7 +129,7 @@ mod tests {
             let response = handle_scrape(
                 &core_udp_tracker_services.scrape_service,
                 client_socket_addr,
-                server_socket_addr,
+                server_service_binding,
                 &request,
                 &server_udp_tracker_services.udp_server_stats_event_sender,
                 sample_cookie_valid_range(),
@@ -180,6 +183,7 @@ mod tests {
 
             let client_socket_addr = sample_ipv4_remote_addr();
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let info_hash = InfoHash([0u8; 20]);
 
@@ -195,7 +199,7 @@ mod tests {
             handle_scrape(
                 &core_udp_tracker_services.scrape_service,
                 client_socket_addr,
-                server_socket_addr,
+                server_service_binding,
                 &request,
                 &udp_server_stats_event_sender,
                 sample_cookie_valid_range(),
@@ -240,6 +244,7 @@ mod tests {
             use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
             use aquatic_udp_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
+            use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::handlers::handle_scrape;
             use crate::handlers::scrape::tests::scrape_request::{
@@ -256,6 +261,7 @@ mod tests {
 
                 let client_socket_addr = sample_ipv4_remote_addr();
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let info_hash = InfoHash([0u8; 20]);
 
@@ -274,7 +280,7 @@ mod tests {
                     handle_scrape(
                         &core_udp_tracker_services.scrape_service,
                         client_socket_addr,
-                        server_socket_addr,
+                        server_service_binding,
                         &request,
                         &server_udp_tracker_services.udp_server_stats_event_sender,
                         sample_cookie_valid_range(),
@@ -300,6 +306,7 @@ mod tests {
 
                 let client_socket_addr = sample_ipv4_remote_addr();
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let info_hash = InfoHash([0u8; 20]);
 
@@ -316,7 +323,7 @@ mod tests {
                     handle_scrape(
                         &core_udp_tracker_services.scrape_service,
                         client_socket_addr,
-                        server_socket_addr,
+                        server_service_binding,
                         &request,
                         &server_udp_tracker_services.udp_server_stats_event_sender,
                         sample_cookie_valid_range(),
@@ -349,6 +356,7 @@ mod tests {
             use std::sync::Arc;
 
             use mockall::predicate::eq;
+            use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use super::sample_scrape_request;
             use crate::event;
@@ -363,12 +371,13 @@ mod tests {
             async fn should_send_the_upd4_scrape_event() {
                 let client_socket_addr = sample_ipv4_remote_addr();
                 let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(Event::UdpRequestAccepted {
-                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                        context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         kind: UdpRequestKind::Scrape,
                     }))
                     .times(1)
@@ -382,7 +391,7 @@ mod tests {
                 handle_scrape(
                     &core_udp_tracker_services.scrape_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &sample_scrape_request(&client_socket_addr),
                     &udp_server_stats_event_sender,
                     sample_cookie_valid_range(),
@@ -398,6 +407,7 @@ mod tests {
             use std::sync::Arc;
 
             use mockall::predicate::eq;
+            use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use super::sample_scrape_request;
             use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
@@ -411,12 +421,13 @@ mod tests {
             async fn should_send_the_upd6_scrape_event() {
                 let client_socket_addr = sample_ipv6_remote_addr();
                 let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(Event::UdpRequestAccepted {
-                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                        context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         kind: UdpRequestKind::Scrape,
                     }))
                     .times(1)
@@ -430,7 +441,7 @@ mod tests {
                 handle_scrape(
                     &core_udp_tracker_services.scrape_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &sample_scrape_request(&client_socket_addr),
                     &udp_server_stats_event_sender,
                     sample_cookie_valid_range(),
