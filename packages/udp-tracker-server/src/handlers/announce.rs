@@ -11,6 +11,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_udp_tracker_core::services::announce::AnnounceService;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::AnnounceData;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{instrument, Level};
 use zerocopy::network_endian::I32;
 
@@ -26,7 +27,7 @@ use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
 pub async fn handle_announce(
     announce_service: &Arc<AnnounceService>,
     client_socket_addr: SocketAddr,
-    server_socket_addr: SocketAddr,
+    server_service_binding: ServiceBinding,
     request: &AnnounceRequest,
     core_config: &Arc<Core>,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn event::sender::Sender>>>,
@@ -42,14 +43,14 @@ pub async fn handle_announce(
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send_event(Event::UdpRequestAccepted {
-                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 kind: UdpRequestKind::Announce,
             })
             .await;
     }
 
     let announce_data = announce_service
-        .handle_announce(client_socket_addr, server_socket_addr, request, cookie_valid_range)
+        .handle_announce(client_socket_addr, server_service_binding, request, cookie_valid_range)
         .await
         .map_err(|e| (e.into(), request.transaction_id, UdpRequestKind::Announce))?;
 
@@ -205,6 +206,7 @@ mod tests {
             use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
             use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
             use mockall::predicate::eq;
+            use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
@@ -228,6 +230,7 @@ mod tests {
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V4(client_ip), client_port);
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
@@ -240,7 +243,7 @@ mod tests {
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -269,6 +272,7 @@ mod tests {
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
@@ -277,7 +281,7 @@ mod tests {
                 let response = handle_announce(
                     &core_udp_tracker_services.announce_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -320,6 +324,7 @@ mod tests {
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V4(remote_client_ip), remote_client_port);
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
@@ -332,7 +337,7 @@ mod tests {
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -378,6 +383,7 @@ mod tests {
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
@@ -386,7 +392,7 @@ mod tests {
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &request,
                     &core_tracker_services.core_config,
                     &udp_server_stats_event_sender,
@@ -419,12 +425,13 @@ mod tests {
             async fn should_send_the_upd4_announce_event() {
                 let client_socket_addr = sample_ipv4_socket_address();
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(Event::UdpRequestAccepted {
-                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                        context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         kind: UdpRequestKind::Announce,
                     }))
                     .times(1)
@@ -438,7 +445,7 @@ mod tests {
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &AnnounceRequestBuilder::default().into(),
                     &core_tracker_services.core_config,
                     &udp_server_stats_event_sender,
@@ -454,6 +461,7 @@ mod tests {
 
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
                 use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
+                use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
@@ -474,6 +482,7 @@ mod tests {
 
                     let client_socket_addr = SocketAddr::new(IpAddr::V4(client_ip), client_port);
                     let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+                    let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                     let request = AnnounceRequestBuilder::default()
                         .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
@@ -486,7 +495,7 @@ mod tests {
                     handle_announce(
                         &core_udp_tracker_services.announce_service,
                         client_socket_addr,
-                        server_socket_addr,
+                        server_service_binding,
                         &request,
                         &core_tracker_services.core_config,
                         &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -529,6 +538,7 @@ mod tests {
             use bittorrent_udp_tracker_core::services::announce::AnnounceService;
             use mockall::predicate::eq;
             use torrust_tracker_configuration::Core;
+            use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
@@ -552,6 +562,7 @@ mod tests {
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
                 let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
@@ -564,7 +575,7 @@ mod tests {
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -596,6 +607,7 @@ mod tests {
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), 8080);
                 let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
@@ -604,7 +616,7 @@ mod tests {
                 let response = handle_announce(
                     &core_udp_tracker_services.announce_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
@@ -647,6 +659,7 @@ mod tests {
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V6(remote_client_ip), remote_client_port);
                 let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
@@ -659,7 +672,7 @@ mod tests {
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_service.udp_server_stats_event_sender,
@@ -710,6 +723,7 @@ mod tests {
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
                 let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let request = AnnounceRequestBuilder::default()
                     .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
@@ -724,7 +738,7 @@ mod tests {
                 handle_announce(
                     &announce_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &request,
                     &core_config,
                     &udp_server_stats_event_sender,
@@ -761,12 +775,13 @@ mod tests {
             async fn should_send_the_upd6_announce_event() {
                 let client_socket_addr = sample_ipv6_remote_addr();
                 let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send_event()
                     .with(eq(Event::UdpRequestAccepted {
-                        context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                        context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         kind: UdpRequestKind::Announce,
                     }))
                     .times(1)
@@ -784,7 +799,7 @@ mod tests {
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
                     client_socket_addr,
-                    server_socket_addr,
+                    server_service_binding,
                     &announce_request,
                     &core_tracker_services.core_config,
                     &udp_server_stats_event_sender,
@@ -810,6 +825,7 @@ mod tests {
                 use bittorrent_udp_tracker_core::services::announce::AnnounceService;
                 use bittorrent_udp_tracker_core::{self, event as core_event};
                 use mockall::predicate::eq;
+                use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
                 use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
@@ -834,7 +850,12 @@ mod tests {
                     let peer_id = AquaticPeerId([255u8; 20]);
 
                     let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
-                    let server_socket_addr = config.udp_trackers.clone().unwrap()[0].bind_address;
+                    let mut server_socket_addr = config.udp_trackers.clone().unwrap()[0].bind_address;
+                    if server_socket_addr.port() == 0 {
+                        // Port 0 cannot be use in service binding
+                        server_socket_addr.set_port(6969);
+                    }
+                    let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
                     let database = initialize_database(&config.core);
                     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -847,7 +868,7 @@ mod tests {
                     udp_core_stats_event_sender_mock
                         .expect_send_event()
                         .with(eq(core_event::Event::UdpAnnounce {
-                            context: core_event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                            context: core_event::ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -858,7 +879,7 @@ mod tests {
                     udp_server_stats_event_sender_mock
                         .expect_send_event()
                         .with(eq(Event::UdpRequestAccepted {
-                            context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                            context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                             kind: UdpRequestKind::Announce,
                         }))
                         .times(1)
@@ -892,7 +913,7 @@ mod tests {
                     handle_announce(
                         &announce_service,
                         client_socket_addr,
-                        server_socket_addr,
+                        server_service_binding,
                         &request,
                         &core_config,
                         &udp_server_stats_event_sender,

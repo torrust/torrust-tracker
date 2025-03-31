@@ -18,6 +18,7 @@ use bittorrent_tracker_core::error::{AnnounceError, WhitelistError};
 use bittorrent_tracker_core::whitelist;
 use bittorrent_udp_tracker_protocol::peer_builder;
 use torrust_tracker_primitives::core::AnnounceData;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
 use crate::event::{self, ConnectionContext, Event};
@@ -58,7 +59,7 @@ impl AnnounceService {
     pub async fn handle_announce(
         &self,
         client_socket_addr: SocketAddr,
-        server_socket_addr: SocketAddr,
+        server_service_binding: ServiceBinding,
         request: &AnnounceRequest,
         cookie_valid_range: Range<f64>,
     ) -> Result<AnnounceData, UdpAnnounceError> {
@@ -79,7 +80,7 @@ impl AnnounceService {
             .announce(&info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
-        self.send_event(client_socket_addr, server_socket_addr).await;
+        self.send_event(client_socket_addr, server_service_binding).await;
 
         Ok(announce_data)
     }
@@ -100,11 +101,11 @@ impl AnnounceService {
         self.whitelist_authorization.authorize(info_hash).await
     }
 
-    async fn send_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
+    async fn send_event(&self, client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             udp_stats_event_sender
                 .send_event(Event::UdpAnnounce {
-                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    context: ConnectionContext::new(client_socket_addr, server_service_binding),
                 })
                 .await;
         }

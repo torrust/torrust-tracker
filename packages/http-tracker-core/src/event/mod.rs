@@ -1,5 +1,7 @@
 use std::net::{IpAddr, SocketAddr};
 
+use torrust_tracker_primitives::service_binding::ServiceBinding;
+
 pub mod sender;
 
 /// A HTTP core event.
@@ -17,14 +19,14 @@ pub struct ConnectionContext {
 
 impl ConnectionContext {
     #[must_use]
-    pub fn new(client_ip_addr: IpAddr, opt_client_port: Option<u16>, server_socket_addr: SocketAddr) -> Self {
+    pub fn new(client_ip_addr: IpAddr, opt_client_port: Option<u16>, server_service_binding: ServiceBinding) -> Self {
         Self {
             client: ClientConnectionContext {
                 ip_addr: client_ip_addr,
                 port: opt_client_port,
             },
             server: ServerConnectionContext {
-                socket_addr: server_socket_addr,
+                service_binding: server_service_binding,
             },
         }
     }
@@ -41,7 +43,7 @@ impl ConnectionContext {
 
     #[must_use]
     pub fn server_socket_addr(&self) -> SocketAddr {
-        self.server.socket_addr
+        self.server.service_binding.bind_address()
     }
 }
 
@@ -55,5 +57,5 @@ pub struct ClientConnectionContext {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ServerConnectionContext {
-    socket_addr: SocketAddr,
+    service_binding: ServiceBinding,
 }

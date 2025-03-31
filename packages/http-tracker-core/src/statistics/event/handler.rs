@@ -34,6 +34,8 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
@@ -47,7 +49,7 @@ mod tests {
                 connection: ConnectionContext::new(
                     IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
                     Some(8080),
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                    ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
             },
             &stats_repository,
@@ -68,7 +70,7 @@ mod tests {
                 connection: ConnectionContext::new(
                     IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
                     Some(8080),
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                    ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
             },
             &stats_repository,
@@ -89,7 +91,7 @@ mod tests {
                 connection: ConnectionContext::new(
                     IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                     Some(8080),
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                    ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
             },
             &stats_repository,
@@ -110,7 +112,7 @@ mod tests {
                 connection: ConnectionContext::new(
                     IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                     Some(8080),
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                    ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
             },
             &stats_repository,

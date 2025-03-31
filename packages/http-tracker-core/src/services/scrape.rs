@@ -7,7 +7,7 @@
 //!
 //! It also sends an [`http_tracker_core::statistics::event::Event`]
 //! because events are specific for the HTTP tracker.
-use std::net::{IpAddr, SocketAddr};
+use std::net::IpAddr;
 use std::sync::Arc;
 
 use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
@@ -18,6 +18,7 @@ use bittorrent_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistErr
 use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::ScrapeData;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::event;
 use crate::event::{ConnectionContext, Event};
@@ -71,7 +72,7 @@ impl ScrapeService {
         &self,
         scrape_request: &Scrape,
         client_ip_sources: &ClientIpSources,
-        server_socket_addr: &SocketAddr,
+        server_service_binding: &ServiceBinding,
         maybe_key: Option<Key>,
     ) -> Result<ScrapeData, HttpScrapeError> {
         let scrape_data = if self.authentication_is_required() && !self.is_authenticated(maybe_key).await {
@@ -82,7 +83,8 @@ impl ScrapeService {
 
         let (remote_client_ip, opt_client_port) = self.resolve_remote_client_ip(client_ip_sources)?;
 
-        self.send_event(remote_client_ip, opt_client_port, *server_socket_addr).await;
+        self.send_event(remote_client_ip, opt_client_port, server_service_binding.clone())
+            .await;
 
         Ok(scrape_data)
     }
@@ -117,11 +119,16 @@ impl ScrapeService {
         Ok((ip, port))
     }
 
-    async fn send_event(&self, original_peer_ip: IpAddr, opt_original_peer_port: Option<u16>, server_socket_addr: SocketAddr) {
+    async fn send_event(
+        &self,
+        original_peer_ip: IpAddr,
+        opt_original_peer_port: Option<u16>,
+        server_service_binding: ServiceBinding,
+    ) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             http_stats_event_sender
                 .send_event(Event::TcpScrape {
-                    connection: ConnectionContext::new(original_peer_ip, opt_original_peer_port, server_socket_addr),
+                    connection: ConnectionContext::new(original_peer_ip, opt_original_peer_port, server_service_binding),
                 })
                 .await;
         }
@@ -269,6 +276,7 @@ mod tests {
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_tracker_primitives::core::ScrapeData;
+        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
@@ -312,6 +320,7 @@ mod tests {
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
                 core_config.clone(),
@@ -321,7 +330,7 @@ mod tests {
             ));
 
             let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_socket_addr, None)
+                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
                 .await
                 .unwrap();
 
@@ -349,7 +358,8 @@ mod tests {
                     connection: ConnectionContext::new(
                         IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
                         Some(8080),
-                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070))
+                            .unwrap(),
                     ),
                 }))
                 .times(1)
@@ -371,6 +381,7 @@ mod tests {
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
                 Arc::new(config.core),
@@ -380,7 +391,7 @@ mod tests {
             ));
 
             scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_socket_addr, None)
+                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
                 .await
                 .unwrap();
         }
@@ -388,6 +399,7 @@ mod tests {
         #[tokio::test]
         async fn it_should_send_the_tcp_6_scrape_event_when_the_peer_uses_ipv6() {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let config = configuration::ephemeral();
 
@@ -398,7 +410,7 @@ mod tests {
                     connection: ConnectionContext::new(
                         IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                         Some(8080),
-                        server_socket_addr,
+                        server_service_binding,
                     ),
                 }))
                 .times(1)
@@ -420,6 +432,7 @@ mod tests {
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
                 Arc::new(config.core),
@@ -429,7 +442,7 @@ mod tests {
             ));
 
             scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_socket_addr, None)
+                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
                 .await
                 .unwrap();
         }
@@ -446,6 +459,7 @@ mod tests {
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_tracker_primitives::core::ScrapeData;
+        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::{ConnectionContext, Event};
@@ -488,6 +502,7 @@ mod tests {
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
                 Arc::new(config.core),
@@ -497,7 +512,7 @@ mod tests {
             ));
 
             let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_socket_addr, None)
+                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
                 .await
                 .unwrap();
 
@@ -519,7 +534,8 @@ mod tests {
                     connection: ConnectionContext::new(
                         IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
                         Some(8080),
-                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070),
+                        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070))
+                            .unwrap(),
                     ),
                 }))
                 .times(1)
@@ -539,6 +555,7 @@ mod tests {
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
                 Arc::new(config.core),
@@ -548,7 +565,7 @@ mod tests {
             ));
 
             scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_socket_addr, None)
+                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
                 .await
                 .unwrap();
         }
@@ -556,6 +573,7 @@ mod tests {
         #[tokio::test]
         async fn it_should_send_the_tcp_6_scrape_event_when_the_peer_uses_ipv6() {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let config = configuration::ephemeral();
 
@@ -568,7 +586,7 @@ mod tests {
                     connection: ConnectionContext::new(
                         IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                         Some(8080),
-                        server_socket_addr,
+                        server_service_binding,
                     ),
                 }))
                 .times(1)
@@ -588,6 +606,7 @@ mod tests {
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
                 Arc::new(config.core),
@@ -597,7 +616,7 @@ mod tests {
             ));
 
             scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_socket_addr, None)
+                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
                 .await
                 .unwrap();
         }

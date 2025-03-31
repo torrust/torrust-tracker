@@ -13,7 +13,7 @@ use tokio::time::interval;
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
 use torrust_server_lib::signals::{shutdown_signal_with_message, Halted, Started};
-use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 use tracing::instrument;
 
 use super::request_buffer::ActiveRequests;
@@ -138,7 +138,10 @@ impl Launcher {
 
         let server_socket_addr = receiver.bound_socket_address();
 
-        let local_addr = format!("udp://{server_socket_addr}");
+        let server_service_binding =
+            ServiceBinding::new(Protocol::UDP, server_socket_addr).expect("Bound socket to service binding should not fail");
+
+        let local_addr = server_service_binding.clone().to_string();
 
         let cookie_lifetime = cookie_lifetime.as_secs_f64();
 
@@ -156,6 +159,9 @@ impl Launcher {
         });
 
         loop {
+            let server_service_binding =
+                ServiceBinding::new(Protocol::UDP, server_socket_addr).expect("Bound socket to service binding should not fail");
+
             if let Some(req) = {
                 tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server (wait for request)");
                 receiver.next().await
@@ -180,7 +186,7 @@ impl Launcher {
                 {
                     udp_server_stats_event_sender
                         .send_event(Event::UdpRequestReceived {
-                            context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                            context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         })
                         .await;
                 }
@@ -193,7 +199,7 @@ impl Launcher {
                     {
                         udp_server_stats_event_sender
                             .send_event(Event::UdpRequestBanned {
-                                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                             })
                             .await;
                     }
@@ -235,7 +241,7 @@ impl Launcher {
                     {
                         udp_server_stats_event_sender
                             .send_event(Event::UdpRequestAborted {
-                                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                                context: ConnectionContext::new(client_socket_addr, server_service_binding),
                             })
                             .await;
                     }

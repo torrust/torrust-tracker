@@ -16,6 +16,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::error::{ScrapeError, WhitelistError};
 use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_tracker_primitives::core::ScrapeData;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
 use crate::event::{self, ConnectionContext, Event};
@@ -50,7 +51,7 @@ impl ScrapeService {
     pub async fn handle_scrape(
         &self,
         client_socket_addr: SocketAddr,
-        server_socket_addr: SocketAddr,
+        server_service_binding: ServiceBinding,
         request: &ScrapeRequest,
         cookie_valid_range: Range<f64>,
     ) -> Result<ScrapeData, UdpScrapeError> {
@@ -61,7 +62,7 @@ impl ScrapeService {
             .scrape(&Self::convert_from_aquatic(&request.info_hashes))
             .await?;
 
-        self.send_event(client_socket_addr, server_socket_addr).await;
+        self.send_event(client_socket_addr, server_service_binding).await;
 
         Ok(scrape_data)
     }
@@ -82,11 +83,11 @@ impl ScrapeService {
         aquatic_infohashes.iter().map(|&x| x.into()).collect()
     }
 
-    async fn send_event(&self, client_socket_addr: SocketAddr, server_socket_addr: SocketAddr) {
+    async fn send_event(&self, client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) {
         if let Some(udp_stats_event_sender) = self.opt_udp_stats_event_sender.as_deref() {
             udp_stats_event_sender
                 .send_event(Event::UdpScrape {
-                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    context: ConnectionContext::new(client_socket_addr, server_service_binding),
                 })
                 .await;
         }

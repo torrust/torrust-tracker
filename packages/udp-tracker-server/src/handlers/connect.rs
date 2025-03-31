@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Response};
 use bittorrent_udp_tracker_core::services::connect::ConnectService;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{instrument, Level};
 
 use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
@@ -12,7 +13,7 @@ use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
 #[instrument(fields(transaction_id), skip(connect_service, opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
 pub async fn handle_connect(
     client_socket_addr: SocketAddr,
-    server_socket_addr: SocketAddr,
+    server_service_binding: ServiceBinding,
     request: &ConnectRequest,
     connect_service: &Arc<ConnectService>,
     opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn event::sender::Sender>>>,
@@ -24,14 +25,14 @@ pub async fn handle_connect(
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send_event(Event::UdpRequestAccepted {
-                context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 kind: UdpRequestKind::Connect,
             })
             .await;
     }
 
     let connection_id = connect_service
-        .handle_connect(client_socket_addr, server_socket_addr, cookie_issue_time)
+        .handle_connect(client_socket_addr, server_service_binding, cookie_issue_time)
         .await;
 
     build_response(*request, connection_id)
@@ -60,6 +61,7 @@ mod tests {
         use bittorrent_udp_tracker_core::event as core_event;
         use bittorrent_udp_tracker_core::services::connect::ConnectService;
         use mockall::predicate::eq;
+        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
         use crate::handlers::handle_connect;
@@ -77,6 +79,7 @@ mod tests {
         #[tokio::test]
         async fn a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request() {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let (udp_core_stats_event_sender, _udp_core_stats_repository) =
                 bittorrent_udp_tracker_core::statistics::setup::factory(false);
@@ -93,7 +96,7 @@ mod tests {
 
             let response = handle_connect(
                 sample_ipv4_remote_addr(),
-                server_socket_addr,
+                server_service_binding,
                 &request,
                 &connect_service,
                 &udp_server_stats_event_sender,
@@ -113,6 +116,7 @@ mod tests {
         #[tokio::test]
         async fn a_connect_response_should_contain_a_new_connection_id() {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let (udp_core_stats_event_sender, _udp_core_stats_repository) =
                 bittorrent_udp_tracker_core::statistics::setup::factory(false);
@@ -129,7 +133,7 @@ mod tests {
 
             let response = handle_connect(
                 sample_ipv4_remote_addr(),
-                server_socket_addr,
+                server_service_binding,
                 &request,
                 &connect_service,
                 &udp_server_stats_event_sender,
@@ -149,6 +153,7 @@ mod tests {
         #[tokio::test]
         async fn a_connect_response_should_contain_a_new_connection_id_ipv6() {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let (udp_core_stats_event_sender, _udp_core_stats_repository) =
                 bittorrent_udp_tracker_core::statistics::setup::factory(false);
@@ -165,7 +170,7 @@ mod tests {
 
             let response = handle_connect(
                 sample_ipv6_remote_addr(),
-                server_socket_addr,
+                server_service_binding,
                 &request,
                 &connect_service,
                 &udp_server_stats_event_sender,
@@ -186,12 +191,13 @@ mod tests {
         async fn it_should_send_the_upd4_connect_event_when_a_client_tries_to_connect_using_a_ip4_socket_address() {
             let client_socket_addr = sample_ipv4_socket_address();
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_core_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(core_event::Event::UdpConnect {
-                    context: core_event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    context: core_event::ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -202,7 +208,7 @@ mod tests {
             udp_server_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(Event::UdpRequestAccepted {
-                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                     kind: UdpRequestKind::Connect,
                 }))
                 .times(1)
@@ -214,7 +220,7 @@ mod tests {
 
             handle_connect(
                 client_socket_addr,
-                server_socket_addr,
+                server_service_binding,
                 &sample_connect_request(),
                 &connect_service,
                 &udp_server_stats_event_sender,
@@ -227,12 +233,13 @@ mod tests {
         async fn it_should_send_the_upd6_connect_event_when_a_client_tries_to_connect_using_a_ip6_socket_address() {
             let client_socket_addr = sample_ipv6_remote_addr();
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+            let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_core_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(core_event::Event::UdpConnect {
-                    context: core_event::ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    context: core_event::ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -243,7 +250,7 @@ mod tests {
             udp_server_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(Event::UdpRequestAccepted {
-                    context: ConnectionContext::new(client_socket_addr, server_socket_addr),
+                    context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                     kind: UdpRequestKind::Connect,
                 }))
                 .times(1)
@@ -255,7 +262,7 @@ mod tests {
 
             handle_connect(
                 client_socket_addr,
-                server_socket_addr,
+                server_service_binding,
                 &sample_connect_request(),
                 &connect_service,
                 &udp_server_stats_event_sender,

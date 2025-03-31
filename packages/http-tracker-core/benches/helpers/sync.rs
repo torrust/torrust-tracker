@@ -2,6 +2,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::{Duration, Instant};
 
 use bittorrent_http_tracker_core::services::announce::AnnounceService;
+use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
 use crate::helpers::util::{initialize_core_tracker_services, sample_announce_request_for_peer, sample_peer};
 
@@ -22,12 +23,13 @@ pub async fn return_announce_data_once(samples: u64) -> Duration {
     );
 
     let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+    let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
     let start = Instant::now();
 
     for _ in 0..samples {
         let _announce_data = announce_service
-            .handle_announce(&announce_request, &client_ip_sources, &server_socket_addr, None)
+            .handle_announce(&announce_request, &client_ip_sources, &server_service_binding, None)
             .await
             .unwrap();
     }
