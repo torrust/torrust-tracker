@@ -68,7 +68,7 @@ impl Launcher {
 
         tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{address}");
 
-        let app = router(http_tracker_container, address);
+        let app = router(http_tracker_container, service_binding.clone());
 
         let running = Box::pin(async {
             match tls {

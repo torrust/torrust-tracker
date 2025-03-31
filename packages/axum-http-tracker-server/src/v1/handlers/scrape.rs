@@ -2,7 +2,6 @@
 //!
 //! The handlers perform the authentication and authorization of the request,
 //! and resolve the client IP address.
-use std::net::SocketAddr;
 use std::sync::Arc;
 
 use axum::extract::State;
@@ -14,6 +13,7 @@ use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSo
 use bittorrent_tracker_core::authentication::Key;
 use hyper::StatusCode;
 use torrust_tracker_primitives::core::ScrapeData;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::v1::extractors::authentication_key::Extract as ExtractKey;
 use crate::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
@@ -23,7 +23,7 @@ use crate::v1::extractors::scrape_request::ExtractRequest;
 /// to run in `public` mode.
 #[allow(clippy::unused_async)]
 pub async fn handle_without_key(
-    State(state): State<(Arc<ScrapeService>, SocketAddr)>,
+    State(state): State<(Arc<ScrapeService>, ServiceBinding)>,
     ExtractRequest(scrape_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
 ) -> Response {
@@ -38,7 +38,7 @@ pub async fn handle_without_key(
 /// In this case, the authentication `key` parameter is required.
 #[allow(clippy::unused_async)]
 pub async fn handle_with_key(
-    State(state): State<(Arc<ScrapeService>, SocketAddr)>,
+    State(state): State<(Arc<ScrapeService>, ServiceBinding)>,
     ExtractRequest(scrape_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
     ExtractKey(key): ExtractKey,
@@ -52,11 +52,11 @@ async fn handle(
     scrape_service: &Arc<ScrapeService>,
     scrape_request: &Scrape,
     client_ip_sources: &ClientIpSources,
-    server_socket_addr: &SocketAddr,
+    server_service_binding: &ServiceBinding,
     maybe_key: Option<Key>,
 ) -> Response {
     let scrape_data = match scrape_service
-        .handle_scrape(scrape_request, client_ip_sources, server_socket_addr, maybe_key)
+        .handle_scrape(scrape_request, client_ip_sources, server_service_binding, maybe_key)
         .await
     {
         Ok(scrape_data) => scrape_data,
@@ -173,12 +173,14 @@ mod tests {
         use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use bittorrent_tracker_core::authentication;
         use torrust_tracker_primitives::core::ScrapeData;
+        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use super::{initialize_private_tracker, sample_client_ip_sources, sample_scrape_request};
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_missing() {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let (core_tracker_services, core_http_tracker_services) = initialize_private_tracker();
 
@@ -193,7 +195,12 @@ mod tests {
             );
 
             let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &sample_client_ip_sources(), &server_socket_addr, maybe_key)
+                .handle_scrape(
+                    &scrape_request,
+                    &sample_client_ip_sources(),
+                    &server_service_binding,
+                    maybe_key,
+                )
                 .await
                 .unwrap();
 
@@ -205,6 +212,7 @@ mod tests {
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_invalid() {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let (core_tracker_services, core_http_tracker_services) = initialize_private_tracker();
 
@@ -220,7 +228,12 @@ mod tests {
             );
 
             let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &sample_client_ip_sources(), &server_socket_addr, maybe_key)
+                .handle_scrape(
+                    &scrape_request,
+                    &sample_client_ip_sources(),
+                    &server_service_binding,
+                    maybe_key,
+                )
                 .await
                 .unwrap();
 
@@ -236,6 +249,7 @@ mod tests {
 
         use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use torrust_tracker_primitives::core::ScrapeData;
+        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use super::{initialize_listed_tracker, sample_client_ip_sources, sample_scrape_request};
 
@@ -246,6 +260,7 @@ mod tests {
             let scrape_request = sample_scrape_request();
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = ScrapeService::new(
                 core_tracker_services.core_config.clone(),
@@ -255,7 +270,7 @@ mod tests {
             );
 
             let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &sample_client_ip_sources(), &server_socket_addr, None)
+                .handle_scrape(&scrape_request, &sample_client_ip_sources(), &server_service_binding, None)
                 .await
                 .unwrap();
 
@@ -272,6 +287,7 @@ mod tests {
         use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use super::{initialize_tracker_on_reverse_proxy, sample_scrape_request};
         use crate::v1::handlers::scrape::tests::assert_error_response;
@@ -286,6 +302,7 @@ mod tests {
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = ScrapeService::new(
                 core_tracker_services.core_config.clone(),
@@ -295,7 +312,7 @@ mod tests {
             );
 
             let response = scrape_service
-                .handle_scrape(&sample_scrape_request(), &client_ip_sources, &server_socket_addr, None)
+                .handle_scrape(&sample_scrape_request(), &client_ip_sources, &server_service_binding, None)
                 .await
                 .unwrap_err();
 
@@ -317,6 +334,7 @@ mod tests {
         use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use super::{initialize_tracker_not_on_reverse_proxy, sample_scrape_request};
         use crate::v1::handlers::scrape::tests::assert_error_response;
@@ -331,6 +349,7 @@ mod tests {
             };
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = ScrapeService::new(
                 core_tracker_services.core_config.clone(),
@@ -340,7 +359,7 @@ mod tests {
             );
 
             let response = scrape_service
-                .handle_scrape(&sample_scrape_request(), &client_ip_sources, &server_socket_addr, None)
+                .handle_scrape(&sample_scrape_request(), &client_ip_sources, &server_service_binding, None)
                 .await
                 .unwrap_err();
 
