@@ -8,6 +8,7 @@ use aquatic_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
 use tokio::net::UdpSocket;
 use tokio::time;
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 use zerocopy::network_endian::I32;
 
 use super::Error;
@@ -230,10 +231,12 @@ impl UdpTrackerClient {
 ///
 /// # Errors
 ///
-pub async fn check(remote_addr: &SocketAddr) -> Result<String, String> {
+pub async fn check(service_binding: &ServiceBinding) -> Result<String, String> {
+    let remote_addr = service_binding.bind_address();
+
     tracing::debug!("Checking Service (detail): {remote_addr:?}.");
 
-    match UdpTrackerClient::new(*remote_addr, DEFAULT_TIMEOUT).await {
+    match UdpTrackerClient::new(remote_addr, DEFAULT_TIMEOUT).await {
         Ok(client) => {
             let connect_request = ConnectRequest {
                 transaction_id: TransactionId(I32::new(123)),

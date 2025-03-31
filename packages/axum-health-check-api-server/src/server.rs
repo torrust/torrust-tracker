@@ -18,6 +18,7 @@ use torrust_axum_server::signals::graceful_shutdown;
 use torrust_server_lib::logging::Latency;
 use torrust_server_lib::registar::ServiceRegistry;
 use torrust_server_lib::signals::{Halted, Started};
+use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 use tower_http::classify::ServerErrorsFailureClass;
 use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
@@ -25,7 +26,6 @@ use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tower_http::LatencyUnit;
 use tracing::{instrument, Level, Span};
-use url::Url;
 
 use crate::handlers::health_check_handler;
 use crate::HEALTH_CHECK_API_LOG_TARGET;
@@ -102,9 +102,8 @@ pub fn start(
 
     let socket = std::net::TcpListener::bind(bind_to).expect("Could not bind tcp_listener to address.");
     let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
-    let protocol = "http"; // The health check API only supports HTTP directly now. Use a reverse proxy for HTTPS.
-    let listen_url =
-        Url::parse(&format!("{protocol}://{address}")).expect("Could not parse internal service url for health check API.");
+    let protocol = Protocol::HTTP; // The health check API only supports HTTP directly now. Use a reverse proxy for HTTPS.
+    let service_binding = ServiceBinding::new(protocol.clone(), address).expect("Service binding creation failed");
 
     let handle = Handle::new();
 
@@ -120,8 +119,11 @@ pub fn start(
         .handle(handle)
         .serve(router.into_make_service_with_connect_info::<SocketAddr>());
 
-    tx.send(Started { listen_url, address })
-        .expect("the Health Check API server should not be dropped");
+    tx.send(Started {
+        service_binding,
+        address,
+    })
+    .expect("the Health Check API server should not be dropped");
 
     running
 }

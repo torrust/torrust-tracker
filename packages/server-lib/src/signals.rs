@@ -1,14 +1,14 @@
 //! This module contains functions to handle signals.
 use derive_more::Display;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::instrument;
-use url::Url;
 
 /// This is the message that the "launcher" spawned task sends to the main
 /// application process to notify the service was successfully started.
 ///
 #[derive(Debug)]
 pub struct Started {
-    pub listen_url: Url,
+    pub service_binding: ServiceBinding,
     pub address: std::net::SocketAddr,
 }
 

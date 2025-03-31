@@ -85,10 +85,10 @@ impl Server<Stopped> {
 
         let started = rx_start.await.expect("it should be able to start the service");
 
-        let listen_url = started.listen_url;
+        let service_binding = started.service_binding;
         let local_addr = started.address;
 
-        form.send(ServiceRegistration::new(listen_url, local_addr, Launcher::check))
+        form.send(ServiceRegistration::new(service_binding, Launcher::check))
             .expect("it should be able to send service registration");
 
         let running_udp_server: Server<Running> = Server {

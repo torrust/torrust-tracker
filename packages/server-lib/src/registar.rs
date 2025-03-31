@@ -1,13 +1,12 @@
 //! Registar. Registers Services for Health Check.
 
 use std::collections::HashMap;
-use std::net::SocketAddr;
 use std::sync::Arc;
 
 use derive_more::Constructor;
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
-use url::Url;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 /// A [`ServiceHeathCheckResult`] is returned by a completed health check.
 pub type ServiceHeathCheckResult = Result<String, String>;
@@ -17,8 +16,7 @@ pub type ServiceHeathCheckResult = Result<String, String>;
 /// The `job` awaits a [`ServiceHeathCheckResult`].
 #[derive(Debug, Constructor)]
 pub struct ServiceHealthCheckJob {
-    pub listen_url: Url,
-    pub binding: SocketAddr,
+    pub service_binding: ServiceBinding,
     pub info: String,
     pub service_type: String,
     pub job: JoinHandle<ServiceHeathCheckResult>,
@@ -27,22 +25,21 @@ pub struct ServiceHealthCheckJob {
 /// The function specification [`FnSpawnServiceHeathCheck`].
 ///
 /// A function fulfilling this specification will spawn a new [`ServiceHealthCheckJob`].
-pub type FnSpawnServiceHeathCheck = fn(&Url, &SocketAddr) -> ServiceHealthCheckJob;
+pub type FnSpawnServiceHeathCheck = fn(&ServiceBinding) -> ServiceHealthCheckJob;
 
 /// A [`ServiceRegistration`] is provided to the [`Registar`] for registration.
 ///
 /// Each registration includes a function that fulfils the [`FnSpawnServiceHeathCheck`] specification.
 #[derive(Clone, Debug, Constructor)]
 pub struct ServiceRegistration {
-    listen_url: Url,
-    binding: SocketAddr,
+    service_binding: ServiceBinding,
     check_fn: FnSpawnServiceHeathCheck,
 }
 
 impl ServiceRegistration {
     #[must_use]
     pub fn spawn_check(&self) -> ServiceHealthCheckJob {
-        (self.check_fn)(&self.listen_url, &self.binding)
+        (self.check_fn)(&self.service_binding)
     }
 }
 
@@ -50,7 +47,7 @@ impl ServiceRegistration {
 pub type ServiceRegistrationForm = tokio::sync::oneshot::Sender<ServiceRegistration>;
 
 /// The [`ServiceRegistry`] contains each unique [`ServiceRegistration`] by it's [`SocketAddr`].
-pub type ServiceRegistry = Arc<Mutex<HashMap<SocketAddr, ServiceRegistration>>>;
+pub type ServiceRegistry = Arc<Mutex<HashMap<ServiceBinding, ServiceRegistration>>>;
 
 /// The [`Registar`] manages the [`ServiceRegistry`].
 #[derive(Clone, Debug)]
@@ -93,7 +90,7 @@ impl Registar {
 
         let mut mutex = self.registry.lock().await;
 
-        mutex.insert(service_registration.binding, service_registration);
+        mutex.insert(service_registration.service_binding.clone(), service_registration);
     }
 
     /// Returns the [`ServiceRegistry`] of services

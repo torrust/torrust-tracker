@@ -7,6 +7,7 @@
 pub mod core;
 pub mod pagination;
 pub mod peer;
+pub mod service_binding;
 pub mod swarm_metadata;
 
 use std::collections::BTreeMap;

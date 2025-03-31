@@ -3,6 +3,7 @@ use std::net::SocketAddr;
 use std::ops::Deref;
 
 use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
+use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 use url::Url;
 
 /// Wrapper for Tokio [`UdpSocket`][`tokio::net::UdpSocket`] that is bound to a particular socket.
@@ -46,6 +47,15 @@ impl BoundSocket {
     #[must_use]
     pub fn url(&self) -> Url {
         Url::parse(&format!("udp://{}", self.address())).expect("UDP socket address should be valid")
+    }
+
+    /// # Panics
+    ///
+    /// It should never panic because the conversion to a [`ServiceBinding`]
+    /// is infallible.
+    #[must_use]
+    pub fn service_binding(&self) -> ServiceBinding {
+        ServiceBinding::new(Protocol::UDP, self.address()).expect("Conversion to ServiceBinding should not fail")
     }
 }
 

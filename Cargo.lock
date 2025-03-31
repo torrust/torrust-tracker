@@ -4375,6 +4375,7 @@ dependencies = [
  "torrust-server-lib",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
+ "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
  "torrust-udp-tracker-server",
  "tower-http",
@@ -4510,10 +4511,11 @@ name = "torrust-server-lib"
 version = "3.0.0-develop"
 dependencies = [
  "derive_more",
+ "rstest",
  "tokio",
+ "torrust-tracker-primitives",
  "tower-http",
  "tracing",
- "url",
 ]
 
 [[package]]
@@ -4632,11 +4634,13 @@ dependencies = [
  "binascii",
  "bittorrent-primitives",
  "derive_more",
+ "rstest",
  "serde",
  "tdyne-peer-id",
  "tdyne-peer-id-registry",
  "thiserror 2.0.12",
  "torrust-tracker-configuration",
+ "url",
  "zerocopy 0.7.35",
 ]
 
