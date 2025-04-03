@@ -21,32 +21,27 @@ pub enum Error {
     },
 }
 
-#[instrument(skip(opt_tsl_config))]
-pub async fn make_rust_tls(opt_tsl_config: &Option<TslConfig>) -> Option<Result<RustlsConfig, Error>> {
-    match opt_tsl_config {
-        Some(tsl_config) => {
-            let cert = tsl_config.ssl_cert_path.clone();
-            let key = tsl_config.ssl_key_path.clone();
+#[instrument(skip(tsl_config))]
+pub async fn make_rust_tls(tsl_config: &TslConfig) -> Option<Result<RustlsConfig, Error>> {
+    let cert = tsl_config.ssl_cert_path.clone();
+    let key = tsl_config.ssl_key_path.clone();
 
-            if !cert.exists() || !key.exists() {
-                return Some(Err(Error::MissingTlsConfig {
-                    location: Location::caller(),
-                }));
-            }
-
-            tracing::info!("Using https: cert path: {cert}.");
-            tracing::info!("Using https: key path: {key}.");
-
-            Some(
-                RustlsConfig::from_pem_file(cert, key)
-                    .await
-                    .map_err(|err| Error::BadTlsConfig {
-                        source: (Arc::new(err) as DynError).into(),
-                    }),
-            )
-        }
-        None => None,
+    if !cert.exists() || !key.exists() {
+        return Some(Err(Error::MissingTlsConfig {
+            location: Location::caller(),
+        }));
     }
+
+    tracing::info!("Using https: cert path: {cert}.");
+    tracing::info!("Using https: key path: {key}.");
+
+    Some(
+        RustlsConfig::from_pem_file(cert, key)
+            .await
+            .map_err(|err| Error::BadTlsConfig {
+                source: (Arc::new(err) as DynError).into(),
+            }),
+    )
 }
 
 #[cfg(test)]

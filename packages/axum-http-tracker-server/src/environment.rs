@@ -43,10 +43,11 @@ impl Environment<Stopped> {
 
         let bind_to = container.http_tracker_core_container.http_tracker_config.bind_address;
 
-        let tls = block_on(make_rust_tls(
-            &container.http_tracker_core_container.http_tracker_config.tsl_config,
-        ))
-        .map(|tls| tls.expect("tls config failed"));
+        let tls = if let Some(tls_config) = &container.http_tracker_core_container.http_tracker_config.tsl_config {
+            block_on(make_rust_tls(tls_config)).map(|tls| tls.expect("tls config failed"))
+        } else {
+            None
+        };
 
         let server = HttpServer::new(Launcher::new(bind_to, tls));
 
