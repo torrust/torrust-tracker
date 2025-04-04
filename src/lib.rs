@@ -138,7 +138,6 @@
 //! ```text
 //! git clone https://github.com/torrust/torrust-tracker.git \
 //!   && cd torrust-tracker \
-//!   && cargo build --release \
 //!   && mkdir -p ./storage/tracker/etc \
 //!   && mkdir -p ./storage/tracker/lib/database \
 //!   && mkdir -p ./storage/tracker/lib/tls \
@@ -149,7 +148,7 @@
 //! compile and after being compiled it will start running the tracker.
 //!
 //! ```text
-//! cargo run
+//! cargo run --release
 //! ```
 //!
 //! ## Run with docker
