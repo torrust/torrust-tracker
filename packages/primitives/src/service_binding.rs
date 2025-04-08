@@ -83,6 +83,12 @@ impl ServiceBinding {
         Ok(Self { protocol, bind_address })
     }
 
+    /// Returns the protocol used by the service.
+    #[must_use]
+    pub fn protocol(&self) -> Protocol {
+        self.protocol.clone()
+    }
+
     #[must_use]
     pub fn bind_address(&self) -> SocketAddr {
         self.bind_address
