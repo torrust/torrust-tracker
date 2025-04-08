@@ -59,6 +59,8 @@ pub async fn get_metrics(
             // TCPv6
             tcp6_announces_handled: stats.tcp6_announces_handled,
             tcp6_scrapes_handled: stats.tcp6_scrapes_handled,
+            // Samples
+            metric_collection: stats.metric_collection.clone(),
         },
     }
 }
@@ -73,8 +75,8 @@ mod tests {
     use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::statistics;
     use crate::statistics::services::{get_metrics, TrackerMetrics};
+    use crate::statistics::{self, describe_metrics};
 
     pub fn tracker_configuration() -> Configuration {
         configuration::ephemeral()
@@ -95,7 +97,7 @@ mod tests {
             tracker_metrics,
             TrackerMetrics {
                 torrents_metrics: AggregateSwarmMetadata::default(),
-                protocol_metrics: statistics::metrics::Metrics::default(),
+                protocol_metrics: describe_metrics(),
             }
         );
     }

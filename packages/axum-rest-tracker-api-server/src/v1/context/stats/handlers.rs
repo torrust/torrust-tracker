@@ -9,9 +9,9 @@ use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepo
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use serde::Deserialize;
 use tokio::sync::RwLock;
-use torrust_rest_tracker_api_core::statistics::services::get_metrics;
+use torrust_rest_tracker_api_core::statistics::services::{get_labeled_metrics, get_metrics};
 
-use super::responses::{metrics_response, stats_response};
+use super::responses::{labeled_metrics_response, labeled_stats_response, metrics_response, stats_response};
 
 #[derive(Deserialize, Debug, Default)]
 #[serde(rename_all = "lowercase")]
@@ -28,7 +28,7 @@ pub struct QueryParams {
     pub format: Option<Format>,
 }
 
-/// It handles the request to get the tracker statistics.
+/// It handles the request to get the tracker global metrics.
 ///
 /// By default it returns a `200` response with the stats in JSON format.
 ///
@@ -55,5 +55,32 @@ pub async fn get_stats_handler(
             Format::Prometheus => metrics_response(&metrics),
         },
         None => stats_response(metrics),
+    }
+}
+
+/// It handles the request to get the tracker extendable metrics.
+///
+/// By default it returns a `200` response with the stats in JSON format.
+///
+/// You can add the GET parameter `format=prometheus` to get the stats in
+/// Prometheus Text Exposition Format.
+#[allow(clippy::type_complexity)]
+pub async fn get_metrics_handler(
+    State(state): State<(
+        Arc<InMemoryTorrentRepository>,
+        Arc<RwLock<BanService>>,
+        Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
+        Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
+    )>,
+    params: Query<QueryParams>,
+) -> Response {
+    let metrics = get_labeled_metrics(state.0.clone(), state.1.clone(), state.2.clone(), state.3.clone()).await;
+
+    match params.0.format {
+        Some(format) => match format {
+            Format::Json => labeled_stats_response(metrics),
+            Format::Prometheus => labeled_metrics_response(&metrics),
+        },
+        None => labeled_stats_response(metrics),
     }
 }

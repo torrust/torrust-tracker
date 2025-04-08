@@ -1,5 +1,6 @@
 use std::net::{IpAddr, SocketAddr};
 
+use torrust_tracker_metrics::label::{LabelName, LabelSet, LabelValue};
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 pub mod sender;
@@ -58,4 +59,23 @@ pub struct ClientConnectionContext {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ServerConnectionContext {
     service_binding: ServiceBinding,
+}
+
+impl From<ConnectionContext> for LabelSet {
+    fn from(connection_context: ConnectionContext) -> Self {
+        LabelSet::from([
+            (
+                LabelName::new("server_binding_protocol"),
+                LabelValue::new(&connection_context.server.service_binding.protocol().to_string()),
+            ),
+            (
+                LabelName::new("server_binding_ip"),
+                LabelValue::new(&connection_context.server.service_binding.bind_address().ip().to_string()),
+            ),
+            (
+                LabelName::new("server_binding_port"),
+                LabelValue::new(&connection_context.server.service_binding.bind_address().port().to_string()),
+            ),
+        ])
+    }
 }
