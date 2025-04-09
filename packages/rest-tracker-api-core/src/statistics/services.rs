@@ -99,12 +99,12 @@ pub async fn get_labeled_metrics(
 ) -> TrackerLabeledMetrics {
     let _torrents_metrics = in_memory_torrent_repository.get_torrents_metrics();
     let _udp_banned_ips_total = ban_service.read().await.get_banned_ips_total();
-    let _udp_server_stats = udp_server_stats_repository.get_stats().await;
 
     let http_stats = http_stats_repository.get_stats().await;
     let udp_stats_repository = udp_stats_repository.get_stats().await;
+    let udp_server_stats = udp_server_stats_repository.get_stats().await;
 
-    // Merge the metrics from the HTTP and UDP metrics
+    // Merge all the metrics into a single collection
     let mut metrics = MetricCollection::default();
     metrics
         .merge(&http_stats.metric_collection)
@@ -112,6 +112,9 @@ pub async fn get_labeled_metrics(
     metrics
         .merge(&udp_stats_repository.metric_collection)
         .expect("failed to merge UDP core metrics");
+    metrics
+        .merge(&udp_server_stats.metric_collection)
+        .expect("failed to merge UDP server metrics");
 
     TrackerLabeledMetrics { metrics }
 }
