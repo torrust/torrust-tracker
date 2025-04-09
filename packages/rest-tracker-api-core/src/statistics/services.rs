@@ -84,11 +84,17 @@ pub struct TrackerLabeledMetrics {
 }
 
 /// It returns all the [`TrackerLabeledMetrics`]
+///
+/// # Panics
+///
+/// Will panic if the metrics cannot be merged. This could happen if the
+/// packages are producing duplicate metric names, for example.
 #[allow(deprecated)]
 pub async fn get_labeled_metrics(
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     ban_service: Arc<RwLock<BanService>>,
     http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
+    udp_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
     udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
 ) -> TrackerLabeledMetrics {
     let _torrents_metrics = in_memory_torrent_repository.get_torrents_metrics();
@@ -96,10 +102,18 @@ pub async fn get_labeled_metrics(
     let _udp_server_stats = udp_server_stats_repository.get_stats().await;
 
     let http_stats = http_stats_repository.get_stats().await;
+    let udp_stats_repository = udp_stats_repository.get_stats().await;
 
-    TrackerLabeledMetrics {
-        metrics: http_stats.metric_collection.clone(),
-    }
+    // Merge the metrics from the HTTP and UDP metrics
+    let mut metrics = MetricCollection::default();
+    metrics
+        .merge(&http_stats.metric_collection)
+        .expect("msg: failed to merge HTTP core metrics");
+    metrics
+        .merge(&udp_stats_repository.metric_collection)
+        .expect("failed to merge UDP core metrics");
+
+    TrackerLabeledMetrics { metrics }
 }
 
 #[cfg(test)]
