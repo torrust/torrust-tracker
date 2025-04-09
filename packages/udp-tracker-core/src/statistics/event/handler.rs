@@ -1,35 +1,81 @@
+use torrust_tracker_metrics::label::LabelSet;
+use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
 use crate::event::Event;
 use crate::statistics::repository::Repository;
 
 /// # Panics
 ///
 /// This function panics if the IP version does not match the event type.
-pub async fn handle_event(event: Event, stats_repository: &Repository) {
+pub async fn handle_event(event: Event, stats_repository: &Repository, now: DurationSinceUnixEpoch) {
     match event {
-        Event::UdpConnect { context } => match context.client_socket_addr.ip() {
-            std::net::IpAddr::V4(_) => {
-                stats_repository.increase_udp4_connections().await;
+        Event::UdpConnect { context } => {
+            // Global fixed metrics
+
+            match context.client_socket_addr.ip() {
+                std::net::IpAddr::V4(_) => {
+                    stats_repository.increase_udp4_connections().await;
+                }
+                std::net::IpAddr::V6(_) => {
+                    stats_repository.increase_udp6_connections().await;
+                }
             }
-            std::net::IpAddr::V6(_) => {
-                stats_repository.increase_udp6_connections().await;
+
+            // Extendable metrics
+
+            stats_repository
+                .increase_counter(
+                    &MetricName::new("udp_tracker_core_connect_requests_received_total"),
+                    &LabelSet::from(context),
+                    now,
+                )
+                .await;
+        }
+        Event::UdpAnnounce { context } => {
+            // Global fixed metrics
+
+            match context.client_socket_addr.ip() {
+                std::net::IpAddr::V4(_) => {
+                    stats_repository.increase_udp4_announces().await;
+                }
+                std::net::IpAddr::V6(_) => {
+                    stats_repository.increase_udp6_announces().await;
+                }
             }
-        },
-        Event::UdpAnnounce { context } => match context.client_socket_addr.ip() {
-            std::net::IpAddr::V4(_) => {
-                stats_repository.increase_udp4_announces().await;
+
+            // Extendable metrics
+
+            stats_repository
+                .increase_counter(
+                    &MetricName::new("udp_tracker_core_announce_requests_received_total"),
+                    &LabelSet::from(context),
+                    now,
+                )
+                .await;
+        }
+        Event::UdpScrape { context } => {
+            // Global fixed metrics
+
+            match context.client_socket_addr.ip() {
+                std::net::IpAddr::V4(_) => {
+                    stats_repository.increase_udp4_scrapes().await;
+                }
+                std::net::IpAddr::V6(_) => {
+                    stats_repository.increase_udp6_scrapes().await;
+                }
             }
-            std::net::IpAddr::V6(_) => {
-                stats_repository.increase_udp6_announces().await;
-            }
-        },
-        Event::UdpScrape { context } => match context.client_socket_addr.ip() {
-            std::net::IpAddr::V4(_) => {
-                stats_repository.increase_udp4_scrapes().await;
-            }
-            std::net::IpAddr::V6(_) => {
-                stats_repository.increase_udp6_scrapes().await;
-            }
-        },
+
+            // Extendable metrics
+
+            stats_repository
+                .increase_counter(
+                    &MetricName::new("udp_tracker_core_scrape_requests_received_total"),
+                    &LabelSet::from(context),
+                    now,
+                )
+                .await;
+        }
     }
 
     tracing::debug!("stats: {:?}", stats_repository.get_stats().await);
@@ -39,11 +85,13 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
+    use crate::CurrentClock;
 
     #[tokio::test]
     async fn should_increase_the_udp4_connections_counter_when_it_receives_a_udp4_connect_event() {
@@ -61,6 +109,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -85,6 +134,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -109,6 +159,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -133,6 +184,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -157,6 +209,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -181,6 +234,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 

@@ -17,13 +17,13 @@ pub fn describe_metrics() -> Metrics {
     metrics.metric_collection.describe_counter(
         &MetricName::new("http_tracker_core_announce_requests_received_total"),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of announce requests received")),
+        Some(MetricDescription::new("Total number of HTTP announce requests received")),
     );
 
     metrics.metric_collection.describe_counter(
         &MetricName::new("http_tracker_core_scrape_requests_received_total"),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of scrape requests received")),
+        Some(MetricDescription::new("Total number of HTTP scrape requests received")),
     );
 
     metrics

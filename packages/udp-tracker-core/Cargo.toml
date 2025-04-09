@@ -25,9 +25,12 @@ criterion = { version = "0.5.1", features = ["async_tokio"] }
 futures = "0"
 lazy_static = "1"
 rand = "0"
+serde = "1.0.219"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 tracing = "0"
 zerocopy = "0.7"
@@ -39,4 +42,3 @@ torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-help
 [[bench]]
 harness = false
 name = "udp_tracker_core_benchmark"
-

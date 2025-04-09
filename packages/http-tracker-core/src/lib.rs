@@ -1,9 +1,9 @@
-use torrust_tracker_clock::clock;
-
 pub mod container;
 pub mod event;
 pub mod services;
 pub mod statistics;
+
+use torrust_tracker_clock::clock;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.
