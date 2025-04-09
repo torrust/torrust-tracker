@@ -1,3 +1,7 @@
+use torrust_tracker_metrics::label::{LabelName, LabelSet, LabelValue};
+use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
 use crate::event::{Event, UdpRequestKind, UdpResponseKind};
 use crate::statistics::repository::Repository;
 
@@ -6,53 +10,103 @@ use crate::statistics::repository::Repository;
 /// This function panics if the client IP version does not match the expected
 /// version.
 #[allow(clippy::too_many_lines)]
-pub async fn handle_event(event: Event, stats_repository: &Repository) {
+pub async fn handle_event(event: Event, stats_repository: &Repository, now: DurationSinceUnixEpoch) {
     match event {
-        Event::UdpRequestAborted { .. } => {
+        Event::UdpRequestAborted { context } => {
+            // Global fixed metrics
             stats_repository.increase_udp_requests_aborted().await;
+
+            // Extendable metrics
+            stats_repository
+                .increase_counter(
+                    &MetricName::new("udp_tracker_server_requests_aborted_total"),
+                    &LabelSet::from(context),
+                    now,
+                )
+                .await;
         }
-        Event::UdpRequestBanned { .. } => {
+        Event::UdpRequestBanned { context } => {
+            // Global fixed metrics
             stats_repository.increase_udp_requests_banned().await;
+
+            // Extendable metrics
+            stats_repository
+                .increase_counter(
+                    &MetricName::new("udp_tracker_server_requests_banned_total"),
+                    &LabelSet::from(context),
+                    now,
+                )
+                .await;
         }
-        Event::UdpRequestReceived { context } => match context.client_socket_addr().ip() {
-            std::net::IpAddr::V4(_) => {
-                stats_repository.increase_udp4_requests().await;
+        Event::UdpRequestReceived { context } => {
+            // Global fixed metrics
+            match context.client_socket_addr().ip() {
+                std::net::IpAddr::V4(_) => {
+                    stats_repository.increase_udp4_requests().await;
+                }
+                std::net::IpAddr::V6(_) => {
+                    stats_repository.increase_udp6_requests().await;
+                }
             }
-            std::net::IpAddr::V6(_) => {
-                stats_repository.increase_udp6_requests().await;
+
+            // Extendable metrics
+            stats_repository
+                .increase_counter(
+                    &MetricName::new("udp_tracker_server_requests_received_total"),
+                    &LabelSet::from(context),
+                    now,
+                )
+                .await;
+        }
+        Event::UdpRequestAccepted { context, kind } => {
+            // Global fixed metrics
+            match kind {
+                UdpRequestKind::Connect => match context.client_socket_addr().ip() {
+                    std::net::IpAddr::V4(_) => {
+                        stats_repository.increase_udp4_connections().await;
+                    }
+                    std::net::IpAddr::V6(_) => {
+                        stats_repository.increase_udp6_connections().await;
+                    }
+                },
+                UdpRequestKind::Announce => match context.client_socket_addr().ip() {
+                    std::net::IpAddr::V4(_) => {
+                        stats_repository.increase_udp4_announces().await;
+                    }
+                    std::net::IpAddr::V6(_) => {
+                        stats_repository.increase_udp6_announces().await;
+                    }
+                },
+                UdpRequestKind::Scrape => match context.client_socket_addr().ip() {
+                    std::net::IpAddr::V4(_) => {
+                        stats_repository.increase_udp4_scrapes().await;
+                    }
+                    std::net::IpAddr::V6(_) => {
+                        stats_repository.increase_udp6_scrapes().await;
+                    }
+                },
             }
-        },
-        Event::UdpRequestAccepted { context, kind } => match kind {
-            UdpRequestKind::Connect => match context.client_socket_addr().ip() {
-                std::net::IpAddr::V4(_) => {
-                    stats_repository.increase_udp4_connections().await;
-                }
-                std::net::IpAddr::V6(_) => {
-                    stats_repository.increase_udp6_connections().await;
-                }
-            },
-            UdpRequestKind::Announce => match context.client_socket_addr().ip() {
-                std::net::IpAddr::V4(_) => {
-                    stats_repository.increase_udp4_announces().await;
-                }
-                std::net::IpAddr::V6(_) => {
-                    stats_repository.increase_udp6_announces().await;
-                }
-            },
-            UdpRequestKind::Scrape => match context.client_socket_addr().ip() {
-                std::net::IpAddr::V4(_) => {
-                    stats_repository.increase_udp4_scrapes().await;
-                }
-                std::net::IpAddr::V6(_) => {
-                    stats_repository.increase_udp6_scrapes().await;
-                }
-            },
-        },
+
+            // Extendable metrics
+
+            let mut label_set = LabelSet::from(context);
+
+            label_set.upsert(LabelName::new("kind"), LabelValue::new(&kind.to_string()));
+
+            stats_repository
+                .increase_counter(
+                    &MetricName::new("udp_tracker_server_requests_accepted_total"),
+                    &label_set,
+                    now,
+                )
+                .await;
+        }
         Event::UdpResponseSent {
             context,
             kind,
             req_processing_time,
         } => {
+            // Global fixed metrics
             match context.client_socket_addr().ip() {
                 std::net::IpAddr::V4(_) => {
                     stats_repository.increase_udp4_responses().await;
@@ -62,35 +116,94 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
                 }
             }
 
-            match kind {
+            let (result_label_value, kind_label_value) = match kind {
                 UdpResponseKind::Ok { req_kind } => match req_kind {
                     UdpRequestKind::Connect => {
-                        stats_repository
+                        let new_avg = stats_repository
                             .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
                             .await;
+
+                        // Extendable metrics
+                        stats_repository
+                            .set_gauge(
+                                &MetricName::new("udp_tracker_server_performance_avg_connect_processing_time_ns"),
+                                &LabelSet::from(context.clone()),
+                                new_avg,
+                                now,
+                            )
+                            .await;
+
+                        (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Connect.to_string()))
                     }
                     UdpRequestKind::Announce => {
-                        stats_repository
+                        let new_avg = stats_repository
                             .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
                             .await;
+
+                        // Extendable metrics
+                        stats_repository
+                            .set_gauge(
+                                &MetricName::new("udp_tracker_server_performance_avg_announce_processing_time_ns"),
+                                &LabelSet::from(context.clone()),
+                                new_avg,
+                                now,
+                            )
+                            .await;
+
+                        (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Connect.to_string()))
                     }
                     UdpRequestKind::Scrape => {
-                        stats_repository
+                        let new_avg = stats_repository
                             .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
                             .await;
+
+                        // Extendable metrics
+                        stats_repository
+                            .set_gauge(
+                                &MetricName::new("udp_tracker_server_performance_avg_scrape_processing_time_ns"),
+                                &LabelSet::from(context.clone()),
+                                new_avg,
+                                now,
+                            )
+                            .await;
+
+                        (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Connect.to_string()))
                     }
                 },
-                UdpResponseKind::Error { opt_req_kind: _ } => {}
-            }
+                UdpResponseKind::Error { opt_req_kind: _ } => (LabelValue::new("ok"), LabelValue::ignore()),
+            };
+
+            // Extendable metrics
+
+            let mut label_set = LabelSet::from(context);
+
+            label_set.upsert(LabelName::new("result"), result_label_value);
+            label_set.upsert(LabelName::new("kind"), kind_label_value);
+
+            stats_repository
+                .increase_counter(&MetricName::new("udp_tracker_server_responses_sent_total"), &label_set, now)
+                .await;
         }
-        Event::UdpError { context } => match context.client_socket_addr().ip() {
-            std::net::IpAddr::V4(_) => {
-                stats_repository.increase_udp4_errors().await;
+        Event::UdpError { context } => {
+            // Global fixed metrics
+            match context.client_socket_addr().ip() {
+                std::net::IpAddr::V4(_) => {
+                    stats_repository.increase_udp4_errors().await;
+                }
+                std::net::IpAddr::V6(_) => {
+                    stats_repository.increase_udp6_errors().await;
+                }
             }
-            std::net::IpAddr::V6(_) => {
-                stats_repository.increase_udp6_errors().await;
-            }
-        },
+
+            // Extendable metrics
+            stats_repository
+                .increase_counter(
+                    &MetricName::new("udp_tracker_server_errors_total"),
+                    &LabelSet::from(context),
+                    now,
+                )
+                .await;
+        }
     }
 
     tracing::debug!("stats: {:?}", stats_repository.get_stats().await);
@@ -100,11 +213,13 @@ pub async fn handle_event(event: Event, stats_repository: &Repository) {
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
     use crate::event::{ConnectionContext, Event, UdpRequestKind};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
+    use crate::CurrentClock;
 
     #[tokio::test]
     async fn should_increase_the_number_of_aborted_requests_when_it_receives_a_udp_request_aborted_event() {
@@ -122,6 +237,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -146,6 +262,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -170,6 +287,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -194,6 +312,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
         let stats = stats_repository.get_stats().await;
@@ -215,6 +334,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
         let stats = stats_repository.get_stats().await;
@@ -238,6 +358,7 @@ mod tests {
                 kind: crate::event::UdpRequestKind::Connect,
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -263,6 +384,7 @@ mod tests {
                 kind: crate::event::UdpRequestKind::Announce,
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -288,6 +410,7 @@ mod tests {
                 kind: crate::event::UdpRequestKind::Scrape,
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -316,6 +439,7 @@ mod tests {
                 req_processing_time: std::time::Duration::from_secs(1),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -340,6 +464,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -365,6 +490,7 @@ mod tests {
                 kind: crate::event::UdpRequestKind::Connect,
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -390,6 +516,7 @@ mod tests {
                 kind: crate::event::UdpRequestKind::Announce,
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -415,6 +542,7 @@ mod tests {
                 kind: crate::event::UdpRequestKind::Scrape,
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -443,6 +571,7 @@ mod tests {
                 req_processing_time: std::time::Duration::from_secs(1),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 
@@ -466,6 +595,7 @@ mod tests {
                 ),
             },
             &stats_repository,
+            CurrentClock::now(),
         )
         .await;
 

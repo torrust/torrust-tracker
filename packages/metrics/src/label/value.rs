@@ -11,6 +11,12 @@ impl LabelValue {
     pub fn new(value: &str) -> Self {
         Self(value.to_owned())
     }
+
+    /// Empty label values are ignored in Prometheus.
+    #[must_use]
+    pub fn ignore() -> Self {
+        Self(String::default())
+    }
 }
 
 impl PrometheusSerializable for LabelValue {

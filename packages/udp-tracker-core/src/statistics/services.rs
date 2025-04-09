@@ -77,7 +77,7 @@ pub async fn get_metrics(
             udp6_connections_handled: stats.udp6_connections_handled,
             udp6_announces_handled: stats.udp6_announces_handled,
             udp6_scrapes_handled: stats.udp6_scrapes_handled,
-            // Samples
+            // Extendable metrics
             metric_collection: stats.metric_collection.clone(),
         },
     }

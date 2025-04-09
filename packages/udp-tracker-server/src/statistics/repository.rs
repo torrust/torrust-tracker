@@ -2,7 +2,11 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::sync::{RwLock, RwLockReadGuard};
+use torrust_tracker_metrics::label::LabelSet;
+use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
+use super::describe_metrics;
 use super::metrics::Metrics;
 
 /// A repository for the tracker metrics.
@@ -21,7 +25,7 @@ impl Repository {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            stats: Arc::new(RwLock::new(Metrics::default())),
+            stats: Arc::new(RwLock::new(describe_metrics())),
         }
     }
 
@@ -80,7 +84,7 @@ impl Repository {
     #[allow(clippy::cast_precision_loss)]
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
-    pub async fn recalculate_udp_avg_connect_processing_time_ns(&self, req_processing_time: Duration) {
+    pub async fn recalculate_udp_avg_connect_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
         let mut stats_lock = self.stats.write().await;
 
         let req_processing_time = req_processing_time.as_nanos() as f64;
@@ -94,12 +98,14 @@ impl Repository {
         stats_lock.udp_avg_connect_processing_time_ns = new_avg.ceil() as u64;
 
         drop(stats_lock);
+
+        new_avg
     }
 
     #[allow(clippy::cast_precision_loss)]
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
-    pub async fn recalculate_udp_avg_announce_processing_time_ns(&self, req_processing_time: Duration) {
+    pub async fn recalculate_udp_avg_announce_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
         let mut stats_lock = self.stats.write().await;
 
         let req_processing_time = req_processing_time.as_nanos() as f64;
@@ -114,12 +120,14 @@ impl Repository {
         stats_lock.udp_avg_announce_processing_time_ns = new_avg.ceil() as u64;
 
         drop(stats_lock);
+
+        new_avg
     }
 
     #[allow(clippy::cast_precision_loss)]
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
-    pub async fn recalculate_udp_avg_scrape_processing_time_ns(&self, req_processing_time: Duration) {
+    pub async fn recalculate_udp_avg_scrape_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
         let mut stats_lock = self.stats.write().await;
 
         let req_processing_time = req_processing_time.as_nanos() as f64;
@@ -133,6 +141,8 @@ impl Repository {
         stats_lock.udp_avg_scrape_processing_time_ns = new_avg.ceil() as u64;
 
         drop(stats_lock);
+
+        new_avg
     }
 
     pub async fn increase_udp6_requests(&self) {
@@ -168,6 +178,18 @@ impl Repository {
     pub async fn increase_udp6_errors(&self) {
         let mut stats_lock = self.stats.write().await;
         stats_lock.udp6_errors_handled += 1;
+        drop(stats_lock);
+    }
+
+    pub async fn increase_counter(&self, metric_name: &MetricName, labels: &LabelSet, now: DurationSinceUnixEpoch) {
+        let mut stats_lock = self.stats.write().await;
+        stats_lock.increase_counter(metric_name, labels, now);
+        drop(stats_lock);
+    }
+
+    pub async fn set_gauge(&self, metric_name: &MetricName, labels: &LabelSet, value: f64, now: DurationSinceUnixEpoch) {
+        let mut stats_lock = self.stats.write().await;
+        stats_lock.set_gauge(metric_name, labels, value, now);
         drop(stats_lock);
     }
 }
