@@ -6,7 +6,6 @@ pub mod metric_collection;
 pub mod prometheus;
 pub mod sample;
 pub mod sample_collection;
-pub mod thread_safe_metric_collection;
 pub mod unit;
 
 #[cfg(test)]
