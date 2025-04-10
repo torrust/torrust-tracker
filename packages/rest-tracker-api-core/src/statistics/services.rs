@@ -4,6 +4,7 @@ use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepo
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
 use tokio::sync::RwLock;
+use torrust_tracker_metrics::metric_collection::MetricCollection;
 use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
 use torrust_udp_tracker_server::statistics as udp_server_statistics;
 
@@ -75,6 +76,47 @@ pub async fn get_metrics(
             udp6_errors_handled: udp_server_stats.udp6_errors_handled,
         },
     }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct TrackerLabeledMetrics {
+    pub metrics: MetricCollection,
+}
+
+/// It returns all the [`TrackerLabeledMetrics`]
+///
+/// # Panics
+///
+/// Will panic if the metrics cannot be merged. This could happen if the
+/// packages are producing duplicate metric names, for example.
+#[allow(deprecated)]
+pub async fn get_labeled_metrics(
+    in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
+    ban_service: Arc<RwLock<BanService>>,
+    http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
+    udp_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
+    udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
+) -> TrackerLabeledMetrics {
+    let _torrents_metrics = in_memory_torrent_repository.get_torrents_metrics();
+    let _udp_banned_ips_total = ban_service.read().await.get_banned_ips_total();
+
+    let http_stats = http_stats_repository.get_stats().await;
+    let udp_stats_repository = udp_stats_repository.get_stats().await;
+    let udp_server_stats = udp_server_stats_repository.get_stats().await;
+
+    // Merge all the metrics into a single collection
+    let mut metrics = MetricCollection::default();
+    metrics
+        .merge(&http_stats.metric_collection)
+        .expect("msg: failed to merge HTTP core metrics");
+    metrics
+        .merge(&udp_stats_repository.metric_collection)
+        .expect("failed to merge UDP core metrics");
+    metrics
+        .merge(&udp_server_stats.metric_collection)
+        .expect("failed to merge UDP server metrics");
+
+    TrackerLabeledMetrics { metrics }
 }
 
 #[cfg(test)]

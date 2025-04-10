@@ -37,6 +37,7 @@ torrust-rest-tracker-api-core = { version = "3.0.0-develop", path = "../rest-tra
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-udp-tracker-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }
 tower = { version = "0", features = ["timeout"] }
