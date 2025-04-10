@@ -18,8 +18,8 @@ pub struct Sample<T> {
 
 impl<T> Sample<T> {
     #[must_use]
-    pub fn new(value: T, update_at: DurationSinceUnixEpoch, label_set: LabelSet) -> Self {
-        let data = Measurement { value, update_at };
+    pub fn new(value: T, recorded_at: DurationSinceUnixEpoch, label_set: LabelSet) -> Self {
+        let data = Measurement { value, recorded_at };
 
         Self {
             measurement: data,
@@ -38,8 +38,8 @@ impl<T> Sample<T> {
     }
 
     #[must_use]
-    pub fn update_at(&self) -> DurationSinceUnixEpoch {
-        self.measurement.update_at
+    pub fn recorded_at(&self) -> DurationSinceUnixEpoch {
+        self.measurement.recorded_at
     }
 
     #[must_use]
@@ -73,13 +73,13 @@ pub struct Measurement<T> {
 
     /// The time when the sample was last updated.
     #[serde(serialize_with = "serialize_duration", deserialize_with = "deserialize_duration")]
-    update_at: DurationSinceUnixEpoch,
+    recorded_at: DurationSinceUnixEpoch,
 }
 
 impl<T> Measurement<T> {
     #[must_use]
-    pub fn new(value: T, update_at: DurationSinceUnixEpoch) -> Self {
-        Self { value, update_at }
+    pub fn new(value: T, recorded_at: DurationSinceUnixEpoch) -> Self {
+        Self { value, recorded_at }
     }
 
     #[must_use]
@@ -88,12 +88,12 @@ impl<T> Measurement<T> {
     }
 
     #[must_use]
-    pub fn update_at(&self) -> DurationSinceUnixEpoch {
-        self.update_at
+    pub fn recorded_at(&self) -> DurationSinceUnixEpoch {
+        self.recorded_at
     }
 
-    fn set_update_at(&mut self, time: DurationSinceUnixEpoch) {
-        self.update_at = time;
+    fn set_recorded_at(&mut self, time: DurationSinceUnixEpoch) {
+        self.recorded_at = time;
     }
 }
 
@@ -112,18 +112,18 @@ impl<T: PrometheusSerializable> PrometheusSerializable for Measurement<T> {
 impl Measurement<Counter> {
     pub fn increment(&mut self, time: DurationSinceUnixEpoch) {
         self.value.increment(1);
-        self.set_update_at(time);
+        self.set_recorded_at(time);
     }
 }
 
 impl Measurement<Gauge> {
     pub fn set(&mut self, value: f64, time: DurationSinceUnixEpoch) {
         self.value.set(value);
-        self.set_update_at(time);
+        self.set_recorded_at(time);
     }
 }
 
-/// Serializes the `update_at` field as a string in ISO 8601 format (RFC 3339).
+/// Serializes the `recorded_at` field as a string in ISO 8601 format (RFC 3339).
 ///
 /// # Errors
 ///
@@ -189,7 +189,7 @@ mod tests {
             LabelSet::from(vec![("test", "label")]),
         );
 
-        assert_eq!(sample.update_at(), updated_at_time());
+        assert_eq!(sample.recorded_at(), updated_at_time());
     }
 
     #[test]
@@ -239,7 +239,7 @@ mod tests {
 
             sample.increment(time);
 
-            assert_eq!(sample.update_at(), time);
+            assert_eq!(sample.recorded_at(), time);
         }
 
         #[test]
@@ -289,7 +289,7 @@ mod tests {
 
             sample.set(1.0, time);
 
-            assert_eq!(sample.update_at(), time);
+            assert_eq!(sample.recorded_at(), time);
         }
 
         #[test]
@@ -321,7 +321,7 @@ mod tests {
             let deserialized: Sample<i32> = serde_json::from_str(&json).unwrap();
 
             assert_eq!(original.measurement.value, deserialized.measurement.value);
-            assert_eq!(original.measurement.update_at, deserialized.measurement.update_at);
+            assert_eq!(original.measurement.recorded_at, deserialized.measurement.recorded_at);
             assert_eq!(original.label_set, deserialized.label_set);
         }
 
@@ -338,7 +338,7 @@ mod tests {
             let expected_json = r#"
                 {
                     "value": 42,
-                    "update_at": "2025-04-02T00:00:00.000000100+00:00",
+                    "recorded_at": "2025-04-02T00:00:00.000000100+00:00",
                     "labels": [
                         {
                         "name": "label_name",
@@ -372,7 +372,7 @@ mod tests {
                 r#"
                 {
                     "value": 42,
-                    "update_at": "1-1-2023T25:00:00Z",
+                    "recorded_at": "1-1-2023T25:00:00Z",
                     "labels": [
                         {
                         "name": "label_name",

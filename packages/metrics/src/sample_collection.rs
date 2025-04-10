@@ -89,7 +89,7 @@ impl<T: Serialize> Serialize for SampleCollection<T> {
         let mut samples: Vec<Sample<&T>> = vec![];
 
         for (label_set, sample_data) in &self.samples {
-            samples.push(Sample::new(sample_data.value(), sample_data.update_at(), label_set.clone()));
+            samples.push(Sample::new(sample_data.value(), sample_data.recorded_at(), label_set.clone()));
         }
 
         samples.serialize(serializer)
@@ -317,7 +317,7 @@ mod tests {
             collection.increment(&label_set, new_time);
 
             let sample = collection.get(&label_set).unwrap();
-            assert_eq!(sample.update_at(), new_time);
+            assert_eq!(sample.recorded_at(), new_time);
             assert_eq!(*sample.value(), Counter::new(2));
         }
 
@@ -392,7 +392,7 @@ mod tests {
             collection.set(&label_set, 2.0, new_time);
 
             let sample = collection.get(&label_set).unwrap();
-            assert_eq!(sample.update_at(), new_time);
+            assert_eq!(sample.recorded_at(), new_time);
             assert_eq!(*sample.value(), Gauge::new(2.0));
         }
 

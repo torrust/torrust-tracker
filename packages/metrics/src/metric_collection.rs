@@ -374,7 +374,7 @@ mod tests {
                     "samples":[
                         {
                             "value":1,
-                            "update_at":"2025-04-02T00:00:00+00:00",
+                            "recorded_at":"2025-04-02T00:00:00+00:00",
                             "labels":[
                                 {
                                     "name":"server_binding_ip",
@@ -398,7 +398,7 @@ mod tests {
                     "samples":[
                         {
                             "value":1.0,
-                            "update_at":"2025-04-02T00:00:00+00:00",
+                            "recorded_at":"2025-04-02T00:00:00+00:00",
                             "labels":[
                                 {
                                     "name":"server_binding_ip",
