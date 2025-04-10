@@ -9,10 +9,8 @@ use super::prometheus::PrometheusSerializable;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Sample<T> {
-    value: T,
-
-    #[serde(serialize_with = "serialize_duration", deserialize_with = "deserialize_duration")]
-    update_at: DurationSinceUnixEpoch,
+    #[serde(flatten)]
+    measurement: Measurement<T>,
 
     #[serde(rename = "labels")]
     label_set: LabelSet,
@@ -21,16 +19,67 @@ pub struct Sample<T> {
 impl<T> Sample<T> {
     #[must_use]
     pub fn new(value: T, update_at: DurationSinceUnixEpoch, label_set: LabelSet) -> Self {
+        let data = Measurement { value, update_at };
+
         Self {
-            value,
-            update_at,
+            measurement: data,
             label_set,
         }
     }
 
     #[must_use]
+    pub fn measurement(&self) -> &Measurement<T> {
+        &self.measurement
+    }
+
+    #[must_use]
+    pub fn value(&self) -> &T {
+        &self.measurement.value
+    }
+
+    #[must_use]
+    pub fn update_at(&self) -> DurationSinceUnixEpoch {
+        self.measurement.update_at
+    }
+
+    #[must_use]
     pub fn labels(&self) -> &LabelSet {
         &self.label_set
+    }
+}
+
+impl<T: PrometheusSerializable> PrometheusSerializable for Sample<T> {
+    fn to_prometheus(&self) -> String {
+        format!("{} {}", self.label_set.to_prometheus(), self.measurement.to_prometheus())
+    }
+}
+
+impl Sample<Counter> {
+    pub fn increment(&mut self, time: DurationSinceUnixEpoch) {
+        self.measurement.increment(time);
+    }
+}
+
+impl Sample<Gauge> {
+    pub fn set(&mut self, value: f64, time: DurationSinceUnixEpoch) {
+        self.measurement.set(value, time);
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Measurement<T> {
+    /// The value of the sample.
+    value: T,
+
+    /// The time when the sample was last updated.
+    #[serde(serialize_with = "serialize_duration", deserialize_with = "deserialize_duration")]
+    update_at: DurationSinceUnixEpoch,
+}
+
+impl<T> Measurement<T> {
+    #[must_use]
+    pub fn new(value: T, update_at: DurationSinceUnixEpoch) -> Self {
+        Self { value, update_at }
     }
 
     #[must_use]
@@ -48,20 +97,26 @@ impl<T> Sample<T> {
     }
 }
 
-impl<T: PrometheusSerializable> PrometheusSerializable for Sample<T> {
-    fn to_prometheus(&self) -> String {
-        format!("{} {}", self.label_set.to_prometheus(), self.value.to_prometheus())
+impl<T> From<Sample<T>> for (LabelSet, Measurement<T>) {
+    fn from(sample: Sample<T>) -> Self {
+        (sample.label_set, sample.measurement)
     }
 }
 
-impl Sample<Counter> {
+impl<T: PrometheusSerializable> PrometheusSerializable for Measurement<T> {
+    fn to_prometheus(&self) -> String {
+        self.value.to_prometheus()
+    }
+}
+
+impl Measurement<Counter> {
     pub fn increment(&mut self, time: DurationSinceUnixEpoch) {
         self.value.increment(1);
         self.set_update_at(time);
     }
 }
 
-impl Sample<Gauge> {
+impl Measurement<Gauge> {
     pub fn set(&mut self, value: f64, time: DurationSinceUnixEpoch) {
         self.value.set(value);
         self.set_update_at(time);
@@ -260,17 +315,13 @@ mod tests {
 
         #[test]
         fn test_serialization_round_trip() {
-            let original = Sample {
-                value: 42,
-                update_at: updated_at_time(),
-                label_set: LabelSet::from(vec![("test", "serialization")]),
-            };
+            let original = Sample::new(42, updated_at_time(), LabelSet::from(vec![("test", "serialization")]));
 
             let json = serde_json::to_string(&original).unwrap();
             let deserialized: Sample<i32> = serde_json::from_str(&json).unwrap();
 
-            assert_eq!(original.value, deserialized.value);
-            assert_eq!(original.update_at, deserialized.update_at);
+            assert_eq!(original.measurement.value, deserialized.measurement.value);
+            assert_eq!(original.measurement.update_at, deserialized.measurement.update_at);
             assert_eq!(original.label_set, deserialized.label_set);
         }
 

@@ -278,7 +278,7 @@ impl MetricKindCollection<Counter> {
     pub fn get_value(&self, name: &MetricName, label_set: &LabelSet) -> Counter {
         self.metrics
             .get(name)
-            .and_then(|metric| metric.get_sample(label_set))
+            .and_then(|metric| metric.get_sample_data(label_set))
             .map_or(Counter::default(), |sample| sample.value().clone())
     }
 }
@@ -303,7 +303,7 @@ impl MetricKindCollection<Gauge> {
     pub fn get_value(&self, name: &MetricName, label_set: &LabelSet) -> Gauge {
         self.metrics
             .get(name)
-            .and_then(|metric| metric.get_sample(label_set))
+            .and_then(|metric| metric.get_sample_data(label_set))
             .map_or(Gauge::default(), |sample| sample.value().clone())
     }
 }

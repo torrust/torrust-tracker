@@ -1,5 +1,6 @@
 use std::collections::hash_map::Iter;
 use std::collections::{HashMap, HashSet};
+use std::fmt::Write as _;
 
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
@@ -9,28 +10,26 @@ use super::gauge::Gauge;
 use super::label::LabelSet;
 use super::prometheus::PrometheusSerializable;
 use super::sample::Sample;
+use crate::sample::Measurement;
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct SampleCollection<T> {
-    samples: HashMap<LabelSet, Sample<T>>,
+    samples: HashMap<LabelSet, Measurement<T>>,
 }
 
 impl<T> SampleCollection<T> {
-    // IMPORTANT: It should never allow mutation of the samples because it would
-    // break the invariants. If the sample's `LabelSet` is changed, it can
-    // create duplicate `LabelSet`s even if the `LabelSet` in the `HashMap` key
-    // is unique.
-
     /// # Panics
     ///
     /// Panics if there are duplicate `LabelSets` in the provided samples.
     #[must_use]
     pub fn new(samples: Vec<Sample<T>>) -> Self {
-        let mut map = HashMap::with_capacity(samples.len());
+        let mut map: HashMap<LabelSet, Measurement<T>> = HashMap::with_capacity(samples.len());
 
         for sample in samples {
+            let (label_set, sample_data): (LabelSet, Measurement<T>) = sample.into();
+
             assert!(
-                map.insert(sample.labels().clone(), sample).is_none(),
+                map.insert(label_set, sample_data).is_none(),
                 "Duplicate LabelSet found in SampleCollection"
             );
         }
@@ -39,7 +38,7 @@ impl<T> SampleCollection<T> {
     }
 
     #[must_use]
-    pub fn get(&self, label: &LabelSet) -> Option<&Sample<T>> {
+    pub fn get(&self, label: &LabelSet) -> Option<&Measurement<T>> {
         self.samples.get(label)
     }
 
@@ -55,7 +54,7 @@ impl<T> SampleCollection<T> {
 
     #[must_use]
     #[allow(clippy::iter_without_into_iter)]
-    pub fn iter(&self) -> Iter<'_, LabelSet, Sample<T>> {
+    pub fn iter(&self) -> Iter<'_, LabelSet, Measurement<T>> {
         self.samples.iter()
     }
 }
@@ -65,7 +64,7 @@ impl SampleCollection<Counter> {
         let sample = self
             .samples
             .entry(label_set.clone())
-            .or_insert_with(|| Sample::new(Counter::default(), time, label_set.clone()));
+            .or_insert_with(|| Measurement::new(Counter::default(), time));
 
         sample.increment(time);
     }
@@ -76,7 +75,7 @@ impl SampleCollection<Gauge> {
         let sample = self
             .samples
             .entry(label_set.clone())
-            .or_insert_with(|| Sample::new(Gauge::default(), time, label_set.clone()));
+            .or_insert_with(|| Measurement::new(Gauge::default(), time));
 
         sample.set(value, time);
     }
@@ -87,7 +86,12 @@ impl<T: Serialize> Serialize for SampleCollection<T> {
     where
         S: Serializer,
     {
-        let samples: Vec<&Sample<T>> = self.samples.values().collect();
+        let mut samples: Vec<Sample<&T>> = vec![];
+
+        for (label_set, sample_data) in &self.samples {
+            samples.push(Sample::new(sample_data.value(), sample_data.update_at(), label_set.clone()));
+        }
+
         samples.serialize(serializer)
     }
 }
@@ -121,8 +125,8 @@ impl<T: PrometheusSerializable> PrometheusSerializable for SampleCollection<T> {
     fn to_prometheus(&self) -> String {
         let mut output = String::new();
 
-        for sample in self.samples.values() {
-            output.push_str(&sample.to_prometheus());
+        for (label_set, sample_data) in &self.samples {
+            let _ = write!(output, "{} {}", label_set.to_prometheus(), sample_data.to_prometheus());
         }
 
         output
@@ -165,7 +169,7 @@ mod tests {
 
         let retrieved = collection.get(&label_set);
 
-        assert_eq!(retrieved.unwrap(), &sample);
+        assert_eq!(retrieved.unwrap(), sample.measurement());
     }
 
     #[test]
@@ -179,10 +183,10 @@ mod tests {
         let collection = SampleCollection::new(vec![sample_1.clone(), sample_2.clone()]);
 
         let retrieved = collection.get(&label_set_1);
-        assert_eq!(retrieved.unwrap(), &sample_1);
+        assert_eq!(retrieved.unwrap(), sample_1.measurement());
 
         let retrieved = collection.get(&label_set_2);
-        assert_eq!(retrieved.unwrap(), &sample_2);
+        assert_eq!(retrieved.unwrap(), sample_2.measurement());
     }
 
     #[test]

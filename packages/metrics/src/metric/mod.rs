@@ -7,9 +7,9 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use super::counter::Counter;
 use super::label::LabelSet;
 use super::prometheus::PrometheusSerializable;
-use super::sample::Sample;
 use super::sample_collection::SampleCollection;
 use crate::gauge::Gauge;
+use crate::sample::Measurement;
 
 pub type MetricName = name::MetricName;
 
@@ -36,7 +36,7 @@ impl<T> Metric<T> {
     }
 
     #[must_use]
-    pub fn get_sample(&self, label_set: &LabelSet) -> Option<&Sample<T>> {
+    pub fn get_sample_data(&self, label_set: &LabelSet) -> Option<&Measurement<T>> {
         self.sample_collection.get(label_set)
     }
 
@@ -68,11 +68,11 @@ impl<T: PrometheusSerializable> PrometheusSerializable for Metric<T> {
         let samples: Vec<String> = self
             .sample_collection
             .iter()
-            .map(|(_label_set, sample)| {
+            .map(|(label_set, sample)| {
                 format!(
                     "{}{} {}",
                     self.name.to_prometheus(),
-                    sample.labels().to_prometheus(),
+                    label_set.to_prometheus(),
                     sample.value().to_prometheus()
                 )
             })
@@ -87,6 +87,7 @@ mod tests {
         use super::super::*;
         use crate::gauge::Gauge;
         use crate::label::{LabelName, LabelValue};
+        use crate::sample::Sample;
 
         #[test]
         fn it_should_be_empty_when_it_does_not_have_any_sample() {
@@ -132,6 +133,7 @@ mod tests {
         use super::super::*;
         use crate::counter::Counter;
         use crate::label::{LabelName, LabelValue};
+        use crate::sample::Sample;
 
         #[test]
         fn it_should_be_created_from_its_name_and_a_collection_of_samples() {
@@ -154,7 +156,7 @@ mod tests {
 
             let metric = Metric::<Counter>::new(name.clone(), samples);
 
-            assert_eq!(metric.get_sample(&label_set).unwrap().value().value(), 1);
+            assert_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1);
         }
     }
 
@@ -164,6 +166,7 @@ mod tests {
         use super::super::*;
         use crate::gauge::Gauge;
         use crate::label::{LabelName, LabelValue};
+        use crate::sample::Sample;
 
         #[test]
         fn it_should_be_created_from_its_name_and_a_collection_of_samples() {
@@ -186,7 +189,7 @@ mod tests {
 
             let metric = Metric::<Gauge>::new(name.clone(), samples);
 
-            assert_relative_eq!(metric.get_sample(&label_set).unwrap().value().value(), 1.0);
+            assert_relative_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1.0);
         }
     }
 }
