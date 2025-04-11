@@ -38,7 +38,7 @@ pub struct AppContainer {
 }
 
 impl AppContainer {
-    #[instrument(skip())]
+    #[instrument(skip(configuration))]
     pub fn initialize(configuration: &Configuration) -> AppContainer {
         // Configuration
 
