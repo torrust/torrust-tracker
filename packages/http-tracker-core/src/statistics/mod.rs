@@ -10,20 +10,16 @@ use torrust_tracker_metrics::metric::description::MetricDescription;
 use torrust_tracker_metrics::metric::MetricName;
 use torrust_tracker_metrics::unit::Unit;
 
+const HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL: &str = "http_tracker_core_requests_received_total";
+
 #[must_use]
 pub fn describe_metrics() -> Metrics {
     let mut metrics = Metrics::default();
 
     metrics.metric_collection.describe_counter(
-        &MetricName::new("http_tracker_core_announce_requests_received_total"),
+        &MetricName::new(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of HTTP announce requests received")),
-    );
-
-    metrics.metric_collection.describe_counter(
-        &MetricName::new("http_tracker_core_scrape_requests_received_total"),
-        Some(Unit::Count),
-        Some(MetricDescription::new("Total number of HTTP scrape requests received")),
+        Some(MetricDescription::new("Total number of HTTP requests received")),
     );
 
     metrics
