@@ -1,9 +1,10 @@
-use torrust_tracker_metrics::label::LabelSet;
+use torrust_tracker_metrics::label::{LabelName, LabelSet, LabelValue};
 use torrust_tracker_metrics::metric::MetricName;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::Event;
 use crate::statistics::repository::Repository;
+use crate::statistics::UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 
 /// # Panics
 ///
@@ -24,12 +25,11 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 
             // Extendable metrics
 
+            let mut label_set = LabelSet::from(context);
+            label_set.upsert(LabelName::new("request_kind"), LabelValue::new("connect"));
+
             stats_repository
-                .increase_counter(
-                    &MetricName::new("udp_tracker_core_connect_requests_received_total"),
-                    &LabelSet::from(context),
-                    now,
-                )
+                .increase_counter(&MetricName::new(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
                 .await;
         }
         Event::UdpAnnounce { context } => {
@@ -46,12 +46,11 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 
             // Extendable metrics
 
+            let mut label_set = LabelSet::from(context);
+            label_set.upsert(LabelName::new("request_kind"), LabelValue::new("announce"));
+
             stats_repository
-                .increase_counter(
-                    &MetricName::new("udp_tracker_core_announce_requests_received_total"),
-                    &LabelSet::from(context),
-                    now,
-                )
+                .increase_counter(&MetricName::new(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
                 .await;
         }
         Event::UdpScrape { context } => {
@@ -68,12 +67,11 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 
             // Extendable metrics
 
+            let mut label_set = LabelSet::from(context);
+            label_set.upsert(LabelName::new("request_kind"), LabelValue::new("scrape"));
+
             stats_repository
-                .increase_counter(
-                    &MetricName::new("udp_tracker_core_scrape_requests_received_total"),
-                    &LabelSet::from(context),
-                    now,
-                )
+                .increase_counter(&MetricName::new(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
                 .await;
         }
     }
