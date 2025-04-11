@@ -4,6 +4,12 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::{Event, UdpRequestKind, UdpResponseKind};
 use crate::statistics::repository::Repository;
+use crate::statistics::{
+    UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS,
+    UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL,
+    UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL,
+    UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
+};
 
 /// # Panics
 ///
@@ -19,7 +25,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             // Extendable metrics
             stats_repository
                 .increase_counter(
-                    &MetricName::new("udp_tracker_server_requests_aborted_total"),
+                    &MetricName::new(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
                     &LabelSet::from(context),
                     now,
                 )
@@ -32,7 +38,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             // Extendable metrics
             stats_repository
                 .increase_counter(
-                    &MetricName::new("udp_tracker_server_requests_banned_total"),
+                    &MetricName::new(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL),
                     &LabelSet::from(context),
                     now,
                 )
@@ -52,7 +58,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             // Extendable metrics
             stats_repository
                 .increase_counter(
-                    &MetricName::new("udp_tracker_server_requests_received_total"),
+                    &MetricName::new(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
                     &LabelSet::from(context),
                     now,
                 )
@@ -94,11 +100,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             label_set.upsert(LabelName::new("kind"), LabelValue::new(&kind.to_string()));
 
             stats_repository
-                .increase_counter(
-                    &MetricName::new("udp_tracker_server_requests_accepted_total"),
-                    &label_set,
-                    now,
-                )
+                .increase_counter(&MetricName::new(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &label_set, now)
                 .await;
         }
         Event::UdpResponseSent {
@@ -124,10 +126,14 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                             .await;
 
                         // Extendable metrics
+
+                        let mut label_set = LabelSet::from(context.clone());
+                        label_set.upsert(LabelName::new("request_kind"), LabelValue::new(&req_kind.to_string()));
+
                         stats_repository
                             .set_gauge(
-                                &MetricName::new("udp_tracker_server_performance_avg_connect_processing_time_ns"),
-                                &LabelSet::from(context.clone()),
+                                &MetricName::new(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                                &label_set,
                                 new_avg,
                                 now,
                             )
@@ -141,16 +147,20 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                             .await;
 
                         // Extendable metrics
+
+                        let mut label_set = LabelSet::from(context.clone());
+                        label_set.upsert(LabelName::new("request_kind"), LabelValue::new(&req_kind.to_string()));
+
                         stats_repository
                             .set_gauge(
-                                &MetricName::new("udp_tracker_server_performance_avg_announce_processing_time_ns"),
-                                &LabelSet::from(context.clone()),
+                                &MetricName::new(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                                &label_set,
                                 new_avg,
                                 now,
                             )
                             .await;
 
-                        (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Connect.to_string()))
+                        (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Announce.to_string()))
                     }
                     UdpRequestKind::Scrape => {
                         let new_avg = stats_repository
@@ -158,30 +168,36 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                             .await;
 
                         // Extendable metrics
+
+                        let mut label_set = LabelSet::from(context.clone());
+                        label_set.upsert(LabelName::new("request_kind"), LabelValue::new(&req_kind.to_string()));
+
                         stats_repository
                             .set_gauge(
-                                &MetricName::new("udp_tracker_server_performance_avg_scrape_processing_time_ns"),
-                                &LabelSet::from(context.clone()),
+                                &MetricName::new(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                                &label_set,
                                 new_avg,
                                 now,
                             )
                             .await;
 
-                        (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Connect.to_string()))
+                        (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Scrape.to_string()))
                     }
                 },
-                UdpResponseKind::Error { opt_req_kind: _ } => (LabelValue::new("ok"), LabelValue::ignore()),
+                UdpResponseKind::Error { opt_req_kind: _ } => (LabelValue::new("error"), LabelValue::ignore()),
             };
 
             // Extendable metrics
 
             let mut label_set = LabelSet::from(context);
 
+            if result_label_value == LabelValue::new("ok") {
+                label_set.upsert(LabelName::new("request_kind"), kind_label_value);
+            }
             label_set.upsert(LabelName::new("result"), result_label_value);
-            label_set.upsert(LabelName::new("kind"), kind_label_value);
 
             stats_repository
-                .increase_counter(&MetricName::new("udp_tracker_server_responses_sent_total"), &label_set, now)
+                .increase_counter(&MetricName::new(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL), &label_set, now)
                 .await;
         }
         Event::UdpError { context } => {
@@ -198,7 +214,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             // Extendable metrics
             stats_repository
                 .increase_counter(
-                    &MetricName::new("udp_tracker_server_errors_total"),
+                    &MetricName::new(UDP_TRACKER_SERVER_ERRORS_TOTAL),
                     &LabelSet::from(context),
                     now,
                 )
