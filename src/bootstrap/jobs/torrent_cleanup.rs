@@ -37,7 +37,7 @@ pub fn start_job(config: &Core, torrents_manager: &Arc<TorrentsManager>) -> Join
         loop {
             tokio::select! {
                 _ = tokio::signal::ctrl_c() => {
-                    tracing::info!("Stopping torrent cleanup job..");
+                    tracing::info!("Stopping torrent cleanup job ...");
                     break;
                 }
                 _ = interval.tick() => {
