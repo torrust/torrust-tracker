@@ -23,7 +23,7 @@ use crate::server::bound_socket::BoundSocket;
 use crate::server::processor::Processor;
 use crate::server::receiver::Receiver;
 
-const IP_BANS_RESET_INTERVAL_IN_SECS: u64 = 3600;
+const IP_BANS_RESET_INTERVAL_IN_SECS: u64 = 3600 * 24;
 
 const TYPE_STRING: &str = "udp_tracker";
 /// A UDP server instance launcher.
