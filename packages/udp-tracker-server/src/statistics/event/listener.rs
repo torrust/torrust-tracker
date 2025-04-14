@@ -1,3 +1,4 @@
+use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
 use tokio::sync::broadcast;
 use torrust_tracker_clock::clock::Time;
 
@@ -11,8 +12,16 @@ pub async fn dispatch_events(mut receiver: broadcast::Receiver<Event>, stats_rep
         match receiver.recv().await {
             Ok(event) => handle_event(event, &stats_repository, CurrentClock::now()).await,
             Err(e) => {
-                tracing::error!("Error receiving udp tracker server event: {:?}", e);
-                break;
+                match e {
+                    broadcast::error::RecvError::Closed => {
+                        tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Udp server statistics receiver closed.");
+                        break;
+                    }
+                    broadcast::error::RecvError::Lagged(n) => {
+                        // From now on, metrics will be imprecise
+                        tracing::warn!(target: UDP_TRACKER_LOG_TARGET, "Udp server statistics receiver lagged by {} events.", n);
+                    }
+                }
             }
         }
     }

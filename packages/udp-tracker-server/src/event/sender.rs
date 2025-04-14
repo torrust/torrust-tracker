@@ -7,7 +7,7 @@ use tokio::sync::broadcast::error::SendError;
 
 use super::Event;
 
-const CHANNEL_CAPACITY: usize = 1024;
+const CHANNEL_CAPACITY: usize = 32768;
 
 /// A trait for sending sending.
 #[cfg_attr(test, automock)]

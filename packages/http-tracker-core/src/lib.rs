@@ -16,6 +16,8 @@ pub(crate) type CurrentClock = clock::Working;
 #[allow(dead_code)]
 pub(crate) type CurrentClock = clock::Stopped;
 
+pub const HTTP_TRACKER_LOG_TARGET: &str = "HTTP TRACKER";
+
 #[cfg(test)]
 pub(crate) mod tests {
     use bittorrent_primitives::info_hash::InfoHash;
