@@ -108,7 +108,7 @@ mod tests {
 
             let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
 
-            let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]);
+            let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]).unwrap();
 
             Metric::<Counter>::new(name.clone(), samples)
         }
@@ -154,7 +154,7 @@ mod tests {
 
             let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
 
-            let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]);
+            let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]).unwrap();
 
             let metric = Metric::<Counter>::new(name.clone(), samples);
 
@@ -188,7 +188,7 @@ mod tests {
 
             let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
 
-            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set.clone())]);
+            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set.clone())]).unwrap();
 
             let metric = Metric::<Gauge>::new(name.clone(), samples);
 
