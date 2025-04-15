@@ -27,21 +27,20 @@ pub struct MetricCollection {
 }
 
 impl MetricCollection {
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics if there are duplicate metric names across counters and gauges.
-    #[must_use]
-    pub fn new(counters: MetricKindCollection<Counter>, gauges: MetricKindCollection<Gauge>) -> Self {
+    /// Returns an error if there are duplicate metric names across counters and
+    /// gauges.
+    pub fn new(counters: MetricKindCollection<Counter>, gauges: MetricKindCollection<Gauge>) -> Result<Self, Error> {
         // Check for name collisions across metric types
         let counter_names: HashSet<_> = counters.names().collect();
         let gauge_names: HashSet<_> = gauges.names().collect();
 
-        assert!(
-            counter_names.is_disjoint(&gauge_names),
-            "Metric names must be unique across counters and gauges"
-        );
+        if !counter_names.is_disjoint(&gauge_names) {
+            return Err(Error::DuplicateMetricNames);
+        }
 
-        Self { counters, gauges }
+        Ok(Self { counters, gauges })
     }
 
     /// Merges another `MetricCollection` into this one.
@@ -49,7 +48,7 @@ impl MetricCollection {
     /// # Errors
     ///
     /// Returns an error if a metric name already exists in the current collection.
-    pub fn merge(&mut self, other: &Self) -> Result<(), MergeError> {
+    pub fn merge(&mut self, other: &Self) -> Result<(), Error> {
         self.counters.merge(&other.counters)?;
         self.gauges.merge(&other.gauges)?;
         Ok(())
@@ -121,9 +120,12 @@ impl MetricCollection {
 }
 
 #[derive(thiserror::Error, Debug, Clone)]
-pub enum MergeError {
+pub enum Error {
+    #[error("Metric names must be unique across counters and gauges.")]
+    DuplicateMetricNames,
+
     #[error("Cannot merge metric '{metric_name}': it already exists in the current collection")]
-    MetricNameAlreadyExists { metric_name: MetricName },
+    MetricNameCollisionInMerge { metric_name: MetricName },
 }
 
 /// Implements serialization for `MetricCollection`.
@@ -177,10 +179,10 @@ impl<'de> Deserialize<'de> for MetricCollection {
             }
         }
 
-        Ok(MetricCollection::new(
-            MetricKindCollection::new(counters),
-            MetricKindCollection::new(gauges),
-        ))
+        let metric_collection = MetricCollection::new(MetricKindCollection::new(counters), MetricKindCollection::new(gauges))
+            .map_err(serde::de::Error::custom)?;
+
+        Ok(metric_collection)
     }
 }
 
@@ -246,11 +248,11 @@ impl<T: Clone> MetricKindCollection<T> {
     /// # Errors
     ///
     /// Returns an error if a metric name already exists in the current collection.
-    pub fn merge(&mut self, other: &Self) -> Result<(), MergeError> {
+    pub fn merge(&mut self, other: &Self) -> Result<(), Error> {
         // Check for name collisions
         for metric_name in other.metrics.keys() {
             if self.metrics.contains_key(metric_name) {
-                return Err(MergeError::MetricNameAlreadyExists {
+                return Err(Error::MetricNameCollisionInMerge {
                     metric_name: metric_name.clone(),
                 });
             }
@@ -258,7 +260,7 @@ impl<T: Clone> MetricKindCollection<T> {
 
         for (metric_name, metric) in &other.metrics {
             if self.metrics.insert(metric_name.clone(), metric.clone()).is_some() {
-                return Err(MergeError::MetricNameAlreadyExists {
+                return Err(Error::MetricNameCollisionInMerge {
                     metric_name: metric_name.clone(),
                 });
             }
@@ -374,6 +376,7 @@ mod tests {
                     SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set_1.clone())]),
                 )]),
             )
+            .unwrap()
         }
 
         fn json() -> String {
@@ -540,7 +543,8 @@ mod tests {
                 ]),
             )]),
             MetricKindCollection::new(vec![]),
-        );
+        )
+        .unwrap();
 
         let prometheus_output = metric_collection.to_prometheus();
 
@@ -565,7 +569,7 @@ mod tests {
         counters.ensure_metric_exists(&metric_name!("test_counter"));
         gauges.ensure_metric_exists(&metric_name!("test_gauge"));
 
-        let metric_collection = MetricCollection::new(counters, gauges);
+        let metric_collection = MetricCollection::new(counters, gauges).unwrap();
 
         let prometheus_output = metric_collection.to_prometheus();
 
@@ -591,7 +595,8 @@ mod tests {
                     SampleCollection::new(vec![Sample::new(Counter::new(0), time, label_set.clone())]),
                 )]),
                 MetricKindCollection::new(vec![]),
-            );
+            )
+            .unwrap();
 
             metric_collection.increase_counter(&metric_name!("test_counter"), &label_set, time);
             metric_collection.increase_counter(&metric_name!("test_counter"), &label_set, time);
@@ -608,7 +613,7 @@ mod tests {
             let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let mut metric_collection =
-                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
+                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![])).unwrap();
 
             metric_collection.increase_counter(&metric_name!("test_counter"), &label_set, time);
             metric_collection.increase_counter(&metric_name!("test_counter"), &label_set, time);
@@ -622,7 +627,7 @@ mod tests {
         #[test]
         fn it_should_allow_making_sure_a_counter_exists_without_increasing_it() {
             let mut metric_collection =
-                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
+                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![])).unwrap();
 
             metric_collection.ensure_counter_exists(&metric_name!("test_counter"));
 
@@ -632,7 +637,7 @@ mod tests {
         #[test]
         fn it_should_allow_describing_a_counter_before_using_it() {
             let mut metric_collection =
-                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
+                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![])).unwrap();
 
             metric_collection.describe_counter(&metric_name!("test_counter"), None, None);
 
@@ -677,7 +682,8 @@ mod tests {
                     metric_name!("test_gauge"),
                     SampleCollection::new(vec![Sample::new(Gauge::new(0.0), time, label_set.clone())]),
                 )]),
-            );
+            )
+            .unwrap();
 
             metric_collection.set_gauge(&metric_name!("test_gauge"), &label_set, 1.0, time);
 
@@ -693,7 +699,7 @@ mod tests {
             let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let mut metric_collection =
-                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
+                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![])).unwrap();
 
             metric_collection.set_gauge(&metric_name!("test_gauge"), &label_set, 1.0, time);
 
@@ -706,7 +712,7 @@ mod tests {
         #[test]
         fn it_should_allow_making_sure_a_gauge_exists_without_setting_it() {
             let mut metric_collection =
-                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
+                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![])).unwrap();
 
             metric_collection.ensure_gauge_exists(&metric_name!("test_gauge"));
 
@@ -716,7 +722,7 @@ mod tests {
         #[test]
         fn it_should_allow_describing_a_gauge_before_using_it() {
             let mut metric_collection =
-                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
+                MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![])).unwrap();
 
             metric_collection.describe_gauge(&metric_name!("test_gauge"), None, None);
 
