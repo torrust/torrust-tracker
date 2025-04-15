@@ -62,7 +62,12 @@ impl MetricCollection {
     }
 
     #[must_use]
-    pub fn get_counter_value(&self, name: &MetricName, label_set: &LabelSet) -> Counter {
+    pub fn contains_counter(&self, name: &MetricName) -> bool {
+        self.counters.metrics.contains_key(name)
+    }
+
+    #[must_use]
+    pub fn get_counter_value(&self, name: &MetricName, label_set: &LabelSet) -> Option<Counter> {
         self.counters.get_value(name, label_set)
     }
 
@@ -89,7 +94,12 @@ impl MetricCollection {
     }
 
     #[must_use]
-    pub fn get_gauge_value(&self, name: &MetricName, label_set: &LabelSet) -> Gauge {
+    pub fn contains_gauge(&self, name: &MetricName) -> bool {
+        self.gauges.metrics.contains_key(name)
+    }
+
+    #[must_use]
+    pub fn get_gauge_value(&self, name: &MetricName, label_set: &LabelSet) -> Option<Gauge> {
         self.gauges.get_value(name, label_set)
     }
 
@@ -275,11 +285,11 @@ impl MetricKindCollection<Counter> {
     }
 
     #[must_use]
-    pub fn get_value(&self, name: &MetricName, label_set: &LabelSet) -> Counter {
+    pub fn get_value(&self, name: &MetricName, label_set: &LabelSet) -> Option<Counter> {
         self.metrics
             .get(name)
             .and_then(|metric| metric.get_sample_data(label_set))
-            .map_or(Counter::default(), |sample| sample.value().clone())
+            .map(|sample| sample.value().clone())
     }
 }
 
@@ -300,11 +310,11 @@ impl MetricKindCollection<Gauge> {
     }
 
     #[must_use]
-    pub fn get_value(&self, name: &MetricName, label_set: &LabelSet) -> Gauge {
+    pub fn get_value(&self, name: &MetricName, label_set: &LabelSet) -> Option<Gauge> {
         self.metrics
             .get(name)
             .and_then(|metric| metric.get_sample_data(label_set))
-            .map_or(Gauge::default(), |sample| sample.value().clone())
+            .map(|sample| sample.value().clone())
     }
 }
 
@@ -588,7 +598,7 @@ mod tests {
 
             assert_eq!(
                 metric_collection.get_counter_value(&metric_name!("test_counter"), &label_set),
-                Counter::new(2)
+                Some(Counter::new(2))
             );
         }
 
@@ -605,38 +615,28 @@ mod tests {
 
             assert_eq!(
                 metric_collection.get_counter_value(&metric_name!("test_counter"), &label_set),
-                Counter::new(2)
+                Some(Counter::new(2))
             );
         }
 
         #[test]
         fn it_should_allow_making_sure_a_counter_exists_without_increasing_it() {
-            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
-
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
 
             metric_collection.ensure_counter_exists(&metric_name!("test_counter"));
 
-            assert_eq!(
-                metric_collection.get_counter_value(&metric_name!("test_counter"), &label_set),
-                Counter::default()
-            );
+            assert!(metric_collection.contains_counter(&metric_name!("test_counter")));
         }
 
         #[test]
         fn it_should_allow_describing_a_counter_before_using_it() {
-            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
-
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
 
             metric_collection.describe_counter(&metric_name!("test_counter"), None, None);
 
-            assert_eq!(
-                metric_collection.get_counter_value(&metric_name!("test_counter"), &label_set),
-                Counter::default()
-            );
+            assert!(metric_collection.contains_counter(&metric_name!("test_counter")));
         }
 
         #[test]
@@ -683,7 +683,7 @@ mod tests {
 
             assert_eq!(
                 metric_collection.get_gauge_value(&metric_name!("test_gauge"), &label_set),
-                Gauge::new(1.0)
+                Some(Gauge::new(1.0))
             );
         }
 
@@ -699,38 +699,28 @@ mod tests {
 
             assert_eq!(
                 metric_collection.get_gauge_value(&metric_name!("test_gauge"), &label_set),
-                Gauge::new(1.0)
+                Some(Gauge::new(1.0))
             );
         }
 
         #[test]
-        fn it_should_allow_making_sure_a_gauge_exists_without_increasing_it() {
-            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
-
+        fn it_should_allow_making_sure_a_gauge_exists_without_setting_it() {
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
 
             metric_collection.ensure_gauge_exists(&metric_name!("test_gauge"));
 
-            assert_eq!(
-                metric_collection.get_gauge_value(&metric_name!("test_gauge"), &label_set),
-                Gauge::default()
-            );
+            assert!(metric_collection.contains_gauge(&metric_name!("test_gauge")));
         }
 
         #[test]
         fn it_should_allow_describing_a_gauge_before_using_it() {
-            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
-
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
 
             metric_collection.describe_gauge(&metric_name!("test_gauge"), None, None);
 
-            assert_eq!(
-                metric_collection.get_gauge_value(&metric_name!("test_gauge"), &label_set),
-                Gauge::default()
-            );
+            assert!(metric_collection.contains_gauge(&metric_name!("test_gauge")));
         }
 
         #[test]
