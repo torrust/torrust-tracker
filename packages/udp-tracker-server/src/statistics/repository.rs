@@ -4,6 +4,7 @@ use std::time::Duration;
 use tokio::sync::{RwLock, RwLockReadGuard};
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_metrics::metric_collection::Error;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::describe_metrics;
@@ -181,15 +182,42 @@ impl Repository {
         drop(stats_lock);
     }
 
-    pub async fn increase_counter(&self, metric_name: &MetricName, labels: &LabelSet, now: DurationSinceUnixEpoch) {
+    /// # Errors
+    ///
+    /// This function will return an error if the metric collection fails to
+    /// increase the counter.
+    pub async fn increase_counter(
+        &self,
+        metric_name: &MetricName,
+        labels: &LabelSet,
+        now: DurationSinceUnixEpoch,
+    ) -> Result<(), Error> {
         let mut stats_lock = self.stats.write().await;
-        stats_lock.increase_counter(metric_name, labels, now);
+
+        let result = stats_lock.increase_counter(metric_name, labels, now);
+
         drop(stats_lock);
+
+        result
     }
 
-    pub async fn set_gauge(&self, metric_name: &MetricName, labels: &LabelSet, value: f64, now: DurationSinceUnixEpoch) {
+    /// # Errors
+    ///
+    /// This function will return an error if the metric collection fails to
+    /// increase the counter.
+    pub async fn set_gauge(
+        &self,
+        metric_name: &MetricName,
+        labels: &LabelSet,
+        value: f64,
+        now: DurationSinceUnixEpoch,
+    ) -> Result<(), Error> {
         let mut stats_lock = self.stats.write().await;
-        stats_lock.set_gauge(metric_name, labels, value, now);
+
+        let result = stats_lock.set_gauge(metric_name, labels, value, now);
+
         drop(stats_lock);
+
+        result
     }
 }

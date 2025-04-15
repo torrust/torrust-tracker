@@ -31,9 +31,13 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             let mut label_set = LabelSet::from(connection);
             label_set.upsert(label_name!("request_kind"), LabelValue::new("announce"));
 
-            stats_repository
+            match stats_repository
                 .increase_counter(&metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
-                .await;
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
         Event::TcpScrape { connection } => {
             // Global fixed metrics
@@ -52,9 +56,13 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             let mut label_set = LabelSet::from(connection);
             label_set.upsert(label_name!("request_kind"), LabelValue::new("scrape"));
 
-            stats_repository
+            match stats_repository
                 .increase_counter(&metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
-                .await;
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
     }
 
