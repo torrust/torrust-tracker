@@ -64,6 +64,7 @@ mod tests {
 
     mod serialization_of_metric_name_to_prometheus {
 
+        use crate::metric::name::MetricName;
         use crate::prometheus::PrometheusSerializable;
 
         #[test]
@@ -85,6 +86,12 @@ mod tests {
             assert_eq!(metric_name!("my:metric/version").to_prometheus(), "my:metric_version");
             assert_eq!(metric_name!("!@#$%^&*()").to_prometheus(), "__________");
             assert_eq!(metric_name!("ñaca©").to_prometheus(), "_aca_");
+        }
+
+        #[test]
+        #[should_panic(expected = "Metric name cannot be empty.")]
+        fn empty_name() {
+            let _name = MetricName::new("");
         }
     }
 }
