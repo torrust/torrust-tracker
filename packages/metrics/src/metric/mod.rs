@@ -86,9 +86,9 @@ mod tests {
     mod for_generic_metrics {
         use super::super::*;
         use crate::gauge::Gauge;
-        use crate::label::{LabelName, LabelValue};
-        use crate::metric_name;
+        use crate::label::LabelValue;
         use crate::sample::Sample;
+        use crate::{label_name, metric_name};
 
         #[test]
         fn it_should_be_empty_when_it_does_not_have_any_sample() {
@@ -106,7 +106,7 @@ mod tests {
 
             let name = metric_name!("test_metric");
 
-            let label_set: LabelSet = [(LabelName::new("server_binding_protocol"), LabelValue::new("http"))].into();
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
 
             let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]);
 
@@ -133,9 +133,9 @@ mod tests {
     mod for_counter_metrics {
         use super::super::*;
         use crate::counter::Counter;
-        use crate::label::{LabelName, LabelValue};
-        use crate::metric_name;
+        use crate::label::LabelValue;
         use crate::sample::Sample;
+        use crate::{label_name, metric_name};
 
         #[test]
         fn it_should_be_created_from_its_name_and_a_collection_of_samples() {
@@ -152,7 +152,7 @@ mod tests {
 
             let name = metric_name!("test_metric");
 
-            let label_set: LabelSet = [(LabelName::new("server_binding_protocol"), LabelValue::new("http"))].into();
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
 
             let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]);
 
@@ -167,9 +167,9 @@ mod tests {
 
         use super::super::*;
         use crate::gauge::Gauge;
-        use crate::label::{LabelName, LabelValue};
-        use crate::metric_name;
+        use crate::label::LabelValue;
         use crate::sample::Sample;
+        use crate::{label_name, metric_name};
 
         #[test]
         fn it_should_be_created_from_its_name_and_a_collection_of_samples() {
@@ -186,7 +186,7 @@ mod tests {
 
             let name = metric_name!("test_metric");
 
-            let label_set: LabelSet = [(LabelName::new("server_binding_protocol"), LabelValue::new("http"))].into();
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
 
             let samples = SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set.clone())]);
 

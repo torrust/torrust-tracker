@@ -314,10 +314,10 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use super::*;
-    use crate::label::{LabelName, LabelValue};
-    use crate::metric_name;
+    use crate::label::LabelValue;
     use crate::sample::Sample;
     use crate::tests::{format_prometheus_output, sort_lines};
+    use crate::{label_name, metric_name};
 
     /// Fixture for testing serialization and deserialization of `MetricCollection`.
     ///
@@ -348,9 +348,9 @@ mod tests {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
 
             let label_set_1: LabelSet = [
-                (LabelName::new("server_binding_protocol"), LabelValue::new("http")),
-                (LabelName::new("server_binding_ip"), LabelValue::new("0.0.0.0")),
-                (LabelName::new("server_binding_port"), LabelValue::new("7070")),
+                (label_name!("server_binding_protocol"), LabelValue::new("http")),
+                (label_name!("server_binding_ip"), LabelValue::new("0.0.0.0")),
+                (label_name!("server_binding_port"), LabelValue::new("7070")),
             ]
             .into();
 
@@ -508,16 +508,16 @@ mod tests {
         let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
 
         let label_set_1: LabelSet = [
-            (LabelName::new("server_binding_protocol"), LabelValue::new("http")),
-            (LabelName::new("server_binding_ip"), LabelValue::new("0.0.0.0")),
-            (LabelName::new("server_binding_port"), LabelValue::new("7070")),
+            (label_name!("server_binding_protocol"), LabelValue::new("http")),
+            (label_name!("server_binding_ip"), LabelValue::new("0.0.0.0")),
+            (label_name!("server_binding_port"), LabelValue::new("7070")),
         ]
         .into();
 
         let label_set_2: LabelSet = [
-            (LabelName::new("server_binding_protocol"), LabelValue::new("http")),
-            (LabelName::new("server_binding_ip"), LabelValue::new("0.0.0.0")),
-            (LabelName::new("server_binding_port"), LabelValue::new("7171")),
+            (label_name!("server_binding_protocol"), LabelValue::new("http")),
+            (label_name!("server_binding_ip"), LabelValue::new("0.0.0.0")),
+            (label_name!("server_binding_port"), LabelValue::new("7171")),
         ]
         .into();
 
@@ -567,13 +567,13 @@ mod tests {
         use pretty_assertions::assert_eq;
 
         use super::*;
-        use crate::label::{LabelName, LabelValue};
+        use crate::label::LabelValue;
         use crate::sample::Sample;
 
         #[test]
         fn it_should_increase_a_preexistent_counter() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
-            let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let mut metric_collection = MetricCollection::new(
                 MetricKindCollection::new(vec![Metric::new(
@@ -595,7 +595,7 @@ mod tests {
         #[test]
         fn it_should_automatically_create_a_counter_when_increasing_if_it_does_not_exist() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
-            let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
@@ -611,7 +611,7 @@ mod tests {
 
         #[test]
         fn it_should_allow_making_sure_a_counter_exists_without_increasing_it() {
-            let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
@@ -626,7 +626,7 @@ mod tests {
 
         #[test]
         fn it_should_allow_describing_a_counter_before_using_it() {
-            let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
@@ -643,7 +643,7 @@ mod tests {
         #[should_panic(expected = "Duplicate MetricName found in MetricKindCollection")]
         fn it_should_not_allow_duplicate_metric_names_when_instantiating() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
-            let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let _unused = MetricKindCollection::new(vec![
                 Metric::new(
@@ -663,13 +663,13 @@ mod tests {
         use pretty_assertions::assert_eq;
 
         use super::*;
-        use crate::label::{LabelName, LabelValue};
+        use crate::label::LabelValue;
         use crate::sample::Sample;
 
         #[test]
         fn it_should_set_a_preexistent_gauge() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
-            let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let mut metric_collection = MetricCollection::new(
                 MetricKindCollection::new(vec![]),
@@ -690,7 +690,7 @@ mod tests {
         #[test]
         fn it_should_automatically_create_a_gauge_when_setting_if_it_does_not_exist() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
-            let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
@@ -705,7 +705,7 @@ mod tests {
 
         #[test]
         fn it_should_allow_making_sure_a_gauge_exists_without_increasing_it() {
-            let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
@@ -720,7 +720,7 @@ mod tests {
 
         #[test]
         fn it_should_allow_describing_a_gauge_before_using_it() {
-            let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::new(vec![]), MetricKindCollection::new(vec![]));
@@ -737,7 +737,7 @@ mod tests {
         #[should_panic(expected = "Duplicate MetricName found in MetricKindCollection")]
         fn it_should_not_allow_duplicate_metric_names_when_instantiating() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
-            let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
             let _unused = MetricKindCollection::new(vec![
                 Metric::new(

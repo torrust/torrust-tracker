@@ -180,6 +180,7 @@ mod tests {
 
     use super::{LabelName, LabelValue};
     use crate::label::LabelSet;
+    use crate::label_name;
     use crate::prometheus::PrometheusSerializable;
 
     fn sample_vec_of_label_pairs() -> Vec<(LabelName, LabelValue)> {
@@ -188,9 +189,9 @@ mod tests {
 
     fn sample_array_of_label_pairs() -> [(LabelName, LabelValue); 3] {
         [
-            (LabelName::new("server_service_binding_protocol"), LabelValue::new("http")),
-            (LabelName::new("server_service_binding_ip"), LabelValue::new("0.0.0.0")),
-            (LabelName::new("server_service_binding_port"), LabelValue::new("7070")),
+            (label_name!("server_service_binding_protocol"), LabelValue::new("http")),
+            (label_name!("server_service_binding_ip"), LabelValue::new("0.0.0.0")),
+            (label_name!("server_service_binding_port"), LabelValue::new("7070")),
         ]
     }
 
@@ -232,12 +233,12 @@ mod tests {
 
     #[test]
     fn it_should_allow_instantiation_from_a_label_pair() {
-        let label_set: LabelSet = (LabelName::new("label_name"), LabelValue::new("value")).into();
+        let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
         assert_eq!(
             label_set,
             LabelSet {
-                items: BTreeMap::from([(LabelName::new("label_name"), LabelValue::new("value"))])
+                items: BTreeMap::from([(label_name!("label_name"), LabelValue::new("value"))])
             }
         );
     }
@@ -246,10 +247,10 @@ mod tests {
     fn it_should_allow_inserting_a_new_label_pair() {
         let mut label_set = LabelSet::default();
 
-        label_set.upsert(LabelName::new("label_name"), LabelValue::new("value"));
+        label_set.upsert(label_name!("label_name"), LabelValue::new("value"));
 
         assert_eq!(
-            label_set.items.get(&LabelName::new("label_name")).unwrap(),
+            label_set.items.get(&label_name!("label_name")).unwrap(),
             &LabelValue::new("value")
         );
     }
@@ -258,18 +259,18 @@ mod tests {
     fn it_should_allow_updating_a_label_value() {
         let mut label_set = LabelSet::default();
 
-        label_set.upsert(LabelName::new("label_name"), LabelValue::new("old value"));
-        label_set.upsert(LabelName::new("label_name"), LabelValue::new("new value"));
+        label_set.upsert(label_name!("label_name"), LabelValue::new("old value"));
+        label_set.upsert(label_name!("label_name"), LabelValue::new("new value"));
 
         assert_eq!(
-            label_set.items.get(&LabelName::new("label_name")).unwrap(),
+            label_set.items.get(&label_name!("label_name")).unwrap(),
             &LabelValue::new("new value")
         );
     }
 
     #[test]
     fn it_should_allow_serializing_to_json_as_an_array_of_label_objects() {
-        let label_set = LabelSet::from((LabelName::new("label_name"), LabelValue::new("label value")));
+        let label_set = LabelSet::from((label_name!("label_name"), LabelValue::new("label value")));
 
         let json = serde_json::to_string(&label_set).unwrap();
 
@@ -307,13 +308,13 @@ mod tests {
 
         assert_eq!(
             label_set,
-            LabelSet::from((LabelName::new("label_name"), LabelValue::new("label value")))
+            LabelSet::from((label_name!("label_name"), LabelValue::new("label value")))
         );
     }
 
     #[test]
     fn it_should_allow_serializing_to_prometheus_format() {
-        let label_set = LabelSet::from((LabelName::new("label_name"), LabelValue::new("label value")));
+        let label_set = LabelSet::from((label_name!("label_name"), LabelValue::new("label value")));
 
         assert_eq!(label_set.to_prometheus(), r#"{label_name="label value"}"#);
     }
@@ -321,8 +322,8 @@ mod tests {
     #[test]
     fn it_should_alphabetically_order_labels_in_prometheus_format() {
         let label_set = LabelSet::from([
-            (LabelName::new("b_label_name"), LabelValue::new("b label value")),
-            (LabelName::new("a_label_name"), LabelValue::new("a label value")),
+            (label_name!("b_label_name"), LabelValue::new("b label value")),
+            (label_name!("a_label_name"), LabelValue::new("a label value")),
         ]);
 
         assert_eq!(
@@ -333,7 +334,7 @@ mod tests {
 
     #[test]
     fn it_should_allow_displaying() {
-        let label_set = LabelSet::from((LabelName::new("label_name"), LabelValue::new("label value")));
+        let label_set = LabelSet::from((label_name!("label_name"), LabelValue::new("label value")));
 
         assert_eq!(label_set.to_string(), r#"{label_name="label value"}"#);
     }

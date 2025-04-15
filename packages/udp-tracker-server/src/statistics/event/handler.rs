@@ -1,5 +1,5 @@
-use torrust_tracker_metrics::label::{LabelName, LabelSet, LabelValue};
-use torrust_tracker_metrics::metric_name;
+use torrust_tracker_metrics::label::{LabelSet, LabelValue};
+use torrust_tracker_metrics::{label_name, metric_name};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::{Event, UdpRequestKind, UdpResponseKind};
@@ -97,7 +97,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 
             let mut label_set = LabelSet::from(context);
 
-            label_set.upsert(LabelName::new("kind"), LabelValue::new(&kind.to_string()));
+            label_set.upsert(label_name!("kind"), LabelValue::new(&kind.to_string()));
 
             stats_repository
                 .increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &label_set, now)
@@ -128,7 +128,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                         // Extendable metrics
 
                         let mut label_set = LabelSet::from(context.clone());
-                        label_set.upsert(LabelName::new("request_kind"), LabelValue::new(&req_kind.to_string()));
+                        label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
 
                         stats_repository
                             .set_gauge(
@@ -149,7 +149,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                         // Extendable metrics
 
                         let mut label_set = LabelSet::from(context.clone());
-                        label_set.upsert(LabelName::new("request_kind"), LabelValue::new(&req_kind.to_string()));
+                        label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
 
                         stats_repository
                             .set_gauge(
@@ -170,7 +170,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                         // Extendable metrics
 
                         let mut label_set = LabelSet::from(context.clone());
-                        label_set.upsert(LabelName::new("request_kind"), LabelValue::new(&req_kind.to_string()));
+                        label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
 
                         stats_repository
                             .set_gauge(
@@ -192,9 +192,9 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             let mut label_set = LabelSet::from(context);
 
             if result_label_value == LabelValue::new("ok") {
-                label_set.upsert(LabelName::new("request_kind"), kind_label_value);
+                label_set.upsert(label_name!("request_kind"), kind_label_value);
             }
-            label_set.upsert(LabelName::new("result"), result_label_value);
+            label_set.upsert(label_name!("result"), result_label_value);
 
             stats_repository
                 .increase_counter(&metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL), &label_set, now)

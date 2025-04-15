@@ -1,7 +1,7 @@
-mod name;
+pub mod name;
 mod pair;
 mod set;
-mod value;
+pub mod value;
 
 pub type LabelName = name::LabelName;
 pub type LabelValue = value::LabelValue;
