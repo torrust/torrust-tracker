@@ -1,5 +1,5 @@
 use torrust_tracker_metrics::label::{LabelName, LabelSet, LabelValue};
-use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::{Event, UdpRequestKind, UdpResponseKind};
@@ -25,7 +25,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             // Extendable metrics
             stats_repository
                 .increase_counter(
-                    &MetricName::new(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
+                    &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
                     &LabelSet::from(context),
                     now,
                 )
@@ -38,7 +38,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             // Extendable metrics
             stats_repository
                 .increase_counter(
-                    &MetricName::new(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL),
+                    &metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL),
                     &LabelSet::from(context),
                     now,
                 )
@@ -58,7 +58,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             // Extendable metrics
             stats_repository
                 .increase_counter(
-                    &MetricName::new(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
+                    &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
                     &LabelSet::from(context),
                     now,
                 )
@@ -100,7 +100,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             label_set.upsert(LabelName::new("kind"), LabelValue::new(&kind.to_string()));
 
             stats_repository
-                .increase_counter(&MetricName::new(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &label_set, now)
+                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &label_set, now)
                 .await;
         }
         Event::UdpResponseSent {
@@ -132,7 +132,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 
                         stats_repository
                             .set_gauge(
-                                &MetricName::new(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                                 &label_set,
                                 new_avg,
                                 now,
@@ -153,7 +153,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 
                         stats_repository
                             .set_gauge(
-                                &MetricName::new(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                                 &label_set,
                                 new_avg,
                                 now,
@@ -174,7 +174,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 
                         stats_repository
                             .set_gauge(
-                                &MetricName::new(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                                 &label_set,
                                 new_avg,
                                 now,
@@ -197,7 +197,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             label_set.upsert(LabelName::new("result"), result_label_value);
 
             stats_repository
-                .increase_counter(&MetricName::new(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL), &label_set, now)
+                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL), &label_set, now)
                 .await;
         }
         Event::UdpError { context } => {
@@ -213,11 +213,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 
             // Extendable metrics
             stats_repository
-                .increase_counter(
-                    &MetricName::new(UDP_TRACKER_SERVER_ERRORS_TOTAL),
-                    &LabelSet::from(context),
-                    now,
-                )
+                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &LabelSet::from(context), now)
                 .await;
         }
     }

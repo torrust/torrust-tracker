@@ -1,5 +1,5 @@
 use torrust_tracker_metrics::label::{LabelName, LabelSet, LabelValue};
-use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::Event;
@@ -29,7 +29,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             label_set.upsert(LabelName::new("request_kind"), LabelValue::new("connect"));
 
             stats_repository
-                .increase_counter(&MetricName::new(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
+                .increase_counter(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
                 .await;
         }
         Event::UdpAnnounce { context } => {
@@ -50,7 +50,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             label_set.upsert(LabelName::new("request_kind"), LabelValue::new("announce"));
 
             stats_repository
-                .increase_counter(&MetricName::new(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
+                .increase_counter(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
                 .await;
         }
         Event::UdpScrape { context } => {
@@ -71,7 +71,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             label_set.upsert(LabelName::new("request_kind"), LabelValue::new("scrape"));
 
             stats_repository
-                .increase_counter(&MetricName::new(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
+                .increase_counter(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
                 .await;
         }
     }

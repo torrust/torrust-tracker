@@ -54,6 +54,9 @@ macro_rules! metric_name {
     ($name:literal) => {
         $crate::metric::name::MetricName::new($name)
     };
+    ($name:ident) => {
+        $crate::metric::name::MetricName::new($name)
+    };
 }
 
 #[cfg(test)]

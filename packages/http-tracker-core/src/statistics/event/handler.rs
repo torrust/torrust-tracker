@@ -1,7 +1,7 @@
 use std::net::IpAddr;
 
 use torrust_tracker_metrics::label::{LabelName, LabelSet, LabelValue};
-use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::Event;
@@ -32,7 +32,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             label_set.upsert(LabelName::new("request_kind"), LabelValue::new("announce"));
 
             stats_repository
-                .increase_counter(&MetricName::new(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
+                .increase_counter(&metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
                 .await;
         }
         Event::TcpScrape { connection } => {
@@ -53,7 +53,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             label_set.upsert(LabelName::new("request_kind"), LabelValue::new("scrape"));
 
             stats_repository
-                .increase_counter(&MetricName::new(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
+                .increase_counter(&metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
                 .await;
         }
     }
