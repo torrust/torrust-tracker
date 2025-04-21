@@ -12,6 +12,7 @@ use super::prometheus::PrometheusSerializable;
 use crate::metric::description::MetricDescription;
 use crate::sample_collection::SampleCollection;
 use crate::unit::Unit;
+use crate::METRICS_TARGET;
 
 // code-review: serialize in a deterministic order? For example:
 // - First the counter metrics ordered by name.
@@ -56,7 +57,8 @@ impl MetricCollection {
 
     // Counter-specific methods
 
-    pub fn describe_counter(&mut self, name: &MetricName, _opt_unit: Option<Unit>, _opt_description: Option<MetricDescription>) {
+    pub fn describe_counter(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<MetricDescription>) {
+        tracing::info!(target: METRICS_TARGET, type = "counter", name = name.to_string(), unit = ?opt_unit, description = ?opt_description);
         self.counters.ensure_metric_exists(name);
     }
 
@@ -97,7 +99,8 @@ impl MetricCollection {
 
     // Gauge-specific methods
 
-    pub fn describe_gauge(&mut self, name: &MetricName, _opt_unit: Option<Unit>, _opt_description: Option<MetricDescription>) {
+    pub fn describe_gauge(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<MetricDescription>) {
+        tracing::info!(target: METRICS_TARGET, type = "gauge", name = name.to_string(), unit = ?opt_unit, description = ?opt_description);
         self.gauges.ensure_metric_exists(name);
     }
 
