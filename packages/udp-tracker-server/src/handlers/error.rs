@@ -64,6 +64,7 @@ pub async fn handle_error(
             udp_server_stats_event_sender
                 .send_event(Event::UdpError {
                     context: ConnectionContext::new(client_socket_addr, server_service_binding),
+                    kind: req_kind,
                 })
                 .await;
         }

@@ -31,6 +31,7 @@ pub enum Event {
     },
     UdpError {
         context: ConnectionContext,
+        kind: Option<UdpRequestKind>,
     },
 }
 

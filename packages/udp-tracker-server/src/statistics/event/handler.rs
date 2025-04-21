@@ -232,7 +232,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
             };
         }
-        Event::UdpError { context } => {
+        Event::UdpError { context, kind } => {
             // Global fixed metrics
             match context.client_socket_addr().ip() {
                 std::net::IpAddr::V4(_) => {
@@ -244,8 +244,15 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             }
 
             // Extendable metrics
+
+            let mut label_set = LabelSet::from(context);
+
+            if let Some(kind) = kind {
+                label_set.upsert(label_name!("request_kind"), kind.to_string().into());
+            }
+
             match stats_repository
-                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &LabelSet::from(context), now)
+                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &label_set, now)
                 .await
             {
                 Ok(()) => {}
@@ -510,6 +517,7 @@ mod tests {
                     )
                     .unwrap(),
                 ),
+                kind: None,
             },
             &stats_repository,
             CurrentClock::now(),
@@ -641,6 +649,7 @@ mod tests {
                     )
                     .unwrap(),
                 ),
+                kind: None,
             },
             &stats_repository,
             CurrentClock::now(),

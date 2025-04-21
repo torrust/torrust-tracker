@@ -25,6 +25,12 @@ impl PrometheusSerializable for LabelValue {
     }
 }
 
+impl From<String> for LabelValue {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::label::value::LabelValue;
