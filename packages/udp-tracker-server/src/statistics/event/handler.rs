@@ -109,7 +109,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 
             let mut label_set = LabelSet::from(context);
 
-            label_set.upsert(label_name!("kind"), LabelValue::new(&kind.to_string()));
+            label_set.upsert(label_name!("request_kind"), LabelValue::new(&kind.to_string()));
 
             match stats_repository
                 .increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &label_set, now)
