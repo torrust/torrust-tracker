@@ -3,6 +3,7 @@ use tokio::sync::broadcast::Receiver;
 use super::event::listener::dispatch_events;
 use super::repository::Repository;
 use crate::event::Event;
+use crate::UDP_TRACKER_LOG_TARGET;
 
 /// The service responsible for keeping tracker metrics (listening to statistics events and handle them).
 ///
@@ -29,7 +30,13 @@ impl Keeper {
     pub fn run_event_listener(&mut self, receiver: Receiver<Event>) {
         let stats_repository = self.repository.clone();
 
-        tokio::spawn(async move { dispatch_events(receiver, stats_repository).await });
+        tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker core event listener");
+
+        tokio::spawn(async move {
+            dispatch_events(receiver, stats_repository).await;
+
+            tracing::info!(target: UDP_TRACKER_LOG_TARGET, "UDP tracker core event listener finished");
+        });
     }
 }
 
