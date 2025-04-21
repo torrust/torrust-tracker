@@ -13,16 +13,16 @@ impl<A: PrometheusSerializable, B: PrometheusSerializable> PrometheusSerializabl
 #[cfg(test)]
 mod tests {
     mod serialization_of_label_pair_to_prometheus {
-        use super::super::LabelName;
         use crate::label::LabelValue;
+        use crate::label_name;
         use crate::prometheus::PrometheusSerializable;
 
         #[test]
         fn test_label_pair_serialization_to_prometheus() {
-            let label_pair = (LabelName::new("label_name"), LabelValue::new("value"));
+            let label_pair = (label_name!("label_name"), LabelValue::new("value"));
             assert_eq!(label_pair.to_prometheus(), r#"label_name="value""#);
 
-            let label_pair = (&LabelName::new("label_name"), &LabelValue::new("value"));
+            let label_pair = (&label_name!("label_name"), &LabelValue::new("value"));
             assert_eq!(label_pair.to_prometheus(), r#"label_name="value""#);
         }
     }

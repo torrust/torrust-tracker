@@ -8,6 +8,8 @@ pub mod sample;
 pub mod sample_collection;
 pub mod unit;
 
+pub const METRICS_TARGET: &str = "METRICS";
+
 #[cfg(test)]
 mod tests {
     /// It removes leading and trailing whitespace from each line, and empty lines.

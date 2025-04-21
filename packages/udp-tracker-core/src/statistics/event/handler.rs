@@ -1,5 +1,5 @@
-use torrust_tracker_metrics::label::{LabelName, LabelSet, LabelValue};
-use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_metrics::label::{LabelSet, LabelValue};
+use torrust_tracker_metrics::{label_name, metric_name};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::Event;
@@ -26,11 +26,15 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             // Extendable metrics
 
             let mut label_set = LabelSet::from(context);
-            label_set.upsert(LabelName::new("request_kind"), LabelValue::new("connect"));
+            label_set.upsert(label_name!("request_kind"), LabelValue::new("connect"));
 
-            stats_repository
-                .increase_counter(&MetricName::new(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
-                .await;
+            match stats_repository
+                .increase_counter(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
         Event::UdpAnnounce { context } => {
             // Global fixed metrics
@@ -47,11 +51,15 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             // Extendable metrics
 
             let mut label_set = LabelSet::from(context);
-            label_set.upsert(LabelName::new("request_kind"), LabelValue::new("announce"));
+            label_set.upsert(label_name!("request_kind"), LabelValue::new("announce"));
 
-            stats_repository
-                .increase_counter(&MetricName::new(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
-                .await;
+            match stats_repository
+                .increase_counter(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
         Event::UdpScrape { context } => {
             // Global fixed metrics
@@ -68,11 +76,15 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             // Extendable metrics
 
             let mut label_set = LabelSet::from(context);
-            label_set.upsert(LabelName::new("request_kind"), LabelValue::new("scrape"));
+            label_set.upsert(label_name!("request_kind"), LabelValue::new("scrape"));
 
-            stats_repository
-                .increase_counter(&MetricName::new(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
-                .await;
+            match stats_repository
+                .increase_counter(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
     }
 

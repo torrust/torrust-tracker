@@ -14,11 +14,7 @@ impl LabelName {
     /// Panics if the provided name is empty.
     #[must_use]
     pub fn new(name: &str) -> Self {
-        assert!(
-            !name.is_empty(),
-            "Label name cannot be empty. It must have at least one character."
-        );
-
+        assert!(!name.is_empty(), "Label name cannot be empty.");
         Self(name.to_owned())
     }
 }
@@ -69,6 +65,19 @@ impl PrometheusSerializable for LabelName {
         }
     }
 }
+
+#[macro_export]
+macro_rules! label_name {
+    ("") => {
+        compile_error!("Label name cannot be empty");
+    };
+    ($name:literal) => {
+        $crate::label::name::LabelName::new($name)
+    };
+    ($name:ident) => {
+        $crate::label::name::LabelName::new($name)
+    };
+}
 #[cfg(test)]
 mod tests {
     mod serialization_of_label_name_to_prometheus {
@@ -83,7 +92,7 @@ mod tests {
         #[case("3 leading lowercase", "v123", "v123")]
         #[case("4 leading uppercase", "V123", "V123")]
         fn valid_names_in_prometheus(#[case] case: &str, #[case] input: &str, #[case] output: &str) {
-            assert_eq!(LabelName::new(input).to_prometheus(), output, "{case} failed: {input:?}");
+            assert_eq!(label_name!(input).to_prometheus(), output, "{case} failed: {input:?}");
         }
 
         #[rstest]
@@ -96,7 +105,7 @@ mod tests {
         #[case("7 all invalid characters", "!@#$%^&*()", "__________")]
         #[case("8 non_ascii_characters", "ñaca©", "_aca_")]
         fn names_that_need_changes_in_prometheus(#[case] case: &str, #[case] input: &str, #[case] output: &str) {
-            assert_eq!(LabelName::new(input).to_prometheus(), output, "{case} failed: {input:?}");
+            assert_eq!(label_name!(input).to_prometheus(), output, "{case} failed: {input:?}");
         }
 
         #[rstest]
@@ -105,11 +114,11 @@ mod tests {
         #[case("3 processed to double underscore", "^^name", "___name")]
         #[case("4 processed to double underscore after first char", "0__name", "___name")]
         fn names_starting_with_double_underscore(#[case] case: &str, #[case] input: &str, #[case] output: &str) {
-            assert_eq!(LabelName::new(input).to_prometheus(), output, "{case} failed: {input:?}");
+            assert_eq!(label_name!(input).to_prometheus(), output, "{case} failed: {input:?}");
         }
 
         #[test]
-        #[should_panic(expected = "Label name cannot be empty. It must have at least one character.")]
+        #[should_panic(expected = "Label name cannot be empty.")]
         fn empty_name() {
             let _name = LabelName::new("");
         }

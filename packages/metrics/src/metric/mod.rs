@@ -86,12 +86,13 @@ mod tests {
     mod for_generic_metrics {
         use super::super::*;
         use crate::gauge::Gauge;
-        use crate::label::{LabelName, LabelValue};
+        use crate::label::LabelValue;
         use crate::sample::Sample;
+        use crate::{label_name, metric_name};
 
         #[test]
         fn it_should_be_empty_when_it_does_not_have_any_sample() {
-            let name = MetricName::new("test_metric");
+            let name = metric_name!("test_metric");
 
             let samples = SampleCollection::<Gauge>::default();
 
@@ -103,11 +104,11 @@ mod tests {
         fn counter_metric_with_one_sample() -> Metric<Counter> {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
 
-            let name = MetricName::new("test_metric");
+            let name = metric_name!("test_metric");
 
-            let label_set: LabelSet = [(LabelName::new("server_binding_protocol"), LabelValue::new("http"))].into();
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
 
-            let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]);
+            let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]).unwrap();
 
             Metric::<Counter>::new(name.clone(), samples)
         }
@@ -119,7 +120,7 @@ mod tests {
 
         #[test]
         fn it_should_return_zero_number_of_samples_for_an_empty_metric() {
-            let name = MetricName::new("test_metric");
+            let name = metric_name!("test_metric");
 
             let samples = SampleCollection::<Gauge>::default();
 
@@ -132,12 +133,13 @@ mod tests {
     mod for_counter_metrics {
         use super::super::*;
         use crate::counter::Counter;
-        use crate::label::{LabelName, LabelValue};
+        use crate::label::LabelValue;
         use crate::sample::Sample;
+        use crate::{label_name, metric_name};
 
         #[test]
         fn it_should_be_created_from_its_name_and_a_collection_of_samples() {
-            let name = MetricName::new("test_metric");
+            let name = metric_name!("test_metric");
 
             let samples = SampleCollection::<Counter>::default();
 
@@ -148,11 +150,11 @@ mod tests {
         fn it_should_allow_incrementing_a_sample() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
 
-            let name = MetricName::new("test_metric");
+            let name = metric_name!("test_metric");
 
-            let label_set: LabelSet = [(LabelName::new("server_binding_protocol"), LabelValue::new("http"))].into();
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
 
-            let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]);
+            let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]).unwrap();
 
             let metric = Metric::<Counter>::new(name.clone(), samples);
 
@@ -165,12 +167,13 @@ mod tests {
 
         use super::super::*;
         use crate::gauge::Gauge;
-        use crate::label::{LabelName, LabelValue};
+        use crate::label::LabelValue;
         use crate::sample::Sample;
+        use crate::{label_name, metric_name};
 
         #[test]
         fn it_should_be_created_from_its_name_and_a_collection_of_samples() {
-            let name = MetricName::new("test_metric");
+            let name = metric_name!("test_metric");
 
             let samples = SampleCollection::<Gauge>::default();
 
@@ -181,11 +184,11 @@ mod tests {
         fn it_should_allow_setting_a_sample() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
 
-            let name = MetricName::new("test_metric");
+            let name = metric_name!("test_metric");
 
-            let label_set: LabelSet = [(LabelName::new("server_binding_protocol"), LabelValue::new("http"))].into();
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
 
-            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set.clone())]);
+            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set.clone())]).unwrap();
 
             let metric = Metric::<Gauge>::new(name.clone(), samples);
 

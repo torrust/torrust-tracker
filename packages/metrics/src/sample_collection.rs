@@ -1,8 +1,8 @@
 use std::collections::hash_map::Iter;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::Write as _;
 
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::counter::Counter;
@@ -18,23 +18,28 @@ pub struct SampleCollection<T> {
 }
 
 impl<T> SampleCollection<T> {
-    /// # Panics
+    /// Creates a new `MetricKindCollection` from a vector of metrics
     ///
-    /// Panics if there are duplicate `LabelSets` in the provided samples.
-    #[must_use]
-    pub fn new(samples: Vec<Sample<T>>) -> Self {
+    /// # Errors
+    ///
+    /// Returns an error if there are duplicate `LabelSets` in the provided
+    /// samples.
+    pub fn new(samples: Vec<Sample<T>>) -> Result<Self, Error> {
         let mut map: HashMap<LabelSet, Measurement<T>> = HashMap::with_capacity(samples.len());
 
         for sample in samples {
             let (label_set, sample_data): (LabelSet, Measurement<T>) = sample.into();
 
-            assert!(
-                map.insert(label_set, sample_data).is_none(),
-                "Duplicate LabelSet found in SampleCollection"
-            );
+            let label_set_clone = label_set.clone();
+
+            if let Some(_old_measurement) = map.insert(label_set, sample_data) {
+                return Err(Error::DuplicateLabelSetInList {
+                    label_set: label_set_clone,
+                });
+            }
         }
 
-        Self { samples: map }
+        Ok(Self { samples: map })
     }
 
     #[must_use]
@@ -57,6 +62,12 @@ impl<T> SampleCollection<T> {
     pub fn iter(&self) -> Iter<'_, LabelSet, Measurement<T>> {
         self.samples.iter()
     }
+}
+
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum Error {
+    #[error("Found duplicate label set in list. Label set must be unique in a SampleCollection.")]
+    DuplicateLabelSetInList { label_set: LabelSet },
 }
 
 impl SampleCollection<Counter> {
@@ -104,20 +115,11 @@ where
     where
         D: Deserializer<'de>,
     {
-        // First deserialize into a temporary Vec
         let samples = Vec::<Sample<T>>::deserialize(deserializer)?;
 
-        // Check for duplicate label sets
-        let mut seen_labels = HashSet::new();
+        let sample_collection = SampleCollection::new(samples).map_err(serde::de::Error::custom)?;
 
-        for sample in &samples {
-            if !seen_labels.insert(sample.labels()) {
-                return Err(de::Error::custom(format!("Duplicate label set found: {}", sample.labels())));
-            }
-        }
-
-        // Convert to HashMap-based storage
-        Ok(SampleCollection::new(samples))
+        Ok(sample_collection)
     }
 }
 
@@ -149,14 +151,15 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Duplicate LabelSet found in SampleCollection")]
     fn it_should_fail_trying_to_create_a_sample_collection_with_duplicate_label_sets() {
         let samples = vec![
             Sample::new(Counter::default(), sample_update_time(), LabelSet::default()),
             Sample::new(Counter::default(), sample_update_time(), LabelSet::default()),
         ];
 
-        let _unused = SampleCollection::new(samples);
+        let result = SampleCollection::new(samples);
+
+        assert!(result.is_err());
     }
 
     #[test]
@@ -165,7 +168,7 @@ mod tests {
 
         let sample = Sample::new(Counter::default(), sample_update_time(), label_set.clone());
 
-        let collection = SampleCollection::new(vec![sample.clone()]);
+        let collection = SampleCollection::new(vec![sample.clone()]).unwrap();
 
         let retrieved = collection.get(&label_set);
 
@@ -180,7 +183,7 @@ mod tests {
         let sample_1 = Sample::new(Counter::new(1), sample_update_time(), label_set_1.clone());
         let sample_2 = Sample::new(Counter::new(2), sample_update_time(), label_set_2.clone());
 
-        let collection = SampleCollection::new(vec![sample_1.clone(), sample_2.clone()]);
+        let collection = SampleCollection::new(vec![sample_1.clone(), sample_2.clone()]).unwrap();
 
         let retrieved = collection.get(&label_set_1);
         assert_eq!(retrieved.unwrap(), sample_1.measurement());
@@ -192,7 +195,7 @@ mod tests {
     #[test]
     fn it_should_return_the_number_of_samples_in_the_collection() {
         let samples = vec![Sample::new(Counter::default(), sample_update_time(), LabelSet::default())];
-        let collection = SampleCollection::new(samples);
+        let collection = SampleCollection::new(samples).unwrap();
         assert_eq!(collection.len(), 1);
     }
 
@@ -208,14 +211,14 @@ mod tests {
         assert!(empty.is_empty());
 
         let samples = vec![Sample::new(Counter::default(), sample_update_time(), LabelSet::default())];
-        let collection = SampleCollection::new(samples);
+        let collection = SampleCollection::new(samples).unwrap();
         assert!(!collection.is_empty());
     }
 
     #[test]
     fn it_should_be_serializable_and_deserializable_for_json_format() {
         let sample = Sample::new(Counter::default(), sample_update_time(), LabelSet::default());
-        let collection = SampleCollection::new(vec![sample]);
+        let collection = SampleCollection::new(vec![sample]).unwrap();
 
         let serialized = serde_json::to_string(&collection).unwrap();
         let deserialized: SampleCollection<Counter> = serde_json::from_str(&serialized).unwrap();
@@ -240,7 +243,7 @@ mod tests {
     #[test]
     fn it_should_be_exportable_to_prometheus_format_when_empty() {
         let sample = Sample::new(Counter::default(), sample_update_time(), LabelSet::default());
-        let collection = SampleCollection::new(vec![sample]);
+        let collection = SampleCollection::new(vec![sample]).unwrap();
 
         let prometheus_output = collection.to_prometheus();
 
@@ -255,7 +258,7 @@ mod tests {
             LabelSet::from(vec![("labe_name_1", "label value value 1")]),
         );
 
-        let collection = SampleCollection::new(vec![sample]);
+        let collection = SampleCollection::new(vec![sample]).unwrap();
 
         let prometheus_output = collection.to_prometheus();
 

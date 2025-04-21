@@ -21,6 +21,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.140"
 thiserror = "2"
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+tracing = "0.1.41"
 
 [dev-dependencies]
 approx = "0.5.1"

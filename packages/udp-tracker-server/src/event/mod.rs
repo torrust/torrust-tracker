@@ -2,7 +2,8 @@ use std::fmt;
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use torrust_tracker_metrics::label::{LabelName, LabelSet, LabelValue};
+use torrust_tracker_metrics::label::{LabelSet, LabelValue};
+use torrust_tracker_metrics::label_name;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 pub mod sender;
@@ -30,6 +31,7 @@ pub enum Event {
     },
     UdpError {
         context: ConnectionContext,
+        kind: Option<UdpRequestKind>,
     },
 }
 
@@ -94,15 +96,15 @@ impl From<ConnectionContext> for LabelSet {
     fn from(connection_context: ConnectionContext) -> Self {
         LabelSet::from([
             (
-                LabelName::new("server_binding_protocol"),
+                label_name!("server_binding_protocol"),
                 LabelValue::new(&connection_context.server_service_binding.protocol().to_string()),
             ),
             (
-                LabelName::new("server_binding_ip"),
+                label_name!("server_binding_ip"),
                 LabelValue::new(&connection_context.server_service_binding.bind_address().ip().to_string()),
             ),
             (
-                LabelName::new("server_binding_port"),
+                label_name!("server_binding_port"),
                 LabelValue::new(&connection_context.server_service_binding.bind_address().port().to_string()),
             ),
         ])

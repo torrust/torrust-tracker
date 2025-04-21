@@ -14,11 +14,7 @@ impl MetricName {
     /// Panics if the provided name is empty.
     #[must_use]
     pub fn new(name: &str) -> Self {
-        assert!(
-            !name.is_empty(),
-            "Metric name cannot be empty. It must have at least one character."
-        );
-
+        assert!(!name.is_empty(), "Metric name cannot be empty.");
         Self(name.to_owned())
     }
 }
@@ -50,41 +46,50 @@ impl PrometheusSerializable for MetricName {
     }
 }
 
+#[macro_export]
+macro_rules! metric_name {
+    ("") => {
+        compile_error!("Metric name cannot be empty");
+    };
+    ($name:literal) => {
+        $crate::metric::name::MetricName::new($name)
+    };
+    ($name:ident) => {
+        $crate::metric::name::MetricName::new($name)
+    };
+}
+
 #[cfg(test)]
 mod tests {
 
     mod serialization_of_metric_name_to_prometheus {
 
-        use rstest::rstest;
-
-        use crate::metric::MetricName;
+        use crate::metric::name::MetricName;
         use crate::prometheus::PrometheusSerializable;
 
-        #[rstest]
-        #[case("valid name", "valid_name", "valid_name")]
-        #[case("leading underscore", "_leading_underscore", "_leading_underscore")]
-        #[case("leading colon", ":leading_colon", ":leading_colon")]
-        #[case("leading lowercase", "v123", "v123")]
-        #[case("leading uppercase", "V123", "V123")]
-        fn valid_names_in_prometheus(#[case] case: &str, #[case] input: &str, #[case] output: &str) {
-            assert_eq!(MetricName::new(input).to_prometheus(), output, "{case} failed: {input:?}");
-        }
-
-        #[rstest]
-        #[case("invalid start 1", "9invalid_start", "_invalid_start")]
-        #[case("invalid start 2", "@test", "_test")]
-        #[case("invalid dash", "invalid-char", "invalid_char")]
-        #[case("invalid spaces", "spaces are bad", "spaces_are_bad")]
-        #[case("invalid special chars", "a!b@c#d$e%f^g&h*i(j)", "a_b_c_d_e_f_g_h_i_j_")]
-        #[case("invalid slash", "my:metric/version", "my:metric_version")]
-        #[case("all invalid characters", "!@#$%^&*()", "__________")]
-        #[case("non_ascii_characters", "ñaca©", "_aca_")]
-        fn names_that_need_changes_in_prometheus(#[case] case: &str, #[case] input: &str, #[case] output: &str) {
-            assert_eq!(MetricName::new(input).to_prometheus(), output, "{case} failed: {input:?}");
+        #[test]
+        fn valid_names_in_prometheus() {
+            assert_eq!(metric_name!("valid_name").to_prometheus(), "valid_name");
+            assert_eq!(metric_name!("_leading_underscore").to_prometheus(), "_leading_underscore");
+            assert_eq!(metric_name!(":leading_colon").to_prometheus(), ":leading_colon");
+            assert_eq!(metric_name!("v123").to_prometheus(), "v123"); // leading lowercase
+            assert_eq!(metric_name!("V123").to_prometheus(), "V123"); // leading lowercase
         }
 
         #[test]
-        #[should_panic(expected = "Metric name cannot be empty. It must have at least one character.")]
+        fn names_that_need_changes_in_prometheus() {
+            assert_eq!(metric_name!("9invalid_start").to_prometheus(), "_invalid_start");
+            assert_eq!(metric_name!("@test").to_prometheus(), "_test");
+            assert_eq!(metric_name!("invalid-char").to_prometheus(), "invalid_char");
+            assert_eq!(metric_name!("spaces are bad").to_prometheus(), "spaces_are_bad");
+            assert_eq!(metric_name!("a!b@c#d$e%f^g&h*i(j)").to_prometheus(), "a_b_c_d_e_f_g_h_i_j_");
+            assert_eq!(metric_name!("my:metric/version").to_prometheus(), "my:metric_version");
+            assert_eq!(metric_name!("!@#$%^&*()").to_prometheus(), "__________");
+            assert_eq!(metric_name!("ñaca©").to_prometheus(), "_aca_");
+        }
+
+        #[test]
+        #[should_panic(expected = "Metric name cannot be empty.")]
         fn empty_name() {
             let _name = MetricName::new("");
         }

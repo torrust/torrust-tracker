@@ -1,5 +1,5 @@
-use torrust_tracker_metrics::label::{LabelName, LabelSet, LabelValue};
-use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_metrics::label::{LabelSet, LabelValue};
+use torrust_tracker_metrics::{label_name, metric_name};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::{Event, UdpRequestKind, UdpResponseKind};
@@ -23,26 +23,34 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             stats_repository.increase_udp_requests_aborted().await;
 
             // Extendable metrics
-            stats_repository
+            match stats_repository
                 .increase_counter(
-                    &MetricName::new(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
+                    &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
                     &LabelSet::from(context),
                     now,
                 )
-                .await;
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
         Event::UdpRequestBanned { context } => {
             // Global fixed metrics
             stats_repository.increase_udp_requests_banned().await;
 
             // Extendable metrics
-            stats_repository
+            match stats_repository
                 .increase_counter(
-                    &MetricName::new(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL),
+                    &metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL),
                     &LabelSet::from(context),
                     now,
                 )
-                .await;
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
         Event::UdpRequestReceived { context } => {
             // Global fixed metrics
@@ -56,13 +64,17 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             }
 
             // Extendable metrics
-            stats_repository
+            match stats_repository
                 .increase_counter(
-                    &MetricName::new(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
+                    &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
                     &LabelSet::from(context),
                     now,
                 )
-                .await;
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
         Event::UdpRequestAccepted { context, kind } => {
             // Global fixed metrics
@@ -97,11 +109,15 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 
             let mut label_set = LabelSet::from(context);
 
-            label_set.upsert(LabelName::new("kind"), LabelValue::new(&kind.to_string()));
+            label_set.upsert(label_name!("request_kind"), LabelValue::new(&kind.to_string()));
 
-            stats_repository
-                .increase_counter(&MetricName::new(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &label_set, now)
-                .await;
+            match stats_repository
+                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &label_set, now)
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
         Event::UdpResponseSent {
             context,
@@ -128,16 +144,20 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                         // Extendable metrics
 
                         let mut label_set = LabelSet::from(context.clone());
-                        label_set.upsert(LabelName::new("request_kind"), LabelValue::new(&req_kind.to_string()));
+                        label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
 
-                        stats_repository
+                        match stats_repository
                             .set_gauge(
-                                &MetricName::new(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                                 &label_set,
                                 new_avg,
                                 now,
                             )
-                            .await;
+                            .await
+                        {
+                            Ok(()) => {}
+                            Err(err) => tracing::error!("Failed to set gauge: {}", err),
+                        }
 
                         (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Connect.to_string()))
                     }
@@ -149,16 +169,20 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                         // Extendable metrics
 
                         let mut label_set = LabelSet::from(context.clone());
-                        label_set.upsert(LabelName::new("request_kind"), LabelValue::new(&req_kind.to_string()));
+                        label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
 
-                        stats_repository
+                        match stats_repository
                             .set_gauge(
-                                &MetricName::new(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                                 &label_set,
                                 new_avg,
                                 now,
                             )
-                            .await;
+                            .await
+                        {
+                            Ok(()) => {}
+                            Err(err) => tracing::error!("Failed to set gauge: {}", err),
+                        }
 
                         (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Announce.to_string()))
                     }
@@ -170,16 +194,20 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                         // Extendable metrics
 
                         let mut label_set = LabelSet::from(context.clone());
-                        label_set.upsert(LabelName::new("request_kind"), LabelValue::new(&req_kind.to_string()));
+                        label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
 
-                        stats_repository
+                        match stats_repository
                             .set_gauge(
-                                &MetricName::new(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                                 &label_set,
                                 new_avg,
                                 now,
                             )
-                            .await;
+                            .await
+                        {
+                            Ok(()) => {}
+                            Err(err) => tracing::error!("Failed to set gauge: {}", err),
+                        }
 
                         (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Scrape.to_string()))
                     }
@@ -192,15 +220,19 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             let mut label_set = LabelSet::from(context);
 
             if result_label_value == LabelValue::new("ok") {
-                label_set.upsert(LabelName::new("request_kind"), kind_label_value);
+                label_set.upsert(label_name!("request_kind"), kind_label_value);
             }
-            label_set.upsert(LabelName::new("result"), result_label_value);
+            label_set.upsert(label_name!("result"), result_label_value);
 
-            stats_repository
-                .increase_counter(&MetricName::new(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL), &label_set, now)
-                .await;
+            match stats_repository
+                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL), &label_set, now)
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
-        Event::UdpError { context } => {
+        Event::UdpError { context, kind } => {
             // Global fixed metrics
             match context.client_socket_addr().ip() {
                 std::net::IpAddr::V4(_) => {
@@ -212,13 +244,20 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             }
 
             // Extendable metrics
-            stats_repository
-                .increase_counter(
-                    &MetricName::new(UDP_TRACKER_SERVER_ERRORS_TOTAL),
-                    &LabelSet::from(context),
-                    now,
-                )
-                .await;
+
+            let mut label_set = LabelSet::from(context);
+
+            if let Some(kind) = kind {
+                label_set.upsert(label_name!("request_kind"), kind.to_string().into());
+            }
+
+            match stats_repository
+                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &label_set, now)
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
         }
     }
 
@@ -478,6 +517,7 @@ mod tests {
                     )
                     .unwrap(),
                 ),
+                kind: None,
             },
             &stats_repository,
             CurrentClock::now(),
@@ -609,6 +649,7 @@ mod tests {
                     )
                     .unwrap(),
                 ),
+                kind: None,
             },
             &stats_repository,
             CurrentClock::now(),
