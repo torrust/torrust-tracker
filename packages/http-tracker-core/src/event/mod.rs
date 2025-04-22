@@ -124,7 +124,17 @@ pub mod test {
             ) => {
                 *connection == *expected_connection
                     && *info_hash == *expected_info_hash
+                    && announcement.peer_id == expected_announcement.peer_id
                     && announcement.peer_addr == expected_announcement.peer_addr
+                    // Events can't be compared due to the `updated` field.
+                    // The `announcement.uploaded` contains the current time
+                    // when the test is executed.
+                    // todo: mock time
+                    //&& announcement.updated == expected_announcement.updated
+                    && announcement.uploaded == expected_announcement.uploaded
+                    && announcement.downloaded == expected_announcement.downloaded
+                    && announcement.left == expected_announcement.left
+                    && announcement.event == expected_announcement.event
             }
             _ => false,
         }
