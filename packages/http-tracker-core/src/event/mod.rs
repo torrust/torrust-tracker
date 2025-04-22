@@ -94,3 +94,44 @@ impl From<ConnectionContext> for LabelSet {
         ])
     }
 }
+
+#[cfg(test)]
+pub mod test {
+
+    use torrust_tracker_primitives::peer::Peer;
+    use torrust_tracker_primitives::service_binding::Protocol;
+
+    #[test]
+    fn events_should_be_comparable() {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        use torrust_tracker_primitives::service_binding::ServiceBinding;
+
+        use crate::event::{ConnectionContext, Event};
+
+        let event1 = Event::TcpAnnounce {
+            connection: ConnectionContext::new(
+                IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                Some(8080),
+                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
+            ),
+            announced_peer: Peer::default(),
+            added_peer: Peer::default(),
+        };
+
+        let event2 = Event::TcpAnnounce {
+            connection: ConnectionContext::new(
+                IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
+                Some(8080),
+                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
+            ),
+            announced_peer: Peer::default(),
+            added_peer: Peer::default(),
+        };
+
+        let event1_clone = event1.clone();
+
+        assert!(event1 == event1_clone);
+        assert!(event1 != event2);
+    }
+}
