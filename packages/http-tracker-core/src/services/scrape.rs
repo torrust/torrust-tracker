@@ -126,11 +126,13 @@ impl ScrapeService {
         server_service_binding: ServiceBinding,
     ) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
-            http_stats_event_sender
-                .send_event(Event::TcpScrape {
-                    connection: ConnectionContext::new(original_peer_ip, opt_original_peer_port, server_service_binding),
-                })
-                .await;
+            let event = Event::TcpScrape {
+                connection: ConnectionContext::new(original_peer_ip, opt_original_peer_port, server_service_binding),
+            };
+
+            tracing::debug!("Sending TcpScrape event: {:?}", event);
+
+            http_stats_event_sender.send_event(event).await;
         }
     }
 }
