@@ -11,7 +11,7 @@ use crate::statistics::UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 /// This function panics if the IP version does not match the event type.
 pub async fn handle_event(event: Event, stats_repository: &Repository, now: DurationSinceUnixEpoch) {
     match event {
-        Event::UdpConnect { context } => {
+        Event::UdpConnect { connection: context } => {
             // Global fixed metrics
 
             match context.client_socket_addr.ip() {
@@ -36,7 +36,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
             };
         }
-        Event::UdpAnnounce { context } => {
+        Event::UdpAnnounce { connection: context } => {
             // Global fixed metrics
 
             match context.client_socket_addr.ip() {
@@ -61,7 +61,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
             };
         }
-        Event::UdpScrape { context } => {
+        Event::UdpScrape { connection: context } => {
             // Global fixed metrics
 
             match context.client_socket_addr.ip() {
@@ -109,7 +109,7 @@ mod tests {
 
         handle_event(
             Event::UdpConnect {
-                context: ConnectionContext::new(
+                connection: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -134,7 +134,7 @@ mod tests {
 
         handle_event(
             Event::UdpAnnounce {
-                context: ConnectionContext::new(
+                connection: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -159,7 +159,7 @@ mod tests {
 
         handle_event(
             Event::UdpScrape {
-                context: ConnectionContext::new(
+                connection: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -184,7 +184,7 @@ mod tests {
 
         handle_event(
             Event::UdpConnect {
-                context: ConnectionContext::new(
+                connection: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -209,7 +209,7 @@ mod tests {
 
         handle_event(
             Event::UdpAnnounce {
-                context: ConnectionContext::new(
+                connection: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -234,7 +234,7 @@ mod tests {
 
         handle_event(
             Event::UdpScrape {
-                context: ConnectionContext::new(
+                connection: ConnectionContext::new(
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,

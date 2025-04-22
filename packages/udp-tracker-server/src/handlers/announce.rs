@@ -868,7 +868,7 @@ mod tests {
                     udp_core_stats_event_sender_mock
                         .expect_send_event()
                         .with(eq(core_event::Event::UdpAnnounce {
-                            context: core_event::ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                            connection: core_event::ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));

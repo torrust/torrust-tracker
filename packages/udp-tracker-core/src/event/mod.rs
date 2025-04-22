@@ -9,9 +9,9 @@ pub mod sender;
 /// A UDP core event.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
-    UdpConnect { context: ConnectionContext },
-    UdpAnnounce { context: ConnectionContext },
-    UdpScrape { context: ConnectionContext },
+    UdpConnect { connection: ConnectionContext },
+    UdpAnnounce { connection: ConnectionContext },
+    UdpScrape { connection: ConnectionContext },
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
