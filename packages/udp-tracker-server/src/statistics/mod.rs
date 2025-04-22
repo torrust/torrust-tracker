@@ -25,43 +25,43 @@ pub fn describe_metrics() -> Metrics {
     metrics.metric_collection.describe_counter(
         &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of UDP requests aborted")),
+        Some(&MetricDescription::new("Total number of UDP requests aborted")),
     );
 
     metrics.metric_collection.describe_counter(
         &metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of UDP requests banned")),
+        Some(&MetricDescription::new("Total number of UDP requests banned")),
     );
 
     metrics.metric_collection.describe_counter(
         &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of UDP requests received")),
+        Some(&MetricDescription::new("Total number of UDP requests received")),
     );
 
     metrics.metric_collection.describe_counter(
         &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of UDP requests accepted")),
+        Some(&MetricDescription::new("Total number of UDP requests accepted")),
     );
 
     metrics.metric_collection.describe_counter(
         &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of UDP responses sent")),
+        Some(&MetricDescription::new("Total number of UDP responses sent")),
     );
 
     metrics.metric_collection.describe_counter(
         &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of errors processing UDP requests")),
+        Some(&MetricDescription::new("Total number of errors processing UDP requests")),
     );
 
     metrics.metric_collection.describe_gauge(
         &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
         Some(Unit::Nanoseconds),
-        Some(MetricDescription::new(
+        Some(&MetricDescription::new(
             "Average time to process a UDP connect request in nanoseconds",
         )),
     );

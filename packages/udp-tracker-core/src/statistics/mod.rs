@@ -19,7 +19,7 @@ pub fn describe_metrics() -> Metrics {
     metrics.metric_collection.describe_counter(
         &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of UDP requests received")),
+        Some(&MetricDescription::new("Total number of UDP requests received")),
     );
 
     metrics

@@ -19,7 +19,7 @@ pub fn describe_metrics() -> Metrics {
     metrics.metric_collection.describe_counter(
         &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
         Some(Unit::Count),
-        Some(MetricDescription::new("Total number of HTTP requests received")),
+        Some(&MetricDescription::new("Total number of HTTP requests received")),
     );
 
     metrics
