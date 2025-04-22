@@ -11,7 +11,7 @@ use std::net::IpAddr;
 use std::sync::Arc;
 
 use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
-use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{self, ClientIpSources, PeerIpResolutionError};
+use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, PeerIpResolutionError};
 use bittorrent_tracker_core::authentication::service::AuthenticationService;
 use bittorrent_tracker_core::authentication::{self, Key};
 use bittorrent_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
@@ -20,6 +20,7 @@ use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
+use super::resolve_remote_client_ip;
 use crate::event;
 use crate::event::{ConnectionContext, Event};
 
@@ -81,7 +82,8 @@ impl ScrapeService {
             self.scrape_handler.scrape(&scrape_request.info_hashes).await?
         };
 
-        let (remote_client_ip, opt_client_port) = self.resolve_remote_client_ip(client_ip_sources)?;
+        let (remote_client_ip, opt_client_port) =
+            resolve_remote_client_ip(self.core_config.net.on_reverse_proxy, client_ip_sources)?;
 
         self.send_event(remote_client_ip, opt_client_port, server_service_binding.clone())
             .await;
@@ -99,24 +101,6 @@ impl ScrapeService {
         }
 
         false
-    }
-
-    /// Resolves the client's real IP address considering proxy headers.
-    fn resolve_remote_client_ip(
-        &self,
-        client_ip_sources: &ClientIpSources,
-    ) -> Result<(IpAddr, Option<u16>), PeerIpResolutionError> {
-        let ip = peer_ip_resolver::invoke(self.core_config.net.on_reverse_proxy, client_ip_sources)?;
-
-        let port = if client_ip_sources.connection_info_socket_address.is_some() {
-            client_ip_sources
-                .connection_info_socket_address
-                .map(|socket_addr| socket_addr.port())
-        } else {
-            None
-        };
-
-        Ok((ip, port))
     }
 
     async fn send_event(

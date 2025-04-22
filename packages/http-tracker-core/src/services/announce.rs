@@ -12,7 +12,7 @@ use std::panic::Location;
 use std::sync::Arc;
 
 use bittorrent_http_tracker_protocol::v1::requests::announce::{peer_from_request, Announce};
-use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{self, ClientIpSources, PeerIpResolutionError};
+use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, PeerIpResolutionError};
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use bittorrent_tracker_core::authentication::service::AuthenticationService;
@@ -24,6 +24,7 @@ use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
+use super::resolve_remote_client_ip;
 use crate::event;
 use crate::event::Event;
 
@@ -78,7 +79,8 @@ impl AnnounceService {
 
         self.authorize(announce_request.info_hash).await?;
 
-        let (remote_client_ip, opt_remote_client_port) = self.resolve_remote_client_ip(client_ip_sources)?;
+        let (remote_client_ip, opt_remote_client_port) =
+            resolve_remote_client_ip(self.core_config.net.on_reverse_proxy, client_ip_sources)?;
 
         let mut peer = peer_from_request(announce_request, &remote_client_ip);
 
@@ -115,27 +117,6 @@ impl AnnounceService {
 
     async fn authorize(&self, info_hash: InfoHash) -> Result<(), WhitelistError> {
         self.whitelist_authorization.authorize(&info_hash).await
-    }
-
-    /// Resolves the client's real IP address considering proxy headers
-    fn resolve_remote_client_ip(
-        &self,
-        client_ip_sources: &ClientIpSources,
-    ) -> Result<(IpAddr, Option<u16>), PeerIpResolutionError> {
-        let ip = match peer_ip_resolver::invoke(self.core_config.net.on_reverse_proxy, client_ip_sources) {
-            Ok(peer_ip) => Ok(peer_ip),
-            Err(error) => Err(error),
-        }?;
-
-        let port = if client_ip_sources.connection_info_socket_address.is_some() {
-            client_ip_sources
-                .connection_info_socket_address
-                .map(|socket_addr| socket_addr.port())
-        } else {
-            None
-        };
-
-        Ok((ip, port))
     }
 
     /// Determines how many peers the client wants in the response
