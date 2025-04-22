@@ -89,8 +89,14 @@ impl AnnounceService {
             .announce(&announce_request.info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
-        self.send_event(remote_client_ip, opt_remote_client_port, server_service_binding.clone(), peer)
-            .await;
+        self.send_event(
+            announce_request.info_hash,
+            remote_client_ip,
+            opt_remote_client_port,
+            server_service_binding.clone(),
+            peer,
+        )
+        .await;
 
         Ok(announce_data)
     }
@@ -142,6 +148,7 @@ impl AnnounceService {
 
     async fn send_event(
         &self,
+        info_hash: InfoHash,
         remote_client_ip: IpAddr,
         opt_peer_ip_port: Option<u16>,
         server_service_binding: ServiceBinding,
@@ -150,6 +157,7 @@ impl AnnounceService {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             let event = Event::TcpAnnounce {
                 connection: event::ConnectionContext::new(remote_client_ip, opt_peer_ip_port, server_service_binding),
+                info_hash,
                 announcement,
             };
 
@@ -327,13 +335,14 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event;
+        use crate::event::test::events_match;
         use crate::event::{ConnectionContext, Event};
         use crate::services::announce::tests::{
             initialize_core_tracker_services, initialize_core_tracker_services_with_config, sample_announce_request_for_peer,
             MockHttpStatsEventSender,
         };
         use crate::services::announce::AnnounceService;
-        use crate::tests::{sample_peer, sample_peer_using_ipv4, sample_peer_using_ipv6};
+        use crate::tests::{sample_info_hash, sample_peer, sample_peer_using_ipv4, sample_peer_using_ipv6};
 
         #[tokio::test]
         async fn it_should_return_the_announce_data() {
@@ -394,22 +403,11 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(remote_client_ip, Some(8080), server_service_binding.clone()),
+                        info_hash: sample_info_hash(),
                         announcement,
                     };
 
-                    match (event, expected_event) {
-                        (
-                            Event::TcpAnnounce {
-                                connection: a_conn,
-                                announcement: a2,
-                            },
-                            Event::TcpAnnounce {
-                                connection: b_conn,
-                                announcement: b2,
-                            },
-                        ) => *a_conn == b_conn && a2.peer_addr == b2.peer_addr,
-                        _ => false,
-                    }
+                    events_match(event, &expected_event)
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -479,22 +477,11 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(remote_client_ip, Some(8080), server_service_binding.clone()),
+                        info_hash: sample_info_hash(),
                         announcement: peer_announcement,
                     };
 
-                    match (event, expected_event) {
-                        (
-                            Event::TcpAnnounce {
-                                connection: a_conn,
-                                announcement: a2,
-                            },
-                            Event::TcpAnnounce {
-                                connection: b_conn,
-                                announcement: b2,
-                            },
-                        ) => *a_conn == b_conn && a2.peer_addr == b2.peer_addr,
-                        _ => false,
-                    }
+                    events_match(event, &expected_event)
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -537,22 +524,10 @@ mod tests {
                 .with(predicate::function(move |event| {
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(remote_client_ip, Some(8080), server_service_binding.clone()),
+                        info_hash: sample_info_hash(),
                         announcement: peer,
                     };
-
-                    match (event, expected_event) {
-                        (
-                            Event::TcpAnnounce {
-                                connection: a_conn,
-                                announcement: a2,
-                            },
-                            Event::TcpAnnounce {
-                                connection: b_conn,
-                                announcement: b2,
-                            },
-                        ) => *a_conn == b_conn && a2.peer_addr == b2.peer_addr,
-                        _ => false,
-                    }
+                    events_match(event, &expected_event)
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));

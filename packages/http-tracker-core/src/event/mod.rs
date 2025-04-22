@@ -1,5 +1,6 @@
 use std::net::{IpAddr, SocketAddr};
 
+use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::label_name;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
@@ -12,6 +13,7 @@ pub mod sender;
 pub enum Event {
     TcpAnnounce {
         connection: ConnectionContext,
+        info_hash: InfoHash,
         announcement: PeerAnnouncement,
     },
     TcpScrape {
@@ -93,6 +95,32 @@ pub mod test {
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_primitives::service_binding::Protocol;
 
+    use super::Event;
+    use crate::tests::sample_info_hash;
+
+    #[must_use]
+    pub fn events_match(event: &Event, expected_event: &Event) -> bool {
+        match (event, expected_event) {
+            (
+                Event::TcpAnnounce {
+                    connection,
+                    info_hash,
+                    announcement,
+                },
+                Event::TcpAnnounce {
+                    connection: expected_connection,
+                    info_hash: expected_info_hash,
+                    announcement: expected_announcement,
+                },
+            ) => {
+                *connection == *expected_connection
+                    && *info_hash == *expected_info_hash
+                    && announcement.peer_addr == expected_announcement.peer_addr
+            }
+            _ => false,
+        }
+    }
+
     #[test]
     fn events_should_be_comparable() {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -102,6 +130,7 @@ pub mod test {
         use crate::event::{ConnectionContext, Event};
 
         let remote_client_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+        let info_hash = sample_info_hash();
 
         let event1 = Event::TcpAnnounce {
             connection: ConnectionContext::new(
@@ -109,6 +138,7 @@ pub mod test {
                 Some(8080),
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
             ),
+            info_hash,
             announcement: Peer::default(),
         };
 
@@ -118,6 +148,7 @@ pub mod test {
                 Some(8080),
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
             ),
+            info_hash,
             announcement: Peer::default(),
         };
 

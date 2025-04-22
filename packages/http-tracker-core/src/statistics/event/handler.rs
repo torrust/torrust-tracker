@@ -79,7 +79,7 @@ mod tests {
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
-    use crate::tests::{sample_peer_using_ipv4, sample_peer_using_ipv6};
+    use crate::tests::{sample_info_hash, sample_peer_using_ipv4, sample_peer_using_ipv6};
     use crate::CurrentClock;
 
     #[tokio::test]
@@ -95,6 +95,7 @@ mod tests {
                     Some(8080),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
+                info_hash: sample_info_hash(),
                 announcement: peer,
             },
             &stats_repository,
@@ -142,6 +143,7 @@ mod tests {
                     Some(8080),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
+                info_hash: sample_info_hash(),
                 announcement: peer,
             },
             &stats_repository,
