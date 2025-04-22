@@ -824,7 +824,7 @@ mod tests {
                 use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
                 use bittorrent_udp_tracker_core::services::announce::AnnounceService;
                 use bittorrent_udp_tracker_core::{self, event as core_event};
-                use mockall::predicate::eq;
+                use mockall::predicate::{self, eq};
                 use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
                 use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
@@ -834,6 +834,7 @@ mod tests {
                     sample_cookie_valid_range, sample_issue_time, MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender,
                     TrackerConfigurationBuilder,
                 };
+                use crate::tests::{announce_events_match, sample_peer};
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
@@ -848,6 +849,11 @@ mod tests {
 
                     let info_hash = AquaticInfoHash([0u8; 20]);
                     let peer_id = AquaticPeerId([255u8; 20]);
+                    let mut announcement = sample_peer();
+                    announcement.peer_id = peer_id;
+                    announcement.peer_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0x7e00, 1)), client_port);
+
+                    println!("announcement.peer_addr: {}", announcement.peer_addr);
 
                     let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
                     let mut server_socket_addr = config.udp_trackers.clone().unwrap()[0].bind_address;
@@ -856,6 +862,7 @@ mod tests {
                         server_socket_addr.set_port(6969);
                     }
                     let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+                    let server_service_binding_clone = server_service_binding.clone();
 
                     let database = initialize_database(&config.core);
                     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -867,8 +874,17 @@ mod tests {
                     let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
                     udp_core_stats_event_sender_mock
                         .expect_send_event()
-                        .with(eq(core_event::Event::UdpAnnounce {
-                            connection: core_event::ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                        .with(predicate::function(move |event| {
+                            let expected_event = core_event::Event::UdpAnnounce {
+                                connection: core_event::ConnectionContext::new(
+                                    client_socket_addr,
+                                    server_service_binding.clone(),
+                                ),
+                                info_hash: info_hash.into(),
+                                announcement,
+                            };
+
+                            announce_events_match(event, &expected_event)
                         }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -879,7 +895,7 @@ mod tests {
                     udp_server_stats_event_sender_mock
                         .expect_send_event()
                         .with(eq(Event::UdpRequestAccepted {
-                            context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                            context: ConnectionContext::new(client_socket_addr, server_service_binding_clone.clone()),
                             kind: UdpRequestKind::Announce,
                         }))
                         .times(1)
@@ -913,7 +929,7 @@ mod tests {
                     handle_announce(
                         &announce_service,
                         client_socket_addr,
-                        server_service_binding,
+                        server_service_binding_clone,
                         &request,
                         &core_config,
                         &udp_server_stats_event_sender,
@@ -927,6 +943,8 @@ mod tests {
                     let external_ip_in_tracker_configuration = core_config.net.external_ip.unwrap();
 
                     assert!(external_ip_in_tracker_configuration.is_ipv6());
+
+                    println!("Peer addr: {}", peers[0].peer_addr.ip());
 
                     // There's a special type of IPv6 addresses that provide compatibility with IPv4.
                     // The last 32 bits of these addresses represent an IPv4, and are represented like this:

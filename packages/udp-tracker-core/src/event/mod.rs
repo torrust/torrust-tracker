@@ -1,7 +1,9 @@
 use std::net::SocketAddr;
 
+use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::label_name;
+use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 pub mod sender;
@@ -9,9 +11,17 @@ pub mod sender;
 /// A UDP core event.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
-    UdpConnect { connection: ConnectionContext },
-    UdpAnnounce { connection: ConnectionContext },
-    UdpScrape { connection: ConnectionContext },
+    UdpConnect {
+        connection: ConnectionContext,
+    },
+    UdpAnnounce {
+        connection: ConnectionContext,
+        info_hash: InfoHash,
+        announcement: PeerAnnouncement,
+    },
+    UdpScrape {
+        connection: ConnectionContext,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

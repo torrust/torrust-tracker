@@ -36,7 +36,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
             };
         }
-        Event::UdpAnnounce { connection: context } => {
+        Event::UdpAnnounce { connection: context, .. } => {
             // Global fixed metrics
 
             match context.client_socket_addr.ip() {
@@ -96,11 +96,13 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
     use torrust_tracker_clock::clock::Time;
+    use torrust_tracker_primitives::peer::PeerAnnouncement;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
+    use crate::tests::sample_info_hash;
     use crate::CurrentClock;
 
     #[tokio::test]
@@ -142,6 +144,8 @@ mod tests {
                     )
                     .unwrap(),
                 ),
+                info_hash: sample_info_hash(),
+                announcement: PeerAnnouncement::default(),
             },
             &stats_repository,
             CurrentClock::now(),
@@ -217,6 +221,8 @@ mod tests {
                     )
                     .unwrap(),
                 ),
+                info_hash: sample_info_hash(),
+                announcement: PeerAnnouncement::default(),
             },
             &stats_repository,
             CurrentClock::now(),
