@@ -14,7 +14,7 @@ use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 /// version of the event.
 pub async fn handle_event(event: Event, stats_repository: &Repository, now: DurationSinceUnixEpoch) {
     match event {
-        Event::TcpAnnounce { connection } => {
+        Event::TcpAnnounce { connection, .. } => {
             // Global fixed metrics
 
             match connection.client_ip_addr() {
@@ -79,11 +79,13 @@ mod tests {
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
+    use crate::tests::{sample_peer_using_ipv4, sample_peer_using_ipv6};
     use crate::CurrentClock;
 
     #[tokio::test]
     async fn should_increase_the_tcp4_announces_counter_when_it_receives_a_tcp4_announce_event() {
         let stats_repository = Repository::new();
+        let peer = sample_peer_using_ipv4();
 
         handle_event(
             Event::TcpAnnounce {
@@ -92,6 +94,8 @@ mod tests {
                     Some(8080),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
+                announced_peer: peer,
+                added_peer: peer,
             },
             &stats_repository,
             CurrentClock::now(),
@@ -128,6 +132,7 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_tcp6_announces_counter_when_it_receives_a_tcp6_announce_event() {
         let stats_repository = Repository::new();
+        let peer = sample_peer_using_ipv6();
 
         handle_event(
             Event::TcpAnnounce {
@@ -136,6 +141,8 @@ mod tests {
                     Some(8080),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
+                announced_peer: peer,
+                added_peer: peer,
             },
             &stats_repository,
             CurrentClock::now(),

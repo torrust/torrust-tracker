@@ -2,6 +2,7 @@ use std::net::{IpAddr, SocketAddr};
 
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::label_name;
+use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 pub mod sender;
@@ -9,8 +10,21 @@ pub mod sender;
 /// A HTTP core event.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
-    TcpAnnounce { connection: ConnectionContext },
-    TcpScrape { connection: ConnectionContext },
+    TcpAnnounce {
+        connection: ConnectionContext,
+
+        /// The peer that is announcing itself to the tracker.
+        announced_peer: Peer,
+
+        /// The peer that is added to the tracker.
+        ///
+        /// It might not be the same as the `announced_peer` because the tracker
+        /// can change the peer's IP address.
+        added_peer: Peer,
+    },
+    TcpScrape {
+        connection: ConnectionContext,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

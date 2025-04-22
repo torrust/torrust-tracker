@@ -21,6 +21,7 @@ use bittorrent_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistE
 use bittorrent_tracker_core::whitelist;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::AnnounceData;
+use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::event;
@@ -81,6 +82,8 @@ impl AnnounceService {
 
         let mut peer = peer_from_request(announce_request, &remote_client_ip);
 
+        let announced_peer = peer;
+
         let peers_wanted = Self::peers_wanted(announce_request);
 
         let announce_data = self
@@ -88,8 +91,16 @@ impl AnnounceService {
             .announce(&announce_request.info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
-        self.send_event(remote_client_ip, opt_remote_client_port, server_service_binding.clone())
-            .await;
+        let added_peer = peer;
+
+        self.send_event(
+            remote_client_ip,
+            opt_remote_client_port,
+            server_service_binding.clone(),
+            announced_peer,
+            added_peer,
+        )
+        .await;
 
         Ok(announce_data)
     }
@@ -139,13 +150,24 @@ impl AnnounceService {
         }
     }
 
-    async fn send_event(&self, peer_ip: IpAddr, opt_peer_ip_port: Option<u16>, server_service_binding: ServiceBinding) {
+    async fn send_event(
+        &self,
+        peer_ip: IpAddr,
+        opt_peer_ip_port: Option<u16>,
+        server_service_binding: ServiceBinding,
+        announced_peer: Peer,
+        added_peer: Peer,
+    ) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
-            http_stats_event_sender
-                .send_event(Event::TcpAnnounce {
-                    connection: event::ConnectionContext::new(peer_ip, opt_peer_ip_port, server_service_binding),
-                })
-                .await;
+            let event = Event::TcpAnnounce {
+                connection: event::ConnectionContext::new(peer_ip, opt_peer_ip_port, server_service_binding),
+                announced_peer,
+                added_peer,
+            };
+
+            tracing::debug!("Sending TcpAnnounce event: {:?}", event);
+
+            http_stats_event_sender.send_event(event).await;
         }
     }
 }
@@ -202,10 +224,9 @@ impl From<authentication::key::Error> for HttpAnnounceError {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+    use std::net::SocketAddr;
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use bittorrent_http_tracker_protocol::v1::requests::announce::Announce;
     use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
     use bittorrent_tracker_core::announce_handler::AnnounceHandler;
@@ -218,7 +239,6 @@ mod tests {
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use torrust_tracker_configuration::{Configuration, Core};
     use torrust_tracker_primitives::peer::Peer;
-    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
     use torrust_tracker_test_helpers::configuration;
 
     struct CoreTrackerServices {
@@ -269,31 +289,6 @@ mod tests {
         )
     }
 
-    fn sample_peer_using_ipv4() -> peer::Peer {
-        sample_peer()
-    }
-
-    fn sample_peer_using_ipv6() -> peer::Peer {
-        let mut peer = sample_peer();
-        peer.peer_addr = SocketAddr::new(
-            IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-            8080,
-        );
-        peer
-    }
-
-    fn sample_peer() -> peer::Peer {
-        peer::Peer {
-            peer_id: PeerId(*b"-qB00000000000000000"),
-            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
-            uploaded: NumberOfBytes::new(0),
-            downloaded: NumberOfBytes::new(0),
-            left: NumberOfBytes::new(0),
-            event: AnnounceEvent::Started,
-        }
-    }
-
     fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSources) {
         let announce_request = Announce {
             info_hash: sample_info_hash(),
@@ -335,7 +330,7 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
         use std::sync::Arc;
 
-        use mockall::predicate::eq;
+        use mockall::predicate::{self};
         use torrust_tracker_configuration::Configuration;
         use torrust_tracker_primitives::core::AnnounceData;
         use torrust_tracker_primitives::peer;
@@ -343,14 +338,14 @@ mod tests {
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
-        use super::{sample_peer_using_ipv4, sample_peer_using_ipv6};
         use crate::event;
         use crate::event::{ConnectionContext, Event};
         use crate::services::announce::tests::{
             initialize_core_tracker_services, initialize_core_tracker_services_with_config, sample_announce_request_for_peer,
-            sample_peer, MockHttpStatsEventSender,
+            MockHttpStatsEventSender,
         };
         use crate::services::announce::AnnounceService;
+        use crate::tests::{sample_peer, sample_peer_using_ipv4, sample_peer_using_ipv6};
 
         #[tokio::test]
         async fn it_should_return_the_announce_data() {
@@ -393,16 +388,46 @@ mod tests {
         async fn it_should_send_the_tcp_4_announce_event_when_the_peer_uses_ipv4() {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
+            let peer = sample_peer_using_ipv4();
+
+            let server_service_binding_clone = server_service_binding.clone();
+            let peer_copy = peer;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(Event::TcpAnnounce {
-                    connection: ConnectionContext::new(
-                        IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
-                        Some(8080),
-                        server_service_binding.clone(),
-                    ),
+                .with(predicate::function(move |event| {
+                    let mut announced_peer = peer_copy;
+                    announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
+
+                    let mut added_peer = peer;
+                    added_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
+
+                    let expected_event = Event::TcpAnnounce {
+                        connection: ConnectionContext::new(
+                            IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
+                            Some(8080),
+                            server_service_binding.clone(),
+                        ),
+                        announced_peer,
+                        added_peer,
+                    };
+
+                    match (event, expected_event) {
+                        (
+                            Event::TcpAnnounce {
+                                connection: a_conn,
+                                announced_peer: a1,
+                                added_peer: a2,
+                            },
+                            Event::TcpAnnounce {
+                                connection: b_conn,
+                                announced_peer: b1,
+                                added_peer: b2,
+                            },
+                        ) => *a_conn == b_conn && a1.peer_addr == b1.peer_addr && a2.peer_addr == b2.peer_addr,
+                        _ => false,
+                    }
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -412,8 +437,6 @@ mod tests {
             let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services();
 
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
-
-            let peer = sample_peer_using_ipv4();
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
 
@@ -426,7 +449,7 @@ mod tests {
             );
 
             let _announce_data = announce_service
-                .handle_announce(&announce_request, &client_ip_sources, &server_service_binding, None)
+                .handle_announce(&announce_request, &client_ip_sources, &server_service_binding_clone, None)
                 .await
                 .unwrap();
         }
@@ -453,20 +476,53 @@ mod tests {
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
+            let peer = peer_with_the_ipv4_loopback_ip();
 
-            // Assert that the event sent is a TCP4 event
+            let server_service_binding_clone = server_service_binding.clone();
+            let peer_copy = peer;
+
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(Event::TcpAnnounce {
-                    connection: ConnectionContext::new(
-                        IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-                        Some(8080),
-                        server_service_binding.clone(),
-                    ),
+                .with(predicate::function(move |event| {
+                    let mut announced_peer = peer_copy;
+                    announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+
+                    let mut added_peer = peer;
+                    added_peer.peer_addr = SocketAddr::new(
+                        IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                        8080,
+                    );
+
+                    let expected_event = Event::TcpAnnounce {
+                        connection: ConnectionContext::new(
+                            IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                            Some(8080),
+                            server_service_binding.clone(),
+                        ),
+                        announced_peer,
+                        added_peer,
+                    };
+
+                    match (event, expected_event) {
+                        (
+                            Event::TcpAnnounce {
+                                connection: a_conn,
+                                announced_peer: a1,
+                                added_peer: a2,
+                            },
+                            Event::TcpAnnounce {
+                                connection: b_conn,
+                                announced_peer: b1,
+                                added_peer: b2,
+                            },
+                        ) => *a_conn == b_conn && a1.peer_addr == b1.peer_addr && a2.peer_addr == b2.peer_addr,
+                        _ => false,
+                    }
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
             let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
                 Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
@@ -474,8 +530,6 @@ mod tests {
                 initialize_core_tracker_services_with_config(&tracker_with_an_ipv6_external_ip());
 
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
-
-            let peer = peer_with_the_ipv4_loopback_ip();
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
 
@@ -488,7 +542,7 @@ mod tests {
             );
 
             let _announce_data = announce_service
-                .handle_announce(&announce_request, &client_ip_sources, &server_service_binding, None)
+                .handle_announce(&announce_request, &client_ip_sources, &server_service_binding_clone, None)
                 .await
                 .unwrap();
         }
@@ -498,16 +552,45 @@ mod tests {
         {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
+            let peer = sample_peer_using_ipv6();
+
+            let peer_copy = peer;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
-                .with(eq(Event::TcpAnnounce {
-                    connection: ConnectionContext::new(
-                        IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                        Some(8080),
-                        server_service_binding,
-                    ),
+                .with(predicate::function(move |event| {
+                    let announced_peer = peer_copy;
+                    //announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
+
+                    let added_peer = peer;
+                    //added_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
+
+                    let expected_event = Event::TcpAnnounce {
+                        connection: ConnectionContext::new(
+                            IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                            Some(8080),
+                            server_service_binding.clone(),
+                        ),
+                        announced_peer,
+                        added_peer,
+                    };
+
+                    match (event, expected_event) {
+                        (
+                            Event::TcpAnnounce {
+                                connection: a_conn,
+                                announced_peer: a1,
+                                added_peer: a2,
+                            },
+                            Event::TcpAnnounce {
+                                connection: b_conn,
+                                announced_peer: b1,
+                                added_peer: b2,
+                            },
+                        ) => *a_conn == b_conn && a1.peer_addr == b1.peer_addr && a2.peer_addr == b2.peer_addr,
+                        _ => false,
+                    }
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -516,8 +599,6 @@ mod tests {
 
             let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services();
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
-
-            let peer = sample_peer_using_ipv6();
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
 
