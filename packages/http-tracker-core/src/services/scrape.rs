@@ -7,11 +7,10 @@
 //!
 //! It also sends an [`http_tracker_core::statistics::event::Event`]
 //! because events are specific for the HTTP tracker.
-use std::net::IpAddr;
 use std::sync::Arc;
 
 use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
-use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{self, ClientIpSources, PeerIpResolutionError};
+use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, PeerIpResolutionError};
 use bittorrent_tracker_core::authentication::service::AuthenticationService;
 use bittorrent_tracker_core::authentication::{self, Key};
 use bittorrent_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
@@ -20,6 +19,7 @@ use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
+use super::{resolve_remote_client_addr, RemoteClientAddr};
 use crate::event;
 use crate::event::{ConnectionContext, Event};
 
@@ -81,10 +81,9 @@ impl ScrapeService {
             self.scrape_handler.scrape(&scrape_request.info_hashes).await?
         };
 
-        let (remote_client_ip, opt_client_port) = self.resolve_remote_client_ip(client_ip_sources)?;
+        let remote_client_addr = resolve_remote_client_addr(self.core_config.net.on_reverse_proxy, client_ip_sources)?;
 
-        self.send_event(remote_client_ip, opt_client_port, server_service_binding.clone())
-            .await;
+        self.send_event(remote_client_addr, server_service_binding.clone()).await;
 
         Ok(scrape_data)
     }
@@ -101,36 +100,15 @@ impl ScrapeService {
         false
     }
 
-    /// Resolves the client's real IP address considering proxy headers.
-    fn resolve_remote_client_ip(
-        &self,
-        client_ip_sources: &ClientIpSources,
-    ) -> Result<(IpAddr, Option<u16>), PeerIpResolutionError> {
-        let ip = peer_ip_resolver::invoke(self.core_config.net.on_reverse_proxy, client_ip_sources)?;
-
-        let port = if client_ip_sources.connection_info_socket_address.is_some() {
-            client_ip_sources
-                .connection_info_socket_address
-                .map(|socket_addr| socket_addr.port())
-        } else {
-            None
-        };
-
-        Ok((ip, port))
-    }
-
-    async fn send_event(
-        &self,
-        original_peer_ip: IpAddr,
-        opt_original_peer_port: Option<u16>,
-        server_service_binding: ServiceBinding,
-    ) {
+    async fn send_event(&self, remote_client_addr: RemoteClientAddr, server_service_binding: ServiceBinding) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
-            http_stats_event_sender
-                .send_event(Event::TcpScrape {
-                    connection: ConnectionContext::new(original_peer_ip, opt_original_peer_port, server_service_binding),
-                })
-                .await;
+            let event = Event::TcpScrape {
+                connection: ConnectionContext::new(remote_client_addr, server_service_binding),
+            };
+
+            tracing::debug!("Sending TcpScrape event: {:?}", event);
+
+            http_stats_event_sender.send_event(event).await;
         }
     }
 }
@@ -285,6 +263,7 @@ mod tests {
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
+        use crate::services::RemoteClientAddr;
         use crate::tests::sample_info_hash;
         use crate::{event, statistics};
 
@@ -356,8 +335,7 @@ mod tests {
                 .expect_send_event()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
-                        IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
-                        Some(8080),
+                        RemoteClientAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), Some(8080)),
                         ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070))
                             .unwrap(),
                     ),
@@ -408,8 +386,10 @@ mod tests {
                 .expect_send_event()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
-                        IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                        Some(8080),
+                        RemoteClientAddr::new(
+                            IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                            Some(8080),
+                        ),
                         server_service_binding,
                     ),
                 }))
@@ -467,6 +447,7 @@ mod tests {
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
+        use crate::services::RemoteClientAddr;
         use crate::tests::sample_info_hash;
         use crate::{event, statistics};
 
@@ -532,8 +513,7 @@ mod tests {
                 .expect_send_event()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
-                        IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
-                        Some(8080),
+                        RemoteClientAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), Some(8080)),
                         ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070))
                             .unwrap(),
                     ),
@@ -584,8 +564,10 @@ mod tests {
                 .expect_send_event()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
-                        IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                        Some(8080),
+                        RemoteClientAddr::new(
+                            IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                            Some(8080),
+                        ),
                         server_service_binding,
                     ),
                 }))

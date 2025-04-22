@@ -32,6 +32,8 @@ use zerocopy::FromBytes as _;
 
 use crate::DurationSinceUnixEpoch;
 
+pub type PeerAnnouncement = Peer;
+
 /// Peer struct used by the core `Tracker`.
 ///
 /// A sample peer:
@@ -513,6 +515,22 @@ pub mod fixture {
 
 #[cfg(test)]
 pub mod test {
+
+    mod peer {
+        use crate::peer::fixture::PeerBuilder;
+
+        #[test]
+        fn should_be_comparable() {
+            let seeder1 = PeerBuilder::seeder().build();
+            let seeder2 = PeerBuilder::seeder().build();
+
+            let leecher1 = PeerBuilder::leecher().build();
+
+            assert!(seeder1 == seeder2);
+            assert!(seeder1 != leecher1);
+        }
+    }
+
     mod torrent_peer_id {
         use aquatic_udp_protocol::PeerId;
 
