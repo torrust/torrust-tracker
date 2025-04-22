@@ -312,7 +312,7 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event;
-        use crate::event::test::events_match;
+        use crate::event::test::announce_events_match;
         use crate::event::{ConnectionContext, Event};
         use crate::services::announce::tests::{
             initialize_core_tracker_services, initialize_core_tracker_services_with_config, sample_announce_request_for_peer,
@@ -388,7 +388,7 @@ mod tests {
                         announcement,
                     };
 
-                    events_match(event, &expected_event)
+                    announce_events_match(event, &expected_event)
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -465,7 +465,7 @@ mod tests {
                         announcement: peer_announcement,
                     };
 
-                    events_match(event, &expected_event)
+                    announce_events_match(event, &expected_event)
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -514,7 +514,7 @@ mod tests {
                         info_hash: sample_info_hash(),
                         announcement: peer,
                     };
-                    events_match(event, &expected_event)
+                    announce_events_match(event, &expected_event)
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));

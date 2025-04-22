@@ -673,3 +673,57 @@ pub struct RawRequest {
     payload: Vec<u8>,
     from: SocketAddr,
 }
+
+#[cfg(test)]
+pub(crate) mod tests {
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+    use bittorrent_udp_tracker_core::event::Event;
+    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
+
+    pub fn sample_peer() -> peer::Peer {
+        peer::Peer {
+            peer_id: PeerId(*b"-qB00000000000000000"),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+            uploaded: NumberOfBytes::new(0),
+            downloaded: NumberOfBytes::new(0),
+            left: NumberOfBytes::new(0),
+            event: AnnounceEvent::Started,
+        }
+    }
+
+    #[must_use]
+    pub fn announce_events_match(event: &Event, expected_event: &Event) -> bool {
+        match (event, expected_event) {
+            (
+                Event::UdpAnnounce {
+                    connection,
+                    info_hash,
+                    announcement,
+                },
+                Event::UdpAnnounce {
+                    connection: expected_connection,
+                    info_hash: expected_info_hash,
+                    announcement: expected_announcement,
+                },
+            ) => {
+                *connection == *expected_connection
+                    && *info_hash == *expected_info_hash
+                    && announcement.peer_id == expected_announcement.peer_id
+                    && announcement.peer_addr == expected_announcement.peer_addr
+                    // Events can't be compared due to the `updated` field.
+                    // The `announcement.uploaded` contains the current time
+                    // when the test is executed.
+                    // todo: mock time
+                    //&& announcement.updated == expected_announcement.updated
+                    && announcement.uploaded == expected_announcement.uploaded
+                    && announcement.downloaded == expected_announcement.downloaded
+                    && announcement.left == expected_announcement.left
+                    && announcement.event == expected_announcement.event
+            }
+            _ => false,
+        }
+    }
+}

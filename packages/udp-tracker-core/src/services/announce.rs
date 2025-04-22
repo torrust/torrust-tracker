@@ -18,6 +18,7 @@ use bittorrent_tracker_core::error::{AnnounceError, WhitelistError};
 use bittorrent_tracker_core::whitelist;
 use bittorrent_udp_tracker_protocol::peer_builder;
 use torrust_tracker_primitives::core::AnnounceData;
+use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
@@ -80,7 +81,8 @@ impl AnnounceService {
             .announce(&info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
-        self.send_event(client_socket_addr, server_service_binding).await;
+        self.send_event(info_hash, peer, client_socket_addr, server_service_binding)
+            .await;
 
         Ok(announce_data)
     }
@@ -101,13 +103,25 @@ impl AnnounceService {
         self.whitelist_authorization.authorize(info_hash).await
     }
 
-    async fn send_event(&self, client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) {
+    async fn send_event(
+        &self,
+        info_hash: InfoHash,
+        announcement: PeerAnnouncement,
+        client_socket_addr: SocketAddr,
+        server_service_binding: ServiceBinding,
+    ) {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
-            udp_stats_event_sender
-                .send_event(Event::UdpAnnounce {
-                    context: ConnectionContext::new(client_socket_addr, server_service_binding),
-                })
-                .await;
+            let event = Event::UdpAnnounce {
+                connection: ConnectionContext::new(client_socket_addr, server_service_binding),
+                info_hash,
+                announcement,
+            };
+
+            tracing::debug!(target = crate::UDP_TRACKER_LOG_TARGET, "Sending UdpAnnounce event: {event:?}");
+
+            println!("Sending UdpAnnounce event: {event:?}");
+
+            udp_stats_event_sender.send_event(event).await;
         }
     }
 }

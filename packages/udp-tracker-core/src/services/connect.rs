@@ -43,7 +43,7 @@ impl ConnectService {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             udp_stats_event_sender
                 .send_event(Event::UdpConnect {
-                    context: ConnectionContext::new(client_socket_addr, server_service_binding),
+                    connection: ConnectionContext::new(client_socket_addr, server_service_binding),
                 })
                 .await;
         }
@@ -144,7 +144,7 @@ mod tests {
             udp_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(Event::UdpConnect {
-                    context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                    connection: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -168,7 +168,7 @@ mod tests {
             udp_stats_event_sender_mock
                 .expect_send_event()
                 .with(eq(Event::UdpConnect {
-                    context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                    connection: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
