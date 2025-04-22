@@ -853,8 +853,6 @@ mod tests {
                     announcement.peer_id = peer_id;
                     announcement.peer_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0x7e00, 1)), client_port);
 
-                    println!("announcement.peer_addr: {}", announcement.peer_addr);
-
                     let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
                     let mut server_socket_addr = config.udp_trackers.clone().unwrap()[0].bind_address;
                     if server_socket_addr.port() == 0 {
@@ -943,8 +941,6 @@ mod tests {
                     let external_ip_in_tracker_configuration = core_config.net.external_ip.unwrap();
 
                     assert!(external_ip_in_tracker_configuration.is_ipv6());
-
-                    println!("Peer addr: {}", peers[0].peer_addr.ip());
 
                     // There's a special type of IPv6 addresses that provide compatibility with IPv4.
                     // The last 32 bits of these addresses represent an IPv4, and are represented like this:
