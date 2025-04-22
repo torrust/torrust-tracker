@@ -32,6 +32,8 @@ use zerocopy::FromBytes as _;
 
 use crate::DurationSinceUnixEpoch;
 
+pub type PeerAnnouncement = Peer;
+
 /// Peer struct used by the core `Tracker`.
 ///
 /// A sample peer:

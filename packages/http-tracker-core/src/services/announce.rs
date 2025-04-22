@@ -21,7 +21,7 @@ use bittorrent_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistE
 use bittorrent_tracker_core::whitelist;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::AnnounceData;
-use torrust_tracker_primitives::peer::Peer;
+use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::event;
@@ -78,11 +78,9 @@ impl AnnounceService {
 
         self.authorize(announce_request.info_hash).await?;
 
-        let (remote_client_ip, opt_remote_client_port) = self.resolve_remote_client_address(client_ip_sources)?;
+        let (remote_client_ip, opt_remote_client_port) = self.resolve_remote_client_ip(client_ip_sources)?;
 
         let mut peer = peer_from_request(announce_request, &remote_client_ip);
-
-        let announced_peer = peer;
 
         let peers_wanted = Self::peers_wanted(announce_request);
 
@@ -91,16 +89,8 @@ impl AnnounceService {
             .announce(&announce_request.info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
-        let added_peer = peer;
-
-        self.send_event(
-            remote_client_ip,
-            opt_remote_client_port,
-            server_service_binding.clone(),
-            announced_peer,
-            added_peer,
-        )
-        .await;
+        self.send_event(remote_client_ip, opt_remote_client_port, server_service_binding.clone(), peer)
+            .await;
 
         Ok(announce_data)
     }
@@ -122,7 +112,7 @@ impl AnnounceService {
     }
 
     /// Resolves the client's real IP address considering proxy headers
-    fn resolve_remote_client_address(
+    fn resolve_remote_client_ip(
         &self,
         client_ip_sources: &ClientIpSources,
     ) -> Result<(IpAddr, Option<u16>), PeerIpResolutionError> {
@@ -152,17 +142,15 @@ impl AnnounceService {
 
     async fn send_event(
         &self,
-        peer_ip: IpAddr,
+        remote_client_ip: IpAddr,
         opt_peer_ip_port: Option<u16>,
         server_service_binding: ServiceBinding,
-        announced_peer: Peer,
-        added_peer: Peer,
+        announcement: PeerAnnouncement,
     ) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             let event = Event::TcpAnnounce {
-                connection: event::ConnectionContext::new(peer_ip, opt_peer_ip_port, server_service_binding),
-                announced_peer,
-                added_peer,
+                connection: event::ConnectionContext::new(remote_client_ip, opt_peer_ip_port, server_service_binding),
+                announcement,
             };
 
             tracing::debug!("Sending TcpAnnounce event: {:?}", event);
@@ -389,6 +377,7 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
             let peer = sample_peer_using_ipv4();
+            let remote_client_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
 
             let server_service_binding_clone = server_service_binding.clone();
             let peer_copy = peer;
@@ -400,32 +389,25 @@ mod tests {
                     let mut announced_peer = peer_copy;
                     announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
 
-                    let mut added_peer = peer;
-                    added_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
+                    let mut announcement = peer;
+                    announcement.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
 
                     let expected_event = Event::TcpAnnounce {
-                        connection: ConnectionContext::new(
-                            IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)),
-                            Some(8080),
-                            server_service_binding.clone(),
-                        ),
-                        announced_peer,
-                        added_peer,
+                        connection: ConnectionContext::new(remote_client_ip, Some(8080), server_service_binding.clone()),
+                        announcement,
                     };
 
                     match (event, expected_event) {
                         (
                             Event::TcpAnnounce {
                                 connection: a_conn,
-                                announced_peer: a1,
-                                added_peer: a2,
+                                announcement: a2,
                             },
                             Event::TcpAnnounce {
                                 connection: b_conn,
-                                announced_peer: b1,
-                                added_peer: b2,
+                                announcement: b2,
                             },
-                        ) => *a_conn == b_conn && a1.peer_addr == b1.peer_addr && a2.peer_addr == b2.peer_addr,
+                        ) => *a_conn == b_conn && a2.peer_addr == b2.peer_addr,
                         _ => false,
                     }
                 }))
@@ -477,6 +459,7 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
             let peer = peer_with_the_ipv4_loopback_ip();
+            let remote_client_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
 
             let server_service_binding_clone = server_service_binding.clone();
             let peer_copy = peer;
@@ -488,35 +471,28 @@ mod tests {
                     let mut announced_peer = peer_copy;
                     announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
 
-                    let mut added_peer = peer;
-                    added_peer.peer_addr = SocketAddr::new(
+                    let mut peer_announcement = peer;
+                    peer_announcement.peer_addr = SocketAddr::new(
                         IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                         8080,
                     );
 
                     let expected_event = Event::TcpAnnounce {
-                        connection: ConnectionContext::new(
-                            IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-                            Some(8080),
-                            server_service_binding.clone(),
-                        ),
-                        announced_peer,
-                        added_peer,
+                        connection: ConnectionContext::new(remote_client_ip, Some(8080), server_service_binding.clone()),
+                        announcement: peer_announcement,
                     };
 
                     match (event, expected_event) {
                         (
                             Event::TcpAnnounce {
                                 connection: a_conn,
-                                announced_peer: a1,
-                                added_peer: a2,
+                                announcement: a2,
                             },
                             Event::TcpAnnounce {
                                 connection: b_conn,
-                                announced_peer: b1,
-                                added_peer: b2,
+                                announcement: b2,
                             },
-                        ) => *a_conn == b_conn && a1.peer_addr == b1.peer_addr && a2.peer_addr == b2.peer_addr,
+                        ) => *a_conn == b_conn && a2.peer_addr == b2.peer_addr,
                         _ => false,
                     }
                 }))
@@ -553,42 +529,28 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
             let peer = sample_peer_using_ipv6();
-
-            let peer_copy = peer;
+            let remote_client_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send_event()
                 .with(predicate::function(move |event| {
-                    let announced_peer = peer_copy;
-                    //announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
-
-                    let added_peer = peer;
-                    //added_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
-
                     let expected_event = Event::TcpAnnounce {
-                        connection: ConnectionContext::new(
-                            IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                            Some(8080),
-                            server_service_binding.clone(),
-                        ),
-                        announced_peer,
-                        added_peer,
+                        connection: ConnectionContext::new(remote_client_ip, Some(8080), server_service_binding.clone()),
+                        announcement: peer,
                     };
 
                     match (event, expected_event) {
                         (
                             Event::TcpAnnounce {
                                 connection: a_conn,
-                                announced_peer: a1,
-                                added_peer: a2,
+                                announcement: a2,
                             },
                             Event::TcpAnnounce {
                                 connection: b_conn,
-                                announced_peer: b1,
-                                added_peer: b2,
+                                announcement: b2,
                             },
-                        ) => *a_conn == b_conn && a1.peer_addr == b1.peer_addr && a2.peer_addr == b2.peer_addr,
+                        ) => *a_conn == b_conn && a2.peer_addr == b2.peer_addr,
                         _ => false,
                     }
                 }))

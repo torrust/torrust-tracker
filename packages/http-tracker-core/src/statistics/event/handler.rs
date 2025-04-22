@@ -86,16 +86,16 @@ mod tests {
     async fn should_increase_the_tcp4_announces_counter_when_it_receives_a_tcp4_announce_event() {
         let stats_repository = Repository::new();
         let peer = sample_peer_using_ipv4();
+        let remote_client_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2));
 
         handle_event(
             Event::TcpAnnounce {
                 connection: ConnectionContext::new(
-                    IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
+                    remote_client_ip,
                     Some(8080),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
-                announced_peer: peer,
-                added_peer: peer,
+                announcement: peer,
             },
             &stats_repository,
             CurrentClock::now(),
@@ -133,16 +133,16 @@ mod tests {
     async fn should_increase_the_tcp6_announces_counter_when_it_receives_a_tcp6_announce_event() {
         let stats_repository = Repository::new();
         let peer = sample_peer_using_ipv6();
+        let remote_client_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
         handle_event(
             Event::TcpAnnounce {
                 connection: ConnectionContext::new(
-                    IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                    remote_client_ip,
                     Some(8080),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
-                announced_peer: peer,
-                added_peer: peer,
+                announcement: peer,
             },
             &stats_repository,
             CurrentClock::now(),

@@ -2,7 +2,7 @@ use std::net::{IpAddr, SocketAddr};
 
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::label_name;
-use torrust_tracker_primitives::peer::Peer;
+use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 pub mod sender;
@@ -12,15 +12,7 @@ pub mod sender;
 pub enum Event {
     TcpAnnounce {
         connection: ConnectionContext,
-
-        /// The peer that is announcing itself to the tracker.
-        announced_peer: Peer,
-
-        /// The peer that is added to the tracker.
-        ///
-        /// It might not be the same as the `announced_peer` because the tracker
-        /// can change the peer's IP address.
-        added_peer: Peer,
+        announcement: PeerAnnouncement,
     },
     TcpScrape {
         connection: ConnectionContext,
@@ -109,14 +101,15 @@ pub mod test {
 
         use crate::event::{ConnectionContext, Event};
 
+        let remote_client_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+
         let event1 = Event::TcpAnnounce {
             connection: ConnectionContext::new(
-                IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                remote_client_ip,
                 Some(8080),
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
             ),
-            announced_peer: Peer::default(),
-            added_peer: Peer::default(),
+            announcement: Peer::default(),
         };
 
         let event2 = Event::TcpAnnounce {
@@ -125,8 +118,7 @@ pub mod test {
                 Some(8080),
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
             ),
-            announced_peer: Peer::default(),
-            added_peer: Peer::default(),
+            announcement: Peer::default(),
         };
 
         let event1_clone = event1.clone();
