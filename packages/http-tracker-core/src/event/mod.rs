@@ -108,7 +108,7 @@ pub mod test {
     use crate::tests::sample_info_hash;
 
     #[must_use]
-    pub fn events_match(event: &Event, expected_event: &Event) -> bool {
+    pub fn announce_events_match(event: &Event, expected_event: &Event) -> bool {
         match (event, expected_event) {
             (
                 Event::TcpAnnounce {
