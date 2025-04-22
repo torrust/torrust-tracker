@@ -77,6 +77,7 @@ mod tests {
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
     use crate::event::{ConnectionContext, Event};
+    use crate::services::RemoteClientAddr;
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
     use crate::tests::{sample_info_hash, sample_peer_using_ipv4, sample_peer_using_ipv6};
@@ -91,8 +92,7 @@ mod tests {
         handle_event(
             Event::TcpAnnounce {
                 connection: ConnectionContext::new(
-                    remote_client_ip,
-                    Some(8080),
+                    RemoteClientAddr::new(remote_client_ip, Some(8080)),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
                 info_hash: sample_info_hash(),
@@ -115,8 +115,7 @@ mod tests {
         handle_event(
             Event::TcpScrape {
                 connection: ConnectionContext::new(
-                    IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)),
-                    Some(8080),
+                    RemoteClientAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), Some(8080)),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
             },
@@ -139,8 +138,7 @@ mod tests {
         handle_event(
             Event::TcpAnnounce {
                 connection: ConnectionContext::new(
-                    remote_client_ip,
-                    Some(8080),
+                    RemoteClientAddr::new(remote_client_ip, Some(8080)),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
                 info_hash: sample_info_hash(),
@@ -163,8 +161,10 @@ mod tests {
         handle_event(
             Event::TcpScrape {
                 connection: ConnectionContext::new(
-                    IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
-                    Some(8080),
+                    RemoteClientAddr::new(
+                        IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                        Some(8080),
+                    ),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
             },
