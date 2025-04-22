@@ -57,7 +57,7 @@ impl MetricCollection {
 
     // Counter-specific methods
 
-    pub fn describe_counter(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<MetricDescription>) {
+    pub fn describe_counter(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<&MetricDescription>) {
         tracing::info!(target: METRICS_TARGET, type = "counter", name = name.to_string(), unit = ?opt_unit, description = ?opt_description);
         self.counters.ensure_metric_exists(name);
     }
@@ -99,7 +99,7 @@ impl MetricCollection {
 
     // Gauge-specific methods
 
-    pub fn describe_gauge(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<MetricDescription>) {
+    pub fn describe_gauge(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<&MetricDescription>) {
         tracing::info!(target: METRICS_TARGET, type = "gauge", name = name.to_string(), unit = ?opt_unit, description = ?opt_description);
         self.gauges.ensure_metric_exists(name);
     }
