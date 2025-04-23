@@ -7,11 +7,12 @@ async fn main() {
     // handle the signals
     tokio::select! {
         _ = tokio::signal::ctrl_c() => {
-            tracing::info!("Torrust shutting down ...");
+            tracing::info!("Torrust tracker shutting down ...");
 
             // Await for all jobs to shutdown
             futures::future::join_all(jobs).await;
-            tracing::info!("Torrust successfully shutdown.");
+
+            tracing::info!("Torrust tracker successfully shutdown.");
         }
     }
 }

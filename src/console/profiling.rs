@@ -189,7 +189,8 @@ pub async fn run() {
             tracing::info!("Torrust timed shutdown..");
         },
         _ = tokio::signal::ctrl_c() => {
-            tracing::info!("Torrust shutting down via Ctrl+C ...");
+            tracing::info!("Torrust tracker shutting down via Ctrl+C ...");
+
             // Await for all jobs to shutdown
             futures::future::join_all(jobs).await;
         }
