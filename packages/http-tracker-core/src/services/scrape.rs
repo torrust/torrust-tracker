@@ -10,7 +10,9 @@
 use std::sync::Arc;
 
 use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
-use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, PeerIpResolutionError};
+use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{
+    resolve_remote_client_addr, ClientIpSources, PeerIpResolutionError, RemoteClientAddr,
+};
 use bittorrent_tracker_core::authentication::service::AuthenticationService;
 use bittorrent_tracker_core::authentication::{self, Key};
 use bittorrent_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
@@ -19,7 +21,6 @@ use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
-use super::{resolve_remote_client_addr, RemoteClientAddr};
 use crate::event;
 use crate::event::{ConnectionContext, Event};
 
@@ -81,7 +82,7 @@ impl ScrapeService {
             self.scrape_handler.scrape(&scrape_request.info_hashes).await?
         };
 
-        let remote_client_addr = resolve_remote_client_addr(self.core_config.net.on_reverse_proxy, client_ip_sources)?;
+        let remote_client_addr = resolve_remote_client_addr(&self.core_config.net.on_reverse_proxy.into(), client_ip_sources)?;
 
         self.send_event(remote_client_addr, server_service_binding.clone()).await;
 
@@ -250,7 +251,7 @@ mod tests {
         use std::sync::Arc;
 
         use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
-        use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+        use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_tracker_primitives::core::ScrapeData;
@@ -263,7 +264,6 @@ mod tests {
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
-        use crate::services::RemoteClientAddr;
         use crate::tests::sample_info_hash;
         use crate::{event, statistics};
 
@@ -335,7 +335,10 @@ mod tests {
                 .expect_send_event()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
-                        RemoteClientAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), Some(8080)),
+                        RemoteClientAddr::new(
+                            ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1))),
+                            Some(8080),
+                        ),
                         ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070))
                             .unwrap(),
                     ),
@@ -387,7 +390,9 @@ mod tests {
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
                         RemoteClientAddr::new(
-                            IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                            ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::new(
+                                0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
+                            ))),
                             Some(8080),
                         ),
                         server_service_binding,
@@ -435,7 +440,7 @@ mod tests {
         use std::sync::Arc;
 
         use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
-        use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+        use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_tracker_primitives::core::ScrapeData;
@@ -447,7 +452,6 @@ mod tests {
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
-        use crate::services::RemoteClientAddr;
         use crate::tests::sample_info_hash;
         use crate::{event, statistics};
 
@@ -513,7 +517,10 @@ mod tests {
                 .expect_send_event()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
-                        RemoteClientAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), Some(8080)),
+                        RemoteClientAddr::new(
+                            ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1))),
+                            Some(8080),
+                        ),
                         ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070))
                             .unwrap(),
                     ),
@@ -565,7 +572,9 @@ mod tests {
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
                         RemoteClientAddr::new(
-                            IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                            ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::new(
+                                0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
+                            ))),
                             Some(8080),
                         ),
                         server_service_binding,

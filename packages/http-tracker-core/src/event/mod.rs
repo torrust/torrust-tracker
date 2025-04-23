@@ -1,12 +1,11 @@
 use std::net::{IpAddr, SocketAddr};
 
+use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::RemoteClientAddr;
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::label_name;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
-
-use crate::services::RemoteClientAddr;
 
 pub mod sender;
 
@@ -64,12 +63,12 @@ pub struct ClientConnectionContext {
 impl ClientConnectionContext {
     #[must_use]
     pub fn ip_addr(&self) -> IpAddr {
-        self.remote_client_addr.ip
+        self.remote_client_addr.ip()
     }
 
     #[must_use]
     pub fn port(&self) -> Option<u16> {
-        self.remote_client_addr.port
+        self.remote_client_addr.port()
     }
 }
 
@@ -100,11 +99,11 @@ impl From<ConnectionContext> for LabelSet {
 #[cfg(test)]
 pub mod test {
 
+    use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_primitives::service_binding::Protocol;
 
     use super::Event;
-    use crate::services::RemoteClientAddr;
     use crate::tests::sample_info_hash;
 
     #[must_use]
@@ -153,7 +152,7 @@ pub mod test {
 
         let event1 = Event::TcpAnnounce {
             connection: ConnectionContext::new(
-                RemoteClientAddr::new(remote_client_ip, Some(8080)),
+                RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
             ),
             info_hash,
@@ -162,7 +161,10 @@ pub mod test {
 
         let event2 = Event::TcpAnnounce {
             connection: ConnectionContext::new(
-                RemoteClientAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), Some(8080)),
+                RemoteClientAddr::new(
+                    ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2))),
+                    Some(8080),
+                ),
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
             ),
             info_hash,

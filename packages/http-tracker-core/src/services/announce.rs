@@ -11,7 +11,9 @@ use std::panic::Location;
 use std::sync::Arc;
 
 use bittorrent_http_tracker_protocol::v1::requests::announce::{peer_from_request, Announce};
-use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, PeerIpResolutionError};
+use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{
+    resolve_remote_client_addr, ClientIpSources, PeerIpResolutionError, RemoteClientAddr,
+};
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use bittorrent_tracker_core::authentication::service::AuthenticationService;
@@ -23,7 +25,6 @@ use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
-use super::{resolve_remote_client_addr, RemoteClientAddr};
 use crate::event;
 use crate::event::Event;
 
@@ -78,15 +79,20 @@ impl AnnounceService {
 
         self.authorize(announce_request.info_hash).await?;
 
-        let remote_client_addr = resolve_remote_client_addr(self.core_config.net.on_reverse_proxy, client_ip_sources)?;
+        let remote_client_addr = resolve_remote_client_addr(&self.core_config.net.on_reverse_proxy.into(), client_ip_sources)?;
 
-        let mut peer = peer_from_request(announce_request, &remote_client_addr.ip);
+        let mut peer = peer_from_request(announce_request, &remote_client_addr.ip());
 
         let peers_wanted = Self::peers_wanted(announce_request);
 
         let announce_data = self
             .announce_handler
-            .announce(&announce_request.info_hash, &mut peer, &remote_client_addr.ip, &peers_wanted)
+            .announce(
+                &announce_request.info_hash,
+                &mut peer,
+                &remote_client_addr.ip(),
+                &peers_wanted,
+            )
             .await?;
 
         self.send_event(
@@ -303,6 +309,7 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
         use std::sync::Arc;
 
+        use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
         use mockall::predicate::{self};
         use torrust_tracker_configuration::Configuration;
         use torrust_tracker_primitives::core::AnnounceData;
@@ -319,7 +326,6 @@ mod tests {
             MockHttpStatsEventSender,
         };
         use crate::services::announce::AnnounceService;
-        use crate::services::RemoteClientAddr;
         use crate::tests::{sample_info_hash, sample_peer, sample_peer_using_ipv4, sample_peer_using_ipv6};
 
         #[tokio::test]
@@ -381,7 +387,7 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
-                            RemoteClientAddr::new(remote_client_ip, Some(8080)),
+                            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
                         info_hash: sample_info_hash(),
@@ -458,7 +464,7 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
-                            RemoteClientAddr::new(remote_client_ip, Some(8080)),
+                            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
                         info_hash: sample_info_hash(),
@@ -508,7 +514,7 @@ mod tests {
                 .with(predicate::function(move |event| {
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
-                            RemoteClientAddr::new(remote_client_ip, Some(8080)),
+                            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
                         info_hash: sample_info_hash(),
