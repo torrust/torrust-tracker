@@ -24,11 +24,11 @@
 use std::sync::Arc;
 
 use tokio::task::JoinHandle;
-use torrust_tracker_configuration::Configuration;
+use torrust_tracker_configuration::{Configuration, HttpTracker, UdpTracker};
 use tracing::instrument;
 
-use crate::bootstrap;
 use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
+use crate::bootstrap::{self};
 use crate::container::AppContainer;
 
 pub async fn run() -> (Arc<AppContainer>, Vec<JoinHandle<()>>) {
@@ -41,6 +41,8 @@ pub async fn run() -> (Arc<AppContainer>, Vec<JoinHandle<()>>) {
     (app_container, jobs)
 }
 
+/// Starts the tracker application.
+///
 /// # Panics
 ///
 /// Will panic if:
@@ -49,16 +51,40 @@ pub async fn run() -> (Arc<AppContainer>, Vec<JoinHandle<()>>) {
 /// - Can't load whitelist from database.
 #[instrument(skip(config, app_container))]
 pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) -> Vec<JoinHandle<()>> {
+    warn_if_no_services_enabled(config);
+
+    load_data_from_database(config, app_container).await;
+
+    start_jobs(config, app_container).await
+}
+
+async fn load_data_from_database(config: &Configuration, app_container: &Arc<AppContainer>) {
+    load_peer_keys(config, app_container).await;
+    load_whitelisted_torrents(config, app_container).await;
+}
+
+async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -> Vec<JoinHandle<()>> {
+    let mut jobs: Vec<JoinHandle<()>> = Vec::new();
+
+    start_the_udp_instances(config, app_container, &mut jobs).await;
+    start_the_http_instances(config, app_container, &mut jobs).await;
+    start_the_http_api(config, app_container, &mut jobs).await;
+    start_torrent_cleanup(config, app_container, &mut jobs);
+    start_health_check_api(config, app_container, &mut jobs).await;
+
+    jobs
+}
+
+fn warn_if_no_services_enabled(config: &Configuration) {
     if config.http_api.is_none()
         && (config.udp_trackers.is_none() || config.udp_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
         && (config.http_trackers.is_none() || config.http_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
     {
         tracing::warn!("No services enabled in configuration");
     }
+}
 
-    let mut jobs: Vec<JoinHandle<()>> = Vec::new();
-
-    // Load peer keys
+async fn load_peer_keys(config: &Configuration, app_container: &Arc<AppContainer>) {
     if config.core.private {
         app_container
             .tracker_core_container
@@ -67,8 +93,9 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
             .await
             .expect("Could not retrieve keys from database.");
     }
+}
 
-    // Load whitelisted torrents
+async fn load_whitelisted_torrents(config: &Configuration, app_container: &Arc<AppContainer>) {
     if config.core.listed {
         app_container
             .tracker_core_container
@@ -77,8 +104,9 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
             .await
             .expect("Could not load whitelist from database.");
     }
+}
 
-    // Start the UDP blocks
+async fn start_the_udp_instances(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
     if let Some(udp_trackers) = &config.udp_trackers {
         for udp_tracker_config in udp_trackers {
             if config.core.private {
@@ -87,47 +115,61 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
                     udp_tracker_config.bind_address
                 );
             } else {
-                let udp_tracker_container = app_container
-                    .udp_tracker_container(udp_tracker_config.bind_address)
-                    .expect("Could not create UDP tracker container");
-                let udp_tracker_server_container = app_container.udp_tracker_server_container();
-
-                jobs.push(
-                    udp_tracker::start_job(
-                        udp_tracker_container,
-                        udp_tracker_server_container,
-                        app_container.registar.give_form(),
-                    )
-                    .await,
-                );
+                start_udp_instance(udp_tracker_config, app_container, jobs).await;
             }
         }
     } else {
         tracing::info!("No UDP blocks in configuration");
     }
+}
 
-    // Start the HTTP blocks
+async fn start_udp_instance(udp_tracker_config: &UdpTracker, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
+    let udp_tracker_container = app_container
+        .udp_tracker_container(udp_tracker_config.bind_address)
+        .expect("Could not create UDP tracker container");
+    let udp_tracker_server_container = app_container.udp_tracker_server_container();
+
+    jobs.push(
+        udp_tracker::start_job(
+            udp_tracker_container,
+            udp_tracker_server_container,
+            app_container.registar.give_form(),
+        )
+        .await,
+    );
+}
+
+async fn start_the_http_instances(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
     if let Some(http_trackers) = &config.http_trackers {
         for http_tracker_config in http_trackers {
-            let http_tracker_container = app_container
-                .http_tracker_container(http_tracker_config.bind_address)
-                .expect("Could not create HTTP tracker container");
-
-            if let Some(job) = http_tracker::start_job(
-                http_tracker_container,
-                app_container.registar.give_form(),
-                torrust_axum_http_tracker_server::Version::V1,
-            )
-            .await
-            {
-                jobs.push(job);
-            }
+            start_http_instance(http_tracker_config, app_container, jobs).await;
         }
     } else {
         tracing::info!("No HTTP blocks in configuration");
     }
+}
 
-    // Start HTTP API
+async fn start_http_instance(
+    http_tracker_config: &HttpTracker,
+    app_container: &Arc<AppContainer>,
+    jobs: &mut Vec<JoinHandle<()>>,
+) {
+    let http_tracker_container = app_container
+        .http_tracker_container(http_tracker_config.bind_address)
+        .expect("Could not create HTTP tracker container");
+
+    if let Some(job) = http_tracker::start_job(
+        http_tracker_container,
+        app_container.registar.give_form(),
+        torrust_axum_http_tracker_server::Version::V1,
+    )
+    .await
+    {
+        jobs.push(job);
+    }
+}
+
+async fn start_the_http_api(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
     if let Some(http_api_config) = &config.http_api {
         let http_api_config = Arc::new(http_api_config.clone());
         let http_api_container = app_container.tracker_http_api_container(&http_api_config);
@@ -144,17 +186,17 @@ pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) ->
     } else {
         tracing::info!("No API block in configuration");
     }
+}
 
-    // Start runners to remove torrents without peers, every interval
+fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
     if config.core.inactive_peer_cleanup_interval > 0 {
         jobs.push(torrent_cleanup::start_job(
             &config.core,
             &app_container.tracker_core_container.torrents_manager,
         ));
     }
+}
 
-    // Start Health Check API
+async fn start_health_check_api(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
     jobs.push(health_check_api::start_job(&config.health_check_api, app_container.registar.entries()).await);
-
-    jobs
 }
