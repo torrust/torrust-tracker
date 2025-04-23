@@ -7,6 +7,7 @@ use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::{UdpTrackerCoreContainer, UdpTrackerCoreServices};
 use bittorrent_udp_tracker_core::{self};
 use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
+use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Configuration, HttpApi};
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 use tracing::instrument;
@@ -23,6 +24,9 @@ pub enum Error {
 pub struct AppContainer {
     // Configuration
     pub http_api_config: Arc<Option<HttpApi>>,
+
+    // Registar
+    pub registar: Arc<Registar>,
 
     // Core
     pub tracker_core_container: Arc<TrackerCoreContainer>,
@@ -45,6 +49,10 @@ impl AppContainer {
         let core_config = Arc::new(configuration.core.clone());
 
         let http_api_config = Arc::new(configuration.http_api.clone());
+
+        // Registar
+
+        let registar = Arc::new(Registar::default());
 
         // Core
 
@@ -72,6 +80,9 @@ impl AppContainer {
         AppContainer {
             // Configuration
             http_api_config,
+
+            // Registar
+            registar,
 
             // Core
             tracker_core_container,

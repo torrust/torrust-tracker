@@ -179,7 +179,7 @@ pub async fn run() {
         return;
     };
 
-    let (_app_container, jobs, _registar) = app::run().await;
+    let (_app_container, jobs) = app::run().await;
 
     // Run the tracker for a fixed duration
     let run_duration = sleep(Duration::from_secs(duration_secs));
@@ -189,7 +189,8 @@ pub async fn run() {
             tracing::info!("Torrust timed shutdown..");
         },
         _ = tokio::signal::ctrl_c() => {
-            tracing::info!("Torrust shutting down via Ctrl+C ...");
+            tracing::info!("Torrust tracker shutting down via Ctrl+C ...");
+
             // Await for all jobs to shutdown
             futures::future::join_all(jobs).await;
         }
