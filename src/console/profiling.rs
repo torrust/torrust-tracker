@@ -179,7 +179,7 @@ pub async fn run() {
         return;
     };
 
-    let (_app_container, jobs, _registar) = app::run().await;
+    let (_app_container, jobs) = app::run().await;
 
     // Run the tracker for a fixed duration
     let run_duration = sleep(Duration::from_secs(duration_secs));

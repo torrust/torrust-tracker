@@ -2,7 +2,7 @@ use torrust_tracker_lib::app;
 
 #[tokio::main]
 async fn main() {
-    let (_app_container, jobs, _registar) = app::run().await;
+    let (_app_container, jobs) = app::run().await;
 
     // handle the signals
     tokio::select! {

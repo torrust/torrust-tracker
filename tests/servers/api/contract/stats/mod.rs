@@ -51,7 +51,7 @@ async fn the_stats_api_endpoint_should_return_the_global_stats() {
 
     env::set_var("TORRUST_TRACKER_CONFIG_TOML", config_with_two_http_trackers);
 
-    let (_app_container, _jobs, _registar) = app::run().await;
+    let (_app_container, _jobs) = app::run().await;
 
     announce_to_tracker("http://127.0.0.1:7272").await;
     announce_to_tracker("http://127.0.0.1:7373").await;
