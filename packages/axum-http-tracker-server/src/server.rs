@@ -274,7 +274,6 @@ mod tests {
         let (http_stats_event_sender, http_stats_repository) =
             bittorrent_http_tracker_core::statistics::setup::factory(configuration.core.tracker_usage_statistics);
         let http_stats_event_sender = Arc::new(http_stats_event_sender);
-        let http_stats_repository = Arc::new(http_stats_repository);
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
 

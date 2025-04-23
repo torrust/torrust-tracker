@@ -65,7 +65,6 @@ impl HttpTrackerCoreServices {
         let (http_stats_event_sender, http_stats_repository) =
             statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
         let http_stats_event_sender = Arc::new(http_stats_event_sender);
-        let http_stats_repository = Arc::new(http_stats_repository);
         let http_announce_service = Arc::new(AnnounceService::new(
             tracker_core_container.core_config.clone(),
             tracker_core_container.announce_handler.clone(),

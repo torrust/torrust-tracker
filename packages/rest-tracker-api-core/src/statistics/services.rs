@@ -149,7 +149,6 @@ mod tests {
         // HTTP core stats
         let (_http_stats_event_sender, http_stats_repository) =
             bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
-        let http_stats_repository = Arc::new(http_stats_repository);
 
         // UDP core stats
         let (_udp_stats_event_sender, _udp_stats_repository) =

@@ -16,6 +16,7 @@ pub trait Sender: Sync + Send {
 }
 
 /// An event sender implementation using a broadcast channel.
+#[derive(Clone)]
 pub struct Broadcaster {
     pub(crate) sender: broadcast::Sender<Event>,
 }

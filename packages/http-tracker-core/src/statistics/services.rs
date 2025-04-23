@@ -89,9 +89,8 @@ mod tests {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
         let (_http_stats_event_sender, http_stats_repository) = statistics::setup::factory(config.core.tracker_usage_statistics);
-        let http_stats_repository = Arc::new(http_stats_repository);
 
-        let tracker_metrics = get_metrics(in_memory_torrent_repository.clone(), http_stats_repository.clone()).await;
+        let tracker_metrics = get_metrics(in_memory_torrent_repository.clone(), http_stats_repository).await;
 
         assert_eq!(
             tracker_metrics,

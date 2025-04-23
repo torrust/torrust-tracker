@@ -1,8 +1,12 @@
 //! Setup for the tracker statistics.
 //!
 //! The [`factory`] function builds the structs needed for handling the tracker metrics.
+use std::sync::Arc;
+
+use super::keeper::Keeper;
+use super::repository::Repository;
+use crate::event;
 use crate::event::sender::Broadcaster;
-use crate::{event, statistics};
 
 /// It builds the structs needed for handling the tracker metrics.
 ///
@@ -17,20 +21,23 @@ use crate::{event, statistics};
 /// not run the event listeners, consequently the statistics events are sent are
 /// received but not dispatched to the handler.
 #[must_use]
-pub fn factory(tracker_usage_statistics: bool) -> (Option<Box<dyn event::sender::Sender>>, statistics::repository::Repository) {
-    let mut keeper = statistics::keeper::Keeper::new();
+pub fn factory(tracker_usage_statistics: bool) -> (Option<Box<dyn event::sender::Sender>>, Arc<Repository>) {
+    let keeper = keeper_factory(tracker_usage_statistics);
 
-    let opt_event_sender: Option<Box<dyn event::sender::Sender>> = if tracker_usage_statistics {
-        let broadcaster = Broadcaster::default();
+    if tracker_usage_statistics {
+        // todo: this should be started like the other jobs during `app::start`
+        // and keep the join handle in a list of jobs.
+        let _unused = keeper.run_event_listener();
+    }
 
-        keeper.run_event_listener(broadcaster.subscribe());
+    (keeper.sender(), keeper.repository())
+}
 
-        Some(Box::new(broadcaster))
-    } else {
-        None
-    };
-
-    (opt_event_sender, keeper.repository)
+#[must_use]
+pub fn keeper_factory(tracker_usage_statistics: bool) -> Arc<Keeper> {
+    let broadcaster = Broadcaster::default();
+    let repository = Arc::new(Repository::new());
+    Arc::new(Keeper::new(tracker_usage_statistics, broadcaster.clone(), repository.clone()))
 }
 
 #[cfg(test)]
