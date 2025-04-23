@@ -73,11 +73,11 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
     use crate::event::{ConnectionContext, Event};
-    use crate::services::RemoteClientAddr;
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
     use crate::tests::{sample_info_hash, sample_peer_using_ipv4, sample_peer_using_ipv6};
@@ -92,7 +92,7 @@ mod tests {
         handle_event(
             Event::TcpAnnounce {
                 connection: ConnectionContext::new(
-                    RemoteClientAddr::new(remote_client_ip, Some(8080)),
+                    RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
                 info_hash: sample_info_hash(),
@@ -115,7 +115,10 @@ mod tests {
         handle_event(
             Event::TcpScrape {
                 connection: ConnectionContext::new(
-                    RemoteClientAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), Some(8080)),
+                    RemoteClientAddr::new(
+                        ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2))),
+                        Some(8080),
+                    ),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
             },
@@ -138,7 +141,7 @@ mod tests {
         handle_event(
             Event::TcpAnnounce {
                 connection: ConnectionContext::new(
-                    RemoteClientAddr::new(remote_client_ip, Some(8080)),
+                    RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
                 ),
                 info_hash: sample_info_hash(),
@@ -162,7 +165,9 @@ mod tests {
             Event::TcpScrape {
                 connection: ConnectionContext::new(
                     RemoteClientAddr::new(
-                        IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
+                        ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::new(
+                            0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
+                        ))),
                         Some(8080),
                     ),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
