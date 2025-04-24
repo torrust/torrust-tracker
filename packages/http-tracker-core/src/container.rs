@@ -45,7 +45,7 @@ impl HttpTrackerCoreContainer {
         Arc::new(Self {
             tracker_core_container: tracker_core_container.clone(),
             http_tracker_config: http_tracker_config.clone(),
-            stats_keeper: http_tracker_core_services.http_core_stats_keeper.clone(),
+            stats_keeper: http_tracker_core_services.http_stats_keeper.clone(),
             stats_event_sender: http_tracker_core_services.http_stats_event_sender.clone(),
             stats_repository: http_tracker_core_services.http_stats_repository.clone(),
             announce_service: http_tracker_core_services.http_announce_service.clone(),
@@ -55,7 +55,7 @@ impl HttpTrackerCoreContainer {
 }
 
 pub struct HttpTrackerCoreServices {
-    pub http_core_stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub http_stats_keeper: Arc<statistics::keeper::Keeper>,
     pub http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub http_stats_repository: Arc<statistics::repository::Repository>,
     pub http_announce_service: Arc<services::announce::AnnounceService>,
@@ -66,14 +66,14 @@ impl HttpTrackerCoreServices {
     #[must_use]
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
         // HTTP core stats
-        let http_core_stats_keeper = statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
-        let http_stats_event_sender = http_core_stats_keeper.sender();
-        let http_stats_repository = http_core_stats_keeper.repository();
+        let http_stats_keeper = statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
+        let http_stats_event_sender = http_stats_keeper.sender();
+        let http_stats_repository = http_stats_keeper.repository();
 
         if tracker_core_container.core_config.tracker_usage_statistics {
             // todo: this should be started like the other jobs during `app::start`
             // and keep the join handle in a list of jobs.
-            let _unused = http_core_stats_keeper.run_event_listener();
+            let _unused = http_stats_keeper.run_event_listener();
         }
 
         let http_announce_service = Arc::new(AnnounceService::new(
@@ -92,7 +92,7 @@ impl HttpTrackerCoreServices {
         ));
 
         Arc::new(Self {
-            http_core_stats_keeper,
+            http_stats_keeper,
             http_stats_event_sender,
             http_stats_repository,
             http_announce_service,

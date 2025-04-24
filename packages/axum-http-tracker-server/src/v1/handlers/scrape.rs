@@ -132,15 +132,14 @@ mod tests {
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         // HTTP core stats
-        let http_core_stats_keeper =
-            bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
-        let http_stats_event_sender = http_core_stats_keeper.sender();
-        let _http_stats_repository = http_core_stats_keeper.repository();
+        let http_stats_keeper = bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
+        let http_stats_event_sender = http_stats_keeper.sender();
+        let _http_stats_repository = http_stats_keeper.repository();
 
         if config.core.tracker_usage_statistics {
             // todo: this should be started like the other jobs during `app::start`
             // and keep the join handle in a list of jobs.
-            let _unused = http_core_stats_keeper.run_event_listener();
+            let _unused = http_stats_keeper.run_event_listener();
         }
 
         (
