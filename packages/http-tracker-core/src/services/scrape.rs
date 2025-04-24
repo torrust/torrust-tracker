@@ -273,9 +273,9 @@ mod tests {
             let core_config = Arc::new(configuration.core.clone());
 
             // HTTP core stats
-            let keeper = statistics::setup::factory(false);
-            let http_stats_event_sender = keeper.sender();
-            let _http_stats_repository = keeper.repository();
+            let http_core_stats_keeper = statistics::setup::factory(false);
+            let http_stats_event_sender = http_core_stats_keeper.sender();
+            let _http_stats_repository = http_core_stats_keeper.repository();
 
             let container = initialize_services_with_configuration(&configuration);
 
@@ -465,9 +465,9 @@ mod tests {
             let container = initialize_services_with_configuration(&config);
 
             // HTTP core stats
-            let keeper = statistics::setup::factory(false);
-            let http_stats_event_sender = keeper.sender();
-            let _http_stats_repository = keeper.repository();
+            let http_core_stats_keeper = statistics::setup::factory(false);
+            let http_stats_event_sender = http_core_stats_keeper.sender();
+            let _http_stats_repository = http_core_stats_keeper.repository();
 
             let info_hash = sample_info_hash();
             let info_hashes = vec![info_hash];

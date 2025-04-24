@@ -63,14 +63,14 @@ impl HttpTrackerCoreServices {
     #[must_use]
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
         // HTTP core stats
-        let keeper = statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
-        let http_stats_event_sender = keeper.sender();
-        let http_stats_repository = keeper.repository();
+        let http_core_stats_keeper = statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
+        let http_stats_event_sender = http_core_stats_keeper.sender();
+        let http_stats_repository = http_core_stats_keeper.repository();
 
         if tracker_core_container.core_config.tracker_usage_statistics {
             // todo: this should be started like the other jobs during `app::start`
             // and keep the join handle in a list of jobs.
-            let _unused = keeper.run_event_listener();
+            let _unused = http_core_stats_keeper.run_event_listener();
         }
 
         let http_announce_service = Arc::new(AnnounceService::new(

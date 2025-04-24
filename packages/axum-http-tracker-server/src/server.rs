@@ -271,14 +271,15 @@ mod tests {
         let http_tracker_config = Arc::new(http_tracker_config.clone());
 
         // HTTP core stats
-        let keeper = bittorrent_http_tracker_core::statistics::setup::factory(configuration.core.tracker_usage_statistics);
-        let http_stats_event_sender = keeper.sender();
-        let http_stats_repository = keeper.repository();
+        let http_core_stats_keeper =
+            bittorrent_http_tracker_core::statistics::setup::factory(configuration.core.tracker_usage_statistics);
+        let http_stats_event_sender = http_core_stats_keeper.sender();
+        let http_stats_repository = http_core_stats_keeper.repository();
 
         if configuration.core.tracker_usage_statistics {
             // todo: this should be started like the other jobs during `app::start`
             // and keep the join handle in a list of jobs.
-            let _unused = keeper.run_event_listener();
+            let _unused = http_core_stats_keeper.run_event_listener();
         }
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));

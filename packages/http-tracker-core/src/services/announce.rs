@@ -253,14 +253,14 @@ mod tests {
         ));
 
         // HTTP core stats
-        let keeper = statistics::setup::factory(config.core.tracker_usage_statistics);
-        let http_stats_event_sender = keeper.sender();
-        let _http_stats_repository = keeper.repository();
+        let http_core_stats_keeper = statistics::setup::factory(config.core.tracker_usage_statistics);
+        let http_stats_event_sender = http_core_stats_keeper.sender();
+        let _http_stats_repository = http_core_stats_keeper.repository();
 
         if config.core.tracker_usage_statistics {
             // todo: this should be started like the other jobs during `app::start`
             // and keep the join handle in a list of jobs.
-            let _unused = keeper.run_event_listener();
+            let _unused = http_core_stats_keeper.run_event_listener();
         }
 
         (
