@@ -39,11 +39,11 @@ impl Keeper {
     }
 
     #[must_use]
-    pub fn sender(&self) -> Option<Box<dyn sender::Sender>> {
+    pub fn sender(&self) -> Arc<Option<Box<dyn sender::Sender>>> {
         if self.enable_sender {
-            Some(Box::new(self.broadcaster.clone()))
+            Arc::new(Some(Box::new(self.broadcaster.clone())))
         } else {
-            None
+            Arc::new(None)
         }
     }
 

@@ -2,6 +2,8 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+use bittorrent_http_tracker_core::event::Event;
+use bittorrent_http_tracker_core::{event, statistics};
 use bittorrent_http_tracker_protocol::v1::requests::announce::Announce;
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use bittorrent_primitives::info_hash::InfoHash;
@@ -13,6 +15,9 @@ use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepo
 use bittorrent_tracker_core::torrent::repository::persisted::DatabasePersistentTorrentRepository;
 use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
 use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
+use futures::future::BoxFuture;
+use mockall::mock;
+use tokio::sync::broadcast::error::SendError;
 use torrust_tracker_configuration::{Configuration, Core};
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
@@ -50,10 +55,16 @@ pub fn initialize_core_tracker_services_with_config(config: &Configuration) -> (
         &db_torrent_repository,
     ));
 
-    // HTTP stats
-    let (http_stats_event_sender, http_stats_repository) = statistics::setup::factory(config.core.tracker_usage_statistics);
-    let http_stats_event_sender = Arc::new(http_stats_event_sender);
-    let _http_stats_repository = Arc::new(http_stats_repository);
+    // HTTP core stats
+    let keeper = statistics::setup::factory(config.core.tracker_usage_statistics);
+    let http_stats_event_sender = keeper.sender();
+    let _http_stats_repository = keeper.repository();
+
+    if config.core.tracker_usage_statistics {
+        // todo: this should be started like the other jobs during `app::start`
+        // and keep the join handle in a list of jobs.
+        let _unused = keeper.run_event_listener();
+    }
 
     (
         CoreTrackerServices {
@@ -104,12 +115,6 @@ pub fn sample_info_hash() -> InfoHash {
         .parse::<InfoHash>()
         .expect("String should be a valid info hash")
 }
-
-use bittorrent_http_tracker_core::event::Event;
-use bittorrent_http_tracker_core::{event, statistics};
-use futures::future::BoxFuture;
-use mockall::mock;
-use tokio::sync::broadcast::error::SendError;
 
 mock! {
     HttpStatsEventSender {}

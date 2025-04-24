@@ -88,7 +88,16 @@ mod tests {
 
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-        let (_http_stats_event_sender, http_stats_repository) = statistics::setup::factory(config.core.tracker_usage_statistics);
+        // HTTP core stats
+        let keeper = statistics::setup::factory(config.core.tracker_usage_statistics);
+        let _http_stats_event_sender = keeper.sender();
+        let http_stats_repository = keeper.repository();
+
+        if config.core.tracker_usage_statistics {
+            // todo: this should be started like the other jobs during `app::start`
+            // and keep the join handle in a list of jobs.
+            let _unused = keeper.run_event_listener();
+        }
 
         let tracker_metrics = get_metrics(in_memory_torrent_repository.clone(), http_stats_repository).await;
 

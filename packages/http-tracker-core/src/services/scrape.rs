@@ -272,8 +272,10 @@ mod tests {
             let configuration = configuration::ephemeral_public();
             let core_config = Arc::new(configuration.core.clone());
 
-            let (http_stats_event_sender, _http_stats_repository) = statistics::setup::factory(false);
-            let http_stats_event_sender = Arc::new(http_stats_event_sender);
+            // HTTP core stats
+            let keeper = statistics::setup::factory(false);
+            let http_stats_event_sender = keeper.sender();
+            let _http_stats_repository = keeper.repository();
 
             let container = initialize_services_with_configuration(&configuration);
 
@@ -462,8 +464,10 @@ mod tests {
 
             let container = initialize_services_with_configuration(&config);
 
-            let (http_stats_event_sender, _http_stats_repository) = statistics::setup::factory(false);
-            let http_stats_event_sender = Arc::new(http_stats_event_sender);
+            // HTTP core stats
+            let keeper = statistics::setup::factory(false);
+            let http_stats_event_sender = keeper.sender();
+            let _http_stats_repository = keeper.repository();
 
             let info_hash = sample_info_hash();
             let info_hashes = vec![info_hash];

@@ -252,10 +252,16 @@ mod tests {
             &db_torrent_repository,
         ));
 
-        // HTTP stats
-        let (http_stats_event_sender, http_stats_repository) = statistics::setup::factory(config.core.tracker_usage_statistics);
-        let http_stats_event_sender = Arc::new(http_stats_event_sender);
-        let _http_stats_repository = Arc::new(http_stats_repository);
+        // HTTP core stats
+        let keeper = statistics::setup::factory(config.core.tracker_usage_statistics);
+        let http_stats_event_sender = keeper.sender();
+        let _http_stats_repository = keeper.repository();
+
+        if config.core.tracker_usage_statistics {
+            // todo: this should be started like the other jobs during `app::start`
+            // and keep the join handle in a list of jobs.
+            let _unused = keeper.run_event_listener();
+        }
 
         (
             CoreTrackerServices {

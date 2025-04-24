@@ -147,8 +147,15 @@ mod tests {
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
         // HTTP core stats
-        let (_http_stats_event_sender, http_stats_repository) =
-            bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
+        let keeper = bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
+        let _http_stats_event_sender = keeper.sender();
+        let http_stats_repository = keeper.repository();
+
+        if config.core.tracker_usage_statistics {
+            // todo: this should be started like the other jobs during `app::start`
+            // and keep the join handle in a list of jobs.
+            let _unused = keeper.run_event_listener();
+        }
 
         // UDP core stats
         let (_udp_stats_event_sender, _udp_stats_repository) =
