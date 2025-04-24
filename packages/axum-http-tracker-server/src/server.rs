@@ -277,8 +277,6 @@ mod tests {
         let http_stats_repository = http_stats_keeper.repository();
 
         if configuration.core.tracker_usage_statistics {
-            // todo: this should be started like the other jobs during `app::start`
-            // and keep the join handle in a list of jobs.
             let _unused = http_stats_keeper.run_event_listener();
         }
 
