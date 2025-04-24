@@ -13,6 +13,7 @@ pub struct HttpTrackerCoreContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // `HttpTrackerCoreServices`
+    pub http_core_stats_keeper: Arc<statistics::keeper::Keeper>,
     pub http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub http_stats_repository: Arc<statistics::repository::Repository>,
     pub announce_service: Arc<AnnounceService>,
@@ -44,6 +45,7 @@ impl HttpTrackerCoreContainer {
         Arc::new(Self {
             tracker_core_container: tracker_core_container.clone(),
             http_tracker_config: http_tracker_config.clone(),
+            http_core_stats_keeper: http_tracker_core_services.http_core_stats_keeper.clone(),
             http_stats_event_sender: http_tracker_core_services.http_stats_event_sender.clone(),
             http_stats_repository: http_tracker_core_services.http_stats_repository.clone(),
             announce_service: http_tracker_core_services.http_announce_service.clone(),
@@ -53,6 +55,7 @@ impl HttpTrackerCoreContainer {
 }
 
 pub struct HttpTrackerCoreServices {
+    pub http_core_stats_keeper: Arc<statistics::keeper::Keeper>,
     pub http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub http_stats_repository: Arc<statistics::repository::Repository>,
     pub http_announce_service: Arc<services::announce::AnnounceService>,
@@ -89,6 +92,7 @@ impl HttpTrackerCoreServices {
         ));
 
         Arc::new(Self {
+            http_core_stats_keeper,
             http_stats_event_sender,
             http_stats_repository,
             http_announce_service,

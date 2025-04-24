@@ -302,6 +302,7 @@ mod tests {
         HttpTrackerCoreContainer {
             tracker_core_container,
             http_tracker_config,
+            http_core_stats_keeper,
             http_stats_event_sender,
             http_stats_repository,
             announce_service,
