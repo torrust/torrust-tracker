@@ -53,7 +53,7 @@ impl TrackerHttpApiCoreContainer {
         Arc::new(TrackerHttpApiCoreContainer {
             tracker_core_container: tracker_core_container.clone(),
 
-            http_stats_repository: http_tracker_core_container.http_stats_repository.clone(),
+            http_stats_repository: http_tracker_core_container.stats_repository.clone(),
 
             ban_service: udp_tracker_core_container.ban_service.clone(),
             udp_core_stats_repository: udp_tracker_core_container.udp_core_stats_repository.clone(),
