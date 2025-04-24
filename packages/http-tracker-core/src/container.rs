@@ -70,12 +70,6 @@ impl HttpTrackerCoreServices {
         let http_stats_event_sender = http_stats_keeper.sender();
         let http_stats_repository = http_stats_keeper.repository();
 
-        if tracker_core_container.core_config.tracker_usage_statistics {
-            // todo: this should be started like the other jobs during `app::start`
-            // and keep the join handle in a list of jobs.
-            let _unused = http_stats_keeper.run_event_listener();
-        }
-
         let http_announce_service = Arc::new(AnnounceService::new(
             tracker_core_container.core_config.clone(),
             tracker_core_container.announce_handler.clone(),
