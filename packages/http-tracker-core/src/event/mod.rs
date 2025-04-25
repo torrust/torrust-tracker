@@ -1,3 +1,6 @@
+pub mod bus;
+pub mod sender;
+
 use std::net::{IpAddr, SocketAddr};
 
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::RemoteClientAddr;
@@ -6,8 +9,6 @@ use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::label_name;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
-
-pub mod sender;
 
 /// A HTTP core event.
 #[derive(Debug, PartialEq, Eq, Clone)]

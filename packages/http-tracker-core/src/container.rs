@@ -3,10 +3,10 @@ use std::sync::Arc;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_configuration::{Core, HttpTracker};
 
+use crate::event::bus::EventBus;
 use crate::event::sender::Broadcaster;
 use crate::services::announce::AnnounceService;
 use crate::services::scrape::ScrapeService;
-use crate::statistics::event_bus::EventBus;
 use crate::statistics::repository::Repository;
 use crate::{event, services, statistics};
 
@@ -16,7 +16,7 @@ pub struct HttpTrackerCoreContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // `HttpTrackerCoreServices`
-    pub event_bus: Arc<statistics::event_bus::EventBus>,
+    pub event_bus: Arc<event::bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub announce_service: Arc<AnnounceService>,
@@ -58,7 +58,7 @@ impl HttpTrackerCoreContainer {
 }
 
 pub struct HttpTrackerCoreServices {
-    pub event_bus: Arc<statistics::event_bus::EventBus>,
+    pub event_bus: Arc<event::bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub announce_service: Arc<services::announce::AnnounceService>,

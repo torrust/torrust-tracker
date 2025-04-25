@@ -83,9 +83,9 @@ mod tests {
     use std::str::FromStr;
     use std::sync::Arc;
 
+    use bittorrent_http_tracker_core::event::bus::EventBus;
     use bittorrent_http_tracker_core::event::sender::Broadcaster;
     use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
-    use bittorrent_http_tracker_core::statistics::event_bus::EventBus;
     use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
     use bittorrent_http_tracker_protocol::v1::responses;

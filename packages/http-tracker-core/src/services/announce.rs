@@ -303,10 +303,10 @@ mod tests {
     use tokio::sync::broadcast::error::SendError;
 
     use crate::event;
+    use crate::event::bus::EventBus;
     use crate::event::sender::Broadcaster;
     use crate::event::Event;
     use crate::statistics::event::listener::run_event_listener;
-    use crate::statistics::event_bus::EventBus;
     use crate::statistics::repository::Repository;
     use crate::tests::sample_info_hash;
 

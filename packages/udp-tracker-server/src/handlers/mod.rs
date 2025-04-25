@@ -218,10 +218,10 @@ pub(crate) mod tests {
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use bittorrent_udp_tracker_core::connection_cookie::gen_remote_fingerprint;
+    use bittorrent_udp_tracker_core::event::bus::EventBus;
     use bittorrent_udp_tracker_core::event::sender::Broadcaster;
     use bittorrent_udp_tracker_core::services::announce::AnnounceService;
     use bittorrent_udp_tracker_core::services::scrape::ScrapeService;
-    use bittorrent_udp_tracker_core::statistics::event_bus::EventBus;
     use bittorrent_udp_tracker_core::{self, event as core_event};
     use futures::future::BoxFuture;
     use mockall::mock;
@@ -291,10 +291,7 @@ pub(crate) mod tests {
         let udp_core_stats_event_sender = core_event_bus.sender();
 
         let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-        let server_event_bus = Arc::new(crate::statistics::event_bus::EventBus::new(
-            false,
-            udp_server_broadcaster.clone(),
-        ));
+        let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
 
         let udp_server_stats_event_sender = server_event_bus.sender();
 

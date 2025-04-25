@@ -248,11 +248,11 @@ mod tests {
     use std::sync::Arc;
 
     use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
+    use bittorrent_http_tracker_core::event::bus::EventBus;
     use bittorrent_http_tracker_core::event::sender::Broadcaster;
     use bittorrent_http_tracker_core::services::announce::AnnounceService;
     use bittorrent_http_tracker_core::services::scrape::ScrapeService;
     use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
-    use bittorrent_http_tracker_core::statistics::event_bus::EventBus;
     use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_tracker_core::container::TrackerCoreContainer;
     use torrust_axum_server::tsl::make_rust_tls;

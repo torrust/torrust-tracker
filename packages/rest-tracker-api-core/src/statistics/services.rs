@@ -123,9 +123,9 @@ pub async fn get_labeled_metrics(
 mod tests {
     use std::sync::Arc;
 
+    use bittorrent_http_tracker_core::event::bus::EventBus;
     use bittorrent_http_tracker_core::event::sender::Broadcaster;
     use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
-    use bittorrent_http_tracker_core::statistics::event_bus::EventBus;
     use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::{self};

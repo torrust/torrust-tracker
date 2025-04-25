@@ -75,10 +75,10 @@ mod tests {
     use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::event::bus::EventBus;
     use crate::event::sender::Broadcaster;
     use crate::statistics::describe_metrics;
     use crate::statistics::event::listener::run_event_listener;
-    use crate::statistics::event_bus::EventBus;
     use crate::statistics::repository::Repository;
     use crate::statistics::services::{get_metrics, TrackerMetrics};
 

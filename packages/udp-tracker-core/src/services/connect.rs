@@ -66,6 +66,7 @@ mod tests {
 
         use crate::connection_cookie::make;
         use crate::event;
+        use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
         use crate::services::connect::ConnectService;
@@ -73,7 +74,6 @@ mod tests {
             sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint, sample_ipv4_socket_address, sample_ipv6_remote_addr,
             sample_ipv6_remote_addr_fingerprint, sample_issue_time, MockUdpCoreStatsEventSender,
         };
-        use crate::statistics::event_bus::EventBus;
 
         #[tokio::test]
         async fn a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request() {

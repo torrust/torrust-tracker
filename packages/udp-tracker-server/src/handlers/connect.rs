@@ -59,9 +59,9 @@ mod tests {
         use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
         use bittorrent_udp_tracker_core::connection_cookie::make;
         use bittorrent_udp_tracker_core::event as core_event;
+        use bittorrent_udp_tracker_core::event::bus::EventBus;
         use bittorrent_udp_tracker_core::event::sender::Broadcaster;
         use bittorrent_udp_tracker_core::services::connect::ConnectService;
-        use bittorrent_udp_tracker_core::statistics::event_bus::EventBus;
         use mockall::predicate::eq;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
@@ -88,10 +88,7 @@ mod tests {
             let udp_core_stats_event_sender = core_event_bus.sender();
 
             let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-            let server_event_bus = Arc::new(crate::statistics::event_bus::EventBus::new(
-                false,
-                udp_server_broadcaster.clone(),
-            ));
+            let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
 
             let udp_server_stats_event_sender = server_event_bus.sender();
 
@@ -130,10 +127,7 @@ mod tests {
             let udp_core_stats_event_sender = core_event_bus.sender();
 
             let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-            let server_event_bus = Arc::new(crate::statistics::event_bus::EventBus::new(
-                false,
-                udp_server_broadcaster.clone(),
-            ));
+            let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
 
             let udp_server_stats_event_sender = server_event_bus.sender();
 
@@ -173,10 +167,7 @@ mod tests {
             let udp_core_stats_event_sender = core_event_bus.sender();
 
             let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-            let server_event_bus = Arc::new(crate::statistics::event_bus::EventBus::new(
-                false,
-                udp_server_broadcaster.clone(),
-            ));
+            let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
 
             let udp_server_stats_event_sender = server_event_bus.sender();
 

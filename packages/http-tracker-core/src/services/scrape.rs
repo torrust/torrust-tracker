@@ -260,13 +260,13 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event;
+        use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
         use crate::services::scrape::tests::{
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
-        use crate::statistics::event_bus::EventBus;
         use crate::tests::sample_info_hash;
 
         #[tokio::test]
@@ -453,13 +453,13 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event;
+        use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
         use crate::services::scrape::tests::{
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
-        use crate::statistics::event_bus::EventBus;
         use crate::tests::sample_info_hash;
 
         #[tokio::test]

@@ -94,13 +94,13 @@ mod tests {
         use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
+        use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::handlers::handle_scrape;
         use crate::handlers::tests::{
             initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv4_remote_addr,
             sample_issue_time, CoreTrackerServices, CoreUdpTrackerServices, TorrentPeerBuilder,
         };
-        use crate::statistics::event_bus::EventBus;
 
         fn zeroed_torrent_statistics() -> TorrentScrapeStatistics {
             TorrentScrapeStatistics {

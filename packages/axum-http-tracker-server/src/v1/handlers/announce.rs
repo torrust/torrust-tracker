@@ -107,10 +107,10 @@ mod tests {
     use std::sync::Arc;
 
     use aquatic_udp_protocol::PeerId;
+    use bittorrent_http_tracker_core::event::bus::EventBus;
     use bittorrent_http_tracker_core::event::sender::Broadcaster;
     use bittorrent_http_tracker_core::services::announce::AnnounceService;
     use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
-    use bittorrent_http_tracker_core::statistics::event_bus::EventBus;
     use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_http_tracker_protocol::v1::requests::announce::Announce;
     use bittorrent_http_tracker_protocol::v1::responses;
