@@ -277,15 +277,15 @@ mod tests {
         // HTTP core stats
         let http_core_broadcaster = Broadcaster::default();
         let http_stats_repository = Arc::new(Repository::new());
-        let http_stats_keeper = Arc::new(EventBus::new(
+        let http_stats_event_bus = Arc::new(EventBus::new(
             configuration.core.tracker_usage_statistics,
             http_core_broadcaster.clone(),
         ));
 
-        let http_stats_event_sender = http_stats_keeper.sender();
+        let http_stats_event_sender = http_stats_event_bus.sender();
 
         if configuration.core.tracker_usage_statistics {
-            let _unused = run_event_listener(http_stats_keeper.receiver(), &http_stats_repository);
+            let _unused = run_event_listener(http_stats_event_bus.receiver(), &http_stats_repository);
         }
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
@@ -308,7 +308,7 @@ mod tests {
         HttpTrackerCoreContainer {
             tracker_core_container,
             http_tracker_config,
-            stats_keeper: http_stats_keeper,
+            stats_keeper: http_stats_event_bus,
             stats_event_sender: http_stats_event_sender,
             stats_repository: http_stats_repository,
             announce_service,

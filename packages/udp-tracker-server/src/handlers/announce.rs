@@ -375,9 +375,12 @@ mod tests {
                 core_udp_tracker_services: Arc<CoreUdpTrackerServices>,
             ) -> Response {
                 let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-                let keeper = Arc::new(crate::statistics::event_bus::EventBus::new(false, udp_server_broadcaster.clone()));
+                let event_bus = Arc::new(crate::statistics::event_bus::EventBus::new(
+                    false,
+                    udp_server_broadcaster.clone(),
+                ));
 
-                let udp_server_stats_event_sender = keeper.sender();
+                let udp_server_stats_event_sender = event_bus.sender();
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
@@ -711,13 +714,16 @@ mod tests {
                 whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
             ) -> Response {
                 let udp_core_broadcaster = Broadcaster::default();
-                let core_keeper = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
-                let udp_core_stats_event_sender = core_keeper.sender();
+                let core_event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+                let udp_core_stats_event_sender = core_event_bus.sender();
 
                 let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-                let server_keeper = Arc::new(crate::statistics::event_bus::EventBus::new(false, udp_server_broadcaster.clone()));
+                let server_event_bus = Arc::new(crate::statistics::event_bus::EventBus::new(
+                    false,
+                    udp_server_broadcaster.clone(),
+                ));
 
-                let udp_server_stats_event_sender = server_keeper.sender();
+                let udp_server_stats_event_sender = server_event_bus.sender();
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();

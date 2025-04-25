@@ -38,15 +38,15 @@ impl UdpTrackerServerServices {
     pub fn initialize(core_config: &Arc<Core>) -> Arc<Self> {
         let udp_server_broadcaster = Broadcaster::default();
         let udp_server_stats_repository = Arc::new(Repository::new());
-        let udp_server_stats_keeper = Arc::new(EventBus::new(
+        let udp_server_stats_event_bus = Arc::new(EventBus::new(
             core_config.tracker_usage_statistics,
             udp_server_broadcaster.clone(),
         ));
 
-        let udp_server_stats_event_sender = udp_server_stats_keeper.sender();
+        let udp_server_stats_event_sender = udp_server_stats_event_bus.sender();
 
         Arc::new(Self {
-            stats_keeper: udp_server_stats_keeper.clone(),
+            stats_keeper: udp_server_stats_event_bus.clone(),
             stats_event_sender: udp_server_stats_event_sender.clone(),
             stats_repository: udp_server_stats_repository.clone(),
         })

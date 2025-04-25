@@ -276,9 +276,9 @@ mod tests {
 
             // HTTP core stats
             let http_core_broadcaster = Broadcaster::default();
-            let http_stats_keeper = Arc::new(EventBus::new(false, http_core_broadcaster.clone()));
+            let http_stats_event_bus = Arc::new(EventBus::new(false, http_core_broadcaster.clone()));
 
-            let http_stats_event_sender = http_stats_keeper.sender();
+            let http_stats_event_sender = http_stats_event_bus.sender();
 
             let container = initialize_services_with_configuration(&configuration);
 
@@ -471,9 +471,9 @@ mod tests {
 
             // HTTP core stats
             let http_core_broadcaster = Broadcaster::default();
-            let http_stats_keeper = Arc::new(EventBus::new(false, http_core_broadcaster.clone()));
+            let http_stats_event_bus = Arc::new(EventBus::new(false, http_core_broadcaster.clone()));
 
-            let http_stats_event_sender = http_stats_keeper.sender();
+            let http_stats_event_sender = http_stats_event_bus.sender();
 
             let info_hash = sample_info_hash();
             let info_hashes = vec![info_hash];

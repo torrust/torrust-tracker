@@ -153,13 +153,13 @@ mod tests {
         // HTTP core stats
         let http_core_broadcaster = Broadcaster::default();
         let http_stats_repository = Arc::new(Repository::new());
-        let http_stats_keeper = Arc::new(EventBus::new(
+        let http_stats_event_bus = Arc::new(EventBus::new(
             config.core.tracker_usage_statistics,
             http_core_broadcaster.clone(),
         ));
 
         if config.core.tracker_usage_statistics {
-            let _unused = run_event_listener(http_stats_keeper.receiver(), &http_stats_repository);
+            let _unused = run_event_listener(http_stats_event_bus.receiver(), &http_stats_repository);
         }
 
         // UDP server stats

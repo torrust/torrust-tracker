@@ -287,16 +287,16 @@ pub(crate) mod tests {
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         let udp_core_broadcaster = Broadcaster::default();
-        let core_keeper = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
-        let udp_core_stats_event_sender = core_keeper.sender();
+        let core_event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+        let udp_core_stats_event_sender = core_event_bus.sender();
 
         let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-        let server_keeper = Arc::new(crate::statistics::event_bus::EventBus::new(
+        let server_event_bus = Arc::new(crate::statistics::event_bus::EventBus::new(
             false,
             udp_server_broadcaster.clone(),
         ));
 
-        let udp_server_stats_event_sender = server_keeper.sender();
+        let udp_server_stats_event_sender = server_event_bus.sender();
 
         let announce_service = Arc::new(AnnounceService::new(
             announce_handler.clone(),

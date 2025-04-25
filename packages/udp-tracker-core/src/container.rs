@@ -82,12 +82,12 @@ impl UdpTrackerCoreServices {
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
         let udp_core_broadcaster = Broadcaster::default();
         let udp_core_stats_repository = Arc::new(Repository::new());
-        let keeper = Arc::new(EventBus::new(
+        let event_bus = Arc::new(EventBus::new(
             tracker_core_container.core_config.tracker_usage_statistics,
             udp_core_broadcaster.clone(),
         ));
 
-        let udp_core_stats_event_sender = keeper.sender();
+        let udp_core_stats_event_sender = event_bus.sender();
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
         let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender.clone()));
         let announce_service = Arc::new(AnnounceService::new(
@@ -101,7 +101,7 @@ impl UdpTrackerCoreServices {
         ));
 
         Arc::new(Self {
-            stats_keeper: keeper,
+            stats_keeper: event_bus,
             stats_event_sender: udp_core_stats_event_sender,
             stats_repository: udp_core_stats_repository,
             ban_service,

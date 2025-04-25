@@ -109,33 +109,18 @@ mod tests {
     use bittorrent_udp_tracker_core::services::banning::BanService;
     use bittorrent_udp_tracker_core::MAX_CONNECTION_ID_ERRORS_PER_IP;
     use tokio::sync::RwLock;
-    use torrust_tracker_configuration::Configuration;
     use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
-    use torrust_tracker_test_helpers::configuration;
 
-    use crate::event::sender::Broadcaster;
     use crate::statistics::describe_metrics;
-    use crate::statistics::event_bus::EventBus;
     use crate::statistics::repository::Repository;
     use crate::statistics::services::{get_metrics, TrackerMetrics};
 
-    pub fn tracker_configuration() -> Configuration {
-        configuration::ephemeral()
-    }
-
     #[tokio::test]
     async fn the_statistics_service_should_return_the_tracker_metrics() {
-        let config = tracker_configuration();
-
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
-        let udp_server_broadcaster = Broadcaster::default();
         let stats_repository = Arc::new(Repository::new());
-        let _keeper = Arc::new(EventBus::new(
-            config.core.tracker_usage_statistics,
-            udp_server_broadcaster.clone(),
-        ));
 
         let tracker_metrics = get_metrics(
             in_memory_torrent_repository.clone(),
