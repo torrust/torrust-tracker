@@ -231,7 +231,6 @@ pub(crate) mod tests {
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::statistics::repository::Repository;
     use crate::{event as server_event, CurrentClock};
 
     pub(crate) struct CoreTrackerServices {
@@ -288,11 +287,12 @@ pub(crate) mod tests {
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         let udp_core_broadcaster = Broadcaster::default();
-        let _core_repository = Arc::new(Repository::new());
         let core_keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
         let udp_core_stats_event_sender = core_keeper.sender();
 
-        let (server_keeper, _server_repository) = crate::statistics::setup::factory(false);
+        let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
+        let server_keeper = Arc::new(crate::statistics::keeper::Keeper::new(false, udp_server_broadcaster.clone()));
+
         let udp_server_stats_event_sender = server_keeper.sender();
 
         let announce_service = Arc::new(AnnounceService::new(

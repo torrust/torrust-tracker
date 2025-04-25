@@ -87,7 +87,9 @@ mod tests {
             let core_keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = core_keeper.sender();
 
-            let (server_keeper, _server_repository) = crate::statistics::setup::factory(false);
+            let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
+            let server_keeper = Arc::new(crate::statistics::keeper::Keeper::new(false, udp_server_broadcaster.clone()));
+
             let udp_server_stats_event_sender = server_keeper.sender();
 
             let request = ConnectRequest {
@@ -124,7 +126,9 @@ mod tests {
             let core_keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = core_keeper.sender();
 
-            let (server_keeper, _server_repository) = crate::statistics::setup::factory(false);
+            let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
+            let server_keeper = Arc::new(crate::statistics::keeper::Keeper::new(false, udp_server_broadcaster.clone()));
+
             let udp_server_stats_event_sender = server_keeper.sender();
 
             let request = ConnectRequest {
@@ -162,7 +166,9 @@ mod tests {
 
             let udp_core_stats_event_sender = core_keeper.sender();
 
-            let (server_keeper, _server_repository) = crate::statistics::setup::factory(false);
+            let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
+            let server_keeper = Arc::new(crate::statistics::keeper::Keeper::new(false, udp_server_broadcaster.clone()));
+
             let udp_server_stats_event_sender = server_keeper.sender();
 
             let request = ConnectRequest {
