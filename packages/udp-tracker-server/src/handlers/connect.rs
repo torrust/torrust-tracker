@@ -81,9 +81,8 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let (udp_core_stats_event_sender, _udp_core_stats_repository) =
-                bittorrent_udp_tracker_core::statistics::setup::factory(false);
-            let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
+            let keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+            let udp_core_stats_event_sender = keeper.sender();
 
             let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
             let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
@@ -118,9 +117,8 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let (udp_core_stats_event_sender, _udp_core_stats_repository) =
-                bittorrent_udp_tracker_core::statistics::setup::factory(false);
-            let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
+            let keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+            let udp_core_stats_event_sender = keeper.sender();
 
             let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
             let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
@@ -155,9 +153,8 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let (udp_core_stats_event_sender, _udp_core_stats_repository) =
-                bittorrent_udp_tracker_core::statistics::setup::factory(false);
-            let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
+            let keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+            let udp_core_stats_event_sender = keeper.sender();
 
             let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
             let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);

@@ -4,6 +4,7 @@ use std::sync::Arc;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
+use tokio::task::JoinHandle;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration, DEFAULT_TIMEOUT};
 use torrust_tracker_primitives::peer;
@@ -22,6 +23,7 @@ where
     pub container: Arc<EnvContainer>,
     pub registar: Registar,
     pub server: Server<S>,
+    pub udp_core_event_listener_job: Option<JoinHandle<()>>,
 }
 
 impl<S> Environment<S>
@@ -55,29 +57,38 @@ impl Environment<Stopped> {
             container,
             registar: Registar::default(),
             server,
+            udp_core_event_listener_job: None,
         }
     }
 
+    /// Starts the test environment and return a running environment.
+    ///
     /// # Panics
     ///
     /// Will panic if it cannot start the server.
     #[allow(dead_code)]
     pub async fn start(self) -> Environment<Running> {
         let cookie_lifetime = self.container.udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
+        // Start the UDP tracker core event listener
+        let udp_core_event_listener_job = Some(self.container.udp_tracker_core_container.stats_keeper.run_event_listener());
+
+        // Start the UDP tracker server
+        let server = self
+            .server
+            .start(
+                self.container.udp_tracker_core_container.clone(),
+                self.container.udp_tracker_server_container.clone(),
+                self.registar.give_form(),
+                cookie_lifetime,
+            )
+            .await
+            .expect("Failed to start the UDP tracker server");
 
         Environment {
             container: self.container.clone(),
             registar: self.registar.clone(),
-            server: self
-                .server
-                .start(
-                    self.container.udp_tracker_core_container.clone(),
-                    self.container.udp_tracker_server_container.clone(),
-                    self.registar.give_form(),
-                    cookie_lifetime,
-                )
-                .await
-                .unwrap(),
+            server,
+            udp_core_event_listener_job,
         }
     }
 }
@@ -89,22 +100,34 @@ impl Environment<Running> {
     pub async fn new(configuration: &Arc<Configuration>) -> Self {
         tokio::time::timeout(DEFAULT_TIMEOUT, Environment::<Stopped>::new(configuration).start())
             .await
-            .expect("it should create an environment within the timeout")
+            .expect("Failed to create a UDP tracker server running environment within the timeout")
     }
 
+    /// Stops the test environment and return a stopped environment.
+    ///
     /// # Panics
     ///
     /// Will panic if it cannot stop the service within the timeout.
     #[allow(dead_code)]
     pub async fn stop(self) -> Environment<Stopped> {
-        let stopped = tokio::time::timeout(DEFAULT_TIMEOUT, self.server.stop())
+        // Stop the event listener
+        if let Some(udp_core_event_listener_job) = self.udp_core_event_listener_job {
+            // todo: send a message to the event listener to stop and wait for
+            // it to finish
+            udp_core_event_listener_job.abort();
+        }
+
+        // Stop the server
+        let server = tokio::time::timeout(DEFAULT_TIMEOUT, self.server.stop())
             .await
-            .expect("it should stop the environment within the timeout");
+            .expect("Failed to stop the UDP tracker server within the timeout")
+            .expect("Failed to stop the UDP tracker server");
 
         Environment {
             container: self.container,
             registar: Registar::default(),
-            server: stopped.expect("it should stop the udp tracker service"),
+            server,
+            udp_core_event_listener_job: None,
         }
     }
 

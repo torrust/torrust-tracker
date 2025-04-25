@@ -374,10 +374,6 @@ mod tests {
                 core_tracker_services: Arc<CoreTrackerServices>,
                 core_udp_tracker_services: Arc<CoreUdpTrackerServices>,
             ) -> Response {
-                let (udp_core_stats_event_sender, _udp_core_stats_repository) =
-                    bittorrent_udp_tracker_core::statistics::setup::factory(false);
-                let _udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
-
                 let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
                 let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
 
@@ -710,9 +706,8 @@ mod tests {
                 announce_handler: Arc<AnnounceHandler>,
                 whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
             ) -> Response {
-                let (udp_core_stats_event_sender, _udp_core_stats_repository) =
-                    bittorrent_udp_tracker_core::statistics::setup::factory(false);
-                let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
+                let keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+                let udp_core_stats_event_sender = keeper.sender();
 
                 let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
                 let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);

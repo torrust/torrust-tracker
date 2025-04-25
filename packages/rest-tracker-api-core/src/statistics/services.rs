@@ -155,9 +155,7 @@ mod tests {
             let _unused = http_stats_keeper.run_event_listener();
         }
 
-        // UDP core stats
-        let (_udp_stats_event_sender, _udp_stats_repository) =
-            bittorrent_udp_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
+        // UDP core stats (not used in this test)
 
         // UDP server stats
         let (_udp_server_stats_event_sender, udp_server_stats_repository) =

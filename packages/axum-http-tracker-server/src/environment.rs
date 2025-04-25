@@ -75,7 +75,7 @@ impl Environment<Stopped> {
             .server
             .start(self.container.http_tracker_core_container.clone(), self.registar.give_form())
             .await
-            .unwrap();
+            .expect("Failed to start the HTTP tracker server");
 
         Environment {
             container: self.container.clone(),
@@ -105,7 +105,7 @@ impl Environment<Running> {
         }
 
         // Stop the server
-        let server = self.server.stop().await.expect("Failed to stop the http tracker server");
+        let server = self.server.stop().await.expect("Failed to stop the HTTP tracker server");
 
         Environment {
             container: self.container,

@@ -106,9 +106,8 @@ mod tests {
 
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-        let (_udp_core_stats_event_sender, udp_core_stats_repository) =
-            crate::statistics::setup::factory(config.core.tracker_usage_statistics);
-        let udp_core_stats_repository = Arc::new(udp_core_stats_repository);
+        let keeper = crate::statistics::setup::factory(config.core.tracker_usage_statistics);
+        let udp_core_stats_repository = keeper.repository();
 
         let tracker_metrics = get_metrics(in_memory_torrent_repository.clone(), udp_core_stats_repository.clone()).await;
 

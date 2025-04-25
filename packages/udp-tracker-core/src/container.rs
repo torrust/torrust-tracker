@@ -16,6 +16,7 @@ pub struct UdpTrackerCoreContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // `UdpTrackerCoreServices`
+    pub stats_keeper: Arc<statistics::keeper::Keeper>,
     pub udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub udp_core_stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<BanService>>,
@@ -52,6 +53,7 @@ impl UdpTrackerCoreContainer {
             tracker_core_container: tracker_core_container.clone(),
 
             // `UdpTrackerCoreServices`
+            stats_keeper: udp_tracker_core_services.stats_keeper.clone(),
             udp_core_stats_event_sender: udp_tracker_core_services.udp_core_stats_event_sender.clone(),
             udp_core_stats_repository: udp_tracker_core_services.udp_core_stats_repository.clone(),
             ban_service: udp_tracker_core_services.udp_ban_service.clone(),
@@ -63,6 +65,7 @@ impl UdpTrackerCoreContainer {
 }
 
 pub struct UdpTrackerCoreServices {
+    pub stats_keeper: Arc<statistics::keeper::Keeper>,
     pub udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub udp_core_stats_repository: Arc<statistics::repository::Repository>,
     pub udp_ban_service: Arc<RwLock<services::banning::BanService>>,
@@ -74,10 +77,9 @@ pub struct UdpTrackerCoreServices {
 impl UdpTrackerCoreServices {
     #[must_use]
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
-        let (udp_core_stats_event_sender, udp_core_stats_repository) =
-            statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
-        let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
-        let udp_core_stats_repository = Arc::new(udp_core_stats_repository);
+        let keeper = statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
+        let udp_core_stats_event_sender = keeper.sender();
+        let udp_core_stats_repository = keeper.repository();
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
         let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender.clone()));
         let announce_service = Arc::new(AnnounceService::new(
@@ -91,6 +93,7 @@ impl UdpTrackerCoreServices {
         ));
 
         Arc::new(Self {
+            stats_keeper: keeper,
             udp_core_stats_event_sender,
             udp_core_stats_repository,
             udp_ban_service: ban_service,
