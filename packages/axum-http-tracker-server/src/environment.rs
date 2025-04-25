@@ -4,6 +4,7 @@ use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use futures::executor::block_on;
+use tokio::task::JoinHandle;
 use torrust_axum_server::tsl::make_rust_tls;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration};
@@ -17,6 +18,7 @@ pub struct Environment<S> {
     pub container: Arc<EnvContainer>,
     pub registar: Registar,
     pub server: HttpServer<S>,
+    pub event_listener_job: Option<JoinHandle<()>>,
 }
 
 impl<S> Environment<S> {
@@ -54,22 +56,32 @@ impl Environment<Stopped> {
             container,
             registar: Registar::default(),
             server,
+            event_listener_job: None,
         }
     }
 
+    /// Starts the test environment and return a running environment.
+    ///
     /// # Panics
     ///
     /// Will panic if the server fails to start.    
     #[allow(dead_code)]
     pub async fn start(self) -> Environment<Running> {
+        // Start the event listener
+        let event_listener_job = self.container.http_tracker_core_container.stats_keeper.run_event_listener();
+
+        // Start the server
+        let server = self
+            .server
+            .start(self.container.http_tracker_core_container.clone(), self.registar.give_form())
+            .await
+            .expect("Failed to start the HTTP tracker server");
+
         Environment {
             container: self.container.clone(),
             registar: self.registar.clone(),
-            server: self
-                .server
-                .start(self.container.http_tracker_core_container.clone(), self.registar.give_form())
-                .await
-                .unwrap(),
+            server,
+            event_listener_job: Some(event_listener_job),
         }
     }
 }
@@ -79,14 +91,27 @@ impl Environment<Running> {
         Environment::<Stopped>::new(configuration).start().await
     }
 
+    /// Stops the test environment and return a stopped environment.
+    ///
     /// # Panics
     ///
     /// Will panic if the server fails to stop.
     pub async fn stop(self) -> Environment<Stopped> {
+        // Stop the event listener
+        if let Some(event_listener_job) = self.event_listener_job {
+            // todo: send a message to the event listener to stop and wait for
+            // it to finish
+            event_listener_job.abort();
+        }
+
+        // Stop the server
+        let server = self.server.stop().await.expect("Failed to stop the HTTP tracker server");
+
         Environment {
             container: self.container,
             registar: Registar::default(),
-            server: self.server.stop().await.unwrap(),
+            server,
+            event_listener_job: None,
         }
     }
 

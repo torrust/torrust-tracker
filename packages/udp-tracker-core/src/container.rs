@@ -16,8 +16,9 @@ pub struct UdpTrackerCoreContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // `UdpTrackerCoreServices`
-    pub udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
-    pub udp_core_stats_repository: Arc<statistics::repository::Repository>,
+    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<BanService>>,
     pub connect_service: Arc<ConnectService>,
     pub announce_service: Arc<AnnounceService>,
@@ -52,32 +53,33 @@ impl UdpTrackerCoreContainer {
             tracker_core_container: tracker_core_container.clone(),
 
             // `UdpTrackerCoreServices`
-            udp_core_stats_event_sender: udp_tracker_core_services.udp_core_stats_event_sender.clone(),
-            udp_core_stats_repository: udp_tracker_core_services.udp_core_stats_repository.clone(),
-            ban_service: udp_tracker_core_services.udp_ban_service.clone(),
-            connect_service: udp_tracker_core_services.udp_connect_service.clone(),
-            announce_service: udp_tracker_core_services.udp_announce_service.clone(),
-            scrape_service: udp_tracker_core_services.udp_scrape_service.clone(),
+            stats_keeper: udp_tracker_core_services.stats_keeper.clone(),
+            stats_event_sender: udp_tracker_core_services.stats_event_sender.clone(),
+            stats_repository: udp_tracker_core_services.stats_repository.clone(),
+            ban_service: udp_tracker_core_services.ban_service.clone(),
+            connect_service: udp_tracker_core_services.connect_service.clone(),
+            announce_service: udp_tracker_core_services.announce_service.clone(),
+            scrape_service: udp_tracker_core_services.scrape_service.clone(),
         })
     }
 }
 
 pub struct UdpTrackerCoreServices {
-    pub udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
-    pub udp_core_stats_repository: Arc<statistics::repository::Repository>,
-    pub udp_ban_service: Arc<RwLock<services::banning::BanService>>,
-    pub udp_connect_service: Arc<services::connect::ConnectService>,
-    pub udp_announce_service: Arc<services::announce::AnnounceService>,
-    pub udp_scrape_service: Arc<services::scrape::ScrapeService>,
+    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_repository: Arc<statistics::repository::Repository>,
+    pub ban_service: Arc<RwLock<services::banning::BanService>>,
+    pub connect_service: Arc<services::connect::ConnectService>,
+    pub announce_service: Arc<services::announce::AnnounceService>,
+    pub scrape_service: Arc<services::scrape::ScrapeService>,
 }
 
 impl UdpTrackerCoreServices {
     #[must_use]
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
-        let (udp_core_stats_event_sender, udp_core_stats_repository) =
-            statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
-        let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
-        let udp_core_stats_repository = Arc::new(udp_core_stats_repository);
+        let keeper = statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
+        let udp_core_stats_event_sender = keeper.sender();
+        let udp_core_stats_repository = keeper.repository();
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
         let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender.clone()));
         let announce_service = Arc::new(AnnounceService::new(
@@ -91,12 +93,13 @@ impl UdpTrackerCoreServices {
         ));
 
         Arc::new(Self {
-            udp_core_stats_event_sender,
-            udp_core_stats_repository,
-            udp_ban_service: ban_service,
-            udp_connect_service: connect_service,
-            udp_announce_service: announce_service,
-            udp_scrape_service: scrape_service,
+            stats_keeper: keeper,
+            stats_event_sender: udp_core_stats_event_sender,
+            stats_repository: udp_core_stats_repository,
+            ban_service,
+            connect_service,
+            announce_service,
+            scrape_service,
         })
     }
 }

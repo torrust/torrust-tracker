@@ -147,18 +147,20 @@ mod tests {
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
         // HTTP core stats
-        let (_http_stats_event_sender, http_stats_repository) =
-            bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
-        let http_stats_repository = Arc::new(http_stats_repository);
+        let http_stats_keeper = bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
+        let _http_stats_event_sender = http_stats_keeper.sender();
+        let http_stats_repository = http_stats_keeper.repository();
 
-        // UDP core stats
-        let (_udp_stats_event_sender, _udp_stats_repository) =
-            bittorrent_udp_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
+        if config.core.tracker_usage_statistics {
+            let _unused = http_stats_keeper.run_event_listener();
+        }
+
+        // UDP core stats (not used in this test)
 
         // UDP server stats
-        let (_udp_server_stats_event_sender, udp_server_stats_repository) =
+        let udp_server_stats_keeper =
             torrust_udp_tracker_server::statistics::setup::factory(config.core.tracker_usage_statistics);
-        let udp_server_stats_repository = Arc::new(udp_server_stats_repository);
+        let udp_server_stats_repository = udp_server_stats_keeper.repository();
 
         let tracker_metrics = get_metrics(
             in_memory_torrent_repository.clone(),

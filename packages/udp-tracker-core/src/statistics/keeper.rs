@@ -1,8 +1,10 @@
-use tokio::sync::broadcast::Receiver;
+use std::sync::Arc;
+
+use tokio::task::JoinHandle;
 
 use super::event::listener::dispatch_events;
 use super::repository::Repository;
-use crate::event::Event;
+use crate::event::sender::{self, Broadcaster};
 use crate::UDP_TRACKER_LOG_TARGET;
 
 /// The service responsible for keeping tracker metrics (listening to statistics events and handle them).
@@ -10,44 +12,70 @@ use crate::UDP_TRACKER_LOG_TARGET;
 /// It actively listen to new statistics events. When it receives a new event
 /// it accordingly increases the counters.
 pub struct Keeper {
-    pub repository: Repository,
+    pub enable_sender: bool,
+    pub broadcaster: Broadcaster,
+    pub repository: Arc<Repository>,
 }
 
 impl Default for Keeper {
     fn default() -> Self {
-        Self::new()
+        let enable_sender = true;
+        let broadcaster = Broadcaster::default();
+        let repository = Arc::new(Repository::new());
+
+        Self::new(enable_sender, broadcaster, repository)
     }
 }
 
 impl Keeper {
+    /// Creates a new instance of [`Keeper`].
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(enable_sender: bool, broadcaster: Broadcaster, repository: Arc<Repository>) -> Self {
         Self {
-            repository: Repository::new(),
+            enable_sender,
+            broadcaster,
+            repository,
         }
     }
 
-    pub fn run_event_listener(&mut self, receiver: Receiver<Event>) {
-        let stats_repository = self.repository.clone();
+    #[must_use]
+    pub fn sender(&self) -> Arc<Option<Box<dyn sender::Sender>>> {
+        if self.enable_sender {
+            Arc::new(Some(Box::new(self.broadcaster.clone())))
+        } else {
+            Arc::new(None)
+        }
+    }
 
-        tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker core event listener");
+    #[must_use]
+    pub fn repository(&self) -> Arc<Repository> {
+        self.repository.clone()
+    }
+
+    #[must_use]
+    pub fn run_event_listener(&self) -> JoinHandle<()> {
+        let stats_repository = self.repository.clone();
+        let receiver = self.broadcaster.subscribe();
+
+        tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting HTTP tracker core event listener");
 
         tokio::spawn(async move {
             dispatch_events(receiver, stats_repository).await;
 
-            tracing::info!(target: UDP_TRACKER_LOG_TARGET, "UDP tracker core event listener finished");
-        });
+            tracing::info!(target: UDP_TRACKER_LOG_TARGET, "HTTP tracker core event listener finished");
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
+
     use crate::statistics::keeper::Keeper;
     use crate::statistics::metrics::Metrics;
 
     #[tokio::test]
     async fn should_contain_the_tracker_statistics() {
-        let stats_tracker = Keeper::new();
+        let stats_tracker = Keeper::default();
 
         let stats = stats_tracker.repository.get_stats().await;
 

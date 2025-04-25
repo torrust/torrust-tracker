@@ -98,7 +98,7 @@ pub(crate) async fn handle_packet(
                         udp_request.from,
                         server_service_binding,
                         request_id,
-                        &udp_tracker_server_container.udp_server_stats_event_sender,
+                        &udp_tracker_server_container.stats_event_sender,
                         cookie_time_values.valid_range.clone(),
                         &error,
                         Some(transaction_id),
@@ -114,7 +114,7 @@ pub(crate) async fn handle_packet(
                     udp_request.from,
                     server_service_binding,
                     request_id,
-                    &udp_tracker_server_container.udp_server_stats_event_sender,
+                    &udp_tracker_server_container.stats_event_sender,
                     cookie_time_values.valid_range.clone(),
                     &e,
                     None,
@@ -161,7 +161,7 @@ pub async fn handle_request(
                 server_service_binding,
                 &connect_request,
                 &udp_tracker_core_container.connect_service,
-                &udp_tracker_server_container.udp_server_stats_event_sender,
+                &udp_tracker_server_container.stats_event_sender,
                 cookie_time_values.issue_time,
             )
             .await,
@@ -174,7 +174,7 @@ pub async fn handle_request(
                 server_service_binding,
                 &announce_request,
                 &udp_tracker_core_container.tracker_core_container.core_config,
-                &udp_tracker_server_container.udp_server_stats_event_sender,
+                &udp_tracker_server_container.stats_event_sender,
                 cookie_time_values.valid_range,
             )
             .await
@@ -189,7 +189,7 @@ pub async fn handle_request(
                 client_socket_addr,
                 server_service_binding,
                 &scrape_request,
-                &udp_tracker_server_container.udp_server_stats_event_sender,
+                &udp_tracker_server_container.stats_event_sender,
                 cookie_time_values.valid_range,
             )
             .await
@@ -284,12 +284,11 @@ pub(crate) mod tests {
         ));
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
-        let (udp_core_stats_event_sender, _udp_core_stats_repository) =
-            bittorrent_udp_tracker_core::statistics::setup::factory(false);
-        let udp_core_stats_event_sender = Arc::new(udp_core_stats_event_sender);
+        let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+        let udp_core_stats_event_sender = core_keeper.sender();
 
-        let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
-        let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
+        let server_keeper = crate::statistics::setup::factory(false);
+        let udp_server_stats_event_sender = server_keeper.sender();
 
         let announce_service = Arc::new(AnnounceService::new(
             announce_handler.clone(),

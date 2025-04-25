@@ -182,8 +182,7 @@ impl Launcher {
 
                 let client_socket_addr = req.from;
 
-                if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
-                {
+                if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
                     udp_server_stats_event_sender
                         .send_event(Event::UdpRequestReceived {
                             context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
@@ -194,9 +193,7 @@ impl Launcher {
                 if udp_tracker_core_container.ban_service.read().await.is_banned(&req.from.ip()) {
                     tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr,  "Udp::run_udp_server::loop continue: (banned ip)");
 
-                    if let Some(udp_server_stats_event_sender) =
-                        udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
-                    {
+                    if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
                         udp_server_stats_event_sender
                             .send_event(Event::UdpRequestBanned {
                                 context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
@@ -236,9 +233,7 @@ impl Launcher {
                 if old_request_aborted {
                     // Evicted task from active requests buffer was aborted.
 
-                    if let Some(udp_server_stats_event_sender) =
-                        udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
-                    {
+                    if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
                         udp_server_stats_event_sender
                             .send_event(Event::UdpRequestAborted {
                                 context: ConnectionContext::new(client_socket_addr, server_service_binding),

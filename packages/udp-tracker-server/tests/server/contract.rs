@@ -268,7 +268,7 @@ mod receiving_an_announce_request {
         let udp_requests_banned_before = env
             .container
             .udp_tracker_server_container
-            .udp_server_stats_repository
+            .stats_repository
             .get_stats()
             .await
             .udp_requests_banned;
@@ -284,7 +284,7 @@ mod receiving_an_announce_request {
         let udp_requests_banned_after = env
             .container
             .udp_tracker_server_container
-            .udp_server_stats_repository
+            .stats_repository
             .get_stats()
             .await
             .udp_requests_banned;

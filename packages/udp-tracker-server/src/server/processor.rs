@@ -115,7 +115,7 @@ impl Processor {
                         }
 
                         if let Some(udp_server_stats_event_sender) =
-                            self.udp_tracker_server_container.udp_server_stats_event_sender.as_deref()
+                            self.udp_tracker_server_container.stats_event_sender.as_deref()
                         {
                             udp_server_stats_event_sender
                                 .send_event(Event::UdpResponseSent {

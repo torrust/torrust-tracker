@@ -13,8 +13,9 @@ pub struct HttpTrackerCoreContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // `HttpTrackerCoreServices`
-    pub http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
-    pub http_stats_repository: Arc<statistics::repository::Repository>,
+    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_repository: Arc<statistics::repository::Repository>,
     pub announce_service: Arc<AnnounceService>,
     pub scrape_service: Arc<ScrapeService>,
 }
@@ -44,28 +45,31 @@ impl HttpTrackerCoreContainer {
         Arc::new(Self {
             tracker_core_container: tracker_core_container.clone(),
             http_tracker_config: http_tracker_config.clone(),
-            http_stats_event_sender: http_tracker_core_services.http_stats_event_sender.clone(),
-            http_stats_repository: http_tracker_core_services.http_stats_repository.clone(),
-            announce_service: http_tracker_core_services.http_announce_service.clone(),
-            scrape_service: http_tracker_core_services.http_scrape_service.clone(),
+            stats_keeper: http_tracker_core_services.stats_keeper.clone(),
+            stats_event_sender: http_tracker_core_services.stats_event_sender.clone(),
+            stats_repository: http_tracker_core_services.stats_repository.clone(),
+            announce_service: http_tracker_core_services.announce_service.clone(),
+            scrape_service: http_tracker_core_services.scrape_service.clone(),
         })
     }
 }
 
 pub struct HttpTrackerCoreServices {
-    pub http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
-    pub http_stats_repository: Arc<statistics::repository::Repository>,
-    pub http_announce_service: Arc<services::announce::AnnounceService>,
-    pub http_scrape_service: Arc<services::scrape::ScrapeService>,
+    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_repository: Arc<statistics::repository::Repository>,
+    pub announce_service: Arc<services::announce::AnnounceService>,
+    pub scrape_service: Arc<services::scrape::ScrapeService>,
 }
 
 impl HttpTrackerCoreServices {
     #[must_use]
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
-        let (http_stats_event_sender, http_stats_repository) =
-            statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
-        let http_stats_event_sender = Arc::new(http_stats_event_sender);
-        let http_stats_repository = Arc::new(http_stats_repository);
+        // HTTP core stats
+        let http_stats_keeper = statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
+        let http_stats_event_sender = http_stats_keeper.sender();
+        let http_stats_repository = http_stats_keeper.repository();
+
         let http_announce_service = Arc::new(AnnounceService::new(
             tracker_core_container.core_config.clone(),
             tracker_core_container.announce_handler.clone(),
@@ -73,6 +77,7 @@ impl HttpTrackerCoreServices {
             tracker_core_container.whitelist_authorization.clone(),
             http_stats_event_sender.clone(),
         ));
+
         let http_scrape_service = Arc::new(ScrapeService::new(
             tracker_core_container.core_config.clone(),
             tracker_core_container.scrape_handler.clone(),
@@ -81,10 +86,11 @@ impl HttpTrackerCoreServices {
         ));
 
         Arc::new(Self {
-            http_stats_event_sender,
-            http_stats_repository,
-            http_announce_service,
-            http_scrape_service,
+            stats_keeper: http_stats_keeper,
+            stats_event_sender: http_stats_event_sender,
+            stats_repository: http_stats_repository,
+            announce_service: http_announce_service,
+            scrape_service: http_scrape_service,
         })
     }
 }

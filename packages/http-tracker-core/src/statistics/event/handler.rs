@@ -1,4 +1,5 @@
 use std::net::IpAddr;
+use std::sync::Arc;
 
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::{label_name, metric_name};
@@ -12,7 +13,7 @@ use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 ///
 /// This function panics if the client IP address is not the same as the IP
 /// version of the event.
-pub async fn handle_event(event: Event, stats_repository: &Repository, now: DurationSinceUnixEpoch) {
+pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now: DurationSinceUnixEpoch) {
     match event {
         Event::TcpAnnounce { connection, .. } => {
             // Global fixed metrics
@@ -72,6 +73,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+    use std::sync::Arc;
 
     use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_clock::clock::Time;
@@ -85,7 +87,7 @@ mod tests {
 
     #[tokio::test]
     async fn should_increase_the_tcp4_announces_counter_when_it_receives_a_tcp4_announce_event() {
-        let stats_repository = Repository::new();
+        let stats_repository = Arc::new(Repository::new());
         let peer = sample_peer_using_ipv4();
         let remote_client_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2));
 
@@ -110,7 +112,7 @@ mod tests {
 
     #[tokio::test]
     async fn should_increase_the_tcp4_scrapes_counter_when_it_receives_a_tcp4_scrape_event() {
-        let stats_repository = Repository::new();
+        let stats_repository = Arc::new(Repository::new());
 
         handle_event(
             Event::TcpScrape {
@@ -134,7 +136,7 @@ mod tests {
 
     #[tokio::test]
     async fn should_increase_the_tcp6_announces_counter_when_it_receives_a_tcp6_announce_event() {
-        let stats_repository = Repository::new();
+        let stats_repository = Arc::new(Repository::new());
         let peer = sample_peer_using_ipv6();
         let remote_client_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
@@ -159,7 +161,7 @@ mod tests {
 
     #[tokio::test]
     async fn should_increase_the_tcp6_scrapes_counter_when_it_receives_a_tcp6_scrape_event() {
-        let stats_repository = Repository::new();
+        let stats_repository = Arc::new(Repository::new());
 
         handle_event(
             Event::TcpScrape {
