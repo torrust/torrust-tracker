@@ -706,7 +706,7 @@ mod tests {
                 announce_handler: Arc<AnnounceHandler>,
                 whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
             ) -> Response {
-                let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+                let (core_keeper, _core_repository) = bittorrent_udp_tracker_core::statistics::setup::factory(false);
                 let udp_core_stats_event_sender = core_keeper.sender();
 
                 let server_keeper = crate::statistics::setup::factory(false);

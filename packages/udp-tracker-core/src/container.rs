@@ -77,9 +77,9 @@ pub struct UdpTrackerCoreServices {
 impl UdpTrackerCoreServices {
     #[must_use]
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
-        let keeper = statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
+        let (keeper, udp_core_stats_repository) =
+            statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
         let udp_core_stats_event_sender = keeper.sender();
-        let udp_core_stats_repository = keeper.repository();
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
         let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender.clone()));
         let announce_service = Arc::new(AnnounceService::new(
