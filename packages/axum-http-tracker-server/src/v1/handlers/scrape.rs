@@ -83,7 +83,10 @@ mod tests {
     use std::str::FromStr;
     use std::sync::Arc;
 
+    use bittorrent_http_tracker_core::event::sender::Broadcaster;
     use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
+    use bittorrent_http_tracker_core::statistics::keeper::Keeper;
+    use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
     use bittorrent_http_tracker_protocol::v1::responses;
     use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
@@ -133,8 +136,13 @@ mod tests {
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         // HTTP core stats
-        let (http_stats_keeper, http_stats_repository) =
-            bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
+        let http_core_broadcaster = Broadcaster::default();
+        let http_stats_repository = Arc::new(Repository::new());
+        let http_stats_keeper = Arc::new(Keeper::new(
+            config.core.tracker_usage_statistics,
+            http_core_broadcaster.clone(),
+        ));
+
         let http_stats_event_sender = http_stats_keeper.sender();
 
         if config.core.tracker_usage_statistics {

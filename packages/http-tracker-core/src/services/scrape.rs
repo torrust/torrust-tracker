@@ -259,13 +259,15 @@ mod tests {
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
+        use crate::event;
+        use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
         use crate::services::scrape::tests::{
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
+        use crate::statistics::keeper::Keeper;
         use crate::tests::sample_info_hash;
-        use crate::{event, statistics};
 
         #[tokio::test]
         async fn it_should_return_the_scrape_data_for_a_torrent() {
@@ -273,7 +275,9 @@ mod tests {
             let core_config = Arc::new(configuration.core.clone());
 
             // HTTP core stats
-            let (http_stats_keeper, _http_stats_repository) = statistics::setup::factory(false);
+            let http_core_broadcaster = Broadcaster::default();
+            let http_stats_keeper = Arc::new(Keeper::new(false, http_core_broadcaster.clone()));
+
             let http_stats_event_sender = http_stats_keeper.sender();
 
             let container = initialize_services_with_configuration(&configuration);
@@ -448,13 +452,15 @@ mod tests {
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_test_helpers::configuration;
 
+        use crate::event;
+        use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
         use crate::services::scrape::tests::{
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
+        use crate::statistics::keeper::Keeper;
         use crate::tests::sample_info_hash;
-        use crate::{event, statistics};
 
         #[tokio::test]
         async fn it_should_return_the_zeroed_scrape_data_when_the_tracker_is_running_in_private_mode_and_the_peer_is_not_authenticated(
@@ -464,7 +470,9 @@ mod tests {
             let container = initialize_services_with_configuration(&config);
 
             // HTTP core stats
-            let (http_stats_keeper, _http_stats_repository) = statistics::setup::factory(false);
+            let http_core_broadcaster = Broadcaster::default();
+            let http_stats_keeper = Arc::new(Keeper::new(false, http_core_broadcaster.clone()));
+
             let http_stats_event_sender = http_stats_keeper.sender();
 
             let info_hash = sample_info_hash();

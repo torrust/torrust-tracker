@@ -75,9 +75,12 @@ mod tests {
     use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::event::sender::Broadcaster;
+    use crate::statistics::describe_metrics;
     use crate::statistics::event::listener::run_event_listener;
+    use crate::statistics::keeper::Keeper;
+    use crate::statistics::repository::Repository;
     use crate::statistics::services::{get_metrics, TrackerMetrics};
-    use crate::statistics::{self, describe_metrics};
 
     pub fn tracker_configuration() -> Configuration {
         configuration::ephemeral()
@@ -90,7 +93,12 @@ mod tests {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
         // HTTP core stats
-        let (http_stats_keeper, http_stats_repository) = statistics::setup::factory(config.core.tracker_usage_statistics);
+        let http_core_broadcaster = Broadcaster::default();
+        let http_stats_repository = Arc::new(Repository::new());
+        let http_stats_keeper = Arc::new(Keeper::new(
+            config.core.tracker_usage_statistics,
+            http_core_broadcaster.clone(),
+        ));
 
         if config.core.tracker_usage_statistics {
             let _unused = run_event_listener(http_stats_keeper.receiver(), &http_stats_repository);

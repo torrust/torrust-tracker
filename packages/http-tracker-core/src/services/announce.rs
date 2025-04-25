@@ -253,7 +253,13 @@ mod tests {
         ));
 
         // HTTP core stats
-        let (http_stats_keeper, http_stats_repository) = statistics::setup::factory(config.core.tracker_usage_statistics);
+        let http_core_broadcaster = Broadcaster::default();
+        let http_stats_repository = Arc::new(Repository::new());
+        let http_stats_keeper = Arc::new(Keeper::new(
+            config.core.tracker_usage_statistics,
+            http_core_broadcaster.clone(),
+        ));
+
         let http_stats_event_sender = http_stats_keeper.sender();
 
         if config.core.tracker_usage_statistics {
@@ -296,10 +302,13 @@ mod tests {
     use mockall::mock;
     use tokio::sync::broadcast::error::SendError;
 
+    use crate::event;
+    use crate::event::sender::Broadcaster;
     use crate::event::Event;
     use crate::statistics::event::listener::run_event_listener;
+    use crate::statistics::keeper::Keeper;
+    use crate::statistics::repository::Repository;
     use crate::tests::sample_info_hash;
-    use crate::{event, statistics};
 
     mock! {
         HttpStatsEventSender {}
