@@ -9,11 +9,6 @@ use crate::event::sender::Broadcaster;
 
 #[must_use]
 pub fn factory(tracker_usage_statistics: bool) -> (Arc<Keeper>, Arc<Repository>) {
-    keeper_factory(tracker_usage_statistics)
-}
-
-#[must_use]
-pub fn keeper_factory(tracker_usage_statistics: bool) -> (Arc<Keeper>, Arc<Repository>) {
     let broadcaster = Broadcaster::default();
     let repository = Arc::new(Repository::new());
     let keeper = Arc::new(Keeper::new(tracker_usage_statistics, broadcaster.clone()));
