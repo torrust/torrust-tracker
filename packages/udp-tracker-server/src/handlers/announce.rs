@@ -374,7 +374,7 @@ mod tests {
                 core_tracker_services: Arc<CoreTrackerServices>,
                 core_udp_tracker_services: Arc<CoreUdpTrackerServices>,
             ) -> Response {
-                let keeper = crate::statistics::setup::factory(false);
+                let (keeper, _repository) = crate::statistics::setup::factory(false);
                 let udp_server_stats_event_sender = keeper.sender();
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
@@ -709,7 +709,7 @@ mod tests {
                 let (core_keeper, _core_repository) = bittorrent_udp_tracker_core::statistics::setup::factory(false);
                 let udp_core_stats_event_sender = core_keeper.sender();
 
-                let server_keeper = crate::statistics::setup::factory(false);
+                let (server_keeper, _server_repository) = crate::statistics::setup::factory(false);
                 let udp_server_stats_event_sender = server_keeper.sender();
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);

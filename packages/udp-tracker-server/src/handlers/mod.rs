@@ -287,7 +287,7 @@ pub(crate) mod tests {
         let (core_keeper, _core_repository) = bittorrent_udp_tracker_core::statistics::setup::factory(false);
         let udp_core_stats_event_sender = core_keeper.sender();
 
-        let server_keeper = crate::statistics::setup::factory(false);
+        let (server_keeper, _server_repository) = crate::statistics::setup::factory(false);
         let udp_server_stats_event_sender = server_keeper.sender();
 
         let announce_service = Arc::new(AnnounceService::new(

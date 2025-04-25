@@ -4,7 +4,6 @@ use std::sync::Arc;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
-use bittorrent_udp_tracker_core::statistics::event::listener::run_event_listener;
 use tokio::task::JoinHandle;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration, DEFAULT_TIMEOUT};
@@ -73,13 +72,16 @@ impl Environment<Stopped> {
     pub async fn start(self) -> Environment<Running> {
         let cookie_lifetime = self.container.udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
         // Start the UDP tracker core event listener
-        let udp_core_event_listener_job = Some(run_event_listener(
+        let udp_core_event_listener_job = Some(bittorrent_udp_tracker_core::statistics::event::listener::run_event_listener(
             self.container.udp_tracker_core_container.stats_keeper.receiver(),
             &self.container.udp_tracker_core_container.stats_repository,
         ));
 
         // Start the UDP tracker server event listener
-        let udp_server_event_listener_job = Some(self.container.udp_tracker_server_container.stats_keeper.run_event_listener());
+        let udp_server_event_listener_job = Some(crate::statistics::event::listener::run_event_listener(
+            self.container.udp_tracker_server_container.stats_keeper.receiver(),
+            &self.container.udp_tracker_server_container.stats_repository,
+        ));
 
         // Start the UDP tracker server
         let server = self

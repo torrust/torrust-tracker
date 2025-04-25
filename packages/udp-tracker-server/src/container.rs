@@ -32,9 +32,9 @@ pub struct UdpTrackerServerServices {
 impl UdpTrackerServerServices {
     #[must_use]
     pub fn initialize(core_config: &Arc<Core>) -> Arc<Self> {
-        let udp_server_stats_keeper = statistics::setup::factory(core_config.tracker_usage_statistics);
+        let (udp_server_stats_keeper, udp_server_stats_repository) =
+            statistics::setup::factory(core_config.tracker_usage_statistics);
         let udp_server_stats_event_sender = udp_server_stats_keeper.sender();
-        let udp_server_stats_repository = udp_server_stats_keeper.repository();
 
         Arc::new(Self {
             stats_keeper: udp_server_stats_keeper.clone(),

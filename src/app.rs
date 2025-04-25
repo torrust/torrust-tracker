@@ -151,7 +151,10 @@ fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<App
 
 fn start_udp_server_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) {
     if config.core.tracker_usage_statistics {
-        let _job = app_container.udp_tracker_server_container.stats_keeper.run_event_listener();
+        let _job = torrust_udp_tracker_server::statistics::event::listener::run_event_listener(
+            app_container.udp_tracker_server_container.stats_keeper.receiver(),
+            &app_container.udp_tracker_server_container.stats_repository,
+        );
 
         // todo: this cannot be enabled otherwise the application never ends
         // because the event listener never stops. You see this console message
