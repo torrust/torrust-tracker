@@ -9,7 +9,7 @@ use crate::statistics::event_bus::EventBus;
 use crate::statistics::repository::Repository;
 
 pub struct UdpTrackerServerContainer {
-    pub stats_keeper: Arc<statistics::event_bus::EventBus>,
+    pub event_bus: Arc<statistics::event_bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
 }
@@ -20,7 +20,7 @@ impl UdpTrackerServerContainer {
         let udp_tracker_server_services = UdpTrackerServerServices::initialize(core_config);
 
         Arc::new(Self {
-            stats_keeper: udp_tracker_server_services.stats_keeper.clone(),
+            event_bus: udp_tracker_server_services.event_bus.clone(),
             stats_event_sender: udp_tracker_server_services.stats_event_sender.clone(),
             stats_repository: udp_tracker_server_services.stats_repository.clone(),
         })
@@ -28,7 +28,7 @@ impl UdpTrackerServerContainer {
 }
 
 pub struct UdpTrackerServerServices {
-    pub stats_keeper: Arc<statistics::event_bus::EventBus>,
+    pub event_bus: Arc<statistics::event_bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
 }
@@ -46,7 +46,7 @@ impl UdpTrackerServerServices {
         let udp_server_stats_event_sender = udp_server_stats_event_bus.sender();
 
         Arc::new(Self {
-            stats_keeper: udp_server_stats_event_bus.clone(),
+            event_bus: udp_server_stats_event_bus.clone(),
             stats_event_sender: udp_server_stats_event_sender.clone(),
             stats_repository: udp_server_stats_repository.clone(),
         })

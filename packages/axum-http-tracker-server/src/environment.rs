@@ -70,7 +70,7 @@ impl Environment<Stopped> {
     pub async fn start(self) -> Environment<Running> {
         // Start the event listener
         let event_listener_job = run_event_listener(
-            self.container.http_tracker_core_container.stats_keeper.receiver(),
+            self.container.http_tracker_core_container.event_bus.receiver(),
             &self.container.http_tracker_core_container.stats_repository,
         );
 

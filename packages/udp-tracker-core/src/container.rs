@@ -19,7 +19,7 @@ pub struct UdpTrackerCoreContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // `UdpTrackerCoreServices`
-    pub stats_keeper: Arc<statistics::event_bus::EventBus>,
+    pub event_bus: Arc<statistics::event_bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<BanService>>,
@@ -56,7 +56,7 @@ impl UdpTrackerCoreContainer {
             tracker_core_container: tracker_core_container.clone(),
 
             // `UdpTrackerCoreServices`
-            stats_keeper: udp_tracker_core_services.stats_keeper.clone(),
+            event_bus: udp_tracker_core_services.event_bus.clone(),
             stats_event_sender: udp_tracker_core_services.stats_event_sender.clone(),
             stats_repository: udp_tracker_core_services.stats_repository.clone(),
             ban_service: udp_tracker_core_services.ban_service.clone(),
@@ -68,7 +68,7 @@ impl UdpTrackerCoreContainer {
 }
 
 pub struct UdpTrackerCoreServices {
-    pub stats_keeper: Arc<statistics::event_bus::EventBus>,
+    pub event_bus: Arc<statistics::event_bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<services::banning::BanService>>,
@@ -101,7 +101,7 @@ impl UdpTrackerCoreServices {
         ));
 
         Arc::new(Self {
-            stats_keeper: event_bus,
+            event_bus,
             stats_event_sender: udp_core_stats_event_sender,
             stats_repository: udp_core_stats_repository,
             ban_service,

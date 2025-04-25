@@ -308,7 +308,7 @@ mod tests {
         HttpTrackerCoreContainer {
             tracker_core_container,
             http_tracker_config,
-            stats_keeper: http_stats_event_bus,
+            event_bus: http_stats_event_bus,
             stats_event_sender: http_stats_event_sender,
             stats_repository: http_stats_repository,
             announce_service,
