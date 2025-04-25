@@ -531,7 +531,9 @@ mod tests {
             use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
             use bittorrent_tracker_core::whitelist;
             use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
+            use bittorrent_udp_tracker_core::event::sender::Broadcaster;
             use bittorrent_udp_tracker_core::services::announce::AnnounceService;
+            use bittorrent_udp_tracker_core::statistics::keeper::Keeper;
             use mockall::predicate::eq;
             use torrust_tracker_configuration::Core;
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
@@ -706,7 +708,8 @@ mod tests {
                 announce_handler: Arc<AnnounceHandler>,
                 whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
             ) -> Response {
-                let (core_keeper, _core_repository) = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+                let udp_core_broadcaster = Broadcaster::default();
+                let core_keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
                 let udp_core_stats_event_sender = core_keeper.sender();
 
                 let (server_keeper, _server_repository) = crate::statistics::setup::factory(false);

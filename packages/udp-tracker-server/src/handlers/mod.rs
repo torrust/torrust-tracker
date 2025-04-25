@@ -218,8 +218,10 @@ pub(crate) mod tests {
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use bittorrent_udp_tracker_core::connection_cookie::gen_remote_fingerprint;
+    use bittorrent_udp_tracker_core::event::sender::Broadcaster;
     use bittorrent_udp_tracker_core::services::announce::AnnounceService;
     use bittorrent_udp_tracker_core::services::scrape::ScrapeService;
+    use bittorrent_udp_tracker_core::statistics::keeper::Keeper;
     use bittorrent_udp_tracker_core::{self, event as core_event};
     use futures::future::BoxFuture;
     use mockall::mock;
@@ -229,6 +231,7 @@ pub(crate) mod tests {
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::statistics::repository::Repository;
     use crate::{event as server_event, CurrentClock};
 
     pub(crate) struct CoreTrackerServices {
@@ -284,7 +287,9 @@ pub(crate) mod tests {
         ));
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
-        let (core_keeper, _core_repository) = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+        let udp_core_broadcaster = Broadcaster::default();
+        let _core_repository = Arc::new(Repository::new());
+        let core_keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
         let udp_core_stats_event_sender = core_keeper.sender();
 
         let (server_keeper, _server_repository) = crate::statistics::setup::factory(false);

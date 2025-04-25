@@ -93,7 +93,10 @@ mod tests {
     use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
     use torrust_tracker_test_helpers::configuration;
 
+    use crate::event::sender::Broadcaster;
     use crate::statistics::describe_metrics;
+    use crate::statistics::keeper::Keeper;
+    use crate::statistics::repository::Repository;
     use crate::statistics::services::{get_metrics, TrackerMetrics};
 
     pub fn tracker_configuration() -> Configuration {
@@ -106,7 +109,12 @@ mod tests {
 
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-        let (_keeper, repository) = crate::statistics::setup::factory(config.core.tracker_usage_statistics);
+        let udp_core_broadcaster = Broadcaster::default();
+        let repository = Arc::new(Repository::new());
+        let _keeper = Arc::new(Keeper::new(
+            config.core.tracker_usage_statistics,
+            udp_core_broadcaster.clone(),
+        ));
 
         let tracker_metrics = get_metrics(in_memory_torrent_repository.clone(), repository.clone()).await;
 

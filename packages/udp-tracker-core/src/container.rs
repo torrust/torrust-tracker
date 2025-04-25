@@ -4,10 +4,13 @@ use bittorrent_tracker_core::container::TrackerCoreContainer;
 use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, UdpTracker};
 
+use crate::event::sender::Broadcaster;
 use crate::services::announce::AnnounceService;
 use crate::services::banning::BanService;
 use crate::services::connect::ConnectService;
 use crate::services::scrape::ScrapeService;
+use crate::statistics::keeper::Keeper;
+use crate::statistics::repository::Repository;
 use crate::{event, services, statistics, MAX_CONNECTION_ID_ERRORS_PER_IP};
 
 pub struct UdpTrackerCoreContainer {
@@ -77,8 +80,13 @@ pub struct UdpTrackerCoreServices {
 impl UdpTrackerCoreServices {
     #[must_use]
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
-        let (keeper, udp_core_stats_repository) =
-            statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
+        let udp_core_broadcaster = Broadcaster::default();
+        let udp_core_stats_repository = Arc::new(Repository::new());
+        let keeper = Arc::new(Keeper::new(
+            tracker_core_container.core_config.tracker_usage_statistics,
+            udp_core_broadcaster.clone(),
+        ));
+
         let udp_core_stats_event_sender = keeper.sender();
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
         let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender.clone()));

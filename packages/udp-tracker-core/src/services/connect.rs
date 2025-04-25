@@ -65,20 +65,23 @@ mod tests {
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use crate::connection_cookie::make;
+        use crate::event;
+        use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
         use crate::services::connect::ConnectService;
         use crate::services::tests::{
             sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint, sample_ipv4_socket_address, sample_ipv6_remote_addr,
             sample_ipv6_remote_addr_fingerprint, sample_issue_time, MockUdpCoreStatsEventSender,
         };
-        use crate::{event, statistics};
+        use crate::statistics::keeper::Keeper;
 
         #[tokio::test]
         async fn a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request() {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let (keeper, _repository) = statistics::setup::factory(false);
+            let udp_core_broadcaster = Broadcaster::default();
+            let keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = keeper.sender();
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
@@ -98,7 +101,8 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let (keeper, _repository) = statistics::setup::factory(false);
+            let udp_core_broadcaster = Broadcaster::default();
+            let keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = keeper.sender();
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
@@ -119,7 +123,8 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let (keeper, _repository) = statistics::setup::factory(false);
+            let udp_core_broadcaster = Broadcaster::default();
+            let keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = keeper.sender();
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
