@@ -284,11 +284,11 @@ pub(crate) mod tests {
         ));
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
-        let keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-        let udp_core_stats_event_sender = keeper.sender();
+        let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+        let udp_core_stats_event_sender = core_keeper.sender();
 
-        let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
-        let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
+        let server_keeper = crate::statistics::setup::factory(false);
+        let udp_server_stats_event_sender = server_keeper.sender();
 
         let announce_service = Arc::new(AnnounceService::new(
             announce_handler.clone(),

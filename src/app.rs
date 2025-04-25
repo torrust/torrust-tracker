@@ -68,6 +68,7 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
 
     start_http_core_event_listener(config, app_container);
     start_udp_core_event_listener(config, app_container);
+    start_udp_server_event_listener(config, app_container);
     start_the_udp_instances(config, app_container, &mut jobs).await;
     start_the_http_instances(config, app_container, &mut jobs).await;
     start_the_http_api(config, app_container, &mut jobs).await;
@@ -131,6 +132,26 @@ fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<Ap
 fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) {
     if config.core.tracker_usage_statistics {
         let _job = app_container.udp_tracker_core_services.stats_keeper.run_event_listener();
+
+        // todo: this cannot be enabled otherwise the application never ends
+        // because the event listener never stops. You see this console message
+        // forever:
+        //
+        // !! shuting down in 90 seconds !!
+        // 2025-04-24T15:27:45.454101Z  INFO graceful_shutdown: torrust_axum_server::signals: remaining alive connections: 0
+        //
+        // Depends on: https://github.com/torrust/torrust-tracker/issues/1405
+
+        //jobs.push(job);
+    }
+}
+
+fn start_udp_server_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) {
+    if config.core.tracker_usage_statistics {
+        let _job = app_container
+            .udp_tracker_server_container
+            .udp_server_stats_keeper
+            .run_event_listener();
 
         // todo: this cannot be enabled otherwise the application never ends
         // because the event listener never stops. You see this console message

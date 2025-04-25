@@ -158,9 +158,9 @@ mod tests {
         // UDP core stats (not used in this test)
 
         // UDP server stats
-        let (_udp_server_stats_event_sender, udp_server_stats_repository) =
+        let udp_server_stats_keeper =
             torrust_udp_tracker_server::statistics::setup::factory(config.core.tracker_usage_statistics);
-        let udp_server_stats_repository = Arc::new(udp_server_stats_repository);
+        let udp_server_stats_repository = udp_server_stats_keeper.repository();
 
         let tracker_metrics = get_metrics(
             in_memory_torrent_repository.clone(),

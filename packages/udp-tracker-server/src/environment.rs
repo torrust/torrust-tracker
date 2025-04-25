@@ -24,6 +24,7 @@ where
     pub registar: Registar,
     pub server: Server<S>,
     pub udp_core_event_listener_job: Option<JoinHandle<()>>,
+    pub udp_server_event_listener_job: Option<JoinHandle<()>>,
 }
 
 impl<S> Environment<S>
@@ -58,6 +59,7 @@ impl Environment<Stopped> {
             registar: Registar::default(),
             server,
             udp_core_event_listener_job: None,
+            udp_server_event_listener_job: None,
         }
     }
 
@@ -71,6 +73,14 @@ impl Environment<Stopped> {
         let cookie_lifetime = self.container.udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
         // Start the UDP tracker core event listener
         let udp_core_event_listener_job = Some(self.container.udp_tracker_core_container.stats_keeper.run_event_listener());
+
+        // Start the UDP tracker server event listener
+        let udp_server_event_listener_job = Some(
+            self.container
+                .udp_tracker_server_container
+                .udp_server_stats_keeper
+                .run_event_listener(),
+        );
 
         // Start the UDP tracker server
         let server = self
@@ -89,6 +99,7 @@ impl Environment<Stopped> {
             registar: self.registar.clone(),
             server,
             udp_core_event_listener_job,
+            udp_server_event_listener_job,
         }
     }
 }
@@ -110,14 +121,21 @@ impl Environment<Running> {
     /// Will panic if it cannot stop the service within the timeout.
     #[allow(dead_code)]
     pub async fn stop(self) -> Environment<Stopped> {
-        // Stop the event listener
+        // Stop the UDP tracker core event listener
         if let Some(udp_core_event_listener_job) = self.udp_core_event_listener_job {
             // todo: send a message to the event listener to stop and wait for
             // it to finish
             udp_core_event_listener_job.abort();
         }
 
-        // Stop the server
+        // Stop the UDP tracker server event listener
+        if let Some(udp_server_event_listener_job) = self.udp_server_event_listener_job {
+            // todo: send a message to the event listener to stop and wait for
+            // it to finish
+            udp_server_event_listener_job.abort();
+        }
+
+        // Stop the UDP tracker server
         let server = tokio::time::timeout(DEFAULT_TIMEOUT, self.server.stop())
             .await
             .expect("Failed to stop the UDP tracker server within the timeout")
@@ -128,6 +146,7 @@ impl Environment<Running> {
             registar: Registar::default(),
             server,
             udp_core_event_listener_job: None,
+            udp_server_event_listener_job: None,
         }
     }
 

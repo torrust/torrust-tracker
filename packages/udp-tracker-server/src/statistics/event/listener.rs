@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
 use tokio::sync::broadcast;
 use torrust_tracker_clock::clock::Time;
@@ -7,7 +9,7 @@ use crate::event::Event;
 use crate::statistics::repository::Repository;
 use crate::CurrentClock;
 
-pub async fn dispatch_events(mut receiver: broadcast::Receiver<Event>, stats_repository: Repository) {
+pub async fn dispatch_events(mut receiver: broadcast::Receiver<Event>, stats_repository: Arc<Repository>) {
     loop {
         match receiver.recv().await {
             Ok(event) => handle_event(event, &stats_repository, CurrentClock::now()).await,

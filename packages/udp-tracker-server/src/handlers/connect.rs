@@ -81,11 +81,11 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-            let udp_core_stats_event_sender = keeper.sender();
+            let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+            let udp_core_stats_event_sender = core_keeper.sender();
 
-            let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
-            let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
+            let server_keeper = crate::statistics::setup::factory(false);
+            let udp_server_stats_event_sender = server_keeper.sender();
 
             let request = ConnectRequest {
                 transaction_id: TransactionId(0i32.into()),
@@ -117,11 +117,11 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-            let udp_core_stats_event_sender = keeper.sender();
+            let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+            let udp_core_stats_event_sender = core_keeper.sender();
 
-            let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
-            let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
+            let server_keeper = crate::statistics::setup::factory(false);
+            let udp_server_stats_event_sender = server_keeper.sender();
 
             let request = ConnectRequest {
                 transaction_id: TransactionId(0i32.into()),
@@ -153,11 +153,11 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-            let udp_core_stats_event_sender = keeper.sender();
+            let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+            let udp_core_stats_event_sender = core_keeper.sender();
 
-            let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
-            let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
+            let server_keeper = crate::statistics::setup::factory(false);
+            let udp_server_stats_event_sender = server_keeper.sender();
 
             let request = ConnectRequest {
                 transaction_id: TransactionId(0i32.into()),

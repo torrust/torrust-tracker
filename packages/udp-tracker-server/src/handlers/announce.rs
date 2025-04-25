@@ -374,8 +374,8 @@ mod tests {
                 core_tracker_services: Arc<CoreTrackerServices>,
                 core_udp_tracker_services: Arc<CoreUdpTrackerServices>,
             ) -> Response {
-                let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
-                let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
+                let keeper = crate::statistics::setup::factory(false);
+                let udp_server_stats_event_sender = keeper.sender();
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
@@ -706,11 +706,11 @@ mod tests {
                 announce_handler: Arc<AnnounceHandler>,
                 whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
             ) -> Response {
-                let keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-                let udp_core_stats_event_sender = keeper.sender();
+                let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
+                let udp_core_stats_event_sender = core_keeper.sender();
 
-                let (udp_server_stats_event_sender, _udp_server_stats_repository) = crate::statistics::setup::factory(false);
-                let udp_server_stats_event_sender = Arc::new(udp_server_stats_event_sender);
+                let server_keeper = crate::statistics::setup::factory(false);
+                let udp_server_stats_event_sender = server_keeper.sender();
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
