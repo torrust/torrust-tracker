@@ -218,6 +218,8 @@ pub(crate) mod tests {
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use bittorrent_udp_tracker_core::connection_cookie::gen_remote_fingerprint;
+    use bittorrent_udp_tracker_core::event::bus::EventBus;
+    use bittorrent_udp_tracker_core::event::sender::Broadcaster;
     use bittorrent_udp_tracker_core::services::announce::AnnounceService;
     use bittorrent_udp_tracker_core::services::scrape::ScrapeService;
     use bittorrent_udp_tracker_core::{self, event as core_event};
@@ -284,11 +286,14 @@ pub(crate) mod tests {
         ));
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
-        let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-        let udp_core_stats_event_sender = core_keeper.sender();
+        let udp_core_broadcaster = Broadcaster::default();
+        let core_event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+        let udp_core_stats_event_sender = core_event_bus.sender();
 
-        let server_keeper = crate::statistics::setup::factory(false);
-        let udp_server_stats_event_sender = server_keeper.sender();
+        let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
+        let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
+
+        let udp_server_stats_event_sender = server_event_bus.sender();
 
         let announce_service = Arc::new(AnnounceService::new(
             announce_handler.clone(),

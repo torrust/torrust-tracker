@@ -1,3 +1,6 @@
+pub mod bus;
+pub mod sender;
+
 use std::fmt;
 use std::net::SocketAddr;
 use std::time::Duration;
@@ -5,8 +8,6 @@ use std::time::Duration;
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::label_name;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
-
-pub mod sender;
 
 /// A UDP server event.
 #[derive(Debug, PartialEq, Eq, Clone)]

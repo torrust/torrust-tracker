@@ -59,6 +59,8 @@ mod tests {
         use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
         use bittorrent_udp_tracker_core::connection_cookie::make;
         use bittorrent_udp_tracker_core::event as core_event;
+        use bittorrent_udp_tracker_core::event::bus::EventBus;
+        use bittorrent_udp_tracker_core::event::sender::Broadcaster;
         use bittorrent_udp_tracker_core::services::connect::ConnectService;
         use mockall::predicate::eq;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
@@ -81,11 +83,14 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-            let udp_core_stats_event_sender = core_keeper.sender();
+            let udp_core_broadcaster = Broadcaster::default();
+            let core_event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+            let udp_core_stats_event_sender = core_event_bus.sender();
 
-            let server_keeper = crate::statistics::setup::factory(false);
-            let udp_server_stats_event_sender = server_keeper.sender();
+            let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
+            let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
+
+            let udp_server_stats_event_sender = server_event_bus.sender();
 
             let request = ConnectRequest {
                 transaction_id: TransactionId(0i32.into()),
@@ -117,11 +122,14 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-            let udp_core_stats_event_sender = core_keeper.sender();
+            let udp_core_broadcaster = Broadcaster::default();
+            let core_event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+            let udp_core_stats_event_sender = core_event_bus.sender();
 
-            let server_keeper = crate::statistics::setup::factory(false);
-            let udp_server_stats_event_sender = server_keeper.sender();
+            let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
+            let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
+
+            let udp_server_stats_event_sender = server_event_bus.sender();
 
             let request = ConnectRequest {
                 transaction_id: TransactionId(0i32.into()),
@@ -153,11 +161,15 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
-            let core_keeper = bittorrent_udp_tracker_core::statistics::setup::factory(false);
-            let udp_core_stats_event_sender = core_keeper.sender();
+            let udp_core_broadcaster = Broadcaster::default();
+            let core_event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
 
-            let server_keeper = crate::statistics::setup::factory(false);
-            let udp_server_stats_event_sender = server_keeper.sender();
+            let udp_core_stats_event_sender = core_event_bus.sender();
+
+            let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
+            let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
+
+            let udp_server_stats_event_sender = server_event_bus.sender();
 
             let request = ConnectRequest {
                 transaction_id: TransactionId(0i32.into()),

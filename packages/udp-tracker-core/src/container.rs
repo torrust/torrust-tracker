@@ -4,10 +4,13 @@ use bittorrent_tracker_core::container::TrackerCoreContainer;
 use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, UdpTracker};
 
+use crate::event::bus::EventBus;
+use crate::event::sender::Broadcaster;
 use crate::services::announce::AnnounceService;
 use crate::services::banning::BanService;
 use crate::services::connect::ConnectService;
 use crate::services::scrape::ScrapeService;
+use crate::statistics::repository::Repository;
 use crate::{event, services, statistics, MAX_CONNECTION_ID_ERRORS_PER_IP};
 
 pub struct UdpTrackerCoreContainer {
@@ -16,7 +19,7 @@ pub struct UdpTrackerCoreContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // `UdpTrackerCoreServices`
-    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub event_bus: Arc<event::bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<BanService>>,
@@ -53,7 +56,7 @@ impl UdpTrackerCoreContainer {
             tracker_core_container: tracker_core_container.clone(),
 
             // `UdpTrackerCoreServices`
-            stats_keeper: udp_tracker_core_services.stats_keeper.clone(),
+            event_bus: udp_tracker_core_services.event_bus.clone(),
             stats_event_sender: udp_tracker_core_services.stats_event_sender.clone(),
             stats_repository: udp_tracker_core_services.stats_repository.clone(),
             ban_service: udp_tracker_core_services.ban_service.clone(),
@@ -65,7 +68,7 @@ impl UdpTrackerCoreContainer {
 }
 
 pub struct UdpTrackerCoreServices {
-    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub event_bus: Arc<event::bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<services::banning::BanService>>,
@@ -77,9 +80,14 @@ pub struct UdpTrackerCoreServices {
 impl UdpTrackerCoreServices {
     #[must_use]
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
-        let keeper = statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
-        let udp_core_stats_event_sender = keeper.sender();
-        let udp_core_stats_repository = keeper.repository();
+        let udp_core_broadcaster = Broadcaster::default();
+        let udp_core_stats_repository = Arc::new(Repository::new());
+        let event_bus = Arc::new(EventBus::new(
+            tracker_core_container.core_config.tracker_usage_statistics,
+            udp_core_broadcaster.clone(),
+        ));
+
+        let udp_core_stats_event_sender = event_bus.sender();
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
         let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender.clone()));
         let announce_service = Arc::new(AnnounceService::new(
@@ -93,7 +101,7 @@ impl UdpTrackerCoreServices {
         ));
 
         Arc::new(Self {
-            stats_keeper: keeper,
+            event_bus,
             stats_event_sender: udp_core_stats_event_sender,
             stats_repository: udp_core_stats_repository,
             ban_service,

@@ -123,6 +123,10 @@ pub async fn get_labeled_metrics(
 mod tests {
     use std::sync::Arc;
 
+    use bittorrent_http_tracker_core::event::bus::EventBus;
+    use bittorrent_http_tracker_core::event::sender::Broadcaster;
+    use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
+    use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::{self};
     use bittorrent_udp_tracker_core::services::banning::BanService;
@@ -147,20 +151,19 @@ mod tests {
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
         // HTTP core stats
-        let http_stats_keeper = bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
-        let _http_stats_event_sender = http_stats_keeper.sender();
-        let http_stats_repository = http_stats_keeper.repository();
+        let http_core_broadcaster = Broadcaster::default();
+        let http_stats_repository = Arc::new(Repository::new());
+        let http_stats_event_bus = Arc::new(EventBus::new(
+            config.core.tracker_usage_statistics,
+            http_core_broadcaster.clone(),
+        ));
 
         if config.core.tracker_usage_statistics {
-            let _unused = http_stats_keeper.run_event_listener();
+            let _unused = run_event_listener(http_stats_event_bus.receiver(), &http_stats_repository);
         }
 
-        // UDP core stats (not used in this test)
-
         // UDP server stats
-        let udp_server_stats_keeper =
-            torrust_udp_tracker_server::statistics::setup::factory(config.core.tracker_usage_statistics);
-        let udp_server_stats_repository = udp_server_stats_keeper.repository();
+        let udp_server_stats_repository = Arc::new(torrust_udp_tracker_server::statistics::repository::Repository::new());
 
         let tracker_metrics = get_metrics(
             in_memory_torrent_repository.clone(),

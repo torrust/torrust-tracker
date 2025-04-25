@@ -109,31 +109,23 @@ mod tests {
     use bittorrent_udp_tracker_core::services::banning::BanService;
     use bittorrent_udp_tracker_core::MAX_CONNECTION_ID_ERRORS_PER_IP;
     use tokio::sync::RwLock;
-    use torrust_tracker_configuration::Configuration;
     use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
-    use torrust_tracker_test_helpers::configuration;
 
+    use crate::statistics::describe_metrics;
+    use crate::statistics::repository::Repository;
     use crate::statistics::services::{get_metrics, TrackerMetrics};
-    use crate::statistics::{self, describe_metrics};
-
-    pub fn tracker_configuration() -> Configuration {
-        configuration::ephemeral()
-    }
 
     #[tokio::test]
     async fn the_statistics_service_should_return_the_tracker_metrics() {
-        let config = tracker_configuration();
-
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
-        let keeper = statistics::setup::factory(config.core.tracker_usage_statistics);
-        let udp_server_stats_repository = keeper.repository();
+        let stats_repository = Arc::new(Repository::new());
 
         let tracker_metrics = get_metrics(
             in_memory_torrent_repository.clone(),
             ban_service.clone(),
-            udp_server_stats_repository.clone(),
+            stats_repository.clone(),
         )
         .await;
 

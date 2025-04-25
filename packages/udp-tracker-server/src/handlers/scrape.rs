@@ -94,6 +94,8 @@ mod tests {
         use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
+        use crate::event::bus::EventBus;
+        use crate::event::sender::Broadcaster;
         use crate::handlers::handle_scrape;
         use crate::handlers::tests::{
             initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv4_remote_addr,
@@ -178,8 +180,10 @@ mod tests {
             core_tracker_services: Arc<CoreTrackerServices>,
             core_udp_tracker_services: Arc<CoreUdpTrackerServices>,
         ) -> Response {
-            let keeper = crate::statistics::setup::factory(false);
-            let udp_server_stats_event_sender = keeper.sender();
+            let udp_server_broadcaster = Broadcaster::default();
+            let event_bus = Arc::new(EventBus::new(false, udp_server_broadcaster.clone()));
+
+            let udp_server_stats_event_sender = event_bus.sender();
 
             let client_socket_addr = sample_ipv4_remote_addr();
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);

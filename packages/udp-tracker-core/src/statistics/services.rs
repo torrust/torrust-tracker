@@ -89,27 +89,19 @@ mod tests {
 
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::{self};
-    use torrust_tracker_configuration::Configuration;
     use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
-    use torrust_tracker_test_helpers::configuration;
 
     use crate::statistics::describe_metrics;
+    use crate::statistics::repository::Repository;
     use crate::statistics::services::{get_metrics, TrackerMetrics};
-
-    pub fn tracker_configuration() -> Configuration {
-        configuration::ephemeral()
-    }
 
     #[tokio::test]
     async fn the_statistics_service_should_return_the_tracker_metrics() {
-        let config = tracker_configuration();
-
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-        let keeper = crate::statistics::setup::factory(config.core.tracker_usage_statistics);
-        let udp_core_stats_repository = keeper.repository();
+        let repository = Arc::new(Repository::new());
 
-        let tracker_metrics = get_metrics(in_memory_torrent_repository.clone(), udp_core_stats_repository.clone()).await;
+        let tracker_metrics = get_metrics(in_memory_torrent_repository.clone(), repository.clone()).await;
 
         assert_eq!(
             tracker_metrics,

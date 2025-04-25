@@ -248,8 +248,12 @@ mod tests {
     use std::sync::Arc;
 
     use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
+    use bittorrent_http_tracker_core::event::bus::EventBus;
+    use bittorrent_http_tracker_core::event::sender::Broadcaster;
     use bittorrent_http_tracker_core::services::announce::AnnounceService;
     use bittorrent_http_tracker_core::services::scrape::ScrapeService;
+    use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
+    use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_tracker_core::container::TrackerCoreContainer;
     use torrust_axum_server::tsl::make_rust_tls;
     use torrust_server_lib::registar::Registar;
@@ -271,13 +275,17 @@ mod tests {
         let http_tracker_config = Arc::new(http_tracker_config.clone());
 
         // HTTP core stats
-        let http_stats_keeper =
-            bittorrent_http_tracker_core::statistics::setup::factory(configuration.core.tracker_usage_statistics);
-        let http_stats_event_sender = http_stats_keeper.sender();
-        let http_stats_repository = http_stats_keeper.repository();
+        let http_core_broadcaster = Broadcaster::default();
+        let http_stats_repository = Arc::new(Repository::new());
+        let http_stats_event_bus = Arc::new(EventBus::new(
+            configuration.core.tracker_usage_statistics,
+            http_core_broadcaster.clone(),
+        ));
+
+        let http_stats_event_sender = http_stats_event_bus.sender();
 
         if configuration.core.tracker_usage_statistics {
-            let _unused = http_stats_keeper.run_event_listener();
+            let _unused = run_event_listener(http_stats_event_bus.receiver(), &http_stats_repository);
         }
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
@@ -300,7 +308,7 @@ mod tests {
         HttpTrackerCoreContainer {
             tracker_core_container,
             http_tracker_config,
-            stats_keeper: http_stats_keeper,
+            event_bus: http_stats_event_bus,
             stats_event_sender: http_stats_event_sender,
             stats_repository: http_stats_repository,
             announce_service,
