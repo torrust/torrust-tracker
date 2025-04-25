@@ -23,6 +23,7 @@
 //! - Tracker REST API: the tracker API can be enabled/disabled.
 use std::sync::Arc;
 
+use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::{Configuration, HttpTracker, UdpTracker};
 use tracing::instrument;
@@ -111,7 +112,10 @@ async fn load_whitelisted_torrents(config: &Configuration, app_container: &Arc<A
 
 fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) {
     if config.core.tracker_usage_statistics {
-        let _job = app_container.http_tracker_core_services.stats_keeper.run_event_listener();
+        let _job = run_event_listener(
+            app_container.http_tracker_core_services.stats_keeper.receiver(),
+            &app_container.http_tracker_core_services.stats_repository,
+        );
 
         // todo: this cannot be enabled otherwise the application never ends
         // because the event listener never stops. You see this console message

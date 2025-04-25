@@ -123,6 +123,7 @@ pub async fn get_labeled_metrics(
 mod tests {
     use std::sync::Arc;
 
+    use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::{self};
     use bittorrent_udp_tracker_core::services::banning::BanService;
@@ -147,12 +148,11 @@ mod tests {
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
         // HTTP core stats
-        let http_stats_keeper = bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
-        let _http_stats_event_sender = http_stats_keeper.sender();
-        let http_stats_repository = http_stats_keeper.repository();
+        let (http_stats_keeper, http_stats_repository) =
+            bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
 
         if config.core.tracker_usage_statistics {
-            let _unused = http_stats_keeper.run_event_listener();
+            let _unused = run_event_listener(http_stats_keeper.receiver(), &http_stats_repository);
         }
 
         // UDP core stats (not used in this test)

@@ -250,6 +250,7 @@ mod tests {
     use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
     use bittorrent_http_tracker_core::services::announce::AnnounceService;
     use bittorrent_http_tracker_core::services::scrape::ScrapeService;
+    use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
     use bittorrent_tracker_core::container::TrackerCoreContainer;
     use torrust_axum_server::tsl::make_rust_tls;
     use torrust_server_lib::registar::Registar;
@@ -271,13 +272,12 @@ mod tests {
         let http_tracker_config = Arc::new(http_tracker_config.clone());
 
         // HTTP core stats
-        let http_stats_keeper =
+        let (http_stats_keeper, http_stats_repository) =
             bittorrent_http_tracker_core::statistics::setup::factory(configuration.core.tracker_usage_statistics);
         let http_stats_event_sender = http_stats_keeper.sender();
-        let http_stats_repository = http_stats_keeper.repository();
 
         if configuration.core.tracker_usage_statistics {
-            let _unused = http_stats_keeper.run_event_listener();
+            let _unused = run_event_listener(http_stats_keeper.receiver(), &http_stats_repository);
         }
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));

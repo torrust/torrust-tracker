@@ -66,9 +66,9 @@ impl HttpTrackerCoreServices {
     #[must_use]
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
         // HTTP core stats
-        let http_stats_keeper = statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
+        let (http_stats_keeper, http_stats_repository) =
+            statistics::setup::factory(tracker_core_container.core_config.tracker_usage_statistics);
         let http_stats_event_sender = http_stats_keeper.sender();
-        let http_stats_repository = http_stats_keeper.repository();
 
         let http_announce_service = Arc::new(AnnounceService::new(
             tracker_core_container.core_config.clone(),

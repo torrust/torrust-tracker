@@ -253,12 +253,11 @@ mod tests {
         ));
 
         // HTTP core stats
-        let http_stats_keeper = statistics::setup::factory(config.core.tracker_usage_statistics);
+        let (http_stats_keeper, http_stats_repository) = statistics::setup::factory(config.core.tracker_usage_statistics);
         let http_stats_event_sender = http_stats_keeper.sender();
-        let _http_stats_repository = http_stats_keeper.repository();
 
         if config.core.tracker_usage_statistics {
-            let _unused = http_stats_keeper.run_event_listener();
+            let _unused = run_event_listener(http_stats_keeper.receiver(), &http_stats_repository);
         }
 
         (
@@ -298,6 +297,7 @@ mod tests {
     use tokio::sync::broadcast::error::SendError;
 
     use crate::event::Event;
+    use crate::statistics::event::listener::run_event_listener;
     use crate::tests::sample_info_hash;
     use crate::{event, statistics};
 

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
+use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use futures::executor::block_on;
@@ -68,7 +69,10 @@ impl Environment<Stopped> {
     #[allow(dead_code)]
     pub async fn start(self) -> Environment<Running> {
         // Start the event listener
-        let event_listener_job = self.container.http_tracker_core_container.stats_keeper.run_event_listener();
+        let event_listener_job = run_event_listener(
+            self.container.http_tracker_core_container.stats_keeper.receiver(),
+            &self.container.http_tracker_core_container.stats_repository,
+        );
 
         // Start the server
         let server = self

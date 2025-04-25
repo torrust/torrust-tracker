@@ -108,6 +108,7 @@ mod tests {
 
     use aquatic_udp_protocol::PeerId;
     use bittorrent_http_tracker_core::services::announce::AnnounceService;
+    use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
     use bittorrent_http_tracker_protocol::v1::requests::announce::Announce;
     use bittorrent_http_tracker_protocol::v1::responses;
     use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
@@ -161,12 +162,12 @@ mod tests {
         ));
 
         // HTTP core stats
-        let http_stats_keeper = bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
+        let (http_stats_keeper, http_stats_repository) =
+            bittorrent_http_tracker_core::statistics::setup::factory(config.core.tracker_usage_statistics);
         let http_stats_event_sender = http_stats_keeper.sender();
-        let _http_stats_repository = http_stats_keeper.repository();
 
         if config.core.tracker_usage_statistics {
-            let _unused = http_stats_keeper.run_event_listener();
+            let _unused = run_event_listener(http_stats_keeper.receiver(), &http_stats_repository);
         }
 
         let announce_service = Arc::new(AnnounceService::new(
