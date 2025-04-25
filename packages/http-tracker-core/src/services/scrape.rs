@@ -266,7 +266,7 @@ mod tests {
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
-        use crate::statistics::keeper::Keeper;
+        use crate::statistics::event_bus::EventBus;
         use crate::tests::sample_info_hash;
 
         #[tokio::test]
@@ -276,7 +276,7 @@ mod tests {
 
             // HTTP core stats
             let http_core_broadcaster = Broadcaster::default();
-            let http_stats_keeper = Arc::new(Keeper::new(false, http_core_broadcaster.clone()));
+            let http_stats_keeper = Arc::new(EventBus::new(false, http_core_broadcaster.clone()));
 
             let http_stats_event_sender = http_stats_keeper.sender();
 
@@ -459,7 +459,7 @@ mod tests {
             initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
         };
         use crate::services::scrape::ScrapeService;
-        use crate::statistics::keeper::Keeper;
+        use crate::statistics::event_bus::EventBus;
         use crate::tests::sample_info_hash;
 
         #[tokio::test]
@@ -471,7 +471,7 @@ mod tests {
 
             // HTTP core stats
             let http_core_broadcaster = Broadcaster::default();
-            let http_stats_keeper = Arc::new(Keeper::new(false, http_core_broadcaster.clone()));
+            let http_stats_keeper = Arc::new(EventBus::new(false, http_core_broadcaster.clone()));
 
             let http_stats_event_sender = http_stats_keeper.sender();
 

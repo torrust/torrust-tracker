@@ -125,7 +125,7 @@ mod tests {
 
     use bittorrent_http_tracker_core::event::sender::Broadcaster;
     use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
-    use bittorrent_http_tracker_core::statistics::keeper::Keeper;
+    use bittorrent_http_tracker_core::statistics::event_bus::EventBus;
     use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::{self};
@@ -153,7 +153,7 @@ mod tests {
         // HTTP core stats
         let http_core_broadcaster = Broadcaster::default();
         let http_stats_repository = Arc::new(Repository::new());
-        let http_stats_keeper = Arc::new(Keeper::new(
+        let http_stats_keeper = Arc::new(EventBus::new(
             config.core.tracker_usage_statistics,
             http_core_broadcaster.clone(),
         ));

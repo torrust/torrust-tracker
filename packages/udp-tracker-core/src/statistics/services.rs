@@ -95,7 +95,7 @@ mod tests {
 
     use crate::event::sender::Broadcaster;
     use crate::statistics::describe_metrics;
-    use crate::statistics::keeper::Keeper;
+    use crate::statistics::event_bus::EventBus;
     use crate::statistics::repository::Repository;
     use crate::statistics::services::{get_metrics, TrackerMetrics};
 
@@ -111,7 +111,7 @@ mod tests {
 
         let udp_core_broadcaster = Broadcaster::default();
         let repository = Arc::new(Repository::new());
-        let _keeper = Arc::new(Keeper::new(
+        let _keeper = Arc::new(EventBus::new(
             config.core.tracker_usage_statistics,
             udp_core_broadcaster.clone(),
         ));

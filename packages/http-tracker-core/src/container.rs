@@ -6,7 +6,7 @@ use torrust_tracker_configuration::{Core, HttpTracker};
 use crate::event::sender::Broadcaster;
 use crate::services::announce::AnnounceService;
 use crate::services::scrape::ScrapeService;
-use crate::statistics::keeper::Keeper;
+use crate::statistics::event_bus::EventBus;
 use crate::statistics::repository::Repository;
 use crate::{event, services, statistics};
 
@@ -16,7 +16,7 @@ pub struct HttpTrackerCoreContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // `HttpTrackerCoreServices`
-    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_keeper: Arc<statistics::event_bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub announce_service: Arc<AnnounceService>,
@@ -58,7 +58,7 @@ impl HttpTrackerCoreContainer {
 }
 
 pub struct HttpTrackerCoreServices {
-    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_keeper: Arc<statistics::event_bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub announce_service: Arc<services::announce::AnnounceService>,
@@ -71,7 +71,7 @@ impl HttpTrackerCoreServices {
         // HTTP core stats
         let http_core_broadcaster = Broadcaster::default();
         let http_stats_repository = Arc::new(Repository::new());
-        let http_stats_keeper = Arc::new(Keeper::new(
+        let http_stats_keeper = Arc::new(EventBus::new(
             tracker_core_container.core_config.tracker_usage_statistics,
             http_core_broadcaster.clone(),
         ));

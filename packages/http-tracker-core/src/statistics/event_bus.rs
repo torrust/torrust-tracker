@@ -5,12 +5,12 @@ use tokio::sync::broadcast::Receiver;
 use crate::event::sender::{self, Broadcaster};
 use crate::event::Event;
 
-pub struct Keeper {
+pub struct EventBus {
     pub enable_sender: bool,
     pub broadcaster: Broadcaster,
 }
 
-impl Default for Keeper {
+impl Default for EventBus {
     fn default() -> Self {
         let enable_sender = true;
         let broadcaster = Broadcaster::default();
@@ -19,7 +19,7 @@ impl Default for Keeper {
     }
 }
 
-impl Keeper {
+impl EventBus {
     #[must_use]
     pub fn new(enable_sender: bool, broadcaster: Broadcaster) -> Self {
         Self {

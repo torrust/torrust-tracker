@@ -100,7 +100,7 @@ mod tests {
             initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv4_remote_addr,
             sample_issue_time, CoreTrackerServices, CoreUdpTrackerServices, TorrentPeerBuilder,
         };
-        use crate::statistics::keeper::Keeper;
+        use crate::statistics::event_bus::EventBus;
 
         fn zeroed_torrent_statistics() -> TorrentScrapeStatistics {
             TorrentScrapeStatistics {
@@ -181,7 +181,7 @@ mod tests {
             core_udp_tracker_services: Arc<CoreUdpTrackerServices>,
         ) -> Response {
             let udp_server_broadcaster = Broadcaster::default();
-            let keeper = Arc::new(Keeper::new(false, udp_server_broadcaster.clone()));
+            let keeper = Arc::new(EventBus::new(false, udp_server_broadcaster.clone()));
 
             let udp_server_stats_event_sender = keeper.sender();
 

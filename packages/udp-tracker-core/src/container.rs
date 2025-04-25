@@ -9,7 +9,7 @@ use crate::services::announce::AnnounceService;
 use crate::services::banning::BanService;
 use crate::services::connect::ConnectService;
 use crate::services::scrape::ScrapeService;
-use crate::statistics::keeper::Keeper;
+use crate::statistics::event_bus::EventBus;
 use crate::statistics::repository::Repository;
 use crate::{event, services, statistics, MAX_CONNECTION_ID_ERRORS_PER_IP};
 
@@ -19,7 +19,7 @@ pub struct UdpTrackerCoreContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // `UdpTrackerCoreServices`
-    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_keeper: Arc<statistics::event_bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<BanService>>,
@@ -68,7 +68,7 @@ impl UdpTrackerCoreContainer {
 }
 
 pub struct UdpTrackerCoreServices {
-    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_keeper: Arc<statistics::event_bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<services::banning::BanService>>,
@@ -82,7 +82,7 @@ impl UdpTrackerCoreServices {
     pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
         let udp_core_broadcaster = Broadcaster::default();
         let udp_core_stats_repository = Arc::new(Repository::new());
-        let keeper = Arc::new(Keeper::new(
+        let keeper = Arc::new(EventBus::new(
             tracker_core_container.core_config.tracker_usage_statistics,
             udp_core_broadcaster.clone(),
         ));

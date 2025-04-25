@@ -73,7 +73,7 @@ mod tests {
             sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint, sample_ipv4_socket_address, sample_ipv6_remote_addr,
             sample_ipv6_remote_addr_fingerprint, sample_issue_time, MockUdpCoreStatsEventSender,
         };
-        use crate::statistics::keeper::Keeper;
+        use crate::statistics::event_bus::EventBus;
 
         #[tokio::test]
         async fn a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request() {
@@ -81,7 +81,7 @@ mod tests {
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let udp_core_broadcaster = Broadcaster::default();
-            let keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
+            let keeper = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = keeper.sender();
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
@@ -102,7 +102,7 @@ mod tests {
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let udp_core_broadcaster = Broadcaster::default();
-            let keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
+            let keeper = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = keeper.sender();
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
@@ -124,7 +124,7 @@ mod tests {
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let udp_core_broadcaster = Broadcaster::default();
-            let keeper = Arc::new(Keeper::new(false, udp_core_broadcaster.clone()));
+            let keeper = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = keeper.sender();
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));

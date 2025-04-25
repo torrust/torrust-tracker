@@ -5,11 +5,11 @@ use torrust_tracker_configuration::Core;
 use crate::event::sender::Broadcaster;
 use crate::event::{self};
 use crate::statistics;
-use crate::statistics::keeper::Keeper;
+use crate::statistics::event_bus::EventBus;
 use crate::statistics::repository::Repository;
 
 pub struct UdpTrackerServerContainer {
-    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_keeper: Arc<statistics::event_bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
 }
@@ -28,7 +28,7 @@ impl UdpTrackerServerContainer {
 }
 
 pub struct UdpTrackerServerServices {
-    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_keeper: Arc<statistics::event_bus::EventBus>,
     pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
     pub stats_repository: Arc<statistics::repository::Repository>,
 }
@@ -38,7 +38,7 @@ impl UdpTrackerServerServices {
     pub fn initialize(core_config: &Arc<Core>) -> Arc<Self> {
         let udp_server_broadcaster = Broadcaster::default();
         let udp_server_stats_repository = Arc::new(Repository::new());
-        let udp_server_stats_keeper = Arc::new(Keeper::new(
+        let udp_server_stats_keeper = Arc::new(EventBus::new(
             core_config.tracker_usage_statistics,
             udp_server_broadcaster.clone(),
         ));

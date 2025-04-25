@@ -1,5 +1,5 @@
 pub mod event;
-pub mod keeper;
+pub mod event_bus;
 pub mod metrics;
 pub mod repository;
 pub mod services;
