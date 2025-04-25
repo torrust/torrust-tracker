@@ -130,10 +130,10 @@ impl AppContainer {
         TrackerHttpApiCoreContainer {
             tracker_core_container: self.tracker_core_container.clone(),
             http_api_config: http_api_config.clone(),
-            ban_service: self.udp_tracker_core_services.udp_ban_service.clone(),
-            http_stats_repository: self.http_tracker_core_services.http_stats_repository.clone(),
-            udp_core_stats_repository: self.udp_tracker_core_services.udp_core_stats_repository.clone(),
-            udp_server_stats_repository: self.udp_tracker_server_container.udp_server_stats_repository.clone(),
+            ban_service: self.udp_tracker_core_services.ban_service.clone(),
+            http_stats_repository: self.http_tracker_core_services.stats_repository.clone(),
+            udp_core_stats_repository: self.udp_tracker_core_services.stats_repository.clone(),
+            udp_server_stats_repository: self.udp_tracker_server_container.stats_repository.clone(),
         }
         .into()
     }

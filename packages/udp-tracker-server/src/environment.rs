@@ -75,12 +75,7 @@ impl Environment<Stopped> {
         let udp_core_event_listener_job = Some(self.container.udp_tracker_core_container.stats_keeper.run_event_listener());
 
         // Start the UDP tracker server event listener
-        let udp_server_event_listener_job = Some(
-            self.container
-                .udp_tracker_server_container
-                .udp_server_stats_keeper
-                .run_event_listener(),
-        );
+        let udp_server_event_listener_job = Some(self.container.udp_tracker_server_container.stats_keeper.run_event_listener());
 
         // Start the UDP tracker server
         let server = self

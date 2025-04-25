@@ -56,9 +56,9 @@ impl TrackerHttpApiCoreContainer {
             http_stats_repository: http_tracker_core_container.stats_repository.clone(),
 
             ban_service: udp_tracker_core_container.ban_service.clone(),
-            udp_core_stats_repository: udp_tracker_core_container.udp_core_stats_repository.clone(),
+            udp_core_stats_repository: udp_tracker_core_container.stats_repository.clone(),
 
-            udp_server_stats_repository: udp_tracker_server_container.udp_server_stats_repository.clone(),
+            udp_server_stats_repository: udp_tracker_server_container.stats_repository.clone(),
 
             http_api_config: http_api_config.clone(),
         })

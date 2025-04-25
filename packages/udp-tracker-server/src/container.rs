@@ -5,9 +5,9 @@ use torrust_tracker_configuration::Core;
 use crate::{event, statistics};
 
 pub struct UdpTrackerServerContainer {
-    pub udp_server_stats_keeper: Arc<statistics::keeper::Keeper>,
-    pub udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
-    pub udp_server_stats_repository: Arc<statistics::repository::Repository>,
+    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_repository: Arc<statistics::repository::Repository>,
 }
 
 impl UdpTrackerServerContainer {
@@ -16,17 +16,17 @@ impl UdpTrackerServerContainer {
         let udp_tracker_server_services = UdpTrackerServerServices::initialize(core_config);
 
         Arc::new(Self {
-            udp_server_stats_keeper: udp_tracker_server_services.udp_server_stats_keeper.clone(),
-            udp_server_stats_event_sender: udp_tracker_server_services.udp_server_stats_event_sender.clone(),
-            udp_server_stats_repository: udp_tracker_server_services.udp_server_stats_repository.clone(),
+            stats_keeper: udp_tracker_server_services.stats_keeper.clone(),
+            stats_event_sender: udp_tracker_server_services.stats_event_sender.clone(),
+            stats_repository: udp_tracker_server_services.stats_repository.clone(),
         })
     }
 }
 
 pub struct UdpTrackerServerServices {
-    pub udp_server_stats_keeper: Arc<statistics::keeper::Keeper>,
-    pub udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
-    pub udp_server_stats_repository: Arc<statistics::repository::Repository>,
+    pub stats_keeper: Arc<statistics::keeper::Keeper>,
+    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_repository: Arc<statistics::repository::Repository>,
 }
 
 impl UdpTrackerServerServices {
@@ -37,9 +37,9 @@ impl UdpTrackerServerServices {
         let udp_server_stats_repository = udp_server_stats_keeper.repository();
 
         Arc::new(Self {
-            udp_server_stats_keeper: udp_server_stats_keeper.clone(),
-            udp_server_stats_event_sender: udp_server_stats_event_sender.clone(),
-            udp_server_stats_repository: udp_server_stats_repository.clone(),
+            stats_keeper: udp_server_stats_keeper.clone(),
+            stats_event_sender: udp_server_stats_event_sender.clone(),
+            stats_repository: udp_server_stats_repository.clone(),
         })
     }
 }
