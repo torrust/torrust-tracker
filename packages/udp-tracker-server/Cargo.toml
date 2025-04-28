@@ -29,6 +29,7 @@ tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
 torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
 torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }

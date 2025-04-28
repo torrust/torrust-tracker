@@ -210,7 +210,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let udp_core_stats_event_sender: Arc<Option<Box<dyn core_event::sender::Sender>>> =
+            let udp_core_stats_event_sender: bittorrent_udp_tracker_core::event::sender::Sender =
                 Arc::new(Some(Box::new(udp_core_stats_event_sender_mock)));
 
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
@@ -252,7 +252,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let udp_core_stats_event_sender: Arc<Option<Box<dyn core_event::sender::Sender>>> =
+            let udp_core_stats_event_sender: bittorrent_udp_tracker_core::event::sender::Sender =
                 Arc::new(Some(Box::new(udp_core_stats_event_sender_mock)));
 
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();

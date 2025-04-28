@@ -426,8 +426,10 @@ pub(crate) mod tests {
 
     mock! {
         pub(crate) UdpCoreStatsEventSender {}
-        impl core_event::sender::Sender for UdpCoreStatsEventSender {
-             fn send_event(&self, event: core_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_event::Event> > > > ;
+        impl torrust_tracker_events::sender::Sender for UdpCoreStatsEventSender {
+            type Event = core_event::Event;
+
+            fn send_event(&self, event: core_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_event::Event> > > > ;
         }
     }
 
