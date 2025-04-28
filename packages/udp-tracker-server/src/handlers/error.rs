@@ -1,7 +1,6 @@
 //! UDP tracker error handling.
 use std::net::SocketAddr;
 use std::ops::Range;
-use std::sync::Arc;
 
 use aquatic_udp_protocol::{ErrorResponse, RequestParseError, Response, TransactionId};
 use bittorrent_udp_tracker_core::connection_cookie::{check, gen_remote_fingerprint};
@@ -12,7 +11,7 @@ use uuid::Uuid;
 use zerocopy::network_endian::I32;
 
 use crate::error::Error;
-use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
+use crate::event::{ConnectionContext, Event, UdpRequestKind};
 
 #[allow(clippy::too_many_arguments)]
 #[instrument(fields(transaction_id), skip(opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
@@ -21,7 +20,7 @@ pub async fn handle_error(
     client_socket_addr: SocketAddr,
     server_service_binding: ServiceBinding,
     request_id: Uuid,
-    opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn event::sender::Sender>>>,
+    opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     cookie_valid_range: Range<f64>,
     e: &Error,
     transaction_id: Option<TransactionId>,

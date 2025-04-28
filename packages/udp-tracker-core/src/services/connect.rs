@@ -2,25 +2,24 @@
 //!
 //! The service is responsible for handling the `connect` requests.
 use std::net::SocketAddr;
-use std::sync::Arc;
 
 use aquatic_udp_protocol::ConnectionId;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::connection_cookie::{gen_remote_fingerprint, make};
-use crate::event::{self, ConnectionContext, Event};
+use crate::event::{ConnectionContext, Event};
 
 /// The `ConnectService` is responsible for handling the `connect` requests.
 ///
 /// It is responsible for generating the connection cookie and sending the
 /// appropriate statistics events.
 pub struct ConnectService {
-    pub opt_udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub opt_udp_core_stats_event_sender: crate::event::sender::Sender,
 }
 
 impl ConnectService {
     #[must_use]
-    pub fn new(opt_udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>) -> Self {
+    pub fn new(opt_udp_core_stats_event_sender: crate::event::sender::Sender) -> Self {
         Self {
             opt_udp_core_stats_event_sender,
         }
@@ -65,7 +64,6 @@ mod tests {
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use crate::connection_cookie::make;
-        use crate::event;
         use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
@@ -153,8 +151,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let opt_udp_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
-                Arc::new(Some(Box::new(udp_stats_event_sender_mock)));
+            let opt_udp_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(udp_stats_event_sender_mock)));
 
             let connect_service = Arc::new(ConnectService::new(opt_udp_stats_event_sender));
 
@@ -177,8 +174,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let opt_udp_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
-                Arc::new(Some(Box::new(udp_stats_event_sender_mock)));
+            let opt_udp_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(udp_stats_event_sender_mock)));
 
             let connect_service = Arc::new(ConnectService::new(opt_udp_stats_event_sender));
 

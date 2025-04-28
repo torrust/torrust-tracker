@@ -22,7 +22,7 @@ use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
-use crate::event::{self, ConnectionContext, Event};
+use crate::event::{ConnectionContext, Event};
 
 /// The `AnnounceService` is responsible for handling the `announce` requests.
 ///
@@ -32,7 +32,7 @@ use crate::event::{self, ConnectionContext, Event};
 pub struct AnnounceService {
     announce_handler: Arc<AnnounceHandler>,
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-    opt_udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    opt_udp_core_stats_event_sender: crate::event::sender::Sender,
 }
 
 impl AnnounceService {
@@ -40,7 +40,7 @@ impl AnnounceService {
     pub fn new(
         announce_handler: Arc<AnnounceHandler>,
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-        opt_udp_core_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+        opt_udp_core_stats_event_sender: crate::event::sender::Sender,
     ) -> Self {
         Self {
             announce_handler,

@@ -21,7 +21,6 @@ use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
-use crate::event;
 use crate::event::{ConnectionContext, Event};
 
 /// The HTTP tracker `scrape` service.
@@ -40,7 +39,7 @@ pub struct ScrapeService {
     core_config: Arc<Core>,
     scrape_handler: Arc<ScrapeHandler>,
     authentication_service: Arc<AuthenticationService>,
-    opt_http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    opt_http_stats_event_sender: crate::event::sender::Sender,
 }
 
 impl ScrapeService {
@@ -49,7 +48,7 @@ impl ScrapeService {
         core_config: Arc<Core>,
         scrape_handler: Arc<ScrapeHandler>,
         authentication_service: Arc<AuthenticationService>,
-        opt_http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+        opt_http_stats_event_sender: crate::event::sender::Sender,
     ) -> Self {
         Self {
             core_config,
@@ -187,7 +186,7 @@ mod tests {
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
-    use crate::event::{self, Event};
+    use crate::event::Event;
     use crate::tests::sample_info_hash;
 
     struct Container {
@@ -239,7 +238,9 @@ mod tests {
 
     mock! {
         HttpStatsEventSender {}
-        impl event::sender::Sender for HttpStatsEventSender {
+        impl torrust_tracker_events::sender::Sender for HttpStatsEventSender {
+             type Event = Event;
+
              fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
         }
     }
@@ -259,7 +260,6 @@ mod tests {
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::event;
         use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
@@ -350,8 +350,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
-                Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let container = initialize_services_with_configuration(&config);
 
@@ -405,8 +404,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
-                Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let container = initialize_services_with_configuration(&config);
 
@@ -452,7 +450,6 @@ mod tests {
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::event;
         use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
@@ -537,8 +534,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
-                Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let peer_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
 
@@ -592,8 +588,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
-                Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
 
             let peer_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 

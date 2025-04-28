@@ -20,7 +20,7 @@ pub struct UdpTrackerCoreContainer {
 
     // `UdpTrackerCoreServices`
     pub event_bus: Arc<event::bus::EventBus>,
-    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_event_sender: crate::event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<BanService>>,
     pub connect_service: Arc<ConnectService>,
@@ -69,7 +69,7 @@ impl UdpTrackerCoreContainer {
 
 pub struct UdpTrackerCoreServices {
     pub event_bus: Arc<event::bus::EventBus>,
-    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_event_sender: crate::event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<services::banning::BanService>>,
     pub connect_service: Arc<services::connect::ConnectService>,

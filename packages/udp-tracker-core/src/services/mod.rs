@@ -13,7 +13,6 @@ pub(crate) mod tests {
     use tokio::sync::broadcast::error::SendError;
 
     use crate::connection_cookie::gen_remote_fingerprint;
-    use crate::event;
     use crate::event::Event;
 
     pub(crate) fn sample_ipv4_remote_addr() -> SocketAddr {
@@ -46,8 +45,10 @@ pub(crate) mod tests {
 
     mock! {
         pub(crate) UdpCoreStatsEventSender {}
-        impl event::sender::Sender for UdpCoreStatsEventSender {
-             fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
+        impl torrust_tracker_events::sender::Sender for UdpCoreStatsEventSender {
+            type Event = Event;
+
+            fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
         }
     }
 }

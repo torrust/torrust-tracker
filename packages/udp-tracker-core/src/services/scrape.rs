@@ -19,7 +19,7 @@ use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
-use crate::event::{self, ConnectionContext, Event};
+use crate::event::{ConnectionContext, Event};
 
 /// The `ScrapeService` is responsible for handling the `scrape` requests.
 ///
@@ -28,15 +28,12 @@ use crate::event::{self, ConnectionContext, Event};
 /// - The number of UDP `scrape` requests handled by the UDP tracker.
 pub struct ScrapeService {
     scrape_handler: Arc<ScrapeHandler>,
-    opt_udp_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    opt_udp_stats_event_sender: crate::event::sender::Sender,
 }
 
 impl ScrapeService {
     #[must_use]
-    pub fn new(
-        scrape_handler: Arc<ScrapeHandler>,
-        opt_udp_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
-    ) -> Self {
+    pub fn new(scrape_handler: Arc<ScrapeHandler>, opt_udp_stats_event_sender: crate::event::sender::Sender) -> Self {
         Self {
             scrape_handler,
             opt_udp_stats_event_sender,

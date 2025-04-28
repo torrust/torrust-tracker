@@ -10,7 +10,7 @@ use crate::statistics::repository::Repository;
 
 pub struct UdpTrackerServerContainer {
     pub event_bus: Arc<event::bus::EventBus>,
-    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_event_sender: crate::event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
 }
 
@@ -29,7 +29,7 @@ impl UdpTrackerServerContainer {
 
 pub struct UdpTrackerServerServices {
     pub event_bus: Arc<event::bus::EventBus>,
-    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_event_sender: crate::event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
 }
 

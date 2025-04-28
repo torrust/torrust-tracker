@@ -588,6 +588,7 @@ dependencies = [
  "tokio",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
+ "torrust-tracker-events",
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
@@ -702,6 +703,7 @@ dependencies = [
  "tokio",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
+ "torrust-tracker-events",
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
@@ -4560,6 +4562,7 @@ dependencies = [
  "torrust-server-lib",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
+ "torrust-tracker-events",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
  "tower",
@@ -4769,6 +4772,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-tracker-events"
+version = "3.0.0-develop"
+dependencies = [
+ "futures",
+ "mockall",
+ "tokio",
+]
+
+[[package]]
 name = "torrust-tracker-located-error"
 version = "3.0.0-develop"
 dependencies = [
@@ -4863,6 +4875,7 @@ dependencies = [
  "torrust-server-lib",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
+ "torrust-tracker-events",
  "torrust-tracker-located-error",
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
