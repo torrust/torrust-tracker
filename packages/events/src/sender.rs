@@ -3,9 +3,6 @@ use futures::future::BoxFuture;
 use mockall::{automock, predicate::str};
 use tokio::sync::broadcast::error::SendError;
 
-/// Target for tracing crate logs.
-pub const EVENTS_TARGET: &str = "EVENTS";
-
 /// A trait for sending events.
 #[cfg_attr(test, automock(type Event=();))]
 pub trait Sender: Sync + Send {
