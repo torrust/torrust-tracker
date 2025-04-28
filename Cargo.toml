@@ -69,7 +69,7 @@ torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "packages/
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "packages/test-helpers" }
 
 [workspace]
-members = ["console/tracker-client"]
+members = ["console/tracker-client", "packages/events"]
 
 [profile.dev]
 debug = 1

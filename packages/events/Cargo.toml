@@ -1,0 +1,22 @@
+[package]
+description = "A library with functionality to handle events in Torrust tracker packages."
+keywords = ["events", "library", "rust", "torrust", "tracker"]
+name = "torrust-tracker-events"
+readme = "README.md"
+
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+futures = "0"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+
+[dev-dependencies]
+mockall = "0"

@@ -4769,6 +4769,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-tracker-events"
+version = "3.0.0-develop"
+dependencies = [
+ "futures",
+ "mockall",
+ "tokio",
+]
+
+[[package]]
 name = "torrust-tracker-located-error"
 version = "3.0.0-develop"
 dependencies = [

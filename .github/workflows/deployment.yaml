@@ -73,6 +73,7 @@ jobs:
           cargo publish -p torrust-tracker-clock
           cargo publish -p torrust-tracker-configuration
           cargo publish -p torrust-tracker-contrib-bencode
+          cargo publish -p torrust-tracker-events
           cargo publish -p torrust-tracker-located-error
           cargo publish -p torrust-tracker-metrics
           cargo publish -p torrust-tracker-primitives
