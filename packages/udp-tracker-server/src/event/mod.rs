@@ -1,4 +1,5 @@
 pub mod bus;
+pub mod receiver;
 pub mod sender;
 
 use std::fmt;
