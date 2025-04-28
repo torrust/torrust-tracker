@@ -16,7 +16,7 @@ use tracing::{instrument, Level};
 use zerocopy::network_endian::I32;
 
 use crate::error::Error;
-use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
+use crate::event::{ConnectionContext, Event, UdpRequestKind};
 
 /// It handles the `Announce` request.
 ///
@@ -30,7 +30,7 @@ pub async fn handle_announce(
     server_service_binding: ServiceBinding,
     request: &AnnounceRequest,
     core_config: &Arc<Core>,
-    opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn event::sender::Sender>>>,
+    opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     cookie_valid_range: Range<f64>,
 ) -> Result<Response, (Error, TransactionId, UdpRequestKind)> {
     tracing::Span::current()
@@ -208,7 +208,7 @@ mod tests {
             use mockall::predicate::eq;
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
-            use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
+            use crate::event::{ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
@@ -434,7 +434,7 @@ mod tests {
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                let udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
+                let udp_server_stats_event_sender: crate::event::sender::Sender =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
@@ -540,7 +540,7 @@ mod tests {
             use torrust_tracker_configuration::Core;
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
-            use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
+            use crate::event::{ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
@@ -788,7 +788,7 @@ mod tests {
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                let udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
+                let udp_server_stats_event_sender: crate::event::sender::Sender =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
@@ -829,7 +829,7 @@ mod tests {
                 use mockall::predicate::{self, eq};
                 use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
-                use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
+                use crate::event::{ConnectionContext, Event, UdpRequestKind};
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
@@ -900,7 +900,7 @@ mod tests {
                         }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                    let udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
+                    let udp_server_stats_event_sender: crate::event::sender::Sender =
                         Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
                     let announce_handler = Arc::new(AnnounceHandler::new(

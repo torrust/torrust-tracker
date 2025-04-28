@@ -14,7 +14,7 @@ use tracing::{instrument, Level};
 use zerocopy::network_endian::I32;
 
 use crate::error::Error;
-use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
+use crate::event::{ConnectionContext, Event, UdpRequestKind};
 
 /// It handles the `Scrape` request.
 ///
@@ -27,7 +27,7 @@ pub async fn handle_scrape(
     client_socket_addr: SocketAddr,
     server_service_binding: ServiceBinding,
     request: &ScrapeRequest,
-    opt_udp_server_stats_event_sender: &Arc<Option<Box<dyn event::sender::Sender>>>,
+    opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     cookie_valid_range: Range<f64>,
 ) -> Result<Response, (Error, TransactionId, UdpRequestKind)> {
     tracing::Span::current()
@@ -363,7 +363,6 @@ mod tests {
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use super::sample_scrape_request;
-            use crate::event;
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::handle_scrape;
             use crate::handlers::tests::{
@@ -386,7 +385,7 @@ mod tests {
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                let udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
+                let udp_server_stats_event_sender: crate::event::sender::Sender =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
@@ -414,7 +413,7 @@ mod tests {
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use super::sample_scrape_request;
-            use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
+            use crate::event::{ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::handle_scrape;
             use crate::handlers::tests::{
                 initialize_core_tracker_services_for_default_tracker_configuration, sample_cookie_valid_range,
@@ -436,7 +435,7 @@ mod tests {
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                let udp_server_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>> =
+                let udp_server_stats_event_sender: crate::event::sender::Sender =
                     Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =

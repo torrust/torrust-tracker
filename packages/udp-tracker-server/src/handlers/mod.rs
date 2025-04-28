@@ -247,7 +247,7 @@ pub(crate) mod tests {
     }
 
     pub(crate) struct ServerUdpTrackerServices {
-        pub udp_server_stats_event_sender: Arc<Option<Box<dyn server_event::sender::Sender>>>,
+        pub udp_server_stats_event_sender: crate::event::sender::Sender,
     }
 
     fn default_testing_tracker_configuration() -> Configuration {
@@ -435,8 +435,10 @@ pub(crate) mod tests {
 
     mock! {
         pub(crate) UdpServerStatsEventSender {}
-        impl server_event::sender::Sender for UdpServerStatsEventSender {
-             fn send_event(&self, event: server_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<server_event::Event> > > > ;
+        impl torrust_tracker_events::sender::Sender for UdpServerStatsEventSender {
+            type Event = server_event::Event;
+
+            fn send_event(&self, event: server_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<server_event::Event> > > > ;
         }
     }
 }
