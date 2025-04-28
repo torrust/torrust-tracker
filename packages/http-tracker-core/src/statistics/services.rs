@@ -9,7 +9,7 @@
 //!
 //! The factory function builds two structs:
 //!
-//! - An statistics event [`Sender`](crate::statistics::event::sender::Sender)
+//! - An statistics event [`Sender`](torrust_tracker_events::sender::Sender)
 //! - An statistics [`Repository`]
 //!
 //! ```text

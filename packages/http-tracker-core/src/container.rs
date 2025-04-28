@@ -17,7 +17,7 @@ pub struct HttpTrackerCoreContainer {
 
     // `HttpTrackerCoreServices`
     pub event_bus: Arc<event::bus::EventBus>,
-    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_event_sender: event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub announce_service: Arc<AnnounceService>,
     pub scrape_service: Arc<ScrapeService>,
@@ -59,7 +59,7 @@ impl HttpTrackerCoreContainer {
 
 pub struct HttpTrackerCoreServices {
     pub event_bus: Arc<event::bus::EventBus>,
-    pub stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub stats_event_sender: event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub announce_service: Arc<services::announce::AnnounceService>,
     pub scrape_service: Arc<services::scrape::ScrapeService>,

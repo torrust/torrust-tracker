@@ -2,7 +2,6 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
-use bittorrent_http_tracker_core::event;
 use bittorrent_http_tracker_core::event::bus::EventBus;
 use bittorrent_http_tracker_core::event::sender::Broadcaster;
 use bittorrent_http_tracker_core::event::Event;
@@ -35,7 +34,7 @@ pub struct CoreTrackerServices {
 }
 
 pub struct CoreHttpTrackerServices {
-    pub http_stats_event_sender: Arc<Option<Box<dyn event::sender::Sender>>>,
+    pub http_stats_event_sender: bittorrent_http_tracker_core::event::sender::Sender,
 }
 
 pub fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {
@@ -125,7 +124,9 @@ pub fn sample_info_hash() -> InfoHash {
 
 mock! {
     HttpStatsEventSender {}
-    impl event::sender::Sender for HttpStatsEventSender {
-         fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
+    impl torrust_tracker_events::sender::Sender for HttpStatsEventSender {
+        type Event = Event;
+
+        fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
     }
 }
