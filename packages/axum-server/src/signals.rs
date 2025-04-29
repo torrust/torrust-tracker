@@ -20,6 +20,11 @@ pub async fn graceful_shutdown(handle: axum_server::Handle, rx_halt: tokio::sync
     tracing::info!("!! Shuting down in {} seconds !!", duration.as_secs());
 
     loop {
+        if handle.connection_count() == 0 {
+            tracing::info!("All connections closed, shutting down server");
+            break;
+        }
+
         sleep(Duration::from_secs(1)).await;
 
         tracing::info!("Remaining alive connections: {}", handle.connection_count());
