@@ -1,16 +1,16 @@
+use std::time::Duration;
+
 use torrust_tracker_lib::app;
 
 #[tokio::main]
 async fn main() {
     let (_app_container, jobs) = app::run().await;
 
-    // handle the signals
     tokio::select! {
         _ = tokio::signal::ctrl_c() => {
             tracing::info!("Torrust tracker shutting down ...");
 
-            // Await for all jobs to shutdown
-            futures::future::join_all(jobs).await;
+            jobs.wait_for_all(Duration::from_secs(10)).await;
 
             tracing::info!("Torrust tracker successfully shutdown.");
         }

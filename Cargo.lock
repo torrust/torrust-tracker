@@ -4684,7 +4684,6 @@ dependencies = [
  "bittorrent-udp-tracker-core",
  "chrono",
  "clap",
- "futures",
  "local-ip-address",
  "mockall",
  "rand 0.9.1",

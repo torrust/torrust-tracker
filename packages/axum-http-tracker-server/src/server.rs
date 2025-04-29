@@ -60,6 +60,7 @@ impl Launcher {
             handle.clone(),
             rx_halt,
             format!("Shutting down HTTP server on socket address: {address}"),
+            address,
         ));
 
         let tls = self.tls.clone();

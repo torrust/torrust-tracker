@@ -23,15 +23,15 @@
 //! - Tracker REST API: the tracker API can be enabled/disabled.
 use std::sync::Arc;
 
-use tokio::task::JoinHandle;
 use torrust_tracker_configuration::{Configuration, HttpTracker, UdpTracker};
 use tracing::instrument;
 
-use crate::bootstrap::jobs::{health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
+use crate::bootstrap::jobs::manager::JobManager;
+use crate::bootstrap::jobs::{self, health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
 use crate::bootstrap::{self};
 use crate::container::AppContainer;
 
-pub async fn run() -> (Arc<AppContainer>, Vec<JoinHandle<()>>) {
+pub async fn run() -> (Arc<AppContainer>, JobManager) {
     let (config, app_container) = bootstrap::app::setup();
 
     let app_container = Arc::new(app_container);
@@ -50,7 +50,7 @@ pub async fn run() -> (Arc<AppContainer>, Vec<JoinHandle<()>>) {
 /// - Can't retrieve tracker keys from database.
 /// - Can't load whitelist from database.
 #[instrument(skip(config, app_container))]
-pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) -> Vec<JoinHandle<()>> {
+pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) -> JobManager {
     warn_if_no_services_enabled(config);
 
     load_data_from_database(config, app_container).await;
@@ -63,19 +63,19 @@ async fn load_data_from_database(config: &Configuration, app_container: &Arc<App
     load_whitelisted_torrents(config, app_container).await;
 }
 
-async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -> Vec<JoinHandle<()>> {
-    let mut jobs: Vec<JoinHandle<()>> = Vec::new();
+async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -> JobManager {
+    let mut job_manager = JobManager::new();
 
-    start_http_core_event_listener(config, app_container);
-    start_udp_core_event_listener(config, app_container);
-    start_udp_server_event_listener(config, app_container);
-    start_the_udp_instances(config, app_container, &mut jobs).await;
-    start_the_http_instances(config, app_container, &mut jobs).await;
-    start_the_http_api(config, app_container, &mut jobs).await;
-    start_torrent_cleanup(config, app_container, &mut jobs);
-    start_health_check_api(config, app_container, &mut jobs).await;
+    start_http_core_event_listener(config, app_container, &mut job_manager);
+    start_udp_core_event_listener(config, app_container, &mut job_manager);
+    start_udp_server_event_listener(config, app_container, &mut job_manager);
+    start_the_udp_instances(config, app_container, &mut job_manager).await;
+    start_the_http_instances(config, app_container, &mut job_manager).await;
+    start_the_http_api(config, app_container, &mut job_manager).await;
+    start_torrent_cleanup(config, app_container, &mut job_manager);
+    start_health_check_api(config, app_container, &mut job_manager).await;
 
-    jobs
+    job_manager
 }
 
 fn warn_if_no_services_enabled(config: &Configuration) {
@@ -109,76 +109,40 @@ async fn load_whitelisted_torrents(config: &Configuration, app_container: &Arc<A
     }
 }
 
-fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) {
-    if config.core.tracker_usage_statistics {
-        let _job = bittorrent_http_tracker_core::statistics::event::listener::run_event_listener(
-            app_container.http_tracker_core_services.event_bus.receiver(),
-            &app_container.http_tracker_core_services.stats_repository,
-        );
+fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+    let opt_handle = jobs::http_tracker_core::start_event_listener(config, app_container);
 
-        // todo: this cannot be enabled otherwise the application never ends
-        // because the event listener never stops. You see this console message
-        // forever:
-        //
-        // !! shuting down in 90 seconds !!
-        // 2025-04-24T15:27:45.454101Z  INFO graceful_shutdown: torrust_axum_server::signals: remaining alive connections: 0
-        //
-        // Depends on: https://github.com/torrust/torrust-tracker/issues/1405
-
-        //jobs.push(job);
+    if let Some(handle) = opt_handle {
+        job_manager.push("http_core_event_listener", handle);
     }
 }
 
-fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) {
-    if config.core.tracker_usage_statistics {
-        let _job = bittorrent_udp_tracker_core::statistics::event::listener::run_event_listener(
-            app_container.udp_tracker_core_services.event_bus.receiver(),
-            &app_container.udp_tracker_core_services.stats_repository,
-        );
+fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+    let opt_handle = jobs::udp_tracker_core::start_event_listener(config, app_container);
 
-        // todo: this cannot be enabled otherwise the application never ends
-        // because the event listener never stops. You see this console message
-        // forever:
-        //
-        // !! shuting down in 90 seconds !!
-        // 2025-04-24T15:27:45.454101Z  INFO graceful_shutdown: torrust_axum_server::signals: remaining alive connections: 0
-        //
-        // Depends on: https://github.com/torrust/torrust-tracker/issues/1405
-
-        //jobs.push(job);
+    if let Some(handle) = opt_handle {
+        job_manager.push("udp_core_event_listener", handle);
     }
 }
 
-fn start_udp_server_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) {
-    if config.core.tracker_usage_statistics {
-        let _job = torrust_udp_tracker_server::statistics::event::listener::run_event_listener(
-            app_container.udp_tracker_server_container.event_bus.receiver(),
-            &app_container.udp_tracker_server_container.stats_repository,
-        );
+fn start_udp_server_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+    let opt_handle = jobs::udp_tracker_server::start_event_listener(config, app_container);
 
-        // todo: this cannot be enabled otherwise the application never ends
-        // because the event listener never stops. You see this console message
-        // forever:
-        //
-        // !! shuting down in 90 seconds !!
-        // 2025-04-24T15:27:45.454101Z  INFO graceful_shutdown: torrust_axum_server::signals: remaining alive connections: 0
-        //
-        // Depends on: https://github.com/torrust/torrust-tracker/issues/1405
-
-        //jobs.push(job);
+    if let Some(handle) = opt_handle {
+        job_manager.push("udp_server_event_listener", handle);
     }
 }
 
-async fn start_the_udp_instances(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
+async fn start_the_udp_instances(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if let Some(udp_trackers) = &config.udp_trackers {
-        for udp_tracker_config in udp_trackers {
+        for (idx, udp_tracker_config) in udp_trackers.iter().enumerate() {
             if config.core.private {
                 tracing::warn!(
                     "Could not start UDP tracker on: {} while in private mode. UDP is not safe for private trackers!",
                     udp_tracker_config.bind_address
                 );
             } else {
-                start_udp_instance(udp_tracker_config, app_container, jobs).await;
+                start_udp_instance(idx, udp_tracker_config, app_container, job_manager).await;
             }
         }
     } else {
@@ -186,26 +150,31 @@ async fn start_the_udp_instances(config: &Configuration, app_container: &Arc<App
     }
 }
 
-async fn start_udp_instance(udp_tracker_config: &UdpTracker, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
+async fn start_udp_instance(
+    idx: usize,
+    udp_tracker_config: &UdpTracker,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) {
     let udp_tracker_container = app_container
         .udp_tracker_container(udp_tracker_config.bind_address)
         .expect("Could not create UDP tracker container");
     let udp_tracker_server_container = app_container.udp_tracker_server_container();
 
-    jobs.push(
-        udp_tracker::start_job(
-            udp_tracker_container,
-            udp_tracker_server_container,
-            app_container.registar.give_form(),
-        )
-        .await,
-    );
+    let handle = udp_tracker::start_job(
+        udp_tracker_container,
+        udp_tracker_server_container,
+        app_container.registar.give_form(),
+    )
+    .await;
+
+    job_manager.push(format!("udp_instance_{}_{}", idx, udp_tracker_config.bind_address), handle);
 }
 
-async fn start_the_http_instances(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
+async fn start_the_http_instances(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if let Some(http_trackers) = &config.http_trackers {
-        for http_tracker_config in http_trackers {
-            start_http_instance(http_tracker_config, app_container, jobs).await;
+        for (idx, http_tracker_config) in http_trackers.iter().enumerate() {
+            start_http_instance(idx, http_tracker_config, app_container, job_manager).await;
         }
     } else {
         tracing::info!("No HTTP blocks in configuration");
@@ -213,26 +182,27 @@ async fn start_the_http_instances(config: &Configuration, app_container: &Arc<Ap
 }
 
 async fn start_http_instance(
+    idx: usize,
     http_tracker_config: &HttpTracker,
     app_container: &Arc<AppContainer>,
-    jobs: &mut Vec<JoinHandle<()>>,
+    job_manager: &mut JobManager,
 ) {
     let http_tracker_container = app_container
         .http_tracker_container(http_tracker_config.bind_address)
         .expect("Could not create HTTP tracker container");
 
-    if let Some(job) = http_tracker::start_job(
+    if let Some(handle) = http_tracker::start_job(
         http_tracker_container,
         app_container.registar.give_form(),
         torrust_axum_http_tracker_server::Version::V1,
     )
     .await
     {
-        jobs.push(job);
+        job_manager.push(format!("http_instance_{}_{}", idx, http_tracker_config.bind_address), handle);
     }
 }
 
-async fn start_the_http_api(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
+async fn start_the_http_api(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if let Some(http_api_config) = &config.http_api {
         let http_api_config = Arc::new(http_api_config.clone());
         let http_api_container = app_container.tracker_http_api_container(&http_api_config);
@@ -244,22 +214,23 @@ async fn start_the_http_api(config: &Configuration, app_container: &Arc<AppConta
         )
         .await
         {
-            jobs.push(job);
+            job_manager.push("http_api", job);
         }
     } else {
         tracing::info!("No API block in configuration");
     }
 }
 
-fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
+fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if config.core.inactive_peer_cleanup_interval > 0 {
-        jobs.push(torrent_cleanup::start_job(
-            &config.core,
-            &app_container.tracker_core_container.torrents_manager,
-        ));
+        let handle = torrent_cleanup::start_job(&config.core, &app_container.tracker_core_container.torrents_manager);
+
+        job_manager.push("torrent_cleanup", handle);
     }
 }
 
-async fn start_health_check_api(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
-    jobs.push(health_check_api::start_job(&config.health_check_api, app_container.registar.entries()).await);
+async fn start_health_check_api(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+    let handle = health_check_api::start_job(&config.health_check_api, app_container.registar.entries()).await;
+
+    job_manager.push("health_check_api", handle);
 }
