@@ -9,6 +9,19 @@ use mockall::{automock, predicate::str};
 pub trait Sender: Sync + Send {
     type Event: Send + Clone;
 
+    /// Sends an event to all active receivers.
+    ///
+    /// Returns a future that resolves to an `Option<Result<usize, SendError<Self::Event>>>`:
+    ///
+    /// - `Some(Ok(n))` — the event was successfully sent to `n` receivers.
+    /// - `Some(Err(e))` — an error occurred while sending the event.
+    /// - `None` — the sender is inactive or disconnected, and the event was not sent.
+    ///
+    /// The `Option` allows implementations to express cases where sending is not possible
+    /// (e.g., when the sender is disabled or there are no active receivers).
+    ///
+    /// The `usize` typically represents the number of receivers the message was delivered to,
+    /// but its semantics may vary depending on the concrete implementation.
     fn send(&self, event: Self::Event) -> BoxFuture<'_, Option<Result<usize, SendError<Self::Event>>>>;
 }
 

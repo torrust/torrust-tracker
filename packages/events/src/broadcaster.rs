@@ -7,15 +7,15 @@ use crate::sender::{SendError, Sender};
 
 const CHANNEL_CAPACITY: usize = 32768;
 
-/// An event sender implementation using a broadcast channel.
-#[derive(Clone)]
+/// An event sender and receiver implementation using a broadcast channel.
+#[derive(Clone, Debug)]
 pub struct Broadcaster<Event: Sync + Send + Clone> {
     pub(crate) sender: broadcast::Sender<Event>,
 }
 
 impl<Event: Sync + Send + Clone> Default for Broadcaster<Event> {
     fn default() -> Self {
-        let (sender, _) = broadcast::channel(CHANNEL_CAPACITY);
+        let (sender, _receiver) = broadcast::channel(CHANNEL_CAPACITY);
         Self { sender }
     }
 }
@@ -55,5 +55,63 @@ impl From<broadcast::error::RecvError> for RecvError {
             broadcast::error::RecvError::Lagged(amt) => RecvError::Lagged(amt),
             broadcast::error::RecvError::Closed => RecvError::Closed,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tokio::time::{timeout, Duration};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn it_should_allow_sending_an_event_and_received_it() {
+        let broadcaster = Broadcaster::<String>::default();
+
+        let mut receiver = broadcaster.subscribe();
+
+        let event = "test";
+
+        let _unused = broadcaster.send(event.to_owned()).await.unwrap().unwrap();
+
+        let received_event = receiver.recv().await.unwrap();
+
+        assert_eq!(received_event, event);
+    }
+
+    #[tokio::test]
+    async fn it_should_return_the_number_of_receivers_when_and_event_is_sent() {
+        let broadcaster = Broadcaster::<String>::default();
+        let mut _receiver = broadcaster.subscribe();
+
+        let number_of_receivers = broadcaster.send("test".into()).await;
+
+        assert!(matches!(number_of_receivers, Some(Ok(1))));
+    }
+
+    #[tokio::test]
+    async fn it_should_fail_when_trying_tos_send_with_no_subscribers() {
+        let event = String::from("test");
+
+        let broadcaster = Broadcaster::<String>::default();
+
+        let result: Result<usize, SendError<String>> = broadcaster.send(event).await.unwrap();
+
+        assert!(matches!(result, Err(SendError::<String>(_event))));
+    }
+
+    #[tokio::test]
+    async fn it_should_allow_subscribing_multiple_receivers() {
+        let broadcaster = Broadcaster::<u8>::default();
+        let mut r1 = broadcaster.subscribe();
+        let mut r2 = broadcaster.subscribe();
+
+        let _ = broadcaster.send(1).await;
+
+        let val1 = timeout(Duration::from_secs(1), r1.recv()).await.unwrap().unwrap();
+        let val2 = timeout(Duration::from_secs(1), r2.recv()).await.unwrap().unwrap();
+
+        assert_eq!(val1, 1);
+        assert_eq!(val2, 1);
     }
 }
