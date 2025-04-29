@@ -23,18 +23,32 @@ pub fn run_event_listener(receiver: Receiver, repository: &Arc<Repository>) -> J
 }
 
 async fn dispatch_events(mut receiver: Receiver, stats_repository: Arc<Repository>) {
+    let shutdown_signal = tokio::signal::ctrl_c();
+
+    tokio::pin!(shutdown_signal);
+
     loop {
-        match receiver.recv().await {
-            Ok(event) => handle_event(event, &stats_repository, CurrentClock::now()).await,
-            Err(e) => {
-                match e {
-                    RecvError::Closed => {
-                        tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Http core statistics receiver closed.");
-                        break;
-                    }
-                    RecvError::Lagged(n) => {
-                        // From now on, metrics will be imprecise
-                        tracing::warn!(target: HTTP_TRACKER_LOG_TARGET, "Http core statistics receiver lagged by {} events.", n);
+        tokio::select! {
+            biased;
+
+            _ = &mut shutdown_signal => {
+                tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Received Ctrl+C, shutting down HTTP tracker core event listener.");
+                break;
+            }
+
+            result = receiver.recv() => {
+                match result {
+                    Ok(event) => handle_event(event, &stats_repository, CurrentClock::now()).await,
+                    Err(e) => {
+                        match e {
+                            RecvError::Closed => {
+                                tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Http core statistics receiver closed.");
+                                break;
+                            }
+                            RecvError::Lagged(n) => {
+                                tracing::warn!(target: HTTP_TRACKER_LOG_TARGET, "Http core statistics receiver lagged by {} events.", n);
+                            }
+                        }
                     }
                 }
             }

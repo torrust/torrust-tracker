@@ -66,9 +66,9 @@ async fn load_data_from_database(config: &Configuration, app_container: &Arc<App
 async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -> Vec<JoinHandle<()>> {
     let mut jobs: Vec<JoinHandle<()>> = Vec::new();
 
-    start_http_core_event_listener(config, app_container);
-    start_udp_core_event_listener(config, app_container);
-    start_udp_server_event_listener(config, app_container);
+    start_http_core_event_listener(config, app_container, &mut jobs);
+    start_udp_core_event_listener(config, app_container, &mut jobs);
+    start_udp_server_event_listener(config, app_container, &mut jobs);
     start_the_udp_instances(config, app_container, &mut jobs).await;
     start_the_http_instances(config, app_container, &mut jobs).await;
     start_the_http_api(config, app_container, &mut jobs).await;
@@ -109,43 +109,28 @@ async fn load_whitelisted_torrents(config: &Configuration, app_container: &Arc<A
     }
 }
 
-fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) {
-    let _job = jobs::http_tracker_core::start_event_listener(config, app_container);
+fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
+    let opt_job = jobs::http_tracker_core::start_event_listener(config, app_container);
 
-    // todo: this cannot be enabled otherwise the application never ends
-    // because the event listener never stops. You see this console message
-    // forever:
-    //
-    // !! shuting down in 90 seconds !!
-    // 2025-04-24T15:27:45.454101Z  INFO graceful_shutdown: torrust_axum_server::signals: remaining alive connections: 0
-    //
-    // Depends on: https://github.com/torrust/torrust-tracker/issues/1405
+    if let Some(job) = opt_job {
+        jobs.push(job);
+    }
 }
 
-fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) {
-    let _job = jobs::udp_tracker_core::start_event_listener(config, app_container);
+fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
+    let opt_job = jobs::udp_tracker_core::start_event_listener(config, app_container);
 
-    // todo: the job cannot be added in the jobs vector otherwise the application never ends
-    // because the event listener never stops. You see this console message
-    // forever:
-    //
-    // !! shuting down in 90 seconds !!
-    // 2025-04-24T15:27:45.454101Z  INFO graceful_shutdown: torrust_axum_server::signals: remaining alive connections: 0
-    //
-    // Depends on: https://github.com/torrust/torrust-tracker/issues/1405
+    if let Some(job) = opt_job {
+        jobs.push(job);
+    }
 }
 
-fn start_udp_server_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) {
-    let _job = jobs::udp_tracker_server::start_event_listener(config, app_container);
+fn start_udp_server_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
+    let opt_job = jobs::udp_tracker_server::start_event_listener(config, app_container);
 
-    // todo: the job cannot be added in the jobs vector otherwise the application never ends
-    // because the event listener never stops. You see this console message
-    // forever:
-    //
-    // !! shuting down in 90 seconds !!
-    // 2025-04-24T15:27:45.454101Z  INFO graceful_shutdown: torrust_axum_server::signals: remaining alive connections: 0
-    //
-    // Depends on: https://github.com/torrust/torrust-tracker/issues/1405
+    if let Some(job) = opt_job {
+        jobs.push(job);
+    }
 }
 
 async fn start_the_udp_instances(config: &Configuration, app_container: &Arc<AppContainer>, jobs: &mut Vec<JoinHandle<()>>) {
