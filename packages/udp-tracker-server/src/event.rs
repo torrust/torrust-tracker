@@ -1,7 +1,3 @@
-pub mod bus;
-pub mod receiver;
-pub mod sender;
-
 use std::fmt;
 use std::net::SocketAddr;
 use std::time::Duration;
@@ -111,4 +107,25 @@ impl From<ConnectionContext> for LabelSet {
             ),
         ])
     }
+}
+
+pub mod sender {
+    use std::sync::Arc;
+
+    use super::Event;
+
+    pub type Sender = Option<Arc<dyn torrust_tracker_events::sender::Sender<Event = Event>>>;
+    pub type Broadcaster = torrust_tracker_events::broadcaster::Broadcaster<Event>;
+}
+
+pub mod receiver {
+    use super::Event;
+
+    pub type Receiver = Box<dyn torrust_tracker_events::receiver::Receiver<Event = Event>>;
+}
+
+pub mod bus {
+    use crate::event::Event;
+
+    pub type EventBus = torrust_tracker_events::bus::EventBus<Event>;
 }
