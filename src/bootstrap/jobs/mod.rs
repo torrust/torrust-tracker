@@ -7,7 +7,10 @@
 //!
 //! This modules contains all the functions needed to start those jobs.
 pub mod health_check_api;
+pub mod http_tracker_core;
 pub mod http_tracker;
 pub mod torrent_cleanup;
 pub mod tracker_apis;
+pub mod udp_tracker_core;
+pub mod udp_tracker_server;
 pub mod udp_tracker;
