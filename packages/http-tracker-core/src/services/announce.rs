@@ -146,7 +146,7 @@ impl AnnounceService {
 
             tracing::debug!("Sending TcpAnnounce event: {:?}", event);
 
-            http_stats_event_sender.send_event(event).await;
+            http_stats_event_sender.send(event).await;
         }
     }
 }
@@ -300,7 +300,7 @@ mod tests {
 
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::broadcast::error::SendError;
+    use torrust_tracker_events::sender::SendError;
 
     use crate::event::bus::EventBus;
     use crate::event::sender::Broadcaster;
@@ -314,7 +314,7 @@ mod tests {
         impl torrust_tracker_events::sender::Sender for HttpStatsEventSender {
             type Event = Event;
 
-            fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
+            fn send(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
         }
     }
 
@@ -390,7 +390,7 @@ mod tests {
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
-                .expect_send_event()
+                .expect_send()
                 .with(predicate::function(move |event| {
                     let mut announced_peer = peer_copy;
                     announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
@@ -411,7 +411,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
 
             let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services();
 
@@ -463,7 +463,7 @@ mod tests {
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
-                .expect_send_event()
+                .expect_send()
                 .with(predicate::function(move |event| {
                     let mut announced_peer = peer_copy;
                     announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
@@ -488,7 +488,7 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
 
-            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
 
             let (core_tracker_services, mut core_http_tracker_services) =
                 initialize_core_tracker_services_with_config(&tracker_with_an_ipv6_external_ip());
@@ -521,7 +521,7 @@ mod tests {
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
-                .expect_send_event()
+                .expect_send()
                 .with(predicate::function(move |event| {
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
@@ -535,7 +535,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
 
             let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services();
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;

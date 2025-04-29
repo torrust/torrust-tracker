@@ -225,9 +225,9 @@ pub(crate) mod tests {
     use bittorrent_udp_tracker_core::{self, event as core_event};
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::broadcast::error::SendError;
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_configuration::{Configuration, Core};
+    use torrust_tracker_events::sender::SendError;
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
     use torrust_tracker_test_helpers::configuration;
 
@@ -429,7 +429,7 @@ pub(crate) mod tests {
         impl torrust_tracker_events::sender::Sender for UdpCoreStatsEventSender {
             type Event = core_event::Event;
 
-            fn send_event(&self, event: core_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_event::Event> > > > ;
+            fn send(&self, event: core_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_event::Event> > > > ;
         }
     }
 
@@ -438,7 +438,7 @@ pub(crate) mod tests {
         impl torrust_tracker_events::sender::Sender for UdpServerStatsEventSender {
             type Event = server_event::Event;
 
-            fn send_event(&self, event: server_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<server_event::Event> > > > ;
+            fn send(&self, event: server_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<server_event::Event> > > > ;
         }
     }
 }

@@ -20,8 +20,8 @@ use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
 use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
 use futures::future::BoxFuture;
 use mockall::mock;
-use tokio::sync::broadcast::error::SendError;
 use torrust_tracker_configuration::{Configuration, Core};
+use torrust_tracker_events::sender::SendError;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 use torrust_tracker_test_helpers::configuration;
@@ -127,6 +127,6 @@ mock! {
     impl torrust_tracker_events::sender::Sender for HttpStatsEventSender {
         type Event = Event;
 
-        fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
+        fn send(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
     }
 }

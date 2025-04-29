@@ -10,7 +10,7 @@ pub(crate) mod tests {
 
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::broadcast::error::SendError;
+    use torrust_tracker_events::sender::SendError;
 
     use crate::connection_cookie::gen_remote_fingerprint;
     use crate::event::Event;
@@ -48,7 +48,7 @@ pub(crate) mod tests {
         impl torrust_tracker_events::sender::Sender for UdpCoreStatsEventSender {
             type Event = Event;
 
-            fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
+            fn send(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
         }
     }
 }

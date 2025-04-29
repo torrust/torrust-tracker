@@ -16,7 +16,7 @@ version.workspace = true
 
 [dependencies]
 futures = "0"
-tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
 
 [dev-dependencies]
 mockall = "0"

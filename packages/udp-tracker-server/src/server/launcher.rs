@@ -184,7 +184,7 @@ impl Launcher {
 
                 if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
                     udp_server_stats_event_sender
-                        .send_event(Event::UdpRequestReceived {
+                        .send(Event::UdpRequestReceived {
                             context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         })
                         .await;
@@ -195,7 +195,7 @@ impl Launcher {
 
                     if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
                         udp_server_stats_event_sender
-                            .send_event(Event::UdpRequestBanned {
+                            .send(Event::UdpRequestBanned {
                                 context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                             })
                             .await;
@@ -235,7 +235,7 @@ impl Launcher {
 
                     if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
                         udp_server_stats_event_sender
-                            .send_event(Event::UdpRequestAborted {
+                            .send(Event::UdpRequestAborted {
                                 context: ConnectionContext::new(client_socket_addr, server_service_binding),
                             })
                             .await;

@@ -61,7 +61,7 @@ pub async fn handle_error(
     if e.1.is_some() {
         if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
             udp_server_stats_event_sender
-                .send_event(Event::UdpError {
+                .send(Event::UdpError {
                     context: ConnectionContext::new(client_socket_addr, server_service_binding),
                     kind: req_kind,
                 })

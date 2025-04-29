@@ -38,7 +38,7 @@ pub async fn handle_scrape(
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
-            .send_event(Event::UdpRequestAccepted {
+            .send(Event::UdpRequestAccepted {
                 context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 kind: UdpRequestKind::Scrape,
             })
@@ -378,7 +378,7 @@ mod tests {
 
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
-                    .expect_send_event()
+                    .expect_send()
                     .with(eq(Event::UdpRequestAccepted {
                         context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         kind: UdpRequestKind::Scrape,
@@ -386,7 +386,7 @@ mod tests {
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                 let udp_server_stats_event_sender: crate::event::sender::Sender =
-                    Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
+                    Some(Arc::new(udp_server_stats_event_sender_mock));
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
@@ -428,7 +428,7 @@ mod tests {
 
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
-                    .expect_send_event()
+                    .expect_send()
                     .with(eq(Event::UdpRequestAccepted {
                         context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         kind: UdpRequestKind::Scrape,
@@ -436,7 +436,7 @@ mod tests {
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                 let udp_server_stats_event_sender: crate::event::sender::Sender =
-                    Arc::new(Some(Box::new(udp_server_stats_event_sender_mock)));
+                    Some(Arc::new(udp_server_stats_event_sender_mock));
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
