@@ -40,7 +40,6 @@ bittorrent-tracker-core = { version = "3.0.0-develop", path = "packages/tracker-
 bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "packages/udp-tracker-core" }
 chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
-futures = "0"
 rand = "0"
 regex = "1"
 reqwest = { version = "0", features = ["json"] }
