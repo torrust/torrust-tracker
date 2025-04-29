@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
-use tokio::sync::broadcast::{self};
 use tokio::task::JoinHandle;
 use torrust_tracker_clock::clock::Time;
+use torrust_tracker_events::receiver::RecvError;
 
 use super::handler::handle_event;
 use crate::event::receiver::Receiver;
@@ -29,11 +29,11 @@ async fn dispatch_events(mut receiver: Receiver, stats_repository: Arc<Repositor
             Ok(event) => handle_event(event, &stats_repository, CurrentClock::now()).await,
             Err(e) => {
                 match e {
-                    broadcast::error::RecvError::Closed => {
+                    RecvError::Closed => {
                         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Udp server statistics receiver closed.");
                         break;
                     }
-                    broadcast::error::RecvError::Lagged(n) => {
+                    RecvError::Lagged(n) => {
                         // From now on, metrics will be imprecise
                         tracing::warn!(target: UDP_TRACKER_LOG_TARGET, "Udp server statistics receiver lagged by {} events.", n);
                     }

@@ -300,7 +300,7 @@ mod tests {
 
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::broadcast::error::SendError;
+    use torrust_tracker_events::sender::SendError;
 
     use crate::event::bus::EventBus;
     use crate::event::sender::Broadcaster;

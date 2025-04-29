@@ -1,10 +1,9 @@
 use futures::future::BoxFuture;
 use futures::FutureExt;
-use tokio::sync::broadcast::error::{RecvError, SendError};
 use tokio::sync::broadcast::{self};
 
-use crate::receiver::Receiver;
-use crate::sender::Sender;
+use crate::receiver::{Receiver, RecvError};
+use crate::sender::{SendError, Sender};
 
 const CHANNEL_CAPACITY: usize = 32768;
 
@@ -32,7 +31,7 @@ impl<E: Sync + Send + Clone> Sender for Broadcaster<E> {
     type Event = E;
 
     fn send_event(&self, event: E) -> BoxFuture<'_, Option<Result<usize, SendError<E>>>> {
-        async move { Some(self.sender.send(event)) }.boxed()
+        async move { Some(self.sender.send(event).map_err(std::convert::Into::into)) }.boxed()
     }
 }
 
@@ -40,6 +39,21 @@ impl<E: Sync + Send + Clone> Receiver for broadcast::Receiver<E> {
     type Event = E;
 
     fn recv(&mut self) -> BoxFuture<'_, Result<Self::Event, RecvError>> {
-        async move { self.recv().await }.boxed()
+        async move { self.recv().await.map_err(std::convert::Into::into) }.boxed()
+    }
+}
+
+impl<E> From<broadcast::error::SendError<E>> for SendError<E> {
+    fn from(err: broadcast::error::SendError<E>) -> Self {
+        SendError(err.0)
+    }
+}
+
+impl From<broadcast::error::RecvError> for RecvError {
+    fn from(err: broadcast::error::RecvError) -> Self {
+        match err {
+            broadcast::error::RecvError::Lagged(amt) => RecvError::Lagged(amt),
+            broadcast::error::RecvError::Closed => RecvError::Closed,
+        }
     }
 }

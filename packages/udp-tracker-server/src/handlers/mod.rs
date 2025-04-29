@@ -225,9 +225,9 @@ pub(crate) mod tests {
     use bittorrent_udp_tracker_core::{self, event as core_event};
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::broadcast::error::SendError;
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_configuration::{Configuration, Core};
+    use torrust_tracker_events::sender::SendError;
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
     use torrust_tracker_test_helpers::configuration;
 

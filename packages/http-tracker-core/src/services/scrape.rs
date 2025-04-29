@@ -182,8 +182,8 @@ mod tests {
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::broadcast::error::SendError;
     use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_events::sender::SendError;
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
     use crate::event::Event;

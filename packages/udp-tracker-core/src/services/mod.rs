@@ -10,7 +10,7 @@ pub(crate) mod tests {
 
     use futures::future::BoxFuture;
     use mockall::mock;
-    use tokio::sync::broadcast::error::SendError;
+    use torrust_tracker_events::sender::SendError;
 
     use crate::connection_cookie::gen_remote_fingerprint;
     use crate::event::Event;

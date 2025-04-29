@@ -3,7 +3,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use bittorrent_udp_tracker_core::event::Event;
 use futures::future::BoxFuture;
 use mockall::mock;
-use tokio::sync::broadcast::error::SendError;
+use torrust_tracker_events::sender::SendError;
 
 pub(crate) fn sample_ipv4_remote_addr() -> SocketAddr {
     sample_ipv4_socket_address()
