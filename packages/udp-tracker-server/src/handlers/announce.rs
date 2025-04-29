@@ -435,7 +435,7 @@ mod tests {
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                 let udp_server_stats_event_sender: crate::event::sender::Sender =
-                    Some(Arc::new(Box::new(udp_server_stats_event_sender_mock)));
+                    Some(Arc::new(udp_server_stats_event_sender_mock));
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
@@ -789,7 +789,7 @@ mod tests {
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                 let udp_server_stats_event_sender: crate::event::sender::Sender =
-                    Some(Arc::new(Box::new(udp_server_stats_event_sender_mock)));
+                    Some(Arc::new(udp_server_stats_event_sender_mock));
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
@@ -889,7 +889,7 @@ mod tests {
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                     let udp_core_stats_event_sender: bittorrent_udp_tracker_core::event::sender::Sender =
-                        Some(Arc::new(Box::new(udp_core_stats_event_sender_mock)));
+                        Some(Arc::new(udp_core_stats_event_sender_mock));
 
                     let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                     udp_server_stats_event_sender_mock
@@ -901,7 +901,7 @@ mod tests {
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                     let udp_server_stats_event_sender: crate::event::sender::Sender =
-                        Some(Arc::new(Box::new(udp_server_stats_event_sender_mock)));
+                        Some(Arc::new(udp_server_stats_event_sender_mock));
 
                     let announce_handler = Arc::new(AnnounceHandler::new(
                         &config.core,

@@ -211,7 +211,7 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let udp_core_stats_event_sender: bittorrent_udp_tracker_core::event::sender::Sender =
-                Some(Arc::new(Box::new(udp_core_stats_event_sender_mock)));
+                Some(Arc::new(udp_core_stats_event_sender_mock));
 
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
             udp_server_stats_event_sender_mock
@@ -222,8 +222,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let udp_server_stats_event_sender: crate::event::sender::Sender =
-                Some(Arc::new(Box::new(udp_server_stats_event_sender_mock)));
+            let udp_server_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_server_stats_event_sender_mock));
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
 
@@ -253,7 +252,7 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let udp_core_stats_event_sender: bittorrent_udp_tracker_core::event::sender::Sender =
-                Some(Arc::new(Box::new(udp_core_stats_event_sender_mock)));
+                Some(Arc::new(udp_core_stats_event_sender_mock));
 
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
             udp_server_stats_event_sender_mock
@@ -264,8 +263,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let udp_server_stats_event_sender: crate::event::sender::Sender =
-                Some(Arc::new(Box::new(udp_server_stats_event_sender_mock)));
+            let udp_server_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_server_stats_event_sender_mock));
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
 

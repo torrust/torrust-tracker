@@ -27,9 +27,9 @@ impl<Event: Sync + Send + Clone + 'static> EventBus<Event> {
     }
 
     #[must_use]
-    pub fn sender(&self) -> Option<Arc<Box<dyn sender::Sender<Event = Event>>>> {
+    pub fn sender(&self) -> Option<Arc<dyn sender::Sender<Event = Event>>> {
         if self.enable_sender {
-            Some(Arc::new(Box::new(self.broadcaster.clone())))
+            Some(Arc::new(self.broadcaster.clone()))
         } else {
             None
         }
