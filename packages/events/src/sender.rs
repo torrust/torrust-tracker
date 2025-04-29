@@ -22,4 +22,4 @@ impl<Event> fmt::Display for SendError<Event> {
     }
 }
 
-impl<T: fmt::Debug> std::error::Error for SendError<T> {}
+impl<Event: fmt::Debug> std::error::Error for SendError<Event> {}

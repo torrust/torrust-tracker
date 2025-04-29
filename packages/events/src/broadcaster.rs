@@ -9,42 +9,42 @@ const CHANNEL_CAPACITY: usize = 32768;
 
 /// An event sender implementation using a broadcast channel.
 #[derive(Clone)]
-pub struct Broadcaster<E: Sync + Send + Clone> {
-    pub(crate) sender: broadcast::Sender<E>,
+pub struct Broadcaster<Event: Sync + Send + Clone> {
+    pub(crate) sender: broadcast::Sender<Event>,
 }
 
-impl<E: Sync + Send + Clone> Default for Broadcaster<E> {
+impl<Event: Sync + Send + Clone> Default for Broadcaster<Event> {
     fn default() -> Self {
         let (sender, _) = broadcast::channel(CHANNEL_CAPACITY);
         Self { sender }
     }
 }
 
-impl<E: Sync + Send + Clone> Broadcaster<E> {
+impl<Event: Sync + Send + Clone> Broadcaster<Event> {
     #[must_use]
-    pub fn subscribe(&self) -> broadcast::Receiver<E> {
+    pub fn subscribe(&self) -> broadcast::Receiver<Event> {
         self.sender.subscribe()
     }
 }
 
-impl<E: Sync + Send + Clone> Sender for Broadcaster<E> {
-    type Event = E;
+impl<Event: Sync + Send + Clone> Sender for Broadcaster<Event> {
+    type Event = Event;
 
-    fn send_event(&self, event: E) -> BoxFuture<'_, Option<Result<usize, SendError<E>>>> {
+    fn send_event(&self, event: Event) -> BoxFuture<'_, Option<Result<usize, SendError<Event>>>> {
         async move { Some(self.sender.send(event).map_err(std::convert::Into::into)) }.boxed()
     }
 }
 
-impl<E: Sync + Send + Clone> Receiver for broadcast::Receiver<E> {
-    type Event = E;
+impl<Event: Sync + Send + Clone> Receiver for broadcast::Receiver<Event> {
+    type Event = Event;
 
     fn recv(&mut self) -> BoxFuture<'_, Result<Self::Event, RecvError>> {
         async move { self.recv().await.map_err(std::convert::Into::into) }.boxed()
     }
 }
 
-impl<E> From<broadcast::error::SendError<E>> for SendError<E> {
-    fn from(err: broadcast::error::SendError<E>) -> Self {
+impl<Event> From<broadcast::error::SendError<Event>> for SendError<Event> {
+    fn from(err: broadcast::error::SendError<Event>) -> Self {
         SendError(err.0)
     }
 }
