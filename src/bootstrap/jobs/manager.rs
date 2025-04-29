@@ -1,0 +1,89 @@
+use std::time::Duration;
+
+use tokio::task::JoinHandle;
+use tokio::time::timeout;
+use tracing::{info, warn};
+
+/// Represents a named background job.
+#[derive(Debug)]
+pub struct Job {
+    pub name: String,
+    pub handle: JoinHandle<()>,
+}
+
+impl Job {
+    pub fn new<N: Into<String>>(name: N, handle: JoinHandle<()>) -> Self {
+        Self {
+            name: name.into(),
+            handle,
+        }
+    }
+}
+
+/// Manages multiple background jobs.
+#[derive(Debug, Default)]
+pub struct JobManager {
+    jobs: Vec<Job>,
+}
+
+impl JobManager {
+    #[must_use]
+    pub fn new() -> Self {
+        Self { jobs: Vec::new() }
+    }
+
+    pub fn push<N: Into<String>>(&mut self, name: N, handle: JoinHandle<()>) {
+        self.jobs.push(Job::new(name, handle));
+    }
+
+    /// Waits sequentially for all jobs to complete, with a graceful timeout per
+    /// job.
+    pub async fn wait_for_all(mut self, grace_period: Duration) {
+        for job in self.jobs.drain(..) {
+            let name = job.name.clone();
+
+            info!(job = %name, "Waiting for job to finish (timeout of {} seconds) ...", grace_period.as_secs());
+
+            if let Ok(result) = timeout(grace_period, job.handle).await {
+                if let Err(e) = result {
+                    warn!(job = %name, "Job return an error: {:?}", e);
+                } else {
+                    info!(job = %name, "Job completed gracefully");
+                }
+            } else {
+                warn!(job = %name, "Job did not complete in time");
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tokio::time::Duration;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn it_should_wait_for_all_jobs_to_finish() {
+        let mut manager = JobManager::new();
+
+        manager.push("job1", tokio::spawn(async {}));
+        manager.push("job2", tokio::spawn(async {}));
+
+        manager.wait_for_all(Duration::from_secs(1)).await;
+    }
+
+    #[tokio::test]
+    async fn it_should_log_when_a_job_panics() {
+        let mut manager = JobManager::new();
+
+        manager.push(
+            "panic_job",
+            tokio::spawn(async {
+                panic!("expected panic");
+            }),
+        );
+
+        manager.wait_for_all(Duration::from_secs(1)).await;
+    }
+}
