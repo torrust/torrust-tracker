@@ -113,6 +113,7 @@ pub fn start(
         handle.clone(),
         rx_halt,
         format!("Shutting down http server on socket address: {address}"),
+        address,
     ));
 
     let running = axum_server::from_tcp(socket)
