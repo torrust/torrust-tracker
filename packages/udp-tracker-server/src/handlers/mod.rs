@@ -429,7 +429,7 @@ pub(crate) mod tests {
         impl torrust_tracker_events::sender::Sender for UdpCoreStatsEventSender {
             type Event = core_event::Event;
 
-            fn send_event(&self, event: core_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_event::Event> > > > ;
+            fn send(&self, event: core_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<core_event::Event> > > > ;
         }
     }
 
@@ -438,7 +438,7 @@ pub(crate) mod tests {
         impl torrust_tracker_events::sender::Sender for UdpServerStatsEventSender {
             type Event = server_event::Event;
 
-            fn send_event(&self, event: server_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<server_event::Event> > > > ;
+            fn send(&self, event: server_event::Event) -> BoxFuture<'static,Option<Result<usize,SendError<server_event::Event> > > > ;
         }
     }
 }

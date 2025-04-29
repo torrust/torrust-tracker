@@ -146,7 +146,7 @@ impl AnnounceService {
 
             tracing::debug!("Sending TcpAnnounce event: {:?}", event);
 
-            http_stats_event_sender.send_event(event).await;
+            http_stats_event_sender.send(event).await;
         }
     }
 }
@@ -314,7 +314,7 @@ mod tests {
         impl torrust_tracker_events::sender::Sender for HttpStatsEventSender {
             type Event = Event;
 
-            fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
+            fn send(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
         }
     }
 
@@ -390,7 +390,7 @@ mod tests {
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
-                .expect_send_event()
+                .expect_send()
                 .with(predicate::function(move |event| {
                     let mut announced_peer = peer_copy;
                     announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
@@ -463,7 +463,7 @@ mod tests {
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
-                .expect_send_event()
+                .expect_send()
                 .with(predicate::function(move |event| {
                     let mut announced_peer = peer_copy;
                     announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
@@ -521,7 +521,7 @@ mod tests {
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
-                .expect_send_event()
+                .expect_send()
                 .with(predicate::function(move |event| {
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(

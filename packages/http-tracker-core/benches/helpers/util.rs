@@ -127,6 +127,6 @@ mock! {
     impl torrust_tracker_events::sender::Sender for HttpStatsEventSender {
         type Event = Event;
 
-        fn send_event(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
+        fn send(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
     }
 }

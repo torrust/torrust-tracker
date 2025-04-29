@@ -30,7 +30,7 @@ impl<Event: Sync + Send + Clone> Broadcaster<Event> {
 impl<Event: Sync + Send + Clone> Sender for Broadcaster<Event> {
     type Event = Event;
 
-    fn send_event(&self, event: Event) -> BoxFuture<'_, Option<Result<usize, SendError<Event>>>> {
+    fn send(&self, event: Event) -> BoxFuture<'_, Option<Result<usize, SendError<Event>>>> {
         async move { Some(self.sender.send(event).map_err(std::convert::Into::into)) }.boxed()
     }
 }

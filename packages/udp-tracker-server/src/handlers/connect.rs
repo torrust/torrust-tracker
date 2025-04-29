@@ -24,7 +24,7 @@ pub async fn handle_connect(
 
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
-            .send_event(Event::UdpRequestAccepted {
+            .send(Event::UdpRequestAccepted {
                 context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 kind: UdpRequestKind::Connect,
             })
@@ -204,7 +204,7 @@ mod tests {
 
             let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_core_stats_event_sender_mock
-                .expect_send_event()
+                .expect_send()
                 .with(eq(core_event::Event::UdpConnect {
                     connection: core_event::ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 }))
@@ -215,7 +215,7 @@ mod tests {
 
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
             udp_server_stats_event_sender_mock
-                .expect_send_event()
+                .expect_send()
                 .with(eq(Event::UdpRequestAccepted {
                     context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                     kind: UdpRequestKind::Connect,
@@ -246,7 +246,7 @@ mod tests {
 
             let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_core_stats_event_sender_mock
-                .expect_send_event()
+                .expect_send()
                 .with(eq(core_event::Event::UdpConnect {
                     connection: core_event::ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                 }))
@@ -257,7 +257,7 @@ mod tests {
 
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
             udp_server_stats_event_sender_mock
-                .expect_send_event()
+                .expect_send()
                 .with(eq(Event::UdpRequestAccepted {
                     context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                     kind: UdpRequestKind::Connect,

@@ -9,10 +9,10 @@ use mockall::{automock, predicate::str};
 pub trait Sender: Sync + Send {
     type Event: Send + Clone;
 
-    fn send_event(&self, event: Self::Event) -> BoxFuture<'_, Option<Result<usize, SendError<Self::Event>>>>;
+    fn send(&self, event: Self::Event) -> BoxFuture<'_, Option<Result<usize, SendError<Self::Event>>>>;
 }
 
-/// Error returned by the [`send_event`] function on a [`Sender`].
+/// Error returned by the [`send`] function on a [`Sender`].
 #[derive(Debug)]
 pub struct SendError<Event>(pub Event);
 
