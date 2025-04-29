@@ -411,7 +411,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(Box::new(http_stats_event_sender_mock)));
 
             let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services();
 
@@ -488,7 +488,7 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
 
-            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(Box::new(http_stats_event_sender_mock)));
 
             let (core_tracker_services, mut core_http_tracker_services) =
                 initialize_core_tracker_services_with_config(&tracker_with_an_ipv6_external_ip());
@@ -535,7 +535,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(Box::new(http_stats_event_sender_mock)));
 
             let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services();
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;

@@ -151,7 +151,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let opt_udp_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(udp_stats_event_sender_mock)));
+            let opt_udp_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(Box::new(udp_stats_event_sender_mock)));
 
             let connect_service = Arc::new(ConnectService::new(opt_udp_stats_event_sender));
 
@@ -174,7 +174,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let opt_udp_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(udp_stats_event_sender_mock)));
+            let opt_udp_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(Box::new(udp_stats_event_sender_mock)));
 
             let connect_service = Arc::new(ConnectService::new(opt_udp_stats_event_sender));
 

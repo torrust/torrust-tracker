@@ -350,7 +350,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(Box::new(http_stats_event_sender_mock)));
 
             let container = initialize_services_with_configuration(&config);
 
@@ -404,7 +404,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(Box::new(http_stats_event_sender_mock)));
 
             let container = initialize_services_with_configuration(&config);
 
@@ -534,7 +534,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(Box::new(http_stats_event_sender_mock)));
 
             let peer_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
 
@@ -588,7 +588,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Arc::new(Some(Box::new(http_stats_event_sender_mock)));
+            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(Box::new(http_stats_event_sender_mock)));
 
             let peer_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
