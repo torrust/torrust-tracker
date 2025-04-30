@@ -59,22 +59,6 @@ pub trait EntrySync {
     fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch);
 }
 
-#[allow(clippy::module_name_repetitions)]
-pub trait EntryAsync {
-    fn get_swarm_metadata(&self) -> impl std::future::Future<Output = SwarmMetadata> + Send;
-    fn meets_retaining_policy(self, policy: &TrackerPolicy) -> impl std::future::Future<Output = bool> + Send;
-    fn peers_is_empty(&self) -> impl std::future::Future<Output = bool> + Send;
-    fn get_peers_len(&self) -> impl std::future::Future<Output = usize> + Send;
-    fn get_peers(&self, limit: Option<usize>) -> impl std::future::Future<Output = Vec<Arc<peer::Peer>>> + Send;
-    fn get_peers_for_client(
-        &self,
-        client: &SocketAddr,
-        limit: Option<usize>,
-    ) -> impl std::future::Future<Output = Vec<Arc<peer::Peer>>> + Send;
-    fn upsert_peer(self, peer: &peer::Peer) -> impl std::future::Future<Output = bool> + Send;
-    fn remove_inactive_peers(self, current_cutoff: DurationSinceUnixEpoch) -> impl std::future::Future<Output = ()> + Send;
-}
-
 /// A data structure containing all the information about a torrent in the tracker.
 ///
 /// This is the tracker entry for a given torrent and contains the swarm data,

@@ -19,21 +19,3 @@ pub trait Repository<T>: Debug + Default + Sized + 'static {
     fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, opt_persistent_torrent: Option<PersistentTorrent>) -> bool;
     fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata>;
 }
-
-#[allow(clippy::module_name_repetitions)]
-pub trait RepositoryAsync<T>: Debug + Default + Sized + 'static {
-    fn get(&self, key: &InfoHash) -> impl std::future::Future<Output = Option<T>> + Send;
-    fn get_metrics(&self) -> impl std::future::Future<Output = AggregateSwarmMetadata> + Send;
-    fn get_paginated(&self, pagination: Option<&Pagination>) -> impl std::future::Future<Output = Vec<(InfoHash, T)>> + Send;
-    fn import_persistent(&self, persistent_torrents: &PersistentTorrents) -> impl std::future::Future<Output = ()> + Send;
-    fn remove(&self, key: &InfoHash) -> impl std::future::Future<Output = Option<T>> + Send;
-    fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> impl std::future::Future<Output = ()> + Send;
-    fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> impl std::future::Future<Output = ()> + Send;
-    fn upsert_peer(
-        &self,
-        info_hash: &InfoHash,
-        peer: &peer::Peer,
-        opt_persistent_torrent: Option<PersistentTorrent>,
-    ) -> impl std::future::Future<Output = bool> + Send;
-    fn get_swarm_metadata(&self, info_hash: &InfoHash) -> impl std::future::Future<Output = Option<SwarmMetadata>> + Send;
-}
