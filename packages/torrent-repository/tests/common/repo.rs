@@ -3,7 +3,6 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
-use torrust_tracker_torrent_repository::repository::Repository as _;
 use torrust_tracker_torrent_repository::{EntrySingle, TorrentsSkipMapMutexStd};
 
 #[derive(Debug)]

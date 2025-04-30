@@ -8,7 +8,6 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 use torrust_tracker_torrent_repository::entry::EntrySync;
-use torrust_tracker_torrent_repository::repository::Repository;
 use torrust_tracker_torrent_repository::EntryMutexStd;
 
 use crate::torrent::Torrents;

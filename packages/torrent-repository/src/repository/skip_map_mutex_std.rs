@@ -5,7 +5,6 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
-use super::Repository;
 use crate::entry::peer_list::PeerList;
 use crate::entry::{Entry, EntrySync};
 use crate::{EntryMutexStd, EntrySingle};
@@ -15,7 +14,7 @@ pub struct CrossbeamSkipList<T> {
     pub torrents: SkipMap<InfoHash, T>,
 }
 
-impl Repository<EntryMutexStd> for CrossbeamSkipList<EntryMutexStd>
+impl CrossbeamSkipList<EntryMutexStd>
 where
     EntryMutexStd: EntrySync,
     EntrySingle: Entry,
@@ -36,7 +35,12 @@ where
     ///
     /// Returns `true` if the number of downloads was increased because the peer
     /// completed the download.
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, opt_persistent_torrent: Option<PersistentTorrent>) -> bool {
+    pub fn upsert_peer(
+        &self,
+        info_hash: &InfoHash,
+        peer: &peer::Peer,
+        opt_persistent_torrent: Option<PersistentTorrent>,
+    ) -> bool {
         if let Some(existing_entry) = self.torrents.get(info_hash) {
             existing_entry.value().upsert_peer(peer)
         } else {
@@ -58,16 +62,19 @@ where
         }
     }
 
-    fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
+    pub fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
         self.torrents.get(info_hash).map(|entry| entry.value().get_swarm_metadata())
     }
 
-    fn get(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    pub fn get(&self, key: &InfoHash) -> Option<EntryMutexStd> {
         let maybe_entry = self.torrents.get(key);
         maybe_entry.map(|entry| entry.value().clone())
     }
 
-    fn get_metrics(&self) -> AggregateSwarmMetadata {
+    /// # Panics
+    ///
+    /// This function panics if the lock for the entry cannot be obtained.
+    pub fn get_metrics(&self) -> AggregateSwarmMetadata {
         let mut metrics = AggregateSwarmMetadata::default();
 
         for entry in &self.torrents {
@@ -81,7 +88,7 @@ where
         metrics
     }
 
-    fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
+    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
         match pagination {
             Some(pagination) => self
                 .torrents
@@ -98,7 +105,7 @@ where
         }
     }
 
-    fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
+    pub fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
         for (info_hash, completed) in persistent_torrents {
             if self.torrents.contains_key(info_hash) {
                 continue;
@@ -118,17 +125,17 @@ where
         }
     }
 
-    fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    pub fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd> {
         self.torrents.remove(key).map(|entry| entry.value().clone())
     }
 
-    fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
+    pub fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
         for entry in &self.torrents {
             entry.value().remove_inactive_peers(current_cutoff);
         }
     }
 
-    fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
+    pub fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         for entry in &self.torrents {
             if entry.value().meets_retaining_policy(policy) {
                 continue;
