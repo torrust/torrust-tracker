@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use repository::skip_map_mutex_std::CrossbeamSkipList;
 use torrust_tracker_clock::clock;
 
 pub mod entry;
@@ -11,7 +10,7 @@ pub type EntrySingle = entry::Torrent;
 pub type EntryMutexStd = Arc<std::sync::Mutex<entry::Torrent>>;
 
 // Repository
-pub type TorrentsSkipMapMutexStd = CrossbeamSkipList<EntryMutexStd>;
+pub type TorrentsSkipMapMutexStd = repository::skip_map_mutex_std::TorrentsSkipMapMutexStd;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.

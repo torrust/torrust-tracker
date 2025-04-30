@@ -9,11 +9,11 @@ use crate::entry::peer_list::PeerList;
 use crate::{EntryMutexStd, EntrySingle};
 
 #[derive(Default, Debug)]
-pub struct CrossbeamSkipList<T> {
-    pub torrents: SkipMap<InfoHash, T>,
+pub struct TorrentsSkipMapMutexStd {
+    pub torrents: SkipMap<InfoHash, EntryMutexStd>,
 }
 
-impl CrossbeamSkipList<EntryMutexStd> {
+impl TorrentsSkipMapMutexStd {
     /// Upsert a peer into the swarm of a torrent.
     ///
     /// Optionally, it can also preset the number of downloads of the torrent

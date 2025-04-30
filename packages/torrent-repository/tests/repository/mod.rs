@@ -8,15 +8,14 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::PersistentTorrents;
-use torrust_tracker_torrent_repository::repository::skip_map_mutex_std::CrossbeamSkipList;
-use torrust_tracker_torrent_repository::EntrySingle;
+use torrust_tracker_torrent_repository::{EntrySingle, TorrentsSkipMapMutexStd};
 
 use crate::common::repo::Repo;
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
 
 #[fixture]
 fn skip_list_mutex_std() -> Repo {
-    Repo::SkipMapMutexStd(CrossbeamSkipList::default())
+    Repo::SkipMapMutexStd(TorrentsSkipMapMutexStd::default())
 }
 
 type Entries = Vec<(InfoHash, EntrySingle)>;
