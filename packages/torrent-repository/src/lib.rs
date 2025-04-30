@@ -7,12 +7,8 @@ pub mod entry;
 pub mod repository;
 
 // Repo Entries
-
 pub type EntrySingle = entry::Torrent;
 pub type EntryMutexStd = Arc<std::sync::Mutex<entry::Torrent>>;
-pub type EntryMutexTokio = Arc<tokio::sync::Mutex<entry::Torrent>>;
-pub type EntryMutexParkingLot = Arc<parking_lot::Mutex<entry::Torrent>>;
-pub type EntryRwLockParkingLot = Arc<parking_lot::RwLock<entry::Torrent>>;
 
 // Repository
 pub type TorrentsSkipMapMutexStd = CrossbeamSkipList<EntryMutexStd>;

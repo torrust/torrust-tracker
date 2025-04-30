@@ -4841,7 +4841,6 @@ dependencies = [
  "bittorrent-primitives",
  "criterion",
  "crossbeam-skiplist",
- "parking_lot",
  "rstest",
  "tokio",
  "torrust-tracker-clock",
