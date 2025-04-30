@@ -4853,6 +4853,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-tracker-torrent-repository-benchmarking"
+version = "3.0.0-develop"
+dependencies = [
+ "aquatic_udp_protocol",
+ "async-std",
+ "bittorrent-primitives",
+ "criterion",
+ "crossbeam-skiplist",
+ "dashmap",
+ "futures",
+ "parking_lot",
+ "rstest",
+ "tokio",
+ "torrust-tracker-clock",
+ "torrust-tracker-configuration",
+ "torrust-tracker-primitives",
+ "zerocopy 0.7.35",
+]
+
+[[package]]
 name = "torrust-udp-tracker-server"
 version = "3.0.0-develop"
 dependencies = [
