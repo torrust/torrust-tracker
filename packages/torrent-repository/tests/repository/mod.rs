@@ -9,9 +9,6 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::PersistentTorrents;
 use torrust_tracker_torrent_repository::entry::Entry as _;
-use torrust_tracker_torrent_repository::repository::dash_map_mutex_std::XacrimonDashMap;
-use torrust_tracker_torrent_repository::repository::rw_lock_std::RwLockStd;
-use torrust_tracker_torrent_repository::repository::rw_lock_tokio::RwLockTokio;
 use torrust_tracker_torrent_repository::repository::skip_map_mutex_std::CrossbeamSkipList;
 use torrust_tracker_torrent_repository::EntrySingle;
 
@@ -19,53 +16,8 @@ use crate::common::repo::Repo;
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
 
 #[fixture]
-fn standard() -> Repo {
-    Repo::RwLockStd(RwLockStd::default())
-}
-
-#[fixture]
-fn standard_mutex() -> Repo {
-    Repo::RwLockStdMutexStd(RwLockStd::default())
-}
-
-#[fixture]
-fn standard_tokio() -> Repo {
-    Repo::RwLockStdMutexTokio(RwLockStd::default())
-}
-
-#[fixture]
-fn tokio_std() -> Repo {
-    Repo::RwLockTokio(RwLockTokio::default())
-}
-
-#[fixture]
-fn tokio_mutex() -> Repo {
-    Repo::RwLockTokioMutexStd(RwLockTokio::default())
-}
-
-#[fixture]
-fn tokio_tokio() -> Repo {
-    Repo::RwLockTokioMutexTokio(RwLockTokio::default())
-}
-
-#[fixture]
 fn skip_list_mutex_std() -> Repo {
     Repo::SkipMapMutexStd(CrossbeamSkipList::default())
-}
-
-#[fixture]
-fn skip_list_mutex_parking_lot() -> Repo {
-    Repo::SkipMapMutexParkingLot(CrossbeamSkipList::default())
-}
-
-#[fixture]
-fn skip_list_rw_lock_parking_lot() -> Repo {
-    Repo::SkipMapRwLockParkingLot(CrossbeamSkipList::default())
-}
-
-#[fixture]
-fn dash_map_std() -> Repo {
-    Repo::DashMapMutexStd(XacrimonDashMap::default())
 }
 
 type Entries = Vec<(InfoHash, EntrySingle)>;
@@ -197,9 +149,9 @@ fn persistent_three() -> PersistentTorrents {
     t.iter().copied().collect()
 }
 
-async fn make(repo: &Repo, entries: &Entries) {
+fn make(repo: &Repo, entries: &Entries) {
     for (info_hash, entry) in entries {
-        repo.insert(info_hash, entry.clone()).await;
+        repo.insert(info_hash, entry.clone());
     }
 }
 
@@ -248,28 +200,13 @@ fn policy_remove_persist() -> TrackerPolicy {
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_get_a_torrent_entry(
-    #[values(
-        standard(),
-        standard_mutex(),
-        standard_tokio(),
-        tokio_std(),
-        tokio_mutex(),
-        tokio_tokio(),
-        skip_list_mutex_std(),
-        skip_list_mutex_parking_lot(),
-        skip_list_rw_lock_parking_lot(),
-        dash_map_std()
-    )]
-    repo: Repo,
-    #[case] entries: Entries,
-) {
-    make(&repo, &entries).await;
+async fn it_should_get_a_torrent_entry(#[values(skip_list_mutex_std())] repo: Repo, #[case] entries: Entries) {
+    make(&repo, &entries);
 
     if let Some((info_hash, torrent)) = entries.first() {
-        assert_eq!(repo.get(info_hash).await, Some(torrent.clone()));
+        assert_eq!(repo.get(info_hash), Some(torrent.clone()));
     } else {
-        assert_eq!(repo.get(&InfoHash::default()).await, None);
+        assert_eq!(repo.get(&InfoHash::default()), None);
     }
 }
 
@@ -284,28 +221,17 @@ async fn it_should_get_a_torrent_entry(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_get_paginated_entries_in_a_stable_or_sorted_order(
-    #[values(
-        standard(),
-        standard_mutex(),
-        standard_tokio(),
-        tokio_std(),
-        tokio_mutex(),
-        tokio_tokio(),
-        skip_list_mutex_std(),
-        skip_list_mutex_parking_lot(),
-        skip_list_rw_lock_parking_lot()
-    )]
-    repo: Repo,
+    #[values(skip_list_mutex_std())] repo: Repo,
     #[case] entries: Entries,
     many_out_of_order: Entries,
 ) {
-    make(&repo, &entries).await;
+    make(&repo, &entries);
 
-    let entries_a = repo.get_paginated(None).await.iter().map(|(i, _)| *i).collect::<Vec<_>>();
+    let entries_a = repo.get_paginated(None).iter().map(|(i, _)| *i).collect::<Vec<_>>();
 
-    make(&repo, &many_out_of_order).await;
+    make(&repo, &many_out_of_order);
 
-    let entries_b = repo.get_paginated(None).await.iter().map(|(i, _)| *i).collect::<Vec<_>>();
+    let entries_b = repo.get_paginated(None).iter().map(|(i, _)| *i).collect::<Vec<_>>();
 
     let is_equal = entries_b.iter().take(entries_a.len()).copied().collect::<Vec<_>>() == entries_a;
 
@@ -328,36 +254,25 @@ async fn it_should_get_paginated_entries_in_a_stable_or_sorted_order(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_get_paginated(
-    #[values(
-        standard(),
-        standard_mutex(),
-        standard_tokio(),
-        tokio_std(),
-        tokio_mutex(),
-        tokio_tokio(),
-        skip_list_mutex_std(),
-        skip_list_mutex_parking_lot(),
-        skip_list_rw_lock_parking_lot()
-    )]
-    repo: Repo,
+    #[values(skip_list_mutex_std())] repo: Repo,
     #[case] entries: Entries,
     #[values(paginated_limit_zero(), paginated_limit_one(), paginated_limit_one_offset_one())] paginated: Pagination,
 ) {
-    make(&repo, &entries).await;
+    make(&repo, &entries);
 
-    let mut info_hashes = repo.get_paginated(None).await.iter().map(|(i, _)| *i).collect::<Vec<_>>();
+    let mut info_hashes = repo.get_paginated(None).iter().map(|(i, _)| *i).collect::<Vec<_>>();
     info_hashes.sort();
 
     match paginated {
         // it should return empty if limit is zero.
-        Pagination { limit: 0, .. } => assert_eq!(repo.get_paginated(Some(&paginated)).await, vec![]),
+        Pagination { limit: 0, .. } => assert_eq!(repo.get_paginated(Some(&paginated)), vec![]),
 
         // it should return a single entry if the limit is one.
         Pagination { limit: 1, offset: 0 } => {
             if info_hashes.is_empty() {
-                assert_eq!(repo.get_paginated(Some(&paginated)).await.len(), 0);
+                assert_eq!(repo.get_paginated(Some(&paginated)).len(), 0);
             } else {
-                let page = repo.get_paginated(Some(&paginated)).await;
+                let page = repo.get_paginated(Some(&paginated));
                 assert_eq!(page.len(), 1);
                 assert_eq!(page.first().map(|(i, _)| i), info_hashes.first());
             }
@@ -366,7 +281,7 @@ async fn it_should_get_paginated(
         // it should return the only the second entry if both the limit and the offset are one.
         Pagination { limit: 1, offset: 1 } => {
             if info_hashes.len() > 1 {
-                let page = repo.get_paginated(Some(&paginated)).await;
+                let page = repo.get_paginated(Some(&paginated));
                 assert_eq!(page.len(), 1);
                 assert_eq!(page[0].0, info_hashes[1]);
             }
@@ -386,25 +301,10 @@ async fn it_should_get_paginated(
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_get_metrics(
-    #[values(
-        standard(),
-        standard_mutex(),
-        standard_tokio(),
-        tokio_std(),
-        tokio_mutex(),
-        tokio_tokio(),
-        skip_list_mutex_std(),
-        skip_list_mutex_parking_lot(),
-        skip_list_rw_lock_parking_lot(),
-        dash_map_std()
-    )]
-    repo: Repo,
-    #[case] entries: Entries,
-) {
+async fn it_should_get_metrics(#[values(skip_list_mutex_std())] repo: Repo, #[case] entries: Entries) {
     use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
 
-    make(&repo, &entries).await;
+    make(&repo, &entries);
 
     let mut metrics = AggregateSwarmMetadata::default();
 
@@ -417,7 +317,7 @@ async fn it_should_get_metrics(
         metrics.total_downloaded += u64::from(stats.downloaded);
     }
 
-    assert_eq!(repo.get_metrics().await, metrics);
+    assert_eq!(repo.get_metrics(), metrics);
 }
 
 #[rstest]
@@ -431,33 +331,21 @@ async fn it_should_get_metrics(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_import_persistent_torrents(
-    #[values(
-        standard(),
-        standard_mutex(),
-        standard_tokio(),
-        tokio_std(),
-        tokio_mutex(),
-        tokio_tokio(),
-        skip_list_mutex_std(),
-        skip_list_mutex_parking_lot(),
-        skip_list_rw_lock_parking_lot(),
-        dash_map_std()
-    )]
-    repo: Repo,
+    #[values(skip_list_mutex_std())] repo: Repo,
     #[case] entries: Entries,
     #[values(persistent_empty(), persistent_single(), persistent_three())] persistent_torrents: PersistentTorrents,
 ) {
-    make(&repo, &entries).await;
+    make(&repo, &entries);
 
-    let mut downloaded = repo.get_metrics().await.total_downloaded;
+    let mut downloaded = repo.get_metrics().total_downloaded;
     persistent_torrents.iter().for_each(|(_, d)| downloaded += u64::from(*d));
 
-    repo.import_persistent(&persistent_torrents).await;
+    repo.import_persistent(&persistent_torrents);
 
-    assert_eq!(repo.get_metrics().await.total_downloaded, downloaded);
+    assert_eq!(repo.get_metrics().total_downloaded, downloaded);
 
     for (entry, _) in persistent_torrents {
-        assert!(repo.get(&entry).await.is_some());
+        assert!(repo.get(&entry).is_some());
     }
 }
 
@@ -471,33 +359,18 @@ async fn it_should_import_persistent_torrents(
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_remove_an_entry(
-    #[values(
-        standard(),
-        standard_mutex(),
-        standard_tokio(),
-        tokio_std(),
-        tokio_mutex(),
-        tokio_tokio(),
-        skip_list_mutex_std(),
-        skip_list_mutex_parking_lot(),
-        skip_list_rw_lock_parking_lot(),
-        dash_map_std()
-    )]
-    repo: Repo,
-    #[case] entries: Entries,
-) {
-    make(&repo, &entries).await;
+async fn it_should_remove_an_entry(#[values(skip_list_mutex_std())] repo: Repo, #[case] entries: Entries) {
+    make(&repo, &entries);
 
     for (info_hash, torrent) in entries {
-        assert_eq!(repo.get(&info_hash).await, Some(torrent.clone()));
-        assert_eq!(repo.remove(&info_hash).await, Some(torrent));
+        assert_eq!(repo.get(&info_hash), Some(torrent.clone()));
+        assert_eq!(repo.remove(&info_hash), Some(torrent));
 
-        assert_eq!(repo.get(&info_hash).await, None);
-        assert_eq!(repo.remove(&info_hash).await, None);
+        assert_eq!(repo.get(&info_hash), None);
+        assert_eq!(repo.remove(&info_hash), None);
     }
 
-    assert_eq!(repo.get_metrics().await.total_torrents, 0);
+    assert_eq!(repo.get_metrics().total_torrents, 0);
 }
 
 #[rstest]
@@ -510,22 +383,7 @@ async fn it_should_remove_an_entry(
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_remove_inactive_peers(
-    #[values(
-        standard(),
-        standard_mutex(),
-        standard_tokio(),
-        tokio_std(),
-        tokio_mutex(),
-        tokio_tokio(),
-        skip_list_mutex_std(),
-        skip_list_mutex_parking_lot(),
-        skip_list_rw_lock_parking_lot(),
-        dash_map_std()
-    )]
-    repo: Repo,
-    #[case] entries: Entries,
-) {
+async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: Repo, #[case] entries: Entries) {
     use std::ops::Sub as _;
     use std::time::Duration;
 
@@ -538,7 +396,7 @@ async fn it_should_remove_inactive_peers(
     const TIMEOUT: Duration = Duration::from_secs(120);
     const EXPIRE: Duration = Duration::from_secs(121);
 
-    make(&repo, &entries).await;
+    make(&repo, &entries);
 
     let info_hash: InfoHash;
     let mut peer: peer::Peer;
@@ -562,15 +420,15 @@ async fn it_should_remove_inactive_peers(
     // Insert the infohash and peer into the repository
     // and verify there is an extra torrent entry.
     {
-        repo.upsert_peer(&info_hash, &peer, None).await;
-        assert_eq!(repo.get_metrics().await.total_torrents, entries.len() as u64 + 1);
+        repo.upsert_peer(&info_hash, &peer, None);
+        assert_eq!(repo.get_metrics().total_torrents, entries.len() as u64 + 1);
     }
 
     // Insert the infohash and peer into the repository
     // and verify the swarm metadata was updated.
     {
-        repo.upsert_peer(&info_hash, &peer, None).await;
-        let stats = repo.get_swarm_metadata(&info_hash).await;
+        repo.upsert_peer(&info_hash, &peer, None);
+        let stats = repo.get_swarm_metadata(&info_hash);
         assert_eq!(
             stats,
             Some(SwarmMetadata {
@@ -583,19 +441,18 @@ async fn it_should_remove_inactive_peers(
 
     // Verify that this new peer was inserted into the repository.
     {
-        let entry = repo.get(&info_hash).await.expect("it_should_get_some");
+        let entry = repo.get(&info_hash).expect("it_should_get_some");
         assert!(entry.get_peers(None).contains(&peer.into()));
     }
 
     // Remove peers that have not been updated since the timeout (120 seconds ago).
     {
-        repo.remove_inactive_peers(CurrentClock::now_sub(&TIMEOUT).expect("it should get a time passed"))
-            .await;
+        repo.remove_inactive_peers(CurrentClock::now_sub(&TIMEOUT).expect("it should get a time passed"));
     }
 
     // Verify that the this peer was removed from the repository.
     {
-        let entry = repo.get(&info_hash).await.expect("it_should_get_some");
+        let entry = repo.get(&info_hash).expect("it_should_get_some");
         assert!(!entry.get_peers(None).contains(&peer.into()));
     }
 }
@@ -611,27 +468,15 @@ async fn it_should_remove_inactive_peers(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_remove_peerless_torrents(
-    #[values(
-        standard(),
-        standard_mutex(),
-        standard_tokio(),
-        tokio_std(),
-        tokio_mutex(),
-        tokio_tokio(),
-        skip_list_mutex_std(),
-        skip_list_mutex_parking_lot(),
-        skip_list_rw_lock_parking_lot(),
-        dash_map_std()
-    )]
-    repo: Repo,
+    #[values(skip_list_mutex_std())] repo: Repo,
     #[case] entries: Entries,
     #[values(policy_none(), policy_persist(), policy_remove(), policy_remove_persist())] policy: TrackerPolicy,
 ) {
-    make(&repo, &entries).await;
+    make(&repo, &entries);
 
-    repo.remove_peerless_torrents(&policy).await;
+    repo.remove_peerless_torrents(&policy);
 
-    let torrents = repo.get_paginated(None).await;
+    let torrents = repo.get_paginated(None);
 
     for (_, entry) in torrents {
         assert!(entry.meets_retaining_policy(&policy));

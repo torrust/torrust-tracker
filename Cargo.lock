@@ -4841,15 +4841,12 @@ dependencies = [
  "bittorrent-primitives",
  "criterion",
  "crossbeam-skiplist",
- "dashmap",
- "futures",
  "parking_lot",
  "rstest",
  "tokio",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
- "zerocopy 0.7.35",
 ]
 
 [[package]]

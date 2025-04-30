@@ -4,13 +4,6 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
-pub mod dash_map_mutex_std;
-pub mod rw_lock_std;
-pub mod rw_lock_std_mutex_std;
-pub mod rw_lock_std_mutex_tokio;
-pub mod rw_lock_tokio;
-pub mod rw_lock_tokio_mutex_std;
-pub mod rw_lock_tokio_mutex_tokio;
 pub mod skip_map_mutex_std;
 
 use std::fmt::Debug;
