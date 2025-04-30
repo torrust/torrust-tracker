@@ -5,8 +5,7 @@ use torrust_tracker_clock::clock;
 pub mod entry;
 pub mod repository;
 
-// Repo Entries
-pub type EntrySingle = entry::torrent::Torrent;
+// Repo Entry
 pub type EntryMutexStd = Arc<std::sync::Mutex<entry::torrent::Torrent>>;
 
 // Repository

@@ -6,7 +6,8 @@ use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMe
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use crate::entry::peer_list::PeerList;
-use crate::{EntryMutexStd, EntrySingle};
+use crate::entry::torrent::Torrent;
+use crate::EntryMutexStd;
 
 #[derive(Default, Debug)]
 pub struct TorrentsSkipMapMutexStd {
@@ -49,7 +50,7 @@ impl TorrentsSkipMapMutexStd {
         } else {
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
                 EntryMutexStd::new(
-                    EntrySingle {
+                    Torrent {
                         swarm: PeerList::default(),
                         downloaded: number_of_downloads,
                     }
@@ -130,7 +131,7 @@ impl TorrentsSkipMapMutexStd {
             }
 
             let entry = EntryMutexStd::new(
-                EntrySingle {
+                Torrent {
                     swarm: PeerList::default(),
                     downloaded: *completed,
                 }
