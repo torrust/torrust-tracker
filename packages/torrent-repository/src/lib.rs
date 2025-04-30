@@ -6,8 +6,8 @@ pub mod entry;
 pub mod repository;
 
 // Repo Entries
-pub type EntrySingle = entry::Torrent;
-pub type EntryMutexStd = Arc<std::sync::Mutex<entry::Torrent>>;
+pub type EntrySingle = entry::torrent::Torrent;
+pub type EntryMutexStd = Arc<std::sync::Mutex<entry::torrent::Torrent>>;
 
 // Repository
 pub type TorrentsSkipMapMutexStd = repository::skip_map_mutex_std::TorrentsSkipMapMutexStd;
