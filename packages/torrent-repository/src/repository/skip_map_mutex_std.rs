@@ -6,7 +6,6 @@ use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMe
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use crate::entry::peer_list::PeerList;
-use crate::entry::{Entry, EntrySync};
 use crate::{EntryMutexStd, EntrySingle};
 
 #[derive(Default, Debug)]
@@ -14,11 +13,7 @@ pub struct CrossbeamSkipList<T> {
     pub torrents: SkipMap<InfoHash, T>,
 }
 
-impl CrossbeamSkipList<EntryMutexStd>
-where
-    EntryMutexStd: EntrySync,
-    EntrySingle: Entry,
-{
+impl CrossbeamSkipList<EntryMutexStd> {
     /// Upsert a peer into the swarm of a torrent.
     ///
     /// Optionally, it can also preset the number of downloads of the torrent
@@ -35,6 +30,10 @@ where
     ///
     /// Returns `true` if the number of downloads was increased because the peer
     /// completed the download.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the lock for the entry cannot be obtained.
     pub fn upsert_peer(
         &self,
         info_hash: &InfoHash,
@@ -42,7 +41,11 @@ where
         opt_persistent_torrent: Option<PersistentTorrent>,
     ) -> bool {
         if let Some(existing_entry) = self.torrents.get(info_hash) {
-            existing_entry.value().upsert_peer(peer)
+            existing_entry
+                .value()
+                .lock()
+                .expect("can't acquire lock for torrent entry")
+                .upsert_peer(peer)
         } else {
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
                 EntryMutexStd::new(
@@ -58,12 +61,27 @@ where
 
             let inserted_entry = self.torrents.get_or_insert(*info_hash, new_entry);
 
-            inserted_entry.value().upsert_peer(peer)
+            let number_of_downloads_increased = inserted_entry
+                .value()
+                .lock()
+                .expect("can't acquire lock for torrent entry")
+                .upsert_peer(peer);
+
+            number_of_downloads_increased
         }
     }
 
+    /// # Panics
+    ///
+    /// This function panics if the lock for the entry cannot be obtained.
     pub fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
-        self.torrents.get(info_hash).map(|entry| entry.value().get_swarm_metadata())
+        self.torrents.get(info_hash).map(|entry| {
+            entry
+                .value()
+                .lock()
+                .expect("can't acquire lock for torrent entry")
+                .get_swarm_metadata()
+        })
     }
 
     pub fn get(&self, key: &InfoHash) -> Option<EntryMutexStd> {
@@ -129,15 +147,30 @@ where
         self.torrents.remove(key).map(|entry| entry.value().clone())
     }
 
+    /// # Panics
+    ///
+    /// This function panics if the lock for the entry cannot be obtained.
     pub fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
         for entry in &self.torrents {
-            entry.value().remove_inactive_peers(current_cutoff);
+            entry
+                .value()
+                .lock()
+                .expect("can't acquire lock for torrent entry")
+                .remove_inactive_peers(current_cutoff);
         }
     }
 
+    /// # Panics
+    ///
+    /// This function panics if the lock for the entry cannot be obtained.
     pub fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         for entry in &self.torrents {
-            if entry.value().meets_retaining_policy(policy) {
+            if entry
+                .value()
+                .lock()
+                .expect("can't acquire lock for torrent entry")
+                .meets_retaining_policy(policy)
+            {
                 continue;
             }
 

@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
@@ -77,7 +79,7 @@ impl Repo {
     pub(crate) fn insert(&self, info_hash: &InfoHash, torrent: EntrySingle) -> Option<EntrySingle> {
         match self {
             Repo::SkipMapMutexStd(repo) => {
-                repo.torrents.insert(*info_hash, torrent.into());
+                repo.torrents.insert(*info_hash, Arc::new(Mutex::new(torrent)));
             }
         }
         self.get(info_hash)

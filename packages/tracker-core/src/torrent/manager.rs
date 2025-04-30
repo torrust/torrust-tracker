@@ -110,7 +110,6 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_tracker_configuration::Core;
-    use torrust_tracker_torrent_repository::entry::EntrySync;
 
     use super::{DatabasePersistentTorrentRepository, TorrentsManager};
     use crate::databases::setup::initialize_database;
@@ -164,6 +163,8 @@ mod tests {
                 .in_memory_torrent_repository
                 .get(&infohash)
                 .unwrap()
+                .lock()
+                .expect("can't acquire lock for torrent entry")
                 .get_swarm_metadata()
                 .downloaded,
             1

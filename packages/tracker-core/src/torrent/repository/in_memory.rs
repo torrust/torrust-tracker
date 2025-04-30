@@ -7,7 +7,6 @@ use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
-use torrust_tracker_torrent_repository::entry::EntrySync;
 use torrust_tracker_torrent_repository::EntryMutexStd;
 
 use crate::torrent::Torrents;
@@ -145,7 +144,10 @@ impl InMemoryTorrentRepository {
     #[must_use]
     pub(crate) fn get_swarm_metadata(&self, info_hash: &InfoHash) -> SwarmMetadata {
         match self.torrents.get(info_hash) {
-            Some(torrent_entry) => torrent_entry.get_swarm_metadata(),
+            Some(torrent_entry) => torrent_entry
+                .lock()
+                .expect("can't acquire lock for torrent entry")
+                .get_swarm_metadata(),
             None => SwarmMetadata::zeroed(),
         }
     }
@@ -171,7 +173,10 @@ impl InMemoryTorrentRepository {
     pub(crate) fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.torrents.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_peers_for_client(&peer.peer_addr, Some(max(limit, TORRENT_PEERS_LIMIT))),
+            Some(entry) => entry
+                .lock()
+                .expect("can't acquire lock for torrent entry")
+                .get_peers_for_client(&peer.peer_addr, Some(max(limit, TORRENT_PEERS_LIMIT))),
         }
     }
 
@@ -188,11 +193,18 @@ impl InMemoryTorrentRepository {
     ///
     /// A vector of peers (wrapped in `Arc`) representing the active peers for
     /// the torrent.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the lock for the torrent entry cannot be obtained.
     #[must_use]
     pub fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<Arc<peer::Peer>> {
         match self.torrents.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.get_peers(Some(TORRENT_PEERS_LIMIT)),
+            Some(entry) => entry
+                .lock()
+                .expect("can't acquire lock for torrent entry")
+                .get_peers(Some(TORRENT_PEERS_LIMIT)),
         }
     }
 
@@ -500,7 +512,6 @@ mod tests {
 
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-            use torrust_tracker_torrent_repository::entry::EntrySync;
 
             use crate::test_helpers::tests::{sample_info_hash, sample_peer};
             use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
@@ -520,9 +531,18 @@ mod tests {
             impl Into<TorrentEntryInfo> for TorrentEntry {
                 fn into(self) -> TorrentEntryInfo {
                     TorrentEntryInfo {
-                        swarm_metadata: self.get_swarm_metadata(),
-                        peers: self.get_peers(None).iter().map(|peer| *peer.clone()).collect(),
-                        number_of_peers: self.get_peers_len(),
+                        swarm_metadata: self
+                            .lock()
+                            .expect("can't acquire lock for torrent entry")
+                            .get_swarm_metadata(),
+                        peers: self
+                            .lock()
+                            .expect("can't acquire lock for torrent entry")
+                            .get_peers(None)
+                            .iter()
+                            .map(|peer| *peer.clone())
+                            .collect(),
+                        number_of_peers: self.lock().expect("can't acquire lock for torrent entry").get_peers_len(),
                     }
                 }
             }

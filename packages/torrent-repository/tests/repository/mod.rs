@@ -8,7 +8,6 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::PersistentTorrents;
-use torrust_tracker_torrent_repository::entry::Entry as _;
 use torrust_tracker_torrent_repository::repository::skip_map_mutex_std::CrossbeamSkipList;
 use torrust_tracker_torrent_repository::EntrySingle;
 
