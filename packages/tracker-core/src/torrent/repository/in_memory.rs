@@ -528,20 +528,17 @@ mod tests {
             #[allow(clippy::from_over_into)]
             impl Into<TorrentEntryInfo> for TorrentEntry {
                 fn into(self) -> TorrentEntryInfo {
-                    TorrentEntryInfo {
-                        swarm_metadata: self
-                            .lock()
-                            .expect("can't acquire lock for torrent entry")
-                            .get_swarm_metadata(),
-                        peers: self
-                            .lock()
-                            .expect("can't acquire lock for torrent entry")
-                            .get_peers(None)
-                            .iter()
-                            .map(|peer| *peer.clone())
-                            .collect(),
-                        number_of_peers: self.lock().expect("can't acquire lock for torrent entry").get_peers_len(),
-                    }
+                    let torrent_guard = self.lock().expect("can't acquire lock for torrent entry");
+
+                    let torrent_entry_info = TorrentEntryInfo {
+                        swarm_metadata: torrent_guard.get_swarm_metadata(),
+                        peers: torrent_guard.get_peers(None).iter().map(|peer| *peer.clone()).collect(),
+                        number_of_peers: torrent_guard.get_peers_len(),
+                    };
+
+                    drop(torrent_guard);
+
+                    torrent_entry_info
                 }
             }
 

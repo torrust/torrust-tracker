@@ -4846,6 +4846,7 @@ dependencies = [
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
+ "tracing",
 ]
 
 [[package]]

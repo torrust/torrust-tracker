@@ -42,12 +42,16 @@ impl TorrentsSkipMapMutexStd {
         opt_persistent_torrent: Option<PersistentTorrent>,
     ) -> bool {
         if let Some(existing_entry) = self.torrents.get(info_hash) {
+            tracing::debug!("Torrent already exists: {:?}", info_hash);
+
             existing_entry
                 .value()
                 .lock()
                 .expect("can't acquire lock for torrent entry")
                 .upsert_peer(peer)
         } else {
+            tracing::debug!("Inserting new torrent: {:?}", info_hash);
+
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
                 EntryMutexStd::new(
                     Torrent {
@@ -62,13 +66,9 @@ impl TorrentsSkipMapMutexStd {
 
             let inserted_entry = self.torrents.get_or_insert(*info_hash, new_entry);
 
-            let number_of_downloads_increased = inserted_entry
-                .value()
-                .lock()
-                .expect("can't acquire lock for torrent entry")
-                .upsert_peer(peer);
+            let mut torrent_guard = inserted_entry.value().lock().expect("can't acquire lock for torrent entry");
 
-            number_of_downloads_increased
+            torrent_guard.upsert_peer(peer)
         }
     }
 

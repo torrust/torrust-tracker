@@ -190,10 +190,12 @@ pub fn get_torrents(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
     for info_hash in info_hashes {
-        if let Some(stats) = in_memory_torrent_repository
-            .get(info_hash)
-            .map(|t| t.lock().expect("can't acquire lock for torrent entry").get_swarm_metadata())
-        {
+        if let Some(stats) = in_memory_torrent_repository.get(info_hash).map(|torrent_entry| {
+            torrent_entry
+                .lock()
+                .expect("can't acquire lock for torrent entry")
+                .get_swarm_metadata()
+        }) {
             basic_infos.push(BasicInfo {
                 info_hash: *info_hash,
                 seeders: u64::from(stats.complete),
