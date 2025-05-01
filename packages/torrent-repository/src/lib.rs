@@ -1,23 +1,12 @@
-use std::sync::{Arc, Mutex};
-
-use torrust_tracker_clock::clock;
-
 pub mod entry;
 pub mod repository;
 
-// Repo entry
-pub type TorrentEntry = EntryMutexStd;
+use torrust_tracker_clock::clock;
 
-// Repository
-pub type Torrents = TorrentsSkipMapMutexStd;
+pub type TorrentEntry = entry::TorrentEntry;
+pub type Torrent = entry::torrent::Torrent;
+pub type Torrents = repository::TorrentsSkipMapMutexStd;
 
-// The internal type of the entry
-pub(crate) type EntryMutexStd = Arc<Mutex<entry::torrent::Torrent>>;
-
-// The internal type of the repository
-pub(crate) type TorrentsSkipMapMutexStd = repository::TorrentsSkipMapMutexStd;
-
-/// This code needs to be copied into each crate.
 /// Working version, for production.
 #[cfg(not(test))]
 #[allow(dead_code)]

@@ -7,11 +7,11 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent
 
 use crate::entry::peer_list::PeerList;
 use crate::entry::torrent::Torrent;
-use crate::EntryMutexStd;
+use crate::TorrentEntry;
 
 #[derive(Default, Debug)]
 pub struct TorrentsSkipMapMutexStd {
-    pub torrents: SkipMap<InfoHash, EntryMutexStd>,
+    pub torrents: SkipMap<InfoHash, TorrentEntry>,
 }
 
 impl TorrentsSkipMapMutexStd {
@@ -53,7 +53,7 @@ impl TorrentsSkipMapMutexStd {
             tracing::debug!("Inserting new torrent: {:?}", info_hash);
 
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
-                EntryMutexStd::new(
+                TorrentEntry::new(
                     Torrent {
                         swarm: PeerList::default(),
                         downloaded: number_of_downloads,
@@ -61,7 +61,7 @@ impl TorrentsSkipMapMutexStd {
                     .into(),
                 )
             } else {
-                EntryMutexStd::default()
+                TorrentEntry::default()
             };
 
             let inserted_entry = self.torrents.get_or_insert(*info_hash, new_entry);
@@ -85,7 +85,7 @@ impl TorrentsSkipMapMutexStd {
         })
     }
 
-    pub fn get(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    pub fn get(&self, key: &InfoHash) -> Option<TorrentEntry> {
         let maybe_entry = self.torrents.get(key);
         maybe_entry.map(|entry| entry.value().clone())
     }
@@ -107,7 +107,7 @@ impl TorrentsSkipMapMutexStd {
         metrics
     }
 
-    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
+    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, TorrentEntry)> {
         match pagination {
             Some(pagination) => self
                 .torrents
@@ -130,7 +130,7 @@ impl TorrentsSkipMapMutexStd {
                 continue;
             }
 
-            let entry = EntryMutexStd::new(
+            let entry = TorrentEntry::new(
                 Torrent {
                     swarm: PeerList::default(),
                     downloaded: *completed,
@@ -144,7 +144,7 @@ impl TorrentsSkipMapMutexStd {
         }
     }
 
-    pub fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    pub fn remove(&self, key: &InfoHash) -> Option<TorrentEntry> {
         self.torrents.remove(key).map(|entry| entry.value().clone())
     }
 
