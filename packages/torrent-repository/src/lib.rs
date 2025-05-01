@@ -9,7 +9,7 @@ pub mod repository;
 pub type EntryMutexStd = Arc<std::sync::Mutex<entry::torrent::Torrent>>;
 
 // Repository
-pub type TorrentsSkipMapMutexStd = repository::skip_map_mutex_std::TorrentsSkipMapMutexStd;
+pub type TorrentsSkipMapMutexStd = repository::TorrentsSkipMapMutexStd;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.
