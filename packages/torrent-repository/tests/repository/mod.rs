@@ -8,18 +8,18 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::PersistentTorrents;
-use torrust_tracker_torrent_repository::entry::torrent::Torrent;
-use torrust_tracker_torrent_repository::Torrents;
+use torrust_tracker_torrent_repository::entry::torrent::TrackedTorrent;
+use torrust_tracker_torrent_repository::TorrentRepository;
 
 use crate::common::repo::Repo;
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
 
 #[fixture]
 fn skip_list_mutex_std() -> Repo {
-    Repo::SkipMapMutexStd(Torrents::default())
+    Repo::SkipMapMutexStd(TorrentRepository::default())
 }
 
-type Entries = Vec<(InfoHash, Torrent)>;
+type Entries = Vec<(InfoHash, TrackedTorrent)>;
 
 #[fixture]
 fn empty() -> Entries {
@@ -28,26 +28,26 @@ fn empty() -> Entries {
 
 #[fixture]
 fn default() -> Entries {
-    vec![(InfoHash::default(), Torrent::default())]
+    vec![(InfoHash::default(), TrackedTorrent::default())]
 }
 
 #[fixture]
 fn started() -> Entries {
-    let mut torrent = Torrent::default();
+    let mut torrent = TrackedTorrent::default();
     torrent.upsert_peer(&a_started_peer(1));
     vec![(InfoHash::default(), torrent)]
 }
 
 #[fixture]
 fn completed() -> Entries {
-    let mut torrent = Torrent::default();
+    let mut torrent = TrackedTorrent::default();
     torrent.upsert_peer(&a_completed_peer(2));
     vec![(InfoHash::default(), torrent)]
 }
 
 #[fixture]
 fn downloaded() -> Entries {
-    let mut torrent = Torrent::default();
+    let mut torrent = TrackedTorrent::default();
     let mut peer = a_started_peer(3);
     torrent.upsert_peer(&peer);
     peer.event = AnnounceEvent::Completed;
@@ -58,17 +58,17 @@ fn downloaded() -> Entries {
 
 #[fixture]
 fn three() -> Entries {
-    let mut started = Torrent::default();
+    let mut started = TrackedTorrent::default();
     let started_h = &mut DefaultHasher::default();
     started.upsert_peer(&a_started_peer(1));
     started.hash(started_h);
 
-    let mut completed = Torrent::default();
+    let mut completed = TrackedTorrent::default();
     let completed_h = &mut DefaultHasher::default();
     completed.upsert_peer(&a_completed_peer(2));
     completed.hash(completed_h);
 
-    let mut downloaded = Torrent::default();
+    let mut downloaded = TrackedTorrent::default();
     let downloaded_h = &mut DefaultHasher::default();
     let mut downloaded_peer = a_started_peer(3);
     downloaded.upsert_peer(&downloaded_peer);
@@ -86,10 +86,10 @@ fn three() -> Entries {
 
 #[fixture]
 fn many_out_of_order() -> Entries {
-    let mut entries: HashSet<(InfoHash, Torrent)> = HashSet::default();
+    let mut entries: HashSet<(InfoHash, TrackedTorrent)> = HashSet::default();
 
     for i in 0..408 {
-        let mut entry = Torrent::default();
+        let mut entry = TrackedTorrent::default();
         entry.upsert_peer(&a_started_peer(i));
 
         entries.insert((InfoHash::from(&i), entry));
@@ -101,10 +101,10 @@ fn many_out_of_order() -> Entries {
 
 #[fixture]
 fn many_hashed_in_order() -> Entries {
-    let mut entries: BTreeMap<InfoHash, Torrent> = BTreeMap::default();
+    let mut entries: BTreeMap<InfoHash, TrackedTorrent> = BTreeMap::default();
 
     for i in 0..408 {
-        let mut entry = Torrent::default();
+        let mut entry = TrackedTorrent::default();
         entry.upsert_peer(&a_started_peer(i));
 
         let hash: &mut DefaultHasher = &mut DefaultHasher::default();

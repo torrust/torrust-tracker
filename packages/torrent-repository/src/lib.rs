@@ -1,11 +1,13 @@
 pub mod entry;
 pub mod repository;
 
+use std::sync::{Arc, Mutex};
+
 use torrust_tracker_clock::clock;
 
-pub type TorrentEntry = entry::TorrentEntry;
-pub type Torrent = entry::torrent::Torrent;
-pub type Torrents = repository::TorrentsSkipMapMutexStd;
+pub type TorrentRepository = repository::TorrentRepository;
+pub type TrackedTorrentHandle = Arc<Mutex<TrackedTorrent>>;
+pub type TrackedTorrent = entry::torrent::TrackedTorrent;
 
 /// Working version, for production.
 #[cfg(not(test))]

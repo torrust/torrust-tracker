@@ -6,15 +6,15 @@ use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMe
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use crate::entry::peer_list::PeerList;
-use crate::entry::torrent::Torrent;
-use crate::TorrentEntry;
+use crate::entry::torrent::TrackedTorrent;
+use crate::TrackedTorrentHandle;
 
 #[derive(Default, Debug)]
-pub struct TorrentsSkipMapMutexStd {
-    pub torrents: SkipMap<InfoHash, TorrentEntry>,
+pub struct TorrentRepository {
+    pub torrents: SkipMap<InfoHash, TrackedTorrentHandle>,
 }
 
-impl TorrentsSkipMapMutexStd {
+impl TorrentRepository {
     /// Upsert a peer into the swarm of a torrent.
     ///
     /// Optionally, it can also preset the number of downloads of the torrent
@@ -53,15 +53,15 @@ impl TorrentsSkipMapMutexStd {
             tracing::debug!("Inserting new torrent: {:?}", info_hash);
 
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
-                TorrentEntry::new(
-                    Torrent {
+                TrackedTorrentHandle::new(
+                    TrackedTorrent {
                         swarm: PeerList::default(),
                         downloaded: number_of_downloads,
                     }
                     .into(),
                 )
             } else {
-                TorrentEntry::default()
+                TrackedTorrentHandle::default()
             };
 
             let inserted_entry = self.torrents.get_or_insert(*info_hash, new_entry);
@@ -85,7 +85,7 @@ impl TorrentsSkipMapMutexStd {
         })
     }
 
-    pub fn get(&self, key: &InfoHash) -> Option<TorrentEntry> {
+    pub fn get(&self, key: &InfoHash) -> Option<TrackedTorrentHandle> {
         let maybe_entry = self.torrents.get(key);
         maybe_entry.map(|entry| entry.value().clone())
     }
@@ -107,7 +107,7 @@ impl TorrentsSkipMapMutexStd {
         metrics
     }
 
-    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, TorrentEntry)> {
+    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, TrackedTorrentHandle)> {
         match pagination {
             Some(pagination) => self
                 .torrents
@@ -130,8 +130,8 @@ impl TorrentsSkipMapMutexStd {
                 continue;
             }
 
-            let entry = TorrentEntry::new(
-                Torrent {
+            let entry = TrackedTorrentHandle::new(
+                TrackedTorrent {
                     swarm: PeerList::default(),
                     downloaded: *completed,
                 }
@@ -144,7 +144,7 @@ impl TorrentsSkipMapMutexStd {
         }
     }
 
-    pub fn remove(&self, key: &InfoHash) -> Option<TorrentEntry> {
+    pub fn remove(&self, key: &InfoHash) -> Option<TrackedTorrentHandle> {
         self.torrents.remove(key).map(|entry| entry.value().clone())
     }
 

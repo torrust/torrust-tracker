@@ -16,7 +16,7 @@ use super::peer_list::PeerList;
 /// that's the list of all the peers trying to download the same torrent.
 /// The tracker keeps one entry like this for every torrent.
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Torrent {
+pub struct TrackedTorrent {
     /// A network of peers that are all trying to download the torrent associated to this entry
     pub(crate) swarm: PeerList,
 
@@ -24,7 +24,7 @@ pub struct Torrent {
     pub(crate) downloaded: u32,
 }
 
-impl Torrent {
+impl TrackedTorrent {
     #[allow(clippy::cast_possible_truncation)]
     #[must_use]
     pub fn get_swarm_metadata(&self) -> SwarmMetadata {

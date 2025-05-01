@@ -5,12 +5,12 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
-use torrust_tracker_torrent_repository::entry::torrent::Torrent;
-use torrust_tracker_torrent_repository::Torrents;
+use torrust_tracker_torrent_repository::entry::torrent::TrackedTorrent;
+use torrust_tracker_torrent_repository::TorrentRepository;
 
 #[derive(Debug)]
 pub(crate) enum Repo {
-    SkipMapMutexStd(Torrents),
+    SkipMapMutexStd(TorrentRepository),
 }
 
 impl Repo {
@@ -31,7 +31,7 @@ impl Repo {
         }
     }
 
-    pub(crate) fn get(&self, key: &InfoHash) -> Option<Torrent> {
+    pub(crate) fn get(&self, key: &InfoHash) -> Option<TrackedTorrent> {
         match self {
             Repo::SkipMapMutexStd(repo) => Some(repo.get(key)?.lock().unwrap().clone()),
         }
@@ -43,7 +43,7 @@ impl Repo {
         }
     }
 
-    pub(crate) fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, Torrent)> {
+    pub(crate) fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, TrackedTorrent)> {
         match self {
             Repo::SkipMapMutexStd(repo) => repo
                 .get_paginated(pagination)
@@ -59,7 +59,7 @@ impl Repo {
         }
     }
 
-    pub(crate) fn remove(&self, key: &InfoHash) -> Option<Torrent> {
+    pub(crate) fn remove(&self, key: &InfoHash) -> Option<TrackedTorrent> {
         match self {
             Repo::SkipMapMutexStd(repo) => Some(repo.remove(key)?.lock().unwrap().clone()),
         }
@@ -77,7 +77,7 @@ impl Repo {
         }
     }
 
-    pub(crate) fn insert(&self, info_hash: &InfoHash, torrent: Torrent) -> Option<Torrent> {
+    pub(crate) fn insert(&self, info_hash: &InfoHash, torrent: TrackedTorrent) -> Option<TrackedTorrent> {
         match self {
             Repo::SkipMapMutexStd(repo) => {
                 repo.torrents.insert(*info_hash, Arc::new(Mutex::new(torrent)));

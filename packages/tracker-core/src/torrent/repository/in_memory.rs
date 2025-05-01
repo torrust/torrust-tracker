@@ -7,7 +7,7 @@ use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
-use torrust_tracker_torrent_repository::{TorrentEntry, Torrents};
+use torrust_tracker_torrent_repository::{TorrentRepository, TrackedTorrentHandle};
 
 /// In-memory repository for torrent entries.
 ///
@@ -21,7 +21,7 @@ use torrust_tracker_torrent_repository::{TorrentEntry, Torrents};
 #[derive(Debug, Default)]
 pub struct InMemoryTorrentRepository {
     /// The underlying in-memory data structure that stores torrent entries.
-    torrents: Arc<Torrents>,
+    torrents: Arc<TorrentRepository>,
 }
 
 impl InMemoryTorrentRepository {
@@ -64,7 +64,7 @@ impl InMemoryTorrentRepository {
     /// An `Option` containing the removed torrent entry if it existed.
     #[cfg(test)]
     #[must_use]
-    pub(crate) fn remove(&self, key: &InfoHash) -> Option<TorrentEntry> {
+    pub(crate) fn remove(&self, key: &InfoHash) -> Option<TrackedTorrentHandle> {
         self.torrents.remove(key)
     }
 
@@ -104,7 +104,7 @@ impl InMemoryTorrentRepository {
     ///
     /// An `Option` containing the torrent entry if found.
     #[must_use]
-    pub(crate) fn get(&self, key: &InfoHash) -> Option<TorrentEntry> {
+    pub(crate) fn get(&self, key: &InfoHash) -> Option<TrackedTorrentHandle> {
         self.torrents.get(key)
     }
 
@@ -122,7 +122,7 @@ impl InMemoryTorrentRepository {
     ///
     /// A vector of `(InfoHash, TorrentEntry)` tuples.
     #[must_use]
-    pub(crate) fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, TorrentEntry)> {
+    pub(crate) fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, TrackedTorrentHandle)> {
         self.torrents.get_paginated(pagination)
     }
 
@@ -510,7 +510,7 @@ mod tests {
 
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-            use torrust_tracker_torrent_repository::TorrentEntry;
+            use torrust_tracker_torrent_repository::TrackedTorrentHandle;
 
             use crate::test_helpers::tests::{sample_info_hash, sample_peer};
             use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
@@ -526,7 +526,7 @@ mod tests {
             }
 
             #[allow(clippy::from_over_into)]
-            impl Into<TorrentEntryInfo> for TorrentEntry {
+            impl Into<TorrentEntryInfo> for TrackedTorrentHandle {
                 fn into(self) -> TorrentEntryInfo {
                     let torrent_guard = self.lock().expect("can't acquire lock for torrent entry");
 
