@@ -7,9 +7,7 @@ use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
-use torrust_tracker_torrent_repository::EntryMutexStd;
-
-use crate::torrent::Torrents;
+use torrust_tracker_torrent_repository::{TorrentEntry, Torrents};
 
 /// In-memory repository for torrent entries.
 ///
@@ -66,7 +64,7 @@ impl InMemoryTorrentRepository {
     /// An `Option` containing the removed torrent entry if it existed.
     #[cfg(test)]
     #[must_use]
-    pub(crate) fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    pub(crate) fn remove(&self, key: &InfoHash) -> Option<TorrentEntry> {
         self.torrents.remove(key)
     }
 
@@ -106,7 +104,7 @@ impl InMemoryTorrentRepository {
     ///
     /// An `Option` containing the torrent entry if found.
     #[must_use]
-    pub(crate) fn get(&self, key: &InfoHash) -> Option<EntryMutexStd> {
+    pub(crate) fn get(&self, key: &InfoHash) -> Option<TorrentEntry> {
         self.torrents.get(key)
     }
 
@@ -122,9 +120,9 @@ impl InMemoryTorrentRepository {
     ///
     /// # Returns
     ///
-    /// A vector of `(InfoHash, EntryMutexStd)` tuples.
+    /// A vector of `(InfoHash, TorrentEntry)` tuples.
     #[must_use]
-    pub(crate) fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexStd)> {
+    pub(crate) fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, TorrentEntry)> {
         self.torrents.get_paginated(pagination)
     }
 
@@ -512,10 +510,10 @@ mod tests {
 
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+            use torrust_tracker_torrent_repository::TorrentEntry;
 
             use crate::test_helpers::tests::{sample_info_hash, sample_peer};
             use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
-            use crate::torrent::TorrentEntry;
 
             /// `TorrentEntry` data is not directly accessible. It's only
             /// accessible through the trait methods. We need this temporary

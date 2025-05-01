@@ -6,11 +6,11 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 use torrust_tracker_torrent_repository::entry::torrent::Torrent;
-use torrust_tracker_torrent_repository::TorrentsSkipMapMutexStd;
+use torrust_tracker_torrent_repository::Torrents;
 
 #[derive(Debug)]
 pub(crate) enum Repo {
-    SkipMapMutexStd(TorrentsSkipMapMutexStd),
+    SkipMapMutexStd(Torrents),
 }
 
 impl Repo {

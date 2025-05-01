@@ -9,14 +9,14 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::PersistentTorrents;
 use torrust_tracker_torrent_repository::entry::torrent::Torrent;
-use torrust_tracker_torrent_repository::TorrentsSkipMapMutexStd;
+use torrust_tracker_torrent_repository::Torrents;
 
 use crate::common::repo::Repo;
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
 
 #[fixture]
 fn skip_list_mutex_std() -> Repo {
-    Repo::SkipMapMutexStd(TorrentsSkipMapMutexStd::default())
+    Repo::SkipMapMutexStd(Torrents::default())
 }
 
 type Entries = Vec<(InfoHash, Torrent)>;
