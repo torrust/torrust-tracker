@@ -250,20 +250,6 @@ impl TorrentRepository {
         }
     }
 
-    /// Calculates and returns overall torrent metrics.
-    ///
-    /// The returned [`AggregateSwarmMetadata`] contains aggregate data such as
-    /// the total number of torrents, total complete (seeders), incomplete
-    /// (leechers), and downloaded counts.
-    ///
-    /// # Returns
-    ///
-    /// A [`AggregateSwarmMetadata`] struct with the aggregated metrics.
-    #[must_use]
-    pub fn get_torrents_metrics(&self) -> AggregateSwarmMetadata {
-        self.get_metrics()
-    }
-
     /// Imports persistent torrent data into the in-memory repository.
     ///
     /// This method takes a set of persisted torrent entries (e.g., from a
@@ -303,7 +289,7 @@ impl TorrentRepository {
     ///
     /// This function panics if the lock for the entry cannot be obtained.
     #[must_use]
-    pub fn get_metrics(&self) -> AggregateSwarmMetadata {
+    pub fn get_aggregate_swarm_metadata(&self) -> AggregateSwarmMetadata {
         let mut metrics = AggregateSwarmMetadata::default();
 
         for entry in &self.torrents {
@@ -824,7 +810,7 @@ mod tests {
             async fn it_should_get_empty_aggregate_swarm_metadata_when_there_are_no_torrents() {
                 let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
 
-                let aggregate_swarm_metadata = in_memory_torrent_repository.get_torrents_metrics();
+                let aggregate_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -844,7 +830,7 @@ mod tests {
                 let _number_of_downloads_increased =
                     in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &leecher(), None);
 
-                let aggregate_swarm_metadata = in_memory_torrent_repository.get_torrents_metrics();
+                let aggregate_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -864,7 +850,7 @@ mod tests {
                 let _number_of_downloads_increased =
                     in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &seeder(), None);
 
-                let aggregate_swarm_metadata = in_memory_torrent_repository.get_torrents_metrics();
+                let aggregate_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -884,7 +870,7 @@ mod tests {
                 let _number_of_downloads_increased =
                     in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &complete_peer(), None);
 
-                let aggregate_swarm_metadata = in_memory_torrent_repository.get_torrents_metrics();
+                let aggregate_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -909,7 +895,7 @@ mod tests {
                 let result_a = start_time.elapsed();
 
                 let start_time = std::time::Instant::now();
-                let aggregate_swarm_metadata = in_memory_torrent_repository.get_torrents_metrics();
+                let aggregate_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata();
                 let result_b = start_time.elapsed();
 
                 assert_eq!(

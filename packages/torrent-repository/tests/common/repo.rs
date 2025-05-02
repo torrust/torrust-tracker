@@ -39,7 +39,7 @@ impl Repo {
 
     pub(crate) fn get_metrics(&self) -> AggregateSwarmMetadata {
         match self {
-            Repo::SkipMapMutexStd(repo) => repo.get_metrics(),
+            Repo::SkipMapMutexStd(repo) => repo.get_aggregate_swarm_metadata(),
         }
     }
 

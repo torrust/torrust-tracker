@@ -199,8 +199,8 @@ impl InMemoryTorrentRepository {
     ///
     /// A [`AggregateSwarmMetadata`] struct with the aggregated metrics.
     #[must_use]
-    pub fn get_torrents_metrics(&self) -> AggregateSwarmMetadata {
-        self.torrents.get_torrents_metrics()
+    pub fn get_aggregate_swarm_metadata(&self) -> AggregateSwarmMetadata {
+        self.torrents.get_aggregate_swarm_metadata()
     }
 
     /// Imports persistent torrent data into the in-memory repository.
