@@ -1,7 +1,7 @@
 pub mod entry;
 pub mod repository;
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use torrust_tracker_clock::clock;
 
@@ -18,6 +18,16 @@ pub(crate) type CurrentClock = clock::Working;
 #[cfg(test)]
 #[allow(dead_code)]
 pub(crate) type CurrentClock = clock::Stopped;
+
+pub trait LockTrackedTorrent {
+    fn lock_or_panic(&self) -> MutexGuard<'_, TrackedTorrent>;
+}
+
+impl LockTrackedTorrent for Arc<Mutex<TrackedTorrent>> {
+    fn lock_or_panic(&self) -> MutexGuard<'_, TrackedTorrent> {
+        self.lock().expect("can't acquire lock for tracked torrent handle")
+    }
+}
 
 #[cfg(test)]
 pub(crate) mod tests {

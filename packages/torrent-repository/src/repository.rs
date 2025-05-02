@@ -9,7 +9,7 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent
 
 use crate::entry::peer_list::PeerList;
 use crate::entry::torrent::TrackedTorrent;
-use crate::TrackedTorrentHandle;
+use crate::{LockTrackedTorrent, TrackedTorrentHandle};
 
 #[derive(Default, Debug)]
 pub struct TorrentRepository {
@@ -46,11 +46,7 @@ impl TorrentRepository {
         if let Some(existing_entry) = self.torrents.get(info_hash) {
             tracing::debug!("Torrent already exists: {:?}", info_hash);
 
-            existing_entry
-                .value()
-                .lock()
-                .expect("can't acquire lock for tracked torrent handle")
-                .upsert_peer(peer)
+            existing_entry.value().lock_or_panic().upsert_peer(peer)
         } else {
             tracing::debug!("Inserting new torrent: {:?}", info_hash);
 
@@ -68,10 +64,7 @@ impl TorrentRepository {
 
             let inserted_entry = self.torrents.get_or_insert(*info_hash, new_entry);
 
-            let mut torrent_guard = inserted_entry
-                .value()
-                .lock()
-                .expect("can't acquire lock for tracked torrent handle");
+            let mut torrent_guard = inserted_entry.value().lock_or_panic();
 
             torrent_guard.upsert_peer(peer)
         }
@@ -97,11 +90,7 @@ impl TorrentRepository {
     /// This function panics if the lock for the entry cannot be obtained.
     pub fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
         for entry in &self.torrents {
-            entry
-                .value()
-                .lock()
-                .expect("can't acquire lock for tracked torrent handle")
-                .remove_inactive_peers(current_cutoff);
+            entry.value().lock_or_panic().remove_inactive_peers(current_cutoff);
         }
     }
 
@@ -154,13 +143,9 @@ impl TorrentRepository {
     /// This function panics if the lock for the entry cannot be obtained.
     #[must_use]
     pub fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
-        self.torrents.get(info_hash).map(|entry| {
-            entry
-                .value()
-                .lock()
-                .expect("can't acquire lock for tracked torrent handle")
-                .get_swarm_metadata()
-        })
+        self.torrents
+            .get(info_hash)
+            .map(|entry| entry.value().lock_or_panic().get_swarm_metadata())
     }
 
     /// Retrieves swarm metadata for a given torrent.
@@ -196,10 +181,7 @@ impl TorrentRepository {
     pub fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
             None => vec![],
-            Some(entry) => entry
-                .lock()
-                .expect("can't acquire lock for tracked torrent handle")
-                .get_peers_for_client(&peer.peer_addr, Some(limit)),
+            Some(entry) => entry.lock_or_panic().get_peers_for_client(&peer.peer_addr, Some(limit)),
         }
     }
 
@@ -220,10 +202,7 @@ impl TorrentRepository {
     pub fn get_torrent_peers(&self, info_hash: &InfoHash, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
             None => vec![],
-            Some(entry) => entry
-                .lock()
-                .expect("can't acquire lock for tracked torrent handle")
-                .get_peers(Some(limit)),
+            Some(entry) => entry.lock_or_panic().get_peers(Some(limit)),
         }
     }
 
@@ -237,12 +216,7 @@ impl TorrentRepository {
     /// This function panics if the lock for the entry cannot be obtained.
     pub fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         for entry in &self.torrents {
-            if entry
-                .value()
-                .lock()
-                .expect("can't acquire lock for tracked torrent handle")
-                .meets_retaining_policy(policy)
-            {
+            if entry.value().lock_or_panic().meets_retaining_policy(policy) {
                 continue;
             }
 
@@ -293,11 +267,7 @@ impl TorrentRepository {
         let mut metrics = AggregateSwarmMetadata::default();
 
         for entry in &self.torrents {
-            let stats = entry
-                .value()
-                .lock()
-                .expect("can't acquire lock for tracked torrent handle")
-                .get_swarm_metadata();
+            let stats = entry.value().lock_or_panic().get_swarm_metadata();
             metrics.total_complete += u64::from(stats.complete);
             metrics.total_downloaded += u64::from(stats.downloaded);
             metrics.total_incomplete += u64::from(stats.incomplete);
@@ -584,7 +554,7 @@ mod tests {
 
             use crate::repository::TorrentRepository;
             use crate::tests::{sample_info_hash, sample_peer};
-            use crate::TrackedTorrentHandle;
+            use crate::{LockTrackedTorrent, TrackedTorrentHandle};
 
             /// `TorrentEntry` data is not directly accessible. It's only
             /// accessible through the trait methods. We need this temporary
@@ -599,7 +569,7 @@ mod tests {
             #[allow(clippy::from_over_into)]
             impl Into<TorrentEntryInfo> for TrackedTorrentHandle {
                 fn into(self) -> TorrentEntryInfo {
-                    let torrent_guard = self.lock().expect("can't acquire lock for tracked torrent handle");
+                    let torrent_guard = self.lock_or_panic();
 
                     let torrent_entry_info = TorrentEntryInfo {
                         swarm_metadata: torrent_guard.get_swarm_metadata(),

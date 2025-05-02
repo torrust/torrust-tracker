@@ -594,6 +594,7 @@ mod tests {
 
             use aquatic_udp_protocol::AnnounceEvent;
             use torrust_tracker_test_helpers::configuration;
+            use torrust_tracker_torrent_repository::LockTrackedTorrent;
 
             use crate::announce_handler::tests::the_announce_handler::peer_ip;
             use crate::announce_handler::{AnnounceHandler, PeersWanted};
@@ -656,20 +657,10 @@ mod tests {
                     .expect("it should be able to get entry");
 
                 // It persists the number of completed peers.
-                assert_eq!(
-                    torrent_entry
-                        .lock()
-                        .expect("can't acquire lock for torrent entry")
-                        .get_swarm_metadata()
-                        .downloaded,
-                    1
-                );
+                assert_eq!(torrent_entry.lock_or_panic().get_swarm_metadata().downloaded, 1);
 
                 // It does not persist the peers
-                assert!(torrent_entry
-                    .lock()
-                    .expect("can't acquire lock for torrent entry")
-                    .peers_is_empty());
+                assert!(torrent_entry.lock_or_panic().peers_is_empty());
             }
         }
 
