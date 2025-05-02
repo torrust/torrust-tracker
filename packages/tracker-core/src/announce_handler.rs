@@ -188,7 +188,7 @@ impl AnnounceHandler {
             .in_memory_torrent_repository
             .get_peers_for(info_hash, peer, peers_wanted.limit());
 
-        let swarm_metadata = self.in_memory_torrent_repository.get_swarm_metadata(info_hash);
+        let swarm_metadata = self.in_memory_torrent_repository.get_swarm_metadata_or_default(info_hash);
 
         AnnounceData {
             peers,

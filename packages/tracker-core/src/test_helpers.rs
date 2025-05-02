@@ -64,48 +64,12 @@ pub(crate) mod tests {
             .expect("String should be a valid info hash")
     }
 
-    /// # Panics
-    ///
-    /// Will panic if the string representation of the info hash is not a valid info hash.
-    #[must_use]
-    pub fn sample_info_hash_alphabetically_ordered_after_sample_info_hash_one() -> InfoHash {
-        "99c82bb73505a3c0b453f9fa0e881d6e5a32a0c1" // DevSkim: ignore DS173237
-            .parse::<InfoHash>()
-            .expect("String should be a valid info hash")
-    }
-
     /// Sample peer whose state is not relevant for the tests.
     #[must_use]
     pub fn sample_peer() -> Peer {
         Peer {
             peer_id: PeerId(*b"-qB00000000000000000"),
             peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
-            uploaded: NumberOfBytes::new(0),
-            downloaded: NumberOfBytes::new(0),
-            left: NumberOfBytes::new(0), // No bytes left to download
-            event: AnnounceEvent::Completed,
-        }
-    }
-
-    #[must_use]
-    pub fn sample_peer_one() -> Peer {
-        Peer {
-            peer_id: PeerId(*b"-qB00000000000000001"),
-            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081),
-            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
-            uploaded: NumberOfBytes::new(0),
-            downloaded: NumberOfBytes::new(0),
-            left: NumberOfBytes::new(0), // No bytes left to download
-            event: AnnounceEvent::Completed,
-        }
-    }
-
-    #[must_use]
-    pub fn sample_peer_two() -> Peer {
-        Peer {
-            peer_id: PeerId(*b"-qB00000000000000002"),
-            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2)), 8082),
             updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
             uploaded: NumberOfBytes::new(0),
             downloaded: NumberOfBytes::new(0),
