@@ -352,25 +352,25 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_add_the_first_peer_to_the_torrent_peer_list() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 let info_hash = sample_info_hash();
 
-                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
 
-                assert!(in_memory_torrent_repository.get(&info_hash).is_some());
+                assert!(torrent_repository.get(&info_hash).is_some());
             }
 
             #[tokio::test]
             async fn it_should_allow_adding_the_same_peer_twice_to_the_torrent_peer_list() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 let info_hash = sample_info_hash();
 
-                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
-                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
 
-                assert!(in_memory_torrent_repository.get(&info_hash).is_some());
+                assert!(torrent_repository.get(&info_hash).is_some());
             }
         }
 
@@ -389,30 +389,30 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_peers_for_a_given_torrent() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
 
-                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
 
-                let peers = in_memory_torrent_repository.get_torrent_peers(&info_hash, 74);
+                let peers = torrent_repository.get_torrent_peers(&info_hash, 74);
 
                 assert_eq!(peers, vec![Arc::new(peer)]);
             }
 
             #[tokio::test]
             async fn it_should_return_an_empty_list_or_peers_for_a_non_existing_torrent() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
-                let peers = in_memory_torrent_repository.get_torrent_peers(&sample_info_hash(), 74);
+                let peers = torrent_repository.get_torrent_peers(&sample_info_hash(), 74);
 
                 assert!(peers.is_empty());
             }
 
             #[tokio::test]
             async fn it_should_return_74_peers_at_the_most_for_a_given_torrent() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 let info_hash = sample_info_hash();
 
@@ -427,10 +427,10 @@ mod tests {
                         event: AnnounceEvent::Completed,
                     };
 
-                    let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
+                    let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
                 }
 
-                let peers = in_memory_torrent_repository.get_torrent_peers(&info_hash, 74);
+                let peers = torrent_repository.get_torrent_peers(&info_hash, 74);
 
                 assert_eq!(peers.len(), 74);
             }
@@ -451,38 +451,36 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_an_empty_peer_list_for_a_non_existing_torrent() {
-                    let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                    let torrent_repository = Arc::new(TorrentRepository::default());
 
-                    let peers =
-                        in_memory_torrent_repository.get_peers_for(&sample_info_hash(), &sample_peer(), TORRENT_PEERS_LIMIT);
+                    let peers = torrent_repository.get_peers_for(&sample_info_hash(), &sample_peer(), TORRENT_PEERS_LIMIT);
 
                     assert_eq!(peers, vec![]);
                 }
 
                 #[tokio::test]
                 async fn it_should_return_the_peers_for_a_given_torrent_excluding_a_given_peer() {
-                    let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                    let torrent_repository = Arc::new(TorrentRepository::default());
 
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
 
-                    let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
+                    let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
 
-                    let peers = in_memory_torrent_repository.get_peers_for(&info_hash, &peer, TORRENT_PEERS_LIMIT);
+                    let peers = torrent_repository.get_peers_for(&info_hash, &peer, TORRENT_PEERS_LIMIT);
 
                     assert_eq!(peers, vec![]);
                 }
 
                 #[tokio::test]
                 async fn it_should_return_74_peers_at_the_most_for_a_given_torrent_when_it_filters_out_a_given_peer() {
-                    let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                    let torrent_repository = Arc::new(TorrentRepository::default());
 
                     let info_hash = sample_info_hash();
 
                     let excluded_peer = sample_peer();
 
-                    let _number_of_downloads_increased =
-                        in_memory_torrent_repository.upsert_peer(&info_hash, &excluded_peer, None);
+                    let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &excluded_peer, None);
 
                     // Add 74 peers
                     for idx in 2..=75 {
@@ -496,10 +494,10 @@ mod tests {
                             event: AnnounceEvent::Completed,
                         };
 
-                        let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
+                        let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
                     }
 
-                    let peers = in_memory_torrent_repository.get_peers_for(&info_hash, &excluded_peer, TORRENT_PEERS_LIMIT);
+                    let peers = torrent_repository.get_peers_for(&info_hash, &excluded_peer, TORRENT_PEERS_LIMIT);
 
                     assert_eq!(peers.len(), 74);
                 }
@@ -521,62 +519,60 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_remove_a_torrent_entry() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 let info_hash = sample_info_hash();
-                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
 
-                let _unused = in_memory_torrent_repository.remove(&info_hash);
+                let _unused = torrent_repository.remove(&info_hash);
 
-                assert!(in_memory_torrent_repository.get(&info_hash).is_none());
+                assert!(torrent_repository.get(&info_hash).is_none());
             }
 
             #[tokio::test]
             async fn it_should_remove_peers_that_have_not_been_updated_after_a_cutoff_time() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 let info_hash = sample_info_hash();
                 let mut peer = sample_peer();
                 peer.updated = DurationSinceUnixEpoch::new(0, 0);
 
-                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
 
                 // Cut off time is 1 second after the peer was updated
-                in_memory_torrent_repository.remove_inactive_peers(peer.updated.add(Duration::from_secs(1)));
+                torrent_repository.remove_inactive_peers(peer.updated.add(Duration::from_secs(1)));
 
-                assert!(!in_memory_torrent_repository
-                    .get_torrent_peers(&info_hash, 74)
-                    .contains(&Arc::new(peer)));
+                assert!(!torrent_repository.get_torrent_peers(&info_hash, 74).contains(&Arc::new(peer)));
             }
 
             fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<TorrentRepository> {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 // Insert a sample peer for the torrent to force adding the torrent entry
                 let mut peer = sample_peer();
                 peer.updated = DurationSinceUnixEpoch::new(0, 0);
-                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(info_hash, &peer, None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(info_hash, &peer, None);
 
                 // Remove the peer
-                in_memory_torrent_repository.remove_inactive_peers(peer.updated.add(Duration::from_secs(1)));
+                torrent_repository.remove_inactive_peers(peer.updated.add(Duration::from_secs(1)));
 
-                in_memory_torrent_repository
+                torrent_repository
             }
 
             #[tokio::test]
             async fn it_should_remove_torrents_without_peers() {
                 let info_hash = sample_info_hash();
 
-                let in_memory_torrent_repository = initialize_repository_with_one_torrent_without_peers(&info_hash);
+                let torrent_repository = initialize_repository_with_one_torrent_without_peers(&info_hash);
 
                 let tracker_policy = TrackerPolicy {
                     remove_peerless_torrents: true,
                     ..Default::default()
                 };
 
-                in_memory_torrent_repository.remove_peerless_torrents(&tracker_policy);
+                torrent_repository.remove_peerless_torrents(&tracker_policy);
 
-                assert!(in_memory_torrent_repository.get(&info_hash).is_none());
+                assert!(torrent_repository.get(&info_hash).is_none());
             }
         }
         mod returning_torrent_entries {
@@ -619,14 +615,14 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_one_torrent_entry_by_infohash() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
 
-                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
 
-                let torrent_entry = in_memory_torrent_repository.get(&info_hash).unwrap();
+                let torrent_entry = torrent_repository.get(&info_hash).unwrap();
 
                 assert_eq!(
                     TorrentEntryInfo {
@@ -653,13 +649,13 @@ mod tests {
 
                 #[tokio::test]
                 async fn without_pagination() {
-                    let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                    let torrent_repository = Arc::new(TorrentRepository::default());
 
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
-                    let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &peer, None);
+                    let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
 
-                    let torrent_entries = in_memory_torrent_repository.get_paginated(None);
+                    let torrent_entries = torrent_repository.get_paginated(None);
 
                     assert_eq!(torrent_entries.len(), 1);
 
@@ -694,23 +690,20 @@ mod tests {
 
                     #[tokio::test]
                     async fn it_should_return_the_first_page() {
-                        let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                        let torrent_repository = Arc::new(TorrentRepository::default());
 
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        let _number_of_downloads_increased =
-                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_one, None);
+                        let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash_one, &peer_one, None);
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        let _number_of_downloads_increased =
-                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_two, None);
+                        let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash_one, &peer_two, None);
 
                         // Get only the first page where page size is 1
-                        let torrent_entries =
-                            in_memory_torrent_repository.get_paginated(Some(&Pagination { offset: 0, limit: 1 }));
+                        let torrent_entries = torrent_repository.get_paginated(Some(&Pagination { offset: 0, limit: 1 }));
 
                         assert_eq!(torrent_entries.len(), 1);
 
@@ -732,23 +725,20 @@ mod tests {
 
                     #[tokio::test]
                     async fn it_should_return_the_second_page() {
-                        let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                        let torrent_repository = Arc::new(TorrentRepository::default());
 
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        let _number_of_downloads_increased =
-                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_one, None);
+                        let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash_one, &peer_one, None);
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        let _number_of_downloads_increased =
-                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_two, None);
+                        let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash_one, &peer_two, None);
 
                         // Get only the first page where page size is 1
-                        let torrent_entries =
-                            in_memory_torrent_repository.get_paginated(Some(&Pagination { offset: 1, limit: 1 }));
+                        let torrent_entries = torrent_repository.get_paginated(Some(&Pagination { offset: 1, limit: 1 }));
 
                         assert_eq!(torrent_entries.len(), 1);
 
@@ -770,23 +760,20 @@ mod tests {
 
                     #[tokio::test]
                     async fn it_should_allow_changing_the_page_size() {
-                        let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                        let torrent_repository = Arc::new(TorrentRepository::default());
 
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        let _number_of_downloads_increased =
-                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_one, None);
+                        let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash_one, &peer_one, None);
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        let _number_of_downloads_increased =
-                            in_memory_torrent_repository.upsert_peer(&info_hash_one, &peer_two, None);
+                        let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash_one, &peer_two, None);
 
                         // Get only the first page where page size is 1
-                        let torrent_entries =
-                            in_memory_torrent_repository.get_paginated(Some(&Pagination { offset: 1, limit: 1 }));
+                        let torrent_entries = torrent_repository.get_paginated(Some(&Pagination { offset: 1, limit: 1 }));
 
                         assert_eq!(torrent_entries.len(), 1);
                     }
@@ -808,9 +795,9 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_get_empty_aggregate_swarm_metadata_when_there_are_no_torrents() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
-                let aggregate_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata();
+                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -825,12 +812,11 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_leecher() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
-                let _number_of_downloads_increased =
-                    in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &leecher(), None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&sample_info_hash(), &leecher(), None);
 
-                let aggregate_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata();
+                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -845,12 +831,11 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_seeder() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
-                let _number_of_downloads_increased =
-                    in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &seeder(), None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&sample_info_hash(), &seeder(), None);
 
-                let aggregate_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata();
+                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -865,12 +850,11 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_completed_peer() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
-                let _number_of_downloads_increased =
-                    in_memory_torrent_repository.upsert_peer(&sample_info_hash(), &complete_peer(), None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&sample_info_hash(), &complete_peer(), None);
 
-                let aggregate_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata();
+                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -885,17 +869,17 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_are_multiple_torrents() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 let start_time = std::time::Instant::now();
                 for i in 0..1_000_000 {
                     let _number_of_downloads_increased =
-                        in_memory_torrent_repository.upsert_peer(&gen_seeded_infohash(&i), &leecher(), None);
+                        torrent_repository.upsert_peer(&gen_seeded_infohash(&i), &leecher(), None);
                 }
                 let result_a = start_time.elapsed();
 
                 let start_time = std::time::Instant::now();
-                let aggregate_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata();
+                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
                 let result_b = start_time.elapsed();
 
                 assert_eq!(
@@ -922,13 +906,13 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_get_swarm_metadata_for_an_existing_torrent() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 let infohash = sample_info_hash();
 
-                let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&infohash, &leecher(), None);
+                let _number_of_downloads_increased = torrent_repository.upsert_peer(&infohash, &leecher(), None);
 
-                let swarm_metadata = in_memory_torrent_repository.get_swarm_metadata_or_default(&infohash);
+                let swarm_metadata = torrent_repository.get_swarm_metadata_or_default(&infohash);
 
                 assert_eq!(
                     swarm_metadata,
@@ -942,9 +926,9 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_zeroed_swarm_metadata_for_a_non_existing_torrent() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
-                let swarm_metadata = in_memory_torrent_repository.get_swarm_metadata_or_default(&sample_info_hash());
+                let swarm_metadata = torrent_repository.get_swarm_metadata_or_default(&sample_info_hash());
 
                 assert_eq!(swarm_metadata, SwarmMetadata::zeroed());
             }
@@ -961,7 +945,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_allow_importing_persisted_torrent_entries() {
-                let in_memory_torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(TorrentRepository::default());
 
                 let infohash = sample_info_hash();
 
@@ -969,9 +953,9 @@ mod tests {
 
                 persistent_torrents.insert(infohash, 1);
 
-                in_memory_torrent_repository.import_persistent(&persistent_torrents);
+                torrent_repository.import_persistent(&persistent_torrents);
 
-                let swarm_metadata = in_memory_torrent_repository.get_swarm_metadata_or_default(&infohash);
+                let swarm_metadata = torrent_repository.get_swarm_metadata_or_default(&infohash);
 
                 // Only the number of downloads is persisted.
                 assert_eq!(swarm_metadata.downloaded, 1);
