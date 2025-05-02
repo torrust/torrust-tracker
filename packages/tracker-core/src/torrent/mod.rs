@@ -166,16 +166,3 @@
 pub mod manager;
 pub mod repository;
 pub mod services;
-
-#[cfg(test)]
-use torrust_tracker_torrent_repository::EntryMutexStd;
-use torrust_tracker_torrent_repository::TorrentsSkipMapMutexStd;
-
-/// Alias for the primary torrent collection type, implemented as a skip map
-/// wrapped in a mutex. This type is used internally by the tracker to manage
-/// and access torrent entries.
-pub(crate) type Torrents = TorrentsSkipMapMutexStd;
-
-/// Alias for a single torrent entry.
-#[cfg(test)]
-pub(crate) type TorrentEntry = EntryMutexStd;

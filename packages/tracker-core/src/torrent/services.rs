@@ -17,7 +17,7 @@ use std::sync::Arc;
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::peer;
-use torrust_tracker_torrent_repository::entry::EntrySync;
+use torrust_tracker_torrent_repository::LockTrackedTorrent;
 
 use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
 
@@ -89,15 +89,19 @@ pub struct BasicInfo {
 /// An [`Option<Info>`] which is:
 /// - `Some(Info)` if the torrent exists in the repository.
 /// - `None` if the torrent is not found.
+///
+/// # Panics
+///
+/// This function panics if the lock for the torrent entry cannot be obtained.
 #[must_use]
 pub fn get_torrent_info(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>, info_hash: &InfoHash) -> Option<Info> {
     let torrent_entry_option = in_memory_torrent_repository.get(info_hash);
 
     let torrent_entry = torrent_entry_option?;
 
-    let stats = torrent_entry.get_swarm_metadata();
+    let stats = torrent_entry.lock_or_panic().get_swarm_metadata();
 
-    let peers = torrent_entry.get_peers(None);
+    let peers = torrent_entry.lock_or_panic().get_peers(None);
 
     let peers = Some(peers.iter().map(|peer| (**peer)).collect());
 
@@ -127,6 +131,10 @@ pub fn get_torrent_info(in_memory_torrent_repository: &Arc<InMemoryTorrentReposi
 ///
 /// A vector of [`BasicInfo`] structs representing the summarized data of the
 /// torrents.
+///
+/// # Panics
+///
+/// This function panics if the lock for the torrent entry cannot be obtained.
 #[must_use]
 pub fn get_torrents_page(
     in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
@@ -135,7 +143,7 @@ pub fn get_torrents_page(
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
     for (info_hash, torrent_entry) in in_memory_torrent_repository.get_paginated(pagination) {
-        let stats = torrent_entry.get_swarm_metadata();
+        let stats = torrent_entry.lock_or_panic().get_swarm_metadata();
 
         basic_infos.push(BasicInfo {
             info_hash,
@@ -165,12 +173,19 @@ pub fn get_torrents_page(
 /// # Returns
 ///
 /// A vector of [`BasicInfo`] structs for the requested torrents.
+///
+/// # Panics
+///
+/// This function panics if the lock for the torrent entry cannot be obtained.
 #[must_use]
 pub fn get_torrents(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>, info_hashes: &[InfoHash]) -> Vec<BasicInfo> {
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
     for info_hash in info_hashes {
-        if let Some(stats) = in_memory_torrent_repository.get(info_hash).map(|t| t.get_swarm_metadata()) {
+        if let Some(stats) = in_memory_torrent_repository
+            .get(info_hash)
+            .map(|torrent_entry| torrent_entry.lock_or_panic().get_swarm_metadata())
+        {
             basic_infos.push(BasicInfo {
                 info_hash: *info_hash,
                 seeders: u64::from(stats.complete),

@@ -1,38 +1,14 @@
-use std::sync::Arc;
-
-use repository::dash_map_mutex_std::XacrimonDashMap;
-use repository::rw_lock_std::RwLockStd;
-use repository::rw_lock_tokio::RwLockTokio;
-use repository::skip_map_mutex_std::CrossbeamSkipList;
-use torrust_tracker_clock::clock;
-
 pub mod entry;
 pub mod repository;
 
-// Repo Entries
+use std::sync::{Arc, Mutex, MutexGuard};
 
-pub type EntrySingle = entry::Torrent;
-pub type EntryMutexStd = Arc<std::sync::Mutex<entry::Torrent>>;
-pub type EntryMutexTokio = Arc<tokio::sync::Mutex<entry::Torrent>>;
-pub type EntryMutexParkingLot = Arc<parking_lot::Mutex<entry::Torrent>>;
-pub type EntryRwLockParkingLot = Arc<parking_lot::RwLock<entry::Torrent>>;
+use torrust_tracker_clock::clock;
 
-// Repos
+pub type TorrentRepository = repository::TorrentRepository;
+pub type TrackedTorrentHandle = Arc<Mutex<TrackedTorrent>>;
+pub type TrackedTorrent = entry::torrent::TrackedTorrent;
 
-pub type TorrentsRwLockStd = RwLockStd<EntrySingle>;
-pub type TorrentsRwLockStdMutexStd = RwLockStd<EntryMutexStd>;
-pub type TorrentsRwLockStdMutexTokio = RwLockStd<EntryMutexTokio>;
-pub type TorrentsRwLockTokio = RwLockTokio<EntrySingle>;
-pub type TorrentsRwLockTokioMutexStd = RwLockTokio<EntryMutexStd>;
-pub type TorrentsRwLockTokioMutexTokio = RwLockTokio<EntryMutexTokio>;
-
-pub type TorrentsSkipMapMutexStd = CrossbeamSkipList<EntryMutexStd>;
-pub type TorrentsSkipMapMutexParkingLot = CrossbeamSkipList<EntryMutexParkingLot>;
-pub type TorrentsSkipMapRwLockParkingLot = CrossbeamSkipList<EntryRwLockParkingLot>;
-
-pub type TorrentsDashMapMutexStd = XacrimonDashMap<EntryMutexStd>;
-
-/// This code needs to be copied into each crate.
 /// Working version, for production.
 #[cfg(not(test))]
 #[allow(dead_code)]
@@ -42,3 +18,133 @@ pub(crate) type CurrentClock = clock::Working;
 #[cfg(test)]
 #[allow(dead_code)]
 pub(crate) type CurrentClock = clock::Stopped;
+
+pub trait LockTrackedTorrent {
+    fn lock_or_panic(&self) -> MutexGuard<'_, TrackedTorrent>;
+}
+
+impl LockTrackedTorrent for Arc<Mutex<TrackedTorrent>> {
+    fn lock_or_panic(&self) -> MutexGuard<'_, TrackedTorrent> {
+        self.lock().expect("can't acquire lock for tracked torrent handle")
+    }
+}
+
+#[cfg(test)]
+pub(crate) mod tests {
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+    use bittorrent_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::peer::Peer;
+    use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
+    /// # Panics
+    ///
+    /// Will panic if the string representation of the info hash is not a valid info hash.
+    #[must_use]
+    pub fn sample_info_hash() -> InfoHash {
+        "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0" // DevSkim: ignore DS173237
+            .parse::<InfoHash>()
+            .expect("String should be a valid info hash")
+    }
+
+    /// # Panics
+    ///
+    /// Will panic if the string representation of the info hash is not a valid info hash.
+    #[must_use]
+    pub fn sample_info_hash_one() -> InfoHash {
+        "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0" // DevSkim: ignore DS173237
+            .parse::<InfoHash>()
+            .expect("String should be a valid info hash")
+    }
+
+    /// # Panics
+    ///
+    /// Will panic if the string representation of the info hash is not a valid info hash.
+    #[must_use]
+    pub fn sample_info_hash_alphabetically_ordered_after_sample_info_hash_one() -> InfoHash {
+        "99c82bb73505a3c0b453f9fa0e881d6e5a32a0c1" // DevSkim: ignore DS173237
+            .parse::<InfoHash>()
+            .expect("String should be a valid info hash")
+    }
+
+    /// Sample peer whose state is not relevant for the tests.
+    #[must_use]
+    pub fn sample_peer() -> Peer {
+        Peer {
+            peer_id: PeerId(*b"-qB00000000000000000"),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+            uploaded: NumberOfBytes::new(0),
+            downloaded: NumberOfBytes::new(0),
+            left: NumberOfBytes::new(0), // No bytes left to download
+            event: AnnounceEvent::Completed,
+        }
+    }
+
+    #[must_use]
+    pub fn sample_peer_one() -> Peer {
+        Peer {
+            peer_id: PeerId(*b"-qB00000000000000001"),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081),
+            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+            uploaded: NumberOfBytes::new(0),
+            downloaded: NumberOfBytes::new(0),
+            left: NumberOfBytes::new(0), // No bytes left to download
+            event: AnnounceEvent::Completed,
+        }
+    }
+
+    #[must_use]
+    pub fn sample_peer_two() -> Peer {
+        Peer {
+            peer_id: PeerId(*b"-qB00000000000000002"),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2)), 8082),
+            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+            uploaded: NumberOfBytes::new(0),
+            downloaded: NumberOfBytes::new(0),
+            left: NumberOfBytes::new(0), // No bytes left to download
+            event: AnnounceEvent::Completed,
+        }
+    }
+
+    #[must_use]
+    pub fn seeder() -> Peer {
+        complete_peer()
+    }
+
+    #[must_use]
+    pub fn leecher() -> Peer {
+        incomplete_peer()
+    }
+
+    /// A peer that counts as `complete` is swarm metadata
+    /// IMPORTANT!: it only counts if the it has been announce at least once before
+    /// announcing the `AnnounceEvent::Completed` event.
+    #[must_use]
+    pub fn complete_peer() -> Peer {
+        Peer {
+            peer_id: PeerId(*b"-qB00000000000000000"),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+            uploaded: NumberOfBytes::new(0),
+            downloaded: NumberOfBytes::new(0),
+            left: NumberOfBytes::new(0), // No bytes left to download
+            event: AnnounceEvent::Completed,
+        }
+    }
+
+    /// A peer that counts as `incomplete` is swarm metadata
+    #[must_use]
+    pub fn incomplete_peer() -> Peer {
+        Peer {
+            peer_id: PeerId(*b"-qB00000000000000000"),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+            uploaded: NumberOfBytes::new(0),
+            downloaded: NumberOfBytes::new(0),
+            left: NumberOfBytes::new(1000), // Still bytes to download
+            event: AnnounceEvent::Started,
+        }
+    }
+}

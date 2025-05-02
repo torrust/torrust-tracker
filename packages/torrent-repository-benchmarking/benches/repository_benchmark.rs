@@ -3,7 +3,7 @@ use std::time::Duration;
 mod helpers;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use torrust_tracker_torrent_repository::{
+use torrust_tracker_torrent_repository_benchmarking::{
     TorrentsDashMapMutexStd, TorrentsRwLockStd, TorrentsRwLockStdMutexStd, TorrentsRwLockStdMutexTokio, TorrentsRwLockTokio,
     TorrentsRwLockTokioMutexStd, TorrentsRwLockTokioMutexTokio, TorrentsSkipMapMutexParkingLot, TorrentsSkipMapMutexStd,
     TorrentsSkipMapRwLockParkingLot,

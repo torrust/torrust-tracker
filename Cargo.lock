@@ -4841,6 +4841,25 @@ dependencies = [
  "bittorrent-primitives",
  "criterion",
  "crossbeam-skiplist",
+ "rand 0.8.5",
+ "rstest",
+ "tokio",
+ "torrust-tracker-clock",
+ "torrust-tracker-configuration",
+ "torrust-tracker-primitives",
+ "torrust-tracker-test-helpers",
+ "tracing",
+]
+
+[[package]]
+name = "torrust-tracker-torrent-repository-benchmarking"
+version = "3.0.0-develop"
+dependencies = [
+ "aquatic_udp_protocol",
+ "async-std",
+ "bittorrent-primitives",
+ "criterion",
+ "crossbeam-skiplist",
  "dashmap",
  "futures",
  "parking_lot",
