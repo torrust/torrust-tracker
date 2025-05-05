@@ -105,8 +105,8 @@ mod for_all_config_modes {
         use crate::common::fixtures::invalid_info_hashes;
         use crate::server::asserts::{
             assert_announce_response, assert_bad_announce_request_error_response, assert_cannot_parse_query_param_error_response,
-            assert_cannot_parse_query_params_error_response, assert_compact_announce_response, assert_empty_announce_response,
-            assert_is_announce_response, assert_missing_query_params_for_announce_request_error_response,
+            assert_cannot_parse_query_params_error_response, assert_compact_announce_response, assert_is_announce_response,
+            assert_missing_query_params_for_announce_request_error_response,
         };
         use crate::server::client::Client;
         use crate::server::requests::announce::{Compact, QueryBuilder};
@@ -559,7 +559,8 @@ mod for_all_config_modes {
         }
 
         #[tokio::test]
-        async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_peer_id_even_if_the_ip_is_different() {
+        async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_socket_address_even_if_the_peer_id_is_different(
+        ) {
             logging::setup();
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
@@ -567,19 +568,44 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
             let peer = PeerBuilder::default().build();
 
-            // Add a peer
-            env.add_torrent_peer(&info_hash, &peer);
-
-            let announce_query = QueryBuilder::default()
+            let announce_query_1 = QueryBuilder::default()
                 .with_info_hash(&info_hash)
                 .with_peer_id(&peer.peer_id)
+                .with_peer_addr(&peer.peer_addr.ip())
+                .with_port(peer.peer_addr.port())
                 .query();
 
-            assert_ne!(peer.peer_addr.ip(), announce_query.peer_addr);
+            let announce_query_2 = QueryBuilder::default()
+                .with_info_hash(&info_hash)
+                .with_peer_id(&PeerId(*b"-qB00000000000000002")) // Different peer ID
+                .with_peer_addr(&peer.peer_addr.ip())
+                .with_port(peer.peer_addr.port())
+                .query();
 
-            let response = Client::new(*env.bind_address()).announce(&announce_query).await;
+            // Same peer socket address
+            assert_eq!(announce_query_1.peer_addr, announce_query_2.peer_addr);
+            assert_eq!(announce_query_1.port, announce_query_2.port);
 
-            assert_empty_announce_response(response).await;
+            // Different peer ID
+            assert_ne!(announce_query_1.peer_id, announce_query_2.peer_id);
+
+            let _response = Client::new(*env.bind_address()).announce(&announce_query_1).await;
+            let response = Client::new(*env.bind_address()).announce(&announce_query_2).await;
+
+            let announce_policy = env.container.tracker_core_container.core_config.announce_policy;
+
+            // The response should contain only the first peer.
+            assert_announce_response(
+                response,
+                &Announce {
+                    complete: 1,
+                    incomplete: 0,
+                    interval: announce_policy.interval,
+                    min_interval: announce_policy.interval_min,
+                    peers: vec![],
+                },
+            )
+            .await;
 
             env.stop().await;
         }

@@ -75,7 +75,7 @@ impl TrackedTorrent {
 
         match peer::ReadInfo::get_event(peer) {
             AnnounceEvent::Stopped => {
-                drop(self.swarm.remove(&peer::ReadInfo::get_id(peer)));
+                drop(self.swarm.remove(peer));
             }
             AnnounceEvent::Completed => {
                 let previous = self.swarm.upsert(Arc::new(*peer));

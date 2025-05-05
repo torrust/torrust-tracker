@@ -3,18 +3,12 @@ use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::PeerId;
 use torrust_tracker_primitives::peer::{self, Peer};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-// code-review: the current implementation uses the peer Id as the ``BTreeMap``
-// key. That would allow adding two identical peers except for the Id.
-// For example, two peers with the same socket address but a different peer Id
-// would be allowed. That would lead to duplicated peers in the tracker responses.
-
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Swarm {
-    peers: BTreeMap<PeerId, Arc<Peer>>,
+    peers: BTreeMap<SocketAddr, Arc<Peer>>,
 }
 
 impl Swarm {
@@ -28,12 +22,12 @@ impl Swarm {
         self.peers.is_empty()
     }
 
-    pub fn upsert(&mut self, value: Arc<peer::Peer>) -> Option<Arc<peer::Peer>> {
-        self.peers.insert(value.peer_id, value)
+    pub fn upsert(&mut self, peer: Arc<Peer>) -> Option<Arc<Peer>> {
+        self.peers.insert(peer.peer_addr, peer)
     }
 
-    pub fn remove(&mut self, key: &PeerId) -> Option<Arc<peer::Peer>> {
-        self.peers.remove(key)
+    pub fn remove(&mut self, peer: &Peer) -> Option<Arc<Peer>> {
+        self.peers.remove(&peer.peer_addr)
     }
 
     pub fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {
@@ -42,12 +36,12 @@ impl Swarm {
     }
 
     #[must_use]
-    pub fn get(&self, peer_id: &PeerId) -> Option<&Arc<peer::Peer>> {
-        self.peers.get(peer_id)
+    pub fn get(&self, peer_addr: &SocketAddr) -> Option<&Arc<Peer>> {
+        self.peers.get(peer_addr)
     }
 
     #[must_use]
-    pub fn get_all(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
+    pub fn get_all(&self, limit: Option<usize>) -> Vec<Arc<Peer>> {
         match limit {
             Some(limit) => self.peers.values().take(limit).cloned().collect(),
             None => self.peers.values().cloned().collect(),
@@ -151,7 +145,7 @@ mod tests {
 
             swarm.upsert(peer.into());
 
-            assert_eq!(swarm.get(&peer.peer_id), Some(Arc::new(peer)).as_ref());
+            assert_eq!(swarm.get(&peer.peer_addr), Some(Arc::new(peer)).as_ref());
         }
 
         #[test]
@@ -173,7 +167,7 @@ mod tests {
 
             swarm.upsert(peer.into());
 
-            swarm.remove(&peer.peer_id);
+            swarm.remove(&peer);
 
             assert!(swarm.is_empty());
         }
@@ -186,9 +180,9 @@ mod tests {
 
             swarm.upsert(peer.into());
 
-            swarm.remove(&peer.peer_id);
+            swarm.remove(&peer);
 
-            assert_eq!(swarm.get(&peer.peer_id), None);
+            assert_eq!(swarm.get(&peer.peer_addr), None);
         }
 
         #[test]
@@ -273,16 +267,42 @@ mod tests {
         }
 
         #[test]
-        fn allow_inserting_two_identical_peers_except_for_the_id() {
+        fn allow_inserting_two_identical_peers_except_for_the_socket_address() {
             let mut swarm = Swarm::default();
 
-            let peer1 = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
+            let peer1 = PeerBuilder::default()
+                .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
+                .build();
             swarm.upsert(peer1.into());
 
-            let peer2 = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000002")).build();
+            let peer2 = PeerBuilder::default()
+                .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
+                .build();
             swarm.upsert(peer2.into());
 
             assert_eq!(swarm.len(), 2);
+        }
+
+        #[test]
+        fn not_allow_inserting_two_peers_with_different_peer_id_but_the_same_socket_address() {
+            let mut swarm = Swarm::default();
+
+            // When that happens the peer ID will be changed in the swarm.
+            // In practice, it's like if the peer had changed its ID.
+
+            let peer1 = PeerBuilder::default()
+                .with_peer_id(&PeerId(*b"-qB00000000000000001"))
+                .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
+                .build();
+            swarm.upsert(peer1.into());
+
+            let peer2 = PeerBuilder::default()
+                .with_peer_id(&PeerId(*b"-qB00000000000000002"))
+                .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
+                .build();
+            swarm.upsert(peer2.into());
+
+            assert_eq!(swarm.len(), 1);
         }
     }
 }
