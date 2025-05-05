@@ -2,26 +2,16 @@
 
 A library to provide a torrent repository to the [Torrust Tracker](https://github.com/torrust/torrust-tracker).
 
-## Benchmarking
+Its main responsibilities include:
 
-```console
-cargo bench -p torrust-tracker-torrent-repository
-```
+- Managing Torrent Entries: It stores, retrieves, and manages torrent entries, which are torrents being tracked.
+- Persistence: It supports lading tracked torrents from a persistent storage, ensuring that torrent data can be restored across restarts.
+- Pagination and sorting: It provides paginated and stable/sorted access to torrent entries.
+- Peer management: It manages peers associated with torrents, including removing inactive peers and handling torrents with no peers (peerless torrents).
+- Policy handling: It supports different policies for handling torrents, such as persisting, removing, or custom policies for torrents with no peers.
+- Metrics: It can provide metrics about the torrents, such as counts or statuses, likely for monitoring or statistics.
 
-Example partial output:
-
-```output
-     Running benches/repository_benchmark.rs (target/release/deps/repository_benchmark-a9b0013c8d09c3c3)
-add_one_torrent/RwLockStd
-                        time:   [63.057 ns 63.242 ns 63.506 ns]
-Found 12 outliers among 100 measurements (12.00%)
-  2 (2.00%) low severe
-  2 (2.00%) low mild
-  2 (2.00%) high mild
-  6 (6.00%) high severe
-add_one_torrent/RwLockStdMutexStd
-                        time:   [62.505 ns 63.077 ns 63.817 ns]
-```
+This repo is a core component for managing the state and lifecycle of torrents and their peers in a BitTorrent tracker, with peer management, and flexible policies.
 
 ## Documentation
 
