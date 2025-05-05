@@ -1,9 +1,11 @@
 //! A peer list.
+use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::PeerId;
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
+use torrust_tracker_primitives::peer::{self, Peer};
+use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 // code-review: the current implementation uses the peer Id as the ``BTreeMap``
 // key. That would allow adding two identical peers except for the Id.
@@ -11,11 +13,11 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 // would be allowed. That would lead to duplicated peers in the tracker responses.
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PeerList {
-    peers: std::collections::BTreeMap<PeerId, Arc<peer::Peer>>,
+pub struct Swarm {
+    peers: BTreeMap<PeerId, Arc<Peer>>,
 }
 
-impl PeerList {
+impl Swarm {
     #[must_use]
     pub fn len(&self) -> usize {
         self.peers.len()
@@ -94,193 +96,193 @@ mod tests {
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-        use crate::entry::peer_list::PeerList;
+        use crate::entry::swarm::Swarm;
 
         #[test]
         fn be_empty_when_no_peers_have_been_inserted() {
-            let peer_list = PeerList::default();
+            let swarm = Swarm::default();
 
-            assert!(peer_list.is_empty());
+            assert!(swarm.is_empty());
         }
 
         #[test]
         fn have_zero_length_when_no_peers_have_been_inserted() {
-            let peer_list = PeerList::default();
+            let swarm = Swarm::default();
 
-            assert_eq!(peer_list.len(), 0);
+            assert_eq!(swarm.len(), 0);
         }
 
         #[test]
         fn allow_inserting_a_new_peer() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let peer = PeerBuilder::default().build();
 
-            assert_eq!(peer_list.upsert(peer.into()), None);
+            assert_eq!(swarm.upsert(peer.into()), None);
         }
 
         #[test]
         fn allow_updating_a_preexisting_peer() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            swarm.upsert(peer.into());
 
-            assert_eq!(peer_list.upsert(peer.into()), Some(Arc::new(peer)));
+            assert_eq!(swarm.upsert(peer.into()), Some(Arc::new(peer)));
         }
 
         #[test]
         fn allow_getting_all_peers() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            swarm.upsert(peer.into());
 
-            assert_eq!(peer_list.get_all(None), [Arc::new(peer)]);
+            assert_eq!(swarm.get_all(None), [Arc::new(peer)]);
         }
 
         #[test]
         fn allow_getting_one_peer_by_id() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            swarm.upsert(peer.into());
 
-            assert_eq!(peer_list.get(&peer.peer_id), Some(Arc::new(peer)).as_ref());
+            assert_eq!(swarm.get(&peer.peer_id), Some(Arc::new(peer)).as_ref());
         }
 
         #[test]
         fn increase_the_number_of_peers_after_inserting_a_new_one() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            swarm.upsert(peer.into());
 
-            assert_eq!(peer_list.len(), 1);
+            assert_eq!(swarm.len(), 1);
         }
 
         #[test]
         fn decrease_the_number_of_peers_after_removing_one() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            swarm.upsert(peer.into());
 
-            peer_list.remove(&peer.peer_id);
+            swarm.remove(&peer.peer_id);
 
-            assert!(peer_list.is_empty());
+            assert!(swarm.is_empty());
         }
 
         #[test]
         fn allow_removing_an_existing_peer() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            swarm.upsert(peer.into());
 
-            peer_list.remove(&peer.peer_id);
+            swarm.remove(&peer.peer_id);
 
-            assert_eq!(peer_list.get(&peer.peer_id), None);
+            assert_eq!(swarm.get(&peer.peer_id), None);
         }
 
         #[test]
         fn allow_getting_all_peers_excluding_peers_with_a_given_address() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let peer1 = PeerBuilder::default()
                 .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                 .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
                 .build();
-            peer_list.upsert(peer1.into());
+            swarm.upsert(peer1.into());
 
             let peer2 = PeerBuilder::default()
                 .with_peer_id(&PeerId(*b"-qB00000000000000002"))
                 .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
                 .build();
-            peer_list.upsert(peer2.into());
+            swarm.upsert(peer2.into());
 
-            assert_eq!(peer_list.get_peers_excluding_addr(&peer2.peer_addr, None), [Arc::new(peer1)]);
+            assert_eq!(swarm.get_peers_excluding_addr(&peer2.peer_addr, None), [Arc::new(peer1)]);
         }
 
         #[test]
         fn return_the_number_of_seeders_in_the_list() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let seeder = PeerBuilder::seeder().build();
             let leecher = PeerBuilder::leecher().build();
 
-            peer_list.upsert(seeder.into());
-            peer_list.upsert(leecher.into());
+            swarm.upsert(seeder.into());
+            swarm.upsert(leecher.into());
 
-            let (seeders, _leechers) = peer_list.seeders_and_leechers();
+            let (seeders, _leechers) = swarm.seeders_and_leechers();
 
             assert_eq!(seeders, 1);
         }
 
         #[test]
         fn return_the_number_of_leechers_in_the_list() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let seeder = PeerBuilder::seeder().build();
             let leecher = PeerBuilder::leecher().build();
 
-            peer_list.upsert(seeder.into());
-            peer_list.upsert(leecher.into());
+            swarm.upsert(seeder.into());
+            swarm.upsert(leecher.into());
 
-            let (_seeders, leechers) = peer_list.seeders_and_leechers();
+            let (_seeders, leechers) = swarm.seeders_and_leechers();
 
             assert_eq!(leechers, 1);
         }
 
         #[test]
         fn remove_inactive_peers() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
             let one_second = DurationSinceUnixEpoch::new(1, 0);
 
             // Insert the peer
             let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
             let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-            peer_list.upsert(peer.into());
+            swarm.upsert(peer.into());
 
             // Remove peers not updated since one second after inserting the peer
-            peer_list.remove_inactive_peers(last_update_time + one_second);
+            swarm.remove_inactive_peers(last_update_time + one_second);
 
-            assert_eq!(peer_list.len(), 0);
+            assert_eq!(swarm.len(), 0);
         }
 
         #[test]
         fn not_remove_active_peers() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
             let one_second = DurationSinceUnixEpoch::new(1, 0);
 
             // Insert the peer
             let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
             let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-            peer_list.upsert(peer.into());
+            swarm.upsert(peer.into());
 
             // Remove peers not updated since one second before inserting the peer.
-            peer_list.remove_inactive_peers(last_update_time - one_second);
+            swarm.remove_inactive_peers(last_update_time - one_second);
 
-            assert_eq!(peer_list.len(), 1);
+            assert_eq!(swarm.len(), 1);
         }
 
         #[test]
         fn allow_inserting_two_identical_peers_except_for_the_id() {
-            let mut peer_list = PeerList::default();
+            let mut swarm = Swarm::default();
 
             let peer1 = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
-            peer_list.upsert(peer1.into());
+            swarm.upsert(peer1.into());
 
             let peer2 = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000002")).build();
-            peer_list.upsert(peer2.into());
+            swarm.upsert(peer2.into());
 
-            assert_eq!(peer_list.len(), 2);
+            assert_eq!(swarm.len(), 2);
         }
     }
 }

@@ -8,7 +8,7 @@ use torrust_tracker_primitives::peer::{self};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-use super::peer_list::PeerList;
+use super::swarm::Swarm;
 
 /// A data structure containing all the information about a torrent in the tracker.
 ///
@@ -18,7 +18,7 @@ use super::peer_list::PeerList;
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TrackedTorrent {
     /// A network of peers that are all trying to download the torrent associated to this entry
-    pub(crate) swarm: PeerList,
+    pub(crate) swarm: Swarm,
 
     /// The number of peers that have ever completed downloading the torrent associated to this entry
     pub(crate) downloaded: u32,

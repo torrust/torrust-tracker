@@ -1,2 +1,2 @@
-pub mod peer_list;
+pub mod swarm;
 pub mod torrent;

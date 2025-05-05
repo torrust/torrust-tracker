@@ -7,7 +7,7 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
-use crate::entry::peer_list::PeerList;
+use crate::entry::swarm::Swarm;
 use crate::entry::torrent::TrackedTorrent;
 use crate::{LockTrackedTorrent, TrackedTorrentHandle};
 
@@ -53,7 +53,7 @@ impl TorrentRepository {
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
                 TrackedTorrentHandle::new(
                     TrackedTorrent {
-                        swarm: PeerList::default(),
+                        swarm: Swarm::default(),
                         downloaded: number_of_downloads,
                     }
                     .into(),
@@ -237,7 +237,7 @@ impl TorrentRepository {
 
             let entry = TrackedTorrentHandle::new(
                 TrackedTorrent {
-                    swarm: PeerList::default(),
+                    swarm: Swarm::default(),
                     downloaded: *completed,
                 }
                 .into(),
