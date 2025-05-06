@@ -7,7 +7,7 @@ use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
-use torrust_tracker_torrent_repository::{SwarmHandle, TorrentRepository};
+use torrust_tracker_torrent_repository::{SwarmHandle, Swarms};
 
 /// In-memory repository for torrent entries.
 ///
@@ -21,7 +21,7 @@ use torrust_tracker_torrent_repository::{SwarmHandle, TorrentRepository};
 #[derive(Debug, Default)]
 pub struct InMemoryTorrentRepository {
     /// The underlying in-memory data structure that stores torrent entries.
-    torrents: Arc<TorrentRepository>,
+    torrents: Arc<Swarms>,
 }
 
 impl InMemoryTorrentRepository {

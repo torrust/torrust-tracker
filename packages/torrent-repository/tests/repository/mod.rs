@@ -10,13 +10,13 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::PersistentTorrents;
 use torrust_tracker_torrent_repository::swarm::Swarm;
-use torrust_tracker_torrent_repository::{LockTrackedTorrent, TorrentRepository};
+use torrust_tracker_torrent_repository::{LockTrackedTorrent, Swarms};
 
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
 
 #[fixture]
-fn skip_list_mutex_std() -> TorrentRepository {
-    TorrentRepository::default()
+fn skip_list_mutex_std() -> Swarms {
+    Swarms::default()
 }
 
 type Entries = Vec<(InfoHash, Swarm)>;
@@ -148,10 +148,10 @@ fn persistent_three() -> PersistentTorrents {
     t.iter().copied().collect()
 }
 
-fn make(repo: &TorrentRepository, entries: &Entries) {
+fn make(repo: &Swarms, entries: &Entries) {
     for (info_hash, entry) in entries {
         let new = Arc::new(Mutex::new(entry.clone()));
-        repo.torrents.insert(*info_hash, new);
+        repo.swarms.insert(*info_hash, new);
     }
 }
 
@@ -200,7 +200,7 @@ fn policy_remove_persist() -> TrackerPolicy {
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_get_a_torrent_entry(#[values(skip_list_mutex_std())] repo: TorrentRepository, #[case] entries: Entries) {
+async fn it_should_get_a_torrent_entry(#[values(skip_list_mutex_std())] repo: Swarms, #[case] entries: Entries) {
     make(&repo, &entries);
 
     if let Some((info_hash, torrent)) = entries.first() {
@@ -224,7 +224,7 @@ async fn it_should_get_a_torrent_entry(#[values(skip_list_mutex_std())] repo: To
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_get_paginated_entries_in_a_stable_or_sorted_order(
-    #[values(skip_list_mutex_std())] repo: TorrentRepository,
+    #[values(skip_list_mutex_std())] repo: Swarms,
     #[case] entries: Entries,
     many_out_of_order: Entries,
 ) {
@@ -257,7 +257,7 @@ async fn it_should_get_paginated_entries_in_a_stable_or_sorted_order(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_get_paginated(
-    #[values(skip_list_mutex_std())] repo: TorrentRepository,
+    #[values(skip_list_mutex_std())] repo: Swarms,
     #[case] entries: Entries,
     #[values(paginated_limit_zero(), paginated_limit_one(), paginated_limit_one_offset_one())] paginated: Pagination,
 ) {
@@ -312,7 +312,7 @@ async fn it_should_get_paginated(
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_get_metrics(#[values(skip_list_mutex_std())] repo: TorrentRepository, #[case] entries: Entries) {
+async fn it_should_get_metrics(#[values(skip_list_mutex_std())] repo: Swarms, #[case] entries: Entries) {
     use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
 
     make(&repo, &entries);
@@ -342,7 +342,7 @@ async fn it_should_get_metrics(#[values(skip_list_mutex_std())] repo: TorrentRep
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_import_persistent_torrents(
-    #[values(skip_list_mutex_std())] repo: TorrentRepository,
+    #[values(skip_list_mutex_std())] repo: Swarms,
     #[case] entries: Entries,
     #[values(persistent_empty(), persistent_single(), persistent_three())] persistent_torrents: PersistentTorrents,
 ) {
@@ -370,7 +370,7 @@ async fn it_should_import_persistent_torrents(
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_remove_an_entry(#[values(skip_list_mutex_std())] repo: TorrentRepository, #[case] entries: Entries) {
+async fn it_should_remove_an_entry(#[values(skip_list_mutex_std())] repo: Swarms, #[case] entries: Entries) {
     make(&repo, &entries);
 
     for (info_hash, torrent) in entries {
@@ -397,7 +397,7 @@ async fn it_should_remove_an_entry(#[values(skip_list_mutex_std())] repo: Torren
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: TorrentRepository, #[case] entries: Entries) {
+async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: Swarms, #[case] entries: Entries) {
     use std::ops::Sub as _;
     use std::time::Duration;
 
@@ -484,7 +484,7 @@ async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: 
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_remove_peerless_torrents(
-    #[values(skip_list_mutex_std())] repo: TorrentRepository,
+    #[values(skip_list_mutex_std())] repo: Swarms,
     #[case] entries: Entries,
     #[values(policy_none(), policy_persist(), policy_remove(), policy_remove_persist())] policy: TrackerPolicy,
 ) {
