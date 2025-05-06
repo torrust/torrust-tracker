@@ -229,7 +229,7 @@ impl TorrentRepository {
                 continue;
             }
 
-            let entry = TrackedTorrentHandle::new(TrackedTorrent::new(Swarm::default(), *completed).into());
+            let entry = TrackedTorrentHandle::new(TrackedTorrent::new(Swarm::new(*completed), *completed).into());
 
             // Since SkipMap is lock-free the torrent could have been inserted
             // after checking if it exists.

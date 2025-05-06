@@ -35,13 +35,7 @@ impl TrackedTorrent {
 
     #[must_use]
     pub fn get_swarm_metadata(&self) -> SwarmMetadata {
-        let metadata = self.swarm.metadata();
-
-        SwarmMetadata {
-            downloaded: self.downloaded,
-            complete: metadata.complete,
-            incomplete: metadata.incomplete,
-        }
+        self.swarm.metadata()
     }
 
     /// Returns true if the torrents meets the retention policy, meaning that
