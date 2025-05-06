@@ -9,7 +9,7 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::PersistentTorrents;
-use torrust_tracker_torrent_repository::entry::torrent::TrackedTorrent;
+use torrust_tracker_torrent_repository::entry::swarm::Swarm;
 use torrust_tracker_torrent_repository::{LockTrackedTorrent, TorrentRepository};
 
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
@@ -19,7 +19,7 @@ fn skip_list_mutex_std() -> TorrentRepository {
     TorrentRepository::default()
 }
 
-type Entries = Vec<(InfoHash, TrackedTorrent)>;
+type Entries = Vec<(InfoHash, Swarm)>;
 
 #[fixture]
 fn empty() -> Entries {
@@ -28,26 +28,26 @@ fn empty() -> Entries {
 
 #[fixture]
 fn default() -> Entries {
-    vec![(InfoHash::default(), TrackedTorrent::default())]
+    vec![(InfoHash::default(), Swarm::default())]
 }
 
 #[fixture]
 fn started() -> Entries {
-    let mut torrent = TrackedTorrent::default();
+    let mut torrent = Swarm::default();
     torrent.handle_announcement(&a_started_peer(1));
     vec![(InfoHash::default(), torrent)]
 }
 
 #[fixture]
 fn completed() -> Entries {
-    let mut torrent = TrackedTorrent::default();
+    let mut torrent = Swarm::default();
     torrent.handle_announcement(&a_completed_peer(2));
     vec![(InfoHash::default(), torrent)]
 }
 
 #[fixture]
 fn downloaded() -> Entries {
-    let mut torrent = TrackedTorrent::default();
+    let mut torrent = Swarm::default();
     let mut peer = a_started_peer(3);
     torrent.handle_announcement(&peer);
     peer.event = AnnounceEvent::Completed;
@@ -58,17 +58,17 @@ fn downloaded() -> Entries {
 
 #[fixture]
 fn three() -> Entries {
-    let mut started = TrackedTorrent::default();
+    let mut started = Swarm::default();
     let started_h = &mut DefaultHasher::default();
     started.handle_announcement(&a_started_peer(1));
     started.hash(started_h);
 
-    let mut completed = TrackedTorrent::default();
+    let mut completed = Swarm::default();
     let completed_h = &mut DefaultHasher::default();
     completed.handle_announcement(&a_completed_peer(2));
     completed.hash(completed_h);
 
-    let mut downloaded = TrackedTorrent::default();
+    let mut downloaded = Swarm::default();
     let downloaded_h = &mut DefaultHasher::default();
     let mut downloaded_peer = a_started_peer(3);
     downloaded.handle_announcement(&downloaded_peer);
@@ -86,10 +86,10 @@ fn three() -> Entries {
 
 #[fixture]
 fn many_out_of_order() -> Entries {
-    let mut entries: HashSet<(InfoHash, TrackedTorrent)> = HashSet::default();
+    let mut entries: HashSet<(InfoHash, Swarm)> = HashSet::default();
 
     for i in 0..408 {
-        let mut entry = TrackedTorrent::default();
+        let mut entry = Swarm::default();
         entry.handle_announcement(&a_started_peer(i));
 
         entries.insert((InfoHash::from(&i), entry));
@@ -101,10 +101,10 @@ fn many_out_of_order() -> Entries {
 
 #[fixture]
 fn many_hashed_in_order() -> Entries {
-    let mut entries: BTreeMap<InfoHash, TrackedTorrent> = BTreeMap::default();
+    let mut entries: BTreeMap<InfoHash, Swarm> = BTreeMap::default();
 
     for i in 0..408 {
-        let mut entry = TrackedTorrent::default();
+        let mut entry = Swarm::default();
         entry.handle_announcement(&a_started_peer(i));
 
         let hash: &mut DefaultHasher = &mut DefaultHasher::default();
@@ -269,7 +269,7 @@ async fn it_should_get_paginated(
     match paginated {
         // it should return empty if limit is zero.
         Pagination { limit: 0, .. } => {
-            let torrents: Vec<(InfoHash, TrackedTorrent)> = repo
+            let torrents: Vec<(InfoHash, Swarm)> = repo
                 .get_paginated(Some(&paginated))
                 .iter()
                 .map(|(i, lock_tracked_torrent)| (*i, lock_tracked_torrent.lock_or_panic().clone()))
@@ -492,7 +492,7 @@ async fn it_should_remove_peerless_torrents(
 
     repo.remove_peerless_torrents(&policy);
 
-    let torrents: Vec<(InfoHash, TrackedTorrent)> = repo
+    let torrents: Vec<(InfoHash, Swarm)> = repo
         .get_paginated(None)
         .iter()
         .map(|(i, lock_tracked_torrent)| (*i, lock_tracked_torrent.lock_or_panic().clone()))

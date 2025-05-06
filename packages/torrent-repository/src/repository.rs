@@ -8,7 +8,6 @@ use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMe
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use crate::entry::swarm::Swarm;
-use crate::entry::torrent::TrackedTorrent;
 use crate::{LockTrackedTorrent, TrackedTorrentHandle};
 
 #[derive(Default, Debug)]
@@ -51,7 +50,7 @@ impl TorrentRepository {
             tracing::debug!("Inserting new torrent: {:?}", info_hash);
 
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
-                TrackedTorrentHandle::new(TrackedTorrent::new(Swarm::new(number_of_downloads)).into())
+                TrackedTorrentHandle::new(Swarm::new(number_of_downloads).into())
             } else {
                 TrackedTorrentHandle::default()
             };
@@ -229,7 +228,7 @@ impl TorrentRepository {
                 continue;
             }
 
-            let entry = TrackedTorrentHandle::new(TrackedTorrent::new(Swarm::new(*completed)).into());
+            let entry = TrackedTorrentHandle::new(Swarm::new(*completed).into());
 
             // Since SkipMap is lock-free the torrent could have been inserted
             // after checking if it exists.

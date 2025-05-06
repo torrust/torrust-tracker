@@ -17,7 +17,7 @@ use crate::CurrentClock;
 
 #[fixture]
 fn single() -> Torrent {
-    Torrent::Single(entry::torrent::TrackedTorrent::default())
+    Torrent::Single(entry::swarm::Swarm::default())
 }
 #[fixture]
 fn mutex_std() -> Torrent {

@@ -8,7 +8,7 @@ use torrust_tracker_torrent_repository::{entry, LockTrackedTorrent, TrackedTorre
 
 #[derive(Debug, Clone)]
 pub(crate) enum Torrent {
-    Single(entry::torrent::TrackedTorrent),
+    Single(entry::swarm::Swarm),
     MutexStd(TrackedTorrentHandle),
 }
 
