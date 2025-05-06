@@ -5,37 +5,27 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::AnnounceEvent;
-use torrust_tracker_primitives::peer::{self, Peer};
+use torrust_tracker_primitives::peer::{self, Peer, PeerAnnouncement};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Swarm {
-    peers: BTreeMap<SocketAddr, Arc<Peer>>,
+    peers: BTreeMap<SocketAddr, Arc<PeerAnnouncement>>,
     metadata: SwarmMetadata,
 }
 
 impl Swarm {
-    #[must_use]
-    pub fn len(&self) -> usize {
-        self.peers.len()
-    }
+    pub fn handle_announce(&mut self, incoming_announce: Arc<PeerAnnouncement>) -> Option<Arc<Peer>> {
+        let is_now_seeder = incoming_announce.is_seeder();
+        let has_completed = incoming_announce.event == AnnounceEvent::Completed;
 
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.peers.is_empty()
-    }
-
-    pub fn upsert(&mut self, peer: Arc<Peer>) -> Option<Arc<Peer>> {
-        let new_peer_is_seeder = peer.is_seeder();
-        let new_peer_completed = peer.event == AnnounceEvent::Completed;
-
-        if let Some(old_peer) = self.peers.insert(peer.peer_addr, peer) {
+        if let Some(old_announce) = self.peers.insert(incoming_announce.peer_addr, incoming_announce) {
             // A peer has been updated in the swarm.
 
             // Check if the peer has changed its from leecher to seeder or vice versa.
-            if old_peer.is_seeder() != new_peer_is_seeder {
-                if new_peer_is_seeder {
+            if old_announce.is_seeder() != is_now_seeder {
+                if is_now_seeder {
                     self.metadata.complete += 1;
                     self.metadata.incomplete -= 1;
                 } else {
@@ -45,23 +35,23 @@ impl Swarm {
             }
 
             // Check if the peer has completed downloading the torrent.
-            if new_peer_completed && old_peer.event != AnnounceEvent::Completed {
+            if has_completed && old_announce.event != AnnounceEvent::Completed {
                 self.metadata.downloaded += 1;
             }
 
-            Some(old_peer)
+            Some(old_announce)
         } else {
             // A new peer has been added to the swarm.
 
             // Check if the peer is a seeder or a leecher.
-            if new_peer_is_seeder {
+            if is_now_seeder {
                 self.metadata.complete += 1;
             } else {
                 self.metadata.incomplete += 1;
             }
 
             // Check if the peer has completed downloading the torrent.
-            if new_peer_completed {
+            if has_completed {
                 // Don't increment `downloaded` here: we only count transitions
                 // from a known peer
             }
@@ -70,8 +60,8 @@ impl Swarm {
         }
     }
 
-    pub fn remove(&mut self, peer: &Peer) -> Option<Arc<Peer>> {
-        match self.peers.remove(&peer.peer_addr) {
+    pub fn remove(&mut self, peer_to_remove: &Peer) -> Option<Arc<Peer>> {
+        match self.peers.remove(&peer_to_remove.peer_addr) {
             Some(old_peer) => {
                 // A peer has been removed from the swarm.
 
@@ -88,7 +78,7 @@ impl Swarm {
         }
     }
 
-    pub fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {
+    pub fn remove_inactive(&mut self, current_cutoff: DurationSinceUnixEpoch) {
         self.peers.retain(|_, peer| {
             let is_active = peer::ReadInfo::get_updated(peer) > current_cutoff;
 
@@ -111,7 +101,7 @@ impl Swarm {
     }
 
     #[must_use]
-    pub fn get_all(&self, limit: Option<usize>) -> Vec<Arc<Peer>> {
+    pub fn peers(&self, limit: Option<usize>) -> Vec<Arc<Peer>> {
         match limit {
             Some(limit) => self.peers.values().take(limit).cloned().collect(),
             None => self.peers.values().cloned().collect(),
@@ -119,7 +109,7 @@ impl Swarm {
     }
 
     #[must_use]
-    pub fn get_peers_excluding_addr(&self, peer_addr: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
+    pub fn peers_excluding(&self, peer_addr: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
         match limit {
             Some(limit) => self
                 .peers
@@ -166,6 +156,16 @@ impl Swarm {
 
         (seeders, leechers)
     }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.peers.len()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.peers.is_empty()
+    }
 }
 
 #[cfg(test)]
@@ -201,7 +201,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        assert_eq!(swarm.upsert(peer.into()), None);
+        assert_eq!(swarm.handle_announce(peer.into()), None);
     }
 
     #[test]
@@ -210,9 +210,9 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert(peer.into());
+        swarm.handle_announce(peer.into());
 
-        assert_eq!(swarm.upsert(peer.into()), Some(Arc::new(peer)));
+        assert_eq!(swarm.handle_announce(peer.into()), Some(Arc::new(peer)));
     }
 
     #[test]
@@ -221,9 +221,9 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert(peer.into());
+        swarm.handle_announce(peer.into());
 
-        assert_eq!(swarm.get_all(None), [Arc::new(peer)]);
+        assert_eq!(swarm.peers(None), [Arc::new(peer)]);
     }
 
     #[test]
@@ -232,7 +232,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert(peer.into());
+        swarm.handle_announce(peer.into());
 
         assert_eq!(swarm.get(&peer.peer_addr), Some(Arc::new(peer)).as_ref());
     }
@@ -243,7 +243,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert(peer.into());
+        swarm.handle_announce(peer.into());
 
         assert_eq!(swarm.len(), 1);
     }
@@ -254,7 +254,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert(peer.into());
+        swarm.handle_announce(peer.into());
 
         swarm.remove(&peer);
 
@@ -267,7 +267,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert(peer.into());
+        swarm.handle_announce(peer.into());
 
         let old = swarm.remove(&peer);
 
@@ -292,15 +292,15 @@ mod tests {
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.upsert(peer1.into());
+        swarm.handle_announce(peer1.into());
 
         let peer2 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000002"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
             .build();
-        swarm.upsert(peer2.into());
+        swarm.handle_announce(peer2.into());
 
-        assert_eq!(swarm.get_peers_excluding_addr(&peer2.peer_addr, None), [Arc::new(peer1)]);
+        assert_eq!(swarm.peers_excluding(&peer2.peer_addr, None), [Arc::new(peer1)]);
     }
 
     #[test]
@@ -311,10 +311,10 @@ mod tests {
         // Insert the peer
         let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
         let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-        swarm.upsert(peer.into());
+        swarm.handle_announce(peer.into());
 
         // Remove peers not updated since one second after inserting the peer
-        swarm.remove_inactive_peers(last_update_time + one_second);
+        swarm.remove_inactive(last_update_time + one_second);
 
         assert_eq!(swarm.len(), 0);
     }
@@ -327,10 +327,10 @@ mod tests {
         // Insert the peer
         let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
         let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-        swarm.upsert(peer.into());
+        swarm.handle_announce(peer.into());
 
         // Remove peers not updated since one second before inserting the peer.
-        swarm.remove_inactive_peers(last_update_time - one_second);
+        swarm.remove_inactive(last_update_time - one_second);
 
         assert_eq!(swarm.len(), 1);
     }
@@ -342,12 +342,12 @@ mod tests {
         let peer1 = PeerBuilder::default()
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.upsert(peer1.into());
+        swarm.handle_announce(peer1.into());
 
         let peer2 = PeerBuilder::default()
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
             .build();
-        swarm.upsert(peer2.into());
+        swarm.handle_announce(peer2.into());
 
         assert_eq!(swarm.len(), 2);
     }
@@ -363,13 +363,13 @@ mod tests {
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.upsert(peer1.into());
+        swarm.handle_announce(peer1.into());
 
         let peer2 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000002"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.upsert(peer2.into());
+        swarm.handle_announce(peer2.into());
 
         assert_eq!(swarm.len(), 1);
     }
@@ -381,8 +381,8 @@ mod tests {
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.upsert(seeder.into());
-        swarm.upsert(leecher.into());
+        swarm.handle_announce(seeder.into());
+        swarm.handle_announce(leecher.into());
 
         assert_eq!(
             swarm.metadata(),
@@ -401,8 +401,8 @@ mod tests {
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.upsert(seeder.into());
-        swarm.upsert(leecher.into());
+        swarm.handle_announce(seeder.into());
+        swarm.handle_announce(leecher.into());
 
         let (seeders, _leechers) = swarm.seeders_and_leechers();
 
@@ -416,8 +416,8 @@ mod tests {
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.upsert(seeder.into());
-        swarm.upsert(leecher.into());
+        swarm.handle_announce(seeder.into());
+        swarm.handle_announce(leecher.into());
 
         let (_seeders, leechers) = swarm.seeders_and_leechers();
 
@@ -439,7 +439,7 @@ mod tests {
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.upsert(leecher.into());
+                swarm.handle_announce(leecher.into());
 
                 assert_eq!(swarm.metadata().leechers(), leechers + 1);
             }
@@ -452,7 +452,7 @@ mod tests {
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert(seeder.into());
+                swarm.handle_announce(seeder.into());
 
                 assert_eq!(swarm.metadata().seeders(), seeders + 1);
             }
@@ -466,7 +466,7 @@ mod tests {
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert(seeder.into());
+                swarm.handle_announce(seeder.into());
 
                 assert_eq!(swarm.metadata().downloads(), downloads);
             }
@@ -483,7 +483,7 @@ mod tests {
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.upsert(leecher.into());
+                swarm.handle_announce(leecher.into());
 
                 let leechers = swarm.metadata().leechers();
 
@@ -498,7 +498,7 @@ mod tests {
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert(seeder.into());
+                swarm.handle_announce(seeder.into());
 
                 let seeders = swarm.metadata().seeders();
 
@@ -521,11 +521,11 @@ mod tests {
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.upsert(leecher.into());
+                swarm.handle_announce(leecher.into());
 
                 let leechers = swarm.metadata().leechers();
 
-                swarm.remove_inactive_peers(leecher.updated + Duration::from_secs(1));
+                swarm.remove_inactive(leecher.updated + Duration::from_secs(1));
 
                 assert_eq!(swarm.metadata().leechers(), leechers - 1);
             }
@@ -536,11 +536,11 @@ mod tests {
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert(seeder.into());
+                swarm.handle_announce(seeder.into());
 
                 let seeders = swarm.metadata().seeders();
 
-                swarm.remove_inactive_peers(seeder.updated + Duration::from_secs(1));
+                swarm.remove_inactive(seeder.updated + Duration::from_secs(1));
 
                 assert_eq!(swarm.metadata().seeders(), seeders - 1);
             }
@@ -558,14 +558,14 @@ mod tests {
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.upsert(peer.into());
+                swarm.handle_announce(peer.into());
 
                 let leechers = swarm.metadata().leechers();
                 let seeders = swarm.metadata().seeders();
 
                 peer.left = NumberOfBytes::new(0); // Convert to seeder
 
-                swarm.upsert(peer.into());
+                swarm.handle_announce(peer.into());
 
                 assert_eq!(swarm.metadata().seeders(), seeders + 1);
                 assert_eq!(swarm.metadata().leechers(), leechers - 1);
@@ -577,14 +577,14 @@ mod tests {
 
                 let mut peer = PeerBuilder::seeder().build();
 
-                swarm.upsert(peer.into());
+                swarm.handle_announce(peer.into());
 
                 let leechers = swarm.metadata().leechers();
                 let seeders = swarm.metadata().seeders();
 
                 peer.left = NumberOfBytes::new(10); // Convert to leecher
 
-                swarm.upsert(peer.into());
+                swarm.handle_announce(peer.into());
 
                 assert_eq!(swarm.metadata().leechers(), leechers + 1);
                 assert_eq!(swarm.metadata().seeders(), seeders - 1);
@@ -596,13 +596,13 @@ mod tests {
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.upsert(peer.into());
+                swarm.handle_announce(peer.into());
 
                 let downloads = swarm.metadata().downloads();
 
                 peer.event = aquatic_udp_protocol::AnnounceEvent::Completed;
 
-                swarm.upsert(peer.into());
+                swarm.handle_announce(peer.into());
 
                 assert_eq!(swarm.metadata().downloads(), downloads + 1);
             }
@@ -613,15 +613,15 @@ mod tests {
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.upsert(peer.into());
+                swarm.handle_announce(peer.into());
 
                 let downloads = swarm.metadata().downloads();
 
                 peer.event = aquatic_udp_protocol::AnnounceEvent::Completed;
 
-                swarm.upsert(peer.into());
+                swarm.handle_announce(peer.into());
 
-                swarm.upsert(peer.into());
+                swarm.handle_announce(peer.into());
 
                 assert_eq!(swarm.metadata().downloads(), downloads + 1);
             }

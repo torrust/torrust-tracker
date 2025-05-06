@@ -62,12 +62,12 @@ impl TrackedTorrent {
 
     #[must_use]
     pub fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        self.swarm.get_all(limit)
+        self.swarm.peers(limit)
     }
 
     #[must_use]
     pub fn get_peers_for_client(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        self.swarm.get_peers_excluding_addr(client, limit)
+        self.swarm.peers_excluding(client, limit)
     }
 
     pub fn upsert_peer(&mut self, peer: &peer::Peer) -> bool {
@@ -78,7 +78,7 @@ impl TrackedTorrent {
                 drop(self.swarm.remove(peer));
             }
             AnnounceEvent::Completed => {
-                let previous = self.swarm.upsert(Arc::new(*peer));
+                let previous = self.swarm.handle_announce(Arc::new(*peer));
                 // Don't count if peer was not previously known and not already completed.
                 if previous.is_some_and(|p| p.event != AnnounceEvent::Completed) {
                     self.downloaded += 1;
@@ -88,7 +88,7 @@ impl TrackedTorrent {
             _ => {
                 // `Started` event (first announced event) or
                 // `None` event (announcements done at regular intervals).
-                drop(self.swarm.upsert(Arc::new(*peer)));
+                drop(self.swarm.handle_announce(Arc::new(*peer)));
             }
         }
 
@@ -96,6 +96,6 @@ impl TrackedTorrent {
     }
 
     pub fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {
-        self.swarm.remove_inactive_peers(current_cutoff);
+        self.swarm.remove_inactive(current_cutoff);
     }
 }
