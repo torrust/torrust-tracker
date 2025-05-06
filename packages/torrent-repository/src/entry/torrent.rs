@@ -33,20 +33,9 @@ impl TrackedTorrent {
         self.swarm.metadata()
     }
 
-    /// Returns true if the torrents meets the retention policy, meaning that
-    /// it should be kept in the tracker.
     #[must_use]
     pub fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool {
-        // code-review: why?
-        if policy.persistent_torrent_completed_stat && self.get_swarm_metadata().downloaded > 0 {
-            return true;
-        }
-
-        if policy.remove_peerless_torrents && self.swarm.is_empty() {
-            return false;
-        }
-
-        true
+        self.swarm.meets_retaining_policy(policy)
     }
 
     #[must_use]

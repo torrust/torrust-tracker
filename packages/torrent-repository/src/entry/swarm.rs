@@ -5,6 +5,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::AnnounceEvent;
+use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::peer::{self, Peer, PeerAnnouncement};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
@@ -187,6 +188,22 @@ impl Swarm {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.peers.is_empty()
+    }
+
+    /// Returns true if the torrents meets the retention policy, meaning that
+    /// it should be kept in the tracker.
+    #[must_use]
+    pub fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool {
+        // code-review: why?
+        if policy.persistent_torrent_completed_stat && self.metadata().downloaded > 0 {
+            return true;
+        }
+
+        if policy.remove_peerless_torrents && self.is_empty() {
+            return false;
+        }
+
+        true
     }
 }
 
