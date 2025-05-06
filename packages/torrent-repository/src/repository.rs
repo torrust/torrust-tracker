@@ -51,7 +51,7 @@ impl TorrentRepository {
             tracing::debug!("Inserting new torrent: {:?}", info_hash);
 
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
-                TrackedTorrentHandle::new(TrackedTorrent::new(Swarm::default(), number_of_downloads).into())
+                TrackedTorrentHandle::new(TrackedTorrent::new(Swarm::new(number_of_downloads), number_of_downloads).into())
             } else {
                 TrackedTorrentHandle::default()
             };

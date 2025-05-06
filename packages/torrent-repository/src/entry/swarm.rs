@@ -16,6 +16,14 @@ pub struct Swarm {
 }
 
 impl Swarm {
+    #[must_use]
+    pub fn new(downloaded: u32) -> Self {
+        Self {
+            peers: BTreeMap::new(),
+            metadata: SwarmMetadata::new(downloaded, 0, 0),
+        }
+    }
+
     pub fn handle_announcement(&mut self, incoming_announce: &PeerAnnouncement) -> bool {
         let mut downloads_increased: bool = false;
 
