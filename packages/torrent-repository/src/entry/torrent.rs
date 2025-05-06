@@ -20,17 +20,12 @@ use super::swarm::Swarm;
 pub struct TrackedTorrent {
     /// A network of peers that are all trying to download the torrent.
     swarm: Swarm,
-
-    /// The number of peers that have ever completed downloading the torrent.
-    /// This value is can be persistent so it's loaded from the database when
-    /// the tracker starts.
-    downloaded: u32,
 }
 
 impl TrackedTorrent {
     #[must_use]
-    pub fn new(swarm: Swarm, downloaded: u32) -> Self {
-        Self { swarm, downloaded }
+    pub fn new(swarm: Swarm) -> Self {
+        Self { swarm }
     }
 
     #[must_use]
@@ -43,7 +38,7 @@ impl TrackedTorrent {
     #[must_use]
     pub fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool {
         // code-review: why?
-        if policy.persistent_torrent_completed_stat && self.downloaded > 0 {
+        if policy.persistent_torrent_completed_stat && self.get_swarm_metadata().downloaded > 0 {
             return true;
         }
 
@@ -75,13 +70,7 @@ impl TrackedTorrent {
     }
 
     pub fn handle_announcement(&mut self, peer: &peer::Peer) -> bool {
-        let downloads_increased = self.swarm.handle_announcement(peer);
-
-        if downloads_increased {
-            self.downloaded += 1;
-        }
-
-        downloads_increased
+        self.swarm.handle_announcement(peer)
     }
 
     pub fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {
