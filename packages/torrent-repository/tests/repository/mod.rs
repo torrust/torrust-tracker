@@ -9,7 +9,7 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::PersistentTorrents;
-use torrust_tracker_torrent_repository::entry::swarm::Swarm;
+use torrust_tracker_torrent_repository::swarm::Swarm;
 use torrust_tracker_torrent_repository::{LockTrackedTorrent, TorrentRepository};
 
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};

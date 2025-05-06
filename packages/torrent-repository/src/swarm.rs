@@ -218,7 +218,7 @@ mod tests {
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
     use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-    use crate::entry::swarm::Swarm;
+    use crate::swarm::Swarm;
 
     #[test]
     fn it_should_be_empty_when_no_peers_have_been_inserted() {
@@ -483,7 +483,7 @@ mod tests {
         mod when_a_new_peer_is_added {
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::entry::swarm::Swarm;
+            use crate::swarm::Swarm;
 
             #[test]
             fn it_should_increase_the_number_of_leechers_if_the_new_peer_is_a_leecher_() {
@@ -532,7 +532,7 @@ mod tests {
         mod when_a_peer_is_removed {
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::entry::swarm::Swarm;
+            use crate::swarm::Swarm;
 
             #[test]
             fn it_should_decrease_the_number_of_leechers_if_the_removed_peer_was_a_leecher() {
@@ -572,7 +572,7 @@ mod tests {
 
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::entry::swarm::Swarm;
+            use crate::swarm::Swarm;
 
             #[test]
             fn it_should_decrease_the_number_of_leechers_when_a_removed_peer_is_a_leecher() {
@@ -611,7 +611,7 @@ mod tests {
             use aquatic_udp_protocol::NumberOfBytes;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::entry::swarm::Swarm;
+            use crate::swarm::Swarm;
 
             #[test]
             fn it_should_increase_seeders_and_decreasing_leechers_when_the_peer_changes_from_leecher_to_seeder_() {

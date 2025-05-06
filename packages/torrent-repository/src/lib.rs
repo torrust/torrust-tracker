@@ -1,5 +1,5 @@
-pub mod entry;
 pub mod repository;
+pub mod swarm;
 
 use std::sync::{Arc, Mutex, MutexGuard};
 
@@ -7,7 +7,7 @@ use torrust_tracker_clock::clock;
 
 pub type TorrentRepository = repository::TorrentRepository;
 pub type TrackedTorrentHandle = Arc<Mutex<Swarm>>;
-pub type Swarm = entry::swarm::Swarm;
+pub type Swarm = swarm::Swarm;
 
 /// Working version, for production.
 #[cfg(not(test))]

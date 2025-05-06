@@ -4,11 +4,11 @@ use std::sync::Arc;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
-use torrust_tracker_torrent_repository::{entry, LockTrackedTorrent, TrackedTorrentHandle};
+use torrust_tracker_torrent_repository::{swarm, LockTrackedTorrent, TrackedTorrentHandle};
 
 #[derive(Debug, Clone)]
 pub(crate) enum Torrent {
-    Single(entry::swarm::Swarm),
+    Single(swarm::Swarm),
     MutexStd(TrackedTorrentHandle),
 }
 

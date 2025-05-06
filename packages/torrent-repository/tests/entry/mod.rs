@@ -9,7 +9,7 @@ use torrust_tracker_clock::clock::{self, Time as _};
 use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::peer;
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_torrent_repository::{entry, TrackedTorrentHandle};
+use torrust_tracker_torrent_repository::{swarm, TrackedTorrentHandle};
 
 use crate::common::torrent::Torrent;
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
@@ -17,7 +17,7 @@ use crate::CurrentClock;
 
 #[fixture]
 fn single() -> Torrent {
-    Torrent::Single(entry::swarm::Swarm::default())
+    Torrent::Single(swarm::Swarm::default())
 }
 #[fixture]
 fn mutex_std() -> Torrent {

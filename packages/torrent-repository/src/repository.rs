@@ -7,7 +7,7 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
-use crate::entry::swarm::Swarm;
+use crate::swarm::Swarm;
 use crate::{LockTrackedTorrent, TrackedTorrentHandle};
 
 #[derive(Default, Debug)]
