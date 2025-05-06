@@ -1,5 +1,5 @@
-pub mod swarms;
 pub mod swarm;
+pub mod swarms;
 
 use std::sync::{Arc, Mutex, MutexGuard};
 
