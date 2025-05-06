@@ -224,14 +224,14 @@ mod tests {
                     // Scrape
                     let scrape_data = scrape_handler.scrape(&vec![info_hash]).await.unwrap();
 
-                    // The expected swarm metadata for the file
+                    // The expected swarm metadata for the torrent
                     let mut expected_scrape_data = ScrapeData::empty();
                     expected_scrape_data.add_file(
                         &info_hash,
                         SwarmMetadata {
-                            complete: 0, // the "complete" peer does not count because it was not previously known
-                            downloaded: 0,
-                            incomplete: 1, // the "incomplete" peer we have just announced
+                            complete: 1,   // the "incomplete" announced
+                            downloaded: 0, // the "complete" peer download does not count because it was not previously known
+                            incomplete: 1, // the "incomplete" peer announced
                         },
                     );
 

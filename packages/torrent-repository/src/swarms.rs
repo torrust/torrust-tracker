@@ -7,16 +7,16 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
-use crate::entry::peer_list::PeerList;
-use crate::entry::torrent::TrackedTorrent;
-use crate::{LockTrackedTorrent, TrackedTorrentHandle};
+use crate::swarm::Swarm;
+use crate::{LockTrackedTorrent, SwarmHandle};
 
 #[derive(Default, Debug)]
-pub struct TorrentRepository {
-    pub torrents: SkipMap<InfoHash, TrackedTorrentHandle>,
+pub struct Swarms {
+    // todo: this needs to be public only to insert a peerless torrent (empty swarm).
+    pub swarms: SkipMap<InfoHash, SwarmHandle>,
 }
 
-impl TorrentRepository {
+impl Swarms {
     /// Upsert a peer into the swarm of a torrent.
     ///
     /// Optionally, it can also preset the number of downloads of the torrent
@@ -43,30 +43,24 @@ impl TorrentRepository {
         peer: &peer::Peer,
         opt_persistent_torrent: Option<PersistentTorrent>,
     ) -> bool {
-        if let Some(existing_entry) = self.torrents.get(info_hash) {
+        if let Some(existing_entry) = self.swarms.get(info_hash) {
             tracing::debug!("Torrent already exists: {:?}", info_hash);
 
-            existing_entry.value().lock_or_panic().upsert_peer(peer)
+            existing_entry.value().lock_or_panic().handle_announcement(peer)
         } else {
             tracing::debug!("Inserting new torrent: {:?}", info_hash);
 
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
-                TrackedTorrentHandle::new(
-                    TrackedTorrent {
-                        swarm: PeerList::default(),
-                        downloaded: number_of_downloads,
-                    }
-                    .into(),
-                )
+                SwarmHandle::new(Swarm::new(number_of_downloads).into())
             } else {
-                TrackedTorrentHandle::default()
+                SwarmHandle::default()
             };
 
-            let inserted_entry = self.torrents.get_or_insert(*info_hash, new_entry);
+            let inserted_entry = self.swarms.get_or_insert(*info_hash, new_entry);
 
             let mut torrent_guard = inserted_entry.value().lock_or_panic();
 
-            torrent_guard.upsert_peer(peer)
+            torrent_guard.handle_announcement(peer)
         }
     }
 
@@ -76,8 +70,8 @@ impl TorrentRepository {
     ///
     /// An `Option` containing the removed torrent entry if it existed.
     #[must_use]
-    pub fn remove(&self, key: &InfoHash) -> Option<TrackedTorrentHandle> {
-        self.torrents.remove(key).map(|entry| entry.value().clone())
+    pub fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
+        self.swarms.remove(key).map(|entry| entry.value().clone())
     }
 
     /// Removes inactive peers from all torrent entries.
@@ -89,8 +83,8 @@ impl TorrentRepository {
     ///
     /// This function panics if the lock for the entry cannot be obtained.
     pub fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
-        for entry in &self.torrents {
-            entry.value().lock_or_panic().remove_inactive_peers(current_cutoff);
+        for entry in &self.swarms {
+            entry.value().lock_or_panic().remove_inactive(current_cutoff);
         }
     }
 
@@ -100,8 +94,8 @@ impl TorrentRepository {
     ///
     /// An `Option` containing the tracked torrent handle if found.
     #[must_use]
-    pub fn get(&self, key: &InfoHash) -> Option<TrackedTorrentHandle> {
-        let maybe_entry = self.torrents.get(key);
+    pub fn get(&self, key: &InfoHash) -> Option<SwarmHandle> {
+        let maybe_entry = self.swarms.get(key);
         maybe_entry.map(|entry| entry.value().clone())
     }
 
@@ -115,17 +109,17 @@ impl TorrentRepository {
     ///
     /// A vector of `(InfoHash, TorrentEntry)` tuples.
     #[must_use]
-    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, TrackedTorrentHandle)> {
+    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, SwarmHandle)> {
         match pagination {
             Some(pagination) => self
-                .torrents
+                .swarms
                 .iter()
                 .skip(pagination.offset as usize)
                 .take(pagination.limit as usize)
                 .map(|entry| (*entry.key(), entry.value().clone()))
                 .collect(),
             None => self
-                .torrents
+                .swarms
                 .iter()
                 .map(|entry| (*entry.key(), entry.value().clone()))
                 .collect(),
@@ -143,9 +137,9 @@ impl TorrentRepository {
     /// This function panics if the lock for the entry cannot be obtained.
     #[must_use]
     pub fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
-        self.torrents
+        self.swarms
             .get(info_hash)
-            .map(|entry| entry.value().lock_or_panic().get_swarm_metadata())
+            .map(|entry| entry.value().lock_or_panic().metadata())
     }
 
     /// Retrieves swarm metadata for a given torrent.
@@ -181,7 +175,7 @@ impl TorrentRepository {
     pub fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.lock_or_panic().get_peers_for_client(&peer.peer_addr, Some(limit)),
+            Some(entry) => entry.lock_or_panic().peers_excluding(&peer.peer_addr, Some(limit)),
         }
     }
 
@@ -202,7 +196,7 @@ impl TorrentRepository {
     pub fn get_torrent_peers(&self, info_hash: &InfoHash, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.lock_or_panic().get_peers(Some(limit)),
+            Some(entry) => entry.lock_or_panic().peers(Some(limit)),
         }
     }
 
@@ -215,7 +209,7 @@ impl TorrentRepository {
     ///
     /// This function panics if the lock for the entry cannot be obtained.
     pub fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
-        for entry in &self.torrents {
+        for entry in &self.swarms {
             if entry.value().lock_or_panic().meets_retaining_policy(policy) {
                 continue;
             }
@@ -231,21 +225,15 @@ impl TorrentRepository {
     /// access.
     pub fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
         for (info_hash, completed) in persistent_torrents {
-            if self.torrents.contains_key(info_hash) {
+            if self.swarms.contains_key(info_hash) {
                 continue;
             }
 
-            let entry = TrackedTorrentHandle::new(
-                TrackedTorrent {
-                    swarm: PeerList::default(),
-                    downloaded: *completed,
-                }
-                .into(),
-            );
+            let entry = SwarmHandle::new(Swarm::new(*completed).into());
 
             // Since SkipMap is lock-free the torrent could have been inserted
             // after checking if it exists.
-            self.torrents.get_or_insert(*info_hash, entry);
+            self.swarms.get_or_insert(*info_hash, entry);
         }
     }
 
@@ -266,8 +254,8 @@ impl TorrentRepository {
     pub fn get_aggregate_swarm_metadata(&self) -> AggregateSwarmMetadata {
         let mut metrics = AggregateSwarmMetadata::default();
 
-        for entry in &self.torrents {
-            let stats = entry.value().lock_or_panic().get_swarm_metadata();
+        for entry in &self.swarms {
+            let stats = entry.value().lock_or_panic().metadata();
             metrics.total_complete += u64::from(stats.complete);
             metrics.total_downloaded += u64::from(stats.downloaded);
             metrics.total_incomplete += u64::from(stats.incomplete);
@@ -317,12 +305,12 @@ mod tests {
 
             use std::sync::Arc;
 
-            use crate::repository::TorrentRepository;
+            use crate::swarms::Swarms;
             use crate::tests::{sample_info_hash, sample_peer};
 
             #[tokio::test]
             async fn it_should_add_the_first_peer_to_the_torrent_peer_list() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let info_hash = sample_info_hash();
 
@@ -333,7 +321,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_allow_adding_the_same_peer_twice_to_the_torrent_peer_list() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let info_hash = sample_info_hash();
 
@@ -353,13 +341,13 @@ mod tests {
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-            use crate::repository::tests::the_in_memory_torrent_repository::numeric_peer_id;
-            use crate::repository::TorrentRepository;
+            use crate::swarms::tests::the_in_memory_torrent_repository::numeric_peer_id;
+            use crate::swarms::Swarms;
             use crate::tests::{sample_info_hash, sample_peer};
 
             #[tokio::test]
             async fn it_should_return_the_peers_for_a_given_torrent() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
@@ -373,7 +361,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_an_empty_list_or_peers_for_a_non_existing_torrent() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let peers = torrent_repository.get_torrent_peers(&sample_info_hash(), 74);
 
@@ -382,7 +370,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_74_peers_at_the_most_for_a_given_torrent() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let info_hash = sample_info_hash();
 
@@ -415,13 +403,13 @@ mod tests {
                 use torrust_tracker_primitives::peer::Peer;
                 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-                use crate::repository::tests::the_in_memory_torrent_repository::numeric_peer_id;
-                use crate::repository::TorrentRepository;
+                use crate::swarms::tests::the_in_memory_torrent_repository::numeric_peer_id;
+                use crate::swarms::Swarms;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
                 async fn it_should_return_an_empty_peer_list_for_a_non_existing_torrent() {
-                    let torrent_repository = Arc::new(TorrentRepository::default());
+                    let torrent_repository = Arc::new(Swarms::default());
 
                     let peers = torrent_repository.get_peers_for(&sample_info_hash(), &sample_peer(), TORRENT_PEERS_LIMIT);
 
@@ -430,7 +418,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_peers_for_a_given_torrent_excluding_a_given_peer() {
-                    let torrent_repository = Arc::new(TorrentRepository::default());
+                    let torrent_repository = Arc::new(Swarms::default());
 
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
@@ -444,7 +432,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_74_peers_at_the_most_for_a_given_torrent_when_it_filters_out_a_given_peer() {
-                    let torrent_repository = Arc::new(TorrentRepository::default());
+                    let torrent_repository = Arc::new(Swarms::default());
 
                     let info_hash = sample_info_hash();
 
@@ -484,12 +472,12 @@ mod tests {
             use torrust_tracker_configuration::TrackerPolicy;
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-            use crate::repository::TorrentRepository;
+            use crate::swarms::Swarms;
             use crate::tests::{sample_info_hash, sample_peer};
 
             #[tokio::test]
             async fn it_should_remove_a_torrent_entry() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let info_hash = sample_info_hash();
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
@@ -501,7 +489,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_remove_peers_that_have_not_been_updated_after_a_cutoff_time() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let info_hash = sample_info_hash();
                 let mut peer = sample_peer();
@@ -515,8 +503,8 @@ mod tests {
                 assert!(!torrent_repository.get_torrent_peers(&info_hash, 74).contains(&Arc::new(peer)));
             }
 
-            fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<TorrentRepository> {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+            fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<Swarms> {
+                let torrent_repository = Arc::new(Swarms::default());
 
                 // Insert a sample peer for the torrent to force adding the torrent entry
                 let mut peer = sample_peer();
@@ -552,9 +540,9 @@ mod tests {
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-            use crate::repository::TorrentRepository;
+            use crate::swarms::Swarms;
             use crate::tests::{sample_info_hash, sample_peer};
-            use crate::{LockTrackedTorrent, TrackedTorrentHandle};
+            use crate::{LockTrackedTorrent, SwarmHandle};
 
             /// `TorrentEntry` data is not directly accessible. It's only
             /// accessible through the trait methods. We need this temporary
@@ -567,14 +555,14 @@ mod tests {
             }
 
             #[allow(clippy::from_over_into)]
-            impl Into<TorrentEntryInfo> for TrackedTorrentHandle {
+            impl Into<TorrentEntryInfo> for SwarmHandle {
                 fn into(self) -> TorrentEntryInfo {
                     let torrent_guard = self.lock_or_panic();
 
                     let torrent_entry_info = TorrentEntryInfo {
-                        swarm_metadata: torrent_guard.get_swarm_metadata(),
-                        peers: torrent_guard.get_peers(None).iter().map(|peer| *peer.clone()).collect(),
-                        number_of_peers: torrent_guard.get_peers_len(),
+                        swarm_metadata: torrent_guard.metadata(),
+                        peers: torrent_guard.peers(None).iter().map(|peer| *peer.clone()).collect(),
+                        number_of_peers: torrent_guard.len(),
                     };
 
                     drop(torrent_guard);
@@ -585,7 +573,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_one_torrent_entry_by_infohash() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
@@ -613,13 +601,13 @@ mod tests {
 
                 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-                use crate::repository::tests::the_in_memory_torrent_repository::returning_torrent_entries::TorrentEntryInfo;
-                use crate::repository::TorrentRepository;
+                use crate::swarms::tests::the_in_memory_torrent_repository::returning_torrent_entries::TorrentEntryInfo;
+                use crate::swarms::Swarms;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
                 async fn without_pagination() {
-                    let torrent_repository = Arc::new(TorrentRepository::default());
+                    let torrent_repository = Arc::new(Swarms::default());
 
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
@@ -651,8 +639,8 @@ mod tests {
                     use torrust_tracker_primitives::pagination::Pagination;
                     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-                    use crate::repository::tests::the_in_memory_torrent_repository::returning_torrent_entries::TorrentEntryInfo;
-                    use crate::repository::TorrentRepository;
+                    use crate::swarms::tests::the_in_memory_torrent_repository::returning_torrent_entries::TorrentEntryInfo;
+                    use crate::swarms::Swarms;
                     use crate::tests::{
                         sample_info_hash_alphabetically_ordered_after_sample_info_hash_one, sample_info_hash_one,
                         sample_peer_one, sample_peer_two,
@@ -660,7 +648,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn it_should_return_the_first_page() {
-                        let torrent_repository = Arc::new(TorrentRepository::default());
+                        let torrent_repository = Arc::new(Swarms::default());
 
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
@@ -695,7 +683,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn it_should_return_the_second_page() {
-                        let torrent_repository = Arc::new(TorrentRepository::default());
+                        let torrent_repository = Arc::new(Swarms::default());
 
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
@@ -730,7 +718,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn it_should_allow_changing_the_page_size() {
-                        let torrent_repository = Arc::new(TorrentRepository::default());
+                        let torrent_repository = Arc::new(Swarms::default());
 
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
@@ -758,14 +746,14 @@ mod tests {
             use bittorrent_primitives::info_hash::fixture::gen_seeded_infohash;
             use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
 
-            use crate::repository::TorrentRepository;
+            use crate::swarms::Swarms;
             use crate::tests::{complete_peer, leecher, sample_info_hash, seeder};
 
             // todo: refactor to use test parametrization
 
             #[tokio::test]
             async fn it_should_get_empty_aggregate_swarm_metadata_when_there_are_no_torrents() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
 
@@ -782,7 +770,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_leecher() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(&sample_info_hash(), &leecher(), None);
 
@@ -801,7 +789,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_seeder() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(&sample_info_hash(), &seeder(), None);
 
@@ -820,7 +808,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_completed_peer() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(&sample_info_hash(), &complete_peer(), None);
 
@@ -839,7 +827,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_are_multiple_torrents() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let start_time = std::time::Instant::now();
                 for i in 0..1_000_000 {
@@ -871,12 +859,12 @@ mod tests {
 
             use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-            use crate::repository::TorrentRepository;
+            use crate::swarms::Swarms;
             use crate::tests::{leecher, sample_info_hash};
 
             #[tokio::test]
             async fn it_should_get_swarm_metadata_for_an_existing_torrent() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let infohash = sample_info_hash();
 
@@ -896,7 +884,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_zeroed_swarm_metadata_for_a_non_existing_torrent() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let swarm_metadata = torrent_repository.get_swarm_metadata_or_default(&sample_info_hash());
 
@@ -910,12 +898,12 @@ mod tests {
 
             use torrust_tracker_primitives::PersistentTorrents;
 
-            use crate::repository::TorrentRepository;
+            use crate::swarms::Swarms;
             use crate::tests::sample_info_hash;
 
             #[tokio::test]
             async fn it_should_allow_importing_persisted_torrent_entries() {
-                let torrent_repository = Arc::new(TorrentRepository::default());
+                let torrent_repository = Arc::new(Swarms::default());
 
                 let infohash = sample_info_hash();
 

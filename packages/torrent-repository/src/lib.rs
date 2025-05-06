@@ -1,13 +1,13 @@
-pub mod entry;
-pub mod repository;
+pub mod swarm;
+pub mod swarms;
 
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use torrust_tracker_clock::clock;
 
-pub type TorrentRepository = repository::TorrentRepository;
-pub type TrackedTorrentHandle = Arc<Mutex<TrackedTorrent>>;
-pub type TrackedTorrent = entry::torrent::TrackedTorrent;
+pub type Swarms = swarms::Swarms;
+pub type SwarmHandle = Arc<Mutex<Swarm>>;
+pub type Swarm = swarm::Swarm;
 
 /// Working version, for production.
 #[cfg(not(test))]
@@ -20,11 +20,11 @@ pub(crate) type CurrentClock = clock::Working;
 pub(crate) type CurrentClock = clock::Stopped;
 
 pub trait LockTrackedTorrent {
-    fn lock_or_panic(&self) -> MutexGuard<'_, TrackedTorrent>;
+    fn lock_or_panic(&self) -> MutexGuard<'_, Swarm>;
 }
 
-impl LockTrackedTorrent for Arc<Mutex<TrackedTorrent>> {
-    fn lock_or_panic(&self) -> MutexGuard<'_, TrackedTorrent> {
+impl LockTrackedTorrent for Arc<Mutex<Swarm>> {
+    fn lock_or_panic(&self) -> MutexGuard<'_, Swarm> {
         self.lock().expect("can't acquire lock for tracked torrent handle")
     }
 }

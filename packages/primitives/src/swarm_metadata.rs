@@ -7,7 +7,7 @@ use derive_more::Constructor;
 /// Swarm metadata dictionary in the scrape response.
 ///
 /// See [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
-#[derive(Copy, Clone, Debug, PartialEq, Default, Constructor)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default, Constructor)]
 pub struct SwarmMetadata {
     /// (i.e `completed`): The number of peers that have ever completed
     /// downloading a given torrent.
@@ -26,6 +26,21 @@ impl SwarmMetadata {
     #[must_use]
     pub fn zeroed() -> Self {
         Self::default()
+    }
+
+    #[must_use]
+    pub fn downloads(&self) -> u32 {
+        self.downloaded
+    }
+
+    #[must_use]
+    pub fn seeders(&self) -> u32 {
+        self.complete
+    }
+
+    #[must_use]
+    pub fn leechers(&self) -> u32 {
+        self.incomplete
     }
 }
 

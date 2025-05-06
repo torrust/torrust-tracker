@@ -99,9 +99,9 @@ pub fn get_torrent_info(in_memory_torrent_repository: &Arc<InMemoryTorrentReposi
 
     let torrent_entry = torrent_entry_option?;
 
-    let stats = torrent_entry.lock_or_panic().get_swarm_metadata();
+    let stats = torrent_entry.lock_or_panic().metadata();
 
-    let peers = torrent_entry.lock_or_panic().get_peers(None);
+    let peers = torrent_entry.lock_or_panic().peers(None);
 
     let peers = Some(peers.iter().map(|peer| (**peer)).collect());
 
@@ -143,7 +143,7 @@ pub fn get_torrents_page(
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
     for (info_hash, torrent_entry) in in_memory_torrent_repository.get_paginated(pagination) {
-        let stats = torrent_entry.lock_or_panic().get_swarm_metadata();
+        let stats = torrent_entry.lock_or_panic().metadata();
 
         basic_infos.push(BasicInfo {
             info_hash,
@@ -184,7 +184,7 @@ pub fn get_torrents(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository
     for info_hash in info_hashes {
         if let Some(stats) = in_memory_torrent_repository
             .get(info_hash)
-            .map(|torrent_entry| torrent_entry.lock_or_panic().get_swarm_metadata())
+            .map(|torrent_entry| torrent_entry.lock_or_panic().metadata())
         {
             basic_infos.push(BasicInfo {
                 info_hash: *info_hash,

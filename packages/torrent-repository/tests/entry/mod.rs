@@ -9,7 +9,7 @@ use torrust_tracker_clock::clock::{self, Time as _};
 use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::peer;
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_torrent_repository::{entry, TrackedTorrentHandle};
+use torrust_tracker_torrent_repository::{swarm, SwarmHandle};
 
 use crate::common::torrent::Torrent;
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
@@ -17,11 +17,11 @@ use crate::CurrentClock;
 
 #[fixture]
 fn single() -> Torrent {
-    Torrent::Single(entry::torrent::TrackedTorrent::default())
+    Torrent::Single(swarm::Swarm::default())
 }
 #[fixture]
 fn mutex_std() -> Torrent {
-    Torrent::MutexStd(TrackedTorrentHandle::default())
+    Torrent::MutexStd(SwarmHandle::default())
 }
 
 #[fixture]
@@ -370,8 +370,7 @@ async fn it_should_limit_the_number_of_peers_returned(
 
     // We add one more peer than the scrape limit
     for peer_number in 1..=74 + 1 {
-        let mut peer = a_started_peer(1);
-        peer.peer_id = *peer::Id::new(peer_number);
+        let peer = a_started_peer(peer_number);
         torrent.upsert_peer(&peer);
     }
 

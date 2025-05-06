@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use torrust_tracker_clock::clock::Time;
@@ -67,24 +67,40 @@ impl TorrentPeerBuilder {
 
 /// A torrent seeder is a peer with 0 bytes left to download which
 /// has not announced it has stopped
+#[allow(clippy::cast_sign_loss)]
+#[allow(clippy::cast_possible_truncation)]
 #[must_use]
 pub fn a_completed_peer(id: i32) -> peer::Peer {
     let peer_id = peer::Id::new(id);
+    let peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), id as u16);
+
     TorrentPeerBuilder::new()
         .with_number_of_bytes_left(0)
         .with_event_completed()
         .with_peer_id(*peer_id)
+        .with_peer_address(peer_addr)
         .into()
 }
 
 /// A torrent leecher is a peer that is not a seeder.
 /// Leecher: left > 0 OR event = Stopped
+///
+/// # Panics
+///
+/// This function panics if proved id can't be converted into a valid socket address port.
+///
+/// The `id` argument is used to identify the peer in both the `peer_id` and the `peer_addr`.
+#[allow(clippy::cast_sign_loss)]
+#[allow(clippy::cast_possible_truncation)]
 #[must_use]
 pub fn a_started_peer(id: i32) -> peer::Peer {
     let peer_id = peer::Id::new(id);
+    let peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), id as u16);
+
     TorrentPeerBuilder::new()
         .with_number_of_bytes_left(1)
         .with_event_started()
         .with_peer_id(*peer_id)
+        .with_peer_address(peer_addr)
         .into()
 }

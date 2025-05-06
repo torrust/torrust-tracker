@@ -126,6 +126,11 @@ impl QueryBuilder {
         self
     }
 
+    pub fn with_port(mut self, port: u16) -> Self {
+        self.announce_query.port = port;
+        self
+    }
+
     pub fn without_compact(mut self) -> Self {
         self.announce_query.compact = None;
         self
