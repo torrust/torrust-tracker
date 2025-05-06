@@ -29,22 +29,22 @@ impl Torrent {
 
     pub(crate) fn peers_is_empty(&self) -> bool {
         match self {
-            Torrent::Single(entry) => entry.peers_is_empty(),
-            Torrent::MutexStd(entry) => entry.lock_or_panic().peers_is_empty(),
+            Torrent::Single(entry) => entry.swarm_is_empty(),
+            Torrent::MutexStd(entry) => entry.lock_or_panic().swarm_is_empty(),
         }
     }
 
     pub(crate) fn get_peers_len(&self) -> usize {
         match self {
-            Torrent::Single(entry) => entry.get_peers_len(),
-            Torrent::MutexStd(entry) => entry.lock_or_panic().get_peers_len(),
+            Torrent::Single(entry) => entry.swarm_len(),
+            Torrent::MutexStd(entry) => entry.lock_or_panic().swarm_len(),
         }
     }
 
     pub(crate) fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
         match self {
-            Torrent::Single(entry) => entry.get_peers(limit),
-            Torrent::MutexStd(entry) => entry.lock_or_panic().get_peers(limit),
+            Torrent::Single(entry) => entry.swarm_peers(limit),
+            Torrent::MutexStd(entry) => entry.lock_or_panic().swarm_peers(limit),
         }
     }
 
@@ -57,8 +57,8 @@ impl Torrent {
 
     pub(crate) fn upsert_peer(&mut self, peer: &peer::Peer) -> bool {
         match self {
-            Torrent::Single(entry) => entry.upsert_peer(peer),
-            Torrent::MutexStd(entry) => entry.lock_or_panic().upsert_peer(peer),
+            Torrent::Single(entry) => entry.handle_announcement(peer),
+            Torrent::MutexStd(entry) => entry.lock_or_panic().handle_announcement(peer),
         }
     }
 

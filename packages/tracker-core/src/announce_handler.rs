@@ -660,7 +660,7 @@ mod tests {
                 assert_eq!(torrent_entry.lock_or_panic().get_swarm_metadata().downloaded, 1);
 
                 // It does not persist the peers
-                assert!(torrent_entry.lock_or_panic().peers_is_empty());
+                assert!(torrent_entry.lock_or_panic().swarm_is_empty());
             }
         }
 

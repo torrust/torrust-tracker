@@ -2,7 +2,6 @@ use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::AnnounceEvent;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::peer::{self};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
@@ -10,35 +9,41 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::swarm::Swarm;
 
-/// A data structure containing all the information about a torrent in the tracker.
+/// A data structure containing all the information about a torrent in the
+/// tracker.
 ///
 /// This is the tracker entry for a given torrent and contains the swarm data,
 /// that's the list of all the peers trying to download the same torrent.
+///
 /// The tracker keeps one entry like this for every torrent.
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TrackedTorrent {
-    /// A network of peers that are all trying to download the torrent associated to this entry
+    /// A network of peers that are all trying to download the torrent.
     pub(crate) swarm: Swarm,
 
-    /// The number of peers that have ever completed downloading the torrent associated to this entry
+    /// The number of peers that have ever completed downloading the torrent.
+    /// This value is can be persistent so it's loaded from the database when
+    /// the tracker starts.
     pub(crate) downloaded: u32,
 }
 
 impl TrackedTorrent {
-    #[allow(clippy::cast_possible_truncation)]
     #[must_use]
     pub fn get_swarm_metadata(&self) -> SwarmMetadata {
-        let (seeders, leechers) = self.swarm.seeders_and_leechers();
+        let metadata = self.swarm.metadata();
 
         SwarmMetadata {
             downloaded: self.downloaded,
-            complete: seeders as u32,
-            incomplete: leechers as u32,
+            complete: metadata.complete,
+            incomplete: metadata.incomplete,
         }
     }
 
+    /// Returns true if the torrents meets the retention policy, meaning that
+    /// it should be kept in the tracker.
     #[must_use]
     pub fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool {
+        // code-review: why?
         if policy.persistent_torrent_completed_stat && self.downloaded > 0 {
             return true;
         }
@@ -51,17 +56,17 @@ impl TrackedTorrent {
     }
 
     #[must_use]
-    pub fn peers_is_empty(&self) -> bool {
+    pub fn swarm_is_empty(&self) -> bool {
         self.swarm.is_empty()
     }
 
     #[must_use]
-    pub fn get_peers_len(&self) -> usize {
+    pub fn swarm_len(&self) -> usize {
         self.swarm.len()
     }
 
     #[must_use]
-    pub fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
+    pub fn swarm_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
         self.swarm.peers(limit)
     }
 
@@ -70,29 +75,14 @@ impl TrackedTorrent {
         self.swarm.peers_excluding(client, limit)
     }
 
-    pub fn upsert_peer(&mut self, peer: &peer::Peer) -> bool {
-        let mut number_of_downloads_increased: bool = false;
+    pub fn handle_announcement(&mut self, peer: &peer::Peer) -> bool {
+        let downloads_increased = self.swarm.handle_announcement(peer);
 
-        match peer::ReadInfo::get_event(peer) {
-            AnnounceEvent::Stopped => {
-                drop(self.swarm.remove(peer));
-            }
-            AnnounceEvent::Completed => {
-                let previous = self.swarm.handle_announce(Arc::new(*peer));
-                // Don't count if peer was not previously known and not already completed.
-                if previous.is_some_and(|p| p.event != AnnounceEvent::Completed) {
-                    self.downloaded += 1;
-                    number_of_downloads_increased = true;
-                }
-            }
-            _ => {
-                // `Started` event (first announced event) or
-                // `None` event (announcements done at regular intervals).
-                drop(self.swarm.handle_announce(Arc::new(*peer)));
-            }
+        if downloads_increased {
+            self.downloaded += 1;
         }
 
-        number_of_downloads_increased
+        downloads_increased
     }
 
     pub fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {

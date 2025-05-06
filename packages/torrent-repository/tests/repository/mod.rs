@@ -34,14 +34,14 @@ fn default() -> Entries {
 #[fixture]
 fn started() -> Entries {
     let mut torrent = TrackedTorrent::default();
-    torrent.upsert_peer(&a_started_peer(1));
+    torrent.handle_announcement(&a_started_peer(1));
     vec![(InfoHash::default(), torrent)]
 }
 
 #[fixture]
 fn completed() -> Entries {
     let mut torrent = TrackedTorrent::default();
-    torrent.upsert_peer(&a_completed_peer(2));
+    torrent.handle_announcement(&a_completed_peer(2));
     vec![(InfoHash::default(), torrent)]
 }
 
@@ -49,10 +49,10 @@ fn completed() -> Entries {
 fn downloaded() -> Entries {
     let mut torrent = TrackedTorrent::default();
     let mut peer = a_started_peer(3);
-    torrent.upsert_peer(&peer);
+    torrent.handle_announcement(&peer);
     peer.event = AnnounceEvent::Completed;
     peer.left = NumberOfBytes::new(0);
-    torrent.upsert_peer(&peer);
+    torrent.handle_announcement(&peer);
     vec![(InfoHash::default(), torrent)]
 }
 
@@ -60,21 +60,21 @@ fn downloaded() -> Entries {
 fn three() -> Entries {
     let mut started = TrackedTorrent::default();
     let started_h = &mut DefaultHasher::default();
-    started.upsert_peer(&a_started_peer(1));
+    started.handle_announcement(&a_started_peer(1));
     started.hash(started_h);
 
     let mut completed = TrackedTorrent::default();
     let completed_h = &mut DefaultHasher::default();
-    completed.upsert_peer(&a_completed_peer(2));
+    completed.handle_announcement(&a_completed_peer(2));
     completed.hash(completed_h);
 
     let mut downloaded = TrackedTorrent::default();
     let downloaded_h = &mut DefaultHasher::default();
     let mut downloaded_peer = a_started_peer(3);
-    downloaded.upsert_peer(&downloaded_peer);
+    downloaded.handle_announcement(&downloaded_peer);
     downloaded_peer.event = AnnounceEvent::Completed;
     downloaded_peer.left = NumberOfBytes::new(0);
-    downloaded.upsert_peer(&downloaded_peer);
+    downloaded.handle_announcement(&downloaded_peer);
     downloaded.hash(downloaded_h);
 
     vec![
@@ -90,7 +90,7 @@ fn many_out_of_order() -> Entries {
 
     for i in 0..408 {
         let mut entry = TrackedTorrent::default();
-        entry.upsert_peer(&a_started_peer(i));
+        entry.handle_announcement(&a_started_peer(i));
 
         entries.insert((InfoHash::from(&i), entry));
     }
@@ -105,7 +105,7 @@ fn many_hashed_in_order() -> Entries {
 
     for i in 0..408 {
         let mut entry = TrackedTorrent::default();
-        entry.upsert_peer(&a_started_peer(i));
+        entry.handle_announcement(&a_started_peer(i));
 
         let hash: &mut DefaultHasher = &mut DefaultHasher::default();
         hash.write_i32(i);
@@ -457,7 +457,7 @@ async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: 
     {
         let lock_tracked_torrent = repo.get(&info_hash).expect("it_should_get_some");
         let entry = lock_tracked_torrent.lock_or_panic();
-        assert!(entry.get_peers(None).contains(&peer.into()));
+        assert!(entry.swarm_peers(None).contains(&peer.into()));
     }
 
     // Remove peers that have not been updated since the timeout (120 seconds ago).
@@ -469,7 +469,7 @@ async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: 
     {
         let lock_tracked_torrent = repo.get(&info_hash).expect("it_should_get_some");
         let entry = lock_tracked_torrent.lock_or_panic();
-        assert!(!entry.get_peers(None).contains(&peer.into()));
+        assert!(!entry.swarm_peers(None).contains(&peer.into()));
     }
 }
 

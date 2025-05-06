@@ -16,7 +16,20 @@ pub struct Swarm {
 }
 
 impl Swarm {
-    pub fn handle_announce(&mut self, incoming_announce: Arc<PeerAnnouncement>) -> Option<Arc<Peer>> {
+    pub fn handle_announcement(&mut self, incoming_announce: &PeerAnnouncement) -> bool {
+        let mut downloads_increased: bool = false;
+
+        let _previous_peer = match peer::ReadInfo::get_event(incoming_announce) {
+            AnnounceEvent::Started | AnnounceEvent::None | AnnounceEvent::Completed => {
+                self.upsert_peer(Arc::new(*incoming_announce), &mut downloads_increased)
+            }
+            AnnounceEvent::Stopped => self.remove(incoming_announce),
+        };
+
+        downloads_increased
+    }
+
+    pub fn upsert_peer(&mut self, incoming_announce: Arc<PeerAnnouncement>, downloads_increased: &mut bool) -> Option<Arc<Peer>> {
         let is_now_seeder = incoming_announce.is_seeder();
         let has_completed = incoming_announce.event == AnnounceEvent::Completed;
 
@@ -37,6 +50,7 @@ impl Swarm {
             // Check if the peer has completed downloading the torrent.
             if has_completed && old_announce.event != AnnounceEvent::Completed {
                 self.metadata.downloaded += 1;
+                *downloads_increased = true;
             }
 
             Some(old_announce)
@@ -198,30 +212,33 @@ mod tests {
     #[test]
     fn it_should_allow_inserting_a_new_peer() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        assert_eq!(swarm.handle_announce(peer.into()), None);
+        assert_eq!(swarm.upsert_peer(peer.into(), &mut downloads_increased), None);
     }
 
     #[test]
     fn it_should_allow_updating_a_preexisting_peer() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.handle_announce(peer.into());
+        swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
-        assert_eq!(swarm.handle_announce(peer.into()), Some(Arc::new(peer)));
+        assert_eq!(swarm.upsert_peer(peer.into(), &mut downloads_increased), Some(Arc::new(peer)));
     }
 
     #[test]
     fn it_should_allow_getting_all_peers() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.handle_announce(peer.into());
+        swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
         assert_eq!(swarm.peers(None), [Arc::new(peer)]);
     }
@@ -229,10 +246,11 @@ mod tests {
     #[test]
     fn it_should_allow_getting_one_peer_by_id() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.handle_announce(peer.into());
+        swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
         assert_eq!(swarm.get(&peer.peer_addr), Some(Arc::new(peer)).as_ref());
     }
@@ -240,10 +258,11 @@ mod tests {
     #[test]
     fn it_should_increase_the_number_of_peers_after_inserting_a_new_one() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.handle_announce(peer.into());
+        swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
         assert_eq!(swarm.len(), 1);
     }
@@ -251,10 +270,11 @@ mod tests {
     #[test]
     fn it_should_decrease_the_number_of_peers_after_removing_one() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.handle_announce(peer.into());
+        swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
         swarm.remove(&peer);
 
@@ -264,10 +284,11 @@ mod tests {
     #[test]
     fn it_should_allow_removing_an_existing_peer() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.handle_announce(peer.into());
+        swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
         let old = swarm.remove(&peer);
 
@@ -287,18 +308,19 @@ mod tests {
     #[test]
     fn it_should_allow_getting_all_peers_excluding_peers_with_a_given_address() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let peer1 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.handle_announce(peer1.into());
+        swarm.upsert_peer(peer1.into(), &mut downloads_increased);
 
         let peer2 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000002"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
             .build();
-        swarm.handle_announce(peer2.into());
+        swarm.upsert_peer(peer2.into(), &mut downloads_increased);
 
         assert_eq!(swarm.peers_excluding(&peer2.peer_addr, None), [Arc::new(peer1)]);
     }
@@ -306,12 +328,13 @@ mod tests {
     #[test]
     fn it_should_remove_inactive_peers() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
         let one_second = DurationSinceUnixEpoch::new(1, 0);
 
         // Insert the peer
         let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
         let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-        swarm.handle_announce(peer.into());
+        swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
         // Remove peers not updated since one second after inserting the peer
         swarm.remove_inactive(last_update_time + one_second);
@@ -322,12 +345,13 @@ mod tests {
     #[test]
     fn it_should_not_remove_active_peers() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
         let one_second = DurationSinceUnixEpoch::new(1, 0);
 
         // Insert the peer
         let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
         let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-        swarm.handle_announce(peer.into());
+        swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
         // Remove peers not updated since one second before inserting the peer.
         swarm.remove_inactive(last_update_time - one_second);
@@ -338,16 +362,17 @@ mod tests {
     #[test]
     fn it_should_allow_inserting_two_identical_peers_except_for_the_socket_address() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let peer1 = PeerBuilder::default()
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.handle_announce(peer1.into());
+        swarm.upsert_peer(peer1.into(), &mut downloads_increased);
 
         let peer2 = PeerBuilder::default()
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
             .build();
-        swarm.handle_announce(peer2.into());
+        swarm.upsert_peer(peer2.into(), &mut downloads_increased);
 
         assert_eq!(swarm.len(), 2);
     }
@@ -355,6 +380,7 @@ mod tests {
     #[test]
     fn it_should_not_allow_inserting_two_peers_with_different_peer_id_but_the_same_socket_address() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         // When that happens the peer ID will be changed in the swarm.
         // In practice, it's like if the peer had changed its ID.
@@ -363,13 +389,13 @@ mod tests {
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.handle_announce(peer1.into());
+        swarm.upsert_peer(peer1.into(), &mut downloads_increased);
 
         let peer2 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000002"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.handle_announce(peer2.into());
+        swarm.upsert_peer(peer2.into(), &mut downloads_increased);
 
         assert_eq!(swarm.len(), 1);
     }
@@ -377,12 +403,13 @@ mod tests {
     #[test]
     fn it_should_return_the_metadata() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.handle_announce(seeder.into());
-        swarm.handle_announce(leecher.into());
+        swarm.upsert_peer(seeder.into(), &mut downloads_increased);
+        swarm.upsert_peer(leecher.into(), &mut downloads_increased);
 
         assert_eq!(
             swarm.metadata(),
@@ -397,12 +424,13 @@ mod tests {
     #[test]
     fn it_should_return_the_number_of_seeders_in_the_list() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.handle_announce(seeder.into());
-        swarm.handle_announce(leecher.into());
+        swarm.upsert_peer(seeder.into(), &mut downloads_increased);
+        swarm.upsert_peer(leecher.into(), &mut downloads_increased);
 
         let (seeders, _leechers) = swarm.seeders_and_leechers();
 
@@ -412,12 +440,13 @@ mod tests {
     #[test]
     fn it_should_return_the_number_of_leechers_in_the_list() {
         let mut swarm = Swarm::default();
+        let mut downloads_increased = false;
 
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.handle_announce(seeder.into());
-        swarm.handle_announce(leecher.into());
+        swarm.upsert_peer(seeder.into(), &mut downloads_increased);
+        swarm.upsert_peer(leecher.into(), &mut downloads_increased);
 
         let (_seeders, leechers) = swarm.seeders_and_leechers();
 
@@ -434,12 +463,13 @@ mod tests {
             #[test]
             fn it_should_increase_the_number_of_leechers_if_the_new_peer_is_a_leecher_() {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let leechers = swarm.metadata().leechers();
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.handle_announce(leecher.into());
+                swarm.upsert_peer(leecher.into(), &mut downloads_increased);
 
                 assert_eq!(swarm.metadata().leechers(), leechers + 1);
             }
@@ -447,12 +477,13 @@ mod tests {
             #[test]
             fn it_should_increase_the_number_of_seeders_if_the_new_peer_is_a_seeder() {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let seeders = swarm.metadata().seeders();
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.handle_announce(seeder.into());
+                swarm.upsert_peer(seeder.into(), &mut downloads_increased);
 
                 assert_eq!(swarm.metadata().seeders(), seeders + 1);
             }
@@ -461,12 +492,13 @@ mod tests {
             fn it_should_not_increasing_the_number_of_downloads_if_the_new_peer_has_completed_downloading_as_it_was_not_previously_known(
             ) {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let downloads = swarm.metadata().downloads();
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.handle_announce(seeder.into());
+                swarm.upsert_peer(seeder.into(), &mut downloads_increased);
 
                 assert_eq!(swarm.metadata().downloads(), downloads);
             }
@@ -480,10 +512,11 @@ mod tests {
             #[test]
             fn it_should_decrease_the_number_of_leechers_if_the_removed_peer_was_a_leecher() {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.handle_announce(leecher.into());
+                swarm.upsert_peer(leecher.into(), &mut downloads_increased);
 
                 let leechers = swarm.metadata().leechers();
 
@@ -495,10 +528,11 @@ mod tests {
             #[test]
             fn it_should_decrease_the_number_of_seeders_if_the_removed_peer_was_a_seeder() {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.handle_announce(seeder.into());
+                swarm.upsert_peer(seeder.into(), &mut downloads_increased);
 
                 let seeders = swarm.metadata().seeders();
 
@@ -518,10 +552,11 @@ mod tests {
             #[test]
             fn it_should_decrease_the_number_of_leechers_when_a_removed_peer_is_a_leecher() {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.handle_announce(leecher.into());
+                swarm.upsert_peer(leecher.into(), &mut downloads_increased);
 
                 let leechers = swarm.metadata().leechers();
 
@@ -533,10 +568,11 @@ mod tests {
             #[test]
             fn it_should_decrease_the_number_of_seeders_when_the_removed_peer_is_a_seeder() {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.handle_announce(seeder.into());
+                swarm.upsert_peer(seeder.into(), &mut downloads_increased);
 
                 let seeders = swarm.metadata().seeders();
 
@@ -555,17 +591,18 @@ mod tests {
             #[test]
             fn it_should_increase_seeders_and_decreasing_leechers_when_the_peer_changes_from_leecher_to_seeder_() {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.handle_announce(peer.into());
+                swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
                 let leechers = swarm.metadata().leechers();
                 let seeders = swarm.metadata().seeders();
 
                 peer.left = NumberOfBytes::new(0); // Convert to seeder
 
-                swarm.handle_announce(peer.into());
+                swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
                 assert_eq!(swarm.metadata().seeders(), seeders + 1);
                 assert_eq!(swarm.metadata().leechers(), leechers - 1);
@@ -574,17 +611,18 @@ mod tests {
             #[test]
             fn it_should_increase_leechers_and_decreasing_seeders_when_the_peer_changes_from_seeder_to_leecher() {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let mut peer = PeerBuilder::seeder().build();
 
-                swarm.handle_announce(peer.into());
+                swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
                 let leechers = swarm.metadata().leechers();
                 let seeders = swarm.metadata().seeders();
 
                 peer.left = NumberOfBytes::new(10); // Convert to leecher
 
-                swarm.handle_announce(peer.into());
+                swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
                 assert_eq!(swarm.metadata().leechers(), leechers + 1);
                 assert_eq!(swarm.metadata().seeders(), seeders - 1);
@@ -593,16 +631,17 @@ mod tests {
             #[test]
             fn it_should_increase_the_number_of_downloads_when_the_peer_announces_completed_downloading() {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.handle_announce(peer.into());
+                swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
                 let downloads = swarm.metadata().downloads();
 
                 peer.event = aquatic_udp_protocol::AnnounceEvent::Completed;
 
-                swarm.handle_announce(peer.into());
+                swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
                 assert_eq!(swarm.metadata().downloads(), downloads + 1);
             }
@@ -610,18 +649,19 @@ mod tests {
             #[test]
             fn it_should_not_increasing_the_number_of_downloads_when_the_peer_announces_completed_downloading_twice_() {
                 let mut swarm = Swarm::default();
+                let mut downloads_increased = false;
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.handle_announce(peer.into());
+                swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
                 let downloads = swarm.metadata().downloads();
 
                 peer.event = aquatic_udp_protocol::AnnounceEvent::Completed;
 
-                swarm.handle_announce(peer.into());
+                swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
-                swarm.handle_announce(peer.into());
+                swarm.upsert_peer(peer.into(), &mut downloads_increased);
 
                 assert_eq!(swarm.metadata().downloads(), downloads + 1);
             }

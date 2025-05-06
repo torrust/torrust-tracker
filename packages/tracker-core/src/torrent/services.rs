@@ -101,7 +101,7 @@ pub fn get_torrent_info(in_memory_torrent_repository: &Arc<InMemoryTorrentReposi
 
     let stats = torrent_entry.lock_or_panic().get_swarm_metadata();
 
-    let peers = torrent_entry.lock_or_panic().get_peers(None);
+    let peers = torrent_entry.lock_or_panic().swarm_peers(None);
 
     let peers = Some(peers.iter().map(|peer| (**peer)).collect());
 

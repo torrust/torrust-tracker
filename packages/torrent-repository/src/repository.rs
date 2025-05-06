@@ -46,7 +46,7 @@ impl TorrentRepository {
         if let Some(existing_entry) = self.torrents.get(info_hash) {
             tracing::debug!("Torrent already exists: {:?}", info_hash);
 
-            existing_entry.value().lock_or_panic().upsert_peer(peer)
+            existing_entry.value().lock_or_panic().handle_announcement(peer)
         } else {
             tracing::debug!("Inserting new torrent: {:?}", info_hash);
 
@@ -66,7 +66,7 @@ impl TorrentRepository {
 
             let mut torrent_guard = inserted_entry.value().lock_or_panic();
 
-            torrent_guard.upsert_peer(peer)
+            torrent_guard.handle_announcement(peer)
         }
     }
 
@@ -202,7 +202,7 @@ impl TorrentRepository {
     pub fn get_torrent_peers(&self, info_hash: &InfoHash, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.lock_or_panic().get_peers(Some(limit)),
+            Some(entry) => entry.lock_or_panic().swarm_peers(Some(limit)),
         }
     }
 
@@ -573,8 +573,8 @@ mod tests {
 
                     let torrent_entry_info = TorrentEntryInfo {
                         swarm_metadata: torrent_guard.get_swarm_metadata(),
-                        peers: torrent_guard.get_peers(None).iter().map(|peer| *peer.clone()).collect(),
-                        number_of_peers: torrent_guard.get_peers_len(),
+                        peers: torrent_guard.swarm_peers(None).iter().map(|peer| *peer.clone()).collect(),
+                        number_of_peers: torrent_guard.swarm_len(),
                     };
 
                     drop(torrent_guard);
