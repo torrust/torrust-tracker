@@ -165,7 +165,7 @@ mod tests {
                 .get(&infohash)
                 .unwrap()
                 .lock_or_panic()
-                .get_swarm_metadata()
+                .metadata()
                 .downloaded,
             1
         );

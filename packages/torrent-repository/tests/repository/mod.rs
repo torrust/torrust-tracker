@@ -320,7 +320,7 @@ async fn it_should_get_metrics(#[values(skip_list_mutex_std())] repo: TorrentRep
     let mut metrics = AggregateSwarmMetadata::default();
 
     for (_, torrent) in entries {
-        let stats = torrent.get_swarm_metadata();
+        let stats = torrent.metadata();
 
         metrics.total_torrents += 1;
         metrics.total_incomplete += u64::from(stats.incomplete);
@@ -457,7 +457,7 @@ async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: 
     {
         let lock_tracked_torrent = repo.get(&info_hash).expect("it_should_get_some");
         let entry = lock_tracked_torrent.lock_or_panic();
-        assert!(entry.swarm_peers(None).contains(&peer.into()));
+        assert!(entry.peers(None).contains(&peer.into()));
     }
 
     // Remove peers that have not been updated since the timeout (120 seconds ago).
@@ -469,7 +469,7 @@ async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: 
     {
         let lock_tracked_torrent = repo.get(&info_hash).expect("it_should_get_some");
         let entry = lock_tracked_torrent.lock_or_panic();
-        assert!(!entry.swarm_peers(None).contains(&peer.into()));
+        assert!(!entry.peers(None).contains(&peer.into()));
     }
 }
 

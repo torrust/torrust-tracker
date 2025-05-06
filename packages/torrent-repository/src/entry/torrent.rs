@@ -29,7 +29,7 @@ impl TrackedTorrent {
     }
 
     #[must_use]
-    pub fn get_swarm_metadata(&self) -> SwarmMetadata {
+    pub fn metadata(&self) -> SwarmMetadata {
         self.swarm.metadata()
     }
 
@@ -39,22 +39,22 @@ impl TrackedTorrent {
     }
 
     #[must_use]
-    pub fn swarm_is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.swarm.is_empty()
     }
 
     #[must_use]
-    pub fn swarm_len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.swarm.len()
     }
 
     #[must_use]
-    pub fn swarm_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
+    pub fn peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
         self.swarm.peers(limit)
     }
 
     #[must_use]
-    pub fn get_peers_for_client(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
+    pub fn peers_excluding(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
         self.swarm.peers_excluding(client, limit)
     }
 
@@ -62,7 +62,7 @@ impl TrackedTorrent {
         self.swarm.handle_announcement(peer)
     }
 
-    pub fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {
+    pub fn remove_inactive(&mut self, current_cutoff: DurationSinceUnixEpoch) {
         self.swarm.remove_inactive(current_cutoff);
     }
 }

@@ -84,7 +84,7 @@ impl TorrentRepository {
     /// This function panics if the lock for the entry cannot be obtained.
     pub fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
         for entry in &self.torrents {
-            entry.value().lock_or_panic().remove_inactive_peers(current_cutoff);
+            entry.value().lock_or_panic().remove_inactive(current_cutoff);
         }
     }
 
@@ -139,7 +139,7 @@ impl TorrentRepository {
     pub fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
         self.torrents
             .get(info_hash)
-            .map(|entry| entry.value().lock_or_panic().get_swarm_metadata())
+            .map(|entry| entry.value().lock_or_panic().metadata())
     }
 
     /// Retrieves swarm metadata for a given torrent.
@@ -175,7 +175,7 @@ impl TorrentRepository {
     pub fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.lock_or_panic().get_peers_for_client(&peer.peer_addr, Some(limit)),
+            Some(entry) => entry.lock_or_panic().peers_excluding(&peer.peer_addr, Some(limit)),
         }
     }
 
@@ -196,7 +196,7 @@ impl TorrentRepository {
     pub fn get_torrent_peers(&self, info_hash: &InfoHash, limit: usize) -> Vec<Arc<peer::Peer>> {
         match self.get(info_hash) {
             None => vec![],
-            Some(entry) => entry.lock_or_panic().swarm_peers(Some(limit)),
+            Some(entry) => entry.lock_or_panic().peers(Some(limit)),
         }
     }
 
@@ -255,7 +255,7 @@ impl TorrentRepository {
         let mut metrics = AggregateSwarmMetadata::default();
 
         for entry in &self.torrents {
-            let stats = entry.value().lock_or_panic().get_swarm_metadata();
+            let stats = entry.value().lock_or_panic().metadata();
             metrics.total_complete += u64::from(stats.complete);
             metrics.total_downloaded += u64::from(stats.downloaded);
             metrics.total_incomplete += u64::from(stats.incomplete);
@@ -560,9 +560,9 @@ mod tests {
                     let torrent_guard = self.lock_or_panic();
 
                     let torrent_entry_info = TorrentEntryInfo {
-                        swarm_metadata: torrent_guard.get_swarm_metadata(),
-                        peers: torrent_guard.swarm_peers(None).iter().map(|peer| *peer.clone()).collect(),
-                        number_of_peers: torrent_guard.swarm_len(),
+                        swarm_metadata: torrent_guard.metadata(),
+                        peers: torrent_guard.peers(None).iter().map(|peer| *peer.clone()).collect(),
+                        number_of_peers: torrent_guard.len(),
                     };
 
                     drop(torrent_guard);

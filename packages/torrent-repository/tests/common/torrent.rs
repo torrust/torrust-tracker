@@ -15,8 +15,8 @@ pub(crate) enum Torrent {
 impl Torrent {
     pub(crate) fn get_stats(&self) -> SwarmMetadata {
         match self {
-            Torrent::Single(entry) => entry.get_swarm_metadata(),
-            Torrent::MutexStd(entry) => entry.lock_or_panic().get_swarm_metadata(),
+            Torrent::Single(entry) => entry.metadata(),
+            Torrent::MutexStd(entry) => entry.lock_or_panic().metadata(),
         }
     }
 
@@ -29,29 +29,29 @@ impl Torrent {
 
     pub(crate) fn peers_is_empty(&self) -> bool {
         match self {
-            Torrent::Single(entry) => entry.swarm_is_empty(),
-            Torrent::MutexStd(entry) => entry.lock_or_panic().swarm_is_empty(),
+            Torrent::Single(entry) => entry.is_empty(),
+            Torrent::MutexStd(entry) => entry.lock_or_panic().is_empty(),
         }
     }
 
     pub(crate) fn get_peers_len(&self) -> usize {
         match self {
-            Torrent::Single(entry) => entry.swarm_len(),
-            Torrent::MutexStd(entry) => entry.lock_or_panic().swarm_len(),
+            Torrent::Single(entry) => entry.len(),
+            Torrent::MutexStd(entry) => entry.lock_or_panic().len(),
         }
     }
 
     pub(crate) fn get_peers(&self, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
         match self {
-            Torrent::Single(entry) => entry.swarm_peers(limit),
-            Torrent::MutexStd(entry) => entry.lock_or_panic().swarm_peers(limit),
+            Torrent::Single(entry) => entry.peers(limit),
+            Torrent::MutexStd(entry) => entry.lock_or_panic().peers(limit),
         }
     }
 
     pub(crate) fn get_peers_for_client(&self, client: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
         match self {
-            Torrent::Single(entry) => entry.get_peers_for_client(client, limit),
-            Torrent::MutexStd(entry) => entry.lock_or_panic().get_peers_for_client(client, limit),
+            Torrent::Single(entry) => entry.peers_excluding(client, limit),
+            Torrent::MutexStd(entry) => entry.lock_or_panic().peers_excluding(client, limit),
         }
     }
 
@@ -64,8 +64,8 @@ impl Torrent {
 
     pub(crate) fn remove_inactive_peers(&mut self, current_cutoff: DurationSinceUnixEpoch) {
         match self {
-            Torrent::Single(entry) => entry.remove_inactive_peers(current_cutoff),
-            Torrent::MutexStd(entry) => entry.lock_or_panic().remove_inactive_peers(current_cutoff),
+            Torrent::Single(entry) => entry.remove_inactive(current_cutoff),
+            Torrent::MutexStd(entry) => entry.lock_or_panic().remove_inactive(current_cutoff),
         }
     }
 }
