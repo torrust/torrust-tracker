@@ -19,15 +19,20 @@ use super::swarm::Swarm;
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TrackedTorrent {
     /// A network of peers that are all trying to download the torrent.
-    pub(crate) swarm: Swarm,
+    swarm: Swarm,
 
     /// The number of peers that have ever completed downloading the torrent.
     /// This value is can be persistent so it's loaded from the database when
     /// the tracker starts.
-    pub(crate) downloaded: u32,
+    downloaded: u32,
 }
 
 impl TrackedTorrent {
+    #[must_use]
+    pub fn new(swarm: Swarm, downloaded: u32) -> Self {
+        Self { swarm, downloaded }
+    }
+
     #[must_use]
     pub fn get_swarm_metadata(&self) -> SwarmMetadata {
         let metadata = self.swarm.metadata();

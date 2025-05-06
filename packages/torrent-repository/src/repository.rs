@@ -51,13 +51,7 @@ impl TorrentRepository {
             tracing::debug!("Inserting new torrent: {:?}", info_hash);
 
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
-                TrackedTorrentHandle::new(
-                    TrackedTorrent {
-                        swarm: Swarm::default(),
-                        downloaded: number_of_downloads,
-                    }
-                    .into(),
-                )
+                TrackedTorrentHandle::new(TrackedTorrent::new(Swarm::default(), number_of_downloads).into())
             } else {
                 TrackedTorrentHandle::default()
             };
@@ -235,13 +229,7 @@ impl TorrentRepository {
                 continue;
             }
 
-            let entry = TrackedTorrentHandle::new(
-                TrackedTorrent {
-                    swarm: Swarm::default(),
-                    downloaded: *completed,
-                }
-                .into(),
-            );
+            let entry = TrackedTorrentHandle::new(TrackedTorrent::new(Swarm::default(), *completed).into());
 
             // Since SkipMap is lock-free the torrent could have been inserted
             // after checking if it exists.
