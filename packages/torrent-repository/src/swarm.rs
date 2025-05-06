@@ -190,20 +190,11 @@ impl Swarm {
         self.peers.is_empty()
     }
 
-    /// Returns true if the torrents meets the retention policy, meaning that
+    /// Returns true if the swarm meets the retention policy, meaning that
     /// it should be kept in the tracker.
     #[must_use]
     pub fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool {
-        // code-review: why?
-        if policy.persistent_torrent_completed_stat && self.metadata().downloaded > 0 {
-            return true;
-        }
-
-        if policy.remove_peerless_torrents && self.is_empty() {
-            return false;
-        }
-
-        true
+        !(policy.remove_peerless_torrents && self.is_empty())
     }
 }
 
@@ -214,6 +205,7 @@ mod tests {
     use std::sync::Arc;
 
     use aquatic_udp_protocol::PeerId;
+    use torrust_tracker_configuration::TrackerPolicy;
     use torrust_tracker_primitives::peer::fixture::PeerBuilder;
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
     use torrust_tracker_primitives::DurationSinceUnixEpoch;
@@ -382,6 +374,30 @@ mod tests {
         swarm.remove_inactive(last_update_time - one_second);
 
         assert_eq!(swarm.len(), 1);
+    }
+
+    #[test]
+    fn it_should_be_kept_when_empty_if_the_tracker_policy_is_not_to_remove_peerless_torrents() {
+        let empty_swarm = Swarm::default();
+
+        let policy = TrackerPolicy {
+            remove_peerless_torrents: false,
+            ..Default::default()
+        };
+
+        assert!(empty_swarm.meets_retaining_policy(&policy));
+    }
+
+    #[test]
+    fn it_should_be_removed_when_empty_if_the_tracker_policy_is_to_remove_peerless_torrents() {
+        let empty_swarm = Swarm::default();
+
+        let policy = TrackerPolicy {
+            remove_peerless_torrents: true,
+            ..Default::default()
+        };
+
+        assert!(!empty_swarm.meets_retaining_policy(&policy));
     }
 
     #[test]
