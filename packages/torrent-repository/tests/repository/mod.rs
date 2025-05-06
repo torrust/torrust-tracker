@@ -151,6 +151,7 @@ fn persistent_three() -> PersistentTorrents {
 fn make(repo: &Swarms, entries: &Entries) {
     for (info_hash, entry) in entries {
         let new = Arc::new(Mutex::new(entry.clone()));
+        // todo: use a public method to insert an empty swarm.
         repo.swarms.insert(*info_hash, new);
     }
 }

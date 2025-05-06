@@ -12,6 +12,7 @@ use crate::{LockTrackedTorrent, SwarmHandle};
 
 #[derive(Default, Debug)]
 pub struct Swarms {
+    // todo: this needs to be public only to insert a peerless torrent (empty swarm).
     pub swarms: SkipMap<InfoHash, SwarmHandle>,
 }
 
