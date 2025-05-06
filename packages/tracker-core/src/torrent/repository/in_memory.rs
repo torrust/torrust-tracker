@@ -7,7 +7,7 @@ use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
-use torrust_tracker_torrent_repository::{TorrentRepository, TrackedTorrentHandle};
+use torrust_tracker_torrent_repository::{SwarmHandle, TorrentRepository};
 
 /// In-memory repository for torrent entries.
 ///
@@ -64,7 +64,7 @@ impl InMemoryTorrentRepository {
     /// An `Option` containing the removed torrent entry if it existed.
     #[cfg(test)]
     #[must_use]
-    pub(crate) fn remove(&self, key: &InfoHash) -> Option<TrackedTorrentHandle> {
+    pub(crate) fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
         self.torrents.remove(key)
     }
 
@@ -104,7 +104,7 @@ impl InMemoryTorrentRepository {
     ///
     /// An `Option` containing the torrent entry if found.
     #[must_use]
-    pub(crate) fn get(&self, key: &InfoHash) -> Option<TrackedTorrentHandle> {
+    pub(crate) fn get(&self, key: &InfoHash) -> Option<SwarmHandle> {
         self.torrents.get(key)
     }
 
@@ -122,7 +122,7 @@ impl InMemoryTorrentRepository {
     ///
     /// A vector of `(InfoHash, TorrentEntry)` tuples.
     #[must_use]
-    pub(crate) fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, TrackedTorrentHandle)> {
+    pub(crate) fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, SwarmHandle)> {
         self.torrents.get_paginated(pagination)
     }
 

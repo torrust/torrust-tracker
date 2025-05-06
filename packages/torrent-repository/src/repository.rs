@@ -8,11 +8,11 @@ use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMe
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use crate::swarm::Swarm;
-use crate::{LockTrackedTorrent, TrackedTorrentHandle};
+use crate::{LockTrackedTorrent, SwarmHandle};
 
 #[derive(Default, Debug)]
 pub struct TorrentRepository {
-    pub torrents: SkipMap<InfoHash, TrackedTorrentHandle>,
+    pub torrents: SkipMap<InfoHash, SwarmHandle>,
 }
 
 impl TorrentRepository {
@@ -50,9 +50,9 @@ impl TorrentRepository {
             tracing::debug!("Inserting new torrent: {:?}", info_hash);
 
             let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
-                TrackedTorrentHandle::new(Swarm::new(number_of_downloads).into())
+                SwarmHandle::new(Swarm::new(number_of_downloads).into())
             } else {
-                TrackedTorrentHandle::default()
+                SwarmHandle::default()
             };
 
             let inserted_entry = self.torrents.get_or_insert(*info_hash, new_entry);
@@ -69,7 +69,7 @@ impl TorrentRepository {
     ///
     /// An `Option` containing the removed torrent entry if it existed.
     #[must_use]
-    pub fn remove(&self, key: &InfoHash) -> Option<TrackedTorrentHandle> {
+    pub fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
         self.torrents.remove(key).map(|entry| entry.value().clone())
     }
 
@@ -93,7 +93,7 @@ impl TorrentRepository {
     ///
     /// An `Option` containing the tracked torrent handle if found.
     #[must_use]
-    pub fn get(&self, key: &InfoHash) -> Option<TrackedTorrentHandle> {
+    pub fn get(&self, key: &InfoHash) -> Option<SwarmHandle> {
         let maybe_entry = self.torrents.get(key);
         maybe_entry.map(|entry| entry.value().clone())
     }
@@ -108,7 +108,7 @@ impl TorrentRepository {
     ///
     /// A vector of `(InfoHash, TorrentEntry)` tuples.
     #[must_use]
-    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, TrackedTorrentHandle)> {
+    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, SwarmHandle)> {
         match pagination {
             Some(pagination) => self
                 .torrents
@@ -228,7 +228,7 @@ impl TorrentRepository {
                 continue;
             }
 
-            let entry = TrackedTorrentHandle::new(Swarm::new(*completed).into());
+            let entry = SwarmHandle::new(Swarm::new(*completed).into());
 
             // Since SkipMap is lock-free the torrent could have been inserted
             // after checking if it exists.
@@ -541,7 +541,7 @@ mod tests {
 
             use crate::repository::TorrentRepository;
             use crate::tests::{sample_info_hash, sample_peer};
-            use crate::{LockTrackedTorrent, TrackedTorrentHandle};
+            use crate::{LockTrackedTorrent, SwarmHandle};
 
             /// `TorrentEntry` data is not directly accessible. It's only
             /// accessible through the trait methods. We need this temporary
@@ -554,7 +554,7 @@ mod tests {
             }
 
             #[allow(clippy::from_over_into)]
-            impl Into<TorrentEntryInfo> for TrackedTorrentHandle {
+            impl Into<TorrentEntryInfo> for SwarmHandle {
                 fn into(self) -> TorrentEntryInfo {
                     let torrent_guard = self.lock_or_panic();
 
