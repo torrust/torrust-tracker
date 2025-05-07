@@ -42,23 +42,17 @@ impl Swarms {
         peer: &peer::Peer,
         opt_persistent_torrent: Option<PersistentTorrent>,
     ) -> Result<bool, Error> {
-        if let Some(existing_swarm_handle) = self.swarms.get(info_hash) {
-            let mut swarm = existing_swarm_handle.value().lock()?;
-
-            Ok(swarm.handle_announcement(peer))
+        let swarm_handle = if let Some(number_of_downloads) = opt_persistent_torrent {
+            SwarmHandle::new(Swarm::new(number_of_downloads).into())
         } else {
-            let new_swarm_handle = if let Some(number_of_downloads) = opt_persistent_torrent {
-                SwarmHandle::new(Swarm::new(number_of_downloads).into())
-            } else {
-                SwarmHandle::default()
-            };
+            SwarmHandle::default()
+        };
 
-            let inserted_swarm_handle = self.swarms.get_or_insert(*info_hash, new_swarm_handle);
+        let swarm_handle = self.swarms.get_or_insert(*info_hash, swarm_handle);
 
-            let mut swarm = inserted_swarm_handle.value().lock()?;
+        let mut swarm = swarm_handle.value().lock()?;
 
-            Ok(swarm.handle_announcement(peer))
-        }
+        Ok(swarm.handle_announcement(peer))
     }
 
     /// Inserts a new swarm. It's only used for testing purposes. It allows to
