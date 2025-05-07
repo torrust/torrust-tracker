@@ -294,6 +294,16 @@ impl Swarms {
 
         Ok(metrics)
     }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.swarms.len()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.swarms.is_empty()
+    }
 }
 
 #[derive(thiserror::Error, Debug, Clone)]
