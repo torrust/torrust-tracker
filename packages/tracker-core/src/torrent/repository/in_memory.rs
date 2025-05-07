@@ -51,7 +51,7 @@ impl InMemoryTorrentRepository {
         opt_persistent_torrent: Option<PersistentTorrent>,
     ) -> bool {
         self.swarms
-            .upsert_peer(info_hash, peer, opt_persistent_torrent)
+            .handle_announcement(info_hash, peer, opt_persistent_torrent)
             .expect("Failed to upsert the peer in swarms")
     }
 
@@ -192,7 +192,7 @@ impl InMemoryTorrentRepository {
     #[must_use]
     pub(crate) fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
         self.swarms
-            .get_peers_for(info_hash, peer, max(limit, TORRENT_PEERS_LIMIT))
+            .get_peers_peers_excluding(info_hash, peer, max(limit, TORRENT_PEERS_LIMIT))
             .expect("Failed to get other peers in swarm")
     }
 
@@ -217,7 +217,7 @@ impl InMemoryTorrentRepository {
     pub fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<Arc<peer::Peer>> {
         // todo: pass the limit as an argument like `get_peers_for`
         self.swarms
-            .get_torrent_peers(info_hash, TORRENT_PEERS_LIMIT)
+            .get_swarm_peers(info_hash, TORRENT_PEERS_LIMIT)
             .expect("Failed to get other peers in swarm")
     }
 

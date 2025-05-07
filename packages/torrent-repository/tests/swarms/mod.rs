@@ -149,7 +149,7 @@ fn persistent_three() -> PersistentTorrents {
 
 fn make(swarms: &Swarms, entries: &Entries) {
     for (info_hash, swarm) in entries {
-        swarms.insert_swarm(info_hash, swarm.clone());
+        swarms.insert(info_hash, swarm.clone());
     }
 }
 
@@ -435,7 +435,7 @@ async fn it_should_remove_inactive_peers(#[values(swarms())] swarms: Swarms, #[c
     // Insert the infohash and peer into the repository
     // and verify there is an extra torrent entry.
     {
-        swarms.upsert_peer(&info_hash, &peer, None).unwrap();
+        swarms.handle_announcement(&info_hash, &peer, None).unwrap();
         assert_eq!(
             swarms.get_aggregate_swarm_metadata().unwrap().total_torrents,
             entries.len() as u64 + 1
@@ -445,7 +445,7 @@ async fn it_should_remove_inactive_peers(#[values(swarms())] swarms: Swarms, #[c
     // Insert the infohash and peer into the repository
     // and verify the swarm metadata was updated.
     {
-        swarms.upsert_peer(&info_hash, &peer, None).unwrap();
+        swarms.handle_announcement(&info_hash, &peer, None).unwrap();
         let stats = swarms.get_swarm_metadata(&info_hash).unwrap();
         assert_eq!(
             stats,
