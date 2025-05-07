@@ -8,7 +8,7 @@ use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMe
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use crate::swarm::Swarm;
-use crate::{LockTrackedTorrent, SwarmHandle};
+use crate::SwarmHandle;
 
 #[derive(Default, Debug)]
 pub struct Swarms {
@@ -34,33 +34,31 @@ impl Swarms {
     /// Returns `true` if the number of downloads was increased because the peer
     /// completed the download.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the lock for the entry cannot be obtained.
+    /// This function panics if the lock for the swarm handle cannot be acquired.
     pub fn upsert_peer(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
         opt_persistent_torrent: Option<PersistentTorrent>,
-    ) -> bool {
-        if let Some(existing_entry) = self.swarms.get(info_hash) {
-            tracing::debug!("Torrent already exists: {:?}", info_hash);
+    ) -> Result<bool, Error> {
+        if let Some(existing_swarm_handle) = self.swarms.get(info_hash) {
+            let mut swarm = existing_swarm_handle.value().lock()?;
 
-            existing_entry.value().lock_or_panic().handle_announcement(peer)
+            Ok(swarm.handle_announcement(peer))
         } else {
-            tracing::debug!("Inserting new torrent: {:?}", info_hash);
-
-            let new_entry = if let Some(number_of_downloads) = opt_persistent_torrent {
+            let new_swarm_handle = if let Some(number_of_downloads) = opt_persistent_torrent {
                 SwarmHandle::new(Swarm::new(number_of_downloads).into())
             } else {
                 SwarmHandle::default()
             };
 
-            let inserted_entry = self.swarms.get_or_insert(*info_hash, new_entry);
+            let inserted_swarm_handle = self.swarms.get_or_insert(*info_hash, new_swarm_handle);
 
-            let mut torrent_guard = inserted_entry.value().lock_or_panic();
+            let mut swarm = inserted_swarm_handle.value().lock()?;
 
-            torrent_guard.handle_announcement(peer)
+            Ok(swarm.handle_announcement(peer))
         }
     }
 
@@ -79,13 +77,17 @@ impl Swarms {
     /// A peer is considered inactive if its last update timestamp is older than
     /// the provided cutoff time.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the lock for the entry cannot be obtained.
-    pub fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
-        for entry in &self.swarms {
-            entry.value().lock_or_panic().remove_inactive(current_cutoff);
+    /// This function returns an error if it fails to acquire the lock for any
+    /// swarm handle.
+    pub fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Result<(), Error> {
+        for swarm_handle in &self.swarms {
+            let mut swarm = swarm_handle.value().lock()?;
+            swarm.remove_inactive(current_cutoff);
         }
+
+        Ok(())
     }
 
     /// Retrieves a tracked torrent handle by its infohash.
@@ -132,14 +134,17 @@ impl Swarms {
     ///
     /// A `SwarmMetadata` struct containing the aggregated torrent data if found.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the lock for the entry cannot be obtained.
-    #[must_use]
-    pub fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
-        self.swarms
-            .get(info_hash)
-            .map(|entry| entry.value().lock_or_panic().metadata())
+    /// This function panics if the lock for the swarm handle cannot be acquired.
+    pub fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Result<Option<SwarmMetadata>, Error> {
+        match self.swarms.get(info_hash) {
+            None => Ok(None),
+            Some(swarm_handle) => {
+                let swarm = swarm_handle.value().lock()?;
+                Ok(Some(swarm.metadata()))
+            }
+        }
     }
 
     /// Retrieves swarm metadata for a given torrent.
@@ -148,11 +153,16 @@ impl Swarms {
     ///
     /// A `SwarmMetadata` struct containing the aggregated torrent data if it's
     /// found or a zeroed metadata struct if not.
-    #[must_use]
-    pub fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> SwarmMetadata {
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if it fails to acquire the lock for the
+    /// swarm handle.
+    pub fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> Result<SwarmMetadata, Error> {
         match self.get_swarm_metadata(info_hash) {
-            Some(swarm_metadata) => swarm_metadata,
-            None => SwarmMetadata::zeroed(),
+            Ok(Some(swarm_metadata)) => Ok(swarm_metadata),
+            Ok(None) => Ok(SwarmMetadata::zeroed()),
+            Err(err) => Err(err),
         }
     }
 
@@ -168,14 +178,17 @@ impl Swarms {
     /// A vector of peers (wrapped in `Arc`) representing the active peers for
     /// the torrent, excluding the requesting client.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the lock for the torrent entry cannot be obtained.
-    #[must_use]
-    pub fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
+    /// This function returns an error if it fails to acquire the lock for the
+    /// swarm handle.
+    pub fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Result<Vec<Arc<peer::Peer>>, Error> {
         match self.get(info_hash) {
-            None => vec![],
-            Some(entry) => entry.lock_or_panic().peers_excluding(&peer.peer_addr, Some(limit)),
+            None => Ok(vec![]),
+            Some(swarm_handle) => {
+                let swarm = swarm_handle.lock()?;
+                Ok(swarm.peers_excluding(&peer.peer_addr, Some(limit)))
+            }
         }
     }
 
@@ -189,14 +202,17 @@ impl Swarms {
     /// A vector of peers (wrapped in `Arc`) representing the active peers for
     /// the torrent.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the lock for the torrent entry cannot be obtained.
-    #[must_use]
-    pub fn get_torrent_peers(&self, info_hash: &InfoHash, limit: usize) -> Vec<Arc<peer::Peer>> {
+    /// This function returns an error if it fails to acquire the lock for the
+    /// swarm handle.
+    pub fn get_torrent_peers(&self, info_hash: &InfoHash, limit: usize) -> Result<Vec<Arc<peer::Peer>>, Error> {
         match self.get(info_hash) {
-            None => vec![],
-            Some(entry) => entry.lock_or_panic().peers(Some(limit)),
+            None => Ok(vec![]),
+            Some(swarm_handle) => {
+                let swarm = swarm_handle.lock()?;
+                Ok(swarm.peers(Some(limit)))
+            }
         }
     }
 
@@ -205,17 +221,22 @@ impl Swarms {
     /// Depending on the tracker policy, torrents without any peers may be
     /// removed to conserve memory.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the lock for the entry cannot be obtained.
-    pub fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
-        for entry in &self.swarms {
-            if entry.value().lock_or_panic().meets_retaining_policy(policy) {
+    /// This function returns an error if it fails to acquire the lock for any
+    /// swarm handle.
+    pub fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> Result<(), Error> {
+        for swarm_handle in &self.swarms {
+            let swarm = swarm_handle.value().lock()?;
+
+            if swarm.meets_retaining_policy(policy) {
                 continue;
             }
 
-            entry.remove();
+            swarm_handle.remove();
         }
+
+        Ok(())
     }
 
     /// Imports persistent torrent data into the in-memory repository.
@@ -247,22 +268,35 @@ impl Swarms {
     ///
     /// A [`AggregateSwarmMetadata`] struct with the aggregated metrics.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This function panics if the lock for the entry cannot be obtained.
-    #[must_use]
-    pub fn get_aggregate_swarm_metadata(&self) -> AggregateSwarmMetadata {
+    /// This function returns an error if it fails to acquire the lock for any
+    /// swarm handle.
+    pub fn get_aggregate_swarm_metadata(&self) -> Result<AggregateSwarmMetadata, Error> {
         let mut metrics = AggregateSwarmMetadata::default();
 
         for entry in &self.swarms {
-            let stats = entry.value().lock_or_panic().metadata();
+            let swarm = entry.value().lock()?;
+            let stats = swarm.metadata();
             metrics.total_complete += u64::from(stats.complete);
             metrics.total_downloaded += u64::from(stats.downloaded);
             metrics.total_incomplete += u64::from(stats.incomplete);
             metrics.total_torrents += 1;
         }
 
-        metrics
+        Ok(metrics)
+    }
+}
+
+#[derive(thiserror::Error, Debug, Clone)]
+pub enum Error {
+    #[error("Can't acquire swarm lock")]
+    CannotAcquireSwarmLock,
+}
+
+impl From<std::sync::PoisonError<std::sync::MutexGuard<'_, Swarm>>> for Error {
+    fn from(_error: std::sync::PoisonError<std::sync::MutexGuard<'_, Swarm>>) -> Self {
+        Error::CannotAcquireSwarmLock
     }
 }
 
@@ -354,7 +388,7 @@ mod tests {
 
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
 
-                let peers = torrent_repository.get_torrent_peers(&info_hash, 74);
+                let peers = torrent_repository.get_torrent_peers(&info_hash, 74).unwrap();
 
                 assert_eq!(peers, vec![Arc::new(peer)]);
             }
@@ -363,7 +397,7 @@ mod tests {
             async fn it_should_return_an_empty_list_or_peers_for_a_non_existing_torrent() {
                 let torrent_repository = Arc::new(Swarms::default());
 
-                let peers = torrent_repository.get_torrent_peers(&sample_info_hash(), 74);
+                let peers = torrent_repository.get_torrent_peers(&sample_info_hash(), 74).unwrap();
 
                 assert!(peers.is_empty());
             }
@@ -388,7 +422,7 @@ mod tests {
                     let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
                 }
 
-                let peers = torrent_repository.get_torrent_peers(&info_hash, 74);
+                let peers = torrent_repository.get_torrent_peers(&info_hash, 74).unwrap();
 
                 assert_eq!(peers.len(), 74);
             }
@@ -411,7 +445,9 @@ mod tests {
                 async fn it_should_return_an_empty_peer_list_for_a_non_existing_torrent() {
                     let torrent_repository = Arc::new(Swarms::default());
 
-                    let peers = torrent_repository.get_peers_for(&sample_info_hash(), &sample_peer(), TORRENT_PEERS_LIMIT);
+                    let peers = torrent_repository
+                        .get_peers_for(&sample_info_hash(), &sample_peer(), TORRENT_PEERS_LIMIT)
+                        .unwrap();
 
                     assert_eq!(peers, vec![]);
                 }
@@ -425,7 +461,9 @@ mod tests {
 
                     let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
 
-                    let peers = torrent_repository.get_peers_for(&info_hash, &peer, TORRENT_PEERS_LIMIT);
+                    let peers = torrent_repository
+                        .get_peers_for(&info_hash, &peer, TORRENT_PEERS_LIMIT)
+                        .unwrap();
 
                     assert_eq!(peers, vec![]);
                 }
@@ -455,7 +493,9 @@ mod tests {
                         let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
                     }
 
-                    let peers = torrent_repository.get_peers_for(&info_hash, &excluded_peer, TORRENT_PEERS_LIMIT);
+                    let peers = torrent_repository
+                        .get_peers_for(&info_hash, &excluded_peer, TORRENT_PEERS_LIMIT)
+                        .unwrap();
 
                     assert_eq!(peers.len(), 74);
                 }
@@ -498,9 +538,14 @@ mod tests {
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(&info_hash, &peer, None);
 
                 // Cut off time is 1 second after the peer was updated
-                torrent_repository.remove_inactive_peers(peer.updated.add(Duration::from_secs(1)));
+                torrent_repository
+                    .remove_inactive_peers(peer.updated.add(Duration::from_secs(1)))
+                    .unwrap();
 
-                assert!(!torrent_repository.get_torrent_peers(&info_hash, 74).contains(&Arc::new(peer)));
+                assert!(!torrent_repository
+                    .get_torrent_peers(&info_hash, 74)
+                    .unwrap()
+                    .contains(&Arc::new(peer)));
             }
 
             fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<Swarms> {
@@ -512,7 +557,9 @@ mod tests {
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(info_hash, &peer, None);
 
                 // Remove the peer
-                torrent_repository.remove_inactive_peers(peer.updated.add(Duration::from_secs(1)));
+                torrent_repository
+                    .remove_inactive_peers(peer.updated.add(Duration::from_secs(1)))
+                    .unwrap();
 
                 torrent_repository
             }
@@ -528,7 +575,7 @@ mod tests {
                     ..Default::default()
                 };
 
-                torrent_repository.remove_peerless_torrents(&tracker_policy);
+                torrent_repository.remove_peerless_torrents(&tracker_policy).unwrap();
 
                 assert!(torrent_repository.get(&info_hash).is_none());
             }
@@ -755,7 +802,7 @@ mod tests {
             async fn it_should_get_empty_aggregate_swarm_metadata_when_there_are_no_torrents() {
                 let torrent_repository = Arc::new(Swarms::default());
 
-                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
+                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata().unwrap();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -774,7 +821,7 @@ mod tests {
 
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(&sample_info_hash(), &leecher(), None);
 
-                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
+                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata().unwrap();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -793,7 +840,7 @@ mod tests {
 
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(&sample_info_hash(), &seeder(), None);
 
-                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
+                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata().unwrap();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -812,7 +859,7 @@ mod tests {
 
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(&sample_info_hash(), &complete_peer(), None);
 
-                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
+                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata().unwrap();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -837,7 +884,7 @@ mod tests {
                 let result_a = start_time.elapsed();
 
                 let start_time = std::time::Instant::now();
-                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata();
+                let aggregate_swarm_metadata = torrent_repository.get_aggregate_swarm_metadata().unwrap();
                 let result_b = start_time.elapsed();
 
                 assert_eq!(
@@ -870,7 +917,7 @@ mod tests {
 
                 let _number_of_downloads_increased = torrent_repository.upsert_peer(&infohash, &leecher(), None);
 
-                let swarm_metadata = torrent_repository.get_swarm_metadata_or_default(&infohash);
+                let swarm_metadata = torrent_repository.get_swarm_metadata_or_default(&infohash).unwrap();
 
                 assert_eq!(
                     swarm_metadata,
@@ -886,7 +933,7 @@ mod tests {
             async fn it_should_return_zeroed_swarm_metadata_for_a_non_existing_torrent() {
                 let torrent_repository = Arc::new(Swarms::default());
 
-                let swarm_metadata = torrent_repository.get_swarm_metadata_or_default(&sample_info_hash());
+                let swarm_metadata = torrent_repository.get_swarm_metadata_or_default(&sample_info_hash()).unwrap();
 
                 assert_eq!(swarm_metadata, SwarmMetadata::zeroed());
             }
@@ -913,7 +960,7 @@ mod tests {
 
                 torrent_repository.import_persistent(&persistent_torrents);
 
-                let swarm_metadata = torrent_repository.get_swarm_metadata_or_default(&infohash);
+                let swarm_metadata = torrent_repository.get_swarm_metadata_or_default(&infohash).unwrap();
 
                 // Only the number of downloads is persisted.
                 assert_eq!(swarm_metadata.downloaded, 1);

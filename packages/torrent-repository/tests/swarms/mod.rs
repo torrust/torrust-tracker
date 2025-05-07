@@ -329,7 +329,7 @@ async fn it_should_get_metrics(#[values(swarms())] swarms: Swarms, #[case] entri
         metrics.total_downloaded += u64::from(stats.downloaded);
     }
 
-    assert_eq!(swarms.get_aggregate_swarm_metadata(), metrics);
+    assert_eq!(swarms.get_aggregate_swarm_metadata().unwrap(), metrics);
 }
 
 #[rstest]
@@ -349,12 +349,12 @@ async fn it_should_import_persistent_torrents(
 ) {
     make(&swarms, &entries);
 
-    let mut downloaded = swarms.get_aggregate_swarm_metadata().total_downloaded;
+    let mut downloaded = swarms.get_aggregate_swarm_metadata().unwrap().total_downloaded;
     persistent_torrents.iter().for_each(|(_, d)| downloaded += u64::from(*d));
 
     swarms.import_persistent(&persistent_torrents);
 
-    assert_eq!(swarms.get_aggregate_swarm_metadata().total_downloaded, downloaded);
+    assert_eq!(swarms.get_aggregate_swarm_metadata().unwrap().total_downloaded, downloaded);
 
     for (entry, _) in persistent_torrents {
         assert!(swarms.get(&entry).is_some());
@@ -388,7 +388,7 @@ async fn it_should_remove_an_entry(#[values(swarms())] swarms: Swarms, #[case] e
         assert!(swarms.remove(&info_hash).is_none());
     }
 
-    assert_eq!(swarms.get_aggregate_swarm_metadata().total_torrents, 0);
+    assert_eq!(swarms.get_aggregate_swarm_metadata().unwrap().total_torrents, 0);
 }
 
 #[rstest]
@@ -438,15 +438,18 @@ async fn it_should_remove_inactive_peers(#[values(swarms())] swarms: Swarms, #[c
     // Insert the infohash and peer into the repository
     // and verify there is an extra torrent entry.
     {
-        swarms.upsert_peer(&info_hash, &peer, None);
-        assert_eq!(swarms.get_aggregate_swarm_metadata().total_torrents, entries.len() as u64 + 1);
+        swarms.upsert_peer(&info_hash, &peer, None).unwrap();
+        assert_eq!(
+            swarms.get_aggregate_swarm_metadata().unwrap().total_torrents,
+            entries.len() as u64 + 1
+        );
     }
 
     // Insert the infohash and peer into the repository
     // and verify the swarm metadata was updated.
     {
-        swarms.upsert_peer(&info_hash, &peer, None);
-        let stats = swarms.get_swarm_metadata(&info_hash);
+        swarms.upsert_peer(&info_hash, &peer, None).unwrap();
+        let stats = swarms.get_swarm_metadata(&info_hash).unwrap();
         assert_eq!(
             stats,
             Some(SwarmMetadata {
@@ -466,7 +469,9 @@ async fn it_should_remove_inactive_peers(#[values(swarms())] swarms: Swarms, #[c
 
     // Remove peers that have not been updated since the timeout (120 seconds ago).
     {
-        swarms.remove_inactive_peers(CurrentClock::now_sub(&TIMEOUT).expect("it should get a time passed"));
+        swarms
+            .remove_inactive_peers(CurrentClock::now_sub(&TIMEOUT).expect("it should get a time passed"))
+            .unwrap();
     }
 
     // Verify that the this peer was removed from the repository.
@@ -494,7 +499,7 @@ async fn it_should_remove_peerless_torrents(
 ) {
     make(&swarms, &entries);
 
-    swarms.remove_peerless_torrents(&policy);
+    swarms.remove_peerless_torrents(&policy).unwrap();
 
     let torrents: Vec<(InfoHash, Swarm)> = swarms
         .get_paginated(None)

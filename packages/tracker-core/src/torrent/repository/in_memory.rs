@@ -39,6 +39,10 @@ impl InMemoryTorrentRepository {
     /// # Returns
     ///
     /// `true` if the peer stats were updated.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the underling swarms return an error.
     #[must_use]
     pub fn upsert_peer(
         &self,
@@ -46,7 +50,9 @@ impl InMemoryTorrentRepository {
         peer: &peer::Peer,
         opt_persistent_torrent: Option<PersistentTorrent>,
     ) -> bool {
-        self.swarms.upsert_peer(info_hash, peer, opt_persistent_torrent)
+        self.swarms
+            .upsert_peer(info_hash, peer, opt_persistent_torrent)
+            .expect("Failed to upsert the peer in swarms")
     }
 
     /// Removes a torrent entry from the repository.
@@ -77,8 +83,14 @@ impl InMemoryTorrentRepository {
     ///
     /// * `current_cutoff` - The cutoff timestamp; peers not updated since this
     ///   time will be removed.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the underling swarms return an error.
     pub(crate) fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
-        self.swarms.remove_inactive_peers(current_cutoff);
+        self.swarms
+            .remove_inactive_peers(current_cutoff)
+            .expect("Failed to remove inactive peers from swarms");
     }
 
     /// Removes torrent entries that have no active peers.
@@ -90,8 +102,14 @@ impl InMemoryTorrentRepository {
     ///
     /// * `policy` - The tracker policy containing the configuration for
     ///   removing peerless torrents.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the underling swarms return an error.
     pub(crate) fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
-        self.swarms.remove_peerless_torrents(policy);
+        self.swarms
+            .remove_peerless_torrents(policy)
+            .expect("Failed to remove peerless torrents from swarms");
     }
 
     /// Retrieves a torrent entry by its infohash.
@@ -139,9 +157,15 @@ impl InMemoryTorrentRepository {
     /// # Returns
     ///
     /// A `SwarmMetadata` struct containing the aggregated torrent data.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the underling swarms return an error.s
     #[must_use]
     pub(crate) fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> SwarmMetadata {
-        self.swarms.get_swarm_metadata_or_default(info_hash)
+        self.swarms
+            .get_swarm_metadata_or_default(info_hash)
+            .expect("Failed to get swarm metadata")
     }
 
     /// Retrieves torrent peers for a given torrent and client, excluding the
@@ -161,9 +185,15 @@ impl InMemoryTorrentRepository {
     ///
     /// A vector of peers (wrapped in `Arc`) representing the active peers for
     /// the torrent, excluding the requesting client.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the underling swarms return an error.
     #[must_use]
     pub(crate) fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
-        self.swarms.get_peers_for(info_hash, peer, max(limit, TORRENT_PEERS_LIMIT))
+        self.swarms
+            .get_peers_for(info_hash, peer, max(limit, TORRENT_PEERS_LIMIT))
+            .expect("Failed to get other peers in swarm")
     }
 
     /// Retrieves the list of peers for a given torrent.
@@ -182,11 +212,13 @@ impl InMemoryTorrentRepository {
     ///
     /// # Panics
     ///
-    /// This function panics if the lock for the torrent entry cannot be obtained.
+    /// This function panics if the underling swarms return an error.
     #[must_use]
     pub fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<Arc<peer::Peer>> {
         // todo: pass the limit as an argument like `get_peers_for`
-        self.swarms.get_torrent_peers(info_hash, TORRENT_PEERS_LIMIT)
+        self.swarms
+            .get_torrent_peers(info_hash, TORRENT_PEERS_LIMIT)
+            .expect("Failed to get other peers in swarm")
     }
 
     /// Calculates and returns overall torrent metrics.
@@ -198,9 +230,15 @@ impl InMemoryTorrentRepository {
     /// # Returns
     ///
     /// A [`AggregateSwarmMetadata`] struct with the aggregated metrics.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the underling swarms return an error.
     #[must_use]
     pub fn get_aggregate_swarm_metadata(&self) -> AggregateSwarmMetadata {
-        self.swarms.get_aggregate_swarm_metadata()
+        self.swarms
+            .get_aggregate_swarm_metadata()
+            .expect("Failed to get aggregate swarm metadata")
     }
 
     /// Imports persistent torrent data into the in-memory repository.
