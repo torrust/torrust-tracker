@@ -20,8 +20,8 @@ use torrust_tracker_torrent_repository::{SwarmHandle, Swarms};
 /// used in production. Other implementations are kept for reference.
 #[derive(Debug, Default)]
 pub struct InMemoryTorrentRepository {
-    /// The underlying in-memory data structure that stores torrent entries.
-    torrents: Arc<Swarms>,
+    /// The underlying in-memory data structure that stores swarms data.
+    swarms: Arc<Swarms>,
 }
 
 impl InMemoryTorrentRepository {
@@ -46,7 +46,7 @@ impl InMemoryTorrentRepository {
         peer: &peer::Peer,
         opt_persistent_torrent: Option<PersistentTorrent>,
     ) -> bool {
-        self.torrents.upsert_peer(info_hash, peer, opt_persistent_torrent)
+        self.swarms.upsert_peer(info_hash, peer, opt_persistent_torrent)
     }
 
     /// Removes a torrent entry from the repository.
@@ -65,7 +65,7 @@ impl InMemoryTorrentRepository {
     #[cfg(test)]
     #[must_use]
     pub(crate) fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
-        self.torrents.remove(key)
+        self.swarms.remove(key)
     }
 
     /// Removes inactive peers from all torrent entries.
@@ -78,7 +78,7 @@ impl InMemoryTorrentRepository {
     /// * `current_cutoff` - The cutoff timestamp; peers not updated since this
     ///   time will be removed.
     pub(crate) fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
-        self.torrents.remove_inactive_peers(current_cutoff);
+        self.swarms.remove_inactive_peers(current_cutoff);
     }
 
     /// Removes torrent entries that have no active peers.
@@ -91,7 +91,7 @@ impl InMemoryTorrentRepository {
     /// * `policy` - The tracker policy containing the configuration for
     ///   removing peerless torrents.
     pub(crate) fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
-        self.torrents.remove_peerless_torrents(policy);
+        self.swarms.remove_peerless_torrents(policy);
     }
 
     /// Retrieves a torrent entry by its infohash.
@@ -105,7 +105,7 @@ impl InMemoryTorrentRepository {
     /// An `Option` containing the torrent entry if found.
     #[must_use]
     pub(crate) fn get(&self, key: &InfoHash) -> Option<SwarmHandle> {
-        self.torrents.get(key)
+        self.swarms.get(key)
     }
 
     /// Retrieves a paginated list of torrent entries.
@@ -123,7 +123,7 @@ impl InMemoryTorrentRepository {
     /// A vector of `(InfoHash, TorrentEntry)` tuples.
     #[must_use]
     pub(crate) fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, SwarmHandle)> {
-        self.torrents.get_paginated(pagination)
+        self.swarms.get_paginated(pagination)
     }
 
     /// Retrieves swarm metadata for a given torrent.
@@ -141,7 +141,7 @@ impl InMemoryTorrentRepository {
     /// A `SwarmMetadata` struct containing the aggregated torrent data.
     #[must_use]
     pub(crate) fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> SwarmMetadata {
-        self.torrents.get_swarm_metadata_or_default(info_hash)
+        self.swarms.get_swarm_metadata_or_default(info_hash)
     }
 
     /// Retrieves torrent peers for a given torrent and client, excluding the
@@ -163,7 +163,7 @@ impl InMemoryTorrentRepository {
     /// the torrent, excluding the requesting client.
     #[must_use]
     pub(crate) fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
-        self.torrents.get_peers_for(info_hash, peer, max(limit, TORRENT_PEERS_LIMIT))
+        self.swarms.get_peers_for(info_hash, peer, max(limit, TORRENT_PEERS_LIMIT))
     }
 
     /// Retrieves the list of peers for a given torrent.
@@ -186,7 +186,7 @@ impl InMemoryTorrentRepository {
     #[must_use]
     pub fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<Arc<peer::Peer>> {
         // todo: pass the limit as an argument like `get_peers_for`
-        self.torrents.get_torrent_peers(info_hash, TORRENT_PEERS_LIMIT)
+        self.swarms.get_torrent_peers(info_hash, TORRENT_PEERS_LIMIT)
     }
 
     /// Calculates and returns overall torrent metrics.
@@ -200,7 +200,7 @@ impl InMemoryTorrentRepository {
     /// A [`AggregateSwarmMetadata`] struct with the aggregated metrics.
     #[must_use]
     pub fn get_aggregate_swarm_metadata(&self) -> AggregateSwarmMetadata {
-        self.torrents.get_aggregate_swarm_metadata()
+        self.swarms.get_aggregate_swarm_metadata()
     }
 
     /// Imports persistent torrent data into the in-memory repository.
@@ -212,6 +212,6 @@ impl InMemoryTorrentRepository {
     ///
     /// * `persistent_torrents` - A reference to the persisted torrent data.
     pub fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
-        self.torrents.import_persistent(persistent_torrents);
+        self.swarms.import_persistent(persistent_torrents);
     }
 }
