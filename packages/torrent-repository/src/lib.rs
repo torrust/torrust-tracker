@@ -23,7 +23,7 @@ pub trait LockTrackedTorrent {
     fn lock_or_panic(&self) -> MutexGuard<'_, Swarm>;
 }
 
-impl LockTrackedTorrent for Arc<Mutex<Swarm>> {
+impl LockTrackedTorrent for SwarmHandle {
     fn lock_or_panic(&self) -> MutexGuard<'_, Swarm> {
         self.lock().expect("can't acquire lock for tracked torrent handle")
     }

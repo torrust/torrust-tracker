@@ -4850,12 +4850,12 @@ dependencies = [
  "crossbeam-skiplist",
  "rand 0.9.1",
  "rstest",
+ "thiserror 2.0.12",
  "tokio",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
- "tracing",
 ]
 
 [[package]]

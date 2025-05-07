@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::sync::{Arc, Mutex};
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use bittorrent_primitives::info_hash::InfoHash;
@@ -15,7 +14,7 @@ use torrust_tracker_torrent_repository::{LockTrackedTorrent, Swarms};
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
 
 #[fixture]
-fn skip_list_mutex_std() -> Swarms {
+fn swarms() -> Swarms {
     Swarms::default()
 }
 
@@ -33,27 +32,27 @@ fn default() -> Entries {
 
 #[fixture]
 fn started() -> Entries {
-    let mut torrent = Swarm::default();
-    torrent.handle_announcement(&a_started_peer(1));
-    vec![(InfoHash::default(), torrent)]
+    let mut swarm = Swarm::default();
+    swarm.handle_announcement(&a_started_peer(1));
+    vec![(InfoHash::default(), swarm)]
 }
 
 #[fixture]
 fn completed() -> Entries {
-    let mut torrent = Swarm::default();
-    torrent.handle_announcement(&a_completed_peer(2));
-    vec![(InfoHash::default(), torrent)]
+    let mut swarm = Swarm::default();
+    swarm.handle_announcement(&a_completed_peer(2));
+    vec![(InfoHash::default(), swarm)]
 }
 
 #[fixture]
 fn downloaded() -> Entries {
-    let mut torrent = Swarm::default();
+    let mut swarm = Swarm::default();
     let mut peer = a_started_peer(3);
-    torrent.handle_announcement(&peer);
+    swarm.handle_announcement(&peer);
     peer.event = AnnounceEvent::Completed;
     peer.left = NumberOfBytes::new(0);
-    torrent.handle_announcement(&peer);
-    vec![(InfoHash::default(), torrent)]
+    swarm.handle_announcement(&peer);
+    vec![(InfoHash::default(), swarm)]
 }
 
 #[fixture]
@@ -148,11 +147,9 @@ fn persistent_three() -> PersistentTorrents {
     t.iter().copied().collect()
 }
 
-fn make(repo: &Swarms, entries: &Entries) {
-    for (info_hash, entry) in entries {
-        let new = Arc::new(Mutex::new(entry.clone()));
-        // todo: use a public method to insert an empty swarm.
-        repo.swarms.insert(*info_hash, new);
+fn make(swarms: &Swarms, entries: &Entries) {
+    for (info_hash, swarm) in entries {
+        swarms.insert(info_hash, swarm.clone());
     }
 }
 
@@ -201,13 +198,13 @@ fn policy_remove_persist() -> TrackerPolicy {
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_get_a_torrent_entry(#[values(skip_list_mutex_std())] repo: Swarms, #[case] entries: Entries) {
+async fn it_should_get_a_torrent_entry(#[values(swarms())] repo: Swarms, #[case] entries: Entries) {
     make(&repo, &entries);
 
-    if let Some((info_hash, torrent)) = entries.first() {
+    if let Some((info_hash, swarm)) = entries.first() {
         assert_eq!(
             Some(repo.get(info_hash).unwrap().lock_or_panic().clone()),
-            Some(torrent.clone())
+            Some(swarm.clone())
         );
     } else {
         assert!(repo.get(&InfoHash::default()).is_none());
@@ -225,7 +222,7 @@ async fn it_should_get_a_torrent_entry(#[values(skip_list_mutex_std())] repo: Sw
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_get_paginated_entries_in_a_stable_or_sorted_order(
-    #[values(skip_list_mutex_std())] repo: Swarms,
+    #[values(swarms())] repo: Swarms,
     #[case] entries: Entries,
     many_out_of_order: Entries,
 ) {
@@ -258,7 +255,7 @@ async fn it_should_get_paginated_entries_in_a_stable_or_sorted_order(
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_get_paginated(
-    #[values(skip_list_mutex_std())] repo: Swarms,
+    #[values(swarms())] repo: Swarms,
     #[case] entries: Entries,
     #[values(paginated_limit_zero(), paginated_limit_one(), paginated_limit_one_offset_one())] paginated: Pagination,
 ) {
@@ -270,13 +267,13 @@ async fn it_should_get_paginated(
     match paginated {
         // it should return empty if limit is zero.
         Pagination { limit: 0, .. } => {
-            let torrents: Vec<(InfoHash, Swarm)> = repo
+            let swarms: Vec<(InfoHash, Swarm)> = repo
                 .get_paginated(Some(&paginated))
                 .iter()
-                .map(|(i, lock_tracked_torrent)| (*i, lock_tracked_torrent.lock_or_panic().clone()))
+                .map(|(i, swarm_handle)| (*i, swarm_handle.lock_or_panic().clone()))
                 .collect();
 
-            assert_eq!(torrents, vec![]);
+            assert_eq!(swarms, vec![]);
         }
 
         // it should return a single entry if the limit is one.
@@ -313,10 +310,10 @@ async fn it_should_get_paginated(
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_get_metrics(#[values(skip_list_mutex_std())] repo: Swarms, #[case] entries: Entries) {
+async fn it_should_get_metrics(#[values(swarms())] swarms: Swarms, #[case] entries: Entries) {
     use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
 
-    make(&repo, &entries);
+    make(&swarms, &entries);
 
     let mut metrics = AggregateSwarmMetadata::default();
 
@@ -329,7 +326,7 @@ async fn it_should_get_metrics(#[values(skip_list_mutex_std())] repo: Swarms, #[
         metrics.total_downloaded += u64::from(stats.downloaded);
     }
 
-    assert_eq!(repo.get_aggregate_swarm_metadata(), metrics);
+    assert_eq!(swarms.get_aggregate_swarm_metadata().unwrap(), metrics);
 }
 
 #[rstest]
@@ -343,21 +340,21 @@ async fn it_should_get_metrics(#[values(skip_list_mutex_std())] repo: Swarms, #[
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_import_persistent_torrents(
-    #[values(skip_list_mutex_std())] repo: Swarms,
+    #[values(swarms())] swarms: Swarms,
     #[case] entries: Entries,
     #[values(persistent_empty(), persistent_single(), persistent_three())] persistent_torrents: PersistentTorrents,
 ) {
-    make(&repo, &entries);
+    make(&swarms, &entries);
 
-    let mut downloaded = repo.get_aggregate_swarm_metadata().total_downloaded;
+    let mut downloaded = swarms.get_aggregate_swarm_metadata().unwrap().total_downloaded;
     persistent_torrents.iter().for_each(|(_, d)| downloaded += u64::from(*d));
 
-    repo.import_persistent(&persistent_torrents);
+    swarms.import_persistent(&persistent_torrents);
 
-    assert_eq!(repo.get_aggregate_swarm_metadata().total_downloaded, downloaded);
+    assert_eq!(swarms.get_aggregate_swarm_metadata().unwrap().total_downloaded, downloaded);
 
     for (entry, _) in persistent_torrents {
-        assert!(repo.get(&entry).is_some());
+        assert!(swarms.get(&entry).is_some());
     }
 }
 
@@ -371,21 +368,24 @@ async fn it_should_import_persistent_torrents(
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_remove_an_entry(#[values(skip_list_mutex_std())] repo: Swarms, #[case] entries: Entries) {
-    make(&repo, &entries);
+async fn it_should_remove_an_entry(#[values(swarms())] swarms: Swarms, #[case] entries: Entries) {
+    make(&swarms, &entries);
 
     for (info_hash, torrent) in entries {
         assert_eq!(
-            Some(repo.get(&info_hash).unwrap().lock_or_panic().clone()),
+            Some(swarms.get(&info_hash).unwrap().lock_or_panic().clone()),
             Some(torrent.clone())
         );
-        assert_eq!(Some(repo.remove(&info_hash).unwrap().lock_or_panic().clone()), Some(torrent));
+        assert_eq!(
+            Some(swarms.remove(&info_hash).unwrap().lock_or_panic().clone()),
+            Some(torrent)
+        );
 
-        assert!(repo.get(&info_hash).is_none());
-        assert!(repo.remove(&info_hash).is_none());
+        assert!(swarms.get(&info_hash).is_none());
+        assert!(swarms.remove(&info_hash).is_none());
     }
 
-    assert_eq!(repo.get_aggregate_swarm_metadata().total_torrents, 0);
+    assert_eq!(swarms.get_aggregate_swarm_metadata().unwrap().total_torrents, 0);
 }
 
 #[rstest]
@@ -398,7 +398,7 @@ async fn it_should_remove_an_entry(#[values(skip_list_mutex_std())] repo: Swarms
 #[case::out_of_order(many_out_of_order())]
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
-async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: Swarms, #[case] entries: Entries) {
+async fn it_should_remove_inactive_peers(#[values(swarms())] swarms: Swarms, #[case] entries: Entries) {
     use std::ops::Sub as _;
     use std::time::Duration;
 
@@ -411,7 +411,7 @@ async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: 
     const TIMEOUT: Duration = Duration::from_secs(120);
     const EXPIRE: Duration = Duration::from_secs(121);
 
-    make(&repo, &entries);
+    make(&swarms, &entries);
 
     let info_hash: InfoHash;
     let mut peer: peer::Peer;
@@ -435,15 +435,18 @@ async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: 
     // Insert the infohash and peer into the repository
     // and verify there is an extra torrent entry.
     {
-        repo.upsert_peer(&info_hash, &peer, None);
-        assert_eq!(repo.get_aggregate_swarm_metadata().total_torrents, entries.len() as u64 + 1);
+        swarms.handle_announcement(&info_hash, &peer, None).unwrap();
+        assert_eq!(
+            swarms.get_aggregate_swarm_metadata().unwrap().total_torrents,
+            entries.len() as u64 + 1
+        );
     }
 
     // Insert the infohash and peer into the repository
     // and verify the swarm metadata was updated.
     {
-        repo.upsert_peer(&info_hash, &peer, None);
-        let stats = repo.get_swarm_metadata(&info_hash);
+        swarms.handle_announcement(&info_hash, &peer, None).unwrap();
+        let stats = swarms.get_swarm_metadata(&info_hash).unwrap();
         assert_eq!(
             stats,
             Some(SwarmMetadata {
@@ -456,19 +459,21 @@ async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: 
 
     // Verify that this new peer was inserted into the repository.
     {
-        let lock_tracked_torrent = repo.get(&info_hash).expect("it_should_get_some");
+        let lock_tracked_torrent = swarms.get(&info_hash).expect("it_should_get_some");
         let entry = lock_tracked_torrent.lock_or_panic();
         assert!(entry.peers(None).contains(&peer.into()));
     }
 
     // Remove peers that have not been updated since the timeout (120 seconds ago).
     {
-        repo.remove_inactive_peers(CurrentClock::now_sub(&TIMEOUT).expect("it should get a time passed"));
+        swarms
+            .remove_inactive_peers(CurrentClock::now_sub(&TIMEOUT).expect("it should get a time passed"))
+            .unwrap();
     }
 
     // Verify that the this peer was removed from the repository.
     {
-        let lock_tracked_torrent = repo.get(&info_hash).expect("it_should_get_some");
+        let lock_tracked_torrent = swarms.get(&info_hash).expect("it_should_get_some");
         let entry = lock_tracked_torrent.lock_or_panic();
         assert!(!entry.peers(None).contains(&peer.into()));
     }
@@ -485,15 +490,15 @@ async fn it_should_remove_inactive_peers(#[values(skip_list_mutex_std())] repo: 
 #[case::in_order(many_hashed_in_order())]
 #[tokio::test]
 async fn it_should_remove_peerless_torrents(
-    #[values(skip_list_mutex_std())] repo: Swarms,
+    #[values(swarms())] swarms: Swarms,
     #[case] entries: Entries,
     #[values(policy_none(), policy_persist(), policy_remove(), policy_remove_persist())] policy: TrackerPolicy,
 ) {
-    make(&repo, &entries);
+    make(&swarms, &entries);
 
-    repo.remove_peerless_torrents(&policy);
+    swarms.remove_peerless_torrents(&policy).unwrap();
 
-    let torrents: Vec<(InfoHash, Swarm)> = repo
+    let torrents: Vec<(InfoHash, Swarm)> = swarms
         .get_paginated(None)
         .iter()
         .map(|(i, lock_tracked_torrent)| (*i, lock_tracked_torrent.lock_or_panic().clone()))

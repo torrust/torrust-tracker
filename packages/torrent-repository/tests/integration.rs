@@ -7,8 +7,8 @@
 use torrust_tracker_clock::clock;
 
 pub mod common;
-mod entry;
-mod repository;
+mod swarm;
+mod swarms;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.
