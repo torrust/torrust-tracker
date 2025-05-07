@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use bittorrent_primitives::info_hash::InfoHash;
 use crossbeam_skiplist::SkipMap;
@@ -12,8 +12,7 @@ use crate::SwarmHandle;
 
 #[derive(Default, Debug)]
 pub struct Swarms {
-    // todo: this needs to be public only to insert a peerless torrent (empty swarm).
-    pub swarms: SkipMap<InfoHash, SwarmHandle>,
+    swarms: SkipMap<InfoHash, SwarmHandle>,
 }
 
 impl Swarms {
@@ -60,6 +59,15 @@ impl Swarms {
 
             Ok(swarm.handle_announcement(peer))
         }
+    }
+
+    /// Inserts a new swarm. It's only used for testing purposes. It allows to
+    /// pre-define the initial state of the swarm without having to go through
+    /// the upsert process.
+    pub fn insert_swarm(&self, info_hash: &InfoHash, swarm: Swarm) {
+        // code-review: swarms builder?
+        let swarm_handle = Arc::new(Mutex::new(swarm));
+        self.swarms.insert(*info_hash, swarm_handle);
     }
 
     /// Removes a torrent entry from the repository.

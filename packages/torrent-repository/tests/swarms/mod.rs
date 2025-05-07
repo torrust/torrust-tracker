@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::sync::{Arc, Mutex};
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use bittorrent_primitives::info_hash::InfoHash;
@@ -148,11 +147,9 @@ fn persistent_three() -> PersistentTorrents {
     t.iter().copied().collect()
 }
 
-fn make(repo: &Swarms, entries: &Entries) {
-    for (info_hash, entry) in entries {
-        let new = Arc::new(Mutex::new(entry.clone()));
-        // todo: use a public method to insert an empty swarm.
-        repo.swarms.insert(*info_hash, new);
+fn make(swarms: &Swarms, entries: &Entries) {
+    for (info_hash, swarm) in entries {
+        swarms.insert_swarm(info_hash, swarm.clone());
     }
 }
 
