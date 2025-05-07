@@ -191,10 +191,20 @@ impl Swarm {
     }
 
     /// Returns true if the swarm meets the retention policy, meaning that
-    /// it should be kept in the tracker.
+    /// it should be kept in the list of swarms.
     #[must_use]
     pub fn meets_retaining_policy(&self, policy: &TrackerPolicy) -> bool {
-        !(policy.remove_peerless_torrents && self.is_empty())
+        !self.should_be_removed(policy)
+    }
+
+    fn should_be_removed(&self, policy: &TrackerPolicy) -> bool {
+        // If the policy is to remove peerless torrents and the swarm is empty (no peers),
+        (policy.remove_peerless_torrents && self.is_empty())
+            // but not when the policy is to persist torrent stats and the 
+            // torrent has been downloaded at least once.
+            // (because the only way to store the counter is to keep the swarm in memory.
+            // See https://github.com/torrust/torrust-tracker/issues/1502)
+            && !(policy.persistent_torrent_completed_stat && self.metadata().downloaded > 0)
     }
 }
 
@@ -205,7 +215,6 @@ mod tests {
     use std::sync::Arc;
 
     use aquatic_udp_protocol::PeerId;
-    use torrust_tracker_configuration::TrackerPolicy;
     use torrust_tracker_primitives::peer::fixture::PeerBuilder;
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
     use torrust_tracker_primitives::DurationSinceUnixEpoch;
@@ -376,28 +385,101 @@ mod tests {
         assert_eq!(swarm.len(), 1);
     }
 
-    #[test]
-    fn it_should_be_kept_when_empty_if_the_tracker_policy_is_not_to_remove_peerless_torrents() {
-        let empty_swarm = Swarm::default();
+    mod for_retaining_policy {
 
-        let policy = TrackerPolicy {
-            remove_peerless_torrents: false,
-            ..Default::default()
-        };
+        use torrust_tracker_configuration::TrackerPolicy;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-        assert!(empty_swarm.meets_retaining_policy(&policy));
-    }
+        use crate::Swarm;
 
-    #[test]
-    fn it_should_be_removed_when_empty_if_the_tracker_policy_is_to_remove_peerless_torrents() {
-        let empty_swarm = Swarm::default();
+        fn empty_swarm() -> Swarm {
+            Swarm::default()
+        }
 
-        let policy = TrackerPolicy {
-            remove_peerless_torrents: true,
-            ..Default::default()
-        };
+        fn not_empty_swarm() -> Swarm {
+            let mut swarm = Swarm::default();
+            swarm.upsert_peer(PeerBuilder::default().build().into(), &mut false);
+            swarm
+        }
 
-        assert!(!empty_swarm.meets_retaining_policy(&policy));
+        fn not_empty_swarm_with_downloads() -> Swarm {
+            let mut swarm = Swarm::default();
+
+            let mut peer = PeerBuilder::leecher().build();
+            let mut downloads_increased = false;
+
+            swarm.upsert_peer(peer.into(), &mut downloads_increased);
+
+            peer.event = aquatic_udp_protocol::AnnounceEvent::Completed;
+
+            swarm.upsert_peer(peer.into(), &mut downloads_increased);
+
+            assert!(swarm.metadata().downloads() > 0);
+
+            swarm
+        }
+
+        fn remove_peerless_torrents_policy() -> TrackerPolicy {
+            TrackerPolicy {
+                remove_peerless_torrents: true,
+                ..Default::default()
+            }
+        }
+
+        fn don_not_remove_peerless_torrents_policy() -> TrackerPolicy {
+            TrackerPolicy {
+                remove_peerless_torrents: false,
+                ..Default::default()
+            }
+        }
+
+        mod when_removing_peerless_torrents_is_enabled {
+
+            use torrust_tracker_configuration::TrackerPolicy;
+
+            use crate::swarm::tests::for_retaining_policy::{
+                empty_swarm, not_empty_swarm, not_empty_swarm_with_downloads, remove_peerless_torrents_policy,
+            };
+
+            #[test]
+            fn it_should_be_removed_if_the_swarm_is_empty() {
+                assert!(empty_swarm().should_be_removed(&remove_peerless_torrents_policy()));
+            }
+
+            #[test]
+            fn it_should_not_be_removed_is_the_swarm_is_not_empty() {
+                assert!(!not_empty_swarm().should_be_removed(&remove_peerless_torrents_policy()));
+            }
+
+            #[test]
+            fn it_should_not_be_removed_even_if_the_swarm_is_empty_if_we_need_to_track_stats_for_downloads_and_there_has_been_downloads(
+            ) {
+                let policy = TrackerPolicy {
+                    remove_peerless_torrents: true,
+                    persistent_torrent_completed_stat: true,
+                    ..Default::default()
+                };
+
+                assert!(!not_empty_swarm_with_downloads().should_be_removed(&policy));
+            }
+        }
+
+        mod when_removing_peerless_torrents_is_disabled {
+
+            use crate::swarm::tests::for_retaining_policy::{
+                don_not_remove_peerless_torrents_policy, empty_swarm, not_empty_swarm,
+            };
+
+            #[test]
+            fn it_should_not_be_removed_even_if_the_swarm_is_empty() {
+                assert!(!empty_swarm().should_be_removed(&don_not_remove_peerless_torrents_policy()));
+            }
+
+            #[test]
+            fn it_should_not_be_removed_is_the_swarm_is_not_empty() {
+                assert!(!not_empty_swarm().should_be_removed(&don_not_remove_peerless_torrents_policy()));
+            }
+        }
     }
 
     #[test]
