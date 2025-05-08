@@ -241,6 +241,28 @@ impl InMemoryTorrentRepository {
             .expect("Failed to get aggregate swarm metadata")
     }
 
+    /// Counts the number of peerless torrents in the repository.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the underling swarms return an error.
+    #[must_use]
+    pub fn count_peerless_torrents(&self) -> usize {
+        self.swarms
+            .count_peerless_torrents()
+            .expect("Failed to count peerless torrents")
+    }
+
+    /// Counts the number of peers in the repository.
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the underling swarms return an error.
+    #[must_use]
+    pub fn count_peers(&self) -> usize {
+        self.swarms.count_peers().expect("Failed to count peers")
+    }
+
     /// Imports persistent torrent data into the in-memory repository.
     ///
     /// This method takes a set of persisted torrent entries (e.g., from a database)

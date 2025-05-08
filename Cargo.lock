@@ -4859,6 +4859,7 @@ dependencies = [
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
+ "tracing",
 ]
 
 [[package]]

@@ -28,6 +28,7 @@ use tracing::instrument;
 pub fn start_job(config: &Core, torrents_manager: &Arc<TorrentsManager>) -> JoinHandle<()> {
     let weak_torrents_manager = std::sync::Arc::downgrade(torrents_manager);
     let interval = config.inactive_peer_cleanup_interval;
+    let interval_in_secs = interval;
 
     tokio::spawn(async move {
         let interval = std::time::Duration::from_secs(interval);
@@ -43,9 +44,9 @@ pub fn start_job(config: &Core, torrents_manager: &Arc<TorrentsManager>) -> Join
                 _ = interval.tick() => {
                     if let Some(torrents_manager) = weak_torrents_manager.upgrade() {
                         let start_time = Utc::now().time();
-                        tracing::info!("Cleaning up torrents..");
+                        tracing::info!("Cleaning up torrents (executed every {} secs) ...", interval_in_secs);
                         torrents_manager.cleanup_torrents();
-                        tracing::info!("Cleaned up torrents in: {}ms", (Utc::now().time() - start_time).num_milliseconds());
+                        tracing::info!("Cleaned up torrents in: {} ms", (Utc::now().time() - start_time).num_milliseconds());
                     } else {
                         break;
                     }

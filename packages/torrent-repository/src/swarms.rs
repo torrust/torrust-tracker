@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use bittorrent_primitives::info_hash::InfoHash;
 use crossbeam_skiplist::SkipMap;
+use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
@@ -74,24 +75,6 @@ impl Swarms {
     #[must_use]
     pub fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
         self.swarms.remove(key).map(|entry| entry.value().clone())
-    }
-
-    /// Removes inactive peers from all torrent entries.
-    ///
-    /// A peer is considered inactive if its last update timestamp is older than
-    /// the provided cutoff time.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error if it fails to acquire the lock for any
-    /// swarm handle.
-    pub fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Result<(), Error> {
-        for swarm_handle in &self.swarms {
-            let mut swarm = swarm_handle.value().lock()?;
-            swarm.remove_inactive(current_cutoff);
-        }
-
-        Ok(())
     }
 
     /// Retrieves a tracked torrent handle by its infohash.
@@ -225,6 +208,34 @@ impl Swarms {
         }
     }
 
+    /// Removes inactive peers from all torrent entries.
+    ///
+    /// A peer is considered inactive if its last update timestamp is older than
+    /// the provided cutoff time.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if it fails to acquire the lock for any
+    /// swarm handle.
+    pub fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Result<u64, Error> {
+        tracing::info!(
+            "Removing inactive peers since: {:?} ...",
+            convert_from_timestamp_to_datetime_utc(current_cutoff)
+        );
+
+        let mut inactive_peers_removed = 0;
+
+        for swarm_handle in &self.swarms {
+            let mut swarm = swarm_handle.value().lock()?;
+            let removed = swarm.remove_inactive(current_cutoff);
+            inactive_peers_removed += removed;
+        }
+
+        tracing::info!("Inactive peers removed: {inactive_peers_removed}");
+
+        Ok(inactive_peers_removed)
+    }
+
     /// Removes torrent entries that have no active peers.
     ///
     /// Depending on the tracker policy, torrents without any peers may be
@@ -234,7 +245,11 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for any
     /// swarm handle.
-    pub fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> Result<(), Error> {
+    pub fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> Result<u64, Error> {
+        tracing::info!("Removing peerless torrents ...");
+
+        let mut peerless_torrents_removed = 0;
+
         for swarm_handle in &self.swarms {
             let swarm = swarm_handle.value().lock()?;
 
@@ -243,9 +258,13 @@ impl Swarms {
             }
 
             swarm_handle.remove();
+
+            peerless_torrents_removed += 1;
         }
 
-        Ok(())
+        tracing::info!("Peerless torrents removed: {peerless_torrents_removed}");
+
+        Ok(peerless_torrents_removed)
     }
 
     /// Imports persistent torrent data into the in-memory repository.
@@ -253,7 +272,11 @@ impl Swarms {
     /// This method takes a set of persisted torrent entries (e.g., from a
     /// database) and imports them into the in-memory repository for immediate
     /// access.
-    pub fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
+    pub fn import_persistent(&self, persistent_torrents: &PersistentTorrents) -> u64 {
+        tracing::info!("Importing persisted info about torrents ...");
+
+        let mut torrents_imported = 0;
+
         for (info_hash, completed) in persistent_torrents {
             if self.swarms.contains_key(info_hash) {
                 continue;
@@ -264,7 +287,13 @@ impl Swarms {
             // Since SkipMap is lock-free the torrent could have been inserted
             // after checking if it exists.
             self.swarms.get_or_insert(*info_hash, entry);
+
+            torrents_imported += 1;
         }
+
+        tracing::info!("Imported torrents: {torrents_imported}");
+
+        torrents_imported
     }
 
     /// Calculates and returns overall torrent metrics.
@@ -284,9 +313,11 @@ impl Swarms {
     pub fn get_aggregate_swarm_metadata(&self) -> Result<AggregateSwarmMetadata, Error> {
         let mut metrics = AggregateSwarmMetadata::default();
 
-        for entry in &self.swarms {
-            let swarm = entry.value().lock()?;
+        for swarm_handle in &self.swarms {
+            let swarm = swarm_handle.value().lock()?;
+
             let stats = swarm.metadata();
+
             metrics.total_complete += u64::from(stats.complete);
             metrics.total_downloaded += u64::from(stats.downloaded);
             metrics.total_incomplete += u64::from(stats.incomplete);
@@ -294,6 +325,53 @@ impl Swarms {
         }
 
         Ok(metrics)
+    }
+
+    /// Counts the number of torrents that are peerless (i.e., have no active
+    /// peers).
+    ///
+    /// # Returns
+    ///
+    /// A `usize` representing the number of peerless torrents.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if it fails to acquire the lock for any
+    /// swarm handle.
+    pub fn count_peerless_torrents(&self) -> Result<usize, Error> {
+        let mut peerless_torrents = 0;
+
+        for swarm_handle in &self.swarms {
+            let swarm = swarm_handle.value().lock()?;
+
+            if swarm.is_peerless() {
+                peerless_torrents += 1;
+            }
+        }
+
+        Ok(peerless_torrents)
+    }
+
+    /// Counts the total number of peers across all torrents.
+    ///
+    /// # Returns
+    ///
+    /// A `usize` representing the total number of peers.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if it fails to acquire the lock for any
+    /// swarm handle.
+    pub fn count_peers(&self) -> Result<usize, Error> {
+        let mut peers = 0;
+
+        for swarm_handle in &self.swarms {
+            let swarm = swarm_handle.value().lock()?;
+
+            peers += swarm.len();
+        }
+
+        Ok(peers)
     }
 
     #[must_use]

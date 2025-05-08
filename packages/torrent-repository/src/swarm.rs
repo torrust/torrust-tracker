@@ -101,7 +101,9 @@ impl Swarm {
         }
     }
 
-    pub fn remove_inactive(&mut self, current_cutoff: DurationSinceUnixEpoch) {
+    pub fn remove_inactive(&mut self, current_cutoff: DurationSinceUnixEpoch) -> u64 {
+        let mut inactive_peers_removed = 0;
+
         self.peers.retain(|_, peer| {
             let is_active = peer::ReadInfo::get_updated(peer) > current_cutoff;
 
@@ -112,10 +114,14 @@ impl Swarm {
                 } else {
                     self.metadata.incomplete -= 1;
                 }
+
+                inactive_peers_removed += 1;
             }
 
             is_active
         });
+
+        inactive_peers_removed
     }
 
     #[must_use]
@@ -188,6 +194,11 @@ impl Swarm {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.peers.is_empty()
+    }
+
+    #[must_use]
+    pub fn is_peerless(&self) -> bool {
+        self.is_empty()
     }
 
     /// Returns true if the swarm meets the retention policy, meaning that
