@@ -92,15 +92,50 @@ impl TorrentsManager {
     ///    (`remove_peerless_torrents` is set), it removes entire torrent
     ///    entries that have no active peers.
     pub fn cleanup_torrents(&self) {
+        self.log_aggregate_swarm_metadata();
+
+        self.remove_inactive_peers();
+
+        self.log_aggregate_swarm_metadata();
+
+        self.remove_peerless_torrents();
+
+        self.log_aggregate_swarm_metadata();
+    }
+
+    fn remove_inactive_peers(&self) {
         let current_cutoff = CurrentClock::now_sub(&Duration::from_secs(u64::from(self.config.tracker_policy.max_peer_timeout)))
             .unwrap_or_default();
 
         self.in_memory_torrent_repository.remove_inactive_peers(current_cutoff);
+    }
 
+    fn remove_peerless_torrents(&self) {
         if self.config.tracker_policy.remove_peerless_torrents {
             self.in_memory_torrent_repository
                 .remove_peerless_torrents(&self.config.tracker_policy);
         }
+    }
+
+    fn log_aggregate_swarm_metadata(&self) {
+        // Pre-calculated data
+        let aggregate_swarm_metadata = self.in_memory_torrent_repository.get_aggregate_swarm_metadata();
+
+        tracing::info!(name: "pre_calculated_aggregate_swarm_metadata",
+            torrents = aggregate_swarm_metadata.total_torrents,
+            downloads = aggregate_swarm_metadata.total_downloaded,
+            seeders = aggregate_swarm_metadata.total_complete,
+            leechers = aggregate_swarm_metadata.total_incomplete,
+        );
+
+        // Hot data (iterating over data structures)
+        let peerless_torrents = self.in_memory_torrent_repository.count_peerless_torrents();
+        let peers = self.in_memory_torrent_repository.count_peers();
+
+        tracing::info!(name: "hot_aggregate_swarm_metadata",
+            peerless_torrents = peerless_torrents,
+            peers = peers,
+        );
     }
 }
 
