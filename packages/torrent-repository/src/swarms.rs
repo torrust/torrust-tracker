@@ -231,7 +231,7 @@ impl Swarms {
             inactive_peers_removed += removed;
         }
 
-        tracing::info!("Inactive peers removed: {inactive_peers_removed}");
+        tracing::info!(inactive_peers_removed = inactive_peers_removed);
 
         Ok(inactive_peers_removed)
     }
@@ -262,7 +262,7 @@ impl Swarms {
             peerless_torrents_removed += 1;
         }
 
-        tracing::info!("Peerless torrents removed: {peerless_torrents_removed}");
+        tracing::info!(peerless_torrents_removed = peerless_torrents_removed);
 
         Ok(peerless_torrents_removed)
     }
@@ -291,7 +291,7 @@ impl Swarms {
             torrents_imported += 1;
         }
 
-        tracing::info!("Imported torrents: {torrents_imported}");
+        tracing::info!(imported_torrents = torrents_imported);
 
         torrents_imported
     }
