@@ -119,8 +119,6 @@ impl AnnounceService {
 
             tracing::debug!(target = crate::UDP_TRACKER_LOG_TARGET, "Sending UdpAnnounce event: {event:?}");
 
-            println!("Sending UdpAnnounce event: {event:?}");
-
             udp_stats_event_sender.send(event).await;
         }
     }
