@@ -11,9 +11,9 @@ threshold = "info"
 listed = false
 private = false
 
-#[core.tracker_policy]
+[core.tracker_policy]
 #max_peer_timeout = 30
-#persistent_torrent_completed_stat = true
+persistent_torrent_completed_stat = true
 #remove_peerless_torrents = true
 
 [[udp_trackers]]
