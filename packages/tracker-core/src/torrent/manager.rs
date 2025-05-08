@@ -60,7 +60,7 @@ impl TorrentsManager {
         }
     }
 
-    /// Loads torrents from the persistent database into the in-memory repository.
+    /// Loads torrents from the database into the in-memory repository.
     ///
     /// This function retrieves the list of persistent torrent entries (which
     /// include only the aggregate metrics, not the detailed peer lists) from
@@ -70,8 +70,7 @@ impl TorrentsManager {
     ///
     /// Returns a `databases::error::Error` if unable to load the persistent
     /// torrent data.
-    #[allow(dead_code)]
-    pub(crate) fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
+    pub fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.db_torrent_repository.load_all()?;
 
         self.in_memory_torrent_repository.import_persistent(&persistent_torrents);
