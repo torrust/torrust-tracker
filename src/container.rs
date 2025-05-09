@@ -64,7 +64,10 @@ impl AppContainer {
 
         // Core
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
+        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
+            &core_config,
+            &torrent_repository_container,
+        ));
 
         // HTTP
 

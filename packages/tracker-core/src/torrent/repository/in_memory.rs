@@ -25,6 +25,11 @@ pub struct InMemoryTorrentRepository {
 }
 
 impl InMemoryTorrentRepository {
+    #[must_use]
+    pub fn new(swarms: Arc<Swarms>) -> Self {
+        Self { swarms }
+    }
+
     /// Inserts or updates a peer in the torrent entry corresponding to the
     /// given infohash.
     ///

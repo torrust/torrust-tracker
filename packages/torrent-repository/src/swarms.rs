@@ -9,7 +9,7 @@ use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMe
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
 use crate::swarm::Swarm;
-use crate::SwarmHandle;
+use crate::{SwarmHandle, TORRENT_REPOSITORY_LOG_TARGET};
 
 #[derive(Default, Debug)]
 pub struct Swarms {
@@ -43,6 +43,8 @@ impl Swarms {
         peer: &peer::Peer,
         opt_persistent_torrent: Option<PersistentTorrent>,
     ) -> Result<bool, Error> {
+        tracing::trace!(target: TORRENT_REPOSITORY_LOG_TARGET, "Handling announcement for torrent: {info_hash}");
+
         let swarm_handle = if let Some(number_of_downloads) = opt_persistent_torrent {
             SwarmHandle::new(Swarm::new(number_of_downloads).into())
         } else {
