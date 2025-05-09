@@ -9,6 +9,7 @@ use bittorrent_udp_tracker_core::{self};
 use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Configuration, HttpApi};
+use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 use tracing::instrument;
 
@@ -27,6 +28,9 @@ pub struct AppContainer {
 
     // Registar
     pub registar: Arc<Registar>,
+
+    // Torrent Repository
+    pub torrent_repository_container: Arc<TorrentRepositoryContainer>,
 
     // Core
     pub tracker_core_container: Arc<TrackerCoreContainer>,
@@ -53,6 +57,10 @@ impl AppContainer {
         // Registar
 
         let registar = Arc::new(Registar::default());
+
+        // Torrent Repository
+
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
 
         // Core
 
@@ -83,6 +91,9 @@ impl AppContainer {
 
             // Registar
             registar,
+
+            // Torrent Repository
+            torrent_repository_container,
 
             // Core
             tracker_core_container,

@@ -4713,6 +4713,7 @@ dependencies = [
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-torrent-repository",
  "torrust-udp-tracker-server",
  "tracing",
  "tracing-subscriber",

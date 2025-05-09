@@ -1,3 +1,4 @@
+pub mod container;
 pub mod event;
 pub mod statistics;
 pub mod swarm;
