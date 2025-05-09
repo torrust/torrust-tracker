@@ -1,3 +1,5 @@
+pub mod event;
+pub mod statistics;
 pub mod swarm;
 pub mod swarms;
 
@@ -18,6 +20,8 @@ pub(crate) type CurrentClock = clock::Working;
 #[cfg(test)]
 #[allow(dead_code)]
 pub(crate) type CurrentClock = clock::Stopped;
+
+pub const TORRENT_REPOSITORY_LOG_TARGET: &str = "TORRENT_REPOSITORY";
 
 pub trait LockTrackedTorrent {
     fn lock_or_panic(&self) -> MutexGuard<'_, Swarm>;
