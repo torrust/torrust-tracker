@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use torrust_tracker_configuration::Core;
 use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
-use torrust_tracker_torrent_repository::Swarms;
 
 use crate::announce_handler::AnnounceHandler;
 use crate::authentication::handler::KeysHandler;
@@ -39,17 +38,6 @@ pub struct TrackerCoreContainer {
 impl TrackerCoreContainer {
     #[must_use]
     pub fn initialize_from(core_config: &Arc<Core>, torrent_repository_container: &Arc<TorrentRepositoryContainer>) -> Self {
-        Self::inner_initialize(core_config, &torrent_repository_container.swarms)
-    }
-
-    #[must_use]
-    pub fn initialize(core_config: &Arc<Core>) -> Self {
-        let swarms = Arc::new(Swarms::default());
-        Self::inner_initialize(core_config, &swarms)
-    }
-
-    #[must_use]
-    fn inner_initialize(core_config: &Arc<Core>, swarms: &Arc<Swarms>) -> Self {
         let database = initialize_database(core_config);
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(core_config, &in_memory_whitelist.clone()));
@@ -61,7 +49,7 @@ impl TrackerCoreContainer {
             &db_key_repository.clone(),
             &in_memory_key_repository.clone(),
         ));
-        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms.clone()));
+        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(torrent_repository_container.swarms.clone()));
         let db_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
 
         let torrents_manager = Arc::new(TorrentsManager::new(

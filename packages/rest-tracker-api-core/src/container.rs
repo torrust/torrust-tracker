@@ -7,6 +7,7 @@ use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
 use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
+use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 
 pub struct TrackerHttpApiCoreContainer {
@@ -26,11 +27,19 @@ impl TrackerHttpApiCoreContainer {
         udp_tracker_config: &Arc<UdpTracker>,
         http_api_config: &Arc<HttpApi>,
     ) -> Arc<TrackerHttpApiCoreContainer> {
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(core_config));
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+
+        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
+            core_config,
+            &torrent_repository_container,
+        ));
+
         let http_tracker_core_container =
             HttpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, http_tracker_config);
+
         let udp_tracker_core_container =
             UdpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, udp_tracker_config);
+
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(core_config);
 
         Self::initialize_from(

@@ -10,6 +10,7 @@ use torrust_axum_server::tsl::make_rust_tls;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration};
 use torrust_tracker_primitives::peer;
+use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
 
 use crate::server::{HttpServer, Launcher, Running, Stopped};
 
@@ -143,7 +144,13 @@ impl EnvContainer {
             .expect("missing HTTP tracker configuration");
         let http_tracker_config = Arc::new(http_tracker_config[0].clone());
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+
+        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
+            &core_config,
+            &torrent_repository_container,
+        ));
+
         let http_tracker_container =
             HttpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &http_tracker_config);
 

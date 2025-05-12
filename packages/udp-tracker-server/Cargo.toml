@@ -33,6 +33,7 @@ torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
 torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
 torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+torrust-tracker-torrent-repository = { version = "3.0.0-develop", path = "../torrent-repository" }
 tracing = "0"
 url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }

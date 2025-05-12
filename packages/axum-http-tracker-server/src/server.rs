@@ -260,6 +260,7 @@ mod tests {
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_configuration::{logging, Configuration};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
 
     use crate::server::{HttpServer, Launcher};
 
@@ -289,7 +290,12 @@ mod tests {
             let _unused = run_event_listener(http_stats_event_bus.receiver(), &http_stats_repository);
         }
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+
+        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
+            &core_config,
+            &torrent_repository_container,
+        ));
 
         let announce_service = Arc::new(AnnounceService::new(
             tracker_core_container.core_config.clone(),

@@ -593,6 +593,7 @@ dependencies = [
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-torrent-repository",
  "tracing",
 ]
 
@@ -708,6 +709,7 @@ dependencies = [
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-torrent-repository",
  "tracing",
  "zerocopy 0.7.35",
 ]
@@ -4575,6 +4577,7 @@ dependencies = [
  "torrust-tracker-events",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-torrent-repository",
  "tower",
  "tower-http",
  "tracing",
@@ -4614,6 +4617,7 @@ dependencies = [
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-torrent-repository",
  "torrust-udp-tracker-server",
  "tower",
  "tower-http",
@@ -4666,6 +4670,7 @@ dependencies = [
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-torrent-repository",
  "torrust-udp-tracker-server",
 ]
 
@@ -4913,6 +4918,7 @@ dependencies = [
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-torrent-repository",
  "tracing",
  "url",
  "uuid",

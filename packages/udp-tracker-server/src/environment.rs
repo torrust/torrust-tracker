@@ -8,6 +8,7 @@ use tokio::task::JoinHandle;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration, DEFAULT_TIMEOUT};
 use torrust_tracker_primitives::peer;
+use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
 
 use crate::container::UdpTrackerServerContainer;
 use crate::server::spawner::Spawner;
@@ -173,9 +174,16 @@ impl EnvContainer {
         let udp_tracker_configurations = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
         let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+
+        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
+            &core_config,
+            &torrent_repository_container,
+        ));
+
         let udp_tracker_core_container =
             UdpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &udp_tracker_config);
+
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         Self {
