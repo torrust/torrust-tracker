@@ -69,6 +69,7 @@ pub async fn get_metrics_handler(
     State(state): State<(
         Arc<InMemoryTorrentRepository>,
         Arc<RwLock<BanService>>,
+        Arc<torrust_tracker_torrent_repository::statistics::repository::Repository>,
         Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
         Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
         Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
@@ -81,6 +82,7 @@ pub async fn get_metrics_handler(
         state.2.clone(),
         state.3.clone(),
         state.4.clone(),
+        state.5.clone(),
     )
     .await;
 

@@ -189,6 +189,7 @@ impl EnvContainer {
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         let tracker_http_api_core_container = TrackerHttpApiCoreContainer::initialize_from(
+            &torrent_repository_container,
             &tracker_core_container,
             &http_tracker_core_container,
             &udp_tracker_core_container,

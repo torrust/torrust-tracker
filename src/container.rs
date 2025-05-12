@@ -142,10 +142,15 @@ impl AppContainer {
     #[must_use]
     pub fn tracker_http_api_container(&self, http_api_config: &Arc<HttpApi>) -> Arc<TrackerHttpApiCoreContainer> {
         TrackerHttpApiCoreContainer {
-            tracker_core_container: self.tracker_core_container.clone(),
             http_api_config: http_api_config.clone(),
-            ban_service: self.udp_tracker_core_services.ban_service.clone(),
+
+            torrent_repository_container: self.torrent_repository_container.clone(),
+
+            tracker_core_container: self.tracker_core_container.clone(),
+
             http_stats_repository: self.http_tracker_core_services.stats_repository.clone(),
+
+            ban_service: self.udp_tracker_core_services.ban_service.clone(),
             udp_core_stats_repository: self.udp_tracker_core_services.stats_repository.clone(),
             udp_server_stats_repository: self.udp_tracker_server_container.stats_repository.clone(),
         }
