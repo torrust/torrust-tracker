@@ -171,9 +171,10 @@ impl AnnounceHandler {
 
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
 
-        let number_of_downloads_increased =
-            self.in_memory_torrent_repository
-                .upsert_peer(info_hash, peer, opt_persistent_torrent);
+        let number_of_downloads_increased = self
+            .in_memory_torrent_repository
+            .upsert_peer(info_hash, peer, opt_persistent_torrent)
+            .await;
 
         if self.config.tracker_policy.persistent_torrent_completed_stat && number_of_downloads_increased {
             self.db_torrent_repository.increase_number_of_downloads(info_hash)?;
@@ -594,7 +595,7 @@ mod tests {
 
             use aquatic_udp_protocol::AnnounceEvent;
             use torrust_tracker_test_helpers::configuration;
-            use torrust_tracker_torrent_repository::LockTrackedTorrent;
+            use torrust_tracker_torrent_repository::{LockTrackedTorrent, Swarms};
 
             use crate::announce_handler::tests::the_announce_handler::peer_ip;
             use crate::announce_handler::{AnnounceHandler, PeersWanted};
@@ -613,7 +614,8 @@ mod tests {
                 config.core.tracker_policy.persistent_torrent_completed_stat = true;
 
                 let database = initialize_database(&config.core);
-                let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
+                let swarms = Arc::new(Swarms::default());
+                let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms));
                 let db_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
                 let torrents_manager = Arc::new(TorrentsManager::new(
                     &config.core,
@@ -648,7 +650,7 @@ mod tests {
                 assert_eq!(announce_data.stats.downloaded, 1);
 
                 // Remove the newly updated torrent from memory
-                let _unused = in_memory_torrent_repository.remove(&info_hash);
+                let _unused = in_memory_torrent_repository.remove(&info_hash).await;
 
                 torrents_manager.load_torrents_from_database().unwrap();
 

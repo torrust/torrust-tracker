@@ -377,12 +377,12 @@ async fn it_should_remove_an_entry(#[values(swarms())] swarms: Swarms, #[case] e
             Some(torrent.clone())
         );
         assert_eq!(
-            Some(swarms.remove(&info_hash).unwrap().lock_or_panic().clone()),
+            Some(swarms.remove(&info_hash).await.unwrap().lock_or_panic().clone()),
             Some(torrent)
         );
 
         assert!(swarms.get(&info_hash).is_none());
-        assert!(swarms.remove(&info_hash).is_none());
+        assert!(swarms.remove(&info_hash).await.is_none());
     }
 
     assert_eq!(swarms.get_aggregate_swarm_metadata().unwrap().total_torrents, 0);
@@ -435,7 +435,7 @@ async fn it_should_remove_inactive_peers(#[values(swarms())] swarms: Swarms, #[c
     // Insert the infohash and peer into the repository
     // and verify there is an extra torrent entry.
     {
-        swarms.handle_announcement(&info_hash, &peer, None).unwrap();
+        swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
         assert_eq!(
             swarms.get_aggregate_swarm_metadata().unwrap().total_torrents,
             entries.len() as u64 + 1
@@ -445,7 +445,7 @@ async fn it_should_remove_inactive_peers(#[values(swarms())] swarms: Swarms, #[c
     // Insert the infohash and peer into the repository
     // and verify the swarm metadata was updated.
     {
-        swarms.handle_announcement(&info_hash, &peer, None).unwrap();
+        swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
         let stats = swarms.get_swarm_metadata(&info_hash).unwrap();
         assert_eq!(
             stats,

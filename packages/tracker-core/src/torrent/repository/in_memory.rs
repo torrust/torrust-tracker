@@ -18,7 +18,7 @@ use torrust_tracker_torrent_repository::{SwarmHandle, Swarms};
 ///
 /// Multiple implementations were considered, and the chosen implementation is
 /// used in production. Other implementations are kept for reference.
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct InMemoryTorrentRepository {
     /// The underlying in-memory data structure that stores swarms data.
     swarms: Arc<Swarms>,
@@ -49,7 +49,7 @@ impl InMemoryTorrentRepository {
     ///
     /// This function panics if the underling swarms return an error.
     #[must_use]
-    pub fn upsert_peer(
+    pub async fn upsert_peer(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
@@ -57,6 +57,7 @@ impl InMemoryTorrentRepository {
     ) -> bool {
         self.swarms
             .handle_announcement(info_hash, peer, opt_persistent_torrent)
+            .await
             .expect("Failed to upsert the peer in swarms")
     }
 
@@ -75,8 +76,8 @@ impl InMemoryTorrentRepository {
     /// An `Option` containing the removed torrent entry if it existed.
     #[cfg(test)]
     #[must_use]
-    pub(crate) fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
-        self.swarms.remove(key)
+    pub(crate) async fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
+        self.swarms.remove(key).await
     }
 
     /// Removes inactive peers from all torrent entries.

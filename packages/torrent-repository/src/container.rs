@@ -16,8 +16,6 @@ pub struct TorrentRepositoryContainer {
 impl TorrentRepositoryContainer {
     #[must_use]
     pub fn initialize() -> Self {
-        let swarms = Arc::new(Swarms::default());
-
         // Torrent repository stats
         let broadcaster = Broadcaster::default();
         let stats_repository = Arc::new(Repository::new());
@@ -26,6 +24,8 @@ impl TorrentRepositoryContainer {
         let event_bus = Arc::new(EventBus::new(true, broadcaster.clone()));
 
         let stats_event_sender = event_bus.sender();
+
+        let swarms = Arc::new(Swarms::new(stats_event_sender.clone()));
 
         Self {
             swarms,

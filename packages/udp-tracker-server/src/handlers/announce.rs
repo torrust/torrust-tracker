@@ -353,7 +353,7 @@ mod tests {
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
             }
 
-            fn add_a_torrent_peer_using_ipv6(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
+            async fn add_a_torrent_peer_using_ipv6(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
                 let info_hash = AquaticInfoHash([0u8; 20]);
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
@@ -366,8 +366,9 @@ mod tests {
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
-                let _number_of_downloads_increased =
-                    in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv6, None);
+                let _number_of_downloads_increased = in_memory_torrent_repository
+                    .upsert_peer(&info_hash.0.into(), &peer_using_ipv6, None)
+                    .await;
             }
 
             async fn announce_a_new_peer_using_ipv4(
@@ -405,7 +406,7 @@ mod tests {
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_public_tracker();
 
-                add_a_torrent_peer_using_ipv6(&core_tracker_services.in_memory_torrent_repository);
+                add_a_torrent_peer_using_ipv6(&core_tracker_services.in_memory_torrent_repository).await;
 
                 let response =
                     announce_a_new_peer_using_ipv4(Arc::new(core_tracker_services), Arc::new(core_udp_tracker_services)).await;
@@ -689,7 +690,7 @@ mod tests {
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V6(remote_client_ip), client_port));
             }
 
-            fn add_a_torrent_peer_using_ipv4(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
+            async fn add_a_torrent_peer_using_ipv4(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
                 let info_hash = AquaticInfoHash([0u8; 20]);
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
@@ -701,8 +702,9 @@ mod tests {
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 
-                let _number_of_downloads_increased =
-                    in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv4, None);
+                let _number_of_downloads_increased = in_memory_torrent_repository
+                    .upsert_peer(&info_hash.0.into(), &peer_using_ipv4, None)
+                    .await;
             }
 
             async fn announce_a_new_peer_using_ipv6(
@@ -755,7 +757,7 @@ mod tests {
                 let (core_tracker_services, _core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_public_tracker();
 
-                add_a_torrent_peer_using_ipv4(&core_tracker_services.in_memory_torrent_repository);
+                add_a_torrent_peer_using_ipv4(&core_tracker_services.in_memory_torrent_repository).await;
 
                 let response = announce_a_new_peer_using_ipv6(
                     core_tracker_services.core_config.clone(),

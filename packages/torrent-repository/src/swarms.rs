@@ -8,15 +8,26 @@ use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
+use crate::event::sender::Sender;
+use crate::event::Event;
 use crate::swarm::Swarm;
-use crate::{SwarmHandle, TORRENT_REPOSITORY_LOG_TARGET};
+use crate::SwarmHandle;
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct Swarms {
     swarms: SkipMap<InfoHash, SwarmHandle>,
+    event_sender: Sender,
 }
 
 impl Swarms {
+    #[must_use]
+    pub fn new(event_sender: Sender) -> Self {
+        Self {
+            swarms: SkipMap::new(),
+            event_sender,
+        }
+    }
+
     /// Upsert a peer into the swarm of a torrent.
     ///
     /// Optionally, it can also preset the number of downloads of the torrent
@@ -37,36 +48,55 @@ impl Swarms {
     /// # Errors
     ///
     /// This function panics if the lock for the swarm handle cannot be acquired.
-    pub fn handle_announcement(
+    pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
         opt_persistent_torrent: Option<PersistentTorrent>,
     ) -> Result<bool, Error> {
-        tracing::trace!(target: TORRENT_REPOSITORY_LOG_TARGET, "Handling announcement for torrent: {info_hash}");
+        let swarm_handle = match self.swarms.get(info_hash) {
+            None => {
+                let new_swarm_handle = if let Some(number_of_downloads) = opt_persistent_torrent {
+                    SwarmHandle::new(Swarm::new(number_of_downloads).into())
+                } else {
+                    SwarmHandle::default()
+                };
 
-        let swarm_handle = if let Some(number_of_downloads) = opt_persistent_torrent {
-            SwarmHandle::new(Swarm::new(number_of_downloads).into())
-        } else {
-            SwarmHandle::default()
+                let new_swarm_handle = self.swarms.get_or_insert(*info_hash, new_swarm_handle);
+
+                if let Some(event_sender) = self.event_sender.as_deref() {
+                    event_sender
+                        .send(Event::TorrentAdded {
+                            info_hash: *info_hash,
+                            announcement: *peer,
+                        })
+                        .await;
+                }
+
+                new_swarm_handle
+            }
+            Some(existing_swarm_handle) => existing_swarm_handle,
         };
-
-        let swarm_handle = self.swarms.get_or_insert(*info_hash, swarm_handle);
 
         let mut swarm = swarm_handle.value().lock()?;
 
         Ok(swarm.handle_announcement(peer))
     }
 
-    /// Inserts a new swarm.
+    /// Inserts a new swarm. Only used for testing purposes.
     pub fn insert(&self, info_hash: &InfoHash, swarm: Swarm) {
-        // code-review: swarms builder?
+        // code-review: swarms builder? or constructor from vec?
         // It's only used for testing purposes. It allows to pre-define the
         // initial state of the swarm without having to go through the upsert
         // process.
 
         let swarm_handle = Arc::new(Mutex::new(swarm));
+
         self.swarms.insert(*info_hash, swarm_handle);
+
+        // IMPORTANT: Notice this does not send an event because is used only
+        // for testing purposes. The event is sent only when the torrent is
+        // announced for the first time.
     }
 
     /// Removes a torrent entry from the repository.
@@ -75,8 +105,14 @@ impl Swarms {
     ///
     /// An `Option` containing the removed torrent entry if it existed.
     #[must_use]
-    pub fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
-        self.swarms.remove(key).map(|entry| entry.value().clone())
+    pub async fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
+        let swarm_handle = self.swarms.remove(key).map(|entry| entry.value().clone());
+
+        if let Some(event_sender) = self.event_sender.as_deref() {
+            event_sender.send(Event::TorrentRemoved { info_hash: *key }).await;
+        }
+
+        swarm_handle
     }
 
     /// Retrieves a tracked torrent handle by its infohash.
@@ -402,7 +438,7 @@ impl From<std::sync::PoisonError<std::sync::MutexGuard<'_, Swarm>>> for Error {
 #[cfg(test)]
 mod tests {
 
-    mod the_in_memory_torrent_repository {
+    mod the_swarm_repository {
 
         use aquatic_udp_protocol::PeerId;
 
@@ -447,7 +483,7 @@ mod tests {
 
                 let info_hash = sample_info_hash();
 
-                let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &sample_peer(), None);
+                swarms.handle_announcement(&info_hash, &sample_peer(), None).await.unwrap();
 
                 assert!(swarms.get(&info_hash).is_some());
             }
@@ -458,8 +494,8 @@ mod tests {
 
                 let info_hash = sample_info_hash();
 
-                let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &sample_peer(), None);
-                let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &sample_peer(), None);
+                swarms.handle_announcement(&info_hash, &sample_peer(), None).await.unwrap();
+                swarms.handle_announcement(&info_hash, &sample_peer(), None).await.unwrap();
 
                 assert!(swarms.get(&info_hash).is_some());
             }
@@ -474,7 +510,7 @@ mod tests {
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-            use crate::swarms::tests::the_in_memory_torrent_repository::numeric_peer_id;
+            use crate::swarms::tests::the_swarm_repository::numeric_peer_id;
             use crate::swarms::Swarms;
             use crate::tests::{sample_info_hash, sample_peer};
 
@@ -485,7 +521,7 @@ mod tests {
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
 
-                let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &peer, None);
+                swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
                 let peers = swarms.get_swarm_peers(&info_hash, 74).unwrap();
 
@@ -518,7 +554,7 @@ mod tests {
                         event: AnnounceEvent::Completed,
                     };
 
-                    let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &peer, None);
+                    swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
                 }
 
                 let peers = swarms.get_swarm_peers(&info_hash, 74).unwrap();
@@ -536,7 +572,7 @@ mod tests {
                 use torrust_tracker_primitives::peer::Peer;
                 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-                use crate::swarms::tests::the_in_memory_torrent_repository::numeric_peer_id;
+                use crate::swarms::tests::the_swarm_repository::numeric_peer_id;
                 use crate::swarms::Swarms;
                 use crate::tests::{sample_info_hash, sample_peer};
 
@@ -558,7 +594,7 @@ mod tests {
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
 
-                    let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &peer, None);
+                    swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
                     let peers = swarms
                         .get_peers_peers_excluding(&info_hash, &peer, TORRENT_PEERS_LIMIT)
@@ -575,7 +611,7 @@ mod tests {
 
                     let excluded_peer = sample_peer();
 
-                    let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &excluded_peer, None);
+                    swarms.handle_announcement(&info_hash, &excluded_peer, None).await.unwrap();
 
                     // Add 74 peers
                     for idx in 2..=75 {
@@ -589,7 +625,7 @@ mod tests {
                             event: AnnounceEvent::Completed,
                         };
 
-                        let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &peer, None);
+                        swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
                     }
 
                     let peers = swarms
@@ -619,9 +655,9 @@ mod tests {
                 let swarms = Arc::new(Swarms::default());
 
                 let info_hash = sample_info_hash();
-                let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &sample_peer(), None);
+                swarms.handle_announcement(&info_hash, &sample_peer(), None).await.unwrap();
 
-                let _unused = swarms.remove(&info_hash);
+                let _unused = swarms.remove(&info_hash).await;
 
                 assert!(swarms.get(&info_hash).is_none());
             }
@@ -634,7 +670,7 @@ mod tests {
                 let mut peer = sample_peer();
                 peer.updated = DurationSinceUnixEpoch::new(0, 0);
 
-                let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &peer, None);
+                swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
                 // Cut off time is 1 second after the peer was updated
                 swarms
@@ -644,13 +680,13 @@ mod tests {
                 assert!(!swarms.get_swarm_peers(&info_hash, 74).unwrap().contains(&Arc::new(peer)));
             }
 
-            fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<Swarms> {
+            async fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<Swarms> {
                 let swarms = Arc::new(Swarms::default());
 
                 // Insert a sample peer for the torrent to force adding the torrent entry
                 let mut peer = sample_peer();
                 peer.updated = DurationSinceUnixEpoch::new(0, 0);
-                let _number_of_downloads_increased = swarms.handle_announcement(info_hash, &peer, None);
+                swarms.handle_announcement(info_hash, &peer, None).await.unwrap();
 
                 // Remove the peer
                 swarms
@@ -664,7 +700,7 @@ mod tests {
             async fn it_should_remove_torrents_without_peers() {
                 let info_hash = sample_info_hash();
 
-                let swarms = initialize_repository_with_one_torrent_without_peers(&info_hash);
+                let swarms = initialize_repository_with_one_torrent_without_peers(&info_hash).await;
 
                 let tracker_policy = TrackerPolicy {
                     remove_peerless_torrents: true,
@@ -721,7 +757,7 @@ mod tests {
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
 
-                let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &peer, None);
+                swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
                 let torrent_entry = swarms.get(&info_hash).unwrap();
 
@@ -744,7 +780,7 @@ mod tests {
 
                 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-                use crate::swarms::tests::the_in_memory_torrent_repository::returning_torrent_entries::TorrentEntryInfo;
+                use crate::swarms::tests::the_swarm_repository::returning_torrent_entries::TorrentEntryInfo;
                 use crate::swarms::Swarms;
                 use crate::tests::{sample_info_hash, sample_peer};
 
@@ -754,7 +790,7 @@ mod tests {
 
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
-                    let _number_of_downloads_increased = swarms.handle_announcement(&info_hash, &peer, None);
+                    swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
                     let torrent_entries = swarms.get_paginated(None);
 
@@ -782,7 +818,7 @@ mod tests {
                     use torrust_tracker_primitives::pagination::Pagination;
                     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-                    use crate::swarms::tests::the_in_memory_torrent_repository::returning_torrent_entries::TorrentEntryInfo;
+                    use crate::swarms::tests::the_swarm_repository::returning_torrent_entries::TorrentEntryInfo;
                     use crate::swarms::Swarms;
                     use crate::tests::{
                         sample_info_hash_alphabetically_ordered_after_sample_info_hash_one, sample_info_hash_one,
@@ -796,12 +832,12 @@ mod tests {
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        let _number_of_downloads_increased = swarms.handle_announcement(&info_hash_one, &peer_one, None);
+                        swarms.handle_announcement(&info_hash_one, &peer_one, None).await.unwrap();
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        let _number_of_downloads_increased = swarms.handle_announcement(&info_hash_one, &peer_two, None);
+                        swarms.handle_announcement(&info_hash_one, &peer_two, None).await.unwrap();
 
                         // Get only the first page where page size is 1
                         let torrent_entries = swarms.get_paginated(Some(&Pagination { offset: 0, limit: 1 }));
@@ -831,12 +867,12 @@ mod tests {
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        let _number_of_downloads_increased = swarms.handle_announcement(&info_hash_one, &peer_one, None);
+                        swarms.handle_announcement(&info_hash_one, &peer_one, None).await.unwrap();
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        let _number_of_downloads_increased = swarms.handle_announcement(&info_hash_one, &peer_two, None);
+                        swarms.handle_announcement(&info_hash_one, &peer_two, None).await.unwrap();
 
                         // Get only the first page where page size is 1
                         let torrent_entries = swarms.get_paginated(Some(&Pagination { offset: 1, limit: 1 }));
@@ -866,12 +902,12 @@ mod tests {
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
                         let peer_one = sample_peer_one();
-                        let _number_of_downloads_increased = swarms.handle_announcement(&info_hash_one, &peer_one, None);
+                        swarms.handle_announcement(&info_hash_one, &peer_one, None).await.unwrap();
 
                         // Insert another torrent entry
                         let info_hash_one = sample_info_hash_alphabetically_ordered_after_sample_info_hash_one();
                         let peer_two = sample_peer_two();
-                        let _number_of_downloads_increased = swarms.handle_announcement(&info_hash_one, &peer_two, None);
+                        swarms.handle_announcement(&info_hash_one, &peer_two, None).await.unwrap();
 
                         // Get only the first page where page size is 1
                         let torrent_entries = swarms.get_paginated(Some(&Pagination { offset: 1, limit: 1 }));
@@ -915,7 +951,10 @@ mod tests {
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_leecher() {
                 let swarms = Arc::new(Swarms::default());
 
-                let _number_of_downloads_increased = swarms.handle_announcement(&sample_info_hash(), &leecher(), None);
+                swarms
+                    .handle_announcement(&sample_info_hash(), &leecher(), None)
+                    .await
+                    .unwrap();
 
                 let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().unwrap();
 
@@ -934,7 +973,10 @@ mod tests {
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_seeder() {
                 let swarms = Arc::new(Swarms::default());
 
-                let _number_of_downloads_increased = swarms.handle_announcement(&sample_info_hash(), &seeder(), None);
+                swarms
+                    .handle_announcement(&sample_info_hash(), &seeder(), None)
+                    .await
+                    .unwrap();
 
                 let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().unwrap();
 
@@ -953,7 +995,10 @@ mod tests {
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_completed_peer() {
                 let swarms = Arc::new(Swarms::default());
 
-                let _number_of_downloads_increased = swarms.handle_announcement(&sample_info_hash(), &complete_peer(), None);
+                swarms
+                    .handle_announcement(&sample_info_hash(), &complete_peer(), None)
+                    .await
+                    .unwrap();
 
                 let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().unwrap();
 
@@ -974,7 +1019,10 @@ mod tests {
 
                 let start_time = std::time::Instant::now();
                 for i in 0..1_000_000 {
-                    let _number_of_downloads_increased = swarms.handle_announcement(&gen_seeded_infohash(&i), &leecher(), None);
+                    swarms
+                        .handle_announcement(&gen_seeded_infohash(&i), &leecher(), None)
+                        .await
+                        .unwrap();
                 }
                 let result_a = start_time.elapsed();
 
@@ -1010,7 +1058,7 @@ mod tests {
 
                 let infohash = sample_info_hash();
 
-                let _number_of_downloads_increased = swarms.handle_announcement(&infohash, &leecher(), None);
+                swarms.handle_announcement(&infohash, &leecher(), None).await.unwrap();
 
                 let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).unwrap();
 

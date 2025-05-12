@@ -246,7 +246,9 @@ mod tests {
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
             let info_hash = InfoHash::from_str(&hash).unwrap();
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash, &sample_peer(), None)
+                .await;
 
             let torrent_info = get_torrent_info(&in_memory_torrent_repository, &info_hash).unwrap();
 
@@ -290,7 +292,9 @@ mod tests {
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
             let info_hash = InfoHash::from_str(&hash).unwrap();
 
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash, &sample_peer(), None)
+                .await;
 
             let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::default()));
 
@@ -315,8 +319,12 @@ mod tests {
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned(); // DevSkim: ignore DS173237
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
 
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash1, &sample_peer(), None);
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash2, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash1, &sample_peer(), None)
+                .await;
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash2, &sample_peer(), None)
+                .await;
 
             let offset = 0;
             let limit = 1;
@@ -336,8 +344,12 @@ mod tests {
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned(); // DevSkim: ignore DS173237
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
 
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash1, &sample_peer(), None);
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash2, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash1, &sample_peer(), None)
+                .await;
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash2, &sample_peer(), None)
+                .await;
 
             let offset = 1;
             let limit = 4000;
@@ -362,11 +374,15 @@ mod tests {
 
             let hash1 = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
             let info_hash1 = InfoHash::from_str(&hash1).unwrap();
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash1, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash1, &sample_peer(), None)
+                .await;
 
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned(); // DevSkim: ignore DS173237
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash2, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash2, &sample_peer(), None)
+                .await;
 
             let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::default()));
 
@@ -414,7 +430,9 @@ mod tests {
 
             let info_hash = sample_info_hash();
 
-            let _ = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+            let _ = in_memory_torrent_repository
+                .upsert_peer(&info_hash, &sample_peer(), None)
+                .await;
 
             let torrent_info = get_torrents(&in_memory_torrent_repository, &[info_hash]);
 

@@ -474,7 +474,7 @@ mod for_all_config_modes {
             let previously_announced_peer = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
 
             // Add the Peer 1
-            env.add_torrent_peer(&info_hash, &previously_announced_peer);
+            env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
             // Announce the new Peer 2. This new peer is non included on the response peer list
             let response = Client::new(*env.bind_address())
@@ -517,7 +517,7 @@ mod for_all_config_modes {
                 .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                 .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 8080))
                 .build();
-            env.add_torrent_peer(&info_hash, &peer_using_ipv4);
+            env.add_torrent_peer(&info_hash, &peer_using_ipv4).await;
 
             // Announce a peer using IPV6
             let peer_using_ipv6 = PeerBuilder::default()
@@ -527,7 +527,7 @@ mod for_all_config_modes {
                     8080,
                 ))
                 .build();
-            env.add_torrent_peer(&info_hash, &peer_using_ipv6);
+            env.add_torrent_peer(&info_hash, &peer_using_ipv6).await;
 
             // Announce the new Peer.
             let response = Client::new(*env.bind_address())
@@ -625,7 +625,7 @@ mod for_all_config_modes {
             let previously_announced_peer = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
 
             // Add the Peer 1
-            env.add_torrent_peer(&info_hash, &previously_announced_peer);
+            env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
             // Announce the new Peer 2 accepting compact responses
             let response = Client::new(*env.bind_address())
@@ -666,7 +666,7 @@ mod for_all_config_modes {
             let previously_announced_peer = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
 
             // Add the Peer 1
-            env.add_torrent_peer(&info_hash, &previously_announced_peer);
+            env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
             // Announce the new Peer 2 without passing the "compact" param
             // By default it should respond with the compact peer list
@@ -1010,7 +1010,8 @@ mod for_all_config_modes {
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                     .with_bytes_pending_to_download(1)
                     .build(),
-            );
+            )
+            .await;
 
             let response = Client::new(*env.bind_address())
                 .scrape(
@@ -1050,7 +1051,8 @@ mod for_all_config_modes {
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                     .with_no_bytes_pending_to_download()
                     .build(),
-            );
+            )
+            .await;
 
             let response = Client::new(*env.bind_address())
                 .scrape(
@@ -1282,7 +1284,8 @@ mod configured_as_whitelisted {
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                     .with_bytes_pending_to_download(1)
                     .build(),
-            );
+            )
+            .await;
 
             let response = Client::new(*env.bind_address())
                 .scrape(
@@ -1318,7 +1321,8 @@ mod configured_as_whitelisted {
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                     .with_bytes_pending_to_download(1)
                     .build(),
-            );
+            )
+            .await;
 
             env.container
                 .tracker_core_container
@@ -1494,7 +1498,8 @@ mod configured_as_private {
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                     .with_bytes_pending_to_download(1)
                     .build(),
-            );
+            )
+            .await;
 
             let response = Client::new(*env.bind_address())
                 .scrape(
@@ -1525,7 +1530,8 @@ mod configured_as_private {
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                     .with_bytes_pending_to_download(1)
                     .build(),
-            );
+            )
+            .await;
 
             let expiring_key = env
                 .container
@@ -1576,7 +1582,8 @@ mod configured_as_private {
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                     .with_bytes_pending_to_download(1)
                     .build(),
-            );
+            )
+            .await;
 
             let false_key: Key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
 
