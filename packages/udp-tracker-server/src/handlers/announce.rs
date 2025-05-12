@@ -254,7 +254,8 @@ mod tests {
 
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
-                    .get_torrent_peers(&info_hash.0.into());
+                    .get_torrent_peers(&info_hash.0.into())
+                    .await;
 
                 let expected_peer = TorrentPeerBuilder::new()
                     .with_peer_id(peer_id)
@@ -348,7 +349,8 @@ mod tests {
 
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
-                    .get_torrent_peers(&info_hash.0.into());
+                    .get_torrent_peers(&info_hash.0.into())
+                    .await;
 
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
             }
@@ -505,7 +507,8 @@ mod tests {
 
                     let peers = core_tracker_services
                         .in_memory_torrent_repository
-                        .get_torrent_peers(&info_hash.0.into());
+                        .get_torrent_peers(&info_hash.0.into())
+                        .await;
 
                     let external_ip_in_tracker_configuration = core_tracker_services.core_config.net.external_ip.unwrap();
 
@@ -587,7 +590,8 @@ mod tests {
 
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
-                    .get_torrent_peers(&info_hash.0.into());
+                    .get_torrent_peers(&info_hash.0.into())
+                    .await;
 
                 let expected_peer = TorrentPeerBuilder::new()
                     .with_peer_id(peer_id)
@@ -684,7 +688,8 @@ mod tests {
 
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
-                    .get_torrent_peers(&info_hash.0.into());
+                    .get_torrent_peers(&info_hash.0.into())
+                    .await;
 
                 // When using IPv6 the tracker converts the remote client ip into a IPv4 address
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V6(remote_client_ip), client_port));
@@ -940,7 +945,7 @@ mod tests {
                     .await
                     .unwrap();
 
-                    let peers = in_memory_torrent_repository.get_torrent_peers(&info_hash.0.into());
+                    let peers = in_memory_torrent_repository.get_torrent_peers(&info_hash.0.into()).await;
 
                     let external_ip_in_tracker_configuration = core_config.net.external_ip.unwrap();
 

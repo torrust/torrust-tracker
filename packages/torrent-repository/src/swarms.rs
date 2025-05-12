@@ -1,7 +1,8 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use crossbeam_skiplist::SkipMap;
+use tokio::sync::Mutex;
 use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
@@ -48,6 +49,7 @@ impl Swarms {
     /// # Errors
     ///
     /// This function panics if the lock for the swarm handle cannot be acquired.
+    #[allow(clippy::await_holding_lock)]
     pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
@@ -57,7 +59,7 @@ impl Swarms {
         let swarm_handle = match self.swarms.get(info_hash) {
             None => {
                 let new_swarm_handle = if let Some(number_of_downloads) = opt_persistent_torrent {
-                    SwarmHandle::new(Swarm::new(number_of_downloads).into())
+                    SwarmHandle::new(Swarm::new(number_of_downloads, self.event_sender.clone()).into())
                 } else {
                     SwarmHandle::default()
                 };
@@ -78,9 +80,11 @@ impl Swarms {
             Some(existing_swarm_handle) => existing_swarm_handle,
         };
 
-        let mut swarm = swarm_handle.value().lock()?;
+        let mut swarm = swarm_handle.value().lock().await;
 
-        Ok(swarm.handle_announcement(peer))
+        let downloads_increased = swarm.handle_announcement(peer).await;
+
+        Ok(downloads_increased)
     }
 
     /// Inserts a new swarm. Only used for testing purposes.
@@ -162,11 +166,11 @@ impl Swarms {
     /// # Errors
     ///
     /// This function panics if the lock for the swarm handle cannot be acquired.
-    pub fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Result<Option<SwarmMetadata>, Error> {
+    pub async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Result<Option<SwarmMetadata>, Error> {
         match self.swarms.get(info_hash) {
             None => Ok(None),
             Some(swarm_handle) => {
-                let swarm = swarm_handle.value().lock()?;
+                let swarm = swarm_handle.value().lock().await;
                 Ok(Some(swarm.metadata()))
             }
         }
@@ -183,8 +187,8 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for the
     /// swarm handle.
-    pub fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> Result<SwarmMetadata, Error> {
-        match self.get_swarm_metadata(info_hash) {
+    pub async fn get_swarm_metadata_or_default(&self, info_hash: &InfoHash) -> Result<SwarmMetadata, Error> {
+        match self.get_swarm_metadata(info_hash).await {
             Ok(Some(swarm_metadata)) => Ok(swarm_metadata),
             Ok(None) => Ok(SwarmMetadata::zeroed()),
             Err(err) => Err(err),
@@ -207,7 +211,7 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for the
     /// swarm handle.
-    pub fn get_peers_peers_excluding(
+    pub async fn get_peers_peers_excluding(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
@@ -216,7 +220,7 @@ impl Swarms {
         match self.get(info_hash) {
             None => Ok(vec![]),
             Some(swarm_handle) => {
-                let swarm = swarm_handle.lock()?;
+                let swarm = swarm_handle.lock().await;
                 Ok(swarm.peers_excluding(&peer.peer_addr, Some(limit)))
             }
         }
@@ -236,11 +240,11 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for the
     /// swarm handle.
-    pub fn get_swarm_peers(&self, info_hash: &InfoHash, limit: usize) -> Result<Vec<Arc<peer::Peer>>, Error> {
+    pub async fn get_swarm_peers(&self, info_hash: &InfoHash, limit: usize) -> Result<Vec<Arc<peer::Peer>>, Error> {
         match self.get(info_hash) {
             None => Ok(vec![]),
             Some(swarm_handle) => {
-                let swarm = swarm_handle.lock()?;
+                let swarm = swarm_handle.lock().await;
                 Ok(swarm.peers(Some(limit)))
             }
         }
@@ -255,7 +259,7 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for any
     /// swarm handle.
-    pub fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Result<u64, Error> {
+    pub async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Result<u64, Error> {
         tracing::info!(
             "Removing inactive peers since: {:?} ...",
             convert_from_timestamp_to_datetime_utc(current_cutoff)
@@ -264,7 +268,7 @@ impl Swarms {
         let mut inactive_peers_removed = 0;
 
         for swarm_handle in &self.swarms {
-            let mut swarm = swarm_handle.value().lock()?;
+            let mut swarm = swarm_handle.value().lock().await;
             let removed = swarm.remove_inactive(current_cutoff);
             inactive_peers_removed += removed;
         }
@@ -283,13 +287,13 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for any
     /// swarm handle.
-    pub fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> Result<u64, Error> {
+    pub async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> Result<u64, Error> {
         tracing::info!("Removing peerless torrents ...");
 
         let mut peerless_torrents_removed = 0;
 
         for swarm_handle in &self.swarms {
-            let swarm = swarm_handle.value().lock()?;
+            let swarm = swarm_handle.value().lock().await;
 
             if swarm.meets_retaining_policy(policy) {
                 continue;
@@ -320,7 +324,7 @@ impl Swarms {
                 continue;
             }
 
-            let entry = SwarmHandle::new(Swarm::new(*completed).into());
+            let entry = SwarmHandle::new(Swarm::new(*completed, self.event_sender.clone()).into());
 
             // Since SkipMap is lock-free the torrent could have been inserted
             // after checking if it exists.
@@ -348,11 +352,11 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for any
     /// swarm handle.
-    pub fn get_aggregate_swarm_metadata(&self) -> Result<AggregateSwarmMetadata, Error> {
+    pub async fn get_aggregate_swarm_metadata(&self) -> Result<AggregateSwarmMetadata, Error> {
         let mut metrics = AggregateSwarmMetadata::default();
 
         for swarm_handle in &self.swarms {
-            let swarm = swarm_handle.value().lock()?;
+            let swarm = swarm_handle.value().lock().await;
 
             let stats = swarm.metadata();
 
@@ -376,11 +380,11 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for any
     /// swarm handle.
-    pub fn count_peerless_torrents(&self) -> Result<usize, Error> {
+    pub async fn count_peerless_torrents(&self) -> Result<usize, Error> {
         let mut peerless_torrents = 0;
 
         for swarm_handle in &self.swarms {
-            let swarm = swarm_handle.value().lock()?;
+            let swarm = swarm_handle.value().lock().await;
 
             if swarm.is_peerless() {
                 peerless_torrents += 1;
@@ -400,11 +404,11 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for any
     /// swarm handle.
-    pub fn count_peers(&self) -> Result<usize, Error> {
+    pub async fn count_peers(&self) -> Result<usize, Error> {
         let mut peers = 0;
 
         for swarm_handle in &self.swarms {
-            let swarm = swarm_handle.value().lock()?;
+            let swarm = swarm_handle.value().lock().await;
 
             peers += swarm.len();
         }
@@ -424,16 +428,7 @@ impl Swarms {
 }
 
 #[derive(thiserror::Error, Debug, Clone)]
-pub enum Error {
-    #[error("Can't acquire swarm lock")]
-    CannotAcquireSwarmLock,
-}
-
-impl From<std::sync::PoisonError<std::sync::MutexGuard<'_, Swarm>>> for Error {
-    fn from(_error: std::sync::PoisonError<std::sync::MutexGuard<'_, Swarm>>) -> Self {
-        Error::CannotAcquireSwarmLock
-    }
-}
+pub enum Error {}
 
 #[cfg(test)]
 mod tests {
@@ -523,7 +518,7 @@ mod tests {
 
                 swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
-                let peers = swarms.get_swarm_peers(&info_hash, 74).unwrap();
+                let peers = swarms.get_swarm_peers(&info_hash, 74).await.unwrap();
 
                 assert_eq!(peers, vec![Arc::new(peer)]);
             }
@@ -532,7 +527,7 @@ mod tests {
             async fn it_should_return_an_empty_list_or_peers_for_a_non_existing_torrent() {
                 let swarms = Arc::new(Swarms::default());
 
-                let peers = swarms.get_swarm_peers(&sample_info_hash(), 74).unwrap();
+                let peers = swarms.get_swarm_peers(&sample_info_hash(), 74).await.unwrap();
 
                 assert!(peers.is_empty());
             }
@@ -557,7 +552,7 @@ mod tests {
                     swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
                 }
 
-                let peers = swarms.get_swarm_peers(&info_hash, 74).unwrap();
+                let peers = swarms.get_swarm_peers(&info_hash, 74).await.unwrap();
 
                 assert_eq!(peers.len(), 74);
             }
@@ -582,6 +577,7 @@ mod tests {
 
                     let peers = swarms
                         .get_peers_peers_excluding(&sample_info_hash(), &sample_peer(), TORRENT_PEERS_LIMIT)
+                        .await
                         .unwrap();
 
                     assert_eq!(peers, vec![]);
@@ -598,6 +594,7 @@ mod tests {
 
                     let peers = swarms
                         .get_peers_peers_excluding(&info_hash, &peer, TORRENT_PEERS_LIMIT)
+                        .await
                         .unwrap();
 
                     assert_eq!(peers, vec![]);
@@ -630,6 +627,7 @@ mod tests {
 
                     let peers = swarms
                         .get_peers_peers_excluding(&info_hash, &excluded_peer, TORRENT_PEERS_LIMIT)
+                        .await
                         .unwrap();
 
                     assert_eq!(peers.len(), 74);
@@ -675,9 +673,14 @@ mod tests {
                 // Cut off time is 1 second after the peer was updated
                 swarms
                     .remove_inactive_peers(peer.updated.add(Duration::from_secs(1)))
+                    .await
                     .unwrap();
 
-                assert!(!swarms.get_swarm_peers(&info_hash, 74).unwrap().contains(&Arc::new(peer)));
+                assert!(!swarms
+                    .get_swarm_peers(&info_hash, 74)
+                    .await
+                    .unwrap()
+                    .contains(&Arc::new(peer)));
             }
 
             async fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<Swarms> {
@@ -691,6 +694,7 @@ mod tests {
                 // Remove the peer
                 swarms
                     .remove_inactive_peers(peer.updated.add(Duration::from_secs(1)))
+                    .await
                     .unwrap();
 
                 swarms
@@ -707,7 +711,7 @@ mod tests {
                     ..Default::default()
                 };
 
-                swarms.remove_peerless_torrents(&tracker_policy).unwrap();
+                swarms.remove_peerless_torrents(&tracker_policy).await.unwrap();
 
                 assert!(swarms.get(&info_hash).is_none());
             }
@@ -721,7 +725,7 @@ mod tests {
 
             use crate::swarms::Swarms;
             use crate::tests::{sample_info_hash, sample_peer};
-            use crate::{LockTrackedTorrent, SwarmHandle};
+            use crate::{Swarm, SwarmHandle};
 
             /// `TorrentEntry` data is not directly accessible. It's only
             /// accessible through the trait methods. We need this temporary
@@ -733,19 +737,19 @@ mod tests {
                 number_of_peers: usize,
             }
 
+            async fn torrent_entry_info(swarm_handle: SwarmHandle) -> TorrentEntryInfo {
+                let torrent_guard = swarm_handle.lock().await;
+                torrent_guard.clone().into()
+            }
+
             #[allow(clippy::from_over_into)]
-            impl Into<TorrentEntryInfo> for SwarmHandle {
+            impl Into<TorrentEntryInfo> for Swarm {
                 fn into(self) -> TorrentEntryInfo {
-                    let torrent_guard = self.lock_or_panic();
-
                     let torrent_entry_info = TorrentEntryInfo {
-                        swarm_metadata: torrent_guard.metadata(),
-                        peers: torrent_guard.peers(None).iter().map(|peer| *peer.clone()).collect(),
-                        number_of_peers: torrent_guard.len(),
+                        swarm_metadata: self.metadata(),
+                        peers: self.peers(None).iter().map(|peer| *peer.clone()).collect(),
+                        number_of_peers: self.len(),
                     };
-
-                    drop(torrent_guard);
-
                     torrent_entry_info
                 }
             }
@@ -759,7 +763,7 @@ mod tests {
 
                 swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
-                let torrent_entry = swarms.get(&info_hash).unwrap();
+                let torrent_entry_info = torrent_entry_info(swarms.get(&info_hash).unwrap()).await;
 
                 assert_eq!(
                     TorrentEntryInfo {
@@ -771,7 +775,7 @@ mod tests {
                         peers: vec!(peer),
                         number_of_peers: 1
                     },
-                    torrent_entry.into()
+                    torrent_entry_info
                 );
             }
 
@@ -780,7 +784,9 @@ mod tests {
 
                 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-                use crate::swarms::tests::the_swarm_repository::returning_torrent_entries::TorrentEntryInfo;
+                use crate::swarms::tests::the_swarm_repository::returning_torrent_entries::{
+                    torrent_entry_info, TorrentEntryInfo,
+                };
                 use crate::swarms::Swarms;
                 use crate::tests::{sample_info_hash, sample_peer};
 
@@ -796,7 +802,7 @@ mod tests {
 
                     assert_eq!(torrent_entries.len(), 1);
 
-                    let torrent_entry = torrent_entries.first().unwrap().1.clone();
+                    let torrent_entry = torrent_entry_info(torrent_entries.first().unwrap().1.clone()).await;
 
                     assert_eq!(
                         TorrentEntryInfo {
@@ -808,7 +814,7 @@ mod tests {
                             peers: vec!(peer),
                             number_of_peers: 1
                         },
-                        torrent_entry.into()
+                        torrent_entry
                     );
                 }
 
@@ -818,7 +824,9 @@ mod tests {
                     use torrust_tracker_primitives::pagination::Pagination;
                     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-                    use crate::swarms::tests::the_swarm_repository::returning_torrent_entries::TorrentEntryInfo;
+                    use crate::swarms::tests::the_swarm_repository::returning_torrent_entries::{
+                        torrent_entry_info, TorrentEntryInfo,
+                    };
                     use crate::swarms::Swarms;
                     use crate::tests::{
                         sample_info_hash_alphabetically_ordered_after_sample_info_hash_one, sample_info_hash_one,
@@ -844,7 +852,7 @@ mod tests {
 
                         assert_eq!(torrent_entries.len(), 1);
 
-                        let torrent_entry = torrent_entries.first().unwrap().1.clone();
+                        let torrent_entry_info = torrent_entry_info(torrent_entries.first().unwrap().1.clone()).await;
 
                         assert_eq!(
                             TorrentEntryInfo {
@@ -856,7 +864,7 @@ mod tests {
                                 peers: vec!(peer_one),
                                 number_of_peers: 1
                             },
-                            torrent_entry.into()
+                            torrent_entry_info
                         );
                     }
 
@@ -879,7 +887,7 @@ mod tests {
 
                         assert_eq!(torrent_entries.len(), 1);
 
-                        let torrent_entry = torrent_entries.first().unwrap().1.clone();
+                        let torrent_entry_info = torrent_entry_info(torrent_entries.first().unwrap().1.clone()).await;
 
                         assert_eq!(
                             TorrentEntryInfo {
@@ -891,7 +899,7 @@ mod tests {
                                 peers: vec!(peer_two),
                                 number_of_peers: 1
                             },
-                            torrent_entry.into()
+                            torrent_entry_info
                         );
                     }
 
@@ -934,7 +942,7 @@ mod tests {
             async fn it_should_get_empty_aggregate_swarm_metadata_when_there_are_no_torrents() {
                 let swarms = Arc::new(Swarms::default());
 
-                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().unwrap();
+                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -956,7 +964,7 @@ mod tests {
                     .await
                     .unwrap();
 
-                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().unwrap();
+                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -978,7 +986,7 @@ mod tests {
                     .await
                     .unwrap();
 
-                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().unwrap();
+                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -1000,7 +1008,7 @@ mod tests {
                     .await
                     .unwrap();
 
-                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().unwrap();
+                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
 
                 assert_eq!(
                     aggregate_swarm_metadata,
@@ -1027,7 +1035,7 @@ mod tests {
                 let result_a = start_time.elapsed();
 
                 let start_time = std::time::Instant::now();
-                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().unwrap();
+                let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
                 let result_b = start_time.elapsed();
 
                 assert_eq!(
@@ -1060,7 +1068,7 @@ mod tests {
 
                 swarms.handle_announcement(&infohash, &leecher(), None).await.unwrap();
 
-                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).unwrap();
+                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).await.unwrap();
 
                 assert_eq!(
                     swarm_metadata,
@@ -1076,7 +1084,7 @@ mod tests {
             async fn it_should_return_zeroed_swarm_metadata_for_a_non_existing_torrent() {
                 let swarms = Arc::new(Swarms::default());
 
-                let swarm_metadata = swarms.get_swarm_metadata_or_default(&sample_info_hash()).unwrap();
+                let swarm_metadata = swarms.get_swarm_metadata_or_default(&sample_info_hash()).await.unwrap();
 
                 assert_eq!(swarm_metadata, SwarmMetadata::zeroed());
             }
@@ -1103,7 +1111,7 @@ mod tests {
 
                 swarms.import_persistent(&persistent_torrents);
 
-                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).unwrap();
+                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).await.unwrap();
 
                 // Only the number of downloads is persisted.
                 assert_eq!(swarm_metadata.downloaded, 1);

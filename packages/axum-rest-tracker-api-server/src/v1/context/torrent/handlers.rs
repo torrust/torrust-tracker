@@ -33,7 +33,7 @@ pub async fn get_torrent_handler(
 ) -> Response {
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
-        Ok(info_hash) => match get_torrent_info(&in_memory_torrent_repository, &info_hash) {
+        Ok(info_hash) => match get_torrent_info(&in_memory_torrent_repository, &info_hash).await {
             Some(info) => torrent_info_response(info).into_response(),
             None => torrent_not_known_response(),
         },
@@ -85,14 +85,19 @@ pub async fn get_torrents_handler(
     tracing::debug!("pagination: {:?}", pagination);
 
     if pagination.0.info_hashes.is_empty() {
-        torrent_list_response(&get_torrents_page(
-            &in_memory_torrent_repository,
-            Some(&Pagination::new_with_options(pagination.0.offset, pagination.0.limit)),
-        ))
+        torrent_list_response(
+            &get_torrents_page(
+                &in_memory_torrent_repository,
+                Some(&Pagination::new_with_options(pagination.0.offset, pagination.0.limit)),
+            )
+            .await,
+        )
         .into_response()
     } else {
         match parse_info_hashes(pagination.0.info_hashes) {
-            Ok(info_hashes) => torrent_list_response(&get_torrents(&in_memory_torrent_repository, &info_hashes)).into_response(),
+            Ok(info_hashes) => {
+                torrent_list_response(&get_torrents(&in_memory_torrent_repository, &info_hashes).await).into_response()
+            }
             Err(err) => match err {
                 QueryParamError::InvalidInfoHash { info_hash } => invalid_info_hash_param_response(&info_hash),
             },

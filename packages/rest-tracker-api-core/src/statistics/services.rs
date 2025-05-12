@@ -32,7 +32,7 @@ pub async fn get_metrics(
     http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
     udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
 ) -> TrackerMetrics {
-    let torrents_metrics = in_memory_torrent_repository.get_aggregate_swarm_metadata();
+    let torrents_metrics = in_memory_torrent_repository.get_aggregate_swarm_metadata().await;
     let udp_banned_ips_total = ban_service.read().await.get_banned_ips_total();
     let http_stats = http_stats_repository.get_stats().await;
     let udp_server_stats = udp_server_stats_repository.get_stats().await;

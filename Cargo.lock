@@ -4857,6 +4857,7 @@ dependencies = [
  "bittorrent-primitives",
  "criterion",
  "crossbeam-skiplist",
+ "futures",
  "rand 0.9.1",
  "rstest",
  "serde",

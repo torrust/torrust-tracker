@@ -4,8 +4,9 @@ pub mod statistics;
 pub mod swarm;
 pub mod swarms;
 
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::Arc;
 
+use tokio::sync::Mutex;
 use torrust_tracker_clock::clock;
 
 pub type Swarms = swarms::Swarms;
@@ -23,16 +24,6 @@ pub(crate) type CurrentClock = clock::Working;
 pub(crate) type CurrentClock = clock::Stopped;
 
 pub const TORRENT_REPOSITORY_LOG_TARGET: &str = "TORRENT_REPOSITORY";
-
-pub trait LockTrackedTorrent {
-    fn lock_or_panic(&self) -> MutexGuard<'_, Swarm>;
-}
-
-impl LockTrackedTorrent for SwarmHandle {
-    fn lock_or_panic(&self) -> MutexGuard<'_, Swarm> {
-        self.lock().expect("can't acquire lock for tracked torrent handle")
-    }
-}
 
 #[cfg(test)]
 pub(crate) mod tests {
