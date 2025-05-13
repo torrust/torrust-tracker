@@ -20,6 +20,14 @@ impl Gauge {
     pub fn set(&mut self, value: f64) {
         self.0 = value;
     }
+
+    pub fn increment(&mut self, value: f64) {
+        self.0 += value;
+    }
+
+    pub fn decrement(&mut self, value: f64) {
+        self.0 -= value;
+    }
 }
 
 impl From<f64> for Gauge {
@@ -70,6 +78,20 @@ mod tests {
         let mut gauge = Gauge::new(0.0);
         gauge.set(1.0);
         assert_relative_eq!(gauge.value(), 1.0);
+    }
+
+    #[test]
+    fn it_could_be_incremented() {
+        let mut gauge = Gauge::new(0.0);
+        gauge.increment(1.0);
+        assert_relative_eq!(gauge.value(), 1.0);
+    }
+
+    #[test]
+    fn it_could_be_decremented() {
+        let mut gauge = Gauge::new(1.0);
+        gauge.decrement(1.0);
+        assert_relative_eq!(gauge.value(), 0.0);
     }
 
     #[test]

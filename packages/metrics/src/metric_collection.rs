@@ -136,6 +136,38 @@ impl MetricCollection {
         Ok(())
     }
 
+    /// # Errors
+    ///
+    /// Return an error if a metrics of a different type with the same name
+    /// already exists.
+    pub fn increase_gauge(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) -> Result<(), Error> {
+        if self.counters.metrics.contains_key(name) {
+            return Err(Error::MetricNameCollisionAdding {
+                metric_name: name.clone(),
+            });
+        }
+
+        self.gauges.increment(name, label_set, time);
+
+        Ok(())
+    }
+
+    /// # Errors
+    ///
+    /// Return an error if a metrics of a different type with the same name
+    /// already exists.
+    pub fn decrease_gauge(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) -> Result<(), Error> {
+        if self.counters.metrics.contains_key(name) {
+            return Err(Error::MetricNameCollisionAdding {
+                metric_name: name.clone(),
+            });
+        }
+
+        self.gauges.decrement(name, label_set, time);
+
+        Ok(())
+    }
+
     pub fn ensure_gauge_exists(&mut self, name: &MetricName) {
         self.gauges.ensure_metric_exists(name);
     }
@@ -351,6 +383,36 @@ impl MetricKindCollection<Gauge> {
         let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
 
         metric.set(label_set, value, time);
+    }
+
+    /// Increments the gauge for the given metric name and labels.
+    ///
+    /// If the metric name does not exist, it will be created.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the metric does not exist and it could not be created.
+    pub fn increment(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
+        self.ensure_metric_exists(name);
+
+        let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
+
+        metric.increment(label_set, time);
+    }
+
+    /// Decrements the gauge for the given metric name and labels.
+    ///
+    /// If the metric name does not exist, it will be created.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the metric does not exist and it could not be created.
+    pub fn decrement(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
+        self.ensure_metric_exists(name);
+
+        let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
+
+        metric.decrement(label_set, time);
     }
 
     #[must_use]
