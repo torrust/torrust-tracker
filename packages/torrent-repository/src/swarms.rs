@@ -259,7 +259,7 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for any
     /// swarm handle.
-    pub async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Result<u64, Error> {
+    pub async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Result<usize, Error> {
         tracing::info!(
             "Removing inactive peers since: {:?} ...",
             convert_from_timestamp_to_datetime_utc(current_cutoff)
@@ -269,7 +269,7 @@ impl Swarms {
 
         for swarm_handle in &self.swarms {
             let mut swarm = swarm_handle.value().lock().await;
-            let removed = swarm.remove_inactive(current_cutoff);
+            let removed = swarm.remove_inactive(current_cutoff).await;
             inactive_peers_removed += removed;
         }
 

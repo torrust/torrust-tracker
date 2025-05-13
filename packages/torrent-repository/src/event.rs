@@ -17,7 +17,7 @@ pub enum Event {
         announcement: PeerAnnouncement,
     },
     PeerRemoved {
-        socket_addr: SocketAddr,
+        peer_addr: SocketAddr,
         peer_id: PeerId,
     },
 }

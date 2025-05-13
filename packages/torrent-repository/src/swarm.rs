@@ -143,7 +143,7 @@ impl Swarm {
                 if let Some(event_sender) = self.event_sender.as_deref() {
                     event_sender
                         .send(Event::PeerRemoved {
-                            socket_addr: old_peer.peer_addr,
+                            peer_addr: old_peer.peer_addr,
                             peer_id: old_peer.peer_id,
                         })
                         .await;
@@ -155,10 +155,11 @@ impl Swarm {
         }
     }
 
-    pub fn remove_inactive(&mut self, current_cutoff: DurationSinceUnixEpoch) -> u64 {
-        let mut inactive_peers_removed = 0;
+    pub async fn remove_inactive(&mut self, current_cutoff: DurationSinceUnixEpoch) -> usize {
+        let mut number_of_peers_removed = 0;
+        let mut removed_peers = Vec::new();
 
-        self.peers.retain(|_, peer| {
+        self.peers.retain(|_key, peer| {
             let is_active = peer::ReadInfo::get_updated(peer) > current_cutoff;
 
             if !is_active {
@@ -169,13 +170,30 @@ impl Swarm {
                     self.metadata.incomplete -= 1;
                 }
 
-                inactive_peers_removed += 1;
+                number_of_peers_removed += 1;
+
+                if let Some(_event_sender) = self.event_sender.as_deref() {
+                    // Events can not be trigger here because retain does not allow
+                    // async closures.
+                    removed_peers.push((peer.peer_addr, peer.peer_id));
+                }
             }
 
             is_active
         });
 
-        inactive_peers_removed
+        if let Some(event_sender) = self.event_sender.as_deref() {
+            for (peer_addr, peer_id) in &removed_peers {
+                event_sender
+                    .send(Event::PeerRemoved {
+                        peer_addr: *peer_addr,
+                        peer_id: *peer_id,
+                    })
+                    .await;
+            }
+        }
+
+        number_of_peers_removed
     }
 
     #[must_use]
@@ -431,7 +449,7 @@ mod tests {
         swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
 
         // Remove peers not updated since one second after inserting the peer
-        swarm.remove_inactive(last_update_time + one_second);
+        swarm.remove_inactive(last_update_time + one_second).await;
 
         assert_eq!(swarm.len(), 0);
     }
@@ -448,7 +466,7 @@ mod tests {
         swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
 
         // Remove peers not updated since one second before inserting the peer.
-        swarm.remove_inactive(last_update_time - one_second);
+        swarm.remove_inactive(last_update_time - one_second).await;
 
         assert_eq!(swarm.len(), 1);
     }
@@ -753,7 +771,7 @@ mod tests {
 
                 let leechers = swarm.metadata().leechers();
 
-                swarm.remove_inactive(leecher.updated + Duration::from_secs(1));
+                swarm.remove_inactive(leecher.updated + Duration::from_secs(1)).await;
 
                 assert_eq!(swarm.metadata().leechers(), leechers - 1);
             }
@@ -769,7 +787,7 @@ mod tests {
 
                 let seeders = swarm.metadata().seeders();
 
-                swarm.remove_inactive(seeder.updated + Duration::from_secs(1));
+                swarm.remove_inactive(seeder.updated + Duration::from_secs(1)).await;
 
                 assert_eq!(swarm.metadata().seeders(), seeders - 1);
             }

@@ -36,7 +36,10 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
             // todo: update metrics
             tracing::debug!("Peer added {announcement:?}");
         }
-        Event::PeerRemoved { socket_addr, peer_id } => {
+        Event::PeerRemoved {
+            peer_addr: socket_addr,
+            peer_id,
+        } => {
             // todo: update metrics
             tracing::debug!("Peer removed: socket address {socket_addr:?}, peer ID: {peer_id:?}");
         }

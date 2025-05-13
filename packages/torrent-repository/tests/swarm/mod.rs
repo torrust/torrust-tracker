@@ -390,7 +390,7 @@ async fn it_should_remove_inactive_peers_beyond_cutoff(#[values(swarm())] mut sw
     assert_eq!(swarm.len(), peers.len() + 1);
 
     let current_cutoff = CurrentClock::now_sub(&TIMEOUT).unwrap_or_default();
-    swarm.remove_inactive(current_cutoff);
+    swarm.remove_inactive(current_cutoff).await;
 
     assert_eq!(swarm.len(), peers.len());
 }
