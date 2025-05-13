@@ -299,9 +299,15 @@ impl Swarms {
                 continue;
             }
 
+            let info_hash = *swarm_handle.key();
+
             swarm_handle.remove();
 
             peerless_torrents_removed += 1;
+
+            if let Some(event_sender) = self.event_sender.as_deref() {
+                event_sender.send(Event::TorrentRemoved { info_hash }).await;
+            }
         }
 
         tracing::info!(peerless_torrents_removed = peerless_torrents_removed);

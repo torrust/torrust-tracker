@@ -140,7 +140,12 @@ impl MetricCollection {
     ///
     /// Return an error if a metrics of a different type with the same name
     /// already exists.
-    pub fn increase_gauge(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) -> Result<(), Error> {
+    pub fn increment_gauge(
+        &mut self,
+        name: &MetricName,
+        label_set: &LabelSet,
+        time: DurationSinceUnixEpoch,
+    ) -> Result<(), Error> {
         if self.counters.metrics.contains_key(name) {
             return Err(Error::MetricNameCollisionAdding {
                 metric_name: name.clone(),
@@ -156,7 +161,12 @@ impl MetricCollection {
     ///
     /// Return an error if a metrics of a different type with the same name
     /// already exists.
-    pub fn decrease_gauge(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) -> Result<(), Error> {
+    pub fn decrement_gauge(
+        &mut self,
+        name: &MetricName,
+        label_set: &LabelSet,
+        time: DurationSinceUnixEpoch,
+    ) -> Result<(), Error> {
         if self.counters.metrics.contains_key(name) {
             return Err(Error::MetricNameCollisionAdding {
                 metric_name: name.clone(),

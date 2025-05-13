@@ -9,10 +9,6 @@ use crate::event::Event;
 use crate::statistics::repository::Repository;
 use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 
-/// # Panics
-///
-/// This function panics if the client IP address is not the same as the IP
-/// version of the event.
 pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now: DurationSinceUnixEpoch) {
     match event {
         Event::TcpAnnounce { connection, .. } => {

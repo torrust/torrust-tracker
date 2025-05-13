@@ -15,7 +15,7 @@ impl Metrics {
     /// # Errors
     ///
     /// Returns an error if the metric does not exist and it cannot be created.
-    pub fn increase_counter(
+    pub fn increment_counter(
         &mut self,
         metric_name: &MetricName,
         labels: &LabelSet,
@@ -35,5 +35,29 @@ impl Metrics {
         now: DurationSinceUnixEpoch,
     ) -> Result<(), Error> {
         self.metric_collection.set_gauge(metric_name, labels, value, now)
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error if the metric does not exist and it cannot be created.
+    pub fn increment_gauge(
+        &mut self,
+        metric_name: &MetricName,
+        labels: &LabelSet,
+        now: DurationSinceUnixEpoch,
+    ) -> Result<(), Error> {
+        self.metric_collection.increment_gauge(metric_name, labels, now)
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error if the metric does not exist and it cannot be created.
+    pub fn decrement_gauge(
+        &mut self,
+        metric_name: &MetricName,
+        labels: &LabelSet,
+        now: DurationSinceUnixEpoch,
+    ) -> Result<(), Error> {
+        self.metric_collection.decrement_gauge(metric_name, labels, now)
     }
 }
