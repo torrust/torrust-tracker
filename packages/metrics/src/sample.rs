@@ -64,6 +64,14 @@ impl Sample<Gauge> {
     pub fn set(&mut self, value: f64, time: DurationSinceUnixEpoch) {
         self.measurement.set(value, time);
     }
+
+    pub fn increment(&mut self, time: DurationSinceUnixEpoch) {
+        self.measurement.increment(time);
+    }
+
+    pub fn decrement(&mut self, time: DurationSinceUnixEpoch) {
+        self.measurement.decrement(time);
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -119,6 +127,16 @@ impl Measurement<Counter> {
 impl Measurement<Gauge> {
     pub fn set(&mut self, value: f64, time: DurationSinceUnixEpoch) {
         self.value.set(value);
+        self.set_recorded_at(time);
+    }
+
+    pub fn increment(&mut self, time: DurationSinceUnixEpoch) {
+        self.value.increment(1.0);
+        self.set_recorded_at(time);
+    }
+
+    pub fn decrement(&mut self, time: DurationSinceUnixEpoch) {
+        self.value.decrement(1.0);
         self.set_recorded_at(time);
     }
 }
@@ -273,12 +291,30 @@ mod tests {
         }
 
         #[test]
-        fn it_should_allow_incrementing_the_counter() {
+        fn it_should_allow_setting_a_value() {
             let mut sample = Sample::new(Gauge::default(), DurationSinceUnixEpoch::default(), LabelSet::default());
 
             sample.set(1.0, updated_at_time());
 
             assert_eq!(sample.value(), &Gauge::new(1.0));
+        }
+
+        #[test]
+        fn it_should_allow_incrementing_the_value() {
+            let mut sample = Sample::new(Gauge::new(0.0), DurationSinceUnixEpoch::default(), LabelSet::default());
+
+            sample.increment(updated_at_time());
+
+            assert_eq!(sample.value(), &Gauge::new(1.0));
+        }
+
+        #[test]
+        fn it_should_allow_decrementing_the_value() {
+            let mut sample = Sample::new(Gauge::new(1.0), DurationSinceUnixEpoch::default(), LabelSet::default());
+
+            sample.decrement(updated_at_time());
+
+            assert_eq!(sample.value(), &Gauge::new(0.0));
         }
 
         #[test]

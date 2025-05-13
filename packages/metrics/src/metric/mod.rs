@@ -61,6 +61,14 @@ impl Metric<Gauge> {
     pub fn set(&mut self, label_set: &LabelSet, value: f64, time: DurationSinceUnixEpoch) {
         self.sample_collection.set(label_set, value, time);
     }
+
+    pub fn increment(&mut self, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
+        self.sample_collection.increment(label_set, time);
+    }
+
+    pub fn decrement(&mut self, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
+        self.sample_collection.decrement(label_set, time);
+    }
 }
 
 impl<T: PrometheusSerializable> PrometheusSerializable for Metric<T> {

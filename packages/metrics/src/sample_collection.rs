@@ -90,6 +90,24 @@ impl SampleCollection<Gauge> {
 
         sample.set(value, time);
     }
+
+    pub fn increment(&mut self, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
+        let sample = self
+            .samples
+            .entry(label_set.clone())
+            .or_insert_with(|| Measurement::new(Gauge::default(), time));
+
+        sample.increment(time);
+    }
+
+    pub fn decrement(&mut self, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
+        let sample = self
+            .samples
+            .entry(label_set.clone())
+            .or_insert_with(|| Measurement::new(Gauge::default(), time));
+
+        sample.decrement(time);
+    }
 }
 
 impl<T: Serialize> Serialize for SampleCollection<T> {
@@ -278,7 +296,7 @@ mod tests {
         #[test]
         fn it_should_increment_the_counter_for_a_preexisting_label_set() {
             let label_set = LabelSet::default();
-            let mut collection = SampleCollection::default();
+            let mut collection = SampleCollection::<Counter>::default();
 
             // Initialize the sample
             collection.increment(&label_set, sample_update_time());
@@ -296,7 +314,7 @@ mod tests {
         #[test]
         fn it_should_allow_increment_the_counter_for_a_non_existent_label_set() {
             let label_set = LabelSet::default();
-            let mut collection = SampleCollection::default();
+            let mut collection = SampleCollection::<Counter>::default();
 
             // Increment a non-existent label
             collection.increment(&label_set, sample_update_time());
@@ -312,7 +330,7 @@ mod tests {
             let label_set = LabelSet::default();
             let initial_time = sample_update_time();
 
-            let mut collection = SampleCollection::default();
+            let mut collection = SampleCollection::<Counter>::default();
             collection.increment(&label_set, initial_time);
 
             // Increment with a new time
@@ -330,7 +348,7 @@ mod tests {
             let label2 = LabelSet::from([("name", "value2")]);
             let now = sample_update_time();
 
-            let mut collection = SampleCollection::default();
+            let mut collection = SampleCollection::<Counter>::default();
 
             collection.increment(&label1, now);
             collection.increment(&label2, now);
@@ -351,9 +369,9 @@ mod tests {
         use crate::gauge::Gauge;
 
         #[test]
-        fn it_should_increment_the_gauge_for_a_preexisting_label_set() {
+        fn it_should_allow_setting_the_gauge_for_a_preexisting_label_set() {
             let label_set = LabelSet::default();
-            let mut collection = SampleCollection::default();
+            let mut collection = SampleCollection::<Gauge>::default();
 
             // Initialize the sample
             collection.set(&label_set, 1.0, sample_update_time());
@@ -369,9 +387,9 @@ mod tests {
         }
 
         #[test]
-        fn it_should_allow_increment_the_gauge_for_a_non_existent_label_set() {
+        fn it_should_allow_setting_the_gauge_for_a_non_existent_label_set() {
             let label_set = LabelSet::default();
-            let mut collection = SampleCollection::default();
+            let mut collection = SampleCollection::<Gauge>::default();
 
             // Set a non-existent label
             collection.set(&label_set, 1.0, sample_update_time());
@@ -383,11 +401,11 @@ mod tests {
         }
 
         #[test]
-        fn it_should_update_the_latest_update_time_when_incremented() {
+        fn it_should_update_the_latest_update_time_when_setting() {
             let label_set = LabelSet::default();
             let initial_time = sample_update_time();
 
-            let mut collection = SampleCollection::default();
+            let mut collection = SampleCollection::<Gauge>::default();
             collection.set(&label_set, 1.0, initial_time);
 
             // Set with a new time
@@ -400,12 +418,12 @@ mod tests {
         }
 
         #[test]
-        fn it_should_increment_the_gauge_for_multiple_labels() {
+        fn it_should_allow_setting_the_gauge_for_multiple_labels() {
             let label1 = LabelSet::from([("name", "value1")]);
             let label2 = LabelSet::from([("name", "value2")]);
             let now = sample_update_time();
 
-            let mut collection = SampleCollection::default();
+            let mut collection = SampleCollection::<Gauge>::default();
 
             collection.set(&label1, 1.0, now);
             collection.set(&label2, 2.0, now);
@@ -413,6 +431,34 @@ mod tests {
             assert_eq!(collection.get(&label1).unwrap().value(), &Gauge::new(1.0));
             assert_eq!(collection.get(&label2).unwrap().value(), &Gauge::new(2.0));
             assert_eq!(collection.len(), 2);
+        }
+
+        #[test]
+        fn it_should_allow_incrementing_the_gauge() {
+            let label_set = LabelSet::default();
+            let mut collection = SampleCollection::<Gauge>::default();
+
+            // Initialize the sample
+            collection.set(&label_set, 1.0, sample_update_time());
+
+            // Increment
+            collection.increment(&label_set, sample_update_time());
+            let sample = collection.get(&label_set).unwrap();
+            assert_eq!(*sample.value(), Gauge::new(2.0));
+        }
+
+        #[test]
+        fn it_should_allow_decrementing_the_gauge() {
+            let label_set = LabelSet::default();
+            let mut collection = SampleCollection::<Gauge>::default();
+
+            // Initialize the sample
+            collection.set(&label_set, 1.0, sample_update_time());
+
+            // Increment
+            collection.decrement(&label_set, sample_update_time());
+            let sample = collection.get(&label_set).unwrap();
+            assert_eq!(*sample.value(), Gauge::new(0.0));
         }
     }
 }
