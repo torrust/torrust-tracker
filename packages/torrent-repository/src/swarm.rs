@@ -329,6 +329,16 @@ mod tests {
     use crate::tests::sample_info_hash;
 
     #[test]
+    fn it_should_allow_debugging() {
+        let swarm = Swarm::new(&sample_info_hash(), 0, None);
+
+        assert_eq!(
+            format!("{swarm:?}"),
+            "Swarm { peers: {}, metadata: SwarmMetadata { downloaded: 0, complete: 0, incomplete: 0 } }"
+        );
+    }
+
+    #[test]
     fn it_should_be_empty_when_no_peers_have_been_inserted() {
         let swarm = Swarm::new(&sample_info_hash(), 0, None);
 
@@ -689,6 +699,12 @@ mod tests {
         assert_eq!(leechers, 1);
     }
 
+    #[tokio::test]
+    async fn it_should_be_a_peerless_swarm_when_it_does_not_contain_any_peers() {
+        let swarm = Swarm::new(&sample_info_hash(), 0, None);
+        assert!(swarm.is_peerless());
+    }
+
     mod updating_the_swarm_metadata {
 
         mod when_a_new_peer_is_added {
@@ -905,6 +921,179 @@ mod tests {
 
                 assert_eq!(swarm.metadata().downloads(), downloads + 1);
             }
+        }
+    }
+
+    mod triggering_events {
+
+        use std::future;
+        use std::sync::Arc;
+
+        use aquatic_udp_protocol::AnnounceEvent::Started;
+        use mockall::predicate::eq;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+        use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
+        use crate::event::sender::tests::MockEventSender;
+        use crate::event::Event;
+        use crate::swarm::Swarm;
+        use crate::tests::sample_info_hash;
+
+        #[tokio::test]
+        async fn it_should_trigger_an_event_when_a_new_peer_is_added() {
+            let info_hash = sample_info_hash();
+            let peer = PeerBuilder::leecher().build();
+
+            let mut event_sender_mock = MockEventSender::new();
+
+            event_sender_mock
+                .expect_send()
+                .with(eq(Event::PeerAdded { info_hash, peer }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
+            let mut swarm = Swarm::new(&sample_info_hash(), 0, Some(Arc::new(event_sender_mock)));
+
+            let mut downloads_increased = false;
+            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        }
+
+        #[tokio::test]
+        async fn it_should_trigger_an_event_when_a_peer_is_directly_removed() {
+            let info_hash = sample_info_hash();
+            let peer = PeerBuilder::leecher().build();
+
+            let mut event_sender_mock = MockEventSender::new();
+
+            event_sender_mock
+                .expect_send()
+                .with(eq(Event::PeerAdded { info_hash, peer }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
+            event_sender_mock
+                .expect_send()
+                .with(eq(Event::PeerRemoved { info_hash, peer }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
+            let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
+
+            // Insert the peer
+            let mut downloads_increased = false;
+            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+
+            swarm.remove(&peer).await;
+        }
+
+        #[tokio::test]
+        async fn it_should_trigger_an_event_when_a_peer_is_removed_due_to_inactivity() {
+            let info_hash = sample_info_hash();
+            let peer = PeerBuilder::leecher().build();
+
+            let mut event_sender_mock = MockEventSender::new();
+
+            event_sender_mock
+                .expect_send()
+                .with(eq(Event::PeerAdded { info_hash, peer }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
+            event_sender_mock
+                .expect_send()
+                .with(eq(Event::PeerRemoved { info_hash, peer }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
+            let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
+
+            // Insert the peer
+            let mut downloads_increased = false;
+            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+
+            // Peers not updated after this time will be removed
+            let current_cutoff = peer.updated + DurationSinceUnixEpoch::from_secs(1);
+
+            swarm.remove_inactive(current_cutoff).await;
+        }
+
+        #[tokio::test]
+        async fn it_should_trigger_an_event_when_a_peer_is_updated() {
+            let info_hash = sample_info_hash();
+            let peer = PeerBuilder::leecher().with_event(Started).build();
+
+            let mut event_sender_mock = MockEventSender::new();
+
+            event_sender_mock
+                .expect_send()
+                .with(eq(Event::PeerAdded { info_hash, peer }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
+            event_sender_mock
+                .expect_send()
+                .with(eq(Event::PeerUpdated {
+                    info_hash,
+                    old_peer: peer,
+                    new_peer: peer,
+                }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
+            let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
+
+            // Insert the peer
+            let mut downloads_increased = false;
+            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+
+            // Update the peer
+            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        }
+
+        #[tokio::test]
+        async fn it_should_trigger_an_event_when_a_peer_completes_a_download() {
+            let info_hash = sample_info_hash();
+            let started_peer = PeerBuilder::leecher().with_event(Started).build();
+            let completed_peer = started_peer.into_completed();
+
+            let mut event_sender_mock = MockEventSender::new();
+
+            event_sender_mock
+                .expect_send()
+                .with(eq(Event::PeerAdded {
+                    info_hash,
+                    peer: started_peer,
+                }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
+            event_sender_mock
+                .expect_send()
+                .with(eq(Event::PeerUpdated {
+                    info_hash,
+                    old_peer: started_peer,
+                    new_peer: completed_peer,
+                }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
+            event_sender_mock
+                .expect_send()
+                .with(eq(Event::PeerDownloadCompleted {
+                    info_hash,
+                    peer: completed_peer,
+                }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+
+            let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
+
+            // Insert the peer
+            let mut downloads_increased = false;
+            swarm.upsert_peer(started_peer.into(), &mut downloads_increased).await;
+
+            // Announce as completed
+            swarm.upsert_peer(completed_peer.into(), &mut downloads_increased).await;
         }
     }
 }

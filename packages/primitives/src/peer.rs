@@ -252,6 +252,18 @@ impl Peer {
     pub fn change_ip(&mut self, new_ip: &IpAddr) {
         self.peer_addr = SocketAddr::new(*new_ip, self.peer_addr.port());
     }
+
+    pub fn mark_as_completed(&mut self) {
+        self.event = AnnounceEvent::Completed;
+    }
+
+    #[must_use]
+    pub fn into_completed(self) -> Self {
+        Self {
+            event: AnnounceEvent::Completed,
+            ..self
+        }
+    }
 }
 
 use std::panic::Location;
@@ -517,6 +529,12 @@ pub mod fixture {
         #[must_use]
         pub fn last_updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
             self.peer.updated = updated;
+            self
+        }
+
+        #[must_use]
+        pub fn with_event(mut self, event: AnnounceEvent) -> Self {
+            self.peer.event = event;
             self
         }
 

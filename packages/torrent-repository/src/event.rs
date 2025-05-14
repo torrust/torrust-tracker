@@ -36,6 +36,26 @@ pub mod sender {
 
     pub type Sender = Option<Arc<dyn torrust_tracker_events::sender::Sender<Event = Event>>>;
     pub type Broadcaster = torrust_tracker_events::broadcaster::Broadcaster<Event>;
+
+    #[cfg(test)]
+    pub mod tests {
+
+        use futures::future::BoxFuture;
+        use mockall::mock;
+        use torrust_tracker_events::sender::{SendError, Sender};
+
+        use crate::event::Event;
+
+        mock! {
+            pub EventSender {}
+
+            impl Sender for EventSender {
+                type Event = Event;
+
+                fn send(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
+            }
+        }
+    }
 }
 
 pub mod receiver {

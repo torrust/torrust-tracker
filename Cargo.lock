@@ -4858,6 +4858,7 @@ dependencies = [
  "criterion",
  "crossbeam-skiplist",
  "futures",
+ "mockall",
  "rand 0.9.1",
  "rstest",
  "serde",

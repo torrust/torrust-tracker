@@ -33,6 +33,7 @@ tracing = "0"
 [dev-dependencies]
 async-std = { version = "1", features = ["attributes", "tokio1"] }
 criterion = { version = "0", features = ["async_tokio"] }
+mockall = "0"
 rand = "0"
 rstest = "0"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
