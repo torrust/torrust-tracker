@@ -1,8 +1,5 @@
-use std::net::SocketAddr;
-
-use aquatic_udp_protocol::PeerId;
 use bittorrent_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::peer::PeerAnnouncement;
+use torrust_tracker_primitives::peer::{Peer, PeerAnnouncement};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Event {
@@ -14,11 +11,10 @@ pub enum Event {
         info_hash: InfoHash,
     },
     PeerAdded {
-        announcement: PeerAnnouncement,
+        peer: Peer,
     },
     PeerRemoved {
-        peer_addr: SocketAddr,
-        peer_id: PeerId,
+        peer: Peer,
     },
 }
 

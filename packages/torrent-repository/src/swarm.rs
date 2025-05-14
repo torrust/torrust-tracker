@@ -117,11 +117,7 @@ impl Swarm {
             }
 
             if let Some(event_sender) = self.event_sender.as_deref() {
-                event_sender
-                    .send(Event::PeerAdded {
-                        announcement: *announcement,
-                    })
-                    .await;
+                event_sender.send(Event::PeerAdded { peer: *announcement }).await;
             }
 
             None
@@ -141,12 +137,7 @@ impl Swarm {
                 }
 
                 if let Some(event_sender) = self.event_sender.as_deref() {
-                    event_sender
-                        .send(Event::PeerRemoved {
-                            peer_addr: old_peer.peer_addr,
-                            peer_id: old_peer.peer_id,
-                        })
-                        .await;
+                    event_sender.send(Event::PeerRemoved { peer: *old_peer.clone() }).await;
                 }
 
                 Some(old_peer)
@@ -175,7 +166,7 @@ impl Swarm {
                 if let Some(_event_sender) = self.event_sender.as_deref() {
                     // Events can not be trigger here because retain does not allow
                     // async closures.
-                    removed_peers.push((peer.peer_addr, peer.peer_id));
+                    removed_peers.push(*peer.clone());
                 }
             }
 
@@ -183,13 +174,8 @@ impl Swarm {
         });
 
         if let Some(event_sender) = self.event_sender.as_deref() {
-            for (peer_addr, peer_id) in &removed_peers {
-                event_sender
-                    .send(Event::PeerRemoved {
-                        peer_addr: *peer_addr,
-                        peer_id: *peer_id,
-                    })
-                    .await;
+            for peer in &removed_peers {
+                event_sender.send(Event::PeerRemoved { peer: *peer }).await;
             }
         }
 
