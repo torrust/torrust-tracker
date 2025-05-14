@@ -440,7 +440,12 @@ mod tests {
 
     mod the_swarm_repository {
 
+        use std::sync::Arc;
+
         use aquatic_udp_protocol::PeerId;
+
+        use crate::swarms::Swarms;
+        use crate::tests::{sample_info_hash, sample_peer};
 
         /// It generates a peer id from a number where the number is the last
         /// part of the peer ID. For example, for `12` it returns
@@ -462,13 +467,49 @@ mod tests {
 
         // The `TorrentRepository` has these responsibilities:
         // - To maintain the peer lists for each torrent.
-        // - To maintain the the torrent entries, which contains all the info about the
-        //   torrents, including the peer lists.
-        // - To return the torrent entries.
+        // - To maintain the the torrent entries, which contains all the info
+        //   about the torrents, including the peer lists.
+        // - To return the torrent entries (swarm handles).
         // - To return the peer lists for a given torrent.
         // - To return the torrent metrics.
         // - To return the swarm metadata for a given torrent.
         // - To handle the persistence of the torrent entries.
+
+        #[tokio::test]
+        async fn it_should_return_zero_length_when_it_has_no_swarms() {
+            let swarms = Arc::new(Swarms::default());
+            assert_eq!(swarms.len(), 0);
+        }
+
+        #[tokio::test]
+        async fn it_should_return_the_length_when_it_has_swarms() {
+            let swarms = Arc::new(Swarms::default());
+            let info_hash = sample_info_hash();
+            let peer = sample_peer();
+            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+            assert_eq!(swarms.len(), 1);
+        }
+
+        #[tokio::test]
+        async fn it_should_be_empty_when_it_has_no_swarms() {
+            let swarms = Arc::new(Swarms::default());
+            assert!(swarms.is_empty());
+
+            let info_hash = sample_info_hash();
+            let peer = sample_peer();
+            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+            assert!(!swarms.is_empty());
+        }
+
+        #[tokio::test]
+        async fn it_should_not_be_empty_when_it_has_at_least_one_swarm() {
+            let swarms = Arc::new(Swarms::default());
+            let info_hash = sample_info_hash();
+            let peer = sample_peer();
+            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+
+            assert!(!swarms.is_empty());
+        }
 
         mod maintaining_the_peer_lists {
 
@@ -1054,6 +1095,59 @@ mod tests {
                     "{result_a:?} {result_b:?}"
                 );
             }
+
+            mod it_should_count_peerless_torrents {
+                use std::sync::Arc;
+
+                use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
+                use crate::swarms::Swarms;
+                use crate::tests::{sample_info_hash, sample_peer};
+
+                #[tokio::test]
+                async fn no_peerless_torrents() {
+                    let swarms = Arc::new(Swarms::default());
+                    assert_eq!(swarms.count_peerless_torrents().await.unwrap(), 0);
+                }
+
+                #[tokio::test]
+                async fn one_peerless_torrents() {
+                    let info_hash = sample_info_hash();
+                    let peer = sample_peer();
+
+                    let swarms = Arc::new(Swarms::default());
+                    swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+
+                    let current_cutoff = peer.updated + DurationSinceUnixEpoch::from_secs(1);
+                    swarms.remove_inactive_peers(current_cutoff).await.unwrap();
+
+                    assert_eq!(swarms.count_peerless_torrents().await.unwrap(), 1);
+                }
+            }
+
+            mod it_should_count_peers {
+                use std::sync::Arc;
+
+                use crate::swarms::Swarms;
+                use crate::tests::{sample_info_hash, sample_peer};
+
+                #[tokio::test]
+                async fn no_peers() {
+                    let swarms = Arc::new(Swarms::default());
+                    assert_eq!(swarms.count_peers().await.unwrap(), 0);
+                }
+
+                #[tokio::test]
+                async fn one_peer() {
+                    let info_hash = sample_info_hash();
+                    let peer = sample_peer();
+
+                    let swarms = Arc::new(Swarms::default());
+                    swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+
+                    assert_eq!(swarms.count_peers().await.unwrap(), 1);
+                }
+            }
         }
 
         mod returning_swarm_metadata {
@@ -1102,7 +1196,7 @@ mod tests {
             use torrust_tracker_primitives::PersistentTorrents;
 
             use crate::swarms::Swarms;
-            use crate::tests::sample_info_hash;
+            use crate::tests::{leecher, sample_info_hash};
 
             #[tokio::test]
             async fn it_should_allow_importing_persisted_torrent_entries() {
@@ -1121,6 +1215,151 @@ mod tests {
                 // Only the number of downloads is persisted.
                 assert_eq!(swarm_metadata.downloaded, 1);
             }
+
+            #[tokio::test]
+            async fn it_should_allow_overwriting_a_previously_imported_persisted_torrent() {
+                // code-review: do we want to allow this?
+
+                let swarms = Arc::new(Swarms::default());
+
+                let infohash = sample_info_hash();
+
+                let mut persistent_torrents = PersistentTorrents::default();
+
+                persistent_torrents.insert(infohash, 1);
+                persistent_torrents.insert(infohash, 2);
+
+                swarms.import_persistent(&persistent_torrents);
+
+                let swarm_metadata = swarms.get_swarm_metadata_or_default(&infohash).await.unwrap();
+
+                // It takes the last value
+                assert_eq!(swarm_metadata.downloaded, 2);
+            }
+
+            #[tokio::test]
+            async fn it_should_now_allow_importing_a_persisted_torrent_if_it_already_exists() {
+                let swarms = Arc::new(Swarms::default());
+
+                let infohash = sample_info_hash();
+
+                // Insert a new the torrent entry
+                swarms.handle_announcement(&infohash, &leecher(), None).await.unwrap();
+                let initial_number_of_downloads = swarms.get_swarm_metadata_or_default(&infohash).await.unwrap().downloaded;
+
+                // Try to import the torrent entry
+                let new_number_of_downloads = initial_number_of_downloads + 1;
+                let mut persistent_torrents = PersistentTorrents::default();
+                persistent_torrents.insert(infohash, new_number_of_downloads);
+                swarms.import_persistent(&persistent_torrents);
+
+                // The number of downloads should not be changed
+                assert_eq!(
+                    swarms.get_swarm_metadata_or_default(&infohash).await.unwrap().downloaded,
+                    initial_number_of_downloads
+                );
+            }
+        }
+    }
+
+    mod triggering_events {
+
+        use std::sync::Arc;
+
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+        use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
+        use crate::event::sender::tests::{expect_event_sequence, MockEventSender};
+        use crate::event::Event;
+        use crate::swarms::Swarms;
+        use crate::tests::sample_info_hash;
+
+        #[tokio::test]
+        async fn it_should_trigger_an_event_when_a_new_torrent_is_added() {
+            let info_hash = sample_info_hash();
+            let peer = PeerBuilder::leecher().build();
+
+            let mut event_sender_mock = MockEventSender::new();
+
+            expect_event_sequence(
+                &mut event_sender_mock,
+                vec![
+                    Event::TorrentAdded {
+                        info_hash,
+                        announcement: peer,
+                    },
+                    Event::PeerAdded { info_hash, peer },
+                ],
+            );
+
+            let swarms = Swarms::new(Some(Arc::new(event_sender_mock)));
+
+            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+        }
+
+        #[tokio::test]
+        async fn it_should_trigger_an_event_when_a_torrent_is_directly_removed() {
+            let info_hash = sample_info_hash();
+            let peer = PeerBuilder::leecher().build();
+
+            let mut event_sender_mock = MockEventSender::new();
+
+            expect_event_sequence(
+                &mut event_sender_mock,
+                vec![
+                    Event::TorrentAdded {
+                        info_hash,
+                        announcement: peer,
+                    },
+                    Event::PeerAdded { info_hash, peer },
+                    Event::TorrentRemoved { info_hash },
+                ],
+            );
+
+            let swarms = Swarms::new(Some(Arc::new(event_sender_mock)));
+
+            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+
+            swarms.remove(&info_hash).await.unwrap();
+        }
+
+        #[tokio::test]
+        async fn it_should_trigger_an_event_when_a_peerless_torrent_is_removed() {
+            let info_hash = sample_info_hash();
+            let peer = PeerBuilder::leecher().build();
+
+            let mut event_sender_mock = MockEventSender::new();
+
+            expect_event_sequence(
+                &mut event_sender_mock,
+                vec![
+                    Event::TorrentAdded {
+                        info_hash,
+                        announcement: peer,
+                    },
+                    Event::PeerAdded { info_hash, peer },
+                    Event::PeerRemoved { info_hash, peer },
+                    Event::TorrentRemoved { info_hash },
+                ],
+            );
+
+            let swarms = Swarms::new(Some(Arc::new(event_sender_mock)));
+
+            // Add the new torrent
+            swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+
+            // Remove the peer
+            let current_cutoff = peer.updated + DurationSinceUnixEpoch::from_secs(1);
+            swarms.remove_inactive_peers(current_cutoff).await.unwrap();
+
+            // Remove peerless torrents
+
+            let tracker_policy = torrust_tracker_configuration::TrackerPolicy {
+                remove_peerless_torrents: true,
+                ..Default::default()
+            };
+
+            swarms.remove_peerless_torrents(&tracker_policy).await.unwrap();
         }
     }
 }

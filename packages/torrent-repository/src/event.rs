@@ -40,8 +40,9 @@ pub mod sender {
     #[cfg(test)]
     pub mod tests {
 
-        use futures::future::BoxFuture;
+        use futures::future::{self, BoxFuture};
         use mockall::mock;
+        use mockall::predicate::eq;
         use torrust_tracker_events::sender::{SendError, Sender};
 
         use crate::event::Event;
@@ -53,6 +54,19 @@ pub mod sender {
                 type Event = Event;
 
                 fn send(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
+            }
+        }
+
+        pub fn expect_event(mock: &mut MockEventSender, event: Event) {
+            mock.expect_send()
+                .with(eq(event))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+        }
+
+        pub fn expect_event_sequence(mock: &mut MockEventSender, event: Vec<Event>) {
+            for e in event {
+                expect_event(mock, e);
             }
         }
     }

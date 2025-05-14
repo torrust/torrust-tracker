@@ -647,7 +647,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_return_the_metadata() {
+    async fn it_should_return_the_swarm_metadata() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
         let mut downloads_increased = false;
 
