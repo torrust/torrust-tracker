@@ -36,13 +36,14 @@ impl Debug for Swarm {
 
 impl Hash for Swarm {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.info_hash.hash(state);
+        self.peers.hash(state);
+        self.metadata.hash(state);
     }
 }
 
 impl PartialEq for Swarm {
     fn eq(&self, other: &Self) -> bool {
-        self.info_hash == other.info_hash
+        self.peers == other.peers && self.metadata == other.metadata
     }
 }
 
