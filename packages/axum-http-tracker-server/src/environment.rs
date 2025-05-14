@@ -144,7 +144,9 @@ impl EnvContainer {
             .expect("missing HTTP tracker configuration");
         let http_tracker_config = Arc::new(http_tracker_config[0].clone());
 
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+            configuration.core.tracker_usage_statistics.into(),
+        ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             &core_config,

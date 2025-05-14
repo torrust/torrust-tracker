@@ -60,7 +60,9 @@ impl AppContainer {
 
         // Torrent Repository
 
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+            core_config.tracker_usage_statistics.into(),
+        ));
 
         // Core
 

@@ -36,7 +36,9 @@ impl TrackerHttpApiCoreContainer {
         udp_tracker_config: &Arc<UdpTracker>,
         http_api_config: &Arc<HttpApi>,
     ) -> Arc<TrackerHttpApiCoreContainer> {
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+            core_config.tracker_usage_statistics.into(),
+        ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             core_config,

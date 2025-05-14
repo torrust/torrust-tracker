@@ -96,7 +96,7 @@ mod tests {
         let http_core_broadcaster = Broadcaster::default();
         let http_stats_repository = Arc::new(Repository::new());
         let http_stats_event_bus = Arc::new(EventBus::new(
-            config.core.tracker_usage_statistics,
+            config.core.tracker_usage_statistics.into(),
             http_core_broadcaster.clone(),
         ));
 

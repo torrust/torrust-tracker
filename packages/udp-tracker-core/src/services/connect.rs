@@ -61,6 +61,7 @@ mod tests {
         use std::sync::Arc;
 
         use mockall::predicate::eq;
+        use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use crate::connection_cookie::make;
@@ -79,7 +80,7 @@ mod tests {
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let udp_core_broadcaster = Broadcaster::default();
-            let event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+            let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = event_bus.sender();
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
@@ -100,7 +101,7 @@ mod tests {
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let udp_core_broadcaster = Broadcaster::default();
-            let event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+            let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = event_bus.sender();
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
@@ -122,7 +123,7 @@ mod tests {
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
             let udp_core_broadcaster = Broadcaster::default();
-            let event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+            let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
             let udp_core_stats_event_sender = event_bus.sender();
 
             let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));

@@ -27,7 +27,9 @@ pub struct HttpTrackerCoreContainer {
 impl HttpTrackerCoreContainer {
     #[must_use]
     pub fn initialize(core_config: &Arc<Core>, http_tracker_config: &Arc<HttpTracker>) -> Arc<Self> {
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+            core_config.tracker_usage_statistics.into(),
+        ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             core_config,
@@ -80,7 +82,7 @@ impl HttpTrackerCoreServices {
         let http_core_broadcaster = Broadcaster::default();
         let http_stats_repository = Arc::new(Repository::new());
         let http_stats_event_bus = Arc::new(EventBus::new(
-            tracker_core_container.core_config.tracker_usage_statistics,
+            tracker_core_container.core_config.tracker_usage_statistics.into(),
             http_core_broadcaster.clone(),
         ));
 

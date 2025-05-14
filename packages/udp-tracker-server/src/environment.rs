@@ -175,7 +175,9 @@ impl EnvContainer {
         let udp_tracker_configurations = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
         let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
 
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+            core_config.tracker_usage_statistics.into(),
+        ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             &core_config,

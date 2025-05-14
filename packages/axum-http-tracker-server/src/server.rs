@@ -280,7 +280,7 @@ mod tests {
         let http_core_broadcaster = Broadcaster::default();
         let http_stats_repository = Arc::new(Repository::new());
         let http_stats_event_bus = Arc::new(EventBus::new(
-            configuration.core.tracker_usage_statistics,
+            configuration.core.tracker_usage_statistics.into(),
             http_core_broadcaster.clone(),
         ));
 
@@ -290,7 +290,9 @@ mod tests {
             let _unused = run_event_listener(http_stats_event_bus.receiver(), &http_stats_repository);
         }
 
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+            configuration.core.tracker_usage_statistics.into(),
+        ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             &core_config,

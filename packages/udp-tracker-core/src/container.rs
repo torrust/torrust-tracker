@@ -32,7 +32,9 @@ pub struct UdpTrackerCoreContainer {
 impl UdpTrackerCoreContainer {
     #[must_use]
     pub fn initialize(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Arc<UdpTrackerCoreContainer> {
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize());
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+            core_config.tracker_usage_statistics.into(),
+        ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             core_config,
@@ -91,7 +93,7 @@ impl UdpTrackerCoreServices {
         let udp_core_broadcaster = Broadcaster::default();
         let udp_core_stats_repository = Arc::new(Repository::new());
         let event_bus = Arc::new(EventBus::new(
-            tracker_core_container.core_config.tracker_usage_statistics,
+            tracker_core_container.core_config.tracker_usage_statistics.into(),
             udp_core_broadcaster.clone(),
         ));
 

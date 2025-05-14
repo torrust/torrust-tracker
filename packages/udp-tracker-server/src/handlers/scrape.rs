@@ -92,6 +92,7 @@ mod tests {
         };
         use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
         use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
+        use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use crate::event::bus::EventBus;
@@ -183,7 +184,7 @@ mod tests {
             core_udp_tracker_services: Arc<CoreUdpTrackerServices>,
         ) -> Response {
             let udp_server_broadcaster = Broadcaster::default();
-            let event_bus = Arc::new(EventBus::new(false, udp_server_broadcaster.clone()));
+            let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_server_broadcaster.clone()));
 
             let udp_server_stats_event_sender = event_bus.sender();
 

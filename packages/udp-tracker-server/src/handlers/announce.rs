@@ -206,6 +206,7 @@ mod tests {
             use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
             use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
             use mockall::predicate::eq;
+            use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -378,7 +379,10 @@ mod tests {
                 core_udp_tracker_services: Arc<CoreUdpTrackerServices>,
             ) -> Response {
                 let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-                let event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
+                let event_bus = Arc::new(crate::event::bus::EventBus::new(
+                    SenderStatus::Disabled,
+                    udp_server_broadcaster.clone(),
+                ));
 
                 let udp_server_stats_event_sender = event_bus.sender();
 
@@ -542,6 +546,7 @@ mod tests {
             use bittorrent_udp_tracker_core::services::announce::AnnounceService;
             use mockall::predicate::eq;
             use torrust_tracker_configuration::Core;
+            use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -718,11 +723,14 @@ mod tests {
                 whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
             ) -> Response {
                 let udp_core_broadcaster = Broadcaster::default();
-                let core_event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+                let core_event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
                 let udp_core_stats_event_sender = core_event_bus.sender();
 
                 let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-                let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
+                let server_event_bus = Arc::new(crate::event::bus::EventBus::new(
+                    SenderStatus::Disabled,
+                    udp_server_broadcaster.clone(),
+                ));
 
                 let udp_server_stats_event_sender = server_event_bus.sender();
 

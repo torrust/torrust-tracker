@@ -4,35 +4,59 @@ use crate::broadcaster::Broadcaster;
 use crate::{receiver, sender};
 
 #[derive(Clone, Debug)]
+pub enum SenderStatus {
+    Enabled,
+    Disabled,
+}
+
+impl From<bool> for SenderStatus {
+    fn from(enabled: bool) -> Self {
+        if enabled {
+            Self::Enabled
+        } else {
+            Self::Disabled
+        }
+    }
+}
+
+impl From<SenderStatus> for bool {
+    fn from(sender_status: SenderStatus) -> Self {
+        match sender_status {
+            SenderStatus::Enabled => true,
+            SenderStatus::Disabled => false,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct EventBus<Event: Sync + Send + Clone + 'static> {
-    pub enable_sender: bool,
+    pub sender_status: SenderStatus,
     pub broadcaster: Broadcaster<Event>,
 }
 
 impl<Event: Sync + Send + Clone + 'static> Default for EventBus<Event> {
     fn default() -> Self {
-        let enable_sender = true;
+        let sender_status = SenderStatus::Enabled;
         let broadcaster = Broadcaster::<Event>::default();
 
-        Self::new(enable_sender, broadcaster)
+        Self::new(sender_status, broadcaster)
     }
 }
 
 impl<Event: Sync + Send + Clone + 'static> EventBus<Event> {
     #[must_use]
-    pub fn new(enable_sender: bool, broadcaster: Broadcaster<Event>) -> Self {
+    pub fn new(sender_status: SenderStatus, broadcaster: Broadcaster<Event>) -> Self {
         Self {
-            enable_sender,
+            sender_status,
             broadcaster,
         }
     }
 
     #[must_use]
     pub fn sender(&self) -> Option<Arc<dyn sender::Sender<Event = Event>>> {
-        if self.enable_sender {
-            Some(Arc::new(self.broadcaster.clone()))
-        } else {
-            None
+        match self.sender_status {
+            SenderStatus::Enabled => Some(Arc::new(self.broadcaster.clone())),
+            SenderStatus::Disabled => None,
         }
     }
 
@@ -50,14 +74,14 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_provide_an_event_sender_when_enabled() {
-        let bus = EventBus::<String>::new(true, Broadcaster::default());
+        let bus = EventBus::<String>::new(SenderStatus::Enabled, Broadcaster::default());
 
         assert!(bus.sender().is_some());
     }
 
     #[tokio::test]
     async fn it_should_not_provide_event_sender_when_disabled() {
-        let bus = EventBus::<String>::new(false, Broadcaster::default());
+        let bus = EventBus::<String>::new(SenderStatus::Disabled, Broadcaster::default());
 
         assert!(bus.sender().is_none());
     }

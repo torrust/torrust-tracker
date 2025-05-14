@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use torrust_tracker_events::bus::SenderStatus;
+
 use crate::event::bus::EventBus;
 use crate::event::sender::Broadcaster;
 use crate::event::{self};
@@ -15,13 +17,12 @@ pub struct TorrentRepositoryContainer {
 
 impl TorrentRepositoryContainer {
     #[must_use]
-    pub fn initialize() -> Self {
+    pub fn initialize(sender_status: SenderStatus) -> Self {
         // Torrent repository stats
         let broadcaster = Broadcaster::default();
         let stats_repository = Arc::new(Repository::new());
 
-        // todo: add a config option to enable/disable stats for this package
-        let event_bus = Arc::new(EventBus::new(true, broadcaster.clone()));
+        let event_bus = Arc::new(EventBus::new(sender_status, broadcaster.clone()));
 
         let stats_event_sender = event_bus.sender();
 
