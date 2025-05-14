@@ -49,6 +49,11 @@ impl Repository {
 
         drop(stats_lock);
 
+        match result {
+            Ok(()) => {}
+            Err(ref err) => tracing::error!("Failed to increment the counter: {}", err),
+        }
+
         result
     }
 
@@ -68,6 +73,11 @@ impl Repository {
 
         drop(stats_lock);
 
+        match result {
+            Ok(()) => {}
+            Err(ref err) => tracing::error!("Failed to increment the gauge: {}", err),
+        }
+
         result
     }
 
@@ -86,6 +96,11 @@ impl Repository {
         let result = stats_lock.decrement_gauge(metric_name, labels, now);
 
         drop(stats_lock);
+
+        match result {
+            Ok(()) => {}
+            Err(ref err) => tracing::error!("Failed to decrement the gauge: {}", err),
+        }
 
         result
     }
