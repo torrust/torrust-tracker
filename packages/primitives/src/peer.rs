@@ -22,12 +22,13 @@
 //! };
 //! ```
 
+use std::fmt;
 use std::net::{IpAddr, SocketAddr};
 use std::ops::{Deref, DerefMut};
+use std::str::FromStr;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
-use derive_more::Display;
 use serde::Serialize;
 use zerocopy::FromBytes as _;
 
@@ -35,7 +36,7 @@ use crate::DurationSinceUnixEpoch;
 
 pub type PeerAnnouncement = Peer;
 
-#[derive(Debug, Display, Serialize, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Serialize, Copy, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all_fields = "lowercase")]
 pub enum PeerRole {
     Seeder,
@@ -51,6 +52,39 @@ impl PeerRole {
             PeerRole::Leecher => PeerRole::Seeder,
         }
     }
+}
+
+impl fmt::Display for PeerRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PeerRole::Seeder => write!(f, "seeder"),
+            PeerRole::Leecher => write!(f, "leecher"),
+        }
+    }
+}
+
+impl FromStr for PeerRole {
+    type Err = ParsePeerRoleError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "seeder" => Ok(PeerRole::Seeder),
+            "leecher" => Ok(PeerRole::Leecher),
+            _ => Err(ParsePeerRoleError::InvalidPeerRole {
+                location: Location::caller(),
+                raw_param: s.to_string(),
+            }),
+        }
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum ParsePeerRoleError {
+    #[error("invalid param {raw_param} in {location}")]
+    InvalidPeerRole {
+        location: &'static Location<'static>,
+        raw_param: String,
+    },
 }
 
 /// Peer struct used by the core `Tracker`.
@@ -261,6 +295,14 @@ impl Peer {
     pub fn into_completed(self) -> Self {
         Self {
             event: AnnounceEvent::Completed,
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub fn into_seeder(self) -> Self {
+        Self {
+            left: NumberOfBytes::new(0),
             ..self
         }
     }

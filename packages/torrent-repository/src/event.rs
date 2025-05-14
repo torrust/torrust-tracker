@@ -83,3 +83,29 @@ pub mod bus {
 
     pub type EventBus = torrust_tracker_events::bus::EventBus<Event>;
 }
+
+#[cfg(test)]
+pub mod test {
+
+    use torrust_tracker_primitives::peer::Peer;
+
+    use super::Event;
+    use crate::tests::sample_info_hash;
+
+    #[test]
+    fn events_should_be_comparable() {
+        let info_hash = sample_info_hash();
+
+        let event1 = Event::TorrentAdded {
+            info_hash,
+            announcement: Peer::default(),
+        };
+
+        let event2 = Event::TorrentRemoved { info_hash };
+
+        let event1_clone = event1.clone();
+
+        assert!(event1 == event1_clone);
+        assert!(event1 != event2);
+    }
+}
