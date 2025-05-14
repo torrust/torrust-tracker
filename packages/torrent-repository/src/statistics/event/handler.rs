@@ -8,7 +8,7 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use crate::event::Event;
 use crate::statistics::repository::Repository;
 use crate::statistics::{
-    TORRENT_REPOSITORY_PEERS_TOTAL, TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL, TORRENT_REPOSITORY_TORRENTS_TOTAL,
+    TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL, TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL, TORRENT_REPOSITORY_TORRENTS_TOTAL,
 };
 
 pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now: DurationSinceUnixEpoch) {
@@ -31,14 +31,22 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
             tracing::debug!(info_hash = ?info_hash, peer = ?peer, "Peer added", );
 
             let _unused = stats_repository
-                .increment_gauge(&metric_name!(TORRENT_REPOSITORY_PEERS_TOTAL), &label_set_for_peer(&peer), now)
+                .increment_gauge(
+                    &metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL),
+                    &label_set_for_peer(&peer),
+                    now,
+                )
                 .await;
         }
         Event::PeerRemoved { info_hash, peer } => {
             tracing::debug!(info_hash = ?info_hash, peer = ?peer, "Peer removed", );
 
             let _unused = stats_repository
-                .decrement_gauge(&metric_name!(TORRENT_REPOSITORY_PEERS_TOTAL), &label_set_for_peer(&peer), now)
+                .decrement_gauge(
+                    &metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL),
+                    &label_set_for_peer(&peer),
+                    now,
+                )
                 .await;
         }
         Event::PeerUpdated {
@@ -51,7 +59,7 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
             if old_peer.role() != new_peer.role() {
                 let _unused = stats_repository
                     .increment_gauge(
-                        &metric_name!(TORRENT_REPOSITORY_PEERS_TOTAL),
+                        &metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL),
                         &label_set_for_peer(&new_peer),
                         now,
                     )
@@ -59,7 +67,7 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
 
                 let _unused = stats_repository
                     .decrement_gauge(
-                        &metric_name!(TORRENT_REPOSITORY_PEERS_TOTAL),
+                        &metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL),
                         &label_set_for_peer(&old_peer),
                         now,
                     )

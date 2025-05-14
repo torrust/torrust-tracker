@@ -14,7 +14,8 @@ const TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL: &str = "torrent_repository_to
 
 // Peers metrics
 
-const TORRENT_REPOSITORY_PEERS_TOTAL: &str = "torrent_repository_peers_total";
+const TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL: &str = "torrent_repository_peer_connections_total";
+const TORRENT_REPOSITORY_UNIQUE_PEERS_TOTAL: &str = "torrent_repository_unique_peers_total"; // todo: not implemented yet
 
 #[must_use]
 pub fn describe_metrics() -> Metrics {
@@ -32,16 +33,24 @@ pub fn describe_metrics() -> Metrics {
         &metric_name!(TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL),
         Some(Unit::Count),
         Some(&MetricDescription::new(
-            "The total number of torrent downloads since the tracker process started.",
+            "The total number of torrent downloads (since the tracker process started).",
         )),
     );
 
     // Peers metrics
 
     metrics.metric_collection.describe_gauge(
-        &metric_name!(TORRENT_REPOSITORY_PEERS_TOTAL),
+        &metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of peers.")),
+        Some(&MetricDescription::new(
+            "The total number of peer connections (one connection per torrent).",
+        )),
+    );
+
+    metrics.metric_collection.describe_gauge(
+        &metric_name!(TORRENT_REPOSITORY_UNIQUE_PEERS_TOTAL),
+        Some(Unit::Count),
+        Some(&MetricDescription::new("The total number of unique peers.")),
     );
 
     metrics
