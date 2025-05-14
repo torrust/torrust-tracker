@@ -16,6 +16,13 @@ pub enum Event {
     PeerRemoved {
         peer: Peer,
     },
+    PeerUpdated {
+        old_peer: Peer,
+        new_peer: Peer,
+    },
+    PeerDownloadCompleted {
+        peer: Peer,
+    },
 }
 
 pub mod sender {

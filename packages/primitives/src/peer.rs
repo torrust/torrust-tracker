@@ -27,12 +27,31 @@ use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+use derive_more::Display;
 use serde::Serialize;
 use zerocopy::FromBytes as _;
 
 use crate::DurationSinceUnixEpoch;
 
 pub type PeerAnnouncement = Peer;
+
+#[derive(Debug, Display, Serialize, Copy, Clone, PartialEq, Eq, Hash)]
+#[serde(rename_all_fields = "lowercase")]
+pub enum PeerRole {
+    Seeder,
+    Leecher,
+}
+
+impl PeerRole {
+    /// Returns the opposite role: Seeder becomes Leecher, and vice versa.
+    #[must_use]
+    pub fn opposite(self) -> Self {
+        match self {
+            PeerRole::Seeder => PeerRole::Leecher,
+            PeerRole::Leecher => PeerRole::Seeder,
+        }
+    }
+}
 
 /// Peer struct used by the core `Tracker`.
 ///
@@ -147,6 +166,7 @@ impl PartialOrd for Peer {
 
 pub trait ReadInfo {
     fn is_seeder(&self) -> bool;
+    fn is_leecher(&self) -> bool;
     fn get_event(&self) -> AnnounceEvent;
     fn get_id(&self) -> PeerId;
     fn get_updated(&self) -> DurationSinceUnixEpoch;
@@ -156,6 +176,10 @@ pub trait ReadInfo {
 impl ReadInfo for Peer {
     fn is_seeder(&self) -> bool {
         self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
+    }
+
+    fn is_leecher(&self) -> bool {
+        !self.is_seeder()
     }
 
     fn get_event(&self) -> AnnounceEvent {
@@ -180,6 +204,10 @@ impl ReadInfo for Arc<Peer> {
         self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
     }
 
+    fn is_leecher(&self) -> bool {
+        !self.is_seeder()
+    }
+
     fn get_event(&self) -> AnnounceEvent {
         self.event
     }
@@ -201,6 +229,20 @@ impl Peer {
     #[must_use]
     pub fn is_seeder(&self) -> bool {
         self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
+    }
+
+    #[must_use]
+    pub fn is_leecher(&self) -> bool {
+        !self.is_seeder()
+    }
+
+    #[must_use]
+    pub fn role(&self) -> PeerRole {
+        if self.is_seeder() {
+            PeerRole::Seeder
+        } else {
+            PeerRole::Leecher
+        }
     }
 
     pub fn ip(&mut self) -> IpAddr {

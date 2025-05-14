@@ -82,7 +82,7 @@ impl Swarm {
         if let Some(old_announce) = self.peers.insert(incoming_announce.peer_addr, incoming_announce) {
             // A peer has been updated in the swarm.
 
-            // Check if the peer has changed its from leecher to seeder or vice versa.
+            // Check if the peer has changed from leecher to seeder or vice versa.
             if old_announce.is_seeder() != is_now_seeder {
                 if is_now_seeder {
                     self.metadata.complete += 1;
@@ -97,6 +97,19 @@ impl Swarm {
             if has_completed && old_announce.event != AnnounceEvent::Completed {
                 self.metadata.downloaded += 1;
                 *downloads_increased = true;
+            }
+
+            if let Some(event_sender) = self.event_sender.as_deref() {
+                event_sender
+                    .send(Event::PeerUpdated {
+                        old_peer: *old_announce,
+                        new_peer: *announcement,
+                    })
+                    .await;
+
+                if *downloads_increased {
+                    event_sender.send(Event::PeerDownloadCompleted { peer: *announcement }).await;
+                }
             }
 
             Some(old_announce)
