@@ -14,6 +14,10 @@ use torrust_tracker_torrent_repository::Swarms;
 
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
 
+fn swarm() -> Swarm {
+    Swarm::new(&InfoHash::default(), 0, None)
+}
+
 #[fixture]
 fn swarms() -> Swarms {
     Swarms::default()
@@ -28,26 +32,26 @@ fn empty() -> Entries {
 
 #[fixture]
 fn default() -> Entries {
-    vec![(InfoHash::default(), Swarm::default())]
+    vec![(InfoHash::default(), swarm())]
 }
 
 #[fixture]
 async fn started() -> Entries {
-    let mut swarm = Swarm::default();
+    let mut swarm = swarm();
     swarm.handle_announcement(&a_started_peer(1)).await;
     vec![(InfoHash::default(), swarm)]
 }
 
 #[fixture]
 async fn completed() -> Entries {
-    let mut swarm = Swarm::default();
+    let mut swarm = swarm();
     swarm.handle_announcement(&a_completed_peer(2)).await;
     vec![(InfoHash::default(), swarm)]
 }
 
 #[fixture]
 async fn downloaded() -> Entries {
-    let mut swarm = Swarm::default();
+    let mut swarm = swarm();
     let mut peer = a_started_peer(3);
     swarm.handle_announcement(&peer).await;
     peer.event = AnnounceEvent::Completed;
@@ -58,17 +62,17 @@ async fn downloaded() -> Entries {
 
 #[fixture]
 async fn three() -> Entries {
-    let mut started = Swarm::default();
+    let mut started = swarm();
     let started_h = &mut DefaultHasher::default();
     started.handle_announcement(&a_started_peer(1)).await;
     started.hash(started_h);
 
-    let mut completed = Swarm::default();
+    let mut completed = swarm();
     let completed_h = &mut DefaultHasher::default();
     completed.handle_announcement(&a_completed_peer(2)).await;
     completed.hash(completed_h);
 
-    let mut downloaded = Swarm::default();
+    let mut downloaded = swarm();
     let downloaded_h = &mut DefaultHasher::default();
     let mut downloaded_peer = a_started_peer(3);
     downloaded.handle_announcement(&downloaded_peer).await;
@@ -89,7 +93,7 @@ async fn many_out_of_order() -> Entries {
     let mut entries: HashSet<(InfoHash, Swarm)> = HashSet::default();
 
     for i in 0..408 {
-        let mut entry = Swarm::default();
+        let mut entry = swarm();
         entry.handle_announcement(&a_started_peer(i)).await;
 
         entries.insert((InfoHash::from(&i), entry));
@@ -104,7 +108,7 @@ async fn many_hashed_in_order() -> Entries {
     let mut entries: BTreeMap<InfoHash, Swarm> = BTreeMap::default();
 
     for i in 0..408 {
-        let mut entry = Swarm::default();
+        let mut entry = swarm();
         entry.handle_announcement(&a_started_peer(i)).await;
 
         let hash: &mut DefaultHasher = &mut DefaultHasher::default();

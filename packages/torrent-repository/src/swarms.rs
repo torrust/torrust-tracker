@@ -58,11 +58,10 @@ impl Swarms {
     ) -> Result<bool, Error> {
         let swarm_handle = match self.swarms.get(info_hash) {
             None => {
-                let new_swarm_handle = if let Some(number_of_downloads) = opt_persistent_torrent {
-                    SwarmHandle::new(Swarm::new(number_of_downloads, self.event_sender.clone()).into())
-                } else {
-                    SwarmHandle::default()
-                };
+                let number_of_downloads = opt_persistent_torrent.unwrap_or_default();
+
+                let new_swarm_handle =
+                    SwarmHandle::new(Swarm::new(info_hash, number_of_downloads, self.event_sender.clone()).into());
 
                 let new_swarm_handle = self.swarms.get_or_insert(*info_hash, new_swarm_handle);
 
@@ -330,7 +329,7 @@ impl Swarms {
                 continue;
             }
 
-            let entry = SwarmHandle::new(Swarm::new(*completed, self.event_sender.clone()).into());
+            let entry = SwarmHandle::new(Swarm::new(info_hash, *completed, self.event_sender.clone()).into());
 
             // Since SkipMap is lock-free the torrent could have been inserted
             // after checking if it exists.

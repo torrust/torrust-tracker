@@ -3,6 +3,7 @@ use std::ops::Sub;
 use std::time::Duration;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+use bittorrent_primitives::info_hash::InfoHash;
 use rstest::{fixture, rstest};
 use torrust_tracker_clock::clock::stopped::Stopped as _;
 use torrust_tracker_clock::clock::{self, Time as _};
@@ -16,7 +17,7 @@ use crate::CurrentClock;
 
 #[fixture]
 fn swarm() -> Swarm {
-    Swarm::default()
+    Swarm::new(&InfoHash::default(), 0, None)
 }
 
 #[fixture]

@@ -11,16 +11,20 @@ pub enum Event {
         info_hash: InfoHash,
     },
     PeerAdded {
+        info_hash: InfoHash,
         peer: Peer,
     },
     PeerRemoved {
+        info_hash: InfoHash,
         peer: Peer,
     },
     PeerUpdated {
+        info_hash: InfoHash,
         old_peer: Peer,
         new_peer: Peer,
     },
     PeerDownloadCompleted {
+        info_hash: InfoHash,
         peer: Peer,
     },
 }

@@ -27,22 +27,26 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
                 .decrement_gauge(&metric_name!(TORRENT_REPOSITORY_TORRENTS_TOTAL), &LabelSet::default(), now)
                 .await;
         }
-        Event::PeerAdded { peer } => {
-            tracing::debug!(peer = ?peer, "Peer added", );
+        Event::PeerAdded { info_hash, peer } => {
+            tracing::debug!(info_hash = ?info_hash, peer = ?peer, "Peer added", );
 
             let _unused = stats_repository
                 .increment_gauge(&metric_name!(TORRENT_REPOSITORY_PEERS_TOTAL), &label_set_for_peer(&peer), now)
                 .await;
         }
-        Event::PeerRemoved { peer } => {
-            tracing::debug!(peer = ?peer, "Peer removed", );
+        Event::PeerRemoved { info_hash, peer } => {
+            tracing::debug!(info_hash = ?info_hash, peer = ?peer, "Peer removed", );
 
             let _unused = stats_repository
                 .decrement_gauge(&metric_name!(TORRENT_REPOSITORY_PEERS_TOTAL), &label_set_for_peer(&peer), now)
                 .await;
         }
-        Event::PeerUpdated { old_peer, new_peer } => {
-            tracing::debug!(old_peer = ?old_peer, new_peer = ?new_peer, "Peer updated", );
+        Event::PeerUpdated {
+            info_hash,
+            old_peer,
+            new_peer,
+        } => {
+            tracing::debug!(info_hash = ?info_hash, old_peer = ?old_peer, new_peer = ?new_peer, "Peer updated", );
 
             if old_peer.role() != new_peer.role() {
                 let _unused = stats_repository
@@ -62,8 +66,8 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
                     .await;
             }
         }
-        Event::PeerDownloadCompleted { peer } => {
-            tracing::debug!(peer = ?peer, "Peer download completed", );
+        Event::PeerDownloadCompleted { info_hash, peer } => {
+            tracing::debug!(info_hash = ?info_hash, peer = ?peer, "Peer download completed", );
 
             let _unused = stats_repository
                 .increment_counter(
