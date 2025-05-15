@@ -926,15 +926,13 @@ mod tests {
 
     mod triggering_events {
 
-        use std::future;
         use std::sync::Arc;
 
         use aquatic_udp_protocol::AnnounceEvent::Started;
-        use mockall::predicate::eq;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-        use crate::event::sender::tests::MockEventSender;
+        use crate::event::sender::tests::{expect_event_sequence, MockEventSender};
         use crate::event::Event;
         use crate::swarm::Swarm;
         use crate::tests::sample_info_hash;
@@ -946,11 +944,7 @@ mod tests {
 
             let mut event_sender_mock = MockEventSender::new();
 
-            event_sender_mock
-                .expect_send()
-                .with(eq(Event::PeerAdded { info_hash, peer }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+            expect_event_sequence(&mut event_sender_mock, vec![Event::PeerAdded { info_hash, peer }]);
 
             let mut swarm = Swarm::new(&sample_info_hash(), 0, Some(Arc::new(event_sender_mock)));
 
@@ -965,17 +959,10 @@ mod tests {
 
             let mut event_sender_mock = MockEventSender::new();
 
-            event_sender_mock
-                .expect_send()
-                .with(eq(Event::PeerAdded { info_hash, peer }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-
-            event_sender_mock
-                .expect_send()
-                .with(eq(Event::PeerRemoved { info_hash, peer }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+            expect_event_sequence(
+                &mut event_sender_mock,
+                vec![Event::PeerAdded { info_hash, peer }, Event::PeerRemoved { info_hash, peer }],
+            );
 
             let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
@@ -993,17 +980,10 @@ mod tests {
 
             let mut event_sender_mock = MockEventSender::new();
 
-            event_sender_mock
-                .expect_send()
-                .with(eq(Event::PeerAdded { info_hash, peer }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-
-            event_sender_mock
-                .expect_send()
-                .with(eq(Event::PeerRemoved { info_hash, peer }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+            expect_event_sequence(
+                &mut event_sender_mock,
+                vec![Event::PeerAdded { info_hash, peer }, Event::PeerRemoved { info_hash, peer }],
+            );
 
             let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
@@ -1024,21 +1004,17 @@ mod tests {
 
             let mut event_sender_mock = MockEventSender::new();
 
-            event_sender_mock
-                .expect_send()
-                .with(eq(Event::PeerAdded { info_hash, peer }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-
-            event_sender_mock
-                .expect_send()
-                .with(eq(Event::PeerUpdated {
-                    info_hash,
-                    old_peer: peer,
-                    new_peer: peer,
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+            expect_event_sequence(
+                &mut event_sender_mock,
+                vec![
+                    Event::PeerAdded { info_hash, peer },
+                    Event::PeerUpdated {
+                        info_hash,
+                        old_peer: peer,
+                        new_peer: peer,
+                    },
+                ],
+            );
 
             let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
@@ -1058,33 +1034,24 @@ mod tests {
 
             let mut event_sender_mock = MockEventSender::new();
 
-            event_sender_mock
-                .expect_send()
-                .with(eq(Event::PeerAdded {
-                    info_hash,
-                    peer: started_peer,
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-
-            event_sender_mock
-                .expect_send()
-                .with(eq(Event::PeerUpdated {
-                    info_hash,
-                    old_peer: started_peer,
-                    new_peer: completed_peer,
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-
-            event_sender_mock
-                .expect_send()
-                .with(eq(Event::PeerDownloadCompleted {
-                    info_hash,
-                    peer: completed_peer,
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+            expect_event_sequence(
+                &mut event_sender_mock,
+                vec![
+                    Event::PeerAdded {
+                        info_hash,
+                        peer: started_peer,
+                    },
+                    Event::PeerUpdated {
+                        info_hash,
+                        old_peer: started_peer,
+                        new_peer: completed_peer,
+                    },
+                    Event::PeerDownloadCompleted {
+                        info_hash,
+                        peer: completed_peer,
+                    },
+                ],
+            );
 
             let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
