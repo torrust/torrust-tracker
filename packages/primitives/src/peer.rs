@@ -271,6 +271,11 @@ impl Peer {
     }
 
     #[must_use]
+    pub fn is_completed(&self) -> bool {
+        self.event == AnnounceEvent::Completed
+    }
+
+    #[must_use]
     pub fn role(&self) -> PeerRole {
         if self.is_seeder() {
             PeerRole::Seeder

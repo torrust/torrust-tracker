@@ -73,21 +73,39 @@ impl Swarm {
         downloads_increased
     }
 
-    pub async fn upsert_peer(
+    async fn upsert_peer(
         &mut self,
         incoming_announce: Arc<PeerAnnouncement>,
         downloads_increased: &mut bool,
     ) -> Option<Arc<Peer>> {
-        let is_now_seeder = incoming_announce.is_seeder();
-        let has_completed = incoming_announce.event == AnnounceEvent::Completed;
         let announcement = incoming_announce.clone();
 
-        if let Some(old_announce) = self.peers.insert(incoming_announce.peer_addr, incoming_announce) {
-            // A peer has been updated in the swarm.
+        if let Some(previous_announce) = self.peers.insert(incoming_announce.peer_addr, incoming_announce) {
+            *downloads_increased = self.update_metadata(Some(&previous_announce), &announcement);
 
-            // Check if the peer has changed from leecher to seeder or vice versa.
-            if old_announce.is_seeder() != is_now_seeder {
-                if is_now_seeder {
+            self.trigger_peer_updated_event(&previous_announce, &announcement, *downloads_increased)
+                .await;
+
+            Some(previous_announce)
+        } else {
+            *downloads_increased = self.update_metadata(None, &announcement);
+
+            self.trigger_peer_added_event(&announcement).await;
+
+            None
+        }
+    }
+
+    fn update_metadata(
+        &mut self,
+        opt_previous_announce: Option<&Arc<PeerAnnouncement>>,
+        new_announce: &Arc<PeerAnnouncement>,
+    ) -> bool {
+        let mut downloads_increased = false;
+
+        if let Some(previous_announce) = opt_previous_announce {
+            if previous_announce.role() != new_announce.role() {
+                if new_announce.is_seeder() {
                     self.metadata.complete += 1;
                     self.metadata.incomplete -= 1;
                 } else {
@@ -96,58 +114,53 @@ impl Swarm {
                 }
             }
 
-            // Check if the peer has completed downloading the torrent.
-            if has_completed && old_announce.event != AnnounceEvent::Completed {
+            if new_announce.is_completed() && !previous_announce.is_completed() {
                 self.metadata.downloaded += 1;
-                *downloads_increased = true;
+                downloads_increased = true;
             }
-
-            if let Some(event_sender) = self.event_sender.as_deref() {
-                event_sender
-                    .send(Event::PeerUpdated {
-                        info_hash: self.info_hash,
-                        old_peer: *old_announce,
-                        new_peer: *announcement,
-                    })
-                    .await;
-
-                if *downloads_increased {
-                    event_sender
-                        .send(Event::PeerDownloadCompleted {
-                            info_hash: self.info_hash,
-                            peer: *announcement,
-                        })
-                        .await;
-                }
-            }
-
-            Some(old_announce)
+        } else if new_announce.is_seeder() {
+            self.metadata.complete += 1;
         } else {
-            // A new peer has been added to the swarm.
+            self.metadata.incomplete += 1;
+        }
 
-            // Check if the peer is a seeder or a leecher.
-            if is_now_seeder {
-                self.metadata.complete += 1;
-            } else {
-                self.metadata.incomplete += 1;
-            }
+        downloads_increased
+    }
 
-            // Check if the peer has completed downloading the torrent.
-            if has_completed {
-                // Don't increment `downloaded` here: we only count transitions
-                // from a known peer
-            }
+    async fn trigger_peer_updated_event(
+        &self,
+        old_announce: &Arc<PeerAnnouncement>,
+        new_announce: &Arc<PeerAnnouncement>,
+        downloads_increased: bool,
+    ) {
+        if let Some(event_sender) = self.event_sender.as_deref() {
+            event_sender
+                .send(Event::PeerUpdated {
+                    info_hash: self.info_hash,
+                    old_peer: *old_announce.clone(),
+                    new_peer: *new_announce.clone(),
+                })
+                .await;
 
-            if let Some(event_sender) = self.event_sender.as_deref() {
+            if downloads_increased {
                 event_sender
-                    .send(Event::PeerAdded {
+                    .send(Event::PeerDownloadCompleted {
                         info_hash: self.info_hash,
-                        peer: *announcement,
+                        peer: *new_announce.clone(),
                     })
                     .await;
             }
+        }
+    }
 
-            None
+    async fn trigger_peer_added_event(&self, announcement: &Arc<PeerAnnouncement>) {
+        if let Some(event_sender) = self.event_sender.as_deref() {
+            event_sender
+                .send(Event::PeerAdded {
+                    info_hash: self.info_hash,
+                    peer: *announcement.clone(),
+                })
+                .await;
         }
     }
 
