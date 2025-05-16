@@ -67,169 +67,20 @@ impl Swarm {
             AnnounceEvent::Started | AnnounceEvent::None | AnnounceEvent::Completed => {
                 self.upsert_peer(Arc::new(*incoming_announce), &mut downloads_increased).await
             }
-            AnnounceEvent::Stopped => self.remove(incoming_announce).await,
+            AnnounceEvent::Stopped => self.remove_peer(&incoming_announce.peer_addr).await,
         };
 
         downloads_increased
     }
 
-    async fn upsert_peer(
-        &mut self,
-        incoming_announce: Arc<PeerAnnouncement>,
-        downloads_increased: &mut bool,
-    ) -> Option<Arc<Peer>> {
-        let announcement = incoming_announce.clone();
-
-        if let Some(previous_announce) = self.peers.insert(incoming_announce.peer_addr, incoming_announce) {
-            *downloads_increased = self.update_metadata(Some(&previous_announce), &announcement);
-
-            self.trigger_peer_updated_event(&previous_announce, &announcement, *downloads_increased)
-                .await;
-
-            Some(previous_announce)
-        } else {
-            *downloads_increased = self.update_metadata(None, &announcement);
-
-            self.trigger_peer_added_event(&announcement).await;
-
-            None
-        }
-    }
-
-    fn update_metadata(
-        &mut self,
-        opt_previous_announce: Option<&Arc<PeerAnnouncement>>,
-        new_announce: &Arc<PeerAnnouncement>,
-    ) -> bool {
-        let mut downloads_increased = false;
-
-        if let Some(previous_announce) = opt_previous_announce {
-            if previous_announce.role() != new_announce.role() {
-                if new_announce.is_seeder() {
-                    self.metadata.complete += 1;
-                    self.metadata.incomplete -= 1;
-                } else {
-                    self.metadata.complete -= 1;
-                    self.metadata.incomplete += 1;
-                }
-            }
-
-            if new_announce.is_completed() && !previous_announce.is_completed() {
-                self.metadata.downloaded += 1;
-                downloads_increased = true;
-            }
-        } else if new_announce.is_seeder() {
-            self.metadata.complete += 1;
-        } else {
-            self.metadata.incomplete += 1;
-        }
-
-        downloads_increased
-    }
-
-    async fn trigger_peer_updated_event(
-        &self,
-        old_announce: &Arc<PeerAnnouncement>,
-        new_announce: &Arc<PeerAnnouncement>,
-        downloads_increased: bool,
-    ) {
-        if let Some(event_sender) = self.event_sender.as_deref() {
-            event_sender
-                .send(Event::PeerUpdated {
-                    info_hash: self.info_hash,
-                    old_peer: *old_announce.clone(),
-                    new_peer: *new_announce.clone(),
-                })
-                .await;
-
-            if downloads_increased {
-                event_sender
-                    .send(Event::PeerDownloadCompleted {
-                        info_hash: self.info_hash,
-                        peer: *new_announce.clone(),
-                    })
-                    .await;
-            }
-        }
-    }
-
-    async fn trigger_peer_added_event(&self, announcement: &Arc<PeerAnnouncement>) {
-        if let Some(event_sender) = self.event_sender.as_deref() {
-            event_sender
-                .send(Event::PeerAdded {
-                    info_hash: self.info_hash,
-                    peer: *announcement.clone(),
-                })
-                .await;
-        }
-    }
-
-    pub async fn remove(&mut self, peer_to_remove: &Peer) -> Option<Arc<Peer>> {
-        match self.peers.remove(&peer_to_remove.peer_addr) {
-            Some(old_peer) => {
-                // A peer has been removed from the swarm.
-
-                // Check if the peer was a seeder or a leecher.
-                if old_peer.is_seeder() {
-                    self.metadata.complete -= 1;
-                } else {
-                    self.metadata.incomplete -= 1;
-                }
-
-                if let Some(event_sender) = self.event_sender.as_deref() {
-                    event_sender
-                        .send(Event::PeerRemoved {
-                            info_hash: self.info_hash,
-                            peer: *old_peer.clone(),
-                        })
-                        .await;
-                }
-
-                Some(old_peer)
-            }
-            None => None,
-        }
-    }
-
     pub async fn remove_inactive(&mut self, current_cutoff: DurationSinceUnixEpoch) -> usize {
-        let mut number_of_peers_removed = 0;
-        let mut removed_peers = Vec::new();
+        let peers_to_remove = self.inactive_peers(current_cutoff);
 
-        self.peers.retain(|_key, peer| {
-            let is_active = peer::ReadInfo::get_updated(peer) > current_cutoff;
-
-            if !is_active {
-                // Update the metadata when removing a peer.
-                if peer.is_seeder() {
-                    self.metadata.complete -= 1;
-                } else {
-                    self.metadata.incomplete -= 1;
-                }
-
-                number_of_peers_removed += 1;
-
-                if let Some(_event_sender) = self.event_sender.as_deref() {
-                    // Events can not be trigger here because retain does not allow
-                    // async closures.
-                    removed_peers.push(*peer.clone());
-                }
-            }
-
-            is_active
-        });
-
-        if let Some(event_sender) = self.event_sender.as_deref() {
-            for peer in &removed_peers {
-                event_sender
-                    .send(Event::PeerRemoved {
-                        info_hash: self.info_hash,
-                        peer: *peer,
-                    })
-                    .await;
-            }
+        for peer_addr in &peers_to_remove {
+            self.remove_peer(peer_addr).await;
         }
 
-        number_of_peers_removed
+        peers_to_remove.len()
     }
 
     #[must_use]
@@ -316,6 +167,57 @@ impl Swarm {
         !self.should_be_removed(policy)
     }
 
+    async fn upsert_peer(
+        &mut self,
+        incoming_announce: Arc<PeerAnnouncement>,
+        downloads_increased: &mut bool,
+    ) -> Option<Arc<Peer>> {
+        let announcement = incoming_announce.clone();
+
+        if let Some(previous_announce) = self.peers.insert(incoming_announce.peer_addr, incoming_announce) {
+            *downloads_increased = self.update_metadata_on_update(&previous_announce, &announcement);
+
+            self.trigger_peer_updated_event(&previous_announce, &announcement).await;
+
+            if *downloads_increased {
+                self.trigger_peer_download_completed_event(&announcement).await;
+            }
+
+            Some(previous_announce)
+        } else {
+            *downloads_increased = false;
+
+            self.update_metadata_on_insert(&announcement);
+
+            self.trigger_peer_added_event(&announcement).await;
+
+            None
+        }
+    }
+
+    async fn remove_peer(&mut self, peer_addr: &SocketAddr) -> Option<Arc<Peer>> {
+        if let Some(old_peer) = self.peers.remove(peer_addr) {
+            self.update_metadata_on_removal(&old_peer);
+
+            self.trigger_peer_removed_event(&old_peer).await;
+
+            Some(old_peer)
+        } else {
+            None
+        }
+    }
+
+    #[must_use]
+    fn inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Vec<SocketAddr> {
+        self.peers
+            .iter()
+            .filter(|(_, peer)| peer::ReadInfo::get_updated(&**peer) <= current_cutoff)
+            .map(|(addr, _)| *addr)
+            .collect()
+    }
+
+    /// Returns true if the swarm should be removed according to the retention
+    /// policy.
     fn should_be_removed(&self, policy: &TrackerPolicy) -> bool {
         // If the policy is to remove peerless torrents and the swarm is empty (no peers),
         (policy.remove_peerless_torrents && self.is_empty())
@@ -324,6 +226,92 @@ impl Swarm {
             // (because the only way to store the counter is to keep the swarm in memory.
             // See https://github.com/torrust/torrust-tracker/issues/1502)
             && !(policy.persistent_torrent_completed_stat && self.metadata().downloaded > 0)
+    }
+
+    fn update_metadata_on_insert(&mut self, added_peer: &Arc<PeerAnnouncement>) {
+        if added_peer.is_seeder() {
+            self.metadata.complete += 1;
+        } else {
+            self.metadata.incomplete += 1;
+        }
+    }
+
+    fn update_metadata_on_removal(&mut self, removed_peer: &Arc<Peer>) {
+        if removed_peer.is_seeder() {
+            self.metadata.complete -= 1;
+        } else {
+            self.metadata.incomplete -= 1;
+        }
+    }
+
+    fn update_metadata_on_update(
+        &mut self,
+        previous_announce: &Arc<PeerAnnouncement>,
+        new_announce: &Arc<PeerAnnouncement>,
+    ) -> bool {
+        let mut downloads_increased = false;
+
+        if previous_announce.role() != new_announce.role() {
+            if new_announce.is_seeder() {
+                self.metadata.complete += 1;
+                self.metadata.incomplete -= 1;
+            } else {
+                self.metadata.complete -= 1;
+                self.metadata.incomplete += 1;
+            }
+        }
+
+        if new_announce.is_completed() && !previous_announce.is_completed() {
+            self.metadata.downloaded += 1;
+            downloads_increased = true;
+        }
+
+        downloads_increased
+    }
+
+    async fn trigger_peer_added_event(&self, announcement: &Arc<PeerAnnouncement>) {
+        if let Some(event_sender) = self.event_sender.as_deref() {
+            event_sender
+                .send(Event::PeerAdded {
+                    info_hash: self.info_hash,
+                    peer: *announcement.clone(),
+                })
+                .await;
+        }
+    }
+
+    async fn trigger_peer_removed_event(&self, old_peer: &Arc<Peer>) {
+        if let Some(event_sender) = self.event_sender.as_deref() {
+            event_sender
+                .send(Event::PeerRemoved {
+                    info_hash: self.info_hash,
+                    peer: *old_peer.clone(),
+                })
+                .await;
+        }
+    }
+
+    async fn trigger_peer_updated_event(&self, old_announce: &Arc<PeerAnnouncement>, new_announce: &Arc<PeerAnnouncement>) {
+        if let Some(event_sender) = self.event_sender.as_deref() {
+            event_sender
+                .send(Event::PeerUpdated {
+                    info_hash: self.info_hash,
+                    old_peer: *old_announce.clone(),
+                    new_peer: *new_announce.clone(),
+                })
+                .await;
+        }
+    }
+
+    async fn trigger_peer_download_completed_event(&self, new_announce: &Arc<PeerAnnouncement>) {
+        if let Some(event_sender) = self.event_sender.as_deref() {
+            event_sender
+                .send(Event::PeerDownloadCompleted {
+                    info_hash: self.info_hash,
+                    peer: *new_announce.clone(),
+                })
+                .await;
+        }
     }
 }
 
@@ -435,7 +423,7 @@ mod tests {
 
         swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
 
-        swarm.remove(&peer).await;
+        swarm.remove_peer(&peer.peer_addr).await;
 
         assert!(swarm.is_empty());
     }
@@ -449,7 +437,7 @@ mod tests {
 
         swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
 
-        let old = swarm.remove(&peer).await;
+        let old = swarm.remove_peer(&peer.peer_addr).await;
 
         assert_eq!(old, Some(Arc::new(peer)));
         assert_eq!(swarm.get(&peer.peer_addr), None);
@@ -461,7 +449,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        assert_eq!(swarm.remove(&peer).await, None);
+        assert_eq!(swarm.remove_peer(&peer.peer_addr).await, None);
     }
 
     #[tokio::test]
@@ -787,7 +775,7 @@ mod tests {
 
                 let leechers = swarm.metadata().leechers();
 
-                swarm.remove(&leecher).await;
+                swarm.remove_peer(&leecher.peer_addr).await;
 
                 assert_eq!(swarm.metadata().leechers(), leechers - 1);
             }
@@ -803,7 +791,7 @@ mod tests {
 
                 let seeders = swarm.metadata().seeders();
 
-                swarm.remove(&seeder).await;
+                swarm.remove_peer(&seeder.peer_addr).await;
 
                 assert_eq!(swarm.metadata().seeders(), seeders - 1);
             }
@@ -983,7 +971,7 @@ mod tests {
             let mut downloads_increased = false;
             swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
 
-            swarm.remove(&peer).await;
+            swarm.remove_peer(&peer.peer_addr).await;
         }
 
         #[tokio::test]
