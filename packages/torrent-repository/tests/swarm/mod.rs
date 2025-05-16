@@ -3,6 +3,7 @@ use std::ops::Sub;
 use std::time::Duration;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+use bittorrent_primitives::info_hash::InfoHash;
 use rstest::{fixture, rstest};
 use torrust_tracker_clock::clock::stopped::Stopped as _;
 use torrust_tracker_clock::clock::{self, Time as _};
@@ -16,7 +17,7 @@ use crate::CurrentClock;
 
 #[fixture]
 fn swarm() -> Swarm {
-    Swarm::default()
+    Swarm::new(&InfoHash::default(), 0, None)
 }
 
 #[fixture]
@@ -47,39 +48,39 @@ pub enum Makes {
     Three,
 }
 
-fn make(swarm: &mut Swarm, makes: &Makes) -> Vec<Peer> {
+async fn make(swarm: &mut Swarm, makes: &Makes) -> Vec<Peer> {
     match makes {
         Makes::Empty => vec![],
         Makes::Started => {
             let peer = a_started_peer(1);
-            swarm.handle_announcement(&peer);
+            swarm.handle_announcement(&peer).await;
             vec![peer]
         }
         Makes::Completed => {
             let peer = a_completed_peer(2);
-            swarm.handle_announcement(&peer);
+            swarm.handle_announcement(&peer).await;
             vec![peer]
         }
         Makes::Downloaded => {
             let mut peer = a_started_peer(3);
-            swarm.handle_announcement(&peer);
+            swarm.handle_announcement(&peer).await;
             peer.event = AnnounceEvent::Completed;
             peer.left = NumberOfBytes::new(0);
-            swarm.handle_announcement(&peer);
+            swarm.handle_announcement(&peer).await;
             vec![peer]
         }
         Makes::Three => {
             let peer_1 = a_started_peer(1);
-            swarm.handle_announcement(&peer_1);
+            swarm.handle_announcement(&peer_1).await;
 
             let peer_2 = a_completed_peer(2);
-            swarm.handle_announcement(&peer_2);
+            swarm.handle_announcement(&peer_2).await;
 
             let mut peer_3 = a_started_peer(3);
-            swarm.handle_announcement(&peer_3);
+            swarm.handle_announcement(&peer_3).await;
             peer_3.event = AnnounceEvent::Completed;
             peer_3.left = NumberOfBytes::new(0);
-            swarm.handle_announcement(&peer_3);
+            swarm.handle_announcement(&peer_3).await;
             vec![peer_1, peer_2, peer_3]
         }
     }
@@ -89,7 +90,7 @@ fn make(swarm: &mut Swarm, makes: &Makes) -> Vec<Peer> {
 #[case::empty(&Makes::Empty)]
 #[tokio::test]
 async fn it_should_be_empty_by_default(#[values(swarm())] mut swarm: Swarm, #[case] makes: &Makes) {
-    make(&mut swarm, makes);
+    make(&mut swarm, makes).await;
 
     assert_eq!(swarm.len(), 0);
 }
@@ -106,7 +107,7 @@ async fn it_should_check_if_entry_should_be_retained_based_on_the_tracker_policy
     #[case] makes: &Makes,
     #[values(policy_none(), policy_persist(), policy_remove(), policy_remove_persist())] policy: TrackerPolicy,
 ) {
-    make(&mut swarm, makes);
+    make(&mut swarm, makes).await;
 
     let has_peers = !swarm.is_empty();
     let has_downloads = swarm.metadata().downloaded != 0;
@@ -140,7 +141,7 @@ async fn it_should_check_if_entry_should_be_retained_based_on_the_tracker_policy
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_get_peers_for_torrent_entry(#[values(swarm())] mut swarm: Swarm, #[case] makes: &Makes) {
-    let peers = make(&mut swarm, makes);
+    let peers = make(&mut swarm, makes).await;
 
     let torrent_peers = swarm.peers(None);
 
@@ -159,11 +160,11 @@ async fn it_should_get_peers_for_torrent_entry(#[values(swarm())] mut swarm: Swa
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_update_a_peer(#[values(swarm())] mut swarm: Swarm, #[case] makes: &Makes) {
-    make(&mut swarm, makes);
+    make(&mut swarm, makes).await;
 
     // Make and insert a new peer.
     let mut peer = a_started_peer(-1);
-    swarm.handle_announcement(&peer);
+    swarm.handle_announcement(&peer).await;
 
     // Get the Inserted Peer by Id.
     let peers = swarm.peers(None);
@@ -176,7 +177,7 @@ async fn it_should_update_a_peer(#[values(swarm())] mut swarm: Swarm, #[case] ma
 
     // Announce "Completed" torrent download event.
     peer.event = AnnounceEvent::Completed;
-    swarm.handle_announcement(&peer);
+    swarm.handle_announcement(&peer).await;
 
     // Get the Updated Peer by Id.
     let peers = swarm.peers(None);
@@ -198,11 +199,11 @@ async fn it_should_update_a_peer(#[values(swarm())] mut swarm: Swarm, #[case] ma
 async fn it_should_remove_a_peer_upon_stopped_announcement(#[values(swarm())] mut swarm: Swarm, #[case] makes: &Makes) {
     use torrust_tracker_primitives::peer::ReadInfo as _;
 
-    make(&mut swarm, makes);
+    make(&mut swarm, makes).await;
 
     let mut peer = a_started_peer(-1);
 
-    swarm.handle_announcement(&peer);
+    swarm.handle_announcement(&peer).await;
 
     // The started peer should be inserted.
     let peers = swarm.peers(None);
@@ -215,7 +216,7 @@ async fn it_should_remove_a_peer_upon_stopped_announcement(#[values(swarm())] mu
 
     // Change peer to "Stopped" and insert.
     peer.event = AnnounceEvent::Stopped;
-    swarm.handle_announcement(&peer);
+    swarm.handle_announcement(&peer).await;
 
     // It should be removed now.
     let peers = swarm.peers(None);
@@ -237,7 +238,7 @@ async fn it_should_handle_a_peer_completed_announcement_and_update_the_downloade
     #[values(swarm())] mut torrent: Swarm,
     #[case] makes: &Makes,
 ) {
-    make(&mut torrent, makes);
+    make(&mut torrent, makes).await;
     let downloaded = torrent.metadata().downloaded;
 
     let peers = torrent.peers(None);
@@ -248,7 +249,7 @@ async fn it_should_handle_a_peer_completed_announcement_and_update_the_downloade
     // Announce "Completed" torrent download event.
     peer.event = AnnounceEvent::Completed;
 
-    torrent.handle_announcement(&peer);
+    torrent.handle_announcement(&peer).await;
     let stats = torrent.metadata();
 
     if is_already_completed {
@@ -265,7 +266,7 @@ async fn it_should_handle_a_peer_completed_announcement_and_update_the_downloade
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_update_a_peer_as_a_seeder(#[values(swarm())] mut swarm: Swarm, #[case] makes: &Makes) {
-    let peers = make(&mut swarm, makes);
+    let peers = make(&mut swarm, makes).await;
     let completed = u32::try_from(peers.iter().filter(|p| p.is_seeder()).count()).expect("it_should_not_be_so_many");
 
     let peers = swarm.peers(None);
@@ -275,7 +276,7 @@ async fn it_should_update_a_peer_as_a_seeder(#[values(swarm())] mut swarm: Swarm
 
     // Set Bytes Left to Zero
     peer.left = NumberOfBytes::new(0);
-    swarm.handle_announcement(&peer);
+    swarm.handle_announcement(&peer).await;
     let stats = swarm.metadata();
 
     if is_already_non_left {
@@ -294,7 +295,7 @@ async fn it_should_update_a_peer_as_a_seeder(#[values(swarm())] mut swarm: Swarm
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_update_a_peer_as_incomplete(#[values(swarm())] mut swarm: Swarm, #[case] makes: &Makes) {
-    let peers = make(&mut swarm, makes);
+    let peers = make(&mut swarm, makes).await;
     let incomplete = u32::try_from(peers.iter().filter(|p| !p.is_seeder()).count()).expect("it should not be so many");
 
     let peers = swarm.peers(None);
@@ -304,7 +305,7 @@ async fn it_should_update_a_peer_as_incomplete(#[values(swarm())] mut swarm: Swa
 
     // Set Bytes Left to no Zero
     peer.left = NumberOfBytes::new(1);
-    swarm.handle_announcement(&peer);
+    swarm.handle_announcement(&peer).await;
     let stats = swarm.metadata();
 
     if completed_already {
@@ -323,7 +324,7 @@ async fn it_should_update_a_peer_as_incomplete(#[values(swarm())] mut swarm: Swa
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_get_peers_excluding_the_client_socket(#[values(swarm())] mut swarm: Swarm, #[case] makes: &Makes) {
-    make(&mut swarm, makes);
+    make(&mut swarm, makes).await;
 
     let peers = swarm.peers(None);
     let mut peer = **peers.first().expect("there should be a peer");
@@ -338,7 +339,7 @@ async fn it_should_get_peers_excluding_the_client_socket(#[values(swarm())] mut 
 
     // set the address to the socket.
     peer.peer_addr = socket;
-    swarm.handle_announcement(&peer); // Add peer
+    swarm.handle_announcement(&peer).await; // Add peer
 
     // It should not include the peer that has the same socket.
     assert!(!swarm.peers_excluding(&socket, None).contains(&peer.into()));
@@ -352,12 +353,12 @@ async fn it_should_get_peers_excluding_the_client_socket(#[values(swarm())] mut 
 #[case::three(&Makes::Three)]
 #[tokio::test]
 async fn it_should_limit_the_number_of_peers_returned(#[values(swarm())] mut swarm: Swarm, #[case] makes: &Makes) {
-    make(&mut swarm, makes);
+    make(&mut swarm, makes).await;
 
     // We add one more peer than the scrape limit
     for peer_number in 1..=74 + 1 {
         let peer = a_started_peer(peer_number);
-        swarm.handle_announcement(&peer);
+        swarm.handle_announcement(&peer).await;
     }
 
     let peers = swarm.peers(Some(TORRENT_PEERS_LIMIT));
@@ -376,7 +377,7 @@ async fn it_should_remove_inactive_peers_beyond_cutoff(#[values(swarm())] mut sw
     const TIMEOUT: Duration = Duration::from_secs(120);
     const EXPIRE: Duration = Duration::from_secs(121);
 
-    let peers = make(&mut swarm, makes);
+    let peers = make(&mut swarm, makes).await;
 
     let mut peer = a_completed_peer(-1);
 
@@ -385,12 +386,12 @@ async fn it_should_remove_inactive_peers_beyond_cutoff(#[values(swarm())] mut sw
 
     peer.updated = now.sub(EXPIRE);
 
-    swarm.handle_announcement(&peer);
+    swarm.handle_announcement(&peer).await;
 
     assert_eq!(swarm.len(), peers.len() + 1);
 
     let current_cutoff = CurrentClock::now_sub(&TIMEOUT).unwrap_or_default();
-    swarm.remove_inactive(current_cutoff);
+    swarm.remove_inactive(current_cutoff).await;
 
     assert_eq!(swarm.len(), peers.len());
 }

@@ -255,6 +255,7 @@ mod tests {
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
+        use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::core::ScrapeData;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
@@ -276,7 +277,7 @@ mod tests {
 
             // HTTP core stats
             let http_core_broadcaster = Broadcaster::default();
-            let http_stats_event_bus = Arc::new(EventBus::new(false, http_core_broadcaster.clone()));
+            let http_stats_event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, http_core_broadcaster.clone()));
 
             let http_stats_event_sender = http_stats_event_bus.sender();
 
@@ -446,6 +447,7 @@ mod tests {
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
+        use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::core::ScrapeData;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_test_helpers::configuration;
@@ -468,7 +470,7 @@ mod tests {
 
             // HTTP core stats
             let http_core_broadcaster = Broadcaster::default();
-            let http_stats_event_bus = Arc::new(EventBus::new(false, http_core_broadcaster.clone()));
+            let http_stats_event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, http_core_broadcaster.clone()));
 
             let http_stats_event_sender = http_stats_event_bus.sender();
 

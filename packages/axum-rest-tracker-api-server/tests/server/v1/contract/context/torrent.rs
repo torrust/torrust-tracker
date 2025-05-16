@@ -26,7 +26,7 @@ async fn should_allow_getting_all_torrents() {
 
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(); // DevSkim: ignore DS173237
 
-    env.add_torrent_peer(&info_hash, &PeerBuilder::default().into());
+    env.add_torrent_peer(&info_hash, &PeerBuilder::default().into()).await;
 
     let request_id = Uuid::new_v4();
 
@@ -59,8 +59,8 @@ async fn should_allow_limiting_the_torrents_in_the_result() {
     let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(); // DevSkim: ignore DS173237
     let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap(); // DevSkim: ignore DS173237
 
-    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().into());
-    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().into());
+    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().into()).await;
+    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().into()).await;
 
     let request_id = Uuid::new_v4();
 
@@ -96,8 +96,8 @@ async fn should_allow_the_torrents_result_pagination() {
     let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(); // DevSkim: ignore DS173237
     let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap(); // DevSkim: ignore DS173237
 
-    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().into());
-    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().into());
+    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().into()).await;
+    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().into()).await;
 
     let request_id = Uuid::new_v4();
 
@@ -132,8 +132,8 @@ async fn should_allow_getting_a_list_of_torrents_providing_infohashes() {
     let info_hash_1 = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(); // DevSkim: ignore DS173237
     let info_hash_2 = InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap(); // DevSkim: ignore DS173237
 
-    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().into());
-    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().into());
+    env.add_torrent_peer(&info_hash_1, &PeerBuilder::default().into()).await;
+    env.add_torrent_peer(&info_hash_2, &PeerBuilder::default().into()).await;
 
     let request_id = Uuid::new_v4();
 
@@ -307,7 +307,7 @@ async fn should_allow_getting_a_torrent_info() {
 
     let peer = PeerBuilder::default().into();
 
-    env.add_torrent_peer(&info_hash, &peer);
+    env.add_torrent_peer(&info_hash, &peer).await;
 
     let request_id = Uuid::new_v4();
 
@@ -389,7 +389,7 @@ async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
 
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(); // DevSkim: ignore DS173237
 
-    env.add_torrent_peer(&info_hash, &PeerBuilder::default().into());
+    env.add_torrent_peer(&info_hash, &PeerBuilder::default().into()).await;
 
     let request_id = Uuid::new_v4();
 

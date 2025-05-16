@@ -1,4 +1,5 @@
 use std::fmt;
+use std::fmt::Debug;
 
 use futures::future::BoxFuture;
 #[cfg(test)]

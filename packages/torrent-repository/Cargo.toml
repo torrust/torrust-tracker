@@ -19,16 +19,21 @@ version.workspace = true
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
 crossbeam-skiplist = "0"
+futures = "0"
+serde = { version = "1.0.219", features = ["derive"] }
 thiserror = "2.0.12"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
+torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 tracing = "0"
 
 [dev-dependencies]
 async-std = { version = "1", features = ["attributes", "tokio1"] }
 criterion = { version = "0", features = ["async_tokio"] }
+mockall = "0"
 rand = "0"
 rstest = "0"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }

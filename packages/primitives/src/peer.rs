@@ -22,8 +22,10 @@
 //! };
 //! ```
 
+use std::fmt;
 use std::net::{IpAddr, SocketAddr};
 use std::ops::{Deref, DerefMut};
+use std::str::FromStr;
 use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
@@ -33,6 +35,57 @@ use zerocopy::FromBytes as _;
 use crate::DurationSinceUnixEpoch;
 
 pub type PeerAnnouncement = Peer;
+
+#[derive(Debug, Serialize, Copy, Clone, PartialEq, Eq, Hash)]
+#[serde(rename_all_fields = "lowercase")]
+pub enum PeerRole {
+    Seeder,
+    Leecher,
+}
+
+impl PeerRole {
+    /// Returns the opposite role: Seeder becomes Leecher, and vice versa.
+    #[must_use]
+    pub fn opposite(self) -> Self {
+        match self {
+            PeerRole::Seeder => PeerRole::Leecher,
+            PeerRole::Leecher => PeerRole::Seeder,
+        }
+    }
+}
+
+impl fmt::Display for PeerRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PeerRole::Seeder => write!(f, "seeder"),
+            PeerRole::Leecher => write!(f, "leecher"),
+        }
+    }
+}
+
+impl FromStr for PeerRole {
+    type Err = ParsePeerRoleError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "seeder" => Ok(PeerRole::Seeder),
+            "leecher" => Ok(PeerRole::Leecher),
+            _ => Err(ParsePeerRoleError::InvalidPeerRole {
+                location: Location::caller(),
+                raw_param: s.to_string(),
+            }),
+        }
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum ParsePeerRoleError {
+    #[error("invalid param {raw_param} in {location}")]
+    InvalidPeerRole {
+        location: &'static Location<'static>,
+        raw_param: String,
+    },
+}
 
 /// Peer struct used by the core `Tracker`.
 ///
@@ -147,6 +200,7 @@ impl PartialOrd for Peer {
 
 pub trait ReadInfo {
     fn is_seeder(&self) -> bool;
+    fn is_leecher(&self) -> bool;
     fn get_event(&self) -> AnnounceEvent;
     fn get_id(&self) -> PeerId;
     fn get_updated(&self) -> DurationSinceUnixEpoch;
@@ -156,6 +210,10 @@ pub trait ReadInfo {
 impl ReadInfo for Peer {
     fn is_seeder(&self) -> bool {
         self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
+    }
+
+    fn is_leecher(&self) -> bool {
+        !self.is_seeder()
     }
 
     fn get_event(&self) -> AnnounceEvent {
@@ -178,6 +236,10 @@ impl ReadInfo for Peer {
 impl ReadInfo for Arc<Peer> {
     fn is_seeder(&self) -> bool {
         self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
+    }
+
+    fn is_leecher(&self) -> bool {
+        !self.is_seeder()
     }
 
     fn get_event(&self) -> AnnounceEvent {
@@ -203,12 +265,51 @@ impl Peer {
         self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
     }
 
+    #[must_use]
+    pub fn is_leecher(&self) -> bool {
+        !self.is_seeder()
+    }
+
+    #[must_use]
+    pub fn is_completed(&self) -> bool {
+        self.event == AnnounceEvent::Completed
+    }
+
+    #[must_use]
+    pub fn role(&self) -> PeerRole {
+        if self.is_seeder() {
+            PeerRole::Seeder
+        } else {
+            PeerRole::Leecher
+        }
+    }
+
     pub fn ip(&mut self) -> IpAddr {
         self.peer_addr.ip()
     }
 
     pub fn change_ip(&mut self, new_ip: &IpAddr) {
         self.peer_addr = SocketAddr::new(*new_ip, self.peer_addr.port());
+    }
+
+    pub fn mark_as_completed(&mut self) {
+        self.event = AnnounceEvent::Completed;
+    }
+
+    #[must_use]
+    pub fn into_completed(self) -> Self {
+        Self {
+            event: AnnounceEvent::Completed,
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub fn into_seeder(self) -> Self {
+        Self {
+            left: NumberOfBytes::new(0),
+            ..self
+        }
     }
 }
 
@@ -475,6 +576,12 @@ pub mod fixture {
         #[must_use]
         pub fn last_updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
             self.peer.updated = updated;
+            self
+        }
+
+        #[must_use]
+        pub fn with_event(mut self, event: AnnounceEvent) -> Self {
+            self.peer.event = event;
             self
         }
 

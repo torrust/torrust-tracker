@@ -227,6 +227,7 @@ pub(crate) mod tests {
     use mockall::mock;
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_configuration::{Configuration, Core};
+    use torrust_tracker_events::bus::SenderStatus;
     use torrust_tracker_events::sender::SendError;
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
     use torrust_tracker_test_helpers::configuration;
@@ -287,11 +288,14 @@ pub(crate) mod tests {
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         let udp_core_broadcaster = Broadcaster::default();
-        let core_event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+        let core_event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
         let udp_core_stats_event_sender = core_event_bus.sender();
 
         let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-        let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
+        let server_event_bus = Arc::new(crate::event::bus::EventBus::new(
+            SenderStatus::Disabled,
+            udp_server_broadcaster.clone(),
+        ));
 
         let udp_server_stats_event_sender = server_event_bus.sender();
 

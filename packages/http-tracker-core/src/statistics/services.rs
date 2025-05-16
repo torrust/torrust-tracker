@@ -47,7 +47,7 @@ pub async fn get_metrics(
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     stats_repository: Arc<Repository>,
 ) -> TrackerMetrics {
-    let torrents_metrics = in_memory_torrent_repository.get_aggregate_swarm_metadata();
+    let torrents_metrics = in_memory_torrent_repository.get_aggregate_swarm_metadata().await;
     let stats = stats_repository.get_stats().await;
 
     TrackerMetrics {
@@ -96,7 +96,7 @@ mod tests {
         let http_core_broadcaster = Broadcaster::default();
         let http_stats_repository = Arc::new(Repository::new());
         let http_stats_event_bus = Arc::new(EventBus::new(
-            config.core.tracker_usage_statistics,
+            config.core.tracker_usage_statistics.into(),
             http_core_broadcaster.clone(),
         ));
 

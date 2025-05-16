@@ -72,9 +72,11 @@ async fn load_data_from_database(config: &Configuration, app_container: &Arc<App
 async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -> JobManager {
     let mut job_manager = JobManager::new();
 
+    start_torrent_repository_event_listener(config, app_container, &mut job_manager);
     start_http_core_event_listener(config, app_container, &mut job_manager);
     start_udp_core_event_listener(config, app_container, &mut job_manager);
     start_udp_server_event_listener(config, app_container, &mut job_manager);
+
     start_the_udp_instances(config, app_container, &mut job_manager).await;
     start_the_http_instances(config, app_container, &mut job_manager).await;
     start_the_http_api(config, app_container, &mut job_manager).await;
@@ -123,6 +125,18 @@ fn load_torrents_from_database(config: &Configuration, app_container: &Arc<AppCo
             .torrents_manager
             .load_torrents_from_database()
             .expect("Could not load torrents from database.");
+    }
+}
+
+fn start_torrent_repository_event_listener(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) {
+    let opt_handle = jobs::torrent_repository::start_event_listener(config, app_container);
+
+    if let Some(handle) = opt_handle {
+        job_manager.push("torrent_repository_event_listener", handle);
     }
 }
 

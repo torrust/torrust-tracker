@@ -9,6 +9,7 @@ use bittorrent_udp_tracker_core::{self};
 use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Configuration, HttpApi};
+use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 use tracing::instrument;
 
@@ -27,6 +28,9 @@ pub struct AppContainer {
 
     // Registar
     pub registar: Arc<Registar>,
+
+    // Torrent Repository
+    pub torrent_repository_container: Arc<TorrentRepositoryContainer>,
 
     // Core
     pub tracker_core_container: Arc<TrackerCoreContainer>,
@@ -54,9 +58,18 @@ impl AppContainer {
 
         let registar = Arc::new(Registar::default());
 
+        // Torrent Repository
+
+        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+            core_config.tracker_usage_statistics.into(),
+        ));
+
         // Core
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize(&core_config));
+        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
+            &core_config,
+            &torrent_repository_container,
+        ));
 
         // HTTP
 
@@ -83,6 +96,9 @@ impl AppContainer {
 
             // Registar
             registar,
+
+            // Torrent Repository
+            torrent_repository_container,
 
             // Core
             tracker_core_container,
@@ -128,10 +144,15 @@ impl AppContainer {
     #[must_use]
     pub fn tracker_http_api_container(&self, http_api_config: &Arc<HttpApi>) -> Arc<TrackerHttpApiCoreContainer> {
         TrackerHttpApiCoreContainer {
-            tracker_core_container: self.tracker_core_container.clone(),
             http_api_config: http_api_config.clone(),
-            ban_service: self.udp_tracker_core_services.ban_service.clone(),
+
+            torrent_repository_container: self.torrent_repository_container.clone(),
+
+            tracker_core_container: self.tracker_core_container.clone(),
+
             http_stats_repository: self.http_tracker_core_services.stats_repository.clone(),
+
+            ban_service: self.udp_tracker_core_services.ban_service.clone(),
             udp_core_stats_repository: self.udp_tracker_core_services.stats_repository.clone(),
             udp_server_stats_repository: self.udp_tracker_server_container.stats_repository.clone(),
         }

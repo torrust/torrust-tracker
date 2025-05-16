@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 use bittorrent_udp_tracker_core::event::bus::EventBus;
 use bittorrent_udp_tracker_core::event::sender::Broadcaster;
 use bittorrent_udp_tracker_core::services::connect::ConnectService;
+use torrust_tracker_events::bus::SenderStatus;
 use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
 use crate::helpers::utils::{sample_ipv4_remote_addr, sample_issue_time};
@@ -16,7 +17,7 @@ pub async fn connect_once(samples: u64) -> Duration {
     let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
     let udp_core_broadcaster = Broadcaster::default();
-    let event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+    let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
 
     let udp_core_stats_event_sender = event_bus.sender();
     let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));

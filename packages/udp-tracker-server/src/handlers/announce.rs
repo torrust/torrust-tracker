@@ -206,6 +206,7 @@ mod tests {
             use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
             use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
             use mockall::predicate::eq;
+            use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -254,7 +255,8 @@ mod tests {
 
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
-                    .get_torrent_peers(&info_hash.0.into());
+                    .get_torrent_peers(&info_hash.0.into())
+                    .await;
 
                 let expected_peer = TorrentPeerBuilder::new()
                     .with_peer_id(peer_id)
@@ -348,12 +350,13 @@ mod tests {
 
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
-                    .get_torrent_peers(&info_hash.0.into());
+                    .get_torrent_peers(&info_hash.0.into())
+                    .await;
 
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
             }
 
-            fn add_a_torrent_peer_using_ipv6(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
+            async fn add_a_torrent_peer_using_ipv6(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
                 let info_hash = AquaticInfoHash([0u8; 20]);
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
@@ -366,8 +369,9 @@ mod tests {
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
-                let _number_of_downloads_increased =
-                    in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv6, None);
+                let _number_of_downloads_increased = in_memory_torrent_repository
+                    .upsert_peer(&info_hash.0.into(), &peer_using_ipv6, None)
+                    .await;
             }
 
             async fn announce_a_new_peer_using_ipv4(
@@ -375,7 +379,10 @@ mod tests {
                 core_udp_tracker_services: Arc<CoreUdpTrackerServices>,
             ) -> Response {
                 let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-                let event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
+                let event_bus = Arc::new(crate::event::bus::EventBus::new(
+                    SenderStatus::Disabled,
+                    udp_server_broadcaster.clone(),
+                ));
 
                 let udp_server_stats_event_sender = event_bus.sender();
 
@@ -405,7 +412,7 @@ mod tests {
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_public_tracker();
 
-                add_a_torrent_peer_using_ipv6(&core_tracker_services.in_memory_torrent_repository);
+                add_a_torrent_peer_using_ipv6(&core_tracker_services.in_memory_torrent_repository).await;
 
                 let response =
                     announce_a_new_peer_using_ipv4(Arc::new(core_tracker_services), Arc::new(core_udp_tracker_services)).await;
@@ -504,7 +511,8 @@ mod tests {
 
                     let peers = core_tracker_services
                         .in_memory_torrent_repository
-                        .get_torrent_peers(&info_hash.0.into());
+                        .get_torrent_peers(&info_hash.0.into())
+                        .await;
 
                     let external_ip_in_tracker_configuration = core_tracker_services.core_config.net.external_ip.unwrap();
 
@@ -538,6 +546,7 @@ mod tests {
             use bittorrent_udp_tracker_core::services::announce::AnnounceService;
             use mockall::predicate::eq;
             use torrust_tracker_configuration::Core;
+            use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -586,7 +595,8 @@ mod tests {
 
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
-                    .get_torrent_peers(&info_hash.0.into());
+                    .get_torrent_peers(&info_hash.0.into())
+                    .await;
 
                 let expected_peer = TorrentPeerBuilder::new()
                     .with_peer_id(peer_id)
@@ -683,13 +693,14 @@ mod tests {
 
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
-                    .get_torrent_peers(&info_hash.0.into());
+                    .get_torrent_peers(&info_hash.0.into())
+                    .await;
 
                 // When using IPv6 the tracker converts the remote client ip into a IPv4 address
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V6(remote_client_ip), client_port));
             }
 
-            fn add_a_torrent_peer_using_ipv4(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
+            async fn add_a_torrent_peer_using_ipv4(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
                 let info_hash = AquaticInfoHash([0u8; 20]);
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
@@ -701,8 +712,9 @@ mod tests {
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 
-                let _number_of_downloads_increased =
-                    in_memory_torrent_repository.upsert_peer(&info_hash.0.into(), &peer_using_ipv4, None);
+                let _number_of_downloads_increased = in_memory_torrent_repository
+                    .upsert_peer(&info_hash.0.into(), &peer_using_ipv4, None)
+                    .await;
             }
 
             async fn announce_a_new_peer_using_ipv6(
@@ -711,11 +723,14 @@ mod tests {
                 whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
             ) -> Response {
                 let udp_core_broadcaster = Broadcaster::default();
-                let core_event_bus = Arc::new(EventBus::new(false, udp_core_broadcaster.clone()));
+                let core_event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
                 let udp_core_stats_event_sender = core_event_bus.sender();
 
                 let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
-                let server_event_bus = Arc::new(crate::event::bus::EventBus::new(false, udp_server_broadcaster.clone()));
+                let server_event_bus = Arc::new(crate::event::bus::EventBus::new(
+                    SenderStatus::Disabled,
+                    udp_server_broadcaster.clone(),
+                ));
 
                 let udp_server_stats_event_sender = server_event_bus.sender();
 
@@ -755,7 +770,7 @@ mod tests {
                 let (core_tracker_services, _core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_public_tracker();
 
-                add_a_torrent_peer_using_ipv4(&core_tracker_services.in_memory_torrent_repository);
+                add_a_torrent_peer_using_ipv4(&core_tracker_services.in_memory_torrent_repository).await;
 
                 let response = announce_a_new_peer_using_ipv6(
                     core_tracker_services.core_config.clone(),
@@ -938,7 +953,7 @@ mod tests {
                     .await
                     .unwrap();
 
-                    let peers = in_memory_torrent_repository.get_torrent_peers(&info_hash.0.into());
+                    let peers = in_memory_torrent_repository.get_torrent_peers(&info_hash.0.into()).await;
 
                     let external_ip_in_tracker_configuration = core_config.net.external_ip.unwrap();
 

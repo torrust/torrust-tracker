@@ -112,7 +112,11 @@ impl ScrapeHandler {
 
         for info_hash in info_hashes {
             let swarm_metadata = match self.whitelist_authorization.authorize(info_hash).await {
-                Ok(()) => self.in_memory_torrent_repository.get_swarm_metadata_or_default(info_hash),
+                Ok(()) => {
+                    self.in_memory_torrent_repository
+                        .get_swarm_metadata_or_default(info_hash)
+                        .await
+                }
                 Err(_) => SwarmMetadata::zeroed(),
             };
             scrape_data.add_file(info_hash, swarm_metadata);

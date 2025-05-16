@@ -90,35 +90,36 @@ impl TorrentsManager {
     /// 2. If the tracker is configured to remove peerless torrents
     ///    (`remove_peerless_torrents` is set), it removes entire torrent
     ///    entries that have no active peers.
-    pub fn cleanup_torrents(&self) {
-        self.log_aggregate_swarm_metadata();
+    pub async fn cleanup_torrents(&self) {
+        self.log_aggregate_swarm_metadata().await;
 
-        self.remove_inactive_peers();
+        self.remove_inactive_peers().await;
 
-        self.log_aggregate_swarm_metadata();
+        self.log_aggregate_swarm_metadata().await;
 
-        self.remove_peerless_torrents();
+        self.remove_peerless_torrents().await;
 
-        self.log_aggregate_swarm_metadata();
+        self.log_aggregate_swarm_metadata().await;
     }
 
-    fn remove_inactive_peers(&self) {
+    async fn remove_inactive_peers(&self) {
         let current_cutoff = CurrentClock::now_sub(&Duration::from_secs(u64::from(self.config.tracker_policy.max_peer_timeout)))
             .unwrap_or_default();
 
-        self.in_memory_torrent_repository.remove_inactive_peers(current_cutoff);
+        self.in_memory_torrent_repository.remove_inactive_peers(current_cutoff).await;
     }
 
-    fn remove_peerless_torrents(&self) {
+    async fn remove_peerless_torrents(&self) {
         if self.config.tracker_policy.remove_peerless_torrents {
             self.in_memory_torrent_repository
-                .remove_peerless_torrents(&self.config.tracker_policy);
+                .remove_peerless_torrents(&self.config.tracker_policy)
+                .await;
         }
     }
 
-    fn log_aggregate_swarm_metadata(&self) {
+    async fn log_aggregate_swarm_metadata(&self) {
         // Pre-calculated data
-        let aggregate_swarm_metadata = self.in_memory_torrent_repository.get_aggregate_swarm_metadata();
+        let aggregate_swarm_metadata = self.in_memory_torrent_repository.get_aggregate_swarm_metadata().await;
 
         tracing::info!(name: "pre_calculated_aggregate_swarm_metadata",
             torrents = aggregate_swarm_metadata.total_torrents,
@@ -128,8 +129,8 @@ impl TorrentsManager {
         );
 
         // Hot data (iterating over data structures)
-        let peerless_torrents = self.in_memory_torrent_repository.count_peerless_torrents();
-        let peers = self.in_memory_torrent_repository.count_peers();
+        let peerless_torrents = self.in_memory_torrent_repository.count_peerless_torrents().await;
+        let peers = self.in_memory_torrent_repository.count_peers().await;
 
         tracing::info!(name: "hot_aggregate_swarm_metadata",
             peerless_torrents = peerless_torrents,
@@ -144,7 +145,7 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_tracker_configuration::Core;
-    use torrust_tracker_torrent_repository::LockTrackedTorrent;
+    use torrust_tracker_torrent_repository::Swarms;
 
     use super::{DatabasePersistentTorrentRepository, TorrentsManager};
     use crate::databases::setup::initialize_database;
@@ -163,7 +164,8 @@ mod tests {
     }
 
     fn initialize_torrents_manager_with(config: Core) -> (Arc<TorrentsManager>, Arc<TorrentsManagerDeps>) {
-        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
+        let swarms = Arc::new(Swarms::default());
+        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms));
         let database = initialize_database(&config);
         let database_persistent_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
 
@@ -183,8 +185,8 @@ mod tests {
         )
     }
 
-    #[test]
-    fn it_should_load_the_numbers_of_downloads_for_all_torrents_from_the_database() {
+    #[tokio::test]
+    async fn it_should_load_the_numbers_of_downloads_for_all_torrents_from_the_database() {
         let (torrents_manager, services) = initialize_torrents_manager();
 
         let infohash = sample_info_hash();
@@ -198,7 +200,8 @@ mod tests {
                 .in_memory_torrent_repository
                 .get(&infohash)
                 .unwrap()
-                .lock_or_panic()
+                .lock()
+                .await
                 .metadata()
                 .downloaded,
             1
@@ -219,8 +222,8 @@ mod tests {
         use crate::torrent::manager::tests::{initialize_torrents_manager, initialize_torrents_manager_with};
         use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
 
-        #[test]
-        fn it_should_remove_peers_that_have_not_been_updated_after_a_cutoff_time() {
+        #[tokio::test]
+        async fn it_should_remove_peers_that_have_not_been_updated_after_a_cutoff_time() {
             let (torrents_manager, services) = initialize_torrents_manager();
 
             let infohash = sample_info_hash();
@@ -230,7 +233,10 @@ mod tests {
             // Add a peer to the torrent
             let mut peer = sample_peer();
             peer.updated = DurationSinceUnixEpoch::new(0, 0);
-            let _number_of_downloads_increased = services.in_memory_torrent_repository.upsert_peer(&infohash, &peer, None);
+            let _number_of_downloads_increased = services
+                .in_memory_torrent_repository
+                .upsert_peer(&infohash, &peer, None)
+                .await;
 
             // Simulate the time has passed 1 second more than the max peer timeout.
             clock::Stopped::local_add(&Duration::from_secs(
@@ -238,23 +244,25 @@ mod tests {
             ))
             .unwrap();
 
-            torrents_manager.cleanup_torrents();
+            torrents_manager.cleanup_torrents().await;
 
             assert!(services.in_memory_torrent_repository.get(&infohash).is_none());
         }
 
-        fn add_a_peerless_torrent(infohash: &InfoHash, in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
+        async fn add_a_peerless_torrent(infohash: &InfoHash, in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
             // Add a peer to the torrent
             let mut peer = sample_peer();
             peer.updated = DurationSinceUnixEpoch::new(0, 0);
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(infohash, &peer, None);
+            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(infohash, &peer, None).await;
 
             // Remove the peer. The torrent is now peerless.
-            in_memory_torrent_repository.remove_inactive_peers(peer.updated.add(Duration::from_secs(1)));
+            in_memory_torrent_repository
+                .remove_inactive_peers(peer.updated.add(Duration::from_secs(1)))
+                .await;
         }
 
-        #[test]
-        fn it_should_remove_torrents_that_have_no_peers_when_it_is_configured_to_do_so() {
+        #[tokio::test]
+        async fn it_should_remove_torrents_that_have_no_peers_when_it_is_configured_to_do_so() {
             let mut config = ephemeral_configuration();
             config.tracker_policy.remove_peerless_torrents = true;
 
@@ -262,15 +270,15 @@ mod tests {
 
             let infohash = sample_info_hash();
 
-            add_a_peerless_torrent(&infohash, &services.in_memory_torrent_repository);
+            add_a_peerless_torrent(&infohash, &services.in_memory_torrent_repository).await;
 
-            torrents_manager.cleanup_torrents();
+            torrents_manager.cleanup_torrents().await;
 
             assert!(services.in_memory_torrent_repository.get(&infohash).is_none());
         }
 
-        #[test]
-        fn it_should_retain_peerless_torrents_when_it_is_configured_to_do_so() {
+        #[tokio::test]
+        async fn it_should_retain_peerless_torrents_when_it_is_configured_to_do_so() {
             let mut config = ephemeral_configuration();
             config.tracker_policy.remove_peerless_torrents = false;
 
@@ -278,9 +286,9 @@ mod tests {
 
             let infohash = sample_info_hash();
 
-            add_a_peerless_torrent(&infohash, &services.in_memory_torrent_repository);
+            add_a_peerless_torrent(&infohash, &services.in_memory_torrent_repository).await;
 
-            torrents_manager.cleanup_torrents();
+            torrents_manager.cleanup_torrents().await;
 
             assert!(services.in_memory_torrent_repository.get(&infohash).is_some());
         }

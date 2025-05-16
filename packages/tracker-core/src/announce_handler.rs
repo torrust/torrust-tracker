@@ -171,24 +171,29 @@ impl AnnounceHandler {
 
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
 
-        let number_of_downloads_increased =
-            self.in_memory_torrent_repository
-                .upsert_peer(info_hash, peer, opt_persistent_torrent);
+        let number_of_downloads_increased = self
+            .in_memory_torrent_repository
+            .upsert_peer(info_hash, peer, opt_persistent_torrent)
+            .await;
 
         if self.config.tracker_policy.persistent_torrent_completed_stat && number_of_downloads_increased {
             self.db_torrent_repository.increase_number_of_downloads(info_hash)?;
         }
 
-        Ok(self.build_announce_data(info_hash, peer, peers_wanted))
+        Ok(self.build_announce_data(info_hash, peer, peers_wanted).await)
     }
 
     /// Builds the announce data for the peer making the request.
-    fn build_announce_data(&self, info_hash: &InfoHash, peer: &peer::Peer, peers_wanted: &PeersWanted) -> AnnounceData {
+    async fn build_announce_data(&self, info_hash: &InfoHash, peer: &peer::Peer, peers_wanted: &PeersWanted) -> AnnounceData {
         let peers = self
             .in_memory_torrent_repository
-            .get_peers_for(info_hash, peer, peers_wanted.limit());
+            .get_peers_for(info_hash, peer, peers_wanted.limit())
+            .await;
 
-        let swarm_metadata = self.in_memory_torrent_repository.get_swarm_metadata_or_default(info_hash);
+        let swarm_metadata = self
+            .in_memory_torrent_repository
+            .get_swarm_metadata_or_default(info_hash)
+            .await;
 
         AnnounceData {
             peers,
@@ -594,7 +599,7 @@ mod tests {
 
             use aquatic_udp_protocol::AnnounceEvent;
             use torrust_tracker_test_helpers::configuration;
-            use torrust_tracker_torrent_repository::LockTrackedTorrent;
+            use torrust_tracker_torrent_repository::Swarms;
 
             use crate::announce_handler::tests::the_announce_handler::peer_ip;
             use crate::announce_handler::{AnnounceHandler, PeersWanted};
@@ -613,7 +618,8 @@ mod tests {
                 config.core.tracker_policy.persistent_torrent_completed_stat = true;
 
                 let database = initialize_database(&config.core);
-                let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
+                let swarms = Arc::new(Swarms::default());
+                let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms));
                 let db_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
                 let torrents_manager = Arc::new(TorrentsManager::new(
                     &config.core,
@@ -648,7 +654,7 @@ mod tests {
                 assert_eq!(announce_data.stats.downloaded, 1);
 
                 // Remove the newly updated torrent from memory
-                let _unused = in_memory_torrent_repository.remove(&info_hash);
+                let _unused = in_memory_torrent_repository.remove(&info_hash).await;
 
                 torrents_manager.load_torrents_from_database().unwrap();
 
@@ -657,10 +663,10 @@ mod tests {
                     .expect("it should be able to get entry");
 
                 // It persists the number of completed peers.
-                assert_eq!(torrent_entry.lock_or_panic().metadata().downloaded, 1);
+                assert_eq!(torrent_entry.lock().await.metadata().downloaded, 1);
 
                 // It does not persist the peers
-                assert!(torrent_entry.lock_or_panic().is_empty());
+                assert!(torrent_entry.lock().await.is_empty());
             }
         }
 

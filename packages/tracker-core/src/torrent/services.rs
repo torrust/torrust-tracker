@@ -17,7 +17,6 @@ use std::sync::Arc;
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::peer;
-use torrust_tracker_torrent_repository::LockTrackedTorrent;
 
 use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
 
@@ -94,14 +93,17 @@ pub struct BasicInfo {
 ///
 /// This function panics if the lock for the torrent entry cannot be obtained.
 #[must_use]
-pub fn get_torrent_info(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>, info_hash: &InfoHash) -> Option<Info> {
+pub async fn get_torrent_info(
+    in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
+    info_hash: &InfoHash,
+) -> Option<Info> {
     let torrent_entry_option = in_memory_torrent_repository.get(info_hash);
 
     let torrent_entry = torrent_entry_option?;
 
-    let stats = torrent_entry.lock_or_panic().metadata();
+    let stats = torrent_entry.lock().await.metadata();
 
-    let peers = torrent_entry.lock_or_panic().peers(None);
+    let peers = torrent_entry.lock().await.peers(None);
 
     let peers = Some(peers.iter().map(|peer| (**peer)).collect());
 
@@ -136,14 +138,14 @@ pub fn get_torrent_info(in_memory_torrent_repository: &Arc<InMemoryTorrentReposi
 ///
 /// This function panics if the lock for the torrent entry cannot be obtained.
 #[must_use]
-pub fn get_torrents_page(
+pub async fn get_torrents_page(
     in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
     pagination: Option<&Pagination>,
 ) -> Vec<BasicInfo> {
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
     for (info_hash, torrent_entry) in in_memory_torrent_repository.get_paginated(pagination) {
-        let stats = torrent_entry.lock_or_panic().metadata();
+        let stats = torrent_entry.lock().await.metadata();
 
         basic_infos.push(BasicInfo {
             info_hash,
@@ -178,19 +180,21 @@ pub fn get_torrents_page(
 ///
 /// This function panics if the lock for the torrent entry cannot be obtained.
 #[must_use]
-pub fn get_torrents(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>, info_hashes: &[InfoHash]) -> Vec<BasicInfo> {
+pub async fn get_torrents(
+    in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
+    info_hashes: &[InfoHash],
+) -> Vec<BasicInfo> {
     let mut basic_infos: Vec<BasicInfo> = vec![];
 
     for info_hash in info_hashes {
-        if let Some(stats) = in_memory_torrent_repository
-            .get(info_hash)
-            .map(|torrent_entry| torrent_entry.lock_or_panic().metadata())
-        {
+        if let Some(torrent_entry) = in_memory_torrent_repository.get(info_hash) {
+            let metadata = torrent_entry.lock().await.metadata();
+
             basic_infos.push(BasicInfo {
                 info_hash: *info_hash,
-                seeders: u64::from(stats.complete),
-                completed: u64::from(stats.downloaded),
-                leechers: u64::from(stats.incomplete),
+                seeders: u64::from(metadata.complete),
+                completed: u64::from(metadata.downloaded),
+                leechers: u64::from(metadata.incomplete),
             });
         }
     }
@@ -235,7 +239,8 @@ mod tests {
             let torrent_info = get_torrent_info(
                 &in_memory_torrent_repository,
                 &InfoHash::from_str("0b3aea4adc213ce32295be85d3883a63bca25446").unwrap(), // DevSkim: ignore DS173237
-            );
+            )
+            .await;
 
             assert!(torrent_info.is_none());
         }
@@ -246,9 +251,11 @@ mod tests {
 
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
             let info_hash = InfoHash::from_str(&hash).unwrap();
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash, &sample_peer(), None)
+                .await;
 
-            let torrent_info = get_torrent_info(&in_memory_torrent_repository, &info_hash).unwrap();
+            let torrent_info = get_torrent_info(&in_memory_torrent_repository, &info_hash).await.unwrap();
 
             assert_eq!(
                 torrent_info,
@@ -278,7 +285,7 @@ mod tests {
         async fn it_should_return_an_empty_result_if_the_tracker_does_not_have_any_torrent() {
             let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-            let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::default()));
+            let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::default())).await;
 
             assert_eq!(torrents, vec![]);
         }
@@ -290,9 +297,11 @@ mod tests {
             let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
             let info_hash = InfoHash::from_str(&hash).unwrap();
 
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash, &sample_peer(), None)
+                .await;
 
-            let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::default()));
+            let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::default())).await;
 
             assert_eq!(
                 torrents,
@@ -315,13 +324,17 @@ mod tests {
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned(); // DevSkim: ignore DS173237
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
 
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash1, &sample_peer(), None);
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash2, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash1, &sample_peer(), None)
+                .await;
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash2, &sample_peer(), None)
+                .await;
 
             let offset = 0;
             let limit = 1;
 
-            let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::new(offset, limit)));
+            let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::new(offset, limit))).await;
 
             assert_eq!(torrents.len(), 1);
         }
@@ -336,13 +349,17 @@ mod tests {
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned(); // DevSkim: ignore DS173237
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
 
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash1, &sample_peer(), None);
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash2, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash1, &sample_peer(), None)
+                .await;
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash2, &sample_peer(), None)
+                .await;
 
             let offset = 1;
             let limit = 4000;
 
-            let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::new(offset, limit)));
+            let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::new(offset, limit))).await;
 
             assert_eq!(torrents.len(), 1);
             assert_eq!(
@@ -362,13 +379,17 @@ mod tests {
 
             let hash1 = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
             let info_hash1 = InfoHash::from_str(&hash1).unwrap();
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash1, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash1, &sample_peer(), None)
+                .await;
 
             let hash2 = "03840548643af2a7b63a9f5cbca348bc7150ca3a".to_owned(); // DevSkim: ignore DS173237
             let info_hash2 = InfoHash::from_str(&hash2).unwrap();
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(&info_hash2, &sample_peer(), None);
+            let _number_of_downloads_increased = in_memory_torrent_repository
+                .upsert_peer(&info_hash2, &sample_peer(), None)
+                .await;
 
-            let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::default()));
+            let torrents = get_torrents_page(&in_memory_torrent_repository, Some(&Pagination::default())).await;
 
             assert_eq!(
                 torrents,
@@ -403,7 +424,7 @@ mod tests {
         async fn it_should_return_an_empty_list_if_none_of_the_requested_torrents_is_found() {
             let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
 
-            let torrent_info = get_torrents(&in_memory_torrent_repository, &[sample_info_hash()]);
+            let torrent_info = get_torrents(&in_memory_torrent_repository, &[sample_info_hash()]).await;
 
             assert!(torrent_info.is_empty());
         }
@@ -414,9 +435,11 @@ mod tests {
 
             let info_hash = sample_info_hash();
 
-            let _ = in_memory_torrent_repository.upsert_peer(&info_hash, &sample_peer(), None);
+            let _ = in_memory_torrent_repository
+                .upsert_peer(&info_hash, &sample_peer(), None)
+                .await;
 
-            let torrent_info = get_torrents(&in_memory_torrent_repository, &[info_hash]);
+            let torrent_info = get_torrents(&in_memory_torrent_repository, &[info_hash]).await;
 
             assert_eq!(
                 torrent_info,
