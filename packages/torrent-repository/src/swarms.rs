@@ -49,7 +49,6 @@ impl Swarms {
     /// # Errors
     ///
     /// This function panics if the lock for the swarm handle cannot be acquired.
-    #[allow(clippy::await_holding_lock)]
     pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,

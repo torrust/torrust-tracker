@@ -1,8 +1,6 @@
 //! A swarm is a collection of peers that are all trying to download the same
 //! torrent.
 use std::collections::BTreeMap;
-use std::fmt::Debug;
-use std::hash::{Hash, Hasher};
 use std::net::SocketAddr;
 use std::sync::Arc;
 
@@ -23,31 +21,6 @@ pub struct Swarm {
     metadata: SwarmMetadata,
     event_sender: Sender,
 }
-
-#[allow(clippy::missing_fields_in_debug)]
-impl Debug for Swarm {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Swarm")
-            .field("peers", &self.peers)
-            .field("metadata", &self.metadata)
-            .finish()
-    }
-}
-
-impl Hash for Swarm {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.peers.hash(state);
-        self.metadata.hash(state);
-    }
-}
-
-impl PartialEq for Swarm {
-    fn eq(&self, other: &Self) -> bool {
-        self.peers == other.peers && self.metadata == other.metadata
-    }
-}
-
-impl Eq for Swarm {}
 
 impl Swarm {
     #[must_use]
@@ -328,16 +301,6 @@ mod tests {
 
     use crate::swarm::Swarm;
     use crate::tests::sample_info_hash;
-
-    #[test]
-    fn it_should_allow_debugging() {
-        let swarm = Swarm::new(&sample_info_hash(), 0, None);
-
-        assert_eq!(
-            format!("{swarm:?}"),
-            "Swarm { peers: {}, metadata: SwarmMetadata { downloaded: 0, complete: 0, incomplete: 0 } }"
-        );
-    }
 
     #[test]
     fn it_should_be_empty_when_no_peers_have_been_inserted() {
