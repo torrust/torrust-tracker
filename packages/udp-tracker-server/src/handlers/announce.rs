@@ -207,6 +207,7 @@ mod tests {
             use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
             use mockall::predicate::eq;
             use torrust_tracker_events::bus::SenderStatus;
+            use torrust_tracker_primitives::peer::fixture::PeerBuilder;
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -216,7 +217,6 @@ mod tests {
                 initialize_core_tracker_services_for_default_tracker_configuration,
                 initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv4_socket_address,
                 sample_issue_time, CoreTrackerServices, CoreUdpTrackerServices, MockUdpServerStatsEventSender,
-                TorrentPeerBuilder,
             };
 
             #[tokio::test]
@@ -258,8 +258,8 @@ mod tests {
                     .get_torrent_peers(&info_hash.0.into())
                     .await;
 
-                let expected_peer = TorrentPeerBuilder::new()
-                    .with_peer_id(peer_id)
+                let expected_peer = PeerBuilder::default()
+                    .with_peer_id(&peer_id)
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip), client_port))
                     .updated_on(peers[0].updated)
                     .into();
@@ -364,8 +364,8 @@ mod tests {
                 let client_port = 8080;
                 let peer_id = AquaticPeerId([255u8; 20]);
 
-                let peer_using_ipv6 = TorrentPeerBuilder::new()
-                    .with_peer_id(peer_id)
+                let peer_using_ipv6 = PeerBuilder::default()
+                    .with_peer_id(&peer_id)
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
@@ -466,13 +466,13 @@ mod tests {
 
                 use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
                 use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
+                use torrust_tracker_primitives::peer::fixture::PeerBuilder;
                 use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
                     initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_issue_time,
-                    TorrentPeerBuilder,
                 };
 
                 #[tokio::test]
@@ -516,8 +516,8 @@ mod tests {
 
                     let external_ip_in_tracker_configuration = core_tracker_services.core_config.net.external_ip.unwrap();
 
-                    let expected_peer = TorrentPeerBuilder::new()
-                        .with_peer_id(peer_id)
+                    let expected_peer = PeerBuilder::default()
+                        .with_peer_id(&peer_id)
                         .with_peer_address(SocketAddr::new(external_ip_in_tracker_configuration, client_port))
                         .updated_on(peers[0].updated)
                         .into();
@@ -547,6 +547,7 @@ mod tests {
             use mockall::predicate::eq;
             use torrust_tracker_configuration::Core;
             use torrust_tracker_events::bus::SenderStatus;
+            use torrust_tracker_primitives::peer::fixture::PeerBuilder;
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -555,7 +556,7 @@ mod tests {
             use crate::handlers::tests::{
                 initialize_core_tracker_services_for_default_tracker_configuration,
                 initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv6_remote_addr,
-                sample_issue_time, MockUdpServerStatsEventSender, TorrentPeerBuilder,
+                sample_issue_time, MockUdpServerStatsEventSender,
             };
 
             #[tokio::test]
@@ -598,8 +599,8 @@ mod tests {
                     .get_torrent_peers(&info_hash.0.into())
                     .await;
 
-                let expected_peer = TorrentPeerBuilder::new()
-                    .with_peer_id(peer_id)
+                let expected_peer = PeerBuilder::default()
+                    .with_peer_id(&peer_id)
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .updated_on(peers[0].updated)
                     .into();
@@ -707,8 +708,8 @@ mod tests {
                 let client_port = 8080;
                 let peer_id = AquaticPeerId([255u8; 20]);
 
-                let peer_using_ipv4 = TorrentPeerBuilder::new()
-                    .with_peer_id(peer_id)
+                let peer_using_ipv4 = PeerBuilder::default()
+                    .with_peer_id(&peer_id)
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 

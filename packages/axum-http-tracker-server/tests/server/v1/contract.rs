@@ -1012,7 +1012,7 @@ mod for_all_config_modes {
                 &info_hash,
                 &PeerBuilder::default()
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
-                    .with_bytes_pending_to_download(1)
+                    .with_bytes_left_to_download(1)
                     .build(),
             )
             .await;
@@ -1053,7 +1053,7 @@ mod for_all_config_modes {
                 &info_hash,
                 &PeerBuilder::default()
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
-                    .with_no_bytes_pending_to_download()
+                    .with_no_bytes_left_to_download()
                     .build(),
             )
             .await;
@@ -1286,7 +1286,7 @@ mod configured_as_whitelisted {
                 &info_hash,
                 &PeerBuilder::default()
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
-                    .with_bytes_pending_to_download(1)
+                    .with_bytes_left_to_download(1)
                     .build(),
             )
             .await;
@@ -1323,7 +1323,7 @@ mod configured_as_whitelisted {
                 &info_hash,
                 &PeerBuilder::default()
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
-                    .with_bytes_pending_to_download(1)
+                    .with_bytes_left_to_download(1)
                     .build(),
             )
             .await;
@@ -1500,7 +1500,7 @@ mod configured_as_private {
                 &info_hash,
                 &PeerBuilder::default()
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
-                    .with_bytes_pending_to_download(1)
+                    .with_bytes_left_to_download(1)
                     .build(),
             )
             .await;
@@ -1532,7 +1532,7 @@ mod configured_as_private {
                 &info_hash,
                 &PeerBuilder::default()
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
-                    .with_bytes_pending_to_download(1)
+                    .with_bytes_left_to_download(1)
                     .build(),
             )
             .await;
@@ -1584,7 +1584,7 @@ mod configured_as_private {
                 &info_hash,
                 &PeerBuilder::default()
                     .with_peer_id(&PeerId(*b"-qB00000000000000001"))
-                    .with_bytes_pending_to_download(1)
+                    .with_bytes_left_to_download(1)
                     .build(),
             )
             .await;

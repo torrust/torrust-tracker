@@ -93,6 +93,7 @@ mod tests {
         use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
         use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
         use torrust_tracker_events::bus::SenderStatus;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use crate::event::bus::EventBus;
@@ -100,7 +101,7 @@ mod tests {
         use crate::handlers::handle_scrape;
         use crate::handlers::tests::{
             initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv4_remote_addr,
-            sample_issue_time, CoreTrackerServices, CoreUdpTrackerServices, TorrentPeerBuilder,
+            sample_issue_time, CoreTrackerServices, CoreUdpTrackerServices,
         };
 
         fn zeroed_torrent_statistics() -> TorrentScrapeStatistics {
@@ -158,10 +159,10 @@ mod tests {
         ) {
             let peer_id = PeerId([255u8; 20]);
 
-            let peer = TorrentPeerBuilder::new()
-                .with_peer_id(peer_id)
+            let peer = PeerBuilder::default()
+                .with_peer_id(&peer_id)
                 .with_peer_address(*remote_addr)
-                .with_number_of_bytes_left(0)
+                .with_bytes_left_to_download(0)
                 .into();
 
             let _number_of_downloads_increased = in_memory_torrent_repository
