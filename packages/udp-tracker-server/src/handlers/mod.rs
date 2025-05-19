@@ -208,7 +208,6 @@ pub(crate) mod tests {
     use std::ops::Range;
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::{NumberOfBytes, PeerId};
     use bittorrent_tracker_core::announce_handler::AnnounceHandler;
     use bittorrent_tracker_core::databases::setup::initialize_database;
     use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
@@ -225,14 +224,12 @@ pub(crate) mod tests {
     use bittorrent_udp_tracker_core::{self, event as core_event};
     use futures::future::BoxFuture;
     use mockall::mock;
-    use torrust_tracker_clock::clock::Time;
     use torrust_tracker_configuration::{Configuration, Core};
     use torrust_tracker_events::bus::SenderStatus;
     use torrust_tracker_events::sender::SendError;
-    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
     use torrust_tracker_test_helpers::configuration;
 
-    use crate::{event as server_event, CurrentClock};
+    use crate::event as server_event;
 
     pub(crate) struct CoreTrackerServices {
         pub core_config: Arc<Core>,
@@ -358,52 +355,6 @@ pub(crate) mod tests {
 
     pub(crate) fn sample_cookie_valid_range() -> Range<f64> {
         sample_issue_time() - 10.0..sample_issue_time() + 10.0
-    }
-
-    #[derive(Debug, Default)]
-    pub(crate) struct TorrentPeerBuilder {
-        peer: peer::Peer,
-    }
-
-    impl TorrentPeerBuilder {
-        #[must_use]
-        pub fn new() -> Self {
-            Self {
-                peer: peer::Peer {
-                    updated: CurrentClock::now(),
-                    ..Default::default()
-                },
-            }
-        }
-
-        #[must_use]
-        pub fn with_peer_address(mut self, peer_addr: SocketAddr) -> Self {
-            self.peer.peer_addr = peer_addr;
-            self
-        }
-
-        #[must_use]
-        pub fn with_peer_id(mut self, peer_id: PeerId) -> Self {
-            self.peer.peer_id = peer_id;
-            self
-        }
-
-        #[must_use]
-        pub fn with_number_of_bytes_left(mut self, left: i64) -> Self {
-            self.peer.left = NumberOfBytes::new(left);
-            self
-        }
-
-        #[must_use]
-        pub fn updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
-            self.peer.updated = updated;
-            self
-        }
-
-        #[must_use]
-        pub fn into(self) -> peer::Peer {
-            self.peer
-        }
     }
 
     pub(crate) struct TrackerConfigurationBuilder {

@@ -558,21 +558,30 @@ pub mod fixture {
             self
         }
 
-        #[allow(dead_code)]
         #[must_use]
-        pub fn with_bytes_pending_to_download(mut self, left: i64) -> Self {
+        pub fn with_peer_address(mut self, peer_addr: SocketAddr) -> Self {
+            self.peer.peer_addr = peer_addr;
+            self
+        }
+
+        #[must_use]
+        pub fn updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
+            self.peer.updated = updated;
+            self
+        }
+
+        #[must_use]
+        pub fn with_bytes_left_to_download(mut self, left: i64) -> Self {
             self.peer.left = NumberOfBytes::new(left);
             self
         }
 
-        #[allow(dead_code)]
         #[must_use]
-        pub fn with_no_bytes_pending_to_download(mut self) -> Self {
+        pub fn with_no_bytes_left_to_download(mut self) -> Self {
             self.peer.left = NumberOfBytes::new(0);
             self
         }
 
-        #[allow(dead_code)]
         #[must_use]
         pub fn last_updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
             self.peer.updated = updated;
@@ -585,13 +594,23 @@ pub mod fixture {
             self
         }
 
-        #[allow(dead_code)]
+        #[must_use]
+        pub fn with_event_started(mut self) -> Self {
+            self.peer.event = AnnounceEvent::Started;
+            self
+        }
+
+        #[must_use]
+        pub fn with_event_completed(mut self) -> Self {
+            self.peer.event = AnnounceEvent::Completed;
+            self
+        }
+
         #[must_use]
         pub fn build(self) -> Peer {
             self.into()
         }
 
-        #[allow(dead_code)]
         #[must_use]
         pub fn into(self) -> Peer {
             self.peer
