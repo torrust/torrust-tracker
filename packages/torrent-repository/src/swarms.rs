@@ -248,6 +248,18 @@ impl Swarms {
         }
     }
 
+    /// Counts the number of inactive peers across all torrents.
+    pub async fn count_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> usize {
+        let mut inactive_peers_total = 0;
+
+        for swarm_handle in &self.swarms {
+            let swarm = swarm_handle.value().lock().await;
+            inactive_peers_total += swarm.count_inactive_peers(current_cutoff);
+        }
+
+        inactive_peers_total
+    }
+
     /// Removes inactive peers from all torrent entries.
     ///
     /// A peer is considered inactive if its last update timestamp is older than
@@ -703,6 +715,22 @@ mod tests {
                 let _unused = swarms.remove(&info_hash).await;
 
                 assert!(swarms.get(&info_hash).is_none());
+            }
+
+            #[tokio::test]
+            async fn it_should_count_inactive_peers() {
+                let swarms = Arc::new(Swarms::default());
+
+                let info_hash = sample_info_hash();
+                let mut peer = sample_peer();
+                peer.updated = DurationSinceUnixEpoch::new(0, 0);
+
+                swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+
+                // Cut off time is 1 second after the peer was updated
+                let inactive_peers_total = swarms.count_inactive_peers(peer.updated.add(Duration::from_secs(1))).await;
+
+                assert_eq!(inactive_peers_total, 1);
             }
 
             #[tokio::test]

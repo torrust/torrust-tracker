@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_configuration::Core;
+use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::repository::in_memory::InMemoryTorrentRepository;
 use super::repository::persisted::DatabasePersistentTorrentRepository;
@@ -103,10 +104,13 @@ impl TorrentsManager {
     }
 
     async fn remove_inactive_peers(&self) {
-        let current_cutoff = CurrentClock::now_sub(&Duration::from_secs(u64::from(self.config.tracker_policy.max_peer_timeout)))
-            .unwrap_or_default();
+        self.in_memory_torrent_repository
+            .remove_inactive_peers(self.current_cutoff())
+            .await;
+    }
 
-        self.in_memory_torrent_repository.remove_inactive_peers(current_cutoff).await;
+    fn current_cutoff(&self) -> DurationSinceUnixEpoch {
+        CurrentClock::now_sub(&Duration::from_secs(u64::from(self.config.tracker_policy.max_peer_timeout))).unwrap_or_default()
     }
 
     async fn remove_peerless_torrents(&self) {

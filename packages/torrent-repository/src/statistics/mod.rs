@@ -1,5 +1,6 @@
 pub mod event;
 pub mod metrics;
+pub mod peers_inactivity_update;
 pub mod repository;
 
 use metrics::Metrics;
@@ -23,6 +24,7 @@ const TORRENT_REPOSITORY_PEERS_UPDATED_TOTAL: &str = "torrent_repository_peers_u
 
 const TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL: &str = "torrent_repository_peer_connections_total";
 const TORRENT_REPOSITORY_UNIQUE_PEERS_TOTAL: &str = "torrent_repository_unique_peers_total"; // todo: not implemented yet
+const TORRENT_REPOSITORY_PEERS_INACTIVE_TOTAL: &str = "torrent_repository_peers_inactive_total";
 
 #[must_use]
 pub fn describe_metrics() -> Metrics {
@@ -86,6 +88,12 @@ pub fn describe_metrics() -> Metrics {
         &metric_name!(TORRENT_REPOSITORY_UNIQUE_PEERS_TOTAL),
         Some(Unit::Count),
         Some(&MetricDescription::new("The total number of unique peers.")),
+    );
+
+    metrics.metric_collection.describe_gauge(
+        &metric_name!(TORRENT_REPOSITORY_PEERS_INACTIVE_TOTAL),
+        Some(Unit::Count),
+        Some(&MetricDescription::new("The total number of inactive peers.")),
     );
 
     metrics

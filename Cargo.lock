@@ -4832,6 +4832,7 @@ dependencies = [
  "aquatic_udp_protocol",
  "async-std",
  "bittorrent-primitives",
+ "chrono",
  "criterion",
  "crossbeam-skiplist",
  "futures",

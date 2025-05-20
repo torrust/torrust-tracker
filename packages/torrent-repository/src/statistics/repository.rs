@@ -60,6 +60,31 @@ impl Repository {
     /// # Errors
     ///
     /// This function will return an error if the metric collection fails to
+    /// set the gauge.
+    pub async fn set_gauge(
+        &self,
+        metric_name: &MetricName,
+        labels: &LabelSet,
+        value: f64,
+        now: DurationSinceUnixEpoch,
+    ) -> Result<(), Error> {
+        let mut stats_lock = self.stats.write().await;
+
+        let result = stats_lock.set_gauge(metric_name, labels, value, now);
+
+        drop(stats_lock);
+
+        match result {
+            Ok(()) => {}
+            Err(ref err) => tracing::error!("Failed to set the gauge: {}", err),
+        }
+
+        result
+    }
+
+    /// # Errors
+    ///
+    /// This function will return an error if the metric collection fails to
     /// increment the gauge.
     pub async fn increment_gauge(
         &self,
