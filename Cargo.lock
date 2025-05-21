@@ -676,6 +676,7 @@ dependencies = [
  "torrust-rest-tracker-api-client",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
+ "torrust-tracker-events",
  "torrust-tracker-located-error",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",

@@ -1,0 +1,21 @@
+use std::sync::Arc;
+
+use tokio::task::JoinHandle;
+use torrust_tracker_configuration::Configuration;
+
+use crate::container::AppContainer;
+
+pub fn start_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) -> Option<JoinHandle<()>> {
+    // todo: enable this when labeled metrics are implemented.
+    //if config.core.tracker_usage_statistics || config.core.tracker_policy.persistent_torrent_completed_stat {
+    if config.core.tracker_policy.persistent_torrent_completed_stat {
+        let job = bittorrent_tracker_core::statistics::event::listener::run_event_listener(
+            app_container.torrent_repository_container.event_bus.receiver(),
+        );
+
+        Some(job)
+    } else {
+        tracing::info!("Tracker core event listener job is disabled.");
+        None
+    }
+}

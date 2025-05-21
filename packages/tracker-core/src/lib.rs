@@ -124,6 +124,7 @@ pub mod container;
 pub mod databases;
 pub mod error;
 pub mod scrape_handler;
+pub mod statistics;
 pub mod torrent;
 pub mod whitelist;
 
@@ -155,6 +156,8 @@ pub(crate) type CurrentClock = clock::Working;
 #[cfg(test)]
 #[allow(dead_code)]
 pub(crate) type CurrentClock = clock::Stopped;
+
+pub const TRACKER_CORE_LOG_TARGET: &str = "TRACKER_CORE";
 
 #[cfg(test)]
 mod tests {
