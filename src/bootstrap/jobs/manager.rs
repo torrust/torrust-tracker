@@ -36,6 +36,12 @@ impl JobManager {
         self.jobs.push(Job::new(name, handle));
     }
 
+    pub fn push_opt<N: Into<String>>(&mut self, name: N, handle: Option<JoinHandle<()>>) {
+        if let Some(handle) = handle {
+            self.push(name, handle);
+        }
+    }
+
     /// Waits sequentially for all jobs to complete, with a graceful timeout per
     /// job.
     pub async fn wait_for_all(mut self, grace_period: Duration) {
