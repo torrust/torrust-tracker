@@ -163,6 +163,11 @@ impl AnnounceHandler {
     ) -> Result<AnnounceData, AnnounceError> {
         self.whitelist_authorization.authorize(info_hash).await?;
 
+        // This will be removed in the future.
+        // See https://github.com/torrust/torrust-tracker/issues/1502
+        // There will be a persisted metric for counting the total number of
+        // downloads across all torrents. The in-memory metric will count only
+        // the number of downloads during the current tracker uptime.
         let opt_persistent_torrent = if self.config.tracker_policy.persistent_torrent_completed_stat {
             self.db_torrent_repository.load(info_hash)?
         } else {
@@ -171,14 +176,10 @@ impl AnnounceHandler {
 
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
 
-        let number_of_downloads_increased = self
+        let _number_of_downloads_increased = self
             .in_memory_torrent_repository
             .upsert_peer(info_hash, peer, opt_persistent_torrent)
             .await;
-
-        if self.config.tracker_policy.persistent_torrent_completed_stat && number_of_downloads_increased {
-            self.db_torrent_repository.increase_number_of_downloads(info_hash)?;
-        }
 
         Ok(self.build_announce_data(info_hash, peer, peers_wanted).await)
     }

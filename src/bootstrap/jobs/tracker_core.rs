@@ -11,6 +11,7 @@ pub fn start_event_listener(config: &Configuration, app_container: &Arc<AppConta
     if config.core.tracker_policy.persistent_torrent_completed_stat {
         let job = bittorrent_tracker_core::statistics::event::listener::run_event_listener(
             app_container.torrent_repository_container.event_bus.receiver(),
+            &app_container.tracker_core_container.db_torrent_repository,
         );
 
         Some(job)
