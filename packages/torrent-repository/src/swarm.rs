@@ -127,6 +127,17 @@ impl Swarm {
     }
 
     #[must_use]
+    pub fn get_activity_metadata(&self, current_cutoff: DurationSinceUnixEpoch) -> ActivityMetadata {
+        let inactive_peers_total = self.count_inactive_peers(current_cutoff);
+
+        let active_peers_total = self.len() - inactive_peers_total;
+
+        let is_active = active_peers_total > 0;
+
+        ActivityMetadata::new(is_active, active_peers_total, inactive_peers_total)
+    }
+
+    #[must_use]
     pub fn len(&self) -> usize {
         self.peers.len()
     }
@@ -292,6 +303,30 @@ impl Swarm {
                     peer: *new_announce.clone(),
                 })
                 .await;
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct ActivityMetadata {
+    /// Indicates if the swarm is active. It's inactive if there are no active
+    /// peers.
+    pub is_active: bool,
+
+    /// The number of active peers in the swarm.
+    pub active_peers_total: usize,
+
+    /// The number of inactive peers in the swarm.
+    pub inactive_peers_total: usize,
+}
+
+impl ActivityMetadata {
+    #[must_use]
+    pub fn new(is_active: bool, active_peers_total: usize, inactive_peers_total: usize) -> Self {
+        Self {
+            is_active,
+            active_peers_total,
+            inactive_peers_total,
         }
     }
 }

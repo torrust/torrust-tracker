@@ -248,6 +248,32 @@ impl Swarms {
         }
     }
 
+    pub async fn get_activity_metadata(&self, current_cutoff: DurationSinceUnixEpoch) -> AggregateActivityMetadata {
+        let mut active_peers_total = 0;
+        let mut inactive_peers_total = 0;
+        let mut active_torrents_total = 0;
+
+        for swarm_handle in &self.swarms {
+            let swarm = swarm_handle.value().lock().await;
+
+            let activity_metadata = swarm.get_activity_metadata(current_cutoff);
+
+            if activity_metadata.is_active {
+                active_torrents_total += 1;
+            }
+
+            active_peers_total += activity_metadata.active_peers_total;
+            inactive_peers_total += activity_metadata.inactive_peers_total;
+        }
+
+        AggregateActivityMetadata {
+            active_peers_total,
+            inactive_peers_total,
+            active_torrents_total,
+            inactive_torrents_total: self.len() - active_torrents_total,
+        }
+    }
+
     /// Counts the number of inactive peers across all torrents.
     pub async fn count_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> usize {
         let mut inactive_peers_total = 0;
@@ -446,6 +472,31 @@ impl Swarms {
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {}
 
+#[derive(Clone, Debug, Default)]
+pub struct AggregateActivityMetadata {
+    /// The number of active peers in all swarms.
+    pub active_peers_total: usize,
+
+    /// The number of inactive peers in all swarms.
+    pub inactive_peers_total: usize,
+
+    /// The number of active torrents.
+    pub active_torrents_total: usize,
+
+    /// The number of inactive torrents.
+    pub inactive_torrents_total: usize,
+}
+
+impl AggregateActivityMetadata {
+    pub fn log(&self) {
+        tracing::info!(
+            active_peers_total = self.active_peers_total,
+            inactive_peers_total = self.inactive_peers_total,
+            active_torrents_total = self.active_torrents_total,
+            inactive_torrents_total = self.inactive_torrents_total
+        );
+    }
+}
 #[cfg(test)]
 mod tests {
 

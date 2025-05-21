@@ -1,4 +1,4 @@
-//! Job that runs a task on intervals to update peers' inactivity metrics.
+//! Job that runs a task on intervals to update peers' activity metrics.
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -11,7 +11,7 @@ use crate::CurrentClock;
 
 #[must_use]
 pub fn start_job(config: &Configuration, app_container: &Arc<AppContainer>) -> JoinHandle<()> {
-    torrust_tracker_torrent_repository::statistics::peers_inactivity_update::start_job(
+    torrust_tracker_torrent_repository::statistics::activity_metrics_updater::start_job(
         &app_container.torrent_repository_container.swarms.clone(),
         &app_container.torrent_repository_container.stats_repository.clone(),
         peer_inactivity_cutoff_timestamp(config.core.tracker_policy.max_peer_timeout),

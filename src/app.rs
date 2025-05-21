@@ -28,7 +28,7 @@ use tracing::instrument;
 
 use crate::bootstrap::jobs::manager::JobManager;
 use crate::bootstrap::jobs::{
-    self, health_check_api, http_tracker, peers_inactivity_update, torrent_cleanup, tracker_apis, udp_tracker,
+    self, activity_metrics_updater, health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker,
 };
 use crate::bootstrap::{self};
 use crate::container::AppContainer;
@@ -267,7 +267,7 @@ fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContaine
 
 fn start_peers_inactivity_update(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if config.core.tracker_usage_statistics {
-        let handle = peers_inactivity_update::start_job(config, app_container);
+        let handle = activity_metrics_updater::start_job(config, app_container);
 
         job_manager.push("peers_inactivity_update", handle);
     } else {
