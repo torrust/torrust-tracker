@@ -119,6 +119,25 @@ impl Swarm {
     }
 
     #[must_use]
+    pub fn count_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> usize {
+        self.peers
+            .iter()
+            .filter(|(_, peer)| peer::ReadInfo::get_updated(&**peer) <= current_cutoff)
+            .count()
+    }
+
+    #[must_use]
+    pub fn get_activity_metadata(&self, current_cutoff: DurationSinceUnixEpoch) -> ActivityMetadata {
+        let inactive_peers_total = self.count_inactive_peers(current_cutoff);
+
+        let active_peers_total = self.len() - inactive_peers_total;
+
+        let is_active = active_peers_total > 0;
+
+        ActivityMetadata::new(is_active, active_peers_total, inactive_peers_total)
+    }
+
+    #[must_use]
     pub fn len(&self) -> usize {
         self.peers.len()
     }
@@ -288,6 +307,30 @@ impl Swarm {
     }
 }
 
+#[derive(Clone)]
+pub struct ActivityMetadata {
+    /// Indicates if the swarm is active. It's inactive if there are no active
+    /// peers.
+    pub is_active: bool,
+
+    /// The number of active peers in the swarm.
+    pub active_peers_total: usize,
+
+    /// The number of inactive peers in the swarm.
+    pub inactive_peers_total: usize,
+}
+
+impl ActivityMetadata {
+    #[must_use]
+    pub fn new(is_active: bool, active_peers_total: usize, inactive_peers_total: usize) -> Self {
+        Self {
+            is_active,
+            active_peers_total,
+            inactive_peers_total,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -433,6 +476,22 @@ mod tests {
         swarm.upsert_peer(peer2.into(), &mut downloads_increased).await;
 
         assert_eq!(swarm.peers_excluding(&peer2.peer_addr, None), [Arc::new(peer1)]);
+    }
+
+    #[tokio::test]
+    async fn it_should_count_inactive_peers() {
+        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut downloads_increased = false;
+        let one_second = DurationSinceUnixEpoch::new(1, 0);
+
+        // Insert the peer
+        let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
+        let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
+        swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+
+        let inactive_peers_total = swarm.count_inactive_peers(last_update_time + one_second);
+
+        assert_eq!(inactive_peers_total, 1);
     }
 
     #[tokio::test]

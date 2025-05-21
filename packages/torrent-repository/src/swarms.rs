@@ -248,6 +248,44 @@ impl Swarms {
         }
     }
 
+    pub async fn get_activity_metadata(&self, current_cutoff: DurationSinceUnixEpoch) -> AggregateActivityMetadata {
+        let mut active_peers_total = 0;
+        let mut inactive_peers_total = 0;
+        let mut active_torrents_total = 0;
+
+        for swarm_handle in &self.swarms {
+            let swarm = swarm_handle.value().lock().await;
+
+            let activity_metadata = swarm.get_activity_metadata(current_cutoff);
+
+            if activity_metadata.is_active {
+                active_torrents_total += 1;
+            }
+
+            active_peers_total += activity_metadata.active_peers_total;
+            inactive_peers_total += activity_metadata.inactive_peers_total;
+        }
+
+        AggregateActivityMetadata {
+            active_peers_total,
+            inactive_peers_total,
+            active_torrents_total,
+            inactive_torrents_total: self.len() - active_torrents_total,
+        }
+    }
+
+    /// Counts the number of inactive peers across all torrents.
+    pub async fn count_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> usize {
+        let mut inactive_peers_total = 0;
+
+        for swarm_handle in &self.swarms {
+            let swarm = swarm_handle.value().lock().await;
+            inactive_peers_total += swarm.count_inactive_peers(current_cutoff);
+        }
+
+        inactive_peers_total
+    }
+
     /// Removes inactive peers from all torrent entries.
     ///
     /// A peer is considered inactive if its last update timestamp is older than
@@ -434,6 +472,31 @@ impl Swarms {
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum Error {}
 
+#[derive(Clone, Debug, Default)]
+pub struct AggregateActivityMetadata {
+    /// The number of active peers in all swarms.
+    pub active_peers_total: usize,
+
+    /// The number of inactive peers in all swarms.
+    pub inactive_peers_total: usize,
+
+    /// The number of active torrents.
+    pub active_torrents_total: usize,
+
+    /// The number of inactive torrents.
+    pub inactive_torrents_total: usize,
+}
+
+impl AggregateActivityMetadata {
+    pub fn log(&self) {
+        tracing::info!(
+            active_peers_total = self.active_peers_total,
+            inactive_peers_total = self.inactive_peers_total,
+            active_torrents_total = self.active_torrents_total,
+            inactive_torrents_total = self.inactive_torrents_total
+        );
+    }
+}
 #[cfg(test)]
 mod tests {
 
@@ -703,6 +766,22 @@ mod tests {
                 let _unused = swarms.remove(&info_hash).await;
 
                 assert!(swarms.get(&info_hash).is_none());
+            }
+
+            #[tokio::test]
+            async fn it_should_count_inactive_peers() {
+                let swarms = Arc::new(Swarms::default());
+
+                let info_hash = sample_info_hash();
+                let mut peer = sample_peer();
+                peer.updated = DurationSinceUnixEpoch::new(0, 0);
+
+                swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
+
+                // Cut off time is 1 second after the peer was updated
+                let inactive_peers_total = swarms.count_inactive_peers(peer.updated.add(Duration::from_secs(1))).await;
+
+                assert_eq!(inactive_peers_total, 1);
             }
 
             #[tokio::test]

@@ -27,7 +27,9 @@ use torrust_tracker_configuration::{Configuration, HttpTracker, UdpTracker};
 use tracing::instrument;
 
 use crate::bootstrap::jobs::manager::JobManager;
-use crate::bootstrap::jobs::{self, health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker};
+use crate::bootstrap::jobs::{
+    self, activity_metrics_updater, health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker,
+};
 use crate::bootstrap::{self};
 use crate::container::AppContainer;
 
@@ -79,8 +81,11 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
 
     start_the_udp_instances(config, app_container, &mut job_manager).await;
     start_the_http_instances(config, app_container, &mut job_manager).await;
-    start_the_http_api(config, app_container, &mut job_manager).await;
+
     start_torrent_cleanup(config, app_container, &mut job_manager);
+    start_peers_inactivity_update(config, app_container, &mut job_manager);
+
+    start_the_http_api(config, app_container, &mut job_manager).await;
     start_health_check_api(config, app_container, &mut job_manager).await;
 
     job_manager
@@ -257,6 +262,16 @@ fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContaine
         let handle = torrent_cleanup::start_job(&config.core, &app_container.tracker_core_container.torrents_manager);
 
         job_manager.push("torrent_cleanup", handle);
+    }
+}
+
+fn start_peers_inactivity_update(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+    if config.core.tracker_usage_statistics {
+        let handle = activity_metrics_updater::start_job(config, app_container);
+
+        job_manager.push("peers_inactivity_update", handle);
+    } else {
+        tracing::info!("Peers inactivity update job is disabled.");
     }
 }
 
