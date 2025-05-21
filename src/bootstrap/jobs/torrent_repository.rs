@@ -14,7 +14,7 @@ pub fn start_event_listener(config: &Configuration, app_container: &Arc<AppConta
 
         Some(job)
     } else {
-        tracing::info!("HTTP tracker core event listener job is disabled.");
+        tracing::info!("Torrent repository package event listener job is disabled.");
         None
     }
 }
