@@ -29,7 +29,7 @@ impl<S> Environment<S> {
         self.container
             .tracker_core_container
             .in_memory_torrent_repository
-            .upsert_peer(info_hash, peer, None)
+            .handle_announcement(info_hash, peer, None)
             .await
     }
 }

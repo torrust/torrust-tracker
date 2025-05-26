@@ -78,7 +78,7 @@ impl AnnounceService {
 
         let announce_data = self
             .announce_handler
-            .announce(&info_hash, &mut peer, &remote_client_ip, &peers_wanted)
+            .handle_announcement(&info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
         self.send_event(info_hash, peer, client_socket_addr, server_service_binding)

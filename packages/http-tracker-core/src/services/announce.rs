@@ -87,7 +87,7 @@ impl AnnounceService {
 
         let announce_data = self
             .announce_handler
-            .announce(
+            .handle_announcement(
                 &announce_request.info_hash,
                 &mut peer,
                 &remote_client_addr.ip(),

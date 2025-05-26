@@ -154,7 +154,7 @@ impl AnnounceHandler {
     ///
     /// Returns an error if the tracker is running in `listed` mode and the
     /// torrent is not whitelisted.
-    pub async fn announce(
+    pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
         peer: &mut peer::Peer,
@@ -178,7 +178,7 @@ impl AnnounceHandler {
 
         let _number_of_downloads_increased = self
             .in_memory_torrent_repository
-            .upsert_peer(info_hash, peer, opt_persistent_torrent)
+            .handle_announcement(info_hash, peer, opt_persistent_torrent)
             .await;
 
         Ok(self.build_announce_data(info_hash, peer, peers_wanted).await)
@@ -456,7 +456,7 @@ mod tests {
                     let mut peer = sample_peer();
 
                     let announce_data = announce_handler
-                        .announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                        .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
                         .await
                         .unwrap();
 
@@ -469,7 +469,7 @@ mod tests {
 
                     let mut previously_announced_peer = sample_peer_1();
                     announce_handler
-                        .announce(
+                        .handle_announcement(
                             &sample_info_hash(),
                             &mut previously_announced_peer,
                             &peer_ip(),
@@ -480,7 +480,7 @@ mod tests {
 
                     let mut peer = sample_peer_2();
                     let announce_data = announce_handler
-                        .announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                        .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
                         .await
                         .unwrap();
 
@@ -493,7 +493,7 @@ mod tests {
 
                     let mut previously_announced_peer_1 = sample_peer_1();
                     announce_handler
-                        .announce(
+                        .handle_announcement(
                             &sample_info_hash(),
                             &mut previously_announced_peer_1,
                             &peer_ip(),
@@ -504,7 +504,7 @@ mod tests {
 
                     let mut previously_announced_peer_2 = sample_peer_2();
                     announce_handler
-                        .announce(
+                        .handle_announcement(
                             &sample_info_hash(),
                             &mut previously_announced_peer_2,
                             &peer_ip(),
@@ -515,7 +515,7 @@ mod tests {
 
                     let mut peer = sample_peer_3();
                     let announce_data = announce_handler
-                        .announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::only(1))
+                        .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::only(1))
                         .await
                         .unwrap();
 
@@ -540,7 +540,7 @@ mod tests {
                         let mut peer = seeder();
 
                         let announce_data = announce_handler
-                            .announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                            .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
                             .await
                             .unwrap();
 
@@ -554,7 +554,7 @@ mod tests {
                         let mut peer = leecher();
 
                         let announce_data = announce_handler
-                            .announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                            .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
                             .await
                             .unwrap();
 
@@ -568,7 +568,7 @@ mod tests {
                         // We have to announce with "started" event because peer does not count if peer was not previously known
                         let mut started_peer = started_peer();
                         announce_handler
-                            .announce(
+                            .handle_announcement(
                                 &sample_info_hash(),
                                 &mut started_peer,
                                 &peer_ip(),
@@ -579,7 +579,7 @@ mod tests {
 
                         let mut completed_peer = completed_peer();
                         let announce_data = announce_handler
-                            .announce(
+                            .handle_announcement(
                                 &sample_info_hash(),
                                 &mut completed_peer,
                                 &peer_ip(),

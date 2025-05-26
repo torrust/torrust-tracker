@@ -77,7 +77,7 @@ impl TestEnv {
         let announce_data = self
             .tracker_core_container
             .announce_handler
-            .announce(info_hash, &mut peer, remote_client_ip, &PeersWanted::AsManyAsPossible)
+            .handle_announcement(info_hash, &mut peer, remote_client_ip, &PeersWanted::AsManyAsPossible)
             .await
             .unwrap();
 
@@ -98,7 +98,7 @@ impl TestEnv {
         let announce_data = self
             .tracker_core_container
             .announce_handler
-            .announce(info_hash, &mut peer, remote_client_ip, &PeersWanted::AsManyAsPossible)
+            .handle_announcement(info_hash, &mut peer, remote_client_ip, &PeersWanted::AsManyAsPossible)
             .await
             .unwrap();
 
@@ -111,7 +111,7 @@ impl TestEnv {
     pub async fn scrape(&self, info_hash: &InfoHash) -> ScrapeData {
         self.tracker_core_container
             .scrape_handler
-            .scrape(&vec![*info_hash])
+            .handle_scrape(&vec![*info_hash])
             .await
             .unwrap()
     }

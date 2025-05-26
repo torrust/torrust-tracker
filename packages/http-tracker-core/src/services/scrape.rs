@@ -78,7 +78,7 @@ impl ScrapeService {
         let scrape_data = if self.authentication_is_required() && !self.is_authenticated(maybe_key).await {
             ScrapeData::zeroed(&scrape_request.info_hashes)
         } else {
-            self.scrape_handler.scrape(&scrape_request.info_hashes).await?
+            self.scrape_handler.handle_scrape(&scrape_request.info_hashes).await?
         };
 
         let remote_client_addr = resolve_remote_client_addr(&self.core_config.net.on_reverse_proxy.into(), client_ip_sources)?;
@@ -291,7 +291,7 @@ mod tests {
             let original_peer_ip = peer.ip();
             container
                 .announce_handler
-                .announce(&info_hash, &mut peer, &original_peer_ip, &PeersWanted::AsManyAsPossible)
+                .handle_announcement(&info_hash, &mut peer, &original_peer_ip, &PeersWanted::AsManyAsPossible)
                 .await
                 .unwrap();
 
@@ -482,7 +482,7 @@ mod tests {
             let original_peer_ip = peer.ip();
             container
                 .announce_handler
-                .announce(&info_hash, &mut peer, &original_peer_ip, &PeersWanted::AsManyAsPossible)
+                .handle_announcement(&info_hash, &mut peer, &original_peer_ip, &PeersWanted::AsManyAsPossible)
                 .await
                 .unwrap();
 

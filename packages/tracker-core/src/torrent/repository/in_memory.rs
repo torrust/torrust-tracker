@@ -49,7 +49,7 @@ impl InMemoryTorrentRepository {
     ///
     /// This function panics if the underling swarms return an error.
     #[must_use]
-    pub async fn upsert_peer(
+    pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,

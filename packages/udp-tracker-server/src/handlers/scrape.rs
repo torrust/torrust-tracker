@@ -166,7 +166,7 @@ mod tests {
                 .into();
 
             let _number_of_downloads_increased = in_memory_torrent_repository
-                .upsert_peer(&info_hash.0.into(), &peer, None)
+                .handle_announcement(&info_hash.0.into(), &peer, None)
                 .await;
         }
 
