@@ -53,16 +53,16 @@ pub type BaseTenASCII = u64;
 pub type PortNumber = u16;
 
 pub enum Event {
-    //Started,
-    //Stopped,
+    Started,
+    Stopped,
     Completed,
 }
 
 impl fmt::Display for Event {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            //Event::Started => write!(f, "started"),
-            //Event::Stopped => write!(f, "stopped"),
+            Event::Started => write!(f, "started"),
+            Event::Stopped => write!(f, "stopped"),
             Event::Completed => write!(f, "completed"),
         }
     }

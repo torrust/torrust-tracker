@@ -6,26 +6,33 @@ use torrust_tracker_events::receiver::RecvError;
 use torrust_tracker_torrent_repository::event::receiver::Receiver;
 
 use super::handler::handle_event;
+use crate::statistics::repository::Repository;
 use crate::torrent::repository::persisted::DatabasePersistentTorrentRepository;
 use crate::{CurrentClock, TRACKER_CORE_LOG_TARGET};
 
 #[must_use]
 pub fn run_event_listener(
     receiver: Receiver,
+    repository: &Arc<Repository>,
     db_torrent_repository: &Arc<DatabasePersistentTorrentRepository>,
 ) -> JoinHandle<()> {
+    let stats_repository = repository.clone();
     let db_torrent_repository: Arc<DatabasePersistentTorrentRepository> = db_torrent_repository.clone();
 
     tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting torrent repository event listener");
 
     tokio::spawn(async move {
-        dispatch_events(receiver, db_torrent_repository).await;
+        dispatch_events(receiver, stats_repository, db_torrent_repository).await;
 
         tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Torrent repository listener finished");
     })
 }
 
-async fn dispatch_events(mut receiver: Receiver, db_torrent_repository: Arc<DatabasePersistentTorrentRepository>) {
+async fn dispatch_events(
+    mut receiver: Receiver,
+    stats_repository: Arc<Repository>,
+    db_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
+) {
     let shutdown_signal = tokio::signal::ctrl_c();
 
     tokio::pin!(shutdown_signal);
@@ -41,7 +48,7 @@ async fn dispatch_events(mut receiver: Receiver, db_torrent_repository: Arc<Data
 
             result = receiver.recv() => {
                 match result {
-                    Ok(event) => handle_event(event, &db_torrent_repository, CurrentClock::now()).await,
+                    Ok(event) => handle_event(event, &stats_repository, &db_torrent_repository, CurrentClock::now()).await,
                     Err(e) => {
                         match e {
                             RecvError::Closed => {

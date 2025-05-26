@@ -56,6 +56,7 @@ impl TestEnv {
 
         let job = bittorrent_tracker_core::statistics::event::listener::run_event_listener(
             self.torrent_repository_container.event_bus.receiver(),
+            &self.tracker_core_container.stats_repository,
             &self.tracker_core_container.db_torrent_repository,
         );
 

@@ -94,6 +94,7 @@ pub async fn get_labeled_metrics(
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     ban_service: Arc<RwLock<BanService>>,
     swarms_stats_repository: Arc<torrust_tracker_torrent_repository::statistics::repository::Repository>,
+    tracker_core_stats_repository: Arc<bittorrent_tracker_core::statistics::repository::Repository>,
     http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
     udp_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
     udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
@@ -102,6 +103,7 @@ pub async fn get_labeled_metrics(
     let _udp_banned_ips_total = ban_service.read().await.get_banned_ips_total();
 
     let swarms_stats = swarms_stats_repository.get_metrics().await;
+    let tracker_core_stats = tracker_core_stats_repository.get_metrics().await;
     let http_stats = http_stats_repository.get_stats().await;
     let udp_stats_repository = udp_stats_repository.get_stats().await;
     let udp_server_stats = udp_server_stats_repository.get_stats().await;
@@ -112,6 +114,9 @@ pub async fn get_labeled_metrics(
     metrics
         .merge(&swarms_stats.metric_collection)
         .expect("msg: failed to merge torrent repository metrics");
+    metrics
+        .merge(&tracker_core_stats.metric_collection)
+        .expect("msg: failed to merge tracker core metrics");
     metrics
         .merge(&http_stats.metric_collection)
         .expect("msg: failed to merge HTTP core metrics");
