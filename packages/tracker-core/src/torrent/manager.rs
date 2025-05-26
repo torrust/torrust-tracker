@@ -74,6 +74,8 @@ impl TorrentsManager {
     pub fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.db_torrent_repository.load_all()?;
 
+        println!("Loaded {} persistent torrents from the database", persistent_torrents.len());
+
         self.in_memory_torrent_repository.import_persistent(&persistent_torrents);
 
         Ok(())
