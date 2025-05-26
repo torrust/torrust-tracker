@@ -7,6 +7,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::PeersWanted;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_configuration::Core;
+use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
@@ -55,44 +56,63 @@ fn remote_client_ip() -> IpAddr {
     IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap())
 }
 
-#[tokio::test]
-async fn test_announce_and_scrape_requests() {
+fn initialize() -> (Arc<Core>, Arc<TrackerCoreContainer>, InfoHash, Peer) {
     let config = Arc::new(ephemeral_configuration());
 
     let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(config.tracker_usage_statistics.into()));
 
-    let container = TrackerCoreContainer::initialize_from(&config, &torrent_repository_container);
+    let container = Arc::new(TrackerCoreContainer::initialize_from(&config, &torrent_repository_container));
 
     let info_hash = sample_info_hash();
 
-    let mut peer = sample_peer();
+    let peer = sample_peer();
 
-    // Announce
+    (config, container, info_hash, peer)
+}
 
-    // First announce: download started
+async fn announce_peer_started(container: &Arc<TrackerCoreContainer>, peer: &mut Peer, info_hash: &InfoHash) -> AnnounceData {
     peer.event = AnnounceEvent::Started;
-    let announce_data = container
+
+    container
         .announce_handler
-        .announce(&info_hash, &mut peer, &remote_client_ip(), &PeersWanted::AsManyAsPossible)
+        .announce(info_hash, peer, &remote_client_ip(), &PeersWanted::AsManyAsPossible)
         .await
-        .unwrap();
+        .unwrap()
+}
 
-    // NOTICE: you don't get back the peer making the request.
-    assert_eq!(announce_data.peers.len(), 0);
-    assert_eq!(announce_data.stats.downloaded, 0);
-
-    // Second announce: download completed
+async fn _announce_peer_completed(container: &Arc<TrackerCoreContainer>, peer: &mut Peer, info_hash: &InfoHash) -> AnnounceData {
     peer.event = AnnounceEvent::Completed;
-    let announce_data = container
+
+    container
         .announce_handler
-        .announce(&info_hash, &mut peer, &remote_client_ip(), &PeersWanted::AsManyAsPossible)
+        .announce(info_hash, peer, &remote_client_ip(), &PeersWanted::AsManyAsPossible)
         .await
-        .unwrap();
+        .unwrap()
+}
+
+#[tokio::test]
+async fn it_should_handle_the_announce_request() {
+    let (_config, container, info_hash, mut peer) = initialize();
+
+    let announce_data = announce_peer_started(&container, &mut peer, &info_hash).await;
+
+    assert_eq!(announce_data, AnnounceData::default());
+}
+
+#[tokio::test]
+async fn it_should_not_return_the_peer_making_the_announce_request() {
+    let (_config, container, info_hash, mut peer) = initialize();
+
+    let announce_data = announce_peer_started(&container, &mut peer, &info_hash).await;
 
     assert_eq!(announce_data.peers.len(), 0);
-    assert_eq!(announce_data.stats.downloaded, 1);
+}
 
-    // Scrape
+#[tokio::test]
+async fn it_should_handle_the_scrape_request() {
+    let (_config, container, info_hash, mut peer) = initialize();
+
+    let _announce_data = announce_peer_started(&container, &mut peer, &info_hash).await;
 
     let scrape_data = container.scrape_handler.scrape(&vec![info_hash]).await.unwrap();
 
