@@ -48,17 +48,16 @@ impl InMemoryTorrentRepository {
     /// # Panics
     ///
     /// This function panics if the underling swarms return an error.
-    #[must_use]
     pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
         opt_persistent_torrent: Option<PersistentTorrent>,
-    ) -> bool {
+    ) {
         self.swarms
             .handle_announcement(info_hash, peer, opt_persistent_torrent)
             .await
-            .expect("Failed to upsert the peer in swarms")
+            .expect("Failed to upsert the peer in swarms");
     }
 
     /// Removes inactive peers from all torrent entries.

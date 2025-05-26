@@ -35,8 +35,7 @@ where
     /// Add a torrent to the tracker
     #[allow(dead_code)]
     pub async fn add_torrent(&self, info_hash: &InfoHash, peer: &peer::Peer) {
-        let _number_of_downloads_increased = self
-            .container
+        self.container
             .tracker_core_container
             .in_memory_torrent_repository
             .handle_announcement(info_hash, peer, None)

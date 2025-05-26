@@ -176,8 +176,7 @@ impl AnnounceHandler {
 
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
 
-        let _number_of_downloads_increased = self
-            .in_memory_torrent_repository
+        self.in_memory_torrent_repository
             .handle_announcement(info_hash, peer, opt_persistent_torrent)
             .await;
 

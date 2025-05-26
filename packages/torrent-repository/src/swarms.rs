@@ -54,7 +54,7 @@ impl Swarms {
         info_hash: &InfoHash,
         peer: &peer::Peer,
         opt_persistent_torrent: Option<PersistentTorrent>,
-    ) -> Result<bool, Error> {
+    ) -> Result<(), Error> {
         let swarm_handle = match self.swarms.get(info_hash) {
             None => {
                 let number_of_downloads = opt_persistent_torrent.unwrap_or_default();
@@ -80,9 +80,9 @@ impl Swarms {
 
         let mut swarm = swarm_handle.value().lock().await;
 
-        let downloads_increased = swarm.handle_announcement(peer).await;
+        swarm.handle_announcement(peer).await;
 
-        Ok(downloads_increased)
+        Ok(())
     }
 
     /// Inserts a new swarm. Only used for testing purposes.

@@ -33,12 +33,12 @@ where
     S: std::fmt::Debug + std::fmt::Display,
 {
     /// Add a torrent to the tracker
-    pub async fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) -> bool {
+    pub async fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         self.container
             .tracker_core_container
             .in_memory_torrent_repository
             .handle_announcement(info_hash, peer, None)
-            .await
+            .await;
     }
 }
 

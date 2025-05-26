@@ -239,7 +239,7 @@ mod tests {
             // Add a peer to the torrent
             let mut peer = sample_peer();
             peer.updated = DurationSinceUnixEpoch::new(0, 0);
-            let _number_of_downloads_increased = services
+            services
                 .in_memory_torrent_repository
                 .handle_announcement(&infohash, &peer, None)
                 .await;
@@ -259,7 +259,7 @@ mod tests {
             // Add a peer to the torrent
             let mut peer = sample_peer();
             peer.updated = DurationSinceUnixEpoch::new(0, 0);
-            let _number_of_downloads_increased = in_memory_torrent_repository.handle_announcement(infohash, &peer, None).await;
+            in_memory_torrent_repository.handle_announcement(infohash, &peer, None).await;
 
             // Remove the peer. The torrent is now peerless.
             in_memory_torrent_repository
