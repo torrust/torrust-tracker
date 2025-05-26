@@ -14,6 +14,7 @@ pub mod manager;
 pub mod torrent_cleanup;
 pub mod torrent_repository;
 pub mod tracker_apis;
+pub mod tracker_core;
 pub mod udp_tracker;
 pub mod udp_tracker_core;
 pub mod udp_tracker_server;

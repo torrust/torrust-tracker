@@ -124,6 +124,7 @@ pub mod container;
 pub mod databases;
 pub mod error;
 pub mod scrape_handler;
+pub mod statistics;
 pub mod torrent;
 pub mod whitelist;
 
@@ -155,6 +156,8 @@ pub(crate) type CurrentClock = clock::Working;
 #[cfg(test)]
 #[allow(dead_code)]
 pub(crate) type CurrentClock = clock::Stopped;
+
+pub const TRACKER_CORE_LOG_TARGET: &str = "TRACKER_CORE";
 
 #[cfg(test)]
 mod tests {
@@ -200,7 +203,7 @@ mod tests {
                     // Announce a "complete" peer for the torrent
                     let mut complete_peer = complete_peer();
                     announce_handler
-                        .announce(
+                        .handle_announcement(
                             &info_hash,
                             &mut complete_peer,
                             &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 10)),
@@ -212,7 +215,7 @@ mod tests {
                     // Announce an "incomplete" peer for the torrent
                     let mut incomplete_peer = incomplete_peer();
                     announce_handler
-                        .announce(
+                        .handle_announcement(
                             &info_hash,
                             &mut incomplete_peer,
                             &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 11)),
@@ -222,7 +225,7 @@ mod tests {
                         .unwrap();
 
                     // Scrape
-                    let scrape_data = scrape_handler.scrape(&vec![info_hash]).await.unwrap();
+                    let scrape_data = scrape_handler.handle_scrape(&vec![info_hash]).await.unwrap();
 
                     // The expected swarm metadata for the torrent
                     let mut expected_scrape_data = ScrapeData::empty();
@@ -256,7 +259,7 @@ mod tests {
 
                     let non_whitelisted_info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(); // DevSkim: ignore DS173237
 
-                    let scrape_data = scrape_handler.scrape(&vec![non_whitelisted_info_hash]).await.unwrap();
+                    let scrape_data = scrape_handler.handle_scrape(&vec![non_whitelisted_info_hash]).await.unwrap();
 
                     // The expected zeroed swarm metadata for the file
                     let mut expected_scrape_data = ScrapeData::empty();

@@ -369,8 +369,8 @@ mod tests {
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
-                let _number_of_downloads_increased = in_memory_torrent_repository
-                    .upsert_peer(&info_hash.0.into(), &peer_using_ipv6, None)
+                in_memory_torrent_repository
+                    .handle_announcement(&info_hash.0.into(), &peer_using_ipv6, None)
                     .await;
             }
 
@@ -713,8 +713,8 @@ mod tests {
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 
-                let _number_of_downloads_increased = in_memory_torrent_repository
-                    .upsert_peer(&info_hash.0.into(), &peer_using_ipv4, None)
+                in_memory_torrent_repository
+                    .handle_announcement(&info_hash.0.into(), &peer_using_ipv4, None)
                     .await;
             }
 

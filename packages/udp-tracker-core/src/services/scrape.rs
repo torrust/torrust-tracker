@@ -56,7 +56,7 @@ impl ScrapeService {
 
         let scrape_data = self
             .scrape_handler
-            .scrape(&Self::convert_from_aquatic(&request.info_hashes))
+            .handle_scrape(&Self::convert_from_aquatic(&request.info_hashes))
             .await?;
 
         self.send_event(client_socket_addr, server_service_binding).await;

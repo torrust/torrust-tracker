@@ -33,17 +33,13 @@ impl Swarm {
         }
     }
 
-    pub async fn handle_announcement(&mut self, incoming_announce: &PeerAnnouncement) -> bool {
-        let mut downloads_increased: bool = false;
-
+    pub async fn handle_announcement(&mut self, incoming_announce: &PeerAnnouncement) {
         let _previous_peer = match peer::ReadInfo::get_event(incoming_announce) {
             AnnounceEvent::Started | AnnounceEvent::None | AnnounceEvent::Completed => {
-                self.upsert_peer(Arc::new(*incoming_announce), &mut downloads_increased).await
+                self.upsert_peer(Arc::new(*incoming_announce)).await
             }
             AnnounceEvent::Stopped => self.remove_peer(&incoming_announce.peer_addr).await,
         };
-
-        downloads_increased
     }
 
     pub async fn remove_inactive(&mut self, current_cutoff: DurationSinceUnixEpoch) -> usize {
@@ -159,26 +155,20 @@ impl Swarm {
         !self.should_be_removed(policy)
     }
 
-    async fn upsert_peer(
-        &mut self,
-        incoming_announce: Arc<PeerAnnouncement>,
-        downloads_increased: &mut bool,
-    ) -> Option<Arc<Peer>> {
+    async fn upsert_peer(&mut self, incoming_announce: Arc<PeerAnnouncement>) -> Option<Arc<Peer>> {
         let announcement = incoming_announce.clone();
 
         if let Some(previous_announce) = self.peers.insert(incoming_announce.peer_addr, incoming_announce) {
-            *downloads_increased = self.update_metadata_on_update(&previous_announce, &announcement);
+            let downloads_increased = self.update_metadata_on_update(&previous_announce, &announcement);
 
             self.trigger_peer_updated_event(&previous_announce, &announcement).await;
 
-            if *downloads_increased {
+            if downloads_increased {
                 self.trigger_peer_download_completed_event(&announcement).await;
             }
 
             Some(previous_announce)
         } else {
-            *downloads_increased = false;
-
             self.update_metadata_on_insert(&announcement);
 
             self.trigger_peer_added_event(&announcement).await;
@@ -362,36 +352,30 @@ mod tests {
     #[tokio::test]
     async fn it_should_allow_inserting_a_new_peer() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        assert_eq!(swarm.upsert_peer(peer.into(), &mut downloads_increased).await, None);
+        assert_eq!(swarm.upsert_peer(peer.into()).await, None);
     }
 
     #[tokio::test]
     async fn it_should_allow_updating_a_preexisting_peer() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer.into()).await;
 
-        assert_eq!(
-            swarm.upsert_peer(peer.into(), &mut downloads_increased).await,
-            Some(Arc::new(peer))
-        );
+        assert_eq!(swarm.upsert_peer(peer.into()).await, Some(Arc::new(peer)));
     }
 
     #[tokio::test]
     async fn it_should_allow_getting_all_peers() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer.into()).await;
 
         assert_eq!(swarm.peers(None), [Arc::new(peer)]);
     }
@@ -399,11 +383,10 @@ mod tests {
     #[tokio::test]
     async fn it_should_allow_getting_one_peer_by_id() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer.into()).await;
 
         assert_eq!(swarm.get(&peer.peer_addr), Some(Arc::new(peer)).as_ref());
     }
@@ -411,11 +394,10 @@ mod tests {
     #[tokio::test]
     async fn it_should_increase_the_number_of_peers_after_inserting_a_new_one() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer.into()).await;
 
         assert_eq!(swarm.len(), 1);
     }
@@ -423,11 +405,10 @@ mod tests {
     #[tokio::test]
     async fn it_should_decrease_the_number_of_peers_after_removing_one() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer.into()).await;
 
         swarm.remove_peer(&peer.peer_addr).await;
 
@@ -437,11 +418,10 @@ mod tests {
     #[tokio::test]
     async fn it_should_allow_removing_an_existing_peer() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer.into()).await;
 
         let old = swarm.remove_peer(&peer.peer_addr).await;
 
@@ -461,19 +441,18 @@ mod tests {
     #[tokio::test]
     async fn it_should_allow_getting_all_peers_excluding_peers_with_a_given_address() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let peer1 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.upsert_peer(peer1.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer1.into()).await;
 
         let peer2 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000002"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
             .build();
-        swarm.upsert_peer(peer2.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer2.into()).await;
 
         assert_eq!(swarm.peers_excluding(&peer2.peer_addr, None), [Arc::new(peer1)]);
     }
@@ -481,13 +460,13 @@ mod tests {
     #[tokio::test]
     async fn it_should_count_inactive_peers() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
+
         let one_second = DurationSinceUnixEpoch::new(1, 0);
 
         // Insert the peer
         let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
         let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-        swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer.into()).await;
 
         let inactive_peers_total = swarm.count_inactive_peers(last_update_time + one_second);
 
@@ -497,13 +476,13 @@ mod tests {
     #[tokio::test]
     async fn it_should_remove_inactive_peers() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
+
         let one_second = DurationSinceUnixEpoch::new(1, 0);
 
         // Insert the peer
         let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
         let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-        swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer.into()).await;
 
         // Remove peers not updated since one second after inserting the peer
         swarm.remove_inactive(last_update_time + one_second).await;
@@ -514,13 +493,13 @@ mod tests {
     #[tokio::test]
     async fn it_should_not_remove_active_peers() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
+
         let one_second = DurationSinceUnixEpoch::new(1, 0);
 
         // Insert the peer
         let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
         let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-        swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer.into()).await;
 
         // Remove peers not updated since one second before inserting the peer.
         swarm.remove_inactive(last_update_time - one_second).await;
@@ -542,7 +521,7 @@ mod tests {
 
         async fn not_empty_swarm() -> Swarm {
             let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-            swarm.upsert_peer(PeerBuilder::default().build().into(), &mut false).await;
+            swarm.upsert_peer(PeerBuilder::default().build().into()).await;
             swarm
         }
 
@@ -550,13 +529,12 @@ mod tests {
             let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
 
             let mut peer = PeerBuilder::leecher().build();
-            let mut downloads_increased = false;
 
-            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+            swarm.upsert_peer(peer.into()).await;
 
             peer.event = aquatic_udp_protocol::AnnounceEvent::Completed;
 
-            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+            swarm.upsert_peer(peer.into()).await;
 
             assert!(swarm.metadata().downloads() > 0);
 
@@ -631,17 +609,16 @@ mod tests {
     #[tokio::test]
     async fn it_should_allow_inserting_two_identical_peers_except_for_the_socket_address() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let peer1 = PeerBuilder::default()
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.upsert_peer(peer1.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer1.into()).await;
 
         let peer2 = PeerBuilder::default()
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
             .build();
-        swarm.upsert_peer(peer2.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer2.into()).await;
 
         assert_eq!(swarm.len(), 2);
     }
@@ -649,7 +626,6 @@ mod tests {
     #[tokio::test]
     async fn it_should_not_allow_inserting_two_peers_with_different_peer_id_but_the_same_socket_address() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         // When that happens the peer ID will be changed in the swarm.
         // In practice, it's like if the peer had changed its ID.
@@ -658,13 +634,13 @@ mod tests {
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.upsert_peer(peer1.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer1.into()).await;
 
         let peer2 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000002"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
             .build();
-        swarm.upsert_peer(peer2.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(peer2.into()).await;
 
         assert_eq!(swarm.len(), 1);
     }
@@ -672,13 +648,12 @@ mod tests {
     #[tokio::test]
     async fn it_should_return_the_swarm_metadata() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.upsert_peer(seeder.into(), &mut downloads_increased).await;
-        swarm.upsert_peer(leecher.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(seeder.into()).await;
+        swarm.upsert_peer(leecher.into()).await;
 
         assert_eq!(
             swarm.metadata(),
@@ -693,13 +668,12 @@ mod tests {
     #[tokio::test]
     async fn it_should_return_the_number_of_seeders_in_the_list() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.upsert_peer(seeder.into(), &mut downloads_increased).await;
-        swarm.upsert_peer(leecher.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(seeder.into()).await;
+        swarm.upsert_peer(leecher.into()).await;
 
         let (seeders, _leechers) = swarm.seeders_and_leechers();
 
@@ -709,13 +683,12 @@ mod tests {
     #[tokio::test]
     async fn it_should_return_the_number_of_leechers_in_the_list() {
         let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-        let mut downloads_increased = false;
 
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.upsert_peer(seeder.into(), &mut downloads_increased).await;
-        swarm.upsert_peer(leecher.into(), &mut downloads_increased).await;
+        swarm.upsert_peer(seeder.into()).await;
+        swarm.upsert_peer(leecher.into()).await;
 
         let (_seeders, leechers) = swarm.seeders_and_leechers();
 
@@ -739,13 +712,12 @@ mod tests {
             #[tokio::test]
             async fn it_should_increase_the_number_of_leechers_if_the_new_peer_is_a_leecher_() {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let leechers = swarm.metadata().leechers();
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(leecher.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(leecher.into()).await;
 
                 assert_eq!(swarm.metadata().leechers(), leechers + 1);
             }
@@ -753,13 +725,12 @@ mod tests {
             #[tokio::test]
             async fn it_should_increase_the_number_of_seeders_if_the_new_peer_is_a_seeder() {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let seeders = swarm.metadata().seeders();
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert_peer(seeder.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(seeder.into()).await;
 
                 assert_eq!(swarm.metadata().seeders(), seeders + 1);
             }
@@ -768,13 +739,12 @@ mod tests {
             async fn it_should_not_increasing_the_number_of_downloads_if_the_new_peer_has_completed_downloading_as_it_was_not_previously_known(
             ) {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let downloads = swarm.metadata().downloads();
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert_peer(seeder.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(seeder.into()).await;
 
                 assert_eq!(swarm.metadata().downloads(), downloads);
             }
@@ -789,11 +759,10 @@ mod tests {
             #[tokio::test]
             async fn it_should_decrease_the_number_of_leechers_if_the_removed_peer_was_a_leecher() {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(leecher.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(leecher.into()).await;
 
                 let leechers = swarm.metadata().leechers();
 
@@ -805,11 +774,10 @@ mod tests {
             #[tokio::test]
             async fn it_should_decrease_the_number_of_seeders_if_the_removed_peer_was_a_seeder() {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert_peer(seeder.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(seeder.into()).await;
 
                 let seeders = swarm.metadata().seeders();
 
@@ -830,11 +798,10 @@ mod tests {
             #[tokio::test]
             async fn it_should_decrease_the_number_of_leechers_when_a_removed_peer_is_a_leecher() {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(leecher.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(leecher.into()).await;
 
                 let leechers = swarm.metadata().leechers();
 
@@ -846,11 +813,10 @@ mod tests {
             #[tokio::test]
             async fn it_should_decrease_the_number_of_seeders_when_the_removed_peer_is_a_seeder() {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert_peer(seeder.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(seeder.into()).await;
 
                 let seeders = swarm.metadata().seeders();
 
@@ -870,18 +836,17 @@ mod tests {
             #[tokio::test]
             async fn it_should_increase_seeders_and_decreasing_leechers_when_the_peer_changes_from_leecher_to_seeder_() {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(peer.into()).await;
 
                 let leechers = swarm.metadata().leechers();
                 let seeders = swarm.metadata().seeders();
 
                 peer.left = NumberOfBytes::new(0); // Convert to seeder
 
-                swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(peer.into()).await;
 
                 assert_eq!(swarm.metadata().seeders(), seeders + 1);
                 assert_eq!(swarm.metadata().leechers(), leechers - 1);
@@ -890,18 +855,17 @@ mod tests {
             #[tokio::test]
             async fn it_should_increase_leechers_and_decreasing_seeders_when_the_peer_changes_from_seeder_to_leecher() {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let mut peer = PeerBuilder::seeder().build();
 
-                swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(peer.into()).await;
 
                 let leechers = swarm.metadata().leechers();
                 let seeders = swarm.metadata().seeders();
 
                 peer.left = NumberOfBytes::new(10); // Convert to leecher
 
-                swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(peer.into()).await;
 
                 assert_eq!(swarm.metadata().leechers(), leechers + 1);
                 assert_eq!(swarm.metadata().seeders(), seeders - 1);
@@ -910,17 +874,16 @@ mod tests {
             #[tokio::test]
             async fn it_should_increase_the_number_of_downloads_when_the_peer_announces_completed_downloading() {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(peer.into()).await;
 
                 let downloads = swarm.metadata().downloads();
 
                 peer.event = aquatic_udp_protocol::AnnounceEvent::Completed;
 
-                swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(peer.into()).await;
 
                 assert_eq!(swarm.metadata().downloads(), downloads + 1);
             }
@@ -928,19 +891,18 @@ mod tests {
             #[tokio::test]
             async fn it_should_not_increasing_the_number_of_downloads_when_the_peer_announces_completed_downloading_twice_() {
                 let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
-                let mut downloads_increased = false;
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(peer.into()).await;
 
                 let downloads = swarm.metadata().downloads();
 
                 peer.event = aquatic_udp_protocol::AnnounceEvent::Completed;
 
-                swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(peer.into()).await;
 
-                swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+                swarm.upsert_peer(peer.into()).await;
 
                 assert_eq!(swarm.metadata().downloads(), downloads + 1);
             }
@@ -971,8 +933,7 @@ mod tests {
 
             let mut swarm = Swarm::new(&sample_info_hash(), 0, Some(Arc::new(event_sender_mock)));
 
-            let mut downloads_increased = false;
-            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+            swarm.upsert_peer(peer.into()).await;
         }
 
         #[tokio::test]
@@ -990,8 +951,7 @@ mod tests {
             let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
-            let mut downloads_increased = false;
-            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+            swarm.upsert_peer(peer.into()).await;
 
             swarm.remove_peer(&peer.peer_addr).await;
         }
@@ -1011,8 +971,7 @@ mod tests {
             let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
-            let mut downloads_increased = false;
-            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+            swarm.upsert_peer(peer.into()).await;
 
             // Peers not updated after this time will be removed
             let current_cutoff = peer.updated + DurationSinceUnixEpoch::from_secs(1);
@@ -1042,11 +1001,10 @@ mod tests {
             let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
-            let mut downloads_increased = false;
-            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+            swarm.upsert_peer(peer.into()).await;
 
             // Update the peer
-            swarm.upsert_peer(peer.into(), &mut downloads_increased).await;
+            swarm.upsert_peer(peer.into()).await;
         }
 
         #[tokio::test]
@@ -1079,11 +1037,10 @@ mod tests {
             let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
-            let mut downloads_increased = false;
-            swarm.upsert_peer(started_peer.into(), &mut downloads_increased).await;
+            swarm.upsert_peer(started_peer.into()).await;
 
             // Announce as completed
-            swarm.upsert_peer(completed_peer.into(), &mut downloads_increased).await;
+            swarm.upsert_peer(completed_peer.into()).await;
         }
     }
 }

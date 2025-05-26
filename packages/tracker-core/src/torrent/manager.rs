@@ -74,6 +74,8 @@ impl TorrentsManager {
     pub fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
         let persistent_torrents = self.db_torrent_repository.load_all()?;
 
+        println!("Loaded {} persistent torrents from the database", persistent_torrents.len());
+
         self.in_memory_torrent_repository.import_persistent(&persistent_torrents);
 
         Ok(())
@@ -237,9 +239,9 @@ mod tests {
             // Add a peer to the torrent
             let mut peer = sample_peer();
             peer.updated = DurationSinceUnixEpoch::new(0, 0);
-            let _number_of_downloads_increased = services
+            services
                 .in_memory_torrent_repository
-                .upsert_peer(&infohash, &peer, None)
+                .handle_announcement(&infohash, &peer, None)
                 .await;
 
             // Simulate the time has passed 1 second more than the max peer timeout.
@@ -257,7 +259,7 @@ mod tests {
             // Add a peer to the torrent
             let mut peer = sample_peer();
             peer.updated = DurationSinceUnixEpoch::new(0, 0);
-            let _number_of_downloads_increased = in_memory_torrent_repository.upsert_peer(infohash, &peer, None).await;
+            in_memory_torrent_repository.handle_announcement(infohash, &peer, None).await;
 
             // Remove the peer. The torrent is now peerless.
             in_memory_torrent_repository

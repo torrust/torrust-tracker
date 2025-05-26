@@ -48,36 +48,16 @@ impl InMemoryTorrentRepository {
     /// # Panics
     ///
     /// This function panics if the underling swarms return an error.
-    #[must_use]
-    pub async fn upsert_peer(
+    pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
         opt_persistent_torrent: Option<PersistentTorrent>,
-    ) -> bool {
+    ) {
         self.swarms
             .handle_announcement(info_hash, peer, opt_persistent_torrent)
             .await
-            .expect("Failed to upsert the peer in swarms")
-    }
-
-    /// Removes a torrent entry from the repository.
-    ///
-    /// This method is only available in tests. It removes the torrent entry
-    /// associated with the given info hash and returns the removed entry if it
-    /// existed.
-    ///
-    /// # Arguments
-    ///
-    /// * `key` - The info hash of the torrent to remove.
-    ///
-    /// # Returns
-    ///
-    /// An `Option` containing the removed torrent entry if it existed.
-    #[cfg(test)]
-    #[must_use]
-    pub(crate) async fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
-        self.swarms.remove(key).await
+            .expect("Failed to upsert the peer in swarms");
     }
 
     /// Removes inactive peers from all torrent entries.

@@ -107,7 +107,7 @@ impl ScrapeHandler {
     /// # BEP Reference:
     ///
     /// [BEP 48: Scrape Protocol](https://www.bittorrent.org/beps/bep_0048.html)
-    pub async fn scrape(&self, info_hashes: &Vec<InfoHash>) -> Result<ScrapeData, ScrapeError> {
+    pub async fn handle_scrape(&self, info_hashes: &Vec<InfoHash>) -> Result<ScrapeData, ScrapeError> {
         let mut scrape_data = ScrapeData::empty();
 
         for info_hash in info_hashes {
@@ -158,7 +158,7 @@ mod tests {
 
         let info_hashes = vec!["3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap()]; // DevSkim: ignore DS173237
 
-        let scrape_data = scrape_handler.scrape(&info_hashes).await.unwrap();
+        let scrape_data = scrape_handler.handle_scrape(&info_hashes).await.unwrap();
 
         let mut expected_scrape_data = ScrapeData::empty();
 
@@ -176,7 +176,7 @@ mod tests {
             "99c82bb73505a3c0b453f9fa0e881d6e5a32a0c1".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
         ];
 
-        let scrape_data = scrape_handler.scrape(&info_hashes).await.unwrap();
+        let scrape_data = scrape_handler.handle_scrape(&info_hashes).await.unwrap();
 
         let mut expected_scrape_data = ScrapeData::empty();
         expected_scrape_data.add_file_with_zeroed_metadata(&info_hashes[0]);

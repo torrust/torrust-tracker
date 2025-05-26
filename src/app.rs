@@ -75,6 +75,7 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
     let mut job_manager = JobManager::new();
 
     start_torrent_repository_event_listener(config, app_container, &mut job_manager);
+    start_tracker_core_event_listener(config, app_container, &mut job_manager);
     start_http_core_event_listener(config, app_container, &mut job_manager);
     start_udp_core_event_listener(config, app_container, &mut job_manager);
     start_udp_server_event_listener(config, app_container, &mut job_manager);
@@ -138,35 +139,38 @@ fn start_torrent_repository_event_listener(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) {
-    let opt_handle = jobs::torrent_repository::start_event_listener(config, app_container);
+    job_manager.push_opt(
+        "torrent_repository_event_listener",
+        jobs::torrent_repository::start_event_listener(config, app_container),
+    );
+}
 
-    if let Some(handle) = opt_handle {
-        job_manager.push("torrent_repository_event_listener", handle);
-    }
+fn start_tracker_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+    job_manager.push_opt(
+        "tracker_core_event_listener",
+        jobs::tracker_core::start_event_listener(config, app_container),
+    );
 }
 
 fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    let opt_handle = jobs::http_tracker_core::start_event_listener(config, app_container);
-
-    if let Some(handle) = opt_handle {
-        job_manager.push("http_core_event_listener", handle);
-    }
+    job_manager.push_opt(
+        "http_core_event_listener",
+        jobs::http_tracker_core::start_event_listener(config, app_container),
+    );
 }
 
 fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    let opt_handle = jobs::udp_tracker_core::start_event_listener(config, app_container);
-
-    if let Some(handle) = opt_handle {
-        job_manager.push("udp_core_event_listener", handle);
-    }
+    job_manager.push_opt(
+        "udp_core_event_listener",
+        jobs::udp_tracker_core::start_event_listener(config, app_container),
+    );
 }
 
 fn start_udp_server_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    let opt_handle = jobs::udp_tracker_server::start_event_listener(config, app_container);
-
-    if let Some(handle) = opt_handle {
-        job_manager.push("udp_server_event_listener", handle);
-    }
+    job_manager.push_opt(
+        "udp_server_event_listener",
+        jobs::udp_tracker_server::start_event_listener(config, app_container),
+    );
 }
 
 async fn start_the_udp_instances(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {

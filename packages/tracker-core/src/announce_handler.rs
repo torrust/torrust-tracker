@@ -154,7 +154,7 @@ impl AnnounceHandler {
     ///
     /// Returns an error if the tracker is running in `listed` mode and the
     /// torrent is not whitelisted.
-    pub async fn announce(
+    pub async fn handle_announcement(
         &self,
         info_hash: &InfoHash,
         peer: &mut peer::Peer,
@@ -163,6 +163,11 @@ impl AnnounceHandler {
     ) -> Result<AnnounceData, AnnounceError> {
         self.whitelist_authorization.authorize(info_hash).await?;
 
+        // This will be removed in the future.
+        // See https://github.com/torrust/torrust-tracker/issues/1502
+        // There will be a persisted metric for counting the total number of
+        // downloads across all torrents. The in-memory metric will count only
+        // the number of downloads during the current tracker uptime.
         let opt_persistent_torrent = if self.config.tracker_policy.persistent_torrent_completed_stat {
             self.db_torrent_repository.load(info_hash)?
         } else {
@@ -171,14 +176,9 @@ impl AnnounceHandler {
 
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
 
-        let number_of_downloads_increased = self
-            .in_memory_torrent_repository
-            .upsert_peer(info_hash, peer, opt_persistent_torrent)
+        self.in_memory_torrent_repository
+            .handle_announcement(info_hash, peer, opt_persistent_torrent)
             .await;
-
-        if self.config.tracker_policy.persistent_torrent_completed_stat && number_of_downloads_increased {
-            self.db_torrent_repository.increase_number_of_downloads(info_hash)?;
-        }
 
         Ok(self.build_announce_data(info_hash, peer, peers_wanted).await)
     }
@@ -455,7 +455,7 @@ mod tests {
                     let mut peer = sample_peer();
 
                     let announce_data = announce_handler
-                        .announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                        .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
                         .await
                         .unwrap();
 
@@ -468,7 +468,7 @@ mod tests {
 
                     let mut previously_announced_peer = sample_peer_1();
                     announce_handler
-                        .announce(
+                        .handle_announcement(
                             &sample_info_hash(),
                             &mut previously_announced_peer,
                             &peer_ip(),
@@ -479,7 +479,7 @@ mod tests {
 
                     let mut peer = sample_peer_2();
                     let announce_data = announce_handler
-                        .announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                        .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
                         .await
                         .unwrap();
 
@@ -492,7 +492,7 @@ mod tests {
 
                     let mut previously_announced_peer_1 = sample_peer_1();
                     announce_handler
-                        .announce(
+                        .handle_announcement(
                             &sample_info_hash(),
                             &mut previously_announced_peer_1,
                             &peer_ip(),
@@ -503,7 +503,7 @@ mod tests {
 
                     let mut previously_announced_peer_2 = sample_peer_2();
                     announce_handler
-                        .announce(
+                        .handle_announcement(
                             &sample_info_hash(),
                             &mut previously_announced_peer_2,
                             &peer_ip(),
@@ -514,7 +514,7 @@ mod tests {
 
                     let mut peer = sample_peer_3();
                     let announce_data = announce_handler
-                        .announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::only(1))
+                        .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::only(1))
                         .await
                         .unwrap();
 
@@ -539,7 +539,7 @@ mod tests {
                         let mut peer = seeder();
 
                         let announce_data = announce_handler
-                            .announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                            .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
                             .await
                             .unwrap();
 
@@ -553,7 +553,7 @@ mod tests {
                         let mut peer = leecher();
 
                         let announce_data = announce_handler
-                            .announce(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                            .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
                             .await
                             .unwrap();
 
@@ -567,7 +567,7 @@ mod tests {
                         // We have to announce with "started" event because peer does not count if peer was not previously known
                         let mut started_peer = started_peer();
                         announce_handler
-                            .announce(
+                            .handle_announcement(
                                 &sample_info_hash(),
                                 &mut started_peer,
                                 &peer_ip(),
@@ -578,7 +578,7 @@ mod tests {
 
                         let mut completed_peer = completed_peer();
                         let announce_data = announce_handler
-                            .announce(
+                            .handle_announcement(
                                 &sample_info_hash(),
                                 &mut completed_peer,
                                 &peer_ip(),
@@ -590,83 +590,6 @@ mod tests {
                         assert_eq!(announce_data.stats.downloaded, 1);
                     }
                 }
-            }
-        }
-
-        mod handling_torrent_persistence {
-
-            use std::sync::Arc;
-
-            use aquatic_udp_protocol::AnnounceEvent;
-            use torrust_tracker_test_helpers::configuration;
-            use torrust_tracker_torrent_repository::Swarms;
-
-            use crate::announce_handler::tests::the_announce_handler::peer_ip;
-            use crate::announce_handler::{AnnounceHandler, PeersWanted};
-            use crate::databases::setup::initialize_database;
-            use crate::test_helpers::tests::{sample_info_hash, sample_peer};
-            use crate::torrent::manager::TorrentsManager;
-            use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
-            use crate::torrent::repository::persisted::DatabasePersistentTorrentRepository;
-            use crate::whitelist::authorization::WhitelistAuthorization;
-            use crate::whitelist::repository::in_memory::InMemoryWhitelist;
-
-            #[tokio::test]
-            async fn it_should_persist_the_number_of_completed_peers_for_all_torrents_into_the_database() {
-                let mut config = configuration::ephemeral_public();
-
-                config.core.tracker_policy.persistent_torrent_completed_stat = true;
-
-                let database = initialize_database(&config.core);
-                let swarms = Arc::new(Swarms::default());
-                let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms));
-                let db_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
-                let torrents_manager = Arc::new(TorrentsManager::new(
-                    &config.core,
-                    &in_memory_torrent_repository,
-                    &db_torrent_repository,
-                ));
-                let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-                let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
-                let announce_handler = Arc::new(AnnounceHandler::new(
-                    &config.core,
-                    &whitelist_authorization,
-                    &in_memory_torrent_repository,
-                    &db_torrent_repository,
-                ));
-
-                let info_hash = sample_info_hash();
-
-                let mut peer = sample_peer();
-
-                peer.event = AnnounceEvent::Started;
-                let announce_data = announce_handler
-                    .announce(&info_hash, &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
-                    .await
-                    .unwrap();
-                assert_eq!(announce_data.stats.downloaded, 0);
-
-                peer.event = AnnounceEvent::Completed;
-                let announce_data = announce_handler
-                    .announce(&info_hash, &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
-                    .await
-                    .unwrap();
-                assert_eq!(announce_data.stats.downloaded, 1);
-
-                // Remove the newly updated torrent from memory
-                let _unused = in_memory_torrent_repository.remove(&info_hash).await;
-
-                torrents_manager.load_torrents_from_database().unwrap();
-
-                let torrent_entry = in_memory_torrent_repository
-                    .get(&info_hash)
-                    .expect("it should be able to get entry");
-
-                // It persists the number of completed peers.
-                assert_eq!(torrent_entry.lock().await.metadata().downloaded, 1);
-
-                // It does not persist the peers
-                assert!(torrent_entry.lock().await.is_empty());
             }
         }
 
