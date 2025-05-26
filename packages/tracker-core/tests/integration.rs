@@ -4,17 +4,13 @@ use std::sync::Arc;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
-use bittorrent_tracker_core::databases::setup::initialize_database;
-use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
-use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-use bittorrent_tracker_core::torrent::repository::persisted::DatabasePersistentTorrentRepository;
-use bittorrent_tracker_core::whitelist;
-use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
+use bittorrent_tracker_core::announce_handler::PeersWanted;
+use bittorrent_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
+use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
 
 /// # Panics
 ///
@@ -59,41 +55,13 @@ fn remote_client_ip() -> IpAddr {
     IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap())
 }
 
-struct Container {
-    pub announce_handler: Arc<AnnounceHandler>,
-    pub scrape_handler: Arc<ScrapeHandler>,
-}
-
-impl Container {
-    pub fn initialize(config: &Core) -> Self {
-        let database = initialize_database(config);
-        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let db_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
-        let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-        let whitelist_authorization = Arc::new(whitelist::authorization::WhitelistAuthorization::new(
-            config,
-            &in_memory_whitelist.clone(),
-        ));
-        let announce_handler = Arc::new(AnnounceHandler::new(
-            config,
-            &whitelist_authorization,
-            &in_memory_torrent_repository,
-            &db_torrent_repository,
-        ));
-        let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
-
-        Self {
-            announce_handler,
-            scrape_handler,
-        }
-    }
-}
-
 #[tokio::test]
 async fn test_announce_and_scrape_requests() {
-    let config = ephemeral_configuration();
+    let config = Arc::new(ephemeral_configuration());
 
-    let container = Container::initialize(&config);
+    let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(config.tracker_usage_statistics.into()));
+
+    let container = TrackerCoreContainer::initialize_from(&config, &torrent_repository_container);
 
     let info_hash = sample_info_hash();
 
@@ -130,6 +98,3 @@ async fn test_announce_and_scrape_requests() {
 
     assert!(scrape_data.files.contains_key(&info_hash));
 }
-
-#[test]
-fn test_scrape_request() {}
