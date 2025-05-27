@@ -66,13 +66,6 @@ async fn load_data_from_database(config: &Configuration, app_container: &Arc<App
     load_peer_keys(config, app_container).await;
     load_whitelisted_torrents(config, app_container).await;
     load_torrent_metrics(config, app_container).await;
-
-    // todo: disabled because of performance issues.
-    // The tracker demo has a lot of torrents and loading them all at once is not
-    // efficient. We also load them on demand but the total number of downloads
-    // metric is not accurate because not all torrents are loaded.
-    // See: https://github.com/torrust/torrust-tracker/issues/1510
-    //load_torrents_from_database(config, app_container);
 }
 
 async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -> JobManager {
@@ -127,18 +120,6 @@ async fn load_whitelisted_torrents(config: &Configuration, app_container: &Arc<A
     }
 }
 
-#[allow(dead_code)]
-fn load_torrents_from_database(config: &Configuration, app_container: &Arc<AppContainer>) {
-    if config.core.tracker_policy.persistent_torrent_completed_stat {
-        app_container
-            .tracker_core_container
-            .torrents_manager
-            .load_torrents_from_database()
-            .expect("Could not load torrents from database.");
-    }
-}
-
-#[allow(dead_code)]
 async fn load_torrent_metrics(config: &Configuration, app_container: &Arc<AppContainer>) {
     if config.core.tracker_policy.persistent_torrent_completed_stat {
         bittorrent_tracker_core::statistics::persisted::load_persisted_metrics(
