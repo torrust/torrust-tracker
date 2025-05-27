@@ -79,6 +79,15 @@ impl SampleCollection<Counter> {
 
         sample.increment(time);
     }
+
+    pub fn absolute(&mut self, label_set: &LabelSet, value: u64, time: DurationSinceUnixEpoch) {
+        let sample = self
+            .samples
+            .entry(label_set.clone())
+            .or_insert_with(|| Measurement::new(Counter::default(), time));
+
+        sample.absolute(value, time);
+    }
 }
 
 impl SampleCollection<Gauge> {

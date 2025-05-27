@@ -15,7 +15,7 @@ use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MySqlConnectionManager;
 use torrust_tracker_primitives::{PersistentTorrent, PersistentTorrents};
 
-use super::{Database, Driver, Error};
+use super::{Database, Driver, Error, TORRENTS_DOWNLOADS_TOTAL};
 use crate::authentication::key::AUTH_KEY_LENGTH;
 use crate::authentication::{self, Key};
 
@@ -46,6 +46,27 @@ impl Mysql {
 
         Ok(Self { pool })
     }
+
+    fn load_torrent_aggregate_metric(&self, metric_name: &str) -> Result<Option<PersistentTorrent>, Error> {
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let query = conn.exec_first::<u32, _, _>(
+            "SELECT value FROM torrent_aggregate_metrics WHERE metric_name = :metric_name",
+            params! { "metric_name" => metric_name },
+        );
+
+        let persistent_torrent = query?;
+
+        Ok(persistent_torrent)
+    }
+
+    fn save_torrent_aggregate_metric(&self, metric_name: &str, completed: PersistentTorrent) -> Result<(), Error> {
+        const COMMAND : &str = "INSERT INTO torrent_aggregate_metrics (metric_name, value) VALUES (:metric_name, :completed) ON DUPLICATE KEY UPDATE value = VALUES(value)";
+
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        Ok(conn.exec_drop(COMMAND, params! { metric_name, completed })?)
+    }
 }
 
 impl Database for Mysql {
@@ -66,6 +87,14 @@ impl Database for Mysql {
         );"
         .to_string();
 
+        let create_torrent_aggregate_metrics_table = "
+        CREATE TABLE IF NOT EXISTS torrent_aggregate_metrics (
+            id integer PRIMARY KEY AUTO_INCREMENT,
+            metric_name VARCHAR(50) NOT NULL UNIQUE,
+            value INTEGER DEFAULT 0 NOT NULL
+        );"
+        .to_string();
+
         let create_keys_table = format!(
             "
         CREATE TABLE IF NOT EXISTS `keys` (
@@ -82,6 +111,8 @@ impl Database for Mysql {
 
         conn.query_drop(&create_torrents_table)
             .expect("Could not create torrents table.");
+        conn.query_drop(&create_torrent_aggregate_metrics_table)
+            .expect("Could not create create_torrent_aggregate_metrics_table table.");
         conn.query_drop(&create_keys_table).expect("Could not create keys table.");
         conn.query_drop(&create_whitelist_table)
             .expect("Could not create whitelist table.");
@@ -163,6 +194,30 @@ impl Database for Mysql {
         conn.exec_drop(
             "UPDATE torrents SET completed = completed + 1 WHERE info_hash = :info_hash_str",
             params! { info_hash_str },
+        )?;
+
+        Ok(())
+    }
+
+    /// Refer to [`databases::Database::load_global_number_of_downloads`](crate::core::databases::Database::load_global_number_of_downloads).
+    fn load_global_number_of_downloads(&self) -> Result<Option<PersistentTorrent>, Error> {
+        self.load_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL)
+    }
+
+    /// Refer to [`databases::Database::save_global_number_of_downloads`](crate::core::databases::Database::save_global_number_of_downloads).
+    fn save_global_number_of_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error> {
+        self.save_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL, downloaded)
+    }
+
+    /// Refer to [`databases::Database::increase_global_number_of_downloads`](crate::core::databases::Database::increase_global_number_of_downloads).
+    fn increase_global_number_of_downloads(&self) -> Result<(), Error> {
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let metric_name = TORRENTS_DOWNLOADS_TOTAL;
+
+        conn.exec_drop(
+            "UPDATE torrent_aggregate_metrics SET value = value + 1 WHERE metric_name = :metric_name",
+            params! { metric_name },
         )?;
 
         Ok(())

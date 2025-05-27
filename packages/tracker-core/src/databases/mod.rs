@@ -131,16 +131,48 @@ pub trait Database: Sync + Send {
     /// It does not create a new entry if the torrent is not found and it does
     /// not return an error.
     ///
+    /// # Context: Torrent Metrics
+    ///
     /// # Arguments
     ///
     /// * `info_hash` - A reference to the torrent's info hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the query failed.
+    fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error>;
+
+    /// Loads the total number of downloads for all torrents from the database.
+    ///
+    /// # Context: Torrent Metrics
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the total downloads cannot be loaded.
+    fn load_global_number_of_downloads(&self) -> Result<Option<PersistentTorrent>, Error>;
+
+    /// Saves the total number of downloads for all torrents into the database.
+    ///
+    /// # Context: Torrent Metrics
+    ///
+    /// # Arguments
+    ///
+    /// * `info_hash` - A reference to the torrent's info hash.
+    /// * `downloaded` - The number of times the torrent has been downloaded.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the total downloads cannot be saved.
+    fn save_global_number_of_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error>;
+
+    /// Increases the total number of downloads for all torrents.
     ///
     /// # Context: Torrent Metrics
     ///
     /// # Errors
     ///
     /// Returns an [`Error`] if the query failed.
-    fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error>;
+    fn increase_global_number_of_downloads(&self) -> Result<(), Error>;
 
     // Whitelist
 

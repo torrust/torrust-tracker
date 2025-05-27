@@ -6,6 +6,9 @@ use sqlite::Sqlite;
 use super::error::Error;
 use super::Database;
 
+/// Metric name in DB for the total number of downloads across all torrents.
+const TORRENTS_DOWNLOADS_TOTAL: &str = "torrents_downloads_total";
+
 /// The database management system used by the tracker.
 ///
 /// Refer to:
@@ -97,9 +100,14 @@ pub(crate) mod tests {
 
         // Persistent torrents (stats)
 
+        // Torrent metrics
         handling_torrent_persistence::it_should_save_and_load_persistent_torrents(driver);
         handling_torrent_persistence::it_should_load_all_persistent_torrents(driver);
         handling_torrent_persistence::it_should_increase_the_number_of_downloads_for_a_given_torrent(driver);
+        // Aggregate metrics for all torrents
+        handling_torrent_persistence::it_should_save_and_load_the_global_number_of_downloads(driver);
+        handling_torrent_persistence::it_should_load_the_global_number_of_downloads(driver);
+        handling_torrent_persistence::it_should_increase_the_global_number_of_downloads(driver);
 
         // Authentication keys (for private trackers)
 
@@ -154,6 +162,8 @@ pub(crate) mod tests {
         use crate::databases::Database;
         use crate::test_helpers::tests::sample_info_hash;
 
+        // Metrics per torrent
+
         pub fn it_should_save_and_load_persistent_torrents(driver: &Arc<Box<dyn Database>>) {
             let infohash = sample_info_hash();
 
@@ -189,6 +199,40 @@ pub(crate) mod tests {
             driver.increase_number_of_downloads(&infohash).unwrap();
 
             let number_of_downloads = driver.load_persistent_torrent(&infohash).unwrap().unwrap();
+
+            assert_eq!(number_of_downloads, 2);
+        }
+
+        // Aggregate metrics for all torrents
+
+        pub fn it_should_save_and_load_the_global_number_of_downloads(driver: &Arc<Box<dyn Database>>) {
+            let number_of_downloads = 1;
+
+            driver.save_global_number_of_downloads(number_of_downloads).unwrap();
+
+            let number_of_downloads = driver.load_global_number_of_downloads().unwrap().unwrap();
+
+            assert_eq!(number_of_downloads, 1);
+        }
+
+        pub fn it_should_load_the_global_number_of_downloads(driver: &Arc<Box<dyn Database>>) {
+            let number_of_downloads = 1;
+
+            driver.save_global_number_of_downloads(number_of_downloads).unwrap();
+
+            let number_of_downloads = driver.load_global_number_of_downloads().unwrap().unwrap();
+
+            assert_eq!(number_of_downloads, 1);
+        }
+
+        pub fn it_should_increase_the_global_number_of_downloads(driver: &Arc<Box<dyn Database>>) {
+            let number_of_downloads = 1;
+
+            driver.save_global_number_of_downloads(number_of_downloads).unwrap();
+
+            driver.increase_global_number_of_downloads().unwrap();
+
+            let number_of_downloads = driver.load_global_number_of_downloads().unwrap().unwrap();
 
             assert_eq!(number_of_downloads, 2);
         }

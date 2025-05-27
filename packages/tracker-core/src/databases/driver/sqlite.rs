@@ -15,7 +15,7 @@ use r2d2_sqlite::rusqlite::types::Null;
 use r2d2_sqlite::SqliteConnectionManager;
 use torrust_tracker_primitives::{DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
 
-use super::{Database, Driver, Error};
+use super::{Database, Driver, Error, TORRENTS_DOWNLOADS_TOTAL};
 use crate::authentication::{self, Key};
 
 const DRIVER: Driver = Driver::Sqlite3;
@@ -49,6 +49,39 @@ impl Sqlite {
 
         Ok(Self { pool })
     }
+
+    fn load_torrent_aggregate_metric(&self, metric_name: &str) -> Result<Option<PersistentTorrent>, Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let mut stmt = conn.prepare("SELECT value FROM torrent_aggregate_metrics WHERE metric_name = ?")?;
+
+        let mut rows = stmt.query([metric_name])?;
+
+        let persistent_torrent = rows.next()?;
+
+        Ok(persistent_torrent.map(|f| {
+            let value: i64 = f.get(0).unwrap();
+            u32::try_from(value).unwrap()
+        }))
+    }
+
+    fn save_torrent_aggregate_metric(&self, metric_name: &str, completed: PersistentTorrent) -> Result<(), Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let insert = conn.execute(
+            "INSERT INTO torrent_aggregate_metrics (metric_name, value) VALUES (?1, ?2) ON CONFLICT(metric_name) DO UPDATE SET value = ?2",
+            [metric_name.to_string(), completed.to_string()],
+        )?;
+
+        if insert == 0 {
+            Err(Error::InsertFailed {
+                location: Location::caller(),
+                driver: DRIVER,
+            })
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl Database for Sqlite {
@@ -69,6 +102,14 @@ impl Database for Sqlite {
         );"
         .to_string();
 
+        let create_torrent_aggregate_metrics_table = "
+        CREATE TABLE IF NOT EXISTS torrent_aggregate_metrics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            metric_name TEXT NOT NULL UNIQUE,
+            value INTEGER DEFAULT 0 NOT NULL
+        );"
+        .to_string();
+
         let create_keys_table = "
         CREATE TABLE IF NOT EXISTS keys (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,6 +123,7 @@ impl Database for Sqlite {
         conn.execute(&create_whitelist_table, [])?;
         conn.execute(&create_keys_table, [])?;
         conn.execute(&create_torrents_table, [])?;
+        conn.execute(&create_torrent_aggregate_metrics_table, [])?;
 
         Ok(())
     }
@@ -167,6 +209,30 @@ impl Database for Sqlite {
         let _ = conn.execute(
             "UPDATE torrents SET completed = completed + 1 WHERE info_hash = ?",
             [info_hash.to_string()],
+        )?;
+
+        Ok(())
+    }
+
+    /// Refer to [`databases::Database::load_global_number_of_downloads`](crate::core::databases::Database::load_global_number_of_downloads).
+    fn load_global_number_of_downloads(&self) -> Result<Option<PersistentTorrent>, Error> {
+        self.load_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL)
+    }
+
+    /// Refer to [`databases::Database::save_global_number_of_downloads`](crate::core::databases::Database::save_global_number_of_downloads).
+    fn save_global_number_of_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error> {
+        self.save_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL, downloaded)
+    }
+
+    /// Refer to [`databases::Database::increase_global_number_of_downloads`](crate::core::databases::Database::increase_global_number_of_downloads).
+    fn increase_global_number_of_downloads(&self) -> Result<(), Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let metric_name = TORRENTS_DOWNLOADS_TOTAL;
+
+        let _ = conn.execute(
+            "UPDATE torrent_aggregate_metrics SET value = value + 1 WHERE metric_name = ?",
+            [metric_name],
         )?;
 
         Ok(())

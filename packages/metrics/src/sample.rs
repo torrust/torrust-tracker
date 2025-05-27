@@ -122,6 +122,11 @@ impl Measurement<Counter> {
         self.value.increment(1);
         self.set_recorded_at(time);
     }
+
+    pub fn absolute(&mut self, value: u64, time: DurationSinceUnixEpoch) {
+        self.value.absolute(value);
+        self.set_recorded_at(time);
+    }
 }
 
 impl Measurement<Gauge> {

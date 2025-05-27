@@ -5,11 +5,15 @@ use aquatic_udp_protocol::AnnounceEvent;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::PeersWanted;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
+use bittorrent_tracker_core::statistics::persisted_metrics::load_persisted_metrics;
 use tokio::task::yield_now;
 use torrust_tracker_configuration::Core;
+use torrust_tracker_metrics::label::LabelSet;
+use torrust_tracker_metrics::metric::MetricName;
 use torrust_tracker_primitives::core::{AnnounceData, ScrapeData};
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
 
 pub struct TestEnv {
@@ -45,6 +49,22 @@ impl TestEnv {
     }
 
     pub async fn start(&self) {
+        let now = DurationSinceUnixEpoch::from_secs(0);
+        self.load_persisted_metrics(now).await;
+        self.run_jobs().await;
+    }
+
+    async fn load_persisted_metrics(&self, now: DurationSinceUnixEpoch) {
+        load_persisted_metrics(
+            &self.tracker_core_container.stats_repository,
+            &self.tracker_core_container.db_torrent_repository,
+            now,
+        )
+        .await
+        .unwrap();
+    }
+
+    async fn run_jobs(&self) {
         let mut jobs = vec![];
 
         let job = torrust_tracker_torrent_repository::statistics::event::listener::run_event_listener(
@@ -58,6 +78,10 @@ impl TestEnv {
             self.torrent_repository_container.event_bus.receiver(),
             &self.tracker_core_container.stats_repository,
             &self.tracker_core_container.db_torrent_repository,
+            self.tracker_core_container
+                .core_config
+                .tracker_policy
+                .persistent_torrent_completed_stat,
         );
 
         jobs.push(job);
@@ -134,5 +158,16 @@ impl TestEnv {
 
     pub async fn remove_swarm(&self, info_hash: &InfoHash) {
         self.torrent_repository_container.swarms.remove(info_hash).await.unwrap();
+    }
+
+    pub async fn get_counter_value(&self, metric_name: &str) -> u64 {
+        self.tracker_core_container
+            .stats_repository
+            .get_metrics()
+            .await
+            .metric_collection
+            .get_counter_value(&MetricName::new(metric_name), &LabelSet::default())
+            .unwrap()
+            .value()
     }
 }

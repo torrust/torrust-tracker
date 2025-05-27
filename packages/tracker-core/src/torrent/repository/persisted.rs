@@ -47,6 +47,8 @@ impl DatabasePersistentTorrentRepository {
         }
     }
 
+    // Single Torrent Metrics
+
     /// Increases the number of downloads for a given torrent.
     ///
     /// If the torrent is not found, it creates a new entry.
@@ -106,6 +108,33 @@ impl DatabasePersistentTorrentRepository {
     /// Returns an [`Error`] if the database operation fails.
     pub(crate) fn save(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error> {
         self.database.save_persistent_torrent(info_hash, downloaded)
+    }
+
+    // Aggregate Metrics
+
+    /// Increases the global number of downloads for all torrent.
+    ///
+    /// If the metric is not found, it creates it.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the database operation fails.
+    pub(crate) fn increase_global_number_of_downloads(&self) -> Result<(), Error> {
+        let torrent = self.database.load_global_number_of_downloads()?;
+
+        match torrent {
+            Some(_number_of_downloads) => self.database.increase_global_number_of_downloads(),
+            None => self.database.save_global_number_of_downloads(1),
+        }
+    }
+
+    /// Loads the global number of downloads for all torrents from the database.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the underlying database query fails.
+    pub(crate) fn load_global_number_of_downloads(&self) -> Result<Option<PersistentTorrent>, Error> {
+        self.database.load_global_number_of_downloads()
     }
 }
 

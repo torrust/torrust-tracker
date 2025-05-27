@@ -13,6 +13,7 @@ pub async fn handle_event(
     event: Event,
     stats_repository: &Arc<Repository>,
     db_torrent_repository: &Arc<DatabasePersistentTorrentRepository>,
+    persistent_torrent_completed_stat: bool,
     now: DurationSinceUnixEpoch,
 ) {
     match event {
@@ -41,17 +42,7 @@ pub async fn handle_event(
         Event::PeerDownloadCompleted { info_hash, peer } => {
             tracing::debug!(info_hash = ?info_hash, peer = ?peer, "Peer download completed", );
 
-            // Increment the number of downloads for the torrent
-            match db_torrent_repository.increase_number_of_downloads(&info_hash) {
-                Ok(()) => {
-                    tracing::debug!(info_hash = ?info_hash, "Number of downloads increased");
-                }
-                Err(err) => {
-                    tracing::error!(info_hash = ?info_hash, error = ?err, "Failed to increase number of downloads");
-                }
-            }
-
-            // Increment the number of downloads for all the torrents
+            // Increment the number of downloads for all the torrents in memory
             let _unused = stats_repository
                 .increment_counter(
                     &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
@@ -60,9 +51,27 @@ pub async fn handle_event(
                 )
                 .await;
 
-            // todo:
-            //   - Persist the metric into the database.
-            //   - Load the metric from the database.
+            if persistent_torrent_completed_stat {
+                // Increment the number of downloads for the torrent in the database
+                match db_torrent_repository.increase_number_of_downloads(&info_hash) {
+                    Ok(()) => {
+                        tracing::debug!(info_hash = ?info_hash, "Number of torrent downloads increased");
+                    }
+                    Err(err) => {
+                        tracing::error!(info_hash = ?info_hash, error = ?err, "Failed to increase number of downloads for the torrent");
+                    }
+                }
+
+                // Increment the global number of downloads (for all torrents) in the database
+                match db_torrent_repository.increase_global_number_of_downloads() {
+                    Ok(()) => {
+                        tracing::debug!("Global number of downloads increased");
+                    }
+                    Err(err) => {
+                        tracing::error!(error = ?err, "Failed to increase global number of downloads");
+                    }
+                }
+            }
         }
     }
 }
