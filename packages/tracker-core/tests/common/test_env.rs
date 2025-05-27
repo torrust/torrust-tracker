@@ -78,6 +78,10 @@ impl TestEnv {
             self.torrent_repository_container.event_bus.receiver(),
             &self.tracker_core_container.stats_repository,
             &self.tracker_core_container.db_torrent_repository,
+            self.tracker_core_container
+                .core_config
+                .tracker_policy
+                .persistent_torrent_completed_stat,
         );
 
         jobs.push(job);

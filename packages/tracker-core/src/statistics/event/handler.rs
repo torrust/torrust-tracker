@@ -13,6 +13,7 @@ pub async fn handle_event(
     event: Event,
     stats_repository: &Arc<Repository>,
     db_torrent_repository: &Arc<DatabasePersistentTorrentRepository>,
+    persistent_torrent_completed_stat: bool,
     now: DurationSinceUnixEpoch,
 ) {
     match event {
@@ -50,23 +51,25 @@ pub async fn handle_event(
                 )
                 .await;
 
-            // Increment the number of downloads for the torrent in the database
-            match db_torrent_repository.increase_number_of_downloads(&info_hash) {
-                Ok(()) => {
-                    tracing::debug!(info_hash = ?info_hash, "Number of torrent downloads increased");
+            if persistent_torrent_completed_stat {
+                // Increment the number of downloads for the torrent in the database
+                match db_torrent_repository.increase_number_of_downloads(&info_hash) {
+                    Ok(()) => {
+                        tracing::debug!(info_hash = ?info_hash, "Number of torrent downloads increased");
+                    }
+                    Err(err) => {
+                        tracing::error!(info_hash = ?info_hash, error = ?err, "Failed to increase number of downloads for the torrent");
+                    }
                 }
-                Err(err) => {
-                    tracing::error!(info_hash = ?info_hash, error = ?err, "Failed to increase number of downloads for the torrent");
-                }
-            }
 
-            // Increment the global number of downloads (for all torrents) in the database
-            match db_torrent_repository.increase_global_number_of_downloads() {
-                Ok(()) => {
-                    tracing::debug!("Global number of downloads increased");
-                }
-                Err(err) => {
-                    tracing::error!(error = ?err, "Failed to increase global number of downloads");
+                // Increment the global number of downloads (for all torrents) in the database
+                match db_torrent_repository.increase_global_number_of_downloads() {
+                    Ok(()) => {
+                        tracing::debug!("Global number of downloads increased");
+                    }
+                    Err(err) => {
+                        tracing::error!(error = ?err, "Failed to increase global number of downloads");
+                    }
                 }
             }
         }
