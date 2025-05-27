@@ -7,7 +7,7 @@ use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::repository::in_memory::InMemoryTorrentRepository;
-use super::repository::persisted::DatabasePersistentTorrentRepository;
+use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::{databases, CurrentClock};
 
 /// The `TorrentsManager` is responsible for managing torrent entries by
@@ -29,9 +29,8 @@ pub struct TorrentsManager {
     /// The in-memory torrents repository.
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
 
-    /// The persistent torrents repository.
-    #[allow(dead_code)]
-    db_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
+    /// The download metrics repository.
+    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
 }
 
 impl TorrentsManager {
@@ -42,7 +41,7 @@ impl TorrentsManager {
     /// * `config` - A reference to the tracker configuration.
     /// * `in_memory_torrent_repository` - A shared reference to the in-memory
     ///   repository of torrents.
-    /// * `db_torrent_repository` - A shared reference to the persistent
+    /// * `db_downloads_metric_repository` - A shared reference to the persistent
     ///   repository for torrent metrics.
     ///
     /// # Returns
@@ -52,12 +51,12 @@ impl TorrentsManager {
     pub fn new(
         config: &Core,
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
-        db_torrent_repository: &Arc<DatabasePersistentTorrentRepository>,
+        db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
     ) -> Self {
         Self {
             config: config.clone(),
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
-            db_torrent_repository: db_torrent_repository.clone(),
+            db_downloads_metric_repository: db_downloads_metric_repository.clone(),
         }
     }
 
@@ -72,9 +71,7 @@ impl TorrentsManager {
     /// Returns a `databases::error::Error` if unable to load the persistent
     /// torrent data.
     pub fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
-        let persistent_torrents = self.db_torrent_repository.load_all()?;
-
-        println!("Loaded {} persistent torrents from the database", persistent_torrents.len());
+        let persistent_torrents = self.db_downloads_metric_repository.load_all_torrents_downloads()?;
 
         self.in_memory_torrent_repository.import_persistent(&persistent_torrents);
 
@@ -153,7 +150,7 @@ mod tests {
     use torrust_tracker_configuration::Core;
     use torrust_tracker_torrent_repository::Swarms;
 
-    use super::{DatabasePersistentTorrentRepository, TorrentsManager};
+    use super::{DatabaseDownloadsMetricRepository, TorrentsManager};
     use crate::databases::setup::initialize_database;
     use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash};
     use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
@@ -161,7 +158,7 @@ mod tests {
     struct TorrentsManagerDeps {
         config: Arc<Core>,
         in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
-        database_persistent_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
+        database_persistent_torrent_repository: Arc<DatabaseDownloadsMetricRepository>,
     }
 
     fn initialize_torrents_manager() -> (Arc<TorrentsManager>, Arc<TorrentsManagerDeps>) {
@@ -173,7 +170,7 @@ mod tests {
         let swarms = Arc::new(Swarms::default());
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms));
         let database = initialize_database(&config);
-        let database_persistent_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
+        let database_persistent_torrent_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
 
         let torrents_manager = Arc::new(TorrentsManager::new(
             &config,
@@ -197,7 +194,10 @@ mod tests {
 
         let infohash = sample_info_hash();
 
-        services.database_persistent_torrent_repository.save(&infohash, 1).unwrap();
+        services
+            .database_persistent_torrent_repository
+            .save_torrent_downloads(&infohash, 1)
+            .unwrap();
 
         torrents_manager.load_torrents_from_database().unwrap();
 

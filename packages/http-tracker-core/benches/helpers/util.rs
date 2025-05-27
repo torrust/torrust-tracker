@@ -14,8 +14,8 @@ use bittorrent_tracker_core::announce_handler::AnnounceHandler;
 use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
 use bittorrent_tracker_core::authentication::service::AuthenticationService;
 use bittorrent_tracker_core::databases::setup::initialize_database;
+use bittorrent_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-use bittorrent_tracker_core::torrent::repository::persisted::DatabasePersistentTorrentRepository;
 use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
 use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
 use futures::future::BoxFuture;
@@ -45,7 +45,7 @@ pub fn initialize_core_tracker_services_with_config(config: &Configuration) -> (
     let core_config = Arc::new(config.core.clone());
     let database = initialize_database(&config.core);
     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-    let db_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
+    let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
     let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
     let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
@@ -55,7 +55,7 @@ pub fn initialize_core_tracker_services_with_config(config: &Configuration) -> (
         &config.core,
         &whitelist_authorization,
         &in_memory_torrent_repository,
-        &db_torrent_repository,
+        &db_downloads_metric_repository,
     ));
 
     // HTTP core stats

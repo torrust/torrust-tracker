@@ -11,9 +11,9 @@ use crate::authentication::service::AuthenticationService;
 use crate::databases::setup::initialize_database;
 use crate::databases::Database;
 use crate::scrape_handler::ScrapeHandler;
+use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::torrent::manager::TorrentsManager;
 use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
-use crate::torrent::repository::persisted::DatabasePersistentTorrentRepository;
 use crate::whitelist::authorization::WhitelistAuthorization;
 use crate::whitelist::manager::WhitelistManager;
 use crate::whitelist::repository::in_memory::InMemoryWhitelist;
@@ -31,7 +31,7 @@ pub struct TrackerCoreContainer {
     pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
     pub whitelist_manager: Arc<WhitelistManager>,
     pub in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
-    pub db_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
+    pub db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
     pub torrents_manager: Arc<TorrentsManager>,
     pub stats_repository: Arc<statistics::repository::Repository>,
 }
@@ -51,12 +51,12 @@ impl TrackerCoreContainer {
             &in_memory_key_repository.clone(),
         ));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(torrent_repository_container.swarms.clone()));
-        let db_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
+        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
 
         let torrents_manager = Arc::new(TorrentsManager::new(
             core_config,
             &in_memory_torrent_repository,
-            &db_torrent_repository,
+            &db_downloads_metric_repository,
         ));
 
         let stats_repository = Arc::new(statistics::repository::Repository::new());
@@ -65,7 +65,7 @@ impl TrackerCoreContainer {
             core_config,
             &whitelist_authorization,
             &in_memory_torrent_repository,
-            &db_torrent_repository,
+            &db_downloads_metric_repository,
         ));
 
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
@@ -81,7 +81,7 @@ impl TrackerCoreContainer {
             whitelist_authorization,
             whitelist_manager,
             in_memory_torrent_repository,
-            db_torrent_repository,
+            db_downloads_metric_repository,
             torrents_manager,
             stats_repository,
         }

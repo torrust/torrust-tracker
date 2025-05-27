@@ -7,7 +7,7 @@ use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use crate::event::sender::Sender;
 use crate::event::Event;
@@ -53,7 +53,7 @@ impl Swarms {
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
-        opt_persistent_torrent: Option<PersistentTorrent>,
+        opt_persistent_torrent: Option<NumberOfDownloads>,
     ) -> Result<(), Error> {
         let swarm_handle = match self.swarms.get(info_hash) {
             None => {
@@ -356,7 +356,7 @@ impl Swarms {
     /// This method takes a set of persisted torrent entries (e.g., from a
     /// database) and imports them into the in-memory repository for immediate
     /// access.
-    pub fn import_persistent(&self, persistent_torrents: &PersistentTorrents) -> u64 {
+    pub fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) -> u64 {
         tracing::info!("Importing persisted info about torrents ...");
 
         let mut torrents_imported = 0;
@@ -1271,7 +1271,7 @@ mod tests {
 
             use std::sync::Arc;
 
-            use torrust_tracker_primitives::PersistentTorrents;
+            use torrust_tracker_primitives::NumberOfDownloadsBTreeMap;
 
             use crate::swarms::Swarms;
             use crate::tests::{leecher, sample_info_hash};
@@ -1282,7 +1282,7 @@ mod tests {
 
                 let infohash = sample_info_hash();
 
-                let mut persistent_torrents = PersistentTorrents::default();
+                let mut persistent_torrents = NumberOfDownloadsBTreeMap::default();
 
                 persistent_torrents.insert(infohash, 1);
 
@@ -1302,7 +1302,7 @@ mod tests {
 
                 let infohash = sample_info_hash();
 
-                let mut persistent_torrents = PersistentTorrents::default();
+                let mut persistent_torrents = NumberOfDownloadsBTreeMap::default();
 
                 persistent_torrents.insert(infohash, 1);
                 persistent_torrents.insert(infohash, 2);
@@ -1327,7 +1327,7 @@ mod tests {
 
                 // Try to import the torrent entry
                 let new_number_of_downloads = initial_number_of_downloads + 1;
-                let mut persistent_torrents = PersistentTorrents::default();
+                let mut persistent_torrents = NumberOfDownloadsBTreeMap::default();
                 persistent_torrents.insert(infohash, new_number_of_downloads);
                 swarms.import_persistent(&persistent_torrents);
 

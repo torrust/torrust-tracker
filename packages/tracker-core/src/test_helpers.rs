@@ -19,8 +19,8 @@ pub(crate) mod tests {
     use crate::announce_handler::AnnounceHandler;
     use crate::databases::setup::initialize_database;
     use crate::scrape_handler::ScrapeHandler;
+    use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
     use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
-    use crate::torrent::repository::persisted::DatabasePersistentTorrentRepository;
     use crate::whitelist::repository::in_memory::InMemoryWhitelist;
     use crate::whitelist::{self};
 
@@ -137,13 +137,13 @@ pub(crate) mod tests {
             &in_memory_whitelist.clone(),
         ));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let db_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
+        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
 
         let announce_handler = Arc::new(AnnounceHandler::new(
             &config.core,
             &whitelist_authorization,
             &in_memory_torrent_repository,
-            &db_torrent_repository,
+            &db_downloads_metric_repository,
         ));
 
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));

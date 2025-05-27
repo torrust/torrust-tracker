@@ -5,7 +5,7 @@ use aquatic_udp_protocol::AnnounceEvent;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::PeersWanted;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
-use bittorrent_tracker_core::statistics::persisted_metrics::load_persisted_metrics;
+use bittorrent_tracker_core::statistics::persisted::load_persisted_metrics;
 use tokio::task::yield_now;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_metrics::label::LabelSet;
@@ -57,7 +57,7 @@ impl TestEnv {
     async fn load_persisted_metrics(&self, now: DurationSinceUnixEpoch) {
         load_persisted_metrics(
             &self.tracker_core_container.stats_repository,
-            &self.tracker_core_container.db_torrent_repository,
+            &self.tracker_core_container.db_downloads_metric_repository,
             now,
         )
         .await
@@ -77,7 +77,7 @@ impl TestEnv {
         let job = bittorrent_tracker_core::statistics::event::listener::run_event_listener(
             self.torrent_repository_container.event_bus.receiver(),
             &self.tracker_core_container.stats_repository,
-            &self.tracker_core_container.db_torrent_repository,
+            &self.tracker_core_container.db_downloads_metric_repository,
             self.tracker_core_container
                 .core_config
                 .tracker_policy

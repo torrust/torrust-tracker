@@ -6,19 +6,19 @@ use torrust_tracker_events::receiver::RecvError;
 use torrust_tracker_torrent_repository::event::receiver::Receiver;
 
 use super::handler::handle_event;
+use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::statistics::repository::Repository;
-use crate::torrent::repository::persisted::DatabasePersistentTorrentRepository;
 use crate::{CurrentClock, TRACKER_CORE_LOG_TARGET};
 
 #[must_use]
 pub fn run_event_listener(
     receiver: Receiver,
     repository: &Arc<Repository>,
-    db_torrent_repository: &Arc<DatabasePersistentTorrentRepository>,
+    db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
     persistent_torrent_completed_stat: bool,
 ) -> JoinHandle<()> {
     let stats_repository = repository.clone();
-    let db_torrent_repository: Arc<DatabasePersistentTorrentRepository> = db_torrent_repository.clone();
+    let db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository> = db_downloads_metric_repository.clone();
 
     tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting torrent repository event listener");
 
@@ -26,7 +26,7 @@ pub fn run_event_listener(
         dispatch_events(
             receiver,
             stats_repository,
-            db_torrent_repository,
+            db_downloads_metric_repository,
             persistent_torrent_completed_stat,
         )
         .await;
@@ -38,7 +38,7 @@ pub fn run_event_listener(
 async fn dispatch_events(
     mut receiver: Receiver,
     stats_repository: Arc<Repository>,
-    db_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
+    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
     persistent_torrent_completed_stat: bool,
 ) {
     let shutdown_signal = tokio::signal::ctrl_c();
@@ -59,7 +59,7 @@ async fn dispatch_events(
                     Ok(event) => handle_event(
                         event,
                         &stats_repository,
-                        &db_torrent_repository,
+                        &db_downloads_metric_repository,
                         persistent_torrent_completed_stat,
                         CurrentClock::now()).await,
                     Err(e) => {

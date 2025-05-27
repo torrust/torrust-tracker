@@ -2,7 +2,7 @@
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::{PersistentTorrent, PersistentTorrents};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use crate::databases::error::Error;
 use crate::databases::Database;
@@ -19,7 +19,7 @@ use crate::databases::Database;
 ///
 /// Not all in-memory torrent data is persisted; only the aggregate metrics are
 /// stored.
-pub struct DatabasePersistentTorrentRepository {
+pub struct DatabaseDownloadsMetricRepository {
     /// A shared reference to the database driver implementation.
     ///
     /// The driver must implement the [`Database`] trait. This allows for
@@ -28,7 +28,7 @@ pub struct DatabasePersistentTorrentRepository {
     database: Arc<Box<dyn Database>>,
 }
 
-impl DatabasePersistentTorrentRepository {
+impl DatabaseDownloadsMetricRepository {
     /// Creates a new instance of `DatabasePersistentTorrentRepository`.
     ///
     /// # Arguments
@@ -41,7 +41,7 @@ impl DatabasePersistentTorrentRepository {
     /// A new `DatabasePersistentTorrentRepository` instance with a cloned
     /// reference to the provided database.
     #[must_use]
-    pub fn new(database: &Arc<Box<dyn Database>>) -> DatabasePersistentTorrentRepository {
+    pub fn new(database: &Arc<Box<dyn Database>>) -> DatabaseDownloadsMetricRepository {
         Self {
             database: database.clone(),
         }
@@ -60,12 +60,12 @@ impl DatabasePersistentTorrentRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the database operation fails.
-    pub(crate) fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error> {
-        let torrent = self.load(info_hash)?;
+    pub(crate) fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
+        let torrent = self.load_torrent_downloads(info_hash)?;
 
         match torrent {
-            Some(_number_of_downloads) => self.database.increase_number_of_downloads(info_hash),
-            None => self.save(info_hash, 1),
+            Some(_number_of_downloads) => self.database.increase_downloads_for_torrent(info_hash),
+            None => self.save_torrent_downloads(info_hash, 1),
         }
     }
 
@@ -77,8 +77,8 @@ impl DatabasePersistentTorrentRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load_all(&self) -> Result<PersistentTorrents, Error> {
-        self.database.load_persistent_torrents()
+    pub(crate) fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
+        self.database.load_all_torrents_downloads()
     }
 
     /// Loads one persistent torrent metrics from the database.
@@ -89,8 +89,8 @@ impl DatabasePersistentTorrentRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
-        self.database.load_persistent_torrent(info_hash)
+    pub(crate) fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
+        self.database.load_torrent_downloads(info_hash)
     }
 
     /// Saves the persistent torrent metric into the database.
@@ -106,8 +106,8 @@ impl DatabasePersistentTorrentRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the database operation fails.
-    pub(crate) fn save(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error> {
-        self.database.save_persistent_torrent(info_hash, downloaded)
+    pub(crate) fn save_torrent_downloads(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error> {
+        self.database.save_torrent_downloads(info_hash, downloaded)
     }
 
     // Aggregate Metrics
@@ -119,12 +119,12 @@ impl DatabasePersistentTorrentRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the database operation fails.
-    pub(crate) fn increase_global_number_of_downloads(&self) -> Result<(), Error> {
-        let torrent = self.database.load_global_number_of_downloads()?;
+    pub(crate) fn increase_global_downloads(&self) -> Result<(), Error> {
+        let torrent = self.database.load_global_downloads()?;
 
         match torrent {
-            Some(_number_of_downloads) => self.database.increase_global_number_of_downloads(),
-            None => self.database.save_global_number_of_downloads(1),
+            Some(_number_of_downloads) => self.database.increase_global_downloads(),
+            None => self.database.save_global_downloads(1),
         }
     }
 
@@ -133,24 +133,24 @@ impl DatabasePersistentTorrentRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load_global_number_of_downloads(&self) -> Result<Option<PersistentTorrent>, Error> {
-        self.database.load_global_number_of_downloads()
+    pub(crate) fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
+        self.database.load_global_downloads()
     }
 }
 
 #[cfg(test)]
 mod tests {
 
-    use torrust_tracker_primitives::PersistentTorrents;
+    use torrust_tracker_primitives::NumberOfDownloadsBTreeMap;
 
-    use super::DatabasePersistentTorrentRepository;
+    use super::DatabaseDownloadsMetricRepository;
     use crate::databases::setup::initialize_database;
     use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash, sample_info_hash_one, sample_info_hash_two};
 
-    fn initialize_db_persistent_torrent_repository() -> DatabasePersistentTorrentRepository {
+    fn initialize_db_persistent_torrent_repository() -> DatabaseDownloadsMetricRepository {
         let config = ephemeral_configuration();
         let database = initialize_database(&config);
-        DatabasePersistentTorrentRepository::new(&database)
+        DatabaseDownloadsMetricRepository::new(&database)
     }
 
     #[test]
@@ -159,9 +159,9 @@ mod tests {
 
         let infohash = sample_info_hash();
 
-        repository.save(&infohash, 1).unwrap();
+        repository.save_torrent_downloads(&infohash, 1).unwrap();
 
-        let torrents = repository.load_all().unwrap();
+        let torrents = repository.load_all_torrents_downloads().unwrap();
 
         assert_eq!(torrents.get(&infohash), Some(1).as_ref());
     }
@@ -172,9 +172,9 @@ mod tests {
 
         let infohash = sample_info_hash();
 
-        repository.increase_number_of_downloads(&infohash).unwrap();
+        repository.increase_downloads_for_torrent(&infohash).unwrap();
 
-        let torrents = repository.load_all().unwrap();
+        let torrents = repository.load_all_torrents_downloads().unwrap();
 
         assert_eq!(torrents.get(&infohash), Some(1).as_ref());
     }
@@ -186,12 +186,12 @@ mod tests {
         let infohash_one = sample_info_hash_one();
         let infohash_two = sample_info_hash_two();
 
-        repository.save(&infohash_one, 1).unwrap();
-        repository.save(&infohash_two, 2).unwrap();
+        repository.save_torrent_downloads(&infohash_one, 1).unwrap();
+        repository.save_torrent_downloads(&infohash_two, 2).unwrap();
 
-        let torrents = repository.load_all().unwrap();
+        let torrents = repository.load_all_torrents_downloads().unwrap();
 
-        let mut expected_torrents = PersistentTorrents::new();
+        let mut expected_torrents = NumberOfDownloadsBTreeMap::new();
         expected_torrents.insert(infohash_one, 1);
         expected_torrents.insert(infohash_two, 2);
 

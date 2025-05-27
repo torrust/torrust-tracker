@@ -99,8 +99,8 @@ use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::peer;
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
-use super::torrent::repository::persisted::DatabasePersistentTorrentRepository;
 use crate::error::AnnounceError;
+use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::whitelist::authorization::WhitelistAuthorization;
 
 /// Handles `announce` requests from `BitTorrent` clients.
@@ -115,7 +115,7 @@ pub struct AnnounceHandler {
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
 
     /// Repository for persistent torrent data (database).
-    db_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
+    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
 }
 
 impl AnnounceHandler {
@@ -125,13 +125,13 @@ impl AnnounceHandler {
         config: &Core,
         whitelist_authorization: &Arc<WhitelistAuthorization>,
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
-        db_torrent_repository: &Arc<DatabasePersistentTorrentRepository>,
+        db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
     ) -> Self {
         Self {
             whitelist_authorization: whitelist_authorization.clone(),
             config: config.clone(),
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
-            db_torrent_repository: db_torrent_repository.clone(),
+            db_downloads_metric_repository: db_downloads_metric_repository.clone(),
         }
     }
 
@@ -169,7 +169,7 @@ impl AnnounceHandler {
         // downloads across all torrents. The in-memory metric will count only
         // the number of downloads during the current tracker uptime.
         let opt_persistent_torrent = if self.config.tracker_policy.persistent_torrent_completed_stat {
-            self.db_torrent_repository.load(info_hash)?
+            self.db_downloads_metric_repository.load_torrent_downloads(info_hash)?
         } else {
             None
         };

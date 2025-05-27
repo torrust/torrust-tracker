@@ -1,6 +1,6 @@
 pub mod event;
 pub mod metrics;
-pub mod persisted_metrics;
+pub mod persisted;
 pub mod repository;
 
 use metrics::Metrics;

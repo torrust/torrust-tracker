@@ -5,7 +5,7 @@ use crossbeam_skiplist::SkipMap;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use super::Repository;
 use crate::entry::peer_list::PeerList;
@@ -38,7 +38,7 @@ where
     ///
     /// Returns `true` if the number of downloads was increased because the peer
     /// completed the download.
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, opt_persistent_torrent: Option<PersistentTorrent>) -> bool {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, opt_persistent_torrent: Option<NumberOfDownloads>) -> bool {
         if let Some(existing_entry) = self.torrents.get(info_hash) {
             existing_entry.value().upsert_peer(peer)
         } else {
@@ -100,7 +100,7 @@ where
         }
     }
 
-    fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
+    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
         for (info_hash, completed) in persistent_torrents {
             if self.torrents.contains_key(info_hash) {
                 continue;
@@ -146,7 +146,7 @@ where
     EntryRwLockParkingLot: EntrySync,
     EntrySingle: Entry,
 {
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, _opt_persistent_torrent: Option<PersistentTorrent>) -> bool {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, _opt_persistent_torrent: Option<NumberOfDownloads>) -> bool {
         // todo: load persistent torrent data if provided
 
         let entry = self.torrents.get_or_insert(*info_hash, Arc::default());
@@ -193,7 +193,7 @@ where
         }
     }
 
-    fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
+    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
         for (info_hash, completed) in persistent_torrents {
             if self.torrents.contains_key(info_hash) {
                 continue;
@@ -239,7 +239,7 @@ where
     EntryMutexParkingLot: EntrySync,
     EntrySingle: Entry,
 {
-    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, _opt_persistent_torrent: Option<PersistentTorrent>) -> bool {
+    fn upsert_peer(&self, info_hash: &InfoHash, peer: &peer::Peer, _opt_persistent_torrent: Option<NumberOfDownloads>) -> bool {
         // todo: load persistent torrent data if provided
 
         let entry = self.torrents.get_or_insert(*info_hash, Arc::default());
@@ -286,7 +286,7 @@ where
         }
     }
 
-    fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
+    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
         for (info_hash, completed) in persistent_torrents {
             if self.torrents.contains_key(info_hash) {
                 continue;
