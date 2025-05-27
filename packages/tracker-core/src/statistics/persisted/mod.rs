@@ -8,7 +8,7 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use super::repository::Repository;
 use super::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
 use crate::databases;
-use crate::torrent::repository::persisted::DatabaseDownloadsMetricRepository;
+use crate::torrent::repository::downloads::DatabaseDownloadsMetricRepository;
 
 /// Loads persisted metrics from the database and sets them in the stats repository.
 ///

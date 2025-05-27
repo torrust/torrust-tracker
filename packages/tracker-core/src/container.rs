@@ -13,7 +13,7 @@ use crate::databases::Database;
 use crate::scrape_handler::ScrapeHandler;
 use crate::torrent::manager::TorrentsManager;
 use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
-use crate::torrent::repository::persisted::DatabaseDownloadsMetricRepository;
+use crate::torrent::repository::downloads::DatabaseDownloadsMetricRepository;
 use crate::whitelist::authorization::WhitelistAuthorization;
 use crate::whitelist::manager::WhitelistManager;
 use crate::whitelist::repository::in_memory::InMemoryWhitelist;

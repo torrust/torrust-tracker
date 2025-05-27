@@ -99,7 +99,7 @@ use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::peer;
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
-use super::torrent::repository::persisted::DatabaseDownloadsMetricRepository;
+use super::torrent::repository::downloads::DatabaseDownloadsMetricRepository;
 use crate::error::AnnounceError;
 use crate::whitelist::authorization::WhitelistAuthorization;
 

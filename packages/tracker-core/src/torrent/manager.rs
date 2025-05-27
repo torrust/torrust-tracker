@@ -7,7 +7,7 @@ use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::repository::in_memory::InMemoryTorrentRepository;
-use super::repository::persisted::DatabaseDownloadsMetricRepository;
+use super::repository::downloads::DatabaseDownloadsMetricRepository;
 use crate::{databases, CurrentClock};
 
 /// The `TorrentsManager` is responsible for managing torrent entries by
