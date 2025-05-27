@@ -31,7 +31,7 @@ pub struct TorrentsManager {
 
     /// The persistent torrents repository.
     #[allow(dead_code)]
-    db_torrent_repository: Arc<DatabaseDownloadsMetricRepository>,
+    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
 }
 
 impl TorrentsManager {
@@ -42,7 +42,7 @@ impl TorrentsManager {
     /// * `config` - A reference to the tracker configuration.
     /// * `in_memory_torrent_repository` - A shared reference to the in-memory
     ///   repository of torrents.
-    /// * `db_torrent_repository` - A shared reference to the persistent
+    /// * `db_downloads_metric_repository` - A shared reference to the persistent
     ///   repository for torrent metrics.
     ///
     /// # Returns
@@ -52,12 +52,12 @@ impl TorrentsManager {
     pub fn new(
         config: &Core,
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
-        db_torrent_repository: &Arc<DatabaseDownloadsMetricRepository>,
+        db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
     ) -> Self {
         Self {
             config: config.clone(),
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
-            db_torrent_repository: db_torrent_repository.clone(),
+            db_downloads_metric_repository: db_downloads_metric_repository.clone(),
         }
     }
 
@@ -72,7 +72,7 @@ impl TorrentsManager {
     /// Returns a `databases::error::Error` if unable to load the persistent
     /// torrent data.
     pub fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
-        let persistent_torrents = self.db_torrent_repository.load_all()?;
+        let persistent_torrents = self.db_downloads_metric_repository.load_all()?;
 
         println!("Loaded {} persistent torrents from the database", persistent_torrents.len());
 

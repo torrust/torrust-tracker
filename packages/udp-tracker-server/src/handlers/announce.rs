@@ -885,7 +885,7 @@ mod tests {
                     let whitelist_authorization =
                         Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
                     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-                    let db_torrent_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
+                    let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
 
                     let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
                     udp_core_stats_event_sender_mock
@@ -923,7 +923,7 @@ mod tests {
                         &config.core,
                         &whitelist_authorization,
                         &in_memory_torrent_repository,
-                        &db_torrent_repository,
+                        &db_downloads_metric_repository,
                     ));
 
                     let request = AnnounceRequestBuilder::default()

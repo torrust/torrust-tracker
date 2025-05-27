@@ -137,13 +137,13 @@ pub(crate) mod tests {
             &in_memory_whitelist.clone(),
         ));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let db_torrent_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
+        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
 
         let announce_handler = Arc::new(AnnounceHandler::new(
             &config.core,
             &whitelist_authorization,
             &in_memory_torrent_repository,
-            &db_torrent_repository,
+            &db_downloads_metric_repository,
         ));
 
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));

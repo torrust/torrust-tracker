@@ -18,10 +18,10 @@ use crate::torrent::repository::persisted::DatabaseDownloadsMetricRepository;
 /// metric collection fails to set the initial metric values.
 pub async fn load_persisted_metrics(
     stats_repository: &Arc<Repository>,
-    db_torrent_repository: &Arc<DatabaseDownloadsMetricRepository>,
+    db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
     now: DurationSinceUnixEpoch,
 ) -> Result<(), Error> {
-    if let Some(downloads) = db_torrent_repository.load_global_number_of_downloads()? {
+    if let Some(downloads) = db_downloads_metric_repository.load_global_number_of_downloads()? {
         stats_repository
             .set_counter(
                 &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),

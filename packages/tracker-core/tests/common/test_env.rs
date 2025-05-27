@@ -57,7 +57,7 @@ impl TestEnv {
     async fn load_persisted_metrics(&self, now: DurationSinceUnixEpoch) {
         load_persisted_metrics(
             &self.tracker_core_container.stats_repository,
-            &self.tracker_core_container.db_torrent_repository,
+            &self.tracker_core_container.db_downloads_metric_repository,
             now,
         )
         .await
@@ -77,7 +77,7 @@ impl TestEnv {
         let job = bittorrent_tracker_core::statistics::event::listener::run_event_listener(
             self.torrent_repository_container.event_bus.receiver(),
             &self.tracker_core_container.stats_repository,
-            &self.tracker_core_container.db_torrent_repository,
+            &self.tracker_core_container.db_downloads_metric_repository,
             self.tracker_core_container
                 .core_config
                 .tracker_policy
