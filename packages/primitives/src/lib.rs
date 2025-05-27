@@ -19,4 +19,4 @@ use bittorrent_primitives::info_hash::InfoHash;
 pub type DurationSinceUnixEpoch = Duration;
 
 pub type NumberOfDownloads = u32;
-pub type PersistentTorrents = BTreeMap<InfoHash, NumberOfDownloads>;
+pub type NumberOfDownloadsBTreeMap = BTreeMap<InfoHash, NumberOfDownloads>;

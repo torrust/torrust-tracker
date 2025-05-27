@@ -5,7 +5,7 @@ use dashmap::DashMap;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use super::Repository;
 use crate::entry::peer_list::PeerList;
@@ -77,7 +77,7 @@ where
         }
     }
 
-    fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
+    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
         for (info_hash, completed) in persistent_torrents {
             if self.torrents.contains_key(info_hash) {
                 continue;

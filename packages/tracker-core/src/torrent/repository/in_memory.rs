@@ -6,7 +6,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 use torrust_tracker_torrent_repository::{SwarmHandle, Swarms};
 
 /// In-memory repository for torrent entries.
@@ -264,7 +264,7 @@ impl InMemoryTorrentRepository {
     /// # Arguments
     ///
     /// * `persistent_torrents` - A reference to the persisted torrent data.
-    pub fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
+    pub fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
         self.swarms.import_persistent(persistent_torrents);
     }
 }

@@ -52,7 +52,7 @@ pub mod setup;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use mockall::automock;
-use torrust_tracker_primitives::{NumberOfDownloads, PersistentTorrents};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use self::error::Error;
 use crate::authentication::{self, Key};
@@ -101,7 +101,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the metrics cannot be loaded.
-    fn load_all_torrents_downloads(&self) -> Result<PersistentTorrents, Error>;
+    fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error>;
 
     /// Loads torrent metrics data from the database for one torrent.
     ///

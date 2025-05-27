@@ -2,7 +2,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 use torrust_tracker_torrent_repository_benchmarking::repository::{Repository as _, RepositoryAsync as _};
 use torrust_tracker_torrent_repository_benchmarking::{
     EntrySingle, TorrentsDashMapMutexStd, TorrentsRwLockStd, TorrentsRwLockStdMutexStd, TorrentsRwLockStdMutexTokio,
@@ -144,7 +144,7 @@ impl Repo {
         }
     }
 
-    pub(crate) async fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
+    pub(crate) async fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
         match self {
             Repo::RwLockStd(repo) => repo.import_persistent(persistent_torrents),
             Repo::RwLockStdMutexStd(repo) => repo.import_persistent(persistent_torrents),

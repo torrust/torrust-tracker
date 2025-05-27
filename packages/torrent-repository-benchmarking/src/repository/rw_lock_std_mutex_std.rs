@@ -4,7 +4,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use super::Repository;
 use crate::entry::peer_list::PeerList;
@@ -87,7 +87,7 @@ where
         }
     }
 
-    fn import_persistent(&self, persistent_torrents: &PersistentTorrents) {
+    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
         let mut torrents = self.get_torrents_mut();
 
         for (info_hash, completed) in persistent_torrents {

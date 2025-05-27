@@ -13,7 +13,7 @@ use r2d2::Pool;
 use r2d2_sqlite::rusqlite::params;
 use r2d2_sqlite::rusqlite::types::Null;
 use r2d2_sqlite::SqliteConnectionManager;
-use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfDownloads, PersistentTorrents};
+use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use super::{Database, Driver, Error, TORRENTS_DOWNLOADS_TOTAL};
 use crate::authentication::{self, Key};
@@ -152,7 +152,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
-    fn load_all_torrents_downloads(&self) -> Result<PersistentTorrents, Error> {
+    fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
