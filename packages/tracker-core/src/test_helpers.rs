@@ -19,8 +19,8 @@ pub(crate) mod tests {
     use crate::announce_handler::AnnounceHandler;
     use crate::databases::setup::initialize_database;
     use crate::scrape_handler::ScrapeHandler;
+    use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
     use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
-    use crate::torrent::repository::downloads::DatabaseDownloadsMetricRepository;
     use crate::whitelist::repository::in_memory::InMemoryWhitelist;
     use crate::whitelist::{self};
 

@@ -6,8 +6,8 @@ use torrust_tracker_events::receiver::RecvError;
 use torrust_tracker_torrent_repository::event::receiver::Receiver;
 
 use super::handler::handle_event;
+use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::statistics::repository::Repository;
-use crate::torrent::repository::downloads::DatabaseDownloadsMetricRepository;
 use crate::{CurrentClock, TRACKER_CORE_LOG_TARGET};
 
 #[must_use]

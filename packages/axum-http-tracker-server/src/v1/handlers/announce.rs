@@ -119,8 +119,8 @@ mod tests {
     use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use bittorrent_tracker_core::authentication::service::AuthenticationService;
     use bittorrent_tracker_core::databases::setup::initialize_database;
+    use bittorrent_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-    use bittorrent_tracker_core::torrent::repository::downloads::DatabaseDownloadsMetricRepository;
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use torrust_tracker_configuration::Configuration;

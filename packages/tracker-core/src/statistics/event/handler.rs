@@ -5,9 +5,9 @@ use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use torrust_tracker_torrent_repository::event::Event;
 
+use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::statistics::repository::Repository;
 use crate::statistics::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
-use crate::torrent::repository::downloads::DatabaseDownloadsMetricRepository;
 
 pub async fn handle_event(
     event: Event,
