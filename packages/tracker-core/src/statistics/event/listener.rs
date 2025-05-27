@@ -7,18 +7,18 @@ use torrust_tracker_torrent_repository::event::receiver::Receiver;
 
 use super::handler::handle_event;
 use crate::statistics::repository::Repository;
-use crate::torrent::repository::persisted::DatabasePersistentTorrentRepository;
+use crate::torrent::repository::persisted::DatabaseDownloadsMetricRepository;
 use crate::{CurrentClock, TRACKER_CORE_LOG_TARGET};
 
 #[must_use]
 pub fn run_event_listener(
     receiver: Receiver,
     repository: &Arc<Repository>,
-    db_torrent_repository: &Arc<DatabasePersistentTorrentRepository>,
+    db_torrent_repository: &Arc<DatabaseDownloadsMetricRepository>,
     persistent_torrent_completed_stat: bool,
 ) -> JoinHandle<()> {
     let stats_repository = repository.clone();
-    let db_torrent_repository: Arc<DatabasePersistentTorrentRepository> = db_torrent_repository.clone();
+    let db_torrent_repository: Arc<DatabaseDownloadsMetricRepository> = db_torrent_repository.clone();
 
     tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting torrent repository event listener");
 
@@ -38,7 +38,7 @@ pub fn run_event_listener(
 async fn dispatch_events(
     mut receiver: Receiver,
     stats_repository: Arc<Repository>,
-    db_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
+    db_torrent_repository: Arc<DatabaseDownloadsMetricRepository>,
     persistent_torrent_completed_stat: bool,
 ) {
     let shutdown_signal = tokio::signal::ctrl_c();

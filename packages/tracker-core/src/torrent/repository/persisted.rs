@@ -19,7 +19,7 @@ use crate::databases::Database;
 ///
 /// Not all in-memory torrent data is persisted; only the aggregate metrics are
 /// stored.
-pub struct DatabasePersistentTorrentRepository {
+pub struct DatabaseDownloadsMetricRepository {
     /// A shared reference to the database driver implementation.
     ///
     /// The driver must implement the [`Database`] trait. This allows for
@@ -28,7 +28,7 @@ pub struct DatabasePersistentTorrentRepository {
     database: Arc<Box<dyn Database>>,
 }
 
-impl DatabasePersistentTorrentRepository {
+impl DatabaseDownloadsMetricRepository {
     /// Creates a new instance of `DatabasePersistentTorrentRepository`.
     ///
     /// # Arguments
@@ -41,7 +41,7 @@ impl DatabasePersistentTorrentRepository {
     /// A new `DatabasePersistentTorrentRepository` instance with a cloned
     /// reference to the provided database.
     #[must_use]
-    pub fn new(database: &Arc<Box<dyn Database>>) -> DatabasePersistentTorrentRepository {
+    pub fn new(database: &Arc<Box<dyn Database>>) -> DatabaseDownloadsMetricRepository {
         Self {
             database: database.clone(),
         }
@@ -143,14 +143,14 @@ mod tests {
 
     use torrust_tracker_primitives::PersistentTorrents;
 
-    use super::DatabasePersistentTorrentRepository;
+    use super::DatabaseDownloadsMetricRepository;
     use crate::databases::setup::initialize_database;
     use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash, sample_info_hash_one, sample_info_hash_two};
 
-    fn initialize_db_persistent_torrent_repository() -> DatabasePersistentTorrentRepository {
+    fn initialize_db_persistent_torrent_repository() -> DatabaseDownloadsMetricRepository {
         let config = ephemeral_configuration();
         let database = initialize_database(&config);
-        DatabasePersistentTorrentRepository::new(&database)
+        DatabaseDownloadsMetricRepository::new(&database)
     }
 
     #[test]

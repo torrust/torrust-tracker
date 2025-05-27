@@ -8,7 +8,7 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use super::repository::Repository;
 use super::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
 use crate::databases;
-use crate::torrent::repository::persisted::DatabasePersistentTorrentRepository;
+use crate::torrent::repository::persisted::DatabaseDownloadsMetricRepository;
 
 /// Loads persisted metrics from the database and sets them in the stats repository.
 ///
@@ -18,7 +18,7 @@ use crate::torrent::repository::persisted::DatabasePersistentTorrentRepository;
 /// metric collection fails to set the initial metric values.
 pub async fn load_persisted_metrics(
     stats_repository: &Arc<Repository>,
-    db_torrent_repository: &Arc<DatabasePersistentTorrentRepository>,
+    db_torrent_repository: &Arc<DatabaseDownloadsMetricRepository>,
     now: DurationSinceUnixEpoch,
 ) -> Result<(), Error> {
     if let Some(downloads) = db_torrent_repository.load_global_number_of_downloads()? {

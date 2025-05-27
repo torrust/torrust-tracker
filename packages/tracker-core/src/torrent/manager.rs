@@ -7,7 +7,7 @@ use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::repository::in_memory::InMemoryTorrentRepository;
-use super::repository::persisted::DatabasePersistentTorrentRepository;
+use super::repository::persisted::DatabaseDownloadsMetricRepository;
 use crate::{databases, CurrentClock};
 
 /// The `TorrentsManager` is responsible for managing torrent entries by
@@ -31,7 +31,7 @@ pub struct TorrentsManager {
 
     /// The persistent torrents repository.
     #[allow(dead_code)]
-    db_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
+    db_torrent_repository: Arc<DatabaseDownloadsMetricRepository>,
 }
 
 impl TorrentsManager {
@@ -52,7 +52,7 @@ impl TorrentsManager {
     pub fn new(
         config: &Core,
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
-        db_torrent_repository: &Arc<DatabasePersistentTorrentRepository>,
+        db_torrent_repository: &Arc<DatabaseDownloadsMetricRepository>,
     ) -> Self {
         Self {
             config: config.clone(),
@@ -153,7 +153,7 @@ mod tests {
     use torrust_tracker_configuration::Core;
     use torrust_tracker_torrent_repository::Swarms;
 
-    use super::{DatabasePersistentTorrentRepository, TorrentsManager};
+    use super::{DatabaseDownloadsMetricRepository, TorrentsManager};
     use crate::databases::setup::initialize_database;
     use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash};
     use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
@@ -161,7 +161,7 @@ mod tests {
     struct TorrentsManagerDeps {
         config: Arc<Core>,
         in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
-        database_persistent_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
+        database_persistent_torrent_repository: Arc<DatabaseDownloadsMetricRepository>,
     }
 
     fn initialize_torrents_manager() -> (Arc<TorrentsManager>, Arc<TorrentsManagerDeps>) {
@@ -173,7 +173,7 @@ mod tests {
         let swarms = Arc::new(Swarms::default());
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms));
         let database = initialize_database(&config);
-        let database_persistent_torrent_repository = Arc::new(DatabasePersistentTorrentRepository::new(&database));
+        let database_persistent_torrent_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
 
         let torrents_manager = Arc::new(TorrentsManager::new(
             &config,

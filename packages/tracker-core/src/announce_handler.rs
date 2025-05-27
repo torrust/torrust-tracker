@@ -99,7 +99,7 @@ use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::peer;
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
-use super::torrent::repository::persisted::DatabasePersistentTorrentRepository;
+use super::torrent::repository::persisted::DatabaseDownloadsMetricRepository;
 use crate::error::AnnounceError;
 use crate::whitelist::authorization::WhitelistAuthorization;
 
@@ -115,7 +115,7 @@ pub struct AnnounceHandler {
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
 
     /// Repository for persistent torrent data (database).
-    db_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
+    db_torrent_repository: Arc<DatabaseDownloadsMetricRepository>,
 }
 
 impl AnnounceHandler {
@@ -125,7 +125,7 @@ impl AnnounceHandler {
         config: &Core,
         whitelist_authorization: &Arc<WhitelistAuthorization>,
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
-        db_torrent_repository: &Arc<DatabasePersistentTorrentRepository>,
+        db_torrent_repository: &Arc<DatabaseDownloadsMetricRepository>,
     ) -> Self {
         Self {
             whitelist_authorization: whitelist_authorization.clone(),
