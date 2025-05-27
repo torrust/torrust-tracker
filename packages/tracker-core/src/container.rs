@@ -14,11 +14,11 @@ use crate::scrape_handler::ScrapeHandler;
 use crate::torrent::manager::TorrentsManager;
 use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
 use crate::torrent::repository::persisted::DatabasePersistentTorrentRepository;
-use crate::whitelist;
 use crate::whitelist::authorization::WhitelistAuthorization;
 use crate::whitelist::manager::WhitelistManager;
 use crate::whitelist::repository::in_memory::InMemoryWhitelist;
 use crate::whitelist::setup::initialize_whitelist_manager;
+use crate::{statistics, whitelist};
 
 pub struct TrackerCoreContainer {
     pub core_config: Arc<Core>,
@@ -33,6 +33,7 @@ pub struct TrackerCoreContainer {
     pub in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     pub db_torrent_repository: Arc<DatabasePersistentTorrentRepository>,
     pub torrents_manager: Arc<TorrentsManager>,
+    pub stats_repository: Arc<statistics::repository::Repository>,
 }
 
 impl TrackerCoreContainer {
@@ -58,6 +59,8 @@ impl TrackerCoreContainer {
             &db_torrent_repository,
         ));
 
+        let stats_repository = Arc::new(statistics::repository::Repository::new());
+
         let announce_handler = Arc::new(AnnounceHandler::new(
             core_config,
             &whitelist_authorization,
@@ -80,6 +83,7 @@ impl TrackerCoreContainer {
             in_memory_torrent_repository,
             db_torrent_repository,
             torrents_manager,
+            stats_repository,
         }
     }
 }

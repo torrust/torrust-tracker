@@ -7,12 +7,12 @@ schema_version = "2.0.0"
 threshold = "info"
 
 [core]
-inactive_peer_cleanup_interval = 60
+inactive_peer_cleanup_interval = 120
 listed = false
 private = false
 
 [core.tracker_policy]
-max_peer_timeout = 30
+max_peer_timeout = 60
 persistent_torrent_completed_stat = true
 remove_peerless_torrents = true
 
