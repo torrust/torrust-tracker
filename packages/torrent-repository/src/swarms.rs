@@ -7,7 +7,7 @@ use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, PersistentTorrents};
 
 use crate::event::sender::Sender;
 use crate::event::Event;
@@ -53,7 +53,7 @@ impl Swarms {
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
-        opt_persistent_torrent: Option<PersistentTorrent>,
+        opt_persistent_torrent: Option<NumberOfDownloads>,
     ) -> Result<(), Error> {
         let swarm_handle = match self.swarms.get(info_hash) {
             None => {

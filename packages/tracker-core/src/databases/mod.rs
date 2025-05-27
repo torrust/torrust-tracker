@@ -52,7 +52,7 @@ pub mod setup;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use mockall::automock;
-use torrust_tracker_primitives::{PersistentTorrent, PersistentTorrents};
+use torrust_tracker_primitives::{NumberOfDownloads, PersistentTorrents};
 
 use self::error::Error;
 use crate::authentication::{self, Key};
@@ -110,7 +110,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the metrics cannot be loaded.
-    fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error>;
+    fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error>;
 
     /// Saves torrent metrics data into the database.
     ///
@@ -149,7 +149,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the total downloads cannot be loaded.
-    fn load_global_downloads(&self) -> Result<Option<PersistentTorrent>, Error>;
+    fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error>;
 
     /// Saves the total number of downloads for all torrents into the database.
     ///
@@ -163,7 +163,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the total downloads cannot be saved.
-    fn save_global_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error>;
+    fn save_global_downloads(&self, downloaded: NumberOfDownloads) -> Result<(), Error>;
 
     /// Increases the total number of downloads for all torrents.
     ///

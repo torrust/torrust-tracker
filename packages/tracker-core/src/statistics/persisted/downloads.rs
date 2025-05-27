@@ -2,7 +2,7 @@
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::{PersistentTorrent, PersistentTorrents};
+use torrust_tracker_primitives::{NumberOfDownloads, PersistentTorrents};
 
 use crate::databases::error::Error;
 use crate::databases::Database;
@@ -89,7 +89,7 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
+    pub(crate) fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
         self.database.load_torrent_downloads(info_hash)
     }
 
@@ -133,7 +133,7 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load_global_downloads(&self) -> Result<Option<PersistentTorrent>, Error> {
+    pub(crate) fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
         self.database.load_global_downloads()
     }
 }

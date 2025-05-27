@@ -13,7 +13,7 @@ use r2d2::Pool;
 use r2d2_sqlite::rusqlite::params;
 use r2d2_sqlite::rusqlite::types::Null;
 use r2d2_sqlite::SqliteConnectionManager;
-use torrust_tracker_primitives::{DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
+use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfDownloads, PersistentTorrents};
 
 use super::{Database, Driver, Error, TORRENTS_DOWNLOADS_TOTAL};
 use crate::authentication::{self, Key};
@@ -50,7 +50,7 @@ impl Sqlite {
         Ok(Self { pool })
     }
 
-    fn load_torrent_aggregate_metric(&self, metric_name: &str) -> Result<Option<PersistentTorrent>, Error> {
+    fn load_torrent_aggregate_metric(&self, metric_name: &str) -> Result<Option<NumberOfDownloads>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT value FROM torrent_aggregate_metrics WHERE metric_name = ?")?;
@@ -65,7 +65,7 @@ impl Sqlite {
         }))
     }
 
-    fn save_torrent_aggregate_metric(&self, metric_name: &str, completed: PersistentTorrent) -> Result<(), Error> {
+    fn save_torrent_aggregate_metric(&self, metric_name: &str, completed: NumberOfDownloads) -> Result<(), Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let insert = conn.execute(
@@ -168,7 +168,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_persistent_torrent`](crate::core::databases::Database::load_persistent_torrent).
-    fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
+    fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT completed FROM torrents WHERE info_hash = ?")?;
@@ -215,12 +215,12 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_global_number_of_downloads`](crate::core::databases::Database::load_global_number_of_downloads).
-    fn load_global_downloads(&self) -> Result<Option<PersistentTorrent>, Error> {
+    fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
         self.load_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL)
     }
 
     /// Refer to [`databases::Database::save_global_number_of_downloads`](crate::core::databases::Database::save_global_number_of_downloads).
-    fn save_global_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error> {
+    fn save_global_downloads(&self, downloaded: NumberOfDownloads) -> Result<(), Error> {
         self.save_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL, downloaded)
     }
 

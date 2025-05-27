@@ -4,7 +4,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PersistentTorrent, PersistentTorrents};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, PersistentTorrents};
 
 use super::RepositoryAsync;
 use crate::entry::peer_list::PeerList;
@@ -38,7 +38,7 @@ where
         &self,
         info_hash: &InfoHash,
         peer: &peer::Peer,
-        _opt_persistent_torrent: Option<PersistentTorrent>,
+        _opt_persistent_torrent: Option<NumberOfDownloads>,
     ) -> bool {
         // todo: load persistent torrent data if provided
 
