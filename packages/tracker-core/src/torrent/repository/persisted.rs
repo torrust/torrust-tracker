@@ -67,6 +67,22 @@ impl DatabasePersistentTorrentRepository {
         }
     }
 
+    /// Increases the global number of downloads for all torrent.
+    ///
+    /// If the metric is not found, it creates it.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the database operation fails.
+    pub(crate) fn increase_global_number_of_downloads(&self) -> Result<(), Error> {
+        let torrent = self.database.load_global_number_of_downloads()?;
+
+        match torrent {
+            Some(_number_of_downloads) => self.database.increase_global_number_of_downloads(),
+            None => self.database.save_global_number_of_downloads(1),
+        }
+    }
+
     /// Loads all persistent torrent metrics from the database.
     ///
     /// This function retrieves the torrent metrics (e.g., download counts) from the persistent store
