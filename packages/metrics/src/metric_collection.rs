@@ -72,6 +72,8 @@ impl MetricCollection {
         self.counters.get_value(name, label_set)
     }
 
+    /// Increases the counter for the given metric name and labels.
+    ///
     /// # Errors
     ///
     /// Return an error if a metrics of a different type with the same name
@@ -89,6 +91,30 @@ impl MetricCollection {
         }
 
         self.counters.increment(name, label_set, time);
+
+        Ok(())
+    }
+
+    /// Sets the counter for the given metric name and labels.
+    ///
+    /// # Errors
+    ///
+    /// Return an error if a metrics of a different type with the same name
+    /// already exists.
+    pub fn set_counter(
+        &mut self,
+        name: &MetricName,
+        label_set: &LabelSet,
+        value: u64,
+        time: DurationSinceUnixEpoch,
+    ) -> Result<(), Error> {
+        if self.gauges.metrics.contains_key(name) {
+            return Err(Error::MetricNameCollisionAdding {
+                metric_name: name.clone(),
+            });
+        }
+
+        self.counters.absolute(name, label_set, value, time);
 
         Ok(())
     }
@@ -361,13 +387,28 @@ impl MetricKindCollection<Counter> {
     ///
     /// # Panics
     ///
-    /// Panics if the metric does not exist and it could not be created.
+    /// Panics if the metric does not exist.
     pub fn increment(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
         self.ensure_metric_exists(name);
 
         let metric = self.metrics.get_mut(name).expect("Counter metric should exist");
 
         metric.increment(label_set, time);
+    }
+
+    /// Sets the counter to an absolute value for the given metric name and labels.
+    ///
+    /// If the metric name does not exist, it will be created.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the metric does not exist.
+    pub fn absolute(&mut self, name: &MetricName, label_set: &LabelSet, value: u64, time: DurationSinceUnixEpoch) {
+        self.ensure_metric_exists(name);
+
+        let metric = self.metrics.get_mut(name).expect("Counter metric should exist");
+
+        metric.absolute(label_set, value, time);
     }
 
     #[must_use]

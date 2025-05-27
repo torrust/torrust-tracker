@@ -58,7 +58,7 @@ async fn it_should_handle_the_scrape_request() {
 }
 
 #[tokio::test]
-async fn it_should_persist_the_number_of_completed_peers_for_all_torrents_into_the_database() {
+async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_the_database() {
     let mut core_config = ephemeral_configuration();
     core_config.tracker_policy.persistent_torrent_completed_stat = true;
 

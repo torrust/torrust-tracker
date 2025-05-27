@@ -20,6 +20,10 @@ impl Counter {
     pub fn increment(&mut self, value: u64) {
         self.0 += value;
     }
+
+    pub fn absolute(&mut self, value: u64) {
+        self.0 = value;
+    }
 }
 
 impl From<u64> for Counter {
@@ -71,6 +75,13 @@ mod tests {
 
         counter.increment(2);
         assert_eq!(counter.value(), 3);
+    }
+
+    #[test]
+    fn it_could_set_to_an_absolute_value() {
+        let mut counter = Counter::new(0);
+        counter.absolute(1);
+        assert_eq!(counter.value(), 1);
     }
 
     #[test]

@@ -55,6 +55,10 @@ impl Metric<Counter> {
     pub fn increment(&mut self, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
         self.sample_collection.increment(label_set, time);
     }
+
+    pub fn absolute(&mut self, label_set: &LabelSet, value: u64, time: DurationSinceUnixEpoch) {
+        self.sample_collection.absolute(label_set, value, time);
+    }
 }
 
 impl Metric<Gauge> {

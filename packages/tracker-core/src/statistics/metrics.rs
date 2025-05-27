@@ -27,6 +27,19 @@ impl Metrics {
     /// # Errors
     ///
     /// Returns an error if the metric does not exist and it cannot be created.
+    pub fn set_counter(
+        &mut self,
+        metric_name: &MetricName,
+        labels: &LabelSet,
+        value: u64,
+        now: DurationSinceUnixEpoch,
+    ) -> Result<(), Error> {
+        self.metric_collection.set_counter(metric_name, labels, value, now)
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error if the metric does not exist and it cannot be created.
     pub fn set_gauge(
         &mut self,
         metric_name: &MetricName,
