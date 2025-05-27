@@ -86,3 +86,28 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
 
     assert!(test_env.get_swarm_metadata(&info_hash).await.unwrap().downloads() == 1);
 }
+
+#[tokio::test]
+async fn it_should_persist_the_global_number_of_completed_peers_into_the_database() {
+    let mut core_config = ephemeral_configuration();
+
+    core_config.tracker_policy.persistent_torrent_completed_stat = true;
+
+    let mut test_env = TestEnv::started(core_config.clone()).await;
+
+    test_env
+        .increase_number_of_downloads(sample_peer(), &remote_client_ip(), &sample_info_hash())
+        .await;
+
+    // We run a new instance of the test environment to simulate a restart.
+    // The new instance uses the same underlying database.
+
+    let new_test_env = TestEnv::started(core_config).await;
+
+    assert_eq!(
+        new_test_env
+            .get_counter_value("tracker_core_persistent_torrents_downloads_total")
+            .await,
+        1
+    );
+}
