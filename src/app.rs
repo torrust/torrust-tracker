@@ -141,7 +141,7 @@ fn load_torrents_from_database(config: &Configuration, app_container: &Arc<AppCo
 #[allow(dead_code)]
 async fn load_torrent_metrics(config: &Configuration, app_container: &Arc<AppContainer>) {
     if config.core.tracker_policy.persistent_torrent_completed_stat {
-        bittorrent_tracker_core::statistics::persisted_metrics::load_persisted_metrics(
+        bittorrent_tracker_core::statistics::persisted::load_persisted_metrics(
             &app_container.tracker_core_container.stats_repository,
             &app_container.tracker_core_container.db_downloads_metric_repository,
             CurrentClock::now(),
