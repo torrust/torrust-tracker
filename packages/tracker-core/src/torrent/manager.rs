@@ -29,8 +29,7 @@ pub struct TorrentsManager {
     /// The in-memory torrents repository.
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
 
-    /// The persistent torrents repository.
-    #[allow(dead_code)]
+    /// The download metrics repository.
     db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
 }
 
@@ -72,9 +71,7 @@ impl TorrentsManager {
     /// Returns a `databases::error::Error` if unable to load the persistent
     /// torrent data.
     pub fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
-        let persistent_torrents = self.db_downloads_metric_repository.load_all()?;
-
-        println!("Loaded {} persistent torrents from the database", persistent_torrents.len());
+        let persistent_torrents = self.db_downloads_metric_repository.load_all_torrents_downloads()?;
 
         self.in_memory_torrent_repository.import_persistent(&persistent_torrents);
 
@@ -197,7 +194,10 @@ mod tests {
 
         let infohash = sample_info_hash();
 
-        services.database_persistent_torrent_repository.save(&infohash, 1).unwrap();
+        services
+            .database_persistent_torrent_repository
+            .save_torrent_downloads(&infohash, 1)
+            .unwrap();
 
         torrents_manager.load_torrents_from_database().unwrap();
 

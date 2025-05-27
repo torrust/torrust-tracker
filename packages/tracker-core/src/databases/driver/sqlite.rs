@@ -152,7 +152,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
-    fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error> {
+    fn load_all_torrents_downloads(&self) -> Result<PersistentTorrents, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
@@ -168,7 +168,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_persistent_torrent`](crate::core::databases::Database::load_persistent_torrent).
-    fn load_persistent_torrent(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
+    fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let mut stmt = conn.prepare("SELECT completed FROM torrents WHERE info_hash = ?")?;
@@ -184,7 +184,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
-    fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
+    fn save_torrent_downloads(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let insert = conn.execute(
@@ -203,7 +203,7 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::increase_number_of_downloads`](crate::core::databases::Database::increase_number_of_downloads).
-    fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error> {
+    fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let _ = conn.execute(
@@ -215,17 +215,17 @@ impl Database for Sqlite {
     }
 
     /// Refer to [`databases::Database::load_global_number_of_downloads`](crate::core::databases::Database::load_global_number_of_downloads).
-    fn load_global_number_of_downloads(&self) -> Result<Option<PersistentTorrent>, Error> {
+    fn load_global_downloads(&self) -> Result<Option<PersistentTorrent>, Error> {
         self.load_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL)
     }
 
     /// Refer to [`databases::Database::save_global_number_of_downloads`](crate::core::databases::Database::save_global_number_of_downloads).
-    fn save_global_number_of_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error> {
+    fn save_global_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error> {
         self.save_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL, downloaded)
     }
 
     /// Refer to [`databases::Database::increase_global_number_of_downloads`](crate::core::databases::Database::increase_global_number_of_downloads).
-    fn increase_global_number_of_downloads(&self) -> Result<(), Error> {
+    fn increase_global_downloads(&self) -> Result<(), Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let metric_name = TORRENTS_DOWNLOADS_TOTAL;

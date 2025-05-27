@@ -169,9 +169,9 @@ pub(crate) mod tests {
 
             let number_of_downloads = 1;
 
-            driver.save_persistent_torrent(&infohash, number_of_downloads).unwrap();
+            driver.save_torrent_downloads(&infohash, number_of_downloads).unwrap();
 
-            let number_of_downloads = driver.load_persistent_torrent(&infohash).unwrap().unwrap();
+            let number_of_downloads = driver.load_torrent_downloads(&infohash).unwrap().unwrap();
 
             assert_eq!(number_of_downloads, 1);
         }
@@ -181,9 +181,9 @@ pub(crate) mod tests {
 
             let number_of_downloads = 1;
 
-            driver.save_persistent_torrent(&infohash, number_of_downloads).unwrap();
+            driver.save_torrent_downloads(&infohash, number_of_downloads).unwrap();
 
-            let torrents = driver.load_persistent_torrents().unwrap();
+            let torrents = driver.load_all_torrents_downloads().unwrap();
 
             assert_eq!(torrents.len(), 1);
             assert_eq!(torrents.get(&infohash), Some(number_of_downloads).as_ref());
@@ -194,11 +194,11 @@ pub(crate) mod tests {
 
             let number_of_downloads = 1;
 
-            driver.save_persistent_torrent(&infohash, number_of_downloads).unwrap();
+            driver.save_torrent_downloads(&infohash, number_of_downloads).unwrap();
 
-            driver.increase_number_of_downloads(&infohash).unwrap();
+            driver.increase_downloads_for_torrent(&infohash).unwrap();
 
-            let number_of_downloads = driver.load_persistent_torrent(&infohash).unwrap().unwrap();
+            let number_of_downloads = driver.load_torrent_downloads(&infohash).unwrap().unwrap();
 
             assert_eq!(number_of_downloads, 2);
         }
@@ -208,9 +208,9 @@ pub(crate) mod tests {
         pub fn it_should_save_and_load_the_global_number_of_downloads(driver: &Arc<Box<dyn Database>>) {
             let number_of_downloads = 1;
 
-            driver.save_global_number_of_downloads(number_of_downloads).unwrap();
+            driver.save_global_downloads(number_of_downloads).unwrap();
 
-            let number_of_downloads = driver.load_global_number_of_downloads().unwrap().unwrap();
+            let number_of_downloads = driver.load_global_downloads().unwrap().unwrap();
 
             assert_eq!(number_of_downloads, 1);
         }
@@ -218,9 +218,9 @@ pub(crate) mod tests {
         pub fn it_should_load_the_global_number_of_downloads(driver: &Arc<Box<dyn Database>>) {
             let number_of_downloads = 1;
 
-            driver.save_global_number_of_downloads(number_of_downloads).unwrap();
+            driver.save_global_downloads(number_of_downloads).unwrap();
 
-            let number_of_downloads = driver.load_global_number_of_downloads().unwrap().unwrap();
+            let number_of_downloads = driver.load_global_downloads().unwrap().unwrap();
 
             assert_eq!(number_of_downloads, 1);
         }
@@ -228,11 +228,11 @@ pub(crate) mod tests {
         pub fn it_should_increase_the_global_number_of_downloads(driver: &Arc<Box<dyn Database>>) {
             let number_of_downloads = 1;
 
-            driver.save_global_number_of_downloads(number_of_downloads).unwrap();
+            driver.save_global_downloads(number_of_downloads).unwrap();
 
-            driver.increase_global_number_of_downloads().unwrap();
+            driver.increase_global_downloads().unwrap();
 
-            let number_of_downloads = driver.load_global_number_of_downloads().unwrap().unwrap();
+            let number_of_downloads = driver.load_global_downloads().unwrap().unwrap();
 
             assert_eq!(number_of_downloads, 2);
         }

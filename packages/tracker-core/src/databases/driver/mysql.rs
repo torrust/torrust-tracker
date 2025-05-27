@@ -146,7 +146,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
-    fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error> {
+    fn load_all_torrents_downloads(&self) -> Result<PersistentTorrents, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let torrents = conn.query_map(
@@ -161,7 +161,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::load_persistent_torrent`](crate::core::databases::Database::load_persistent_torrent).
-    fn load_persistent_torrent(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
+    fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let query = conn.exec_first::<u32, _, _>(
@@ -175,7 +175,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
-    fn save_persistent_torrent(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
+    fn save_torrent_downloads(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
         const COMMAND : &str = "INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)";
 
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
@@ -186,7 +186,7 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::increase_number_of_downloads`](crate::core::databases::Database::increase_number_of_downloads).
-    fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error> {
+    fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let info_hash_str = info_hash.to_string();
@@ -200,17 +200,17 @@ impl Database for Mysql {
     }
 
     /// Refer to [`databases::Database::load_global_number_of_downloads`](crate::core::databases::Database::load_global_number_of_downloads).
-    fn load_global_number_of_downloads(&self) -> Result<Option<PersistentTorrent>, Error> {
+    fn load_global_downloads(&self) -> Result<Option<PersistentTorrent>, Error> {
         self.load_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL)
     }
 
     /// Refer to [`databases::Database::save_global_number_of_downloads`](crate::core::databases::Database::save_global_number_of_downloads).
-    fn save_global_number_of_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error> {
+    fn save_global_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error> {
         self.save_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL, downloaded)
     }
 
     /// Refer to [`databases::Database::increase_global_number_of_downloads`](crate::core::databases::Database::increase_global_number_of_downloads).
-    fn increase_global_number_of_downloads(&self) -> Result<(), Error> {
+    fn increase_global_downloads(&self) -> Result<(), Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let metric_name = TORRENTS_DOWNLOADS_TOTAL;

@@ -101,7 +101,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the metrics cannot be loaded.
-    fn load_persistent_torrents(&self) -> Result<PersistentTorrents, Error>;
+    fn load_all_torrents_downloads(&self) -> Result<PersistentTorrents, Error>;
 
     /// Loads torrent metrics data from the database for one torrent.
     ///
@@ -110,7 +110,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the metrics cannot be loaded.
-    fn load_persistent_torrent(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error>;
+    fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<PersistentTorrent>, Error>;
 
     /// Saves torrent metrics data into the database.
     ///
@@ -124,7 +124,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the metrics cannot be saved.
-    fn save_persistent_torrent(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error>;
+    fn save_torrent_downloads(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error>;
 
     /// Increases the number of downloads for a given torrent.
     ///
@@ -140,7 +140,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the query failed.
-    fn increase_number_of_downloads(&self, info_hash: &InfoHash) -> Result<(), Error>;
+    fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error>;
 
     /// Loads the total number of downloads for all torrents from the database.
     ///
@@ -149,7 +149,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the total downloads cannot be loaded.
-    fn load_global_number_of_downloads(&self) -> Result<Option<PersistentTorrent>, Error>;
+    fn load_global_downloads(&self) -> Result<Option<PersistentTorrent>, Error>;
 
     /// Saves the total number of downloads for all torrents into the database.
     ///
@@ -163,7 +163,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the total downloads cannot be saved.
-    fn save_global_number_of_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error>;
+    fn save_global_downloads(&self, downloaded: PersistentTorrent) -> Result<(), Error>;
 
     /// Increases the total number of downloads for all torrents.
     ///
@@ -172,7 +172,7 @@ pub trait Database: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the query failed.
-    fn increase_global_number_of_downloads(&self) -> Result<(), Error>;
+    fn increase_global_downloads(&self) -> Result<(), Error>;
 
     // Whitelist
 

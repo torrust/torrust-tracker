@@ -53,7 +53,7 @@ pub async fn handle_event(
 
             if persistent_torrent_completed_stat {
                 // Increment the number of downloads for the torrent in the database
-                match db_downloads_metric_repository.increase_number_of_downloads(&info_hash) {
+                match db_downloads_metric_repository.increase_downloads_for_torrent(&info_hash) {
                     Ok(()) => {
                         tracing::debug!(info_hash = ?info_hash, "Number of torrent downloads increased");
                     }
@@ -63,7 +63,7 @@ pub async fn handle_event(
                 }
 
                 // Increment the global number of downloads (for all torrents) in the database
-                match db_downloads_metric_repository.increase_global_number_of_downloads() {
+                match db_downloads_metric_repository.increase_global_downloads() {
                     Ok(()) => {
                         tracing::debug!("Global number of downloads increased");
                     }

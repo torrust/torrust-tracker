@@ -23,7 +23,7 @@ pub async fn load_persisted_metrics(
     db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
     now: DurationSinceUnixEpoch,
 ) -> Result<(), Error> {
-    if let Some(downloads) = db_downloads_metric_repository.load_global_number_of_downloads()? {
+    if let Some(downloads) = db_downloads_metric_repository.load_global_downloads()? {
         stats_repository
             .set_counter(
                 &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
