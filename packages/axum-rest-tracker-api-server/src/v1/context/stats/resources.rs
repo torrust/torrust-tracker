@@ -134,7 +134,7 @@ impl From<TrackerLabeledMetrics> for LabeledStats {
 
 #[cfg(test)]
 mod tests {
-    use torrust_rest_tracker_api_core::statistics::metrics::{Metrics, TorrentsMetrics};
+    use torrust_rest_tracker_api_core::statistics::metrics::{ProtocolMetrics, TorrentsMetrics};
     use torrust_rest_tracker_api_core::statistics::services::TrackerMetrics;
 
     use super::Stats;
@@ -150,7 +150,7 @@ mod tests {
                     total_incomplete: 3,
                     total_torrents: 4
                 },
-                protocol_metrics: Metrics {
+                protocol_metrics: ProtocolMetrics {
                     // TCP
                     tcp4_connections_handled: 5,
                     tcp4_announces_handled: 6,

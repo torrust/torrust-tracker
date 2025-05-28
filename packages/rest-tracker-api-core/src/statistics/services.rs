@@ -8,7 +8,7 @@ use torrust_tracker_metrics::metric_collection::MetricCollection;
 use torrust_udp_tracker_server::statistics as udp_server_statistics;
 
 use super::metrics::TorrentsMetrics;
-use crate::statistics::metrics::Metrics;
+use crate::statistics::metrics::ProtocolMetrics;
 
 /// All the metrics collected by the tracker.
 #[derive(Debug, PartialEq)]
@@ -21,7 +21,7 @@ pub struct TrackerMetrics {
     /// Application level metrics. Usage statistics/metrics.
     ///
     /// Metrics about how the tracker is been used (number of udp announce requests, number of http scrape requests, etcetera)
-    pub protocol_metrics: Metrics,
+    pub protocol_metrics: ProtocolMetrics,
 }
 
 /// It returns all the [`TrackerMetrics`]
@@ -56,7 +56,7 @@ async fn get_protocol_metrics(
     ban_service: Arc<RwLock<BanService>>,
     http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
     udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
-) -> Metrics {
+) -> ProtocolMetrics {
     let udp_banned_ips_total = ban_service.read().await.get_banned_ips_total();
     let http_stats = http_stats_repository.get_stats().await;
     let udp_server_stats = udp_server_stats_repository.get_stats().await;
@@ -66,7 +66,7 @@ async fn get_protocol_metrics(
     // tracker, but we keep them for now. In new major versions we should remove
     // them.
 
-    Metrics {
+    ProtocolMetrics {
         // TCPv4
         tcp4_connections_handled: http_stats.tcp4_announces_handled + http_stats.tcp4_scrapes_handled,
         tcp4_announces_handled: http_stats.tcp4_announces_handled,
@@ -168,7 +168,7 @@ mod tests {
     use torrust_tracker_test_helpers::configuration;
     use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
 
-    use crate::statistics::metrics::{Metrics, TorrentsMetrics};
+    use crate::statistics::metrics::{ProtocolMetrics, TorrentsMetrics};
     use crate::statistics::services::{get_metrics, TrackerMetrics};
 
     pub fn tracker_configuration() -> Configuration {
@@ -214,7 +214,7 @@ mod tests {
             tracker_metrics,
             TrackerMetrics {
                 torrents_metrics: TorrentsMetrics::default(),
-                protocol_metrics: Metrics::default(),
+                protocol_metrics: ProtocolMetrics::default(),
             }
         );
     }
