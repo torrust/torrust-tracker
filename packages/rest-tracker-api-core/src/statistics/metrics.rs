@@ -1,4 +1,33 @@
-/// Metrics collected by the tracker.
+use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
+
+/// Metrics collected by the tracker at the swarm layer.
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct TorrentsMetrics {
+    /// Total number of peers that have ever completed downloading.
+    pub total_downloaded: u64,
+
+    /// Total number of seeders.
+    pub total_complete: u64,
+
+    /// Total number of leechers.
+    pub total_incomplete: u64,
+
+    /// Total number of torrents.
+    pub total_torrents: u64,
+}
+
+impl From<AggregateActiveSwarmMetadata> for TorrentsMetrics {
+    fn from(value: AggregateActiveSwarmMetadata) -> Self {
+        Self {
+            total_downloaded: value.total_downloaded,
+            total_complete: value.total_complete,
+            total_incomplete: value.total_incomplete,
+            total_torrents: value.total_torrents,
+        }
+    }
+}
+
+/// Metrics collected by the tracker at the delivery layer.
 ///
 /// - Number of connections handled
 /// - Number of `announce` requests handled
