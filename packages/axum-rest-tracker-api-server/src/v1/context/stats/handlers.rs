@@ -10,6 +10,7 @@ use bittorrent_udp_tracker_core::services::banning::BanService;
 use serde::Deserialize;
 use tokio::sync::RwLock;
 use torrust_rest_tracker_api_core::statistics::services::{get_labeled_metrics, get_metrics};
+use torrust_tracker_configuration::Core;
 
 use super::responses::{labeled_metrics_response, labeled_stats_response, metrics_response, stats_response};
 
@@ -40,14 +41,26 @@ pub struct QueryParams {
 #[allow(clippy::type_complexity)]
 pub async fn get_stats_handler(
     State(state): State<(
+        Arc<Core>,
         Arc<InMemoryTorrentRepository>,
         Arc<RwLock<BanService>>,
+        Arc<torrust_tracker_torrent_repository::statistics::repository::Repository>,
+        Arc<bittorrent_tracker_core::statistics::repository::Repository>,
         Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
         Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
     )>,
     params: Query<QueryParams>,
 ) -> Response {
-    let metrics = get_metrics(state.0.clone(), state.1.clone(), state.2.clone(), state.3.clone()).await;
+    let metrics = get_metrics(
+        state.0.clone(),
+        state.1.clone(),
+        state.2.clone(),
+        state.3.clone(),
+        state.4.clone(),
+        state.5.clone(),
+        state.6.clone(),
+    )
+    .await;
 
     match params.0.format {
         Some(format) => match format {

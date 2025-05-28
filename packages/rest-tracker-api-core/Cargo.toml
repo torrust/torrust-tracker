@@ -25,4 +25,5 @@ torrust-tracker-torrent-repository = { version = "3.0.0-develop", path = "../tor
 torrust-udp-tracker-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }
 
 [dev-dependencies]
+torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
