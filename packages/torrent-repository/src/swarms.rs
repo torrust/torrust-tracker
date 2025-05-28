@@ -6,7 +6,7 @@ use tokio::sync::Mutex;
 use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
-use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
+use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use crate::event::sender::Sender;
@@ -394,8 +394,8 @@ impl Swarms {
     ///
     /// This function returns an error if it fails to acquire the lock for any
     /// swarm handle.
-    pub async fn get_aggregate_swarm_metadata(&self) -> Result<AggregateSwarmMetadata, Error> {
-        let mut metrics = AggregateSwarmMetadata::default();
+    pub async fn get_aggregate_swarm_metadata(&self) -> Result<AggregateActiveSwarmMetadata, Error> {
+        let mut metrics = AggregateActiveSwarmMetadata::default();
 
         for swarm_handle in &self.swarms {
             let swarm = swarm_handle.value().lock().await;
@@ -466,6 +466,10 @@ impl Swarms {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.swarms.is_empty()
+    }
+
+    pub fn contains(&self, key: &InfoHash) -> bool {
+        self.swarms.contains_key(key)
     }
 }
 
@@ -1055,7 +1059,7 @@ mod tests {
             use std::sync::Arc;
 
             use bittorrent_primitives::info_hash::fixture::gen_seeded_infohash;
-            use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
+            use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
             use crate::swarms::Swarms;
             use crate::tests::{complete_peer, leecher, sample_info_hash, seeder};
@@ -1070,7 +1074,7 @@ mod tests {
 
                 assert_eq!(
                     aggregate_swarm_metadata,
-                    AggregateSwarmMetadata {
+                    AggregateActiveSwarmMetadata {
                         total_complete: 0,
                         total_downloaded: 0,
                         total_incomplete: 0,
@@ -1092,7 +1096,7 @@ mod tests {
 
                 assert_eq!(
                     aggregate_swarm_metadata,
-                    AggregateSwarmMetadata {
+                    AggregateActiveSwarmMetadata {
                         total_complete: 0,
                         total_downloaded: 0,
                         total_incomplete: 1,
@@ -1114,7 +1118,7 @@ mod tests {
 
                 assert_eq!(
                     aggregate_swarm_metadata,
-                    AggregateSwarmMetadata {
+                    AggregateActiveSwarmMetadata {
                         total_complete: 1,
                         total_downloaded: 0,
                         total_incomplete: 0,
@@ -1136,7 +1140,7 @@ mod tests {
 
                 assert_eq!(
                     aggregate_swarm_metadata,
-                    AggregateSwarmMetadata {
+                    AggregateActiveSwarmMetadata {
                         total_complete: 1,
                         total_downloaded: 0,
                         total_incomplete: 0,
@@ -1164,7 +1168,7 @@ mod tests {
 
                 assert_eq!(
                     (aggregate_swarm_metadata),
-                    (AggregateSwarmMetadata {
+                    (AggregateActiveSwarmMetadata {
                         total_complete: 0,
                         total_downloaded: 0,
                         total_incomplete: 1_000_000,

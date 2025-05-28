@@ -1,7 +1,7 @@
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
-use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
+use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 pub mod dash_map_mutex_std;
@@ -17,7 +17,7 @@ use std::fmt::Debug;
 
 pub trait Repository<T>: Debug + Default + Sized + 'static {
     fn get(&self, key: &InfoHash) -> Option<T>;
-    fn get_metrics(&self) -> AggregateSwarmMetadata;
+    fn get_metrics(&self) -> AggregateActiveSwarmMetadata;
     fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, T)>;
     fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap);
     fn remove(&self, key: &InfoHash) -> Option<T>;
@@ -30,7 +30,7 @@ pub trait Repository<T>: Debug + Default + Sized + 'static {
 #[allow(clippy::module_name_repetitions)]
 pub trait RepositoryAsync<T>: Debug + Default + Sized + 'static {
     fn get(&self, key: &InfoHash) -> impl std::future::Future<Output = Option<T>> + Send;
-    fn get_metrics(&self) -> impl std::future::Future<Output = AggregateSwarmMetadata> + Send;
+    fn get_metrics(&self) -> impl std::future::Future<Output = AggregateActiveSwarmMetadata> + Send;
     fn get_paginated(&self, pagination: Option<&Pagination>) -> impl std::future::Future<Output = Vec<(InfoHash, T)>> + Send;
     fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) -> impl std::future::Future<Output = ()> + Send;
     fn remove(&self, key: &InfoHash) -> impl std::future::Future<Output = Option<T>> + Send;

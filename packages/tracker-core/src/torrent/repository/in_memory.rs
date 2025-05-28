@@ -5,7 +5,7 @@ use std::sync::Arc;
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::pagination::Pagination;
-use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
+use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 use torrust_tracker_torrent_repository::{SwarmHandle, Swarms};
 
@@ -226,7 +226,7 @@ impl InMemoryTorrentRepository {
     ///
     /// This function panics if the underling swarms return an error.
     #[must_use]
-    pub async fn get_aggregate_swarm_metadata(&self) -> AggregateSwarmMetadata {
+    pub async fn get_aggregate_swarm_metadata(&self) -> AggregateActiveSwarmMetadata {
         self.swarms
             .get_aggregate_swarm_metadata()
             .await
@@ -266,5 +266,11 @@ impl InMemoryTorrentRepository {
     /// * `persistent_torrents` - A reference to the persisted torrent data.
     pub fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
         self.swarms.import_persistent(persistent_torrents);
+    }
+
+    /// Checks if the repository contains a torrent entry for the given infohash.
+    #[must_use]
+    pub fn contains(&self, info_hash: &InfoHash) -> bool {
+        self.swarms.contains(info_hash)
     }
 }

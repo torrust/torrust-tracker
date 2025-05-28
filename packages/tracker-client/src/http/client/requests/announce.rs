@@ -102,7 +102,7 @@ impl QueryBuilder {
             peer_id: PeerId(*b"-qB00000000000000001").0,
             port: 17548,
             left: 0,
-            event: Some(Event::Completed),
+            event: Some(Event::Started),
             compact: Some(Compact::NotAccepted),
         };
         Self {

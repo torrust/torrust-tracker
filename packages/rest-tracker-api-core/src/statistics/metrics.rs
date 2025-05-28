@@ -1,4 +1,33 @@
-/// Metrics collected by the tracker.
+use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
+
+/// Metrics collected by the tracker at the swarm layer.
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct TorrentsMetrics {
+    /// Total number of peers that have ever completed downloading.
+    pub total_downloaded: u64,
+
+    /// Total number of seeders.
+    pub total_complete: u64,
+
+    /// Total number of leechers.
+    pub total_incomplete: u64,
+
+    /// Total number of torrents.
+    pub total_torrents: u64,
+}
+
+impl From<AggregateActiveSwarmMetadata> for TorrentsMetrics {
+    fn from(value: AggregateActiveSwarmMetadata) -> Self {
+        Self {
+            total_downloaded: value.total_downloaded,
+            total_complete: value.total_complete,
+            total_incomplete: value.total_incomplete,
+            total_torrents: value.total_torrents,
+        }
+    }
+}
+
+/// Metrics collected by the tracker at the delivery layer.
 ///
 /// - Number of connections handled
 /// - Number of `announce` requests handled
@@ -7,7 +36,7 @@
 /// These metrics are collected for each connection type: UDP and HTTP
 /// and also for each IP version used by the peers: IPv4 and IPv6.
 #[derive(Debug, PartialEq, Default)]
-pub struct Metrics {
+pub struct ProtocolMetrics {
     /// Total number of TCP (HTTP tracker) connections from IPv4 peers.
     /// Since the HTTP tracker spec does not require a handshake, this metric
     /// increases for every HTTP request.

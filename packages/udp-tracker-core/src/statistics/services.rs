@@ -39,7 +39,7 @@
 use std::sync::Arc;
 
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
+use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
 use crate::statistics::metrics::Metrics;
 use crate::statistics::repository::Repository;
@@ -50,7 +50,7 @@ pub struct TrackerMetrics {
     /// Domain level metrics.
     ///
     /// General metrics for all torrents (number of seeders, leechers, etcetera)
-    pub torrents_metrics: AggregateSwarmMetadata,
+    pub torrents_metrics: AggregateActiveSwarmMetadata,
 
     /// Application level metrics. Usage statistics/metrics.
     ///
@@ -89,7 +89,7 @@ mod tests {
 
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::{self};
-    use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
+    use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
     use crate::statistics::describe_metrics;
     use crate::statistics::repository::Repository;
@@ -106,7 +106,7 @@ mod tests {
         assert_eq!(
             tracker_metrics,
             TrackerMetrics {
-                torrents_metrics: AggregateSwarmMetadata::default(),
+                torrents_metrics: AggregateActiveSwarmMetadata::default(),
                 protocol_metrics: describe_metrics(),
             }
         );

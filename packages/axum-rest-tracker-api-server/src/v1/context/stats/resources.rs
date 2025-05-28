@@ -134,9 +134,8 @@ impl From<TrackerLabeledMetrics> for LabeledStats {
 
 #[cfg(test)]
 mod tests {
-    use torrust_rest_tracker_api_core::statistics::metrics::Metrics;
+    use torrust_rest_tracker_api_core::statistics::metrics::{ProtocolMetrics, TorrentsMetrics};
     use torrust_rest_tracker_api_core::statistics::services::TrackerMetrics;
-    use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
 
     use super::Stats;
 
@@ -145,13 +144,13 @@ mod tests {
     fn stats_resource_should_be_converted_from_tracker_metrics() {
         assert_eq!(
             Stats::from(TrackerMetrics {
-                torrents_metrics: AggregateSwarmMetadata {
+                torrents_metrics: TorrentsMetrics {
                     total_complete: 1,
                     total_downloaded: 2,
                     total_incomplete: 3,
                     total_torrents: 4
                 },
-                protocol_metrics: Metrics {
+                protocol_metrics: ProtocolMetrics {
                     // TCP
                     tcp4_connections_handled: 5,
                     tcp4_announces_handled: 6,

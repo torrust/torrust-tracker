@@ -402,11 +402,11 @@ async fn it_should_get_metrics(
     repo: Repo,
     #[case] entries: Entries,
 ) {
-    use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
+    use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
     make(&repo, &entries).await;
 
-    let mut metrics = AggregateSwarmMetadata::default();
+    let mut metrics = AggregateActiveSwarmMetadata::default();
 
     for (_, torrent) in entries {
         let stats = torrent.get_swarm_metadata();

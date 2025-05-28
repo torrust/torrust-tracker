@@ -201,13 +201,7 @@ impl Swarm {
     /// Returns true if the swarm should be removed according to the retention
     /// policy.
     fn should_be_removed(&self, policy: &TrackerPolicy) -> bool {
-        // If the policy is to remove peerless torrents and the swarm is empty (no peers),
-        (policy.remove_peerless_torrents && self.is_empty())
-            // but not when the policy is to persist torrent stats and the 
-            // torrent has been downloaded at least once.
-            // (because the only way to store the counter is to keep the swarm in memory.
-            // See https://github.com/torrust/torrust-tracker/issues/1502)
-            && !(policy.persistent_torrent_completed_stat && self.metadata().downloaded > 0)
+        policy.remove_peerless_torrents && self.is_empty()
     }
 
     fn update_metadata_on_insert(&mut self, added_peer: &Arc<PeerAnnouncement>) {

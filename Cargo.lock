@@ -4646,6 +4646,7 @@ dependencies = [
  "bittorrent-udp-tracker-core",
  "tokio",
  "torrust-tracker-configuration",
+ "torrust-tracker-events",
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
