@@ -4,10 +4,11 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
 use torrust_tracker_metrics::metric_collection::Error;
+use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-use super::describe_metrics;
 use super::metrics::Metrics;
+use super::{describe_metrics, TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL};
 
 /// A repository for the torrent repository metrics.
 #[derive(Clone)]
@@ -153,5 +154,23 @@ impl Repository {
         }
 
         result
+    }
+
+    /// Get the total number of torrent downloads.
+    ///
+    /// The value is persisted in database if persistence for downloads metrics is enabled.
+    pub async fn get_torrents_downloads_total(&self) -> u64 {
+        let metrics = self.get_metrics().await;
+
+        let downloads = metrics.metric_collection.get_counter_value(
+            &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
+            &LabelSet::default(),
+        );
+
+        if let Some(downloads) = downloads {
+            downloads.value()
+        } else {
+            0
+        }
     }
 }

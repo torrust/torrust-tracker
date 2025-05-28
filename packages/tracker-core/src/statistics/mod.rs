@@ -10,7 +10,7 @@ use torrust_tracker_metrics::unit::Unit;
 
 // Torrent metrics
 
-pub const TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL: &str = "tracker_core_persistent_torrents_downloads_total";
+const TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL: &str = "tracker_core_persistent_torrents_downloads_total";
 
 #[must_use]
 pub fn describe_metrics() -> Metrics {

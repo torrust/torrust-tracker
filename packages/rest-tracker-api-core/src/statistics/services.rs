@@ -1,15 +1,10 @@
 use std::sync::Arc;
 
-use bittorrent_tracker_core::statistics::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
 use tokio::sync::RwLock;
-use torrust_tracker_configuration::Core;
-use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric_collection::MetricCollection;
-use torrust_tracker_metrics::metric_name;
-use torrust_tracker_torrent_repository::statistics::TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL;
 use torrust_udp_tracker_server::statistics as udp_server_statistics;
 
 use super::metrics::TorrentsMetrics;
@@ -31,64 +26,27 @@ pub struct TrackerMetrics {
 
 /// It returns all the [`TrackerMetrics`]
 pub async fn get_metrics(
-    core_config: Arc<Core>,
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     ban_service: Arc<RwLock<BanService>>,
-    torrent_repository_stats_repository: Arc<torrust_tracker_torrent_repository::statistics::repository::Repository>,
     tracker_core_stats_repository: Arc<bittorrent_tracker_core::statistics::repository::Repository>,
     http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
     udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
 ) -> TrackerMetrics {
     TrackerMetrics {
-        torrents_metrics: get_torrents_metrics(
-            core_config,
-            in_memory_torrent_repository,
-            torrent_repository_stats_repository,
-            tracker_core_stats_repository,
-        )
-        .await,
+        torrents_metrics: get_torrents_metrics(in_memory_torrent_repository, tracker_core_stats_repository).await,
         protocol_metrics: get_protocol_metrics(ban_service, http_stats_repository, udp_server_stats_repository).await,
     }
 }
 
 async fn get_torrents_metrics(
-    core_config: Arc<Core>,
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
-    torrent_repository_stats_repository: Arc<torrust_tracker_torrent_repository::statistics::repository::Repository>,
+
     tracker_core_stats_repository: Arc<bittorrent_tracker_core::statistics::repository::Repository>,
 ) -> TorrentsMetrics {
     let aggregate_active_swarm_metadata = in_memory_torrent_repository.get_aggregate_swarm_metadata().await;
 
-    let total_downloaded = if core_config.tracker_policy.persistent_torrent_completed_stat {
-        let metrics = tracker_core_stats_repository.get_metrics().await;
-
-        let downloads = metrics.metric_collection.get_counter_value(
-            &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
-            &LabelSet::default(),
-        );
-
-        if let Some(downloads) = downloads {
-            downloads.value()
-        } else {
-            0
-        }
-    } else {
-        let metrics = torrent_repository_stats_repository.get_metrics().await;
-
-        let downloads = metrics.metric_collection.get_counter_value(
-            &metric_name!(TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL),
-            &LabelSet::default(),
-        );
-
-        if let Some(downloads) = downloads {
-            downloads.value()
-        } else {
-            0
-        }
-    };
-
     let mut torrents_metrics: TorrentsMetrics = aggregate_active_swarm_metadata.into();
-    torrents_metrics.total_downloaded = total_downloaded;
+    torrents_metrics.total_downloaded = tracker_core_stats_repository.get_torrents_downloads_total().await;
 
     torrents_metrics
 }
@@ -152,7 +110,6 @@ pub struct TrackerLabeledMetrics {
 ///
 /// Will panic if the metrics cannot be merged. This could happen if the
 /// packages are producing duplicate metric names, for example.
-#[allow(deprecated)]
 pub async fn get_labeled_metrics(
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     ban_service: Arc<RwLock<BanService>>,
@@ -245,10 +202,8 @@ mod tests {
         let udp_server_stats_repository = Arc::new(torrust_udp_tracker_server::statistics::repository::Repository::new());
 
         let tracker_metrics = get_metrics(
-            core_config,
             tracker_core_container.in_memory_torrent_repository.clone(),
             ban_service.clone(),
-            torrent_repository_container.stats_repository.clone(),
             tracker_core_container.stats_repository.clone(),
             http_stats_repository.clone(),
             udp_server_stats_repository.clone(),
