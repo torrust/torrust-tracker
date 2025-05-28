@@ -267,4 +267,10 @@ impl InMemoryTorrentRepository {
     pub fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
         self.swarms.import_persistent(persistent_torrents);
     }
+
+    /// Checks if the repository contains a torrent entry for the given infohash.
+    #[must_use]
+    pub fn contains(&self, info_hash: &InfoHash) -> bool {
+        self.swarms.contains(info_hash)
+    }
 }

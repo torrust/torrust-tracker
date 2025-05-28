@@ -467,6 +467,10 @@ impl Swarms {
     pub fn is_empty(&self) -> bool {
         self.swarms.is_empty()
     }
+
+    pub fn contains(&self, key: &InfoHash) -> bool {
+        self.swarms.contains_key(key)
+    }
 }
 
 #[derive(thiserror::Error, Debug, Clone)]
