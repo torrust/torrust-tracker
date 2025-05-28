@@ -163,11 +163,6 @@ impl AnnounceHandler {
     ) -> Result<AnnounceData, AnnounceError> {
         self.whitelist_authorization.authorize(info_hash).await?;
 
-        // This will be removed in the future.
-        // See https://github.com/torrust/torrust-tracker/issues/1502
-        // There will be a persisted metric for counting the total number of
-        // downloads across all torrents. The in-memory metric will count only
-        // the number of downloads during the current tracker uptime.
         let opt_persistent_torrent = if self.config.tracker_policy.persistent_torrent_completed_stat {
             self.db_downloads_metric_repository.load_torrent_downloads(info_hash)?
         } else {
