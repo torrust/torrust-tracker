@@ -136,7 +136,7 @@ impl From<TrackerLabeledMetrics> for LabeledStats {
 mod tests {
     use torrust_rest_tracker_api_core::statistics::metrics::Metrics;
     use torrust_rest_tracker_api_core::statistics::services::TrackerMetrics;
-    use torrust_tracker_primitives::swarm_metadata::AggregateSwarmMetadata;
+    use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
     use super::Stats;
 
@@ -145,7 +145,7 @@ mod tests {
     fn stats_resource_should_be_converted_from_tracker_metrics() {
         assert_eq!(
             Stats::from(TrackerMetrics {
-                torrents_metrics: AggregateSwarmMetadata {
+                torrents_metrics: AggregateActiveSwarmMetadata {
                     total_complete: 1,
                     total_downloaded: 2,
                     total_incomplete: 3,

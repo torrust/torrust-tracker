@@ -7,7 +7,7 @@ use futures::future::join_all;
 use futures::{Future, FutureExt};
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
-use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
+use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use super::RepositoryAsync;
@@ -85,8 +85,8 @@ where
         }
     }
 
-    async fn get_metrics(&self) -> AggregateSwarmMetadata {
-        let mut metrics = AggregateSwarmMetadata::default();
+    async fn get_metrics(&self) -> AggregateActiveSwarmMetadata {
+        let mut metrics = AggregateActiveSwarmMetadata::default();
 
         let entries: Vec<_> = self.get_torrents().values().cloned().collect();
 

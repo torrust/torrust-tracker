@@ -46,24 +46,23 @@ impl SwarmMetadata {
 
 /// Structure that holds aggregate swarm metadata.
 ///
-/// Metrics are aggregate values for all torrents.
+/// Metrics are aggregate values for all active torrents/swarms.
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct AggregateSwarmMetadata {
-    /// Total number of peers that have ever completed downloading for all
-    /// torrents.
+pub struct AggregateActiveSwarmMetadata {
+    /// Total number of peers that have ever completed downloading.
     pub total_downloaded: u64,
 
-    /// Total number of seeders for all torrents.
+    /// Total number of seeders.
     pub total_complete: u64,
 
-    /// Total number of leechers for all torrents.
+    /// Total number of leechers.
     pub total_incomplete: u64,
 
     /// Total number of torrents.
     pub total_torrents: u64,
 }
 
-impl AddAssign for AggregateSwarmMetadata {
+impl AddAssign for AggregateActiveSwarmMetadata {
     fn add_assign(&mut self, rhs: Self) {
         self.total_complete += rhs.total_complete;
         self.total_downloaded += rhs.total_downloaded;

@@ -4,7 +4,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use dashmap::DashMap;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
-use torrust_tracker_primitives::swarm_metadata::{AggregateSwarmMetadata, SwarmMetadata};
+use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use super::Repository;
@@ -46,8 +46,8 @@ where
         maybe_entry.map(|entry| entry.clone())
     }
 
-    fn get_metrics(&self) -> AggregateSwarmMetadata {
-        let mut metrics = AggregateSwarmMetadata::default();
+    fn get_metrics(&self) -> AggregateActiveSwarmMetadata {
+        let mut metrics = AggregateActiveSwarmMetadata::default();
 
         for entry in &self.torrents {
             let stats = entry.value().lock().expect("it should get a lock").get_swarm_metadata();
