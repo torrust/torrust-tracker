@@ -510,7 +510,7 @@ mod tests {
 
         use aquatic_udp_protocol::PeerId;
 
-        use crate::swarms::Registry;
+        use crate::registry::Registry;
         use crate::tests::{sample_info_hash, sample_peer};
 
         /// It generates a peer id from a number where the number is the last
@@ -581,7 +581,7 @@ mod tests {
 
             use std::sync::Arc;
 
-            use crate::swarms::Registry;
+            use crate::registry::Registry;
             use crate::tests::{sample_info_hash, sample_peer};
 
             #[tokio::test]
@@ -617,8 +617,8 @@ mod tests {
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-            use crate::swarms::tests::the_swarm_repository::numeric_peer_id;
-            use crate::swarms::Registry;
+            use crate::registry::tests::the_swarm_repository::numeric_peer_id;
+            use crate::registry::Registry;
             use crate::tests::{sample_info_hash, sample_peer};
 
             #[tokio::test]
@@ -679,8 +679,8 @@ mod tests {
                 use torrust_tracker_primitives::peer::Peer;
                 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-                use crate::swarms::tests::the_swarm_repository::numeric_peer_id;
-                use crate::swarms::Registry;
+                use crate::registry::tests::the_swarm_repository::numeric_peer_id;
+                use crate::registry::Registry;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
@@ -757,7 +757,7 @@ mod tests {
             use torrust_tracker_configuration::TrackerPolicy;
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-            use crate::swarms::Registry;
+            use crate::registry::Registry;
             use crate::tests::{sample_info_hash, sample_peer};
 
             #[tokio::test]
@@ -851,7 +851,7 @@ mod tests {
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-            use crate::swarms::Registry;
+            use crate::registry::Registry;
             use crate::tests::{sample_info_hash, sample_peer};
             use crate::{Coordinator, SwarmHandle};
 
@@ -912,10 +912,10 @@ mod tests {
 
                 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-                use crate::swarms::tests::the_swarm_repository::returning_torrent_entries::{
+                use crate::registry::tests::the_swarm_repository::returning_torrent_entries::{
                     torrent_entry_info, TorrentEntryInfo,
                 };
-                use crate::swarms::Registry;
+                use crate::registry::Registry;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
@@ -952,10 +952,10 @@ mod tests {
                     use torrust_tracker_primitives::pagination::Pagination;
                     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-                    use crate::swarms::tests::the_swarm_repository::returning_torrent_entries::{
+                    use crate::registry::tests::the_swarm_repository::returning_torrent_entries::{
                         torrent_entry_info, TorrentEntryInfo,
                     };
-                    use crate::swarms::Registry;
+                    use crate::registry::Registry;
                     use crate::tests::{
                         sample_info_hash_alphabetically_ordered_after_sample_info_hash_one, sample_info_hash_one,
                         sample_peer_one, sample_peer_two,
@@ -1061,7 +1061,7 @@ mod tests {
             use bittorrent_primitives::info_hash::fixture::gen_seeded_infohash;
             use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
-            use crate::swarms::Registry;
+            use crate::registry::Registry;
             use crate::tests::{complete_peer, leecher, sample_info_hash, seeder};
 
             // todo: refactor to use test parametrization
@@ -1183,7 +1183,7 @@ mod tests {
 
                 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-                use crate::swarms::Registry;
+                use crate::registry::Registry;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
@@ -1210,7 +1210,7 @@ mod tests {
             mod it_should_count_peers {
                 use std::sync::Arc;
 
-                use crate::swarms::Registry;
+                use crate::registry::Registry;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
@@ -1238,7 +1238,7 @@ mod tests {
 
             use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-            use crate::swarms::Registry;
+            use crate::registry::Registry;
             use crate::tests::{leecher, sample_info_hash};
 
             #[tokio::test]
@@ -1277,7 +1277,7 @@ mod tests {
 
             use torrust_tracker_primitives::NumberOfDownloadsBTreeMap;
 
-            use crate::swarms::Registry;
+            use crate::registry::Registry;
             use crate::tests::{leecher, sample_info_hash};
 
             #[tokio::test]
@@ -1353,7 +1353,7 @@ mod tests {
 
         use crate::event::sender::tests::{expect_event_sequence, MockEventSender};
         use crate::event::Event;
-        use crate::swarms::Registry;
+        use crate::registry::Registry;
         use crate::tests::sample_info_hash;
 
         #[tokio::test]
