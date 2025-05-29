@@ -11,7 +11,7 @@ use torrust_tracker_clock::clock;
 
 pub type Swarms = swarms::Registry;
 pub type SwarmHandle = Arc<Mutex<Coordinator>>;
-pub type Coordinator = swarm::Coordinator;
+pub type Coordinator = swarm::coordinator::Coordinator;
 
 /// Working version, for production.
 #[cfg(not(test))]

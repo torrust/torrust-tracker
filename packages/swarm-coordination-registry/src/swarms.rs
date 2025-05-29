@@ -11,7 +11,7 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads
 
 use crate::event::sender::Sender;
 use crate::event::Event;
-use crate::swarm::Coordinator;
+use crate::swarm::coordinator::Coordinator;
 use crate::SwarmHandle;
 
 #[derive(Default)]

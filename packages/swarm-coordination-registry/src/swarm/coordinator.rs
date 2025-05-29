@@ -326,7 +326,7 @@ mod tests {
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
     use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-    use crate::swarm::Coordinator;
+    use crate::swarm::coordinator::Coordinator;
     use crate::tests::sample_info_hash;
 
     #[test]
@@ -553,7 +553,7 @@ mod tests {
 
             use torrust_tracker_configuration::TrackerPolicy;
 
-            use crate::swarm::tests::for_retaining_policy::{
+            use crate::swarm::coordinator::tests::for_retaining_policy::{
                 empty_swarm, not_empty_swarm, not_empty_swarm_with_downloads, remove_peerless_torrents_policy,
             };
 
@@ -582,7 +582,7 @@ mod tests {
 
         mod when_removing_peerless_torrents_is_disabled {
 
-            use crate::swarm::tests::for_retaining_policy::{
+            use crate::swarm::coordinator::tests::for_retaining_policy::{
                 don_not_remove_peerless_torrents_policy, empty_swarm, not_empty_swarm,
             };
 
@@ -700,7 +700,7 @@ mod tests {
         mod when_a_new_peer_is_added {
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::swarm::Coordinator;
+            use crate::swarm::coordinator::Coordinator;
             use crate::tests::sample_info_hash;
 
             #[tokio::test]
@@ -747,7 +747,7 @@ mod tests {
         mod when_a_peer_is_removed {
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::swarm::Coordinator;
+            use crate::swarm::coordinator::Coordinator;
             use crate::tests::sample_info_hash;
 
             #[tokio::test]
@@ -786,7 +786,7 @@ mod tests {
 
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::swarm::Coordinator;
+            use crate::swarm::coordinator::Coordinator;
             use crate::tests::sample_info_hash;
 
             #[tokio::test]
@@ -824,7 +824,7 @@ mod tests {
             use aquatic_udp_protocol::NumberOfBytes;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::swarm::Coordinator;
+            use crate::swarm::coordinator::Coordinator;
             use crate::tests::sample_info_hash;
 
             #[tokio::test]
@@ -913,7 +913,7 @@ mod tests {
 
         use crate::event::sender::tests::{expect_event_sequence, MockEventSender};
         use crate::event::Event;
-        use crate::swarm::Coordinator;
+        use crate::swarm::coordinator::Coordinator;
         use crate::tests::sample_info_hash;
 
         #[tokio::test]
