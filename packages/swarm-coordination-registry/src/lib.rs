@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use torrust_tracker_clock::clock;
 
-pub type Swarms = swarms::Swarms;
+pub type Swarms = swarms::Registry;
 pub type SwarmHandle = Arc<Mutex<Coordinator>>;
 pub type Coordinator = swarm::Coordinator;
 

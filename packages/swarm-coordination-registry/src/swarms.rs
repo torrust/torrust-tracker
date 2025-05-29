@@ -15,12 +15,12 @@ use crate::swarm::Coordinator;
 use crate::SwarmHandle;
 
 #[derive(Default)]
-pub struct Swarms {
+pub struct Registry {
     swarms: SkipMap<InfoHash, SwarmHandle>,
     event_sender: Sender,
 }
 
-impl Swarms {
+impl Registry {
     #[must_use]
     pub fn new(event_sender: Sender) -> Self {
         Self {
@@ -510,7 +510,7 @@ mod tests {
 
         use aquatic_udp_protocol::PeerId;
 
-        use crate::swarms::Swarms;
+        use crate::swarms::Registry;
         use crate::tests::{sample_info_hash, sample_peer};
 
         /// It generates a peer id from a number where the number is the last
@@ -543,13 +543,13 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_return_zero_length_when_it_has_no_swarms() {
-            let swarms = Arc::new(Swarms::default());
+            let swarms = Arc::new(Registry::default());
             assert_eq!(swarms.len(), 0);
         }
 
         #[tokio::test]
         async fn it_should_return_the_length_when_it_has_swarms() {
-            let swarms = Arc::new(Swarms::default());
+            let swarms = Arc::new(Registry::default());
             let info_hash = sample_info_hash();
             let peer = sample_peer();
             swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
@@ -558,7 +558,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_be_empty_when_it_has_no_swarms() {
-            let swarms = Arc::new(Swarms::default());
+            let swarms = Arc::new(Registry::default());
             assert!(swarms.is_empty());
 
             let info_hash = sample_info_hash();
@@ -569,7 +569,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_not_be_empty_when_it_has_at_least_one_swarm() {
-            let swarms = Arc::new(Swarms::default());
+            let swarms = Arc::new(Registry::default());
             let info_hash = sample_info_hash();
             let peer = sample_peer();
             swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
@@ -581,12 +581,12 @@ mod tests {
 
             use std::sync::Arc;
 
-            use crate::swarms::Swarms;
+            use crate::swarms::Registry;
             use crate::tests::{sample_info_hash, sample_peer};
 
             #[tokio::test]
             async fn it_should_add_the_first_peer_to_the_torrent_peer_list() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let info_hash = sample_info_hash();
 
@@ -597,7 +597,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_allow_adding_the_same_peer_twice_to_the_torrent_peer_list() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let info_hash = sample_info_hash();
 
@@ -618,12 +618,12 @@ mod tests {
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
             use crate::swarms::tests::the_swarm_repository::numeric_peer_id;
-            use crate::swarms::Swarms;
+            use crate::swarms::Registry;
             use crate::tests::{sample_info_hash, sample_peer};
 
             #[tokio::test]
             async fn it_should_return_the_peers_for_a_given_torrent() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
@@ -637,7 +637,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_an_empty_list_or_peers_for_a_non_existing_torrent() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let peers = swarms.get_swarm_peers(&sample_info_hash(), 74).await.unwrap();
 
@@ -646,7 +646,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_74_peers_at_the_most_for_a_given_torrent() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let info_hash = sample_info_hash();
 
@@ -680,12 +680,12 @@ mod tests {
                 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
                 use crate::swarms::tests::the_swarm_repository::numeric_peer_id;
-                use crate::swarms::Swarms;
+                use crate::swarms::Registry;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
                 async fn it_should_return_an_empty_peer_list_for_a_non_existing_torrent() {
-                    let swarms = Arc::new(Swarms::default());
+                    let swarms = Arc::new(Registry::default());
 
                     let peers = swarms
                         .get_peers_peers_excluding(&sample_info_hash(), &sample_peer(), TORRENT_PEERS_LIMIT)
@@ -697,7 +697,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_peers_for_a_given_torrent_excluding_a_given_peer() {
-                    let swarms = Arc::new(Swarms::default());
+                    let swarms = Arc::new(Registry::default());
 
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
@@ -714,7 +714,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_74_peers_at_the_most_for_a_given_torrent_when_it_filters_out_a_given_peer() {
-                    let swarms = Arc::new(Swarms::default());
+                    let swarms = Arc::new(Registry::default());
 
                     let info_hash = sample_info_hash();
 
@@ -757,12 +757,12 @@ mod tests {
             use torrust_tracker_configuration::TrackerPolicy;
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-            use crate::swarms::Swarms;
+            use crate::swarms::Registry;
             use crate::tests::{sample_info_hash, sample_peer};
 
             #[tokio::test]
             async fn it_should_remove_a_torrent_entry() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let info_hash = sample_info_hash();
                 swarms.handle_announcement(&info_hash, &sample_peer(), None).await.unwrap();
@@ -774,7 +774,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_count_inactive_peers() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let info_hash = sample_info_hash();
                 let mut peer = sample_peer();
@@ -790,7 +790,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_remove_peers_that_have_not_been_updated_after_a_cutoff_time() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let info_hash = sample_info_hash();
                 let mut peer = sample_peer();
@@ -811,8 +811,8 @@ mod tests {
                     .contains(&Arc::new(peer)));
             }
 
-            async fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<Swarms> {
-                let swarms = Arc::new(Swarms::default());
+            async fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<Registry> {
+                let swarms = Arc::new(Registry::default());
 
                 // Insert a sample peer for the torrent to force adding the torrent entry
                 let mut peer = sample_peer();
@@ -851,7 +851,7 @@ mod tests {
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-            use crate::swarms::Swarms;
+            use crate::swarms::Registry;
             use crate::tests::{sample_info_hash, sample_peer};
             use crate::{Coordinator, SwarmHandle};
 
@@ -884,7 +884,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_one_torrent_entry_by_infohash() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let info_hash = sample_info_hash();
                 let peer = sample_peer();
@@ -915,12 +915,12 @@ mod tests {
                 use crate::swarms::tests::the_swarm_repository::returning_torrent_entries::{
                     torrent_entry_info, TorrentEntryInfo,
                 };
-                use crate::swarms::Swarms;
+                use crate::swarms::Registry;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
                 async fn without_pagination() {
-                    let swarms = Arc::new(Swarms::default());
+                    let swarms = Arc::new(Registry::default());
 
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
@@ -955,7 +955,7 @@ mod tests {
                     use crate::swarms::tests::the_swarm_repository::returning_torrent_entries::{
                         torrent_entry_info, TorrentEntryInfo,
                     };
-                    use crate::swarms::Swarms;
+                    use crate::swarms::Registry;
                     use crate::tests::{
                         sample_info_hash_alphabetically_ordered_after_sample_info_hash_one, sample_info_hash_one,
                         sample_peer_one, sample_peer_two,
@@ -963,7 +963,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn it_should_return_the_first_page() {
-                        let swarms = Arc::new(Swarms::default());
+                        let swarms = Arc::new(Registry::default());
 
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
@@ -998,7 +998,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn it_should_return_the_second_page() {
-                        let swarms = Arc::new(Swarms::default());
+                        let swarms = Arc::new(Registry::default());
 
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
@@ -1033,7 +1033,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn it_should_allow_changing_the_page_size() {
-                        let swarms = Arc::new(Swarms::default());
+                        let swarms = Arc::new(Registry::default());
 
                         // Insert one torrent entry
                         let info_hash_one = sample_info_hash_one();
@@ -1061,14 +1061,14 @@ mod tests {
             use bittorrent_primitives::info_hash::fixture::gen_seeded_infohash;
             use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
-            use crate::swarms::Swarms;
+            use crate::swarms::Registry;
             use crate::tests::{complete_peer, leecher, sample_info_hash, seeder};
 
             // todo: refactor to use test parametrization
 
             #[tokio::test]
             async fn it_should_get_empty_aggregate_swarm_metadata_when_there_are_no_torrents() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let aggregate_swarm_metadata = swarms.get_aggregate_swarm_metadata().await.unwrap();
 
@@ -1085,7 +1085,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_leecher() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 swarms
                     .handle_announcement(&sample_info_hash(), &leecher(), None)
@@ -1107,7 +1107,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_seeder() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 swarms
                     .handle_announcement(&sample_info_hash(), &seeder(), None)
@@ -1129,7 +1129,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_is_a_completed_peer() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 swarms
                     .handle_announcement(&sample_info_hash(), &complete_peer(), None)
@@ -1151,7 +1151,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_the_aggregate_swarm_metadata_when_there_are_multiple_torrents() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let start_time = std::time::Instant::now();
                 for i in 0..1_000_000 {
@@ -1183,12 +1183,12 @@ mod tests {
 
                 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-                use crate::swarms::Swarms;
+                use crate::swarms::Registry;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
                 async fn no_peerless_torrents() {
-                    let swarms = Arc::new(Swarms::default());
+                    let swarms = Arc::new(Registry::default());
                     assert_eq!(swarms.count_peerless_torrents().await.unwrap(), 0);
                 }
 
@@ -1197,7 +1197,7 @@ mod tests {
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
 
-                    let swarms = Arc::new(Swarms::default());
+                    let swarms = Arc::new(Registry::default());
                     swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
                     let current_cutoff = peer.updated + DurationSinceUnixEpoch::from_secs(1);
@@ -1210,12 +1210,12 @@ mod tests {
             mod it_should_count_peers {
                 use std::sync::Arc;
 
-                use crate::swarms::Swarms;
+                use crate::swarms::Registry;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
                 async fn no_peers() {
-                    let swarms = Arc::new(Swarms::default());
+                    let swarms = Arc::new(Registry::default());
                     assert_eq!(swarms.count_peers().await.unwrap(), 0);
                 }
 
@@ -1224,7 +1224,7 @@ mod tests {
                     let info_hash = sample_info_hash();
                     let peer = sample_peer();
 
-                    let swarms = Arc::new(Swarms::default());
+                    let swarms = Arc::new(Registry::default());
                     swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
                     assert_eq!(swarms.count_peers().await.unwrap(), 1);
@@ -1238,12 +1238,12 @@ mod tests {
 
             use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-            use crate::swarms::Swarms;
+            use crate::swarms::Registry;
             use crate::tests::{leecher, sample_info_hash};
 
             #[tokio::test]
             async fn it_should_get_swarm_metadata_for_an_existing_torrent() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let infohash = sample_info_hash();
 
@@ -1263,7 +1263,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_return_zeroed_swarm_metadata_for_a_non_existing_torrent() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let swarm_metadata = swarms.get_swarm_metadata_or_default(&sample_info_hash()).await.unwrap();
 
@@ -1277,12 +1277,12 @@ mod tests {
 
             use torrust_tracker_primitives::NumberOfDownloadsBTreeMap;
 
-            use crate::swarms::Swarms;
+            use crate::swarms::Registry;
             use crate::tests::{leecher, sample_info_hash};
 
             #[tokio::test]
             async fn it_should_allow_importing_persisted_torrent_entries() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let infohash = sample_info_hash();
 
@@ -1302,7 +1302,7 @@ mod tests {
             async fn it_should_allow_overwriting_a_previously_imported_persisted_torrent() {
                 // code-review: do we want to allow this?
 
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let infohash = sample_info_hash();
 
@@ -1321,7 +1321,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_now_allow_importing_a_persisted_torrent_if_it_already_exists() {
-                let swarms = Arc::new(Swarms::default());
+                let swarms = Arc::new(Registry::default());
 
                 let infohash = sample_info_hash();
 
@@ -1353,7 +1353,7 @@ mod tests {
 
         use crate::event::sender::tests::{expect_event_sequence, MockEventSender};
         use crate::event::Event;
-        use crate::swarms::Swarms;
+        use crate::swarms::Registry;
         use crate::tests::sample_info_hash;
 
         #[tokio::test]
@@ -1374,7 +1374,7 @@ mod tests {
                 ],
             );
 
-            let swarms = Swarms::new(Some(Arc::new(event_sender_mock)));
+            let swarms = Registry::new(Some(Arc::new(event_sender_mock)));
 
             swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
         }
@@ -1398,7 +1398,7 @@ mod tests {
                 ],
             );
 
-            let swarms = Swarms::new(Some(Arc::new(event_sender_mock)));
+            let swarms = Registry::new(Some(Arc::new(event_sender_mock)));
 
             swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
@@ -1425,7 +1425,7 @@ mod tests {
                 ],
             );
 
-            let swarms = Swarms::new(Some(Arc::new(event_sender_mock)));
+            let swarms = Registry::new(Some(Arc::new(event_sender_mock)));
 
             // Add the new torrent
             swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
