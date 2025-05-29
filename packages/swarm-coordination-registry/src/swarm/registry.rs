@@ -12,11 +12,11 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads
 use crate::event::sender::Sender;
 use crate::event::Event;
 use crate::swarm::coordinator::Coordinator;
-use crate::SwarmHandle;
+use crate::CoordinatorHandle;
 
 #[derive(Default)]
 pub struct Registry {
-    swarms: SkipMap<InfoHash, SwarmHandle>,
+    swarms: SkipMap<InfoHash, CoordinatorHandle>,
     event_sender: Sender,
 }
 
@@ -60,7 +60,7 @@ impl Registry {
                 let number_of_downloads = opt_persistent_torrent.unwrap_or_default();
 
                 let new_swarm_handle =
-                    SwarmHandle::new(Coordinator::new(info_hash, number_of_downloads, self.event_sender.clone()).into());
+                    CoordinatorHandle::new(Coordinator::new(info_hash, number_of_downloads, self.event_sender.clone()).into());
 
                 let new_swarm_handle = self.swarms.get_or_insert(*info_hash, new_swarm_handle);
 
@@ -107,7 +107,7 @@ impl Registry {
     ///
     /// An `Option` containing the removed torrent entry if it existed.
     #[must_use]
-    pub async fn remove(&self, key: &InfoHash) -> Option<SwarmHandle> {
+    pub async fn remove(&self, key: &InfoHash) -> Option<CoordinatorHandle> {
         let swarm_handle = self.swarms.remove(key).map(|entry| entry.value().clone());
 
         if let Some(event_sender) = self.event_sender.as_deref() {
@@ -123,7 +123,7 @@ impl Registry {
     ///
     /// An `Option` containing the tracked torrent handle if found.
     #[must_use]
-    pub fn get(&self, key: &InfoHash) -> Option<SwarmHandle> {
+    pub fn get(&self, key: &InfoHash) -> Option<CoordinatorHandle> {
         let maybe_entry = self.swarms.get(key);
         maybe_entry.map(|entry| entry.value().clone())
     }
@@ -138,7 +138,7 @@ impl Registry {
     ///
     /// A vector of `(InfoHash, TorrentEntry)` tuples.
     #[must_use]
-    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, SwarmHandle)> {
+    pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, CoordinatorHandle)> {
         match pagination {
             Some(pagination) => self
                 .swarms
@@ -366,7 +366,7 @@ impl Registry {
                 continue;
             }
 
-            let entry = SwarmHandle::new(Coordinator::new(info_hash, *completed, self.event_sender.clone()).into());
+            let entry = CoordinatorHandle::new(Coordinator::new(info_hash, *completed, self.event_sender.clone()).into());
 
             // Since SkipMap is lock-free the torrent could have been inserted
             // after checking if it exists.
@@ -853,7 +853,7 @@ mod tests {
 
             use crate::swarm::registry::Registry;
             use crate::tests::{sample_info_hash, sample_peer};
-            use crate::{Coordinator, SwarmHandle};
+            use crate::{Coordinator, CoordinatorHandle};
 
             /// `TorrentEntry` data is not directly accessible. It's only
             /// accessible through the trait methods. We need this temporary
@@ -865,7 +865,7 @@ mod tests {
                 number_of_peers: usize,
             }
 
-            async fn torrent_entry_info(swarm_handle: SwarmHandle) -> TorrentEntryInfo {
+            async fn torrent_entry_info(swarm_handle: CoordinatorHandle) -> TorrentEntryInfo {
                 let torrent_guard = swarm_handle.lock().await;
                 torrent_guard.clone().into()
             }
