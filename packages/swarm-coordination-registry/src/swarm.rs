@@ -15,14 +15,14 @@ use crate::event::sender::Sender;
 use crate::event::Event;
 
 #[derive(Clone)]
-pub struct Swarm {
+pub struct Coordinator {
     info_hash: InfoHash,
     peers: BTreeMap<SocketAddr, Arc<PeerAnnouncement>>,
     metadata: SwarmMetadata,
     event_sender: Sender,
 }
 
-impl Swarm {
+impl Coordinator {
     #[must_use]
     pub fn new(info_hash: &InfoHash, downloaded: u32, event_sender: Sender) -> Self {
         Self {
@@ -326,26 +326,26 @@ mod tests {
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
     use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-    use crate::swarm::Swarm;
+    use crate::swarm::Coordinator;
     use crate::tests::sample_info_hash;
 
     #[test]
     fn it_should_be_empty_when_no_peers_have_been_inserted() {
-        let swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         assert!(swarm.is_empty());
     }
 
     #[test]
     fn it_should_have_zero_length_when_no_peers_have_been_inserted() {
-        let swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         assert_eq!(swarm.len(), 0);
     }
 
     #[tokio::test]
     async fn it_should_allow_inserting_a_new_peer() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer = PeerBuilder::default().build();
 
@@ -354,7 +354,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_allow_updating_a_preexisting_peer() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer = PeerBuilder::default().build();
 
@@ -365,7 +365,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_allow_getting_all_peers() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer = PeerBuilder::default().build();
 
@@ -376,7 +376,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_allow_getting_one_peer_by_id() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer = PeerBuilder::default().build();
 
@@ -387,7 +387,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_increase_the_number_of_peers_after_inserting_a_new_one() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer = PeerBuilder::default().build();
 
@@ -398,7 +398,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_decrease_the_number_of_peers_after_removing_one() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer = PeerBuilder::default().build();
 
@@ -411,7 +411,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_allow_removing_an_existing_peer() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer = PeerBuilder::default().build();
 
@@ -425,7 +425,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_allow_removing_a_non_existing_peer() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer = PeerBuilder::default().build();
 
@@ -434,7 +434,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_allow_getting_all_peers_excluding_peers_with_a_given_address() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer1 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
@@ -453,7 +453,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_count_inactive_peers() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let one_second = DurationSinceUnixEpoch::new(1, 0);
 
@@ -469,7 +469,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_remove_inactive_peers() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let one_second = DurationSinceUnixEpoch::new(1, 0);
 
@@ -486,7 +486,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_not_remove_active_peers() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let one_second = DurationSinceUnixEpoch::new(1, 0);
 
@@ -507,20 +507,20 @@ mod tests {
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
         use crate::tests::sample_info_hash;
-        use crate::Swarm;
+        use crate::Coordinator;
 
-        fn empty_swarm() -> Swarm {
-            Swarm::new(&sample_info_hash(), 0, None)
+        fn empty_swarm() -> Coordinator {
+            Coordinator::new(&sample_info_hash(), 0, None)
         }
 
-        async fn not_empty_swarm() -> Swarm {
-            let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        async fn not_empty_swarm() -> Coordinator {
+            let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
             swarm.upsert_peer(PeerBuilder::default().build().into()).await;
             swarm
         }
 
-        async fn not_empty_swarm_with_downloads() -> Swarm {
-            let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        async fn not_empty_swarm_with_downloads() -> Coordinator {
+            let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
             let mut peer = PeerBuilder::leecher().build();
 
@@ -602,7 +602,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_allow_inserting_two_identical_peers_except_for_the_socket_address() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer1 = PeerBuilder::default()
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
@@ -619,7 +619,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_not_allow_inserting_two_peers_with_different_peer_id_but_the_same_socket_address() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         // When that happens the peer ID will be changed in the swarm.
         // In practice, it's like if the peer had changed its ID.
@@ -641,7 +641,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_return_the_swarm_metadata() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
@@ -661,7 +661,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_return_the_number_of_seeders_in_the_list() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
@@ -676,7 +676,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_return_the_number_of_leechers_in_the_list() {
-        let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
@@ -691,7 +691,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_be_a_peerless_swarm_when_it_does_not_contain_any_peers() {
-        let swarm = Swarm::new(&sample_info_hash(), 0, None);
+        let swarm = Coordinator::new(&sample_info_hash(), 0, None);
         assert!(swarm.is_peerless());
     }
 
@@ -700,12 +700,12 @@ mod tests {
         mod when_a_new_peer_is_added {
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::swarm::Swarm;
+            use crate::swarm::Coordinator;
             use crate::tests::sample_info_hash;
 
             #[tokio::test]
             async fn it_should_increase_the_number_of_leechers_if_the_new_peer_is_a_leecher_() {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let leechers = swarm.metadata().leechers();
 
@@ -718,7 +718,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_increase_the_number_of_seeders_if_the_new_peer_is_a_seeder() {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let seeders = swarm.metadata().seeders();
 
@@ -732,7 +732,7 @@ mod tests {
             #[tokio::test]
             async fn it_should_not_increasing_the_number_of_downloads_if_the_new_peer_has_completed_downloading_as_it_was_not_previously_known(
             ) {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let downloads = swarm.metadata().downloads();
 
@@ -747,12 +747,12 @@ mod tests {
         mod when_a_peer_is_removed {
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::swarm::Swarm;
+            use crate::swarm::Coordinator;
             use crate::tests::sample_info_hash;
 
             #[tokio::test]
             async fn it_should_decrease_the_number_of_leechers_if_the_removed_peer_was_a_leecher() {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let leecher = PeerBuilder::leecher().build();
 
@@ -767,7 +767,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_decrease_the_number_of_seeders_if_the_removed_peer_was_a_seeder() {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let seeder = PeerBuilder::seeder().build();
 
@@ -786,12 +786,12 @@ mod tests {
 
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::swarm::Swarm;
+            use crate::swarm::Coordinator;
             use crate::tests::sample_info_hash;
 
             #[tokio::test]
             async fn it_should_decrease_the_number_of_leechers_when_a_removed_peer_is_a_leecher() {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let leecher = PeerBuilder::leecher().build();
 
@@ -806,7 +806,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_decrease_the_number_of_seeders_when_the_removed_peer_is_a_seeder() {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let seeder = PeerBuilder::seeder().build();
 
@@ -824,12 +824,12 @@ mod tests {
             use aquatic_udp_protocol::NumberOfBytes;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-            use crate::swarm::Swarm;
+            use crate::swarm::Coordinator;
             use crate::tests::sample_info_hash;
 
             #[tokio::test]
             async fn it_should_increase_seeders_and_decreasing_leechers_when_the_peer_changes_from_leecher_to_seeder_() {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let mut peer = PeerBuilder::leecher().build();
 
@@ -848,7 +848,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_increase_leechers_and_decreasing_seeders_when_the_peer_changes_from_seeder_to_leecher() {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let mut peer = PeerBuilder::seeder().build();
 
@@ -867,7 +867,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_increase_the_number_of_downloads_when_the_peer_announces_completed_downloading() {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let mut peer = PeerBuilder::leecher().build();
 
@@ -884,7 +884,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_not_increasing_the_number_of_downloads_when_the_peer_announces_completed_downloading_twice_() {
-                let mut swarm = Swarm::new(&sample_info_hash(), 0, None);
+                let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let mut peer = PeerBuilder::leecher().build();
 
@@ -913,7 +913,7 @@ mod tests {
 
         use crate::event::sender::tests::{expect_event_sequence, MockEventSender};
         use crate::event::Event;
-        use crate::swarm::Swarm;
+        use crate::swarm::Coordinator;
         use crate::tests::sample_info_hash;
 
         #[tokio::test]
@@ -925,7 +925,7 @@ mod tests {
 
             expect_event_sequence(&mut event_sender_mock, vec![Event::PeerAdded { info_hash, peer }]);
 
-            let mut swarm = Swarm::new(&sample_info_hash(), 0, Some(Arc::new(event_sender_mock)));
+            let mut swarm = Coordinator::new(&sample_info_hash(), 0, Some(Arc::new(event_sender_mock)));
 
             swarm.upsert_peer(peer.into()).await;
         }
@@ -942,7 +942,7 @@ mod tests {
                 vec![Event::PeerAdded { info_hash, peer }, Event::PeerRemoved { info_hash, peer }],
             );
 
-            let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
+            let mut swarm = Coordinator::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
             swarm.upsert_peer(peer.into()).await;
@@ -962,7 +962,7 @@ mod tests {
                 vec![Event::PeerAdded { info_hash, peer }, Event::PeerRemoved { info_hash, peer }],
             );
 
-            let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
+            let mut swarm = Coordinator::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
             swarm.upsert_peer(peer.into()).await;
@@ -992,7 +992,7 @@ mod tests {
                 ],
             );
 
-            let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
+            let mut swarm = Coordinator::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
             swarm.upsert_peer(peer.into()).await;
@@ -1028,7 +1028,7 @@ mod tests {
                 ],
             );
 
-            let mut swarm = Swarm::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
+            let mut swarm = Coordinator::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
             swarm.upsert_peer(started_peer.into()).await;

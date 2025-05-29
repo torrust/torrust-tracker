@@ -10,8 +10,8 @@ use tokio::sync::Mutex;
 use torrust_tracker_clock::clock;
 
 pub type Swarms = swarms::Swarms;
-pub type SwarmHandle = Arc<Mutex<Swarm>>;
-pub type Swarm = swarm::Swarm;
+pub type SwarmHandle = Arc<Mutex<Coordinator>>;
+pub type Coordinator = swarm::Coordinator;
 
 /// Working version, for production.
 #[cfg(not(test))]

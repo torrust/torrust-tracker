@@ -11,7 +11,7 @@ use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads
 
 use crate::event::sender::Sender;
 use crate::event::Event;
-use crate::swarm::Swarm;
+use crate::swarm::Coordinator;
 use crate::SwarmHandle;
 
 #[derive(Default)]
@@ -60,7 +60,7 @@ impl Swarms {
                 let number_of_downloads = opt_persistent_torrent.unwrap_or_default();
 
                 let new_swarm_handle =
-                    SwarmHandle::new(Swarm::new(info_hash, number_of_downloads, self.event_sender.clone()).into());
+                    SwarmHandle::new(Coordinator::new(info_hash, number_of_downloads, self.event_sender.clone()).into());
 
                 let new_swarm_handle = self.swarms.get_or_insert(*info_hash, new_swarm_handle);
 
@@ -86,7 +86,7 @@ impl Swarms {
     }
 
     /// Inserts a new swarm. Only used for testing purposes.
-    pub fn insert(&self, info_hash: &InfoHash, swarm: Swarm) {
+    pub fn insert(&self, info_hash: &InfoHash, swarm: Coordinator) {
         // code-review: swarms builder? or constructor from vec?
         // It's only used for testing purposes. It allows to pre-define the
         // initial state of the swarm without having to go through the upsert
@@ -366,7 +366,7 @@ impl Swarms {
                 continue;
             }
 
-            let entry = SwarmHandle::new(Swarm::new(info_hash, *completed, self.event_sender.clone()).into());
+            let entry = SwarmHandle::new(Coordinator::new(info_hash, *completed, self.event_sender.clone()).into());
 
             // Since SkipMap is lock-free the torrent could have been inserted
             // after checking if it exists.
@@ -853,7 +853,7 @@ mod tests {
 
             use crate::swarms::Swarms;
             use crate::tests::{sample_info_hash, sample_peer};
-            use crate::{Swarm, SwarmHandle};
+            use crate::{Coordinator, SwarmHandle};
 
             /// `TorrentEntry` data is not directly accessible. It's only
             /// accessible through the trait methods. We need this temporary
@@ -871,7 +871,7 @@ mod tests {
             }
 
             #[allow(clippy::from_over_into)]
-            impl Into<TorrentEntryInfo> for Swarm {
+            impl Into<TorrentEntryInfo> for Coordinator {
                 fn into(self) -> TorrentEntryInfo {
                     let torrent_entry_info = TorrentEntryInfo {
                         swarm_metadata: self.metadata(),
