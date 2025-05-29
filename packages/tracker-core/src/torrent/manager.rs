@@ -148,7 +148,7 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_tracker_configuration::Core;
-    use torrust_tracker_swarm_coordination_registry::Swarms;
+    use torrust_tracker_swarm_coordination_registry::Registry;
 
     use super::{DatabaseDownloadsMetricRepository, TorrentsManager};
     use crate::databases::setup::initialize_database;
@@ -167,7 +167,7 @@ mod tests {
     }
 
     fn initialize_torrents_manager_with(config: Core) -> (Arc<TorrentsManager>, Arc<TorrentsManagerDeps>) {
-        let swarms = Arc::new(Swarms::default());
+        let swarms = Arc::new(Registry::default());
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms));
         let database = initialize_database(&config);
         let database_persistent_torrent_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));

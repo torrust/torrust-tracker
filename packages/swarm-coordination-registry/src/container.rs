@@ -6,10 +6,10 @@ use crate::event::bus::EventBus;
 use crate::event::sender::Broadcaster;
 use crate::event::{self};
 use crate::statistics::repository::Repository;
-use crate::{statistics, Swarms};
+use crate::{statistics, Registry};
 
 pub struct TorrentRepositoryContainer {
-    pub swarms: Arc<Swarms>,
+    pub swarms: Arc<Registry>,
     pub event_bus: Arc<event::bus::EventBus>,
     pub stats_event_sender: event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
@@ -26,7 +26,7 @@ impl TorrentRepositoryContainer {
 
         let stats_event_sender = event_bus.sender();
 
-        let swarms = Arc::new(Swarms::new(stats_event_sender.clone()));
+        let swarms = Arc::new(Registry::new(stats_event_sender.clone()));
 
         Self {
             swarms,

@@ -11,12 +11,12 @@ use tracing::instrument;
 
 use super::repository::Repository;
 use crate::statistics::{TORRENT_REPOSITORY_PEERS_INACTIVE_TOTAL, TORRENT_REPOSITORY_TORRENTS_INACTIVE_TOTAL};
-use crate::{CurrentClock, Swarms};
+use crate::{CurrentClock, Registry};
 
 #[must_use]
 #[instrument(skip(swarms, stats_repository))]
 pub fn start_job(
-    swarms: &Arc<Swarms>,
+    swarms: &Arc<Registry>,
     stats_repository: &Arc<Repository>,
     inactivity_cutoff: DurationSinceUnixEpoch,
 ) -> JoinHandle<()> {
@@ -51,7 +51,7 @@ pub fn start_job(
 
 async fn update_activity_metrics(
     interval_in_secs: u64,
-    swarms: &Arc<Swarms>,
+    swarms: &Arc<Registry>,
     stats_repository: &Arc<Repository>,
     inactivity_cutoff: DurationSinceUnixEpoch,
 ) {
