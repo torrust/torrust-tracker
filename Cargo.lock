@@ -579,7 +579,7 @@ dependencies = [
  "bittorrent-http-tracker-protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-core",
- "criterion",
+ "criterion 0.5.1",
  "formatjson",
  "futures",
  "mockall",
@@ -697,7 +697,7 @@ dependencies = [
  "bloom",
  "blowfish",
  "cipher",
- "criterion",
+ "criterion 0.5.1",
  "futures",
  "lazy_static",
  "mockall",
@@ -1193,6 +1193,30 @@ dependencies = [
  "regex",
  "serde",
  "serde_derive",
+ "serde_json",
+ "tinytemplate",
+ "tokio",
+ "walkdir",
+]
+
+[[package]]
+name = "criterion"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3bf7af66b0989381bd0be551bd7cc91912a655a58c6918420c9527b1fd8b4679"
+dependencies = [
+ "anes",
+ "cast",
+ "ciborium",
+ "clap",
+ "criterion-plot",
+ "itertools 0.13.0",
+ "num-traits",
+ "oorandom",
+ "plotters",
+ "rayon",
+ "regex",
+ "serde",
  "serde_json",
  "tinytemplate",
  "tokio",
@@ -4762,7 +4786,7 @@ dependencies = [
 name = "torrust-tracker-contrib-bencode"
 version = "3.0.0-develop"
 dependencies = [
- "criterion",
+ "criterion 0.6.0",
  "thiserror 2.0.12",
 ]
 
@@ -4826,11 +4850,11 @@ dependencies = [
  "async-std",
  "bittorrent-primitives",
  "chrono",
- "criterion",
+ "criterion 0.6.0",
  "crossbeam-skiplist",
  "futures",
  "mockall",
- "rand 0.8.5",
+ "rand 0.9.1",
  "rstest",
  "serde",
  "thiserror 2.0.12",
@@ -4861,7 +4885,7 @@ dependencies = [
  "aquatic_udp_protocol",
  "async-std",
  "bittorrent-primitives",
- "criterion",
+ "criterion 0.6.0",
  "crossbeam-skiplist",
  "dashmap",
  "futures",
