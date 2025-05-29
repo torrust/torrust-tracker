@@ -3,7 +3,7 @@ use std::sync::Arc;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, UdpTracker};
-use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
 
 use crate::event::bus::EventBus;
 use crate::event::sender::Broadcaster;

@@ -7,7 +7,7 @@ use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
-use torrust_tracker_torrent_repository::{SwarmHandle, Swarms};
+use torrust_tracker_swarm_coordination_registry::{SwarmHandle, Swarms};
 
 /// In-memory repository for torrent entries.
 ///

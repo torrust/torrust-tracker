@@ -148,7 +148,7 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_tracker_configuration::Core;
-    use torrust_tracker_torrent_repository::Swarms;
+    use torrust_tracker_swarm_coordination_registry::Swarms;
 
     use super::{DatabaseDownloadsMetricRepository, TorrentsManager};
     use crate::databases::setup::initialize_database;

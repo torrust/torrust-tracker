@@ -11,7 +11,7 @@ use crate::CurrentClock;
 
 #[must_use]
 pub fn start_job(config: &Configuration, app_container: &Arc<AppContainer>) -> JoinHandle<()> {
-    torrust_tracker_torrent_repository::statistics::activity_metrics_updater::start_job(
+    torrust_tracker_swarm_coordination_registry::statistics::activity_metrics_updater::start_job(
         &app_container.torrent_repository_container.swarms.clone(),
         &app_container.torrent_repository_container.stats_repository.clone(),
         peer_inactivity_cutoff_timestamp(config.core.tracker_policy.max_peer_timeout),

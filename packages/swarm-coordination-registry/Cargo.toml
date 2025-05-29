@@ -1,7 +1,7 @@
 [package]
 description = "A library that provides a repository of torrents files and their peers."
 keywords = ["library", "repository", "torrents"]
-name = "torrust-tracker-torrent-repository"
+name = "torrust-tracker-swarm-coordination-registry"
 readme = "README.md"
 
 authors.workspace = true

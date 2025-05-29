@@ -113,7 +113,7 @@ pub struct TrackerLabeledMetrics {
 pub async fn get_labeled_metrics(
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     ban_service: Arc<RwLock<BanService>>,
-    swarms_stats_repository: Arc<torrust_tracker_torrent_repository::statistics::repository::Repository>,
+    swarms_stats_repository: Arc<torrust_tracker_swarm_coordination_registry::statistics::repository::Repository>,
     tracker_core_stats_repository: Arc<bittorrent_tracker_core::statistics::repository::Repository>,
     http_stats_repository: Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
     udp_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
@@ -165,8 +165,8 @@ mod tests {
     use tokio::sync::RwLock;
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_events::bus::SenderStatus;
+    use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
     use torrust_tracker_test_helpers::configuration;
-    use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
 
     use crate::statistics::metrics::{ProtocolMetrics, TorrentsMetrics};
     use crate::statistics::services::{get_metrics, TrackerMetrics};

@@ -7,7 +7,7 @@ use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
 use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
-use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 
 pub struct TrackerHttpApiCoreContainer {
