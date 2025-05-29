@@ -2,16 +2,15 @@ pub mod container;
 pub mod event;
 pub mod statistics;
 pub mod swarm;
-pub mod swarms;
 
 use std::sync::Arc;
 
 use tokio::sync::Mutex;
 use torrust_tracker_clock::clock;
 
-pub type Swarms = swarms::Swarms;
-pub type SwarmHandle = Arc<Mutex<Swarm>>;
-pub type Swarm = swarm::Swarm;
+pub type Registry = swarm::registry::Registry;
+pub type CoordinatorHandle = Arc<Mutex<Coordinator>>;
+pub type Coordinator = swarm::coordinator::Coordinator;
 
 /// Working version, for production.
 #[cfg(not(test))]

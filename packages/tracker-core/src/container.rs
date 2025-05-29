@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use torrust_tracker_configuration::Core;
-use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
 
 use crate::announce_handler::AnnounceHandler;
 use crate::authentication::handler::KeysHandler;

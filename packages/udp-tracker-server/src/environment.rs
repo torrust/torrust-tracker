@@ -8,7 +8,7 @@ use tokio::task::JoinHandle;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration, DEFAULT_TIMEOUT};
 use torrust_tracker_primitives::peer;
-use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
 
 use crate::container::UdpTrackerServerContainer;
 use crate::server::spawner::Spawner;

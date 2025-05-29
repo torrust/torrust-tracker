@@ -14,7 +14,7 @@ use torrust_tracker_primitives::core::{AnnounceData, ScrapeData};
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
-use torrust_tracker_torrent_repository::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
 
 pub struct TestEnv {
     pub torrent_repository_container: Arc<TorrentRepositoryContainer>,
@@ -67,11 +67,10 @@ impl TestEnv {
     async fn run_jobs(&self) {
         let mut jobs = vec![];
 
-        let job = torrust_tracker_torrent_repository::statistics::event::listener::run_event_listener(
+        let job = torrust_tracker_swarm_coordination_registry::statistics::event::listener::run_event_listener(
             self.torrent_repository_container.event_bus.receiver(),
             &self.torrent_repository_container.stats_repository,
         );
-
         jobs.push(job);
 
         let job = bittorrent_tracker_core::statistics::event::listener::run_event_listener(
@@ -83,7 +82,6 @@ impl TestEnv {
                 .tracker_policy
                 .persistent_torrent_completed_stat,
         );
-
         jobs.push(job);
 
         // Give the event listeners some time to start

@@ -1,4 +1,4 @@
-# Torrust Tracker Torrent Repository Benchmarking
+# Torrust Tracker Swarm Coordination Registry Benchmarking
 
 A library to runt benchmarking for different implementations of a repository of torrents files and their peers. Torrent repositories are used by the [Torrust Tracker](https://github.com/torrust/torrust-tracker).
 

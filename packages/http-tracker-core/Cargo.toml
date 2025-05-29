@@ -28,7 +28,7 @@ torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configur
 torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
 torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
-torrust-tracker-torrent-repository = { version = "3.0.0-develop", path = "../torrent-repository" }
+torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
 tracing = "0"
 
 [dev-dependencies]

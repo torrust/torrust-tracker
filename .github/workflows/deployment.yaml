@@ -77,7 +77,7 @@ jobs:
           cargo publish -p torrust-tracker-located-error
           cargo publish -p torrust-tracker-metrics
           cargo publish -p torrust-tracker-primitives
+          cargo publish -p torrust-tracker-swarm-coordination-registry
           cargo publish -p torrust-tracker-test-helpers
           cargo publish -p torrust-tracker-torrent-benchmarking
-          cargo publish -p torrust-tracker-torrent-repository
           cargo publish -p torrust-udp-tracker-server

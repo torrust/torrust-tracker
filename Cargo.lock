@@ -592,8 +592,8 @@ dependencies = [
  "torrust-tracker-events",
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
- "torrust-tracker-torrent-repository",
  "tracing",
 ]
 
@@ -680,8 +680,8 @@ dependencies = [
  "torrust-tracker-located-error",
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
- "torrust-tracker-torrent-repository",
  "tracing",
  "url",
 ]
@@ -710,8 +710,8 @@ dependencies = [
  "torrust-tracker-events",
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
- "torrust-tracker-torrent-repository",
  "tracing",
  "zerocopy 0.7.35",
 ]
@@ -4555,8 +4555,8 @@ dependencies = [
  "torrust-tracker-configuration",
  "torrust-tracker-events",
  "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
- "torrust-tracker-torrent-repository",
  "tower",
  "tower-http",
  "tracing",
@@ -4595,8 +4595,8 @@ dependencies = [
  "torrust-tracker-configuration",
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
- "torrust-tracker-torrent-repository",
  "torrust-udp-tracker-server",
  "tower",
  "tower-http",
@@ -4649,8 +4649,8 @@ dependencies = [
  "torrust-tracker-events",
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
- "torrust-tracker-torrent-repository",
  "torrust-udp-tracker-server",
 ]
 
@@ -4697,8 +4697,8 @@ dependencies = [
  "torrust-server-lib",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
+ "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
- "torrust-tracker-torrent-repository",
  "torrust-udp-tracker-server",
  "tracing",
  "tracing-subscriber",
@@ -4819,17 +4819,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "torrust-tracker-test-helpers"
-version = "3.0.0-develop"
-dependencies = [
- "rand 0.9.1",
- "torrust-tracker-configuration",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "torrust-tracker-torrent-repository"
+name = "torrust-tracker-swarm-coordination-registry"
 version = "3.0.0-develop"
 dependencies = [
  "aquatic_udp_protocol",
@@ -4840,7 +4830,7 @@ dependencies = [
  "crossbeam-skiplist",
  "futures",
  "mockall",
- "rand 0.9.1",
+ "rand 0.8.5",
  "rstest",
  "serde",
  "thiserror 2.0.12",
@@ -4852,6 +4842,16 @@ dependencies = [
  "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
  "tracing",
+]
+
+[[package]]
+name = "torrust-tracker-test-helpers"
+version = "3.0.0-develop"
+dependencies = [
+ "rand 0.9.1",
+ "torrust-tracker-configuration",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -4900,8 +4900,8 @@ dependencies = [
  "torrust-tracker-located-error",
  "torrust-tracker-metrics",
  "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
- "torrust-tracker-torrent-repository",
  "tracing",
  "url",
  "uuid",
