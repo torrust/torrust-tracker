@@ -232,7 +232,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
             };
         }
-        Event::UdpError { context, kind } => {
+        Event::UdpError { context, kind, error: _ } => {
             // Global fixed metrics
             match context.client_socket_addr().ip() {
                 std::net::IpAddr::V4(_) => {
@@ -271,7 +271,7 @@ mod tests {
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
-    use crate::event::{ConnectionContext, Event, UdpRequestKind};
+    use crate::event::{ConnectionContext, ErrorKind, Event, UdpRequestKind};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
     use crate::CurrentClock;
@@ -518,6 +518,7 @@ mod tests {
                     .unwrap(),
                 ),
                 kind: None,
+                error: ErrorKind::RequestParse("Invalid request format".to_string()),
             },
             &stats_repository,
             CurrentClock::now(),
@@ -650,6 +651,7 @@ mod tests {
                     .unwrap(),
                 ),
                 kind: None,
+                error: ErrorKind::RequestParse("Invalid request format".to_string()),
             },
             &stats_repository,
             CurrentClock::now(),

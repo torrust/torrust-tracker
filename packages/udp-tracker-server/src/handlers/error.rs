@@ -21,7 +21,7 @@ pub async fn handle_error(
     request_id: Uuid,
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     cookie_valid_range: Range<f64>,
-    e: &Error,
+    error: &Error,
     transaction_id: Option<TransactionId>,
 ) -> Response {
     tracing::trace!("handle error");
@@ -31,17 +31,17 @@ pub async fn handle_error(
     match transaction_id {
         Some(transaction_id) => {
             let transaction_id = transaction_id.0.to_string();
-            tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %e, %client_socket_addr, %server_socket_addr, %request_id, %transaction_id, "response error");
+            tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, %transaction_id, "response error");
         }
         None => {
-            tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %e, %client_socket_addr, %server_socket_addr, %request_id, "response error");
+            tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, "response error");
         }
     }
 
-    let e = if let Error::RequestParseError { request_parse_error } = e {
+    let e = if let Error::RequestParseError { request_parse_error } = error {
         (request_parse_error.message.clone(), transaction_id)
     } else {
-        (e.to_string(), transaction_id)
+        (error.to_string(), transaction_id)
     };
 
     if e.1.is_some() {
@@ -52,6 +52,7 @@ pub async fn handle_error(
                 .send(Event::UdpError {
                     context: ConnectionContext::new(client_socket_addr, server_service_binding),
                     kind: req_kind,
+                    error: error.clone().into(),
                 })
                 .await;
         }

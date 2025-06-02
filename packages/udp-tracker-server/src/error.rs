@@ -1,4 +1,5 @@
 //! Error types for the UDP server.
+use std::fmt::Display;
 use std::panic::Location;
 
 use aquatic_udp_protocol::{ConnectionId, RequestParseError, TransactionId};
@@ -13,7 +14,7 @@ use torrust_tracker_located_error::LocatedError;
 pub struct ConnectionCookie(pub ConnectionId);
 
 /// Error returned by the UDP server.
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum Error {
     /// Error returned when the request is invalid.
     #[error("error when phrasing request: {request_parse_error:?}")]
@@ -74,6 +75,16 @@ pub struct SendableRequestParseError {
     pub message: String,
     pub opt_connection_id: Option<ConnectionId>,
     pub opt_transaction_id: Option<TransactionId>,
+}
+
+impl Display for SendableRequestParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "SendableRequestParseError: message: {}, connection_id: {:?}, transaction_id: {:?}",
+            self.message, self.opt_connection_id, self.opt_transaction_id
+        )
+    }
 }
 
 impl From<RequestParseError> for SendableRequestParseError {
