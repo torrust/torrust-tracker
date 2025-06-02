@@ -1,7 +1,7 @@
 //! Error types for the UDP server.
 use std::panic::Location;
 
-use aquatic_udp_protocol::{ConnectionId, RequestParseError};
+use aquatic_udp_protocol::{ConnectionId, RequestParseError, TransactionId};
 use bittorrent_udp_tracker_core::services::announce::UdpAnnounceError;
 use bittorrent_udp_tracker_core::services::scrape::UdpScrapeError;
 use derive_more::derive::Display;
@@ -17,7 +17,7 @@ pub struct ConnectionCookie(pub ConnectionId);
 pub enum Error {
     /// Error returned when the request is invalid.
     #[error("error when phrasing request: {request_parse_error:?}")]
-    RequestParseError { request_parse_error: RequestParseError },
+    RequestParseError { request_parse_error: SendableRequestParseError },
 
     /// Error returned when the domain tracker returns an announce error.
     #[error("tracker announce error: {source}")]
@@ -47,7 +47,9 @@ pub enum Error {
 
 impl From<RequestParseError> for Error {
     fn from(request_parse_error: RequestParseError) -> Self {
-        Self::RequestParseError { request_parse_error }
+        Self::RequestParseError {
+            request_parse_error: request_parse_error.into(),
+        }
     }
 }
 
@@ -63,6 +65,32 @@ impl From<UdpScrapeError> for Error {
     fn from(udp_scrape_error: UdpScrapeError) -> Self {
         Self::UdpScrapeError {
             source: udp_scrape_error,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct SendableRequestParseError {
+    pub message: String,
+    pub opt_connection_id: Option<ConnectionId>,
+    pub opt_transaction_id: Option<TransactionId>,
+}
+
+impl From<RequestParseError> for SendableRequestParseError {
+    fn from(request_parse_error: RequestParseError) -> Self {
+        let (message, opt_connection_id, opt_transaction_id) = match request_parse_error {
+            RequestParseError::Sendable {
+                connection_id,
+                transaction_id,
+                err,
+            } => ((*err).to_string(), Some(connection_id), Some(transaction_id)),
+            RequestParseError::Unsendable { err } => (err.to_string(), None, None),
+        };
+
+        Self {
+            message,
+            opt_connection_id,
+            opt_transaction_id,
         }
     }
 }

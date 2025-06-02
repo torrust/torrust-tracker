@@ -2,8 +2,7 @@
 use std::net::SocketAddr;
 use std::ops::Range;
 
-use aquatic_udp_protocol::{ErrorResponse, RequestParseError, Response, TransactionId};
-use bittorrent_udp_tracker_core::connection_cookie::{check, gen_remote_fingerprint};
+use aquatic_udp_protocol::{ErrorResponse, Response, TransactionId};
 use bittorrent_udp_tracker_core::{self, UDP_TRACKER_LOG_TARGET};
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{instrument, Level};
@@ -40,25 +39,14 @@ pub async fn handle_error(
     }
 
     let e = if let Error::RequestParseError { request_parse_error } = e {
-        match request_parse_error {
-            RequestParseError::Sendable {
-                connection_id,
-                transaction_id,
-                err,
-            } => {
-                if let Err(e) = check(connection_id, gen_remote_fingerprint(&client_socket_addr), cookie_valid_range) {
-                    (e.to_string(), Some(*transaction_id))
-                } else {
-                    ((*err).to_string(), Some(*transaction_id))
-                }
-            }
-            RequestParseError::Unsendable { err } => (err.to_string(), transaction_id),
-        }
+        (request_parse_error.message.clone(), transaction_id)
     } else {
         (e.to_string(), transaction_id)
     };
 
     if e.1.is_some() {
+        // code-review: why we trigger an event only if transaction_id is present?
+
         if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
             udp_server_stats_event_sender
                 .send(Event::UdpError {
