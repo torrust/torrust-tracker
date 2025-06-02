@@ -7,7 +7,6 @@ use bittorrent_udp_tracker_core::services::announce::UdpAnnounceError;
 use bittorrent_udp_tracker_core::services::scrape::UdpScrapeError;
 use derive_more::derive::Display;
 use thiserror::Error;
-use torrust_tracker_located_error::LocatedError;
 
 #[derive(Display, Debug)]
 #[display(":?")]
@@ -33,12 +32,6 @@ pub enum Error {
     InternalServer {
         location: &'static Location<'static>,
         message: String,
-    },
-
-    /// Error returned when the request is invalid.
-    #[error("bad request: {source}")]
-    BadRequest {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
     /// Error returned when tracker requires authentication.

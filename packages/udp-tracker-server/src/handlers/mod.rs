@@ -109,6 +109,7 @@ pub(crate) async fn handle_packet(
                 }
             },
             Err(e) => {
+                // The request payload could not be parsed, so we handle it as an error.
                 let response = handle_error(
                     None,
                     udp_request.from,
