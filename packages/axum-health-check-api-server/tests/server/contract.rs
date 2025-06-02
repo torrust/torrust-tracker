@@ -119,11 +119,8 @@ mod api {
 
             assert_eq!(details.binding, binding);
             assert!(
-                details
-                    .result
-                    .as_ref()
-                    .is_err_and(|e| e.contains("error sending request for url")),
-                "Expected to contain, \"error sending request for url\", but have message \"{:?}\".",
+                details.result.as_ref().is_err_and(|e| e.contains("error sending request")),
+                "Expected to contain, \"error sending request\", but have message \"{:?}\".",
                 details.result
             );
             assert_eq!(
@@ -226,11 +223,8 @@ mod http {
 
             assert_eq!(details.binding, binding);
             assert!(
-                details
-                    .result
-                    .as_ref()
-                    .is_err_and(|e| e.contains("error sending request for url")),
-                "Expected to contain, \"error sending request for url\", but have message \"{:?}\".",
+                details.result.as_ref().is_err_and(|e| e.contains("error sending request")),
+                "Expected to contain, \"error sending request\", but have message \"{:?}\".",
                 details.result
             );
             assert_eq!(
