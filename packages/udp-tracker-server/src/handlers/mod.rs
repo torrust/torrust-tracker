@@ -110,6 +110,13 @@ pub(crate) async fn handle_packet(
             },
             Err(e) => {
                 // The request payload could not be parsed, so we handle it as an error.
+
+                let opt_transaction_id = if let Error::RequestParseError { request_parse_error } = e.clone() {
+                    request_parse_error.opt_transaction_id
+                } else {
+                    None
+                };
+
                 let response = handle_error(
                     None,
                     udp_request.from,
@@ -118,7 +125,7 @@ pub(crate) async fn handle_packet(
                     &udp_tracker_server_container.stats_event_sender,
                     cookie_time_values.valid_range.clone(),
                     &e,
-                    None,
+                    opt_transaction_id,
                 )
                 .await;
 

@@ -22,13 +22,13 @@ pub async fn handle_error(
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     cookie_valid_range: Range<f64>,
     error: &Error,
-    transaction_id: Option<TransactionId>,
+    opt_transaction_id: Option<TransactionId>,
 ) -> Response {
     tracing::trace!("handle error");
 
     let server_socket_addr = server_service_binding.bind_address();
 
-    match transaction_id {
+    match opt_transaction_id {
         Some(transaction_id) => {
             let transaction_id = transaction_id.0.to_string();
             tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, %transaction_id, "response error");
@@ -38,13 +38,7 @@ pub async fn handle_error(
         }
     }
 
-    let e = if let Error::RequestParseError { request_parse_error } = error {
-        (request_parse_error.message.clone(), transaction_id)
-    } else {
-        (error.to_string(), transaction_id)
-    };
-
-    if e.1.is_some() {
+    if opt_transaction_id.is_some() {
         // code-review: why we trigger an event only if transaction_id is present?
 
         if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
@@ -59,7 +53,7 @@ pub async fn handle_error(
     }
 
     Response::from(ErrorResponse {
-        transaction_id: e.1.unwrap_or(TransactionId(I32::new(0))),
-        message: e.0.into(),
+        transaction_id: opt_transaction_id.unwrap_or(TransactionId(I32::new(0))),
+        message: error.to_string().into(),
     })
 }
