@@ -6,7 +6,7 @@ use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::{label_name, metric_name};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-use crate::event::{ErrorKind, Event, UdpRequestKind, UdpResponseKind};
+use crate::event::{ConnectionContext, ErrorKind, Event, UdpRequestKind, UdpResponseKind};
 use crate::statistics::repository::Repository;
 use crate::statistics::{
     UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS,
@@ -15,10 +15,6 @@ use crate::statistics::{
     UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
 };
 
-/// # Panics
-///
-/// This function panics if the client IP version does not match the expected
-/// version.
 #[allow(clippy::too_many_lines)]
 pub async fn handle_event(
     event: Event,
@@ -28,256 +24,286 @@ pub async fn handle_event(
 ) {
     match event {
         Event::UdpRequestAborted { context } => {
-            // Global fixed metrics
-            stats_repository.increase_udp_requests_aborted().await;
-
-            // Extendable metrics
-            match stats_repository
-                .increase_counter(
-                    &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
-                    &LabelSet::from(context),
-                    now,
-                )
-                .await
-            {
-                Ok(()) => {}
-                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            handle_udp_request_aborted_event(context, stats_repository, now).await;
         }
         Event::UdpRequestBanned { context } => {
-            // Global fixed metrics
-            stats_repository.increase_udp_requests_banned().await;
-
-            // Extendable metrics
-            match stats_repository
-                .increase_counter(
-                    &metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL),
-                    &LabelSet::from(context),
-                    now,
-                )
-                .await
-            {
-                Ok(()) => {}
-                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            handle_udp_request_banned_event(context, stats_repository, now).await;
         }
         Event::UdpRequestReceived { context } => {
-            // Global fixed metrics
-            match context.client_socket_addr().ip() {
-                std::net::IpAddr::V4(_) => {
-                    stats_repository.increase_udp4_requests().await;
-                }
-                std::net::IpAddr::V6(_) => {
-                    stats_repository.increase_udp6_requests().await;
-                }
-            }
-
-            // Extendable metrics
-            match stats_repository
-                .increase_counter(
-                    &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
-                    &LabelSet::from(context),
-                    now,
-                )
-                .await
-            {
-                Ok(()) => {}
-                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            handle_udp_request_received_event(context, stats_repository, now).await;
         }
         Event::UdpRequestAccepted { context, kind } => {
-            // Global fixed metrics
-            match kind {
-                UdpRequestKind::Connect => match context.client_socket_addr().ip() {
-                    std::net::IpAddr::V4(_) => {
-                        stats_repository.increase_udp4_connections().await;
-                    }
-                    std::net::IpAddr::V6(_) => {
-                        stats_repository.increase_udp6_connections().await;
-                    }
-                },
-                UdpRequestKind::Announce => match context.client_socket_addr().ip() {
-                    std::net::IpAddr::V4(_) => {
-                        stats_repository.increase_udp4_announces().await;
-                    }
-                    std::net::IpAddr::V6(_) => {
-                        stats_repository.increase_udp6_announces().await;
-                    }
-                },
-                UdpRequestKind::Scrape => match context.client_socket_addr().ip() {
-                    std::net::IpAddr::V4(_) => {
-                        stats_repository.increase_udp4_scrapes().await;
-                    }
-                    std::net::IpAddr::V6(_) => {
-                        stats_repository.increase_udp6_scrapes().await;
-                    }
-                },
-            }
-
-            // Extendable metrics
-
-            let mut label_set = LabelSet::from(context);
-
-            label_set.upsert(label_name!("request_kind"), LabelValue::new(&kind.to_string()));
-
-            match stats_repository
-                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &label_set, now)
-                .await
-            {
-                Ok(()) => {}
-                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            handle_udp_request_accepted_event(context, kind, stats_repository, now).await;
         }
         Event::UdpResponseSent {
             context,
             kind,
             req_processing_time,
         } => {
-            // Global fixed metrics
-            match context.client_socket_addr().ip() {
-                std::net::IpAddr::V4(_) => {
-                    stats_repository.increase_udp4_responses().await;
-                }
-                std::net::IpAddr::V6(_) => {
-                    stats_repository.increase_udp6_responses().await;
-                }
-            }
-
-            let (result_label_value, kind_label_value) = match kind {
-                UdpResponseKind::Ok { req_kind } => match req_kind {
-                    UdpRequestKind::Connect => {
-                        let new_avg = stats_repository
-                            .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
-                            .await;
-
-                        // Extendable metrics
-
-                        let mut label_set = LabelSet::from(context.clone());
-                        label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
-
-                        match stats_repository
-                            .set_gauge(
-                                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                                &label_set,
-                                new_avg,
-                                now,
-                            )
-                            .await
-                        {
-                            Ok(()) => {}
-                            Err(err) => tracing::error!("Failed to set gauge: {}", err),
-                        }
-
-                        (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Connect.to_string()))
-                    }
-                    UdpRequestKind::Announce => {
-                        let new_avg = stats_repository
-                            .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
-                            .await;
-
-                        // Extendable metrics
-
-                        let mut label_set = LabelSet::from(context.clone());
-                        label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
-
-                        match stats_repository
-                            .set_gauge(
-                                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                                &label_set,
-                                new_avg,
-                                now,
-                            )
-                            .await
-                        {
-                            Ok(()) => {}
-                            Err(err) => tracing::error!("Failed to set gauge: {}", err),
-                        }
-
-                        (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Announce.to_string()))
-                    }
-                    UdpRequestKind::Scrape => {
-                        let new_avg = stats_repository
-                            .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
-                            .await;
-
-                        // Extendable metrics
-
-                        let mut label_set = LabelSet::from(context.clone());
-                        label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
-
-                        match stats_repository
-                            .set_gauge(
-                                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                                &label_set,
-                                new_avg,
-                                now,
-                            )
-                            .await
-                        {
-                            Ok(()) => {}
-                            Err(err) => tracing::error!("Failed to set gauge: {}", err),
-                        }
-
-                        (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Scrape.to_string()))
-                    }
-                },
-                UdpResponseKind::Error { opt_req_kind: _ } => (LabelValue::new("error"), LabelValue::ignore()),
-            };
-
-            // Extendable metrics
-
-            let mut label_set = LabelSet::from(context);
-
-            if result_label_value == LabelValue::new("ok") {
-                label_set.upsert(label_name!("request_kind"), kind_label_value);
-            }
-            label_set.upsert(label_name!("result"), result_label_value);
-
-            match stats_repository
-                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL), &label_set, now)
-                .await
-            {
-                Ok(()) => {}
-                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            handle_udp_response_sent_event(context, kind, req_processing_time, stats_repository, now).await;
         }
         Event::UdpError { context, kind, error } => {
-            // Increase the number of errors
-            // code-review: should we ban IP due to other errors too?
-            if let ErrorKind::ConnectionCookie(_msg) = error {
-                let mut ban_service = ban_service.write().await;
-                ban_service.increase_counter(&context.client_socket_addr().ip());
-            }
-
-            // Global fixed metrics
-            match context.client_socket_addr().ip() {
-                std::net::IpAddr::V4(_) => {
-                    stats_repository.increase_udp4_errors().await;
-                }
-                std::net::IpAddr::V6(_) => {
-                    stats_repository.increase_udp6_errors().await;
-                }
-            }
-
-            // Extendable metrics
-
-            let mut label_set = LabelSet::from(context);
-
-            if let Some(kind) = kind {
-                label_set.upsert(label_name!("request_kind"), kind.to_string().into());
-            }
-
-            match stats_repository
-                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &label_set, now)
-                .await
-            {
-                Ok(()) => {}
-                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            handle_udp_error_event(context, kind, error, stats_repository, ban_service, now).await;
         }
     }
 
     tracing::debug!("stats: {:?}", stats_repository.get_stats().await);
+}
+
+async fn handle_udp_request_aborted_event(
+    context: ConnectionContext,
+    stats_repository: &Repository,
+    now: DurationSinceUnixEpoch,
+) {
+    // Global fixed metrics
+    stats_repository.increase_udp_requests_aborted().await;
+
+    // Extendable metrics
+    match stats_repository
+        .increase_counter(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
+            &LabelSet::from(context),
+            now,
+        )
+        .await
+    {
+        Ok(()) => {}
+        Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+    };
+}
+
+async fn handle_udp_request_banned_event(context: ConnectionContext, stats_repository: &Repository, now: DurationSinceUnixEpoch) {
+    // Global fixed metrics
+    stats_repository.increase_udp_requests_banned().await;
+
+    // Extendable metrics
+    match stats_repository
+        .increase_counter(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL),
+            &LabelSet::from(context),
+            now,
+        )
+        .await
+    {
+        Ok(()) => {}
+        Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+    };
+}
+
+async fn handle_udp_request_received_event(
+    context: ConnectionContext,
+    stats_repository: &Repository,
+    now: DurationSinceUnixEpoch,
+) {
+    // Global fixed metrics
+    match context.client_socket_addr().ip() {
+        std::net::IpAddr::V4(_) => {
+            stats_repository.increase_udp4_requests().await;
+        }
+        std::net::IpAddr::V6(_) => {
+            stats_repository.increase_udp6_requests().await;
+        }
+    }
+
+    // Extendable metrics
+    match stats_repository
+        .increase_counter(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
+            &LabelSet::from(context),
+            now,
+        )
+        .await
+    {
+        Ok(()) => {}
+        Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+    };
+}
+
+async fn handle_udp_request_accepted_event(
+    context: ConnectionContext,
+    kind: UdpRequestKind,
+    stats_repository: &Repository,
+    now: DurationSinceUnixEpoch,
+) {
+    // Global fixed metrics
+    match kind {
+        UdpRequestKind::Connect => match context.client_socket_addr().ip() {
+            std::net::IpAddr::V4(_) => {
+                stats_repository.increase_udp4_connections().await;
+            }
+            std::net::IpAddr::V6(_) => {
+                stats_repository.increase_udp6_connections().await;
+            }
+        },
+        UdpRequestKind::Announce => match context.client_socket_addr().ip() {
+            std::net::IpAddr::V4(_) => {
+                stats_repository.increase_udp4_announces().await;
+            }
+            std::net::IpAddr::V6(_) => {
+                stats_repository.increase_udp6_announces().await;
+            }
+        },
+        UdpRequestKind::Scrape => match context.client_socket_addr().ip() {
+            std::net::IpAddr::V4(_) => {
+                stats_repository.increase_udp4_scrapes().await;
+            }
+            std::net::IpAddr::V6(_) => {
+                stats_repository.increase_udp6_scrapes().await;
+            }
+        },
+    }
+
+    // Extendable metrics
+    let mut label_set = LabelSet::from(context);
+    label_set.upsert(label_name!("request_kind"), LabelValue::new(&kind.to_string()));
+    match stats_repository
+        .increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &label_set, now)
+        .await
+    {
+        Ok(()) => {}
+        Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+    };
+}
+
+/// # Panics
+///
+/// This function panics if the client IP version does not match the expected
+/// version.
+async fn handle_udp_response_sent_event(
+    context: ConnectionContext,
+    kind: UdpResponseKind,
+    req_processing_time: std::time::Duration,
+    stats_repository: &Repository,
+    now: DurationSinceUnixEpoch,
+) {
+    // Global fixed metrics
+    match context.client_socket_addr().ip() {
+        std::net::IpAddr::V4(_) => {
+            stats_repository.increase_udp4_responses().await;
+        }
+        std::net::IpAddr::V6(_) => {
+            stats_repository.increase_udp6_responses().await;
+        }
+    }
+
+    let (result_label_value, kind_label_value) = match kind {
+        UdpResponseKind::Ok { req_kind } => match req_kind {
+            UdpRequestKind::Connect => {
+                let new_avg = stats_repository
+                    .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
+                    .await;
+                let mut label_set = LabelSet::from(context.clone());
+                label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
+                match stats_repository
+                    .set_gauge(
+                        &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                        &label_set,
+                        new_avg,
+                        now,
+                    )
+                    .await
+                {
+                    Ok(()) => {}
+                    Err(err) => tracing::error!("Failed to set gauge: {}", err),
+                }
+                (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Connect.to_string()))
+            }
+            UdpRequestKind::Announce => {
+                let new_avg = stats_repository
+                    .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
+                    .await;
+                let mut label_set = LabelSet::from(context.clone());
+                label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
+                match stats_repository
+                    .set_gauge(
+                        &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                        &label_set,
+                        new_avg,
+                        now,
+                    )
+                    .await
+                {
+                    Ok(()) => {}
+                    Err(err) => tracing::error!("Failed to set gauge: {}", err),
+                }
+                (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Announce.to_string()))
+            }
+            UdpRequestKind::Scrape => {
+                let new_avg = stats_repository
+                    .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
+                    .await;
+                let mut label_set = LabelSet::from(context.clone());
+                label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
+                match stats_repository
+                    .set_gauge(
+                        &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                        &label_set,
+                        new_avg,
+                        now,
+                    )
+                    .await
+                {
+                    Ok(()) => {}
+                    Err(err) => tracing::error!("Failed to set gauge: {}", err),
+                }
+                (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Scrape.to_string()))
+            }
+        },
+        UdpResponseKind::Error { opt_req_kind: _ } => (LabelValue::new("error"), LabelValue::ignore()),
+    };
+
+    // Extendable metrics
+    let mut label_set = LabelSet::from(context);
+    if result_label_value == LabelValue::new("ok") {
+        label_set.upsert(label_name!("request_kind"), kind_label_value);
+    }
+    label_set.upsert(label_name!("result"), result_label_value);
+    match stats_repository
+        .increase_counter(&metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL), &label_set, now)
+        .await
+    {
+        Ok(()) => {}
+        Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+    };
+}
+
+async fn handle_udp_error_event(
+    context: ConnectionContext,
+    kind: Option<UdpRequestKind>,
+    error: ErrorKind,
+    stats_repository: &Repository,
+    ban_service: &Arc<RwLock<BanService>>,
+    now: DurationSinceUnixEpoch,
+) {
+    // Increase the number of errors
+    // code-review: should we ban IP due to other errors too?
+    if let ErrorKind::ConnectionCookie(_msg) = error {
+        let mut ban_service = ban_service.write().await;
+        ban_service.increase_counter(&context.client_socket_addr().ip());
+    }
+
+    // Global fixed metrics
+    match context.client_socket_addr().ip() {
+        std::net::IpAddr::V4(_) => {
+            stats_repository.increase_udp4_errors().await;
+        }
+        std::net::IpAddr::V6(_) => {
+            stats_repository.increase_udp6_errors().await;
+        }
+    }
+
+    // Extendable metrics
+    let mut label_set = LabelSet::from(context);
+    if let Some(kind) = kind {
+        label_set.upsert(label_name!("request_kind"), kind.to_string().into());
+    }
+    match stats_repository
+        .increase_counter(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &label_set, now)
+        .await
+    {
+        Ok(()) => {}
+        Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+    };
 }
 
 #[cfg(test)]
