@@ -31,10 +31,9 @@ pub async fn handle_error(
     log_error(error, client_socket_addr, server_socket_addr, opt_transaction_id, request_id);
 
     trigger_udp_error_event(
-        error.clone(),
+        error,
         client_socket_addr,
         server_service_binding,
-        opt_transaction_id,
         opt_udp_server_stats_event_sender,
         req_kind,
     )
@@ -51,7 +50,6 @@ fn log_error(
     client_socket_addr: SocketAddr,
     server_socket_addr: SocketAddr,
     opt_transaction_id: Option<TransactionId>,
-
     request_id: Uuid,
 ) {
     match opt_transaction_id {
@@ -66,25 +64,19 @@ fn log_error(
 }
 
 async fn trigger_udp_error_event(
-    error: Error,
+    error: &Error,
     client_socket_addr: SocketAddr,
     server_service_binding: ServiceBinding,
-    opt_transaction_id: Option<TransactionId>,
-
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     req_kind: Option<UdpRequestKind>,
 ) {
-    if opt_transaction_id.is_some() {
-        // code-review: why we trigger an event only if transaction_id is present?
-
-        if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
-            udp_server_stats_event_sender
-                .send(Event::UdpError {
-                    context: ConnectionContext::new(client_socket_addr, server_service_binding),
-                    kind: req_kind,
-                    error: error.clone().into(),
-                })
-                .await;
-        }
+    if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
+        udp_server_stats_event_sender
+            .send(Event::UdpError {
+                context: ConnectionContext::new(client_socket_addr, server_service_binding),
+                kind: req_kind,
+                error: error.clone().into(),
+            })
+            .await;
     }
 }
