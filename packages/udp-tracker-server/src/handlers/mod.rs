@@ -101,7 +101,7 @@ pub(crate) async fn handle_packet(
             Err(e) => {
                 // The request payload could not be parsed, so we handle it as an error.
 
-                let opt_transaction_id = if let Error::RequestParseError { request_parse_error } = e.clone() {
+                let opt_transaction_id = if let Error::InvalidRequest { request_parse_error } = e.clone() {
                     request_parse_error.opt_transaction_id
                 } else {
                     None

@@ -129,8 +129,8 @@ pub enum ErrorKind {
 impl From<Error> for ErrorKind {
     fn from(error: Error) -> Self {
         match error {
-            Error::RequestParseError { request_parse_error } => Self::RequestParse(request_parse_error.to_string()),
-            Error::UdpAnnounceError { source } => match source {
+            Error::InvalidRequest { request_parse_error } => Self::RequestParse(request_parse_error.to_string()),
+            Error::AnnounceFailed { source } => match source {
                 UdpAnnounceError::ConnectionCookieError { source } => Self::ConnectionCookie(source.to_string()),
                 UdpAnnounceError::TrackerCoreAnnounceError { source } => match source {
                     AnnounceError::Whitelist(whitelist_error) => Self::Whitelist(whitelist_error.to_string()),
@@ -138,15 +138,15 @@ impl From<Error> for ErrorKind {
                 },
                 UdpAnnounceError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
             },
-            Error::UdpScrapeError { source } => match source {
+            Error::ScrapeFailed { source } => match source {
                 UdpScrapeError::ConnectionCookieError { source } => Self::ConnectionCookie(source.to_string()),
                 UdpScrapeError::TrackerCoreScrapeError { source } => match source {
                     ScrapeError::Whitelist(whitelist_error) => Self::Whitelist(whitelist_error.to_string()),
                 },
                 UdpScrapeError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
             },
-            Error::InternalServer { location: _, message } => Self::InternalServer(message.to_string()),
-            Error::TrackerAuthenticationRequired { location } => Self::TrackerAuthentication(location.to_string()),
+            Error::Internal { location: _, message } => Self::InternalServer(message.to_string()),
+            Error::AuthRequired { location } => Self::TrackerAuthentication(location.to_string()),
         }
     }
 }

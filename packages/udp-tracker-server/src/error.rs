@@ -17,31 +17,31 @@ pub struct ConnectionCookie(pub ConnectionId);
 pub enum Error {
     /// Error returned when the request is invalid.
     #[error("error parsing request: {request_parse_error:?}")]
-    RequestParseError { request_parse_error: SendableRequestParseError },
+    InvalidRequest { request_parse_error: SendableRequestParseError },
 
     /// Error returned when the domain tracker returns an announce error.
     #[error("tracker announce error: {source}")]
-    UdpAnnounceError { source: UdpAnnounceError },
+    AnnounceFailed { source: UdpAnnounceError },
 
     /// Error returned when the domain tracker returns an scrape error.
     #[error("tracker scrape error: {source}")]
-    UdpScrapeError { source: UdpScrapeError },
+    ScrapeFailed { source: UdpScrapeError },
 
     /// Error returned from a third-party library (`aquatic_udp_protocol`).
     #[error("internal server error: {message}, {location}")]
-    InternalServer {
+    Internal {
         location: &'static Location<'static>,
         message: String,
     },
 
     /// Error returned when tracker requires authentication.
     #[error("domain tracker requires authentication but is not supported in current UDP implementation. Location: {location}")]
-    TrackerAuthenticationRequired { location: &'static Location<'static> },
+    AuthRequired { location: &'static Location<'static> },
 }
 
 impl From<RequestParseError> for Error {
     fn from(request_parse_error: RequestParseError) -> Self {
-        Self::RequestParseError {
+        Self::InvalidRequest {
             request_parse_error: request_parse_error.into(),
         }
     }
@@ -49,7 +49,7 @@ impl From<RequestParseError> for Error {
 
 impl From<UdpAnnounceError> for Error {
     fn from(udp_announce_error: UdpAnnounceError) -> Self {
-        Self::UdpAnnounceError {
+        Self::AnnounceFailed {
             source: udp_announce_error,
         }
     }
@@ -57,7 +57,7 @@ impl From<UdpAnnounceError> for Error {
 
 impl From<UdpScrapeError> for Error {
     fn from(udp_scrape_error: UdpScrapeError) -> Self {
-        Self::UdpScrapeError {
+        Self::ScrapeFailed {
             source: udp_scrape_error,
         }
     }
