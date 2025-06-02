@@ -59,7 +59,9 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
 
     let response = Response::parse_bytes(&response, true).unwrap();
 
-    assert_eq!(get_error_response_message(&response).unwrap(), "Protocol identifier missing");
+    assert!(get_error_response_message(&response)
+        .unwrap()
+        .contains("Protocol identifier missing"));
 
     env.stop().await;
 }

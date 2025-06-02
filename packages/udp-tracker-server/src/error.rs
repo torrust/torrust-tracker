@@ -16,7 +16,7 @@ pub struct ConnectionCookie(pub ConnectionId);
 #[derive(Error, Debug, Clone)]
 pub enum Error {
     /// Error returned when the request is invalid.
-    #[error("error when phrasing request: {request_parse_error:?}")]
+    #[error("error parsing request: {request_parse_error:?}")]
     RequestParseError { request_parse_error: SendableRequestParseError },
 
     /// Error returned when the domain tracker returns an announce error.
