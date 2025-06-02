@@ -28,6 +28,32 @@ pub async fn handle_error(
 
     let server_socket_addr = server_service_binding.bind_address();
 
+    log_error(error, client_socket_addr, server_socket_addr, opt_transaction_id, request_id);
+
+    trigger_udp_error_event(
+        error.clone(),
+        client_socket_addr,
+        server_service_binding,
+        opt_transaction_id,
+        opt_udp_server_stats_event_sender,
+        req_kind,
+    )
+    .await;
+
+    Response::from(ErrorResponse {
+        transaction_id: opt_transaction_id.unwrap_or(TransactionId(I32::new(0))),
+        message: error.to_string().into(),
+    })
+}
+
+fn log_error(
+    error: &Error,
+    client_socket_addr: SocketAddr,
+    server_socket_addr: SocketAddr,
+    opt_transaction_id: Option<TransactionId>,
+
+    request_id: Uuid,
+) {
     match opt_transaction_id {
         Some(transaction_id) => {
             let transaction_id = transaction_id.0.to_string();
@@ -37,7 +63,17 @@ pub async fn handle_error(
             tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, "response error");
         }
     }
+}
 
+async fn trigger_udp_error_event(
+    error: Error,
+    client_socket_addr: SocketAddr,
+    server_service_binding: ServiceBinding,
+    opt_transaction_id: Option<TransactionId>,
+
+    opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
+    req_kind: Option<UdpRequestKind>,
+) {
     if opt_transaction_id.is_some() {
         // code-review: why we trigger an event only if transaction_id is present?
 
@@ -51,9 +87,4 @@ pub async fn handle_error(
                 .await;
         }
     }
-
-    Response::from(ErrorResponse {
-        transaction_id: opt_transaction_id.unwrap_or(TransactionId(I32::new(0))),
-        message: error.to_string().into(),
-    })
 }
