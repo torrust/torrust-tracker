@@ -82,6 +82,7 @@ impl Environment<Stopped> {
         let udp_server_event_listener_job = Some(crate::statistics::event::listener::run_event_listener(
             self.container.udp_tracker_server_container.event_bus.receiver(),
             &self.container.udp_tracker_server_container.stats_repository,
+            &self.container.udp_tracker_core_container.ban_service,
         ));
 
         // Start the UDP tracker server
