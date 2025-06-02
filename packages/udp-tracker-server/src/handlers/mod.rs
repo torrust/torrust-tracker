@@ -13,7 +13,6 @@ use announce::handle_announce;
 use aquatic_udp_protocol::{Request, Response, TransactionId};
 use bittorrent_tracker_core::MAX_SCRAPE_TORRENTS;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
-use bittorrent_udp_tracker_core::services::announce::UdpAnnounceError;
 use connect::handle_connect;
 use error::handle_error;
 use scrape::handle_scrape;
@@ -84,15 +83,6 @@ pub(crate) async fn handle_packet(
             {
                 Ok((response, req_kid)) => return (response, Some(req_kid)),
                 Err((error, transaction_id, req_kind)) => {
-                    if let Error::UdpAnnounceError {
-                        source: UdpAnnounceError::ConnectionCookieError { .. },
-                    } = error
-                    {
-                        // code-review: should we include `RequestParseError` and `BadRequest`?
-                        let mut ban_service = udp_tracker_core_container.ban_service.write().await;
-                        ban_service.increase_counter(&udp_request.from.ip());
-                    }
-
                     let response = handle_error(
                         Some(req_kind.clone()),
                         udp_request.from,
@@ -109,6 +99,14 @@ pub(crate) async fn handle_packet(
                 }
             },
             Err(e) => {
+                // The request payload could not be parsed, so we handle it as an error.
+
+                let opt_transaction_id = if let Error::InvalidRequest { request_parse_error } = e.clone() {
+                    request_parse_error.opt_transaction_id
+                } else {
+                    None
+                };
+
                 let response = handle_error(
                     None,
                     udp_request.from,
@@ -117,7 +115,7 @@ pub(crate) async fn handle_packet(
                     &udp_tracker_server_container.stats_event_sender,
                     cookie_time_values.valid_range.clone(),
                     &e,
-                    None,
+                    opt_transaction_id,
                 )
                 .await;
 

@@ -84,7 +84,7 @@ pub enum ScrapeError {
 ///
 /// This error is returned when an operation involves a torrent that is not
 /// present in the whitelist.
-#[derive(thiserror::Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 pub enum WhitelistError {
     /// Indicates that the torrent identified by `info_hash` is not whitelisted.
     #[error("The torrent: {info_hash}, is not whitelisted, {location}")]

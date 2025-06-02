@@ -2,12 +2,17 @@ use std::fmt;
 use std::net::SocketAddr;
 use std::time::Duration;
 
+use bittorrent_tracker_core::error::{AnnounceError, ScrapeError};
+use bittorrent_udp_tracker_core::services::announce::UdpAnnounceError;
+use bittorrent_udp_tracker_core::services::scrape::UdpScrapeError;
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::label_name;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
+use crate::error::Error;
+
 /// A UDP server event.
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Event {
     UdpRequestReceived {
         context: ConnectionContext,
@@ -30,6 +35,7 @@ pub enum Event {
     UdpError {
         context: ConnectionContext,
         kind: Option<UdpRequestKind>,
+        error: ErrorKind,
     },
 }
 
@@ -106,6 +112,42 @@ impl From<ConnectionContext> for LabelSet {
                 LabelValue::new(&connection_context.server_service_binding.bind_address().port().to_string()),
             ),
         ])
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ErrorKind {
+    RequestParse(String),
+    ConnectionCookie(String),
+    Whitelist(String),
+    Database(String),
+    InternalServer(String),
+    BadRequest(String),
+    TrackerAuthentication(String),
+}
+
+impl From<Error> for ErrorKind {
+    fn from(error: Error) -> Self {
+        match error {
+            Error::InvalidRequest { request_parse_error } => Self::RequestParse(request_parse_error.to_string()),
+            Error::AnnounceFailed { source } => match source {
+                UdpAnnounceError::ConnectionCookieError { source } => Self::ConnectionCookie(source.to_string()),
+                UdpAnnounceError::TrackerCoreAnnounceError { source } => match source {
+                    AnnounceError::Whitelist(whitelist_error) => Self::Whitelist(whitelist_error.to_string()),
+                    AnnounceError::Database(error) => Self::Database(error.to_string()),
+                },
+                UdpAnnounceError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
+            },
+            Error::ScrapeFailed { source } => match source {
+                UdpScrapeError::ConnectionCookieError { source } => Self::ConnectionCookie(source.to_string()),
+                UdpScrapeError::TrackerCoreScrapeError { source } => match source {
+                    ScrapeError::Whitelist(whitelist_error) => Self::Whitelist(whitelist_error.to_string()),
+                },
+                UdpScrapeError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
+            },
+            Error::Internal { location: _, message } => Self::InternalServer(message.to_string()),
+            Error::AuthRequired { location } => Self::TrackerAuthentication(location.to_string()),
+        }
     }
 }
 

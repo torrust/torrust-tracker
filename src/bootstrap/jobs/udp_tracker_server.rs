@@ -10,6 +10,7 @@ pub fn start_event_listener(config: &Configuration, app_container: &Arc<AppConta
         let job = torrust_udp_tracker_server::statistics::event::listener::run_event_listener(
             app_container.udp_tracker_server_container.event_bus.receiver(),
             &app_container.udp_tracker_server_container.stats_repository,
+            &app_container.udp_tracker_core_services.ban_service,
         );
         Some(job)
     } else {

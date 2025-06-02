@@ -86,7 +86,7 @@ use zerocopy::AsBytes;
 use crate::crypto::keys::CipherArrayBlowfish;
 
 /// Error returned when there was an error with the connection cookie.
-#[derive(Error, Debug, Clone)]
+#[derive(Error, Debug, Clone, PartialEq)]
 pub enum ConnectionCookieError {
     #[error("cookie value is not normal: {not_normal_value}")]
     ValueNotNormal { not_normal_value: f64 },
