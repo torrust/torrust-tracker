@@ -4,6 +4,8 @@ use std::net::SocketAddr;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+const DUAL_STACK_IP_V4_MAPPED_V6_PREFIX: &str = "::ffff:";
+
 /// Represents the supported network protocols.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub enum Protocol {
@@ -20,6 +22,29 @@ impl fmt::Display for Protocol {
             Protocol::HTTPS => "https",
         };
         write!(f, "{proto_str}")
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
+pub enum AddressType {
+    /// Represents a plain IPv4 or IPv6 address.
+    Plain,
+
+    /// Represents an IPv6 address that is a mapped IPv4 address.
+    ///
+    /// This is used for IPv6 addresses that represent an IPv4 address in a dual-stack network.
+    ///
+    /// For example: `[::ffff:192.0.2.33]`
+    V4MappedV6,
+}
+
+impl fmt::Display for AddressType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let addr_type_str = match self {
+            Self::Plain => "plain",
+            Self::V4MappedV6 => "v4_mapped_v6",
+        };
+        write!(f, "{addr_type_str}")
     }
 }
 
@@ -94,6 +119,15 @@ impl ServiceBinding {
         self.bind_address
     }
 
+    #[must_use]
+    pub fn bind_address_type(&self) -> AddressType {
+        if self.is_v4_mapped_v6() {
+            return AddressType::V4MappedV6;
+        }
+
+        AddressType::Plain
+    }
+
     /// # Panics
     ///
     /// It never panics because the URL is always valid.
@@ -101,6 +135,15 @@ impl ServiceBinding {
     pub fn url(&self) -> Url {
         Url::parse(&format!("{}://{}", self.protocol, self.bind_address))
             .expect("Service binding can always be parsed into a URL")
+    }
+
+    fn is_v4_mapped_v6(&self) -> bool {
+        self.bind_address.ip().is_ipv6()
+            && self
+                .bind_address
+                .ip()
+                .to_string()
+                .starts_with(DUAL_STACK_IP_V4_MAPPED_V6_PREFIX)
     }
 }
 
@@ -126,7 +169,7 @@ mod tests {
         use rstest::rstest;
         use url::Url;
 
-        use crate::service_binding::{Error, Protocol, ServiceBinding};
+        use crate::service_binding::{AddressType, Error, Protocol, ServiceBinding};
 
         #[rstest]
         #[case("wildcard_ip", Protocol::UDP, SocketAddr::from_str("0.0.0.0:6969").unwrap())]
@@ -154,6 +197,29 @@ mod tests {
                 service_binding.bind_address(),
                 SocketAddr::from_str("127.0.0.1:6969").unwrap()
             );
+        }
+
+        #[test]
+        fn should_return_the_bind_address_plain_type_for_ipv4_ips() {
+            let service_binding = ServiceBinding::new(Protocol::UDP, SocketAddr::from_str("127.0.0.1:6969").unwrap()).unwrap();
+
+            assert_eq!(service_binding.bind_address_type(), AddressType::Plain);
+        }
+
+        #[test]
+        fn should_return_the_bind_address_plain_type_for_ipv6_ips() {
+            let service_binding =
+                ServiceBinding::new(Protocol::UDP, SocketAddr::from_str("[0:0:0:0:0:0:0:1]:6969").unwrap()).unwrap();
+
+            assert_eq!(service_binding.bind_address_type(), AddressType::Plain);
+        }
+
+        #[test]
+        fn should_return_the_bind_address_v4_mapped_v7_type_for_ipv4_ips_mapped_to_ipv6() {
+            let service_binding =
+                ServiceBinding::new(Protocol::UDP, SocketAddr::from_str("[::ffff:192.0.2.33]:6969").unwrap()).unwrap();
+
+            assert_eq!(service_binding.bind_address_type(), AddressType::V4MappedV6);
         }
 
         #[test]
