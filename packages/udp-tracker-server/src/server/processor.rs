@@ -87,16 +87,15 @@ impl Processor {
         };
 
         let udp_response_kind = match &response {
-            Response::Connect(_) => event::UdpResponseKind::Ok {
-                req_kind: event::UdpRequestKind::Connect,
-            },
-            Response::AnnounceIpv4(_) | Response::AnnounceIpv6(_) => event::UdpResponseKind::Ok {
-                req_kind: event::UdpRequestKind::Announce,
-            },
-            Response::Scrape(_) => event::UdpResponseKind::Ok {
-                req_kind: event::UdpRequestKind::Scrape,
-            },
             Response::Error(_e) => event::UdpResponseKind::Error { opt_req_kind: None },
+            _ => {
+                if let Some(req_kind) = opt_req_kind {
+                    event::UdpResponseKind::Ok { req_kind }
+                } else {
+                    // code-review: this case should never happen.
+                    event::UdpResponseKind::Error { opt_req_kind }
+                }
+            }
         };
 
         let mut writer = Cursor::new(Vec::with_capacity(200));

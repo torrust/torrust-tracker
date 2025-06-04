@@ -44,7 +44,9 @@ pub async fn handle_announce(
         udp_server_stats_event_sender
             .send(Event::UdpRequestAccepted {
                 context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
-                kind: UdpRequestKind::Announce,
+                kind: UdpRequestKind::Announce {
+                    announce_request: *request,
+                },
             })
             .await;
     }
@@ -52,7 +54,15 @@ pub async fn handle_announce(
     let announce_data = announce_service
         .handle_announce(client_socket_addr, server_service_binding, request, cookie_valid_range)
         .await
-        .map_err(|e| (e.into(), request.transaction_id, UdpRequestKind::Announce))?;
+        .map_err(|e| {
+            (
+                e.into(),
+                request.transaction_id,
+                UdpRequestKind::Announce {
+                    announce_request: *request,
+                },
+            )
+        })?;
 
     Ok(build_response(client_socket_addr, request, core_config, &announce_data))
 }
@@ -118,9 +128,9 @@ fn build_response(
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
 
-    mod announce_request {
+    pub mod announce_request {
 
         use std::net::Ipv4Addr;
         use std::num::NonZeroU16;
@@ -133,7 +143,7 @@ mod tests {
 
         use crate::handlers::tests::{sample_ipv4_remote_addr_fingerprint, sample_issue_time};
 
-        struct AnnounceRequestBuilder {
+        pub struct AnnounceRequestBuilder {
             request: AnnounceRequest,
         }
 
@@ -431,13 +441,14 @@ mod tests {
                 let client_socket_addr = sample_ipv4_socket_address();
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+                let announce_request = AnnounceRequestBuilder::default().into();
 
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send()
                     .with(eq(Event::UdpRequestAccepted {
                         context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
-                        kind: UdpRequestKind::Announce,
+                        kind: UdpRequestKind::Announce { announce_request },
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -451,7 +462,7 @@ mod tests {
                     &core_udp_tracker_services.announce_service,
                     client_socket_addr,
                     server_service_binding,
-                    &AnnounceRequestBuilder::default().into(),
+                    &announce_request,
                     &core_tracker_services.core_config,
                     &udp_server_stats_event_sender,
                     sample_cookie_valid_range(),
@@ -795,12 +806,16 @@ mod tests {
                 let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
                 let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
+                let announce_request = AnnounceRequestBuilder::default()
+                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                    .into();
+
                 let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                 udp_server_stats_event_sender_mock
                     .expect_send()
                     .with(eq(Event::UdpRequestAccepted {
                         context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
-                        kind: UdpRequestKind::Announce,
+                        kind: UdpRequestKind::Announce { announce_request },
                     }))
                     .times(1)
                     .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -809,10 +824,6 @@ mod tests {
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_for_default_tracker_configuration();
-
-                let announce_request = AnnounceRequestBuilder::default()
-                    .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
-                    .into();
 
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
@@ -887,6 +898,14 @@ mod tests {
                     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
                     let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
 
+                    let request = AnnounceRequestBuilder::default()
+                        .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                        .with_info_hash(info_hash)
+                        .with_peer_id(peer_id)
+                        .with_ip_address(client_ip_v4)
+                        .with_port(client_port)
+                        .into();
+
                     let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
                     udp_core_stats_event_sender_mock
                         .expect_send()
@@ -912,7 +931,9 @@ mod tests {
                         .expect_send()
                         .with(eq(Event::UdpRequestAccepted {
                             context: ConnectionContext::new(client_socket_addr, server_service_binding_clone.clone()),
-                            kind: UdpRequestKind::Announce,
+                            kind: UdpRequestKind::Announce {
+                                announce_request: request,
+                            },
                         }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -925,14 +946,6 @@ mod tests {
                         &in_memory_torrent_repository,
                         &db_downloads_metric_repository,
                     ));
-
-                    let request = AnnounceRequestBuilder::default()
-                        .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
-                        .with_info_hash(info_hash)
-                        .with_peer_id(peer_id)
-                        .with_ip_address(client_ip_v4)
-                        .with_port(client_port)
-                        .into();
 
                     let core_config = Arc::new(config.core.clone());
 
