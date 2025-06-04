@@ -43,9 +43,9 @@ pub async fn handle_event(
                     Ok(()) => {}
                     Err(err) => tracing::error!("Failed to set gauge: {}", err),
                 }
-                (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Connect.to_string()))
+                (LabelValue::new("ok"), UdpRequestKind::Connect.into())
             }
-            UdpRequestKind::Announce => {
+            UdpRequestKind::Announce { announce_request } => {
                 let new_avg = stats_repository
                     .recalculate_udp_avg_announce_processing_time_ns(req_processing_time)
                     .await;
@@ -63,7 +63,7 @@ pub async fn handle_event(
                     Ok(()) => {}
                     Err(err) => tracing::error!("Failed to set gauge: {}", err),
                 }
-                (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Announce.to_string()))
+                (LabelValue::new("ok"), UdpRequestKind::Announce { announce_request }.into())
             }
             UdpRequestKind::Scrape => {
                 let new_avg = stats_repository
@@ -113,7 +113,8 @@ mod tests {
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
-    use crate::event::{ConnectionContext, Event, UdpRequestKind};
+    use crate::event::{ConnectionContext, Event};
+    use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
     use crate::CurrentClock;
@@ -134,7 +135,9 @@ mod tests {
                     .unwrap(),
                 ),
                 kind: crate::event::UdpResponseKind::Ok {
-                    req_kind: UdpRequestKind::Announce,
+                    req_kind: crate::event::UdpRequestKind::Announce {
+                        announce_request: AnnounceRequestBuilder::default().into(),
+                    },
                 },
                 req_processing_time: std::time::Duration::from_secs(1),
             },
@@ -165,7 +168,9 @@ mod tests {
                     .unwrap(),
                 ),
                 kind: crate::event::UdpResponseKind::Ok {
-                    req_kind: UdpRequestKind::Announce,
+                    req_kind: crate::event::UdpRequestKind::Announce {
+                        announce_request: AnnounceRequestBuilder::default().into(),
+                    },
                 },
                 req_processing_time: std::time::Duration::from_secs(1),
             },

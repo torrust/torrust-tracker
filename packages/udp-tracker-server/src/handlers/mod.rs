@@ -177,7 +177,7 @@ pub async fn handle_request(
             )
             .await
             {
-                Ok(response) => Ok((response, UdpRequestKind::Announce)),
+                Ok(response) => Ok((response, UdpRequestKind::Announce { announce_request })),
                 Err(err) => Err(err),
             }
         }

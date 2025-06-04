@@ -2,6 +2,7 @@ use std::fmt;
 use std::net::SocketAddr;
 use std::time::Duration;
 
+use aquatic_udp_protocol::AnnounceRequest;
 use bittorrent_tracker_core::error::{AnnounceError, ScrapeError};
 use bittorrent_udp_tracker_core::services::announce::UdpAnnounceError;
 use bittorrent_udp_tracker_core::services::scrape::UdpScrapeError;
@@ -42,15 +43,25 @@ pub enum Event {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum UdpRequestKind {
     Connect,
-    Announce,
+    Announce { announce_request: AnnounceRequest },
     Scrape,
+}
+
+impl From<UdpRequestKind> for LabelValue {
+    fn from(kind: UdpRequestKind) -> Self {
+        match kind {
+            UdpRequestKind::Connect => LabelValue::new("connect"),
+            UdpRequestKind::Announce { .. } => LabelValue::new("announce"),
+            UdpRequestKind::Scrape => LabelValue::new("scrape"),
+        }
+    }
 }
 
 impl fmt::Display for UdpRequestKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let proto_str = match self {
             UdpRequestKind::Connect => "connect",
-            UdpRequestKind::Announce => "announce",
+            UdpRequestKind::Announce { .. } => "announce",
             UdpRequestKind::Scrape => "scrape",
         };
         write!(f, "{proto_str}")

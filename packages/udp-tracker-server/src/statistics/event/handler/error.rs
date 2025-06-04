@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use aquatic_udp_protocol::PeerClient;
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use tokio::sync::RwLock;
 use torrust_tracker_metrics::label::LabelSet;
@@ -8,45 +9,118 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::{ConnectionContext, ErrorKind, UdpRequestKind};
 use crate::statistics::repository::Repository;
-use crate::statistics::UDP_TRACKER_SERVER_ERRORS_TOTAL;
+use crate::statistics::{UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL, UDP_TRACKER_SERVER_ERRORS_TOTAL};
 
 pub async fn handle_event(
-    context: ConnectionContext,
-    kind: Option<UdpRequestKind>,
-    error: ErrorKind,
-    stats_repository: &Repository,
+    connection_context: ConnectionContext,
+    opt_udp_request_kind: Option<UdpRequestKind>,
+    error_kind: ErrorKind,
+    repository: &Repository,
     ban_service: &Arc<RwLock<BanService>>,
     now: DurationSinceUnixEpoch,
 ) {
-    // Increase the number of errors
-    // code-review: should we ban IP due to other errors too?
-    if let ErrorKind::ConnectionCookie(_msg) = error {
+    if let ErrorKind::ConnectionCookie(_msg) = error_kind.clone() {
         let mut ban_service = ban_service.write().await;
-        ban_service.increase_counter(&context.client_socket_addr().ip());
+        ban_service.increase_counter(&connection_context.client_socket_addr().ip());
     }
 
-    // Global fixed metrics
-    match context.client_socket_addr().ip() {
+    update_global_fixed_metrics(&connection_context, repository).await;
+
+    update_extendable_metrics(&connection_context, opt_udp_request_kind, error_kind, repository, now).await;
+}
+
+async fn update_global_fixed_metrics(connection_context: &ConnectionContext, repository: &Repository) {
+    match connection_context.client_socket_addr().ip() {
         std::net::IpAddr::V4(_) => {
-            stats_repository.increase_udp4_errors().await;
+            repository.increase_udp4_errors().await;
         }
         std::net::IpAddr::V6(_) => {
-            stats_repository.increase_udp6_errors().await;
+            repository.increase_udp6_errors().await;
         }
     }
+}
 
-    // Extendable metrics
-    let mut label_set = LabelSet::from(context);
-    if let Some(kind) = kind {
+async fn update_extendable_metrics(
+    connection_context: &ConnectionContext,
+    opt_udp_request_kind: Option<UdpRequestKind>,
+    error_kind: ErrorKind,
+    repository: &Repository,
+    now: DurationSinceUnixEpoch,
+) {
+    update_all_errors_counter(connection_context, opt_udp_request_kind.clone(), repository, now).await;
+    update_connection_id_errors_counter(opt_udp_request_kind, error_kind, repository, now).await;
+}
+
+async fn update_all_errors_counter(
+    connection_context: &ConnectionContext,
+    opt_udp_request_kind: Option<UdpRequestKind>,
+    repository: &Repository,
+    now: DurationSinceUnixEpoch,
+) {
+    let mut label_set = LabelSet::from(connection_context.clone());
+
+    if let Some(kind) = opt_udp_request_kind.clone() {
         label_set.upsert(label_name!("request_kind"), kind.to_string().into());
     }
-    match stats_repository
+
+    match repository
         .increase_counter(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &label_set, now)
         .await
     {
         Ok(()) => {}
         Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-    };
+    }
+}
+
+async fn update_connection_id_errors_counter(
+    opt_udp_request_kind: Option<UdpRequestKind>,
+    error_kind: ErrorKind,
+    repository: &Repository,
+    now: DurationSinceUnixEpoch,
+) {
+    if let ErrorKind::ConnectionCookie(_) = error_kind {
+        if let Some(UdpRequestKind::Announce { announce_request }) = opt_udp_request_kind {
+            let (client_software_name, client_software_version) = extract_name_and_version(&announce_request.peer_id.client());
+
+            let label_set = LabelSet::from([
+                (label_name!("client_software_name"), client_software_name.into()),
+                (label_name!("client_software_version"), client_software_version.into()),
+            ]);
+
+            match repository
+                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL), &label_set, now)
+                .await
+            {
+                Ok(()) => {}
+                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
+            };
+        }
+    }
+}
+
+fn extract_name_and_version(peer_client: &PeerClient) -> (String, String) {
+    match peer_client {
+        PeerClient::BitTorrent(compact_string) => ("BitTorrent".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::Deluge(compact_string) => ("Deluge".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::LibTorrentRakshasa(compact_string) => ("lt (rakshasa)".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::LibTorrentRasterbar(compact_string) => ("lt (rasterbar)".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::QBitTorrent(compact_string) => ("QBitTorrent".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::Transmission(compact_string) => ("Transmission".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::UTorrent(compact_string) => ("µTorrent".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::UTorrentEmbedded(compact_string) => ("µTorrent Emb.".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::UTorrentMac(compact_string) => ("µTorrent Mac".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::UTorrentWeb(compact_string) => ("µTorrent Web".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::Vuze(compact_string) => ("Vuze".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::WebTorrent(compact_string) => ("WebTorrent".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::WebTorrentDesktop(compact_string) => ("WebTorrent Desktop".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::Mainline(compact_string) => ("Mainline".to_string(), compact_string.as_str().to_owned()),
+        PeerClient::OtherWithPrefixAndVersion { prefix, version } => {
+            (format!("Other ({})", prefix.as_str()), version.as_str().to_owned())
+        }
+        PeerClient::OtherWithPrefix(compact_string) => (format!("Other ({compact_string})"), String::new()),
+        PeerClient::Other => ("Other".to_string(), String::new()),
+        _ => ("Unknown".to_string(), String::new()),
+    }
 }
 
 #[cfg(test)]

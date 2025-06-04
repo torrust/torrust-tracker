@@ -22,7 +22,7 @@ pub async fn handle_event(
                 stats_repository.increase_udp6_connections().await;
             }
         },
-        UdpRequestKind::Announce => match context.client_socket_addr().ip() {
+        UdpRequestKind::Announce { .. } => match context.client_socket_addr().ip() {
             std::net::IpAddr::V4(_) => {
                 stats_repository.increase_udp4_announces().await;
             }
@@ -62,6 +62,7 @@ mod tests {
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
     use crate::event::{ConnectionContext, Event};
+    use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
     use crate::CurrentClock;
@@ -109,7 +110,9 @@ mod tests {
                     )
                     .unwrap(),
                 ),
-                kind: crate::event::UdpRequestKind::Announce,
+                kind: crate::event::UdpRequestKind::Announce {
+                    announce_request: AnnounceRequestBuilder::default().into(),
+                },
             },
             &stats_repository,
             &ban_service,
@@ -193,7 +196,9 @@ mod tests {
                     )
                     .unwrap(),
                 ),
-                kind: crate::event::UdpRequestKind::Announce,
+                kind: crate::event::UdpRequestKind::Announce {
+                    announce_request: AnnounceRequestBuilder::default().into(),
+                },
             },
             &stats_repository,
             &ban_service,
