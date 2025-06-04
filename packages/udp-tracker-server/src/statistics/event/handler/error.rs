@@ -18,14 +18,17 @@ pub async fn handle_event(
     ban_service: &Arc<RwLock<BanService>>,
     now: DurationSinceUnixEpoch,
 ) {
-    // Increase the number of errors
-    // code-review: should we ban IP due to other errors too?
     if let ErrorKind::ConnectionCookie(_msg) = error {
         let mut ban_service = ban_service.write().await;
         ban_service.increase_counter(&context.client_socket_addr().ip());
     }
 
-    // Global fixed metrics
+    update_global_fixed_metrics(&context, stats_repository).await;
+
+    update_extendable_metrics(&context, kind, stats_repository, now).await;
+}
+
+async fn update_global_fixed_metrics(context: &ConnectionContext, stats_repository: &Repository) {
     match context.client_socket_addr().ip() {
         std::net::IpAddr::V4(_) => {
             stats_repository.increase_udp4_errors().await;
@@ -34,9 +37,15 @@ pub async fn handle_event(
             stats_repository.increase_udp6_errors().await;
         }
     }
+}
 
-    // Extendable metrics
-    let mut label_set = LabelSet::from(context);
+async fn update_extendable_metrics(
+    context: &ConnectionContext,
+    kind: Option<UdpRequestKind>,
+    stats_repository: &Repository,
+    now: DurationSinceUnixEpoch,
+) {
+    let mut label_set = LabelSet::from(context.clone());
     if let Some(kind) = kind {
         label_set.upsert(label_name!("request_kind"), kind.to_string().into());
     }
