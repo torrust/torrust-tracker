@@ -10,7 +10,6 @@ use super::label::LabelSet;
 use super::metric::{Metric, MetricName};
 use super::prometheus::PrometheusSerializable;
 use crate::metric::description::MetricDescription;
-use crate::sample_collection::SampleCollection;
 use crate::unit::Unit;
 use crate::METRICS_TARGET;
 
@@ -59,7 +58,10 @@ impl MetricCollection {
 
     pub fn describe_counter(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<&MetricDescription>) {
         tracing::info!(target: METRICS_TARGET, type = "counter", name = name.to_string(), unit = ?opt_unit, description = ?opt_description);
-        self.counters.ensure_metric_exists(name);
+
+        let metric = Metric::<Counter>::without_samples(name.clone());
+
+        self.counters.ensure_metric_exists(metric);
     }
 
     #[must_use]
@@ -120,14 +122,19 @@ impl MetricCollection {
     }
 
     pub fn ensure_counter_exists(&mut self, name: &MetricName) {
-        self.counters.ensure_metric_exists(name);
+        let metric = Metric::<Counter>::without_samples(name.clone());
+
+        self.counters.ensure_metric_exists(metric);
     }
 
     // Gauge-specific methods
 
     pub fn describe_gauge(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<&MetricDescription>) {
         tracing::info!(target: METRICS_TARGET, type = "gauge", name = name.to_string(), unit = ?opt_unit, description = ?opt_description);
-        self.gauges.ensure_metric_exists(name);
+
+        let metric = Metric::<Gauge>::without_samples(name.clone());
+
+        self.gauges.ensure_metric_exists(metric);
     }
 
     #[must_use]
@@ -205,7 +212,9 @@ impl MetricCollection {
     }
 
     pub fn ensure_gauge_exists(&mut self, name: &MetricName) {
-        self.gauges.ensure_metric_exists(name);
+        let metric = Metric::<Gauge>::without_samples(name.clone());
+
+        self.gauges.ensure_metric_exists(metric);
     }
 }
 
@@ -336,18 +345,9 @@ impl<T> MetricKindCollection<T> {
         self.metrics.keys()
     }
 
-    /// # Panics
-    ///
-    /// It should not panic as long as empty sample collections are allowed.
-    pub fn ensure_metric_exists(&mut self, name: &MetricName) {
-        if !self.metrics.contains_key(name) {
-            self.metrics.insert(
-                name.clone(),
-                Metric::new(
-                    name.clone(),
-                    SampleCollection::new(vec![]).expect("Empty sample collection creation should not fail"),
-                ),
-            );
+    pub fn ensure_metric_exists(&mut self, metric: Metric<T>) {
+        if !self.metrics.contains_key(metric.name()) {
+            self.metrics.insert(metric.name().clone(), metric);
         }
     }
 }
@@ -389,7 +389,9 @@ impl MetricKindCollection<Counter> {
     ///
     /// Panics if the metric does not exist.
     pub fn increment(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
-        self.ensure_metric_exists(name);
+        let metric = Metric::<Counter>::without_samples(name.clone());
+
+        self.ensure_metric_exists(metric);
 
         let metric = self.metrics.get_mut(name).expect("Counter metric should exist");
 
@@ -404,7 +406,9 @@ impl MetricKindCollection<Counter> {
     ///
     /// Panics if the metric does not exist.
     pub fn absolute(&mut self, name: &MetricName, label_set: &LabelSet, value: u64, time: DurationSinceUnixEpoch) {
-        self.ensure_metric_exists(name);
+        let metric = Metric::<Counter>::without_samples(name.clone());
+
+        self.ensure_metric_exists(metric);
 
         let metric = self.metrics.get_mut(name).expect("Counter metric should exist");
 
@@ -429,7 +433,9 @@ impl MetricKindCollection<Gauge> {
     ///
     /// Panics if the metric does not exist and it could not be created.
     pub fn set(&mut self, name: &MetricName, label_set: &LabelSet, value: f64, time: DurationSinceUnixEpoch) {
-        self.ensure_metric_exists(name);
+        let metric = Metric::<Gauge>::without_samples(name.clone());
+
+        self.ensure_metric_exists(metric);
 
         let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
 
@@ -444,7 +450,9 @@ impl MetricKindCollection<Gauge> {
     ///
     /// Panics if the metric does not exist and it could not be created.
     pub fn increment(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
-        self.ensure_metric_exists(name);
+        let metric = Metric::<Gauge>::without_samples(name.clone());
+
+        self.ensure_metric_exists(metric);
 
         let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
 
@@ -459,7 +467,9 @@ impl MetricKindCollection<Gauge> {
     ///
     /// Panics if the metric does not exist and it could not be created.
     pub fn decrement(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
-        self.ensure_metric_exists(name);
+        let metric = Metric::<Gauge>::without_samples(name.clone());
+
+        self.ensure_metric_exists(metric);
 
         let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
 
@@ -483,6 +493,7 @@ mod tests {
     use super::*;
     use crate::label::LabelValue;
     use crate::sample::Sample;
+    use crate::sample_collection::SampleCollection;
     use crate::tests::{format_prometheus_output, sort_lines};
     use crate::{label_name, metric_name};
 
@@ -731,8 +742,11 @@ mod tests {
         let mut counters = MetricKindCollection::default();
         let mut gauges = MetricKindCollection::default();
 
-        counters.ensure_metric_exists(&metric_name!("test_counter"));
-        gauges.ensure_metric_exists(&metric_name!("test_gauge"));
+        let counter = Metric::<Counter>::without_samples(metric_name!("test_counter"));
+        counters.ensure_metric_exists(counter);
+
+        let gauge = Metric::<Gauge>::without_samples(metric_name!("test_gauge"));
+        gauges.ensure_metric_exists(gauge);
 
         let metric_collection = MetricCollection::new(counters, gauges).unwrap();
 
@@ -748,6 +762,7 @@ mod tests {
         use super::*;
         use crate::label::LabelValue;
         use crate::sample::Sample;
+        use crate::sample_collection::SampleCollection;
 
         #[test]
         fn it_should_increase_a_preexistent_counter() {
@@ -845,6 +860,7 @@ mod tests {
         use super::*;
         use crate::label::LabelValue;
         use crate::sample::Sample;
+        use crate::sample_collection::SampleCollection;
 
         #[test]
         fn it_should_set_a_preexistent_gauge() {

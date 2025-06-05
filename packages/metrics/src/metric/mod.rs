@@ -30,6 +30,17 @@ impl<T> Metric<T> {
         }
     }
 
+    /// # Panics
+    ///
+    /// This function will panic if the empty sample collection cannot be created.
+    #[must_use]
+    pub fn without_samples(name: MetricName) -> Self {
+        Self {
+            name,
+            sample_collection: SampleCollection::new(vec![]).expect("Empty sample collection creation should not fail"),
+        }
+    }
+
     #[must_use]
     pub fn name(&self) -> &MetricName {
         &self.name
