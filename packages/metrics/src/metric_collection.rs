@@ -234,7 +234,7 @@ impl Serialize for MetricCollection {
         S: Serializer,
     {
         #[derive(Serialize)]
-        #[serde(tag = "kind", rename_all = "lowercase")]
+        #[serde(tag = "type", rename_all = "lowercase")]
         enum SerializableMetric<'a> {
             Counter(&'a Metric<Counter>),
             Gauge(&'a Metric<Gauge>),
@@ -260,7 +260,7 @@ impl<'de> Deserialize<'de> for MetricCollection {
         D: Deserializer<'de>,
     {
         #[derive(Deserialize)]
-        #[serde(tag = "kind", rename_all = "lowercase")]
+        #[serde(tag = "type", rename_all = "lowercase")]
         enum MetricPayload {
             Counter(Metric<Counter>),
             Gauge(Metric<Gauge>),
@@ -540,7 +540,7 @@ mod tests {
             r#"
             [
                 {
-                    "kind":"counter",
+                    "type":"counter",
                     "name":"http_tracker_core_announce_requests_received_total",
                     "samples":[
                         {
@@ -564,7 +564,7 @@ mod tests {
                     ]
                 },
                 {
-                    "kind":"gauge",
+                    "type":"gauge",
                     "name":"udp_tracker_server_performance_avg_announce_processing_time_ns",
                     "samples":[
                         {
