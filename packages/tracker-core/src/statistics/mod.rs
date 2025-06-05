@@ -21,7 +21,7 @@ pub fn describe_metrics() -> Metrics {
     metrics.metric_collection.describe_counter(
         &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of torrent downloads (persisted).")),
+        Some(MetricDescription::new("The total number of torrent downloads (persisted).")),
     );
 
     metrics

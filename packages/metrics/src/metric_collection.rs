@@ -10,6 +10,7 @@ use super::label::LabelSet;
 use super::metric::{Metric, MetricName};
 use super::prometheus::PrometheusSerializable;
 use crate::metric::description::MetricDescription;
+use crate::sample_collection::SampleCollection;
 use crate::unit::Unit;
 use crate::METRICS_TARGET;
 
@@ -56,12 +57,12 @@ impl MetricCollection {
 
     // Counter-specific methods
 
-    pub fn describe_counter(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<&MetricDescription>) {
+    pub fn describe_counter(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<MetricDescription>) {
         tracing::info!(target: METRICS_TARGET, type = "counter", name = name.to_string(), unit = ?opt_unit, description = ?opt_description);
 
-        let metric = Metric::<Counter>::without_samples(name.clone());
+        let metric = Metric::<Counter>::new(name.clone(), opt_unit, opt_description, SampleCollection::default());
 
-        self.counters.ensure_metric_exists(metric);
+        self.counters.insert(metric);
     }
 
     #[must_use]
@@ -123,12 +124,12 @@ impl MetricCollection {
 
     // Gauge-specific methods
 
-    pub fn describe_gauge(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<&MetricDescription>) {
+    pub fn describe_gauge(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<MetricDescription>) {
         tracing::info!(target: METRICS_TARGET, type = "gauge", name = name.to_string(), unit = ?opt_unit, description = ?opt_description);
 
-        let metric = Metric::<Gauge>::without_samples(name.clone());
+        let metric = Metric::<Gauge>::new(name.clone(), opt_unit, opt_description, SampleCollection::default());
 
-        self.gauges.ensure_metric_exists(metric);
+        self.gauges.insert(metric);
     }
 
     #[must_use]
@@ -333,10 +334,14 @@ impl<T> MetricKindCollection<T> {
         self.metrics.keys()
     }
 
-    pub fn ensure_metric_exists(&mut self, metric: Metric<T>) {
+    pub fn insert_if_absent(&mut self, metric: Metric<T>) {
         if !self.metrics.contains_key(metric.name()) {
-            self.metrics.insert(metric.name().clone(), metric);
+            self.insert(metric);
         }
+    }
+
+    pub fn insert(&mut self, metric: Metric<T>) {
+        self.metrics.insert(metric.name().clone(), metric);
     }
 }
 
@@ -377,9 +382,9 @@ impl MetricKindCollection<Counter> {
     ///
     /// Panics if the metric does not exist.
     pub fn increment(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
-        let metric = Metric::<Counter>::without_samples(name.clone());
+        let metric = Metric::<Counter>::new_empty_with_name(name.clone());
 
-        self.ensure_metric_exists(metric);
+        self.insert_if_absent(metric);
 
         let metric = self.metrics.get_mut(name).expect("Counter metric should exist");
 
@@ -394,9 +399,9 @@ impl MetricKindCollection<Counter> {
     ///
     /// Panics if the metric does not exist.
     pub fn absolute(&mut self, name: &MetricName, label_set: &LabelSet, value: u64, time: DurationSinceUnixEpoch) {
-        let metric = Metric::<Counter>::without_samples(name.clone());
+        let metric = Metric::<Counter>::new_empty_with_name(name.clone());
 
-        self.ensure_metric_exists(metric);
+        self.insert_if_absent(metric);
 
         let metric = self.metrics.get_mut(name).expect("Counter metric should exist");
 
@@ -421,9 +426,9 @@ impl MetricKindCollection<Gauge> {
     ///
     /// Panics if the metric does not exist and it could not be created.
     pub fn set(&mut self, name: &MetricName, label_set: &LabelSet, value: f64, time: DurationSinceUnixEpoch) {
-        let metric = Metric::<Gauge>::without_samples(name.clone());
+        let metric = Metric::<Gauge>::new_empty_with_name(name.clone());
 
-        self.ensure_metric_exists(metric);
+        self.insert_if_absent(metric);
 
         let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
 
@@ -438,9 +443,9 @@ impl MetricKindCollection<Gauge> {
     ///
     /// Panics if the metric does not exist and it could not be created.
     pub fn increment(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
-        let metric = Metric::<Gauge>::without_samples(name.clone());
+        let metric = Metric::<Gauge>::new_empty_with_name(name.clone());
 
-        self.ensure_metric_exists(metric);
+        self.insert_if_absent(metric);
 
         let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
 
@@ -455,9 +460,9 @@ impl MetricKindCollection<Gauge> {
     ///
     /// Panics if the metric does not exist and it could not be created.
     pub fn decrement(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
-        let metric = Metric::<Gauge>::without_samples(name.clone());
+        let metric = Metric::<Gauge>::new_empty_with_name(name.clone());
 
-        self.ensure_metric_exists(metric);
+        self.insert_if_absent(metric);
 
         let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
 
@@ -523,11 +528,15 @@ mod tests {
             MetricCollection::new(
                 MetricKindCollection::new(vec![Metric::new(
                     metric_name!("http_tracker_core_announce_requests_received_total"),
+                    None,
+                    None,
                     SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set_1.clone())]).unwrap(),
                 )])
                 .unwrap(),
                 MetricKindCollection::new(vec![Metric::new(
                     metric_name!("udp_tracker_server_performance_avg_announce_processing_time_ns"),
+                    None,
+                    None,
                     SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set_1.clone())]).unwrap(),
                 )])
                 .unwrap(),
@@ -541,6 +550,8 @@ mod tests {
                 {
                     "type":"counter",
                     "name":"http_tracker_core_announce_requests_received_total",
+                    "unit": null,
+                    "description": null,
                     "samples":[
                         {
                             "value":1,
@@ -565,6 +576,8 @@ mod tests {
                 {
                     "type":"gauge",
                     "name":"udp_tracker_server_performance_avg_announce_processing_time_ns",
+                    "unit": null,
+                    "description": null,
                     "samples":[
                         {
                             "value":1.0,
@@ -603,10 +616,20 @@ mod tests {
 
     #[test]
     fn it_should_not_allow_duplicate_names_across_types() {
-        let counters =
-            MetricKindCollection::new(vec![Metric::new(metric_name!("test_metric"), SampleCollection::default())]).unwrap();
-        let gauges =
-            MetricKindCollection::new(vec![Metric::new(metric_name!("test_metric"), SampleCollection::default())]).unwrap();
+        let counters = MetricKindCollection::new(vec![Metric::new(
+            metric_name!("test_metric"),
+            None,
+            None,
+            SampleCollection::default(),
+        )])
+        .unwrap();
+        let gauges = MetricKindCollection::new(vec![Metric::new(
+            metric_name!("test_metric"),
+            None,
+            None,
+            SampleCollection::default(),
+        )])
+        .unwrap();
 
         assert!(MetricCollection::new(counters, gauges).is_err());
     }
@@ -699,6 +722,8 @@ mod tests {
         let metric_collection = MetricCollection::new(
             MetricKindCollection::new(vec![Metric::new(
                 metric_name!("http_tracker_core_announce_requests_received_total"),
+                None,
+                None,
                 SampleCollection::new(vec![
                     Sample::new(Counter::new(1), time, label_set_1.clone()),
                     Sample::new(Counter::new(2), time, label_set_2.clone()),
@@ -730,11 +755,11 @@ mod tests {
         let mut counters = MetricKindCollection::default();
         let mut gauges = MetricKindCollection::default();
 
-        let counter = Metric::<Counter>::without_samples(metric_name!("test_counter"));
-        counters.ensure_metric_exists(counter);
+        let counter = Metric::<Counter>::new_empty_with_name(metric_name!("test_counter"));
+        counters.insert_if_absent(counter);
 
-        let gauge = Metric::<Gauge>::without_samples(metric_name!("test_gauge"));
-        gauges.ensure_metric_exists(gauge);
+        let gauge = Metric::<Gauge>::new_empty_with_name(metric_name!("test_gauge"));
+        gauges.insert_if_absent(gauge);
 
         let metric_collection = MetricCollection::new(counters, gauges).unwrap();
 
@@ -760,6 +785,8 @@ mod tests {
             let mut metric_collection = MetricCollection::new(
                 MetricKindCollection::new(vec![Metric::new(
                     metric_name!("test_counter"),
+                    None,
+                    None,
                     SampleCollection::new(vec![Sample::new(Counter::new(0), time, label_set.clone())]).unwrap(),
                 )])
                 .unwrap(),
@@ -819,10 +846,14 @@ mod tests {
             let result = MetricKindCollection::new(vec![
                 Metric::new(
                     metric_name!("test_counter"),
+                    None,
+                    None,
                     SampleCollection::new(vec![Sample::new(Counter::new(0), time, label_set.clone())]).unwrap(),
                 ),
                 Metric::new(
                     metric_name!("test_counter"),
+                    None,
+                    None,
                     SampleCollection::new(vec![Sample::new(Counter::new(0), time, label_set.clone())]).unwrap(),
                 ),
             ]);
@@ -849,6 +880,8 @@ mod tests {
                 MetricKindCollection::default(),
                 MetricKindCollection::new(vec![Metric::new(
                     metric_name!("test_gauge"),
+                    None,
+                    None,
                     SampleCollection::new(vec![Sample::new(Gauge::new(0.0), time, label_set.clone())]).unwrap(),
                 )])
                 .unwrap(),
@@ -901,10 +934,14 @@ mod tests {
             let result = MetricKindCollection::new(vec![
                 Metric::new(
                     metric_name!("test_gauge"),
+                    None,
+                    None,
                     SampleCollection::new(vec![Sample::new(Gauge::new(0.0), time, label_set.clone())]).unwrap(),
                 ),
                 Metric::new(
                     metric_name!("test_gauge"),
+                    None,
+                    None,
                     SampleCollection::new(vec![Sample::new(Gauge::new(0.0), time, label_set.clone())]).unwrap(),
                 ),
             ]);

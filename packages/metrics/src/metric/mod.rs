@@ -9,7 +9,9 @@ use super::label::LabelSet;
 use super::prometheus::PrometheusSerializable;
 use super::sample_collection::SampleCollection;
 use crate::gauge::Gauge;
+use crate::metric::description::MetricDescription;
 use crate::sample::Measurement;
+use crate::unit::Unit;
 
 pub type MetricName = name::MetricName;
 
@@ -17,15 +19,28 @@ pub type MetricName = name::MetricName;
 pub struct Metric<T> {
     name: MetricName,
 
+    #[serde(rename = "unit")]
+    opt_unit: Option<Unit>,
+
+    #[serde(rename = "description")]
+    opt_description: Option<MetricDescription>,
+
     #[serde(rename = "samples")]
     sample_collection: SampleCollection<T>,
 }
 
 impl<T> Metric<T> {
     #[must_use]
-    pub fn new(name: MetricName, samples: SampleCollection<T>) -> Self {
+    pub fn new(
+        name: MetricName,
+        opt_unit: Option<Unit>,
+        opt_description: Option<MetricDescription>,
+        samples: SampleCollection<T>,
+    ) -> Self {
         Self {
             name,
+            opt_unit,
+            opt_description,
             sample_collection: samples,
         }
     }
@@ -34,9 +49,11 @@ impl<T> Metric<T> {
     ///
     /// This function will panic if the empty sample collection cannot be created.
     #[must_use]
-    pub fn without_samples(name: MetricName) -> Self {
+    pub fn new_empty_with_name(name: MetricName) -> Self {
         Self {
             name,
+            opt_unit: None,
+            opt_description: None,
             sample_collection: SampleCollection::new(vec![]).expect("Empty sample collection creation should not fail"),
         }
     }
@@ -119,7 +136,7 @@ mod tests {
 
             let samples = SampleCollection::<Gauge>::default();
 
-            let metric = Metric::<Gauge>::new(name.clone(), samples);
+            let metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
 
             assert!(metric.is_empty());
         }
@@ -133,7 +150,7 @@ mod tests {
 
             let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]).unwrap();
 
-            Metric::<Counter>::new(name.clone(), samples)
+            Metric::<Counter>::new(name.clone(), None, None, samples)
         }
 
         #[test]
@@ -147,7 +164,7 @@ mod tests {
 
             let samples = SampleCollection::<Gauge>::default();
 
-            let metric = Metric::<Gauge>::new(name.clone(), samples);
+            let metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
 
             assert_eq!(metric.number_of_samples(), 0);
         }
@@ -166,7 +183,7 @@ mod tests {
 
             let samples = SampleCollection::<Counter>::default();
 
-            let _metric = Metric::<Counter>::new(name, samples);
+            let _metric = Metric::<Counter>::new(name, None, None, samples);
         }
 
         #[test]
@@ -179,7 +196,7 @@ mod tests {
 
             let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]).unwrap();
 
-            let metric = Metric::<Counter>::new(name.clone(), samples);
+            let metric = Metric::<Counter>::new(name.clone(), None, None, samples);
 
             assert_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1);
         }
@@ -200,7 +217,7 @@ mod tests {
 
             let samples = SampleCollection::<Gauge>::default();
 
-            let _metric = Metric::<Gauge>::new(name, samples);
+            let _metric = Metric::<Gauge>::new(name, None, None, samples);
         }
 
         #[test]
@@ -213,7 +230,7 @@ mod tests {
 
             let samples = SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set.clone())]).unwrap();
 
-            let metric = Metric::<Gauge>::new(name.clone(), samples);
+            let metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
 
             assert_relative_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1.0);
         }

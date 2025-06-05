@@ -36,31 +36,31 @@ pub fn describe_metrics() -> Metrics {
     metrics.metric_collection.describe_counter(
         &metric_name!(TORRENT_REPOSITORY_TORRENTS_ADDED_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of torrents added.")),
+        Some(MetricDescription::new("The total number of torrents added.")),
     );
 
     metrics.metric_collection.describe_counter(
         &metric_name!(TORRENT_REPOSITORY_TORRENTS_REMOVED_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of torrents removed.")),
+        Some(MetricDescription::new("The total number of torrents removed.")),
     );
 
     metrics.metric_collection.describe_gauge(
         &metric_name!(TORRENT_REPOSITORY_TORRENTS_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of torrents.")),
+        Some(MetricDescription::new("The total number of torrents.")),
     );
 
     metrics.metric_collection.describe_counter(
         &metric_name!(TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of torrent downloads.")),
+        Some(MetricDescription::new("The total number of torrent downloads.")),
     );
 
     metrics.metric_collection.describe_gauge(
         &metric_name!(TORRENT_REPOSITORY_TORRENTS_INACTIVE_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of inactive torrents.")),
+        Some(MetricDescription::new("The total number of inactive torrents.")),
     );
 
     // Peers metrics
@@ -68,25 +68,25 @@ pub fn describe_metrics() -> Metrics {
     metrics.metric_collection.describe_counter(
         &metric_name!(TORRENT_REPOSITORY_PEERS_ADDED_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of peers added.")),
+        Some(MetricDescription::new("The total number of peers added.")),
     );
 
     metrics.metric_collection.describe_counter(
         &metric_name!(TORRENT_REPOSITORY_PEERS_REMOVED_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of peers removed.")),
+        Some(MetricDescription::new("The total number of peers removed.")),
     );
 
     metrics.metric_collection.describe_counter(
         &metric_name!(TORRENT_REPOSITORY_PEERS_UPDATED_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of peers updated.")),
+        Some(MetricDescription::new("The total number of peers updated.")),
     );
 
     metrics.metric_collection.describe_gauge(
         &metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new(
+        Some(MetricDescription::new(
             "The total number of peer connections (one connection per torrent).",
         )),
     );
@@ -94,13 +94,13 @@ pub fn describe_metrics() -> Metrics {
     metrics.metric_collection.describe_gauge(
         &metric_name!(TORRENT_REPOSITORY_UNIQUE_PEERS_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of unique peers.")),
+        Some(MetricDescription::new("The total number of unique peers.")),
     );
 
     metrics.metric_collection.describe_gauge(
         &metric_name!(TORRENT_REPOSITORY_PEERS_INACTIVE_TOTAL),
         Some(Unit::Count),
-        Some(&MetricDescription::new("The total number of inactive peers.")),
+        Some(MetricDescription::new("The total number of inactive peers.")),
     );
 
     metrics
