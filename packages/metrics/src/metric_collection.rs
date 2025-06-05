@@ -121,12 +121,6 @@ impl MetricCollection {
         Ok(())
     }
 
-    pub fn ensure_counter_exists(&mut self, name: &MetricName) {
-        let metric = Metric::<Counter>::without_samples(name.clone());
-
-        self.counters.ensure_metric_exists(metric);
-    }
-
     // Gauge-specific methods
 
     pub fn describe_gauge(&mut self, name: &MetricName, opt_unit: Option<Unit>, opt_description: Option<&MetricDescription>) {
@@ -209,12 +203,6 @@ impl MetricCollection {
         self.gauges.decrement(name, label_set, time);
 
         Ok(())
-    }
-
-    pub fn ensure_gauge_exists(&mut self, name: &MetricName) {
-        let metric = Metric::<Gauge>::without_samples(name.clone());
-
-        self.gauges.ensure_metric_exists(metric);
     }
 }
 
@@ -814,16 +802,6 @@ mod tests {
         }
 
         #[test]
-        fn it_should_allow_making_sure_a_counter_exists_without_increasing_it() {
-            let mut metric_collection =
-                MetricCollection::new(MetricKindCollection::default(), MetricKindCollection::default()).unwrap();
-
-            metric_collection.ensure_counter_exists(&metric_name!("test_counter"));
-
-            assert!(metric_collection.contains_counter(&metric_name!("test_counter")));
-        }
-
-        #[test]
         fn it_should_allow_describing_a_counter_before_using_it() {
             let mut metric_collection =
                 MetricCollection::new(MetricKindCollection::default(), MetricKindCollection::default()).unwrap();
@@ -903,16 +881,6 @@ mod tests {
                 metric_collection.get_gauge_value(&metric_name!("test_gauge"), &label_set),
                 Some(Gauge::new(1.0))
             );
-        }
-
-        #[test]
-        fn it_should_allow_making_sure_a_gauge_exists_without_setting_it() {
-            let mut metric_collection =
-                MetricCollection::new(MetricKindCollection::default(), MetricKindCollection::default()).unwrap();
-
-            metric_collection.ensure_gauge_exists(&metric_name!("test_gauge"));
-
-            assert!(metric_collection.contains_gauge(&metric_name!("test_gauge")));
         }
 
         #[test]
