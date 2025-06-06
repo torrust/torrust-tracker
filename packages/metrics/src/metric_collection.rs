@@ -50,8 +50,30 @@ impl MetricCollection {
     ///
     /// Returns an error if a metric name already exists in the current collection.
     pub fn merge(&mut self, other: &Self) -> Result<(), Error> {
+        self.check_cross_type_collision(other)?;
         self.counters.merge(&other.counters)?;
         self.gauges.merge(&other.gauges)?;
+        Ok(())
+    }
+
+    /// Returns a set of all metric names in this collection.
+    fn collect_names(&self) -> HashSet<MetricName> {
+        self.counters.names().chain(self.gauges.names()).cloned().collect()
+    }
+
+    /// Checks for name collisions between this collection and another one.
+    fn check_cross_type_collision(&self, other: &Self) -> Result<(), Error> {
+        let self_names: HashSet<_> = self.collect_names();
+        let other_names: HashSet<_> = other.collect_names();
+
+        let cross_type_collisions = self_names.intersection(&other_names).next();
+
+        if let Some(name) = cross_type_collisions {
+            return Err(Error::MetricNameCollisionInMerge {
+                metric_name: (*name).clone(),
+            });
+        }
+
         Ok(())
     }
 
@@ -772,6 +794,66 @@ mod tests {
         let prometheus_output = metric_collection.to_prometheus();
 
         assert_eq!(prometheus_output, "");
+    }
+
+    #[test]
+    fn it_should_allow_merging_metric_collections() {
+        let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+        let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
+
+        let mut collection1 = MetricCollection::default();
+        collection1
+            .increase_counter(&metric_name!("test_counter"), &label_set, time)
+            .unwrap();
+
+        let mut collection2 = MetricCollection::default();
+        collection2
+            .set_gauge(&metric_name!("test_gauge"), &label_set, 1.0, time)
+            .unwrap();
+
+        collection1.merge(&collection2).unwrap();
+
+        assert!(collection1.contains_counter(&metric_name!("test_counter")));
+        assert!(collection1.contains_gauge(&metric_name!("test_gauge")));
+    }
+
+    #[test]
+    fn it_should_not_allow_merging_metric_collections_with_name_collisions_for_the_same_metric_types() {
+        let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+        let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
+
+        let mut collection1 = MetricCollection::default();
+        collection1
+            .increase_counter(&metric_name!("test_metric"), &label_set, time)
+            .unwrap();
+
+        let mut collection2 = MetricCollection::default();
+        collection2
+            .increase_counter(&metric_name!("test_metric"), &label_set, time)
+            .unwrap();
+        let result = collection1.merge(&collection2);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn it_should_not_allow_merging_metric_collections_with_name_collisions_for_different_metric_types() {
+        let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+        let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
+
+        let mut collection1 = MetricCollection::default();
+        collection1
+            .increase_counter(&metric_name!("test_metric"), &label_set, time)
+            .unwrap();
+
+        let mut collection2 = MetricCollection::default();
+        collection2
+            .set_gauge(&metric_name!("test_metric"), &label_set, 1.0, time)
+            .unwrap();
+
+        let result = collection1.merge(&collection2);
+
+        assert!(result.is_err());
     }
 
     mod for_counters {
