@@ -175,6 +175,7 @@ impl PrometheusSerializable for LabelSet {
 mod tests {
 
     use std::collections::BTreeMap;
+    use std::hash::{DefaultHasher, Hash};
 
     use pretty_assertions::assert_eq;
 
@@ -193,54 +194,6 @@ mod tests {
             (label_name!("server_service_binding_ip"), LabelValue::new("0.0.0.0")),
             (label_name!("server_service_binding_port"), LabelValue::new("7070")),
         ]
-    }
-
-    #[test]
-    fn it_should_allow_instantiation_from_an_array_of_label_pairs() {
-        let label_set: LabelSet = sample_array_of_label_pairs().into();
-
-        assert_eq!(
-            label_set,
-            LabelSet {
-                items: BTreeMap::from(sample_array_of_label_pairs())
-            }
-        );
-    }
-
-    #[test]
-    fn it_should_allow_instantiation_from_a_vec_of_label_pairs() {
-        let label_set: LabelSet = sample_vec_of_label_pairs().into();
-
-        assert_eq!(
-            label_set,
-            LabelSet {
-                items: BTreeMap::from(sample_array_of_label_pairs())
-            }
-        );
-    }
-
-    #[test]
-    fn it_should_allow_instantiation_from_a_b_tree_map() {
-        let label_set: LabelSet = BTreeMap::from(sample_array_of_label_pairs()).into();
-
-        assert_eq!(
-            label_set,
-            LabelSet {
-                items: BTreeMap::from(sample_array_of_label_pairs())
-            }
-        );
-    }
-
-    #[test]
-    fn it_should_allow_instantiation_from_a_label_pair() {
-        let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
-
-        assert_eq!(
-            label_set,
-            LabelSet {
-                items: BTreeMap::from([(label_name!("label_name"), LabelValue::new("value"))])
-            }
-        );
     }
 
     #[test]
@@ -337,5 +290,156 @@ mod tests {
         let label_set = LabelSet::from((label_name!("label_name"), LabelValue::new("label value")));
 
         assert_eq!(label_set.to_string(), r#"{label_name="label value"}"#);
+    }
+
+    #[test]
+    fn it_should_allow_instantiation_from_an_array_of_label_pairs() {
+        let label_set: LabelSet = sample_array_of_label_pairs().into();
+
+        assert_eq!(
+            label_set,
+            LabelSet {
+                items: BTreeMap::from(sample_array_of_label_pairs())
+            }
+        );
+    }
+
+    #[test]
+    fn it_should_allow_instantiation_from_a_vec_of_label_pairs() {
+        let label_set: LabelSet = sample_vec_of_label_pairs().into();
+
+        assert_eq!(
+            label_set,
+            LabelSet {
+                items: BTreeMap::from(sample_array_of_label_pairs())
+            }
+        );
+    }
+
+    #[test]
+    fn it_should_allow_instantiation_from_a_b_tree_map() {
+        let label_set: LabelSet = BTreeMap::from(sample_array_of_label_pairs()).into();
+
+        assert_eq!(
+            label_set,
+            LabelSet {
+                items: BTreeMap::from(sample_array_of_label_pairs())
+            }
+        );
+    }
+
+    #[test]
+    fn it_should_allow_instantiation_from_a_label_pair() {
+        let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
+
+        assert_eq!(
+            label_set,
+            LabelSet {
+                items: BTreeMap::from([(label_name!("label_name"), LabelValue::new("value"))])
+            }
+        );
+    }
+
+    #[test]
+    fn it_should_allow_instantiation_from_vec_of_str_tuples() {
+        let label_set: LabelSet = vec![("foo", "bar"), ("baz", "qux")].into();
+
+        let mut expected = BTreeMap::new();
+        expected.insert(LabelName::new("foo"), LabelValue::new("bar"));
+        expected.insert(LabelName::new("baz"), LabelValue::new("qux"));
+
+        assert_eq!(label_set, LabelSet { items: expected });
+    }
+
+    #[test]
+    fn it_should_allow_instantiation_from_vec_of_string_tuples() {
+        let label_set: LabelSet = vec![("foo".to_string(), "bar".to_string()), ("baz".to_string(), "qux".to_string())].into();
+
+        let mut expected = BTreeMap::new();
+        expected.insert(LabelName::new("foo"), LabelValue::new("bar"));
+        expected.insert(LabelName::new("baz"), LabelValue::new("qux"));
+
+        assert_eq!(label_set, LabelSet { items: expected });
+    }
+
+    #[test]
+    fn it_should_allow_instantiation_from_vec_of_serialized_label() {
+        use super::SerializedLabel;
+        let label_set: LabelSet = vec![
+            SerializedLabel {
+                name: LabelName::new("foo"),
+                value: LabelValue::new("bar"),
+            },
+            SerializedLabel {
+                name: LabelName::new("baz"),
+                value: LabelValue::new("qux"),
+            },
+        ]
+        .into();
+
+        let mut expected = BTreeMap::new();
+        expected.insert(LabelName::new("foo"), LabelValue::new("bar"));
+        expected.insert(LabelName::new("baz"), LabelValue::new("qux"));
+
+        assert_eq!(label_set, LabelSet { items: expected });
+    }
+
+    #[test]
+    fn it_should_allow_instantiation_from_array_of_string_tuples() {
+        let arr: [(String, String); 2] = [("foo".to_string(), "bar".to_string()), ("baz".to_string(), "qux".to_string())];
+        let label_set: LabelSet = arr.into();
+
+        let mut expected = BTreeMap::new();
+
+        expected.insert(LabelName::new("foo"), LabelValue::new("bar"));
+        expected.insert(LabelName::new("baz"), LabelValue::new("qux"));
+
+        assert_eq!(label_set, LabelSet { items: expected });
+    }
+
+    #[test]
+    fn it_should_allow_instantiation_from_array_of_str_tuples() {
+        let arr: [(&str, &str); 2] = [("foo", "bar"), ("baz", "qux")];
+        let label_set: LabelSet = arr.into();
+
+        let mut expected = BTreeMap::new();
+
+        expected.insert(LabelName::new("foo"), LabelValue::new("bar"));
+        expected.insert(LabelName::new("baz"), LabelValue::new("qux"));
+
+        assert_eq!(label_set, LabelSet { items: expected });
+    }
+
+    #[test]
+    fn it_should_be_comparable() {
+        let a: LabelSet = (label_name!("x"), LabelValue::new("1")).into();
+        let b: LabelSet = (label_name!("x"), LabelValue::new("1")).into();
+        let c: LabelSet = (label_name!("y"), LabelValue::new("2")).into();
+
+        assert_eq!(a, b);
+        assert_ne!(a, c);
+    }
+
+    #[test]
+    fn it_should_be_allow_ordering() {
+        let a: LabelSet = (label_name!("x"), LabelValue::new("1")).into();
+        let b: LabelSet = (label_name!("y"), LabelValue::new("2")).into();
+
+        assert!(a < b);
+    }
+
+    #[test]
+    fn it_should_be_hashable() {
+        let a: LabelSet = (label_name!("x"), LabelValue::new("1")).into();
+
+        let mut hasher = DefaultHasher::new();
+
+        a.hash(&mut hasher);
+    }
+
+    #[test]
+    fn it_should_implement_clone() {
+        let a: LabelSet = (label_name!("x"), LabelValue::new("1")).into();
+        let _unused = a.clone();
     }
 }
