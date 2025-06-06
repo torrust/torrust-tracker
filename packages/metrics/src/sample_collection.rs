@@ -168,10 +168,8 @@ mod tests {
 
     use crate::counter::Counter;
     use crate::label::LabelSet;
-    use crate::prometheus::PrometheusSerializable;
     use crate::sample::Sample;
     use crate::sample_collection::SampleCollection;
-    use crate::tests::format_prometheus_output;
 
     fn sample_update_time() -> DurationSinceUnixEpoch {
         DurationSinceUnixEpoch::from_secs(1_743_552_000)
@@ -242,56 +240,74 @@ mod tests {
         assert!(!collection.is_empty());
     }
 
-    #[test]
-    fn it_should_be_serializable_and_deserializable_for_json_format() {
-        let sample = Sample::new(Counter::default(), sample_update_time(), LabelSet::default());
-        let collection = SampleCollection::new(vec![sample]).unwrap();
+    mod json_serialization {
+        use crate::counter::Counter;
+        use crate::label::LabelSet;
+        use crate::sample::Sample;
+        use crate::sample_collection::tests::sample_update_time;
+        use crate::sample_collection::SampleCollection;
 
-        let serialized = serde_json::to_string(&collection).unwrap();
-        let deserialized: SampleCollection<Counter> = serde_json::from_str(&serialized).unwrap();
+        #[test]
+        fn it_should_be_serializable_and_deserializable_for_json_format() {
+            let sample = Sample::new(Counter::default(), sample_update_time(), LabelSet::default());
+            let collection = SampleCollection::new(vec![sample]).unwrap();
 
-        assert_eq!(deserialized, collection);
+            let serialized = serde_json::to_string(&collection).unwrap();
+            let deserialized: SampleCollection<Counter> = serde_json::from_str(&serialized).unwrap();
+
+            assert_eq!(deserialized, collection);
+        }
+
+        #[test]
+        fn it_should_fail_deserializing_from_json_with_duplicate_label_sets() {
+            let samples = vec![
+                Sample::new(Counter::default(), sample_update_time(), LabelSet::default()),
+                Sample::new(Counter::default(), sample_update_time(), LabelSet::default()),
+            ];
+
+            let serialized = serde_json::to_string(&samples).unwrap();
+
+            let result: Result<SampleCollection<Counter>, _> = serde_json::from_str(&serialized);
+
+            assert!(result.is_err());
+        }
     }
 
-    #[test]
-    fn it_should_fail_deserializing_from_json_with_duplicate_label_sets() {
-        let samples = vec![
-            Sample::new(Counter::default(), sample_update_time(), LabelSet::default()),
-            Sample::new(Counter::default(), sample_update_time(), LabelSet::default()),
-        ];
+    mod prometheus_serialization {
+        use crate::counter::Counter;
+        use crate::label::LabelSet;
+        use crate::prometheus::PrometheusSerializable;
+        use crate::sample::Sample;
+        use crate::sample_collection::tests::sample_update_time;
+        use crate::sample_collection::SampleCollection;
+        use crate::tests::format_prometheus_output;
 
-        let serialized = serde_json::to_string(&samples).unwrap();
+        #[test]
+        fn it_should_be_exportable_to_prometheus_format_when_empty() {
+            let sample = Sample::new(Counter::default(), sample_update_time(), LabelSet::default());
+            let collection = SampleCollection::new(vec![sample]).unwrap();
 
-        let result: Result<SampleCollection<Counter>, _> = serde_json::from_str(&serialized);
+            let prometheus_output = collection.to_prometheus();
 
-        assert!(result.is_err());
-    }
+            assert!(!prometheus_output.is_empty());
+        }
 
-    #[test]
-    fn it_should_be_exportable_to_prometheus_format_when_empty() {
-        let sample = Sample::new(Counter::default(), sample_update_time(), LabelSet::default());
-        let collection = SampleCollection::new(vec![sample]).unwrap();
+        #[test]
+        fn it_should_be_exportable_to_prometheus_format() {
+            let sample = Sample::new(
+                Counter::new(1),
+                sample_update_time(),
+                LabelSet::from(vec![("labe_name_1", "label value value 1")]),
+            );
 
-        let prometheus_output = collection.to_prometheus();
+            let collection = SampleCollection::new(vec![sample]).unwrap();
 
-        assert!(!prometheus_output.is_empty());
-    }
+            let prometheus_output = collection.to_prometheus();
 
-    #[test]
-    fn it_should_be_exportable_to_prometheus_format() {
-        let sample = Sample::new(
-            Counter::new(1),
-            sample_update_time(),
-            LabelSet::from(vec![("labe_name_1", "label value value 1")]),
-        );
+            let expected_prometheus_output = format_prometheus_output("{labe_name_1=\"label value value 1\"} 1");
 
-        let collection = SampleCollection::new(vec![sample]).unwrap();
-
-        let prometheus_output = collection.to_prometheus();
-
-        let expected_prometheus_output = format_prometheus_output("{labe_name_1=\"label value value 1\"} 1");
-
-        assert_eq!(prometheus_output, expected_prometheus_output);
+            assert_eq!(prometheus_output, expected_prometheus_output);
+        }
     }
 
     #[cfg(test)]

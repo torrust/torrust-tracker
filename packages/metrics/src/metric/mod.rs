@@ -9,7 +9,9 @@ use super::label::LabelSet;
 use super::prometheus::PrometheusSerializable;
 use super::sample_collection::SampleCollection;
 use crate::gauge::Gauge;
+use crate::metric::description::MetricDescription;
 use crate::sample::Measurement;
+use crate::unit::Unit;
 
 pub type MetricName = name::MetricName;
 
@@ -17,16 +19,42 @@ pub type MetricName = name::MetricName;
 pub struct Metric<T> {
     name: MetricName,
 
+    #[serde(rename = "unit")]
+    opt_unit: Option<Unit>,
+
+    #[serde(rename = "description")]
+    opt_description: Option<MetricDescription>,
+
     #[serde(rename = "samples")]
     sample_collection: SampleCollection<T>,
 }
 
 impl<T> Metric<T> {
     #[must_use]
-    pub fn new(name: MetricName, samples: SampleCollection<T>) -> Self {
+    pub fn new(
+        name: MetricName,
+        opt_unit: Option<Unit>,
+        opt_description: Option<MetricDescription>,
+        samples: SampleCollection<T>,
+    ) -> Self {
         Self {
             name,
+            opt_unit,
+            opt_description,
             sample_collection: samples,
+        }
+    }
+
+    /// # Panics
+    ///
+    /// This function will panic if the empty sample collection cannot be created.
+    #[must_use]
+    pub fn new_empty_with_name(name: MetricName) -> Self {
+        Self {
+            name,
+            opt_unit: None,
+            opt_description: None,
+            sample_collection: SampleCollection::new(vec![]).expect("Empty sample collection creation should not fail"),
         }
     }
 
@@ -75,18 +103,115 @@ impl Metric<Gauge> {
     }
 }
 
-impl<T: PrometheusSerializable> PrometheusSerializable for Metric<T> {
+/// `PrometheusMetricSample` is a wrapper around types that provides methods to
+/// convert the metric and its measurement into a Prometheus-compatible format.
+///
+/// In Prometheus, a metric is a time series that consists of a name, a set of
+/// labels, and a value. The sample value needs data from the `Metric` and
+/// `Measurement` structs, as well as the `LabelSet` that defines the labels for
+/// the metric.
+struct PrometheusMetricSample<'a, T> {
+    metric: &'a Metric<T>,
+    measurement: &'a Measurement<T>,
+    label_set: &'a LabelSet,
+}
+
+enum PrometheusType {
+    Counter,
+    Gauge,
+}
+
+impl PrometheusSerializable for PrometheusType {
+    fn to_prometheus(&self) -> String {
+        match self {
+            PrometheusType::Counter => "counter".to_string(),
+            PrometheusType::Gauge => "gauge".to_string(),
+        }
+    }
+}
+
+impl<T: PrometheusSerializable> PrometheusMetricSample<'_, T> {
+    fn to_prometheus(&self, prometheus_type: &PrometheusType) -> String {
+        format!(
+            // Format:
+            // # HELP <metric_name> <description>
+            // # TYPE <metric_name> <type>
+            // <metric_name>{label_set} <value>
+            "{}{}{}",
+            self.help_line(),
+            self.type_line(prometheus_type),
+            self.metric_line()
+        )
+    }
+
+    fn help_line(&self) -> String {
+        if let Some(description) = &self.metric.opt_description {
+            format!(
+                // Format: # HELP <metric_name> <description>
+                "# HELP {} {}\n",
+                self.metric.name().to_prometheus(),
+                description.to_prometheus()
+            )
+        } else {
+            String::new()
+        }
+    }
+
+    fn type_line(&self, kind: &PrometheusType) -> String {
+        format!("# TYPE {} {}\n", self.metric.name().to_prometheus(), kind.to_prometheus())
+    }
+
+    fn metric_line(&self) -> String {
+        format!(
+            // Format: <metric_name>{label_set} <value>
+            "{}{} {}",
+            self.metric.name.to_prometheus(),
+            self.label_set.to_prometheus(),
+            self.measurement.value().to_prometheus()
+        )
+    }
+}
+
+impl<'a> PrometheusMetricSample<'a, Counter> {
+    pub fn new(metric: &'a Metric<Counter>, measurement: &'a Measurement<Counter>, label_set: &'a LabelSet) -> Self {
+        Self {
+            metric,
+            measurement,
+            label_set,
+        }
+    }
+}
+
+impl<'a> PrometheusMetricSample<'a, Gauge> {
+    pub fn new(metric: &'a Metric<Gauge>, measurement: &'a Measurement<Gauge>, label_set: &'a LabelSet) -> Self {
+        Self {
+            metric,
+            measurement,
+            label_set,
+        }
+    }
+}
+
+impl PrometheusSerializable for Metric<Counter> {
     fn to_prometheus(&self) -> String {
         let samples: Vec<String> = self
             .sample_collection
             .iter()
-            .map(|(label_set, sample)| {
-                format!(
-                    "{}{} {}",
-                    self.name.to_prometheus(),
-                    label_set.to_prometheus(),
-                    sample.value().to_prometheus()
-                )
+            .map(|(label_set, measurement)| {
+                PrometheusMetricSample::<Counter>::new(self, measurement, label_set).to_prometheus(&PrometheusType::Counter)
+            })
+            .collect();
+        samples.join("\n")
+    }
+}
+
+impl PrometheusSerializable for Metric<Gauge> {
+    fn to_prometheus(&self) -> String {
+        let samples: Vec<String> = self
+            .sample_collection
+            .iter()
+            .map(|(label_set, measurement)| {
+                PrometheusMetricSample::<Gauge>::new(self, measurement, label_set).to_prometheus(&PrometheusType::Gauge)
             })
             .collect();
         samples.join("\n")
@@ -108,7 +233,7 @@ mod tests {
 
             let samples = SampleCollection::<Gauge>::default();
 
-            let metric = Metric::<Gauge>::new(name.clone(), samples);
+            let metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
 
             assert!(metric.is_empty());
         }
@@ -122,7 +247,7 @@ mod tests {
 
             let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]).unwrap();
 
-            Metric::<Counter>::new(name.clone(), samples)
+            Metric::<Counter>::new(name.clone(), None, None, samples)
         }
 
         #[test]
@@ -136,7 +261,7 @@ mod tests {
 
             let samples = SampleCollection::<Gauge>::default();
 
-            let metric = Metric::<Gauge>::new(name.clone(), samples);
+            let metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
 
             assert_eq!(metric.number_of_samples(), 0);
         }
@@ -155,20 +280,31 @@ mod tests {
 
             let samples = SampleCollection::<Counter>::default();
 
-            let _metric = Metric::<Counter>::new(name, samples);
+            let _metric = Metric::<Counter>::new(name, None, None, samples);
         }
 
         #[test]
         fn it_should_allow_incrementing_a_sample() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
-
             let name = metric_name!("test_metric");
-
             let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
+            let samples = SampleCollection::new(vec![Sample::new(Counter::new(0), time, label_set.clone())]).unwrap();
+            let mut metric = Metric::<Counter>::new(name.clone(), None, None, samples);
 
-            let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]).unwrap();
+            metric.increment(&label_set, time);
 
-            let metric = Metric::<Counter>::new(name.clone(), samples);
+            assert_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1);
+        }
+
+        #[test]
+        fn it_should_allow_setting_to_an_absolute_value() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let name = metric_name!("test_metric");
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
+            let samples = SampleCollection::new(vec![Sample::new(Counter::new(0), time, label_set.clone())]).unwrap();
+            let mut metric = Metric::<Counter>::new(name.clone(), None, None, samples);
+
+            metric.absolute(&label_set, 1, time);
 
             assert_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1);
         }
@@ -189,20 +325,44 @@ mod tests {
 
             let samples = SampleCollection::<Gauge>::default();
 
-            let _metric = Metric::<Gauge>::new(name, samples);
+            let _metric = Metric::<Gauge>::new(name, None, None, samples);
+        }
+
+        #[test]
+        fn it_should_allow_incrementing_a_sample() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let name = metric_name!("test_metric");
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
+            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(0.0), time, label_set.clone())]).unwrap();
+            let mut metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
+
+            metric.increment(&label_set, time);
+
+            assert_relative_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1.0);
+        }
+
+        #[test]
+        fn it_should_allow_decrement_a_sample() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let name = metric_name!("test_metric");
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
+            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set.clone())]).unwrap();
+            let mut metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
+
+            metric.decrement(&label_set, time);
+
+            assert_relative_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 0.0);
         }
 
         #[test]
         fn it_should_allow_setting_a_sample() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
-
             let name = metric_name!("test_metric");
-
             let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
+            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(0.0), time, label_set.clone())]).unwrap();
+            let mut metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
 
-            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set.clone())]).unwrap();
-
-            let metric = Metric::<Gauge>::new(name.clone(), samples);
+            metric.set(&label_set, 1.0, time);
 
             assert_relative_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1.0);
         }
