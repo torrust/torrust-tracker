@@ -374,17 +374,18 @@ impl<T: Clone> MetricKindCollection<T> {
     ///
     /// Returns an error if a metric name already exists in the current collection.
     pub fn merge(&mut self, other: &Self) -> Result<(), Error> {
-        // Check for name collisions
-        for metric_name in other.metrics.keys() {
-            if self.metrics.contains_key(metric_name) {
-                return Err(Error::MetricNameCollisionInMerge {
-                    metric_name: metric_name.clone(),
-                });
-            }
-        }
+        self.check_for_name_collision(other)?;
 
         for (metric_name, metric) in &other.metrics {
-            if self.metrics.insert(metric_name.clone(), metric.clone()).is_some() {
+            self.metrics.insert(metric_name.clone(), metric.clone());
+        }
+
+        Ok(())
+    }
+
+    fn check_for_name_collision(&self, other: &Self) -> Result<(), Error> {
+        for metric_name in other.metrics.keys() {
+            if self.metrics.contains_key(metric_name) {
                 return Err(Error::MetricNameCollisionInMerge {
                     metric_name: metric_name.clone(),
                 });
@@ -856,6 +857,38 @@ mod tests {
         assert!(result.is_err());
     }
 
+    fn collection_with_one_counter(metric_name: &MetricName, label_set: &LabelSet, counter: Counter) -> MetricCollection {
+        let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+
+        MetricCollection::new(
+            MetricKindCollection::new(vec![Metric::new(
+                metric_name.clone(),
+                None,
+                None,
+                SampleCollection::new(vec![Sample::new(counter, time, label_set.clone())]).unwrap(),
+            )])
+            .unwrap(),
+            MetricKindCollection::default(),
+        )
+        .unwrap()
+    }
+
+    fn collection_with_one_gauge(metric_name: &MetricName, label_set: &LabelSet, gauge: Gauge) -> MetricCollection {
+        let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+
+        MetricCollection::new(
+            MetricKindCollection::default(),
+            MetricKindCollection::new(vec![Metric::new(
+                metric_name.clone(),
+                None,
+                None,
+                SampleCollection::new(vec![Sample::new(gauge, time, label_set.clone())]).unwrap(),
+            )])
+            .unwrap(),
+        )
+        .unwrap()
+    }
+
     mod for_counters {
 
         use pretty_assertions::assert_eq;
@@ -866,32 +899,54 @@ mod tests {
         use crate::sample_collection::SampleCollection;
 
         #[test]
-        fn it_should_increase_a_preexistent_counter() {
+        fn it_should_allow_setting_to_an_absolute_value() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let metric_name = metric_name!("test_counter");
             let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
-            let mut metric_collection = MetricCollection::new(
-                MetricKindCollection::new(vec![Metric::new(
-                    metric_name!("test_counter"),
-                    None,
-                    None,
-                    SampleCollection::new(vec![Sample::new(Counter::new(0), time, label_set.clone())]).unwrap(),
-                )])
-                .unwrap(),
-                MetricKindCollection::default(),
-            )
-            .unwrap();
+            let mut collection = collection_with_one_counter(&metric_name, &label_set, Counter::new(0));
 
-            metric_collection
-                .increase_counter(&metric_name!("test_counter"), &label_set, time)
+            collection
+                .set_counter(&metric_name!("test_counter"), &label_set, 1, time)
                 .unwrap();
-            metric_collection
+
+            assert_eq!(
+                collection.get_counter_value(&metric_name!("test_counter"), &label_set),
+                Some(Counter::new(1))
+            );
+        }
+
+        #[test]
+        fn it_should_fail_setting_to_an_absolute_value_if_a_gauge_with_the_same_name_exists() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let metric_name = metric_name!("test_counter");
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
+
+            let mut collection = collection_with_one_gauge(&metric_name, &label_set, Gauge::new(0.0));
+
+            let result = collection.set_counter(&metric_name!("test_counter"), &label_set, 1, time);
+
+            assert!(
+                result.is_err()
+                    && matches!(result, Err(Error::MetricNameCollisionAdding { metric_name }) if metric_name == metric_name!("test_counter"))
+            );
+        }
+
+        #[test]
+        fn it_should_increase_a_preexistent_counter() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let metric_name = metric_name!("test_counter");
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
+
+            let mut collection = collection_with_one_counter(&metric_name, &label_set, Counter::new(0));
+
+            collection
                 .increase_counter(&metric_name!("test_counter"), &label_set, time)
                 .unwrap();
 
             assert_eq!(
-                metric_collection.get_counter_value(&metric_name!("test_counter"), &label_set),
-                Some(Counter::new(2))
+                collection.get_counter_value(&metric_name!("test_counter"), &label_set),
+                Some(Counter::new(1))
             );
         }
 
@@ -962,27 +1017,86 @@ mod tests {
         #[test]
         fn it_should_set_a_preexistent_gauge() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let metric_name = metric_name!("test_gauge");
             let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
 
-            let mut metric_collection = MetricCollection::new(
-                MetricKindCollection::default(),
-                MetricKindCollection::new(vec![Metric::new(
-                    metric_name!("test_gauge"),
-                    None,
-                    None,
-                    SampleCollection::new(vec![Sample::new(Gauge::new(0.0), time, label_set.clone())]).unwrap(),
-                )])
-                .unwrap(),
-            )
-            .unwrap();
+            let mut collection = collection_with_one_gauge(&metric_name, &label_set, Gauge::new(0.0));
 
-            metric_collection
+            collection
                 .set_gauge(&metric_name!("test_gauge"), &label_set, 1.0, time)
                 .unwrap();
 
             assert_eq!(
-                metric_collection.get_gauge_value(&metric_name!("test_gauge"), &label_set),
+                collection.get_gauge_value(&metric_name!("test_gauge"), &label_set),
                 Some(Gauge::new(1.0))
+            );
+        }
+
+        #[test]
+        fn it_should_allow_incrementing_a_gauge() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let metric_name = metric_name!("test_gauge");
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
+
+            let mut collection = collection_with_one_gauge(&metric_name, &label_set, Gauge::new(0.0));
+
+            collection
+                .increment_gauge(&metric_name!("test_gauge"), &label_set, time)
+                .unwrap();
+
+            assert_eq!(
+                collection.get_gauge_value(&metric_name!("test_gauge"), &label_set),
+                Some(Gauge::new(1.0))
+            );
+        }
+
+        #[test]
+        fn it_should_fail_incrementing_a_gauge_if_it_exists_a_counter_with_the_same_name() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let metric_name = metric_name!("test_gauge");
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
+
+            let mut collection = collection_with_one_counter(&metric_name, &label_set, Counter::new(0));
+
+            let result = collection.increment_gauge(&metric_name!("test_gauge"), &label_set, time);
+
+            assert!(
+                result.is_err()
+                    && matches!(result, Err(Error::MetricNameCollisionAdding { metric_name }) if metric_name == metric_name!("test_gauge"))
+            );
+        }
+
+        #[test]
+        fn it_should_allow_decrementing_a_gauge() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let metric_name = metric_name!("test_gauge");
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
+
+            let mut collection = collection_with_one_gauge(&metric_name, &label_set, Gauge::new(1.0));
+
+            collection
+                .decrement_gauge(&metric_name!("test_gauge"), &label_set, time)
+                .unwrap();
+
+            assert_eq!(
+                collection.get_gauge_value(&metric_name!("test_gauge"), &label_set),
+                Some(Gauge::new(0.0))
+            );
+        }
+
+        #[test]
+        fn it_should_fail_decrementing_a_gauge_if_it_exists_a_counter_with_the_same_name() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let metric_name = metric_name!("test_gauge");
+            let label_set: LabelSet = (label_name!("label_name"), LabelValue::new("value")).into();
+
+            let mut collection = collection_with_one_counter(&metric_name, &label_set, Counter::new(0));
+
+            let result = collection.decrement_gauge(&metric_name!("test_gauge"), &label_set, time);
+
+            assert!(
+                result.is_err()
+                    && matches!(result, Err(Error::MetricNameCollisionAdding { metric_name }) if metric_name == metric_name!("test_gauge"))
             );
         }
 
@@ -1035,6 +1149,47 @@ mod tests {
             ]);
 
             assert!(result.is_err());
+        }
+    }
+
+    mod metric_kind_collection {
+
+        use crate::counter::Counter;
+        use crate::gauge::Gauge;
+        use crate::metric::Metric;
+        use crate::metric_collection::{Error, MetricKindCollection};
+        use crate::metric_name;
+
+        #[test]
+        fn it_should_not_allow_merging_counter_metric_collections_with_name_collisions() {
+            let mut collection1 = MetricKindCollection::<Counter>::default();
+            collection1.insert(Metric::<Counter>::new_empty_with_name(metric_name!("test_metric")));
+
+            let mut collection2 = MetricKindCollection::<Counter>::default();
+            collection2.insert(Metric::<Counter>::new_empty_with_name(metric_name!("test_metric")));
+
+            let result = collection1.merge(&collection2);
+
+            assert!(
+                result.is_err()
+                    && matches!(result, Err(Error::MetricNameCollisionInMerge { metric_name }) if metric_name == metric_name!("test_metric"))
+            );
+        }
+
+        #[test]
+        fn it_should_not_allow_merging_gauge_metric_collections_with_name_collisions() {
+            let mut collection1 = MetricKindCollection::<Gauge>::default();
+            collection1.insert(Metric::<Gauge>::new_empty_with_name(metric_name!("test_metric")));
+
+            let mut collection2 = MetricKindCollection::<Gauge>::default();
+            collection2.insert(Metric::<Gauge>::new_empty_with_name(metric_name!("test_metric")));
+
+            let result = collection1.merge(&collection2);
+
+            assert!(
+                result.is_err()
+                    && matches!(result, Err(Error::MetricNameCollisionInMerge { metric_name }) if metric_name == metric_name!("test_metric"))
+            );
         }
     }
 }
