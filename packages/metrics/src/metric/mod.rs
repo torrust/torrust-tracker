@@ -286,14 +286,25 @@ mod tests {
         #[test]
         fn it_should_allow_incrementing_a_sample() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
-
             let name = metric_name!("test_metric");
-
             let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
+            let samples = SampleCollection::new(vec![Sample::new(Counter::new(0), time, label_set.clone())]).unwrap();
+            let mut metric = Metric::<Counter>::new(name.clone(), None, None, samples);
 
-            let samples = SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]).unwrap();
+            metric.increment(&label_set, time);
 
-            let metric = Metric::<Counter>::new(name.clone(), None, None, samples);
+            assert_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1);
+        }
+
+        #[test]
+        fn it_should_allow_setting_to_an_absolute_value() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let name = metric_name!("test_metric");
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
+            let samples = SampleCollection::new(vec![Sample::new(Counter::new(0), time, label_set.clone())]).unwrap();
+            let mut metric = Metric::<Counter>::new(name.clone(), None, None, samples);
+
+            metric.absolute(&label_set, 1, time);
 
             assert_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1);
         }
@@ -318,16 +329,40 @@ mod tests {
         }
 
         #[test]
+        fn it_should_allow_incrementing_a_sample() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let name = metric_name!("test_metric");
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
+            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(0.0), time, label_set.clone())]).unwrap();
+            let mut metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
+
+            metric.increment(&label_set, time);
+
+            assert_relative_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1.0);
+        }
+
+        #[test]
+        fn it_should_allow_decrement_a_sample() {
+            let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+            let name = metric_name!("test_metric");
+            let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
+            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set.clone())]).unwrap();
+            let mut metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
+
+            metric.decrement(&label_set, time);
+
+            assert_relative_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 0.0);
+        }
+
+        #[test]
         fn it_should_allow_setting_a_sample() {
             let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
-
             let name = metric_name!("test_metric");
-
             let label_set: LabelSet = [(label_name!("server_binding_protocol"), LabelValue::new("http"))].into();
+            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(0.0), time, label_set.clone())]).unwrap();
+            let mut metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
 
-            let samples = SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set.clone())]).unwrap();
-
-            let metric = Metric::<Gauge>::new(name.clone(), None, None, samples);
+            metric.set(&label_set, 1.0, time);
 
             assert_relative_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1.0);
         }
