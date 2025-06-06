@@ -103,18 +103,56 @@ impl Metric<Gauge> {
     }
 }
 
-impl<T: PrometheusSerializable> PrometheusSerializable for Metric<T> {
+impl PrometheusSerializable for Metric<Counter> {
     fn to_prometheus(&self) -> String {
         let samples: Vec<String> = self
             .sample_collection
             .iter()
             .map(|(label_set, sample)| {
-                format!(
+                let help = if let Some(description) = &self.opt_description {
+                    format!("# HELP {description}\n")
+                } else {
+                    String::new()
+                };
+
+                let kind = format!("# TYPE {} counter\n", self.name.to_prometheus());
+
+                let metric = format!(
                     "{}{} {}",
                     self.name.to_prometheus(),
                     label_set.to_prometheus(),
                     sample.value().to_prometheus()
-                )
+                );
+
+                format!("{help}{kind}{metric}")
+            })
+            .collect();
+        samples.join("\n")
+    }
+}
+
+impl PrometheusSerializable for Metric<Gauge> {
+    fn to_prometheus(&self) -> String {
+        let samples: Vec<String> = self
+            .sample_collection
+            .iter()
+            .map(|(label_set, sample)| {
+                let help = if let Some(description) = &self.opt_description {
+                    format!("# HELP {description}\n")
+                } else {
+                    String::new()
+                };
+
+                let kind = format!("# TYPE {} gauge\n", self.name.to_prometheus());
+
+                let metric = format!(
+                    "{}{} {}",
+                    self.name.to_prometheus(),
+                    label_set.to_prometheus(),
+                    sample.value().to_prometheus()
+                );
+
+                format!("{help}{kind}{metric}")
             })
             .collect();
         samples.join("\n")

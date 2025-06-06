@@ -607,7 +607,9 @@ mod tests {
         fn prometheus() -> String {
             format_prometheus_output(
                 r#"
+                    # TYPE http_tracker_core_announce_requests_received_total counter
                     http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
+                    # TYPE udp_tracker_server_performance_avg_announce_processing_time_ns gauge
                     udp_tracker_server_performance_avg_announce_processing_time_ns{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
                 "#,
             )
@@ -739,7 +741,9 @@ mod tests {
 
         let expected_prometheus_output = format_prometheus_output(
             r#"
+            # TYPE http_tracker_core_announce_requests_received_total counter
             http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",server_binding_port="7171",server_binding_protocol="http"} 2
+            # TYPE http_tracker_core_announce_requests_received_total counter
             http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
             "#,
         );
