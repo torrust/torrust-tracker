@@ -133,6 +133,10 @@ impl PrometheusSerializable for PrometheusType {
 impl<T: PrometheusSerializable> PrometheusMetricSample<'_, T> {
     fn to_prometheus(&self, prometheus_type: &PrometheusType) -> String {
         format!(
+            // Format:
+            // # HELP <metric_name> <description>
+            // # TYPE <metric_name> <type>
+            // <metric_name>{label_set} <value>
             "{}{}{}",
             self.help_line(),
             self.type_line(prometheus_type),
@@ -142,7 +146,12 @@ impl<T: PrometheusSerializable> PrometheusMetricSample<'_, T> {
 
     fn help_line(&self) -> String {
         if let Some(description) = &self.metric.opt_description {
-            format!("# HELP {description}\n")
+            format!(
+                // Format: # HELP <metric_name> <description>
+                "# HELP {} {}\n",
+                self.metric.name().to_prometheus(),
+                description.to_prometheus()
+            )
         } else {
             String::new()
         }
@@ -154,6 +163,7 @@ impl<T: PrometheusSerializable> PrometheusMetricSample<'_, T> {
 
     fn metric_line(&self) -> String {
         format!(
+            // Format: <metric_name>{label_set} <value>
             "{}{} {}",
             self.metric.name.to_prometheus(),
             self.label_set.to_prometheus(),

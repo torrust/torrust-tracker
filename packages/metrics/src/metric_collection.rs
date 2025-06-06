@@ -529,14 +529,14 @@ mod tests {
                 MetricKindCollection::new(vec![Metric::new(
                     metric_name!("http_tracker_core_announce_requests_received_total"),
                     None,
-                    None,
+                    Some(MetricDescription::new("The number of announce requests received.")),
                     SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set_1.clone())]).unwrap(),
                 )])
                 .unwrap(),
                 MetricKindCollection::new(vec![Metric::new(
                     metric_name!("udp_tracker_server_performance_avg_announce_processing_time_ns"),
                     None,
-                    None,
+                    Some(MetricDescription::new("The average announce processing time in nanoseconds.")),
                     SampleCollection::new(vec![Sample::new(Gauge::new(1.0), time, label_set_1.clone())]).unwrap(),
                 )])
                 .unwrap(),
@@ -551,7 +551,7 @@ mod tests {
                     "type":"counter",
                     "name":"http_tracker_core_announce_requests_received_total",
                     "unit": null,
-                    "description": null,
+                    "description": "The number of announce requests received.",
                     "samples":[
                         {
                             "value":1,
@@ -577,7 +577,7 @@ mod tests {
                     "type":"gauge",
                     "name":"udp_tracker_server_performance_avg_announce_processing_time_ns",
                     "unit": null,
-                    "description": null,
+                    "description": "The average announce processing time in nanoseconds.",
                     "samples":[
                         {
                             "value":1.0,
@@ -607,8 +607,10 @@ mod tests {
         fn prometheus() -> String {
             format_prometheus_output(
                 r#"
+                    # HELP http_tracker_core_announce_requests_received_total The number of announce requests received.
                     # TYPE http_tracker_core_announce_requests_received_total counter
                     http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
+                    # HELP udp_tracker_server_performance_avg_announce_processing_time_ns The average announce processing time in nanoseconds.
                     # TYPE udp_tracker_server_performance_avg_announce_processing_time_ns gauge
                     udp_tracker_server_performance_avg_announce_processing_time_ns{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
                 "#,
