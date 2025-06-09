@@ -10,22 +10,22 @@ use torrust_tracker_metrics::unit::Unit;
 
 // Torrent metrics
 
-const TORRENT_REPOSITORY_TORRENTS_ADDED_TOTAL: &str = "torrent_repository_torrents_added_total";
-const TORRENT_REPOSITORY_TORRENTS_REMOVED_TOTAL: &str = "torrent_repository_torrents_removed_total";
+const SWARM_COORDINATION_REGISTRY_TORRENTS_ADDED_TOTAL: &str = "swarm_coordination_registry_torrents_added_total";
+const SWARM_COORDINATION_REGISTRY_TORRENTS_REMOVED_TOTAL: &str = "swarm_coordination_registry_torrents_removed_total";
 
-const TORRENT_REPOSITORY_TORRENTS_TOTAL: &str = "torrent_repository_torrents_total";
-const TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL: &str = "torrent_repository_torrents_downloads_total";
-const TORRENT_REPOSITORY_TORRENTS_INACTIVE_TOTAL: &str = "torrent_repository_torrents_inactive_total";
+const SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL: &str = "swarm_coordination_registry_torrents_total";
+const SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL: &str = "swarm_coordination_registry_torrents_downloads_total";
+const SWARM_COORDINATION_REGISTRY_TORRENTS_INACTIVE_TOTAL: &str = "swarm_coordination_registry_torrents_inactive_total";
 
 // Peers metrics
 
-const TORRENT_REPOSITORY_PEERS_ADDED_TOTAL: &str = "torrent_repository_peers_added_total";
-const TORRENT_REPOSITORY_PEERS_REMOVED_TOTAL: &str = "torrent_repository_peers_removed_total";
-const TORRENT_REPOSITORY_PEERS_UPDATED_TOTAL: &str = "torrent_repository_peers_updated_total";
+const SWARM_COORDINATION_REGISTRY_PEERS_ADDED_TOTAL: &str = "swarm_coordination_registry_peers_added_total";
+const SWARM_COORDINATION_REGISTRY_PEERS_REMOVED_TOTAL: &str = "swarm_coordination_registry_peers_removed_total";
+const SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL: &str = "swarm_coordination_registry_peers_updated_total";
 
-const TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL: &str = "torrent_repository_peer_connections_total";
-const TORRENT_REPOSITORY_UNIQUE_PEERS_TOTAL: &str = "torrent_repository_unique_peers_total"; // todo: not implemented yet
-const TORRENT_REPOSITORY_PEERS_INACTIVE_TOTAL: &str = "torrent_repository_peers_inactive_total";
+const SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL: &str = "swarm_coordination_registry_peer_connections_total";
+const SWARM_COORDINATION_REGISTRY_UNIQUE_PEERS_TOTAL: &str = "swarm_coordination_registry_unique_peers_total"; // todo: not implemented yet
+const SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL: &str = "swarm_coordination_registry_peers_inactive_total";
 
 #[must_use]
 pub fn describe_metrics() -> Metrics {
@@ -34,31 +34,31 @@ pub fn describe_metrics() -> Metrics {
     // Torrent metrics
 
     metrics.metric_collection.describe_counter(
-        &metric_name!(TORRENT_REPOSITORY_TORRENTS_ADDED_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_ADDED_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of torrents added.")),
     );
 
     metrics.metric_collection.describe_counter(
-        &metric_name!(TORRENT_REPOSITORY_TORRENTS_REMOVED_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_REMOVED_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of torrents removed.")),
     );
 
     metrics.metric_collection.describe_gauge(
-        &metric_name!(TORRENT_REPOSITORY_TORRENTS_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of torrents.")),
     );
 
     metrics.metric_collection.describe_counter(
-        &metric_name!(TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of torrent downloads.")),
     );
 
     metrics.metric_collection.describe_gauge(
-        &metric_name!(TORRENT_REPOSITORY_TORRENTS_INACTIVE_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_INACTIVE_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of inactive torrents.")),
     );
@@ -66,25 +66,25 @@ pub fn describe_metrics() -> Metrics {
     // Peers metrics
 
     metrics.metric_collection.describe_counter(
-        &metric_name!(TORRENT_REPOSITORY_PEERS_ADDED_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_ADDED_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of peers added.")),
     );
 
     metrics.metric_collection.describe_counter(
-        &metric_name!(TORRENT_REPOSITORY_PEERS_REMOVED_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_REMOVED_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of peers removed.")),
     );
 
     metrics.metric_collection.describe_counter(
-        &metric_name!(TORRENT_REPOSITORY_PEERS_UPDATED_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of peers updated.")),
     );
 
     metrics.metric_collection.describe_gauge(
-        &metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new(
             "The total number of peer connections (one connection per torrent).",
@@ -92,13 +92,13 @@ pub fn describe_metrics() -> Metrics {
     );
 
     metrics.metric_collection.describe_gauge(
-        &metric_name!(TORRENT_REPOSITORY_UNIQUE_PEERS_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_UNIQUE_PEERS_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of unique peers.")),
     );
 
     metrics.metric_collection.describe_gauge(
-        &metric_name!(TORRENT_REPOSITORY_PEERS_INACTIVE_TOTAL),
+        &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of inactive peers.")),
     );
