@@ -14,10 +14,10 @@ use torrust_tracker_primitives::core::{AnnounceData, ScrapeData};
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
-use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 pub struct TestEnv {
-    pub torrent_repository_container: Arc<TorrentRepositoryContainer>,
+    pub torrent_repository_container: Arc<SwarmCoordinationRegistryContainer>,
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 }
 
@@ -33,7 +33,7 @@ impl TestEnv {
     pub fn new(core_config: Core) -> Self {
         let core_config = Arc::new(core_config);
 
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+        let torrent_repository_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 

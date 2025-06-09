@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use torrust_tracker_configuration::Core;
-use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 use crate::announce_handler::AnnounceHandler;
 use crate::authentication::handler::KeysHandler;
@@ -38,7 +38,10 @@ pub struct TrackerCoreContainer {
 
 impl TrackerCoreContainer {
     #[must_use]
-    pub fn initialize_from(core_config: &Arc<Core>, torrent_repository_container: &Arc<TorrentRepositoryContainer>) -> Self {
+    pub fn initialize_from(
+        core_config: &Arc<Core>,
+        torrent_repository_container: &Arc<SwarmCoordinationRegistryContainer>,
+    ) -> Self {
         let database = initialize_database(core_config);
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(core_config, &in_memory_whitelist.clone()));

@@ -165,7 +165,7 @@ mod tests {
     use tokio::sync::RwLock;
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_events::bus::SenderStatus;
-    use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
+    use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::statistics::metrics::{ProtocolMetrics, TorrentsMetrics};
@@ -180,7 +180,7 @@ mod tests {
         let config = tracker_configuration();
         let core_config = Arc::new(config.core.clone());
 
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(SenderStatus::Enabled));
+        let torrent_repository_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(SenderStatus::Enabled));
 
         let tracker_core_container = TrackerCoreContainer::initialize_from(&core_config, &torrent_repository_container.clone());
 

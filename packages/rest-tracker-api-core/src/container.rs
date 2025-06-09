@@ -7,14 +7,14 @@ use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
 use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
-use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 
 pub struct TrackerHttpApiCoreContainer {
     pub http_api_config: Arc<HttpApi>,
 
     // Torrent repository
-    pub torrent_repository_container: Arc<TorrentRepositoryContainer>,
+    pub torrent_repository_container: Arc<SwarmCoordinationRegistryContainer>,
 
     // Tracker core
     pub tracker_core_container: Arc<TrackerCoreContainer>,
@@ -36,7 +36,7 @@ impl TrackerHttpApiCoreContainer {
         udp_tracker_config: &Arc<UdpTracker>,
         http_api_config: &Arc<HttpApi>,
     ) -> Arc<TrackerHttpApiCoreContainer> {
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+        let torrent_repository_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 
@@ -65,7 +65,7 @@ impl TrackerHttpApiCoreContainer {
 
     #[must_use]
     pub fn initialize_from(
-        torrent_repository_container: &Arc<TorrentRepositoryContainer>,
+        torrent_repository_container: &Arc<SwarmCoordinationRegistryContainer>,
         tracker_core_container: &Arc<TrackerCoreContainer>,
         http_tracker_core_container: &Arc<HttpTrackerCoreContainer>,
         udp_tracker_core_container: &Arc<UdpTrackerCoreContainer>,
