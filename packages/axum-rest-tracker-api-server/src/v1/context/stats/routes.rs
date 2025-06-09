@@ -30,7 +30,10 @@ pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApi
                 http_api_container.tracker_core_container.in_memory_torrent_repository.clone(),
                 http_api_container.ban_service.clone(),
                 // Stats
-                http_api_container.torrent_repository_container.stats_repository.clone(),
+                http_api_container
+                    .swarm_coordination_registry_container
+                    .stats_repository
+                    .clone(),
                 http_api_container.tracker_core_container.stats_repository.clone(),
                 http_api_container.http_stats_repository.clone(),
                 http_api_container.udp_core_stats_repository.clone(),

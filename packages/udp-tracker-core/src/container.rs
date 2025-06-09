@@ -32,13 +32,13 @@ pub struct UdpTrackerCoreContainer {
 impl UdpTrackerCoreContainer {
     #[must_use]
     pub fn initialize(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Arc<UdpTrackerCoreContainer> {
-        let torrent_repository_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
+        let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             core_config,
-            &torrent_repository_container,
+            &swarm_coordination_registry_container,
         ));
 
         Self::initialize_from_tracker_core(&tracker_core_container, udp_tracker_config)

@@ -290,13 +290,13 @@ mod tests {
             let _unused = run_event_listener(http_stats_event_bus.receiver(), &http_stats_repository);
         }
 
-        let torrent_repository_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
+        let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             configuration.core.tracker_usage_statistics.into(),
         ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             &core_config,
-            &torrent_repository_container,
+            &swarm_coordination_registry_container,
         ));
 
         let announce_service = Arc::new(AnnounceService::new(

@@ -8,8 +8,8 @@ use crate::container::AppContainer;
 pub fn start_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) -> Option<JoinHandle<()>> {
     if config.core.tracker_usage_statistics {
         let job = torrust_tracker_swarm_coordination_registry::statistics::event::listener::run_event_listener(
-            app_container.torrent_repository_container.event_bus.receiver(),
-            &app_container.torrent_repository_container.stats_repository,
+            app_container.swarm_coordination_registry_container.event_bus.receiver(),
+            &app_container.swarm_coordination_registry_container.stats_repository,
         );
 
         Some(job)

@@ -40,7 +40,7 @@ impl TrackerCoreContainer {
     #[must_use]
     pub fn initialize_from(
         core_config: &Arc<Core>,
-        torrent_repository_container: &Arc<SwarmCoordinationRegistryContainer>,
+        swarm_coordination_registry_container: &Arc<SwarmCoordinationRegistryContainer>,
     ) -> Self {
         let database = initialize_database(core_config);
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -53,7 +53,9 @@ impl TrackerCoreContainer {
             &db_key_repository.clone(),
             &in_memory_key_repository.clone(),
         ));
-        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(torrent_repository_container.swarms.clone()));
+        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(
+            swarm_coordination_registry_container.swarms.clone(),
+        ));
         let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
 
         let torrents_manager = Arc::new(TorrentsManager::new(

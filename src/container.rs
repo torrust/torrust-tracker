@@ -30,7 +30,7 @@ pub struct AppContainer {
     pub registar: Arc<Registar>,
 
     // Torrent Repository
-    pub torrent_repository_container: Arc<SwarmCoordinationRegistryContainer>,
+    pub swarm_coordination_registry_container: Arc<SwarmCoordinationRegistryContainer>,
 
     // Core
     pub tracker_core_container: Arc<TrackerCoreContainer>,
@@ -60,7 +60,7 @@ impl AppContainer {
 
         // Torrent Repository
 
-        let torrent_repository_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
+        let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 
@@ -68,7 +68,7 @@ impl AppContainer {
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             &core_config,
-            &torrent_repository_container,
+            &swarm_coordination_registry_container,
         ));
 
         // HTTP
@@ -98,7 +98,7 @@ impl AppContainer {
             registar,
 
             // Torrent Repository
-            torrent_repository_container,
+            swarm_coordination_registry_container,
 
             // Core
             tracker_core_container,
@@ -146,7 +146,7 @@ impl AppContainer {
         TrackerHttpApiCoreContainer {
             http_api_config: http_api_config.clone(),
 
-            torrent_repository_container: self.torrent_repository_container.clone(),
+            swarm_coordination_registry_container: self.swarm_coordination_registry_container.clone(),
 
             tracker_core_container: self.tracker_core_container.clone(),
 

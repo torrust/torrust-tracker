@@ -180,9 +180,11 @@ mod tests {
         let config = tracker_configuration();
         let core_config = Arc::new(config.core.clone());
 
-        let torrent_repository_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(SenderStatus::Enabled));
+        let swarm_coordination_registry_container =
+            Arc::new(SwarmCoordinationRegistryContainer::initialize(SenderStatus::Enabled));
 
-        let tracker_core_container = TrackerCoreContainer::initialize_from(&core_config, &torrent_repository_container.clone());
+        let tracker_core_container =
+            TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container.clone());
 
         let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
