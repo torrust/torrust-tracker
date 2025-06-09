@@ -27,9 +27,7 @@ pub async fn handle_event(context: ConnectionContext, stats_repository: &Reposit
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-    use std::sync::Arc;
 
-    use bittorrent_udp_tracker_core::services::banning::BanService;
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
@@ -41,7 +39,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_number_of_banned_requests_when_it_receives_a_udp_request_banned_event() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpRequestBanned {
@@ -55,7 +52,6 @@ mod tests {
                 ),
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;
@@ -68,7 +64,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp_ban_counter_when_it_receives_a_udp_banned_event() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpRequestBanned {
@@ -82,7 +77,6 @@ mod tests {
                 ),
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;

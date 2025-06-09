@@ -1,13 +1,11 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use tokio::task::JoinHandle;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration, DEFAULT_TIMEOUT};
-use torrust_tracker_primitives::peer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 use crate::container::UdpTrackerServerContainer;
@@ -25,22 +23,8 @@ where
     pub registar: Registar,
     pub server: Server<S>,
     pub udp_core_event_listener_job: Option<JoinHandle<()>>,
-    pub udp_server_event_listener_job: Option<JoinHandle<()>>,
-}
-
-impl<S> Environment<S>
-where
-    S: std::fmt::Debug + std::fmt::Display,
-{
-    /// Add a torrent to the tracker
-    #[allow(dead_code)]
-    pub async fn add_torrent(&self, info_hash: &InfoHash, peer: &peer::Peer) {
-        self.container
-            .tracker_core_container
-            .in_memory_torrent_repository
-            .handle_announcement(info_hash, peer, None)
-            .await;
-    }
+    pub udp_server_stats_event_listener_job: Option<JoinHandle<()>>,
+    pub udp_server_banning_event_listener_job: Option<JoinHandle<()>>,
 }
 
 impl Environment<Stopped> {
@@ -60,7 +44,8 @@ impl Environment<Stopped> {
             registar: Registar::default(),
             server,
             udp_core_event_listener_job: None,
-            udp_server_event_listener_job: None,
+            udp_server_stats_event_listener_job: None,
+            udp_server_banning_event_listener_job: None,
         }
     }
 
@@ -78,10 +63,15 @@ impl Environment<Stopped> {
             &self.container.udp_tracker_core_container.stats_repository,
         ));
 
-        // Start the UDP tracker server event listener
-        let udp_server_event_listener_job = Some(crate::statistics::event::listener::run_event_listener(
+        // Start the UDP tracker server event listener (statistics)
+        let udp_server_stats_event_listener_job = Some(crate::statistics::event::listener::run_event_listener(
             self.container.udp_tracker_server_container.event_bus.receiver(),
             &self.container.udp_tracker_server_container.stats_repository,
+        ));
+
+        // Start the UDP tracker server event listener (banning)
+        let udp_server_banning_event_listener_job = Some(crate::banning::event::listener::run_event_listener(
+            self.container.udp_tracker_server_container.event_bus.receiver(),
             &self.container.udp_tracker_core_container.ban_service,
         ));
 
@@ -102,7 +92,8 @@ impl Environment<Stopped> {
             registar: self.registar.clone(),
             server,
             udp_core_event_listener_job,
-            udp_server_event_listener_job,
+            udp_server_stats_event_listener_job,
+            udp_server_banning_event_listener_job,
         }
     }
 }
@@ -131,11 +122,18 @@ impl Environment<Running> {
             udp_core_event_listener_job.abort();
         }
 
-        // Stop the UDP tracker server event listener
-        if let Some(udp_server_event_listener_job) = self.udp_server_event_listener_job {
+        // Stop the UDP tracker server event listener (statistics)
+        if let Some(udp_server_stats_event_listener_job) = self.udp_server_stats_event_listener_job {
             // todo: send a message to the event listener to stop and wait for
             // it to finish
-            udp_server_event_listener_job.abort();
+            udp_server_stats_event_listener_job.abort();
+        }
+
+        // Stop the UDP tracker server event listener (banning)
+        if let Some(udp_server_banning_event_listener_job) = self.udp_server_banning_event_listener_job {
+            // todo: send a message to the event listener to stop and wait for
+            // it to finish
+            udp_server_banning_event_listener_job.abort();
         }
 
         // Stop the UDP tracker server
@@ -149,7 +147,8 @@ impl Environment<Running> {
             registar: Registar::default(),
             server,
             udp_core_event_listener_job: None,
-            udp_server_event_listener_job: None,
+            udp_server_stats_event_listener_job: None,
+            udp_server_banning_event_listener_job: None,
         }
     }
 

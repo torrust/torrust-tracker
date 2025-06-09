@@ -5,16 +5,23 @@ use torrust_tracker_configuration::Configuration;
 
 use crate::container::AppContainer;
 
-pub fn start_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) -> Option<JoinHandle<()>> {
+pub fn start_stats_event_listener(config: &Configuration, app_container: &Arc<AppContainer>) -> Option<JoinHandle<()>> {
     if config.core.tracker_usage_statistics {
         let job = torrust_udp_tracker_server::statistics::event::listener::run_event_listener(
             app_container.udp_tracker_server_container.event_bus.receiver(),
             &app_container.udp_tracker_server_container.stats_repository,
-            &app_container.udp_tracker_core_services.ban_service,
         );
         Some(job)
     } else {
         tracing::info!("UDP tracker server event listener job is disabled.");
         None
     }
+}
+
+#[must_use]
+pub fn start_banning_event_listener(app_container: &Arc<AppContainer>) -> JoinHandle<()> {
+    torrust_udp_tracker_server::banning::event::listener::run_event_listener(
+        app_container.udp_tracker_server_container.event_bus.receiver(),
+        &app_container.udp_tracker_core_services.ban_service,
+    )
 }
