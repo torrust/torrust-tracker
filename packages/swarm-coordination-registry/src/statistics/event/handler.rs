@@ -8,10 +8,11 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use crate::event::Event;
 use crate::statistics::repository::Repository;
 use crate::statistics::{
-    SWARM_COORDINATION_REGISTRY_PEERS_ADDED_TOTAL, SWARM_COORDINATION_REGISTRY_PEERS_REMOVED_TOTAL,
-    SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL, SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL,
-    SWARM_COORDINATION_REGISTRY_TORRENTS_ADDED_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL,
-    SWARM_COORDINATION_REGISTRY_TORRENTS_REMOVED_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL,
+    SWARM_COORDINATION_REGISTRY_PEERS_ADDED_TOTAL, SWARM_COORDINATION_REGISTRY_PEERS_COMPLETED_STATE_REVERTED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_PEERS_REMOVED_TOTAL, SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_ADDED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_REMOVED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL,
 };
 
 #[allow(clippy::too_many_lines)]
@@ -103,6 +104,8 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
         } => {
             tracing::debug!(info_hash = ?info_hash, old_peer = ?old_peer, new_peer = ?new_peer, "Peer updated", );
 
+            // If the peer's role has changed, we need to adjust the number of
+            // connections
             if old_peer.role() != new_peer.role() {
                 let _unused = stats_repository
                     .increment_gauge(
@@ -121,6 +124,20 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
                     .await;
             }
 
+            // If the peer reverted from a completed state to any other state,
+            // we need to increment the counter for reverted completed.
+            if old_peer.is_completed() && !new_peer.is_completed() {
+                let _unused = stats_repository
+                    .increment_counter(
+                        &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_COMPLETED_STATE_REVERTED_TOTAL),
+                        &LabelSet::default(),
+                        now,
+                    )
+                    .await;
+            }
+
+            // Regardless of the role change, we still need to increment the
+            // counter for updated peers.
             let label_set = label_set_for_peer(&new_peer);
 
             let _unused = stats_repository
@@ -134,7 +151,7 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
         Event::PeerDownloadCompleted { info_hash, peer } => {
             tracing::debug!(info_hash = ?info_hash, peer = ?peer, "Peer download completed", );
 
-            let _unused = stats_repository
+            let _unused: Result<(), torrust_tracker_metrics::metric_collection::Error> = stats_repository
                 .increment_counter(
                     &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL),
                     &label_set_for_peer(&peer),

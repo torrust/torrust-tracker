@@ -26,6 +26,8 @@ const SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL: &str = "swarm_coordinatio
 const SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL: &str = "swarm_coordination_registry_peer_connections_total";
 const SWARM_COORDINATION_REGISTRY_UNIQUE_PEERS_TOTAL: &str = "swarm_coordination_registry_unique_peers_total"; // todo: not implemented yet
 const SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL: &str = "swarm_coordination_registry_peers_inactive_total";
+const SWARM_COORDINATION_REGISTRY_PEERS_COMPLETED_STATE_REVERTED_TOTAL: &str =
+    "swarm_coordination_registry_peers_completed_state_reverted_total";
 
 #[must_use]
 pub fn describe_metrics() -> Metrics {
@@ -101,6 +103,14 @@ pub fn describe_metrics() -> Metrics {
         &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("The total number of inactive peers.")),
+    );
+
+    metrics.metric_collection.describe_counter(
+        &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_COMPLETED_STATE_REVERTED_TOTAL),
+        Some(Unit::Count),
+        Some(MetricDescription::new(
+            "The total number of peers whose completed state was reverted.",
+        )),
     );
 
     metrics
