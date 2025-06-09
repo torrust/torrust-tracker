@@ -29,7 +29,7 @@ pub struct AppContainer {
     // Registar
     pub registar: Arc<Registar>,
 
-    // Torrent Repository
+    // Swarm Coordination Registry Container
     pub swarm_coordination_registry_container: Arc<SwarmCoordinationRegistryContainer>,
 
     // Core
@@ -58,7 +58,7 @@ impl AppContainer {
 
         let registar = Arc::new(Registar::default());
 
-        // Torrent Repository
+        // Swarm Coordination Registry Container
 
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
@@ -97,7 +97,7 @@ impl AppContainer {
             // Registar
             registar,
 
-            // Torrent Repository
+            // Swarm Coordination Registry Container
             swarm_coordination_registry_container,
 
             // Core

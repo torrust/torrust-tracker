@@ -13,7 +13,7 @@ use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 pub struct TrackerHttpApiCoreContainer {
     pub http_api_config: Arc<HttpApi>,
 
-    // Torrent repository
+    // Swarm Coordination Registry Container
     pub swarm_coordination_registry_container: Arc<SwarmCoordinationRegistryContainer>,
 
     // Tracker core
@@ -75,7 +75,7 @@ impl TrackerHttpApiCoreContainer {
         Arc::new(TrackerHttpApiCoreContainer {
             http_api_config: http_api_config.clone(),
 
-            // Torrent repository
+            // Swarm Coordination Registry Container
             swarm_coordination_registry_container: swarm_coordination_registry_container.clone(),
 
             // Tracker core

@@ -18,7 +18,7 @@ pub struct SwarmCoordinationRegistryContainer {
 impl SwarmCoordinationRegistryContainer {
     #[must_use]
     pub fn initialize(sender_status: SenderStatus) -> Self {
-        // Torrent repository stats
+        // // Swarm Coordination Registry Container stats
         let broadcaster = Broadcaster::default();
         let stats_repository = Arc::new(Repository::new());
 

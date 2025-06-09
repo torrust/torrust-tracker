@@ -7,7 +7,7 @@ use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 use crate::databases::error::Error;
 use crate::databases::Database;
 
-/// Torrent repository implementation that persists torrent metrics in a database.
+/// It persists torrent metrics in a database.
 ///
 /// This repository persists only a subset of the torrent data: the torrent
 /// metrics, specifically the number of downloads (or completed counts) for each
