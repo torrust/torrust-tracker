@@ -22,7 +22,7 @@ pub(crate) type CurrentClock = clock::Working;
 #[allow(dead_code)]
 pub(crate) type CurrentClock = clock::Stopped;
 
-pub const TORRENT_REPOSITORY_LOG_TARGET: &str = "TORRENT_REPOSITORY";
+pub const SWARM_COORDINATION_REGISTRY_LOG_TARGET: &str = "SWARM_COORDINATION_REGISTRY";
 
 #[cfg(test)]
 pub(crate) mod tests {

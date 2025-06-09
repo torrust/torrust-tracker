@@ -10,7 +10,7 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use tracing::instrument;
 
 use super::repository::Repository;
-use crate::statistics::{TORRENT_REPOSITORY_PEERS_INACTIVE_TOTAL, TORRENT_REPOSITORY_TORRENTS_INACTIVE_TOTAL};
+use crate::statistics::{SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_INACTIVE_TOTAL};
 use crate::{CurrentClock, Registry};
 
 #[must_use]
@@ -81,7 +81,7 @@ async fn update_inactive_peers_total(stats_repository: &Arc<Repository>, inactiv
 
     let _unused = stats_repository
         .set_gauge(
-            &metric_name!(TORRENT_REPOSITORY_PEERS_INACTIVE_TOTAL),
+            &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL),
             &LabelSet::default(),
             inactive_peers_total,
             CurrentClock::now(),
@@ -95,7 +95,7 @@ async fn update_inactive_torrents_total(stats_repository: &Arc<Repository>, inac
 
     let _unused = stats_repository
         .set_gauge(
-            &metric_name!(TORRENT_REPOSITORY_TORRENTS_INACTIVE_TOTAL),
+            &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_INACTIVE_TOTAL),
             &LabelSet::default(),
             inactive_torrents_total,
             CurrentClock::now(),

@@ -8,11 +8,14 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use crate::event::Event;
 use crate::statistics::repository::Repository;
 use crate::statistics::{
-    TORRENT_REPOSITORY_PEERS_ADDED_TOTAL, TORRENT_REPOSITORY_PEERS_REMOVED_TOTAL, TORRENT_REPOSITORY_PEERS_UPDATED_TOTAL,
-    TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL, TORRENT_REPOSITORY_TORRENTS_ADDED_TOTAL,
-    TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL, TORRENT_REPOSITORY_TORRENTS_REMOVED_TOTAL, TORRENT_REPOSITORY_TORRENTS_TOTAL,
+    SWARM_COORDINATION_REGISTRY_PEERS_ADDED_TOTAL, SWARM_COORDINATION_REGISTRY_PEERS_COMPLETED_STATE_REVERTED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_PEERS_REMOVED_TOTAL, SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_ADDED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_REMOVED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL,
 };
 
+#[allow(clippy::too_many_lines)]
 pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now: DurationSinceUnixEpoch) {
     match event {
         // Torrent events
@@ -20,12 +23,16 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
             tracing::debug!(info_hash = ?info_hash, "Torrent added",);
 
             let _unused = stats_repository
-                .increment_gauge(&metric_name!(TORRENT_REPOSITORY_TORRENTS_TOTAL), &LabelSet::default(), now)
+                .increment_gauge(
+                    &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL),
+                    &LabelSet::default(),
+                    now,
+                )
                 .await;
 
             let _unused = stats_repository
                 .increment_counter(
-                    &metric_name!(TORRENT_REPOSITORY_TORRENTS_ADDED_TOTAL),
+                    &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_ADDED_TOTAL),
                     &LabelSet::default(),
                     now,
                 )
@@ -35,12 +42,16 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
             tracing::debug!(info_hash = ?info_hash, "Torrent removed",);
 
             let _unused = stats_repository
-                .decrement_gauge(&metric_name!(TORRENT_REPOSITORY_TORRENTS_TOTAL), &LabelSet::default(), now)
+                .decrement_gauge(
+                    &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL),
+                    &LabelSet::default(),
+                    now,
+                )
                 .await;
 
             let _unused = stats_repository
                 .increment_counter(
-                    &metric_name!(TORRENT_REPOSITORY_TORRENTS_REMOVED_TOTAL),
+                    &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_REMOVED_TOTAL),
                     &LabelSet::default(),
                     now,
                 )
@@ -54,11 +65,15 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
             let label_set = label_set_for_peer(&peer);
 
             let _unused = stats_repository
-                .increment_gauge(&metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL), &label_set, now)
+                .increment_gauge(
+                    &metric_name!(SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL),
+                    &label_set,
+                    now,
+                )
                 .await;
 
             let _unused = stats_repository
-                .increment_counter(&metric_name!(TORRENT_REPOSITORY_PEERS_ADDED_TOTAL), &label_set, now)
+                .increment_counter(&metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_ADDED_TOTAL), &label_set, now)
                 .await;
         }
         Event::PeerRemoved { info_hash, peer } => {
@@ -67,11 +82,19 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
             let label_set = label_set_for_peer(&peer);
 
             let _unused = stats_repository
-                .decrement_gauge(&metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL), &label_set, now)
+                .decrement_gauge(
+                    &metric_name!(SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL),
+                    &label_set,
+                    now,
+                )
                 .await;
 
             let _unused = stats_repository
-                .increment_counter(&metric_name!(TORRENT_REPOSITORY_PEERS_REMOVED_TOTAL), &label_set, now)
+                .increment_counter(
+                    &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_REMOVED_TOTAL),
+                    &label_set,
+                    now,
+                )
                 .await;
         }
         Event::PeerUpdated {
@@ -81,10 +104,12 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
         } => {
             tracing::debug!(info_hash = ?info_hash, old_peer = ?old_peer, new_peer = ?new_peer, "Peer updated", );
 
+            // If the peer's role has changed, we need to adjust the number of
+            // connections
             if old_peer.role() != new_peer.role() {
                 let _unused = stats_repository
                     .increment_gauge(
-                        &metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL),
+                        &metric_name!(SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL),
                         &label_set_for_peer(&new_peer),
                         now,
                     )
@@ -92,25 +117,43 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
 
                 let _unused = stats_repository
                     .decrement_gauge(
-                        &metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL),
+                        &metric_name!(SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL),
                         &label_set_for_peer(&old_peer),
                         now,
                     )
                     .await;
             }
 
+            // If the peer reverted from a completed state to any other state,
+            // we need to increment the counter for reverted completed.
+            if old_peer.is_completed() && !new_peer.is_completed() {
+                let _unused = stats_repository
+                    .increment_counter(
+                        &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_COMPLETED_STATE_REVERTED_TOTAL),
+                        &LabelSet::default(),
+                        now,
+                    )
+                    .await;
+            }
+
+            // Regardless of the role change, we still need to increment the
+            // counter for updated peers.
             let label_set = label_set_for_peer(&new_peer);
 
             let _unused = stats_repository
-                .increment_counter(&metric_name!(TORRENT_REPOSITORY_PEERS_UPDATED_TOTAL), &label_set, now)
+                .increment_counter(
+                    &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL),
+                    &label_set,
+                    now,
+                )
                 .await;
         }
         Event::PeerDownloadCompleted { info_hash, peer } => {
             tracing::debug!(info_hash = ?info_hash, peer = ?peer, "Peer download completed", );
 
-            let _unused = stats_repository
+            let _unused: Result<(), torrust_tracker_metrics::metric_collection::Error> = stats_repository
                 .increment_counter(
-                    &metric_name!(TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL),
+                    &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL),
                     &label_set_for_peer(&peer),
                     now,
                 )
@@ -217,7 +260,8 @@ mod tests {
         use crate::statistics::event::handler::tests::{expect_counter_metric_to_be, expect_gauge_metric_to_be};
         use crate::statistics::repository::Repository;
         use crate::statistics::{
-            TORRENT_REPOSITORY_TORRENTS_ADDED_TOTAL, TORRENT_REPOSITORY_TORRENTS_REMOVED_TOTAL, TORRENT_REPOSITORY_TORRENTS_TOTAL,
+            SWARM_COORDINATION_REGISTRY_TORRENTS_ADDED_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_REMOVED_TOTAL,
+            SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL,
         };
         use crate::tests::{sample_info_hash, sample_peer};
         use crate::CurrentClock;
@@ -240,7 +284,7 @@ mod tests {
 
             expect_gauge_metric_to_be(
                 &stats_repository,
-                &metric_name!(TORRENT_REPOSITORY_TORRENTS_TOTAL),
+                &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL),
                 &LabelSet::default(),
                 1.0,
             )
@@ -252,7 +296,7 @@ mod tests {
             clock::Stopped::local_set_to_unix_epoch();
 
             let stats_repository = Arc::new(Repository::new());
-            let metric_name = metric_name!(TORRENT_REPOSITORY_TORRENTS_TOTAL);
+            let metric_name = metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL);
             let label_set = LabelSet::default();
 
             // Increment the gauge first to simulate a torrent being added.
@@ -291,7 +335,7 @@ mod tests {
 
             expect_counter_metric_to_be(
                 &stats_repository,
-                &metric_name!(TORRENT_REPOSITORY_TORRENTS_ADDED_TOTAL),
+                &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_ADDED_TOTAL),
                 &LabelSet::default(),
                 1,
             )
@@ -315,7 +359,7 @@ mod tests {
 
             expect_counter_metric_to_be(
                 &stats_repository,
-                &metric_name!(TORRENT_REPOSITORY_TORRENTS_REMOVED_TOTAL),
+                &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_REMOVED_TOTAL),
                 &LabelSet::default(),
                 1,
             )
@@ -335,7 +379,8 @@ mod tests {
         use crate::statistics::event::handler::{handle_event, label_set_for_peer};
         use crate::statistics::repository::Repository;
         use crate::statistics::{
-            TORRENT_REPOSITORY_PEERS_ADDED_TOTAL, TORRENT_REPOSITORY_PEERS_REMOVED_TOTAL, TORRENT_REPOSITORY_PEERS_UPDATED_TOTAL,
+            SWARM_COORDINATION_REGISTRY_PEERS_ADDED_TOTAL, SWARM_COORDINATION_REGISTRY_PEERS_REMOVED_TOTAL,
+            SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL,
         };
         use crate::tests::{sample_info_hash, sample_peer};
         use crate::CurrentClock;
@@ -357,7 +402,7 @@ mod tests {
                 expect_gauge_metric_to_be, get_gauge_metric, make_opposite_role_peer, make_peer,
             };
             use crate::statistics::repository::Repository;
-            use crate::statistics::TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL;
+            use crate::statistics::SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL;
             use crate::tests::sample_info_hash;
             use crate::CurrentClock;
 
@@ -373,7 +418,7 @@ mod tests {
                 let peer = make_peer(role);
 
                 let stats_repository = Arc::new(Repository::new());
-                let metric_name = metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL);
+                let metric_name = metric_name!(SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL);
                 let label_set = (label_name!("peer_role"), LabelValue::new(&role.to_string())).into();
 
                 handle_event(
@@ -402,7 +447,7 @@ mod tests {
 
                 let stats_repository = Arc::new(Repository::new());
 
-                let metric_name = metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL);
+                let metric_name = metric_name!(SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL);
                 let label_set = (label_name!("peer_role"), LabelValue::new(&role.to_string())).into();
 
                 // Increment the gauge first to simulate a peer being added.
@@ -438,7 +483,7 @@ mod tests {
                 let old_peer = make_peer(old_role);
                 let new_peer = make_opposite_role_peer(&old_peer);
 
-                let metric_name = metric_name!(TORRENT_REPOSITORY_PEER_CONNECTIONS_TOTAL);
+                let metric_name = metric_name!(SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL);
                 let old_role_label_set = (label_name!("peer_role"), LabelValue::new(&old_peer.role().to_string())).into();
                 let new_role_label_set = (label_name!("peer_role"), LabelValue::new(&new_peer.role().to_string())).into();
 
@@ -497,7 +542,7 @@ mod tests {
 
             expect_counter_metric_to_be(
                 &stats_repository,
-                &metric_name!(TORRENT_REPOSITORY_PEERS_ADDED_TOTAL),
+                &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_ADDED_TOTAL),
                 &label_set_for_peer(&peer),
                 1,
             )
@@ -524,7 +569,7 @@ mod tests {
 
             expect_counter_metric_to_be(
                 &stats_repository,
-                &metric_name!(TORRENT_REPOSITORY_PEERS_REMOVED_TOTAL),
+                &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_REMOVED_TOTAL),
                 &label_set_for_peer(&peer),
                 1,
             )
@@ -552,7 +597,7 @@ mod tests {
 
             expect_counter_metric_to_be(
                 &stats_repository,
-                &metric_name!(TORRENT_REPOSITORY_PEERS_UPDATED_TOTAL),
+                &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL),
                 &label_set_for_peer(&new_peer),
                 1,
             )
@@ -574,7 +619,7 @@ mod tests {
             use crate::statistics::event::handler::handle_event;
             use crate::statistics::event::handler::tests::{expect_counter_metric_to_be, make_peer};
             use crate::statistics::repository::Repository;
-            use crate::statistics::TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL;
+            use crate::statistics::SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL;
             use crate::tests::sample_info_hash;
             use crate::CurrentClock;
 
@@ -590,7 +635,7 @@ mod tests {
                 let peer = make_peer(role);
 
                 let stats_repository = Arc::new(Repository::new());
-                let metric_name = metric_name!(TORRENT_REPOSITORY_TORRENTS_DOWNLOADS_TOTAL);
+                let metric_name = metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL);
                 let label_set = (label_name!("peer_role"), LabelValue::new(&role.to_string())).into();
 
                 handle_event(

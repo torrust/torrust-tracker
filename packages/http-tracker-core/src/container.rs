@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_configuration::{Core, HttpTracker};
-use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 use crate::event::bus::EventBus;
 use crate::event::sender::Broadcaster;
@@ -27,13 +27,13 @@ pub struct HttpTrackerCoreContainer {
 impl HttpTrackerCoreContainer {
     #[must_use]
     pub fn initialize(core_config: &Arc<Core>, http_tracker_config: &Arc<HttpTracker>) -> Arc<Self> {
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+        let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             core_config,
-            &torrent_repository_container,
+            &swarm_coordination_registry_container,
         ));
 
         Self::initialize_from_tracker_core(&tracker_core_container, http_tracker_config)

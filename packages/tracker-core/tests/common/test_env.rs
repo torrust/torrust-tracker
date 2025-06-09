@@ -14,10 +14,10 @@ use torrust_tracker_primitives::core::{AnnounceData, ScrapeData};
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
-use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 pub struct TestEnv {
-    pub torrent_repository_container: Arc<TorrentRepositoryContainer>,
+    pub swarm_coordination_registry_container: Arc<SwarmCoordinationRegistryContainer>,
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 }
 
@@ -33,17 +33,17 @@ impl TestEnv {
     pub fn new(core_config: Core) -> Self {
         let core_config = Arc::new(core_config);
 
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+        let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             &core_config,
-            &torrent_repository_container,
+            &swarm_coordination_registry_container,
         ));
 
         Self {
-            torrent_repository_container,
+            swarm_coordination_registry_container,
             tracker_core_container,
         }
     }
@@ -68,13 +68,13 @@ impl TestEnv {
         let mut jobs = vec![];
 
         let job = torrust_tracker_swarm_coordination_registry::statistics::event::listener::run_event_listener(
-            self.torrent_repository_container.event_bus.receiver(),
-            &self.torrent_repository_container.stats_repository,
+            self.swarm_coordination_registry_container.event_bus.receiver(),
+            &self.swarm_coordination_registry_container.stats_repository,
         );
         jobs.push(job);
 
         let job = bittorrent_tracker_core::statistics::event::listener::run_event_listener(
-            self.torrent_repository_container.event_bus.receiver(),
+            self.swarm_coordination_registry_container.event_bus.receiver(),
             &self.tracker_core_container.stats_repository,
             &self.tracker_core_container.db_downloads_metric_repository,
             self.tracker_core_container
@@ -147,7 +147,7 @@ impl TestEnv {
     }
 
     pub async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
-        self.torrent_repository_container
+        self.swarm_coordination_registry_container
             .swarms
             .get_swarm_metadata(info_hash)
             .await
@@ -155,7 +155,11 @@ impl TestEnv {
     }
 
     pub async fn remove_swarm(&self, info_hash: &InfoHash) {
-        self.torrent_repository_container.swarms.remove(info_hash).await.unwrap();
+        self.swarm_coordination_registry_container
+            .swarms
+            .remove(info_hash)
+            .await
+            .unwrap();
     }
 
     pub async fn get_counter_value(&self, metric_name: &str) -> u64 {

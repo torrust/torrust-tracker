@@ -12,7 +12,7 @@ use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration};
 use torrust_tracker_primitives::peer;
-use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 
 use crate::server::{ApiServer, Launcher, Running, Stopped};
@@ -173,13 +173,13 @@ impl EnvContainer {
                 .clone(),
         );
 
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+        let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             &core_config,
-            &torrent_repository_container,
+            &swarm_coordination_registry_container,
         ));
 
         let http_tracker_core_container =
@@ -191,7 +191,7 @@ impl EnvContainer {
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         let tracker_http_api_core_container = TrackerHttpApiCoreContainer::initialize_from(
-            &torrent_repository_container,
+            &swarm_coordination_registry_container,
             &tracker_core_container,
             &http_tracker_core_container,
             &udp_tracker_core_container,

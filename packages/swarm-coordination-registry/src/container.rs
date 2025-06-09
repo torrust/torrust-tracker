@@ -8,17 +8,17 @@ use crate::event::{self};
 use crate::statistics::repository::Repository;
 use crate::{statistics, Registry};
 
-pub struct TorrentRepositoryContainer {
+pub struct SwarmCoordinationRegistryContainer {
     pub swarms: Arc<Registry>,
     pub event_bus: Arc<event::bus::EventBus>,
     pub stats_event_sender: event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
 }
 
-impl TorrentRepositoryContainer {
+impl SwarmCoordinationRegistryContainer {
     #[must_use]
     pub fn initialize(sender_status: SenderStatus) -> Self {
-        // Torrent repository stats
+        // // Swarm Coordination Registry Container stats
         let broadcaster = Broadcaster::default();
         let stats_repository = Arc::new(Repository::new());
 

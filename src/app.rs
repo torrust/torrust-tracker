@@ -71,7 +71,7 @@ async fn load_data_from_database(config: &Configuration, app_container: &Arc<App
 async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -> JobManager {
     let mut job_manager = JobManager::new();
 
-    start_torrent_repository_event_listener(config, app_container, &mut job_manager);
+    start_swarm_coordination_registry_event_listener(config, app_container, &mut job_manager);
     start_tracker_core_event_listener(config, app_container, &mut job_manager);
     start_http_core_event_listener(config, app_container, &mut job_manager);
     start_udp_core_event_listener(config, app_container, &mut job_manager);
@@ -132,13 +132,13 @@ async fn load_torrent_metrics(config: &Configuration, app_container: &Arc<AppCon
     }
 }
 
-fn start_torrent_repository_event_listener(
+fn start_swarm_coordination_registry_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) {
     job_manager.push_opt(
-        "torrent_repository_event_listener",
+        "swarm_coordination_registry_event_listener",
         jobs::torrent_repository::start_event_listener(config, app_container),
     );
 }

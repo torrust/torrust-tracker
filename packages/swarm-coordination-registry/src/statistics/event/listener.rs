@@ -7,18 +7,18 @@ use torrust_tracker_events::receiver::RecvError;
 use super::handler::handle_event;
 use crate::event::receiver::Receiver;
 use crate::statistics::repository::Repository;
-use crate::{CurrentClock, TORRENT_REPOSITORY_LOG_TARGET};
+use crate::{CurrentClock, SWARM_COORDINATION_REGISTRY_LOG_TARGET};
 
 #[must_use]
 pub fn run_event_listener(receiver: Receiver, repository: &Arc<Repository>) -> JoinHandle<()> {
     let stats_repository = repository.clone();
 
-    tracing::info!(target: TORRENT_REPOSITORY_LOG_TARGET, "Starting torrent repository event listener");
+    tracing::info!(target: SWARM_COORDINATION_REGISTRY_LOG_TARGET, "Starting torrent repository event listener");
 
     tokio::spawn(async move {
         dispatch_events(receiver, stats_repository).await;
 
-        tracing::info!(target: TORRENT_REPOSITORY_LOG_TARGET, "Torrent repository listener finished");
+        tracing::info!(target: SWARM_COORDINATION_REGISTRY_LOG_TARGET, "Torrent repository listener finished");
     })
 }
 
@@ -32,7 +32,7 @@ async fn dispatch_events(mut receiver: Receiver, stats_repository: Arc<Repositor
             biased;
 
             _ = &mut shutdown_signal => {
-                tracing::info!(target: TORRENT_REPOSITORY_LOG_TARGET, "Received Ctrl+C, shutting down torrent repository event listener.");
+                tracing::info!(target: SWARM_COORDINATION_REGISTRY_LOG_TARGET, "Received Ctrl+C, shutting down torrent repository event listener.");
                 break;
             }
 
@@ -42,11 +42,11 @@ async fn dispatch_events(mut receiver: Receiver, stats_repository: Arc<Repositor
                     Err(e) => {
                         match e {
                             RecvError::Closed => {
-                                tracing::info!(target: TORRENT_REPOSITORY_LOG_TARGET, "Torrent repository event receiver closed.");
+                                tracing::info!(target: SWARM_COORDINATION_REGISTRY_LOG_TARGET, "Torrent repository event receiver closed.");
                                 break;
                             }
                             RecvError::Lagged(n) => {
-                                tracing::warn!(target: TORRENT_REPOSITORY_LOG_TARGET, "Torrent repository event receiver lagged by {} events.", n);
+                                tracing::warn!(target: SWARM_COORDINATION_REGISTRY_LOG_TARGET, "Torrent repository event receiver lagged by {} events.", n);
                             }
                         }
                     }

@@ -9,7 +9,7 @@ use bittorrent_udp_tracker_core::{self};
 use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Configuration, HttpApi};
-use torrust_tracker_swarm_coordination_registry::container::TorrentRepositoryContainer;
+use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
 use tracing::instrument;
 
@@ -29,8 +29,8 @@ pub struct AppContainer {
     // Registar
     pub registar: Arc<Registar>,
 
-    // Torrent Repository
-    pub torrent_repository_container: Arc<TorrentRepositoryContainer>,
+    // Swarm Coordination Registry Container
+    pub swarm_coordination_registry_container: Arc<SwarmCoordinationRegistryContainer>,
 
     // Core
     pub tracker_core_container: Arc<TrackerCoreContainer>,
@@ -58,9 +58,9 @@ impl AppContainer {
 
         let registar = Arc::new(Registar::default());
 
-        // Torrent Repository
+        // Swarm Coordination Registry Container
 
-        let torrent_repository_container = Arc::new(TorrentRepositoryContainer::initialize(
+        let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 
@@ -68,7 +68,7 @@ impl AppContainer {
 
         let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
             &core_config,
-            &torrent_repository_container,
+            &swarm_coordination_registry_container,
         ));
 
         // HTTP
@@ -97,8 +97,8 @@ impl AppContainer {
             // Registar
             registar,
 
-            // Torrent Repository
-            torrent_repository_container,
+            // Swarm Coordination Registry Container
+            swarm_coordination_registry_container,
 
             // Core
             tracker_core_container,
@@ -146,7 +146,7 @@ impl AppContainer {
         TrackerHttpApiCoreContainer {
             http_api_config: http_api_config.clone(),
 
-            torrent_repository_container: self.torrent_repository_container.clone(),
+            swarm_coordination_registry_container: self.swarm_coordination_registry_container.clone(),
 
             tracker_core_container: self.tracker_core_container.clone(),
 
