@@ -107,9 +107,7 @@ pub async fn handle_event(
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-    use std::sync::Arc;
 
-    use bittorrent_udp_tracker_core::services::banning::BanService;
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
@@ -122,7 +120,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp4_responses_counter_when_it_receives_a_udp4_response_event() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpResponseSent {
@@ -142,7 +139,6 @@ mod tests {
                 req_processing_time: std::time::Duration::from_secs(1),
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;
@@ -155,7 +151,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp6_response_counter_when_it_receives_a_udp6_response_event() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpResponseSent {
@@ -175,7 +170,6 @@ mod tests {
                 req_processing_time: std::time::Duration::from_secs(1),
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;

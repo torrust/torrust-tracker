@@ -55,9 +55,7 @@ pub async fn handle_event(
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-    use std::sync::Arc;
 
-    use bittorrent_udp_tracker_core::services::banning::BanService;
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
@@ -70,7 +68,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp4_connect_requests_counter_when_it_receives_a_udp4_request_event_of_connect_kind() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpRequestAccepted {
@@ -85,7 +82,6 @@ mod tests {
                 kind: crate::event::UdpRequestKind::Connect,
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;
@@ -98,7 +94,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp4_announce_requests_counter_when_it_receives_a_udp4_request_event_of_announce_kind() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpRequestAccepted {
@@ -115,7 +110,6 @@ mod tests {
                 },
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;
@@ -128,7 +122,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp4_scrape_requests_counter_when_it_receives_a_udp4_request_event_of_scrape_kind() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpRequestAccepted {
@@ -143,7 +136,6 @@ mod tests {
                 kind: crate::event::UdpRequestKind::Scrape,
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;
@@ -156,7 +148,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp6_connect_requests_counter_when_it_receives_a_udp6_request_event_of_connect_kind() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpRequestAccepted {
@@ -171,7 +162,6 @@ mod tests {
                 kind: crate::event::UdpRequestKind::Connect,
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;
@@ -184,7 +174,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp6_announce_requests_counter_when_it_receives_a_udp6_request_event_of_announce_kind() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpRequestAccepted {
@@ -201,7 +190,6 @@ mod tests {
                 },
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;
@@ -214,7 +202,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp6_scrape_requests_counter_when_it_receives_a_udp6_request_event_of_scrape_kind() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpRequestAccepted {
@@ -229,7 +216,6 @@ mod tests {
                 kind: crate::event::UdpRequestKind::Scrape,
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;

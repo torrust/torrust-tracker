@@ -1,8 +1,4 @@
-use std::sync::Arc;
-
 use aquatic_udp_protocol::PeerClient;
-use bittorrent_udp_tracker_core::services::banning::BanService;
-use tokio::sync::RwLock;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::{label_name, metric_name};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
@@ -16,16 +12,9 @@ pub async fn handle_event(
     opt_udp_request_kind: Option<UdpRequestKind>,
     error_kind: ErrorKind,
     repository: &Repository,
-    ban_service: &Arc<RwLock<BanService>>,
     now: DurationSinceUnixEpoch,
 ) {
-    if let ErrorKind::ConnectionCookie(_msg) = error_kind.clone() {
-        let mut ban_service = ban_service.write().await;
-        ban_service.increase_counter(&connection_context.client_socket_addr().ip());
-    }
-
     update_global_fixed_metrics(&connection_context, repository).await;
-
     update_extendable_metrics(&connection_context, opt_udp_request_kind, error_kind, repository, now).await;
 }
 
@@ -126,9 +115,7 @@ fn extract_name_and_version(peer_client: &PeerClient) -> (String, String) {
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-    use std::sync::Arc;
 
-    use bittorrent_udp_tracker_core::services::banning::BanService;
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
@@ -141,7 +128,6 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event() {
         let stats_repository = Repository::new();
-        let ban_service = Arc::new(tokio::sync::RwLock::new(BanService::new(1)));
 
         handle_event(
             Event::UdpError {
@@ -157,7 +143,6 @@ mod tests {
                 error: ErrorKind::RequestParse("Invalid request format".to_string()),
             },
             &stats_repository,
-            &ban_service,
             CurrentClock::now(),
         )
         .await;

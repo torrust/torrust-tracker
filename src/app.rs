@@ -75,7 +75,8 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
     start_tracker_core_event_listener(config, app_container, &mut job_manager);
     start_http_core_event_listener(config, app_container, &mut job_manager);
     start_udp_core_event_listener(config, app_container, &mut job_manager);
-    start_udp_server_event_listener(config, app_container, &mut job_manager);
+    start_udp_server_stats_event_listener(config, app_container, &mut job_manager);
+    start_udp_server_banning_event_listener(app_container, &mut job_manager);
 
     start_the_udp_instances(config, app_container, &mut job_manager).await;
     start_the_http_instances(config, app_container, &mut job_manager).await;
@@ -164,10 +165,21 @@ fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<App
     );
 }
 
-fn start_udp_server_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+fn start_udp_server_stats_event_listener(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) {
     job_manager.push_opt(
-        "udp_server_event_listener",
-        jobs::udp_tracker_server::start_event_listener(config, app_container),
+        "udp_server_stats_event_listener",
+        jobs::udp_tracker_server::start_stats_event_listener(config, app_container),
+    );
+}
+
+fn start_udp_server_banning_event_listener(app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+    job_manager.push(
+        "udp_server_banning_event_listener",
+        jobs::udp_tracker_server::start_banning_event_listener(app_container),
     );
 }
 
