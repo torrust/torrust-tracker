@@ -73,6 +73,7 @@ impl Environment<Stopped> {
         let udp_server_banning_event_listener_job = Some(crate::banning::event::listener::run_event_listener(
             self.container.udp_tracker_server_container.event_bus.receiver(),
             &self.container.udp_tracker_core_container.ban_service,
+            &self.container.udp_tracker_server_container.stats_repository,
         ));
 
         // Start the UDP tracker server
