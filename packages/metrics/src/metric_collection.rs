@@ -322,7 +322,7 @@ impl PrometheusSerializable for MetricCollection {
                     .map(Metric::<Gauge>::to_prometheus),
             )
             .collect::<Vec<String>>()
-            .join("\n")
+            .join("\n\n")
     }
 }
 
@@ -629,14 +629,14 @@ mod tests {
 
         fn prometheus() -> String {
             format_prometheus_output(
-                r#"
-                    # HELP http_tracker_core_announce_requests_received_total The number of announce requests received.
-                    # TYPE http_tracker_core_announce_requests_received_total counter
-                    http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
-                    # HELP udp_tracker_server_performance_avg_announce_processing_time_ns The average announce processing time in nanoseconds.
-                    # TYPE udp_tracker_server_performance_avg_announce_processing_time_ns gauge
-                    udp_tracker_server_performance_avg_announce_processing_time_ns{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
-                "#,
+                r#"# HELP http_tracker_core_announce_requests_received_total The number of announce requests received.
+# TYPE http_tracker_core_announce_requests_received_total counter
+http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
+
+# HELP udp_tracker_server_performance_avg_announce_processing_time_ns The average announce processing time in nanoseconds.
+# TYPE udp_tracker_server_performance_avg_announce_processing_time_ns gauge
+udp_tracker_server_performance_avg_announce_processing_time_ns{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
+"#,
             )
         }
     }
@@ -750,7 +750,7 @@ mod tests {
             MetricKindCollection::new(vec![Metric::new(
                 metric_name!("http_tracker_core_announce_requests_received_total"),
                 None,
-                None,
+                Some(MetricDescription::new("The number of announce requests received.")),
                 SampleCollection::new(vec![
                     Sample::new(Counter::new(1), time, label_set_1.clone()),
                     Sample::new(Counter::new(2), time, label_set_2.clone()),
@@ -765,12 +765,11 @@ mod tests {
         let prometheus_output = metric_collection.to_prometheus();
 
         let expected_prometheus_output = format_prometheus_output(
-            r#"
-            # TYPE http_tracker_core_announce_requests_received_total counter
-            http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",server_binding_port="7171",server_binding_protocol="http"} 2
-            # TYPE http_tracker_core_announce_requests_received_total counter
-            http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
-            "#,
+            r#"# HELP http_tracker_core_announce_requests_received_total The number of announce requests received.
+# TYPE http_tracker_core_announce_requests_received_total counter
+http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"} 1
+http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",server_binding_port="7171",server_binding_protocol="http"} 2
+"#,
         );
 
         // code-review: samples are not serialized in the same order as they are created.

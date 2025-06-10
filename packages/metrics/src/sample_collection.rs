@@ -155,7 +155,11 @@ impl<T: PrometheusSerializable> PrometheusSerializable for SampleCollection<T> {
         let mut output = String::new();
 
         for (label_set, sample_data) in &self.samples {
-            let _ = write!(output, "{} {}", label_set.to_prometheus(), sample_data.to_prometheus());
+            if label_set.is_empty() {
+                let _ = write!(output, "{}", sample_data.to_prometheus());
+            } else {
+                let _ = write!(output, "{} {}", label_set.to_prometheus(), sample_data.to_prometheus());
+            }
         }
 
         output

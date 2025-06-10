@@ -50,7 +50,11 @@ impl<T> Sample<T> {
 
 impl<T: PrometheusSerializable> PrometheusSerializable for Sample<T> {
     fn to_prometheus(&self) -> String {
-        format!("{} {}", self.label_set.to_prometheus(), self.measurement.to_prometheus())
+        if self.label_set.is_empty() {
+            format!(" {}", self.measurement.to_prometheus())
+        } else {
+            format!("{} {}", self.label_set.to_prometheus(), self.measurement.to_prometheus())
+        }
     }
 }
 

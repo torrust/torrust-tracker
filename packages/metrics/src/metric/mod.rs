@@ -103,19 +103,6 @@ impl Metric<Gauge> {
     }
 }
 
-/// `PrometheusMetricSample` is a wrapper around types that provides methods to
-/// convert the metric and its measurement into a Prometheus-compatible format.
-///
-/// In Prometheus, a metric is a time series that consists of a name, a set of
-/// labels, and a value. The sample value needs data from the `Metric` and
-/// `Measurement` structs, as well as the `LabelSet` that defines the labels for
-/// the metric.
-struct PrometheusMetricSample<'a, T> {
-    metric: &'a Metric<T>,
-    measurement: &'a Measurement<T>,
-    label_set: &'a LabelSet,
-}
-
 enum PrometheusType {
     Counter,
     Gauge,
@@ -130,91 +117,58 @@ impl PrometheusSerializable for PrometheusType {
     }
 }
 
-impl<T: PrometheusSerializable> PrometheusMetricSample<'_, T> {
-    fn to_prometheus(&self, prometheus_type: &PrometheusType) -> String {
-        format!(
-            // Format:
-            // # HELP <metric_name> <description>
-            // # TYPE <metric_name> <type>
-            // <metric_name>{label_set} <value>
-            "{}{}{}",
-            self.help_line(),
-            self.type_line(prometheus_type),
-            self.metric_line()
-        )
-    }
-
-    fn help_line(&self) -> String {
-        if let Some(description) = &self.metric.opt_description {
-            format!(
-                // Format: # HELP <metric_name> <description>
-                "# HELP {} {}\n",
-                self.metric.name().to_prometheus(),
-                description.to_prometheus()
-            )
+impl<T: PrometheusSerializable> Metric<T> {
+    #[must_use]
+    fn prometheus_help_line(&self) -> String {
+        if let Some(description) = &self.opt_description {
+            format!("# HELP {} {}", self.name.to_prometheus(), description.to_prometheus())
         } else {
             String::new()
         }
     }
 
-    fn type_line(&self, kind: &PrometheusType) -> String {
-        format!("# TYPE {} {}\n", self.metric.name().to_prometheus(), kind.to_prometheus())
+    #[must_use]
+    fn prometheus_type_line(&self, prometheus_type: &PrometheusType) -> String {
+        format!("# TYPE {} {}", self.name.to_prometheus(), prometheus_type.to_prometheus())
     }
 
-    fn metric_line(&self) -> String {
+    #[must_use]
+    fn prometheus_sample_line(&self, label_set: &LabelSet, measurement: &Measurement<T>) -> String {
         format!(
-            // Format: <metric_name>{label_set} <value>
             "{}{} {}",
-            self.metric.name.to_prometheus(),
-            self.label_set.to_prometheus(),
-            self.measurement.value().to_prometheus()
+            self.name.to_prometheus(),
+            label_set.to_prometheus(),
+            measurement.to_prometheus()
         )
     }
-}
 
-impl<'a> PrometheusMetricSample<'a, Counter> {
-    pub fn new(metric: &'a Metric<Counter>, measurement: &'a Measurement<Counter>, label_set: &'a LabelSet) -> Self {
-        Self {
-            metric,
-            measurement,
-            label_set,
-        }
+    #[must_use]
+    fn prometheus_samples(&self) -> String {
+        self.sample_collection
+            .iter()
+            .map(|(label_set, measurement)| self.prometheus_sample_line(label_set, measurement))
+            .collect::<Vec<_>>()
+            .join("\n")
     }
-}
 
-impl<'a> PrometheusMetricSample<'a, Gauge> {
-    pub fn new(metric: &'a Metric<Gauge>, measurement: &'a Measurement<Gauge>, label_set: &'a LabelSet) -> Self {
-        Self {
-            metric,
-            measurement,
-            label_set,
-        }
+    fn to_prometheus(&self, prometheus_type: &PrometheusType) -> String {
+        let help_line = self.prometheus_help_line();
+        let type_line = self.prometheus_type_line(prometheus_type);
+        let samples = self.prometheus_samples();
+
+        format!("{help_line}\n{type_line}\n{samples}")
     }
 }
 
 impl PrometheusSerializable for Metric<Counter> {
     fn to_prometheus(&self) -> String {
-        let samples: Vec<String> = self
-            .sample_collection
-            .iter()
-            .map(|(label_set, measurement)| {
-                PrometheusMetricSample::<Counter>::new(self, measurement, label_set).to_prometheus(&PrometheusType::Counter)
-            })
-            .collect();
-        samples.join("\n")
+        self.to_prometheus(&PrometheusType::Counter)
     }
 }
 
 impl PrometheusSerializable for Metric<Gauge> {
     fn to_prometheus(&self) -> String {
-        let samples: Vec<String> = self
-            .sample_collection
-            .iter()
-            .map(|(label_set, measurement)| {
-                PrometheusMetricSample::<Gauge>::new(self, measurement, label_set).to_prometheus(&PrometheusType::Gauge)
-            })
-            .collect();
-        samples.join("\n")
+        self.to_prometheus(&PrometheusType::Gauge)
     }
 }
 
