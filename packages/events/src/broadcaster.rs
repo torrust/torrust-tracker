@@ -5,7 +5,7 @@ use tokio::sync::broadcast::{self};
 use crate::receiver::{Receiver, RecvError};
 use crate::sender::{SendError, Sender};
 
-const CHANNEL_CAPACITY: usize = 32768;
+const CHANNEL_CAPACITY: usize = 65536;
 
 /// An event sender and receiver implementation using a broadcast channel.
 #[derive(Clone, Debug)]
