@@ -12,12 +12,12 @@ pub const METRICS_TARGET: &str = "METRICS";
 
 #[cfg(test)]
 mod tests {
-    /// It removes leading and trailing whitespace from each line, and empty lines.
+    /// It removes leading and trailing whitespace from each line.
     pub fn format_prometheus_output(output: &str) -> String {
         output
             .lines()
-            .map(str::trim)
-            .filter(|line| !line.is_empty())
+            .map(str::trim_start)
+            .map(str::trim_end)
             .collect::<Vec<_>>()
             .join("\n")
     }

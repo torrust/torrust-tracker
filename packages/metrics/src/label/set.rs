@@ -16,6 +16,10 @@ impl LabelSet {
     pub fn upsert(&mut self, key: LabelName, value: LabelValue) {
         self.items.insert(key, value);
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
+    }
 }
 
 impl Display for LabelSet {
@@ -157,6 +161,10 @@ impl<'de> Deserialize<'de> for LabelSet {
 
 impl PrometheusSerializable for LabelSet {
     fn to_prometheus(&self) -> String {
+        if self.is_empty() {
+            return String::new();
+        }
+
         let items = self.items.iter().fold(String::new(), |mut output, label_pair| {
             if !output.is_empty() {
                 output.push(',');
