@@ -10,6 +10,7 @@ use torrust_tracker_metrics::unit::Unit;
 
 const UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL: &str = "udp_tracker_server_requests_aborted_total";
 const UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL: &str = "udp_tracker_server_requests_banned_total";
+pub(crate) const UDP_TRACKER_SERVER_IPS_BANNED_TOTAL: &str = "udp_tracker_server_ips_banned_total";
 const UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL: &str = "udp_tracker_server_connection_id_errors_total";
 const UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL: &str = "udp_tracker_server_requests_received_total";
 const UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL: &str = "udp_tracker_server_requests_accepted_total";
@@ -31,6 +32,12 @@ pub fn describe_metrics() -> Metrics {
         &metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL),
         Some(Unit::Count),
         Some(MetricDescription::new("Total number of UDP requests banned")),
+    );
+
+    metrics.metric_collection.describe_gauge(
+        &metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL),
+        Some(Unit::Count),
+        Some(MetricDescription::new("Total number of IPs banned from UDP requests")),
     );
 
     metrics.metric_collection.describe_counter(

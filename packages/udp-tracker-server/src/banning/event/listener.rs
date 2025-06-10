@@ -9,22 +9,28 @@ use torrust_tracker_events::receiver::RecvError;
 
 use super::handler::handle_event;
 use crate::event::receiver::Receiver;
+use crate::statistics::repository::Repository;
 use crate::CurrentClock;
 
 #[must_use]
-pub fn run_event_listener(receiver: Receiver, ban_service: &Arc<RwLock<BanService>>) -> JoinHandle<()> {
+pub fn run_event_listener(
+    receiver: Receiver,
+    ban_service: &Arc<RwLock<BanService>>,
+    repository: &Arc<Repository>,
+) -> JoinHandle<()> {
     let ban_service_clone = ban_service.clone();
+    let repository_clone = repository.clone();
 
     tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker server event listener (banning)");
 
     tokio::spawn(async move {
-        dispatch_events(receiver, ban_service_clone).await;
+        dispatch_events(receiver, ban_service_clone, repository_clone).await;
 
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "UDP tracker server event listener (banning) finished");
     })
 }
 
-async fn dispatch_events(mut receiver: Receiver, ban_service: Arc<RwLock<BanService>>) {
+async fn dispatch_events(mut receiver: Receiver, ban_service: Arc<RwLock<BanService>>, repository: Arc<Repository>) {
     let shutdown_signal = tokio::signal::ctrl_c();
     tokio::pin!(shutdown_signal);
 
@@ -39,7 +45,7 @@ async fn dispatch_events(mut receiver: Receiver, ban_service: Arc<RwLock<BanServ
 
             result = receiver.recv() => {
                 match result {
-                    Ok(event) => handle_event(event, &ban_service, CurrentClock::now()).await,
+                    Ok(event) => handle_event(event, &ban_service, &repository, CurrentClock::now()).await,
                     Err(e) => {
                         match e {
                             RecvError::Closed => {

@@ -23,5 +23,6 @@ pub fn start_banning_event_listener(app_container: &Arc<AppContainer>) -> JoinHa
     torrust_udp_tracker_server::banning::event::listener::run_event_listener(
         app_container.udp_tracker_server_container.event_bus.receiver(),
         &app_container.udp_tracker_core_services.ban_service,
+        &app_container.udp_tracker_server_container.stats_repository,
     )
 }
