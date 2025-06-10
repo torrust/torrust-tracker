@@ -31,7 +31,7 @@ use crate::HTTP_TRACKER_LOG_TARGET;
 /// > **NOTICE**: it's added a layer to get the client IP from the connection
 /// > info. The tracker could use the connection info to get the client IP.
 #[instrument(skip(http_tracker_container, server_service_binding))]
-pub fn router(http_tracker_container: Arc<HttpTrackerCoreContainer>, server_service_binding: ServiceBinding) -> Router {
+pub fn router(http_tracker_container: &Arc<HttpTrackerCoreContainer>, server_service_binding: &ServiceBinding) -> Router {
     let server_socket_addr = server_service_binding.bind_address();
 
     Router::new()

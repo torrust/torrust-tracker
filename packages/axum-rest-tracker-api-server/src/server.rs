@@ -140,7 +140,7 @@ impl ApiServer<Stopped> {
         let task = tokio::spawn(async move {
             tracing::debug!(target: API_LOG_TARGET, "Starting with launcher in spawned task ...");
 
-            let _task = launcher.start(http_api_container, access_tokens, tx_start, rx_halt).await;
+            let _task = launcher.start(&http_api_container, access_tokens, tx_start, rx_halt).await;
 
             tracing::debug!(target: API_LOG_TARGET, "Started with launcher in spawned task");
 
@@ -241,7 +241,7 @@ impl Launcher {
     #[instrument(skip(self, http_api_container, access_tokens, tx_start, rx_halt))]
     pub fn start(
         &self,
-        http_api_container: Arc<TrackerHttpApiCoreContainer>,
+        http_api_container: &Arc<TrackerHttpApiCoreContainer>,
         access_tokens: Arc<AccessTokens>,
         tx_start: Sender<Started>,
         rx_halt: Receiver<Halted>,

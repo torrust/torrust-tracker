@@ -450,7 +450,9 @@ async fn it_should_import_persistent_torrents(
     make(&repo, &entries).await;
 
     let mut downloaded = repo.get_metrics().await.total_downloaded;
-    persistent_torrents.iter().for_each(|(_, d)| downloaded += u64::from(*d));
+    for d in persistent_torrents.values() {
+        downloaded += u64::from(*d);
+    }
 
     repo.import_persistent(&persistent_torrents).await;
 
