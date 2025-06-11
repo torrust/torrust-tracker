@@ -36,7 +36,7 @@ use crate::API_LOG_TARGET;
 /// Add all API routes to the router.
 #[instrument(skip(http_api_container, access_tokens))]
 pub fn router(
-    http_api_container: Arc<TrackerHttpApiCoreContainer>,
+    http_api_container: &Arc<TrackerHttpApiCoreContainer>,
     access_tokens: Arc<AccessTokens>,
     server_socket_addr: SocketAddr,
 ) -> Router {
@@ -44,7 +44,7 @@ pub fn router(
 
     let api_url_prefix = "/api";
 
-    let router = v1::routes::add(api_url_prefix, router, &http_api_container);
+    let router = v1::routes::add(api_url_prefix, router, http_api_container);
 
     let state = State { access_tokens };
 

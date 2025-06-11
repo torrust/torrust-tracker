@@ -47,7 +47,7 @@ impl Launcher {
     #[instrument(skip(self, http_tracker_container, tx_start, rx_halt))]
     fn start(
         &self,
-        http_tracker_container: Arc<HttpTrackerCoreContainer>,
+        http_tracker_container: &Arc<HttpTrackerCoreContainer>,
         tx_start: Sender<Started>,
         rx_halt: Receiver<Halted>,
     ) -> BoxFuture<'static, ()> {
@@ -69,7 +69,7 @@ impl Launcher {
 
         tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{address}");
 
-        let app = router(http_tracker_container, service_binding.clone());
+        let app = router(http_tracker_container, &service_binding);
 
         let running = Box::pin(async {
             match tls {
@@ -176,7 +176,7 @@ impl HttpServer<Stopped> {
         let launcher = self.state.launcher;
 
         let task = tokio::spawn(async move {
-            let server = launcher.start(http_tracker_container, tx_start, rx_halt);
+            let server = launcher.start(&http_tracker_container, tx_start, rx_halt);
 
             server.await;
 

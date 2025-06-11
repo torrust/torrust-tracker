@@ -28,7 +28,7 @@ use crate::event::UdpRequestKind;
 use crate::CurrentClock;
 
 #[derive(Debug, Clone, PartialEq)]
-pub(super) struct CookieTimeValues {
+pub struct CookieTimeValues {
     pub(super) issue_time: f64,
     pub(super) valid_range: Range<f64>,
 }
