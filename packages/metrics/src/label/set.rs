@@ -1,3 +1,4 @@
+use std::collections::btree_map::Iter;
 use std::collections::BTreeMap;
 use std::fmt::Display;
 
@@ -12,6 +13,11 @@ pub struct LabelSet {
 }
 
 impl LabelSet {
+    #[must_use]
+    pub fn empty() -> Self {
+        Self { items: BTreeMap::new() }
+    }
+
     /// Insert a new label pair or update the value of an existing label.
     pub fn upsert(&mut self, key: LabelName, value: LabelValue) {
         self.items.insert(key, value);
@@ -19,6 +25,21 @@ impl LabelSet {
 
     pub fn is_empty(&self) -> bool {
         self.items.is_empty()
+    }
+
+    pub fn contains_pair(&self, name: &LabelName, value: &LabelValue) -> bool {
+        match self.items.get(name) {
+            Some(existing_value) => existing_value == value,
+            None => false,
+        }
+    }
+
+    pub fn matches(&self, criteria: &LabelSet) -> bool {
+        criteria.iter().all(|(key, value)| self.contains_pair(key, value))
+    }
+
+    pub fn iter(&self) -> Iter<'_, LabelName, LabelValue> {
+        self.items.iter()
     }
 }
 

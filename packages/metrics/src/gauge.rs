@@ -17,6 +17,11 @@ impl Gauge {
         self.0
     }
 
+    #[must_use]
+    pub fn primitive(&self) -> f64 {
+        self.value()
+    }
+
     pub fn set(&mut self, value: f64) {
         self.0 = value;
     }
@@ -27,6 +32,12 @@ impl Gauge {
 
     pub fn decrement(&mut self, value: f64) {
         self.0 -= value;
+    }
+}
+
+impl From<f32> for Gauge {
+    fn from(value: f32) -> Self {
+        Self(f64::from(value))
     }
 }
 

@@ -17,6 +17,11 @@ impl Counter {
         self.0
     }
 
+    #[must_use]
+    pub fn primitive(&self) -> u64 {
+        self.value()
+    }
+
     pub fn increment(&mut self, value: u64) {
         self.0 += value;
     }
@@ -26,9 +31,22 @@ impl Counter {
     }
 }
 
+impl From<u32> for Counter {
+    fn from(value: u32) -> Self {
+        Self(u64::from(value))
+    }
+}
+
 impl From<u64> for Counter {
     fn from(value: u64) -> Self {
         Self(value)
+    }
+}
+
+impl From<i32> for Counter {
+    fn from(value: i32) -> Self {
+        #[allow(clippy::cast_sign_loss)]
+        Self(value as u64)
     }
 }
 

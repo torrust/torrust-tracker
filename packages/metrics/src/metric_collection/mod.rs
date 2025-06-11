@@ -1,3 +1,5 @@
+pub mod aggregate;
+
 use std::collections::{HashMap, HashSet};
 
 use serde::ser::{SerializeSeq, Serializer};
@@ -103,7 +105,7 @@ impl MetricCollection {
     ///
     /// Return an error if a metrics of a different type with the same name
     /// already exists.
-    pub fn increase_counter(
+    pub fn increment_counter(
         &mut self,
         name: &MetricName,
         label_set: &LabelSet,
@@ -669,7 +671,7 @@ udp_tracker_server_performance_avg_announce_processing_time_ns{server_binding_ip
 
         // First create a counter
         collection
-            .increase_counter(&metric_name!("test_metric"), &label_set, time)
+            .increment_counter(&metric_name!("test_metric"), &label_set, time)
             .unwrap();
 
         // Then try to create a gauge with the same name
@@ -690,7 +692,7 @@ udp_tracker_server_performance_avg_announce_processing_time_ns{server_binding_ip
             .unwrap();
 
         // Then try to create a counter with the same name
-        let result = collection.increase_counter(&metric_name!("test_metric"), &label_set, time);
+        let result = collection.increment_counter(&metric_name!("test_metric"), &label_set, time);
 
         assert!(result.is_err());
     }
@@ -803,7 +805,7 @@ http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",s
 
         let mut collection1 = MetricCollection::default();
         collection1
-            .increase_counter(&metric_name!("test_counter"), &label_set, time)
+            .increment_counter(&metric_name!("test_counter"), &label_set, time)
             .unwrap();
 
         let mut collection2 = MetricCollection::default();
@@ -824,12 +826,12 @@ http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",s
 
         let mut collection1 = MetricCollection::default();
         collection1
-            .increase_counter(&metric_name!("test_metric"), &label_set, time)
+            .increment_counter(&metric_name!("test_metric"), &label_set, time)
             .unwrap();
 
         let mut collection2 = MetricCollection::default();
         collection2
-            .increase_counter(&metric_name!("test_metric"), &label_set, time)
+            .increment_counter(&metric_name!("test_metric"), &label_set, time)
             .unwrap();
         let result = collection1.merge(&collection2);
 
@@ -843,7 +845,7 @@ http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",s
 
         let mut collection1 = MetricCollection::default();
         collection1
-            .increase_counter(&metric_name!("test_metric"), &label_set, time)
+            .increment_counter(&metric_name!("test_metric"), &label_set, time)
             .unwrap();
 
         let mut collection2 = MetricCollection::default();
@@ -940,7 +942,7 @@ http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",s
             let mut collection = collection_with_one_counter(&metric_name, &label_set, Counter::new(0));
 
             collection
-                .increase_counter(&metric_name!("test_counter"), &label_set, time)
+                .increment_counter(&metric_name!("test_counter"), &label_set, time)
                 .unwrap();
 
             assert_eq!(
@@ -958,10 +960,10 @@ http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",s
                 MetricCollection::new(MetricKindCollection::default(), MetricKindCollection::default()).unwrap();
 
             metric_collection
-                .increase_counter(&metric_name!("test_counter"), &label_set, time)
+                .increment_counter(&metric_name!("test_counter"), &label_set, time)
                 .unwrap();
             metric_collection
-                .increase_counter(&metric_name!("test_counter"), &label_set, time)
+                .increment_counter(&metric_name!("test_counter"), &label_set, time)
                 .unwrap();
 
             assert_eq!(
