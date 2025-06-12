@@ -386,6 +386,56 @@ mod tests {
             assert_eq!(collection.get(&label2).unwrap().value(), &Counter::new(1));
             assert_eq!(collection.len(), 2);
         }
+
+        #[test]
+        fn it_should_allow_setting_absolute_value_for_a_counter() {
+            let label_set = LabelSet::default();
+            let mut collection = SampleCollection::<Counter>::default();
+
+            // Set absolute value for a non-existent label
+            collection.absolute(&label_set, 42, sample_update_time());
+
+            // Verify the label exists and has the absolute value
+            assert!(collection.get(&label_set).is_some());
+            let sample = collection.get(&label_set).unwrap();
+            assert_eq!(*sample.value(), Counter::new(42));
+        }
+
+        #[test]
+        fn it_should_allow_setting_absolute_value_for_existing_counter() {
+            let label_set = LabelSet::default();
+            let mut collection = SampleCollection::<Counter>::default();
+
+            // Initialize the sample with increment
+            collection.increment(&label_set, sample_update_time());
+
+            // Verify initial state
+            let sample = collection.get(&label_set).unwrap();
+            assert_eq!(sample.value(), &Counter::new(1));
+
+            // Set absolute value
+            collection.absolute(&label_set, 100, sample_update_time());
+            let sample = collection.get(&label_set).unwrap();
+            assert_eq!(*sample.value(), Counter::new(100));
+        }
+
+        #[test]
+        fn it_should_update_time_when_setting_absolute_value() {
+            let label_set = LabelSet::default();
+            let initial_time = sample_update_time();
+            let mut collection = SampleCollection::<Counter>::default();
+
+            // Set absolute value with initial time
+            collection.absolute(&label_set, 50, initial_time);
+
+            // Set absolute value with a new time
+            let new_time = initial_time.add(DurationSinceUnixEpoch::from_secs(1));
+            collection.absolute(&label_set, 75, new_time);
+
+            let sample = collection.get(&label_set).unwrap();
+            assert_eq!(sample.recorded_at(), new_time);
+            assert_eq!(*sample.value(), Counter::new(75));
+        }
     }
 
     #[cfg(test)]

@@ -107,4 +107,160 @@ mod tests {
         let counter = Counter::new(42);
         assert_eq!(counter.to_prometheus(), "42");
     }
+
+    #[test]
+    fn it_could_be_converted_from_u32() {
+        let counter: Counter = 42u32.into();
+        assert_eq!(counter.value(), 42);
+    }
+
+    #[test]
+    fn it_could_be_converted_from_i32() {
+        let counter: Counter = 42i32.into();
+        assert_eq!(counter.value(), 42);
+    }
+
+    #[test]
+    fn it_should_return_primitive_value() {
+        let counter = Counter::new(123);
+        assert_eq!(counter.primitive(), 123);
+    }
+
+    #[test]
+    fn it_should_handle_zero_value() {
+        let counter = Counter::new(0);
+        assert_eq!(counter.value(), 0);
+        assert_eq!(counter.primitive(), 0);
+    }
+
+    #[test]
+    fn it_should_handle_large_values() {
+        let counter = Counter::new(u64::MAX);
+        assert_eq!(counter.value(), u64::MAX);
+    }
+
+    #[test]
+    fn it_should_handle_u32_max_conversion() {
+        let counter: Counter = u32::MAX.into();
+        assert_eq!(counter.value(), u64::from(u32::MAX));
+    }
+
+    #[test]
+    fn it_should_handle_i32_max_conversion() {
+        let counter: Counter = i32::MAX.into();
+        assert_eq!(counter.value(), i32::MAX as u64);
+    }
+
+    #[test]
+    fn it_should_handle_negative_i32_conversion() {
+        let counter: Counter = (-42i32).into();
+        #[allow(clippy::cast_sign_loss)]
+        let expected = (-42i32) as u64;
+        assert_eq!(counter.value(), expected);
+    }
+
+    #[test]
+    fn it_should_handle_i32_min_conversion() {
+        let counter: Counter = i32::MIN.into();
+        #[allow(clippy::cast_sign_loss)]
+        let expected = i32::MIN as u64;
+        assert_eq!(counter.value(), expected);
+    }
+
+    #[test]
+    fn it_should_handle_large_increments() {
+        let mut counter = Counter::new(100);
+        counter.increment(1000);
+        assert_eq!(counter.value(), 1100);
+
+        counter.increment(u64::MAX - 1100);
+        assert_eq!(counter.value(), u64::MAX);
+    }
+
+    #[test]
+    fn it_should_support_multiple_absolute_operations() {
+        let mut counter = Counter::new(0);
+
+        counter.absolute(100);
+        assert_eq!(counter.value(), 100);
+
+        counter.absolute(50);
+        assert_eq!(counter.value(), 50);
+
+        counter.absolute(0);
+        assert_eq!(counter.value(), 0);
+    }
+
+    #[test]
+    fn it_should_be_displayable() {
+        let counter = Counter::new(42);
+        assert_eq!(counter.to_string(), "42");
+
+        let counter = Counter::new(0);
+        assert_eq!(counter.to_string(), "0");
+    }
+
+    #[test]
+    fn it_should_be_debuggable() {
+        let counter = Counter::new(42);
+        let debug_string = format!("{counter:?}");
+        assert_eq!(debug_string, "Counter(42)");
+    }
+
+    #[test]
+    fn it_should_be_cloneable() {
+        let counter = Counter::new(42);
+        let cloned_counter = counter.clone();
+        assert_eq!(counter, cloned_counter);
+        assert_eq!(counter.value(), cloned_counter.value());
+    }
+
+    #[test]
+    fn it_should_support_equality_comparison() {
+        let counter1 = Counter::new(42);
+        let counter2 = Counter::new(42);
+        let counter3 = Counter::new(43);
+
+        assert_eq!(counter1, counter2);
+        assert_ne!(counter1, counter3);
+    }
+
+    #[test]
+    fn it_should_have_default_value() {
+        let counter = Counter::default();
+        assert_eq!(counter.value(), 0);
+    }
+
+    #[test]
+    fn it_should_handle_conversion_roundtrip() {
+        let original_value = 12345u64;
+        let counter = Counter::from(original_value);
+        let converted_back: u64 = counter.into();
+        assert_eq!(original_value, converted_back);
+    }
+
+    #[test]
+    fn it_should_handle_u32_conversion_roundtrip() {
+        let original_value = 12345u32;
+        let counter = Counter::from(original_value);
+        assert_eq!(counter.value(), u64::from(original_value));
+    }
+
+    #[test]
+    fn it_should_handle_i32_conversion_roundtrip() {
+        let original_value = 12345i32;
+        let counter = Counter::from(original_value);
+        #[allow(clippy::cast_sign_loss)]
+        let expected = original_value as u64;
+        assert_eq!(counter.value(), expected);
+    }
+
+    #[test]
+    fn it_should_serialize_large_values_to_prometheus() {
+        let counter = Counter::new(u64::MAX);
+        assert_eq!(counter.to_prometheus(), u64::MAX.to_string());
+
+        let counter = Counter::new(0);
+        assert_eq!(counter.to_prometheus(), "0");
+    }
 }

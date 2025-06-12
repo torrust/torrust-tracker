@@ -1,0 +1,19 @@
+{
+    "words": [
+        "cloneable",
+        "formatjson",
+        "Gibibytes",
+        "Kibibytes",
+        "Mebibytes",
+        "ñaca",
+        "rstest",
+        "subsec",
+        "Tebibytes",
+        "thiserror"
+    ],
+    "enableFiletypes": [
+        "dockerfile",
+        "shellscript",
+        "toml"
+    ]
+}

@@ -322,4 +322,33 @@ mod tests {
             assert_relative_eq!(metric.get_sample_data(&label_set).unwrap().value().value(), 1.0);
         }
     }
+
+    mod for_prometheus_serialization {
+        use super::super::*;
+        use crate::counter::Counter;
+        use crate::metric_name;
+
+        #[test]
+        fn it_should_return_empty_string_for_prometheus_help_line_when_description_is_none() {
+            let name = metric_name!("test_metric");
+            let samples = SampleCollection::<Counter>::default();
+            let metric = Metric::<Counter>::new(name, None, None, samples);
+
+            let help_line = metric.prometheus_help_line();
+
+            assert_eq!(help_line, String::new());
+        }
+
+        #[test]
+        fn it_should_return_formatted_help_line_for_prometheus_when_description_is_some() {
+            let name = metric_name!("test_metric");
+            let description = MetricDescription::new("This is a test metric description");
+            let samples = SampleCollection::<Counter>::default();
+            let metric = Metric::<Counter>::new(name, None, Some(description), samples);
+
+            let help_line = metric.prometheus_help_line();
+
+            assert_eq!(help_line, "# HELP test_metric This is a test metric description");
+        }
+    }
 }

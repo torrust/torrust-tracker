@@ -279,6 +279,15 @@ mod tests {
 
             assert_eq!(sample.to_prometheus(), r#"{label_name="label_value",method="GET"} 42"#);
         }
+
+        #[test]
+        fn it_should_allow_exporting_to_prometheus_format_with_empty_label_set() {
+            let counter = Counter::new(42);
+
+            let sample = Sample::new(counter, DurationSinceUnixEpoch::default(), LabelSet::default());
+
+            assert_eq!(sample.to_prometheus(), " 42");
+        }
     }
     mod for_gauge_type_sample {
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
@@ -346,6 +355,15 @@ mod tests {
             let sample = Sample::new(counter, DurationSinceUnixEpoch::default(), labels);
 
             assert_eq!(sample.to_prometheus(), r#"{label_name="label_value",method="GET"} 42"#);
+        }
+
+        #[test]
+        fn it_should_allow_exporting_to_prometheus_format_with_empty_label_set() {
+            let gauge = Gauge::new(42.0);
+
+            let sample = Sample::new(gauge, DurationSinceUnixEpoch::default(), LabelSet::default());
+
+            assert_eq!(sample.to_prometheus(), " 42");
         }
     }
 
