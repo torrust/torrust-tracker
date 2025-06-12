@@ -19,8 +19,8 @@ impl LabelSet {
     }
 
     /// Insert a new label pair or update the value of an existing label.
-    pub fn upsert(&mut self, key: LabelName, value: LabelValue) {
-        self.items.insert(key, value);
+    pub fn upsert(&mut self, name: LabelName, value: LabelValue) {
+        self.items.insert(name, value);
     }
 
     pub fn is_empty(&self) -> bool {
@@ -35,7 +35,7 @@ impl LabelSet {
     }
 
     pub fn matches(&self, criteria: &LabelSet) -> bool {
-        criteria.iter().all(|(key, value)| self.contains_pair(key, value))
+        criteria.iter().all(|(name, value)| self.contains_pair(name, value))
     }
 
     pub fn iter(&self) -> Iter<'_, LabelName, LabelValue> {
@@ -48,7 +48,7 @@ impl Display for LabelSet {
         let items = self
             .items
             .iter()
-            .map(|(key, value)| format!("{key}=\"{value}\""))
+            .map(|(name, value)| format!("{name}=\"{value}\""))
             .collect::<Vec<_>>()
             .join(",");
 
@@ -90,8 +90,8 @@ impl From<Vec<LabelPair>> for LabelSet {
     fn from(vec: Vec<LabelPair>) -> Self {
         let mut items = BTreeMap::new();
 
-        for (key, value) in vec {
-            items.insert(key, value);
+        for (name, value) in vec {
+            items.insert(name, value);
         }
 
         Self { items }
@@ -160,8 +160,8 @@ impl Serialize for LabelSet {
     {
         self.items
             .iter()
-            .map(|(key, value)| SerializedLabel {
-                name: key.clone(),
+            .map(|(name, value)| SerializedLabel {
+                name: name.clone(),
                 value: value.clone(),
             })
             .collect::<Vec<_>>()
