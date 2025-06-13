@@ -1,5 +1,5 @@
 use std::fmt;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -40,11 +40,43 @@ pub enum IpType {
 
 impl fmt::Display for IpType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let addr_type_str = match self {
+        let ip_type_str = match self {
             Self::Plain => "plain",
             Self::V4MappedV6 => "v4_mapped_v6",
         };
-        write!(f, "{addr_type_str}")
+        write!(f, "{ip_type_str}")
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
+pub enum IpFamily {
+    // IPv4
+    Inet,
+    // IPv6
+    Inet6,
+}
+
+impl fmt::Display for IpFamily {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let ip_family_str = match self {
+            Self::Inet => "inet",
+            Self::Inet6 => "inet6",
+        };
+        write!(f, "{ip_family_str}")
+    }
+}
+
+impl From<IpAddr> for IpFamily {
+    fn from(ip: IpAddr) -> Self {
+        if ip.is_ipv4() {
+            return IpFamily::Inet;
+        }
+
+        if ip.is_ipv6() {
+            return IpFamily::Inet6;
+        }
+
+        panic!("Unsupported IP address type: {ip}");
     }
 }
 
@@ -126,6 +158,11 @@ impl ServiceBinding {
         }
 
         IpType::Plain
+    }
+
+    #[must_use]
+    pub fn bind_address_ip_family(&self) -> IpFamily {
+        self.bind_address.ip().into()
     }
 
     /// # Panics
