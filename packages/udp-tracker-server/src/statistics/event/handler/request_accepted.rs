@@ -47,7 +47,9 @@ pub async fn handle_event(
         .increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &label_set, now)
         .await
     {
-        Ok(()) => {}
+        Ok(()) => {
+            tracing::debug!("Successfully increased the counter for UDP requests accepted: {}", label_set);
+        }
         Err(err) => tracing::error!("Failed to increase the counter: {}", err),
     };
 }

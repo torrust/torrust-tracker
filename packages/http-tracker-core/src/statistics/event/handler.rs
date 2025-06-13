@@ -32,7 +32,12 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
                 .increase_counter(&metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
                 .await
             {
-                Ok(()) => {}
+                Ok(()) => {
+                    tracing::debug!(
+                        "Successfully increased the counter for HTTP announce requests received: {}",
+                        label_set
+                    );
+                }
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
             };
         }
@@ -57,7 +62,12 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
                 .increase_counter(&metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &label_set, now)
                 .await
             {
-                Ok(()) => {}
+                Ok(()) => {
+                    tracing::debug!(
+                        "Successfully increased the counter for HTTP scrape requests received: {}",
+                        label_set
+                    );
+                }
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
             };
         }

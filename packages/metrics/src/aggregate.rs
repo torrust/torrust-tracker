@@ -1,6 +1,6 @@
 use derive_more::Display;
 
-#[derive(Debug, Display, Clone, Copy, PartialEq)]
+#[derive(Debug, Display, Clone, Copy, PartialEq, Default)]
 pub struct AggregateValue(f64);
 
 impl AggregateValue {
