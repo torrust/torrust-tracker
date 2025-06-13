@@ -87,8 +87,8 @@ impl From<ConnectionContext> for LabelSet {
                 LabelValue::new(&connection_context.server.service_binding.bind_address().ip().to_string()),
             ),
             (
-                label_name!("server_binding_address_type"),
-                LabelValue::new(&connection_context.server.service_binding.bind_address_type().to_string()),
+                label_name!("server_binding_address_ip_type"),
+                LabelValue::new(&connection_context.server.service_binding.bind_address_ip_type().to_string()),
             ),
             (
                 label_name!("server_binding_port"),

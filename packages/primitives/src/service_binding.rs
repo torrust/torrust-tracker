@@ -26,7 +26,7 @@ impl fmt::Display for Protocol {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
-pub enum AddressType {
+pub enum IpType {
     /// Represents a plain IPv4 or IPv6 address.
     Plain,
 
@@ -38,7 +38,7 @@ pub enum AddressType {
     V4MappedV6,
 }
 
-impl fmt::Display for AddressType {
+impl fmt::Display for IpType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let addr_type_str = match self {
             Self::Plain => "plain",
@@ -120,12 +120,12 @@ impl ServiceBinding {
     }
 
     #[must_use]
-    pub fn bind_address_type(&self) -> AddressType {
+    pub fn bind_address_ip_type(&self) -> IpType {
         if self.is_v4_mapped_v6() {
-            return AddressType::V4MappedV6;
+            return IpType::V4MappedV6;
         }
 
-        AddressType::Plain
+        IpType::Plain
     }
 
     /// # Panics
@@ -169,7 +169,7 @@ mod tests {
         use rstest::rstest;
         use url::Url;
 
-        use crate::service_binding::{AddressType, Error, Protocol, ServiceBinding};
+        use crate::service_binding::{Error, IpType, Protocol, ServiceBinding};
 
         #[rstest]
         #[case("wildcard_ip", Protocol::UDP, SocketAddr::from_str("0.0.0.0:6969").unwrap())]
@@ -203,7 +203,7 @@ mod tests {
         fn should_return_the_bind_address_plain_type_for_ipv4_ips() {
             let service_binding = ServiceBinding::new(Protocol::UDP, SocketAddr::from_str("127.0.0.1:6969").unwrap()).unwrap();
 
-            assert_eq!(service_binding.bind_address_type(), AddressType::Plain);
+            assert_eq!(service_binding.bind_address_ip_type(), IpType::Plain);
         }
 
         #[test]
@@ -211,7 +211,7 @@ mod tests {
             let service_binding =
                 ServiceBinding::new(Protocol::UDP, SocketAddr::from_str("[0:0:0:0:0:0:0:1]:6969").unwrap()).unwrap();
 
-            assert_eq!(service_binding.bind_address_type(), AddressType::Plain);
+            assert_eq!(service_binding.bind_address_ip_type(), IpType::Plain);
         }
 
         #[test]
@@ -219,7 +219,7 @@ mod tests {
             let service_binding =
                 ServiceBinding::new(Protocol::UDP, SocketAddr::from_str("[::ffff:192.0.2.33]:6969").unwrap()).unwrap();
 
-            assert_eq!(service_binding.bind_address_type(), AddressType::V4MappedV6);
+            assert_eq!(service_binding.bind_address_ip_type(), IpType::V4MappedV6);
         }
 
         #[test]
