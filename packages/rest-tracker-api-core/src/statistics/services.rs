@@ -164,14 +164,14 @@ async fn get_protocol_metrics_from_labeled_metrics(
         .value() as u64;
 
     /*
-    
+
     todo:
 
     - Add a label for `server_binding_ip_family` with value `inet` (inet/inet6)
-      to all metrics containing an IP address. This will allow us to distinguish 
+      to all metrics containing an IP address. This will allow us to distinguish
       between IPv4 and IPv6 metrics.
     - Continue replacing the other metrics with the labeled metrics.
-    
+
     */
 
     // For backward compatibility we keep the `tcp4_connections_handled` and
