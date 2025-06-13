@@ -23,6 +23,7 @@ torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
 torrust-udp-tracker-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }
+tracing = "0"
 
 [dev-dependencies]
 torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }

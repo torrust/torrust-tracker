@@ -78,7 +78,7 @@ impl Metrics {
         labels: &LabelSet,
         now: DurationSinceUnixEpoch,
     ) -> Result<(), Error> {
-        self.metric_collection.increase_counter(metric_name, labels, now)
+        self.metric_collection.increment_counter(metric_name, labels, now)
     }
 
     /// # Errors

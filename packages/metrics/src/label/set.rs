@@ -1,3 +1,4 @@
+use std::collections::btree_map::Iter;
 use std::collections::BTreeMap;
 use std::fmt::Display;
 
@@ -12,13 +13,33 @@ pub struct LabelSet {
 }
 
 impl LabelSet {
+    #[must_use]
+    pub fn empty() -> Self {
+        Self { items: BTreeMap::new() }
+    }
+
     /// Insert a new label pair or update the value of an existing label.
-    pub fn upsert(&mut self, key: LabelName, value: LabelValue) {
-        self.items.insert(key, value);
+    pub fn upsert(&mut self, name: LabelName, value: LabelValue) {
+        self.items.insert(name, value);
     }
 
     pub fn is_empty(&self) -> bool {
         self.items.is_empty()
+    }
+
+    pub fn contains_pair(&self, name: &LabelName, value: &LabelValue) -> bool {
+        match self.items.get(name) {
+            Some(existing_value) => existing_value == value,
+            None => false,
+        }
+    }
+
+    pub fn matches(&self, criteria: &LabelSet) -> bool {
+        criteria.iter().all(|(name, value)| self.contains_pair(name, value))
+    }
+
+    pub fn iter(&self) -> Iter<'_, LabelName, LabelValue> {
+        self.items.iter()
     }
 }
 
@@ -27,7 +48,7 @@ impl Display for LabelSet {
         let items = self
             .items
             .iter()
-            .map(|(key, value)| format!("{key}=\"{value}\""))
+            .map(|(name, value)| format!("{name}=\"{value}\""))
             .collect::<Vec<_>>()
             .join(",");
 
@@ -69,8 +90,8 @@ impl From<Vec<LabelPair>> for LabelSet {
     fn from(vec: Vec<LabelPair>) -> Self {
         let mut items = BTreeMap::new();
 
-        for (key, value) in vec {
-            items.insert(key, value);
+        for (name, value) in vec {
+            items.insert(name, value);
         }
 
         Self { items }
@@ -139,8 +160,8 @@ impl Serialize for LabelSet {
     {
         self.items
             .iter()
-            .map(|(key, value)| SerializedLabel {
-                name: key.clone(),
+            .map(|(name, value)| SerializedLabel {
+                name: name.clone(),
                 value: value.clone(),
             })
             .collect::<Vec<_>>()
@@ -276,8 +297,16 @@ mod tests {
     #[test]
     fn it_should_allow_serializing_to_prometheus_format() {
         let label_set = LabelSet::from((label_name!("label_name"), LabelValue::new("label value")));
-
         assert_eq!(label_set.to_prometheus(), r#"{label_name="label value"}"#);
+    }
+
+    #[test]
+    fn it_should_handle_prometheus_format_with_special_characters() {
+        let label_set: LabelSet = vec![("label_with_underscores", "value_with_underscores")].into();
+        assert_eq!(
+            label_set.to_prometheus(),
+            r#"{label_with_underscores="value_with_underscores"}"#
+        );
     }
 
     #[test]
@@ -449,5 +478,107 @@ mod tests {
     fn it_should_implement_clone() {
         let a: LabelSet = (label_name!("x"), LabelValue::new("1")).into();
         let _unused = a.clone();
+    }
+
+    #[test]
+    fn it_should_check_if_empty() {
+        let empty_set = LabelSet::empty();
+        assert!(empty_set.is_empty());
+    }
+
+    #[test]
+    fn it_should_check_if_non_empty() {
+        let non_empty_set: LabelSet = (label_name!("label"), LabelValue::new("value")).into();
+        assert!(!non_empty_set.is_empty());
+    }
+
+    #[test]
+    fn it_should_create_an_empty_label_set() {
+        let empty_set = LabelSet::empty();
+        assert!(empty_set.is_empty());
+    }
+
+    #[test]
+    fn it_should_check_if_contains_specific_label_pair() {
+        let label_set: LabelSet = vec![("service", "tracker"), ("protocol", "http")].into();
+
+        // Test existing pair
+        assert!(label_set.contains_pair(&LabelName::new("service"), &LabelValue::new("tracker")));
+        assert!(label_set.contains_pair(&LabelName::new("protocol"), &LabelValue::new("http")));
+
+        // Test non-existing name
+        assert!(!label_set.contains_pair(&LabelName::new("missing"), &LabelValue::new("value")));
+
+        // Test existing name with wrong value
+        assert!(!label_set.contains_pair(&LabelName::new("service"), &LabelValue::new("wrong")));
+    }
+
+    #[test]
+    fn it_should_match_against_criteria() {
+        let label_set: LabelSet = vec![("service", "tracker"), ("protocol", "http"), ("version", "v1")].into();
+
+        // Empty criteria should match any label set
+        assert!(label_set.matches(&LabelSet::empty()));
+
+        // Single matching criterion
+        let single_criteria: LabelSet = vec![("service", "tracker")].into();
+        assert!(label_set.matches(&single_criteria));
+
+        // Multiple matching criteria
+        let multiple_criteria: LabelSet = vec![("service", "tracker"), ("protocol", "http")].into();
+        assert!(label_set.matches(&multiple_criteria));
+
+        // Non-matching criterion
+        let non_matching: LabelSet = vec![("service", "wrong")].into();
+        assert!(!label_set.matches(&non_matching));
+
+        // Partially matching criteria (one matches, one doesn't)
+        let partial_matching: LabelSet = vec![("service", "tracker"), ("missing", "value")].into();
+        assert!(!label_set.matches(&partial_matching));
+
+        // Criteria with label not in original set
+        let missing_label: LabelSet = vec![("missing_label", "value")].into();
+        assert!(!label_set.matches(&missing_label));
+    }
+
+    #[test]
+    fn it_should_allow_iteration_over_label_pairs() {
+        let label_set: LabelSet = vec![("service", "tracker"), ("protocol", "http")].into();
+
+        let mut count = 0;
+
+        for (name, value) in label_set.iter() {
+            count += 1;
+            // Verify we can access name and value
+            assert!(!name.to_string().is_empty());
+            assert!(!value.to_string().is_empty());
+        }
+
+        assert_eq!(count, 2);
+    }
+
+    #[test]
+    fn it_should_display_empty_label_set() {
+        let empty_set = LabelSet::empty();
+        assert_eq!(empty_set.to_string(), "{}");
+    }
+
+    #[test]
+    fn it_should_serialize_empty_label_set_to_prometheus_format() {
+        let empty_set = LabelSet::empty();
+        assert_eq!(empty_set.to_prometheus(), "");
+    }
+
+    #[test]
+    fn it_should_maintain_order_in_iteration() {
+        let label_set: LabelSet = vec![("z_label", "z_value"), ("a_label", "a_value"), ("m_label", "m_value")].into();
+
+        let mut labels: Vec<String> = vec![];
+        for (name, _) in label_set.iter() {
+            labels.push(name.to_string());
+        }
+
+        // Should be in alphabetical order
+        assert_eq!(labels, vec!["a_label", "m_label", "z_label"]);
     }
 }
