@@ -8,15 +8,15 @@ use torrust_tracker_metrics::metric::description::MetricDescription;
 use torrust_tracker_metrics::metric_name;
 use torrust_tracker_metrics::unit::Unit;
 
-const UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL: &str = "udp_tracker_server_requests_aborted_total";
-const UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL: &str = "udp_tracker_server_requests_banned_total";
-pub(crate) const UDP_TRACKER_SERVER_IPS_BANNED_TOTAL: &str = "udp_tracker_server_ips_banned_total";
-const UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL: &str = "udp_tracker_server_connection_id_errors_total";
-const UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL: &str = "udp_tracker_server_requests_received_total";
+pub const UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL: &str = "udp_tracker_server_requests_aborted_total";
+pub const UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL: &str = "udp_tracker_server_requests_banned_total";
+pub const UDP_TRACKER_SERVER_IPS_BANNED_TOTAL: &str = "udp_tracker_server_ips_banned_total";
+pub const UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL: &str = "udp_tracker_server_connection_id_errors_total";
+pub const UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL: &str = "udp_tracker_server_requests_received_total";
 pub const UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL: &str = "udp_tracker_server_requests_accepted_total";
-const UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL: &str = "udp_tracker_server_responses_sent_total";
-const UDP_TRACKER_SERVER_ERRORS_TOTAL: &str = "udp_tracker_server_errors_total";
-const UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS: &str = "udp_tracker_server_performance_avg_processing_time_ns";
+pub const UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL: &str = "udp_tracker_server_responses_sent_total";
+pub const UDP_TRACKER_SERVER_ERRORS_TOTAL: &str = "udp_tracker_server_errors_total";
+pub const UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS: &str = "udp_tracker_server_performance_avg_processing_time_ns";
 
 #[must_use]
 pub fn describe_metrics() -> Metrics {
