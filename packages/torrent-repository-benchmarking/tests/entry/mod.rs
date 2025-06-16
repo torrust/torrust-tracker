@@ -368,7 +368,7 @@ async fn it_should_get_peers_excluding_the_client_socket(
     let peers = torrent.get_peers(None).await;
     let mut peer = **peers.first().expect("there should be a peer");
 
-    let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8081);
+    let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8081);
 
     // for this test, we should not already use this socket.
     assert_ne!(peer.peer_addr, socket);

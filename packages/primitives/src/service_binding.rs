@@ -115,7 +115,7 @@ pub enum Error {
 /// use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 /// use torrust_tracker_primitives::service_binding::{ServiceBinding, Protocol};
 ///
-/// let service_binding = ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap();
+/// let service_binding = ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
 ///
 /// assert_eq!(service_binding.url().to_string(), "http://127.0.0.1:7070/".to_string());
 /// ```

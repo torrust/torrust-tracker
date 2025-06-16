@@ -43,7 +43,7 @@ impl Default for HttpApi {
 
 impl HttpApi {
     fn default_bind_address() -> SocketAddr {
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1212)
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 1212)
     }
 
     #[allow(clippy::unnecessary_wraps)]

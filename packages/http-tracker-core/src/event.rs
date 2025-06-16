@@ -174,13 +174,13 @@ pub mod test {
 
         use crate::event::{ConnectionContext, Event};
 
-        let remote_client_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+        let remote_client_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
         let info_hash = sample_info_hash();
 
         let event1 = Event::TcpAnnounce {
             connection: ConnectionContext::new(
                 RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
-                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
+                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
             ),
             info_hash,
             announcement: Peer::default(),
@@ -192,7 +192,7 @@ pub mod test {
                     ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2))),
                     Some(8080),
                 ),
-                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070)).unwrap(),
+                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
             ),
             info_hash,
             announcement: Peer::default(),

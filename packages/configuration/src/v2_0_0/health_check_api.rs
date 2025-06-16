@@ -25,6 +25,6 @@ impl Default for HealthCheckApi {
 
 impl HealthCheckApi {
     fn default_bind_address() -> SocketAddr {
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1313)
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 1313)
     }
 }

@@ -22,7 +22,7 @@ pub async fn return_announce_data_once(samples: u64) -> Duration {
         core_http_tracker_services.http_stats_event_sender.clone(),
     );
 
-    let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+    let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
     let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
     let start = Instant::now();

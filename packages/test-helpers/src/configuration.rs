@@ -40,7 +40,7 @@ pub fn ephemeral() -> Configuration {
     // Ephemeral socket address for API
     let api_port = 0u16;
     let mut http_api = HttpApi {
-        bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), api_port),
+        bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), api_port),
         ..Default::default()
     };
     http_api.add_token("admin", "MyAccessToken");
@@ -48,12 +48,12 @@ pub fn ephemeral() -> Configuration {
 
     // Ephemeral socket address for Health Check API
     let health_check_api_port = 0u16;
-    config.health_check_api.bind_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), health_check_api_port);
+    config.health_check_api.bind_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), health_check_api_port);
 
     // Ephemeral socket address for UDP tracker
     let udp_port = 0u16;
     config.udp_trackers = Some(vec![UdpTracker {
-        bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), udp_port),
+        bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), udp_port),
         cookie_lifetime: Duration::from_secs(120),
         tracker_usage_statistics: true,
     }]);
@@ -61,7 +61,7 @@ pub fn ephemeral() -> Configuration {
     // Ephemeral socket address for HTTP tracker
     let http_port = 0u16;
     config.http_trackers = Some(vec![HttpTracker {
-        bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), http_port),
+        bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), http_port),
         tsl_config: None,
         tracker_usage_statistics: true,
     }]);
@@ -156,7 +156,7 @@ pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
 pub fn ephemeral_ipv6() -> Configuration {
     let mut cfg = ephemeral();
 
-    let ipv6 = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0)), 0);
+    let ipv6 = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 0);
 
     if let Some(ref mut http_api) = cfg.http_api {
         http_api.bind_address.clone_from(&ipv6);

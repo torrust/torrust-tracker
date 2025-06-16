@@ -117,8 +117,8 @@ mod tests {
         let socket_addr = resolve_socket_addr(&Url::parse("udp://localhost:8080").unwrap());
 
         assert!(
-            socket_addr == SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
-                || socket_addr == SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 8080)
+            socket_addr == SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)
+                || socket_addr == SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 8080)
         );
     }
 
@@ -127,8 +127,8 @@ mod tests {
         let socket_addr = resolve_socket_addr(&Url::parse("udp://localhost:8080").unwrap());
 
         assert!(
-            socket_addr == SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
-                || socket_addr == SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 8080)
+            socket_addr == SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)
+                || socket_addr == SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 8080)
         );
     }
 }

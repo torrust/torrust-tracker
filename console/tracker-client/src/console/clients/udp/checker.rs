@@ -116,7 +116,7 @@ impl Client {
             bytes_uploaded: NumberOfBytes(0i64.into()),
             bytes_left: NumberOfBytes(0i64.into()),
             event: AnnounceEvent::Started.into(),
-            ip_address: Ipv4Addr::new(0, 0, 0, 0).into(),
+            ip_address: Ipv4Addr::UNSPECIFIED.into(),
             key: PeerKey::new(0i32),
             peers_wanted: NumberOfPeers(1i32.into()),
             port: Port::new(port),

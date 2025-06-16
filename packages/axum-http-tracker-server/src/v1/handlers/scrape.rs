@@ -192,7 +192,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_missing() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let (core_tracker_services, core_http_tracker_services) = initialize_private_tracker();
@@ -224,7 +224,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_invalid() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let (core_tracker_services, core_http_tracker_services) = initialize_private_tracker();
@@ -272,7 +272,7 @@ mod tests {
 
             let scrape_request = sample_scrape_request();
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = ScrapeService::new(
@@ -314,7 +314,7 @@ mod tests {
                 connection_info_socket_address: None,
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = ScrapeService::new(
@@ -361,7 +361,7 @@ mod tests {
                 connection_info_socket_address: None,
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = ScrapeService::new(

@@ -349,7 +349,7 @@ mod tests {
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let announce_service = AnnounceService::new(
@@ -380,7 +380,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_send_the_tcp_4_announce_event_when_the_peer_uses_ipv4() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
             let peer = sample_peer_using_ipv4();
             let remote_client_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
@@ -442,7 +442,7 @@ mod tests {
         }
 
         fn peer_with_the_ipv4_loopback_ip() -> peer::Peer {
-            let loopback_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+            let loopback_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
             let mut peer = sample_peer();
             peer.peer_addr = SocketAddr::new(loopback_ip, 8080);
             peer
@@ -453,10 +453,10 @@ mod tests {
         {
             // Tracker changes the peer IP to the tracker external IP when the peer is using the loopback IP.
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
             let peer = peer_with_the_ipv4_loopback_ip();
-            let remote_client_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+            let remote_client_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
 
             let server_service_binding_clone = server_service_binding.clone();
             let peer_copy = peer;
@@ -466,7 +466,7 @@ mod tests {
                 .expect_send()
                 .with(predicate::function(move |event| {
                     let mut announced_peer = peer_copy;
-                    announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+                    announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
 
                     let mut peer_announcement = peer;
                     peer_announcement.peer_addr = SocketAddr::new(
@@ -514,7 +514,7 @@ mod tests {
         #[tokio::test]
         async fn it_should_send_the_tcp_6_announce_event_when_the_peer_uses_ipv6_even_if_the_tracker_changes_the_peer_ip_to_ipv4()
         {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
             let peer = sample_peer_using_ipv6();
             let remote_client_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
@@ -550,7 +550,7 @@ mod tests {
                 core_http_tracker_services.http_stats_event_sender.clone(),
             );
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let _announce_data = announce_service
