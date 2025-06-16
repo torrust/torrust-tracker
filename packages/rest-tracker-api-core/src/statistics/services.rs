@@ -4,16 +4,8 @@ use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepo
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
 use tokio::sync::RwLock;
-use torrust_tracker_metrics::label::LabelSet;
-use torrust_tracker_metrics::metric_collection::aggregate::Sum;
 use torrust_tracker_metrics::metric_collection::MetricCollection;
-use torrust_tracker_metrics::metric_name;
-use torrust_udp_tracker_server::statistics::{
-    self as udp_server_statistics, UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_IPS_BANNED_TOTAL,
-    UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS, UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL,
-    UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL,
-    UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL, UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
-};
+use torrust_udp_tracker_server::statistics::{self as udp_server_statistics};
 
 use super::metrics::TorrentsMetrics;
 use crate::statistics::metrics::ProtocolMetrics;
@@ -109,26 +101,26 @@ async fn get_protocol_metrics(
         tcp6_announces_handled: http_stats.tcp6_announces_handled(),
         tcp6_scrapes_handled: http_stats.tcp6_scrapes_handled(),
         // UDP
-        udp_requests_aborted: udp_server_stats.udp_requests_aborted,
-        udp_requests_banned: udp_server_stats.udp_requests_banned,
+        udp_requests_aborted: udp_server_stats.udp_requests_aborted(),
+        udp_requests_banned: udp_server_stats.udp_requests_banned(),
         udp_banned_ips_total: udp_banned_ips_total as u64,
-        udp_avg_connect_processing_time_ns: udp_server_stats.udp_avg_connect_processing_time_ns,
-        udp_avg_announce_processing_time_ns: udp_server_stats.udp_avg_announce_processing_time_ns,
-        udp_avg_scrape_processing_time_ns: udp_server_stats.udp_avg_scrape_processing_time_ns,
+        udp_avg_connect_processing_time_ns: udp_server_stats.udp_avg_connect_processing_time_ns(),
+        udp_avg_announce_processing_time_ns: udp_server_stats.udp_avg_announce_processing_time_ns(),
+        udp_avg_scrape_processing_time_ns: udp_server_stats.udp_avg_scrape_processing_time_ns(),
         // UDPv4
-        udp4_requests: udp_server_stats.udp4_requests,
-        udp4_connections_handled: udp_server_stats.udp4_connections_handled,
-        udp4_announces_handled: udp_server_stats.udp4_announces_handled,
-        udp4_scrapes_handled: udp_server_stats.udp4_scrapes_handled,
-        udp4_responses: udp_server_stats.udp4_responses,
-        udp4_errors_handled: udp_server_stats.udp4_errors_handled,
+        udp4_requests: udp_server_stats.udp4_requests(),
+        udp4_connections_handled: udp_server_stats.udp4_connections_handled(),
+        udp4_announces_handled: udp_server_stats.udp4_announces_handled(),
+        udp4_scrapes_handled: udp_server_stats.udp4_scrapes_handled(),
+        udp4_responses: udp_server_stats.udp4_responses(),
+        udp4_errors_handled: udp_server_stats.udp4_errors_handled(),
         // UDPv6
-        udp6_requests: udp_server_stats.udp6_requests,
-        udp6_connections_handled: udp_server_stats.udp6_connections_handled,
-        udp6_announces_handled: udp_server_stats.udp6_announces_handled,
-        udp6_scrapes_handled: udp_server_stats.udp6_scrapes_handled,
-        udp6_responses: udp_server_stats.udp6_responses,
-        udp6_errors_handled: udp_server_stats.udp6_errors_handled,
+        udp6_requests: udp_server_stats.udp6_requests(),
+        udp6_connections_handled: udp_server_stats.udp6_connections_handled(),
+        udp6_announces_handled: udp_server_stats.udp6_announces_handled(),
+        udp6_scrapes_handled: udp_server_stats.udp6_scrapes_handled(),
+        udp6_responses: udp_server_stats.udp6_responses(),
+        udp6_errors_handled: udp_server_stats.udp6_errors_handled(),
     }
 }
 
@@ -165,198 +157,30 @@ async fn get_protocol_metrics_from_labeled_metrics(
 
     // UDP
 
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp_requests_aborted = udp_server_stats
-        .metric_collection
-        .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &LabelSet::empty())
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp_requests_banned = udp_server_stats
-        .metric_collection
-        .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL), &LabelSet::empty())
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp_banned_ips_total = udp_server_stats
-        .metric_collection
-        .sum(&metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL), &LabelSet::empty())
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp_avg_connect_processing_time_ns = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-            &[("request_kind", "connect")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp_avg_announce_processing_time_ns = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-            &[("request_kind", "announce")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp_avg_scrape_processing_time_ns = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-            &[("request_kind", "scrape")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
+    let udp_requests_aborted = udp_server_stats.udp_requests_aborted();
+    let udp_requests_banned = udp_server_stats.udp_requests_banned();
+    let udp_banned_ips_total = udp_server_stats.udp_banned_ips_total();
+    let udp_avg_connect_processing_time_ns = udp_server_stats.udp_avg_connect_processing_time_ns();
+    let udp_avg_announce_processing_time_ns = udp_server_stats.udp_avg_announce_processing_time_ns();
+    let udp_avg_scrape_processing_time_ns = udp_server_stats.udp_avg_scrape_processing_time_ns();
 
     // UDPv4
 
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp4_requests = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
-            &[("server_binding_address_ip_family", "inet")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp4_connections_handled = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-            &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp4_announces_handled = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-            &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp4_scrapes_handled = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-            &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp4_responses = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
-            &[("server_binding_address_ip_family", "inet")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp4_errors_handled = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
-            &[("server_binding_address_ip_family", "inet")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
+    let udp4_requests = udp_server_stats.udp4_requests();
+    let udp4_connections_handled = udp_server_stats.udp4_connections_handled();
+    let udp4_announces_handled = udp_server_stats.udp4_announces_handled();
+    let udp4_scrapes_handled = udp_server_stats.udp4_scrapes_handled();
+    let udp4_responses = udp_server_stats.udp4_responses();
+    let udp4_errors_handled = udp_server_stats.udp4_errors_handled();
 
     // UDPv6
 
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp6_requests = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
-            &[("server_binding_address_ip_family", "inet6")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp6_connections_handled = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp6_announces_handled = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp6_scrapes_handled = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp6_responses = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
-            &[("server_binding_address_ip_family", "inet6")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let udp6_errors_handled = udp_server_stats
-        .metric_collection
-        .sum(
-            &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
-            &[("server_binding_address_ip_family", "inet6")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
+    let udp6_requests = udp_server_stats.udp6_requests();
+    let udp6_connections_handled = udp_server_stats.udp6_connections_handled();
+    let udp6_announces_handled = udp_server_stats.udp6_announces_handled();
+    let udp6_scrapes_handled = udp_server_stats.udp6_scrapes_handled();
+    let udp6_responses = udp_server_stats.udp6_responses();
+    let udp6_errors_handled = udp_server_stats.udp6_errors_handled();
 
     // For backward compatibility we keep the `tcp4_connections_handled` and
     // `tcp6_connections_handled` metrics. They don't make sense for the HTTP

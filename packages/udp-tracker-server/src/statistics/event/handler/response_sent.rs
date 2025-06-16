@@ -13,16 +13,6 @@ pub async fn handle_event(
     stats_repository: &Repository,
     now: DurationSinceUnixEpoch,
 ) {
-    // Global fixed metrics
-    match context.client_socket_addr().ip() {
-        std::net::IpAddr::V4(_) => {
-            stats_repository.increase_udp4_responses().await;
-        }
-        std::net::IpAddr::V6(_) => {
-            stats_repository.increase_udp6_responses().await;
-        }
-    }
-
     let (result_label_value, kind_label_value) = match kind {
         UdpResponseKind::Ok { req_kind } => match req_kind {
             UdpRequestKind::Connect => {
@@ -145,7 +135,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_responses, 1);
+        assert_eq!(stats.udp4_responses(), 1);
     }
 
     #[tokio::test]
@@ -176,6 +166,6 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp6_responses, 1);
+        assert_eq!(stats.udp6_responses(), 1);
     }
 }

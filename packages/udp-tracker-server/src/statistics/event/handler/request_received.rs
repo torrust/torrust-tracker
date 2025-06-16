@@ -7,17 +7,6 @@ use crate::statistics::repository::Repository;
 use crate::statistics::UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL;
 
 pub async fn handle_event(context: ConnectionContext, stats_repository: &Repository, now: DurationSinceUnixEpoch) {
-    // Global fixed metrics
-    match context.client_socket_addr().ip() {
-        std::net::IpAddr::V4(_) => {
-            stats_repository.increase_udp4_requests().await;
-        }
-        std::net::IpAddr::V6(_) => {
-            stats_repository.increase_udp6_requests().await;
-        }
-    }
-
-    // Extendable metrics
     match stats_repository
         .increase_counter(
             &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
@@ -65,6 +54,6 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_requests, 1);
+        assert_eq!(stats.udp4_requests(), 1);
     }
 }

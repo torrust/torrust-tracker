@@ -14,19 +14,7 @@ pub async fn handle_event(
     repository: &Repository,
     now: DurationSinceUnixEpoch,
 ) {
-    update_global_fixed_metrics(&connection_context, repository).await;
     update_extendable_metrics(&connection_context, opt_udp_request_kind, error_kind, repository, now).await;
-}
-
-async fn update_global_fixed_metrics(connection_context: &ConnectionContext, repository: &Repository) {
-    match connection_context.client_socket_addr().ip() {
-        std::net::IpAddr::V4(_) => {
-            repository.increase_udp4_errors().await;
-        }
-        std::net::IpAddr::V6(_) => {
-            repository.increase_udp6_errors().await;
-        }
-    }
 }
 
 async fn update_extendable_metrics(
@@ -149,6 +137,6 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_errors_handled, 1);
+        assert_eq!(stats.udp4_errors_handled(), 1);
     }
 }

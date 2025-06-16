@@ -7,10 +7,6 @@ use crate::statistics::repository::Repository;
 use crate::statistics::UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL;
 
 pub async fn handle_event(context: ConnectionContext, stats_repository: &Repository, now: DurationSinceUnixEpoch) {
-    // Global fixed metrics
-    stats_repository.increase_udp_requests_aborted().await;
-
-    // Extendable metrics
     match stats_repository
         .increase_counter(
             &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
@@ -58,7 +54,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp_requests_aborted, 1);
+        assert_eq!(stats.udp_requests_aborted(), 1);
     }
 
     #[tokio::test]
@@ -81,6 +77,6 @@ mod tests {
         )
         .await;
         let stats = stats_repository.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted, 1);
+        assert_eq!(stats.udp_requests_aborted(), 1);
     }
 }

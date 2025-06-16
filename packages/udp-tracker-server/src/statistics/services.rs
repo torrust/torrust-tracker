@@ -39,8 +39,6 @@
 use std::sync::Arc;
 
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-use bittorrent_udp_tracker_core::services::banning::BanService;
-use tokio::sync::RwLock;
 use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
 use crate::statistics::metrics::Metrics;
@@ -63,38 +61,14 @@ pub struct TrackerMetrics {
 /// It returns all the [`TrackerMetrics`]
 pub async fn get_metrics(
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
-    ban_service: Arc<RwLock<BanService>>,
     stats_repository: Arc<Repository>,
 ) -> TrackerMetrics {
     let torrents_metrics = in_memory_torrent_repository.get_aggregate_swarm_metadata().await;
     let stats = stats_repository.get_stats().await;
-    let udp_banned_ips_total = ban_service.read().await.get_banned_ips_total();
 
     TrackerMetrics {
         torrents_metrics,
         protocol_metrics: Metrics {
-            // UDP
-            udp_requests_aborted: stats.udp_requests_aborted,
-            udp_requests_banned: stats.udp_requests_banned,
-            udp_banned_ips_total: udp_banned_ips_total as u64,
-            udp_avg_connect_processing_time_ns: stats.udp_avg_connect_processing_time_ns,
-            udp_avg_announce_processing_time_ns: stats.udp_avg_announce_processing_time_ns,
-            udp_avg_scrape_processing_time_ns: stats.udp_avg_scrape_processing_time_ns,
-            // UDPv4
-            udp4_requests: stats.udp4_requests,
-            udp4_connections_handled: stats.udp4_connections_handled,
-            udp4_announces_handled: stats.udp4_announces_handled,
-            udp4_scrapes_handled: stats.udp4_scrapes_handled,
-            udp4_responses: stats.udp4_responses,
-            udp4_errors_handled: stats.udp4_errors_handled,
-            // UDPv6
-            udp6_requests: stats.udp6_requests,
-            udp6_connections_handled: stats.udp6_connections_handled,
-            udp6_announces_handled: stats.udp6_announces_handled,
-            udp6_scrapes_handled: stats.udp6_scrapes_handled,
-            udp6_responses: stats.udp6_responses,
-            udp6_errors_handled: stats.udp6_errors_handled,
-            // Extendable metrics
             metric_collection: stats.metric_collection.clone(),
         },
     }
@@ -106,9 +80,6 @@ mod tests {
 
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::{self};
-    use bittorrent_udp_tracker_core::services::banning::BanService;
-    use bittorrent_udp_tracker_core::MAX_CONNECTION_ID_ERRORS_PER_IP;
-    use tokio::sync::RwLock;
     use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
     use crate::statistics::describe_metrics;
@@ -118,16 +89,10 @@ mod tests {
     #[tokio::test]
     async fn the_statistics_service_should_return_the_tracker_metrics() {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 
         let stats_repository = Arc::new(Repository::new());
 
-        let tracker_metrics = get_metrics(
-            in_memory_torrent_repository.clone(),
-            ban_service.clone(),
-            stats_repository.clone(),
-        )
-        .await;
+        let tracker_metrics = get_metrics(in_memory_torrent_repository.clone(), stats_repository.clone()).await;
 
         assert_eq!(
             tracker_metrics,

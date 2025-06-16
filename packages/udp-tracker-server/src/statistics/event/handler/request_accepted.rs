@@ -12,35 +12,6 @@ pub async fn handle_event(
     stats_repository: &Repository,
     now: DurationSinceUnixEpoch,
 ) {
-    // Global fixed metrics
-    match kind {
-        UdpRequestKind::Connect => match context.client_socket_addr().ip() {
-            std::net::IpAddr::V4(_) => {
-                stats_repository.increase_udp4_connections().await;
-            }
-            std::net::IpAddr::V6(_) => {
-                stats_repository.increase_udp6_connections().await;
-            }
-        },
-        UdpRequestKind::Announce { .. } => match context.client_socket_addr().ip() {
-            std::net::IpAddr::V4(_) => {
-                stats_repository.increase_udp4_announces().await;
-            }
-            std::net::IpAddr::V6(_) => {
-                stats_repository.increase_udp6_announces().await;
-            }
-        },
-        UdpRequestKind::Scrape => match context.client_socket_addr().ip() {
-            std::net::IpAddr::V4(_) => {
-                stats_repository.increase_udp4_scrapes().await;
-            }
-            std::net::IpAddr::V6(_) => {
-                stats_repository.increase_udp6_scrapes().await;
-            }
-        },
-    }
-
-    // Extendable metrics
     let mut label_set = LabelSet::from(context);
     label_set.upsert(label_name!("request_kind"), LabelValue::new(&kind.to_string()));
     match stats_repository
@@ -90,7 +61,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_connections_handled, 1);
+        assert_eq!(stats.udp4_connections_handled(), 1);
     }
 
     #[tokio::test]
@@ -118,7 +89,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_announces_handled, 1);
+        assert_eq!(stats.udp4_announces_handled(), 1);
     }
 
     #[tokio::test]
@@ -144,7 +115,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_scrapes_handled, 1);
+        assert_eq!(stats.udp4_scrapes_handled(), 1);
     }
 
     #[tokio::test]
@@ -170,7 +141,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp6_connections_handled, 1);
+        assert_eq!(stats.udp6_connections_handled(), 1);
     }
 
     #[tokio::test]
@@ -198,7 +169,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp6_announces_handled, 1);
+        assert_eq!(stats.udp6_announces_handled(), 1);
     }
 
     #[tokio::test]
@@ -224,6 +195,6 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp6_scrapes_handled, 1);
+        assert_eq!(stats.udp6_scrapes_handled(), 1);
     }
 }
