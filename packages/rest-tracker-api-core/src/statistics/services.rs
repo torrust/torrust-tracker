@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use bittorrent_http_tracker_core::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
@@ -156,51 +155,13 @@ async fn get_protocol_metrics_from_labeled_metrics(
 
     // TCPv4
 
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let tcp4_announces_handled = http_stats
-        .metric_collection
-        .sum(
-            &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-            &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let tcp4_scrapes_handled = http_stats
-        .metric_collection
-        .sum(
-            &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-            &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
+    let tcp4_announces_handled = http_stats.tcp4_announces_handled();
+    let tcp4_scrapes_handled = http_stats.tcp4_scrapes_handled();
 
     // TCPv6
 
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let tcp6_announces_handled = http_stats
-        .metric_collection
-        .sum(
-            &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
-
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    let tcp6_scrapes_handled = http_stats
-        .metric_collection
-        .sum(
-            &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
-        )
-        .unwrap_or_default()
-        .value() as u64;
+    let tcp6_announces_handled = http_stats.tcp6_announces_handled();
+    let tcp6_scrapes_handled = http_stats.tcp6_scrapes_handled();
 
     // UDP
 
